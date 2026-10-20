@@ -1,6 +1,6 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-20T15:29:53+00:00",
+ "generatedAt": "2026-10-20T16:04:29+00:00",
  "posts": [
   {
    "id": "jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy",
@@ -105,6 +105,81 @@
    "firstAuthor": "Minambres"
   },
   {
+   "id": "lancet-2026-rate-ecmo-anticoagulation",
+   "date": "2026-07-07",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "RCT",
+   "topics": [
+    "mcs",
+    "criticalCare",
+    "cardiacSurgery"
+   ],
+   "headline": "RATE: low-dose heparin or therapeutic LMWH is noninferior to standard heparin on ECMO, with no excess clotting",
+   "summary": "In a seven-centre Dutch open-label trial of 320 adults on VV or VA ECMO, low-dose unfractionated heparin (aPTT 1.5-2.0 times baseline) and twice-daily therapeutic LMWH were both noninferior to standard-dose heparin (aPTT 2.0-2.5 times) for a composite of severe bleeding, severe thromboembolism or death at 6 months.",
+   "takeHome": [
+    "Composite of severe bleeding, thromboembolism or 6-month death: 81% standard UFH, 72% low-dose UFH, 75% LMWH",
+    "Severe thromboembolism was 9-11% in every arm; bleeding and mortality trended lower with less anticoagulation",
+    "Lower-intensity anticoagulation is a defensible default for ECMO patients without a separate indication for full dosing"
+   ],
+   "deepDive": "**Why it matters.** Bleeding is the commonest serious complication of ECMO, and most units still run heparin to an aPTT of 1.5-2.5 times baseline on habit rather than trial data. Observational series hinted that less heparin bleeds less without more clotting. RATE is the first adequately sized randomised test.\n\n**What they did.** Seven Dutch mixed ICUs randomised 330 adults on VV (40%) or VA (60%) ECMO between 2020 and 2024 to standard-dose UFH (aPTT 2.0-2.5 times baseline, roughly 60-75 s), low-dose UFH (1.5-2.0 times, roughly 45-60 s) or weight-adjusted therapeutic LMWH twice daily. Patients with a compelling indication for full anticoagulation, known PE or intracardiac thrombus, or HIT were excluded. The primary outcome was a net composite of severe bleeding or severe thromboembolism during ECMO, or death by 6 months, with a 7.5 percentage-point noninferiority margin; 320 were analysed.\n\n**What they found.**\n- Composite: 81% standard, 72% low-dose UFH (difference -9.1%, 95% CI -20.3 to 2.1), 75% LMWH (-6.1%, -17.2 to 5.0). Both met noninferiority.\n- Severe bleeding 65% vs 58% vs 59%; severe thromboembolism 11% vs 10% vs 9%.\n- Six-month mortality 50% vs 42% vs 44%. Oxygenator exchanges were fewer with LMWH, and costs were lower in both intervention arms.\n- Exploratory VV subgroup: mortality 23% with low-dose UFH vs 46% with standard.\n\n**Caveats.** Open label, event rates far above the 60-70% assumed, 13-28% crossover, and anti-Xa was measured in only 71 patients. Superiority was not shown for any outcome.\n\n**For the anaesthesiologist.** Turning heparin down to an aPTT of 1.5-2.0 times baseline, or using LMWH when renal function allows, is now the evidence-based default for most adult ECMO runs. Keep full dosing for mechanical valves, known thrombus or active PE, and stay alert for the bleeding that still hit six in ten patients.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)00851-2",
+   "impact": 3,
+   "trialName": "RATE",
+   "firstAuthor": "Olivier van Minnen"
+  },
+  {
+   "id": "circ-2026-second-universal-definition-heart-failure",
+   "date": "2026-06-29",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "Consensus",
+   "topics": [
+    "cardiac"
+   ],
+   "headline": "Second Universal Definition of Heart Failure: rigid LVEF cut-offs dropped for reduced, preserved and improved EF",
+   "summary": "AHA, ACC, ESC and the World Heart Federation, with HFSA, HFA and the Japanese Heart Failure Society, updated the 2021 universal definition: HF phenotypes are grouped as reduced, preserved and improved ejection fraction without fixed numeric thresholds, a universal classification of causes is proposed, and improvement, remission and recovery trajectories are defined.",
+   "takeHome": [
+    "Three EF groups replace the four-tier scheme; the mildly reduced category disappears, as in the 2026 ESC guideline",
+    "Stages A to D are retained, with Stage 0 for no risk factors; pre-HF (Stage B) keeps its emphasis on prevention",
+    "A universal etiological classification (ischaemic, infective, inflammatory and others) is proposed for records and trials"
+   ],
+   "deepDive": "**Why it matters.** The 2021 universal definition gave us HFmrEF, HFimpEF and the pre-heart failure stage; every echo report, trial eligibility list and pre-op note has used that vocabulary since. The second edition, published in Circulation on 29 June 2026 and co-published in JACC (Walsh and colleagues), changes the vocabulary again.\n\n**What they did.** A writing group convened by the AHA, ACC, ESC and World Heart Federation, in collaboration with HFSA, the HFA of the ESC and the Japanese Heart Failure Society, revised the 2021 document to standardise terminology for clinicians, researchers, health systems and policymakers and, in their words, to better reflect clinical reality.\n\n**What changed.**\n- Phenotypes move away from rigid LVEF cut-offs and are grouped as reduced, preserved and improved ejection fraction; the mildly reduced category is gone, matching the 2026 ESC heart failure guideline published in August.\n- Staging keeps A (at risk), B (pre-HF), C (HF) and D (advanced HF), adds Stage 0 for people without risk factors, and sharpens the criteria for each stage.\n- A universal classification of causes is proposed, grouping for example ischaemic, infective (viral, Chagas, HIV) and inflammatory (sarcoid, autoimmune, desmoplakin) cardiomyopathies, to standardise registries and trials.\n- Trajectories of improvement, remission and recovery are defined, and the document addresses social determinants and geographic variation in HF risk and outcomes.\n\n**Caveats.** A definition document, not a treatment guideline; numeric EF thresholds will persist in device and drug labels and in trial criteria for years, so expect a period of dual language.\n\n**For the anaesthesiologist.** Update pre-operative templates and TEE reports: HFmrEF is leaving the lexicon, improved EF is a formal phenotype that still carries risk, and the cause of the cardiomyopathy should be named using the new taxonomy.",
+   "url": "https://doi.org/10.1161/CIR.0000000000001455",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Mary Norine Walsh"
+  },
+  {
+   "id": "icm-2026-adqi-elso-aki-crrt-during-ecmo-consensus",
+   "date": "2026-05-06",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Intensive Care Med",
+   "jshort": "ICM",
+   "kind": "Consensus",
+   "topics": [
+    "mcs",
+    "criticalCare"
+   ],
+   "headline": "ADQI/ELSO consensus on kidney support during ECMO: CRRT when medical management fails, return blood pre-oxygenator",
+   "summary": "The 36th ADQI meeting, held with ELSO in June 2025, produced 44 consensus statements across all ages on AKI epidemiology, fluid management, CRRT indications and delivery, biomarkers and drug dosing during ECMO (Gist and colleagues, Intensive Care Medicine, online 6 May 2026).",
+   "takeHome": [
+    "AKI affects 50-70% of ECMO patients and about half receive CRRT; diagnose with KDIGO and treat modifiable risks",
+    "Start RRT when medical management fails fluid or metabolic goals, usually for fluid accumulation; ECMO itself is not an indication",
+    "Integrated CRRT returns blood before the membrane lung; avoid the pre-pump side because of air entrainment; remove fluid gradually"
+   ],
+   "deepDive": "**Why it matters.** Half of adult ECMO patients end up on CRRT, and how the filter is plumbed into the circuit, when it starts and how fast fluid comes off are decided bed by bed. This is the first joint ADQI/ELSO document.\n\n**What they did.** The 36th ADQI consensus conference met with ELSO in June 2025 with five working groups: epidemiology and outcomes; fluid management; indications for RRT and fluid removal; CRRT delivery; and biomarkers, blood purification and pharmacokinetics. A modified Delphi required over 80% agreement (over 90% for every final statement) on 44 statements spanning neonates to adults. Recommendations are deliberately ungraded.\n\n**Key statements.**\n- Diagnose AKI by KDIGO; it occurs in 50-70% of ECMO patients and tracks with worse short- and long-term outcomes.\n- Fluid accumulation is associated with harm; aim for euvolaemia with individualised, dynamic removal targets, because brisk ultrafiltration drops venous return and compromises circuit flow.\n- RRT is indicated when medical management fails to meet fluid or metabolic goals and delay would be harmful; continuous modalities are preferred; no trial has tested early versus late initiation on ECMO.\n- Configuration: a pre-existing dialysis catheter can run a separate circuit; otherwise an in-line haemofilter or integrated CRRT device. Return blood before the membrane lung, which traps air and clots; the negative-pressure pre-pump side is reserved for cases where nothing else is practical, with bubble sensors.\n- Drug handling changes with AKI, circuit sequestration and haemodilution; use therapeutic drug monitoring more often.\n\n**Caveats.** Opinion-based wherever trials are absent, which is most places; the statement count is reported inconsistently in the text.\n\n**For us.** A single reference for perfusionists, intensivists and nephrologists to write one CRRT-on-ECMO protocol from, with the research agenda (timing, fluid strategy, dosing) spelled out.",
+   "url": "https://doi.org/10.1007/s00134-026-08440-3",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Katja M. Gist"
+  },
+  {
    "id": "ejhf-2026-hfa-heart-transplantation-consensus",
    "date": "2026-05-05",
    "dateApprox": false,
@@ -181,6 +256,56 @@
    "firstAuthor": "Aissaoui"
   },
   {
+   "id": "annsurg-2026-sofrib-rib-fixation-rct",
+   "date": "2026-03-26",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Annals of Surgery",
+   "jshort": "Ann Surg",
+   "kind": "RCT",
+   "topics": [
+    "trauma",
+    "thoracic"
+   ],
+   "headline": "SOFRIB: rib plating did not shorten ICU stay and tripled pneumonia, though pain and quality of life were better later",
+   "summary": "In a nine-centre US trial of 236 adults with three or more displaced rib fractures plus pulmonary compromise, severe pain or deformity, surgical stabilisation within 5 days versus standardised non-operative care did not change ICU length of stay (mean difference 1.8 days, P = 0.17), lengthened hospital stay by 3.3 days and raised pneumonia from 3.3% to 11.4%, while improving SF-36 pain and physical scores.",
+   "takeHome": [
+    "Primary outcome ICU length of stay: no difference; hospital stay 3.3 days longer and pneumonia 11.4% vs 3.3% with fixation",
+    "SF-36 general health, bodily pain and physical component scores improved beyond the minimal clinically important difference",
+    "Supports selective fixation for flail chest and specific patterns; blocks, catheters and respiratory therapy remain the standard"
+   ],
+   "deepDive": "**Why it matters.** Rib plating has spread well beyond flail chest on the strength of registry data, and the 2023 single-centre Annals trial had already shown longer hospital stays with fixation. SOFRIB is the largest multicentre randomised test, and it lands alongside the ACS chest wall injury guideline that put regional blocks on par with epidurals.\n\n**What they did.** Ang and colleagues (Annals of Surgery, online 26 March 2026) randomised 236 adults at nine ACS-verified trauma centres between 2014 and 2024. Inclusion needed three or more displaced fractures plus pulmonary compromise, severe pain or chest wall deformity. Patients were allocated 1:1 to surgical stabilisation within 5 days (114) or standardised non-operative care (122); analysis was intention to treat and the primary outcome was ICU length of stay.\n\n**What they found.**\n- ICU stay: mean difference 1.8 days, 95% CI -0.8 to 4.4, P = 0.17.\n- Hospital stay 3.3 days longer with fixation (P = 0.01); pneumonia 11.4% vs 3.3% (risk ratio 3.45, P = 0.02).\n- SF-36 general health +3.3, bodily pain +4.0 and physical component +3.3 points, each beyond the minimal clinically important difference; PIQ-6 pain impact lower by 3.9 points.\n- Return to work 62.5% vs 38.7%, not significant (P = 0.08).\n\n**Caveats.** Ten years to enrol 236 patients at nine centres implies slow accrual and selection; analgesic regimens, surgical technique and timing varied; the patient-reported outcomes were secondary and unblinded.\n\n**For the anaesthesiologist.** The acute-care case for routine plating is weaker than its advocates assumed, and the operated patient needs an anaesthetic and often a ventilator that the medically managed patient avoids. The lever you control, early catheter-based regional analgesia with aggressive pulmonary toilet, remains the standard against which fixation must prove itself. Reserve the operating room for flail segments and patients failing that care.",
+   "url": "https://doi.org/10.1097/SLA.0000000000007053",
+   "impact": 2,
+   "trialName": "SOFRIB",
+   "firstAuthor": "Darwin Ang"
+  },
+  {
+   "id": "jvs-2026-svs-blunt-thoracic-aortic-injury-focused-update",
+   "date": "2026-03-24",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "J Vasc Surg",
+   "jshort": "JVS",
+   "kind": "Guideline",
+   "topics": [
+    "trauma",
+    "cardiacSurgery"
+   ],
+   "headline": "SVS 2026 blunt aortic injury: no repair for grades 1-2, delayed TEVAR for stable grade 3, emergent repair for grade 4",
+   "summary": "The Society for Vascular Surgery's focused update of its 2011 guideline (DuBose and colleagues, writing group chaired by Azizzadeh) issues 13 recommendations: definitive non-operative management for minimal aortic injury, TEVAR after 24 hours for stable grade 3 injuries so other injuries can be treated first, urgent repair when the aorta is the cause of instability, and no anti-impulse therapy for grade 1-2 injuries with traumatic brain injury.",
+   "takeHome": [
+    "Grade 1: no routine follow-up imaging; grade 2: one CTA to confirm resolution; neither gets TEVAR or open repair",
+    "Grade 3 stable: delayed TEVAR beyond 24 h; grade 3 unstable from the aorta: urgent or emergent; grade 4: emergent repair",
+    "With TBI or solid organ injury: no anti-impulse therapy for grades 1-2, individualised targets for grade 3, joint decision on heparin"
+   ],
+   "deepDive": "**Why it matters.** Blunt thoracic aortic injury is among the leading causes of death after blunt trauma, and the anaesthesiologist is the one running the blood pressure between the CT scanner and the endovascular suite. The 2011 SVS guideline predates most of the TEVAR and grading literature.\n\n**What they did.** DuBose, Azizzadeh and the SVS writing group (Journal of Vascular Surgery, online 24 March 2026; print May 2026) commissioned a systematic review and issued 13 updated recommendations using the SVS grade 1-4 injury scale.\n\n**What it says.**\n- Grades 1 and 2 (minimal aortic injury): definitive non-operative management is recommended over TEVAR or open repair. Grade 1 needs no routine follow-up imaging; grade 2 gets a single follow-up CTA to confirm resolution.\n- Grade 3, haemodynamically stable: delayed TEVAR, beyond 24 hours, is suggested so that other injuries can be addressed first.\n- Grade 3 with instability attributable to the aorta: urgent (under 24 hours) or emergent intervention. Grade 4: emergent repair.\n- Grade 1-2 with traumatic brain injury: anti-impulse therapy is not recommended and blood pressure management should prioritise the brain. Grade 3 with TBI or solid organ injury: anti-impulse therapy and TEVAR timing are individualised with trauma surgery and neurosurgery.\n- Intraprocedural anticoagulation during TEVAR in patients with TBI or solid organ injury should be decided collaboratively.\n\n**Caveats.** Evidence quality is low throughout and most recommendations are suggestions; left subclavian management, spinal drainage and numeric pressure targets are not covered in the summary material we could verify.\n\n**For the anaesthesiologist.** The reflex beta-blocker infusion for every aortic injury on the CT report is gone for grades 1-2, and the patient with a concomitant head injury gets the neurosurgical pressure target. Build the heparin conversation into the pre-TEVAR huddle rather than at the moment of deployment.",
+   "url": "https://doi.org/10.1016/j.jvs.2026.02.013",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Joseph DuBose"
+  },
+  {
    "id": "pccm-2026-pediatric-surviving-sepsis-guideline",
    "date": "2026-03-23",
    "dateApprox": false,
@@ -204,6 +329,30 @@
    "impact": 3,
    "trialName": "",
    "firstAuthor": "Weiss"
+  },
+  {
+   "id": "lancet-2026-vats-vs-open-lobectomy-ipd-meta",
+   "date": "2026-03-21",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "Meta-analysis",
+   "topics": [
+    "thoracic"
+   ],
+   "headline": "VATS lobectomy beats open surgery on survival in pooled randomised data: HR 0.79 for death, same disease-free survival",
+   "summary": "An individual patient data meta-analysis of the three randomised trials of VATS versus open lobectomy for early-stage NSCLC (Danish, Chinese and UK VIOLET; 1,185 patients) found a 21% lower hazard of death with VATS and similar disease-free survival, with no heterogeneity across trials.",
+   "takeHome": [
+    "Overall survival HR 0.79 (95% CI 0.65-0.96) for VATS; disease-free survival HR 0.91 (0.75-1.12)",
+    "Three trials, 586 VATS vs 599 open; result held after excluding benign disease",
+    "The oncological-equivalence worry is answered; thoracotomy now needs a technical justification"
+   ],
+   "deepDive": "**Why it matters.** VATS became the default lobectomy approach for early-stage lung cancer because patients recover faster and hurt less, not because anyone had shown it was oncologically as good. Surgeons who favoured thoracotomy pointed out that no trial was powered for survival. This NIHR-funded pooled analysis (Harris, Lim and colleagues; Lancet 2026;407:1182-1190) closes that argument.\n\n**What they did.** A systematic search through June 2025 found three randomised trials of VATS versus open lobectomy in early-stage NSCLC: the Danish trial of Bendixen (median follow-up 9.5 years), the Chinese trial of Long (5.2 years) and the UK VIOLET trial of Lim (3.8 years). Individual patient data for all 1,185 participants (586 VATS, 599 open) were pooled in a one-stage random-effects Cox model.\n\n**What they found.**\n- Overall survival: HR 0.79 (95% CI 0.65-0.96), a 21% lower hazard of death with VATS, in the same direction in every trial.\n- Disease-free survival: HR 0.91 (0.75-1.12).\n- No statistical heterogeneity; excluding benign disease gave HR 0.78 for survival and 0.89 for disease-free survival.\n\n**Caveats.** Three trials, modest total numbers, and VIOLET follow-up is still short. Because recurrence was not reduced, the survival gain presumably reflects fewer complications and better delivery of adjuvant therapy rather than a better cancer operation. Robotic approaches were not studied.\n\n**For the anaesthesiologist.** Expect even fewer thoracotomies, and expect conversion to be a true emergency rather than a routine. The anaesthetic contribution to the survival advantage, faster extubation, less opioid and early mobilisation, is part of why minimally invasive surgery wins; the thoracotomy patient now needs the full PROSPECT analgesic package precisely because they are the exception.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)00031-0",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Rosie A. Harris"
   },
   {
    "id": "jcva-2026-cabg-racial-inequities-nis",
@@ -255,6 +404,56 @@
    "firstAuthor": "Long"
   },
   {
+   "id": "circ-2026-aha-acc-acute-pulmonary-embolism-guideline",
+   "date": "2026-02-19",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "Guideline",
+   "topics": [
+    "criticalCare",
+    "cardiac",
+    "mcs"
+   ],
+   "headline": "2026 AHA/ACC PE guideline: 'massive' and 'submassive' are out, PERT is Class 1, deep sedation is Class 3 Harm",
+   "summary": "The first joint AHA/ACC clinical practice guideline on acute PE in adults, written with CHEST, SCAI, SIR and six other societies, replaces risk tiers with clinical categories A to E, makes PE response teams Class 1 for categories C to E, and warns against intubation and deep sedation unless unavoidable.",
+   "takeHome": [
+    "Categories A-E are set by the most severe finding; E1 is persistent hypotension or shock, E2 refractory shock or arrest",
+    "Systemic lysis: Class 3 Harm through C2, may be considered in D, reasonable in E; VA-ECMO is the E2 alternative",
+    "If a category C-E patient must be intubated, have VA-ECMO at the bedside and use the gentlest induction you can"
+   ],
+   "deepDive": "**Why it matters.** Anaesthesiologists meet PE at its worst: the intraoperative collapse, the arrest on induction, the ECMO call from the cath lab. This is the first full AHA/ACC clinical practice guideline, co-written with ACCP, ACEP, CHEST, SCAI, SHM, SIR, SVM and SVN (Creager, chair; Circulation, online 19 February 2026).\n\n**What changed.**\n- Massive, submassive and low-risk are replaced by categories A (subclinical) through E (cardiopulmonary failure), assigned by the most severe indicator. C splits into C1-C3 by RV dysfunction and biomarkers, D is incipient failure such as normotensive shock, E1 is persistent hypotension or cardiogenic shock, E2 refractory shock or arrest.\n- Categories C to E are admitted with troponin or BNP, lactate and echo of the RV; a PE response team is Class 1.\n- Anticoagulation: DOACs over warfarin and LMWH over UFH (both Class 1); no routine IVC filters in anticoagulated patients (Class 3 Harm).\n- Systemic thrombolysis is Class 3 Harm through C2, may be considered in D1-D2 and is reasonable in E. Catheter-directed lysis or mechanical thrombectomy may be considered in D and is reasonable in E1. Surgical embolectomy is reasonable in E1 but not preferred over VA-ECMO in E2.\n- Deep sedation and mechanical ventilation are Class 3 Harm in categories C to E unless clinically necessary; norepinephrine is first line, dobutamine for low output, and VA-ECMO should be ready if intubation is unavoidable.\n\n**Caveats.** Many interventional recommendations rest on registry and single-arm data; the category scheme is new and needs validation; the document covers adults only.\n\n**For us.** Learn the letters, because consults will use them. The explicit warnings about induction and positive pressure in a failing RV, and the instruction to have ECMO available before intubating a category C-E patient, are the lines to put in your department's PE pathway.",
+   "url": "https://doi.org/10.1161/CIR.0000000000001415",
+   "impact": 3,
+   "trialName": "",
+   "firstAuthor": "Mark A. Creager"
+  },
+  {
+   "id": "anaesthesia-2026-international-perioperative-fasting-consensus",
+   "date": "2026-02-09",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Anaesthesia",
+   "jshort": "Anaes",
+   "kind": "Consensus",
+   "topics": [
+    "general"
+   ],
+   "headline": "International fasting consensus: encourage clear fluids until 2 h, allow 'sip til send' by protocol, gum until transfer",
+   "summary": "A 68-stakeholder, three-round Delphi across five continents, including patients, nurses, surgeons and anaesthetists, agreed eight recommendations: keep the 6-hour solid rule, actively encourage clear liquids until 2 hours before anaesthesia, let institutions permit more liberal intake, and resume oral intake as soon as feasible.",
+   "takeHome": [
+    "Clear liquids should be encouraged, not merely permitted, until 2 h before anaesthesia or sedation",
+    "Institutions may adopt more liberal protocols such as sipping until called; solids stay at 6 h, longer for heavy meals",
+    "Chewing gum and sweets allowed until transfer; a trained operator's gastric ultrasound can settle doubtful cases"
+   ],
+   "deepDive": "**Why it matters.** Patients routinely fast for 10-14 hours because instructions are conservative and lists slip. Prolonged fasting from clear fluids worsens thirst, hypotension at induction, glucose handling and recovery, with no evidence of fewer aspirations. National guidelines had drifted apart, and UK 'sip til send' programmes had moved ahead of them.\n\n**What they did.** Ruggeberg and colleagues (Anaesthesia, online 9 February 2026) ran a systematic review, drafted 13 recommendations and put them through three Delphi rounds with 68 stakeholders: patients, anaesthetists, surgeons, physicians, nurses and representatives of international organisations from five continents. Eight recommendations survived.\n\n**What they agreed.**\n- Clear liquids (water, tea or coffee with a little milk, pulp-free juice, clear carbohydrate drinks) should be actively encouraged until 2 hours before the start of anaesthesia or sedation, unless an institutional protocol permits more liberal intake, such as sipping until called to the procedure room.\n- Solids and non-clear liquids keep the 6-hour rule, longer after large or fatty meals; nothing solid within 2 hours.\n- Salivation stimulants such as chewing gum and lollipops may continue until transfer and restart in recovery.\n- Oral intake should resume as soon as clinically feasible after the procedure.\n- Pre-procedural gastric ultrasound by a trained provider may inform decisions when more information is needed.\n\n**Caveats.** Consensus, not trial evidence; adults only; it does not replace drug-specific guidance such as the multisociety advice on GLP-1 receptor agonists. Liberal regimens are meant to run inside written institutional protocols, not ad hoc.\n\n**For the anaesthesiologist.** The direction of travel is settled: the default is a drink two hours before, not nil by mouth from midnight. Writing the local protocol, including who decides on the delayed case and when to scan the stomach, is now the job.",
+   "url": "https://doi.org/10.1111/anae.70130",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Anne Ruggeberg"
+  },
+  {
    "id": "ehjci-2026-ase-eacvi-strain-echocardiography-consensus",
    "date": "2026-01-30",
    "dateApprox": false,
@@ -303,6 +502,30 @@
    "impact": 3,
    "trialName": "",
    "firstAuthor": "Budd"
+  },
+  {
+   "id": "anaesthesia-2026-perioperative-blood-pressure-guideline",
+   "date": "2026-01-14",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Anaesthesia",
+   "jshort": "Anaes",
+   "kind": "Guideline",
+   "topics": [
+    "general"
+   ],
+   "headline": "Association of Anaesthetists/BIHS 2026: proceed with elective surgery below 180/120 in clinic; home readings now count",
+   "summary": "The planned update of the 2016 UK blood pressure guideline, built by Delphi, tells hospitals to accept referrals with a documented clinic BP under 160/100 (or home or ambulatory under 155/95) in the past year, and to proceed at pre-assessment if the clinic reading is under 180/120 or the out-of-office reading under 175/115.",
+   "takeHome": [
+    "Referral accepted with clinic BP under 160/100, or ambulatory/home under 155/95, documented within 12 months",
+    "No primary-care record: proceed if clinic BP is under 180/120 or home/ambulatory under 175/115",
+    "Scope is adults having planned non-cardiothoracic, non-obstetric, non-endocrine surgery, decision to operate to 30 days after"
+   ],
+   "deepDive": "**Why it matters.** A raised blood pressure on the morning of surgery is still one of the commonest reasons for a cancelled list, even though the link between pre-operative hypertension and perioperative harm is weak below very high values. The 2016 Association of Anaesthetists and British Hypertension Society guideline set a clinic cut-off of 180/110 mmHg; this is the planned update, now with the British and Irish Hypertension Society (McCormack and colleagues, Anaesthesia, online 14 January 2026).\n\n**What they did.** An expert working party ran a targeted literature review and a modified Delphi process. Scope: adults having planned surgery other than cardiothoracic, obstetric or endocrine procedures, from the decision to operate to 30 days after surgery.\n\n**What it says.**\n- Secondary care should accept a referral that documents a clinic BP below 160/100 mmHg, or an ambulatory or home BP below 155/95 mmHg, within 12 months.\n- A patient arriving at pre-operative assessment without a documented primary-care reading may proceed if the clinic BP is below 180/120 mmHg, or an out-of-office reading is below 175/115 mmHg.\n- Out-of-office measurement is given equal standing with clinic readings, and the document covers measurement, referral back to primary care and perioperative management.\n- A short companion paper from the same group (Frank and colleagues, Anaesthesia, online 19 March 2026) addresses which antihypertensives to continue or hold.\n\n**Caveats.** Consensus-based and UK-focused; the thresholds are about proceeding safely, not about intraoperative targets, which still rest on the individual patient's baseline. Cardiac surgery is explicitly out of scope.\n\n**For the anaesthesiologist.** Fewer same-day cancellations for isolated readings in the 160-180 systolic range, a defined role for home monitoring, and a clear message that long-term control belongs to primary care rather than to the pre-op clinic.",
+   "url": "https://doi.org/10.1111/anae.70082",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Terry McCormack"
   },
   {
    "id": "circhf-2026-aha-invasive-hemodynamic-protocols-statement",
@@ -377,6 +600,31 @@
    "impact": 2,
    "trialName": "",
    "firstAuthor": "Granell M"
+  },
+  {
+   "id": "jama-2025-designation-driving-pressure-guided-peep",
+   "date": "2025-12-03",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "JAMA",
+   "jshort": "JAMA",
+   "kind": "RCT",
+   "topics": [
+    "general",
+    "criticalCare"
+   ],
+   "headline": "DESIGNATION: driving pressure-guided PEEP plus recruitment did not cut pulmonary complications after abdominal surgery",
+   "summary": "Across 29 European sites, 1,435 adults at increased pulmonary risk having open abdominal surgery were randomised to individualised PEEP titrated to the lowest driving pressure plus recruitment manoeuvres, or fixed PEEP 5 without recruitment; the composite of pulmonary complications within 5 days was 19.8% vs 17.4%.",
+   "takeHome": [
+    "Postoperative pulmonary complications 19.8% vs 17.4% (difference 2.5%, 95% CI -1.5 to 6.4); hospital mortality 3.6% vs 3.3%",
+    "High PEEP caused more hypotension (54% vs 45%) and vasopressor use (32% vs 19%), with less desaturation (0.8% vs 2.8%)",
+    "With PROTHOR in thoracic surgery, that is two large trials: tidal volume 8 mL/kg, PEEP 5, no routine recruitment"
+   ],
+   "deepDive": "**Why it matters.** After PROVHILO and iPROVE, the individualised ventilation camp argued that PEEP should be titrated to each patient's mechanics using driving pressure rather than set high or low for everyone. DESIGNATION, from the PROVE Network, is the definitive test of that idea in open abdominal surgery, and it reported three weeks after PROTHOR delivered the same verdict for one-lung ventilation.\n\n**What they did.** Investigator-initiated trial at 29 sites in five European countries, April 2019 to December 2024. Adults with ARISCAT 26 or higher and BMI up to 40 having open abdominal surgery under general anaesthesia were randomised to volume-controlled ventilation at 8 mL/kg predicted body weight with either a recruitment manoeuvre followed by decremental PEEP titration to the lowest driving pressure (default 12 cmH2O), repeated at set points including before extubation, or fixed PEEP 5 cmH2O with no recruitment. Outcome assessors were blinded; 1,435 patients were analysed.\n\n**What they found.**\n- Composite of pulmonary complications within 5 days: 19.8% vs 17.4%, absolute difference 2.5% (95% CI -1.5 to 6.4; P = 0.23).\n- Intraoperative hypotension 54.0% vs 45.0%; vasoactive drug use 32.0% vs 18.8%.\n- Desaturation 0.8% vs 2.8%; unplanned ICU admission 1.3% vs 2.5% (not significant); hospital mortality 3.6% vs 3.3%.\n- Patients already planned for ICU or HDU had more complications with high PEEP (33.9% vs 23.6%, interaction P = 0.007), a hypothesis-generating signal.\n\n**Caveats.** Event rates were below the planning assumptions, so the interval does not exclude a small benefit or harm; clinicians could not be blinded; the comparator was already lung-protective.\n\n**For the anaesthesiologist.** Better mechanics and oxygenation on the monitor did not translate into fewer complications and cost more pressors. Low tidal volume with PEEP 5 remains the default; individualised PEEP is for rescue of the hypoxaemic patient, not routine.",
+   "url": "https://doi.org/10.1001/jama.2025.23373",
+   "impact": 3,
+   "trialName": "DESIGNATION",
+   "firstAuthor": "Writing and Steering Committees for the DESIGNATION Investigators"
   },
   {
    "id": "erj-2025-ers-ests-fitness-lung-cancer-guideline",
@@ -506,6 +754,56 @@
    "firstAuthor": "Soliman Aboumarie"
   },
   {
+   "id": "icm-2025-erc-esicm-post-resuscitation-care-guideline",
+   "date": "2025-10-22",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Intensive Care Med / Resuscitation",
+   "jshort": "ICM",
+   "kind": "Guideline",
+   "topics": [
+    "criticalCare",
+    "cardiac"
+   ],
+   "headline": "ERC/ESICM 2025: keep post-arrest temperature at or below 37.5 C for 72 h; no ST elevation means CT first, cath lab later",
+   "summary": "The joint European post-resuscitation care guideline (Nolan and colleagues, Intensive Care Medicine and Resuscitation, 22 October 2025) replaces targeted hypothermia with fever prevention, puts dual-phase head-to-pelvis CT ahead of coronary angiography when there is no ST elevation, sets MAP above 60-65 mmHg, and extends multimodal prognostication to every patient with a motor score of 5 or less.",
+   "takeHome": [
+    "Targets: SpO2 94-98%, PaCO2 35-45 mmHg, MAP over 60-65, temperature 37.5 C or lower for 72 h; no 32-34 C",
+    "No ST elevation after OHCA: delay catheterisation unless acute occlusion is likely; dual-phase head-to-pelvis CT with CTPA",
+    "Prognosticate at 72 h or later with two or more signs: pupils and corneals, SSEP, malignant EEG, NSE over 60, myoclonus, imaging"
+   ],
+   "deepDive": "**Why it matters.** This document defines how a comatose post-arrest patient is run in European ICUs, including the ECPR patient you cannulated. Written by the ERC and ESICM, it appeared simultaneously in Intensive Care Medicine and Resuscitation on 22 October 2025, alongside the AHA 2025 guidelines.\n\n**What is new since 2021.**\n- Temperature control replaces targeted temperature management: actively prevent fever at or below 37.5 C for 36 to 72 hours (the summary table says at least 72), do not rewarm mild spontaneous hypothermia, and do not target 32-34 C.\n- Cause: emergent cath lab for persistent ST elevation; otherwise delay catheterisation unless acute occlusion is likely, and obtain dual-phase head-to-pelvis CT including pulmonary angiography.\n- Explicit targets: SpO2 94-98% (PaO2 75-100 mmHg), PaCO2 35-45 mmHg with a consistent temperature-correction approach when cold, tidal volume 6-8 mL/kg, MAP above 60-65 mmHg with an arterial line and early echo; no routine steroids or prophylactic antibiotics.\n- Mechanical circulatory support may be considered for persistent cardiogenic shock despite drugs, preferentially with GCS 8 or more on arrival, STEMI and a short arrest.\n- Prognostication applies to all patients with a motor score below 6 at 72 hours or later, after confounders are excluded; poor outcome is likely with two or more of absent pupillary and corneal reflexes, bilaterally absent N20, highly malignant EEG, NSE above 60 micrograms/L at 48-72 h, status myoclonus, or diffuse anoxic injury on CT or MRI.\n\n**Caveats.** Most recommendations rest on low-certainty evidence, the temperature duration is stated inconsistently, and the AHA document published the same day allows 32-37.5 C.\n\n**For the anaesthesiologist.** For the patient who arrested in your OR or on your ECMO: arterial line, echo, normoxia and normocapnia, fever prevention rather than cooling, and no prognostic statements to the family before 72 hours.",
+   "url": "https://doi.org/10.1007/s00134-025-08117-3",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Jerry P. Nolan"
+  },
+  {
+   "id": "wjes-2025-wses-aast-thoracic-trauma-guidelines",
+   "date": "2025-10-15",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "World J Emerg Surg",
+   "jshort": "WJES",
+   "kind": "Guideline",
+   "topics": [
+    "trauma",
+    "thoracic"
+   ],
+   "headline": "WSES-AAST thoracic trauma guidelines: rib fixation within 48-72 h when indicated, drain haemothorax of 500 mL or more",
+   "summary": "The World Society of Emergency Surgery and AAST issued graded recommendations for the whole chest-trauma pathway, from needle or finger decompression and chest-tube sizing to rib fixation timing, operative thresholds for bleeding, tracheobronchial and diaphragm injury, ventilation and VV-ECMO (Coccolini and colleagues, World Journal of Emergency Surgery, 15 October 2025).",
+   "takeHome": [
+    "Operate for instability, bleeding over 1,500 mL initially or 200 mL/h for 3 h; drain haemothorax of 500 mL or more",
+    "Consider fixation for stable flail chest, 3 or more displaced fractures or failed weaning, ideally at 48-72 h; instability contraindicates it",
+    "Tracheobronchial injury: secure the airway first with bronchoscopy-guided intubation; VV-ECMO is an option when ventilation fails"
+   ],
+   "deepDive": "**Why it matters.** Chest injury runs through the emergency department, the OR and the ICU. This WSES-AAST document grades the whole pathway and belongs next to the ACS chest wall injury guideline and the SOFRIB trial.\n\n**What they did.** A literature search from 2000 to February 2024 excluded opinion pieces and small series. Statements carry a level of evidence (high to very low) and a grade of recommendation (strong, moderate or weak), agreed by WSES and AAST experts through a three-round modified Delphi.\n\n**Key recommendations.**\n- Tension pneumothorax: immediate needle (second space midclavicular or fifth midaxillary) or finger decompression (moderate, strong). A chest tube at the fourth to sixth space is the treatment of choice (moderate, strong); small-bore suffices for air, 28-40 Fr for blood, nothing gained above 32 Fr.\n- Stable patients: observe a pneumothorax up to 2 cm or haemothorax under 300 mL for 24 hours; drain 500 mL or more.\n- Operate for haemodynamic instability or bleeding over 1,500 mL initially or over 200 mL/h for three hours (low, strong).\n- Rib fixation: consider for stable flail chest and for three or more severely displaced fractures or failure to wean (moderate, moderate); perform within 48-72 hours (high, strong); haemodynamic instability is a contraindication (moderate, strong).\n- Epidural and multimodal analgesia are conditionally recommended; paravertebral and fascial plane blocks are not graded.\n- Tracheobronchial injury: airway first, bronchoscopy-guided intubation, surgery for large ruptures or persistent leak (moderate, strong).\n- VV-ECMO is a viable option when conventional ventilation fails.\n\n**Caveats.** Surgeon-led; REBOA, resuscitative thoracotomy and aortic injury targets get only passing mention, and the analgesia section is thin.\n\n**For the anaesthesiologist.** The fixation timing rule and the thresholds for taking a bleeding chest to theatre shape your day; for regional analgesia, keep the ACS guidance as the reference.",
+   "url": "https://doi.org/10.1186/s13017-025-00651-1",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Federico Coccolini"
+  },
+  {
    "id": "jcva-2025-chd-noncardiac-hospital-volume",
    "date": "2025-10-08",
    "dateApprox": false,
@@ -529,6 +827,32 @@
    "impact": 1,
    "trialName": "",
    "firstAuthor": "Kuntz MT"
+  },
+  {
+   "id": "icm-2025-uk-ecmo-emergencies-guideline",
+   "date": "2025-10-06",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Intensive Care Med",
+   "jshort": "ICM",
+   "kind": "Guideline",
+   "topics": [
+    "mcs",
+    "criticalCare",
+    "cardiacSurgery"
+   ],
+   "headline": "UK ECMO emergency guideline: arrest on ECMO means MAP under 30, fix the circuit before drugs, CPR is safe on support",
+   "summary": "All UK ECMO centres and eight national societies, including the Resuscitation Council UK and ACTACC, used a five-round Delphi to produce a single adult ECMO emergency algorithm: confirm arrest by a working arterial line reading under 30 mmHg, split into patient and ECMO teams, restore flow first, and compress the chest when circulation is inadequate.",
+   "takeHome": [
+    "Arrest on ECMO: unresponsive plus confirmed MAP under 30 mmHg; falling ETCO2 and lost flow support the call",
+    "Priority is restoring flow: expose, check kinks and cannulae, clamp the return line if flow does not return, follow the fault SOP",
+    "Adequate circulation is MAP over 55, flow over 2 L/min, SpO2 over 88%; consider re-sternotomy within 10 days of surgery"
+   ],
+   "deepDive": "**Why it matters.** Standard ALS assumes a native circulation. On ECMO, pulselessness is normal, ETCO2 is unreliable, and perfusion usually returns by fixing a kinked line, not by giving adrenaline.\n\n**What they did.** Akhtar and colleagues (Intensive Care Medicine, online 6 October 2025) convened all UK ECMO centres and eight societies, including ACTACC, the Intensive Care Society, SCTS and the Resuscitation Council UK. With only 15 usable studies, recommendations are graded with the ESC class and level system, mostly IIa C, after five Delphi rounds.\n\n**The algorithm.**\n- Recognition: unresponsive or not breathing normally, with a confirmed MAP below 30 mmHg on a levelled, working transducer; an ETCO2 drop and lost flow support it.\n- One leader, two teams. The ECMO team exposes the patient, inspects circuit and cannulae and straightens kinks; the patient team runs standard ALS. Fixing the device comes first (Class I).\n- Low flow with suction: reduce RPM until chatter stops, then increase to the best tolerated flow; consider a 2.5 mL/kg bolus, the bleeding protocol and echo.\n- No flow: clamp the return line, then follow the SOP for air embolus, motor failure (new console or hand-crank), rupture or decannulation.\n- Compressions are safe on ECMO and should be given when circulation is inadequate; use reduced or infused adrenaline when troubleshooting will restore flow quickly; consider re-sternotomy within 10 days of cardiac surgery.\n- Reassess: adequate is MAP above 55 mmHg, flow above 2 L/min and SpO2 above 88%; intermediate values prompt a circuit-change decision, echo, or escalation (more Impella support, VV to VVA).\n\n**Caveats.** Nearly all recommendations are expert consensus (level C) and UK-specific; mechanical compression devices and defibrillation are not addressed.\n\n**For us.** Print the algorithm, simulate it, and make the transducer rule and clamp-first sequence identical on every ECMO bed.",
+   "url": "https://doi.org/10.1007/s00134-025-08142-2",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Waqas Akhtar"
   },
   {
    "id": "jama-2026-us-crs-heart-allocation-score",
