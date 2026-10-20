@@ -109,6 +109,12 @@ a { color: var(--accent-2); }
 ::selection { background: var(--accent-2-soft); }
 
 /* ---------- masthead ---------- */
+.intro { background-image: linear-gradient(90deg, var(--accent), var(--accent-2)); background-size: 100% 2px; background-repeat: no-repeat; }
+.intro-inner {
+  max-width: 660px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 4px;
+}
 .masthead {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
   background: var(--mast-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
@@ -117,7 +123,7 @@ a { color: var(--accent-2); }
 .masthead-inner {
   max-width: 660px; margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 12px 0;
+  padding-block: 0;
 }
 .brand-row { display: flex; align-items: center; gap: 14px; }
 .logo { order: -1; width: 76px; height: 65px; border-radius: 16px; background: linear-gradient(145deg, #FF7A66, #D9472F); display: grid; place-items: center; flex: none; box-shadow: 0 8px 24px rgba(242,99,79,.28); }
@@ -125,13 +131,29 @@ a { color: var(--accent-2); }
 @media (max-width: 479px) { .logo { width: 70px; height: 60px; border-radius: 15px; } .logo svg { width: 64px; height: 53px; } }
 .brand .byline { white-space: normal; overflow: visible; text-overflow: clip; }
 .brand { min-width: 0; flex: 1 1 auto; display: grid; gap: 3px; container-type: inline-size; }
-.brand h1 { font-family: var(--font-brand); font-weight: 800; letter-spacing: -0.035em; margin: 0; line-height: 1.05; white-space: nowrap; font-size: clamp(14px, 4.4vw, 21px); font-size: min(21px, 9.6cqi); }
+.brand h1 { font-family: var(--font-brand); font-weight: 800; letter-spacing: -0.035em; margin: 0; line-height: 1.05; white-space: nowrap; font-size: clamp(14px, 4.4vw, 23px); font-size: min(23px, 9.6cqi); }
 .brand h1 .w2 { color: var(--accent); }
 .brand .byline .label { color: var(--fg-3); font-weight: 500; }
 .brand p { margin: 0; font-size: 12px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brand .byline { color: var(--fg-2); font-weight: 600; font-size: 12.5px; }
 .brand p .live { color: var(--new); font-weight: 600; }
-.brand p .live::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--new); margin: 0 5px 1px 0; box-shadow: 0 0 0 3px var(--new-soft); }
+.brand p .live::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--new); margin: 0 5px 1px 0; box-shadow: 0 0 0 3px var(--new-soft); animation: pulse 2.6s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 3px var(--new-soft); } 50% { box-shadow: 0 0 0 6px transparent; } }
+.pill-btn { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; color: var(--new); background: var(--new-soft); border: 1px solid transparent; vertical-align: 1px; }
+.pill-btn:hover { border-color: var(--new); }
+.pill-btn[aria-pressed="true"] { background: var(--new); color: var(--bg); }
+.tagline-row { margin: 10px 0 0; font-size: 13.5px; color: var(--fg-2); line-height: 1.4; text-wrap: pretty; max-width: 60ch; }
+.tagline-row strong { color: var(--fg); font-weight: 600; }
+.hint { display: flex; align-items: center; gap: 10px; margin: 12px 0 6px; padding: 9px 12px; border-radius: 12px; background: var(--accent-2-soft); color: var(--fg); font-size: 13px; line-height: 1.4; }
+.hint span { flex: 1; min-width: 0; }
+.hint button { color: var(--accent-2); font-weight: 700; font-size: 13px; white-space: nowrap; padding: 4px 6px; border-radius: 8px; }
+.hint button:hover { background: var(--surface-2); }
+.logo svg path { stroke-dasharray: 420; stroke-dashoffset: 420; animation: draw 1.3s cubic-bezier(.3,.7,.3,1) forwards; }
+.logo svg path:nth-child(2) { animation-delay: .25s; }
+.logo svg path:nth-child(3) { animation-delay: .5s; }
+.logo:hover svg path { animation-name: drawAgain; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes drawAgain { from { stroke-dashoffset: 420; } to { stroke-dashoffset: 0; } }
 .icon-btn { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--fg-2); flex: none; }
 .icon-btn:hover { background: var(--surface-2); color: var(--fg); }
 .icon-btn[aria-pressed="true"] { background: var(--accent-2-soft); color: var(--accent-2); }
@@ -144,7 +166,7 @@ a { color: var(--accent-2); }
   padding: 0 14px; font: inherit; font-size: 15px;
 }
 .search-row input::placeholder { color: var(--fg-3); }
-.rail { display: flex; gap: 8px; overflow-x: auto; padding-block: 12px 8px; scrollbar-width: none; -ms-overflow-style: none; margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
+.rail { display: flex; gap: 8px; overflow-x: auto; padding-block: 10px 8px; scrollbar-width: none; -ms-overflow-style: none; margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
 .rail::-webkit-scrollbar { display: none; }
 .rail[data-overflow="1"] { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 36px), transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 36px), transparent 100%); }
 .rail[data-overflow="1"][data-at-start="1"] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent 100%); mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent 100%); }
@@ -164,7 +186,9 @@ a { color: var(--accent-2); }
 .chip[aria-pressed="true"] .n { color: inherit; opacity: .8; }
 .chip.all[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
 .chip.all[aria-pressed="true"] .n { color: inherit; }
-.sub-row { display: flex; align-items: center; gap: 8px; padding-block: 0 10px; font-size: 12.5px; color: var(--fg-3); }
+.sub-row { display: flex; align-items: center; gap: 8px; padding-block: 0 10px; font-size: 12.5px; color: var(--fg-3); flex-wrap: wrap; }
+.sub-row .count[hidden] { display: none !important; }
+@media (max-width: 479px) { .sub-row .count { flex: 1 1 100%; order: -1; } .sub-row .tools { margin-right: auto; } }
 .sub-row .count { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .toggle { height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--surface); font-size: 12px; font-weight: 600; color: var(--fg-2); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .toggle:hover { color: var(--fg); }
@@ -296,12 +320,13 @@ a { color: var(--accent-2); }
 }
 @media (prefers-reduced-motion: reduce) {
   .sheet, .scrim, .toast, .fab, .chip, .post, .btn { transition: none; }
-  .skeleton::after { animation: none; }
+  .skeleton::after, .brand p .live::before { animation: none; }
+  .logo svg path, .logo:hover svg path { animation: none; stroke-dashoffset: 0; }
 }
 </style>
 
-<header class="masthead">
-  <div class="masthead-inner">
+<section class="intro">
+  <div class="intro-inner">
     <div class="brand-row">
       <div class="brand">
         <h1><span class="w1">Periop</span> <span class="w2">Signal</span></h1>
@@ -310,6 +335,12 @@ a { color: var(--accent-2); }
       </div>
       <div class="logo" aria-hidden="true"><svg viewBox="0 0 72 60"><path d="M6.00 16.50h3.50c0.80 -1.7 2.20 -1.7 3.00 0h2.50l1.00 1.3 l1.50 -9.8 l1.50 11.6 l1.00 -3.1h2.50c1.20 -3.4 3.40 -3.4 4.60 0h9.00M36.00 16.50h3.50c0.80 -1.7 2.20 -1.7 3.00 0h2.50l1.00 1.3 l1.50 -9.8 l1.50 11.6 l1.00 -3.1h2.50c1.20 -3.4 3.40 -3.4 4.60 0h9.00" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.00 36.00c1.20 0 2.60 -9.5 4.60 -9.5c1.40 0 2.20 4.8 3.80 5.6c0.50 -0.9 1.30 -0.9 1.90 -0.2c3.50 2.4 11.00 4.1 19.70 4.1M36.00 36.00c1.20 0 2.60 -9.5 4.60 -9.5c1.40 0 2.20 4.8 3.80 5.6c0.50 -0.9 1.30 -0.9 1.90 -0.2c3.50 2.4 11.00 4.1 19.70 4.1" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.00 51.00c1.80 -4.4 4.20 -4.4 6.00 0c1.20 -1.8 2.40 -1.8 3.60 0h2.40c2.00 -3.2 4.40 -3.2 6.40 0h11.60M36.00 51.00c1.80 -4.4 4.20 -4.4 6.00 0c1.20 -1.8 2.40 -1.8 3.60 0h2.40c2.00 -3.2 4.40 -3.2 6.40 0h11.60" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     </div>
+    <p class="tagline-row"><strong>The practice-changing papers</strong> in cardiothoracic, critical care and trauma anesthesia, from 50 journals every morning.</p>
+    <div class="hint" id="hint" hidden><span>New here? Tap a topic to filter, a headline for the deep dive, and the bookmark to save a post for later.</span><button id="hint-close">Got it</button></div>
+  </div>
+</section>
+<header class="masthead">
+  <div class="masthead-inner">
     <div class="search-row" id="search-row">
       <input type="search" id="q" placeholder="Search headlines, trials, journals" autocomplete="off" aria-label="Search posts">
     </div>
@@ -325,6 +356,9 @@ a { color: var(--accent-2); }
         </button>
         <button class="toggle sq" id="btn-about" aria-label="About this feed" title="About">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+        </button>
+        <button class="toggle sq" id="btn-share" aria-label="Share this feed" title="Share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>
         </button>
       </div>
       <button class="toggle sq" id="btn-theme" aria-label="Switch to light theme" title="Switch theme">
@@ -379,7 +413,7 @@ a { color: var(--accent-2); }
   const state = {
     posts: [], filtered: [], shown: 0,
     topics: new Set(LS.get('ps.topics', [])),
-    landmark: false, savedOnly: false, q: '',
+    landmark: false, savedOnly: false, recent: false, q: '',
     saved: new Set(LS.get('ps.saved', [])),
     lastVisit: LS.get('ps.lastVisit', null), newIds: new Set(), current: null
   };
@@ -434,6 +468,7 @@ a { color: var(--accent-2); }
       if (state.topics.size && !p.topics.some(t => state.topics.has(t))) return false;
       if (state.landmark && p.impact < 3) return false;
       if (state.savedOnly && !state.saved.has(p.id)) return false;
+      if (state.recent && p.date < state.weekAgo) return false;
       if (q) {
         const hay = (p.headline + ' ' + p.summary + ' ' + p.trialName + ' ' + p.journal + ' ' + p.kind + ' ' + p.takeHome.join(' ') + ' ' + p.topics.map(t => TOPIC_NAME[t]).join(' ')).toLowerCase();
         if (!q.split(/\s+/).every(w => hay.includes(w))) return false;
@@ -446,16 +481,19 @@ a { color: var(--accent-2); }
     if (state.topics.size) parts.push([...state.topics].map(t => TOPIC_NAME[t]).join(', '));
     if (state.landmark) parts.push('landmark');
     if (state.savedOnly) parts.push('saved');
+    if (state.recent) parts.push('published this week');
     if (q) parts.push('"' + state.q.trim() + '"');
     countEl.textContent = (n === total ? total + ' posts' : n + ' of ' + total + ' posts') + (parts.length ? ' · ' + parts.join(' · ') : '') + (state.newIds.size && !parts.length ? ' · ' + state.newIds.size + ' new since your last visit' : '');
+    countEl.hidden = !parts.length && !state.newIds.size && window.innerWidth < 480;
     if (!n) {
       feed.innerHTML = `<div class="empty"><strong>Nothing matches these filters</strong><span>Try fewer topics or clear the search.</span><button class="btn" id="clear-all">Clear filters</button></div>`;
       $('#clear-all').addEventListener('click', clearFilters);
     }
   }
   function clearFilters() {
-    state.topics.clear(); state.landmark = false; state.savedOnly = false; state.q = ''; $('#q').value = '';
+    state.topics.clear(); state.landmark = false; state.savedOnly = false; state.recent = false; state.q = ''; $('#q').value = '';
     $('#btn-landmark').setAttribute('aria-pressed', 'false'); $('#btn-saved').setAttribute('aria-pressed', 'false');
+    const rb = $('#btn-recent'); if (rb) rb.setAttribute('aria-pressed', 'false');
     LS.set('ps.topics', []); renderRail(); applyFilters();
   }
 
@@ -668,6 +706,14 @@ a { color: var(--accent-2); }
   });
   $('#btn-landmark').addEventListener('click', (e) => { state.landmark = !state.landmark; e.currentTarget.setAttribute('aria-pressed', String(state.landmark)); applyFilters(); });
   $('#btn-about').addEventListener('click', openAbout);
+  $('#btn-share').addEventListener('click', async () => {
+    const url = location.origin + location.pathname;
+    if (navigator.share) { try { await navigator.share({ title: 'Periop Signal', text: 'Curated research feed for cardiothoracic, critical care and trauma anesthesia', url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    copyText(url, 'Link copied');
+  });
+  const hint = $('#hint');
+  if (!LS.get('ps.hintSeen', false)) hint.hidden = false;
+  $('#hint-close').addEventListener('click', () => { hint.hidden = true; LS.set('ps.hintSeen', true); });
 
   // ---------- theme ----------
   const root = document.documentElement, themeBtn = $('#btn-theme');
@@ -702,7 +748,12 @@ a { color: var(--accent-2); }
     LS.set('ps.lastVisit', todayStr);
     const newest = posts.reduce((a, p) => (p.addedAt > a ? p.addedAt : a), '0000');
     const land = posts.filter(p => p.impact === 3).length;
-    $('#tagline').innerHTML = `${posts.length} posts · <span class="live">${esc(fmtDate(newest))}</span>`;
+    const wk = new Date(today); wk.setDate(wk.getDate() - 7);
+    state.weekAgo = wk.getFullYear() + '-' + String(wk.getMonth() + 1).padStart(2, '0') + '-' + String(wk.getDate()).padStart(2, '0');
+    const recent = posts.filter(p => p.date >= state.weekAgo).length;
+    $('#tagline').innerHTML = `${posts.length} posts · <span class="live">${esc(fmtDate(newest))}</span>` + (recent ? ` <button class="pill-btn" id="btn-recent" aria-pressed="false">${recent} published this week</button>` : '');
+    const rb = $('#btn-recent');
+    if (rb) rb.addEventListener('click', () => { state.recent = !state.recent; rb.setAttribute('aria-pressed', String(state.recent)); applyFilters(); });
     $('#tagline').title = 'Last updated ' + fmtDate(newest, true);
     const lm = $('#btn-landmark'); if (lm && !lm.querySelector('.n')) lm.insertAdjacentHTML('beforeend', ` <span class="n">${land}</span>`);
     renderRail(); applyFilters();
