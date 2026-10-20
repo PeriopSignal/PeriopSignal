@@ -34,7 +34,7 @@ const ogSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="url(#g2)"/>
   <rect x="96" y="150" width="200" height="200" rx="52" fill="url(#lg)"/>
   <g transform="translate(112 166)">${trace(7.3)}</g>
-  <text x="340" y="250" font-family="Georgia, 'DejaVu Serif', serif" font-size="96" font-weight="700" fill="#ECF0F6" letter-spacing="-2">Periop Signal</text>
+  <text x="340" y="250" font-family="'Arial Black', 'DejaVu Sans', Arial, sans-serif" font-size="88" font-weight="900" letter-spacing="-3"><tspan fill="#ECF0F6">Periop</tspan><tspan fill="${RED}" dx="22">Signal</tspan></text>
   <text x="340" y="318" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="34" fill="#A9B3C2">Cardiothoracic · critical care · trauma anesthesia</text>
   <text x="340" y="366" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="34" fill="#A9B3C2">Curated research, updated daily</text>
   <rect x="96" y="470" width="1008" height="1" fill="#2C3748"/>
