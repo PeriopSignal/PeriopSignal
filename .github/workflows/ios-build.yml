@@ -117,25 +117,24 @@ jobs:
           xcrun simctl ui "$UDID" appearance dark
           xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
           xcrun simctl install "$UDID" "$APP"
-          xcrun simctl launch "$UDID" org.periopsignal.app
-          sleep 14
-          xcrun simctl io "$UDID" screenshot build/shots/01-feed.png
-          # open a deep dive through the URL scheme (first post in the live feed)
-          FIRST=$(curl -sL "https://periopsignal.github.io/PeriopSignal/posts.json" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["posts"][0]["id"])')
-          LANDMARK=$(curl -sL "https://periopsignal.github.io/PeriopSignal/posts.json" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(p["id"] for p in d["posts"] if p.get("impact")==3))')
-          xcrun simctl openurl "$UDID" "periopsignal://post/$LANDMARK"
-          sleep 5
-          xcrun simctl io "$UDID" screenshot build/shots/02-deepdive.png
-          xcrun simctl openurl "$UDID" "periopsignal://saved"
-          sleep 3
-          xcrun simctl io "$UDID" screenshot build/shots/03-saved.png
-          xcrun simctl terminate "$UDID" org.periopsignal.app || true
-          xcrun simctl ui "$UDID" appearance light
-          xcrun simctl launch "$UDID" org.periopsignal.app
-          sleep 10
-          xcrun simctl io "$UDID" screenshot build/shots/04-feed-system.png
+          FEED=$(curl -sL "https://periopsignal.github.io/PeriopSignal/posts.json")
+          LANDMARK=$(echo "$FEED" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(p["id"] for p in d["posts"] if p.get("impact")==3))')
+          LIMITS=$(echo "$FEED" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(p["id"] for p in d["posts"] if p.get("authorLimitations") and p.get("authorBasis")=="full text"))')
+          shot () { # name, wait, launch args...
+            local name="$1"; local wait="$2"; shift 2
+            xcrun simctl terminate "$UDID" org.periopsignal.app 2>/dev/null || true
+            xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null
+            sleep "$wait"
+            xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+          }
+          shot 01-feed 14
+          shot 02-deepdive 12 -ps.openPost "$LANDMARK"
+          shot 03-deepdive-limits 12 -ps.openPost "$LIMITS"
+          shot 04-saved 12 -ps.presave "$LANDMARK" -ps.tab saved
+          shot 05-about 10 -ps.tab about
+          shot 06-widgets 12 -ps.screen widget
+          shot 07-feed-day 12 -ps.appearance light
           ls -la build/shots
-          # downscale for the results branch
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
       - name: Publish results to the ci-results branch
