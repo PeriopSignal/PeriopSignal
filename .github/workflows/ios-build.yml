@@ -12,17 +12,134 @@ concurrency:
   group: ios-build-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
+env:
+  SIM_NAME: iPhone 16 Pro
+  RESULTS_BRANCH: ci-results
+
 jobs:
   build:
-    name: Build for simulator
+    name: Build, test and screenshot in the simulator
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
-      - name: Toolchain
+      - name: Select Xcode
         run: |
-          sw_vers
-          ls /Applications | grep -i xcode || true
+          ls -d /Applications/Xcode*.app
+          # newest stable Xcode on the image
+          XC=$(ls -d /Applications/Xcode_*.app | grep -v -i beta | sort -V | tail -1)
+          echo "Using $XC"
+          sudo xcode-select -s "$XC"
           xcodebuild -version
-          xcrun simctl list runtimes | grep -i ios || true
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        working-directory: ios
+        env:
+          DEVELOPMENT_TEAM: ""
+        run: xcodegen generate --spec project.yml
+
+      - name: Pick a simulator
+        id: sim
+        run: |
+          xcrun simctl list devices available | grep -i "iPhone" || true
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys,os
+          want=os.environ["SIM_NAME"]
+          d=json.load(sys.stdin)["devices"]
+          found=[]
+          for rt,devs in d.items():
+              if "iOS" not in rt: continue
+              for dev in devs:
+                  if dev.get("isAvailable") and dev["name"]==want: found.append((rt,dev["udid"]))
+          if not found:
+              for rt,devs in d.items():
+                  if "iOS" not in rt: continue
+                  for dev in devs:
+                      if dev.get("isAvailable") and dev["name"].startswith("iPhone"): found.append((rt,dev["udid"]))
+          found.sort()
+          print(found[-1][1] if found else "")
+          ')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "Simulator: $UDID"
+          test -n "$UDID"
+
+      - name: Build (Debug, simulator)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild -project PeriopSignal.xcodeproj -scheme PeriopSignal \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -configuration Debug -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build 2>&1 | tee build/build.log | grep -E "error:|warning: unre|BUILD|Compiling|Linking" | tail -80
+
+      - name: Unit tests
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild -project PeriopSignal.xcodeproj -scheme PeriopSignal \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -configuration Debug -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            test 2>&1 | tee build/test.log | grep -E "error:|Test Case|Executed|TEST" | tail -60
+
+      - name: Screenshots
+        working-directory: ios
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          APP=$(find build/DerivedData/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "*.app" | head -1)
+          echo "App bundle: $APP"
+          mkdir -p build/shots
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch "$UDID" org.periopsignal.app
+          sleep 14
+          xcrun simctl io "$UDID" screenshot build/shots/01-feed.png
+          # open a deep dive through the URL scheme (first post in the live feed)
+          FIRST=$(curl -sL "https://periopsignal.github.io/PeriopSignal/posts.json" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["posts"][0]["id"])')
+          LANDMARK=$(curl -sL "https://periopsignal.github.io/PeriopSignal/posts.json" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(p["id"] for p in d["posts"] if p.get("impact")==3))')
+          xcrun simctl openurl "$UDID" "periopsignal://post/$LANDMARK"
+          sleep 5
+          xcrun simctl io "$UDID" screenshot build/shots/02-deepdive.png
+          xcrun simctl openurl "$UDID" "periopsignal://saved"
+          sleep 3
+          xcrun simctl io "$UDID" screenshot build/shots/03-saved.png
+          xcrun simctl terminate "$UDID" org.periopsignal.app || true
+          xcrun simctl ui "$UDID" appearance light
+          xcrun simctl launch "$UDID" org.periopsignal.app
+          sleep 10
+          xcrun simctl io "$UDID" screenshot build/shots/04-feed-system.png
+          ls -la build/shots
+          # downscale for the results branch
+          for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
+
+      - name: Publish results to the ci-results branch
+        if: always()
+        working-directory: ios
+        run: |
+          mkdir -p ../ci-out
+          cp -R build/shots ../ci-out/ 2>/dev/null || true
+          tail -c 200000 build/build.log > ../ci-out/build-tail.log 2>/dev/null || true
+          grep -E "error:|warning:" build/build.log | sort | uniq -c | sort -rn | head -200 > ../ci-out/build-issues.log 2>/dev/null || true
+          grep -E "error:|Test Case|Executed|TEST|failed" build/test.log | tail -200 > ../ci-out/test-summary.log 2>/dev/null || true
+          echo "run=${{ github.run_number }} sha=${{ github.sha }} status=${{ job.status }}" > ../ci-out/STATUS
+          cd ..
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          git checkout --orphan "$RESULTS_BRANCH"
+          git rm -rf --cached . >/dev/null 2>&1 || true
+          rm -rf ios .github posts.json index.html feed.xml src tools icons log inbox.txt README.md manifest.webmanifest 2>/dev/null || true
+          mv ci-out results
+          git add results
+          git commit -q -m "CI results for run ${{ github.run_number }}"
+          git push --force origin "$RESULTS_BRANCH"

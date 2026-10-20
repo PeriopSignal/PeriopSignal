@@ -1,0 +1,210 @@
+{
+ "name": "Periop Signal",
+ "generatedAt": "2026-10-20T22:50:22+00:00",
+ "posts": [
+  {
+   "id": "jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy",
+   "date": "2026-10-19",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "JAMA",
+   "jshort": "JAMA",
+   "kind": "RCT",
+   "topics": [
+    "general",
+    "criticalCare"
+   ],
+   "headline": "PELICAN: keeping cardiac index at each patient's own baseline did not cut 7-day complications; 90-day death doubled",
+   "summary": "Multicenter European RCT of 1,111 high-risk patients having major abdominal surgery: an algorithm of crystalloid boluses and dobutamine held intraoperative cardiac index at or above the patient's preoperative resting value, versus routine hemodynamic management with the same MAP target.",
+   "takeHome": [
+    "Primary composite (AKI, myocardial injury, severe infection, cardiac arrest or death within 7 days): 44.3% vs 46.9%; RR 0.94, P = .38",
+    "No between-group differences in any individual component of the primary outcome within 7 postoperative days",
+    "Authors conclude individualized cardiac index-guided therapy targeting preoperative resting cardiac index did not reduce the composite outcome versus routine therapy"
+   ],
+   "deepDive": "**Why it matters.** Goal-directed hemodynamic therapy has been argued over for two decades; OPTIMISE and OPTIMISE II were neutral or nearly so. The newer idea was to personalize the target: keep each patient's cardiac index at the value they had awake and resting, rather than maximizing stroke volume. PELICAN is the first large trial of that approach.\n\n**What they did.** Saugel and colleagues randomized 1,111 patients aged 45 or older with at least one high-risk criterion having elective major visceral abdominal surgery of 90 minutes or more, at 12 university centers in five European countries (2023 to 2025). Cardiac index was measured noninvasively in everyone. The intervention arm used balanced crystalloid at 6 mL/kg/h, 500 mL boluses and dobutamine to hold cardiac index at or above the preoperative resting value; controls got usual care with the display blinded. Both arms targeted MAP above 65 mm Hg.\n\n**What they found.** The primary composite of AKI, myocardial injury, severe infection, nonfatal cardiac arrest or death within 7 days occurred in 44.3% vs 46.9% (relative risk 0.94, 95.1% CI 0.83 to 1.08). No component differed; AKI was 9.6% vs 13.0%. The protocol worked as designed: median cardiac index 3.1 vs 2.7 L/min/m2, dobutamine in 64.1% vs 0.5%. Hospital stay was a day shorter (8 vs 9). The uncomfortable finding is 90-day mortality: 5.7% vs 2.8% (RR 2.06, 1.13 to 3.78), an exploratory secondary outcome not adjusted for multiplicity.\n\n**Caveats.** Single-blind, one surgical population, and a mortality signal that could be chance; the trial cannot say whether dobutamine, extra fluid or something else drove it.\n\n**For anesthesiologists.** Chasing a personalized cardiac index with routine dobutamine is not supported and may be harmful. Cardiac output monitoring remains useful for working out why a patient is hypotensive; treating the number for its own sake is not.",
+   "url": "https://doi.org/10.1001/jama.2026.18574",
+   "impact": 2,
+   "trialName": "PELICAN",
+   "firstAuthor": "Saugel",
+   "editorTakeHome": [
+    "Composite of AKI, myocardial injury, severe infection, cardiac arrest or death at 7 days: 44.3% vs 46.9%, not different",
+    "Dobutamine ran in 64% of intervention patients versus 0.5% of controls; 90-day mortality 5.7% vs 2.8% (exploratory)",
+    "Personalized cardiac index targets with routine inotrope support should not be adopted; keep MAP above 65 and give fluid for a reason"
+   ],
+   "takeHomeBy": "authors",
+   "authorLimitations": [],
+   "authorBasis": "abstract"
+  },
+  {
+   "id": "jcin-2026-tavr-surgical-bailout-cms-trends",
+   "date": "2026-09-14",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "JACC Cardiovasc Interv",
+   "jshort": "JACC Int",
+   "kind": "Registry",
+   "topics": [
+    "cardiac",
+    "cardiacSurgery"
+   ],
+   "headline": "Surgical bailout during TAVR fell to 0.4% of 400,000 Medicare cases, but 26% of bailed-out patients die within 30 days",
+   "summary": "A CMS analysis of 400,862 TAVR procedures from 2016 to 2024 finds same-day open surgery in 0.56% overall, halving over the period, with 30-day mortality of 26.3% versus 1.8% and no improvement in bailout mortality over time.",
+   "takeHome": [
+    "Bailout occurred in 0.56% of 400,862 Medicare TAVRs (2016-2024); annual incidence fell from 0.92% in 2016 to 0.40% in 2024 (P<0.001)",
+    "30-day mortality after bailout was 26.3%; mortality exceeded no-bailout patients up to 1 year (P<0.001) but was similar beyond (P=0.53)",
+    "30-day mortality did not differ by hospital SAVR volume (27%, 29%, 25%; P=0.28); authors argue continued cardiac surgical support at TAVR centers is needed"
+   ],
+   "deepDive": "**Why it matters.** The US national coverage determination for TAVR no longer requires on-site cardiac surgery in the way it once did, and the solo TAVR operator is being argued for in print. This is the largest contemporary look at what happens when a transfemoral valve goes wrong. Braasch and colleagues published it in JACC: Cardiovascular Interventions (19:2364-2375, September 2026) with two opposing editorials.\n\n**What they did.** Every Medicare TAVR from January 2016 to December 2024, 400,862 procedures, with surgical bailout defined as any open cardiac operation on the same day.\n\n**What they found.**\n- Bailout in 2,240 patients, 0.56% overall, falling from 0.92% in 2016 to 0.40% in 2024.\n- Procedures: mediastinal hematoma evacuation 38%, ventricular repair 20%, SAVR 16%, CABG 13%, aortic surgery 11%.\n- Mortality with versus without bailout: 26.3% versus 1.8% at 30 days, 35% versus 10% at one year, 48% versus 26% at five years. Early mortality did not fall over the study period. Patients who survived the first year had long-term outcomes comparable to those who never needed surgery.\n- Thirty-day mortality was 41% when SAVR was combined with other interventions and 19% for isolated SAVR. Institutional SAVR volume did not change the odds: 27%, 29% and 25% across low, intermediate and high-volume centers.\n\n**Caveats.** Administrative data cannot say why each bailout happened or how the decision was made, and a same-day operation misses rescue surgery on day two.\n\n**For the anesthesiologist.** One in roughly 250 TAVRs still ends in an open chest, and three in four of those patients survive the first month. The editorials split on what that means for surgical standby; for the anesthesia team it means the cannulation plan, blood, and a perfusionist's phone number belong in every TAVR briefing, however routine the case looks.",
+   "url": "https://doi.org/10.1016/j.jcin.2026.06.030",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Braasch",
+   "editorTakeHome": [
+    "Bailout fell from 0.92% in 2016 to 0.40% in 2024: hematoma evacuation 38%, ventricular repair 20%, SAVR 16%, CABG 13%, aortic 11%",
+    "Mortality after bailout 26.3% at 30 days, 35% at one year, 48% at five years, versus 1.8%, 10% and 26% without",
+    "Thirty-day death was 41% when SAVR was combined with other repairs versus 19% for isolated SAVR; institutional SAVR volume made no difference"
+   ],
+   "authorLimitations": [],
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors"
+  },
+  {
+   "id": "lancet-2026-mist-minimally-invasive-cabg",
+   "date": "2026-07-31",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "RCT",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac",
+    "thoracic"
+   ],
+   "headline": "MIST: multivessel CABG through a small thoracotomy beat sternotomy on 1-month physical recovery, with no deaths or strokes",
+   "summary": "An investigator-initiated, open-label randomised trial at seven centres in six countries assigned 170 patients with multivessel coronary disease to minimally invasive CABG via a small thoracotomy or conventional sternotomy; the primary endpoint was patient-reported physical recovery (SF-36 physical component) at one month.",
+   "takeHome": [
+    "170 patients randomised at seven centres; SF-36 physical component at 1 month 45.1 vs 42.2, mean difference 2.9 (95% CI 0.3-5.5), p=0.031.",
+    "No deaths or strokes in either group through 12 months; one early MACCE in the minimally invasive group, none with sternotomy.",
+    "Authors: in selected patients treated by experienced teams, minimally invasive CABG improved 1-month physical recovery with no apparent safety penalty through 12 months."
+   ],
+   "deepDive": "**Why it matters.** Minimally invasive multivessel CABG through a small left thoracotomy has spread on the promise of faster recovery, but until now the randomised evidence against sternotomy was thin. MIST is the first international randomised comparison with a patient-centred primary outcome.\n\n**What they did.** Ruel, Nambala, Guo and colleagues randomised 170 patients with multivessel coronary artery disease 1:1 to minimally invasive CABG (86) or sternotomy CABG (84) at seven centres in six countries (NCT03447938). The trial was open-label; the primary endpoint was physical recovery at one month measured by the SF-36 physical component summary, with safety followed to 12 months. Funding came from Medtronic.\n\n**What they found.**\n- One-month SF-36 physical component: 45.1 with minimally invasive CABG versus 42.2 with sternotomy, a mean difference of 2.9 points (95% CI 0.3 to 5.5; p=0.031).\n- No deaths and no strokes in either group through 12 months.\n- One major adverse cardiac or cerebrovascular event occurred in the minimally invasive group before one month.\n\n**Caveats.** The trial is small, the outcome is patient-reported in an unblinded design, the centres were experienced minimally invasive programs with selected patients, and a 2.9-point SF-36 difference is modest. Long-term graft patency is not addressed here. The authors themselves call for implementation and longer-term studies.\n\n**For the anesthesiologist.** If your surgeons take this up, the anesthetic changes more than the incision: lung isolation and one-lung ventilation during grafting, often with a double-lumen tube, TEE support for positioning and de-airing where cardiopulmonary bypass or peripheral cannulation is used, thoracotomy-appropriate analgesia (paravertebral, serratus or erector spinae blocks or catheters), and a team learning curve that the trial's experienced centres had already climbed.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)01288-2",
+   "impact": 2,
+   "trialName": "MIST",
+   "firstAuthor": "Ruel",
+   "editorTakeHome": [
+    "SF-36 physical component at 1 month: 45.1 vs 42.2, a 2.9-point gain for minimally invasive CABG (p=0.031).",
+    "No deaths or strokes through 12 months in either arm; one early major adverse cardiac or cerebrovascular event with the minimally invasive approach.",
+    "Experienced teams and selected patients; expect more one-lung ventilation, thoracotomy analgesia and peripheral cannulation in CABG rooms."
+   ],
+   "takeHomeBy": "authors",
+   "authorLimitations": [],
+   "authorBasis": "abstract"
+  },
+  {
+   "id": "transpl-int-2026-esot-bucharest-nrp-consensus",
+   "date": "2026-07-22",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Transpl Int",
+   "jshort": "TI",
+   "kind": "Consensus",
+   "topics": [
+    "mcs",
+    "liver",
+    "cardiacSurgery"
+   ],
+   "headline": "ESOT Bucharest consensus sets 130 rules for NRP in DCD donation: clamp, divide and vent the arch vessels",
+   "summary": "Thirty-one experts from nine countries reached 75% agreement on 130 statements covering when to use abdominal and thoraco-abdominal normothermic regional perfusion and how to run it; they could not agree on a maximum warm ischemia time or whether arch vessels must be transected.",
+   "takeHome": [
+    "31 experts from nine countries reached consensus on 130 NRP statements over two Delphi rounds (75% agreement threshold) to guide practice worldwide",
+    "TA-NRP brain exclusion: clamp or ligate the arch vessels, divide the cephalic ends and vent the body-side ends to atmosphere; ligation alone is insufficient",
+    "Minimum team of five roles; blood gas 3-4 minutes after start then every 30 minutes; avoid hyperoxemia, excess transfusion and cardiac distension; heart first"
+   ],
+   "deepDive": "**Why it matters.** NRP is spreading faster than agreement on how to do it. The OPTN safety notice of November 2025 told US teams to transect and vent each arch vessel; this European consensus from the ESOT International DCD Congress in Bucharest is the most detailed attempt yet to write down the whole procedure. Published in Transplant International on 22 July 2026 (Minambres, first author; Cillo, corresponding), it anchors a five-paper special issue on controlled DCD.\n\n**What they did.** Thirty-one experts from nine countries completed two Delphi rounds with 75% agreement as the threshold. Consensus landed on 130 statements.\n\n**What they agreed.**\n- Machine perfusion should be routine in cDCDD; NRP is recommended after withdrawal of life support, especially with long expected warm ischemia or a higher-risk donor.\n- For TA-NRP, clamping or ligating the arch vessels plus dividing their cephalic ends and draining to atmospheric pressure excludes brain perfusion; ligation alone does not. No consensus on mandatory transection. Transcranial Doppler is not required; a written abort plan is.\n- TA-NRP needs a hybrid open ECMO circuit with a rigid reservoir and a pre-withdrawal CT (or arch dissection); A-NRP needs the descending aorta clamped first. Pre-withdrawal peripheral cannulation is acceptable for TA-NRP, not A-NRP.\n- Heparin and antemortem guidewires where the law allows; balanced crystalloid plus heparin in the prime; gases at 3-4 minutes then every 30; avoid hyperoxemia, transfusion excess and cardiac distension.\n- Assess the heart with a PA catheter, TEE or a brief volume load. If it cannot carry the circulation, clamp the thoracic aorta and run 2.0-2.4 L/min for the abdominal organs. Order: heart, liver, lungs, then pancreas and kidneys.\n\n**Left open.** Maximum warm ischemia time, hypoperfusion thresholds, ideal NRP duration (typically 1-2 hours) and a case number for competence.",
+   "url": "https://doi.org/10.3389/ti.2026.16391",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Minambres",
+   "editorTakeHome": [
+    "TA-NRP brain exclusion: clamp or ligate the arch vessels, divide the cephalic ends and drain to atmosphere; ligation alone is not enough",
+    "Minimum team of five: cannulating clinician plus assistant, perfusionist, scrub and circulating nurses, coordinator; new teams work supervised",
+    "Blood gas at 3-4 minutes then every 30; avoid hyperoxemia, transfusion excess and cardiac distension; the heart comes out first"
+   ],
+   "authorLimitations": [
+    "No consensus on maximum warm ischemic time, the hypoperfusion threshold defining functional warm ischemia, optimal NRP duration or minimum monitoring frequency",
+    "Whether arch vessels must be transected remains a point of contention, and legal standards vary between jurisdictions",
+    "The panel was selected for NRP experience, an inherent bias that may shape its confidence on dead donor rule integrity; TA-NRP experience is limited"
+   ],
+   "authorBasis": "full text",
+   "takeHomeBy": "authors"
+  },
+  {
+   "id": "lancet-2026-rate-ecmo-anticoagulation",
+   "date": "2026-07-07",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "RCT",
+   "topics": [
+    "mcs",
+    "criticalCare",
+    "cardiacSurgery"
+   ],
+   "headline": "RATE: low-dose heparin or therapeutic LMWH is noninferior to standard heparin on ECMO, with no excess clotting",
+   "summary": "In a seven-centre Dutch open-label trial of 320 adults on VV or VA ECMO, low-dose unfractionated heparin (aPTT 1.5-2.0 times baseline) and twice-daily therapeutic LMWH were both noninferior to standard-dose heparin (aPTT 2.0-2.5 times) for a composite of severe bleeding, severe thromboembolism or death at 6 months.",
+   "takeHome": [
+    "Composite of severe bleeding, severe thromboembolism or 6-month death: 81% standard-dose UFH, 72% low-dose UFH, 75% LMWH; both non-inferior",
+    "Risk differences -9.1 points (95% CI -20.3 to 2.1) for low-dose UFH and -6.1 (-17.2 to 5.0) for LMWH versus standard; margin 7.5 points",
+    "Low-dose UFH, LMWH vs standard: severe thromboembolism 10%, 9%, 11%; severe bleeding 58%, 59%, 65%; 6-month death 42%, 44%, 50%"
+   ],
+   "deepDive": "**Why it matters.** Bleeding is the commonest serious complication of ECMO, and most units still run heparin to an aPTT of 1.5-2.5 times baseline on habit rather than trial data. Observational series hinted that less heparin bleeds less without more clotting. RATE is the first adequately sized randomised test.\n\n**What they did.** Seven Dutch mixed ICUs randomised 330 adults on VV (40%) or VA (60%) ECMO between 2020 and 2024 to standard-dose UFH (aPTT 2.0-2.5 times baseline, roughly 60-75 s), low-dose UFH (1.5-2.0 times, roughly 45-60 s) or weight-adjusted therapeutic LMWH twice daily. Patients with a compelling indication for full anticoagulation, known PE or intracardiac thrombus, or HIT were excluded. The primary outcome was a net composite of severe bleeding or severe thromboembolism during ECMO, or death by 6 months, with a 7.5 percentage-point noninferiority margin; 320 were analysed.\n\n**What they found.**\n- Composite: 81% standard, 72% low-dose UFH (difference -9.1%, 95% CI -20.3 to 2.1), 75% LMWH (-6.1%, -17.2 to 5.0). Both met noninferiority.\n- Severe bleeding 65% vs 58% vs 59%; severe thromboembolism 11% vs 10% vs 9%.\n- Six-month mortality 50% vs 42% vs 44%. Oxygenator exchanges were fewer with LMWH, and costs were lower in both intervention arms.\n- Exploratory VV subgroup: mortality 23% with low-dose UFH vs 46% with standard.\n\n**Caveats.** Open label, event rates far above the 60-70% assumed, 13-28% crossover, and anti-Xa was measured in only 71 patients. Superiority was not shown for any outcome.\n\n**For the anaesthesiologist.** Turning heparin down to an aPTT of 1.5-2.0 times baseline, or using LMWH when renal function allows, is now the evidence-based default for most adult ECMO runs. Keep full dosing for mechanical valves, known thrombus or active PE, and stay alert for the bleeding that still hit six in ten patients.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)00851-2",
+   "impact": 3,
+   "trialName": "RATE",
+   "firstAuthor": "Olivier van Minnen",
+   "editorTakeHome": [
+    "Composite of severe bleeding, thromboembolism or 6-month death: 81% standard UFH, 72% low-dose UFH, 75% LMWH",
+    "Severe thromboembolism was 9-11% in every arm; bleeding and mortality trended lower with less anticoagulation",
+    "Lower-intensity anticoagulation is a defensible default for ECMO patients without a separate indication for full dosing"
+   ],
+   "takeHomeBy": "authors",
+   "authorLimitations": [],
+   "authorBasis": "abstract"
+  },
+  {
+   "id": "circ-2026-second-universal-definition-heart-failure",
+   "date": "2026-06-29",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "Consensus",
+   "topics": [
+    "cardiac"
+   ],
+   "headline": "Second Universal Definition of Heart Failure: rigid LVEF cut-offs dropped for reduced, preserved and improved EF",
+   "summary": "AHA, ACC, ESC and the World Heart Federation, with HFSA, HFA and the Japanese Heart Failure Society, updated the 2021 universal definition: HF phenotypes are grouped as reduced, preserved and improved ejection fraction without fixed numeric thresholds, a universal classification of causes is proposed, and improvement, remission and recovery trajectories are defined.",
+   "takeHome": [
+    "Replaces rigid LVEF cut-offs with reduced, preserved and improved ejection fraction categories to better reflect clinical practice",
+    "Proposes a universal classification of heart failure causes and addresses HF trajectories: improvement, remission and recovery",
+    "Highlights social determinants and geographic variation in HF risk and outcomes; aims to standardize terminology for clinicians, researchers, systems and policymakers"
+   ],
+   "deepDive": "**Why it matters.** The 2021 universal definition gave us HFmrEF, HFimpEF and the pre-heart failure stage; every echo report, trial eligibility list and pre-op note has used that vocabulary since. The second edition, published in Circulation on 29 June 2026 and co-published in JACC (Walsh and colleagues), changes the vocabulary again.\n\n**What they did.** A writing group convened by the AHA, ACC, ESC and World Heart Federation, in collaboration with HFSA, the HFA of the ESC and the Japanese Heart Failure Society, revised the 2021 document to standardise terminology for clinicians, researchers, health systems and policymakers and, in their words, to better reflect clinical reality.\n\n**What changed.**\n- Phenotypes move away from rigid LVEF cut-offs and are grouped as reduced, preserved and improved ejection fraction; the mildly reduced category is gone, matching the 2026 ESC heart failure guideline published in August.\n- Staging keeps A (at risk), B (pre-HF), C (HF) and D (advanced HF), adds Stage 0 for people without risk factors, and sharpens the criteria for each stage.\n- A universal classification of causes is proposed, grouping for example ischaemic, infective (viral, Chagas, HIV) and inflammatory (sarcoid, autoimmune, desmoplakin) cardiomyopathies, to standardise registries and trials.\n- Trajectories of improvement, remission and recovery are defined, and the document addresses social determinants and geographic variation in HF risk and outcomes.\n\n**Caveats.** A definition document, not a treatment guideline; numeric EF thresholds will persist in device and drug labels and in trial criteria for years, so expect a period of dual language.\n\n**For the anaesthesiologist.** Update pre-operative templates and TEE reports: HFmrEF is leaving the lexicon, improved EF is a formal phenotype that still carries risk, and the cause of the cardiomyopathy should be named using the new taxonomy.",
+   "url": "https://doi.org/10.1161/CIR.0000000000001455",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Mary Norine Walsh",
+   "editorTakeHome": [
+    "Three EF groups replace the four-tier scheme; the mildly reduced category disappears, as in the 2026 ESC guideline",
+    "Stages A to D are retained, with Stage 0 for no risk factors; pre-HF (Stage B) keeps its emphasis on prevention",
+    "A universal etiological classification (ischaemic, infective, inflammatory and others) is proposed for records and trials"
+   ],
+   "authorLimitations": [],
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors"
+  }
+ ]
+}
