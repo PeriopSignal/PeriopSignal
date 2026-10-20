@@ -74,6 +74,7 @@ jobs:
         working-directory: ios
         run: |
           set -o pipefail
+          mkdir -p build
           xcodebuild -project PeriopSignal.xcodeproj -scheme PeriopSignal \
             -destination "id=${{ steps.sim.outputs.udid }}" \
             -configuration Debug -derivedDataPath build/DerivedData \

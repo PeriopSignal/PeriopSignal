@@ -1,0 +1,143 @@
+name: iOS release (TestFlight)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Marketing version shown in TestFlight (e.g. 1.0.0)"
+        required: true
+        default: "1.0.0"
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  RESULTS_BRANCH: ci-results
+
+jobs:
+  release:
+    name: Archive, sign in the cloud, upload to TestFlight
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets
+        run: |
+          missing=""
+          for v in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 DEVELOPMENT_TEAM; do
+            if [ -z "${!v}" ]; then missing="$missing $v"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing (APPLE_TEAM_ID maps to DEVELOPMENT_TEAM). Add them under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Select Xcode
+        run: |
+          XC=$(ls -d /Applications/Xcode_*.app | grep -v -i beta | sort -V | tail -1)
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+
+      - name: Install App Store Connect API key
+        run: |
+          mkdir -p ~/private_keys
+          if echo "$ASC_KEY_P8" | grep -q "BEGIN PRIVATE KEY"; then
+            printf '%s\n' "$ASC_KEY_P8" > ~/private_keys/AuthKey_$ASC_KEY_ID.p8
+          else
+            echo "$ASC_KEY_P8" | base64 -d > ~/private_keys/AuthKey_$ASC_KEY_ID.p8
+          fi
+          chmod 600 ~/private_keys/AuthKey_$ASC_KEY_ID.p8
+          echo "KEY_PATH=$HOME/private_keys/AuthKey_$ASC_KEY_ID.p8" >> "$GITHUB_ENV"
+
+      - name: Register bundle identifiers and capabilities
+        run: |
+          pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
+          python3 ios/tools/asc_prepare.py
+
+      - name: Install XcodeGen and generate the project
+        working-directory: ios
+        run: |
+          brew install xcodegen
+          xcodegen generate --spec project.yml
+
+      - name: Archive (unsigned; signing happens at export with Apple's cloud-managed certificate)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          mkdir -p build
+          xcodebuild -project PeriopSignal.xcodeproj -scheme PeriopSignal \
+            -configuration Release -destination "generic/platform=iOS" \
+            -archivePath build/PeriopSignal.xcarchive \
+            -derivedDataPath build/DerivedData \
+            MARKETING_VERSION="${{ inputs.version }}" CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            archive 2>&1 | tee build/archive.log | grep -E "error:|ARCHIVE|BUILD" | tail -40
+
+      - name: Export and upload to App Store Connect
+        working-directory: ios
+        run: |
+          set -o pipefail
+          cat > build/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${DEVELOPMENT_TEAM}</string>
+            <key>uploadSymbols</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath build/PeriopSignal.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/export \
+            -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" 2>&1 | tee build/export.log | grep -vE "^\s*$" | tail -60
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## iOS release ${{ inputs.version }} (build ${{ github.run_number }})"
+            echo
+            if grep -q "EXPORT SUCCEEDED" ios/build/export.log 2>/dev/null; then
+              echo "Uploaded to App Store Connect. It appears under TestFlight after Apple finishes processing (usually 5-20 minutes)."
+            else
+              echo "Upload did not complete. Last lines of the export log:"; echo '```'
+              tail -40 ios/build/export.log 2>/dev/null || tail -40 ios/build/archive.log 2>/dev/null || echo "(no log)"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish logs to the ci-results branch
+        if: always()
+        run: |
+          mkdir -p ci-out
+          for f in archive export; do
+            [ -f ios/build/$f.log ] && grep -vE "^\s*$" ios/build/$f.log | grep -E "error|warning: |SUCCEEDED|FAILED|Exported|Upload|signing|profile|certificate" | tail -300 > ci-out/release-$f.log || true
+          done
+          echo "run=${{ github.run_number }} version=${{ inputs.version }} status=${{ job.status }}" > ci-out/RELEASE_STATUS
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          git fetch origin "$RESULTS_BRANCH" && git checkout "$RESULTS_BRANCH" || git checkout --orphan "$RESULTS_BRANCH"
+          git rm -rf --cached . >/dev/null 2>&1 || true
+          mkdir -p results && cp ci-out/* results/
+          git add -f results
+          git commit -q -m "Release logs for run ${{ github.run_number }}" || true
+          git push --force origin "$RESULTS_BRANCH"
