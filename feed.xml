@@ -2,14 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
  <channel>
   <title>Periop Signal</title>
-  <link>https://example.invalid/</link>
+  <link>https://periopsignal.github.io/PeriopSignal/</link>
   <description>A curated research feed for cardiothoracic, critical care and trauma anesthesiology: landmark trials, guidelines and regulatory news, with take-home points, paper links and AI overviews.</description>
   <language>en-us</language>
-  <lastBuildDate>Tue, 20 Oct 2026 13:52:00 +0000</lastBuildDate>
-  
+  <lastBuildDate>Tue, 20 Oct 2026 13:54:49 +0000</lastBuildDate>
+  <atom:link href="https://periopsignal.github.io/PeriopSignal/feed.xml" rel="self" type="application/rss+xml"/>
   <item>
    <title>PELICAN: keeping cardiac index at each patient's own baseline did not cut 7-day complications; 90-day death doubled</title>
-   <link>https://doi.org/10.1001/jama.2026.18574</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy</link>
    <guid isPermaLink="false">periop-signal:jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy</guid>
    <pubDate>Tue, 20 Oct 2026 11:00:00 +0000</pubDate>
    <category>general</category><category>criticalCare</category>
@@ -17,7 +17,7 @@
   </item>
   <item>
    <title>US-CRS: a lab-and-device urgency score ranks heart transplant candidates better than the six-status system</title>
-   <link>https://doi.org/10.1001/jama.2026.17403</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-us-crs-heart-allocation-score</link>
    <guid isPermaLink="false">periop-signal:jama-2026-us-crs-heart-allocation-score</guid>
    <pubDate>Mon, 19 Oct 2026 11:00:00 +0000</pubDate>
    <category>mcs</category><category>cardiac</category><category>criticalCare</category>
@@ -25,7 +25,7 @@
   </item>
   <item>
    <title>FDA early alert: Philips Lumify apps can demand re-registration and block scanning; 4 deaths and 8 serious injuries</title>
-   <link>https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-diagnostic-ultrasound-system-issue-philips-ultrasound</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#fda-2026-philips-lumify-early-alert</link>
    <guid isPermaLink="false">periop-signal:fda-2026-philips-lumify-early-alert</guid>
    <pubDate>Mon, 19 Oct 2026 11:00:00 +0000</pubDate>
    <category>echo</category><category>criticalCare</category><category>general</category>
@@ -33,7 +33,7 @@
   </item>
   <item>
    <title>EACTS issues the first dedicated guidance on iatrogenic aortic dissection, with procedure-specific algorithms</title>
-   <link>https://doi.org/10.1093/ejcts/ezag221</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus</link>
    <guid isPermaLink="false">periop-signal:ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus</guid>
    <pubDate>Mon, 19 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiacSurgery</category><category>cardiac</category><category>echo</category>
@@ -41,7 +41,7 @@
   </item>
   <item>
    <title>EACTS/EACTAIC minimum standards for robotic cardiac surgery: 75 open mitral repairs before the console, a dedicated team</title>
-   <link>https://doi.org/10.1093/ejcts/ezag187</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#ejcts-2026-eacts-robotic-cardiac-surgery-minimum-standards</link>
    <guid isPermaLink="false">periop-signal:ejcts-2026-eacts-robotic-cardiac-surgery-minimum-standards</guid>
    <pubDate>Mon, 19 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiacSurgery</category><category>cardiac</category>
@@ -49,7 +49,7 @@
   </item>
   <item>
    <title>FDA early alert: SAPIEN M3 Commander M delivery balloons have burst during TMVR, with one death; four lots pulled</title>
-   <link>https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-transcatheter-mitral-valve-delivery-system-issue-edwards-lifesciences</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#fda-2026-sapien-m3-commander-m-delivery-early-alert</link>
    <guid isPermaLink="false">periop-signal:fda-2026-sapien-m3-commander-m-delivery-early-alert</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category><category>echo</category>
@@ -57,7 +57,7 @@
   </item>
   <item>
    <title>Adding dobutamine to norepinephrine during source-control surgery for septic shock cuts 7-day AKI from 35% to 23%</title>
-   <link>https://doi.org/10.1001/jama.2026.21322</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki</link>
    <guid isPermaLink="false">periop-signal:jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category><category>general</category>
@@ -65,7 +65,7 @@
   </item>
   <item>
    <title>ICRAKI: intermittent hemodialysis fails noninferiority against CRRT in unstable AKI, with higher 90-day mortality</title>
-   <link>https://www.nejm.org/doi/full/10.1056/NEJMoa2608397</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nejm-2026-icraki-ihd-vs-crrt</link>
    <guid isPermaLink="false">periop-signal:nejm-2026-icraki-ihd-vs-crrt</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category>
@@ -73,7 +73,7 @@
   </item>
   <item>
    <title>SAVE-ICU: isoflurane sedation does not lower mortality in hypoxemic respiratory failure; fewer delirium-free days</title>
-   <link>https://doi.org/10.1001/jama.2026.18471</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-save-icu-isoflurane-sedation</link>
    <guid isPermaLink="false">periop-signal:jama-2026-save-icu-isoflurane-sedation</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category><category>general</category>
@@ -81,7 +81,7 @@
   </item>
   <item>
    <title>VASSPR: starting vasopressin at 0.1 instead of 0.4 mcg/kg/min of norepinephrine does not lower septic shock mortality</title>
-   <link>https://doi.org/10.1001/jama.2026.21333</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-vasspr-vasopressin-threshold</link>
    <guid isPermaLink="false">periop-signal:jama-2026-vasspr-vasopressin-threshold</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category>
@@ -89,7 +89,7 @@
   </item>
   <item>
    <title>Across 31 European countries, 15% of cesareans get general anesthesia, and 54% when it is a true emergency</title>
-   <link>https://doi.org/10.1016/j.bja.2026.08.046</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#bja-2026-europe-cesarean-ga-9989</link>
    <guid isPermaLink="false">periop-signal:bja-2026-europe-cesarean-ga-9989</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>ob</category>
@@ -97,7 +97,7 @@
   </item>
   <item>
    <title>EUROMACS: HeartMate 3 recipients under 50 have 75% five-year on-device survival, close to transplant-list figures</title>
-   <link>https://doi.org/10.1093/ejcts/ezag234</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#ejcts-2026-euromacs-young-hm3</link>
    <guid isPermaLink="false">periop-signal:ejcts-2026-euromacs-young-hm3</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>mcs</category><category>cardiacSurgery</category><category>cardiac</category>
@@ -105,7 +105,7 @@
   </item>
   <item>
    <title>FDA Class I recall of every Automated Impella Controller: purge-sensor failures tied to 37 injuries and 3 deaths</title>
-   <link>https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/heart-pump-controller-recall-abiomed-removes-automated-impella-controllers</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#fda-2026-impella-controller-class-i-recall</link>
    <guid isPermaLink="false">periop-signal:fda-2026-impella-controller-class-i-recall</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>mcs</category><category>cardiac</category><category>criticalCare</category><category>cardiacSurgery</category>
@@ -113,7 +113,7 @@
   </item>
   <item>
    <title>Multicentre RCT: caudal block does not increase fistula after hypospadias repair and gives better analgesia</title>
-   <link>https://doi.org/10.1136/rapm-2026-108027</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#rapm-2026-caudal-vs-penile-block-hypospadias-fistula</link>
    <guid isPermaLink="false">periop-signal:rapm-2026-caudal-vs-penile-block-hypospadias-fistula</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>regional</category><category>pediatric</category>
@@ -121,7 +121,7 @@
   </item>
   <item>
    <title>Class I recall widens for Medline-reprocessed AcuNav, ViewFlex and SoundStar ICE catheters over residual particulates</title>
-   <link>https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/catheter-recall-expansion-medline-industries-removes-reprocessed-electrophysiology-and-ultrasound</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#fda-2026-medline-reprocessed-ice-catheter-class-i-recall</link>
    <guid isPermaLink="false">periop-signal:fda-2026-medline-reprocessed-ice-catheter-class-i-recall</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>echo</category><category>cardiac</category>
@@ -129,7 +129,7 @@
   </item>
   <item>
    <title>AHA: residual lesions drive unplanned reintervention in ~5% of pediatric heart operations; catch them in the OR</title>
-   <link>https://doi.org/10.1161/CIR.0000000000001465</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#circ-2026-aha-residual-lesions-reintervention-statement</link>
    <guid isPermaLink="false">periop-signal:circ-2026-aha-residual-lesions-reintervention-statement</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>pedsCardiac</category><category>cardiacSurgery</category><category>echo</category>
@@ -137,7 +137,7 @@
   </item>
   <item>
    <title>iHOPE: spinal vs general anaesthesia for hip fracture makes no difference to death or cardiopulmonary complications</title>
-   <link>https://doi.org/10.1016/j.lanhl.2026.100891</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#lancet-healthy-longev-2026-ihope-spinal-vs-general-hip-fracture</link>
    <guid isPermaLink="false">periop-signal:lancet-healthy-longev-2026-ihope-spinal-vs-general-hip-fracture</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>regional</category><category>general</category><category>trauma</category>
@@ -145,7 +145,7 @@
   </item>
   <item>
    <title>LAACS-2: routine surgical appendage closure did not cut stroke overall; benefit signal only in high-risk patients</title>
-   <link>https://www.escardio.org/news/press/press-releases/left-atrial-appendage-closure-during-open-heart-surgery-only-beneficial-for-high-risk-patients</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#esc26-laacs-2-surgical-laa-closure</link>
    <guid isPermaLink="false">periop-signal:esc26-laacs-2-surgical-laa-closure</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiacSurgery</category><category>cardiac</category><category>echo</category>
@@ -153,7 +153,7 @@
   </item>
   <item>
    <title>TRIC-I-HF: transcatheter tricuspid repair cut death or heart failure hospitalization by 60% over 3 years</title>
-   <link>https://doi.org/10.1056/NEJMoa2606934</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nejm-2026-tric-i-hf-tricuspid-repair</link>
    <guid isPermaLink="false">periop-signal:nejm-2026-tric-i-hf-tricuspid-repair</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category><category>echo</category><category>cardiacSurgery</category>
@@ -161,7 +161,7 @@
   </item>
   <item>
    <title>TAVI PCI: doing the valve first and the stent later was noninferior to PCI before TAVI in severe AS with CAD</title>
-   <link>https://doi.org/10.1056/NEJMoa2606924</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nejm-2026-tavi-pci-sequencing</link>
    <guid isPermaLink="false">periop-signal:nejm-2026-tavi-pci-sequencing</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category>
@@ -169,7 +169,7 @@
   </item>
   <item>
    <title>Routine protamine after transfemoral TAVI reduced death or bleeding at 30 days, at the price of more anaphylaxis</title>
-   <link>https://www.pcronline.com/News/Congress-coverages/ESC/2026/POPular-ACE-TAVI-routine-or-selective-protamine-administration-after-TAVI</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#esc26-popular-ace-tavi-protamine</link>
    <guid isPermaLink="false">periop-signal:esc26-popular-ace-tavi-protamine</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category><category>general</category>
@@ -177,7 +177,7 @@
   </item>
   <item>
    <title>2026 ESC HF guideline: HFmrEF is gone, shock teams Class I, no routine ECMO or IABP in AMI shock, LVAD Class I</title>
-   <link>https://doi.org/10.1093/eurheartj/ehag100</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#ehj-2026-esc-heart-failure-guideline</link>
    <guid isPermaLink="false">periop-signal:ehj-2026-esc-heart-failure-guideline</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category><category>mcs</category><category>criticalCare</category><category>cardiacSurgery</category>
@@ -185,7 +185,7 @@
   </item>
   <item>
    <title>Fifth Universal Definition of MI drops types 1-5; CABG and PCI infarcts become 'procedure-related MI'</title>
-   <link>https://doi.org/10.1093/eurheartj/ehag101</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#ehj-2026-fifth-universal-definition-mi</link>
    <guid isPermaLink="false">periop-signal:ehj-2026-fifth-universal-definition-mi</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category><category>cardiacSurgery</category><category>general</category>
@@ -193,7 +193,7 @@
   </item>
   <item>
    <title>Cold-stored platelets kept up to 21 days are noninferior to room-temperature platelets for surgical bleeding (CHIPS)</title>
-   <link>https://doi.org/10.1001/jama.2026.13328</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-chips-cold-stored-platelets</link>
    <guid isPermaLink="false">periop-signal:jama-2026-chips-cold-stored-platelets</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>trauma</category><category>cardiacSurgery</category><category>criticalCare</category>
@@ -201,7 +201,7 @@
   </item>
   <item>
    <title>NRP beats direct procurement for early survival after DCD heart transplant; curves merge after the first month</title>
-   <link>https://doi.org/10.1016/j.jtcvs.2026.08.001</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jtcvs-2026-nrp-vs-dpp-dcd-heart</link>
    <guid isPermaLink="false">periop-signal:jtcvs-2026-nrp-vs-dpp-dcd-heart</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>mcs</category><category>cardiacSurgery</category><category>cardiac</category>
@@ -209,7 +209,7 @@
   </item>
   <item>
    <title>AHA statement gives pediatric cardiogenic shock a definition, severity stages and an escalation framework</title>
-   <link>https://doi.org/10.1161/CIR.0000000000001461</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#circ-2026-aha-pediatric-cardiogenic-shock-statement</link>
    <guid isPermaLink="false">periop-signal:circ-2026-aha-pediatric-cardiogenic-shock-statement</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>pedsCardiac</category><category>mcs</category><category>criticalCare</category>
@@ -217,7 +217,7 @@
   </item>
   <item>
    <title>ICECAP: longer cooling at 33 C after out-of-hospital arrest does not improve neurological outcome; 6 h matched 48 h</title>
-   <link>https://doi.org/10.1001/jama.2026.10247</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-icecap-hypothermia-duration</link>
    <guid isPermaLink="false">periop-signal:jama-2026-icecap-hypothermia-duration</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category><category>cardiac</category>
@@ -225,7 +225,7 @@
   </item>
   <item>
    <title>Video laryngoscopy beats direct for routine OR intubation: first-pass 88% hyperangulated vs 78% direct (COVALENT)</title>
-   <link>https://doi.org/10.1001/jamanetworkopen.2026.25965</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jamano-2026-covalent-videolaryngoscopy</link>
    <guid isPermaLink="false">periop-signal:jamano-2026-covalent-videolaryngoscopy</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>general</category><category>trauma</category>
@@ -233,7 +233,7 @@
   </item>
   <item>
    <title>Four doses of dapagliflozin around cardiac surgery nearly halve postoperative AKI</title>
-   <link>https://doi.org/10.1001/jama.2026.9268</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-dapagliflozin-cardiac-surgery-aki</link>
    <guid isPermaLink="false">periop-signal:jama-2026-dapagliflozin-cardiac-surgery-aki</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category><category>cardiacSurgery</category><category>cardiac</category>
@@ -241,7 +241,7 @@
   </item>
   <item>
    <title>FDA licenses Ezplaz, the first US freeze-dried plasma: room-temperature storage, reconstituted in minutes</title>
-   <link>https://www.aabb.org/news-resources/news/article/2026/07/29/regulatory-update--fda-licenses-first-freeze-dried-plasma-product</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#fda-2026-ezplaz-freeze-dried-plasma</link>
    <guid isPermaLink="false">periop-signal:fda-2026-ezplaz-freeze-dried-plasma</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>trauma</category><category>criticalCare</category>
@@ -249,7 +249,7 @@
   </item>
   <item>
    <title>PROSPECT hip arthroplasty update backs supra-inguinal fascia iliaca and PENG blocks; QL and ESP not recommended</title>
-   <link>https://doi.org/10.1111/anae.70299</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#anaesthesia-2026-prospect-total-hip-arthroplasty-update</link>
    <guid isPermaLink="false">periop-signal:anaesthesia-2026-prospect-total-hip-arthroplasty-update</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>regional</category>
@@ -257,7 +257,7 @@
   </item>
   <item>
    <title>Remimazolam anaesthesia causes more delirium than propofol in older lung resection patients</title>
-   <link>https://doi.org/10.1111/anae.70290</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#anaesthesia-2026-remimazolam-vs-propofol-delirium-lung-resection</link>
    <guid isPermaLink="false">periop-signal:anaesthesia-2026-remimazolam-vs-propofol-delirium-lung-resection</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>thoracic</category><category>general</category>
@@ -265,7 +265,7 @@
   </item>
   <item>
    <title>NBE will certify Interventional Echocardiography with a new IEeXAM; Advanced PTE applicants lose one paperwork hurdle</title>
-   <link>https://www.echoboards.org/nbe-announces-examination-and-certification-of-special-competence-in-interventional-echocardiography-ieexam/</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nbe-2026-ieexam-interventional-echo-certification</link>
    <guid isPermaLink="false">periop-signal:nbe-2026-ieexam-interventional-echo-certification</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>echo</category><category>cardiac</category><category>cardiacSurgery</category>
@@ -273,7 +273,7 @@
   </item>
   <item>
    <title>ATS 2026: high-flow strongly recommended for de novo hypoxemic failure, NIV for hypercapnia and risky extubations</title>
-   <link>https://doi.org/10.1093/ajrccm/aamag302</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#ajrccm-2026-ats-noninvasive-respiratory-support-guideline</link>
    <guid isPermaLink="false">periop-signal:ajrccm-2026-ats-noninvasive-respiratory-support-guideline</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category>
@@ -281,7 +281,7 @@
   </item>
   <item>
    <title>EARLY TAVR at 5 years: treating asymptomatic severe AS still beats watching; death and stroke diverge after year 2</title>
-   <link>https://www.tctmd.com/news/early-tavr-5-year-data-still-support-tavi-over-surveillance-asymptomatic</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nyv-2026-early-tavr-5yr</link>
    <guid isPermaLink="false">periop-signal:nyv-2026-early-tavr-5yr</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category><category>cardiacSurgery</category>
@@ -289,7 +289,7 @@
   </item>
   <item>
    <title>In US DCD liver transplants, both NRP and normothermic machine perfusion beat cold storage; neither beats the other</title>
-   <link>https://doi.org/10.1097/SLA.0000000000007120</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#annsurg-2026-nrp-nmp-dcd-liver-standard-of-care</link>
    <guid isPermaLink="false">periop-signal:annsurg-2026-nrp-nmp-dcd-liver-standard-of-care</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>liver</category>
@@ -297,7 +297,7 @@
   </item>
   <item>
    <title>SODa-BIC: short-course bicarbonate fixes the numbers but not kidney outcomes or death in vasopressor-dependent acidosis</title>
-   <link>https://doi.org/10.1056/NEJMoa2600526</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nejm-2026-soda-bic</link>
    <guid isPermaLink="false">periop-signal:nejm-2026-soda-bic</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category>
@@ -305,7 +305,7 @@
   </item>
   <item>
    <title>ARISE FLUIDS: after 1-2 L, early pressors and fluids-first give the same 90-day outcome in septic shock</title>
-   <link>https://doi.org/10.1056/NEJMoa2516225</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nejm-2026-arise-fluids</link>
    <guid isPermaLink="false">periop-signal:nejm-2026-arise-fluids</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category>
@@ -313,7 +313,7 @@
   </item>
   <item>
    <title>Bicarbonate during in-hospital cardiac arrest does not improve return of circulation in a 913-patient blinded trial</title>
-   <link>https://doi.org/10.1001/jama.2026.10628</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jama-2026-bicarbonate-in-hospital-arrest</link>
    <guid isPermaLink="false">periop-signal:jama-2026-bicarbonate-in-hospital-arrest</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category><category>cardiac</category>
@@ -321,7 +321,7 @@
   </item>
   <item>
    <title>LOGICAL: conservative oxygen after cardiac arrest does not improve neurological survival in 1,840 patients</title>
-   <link>https://doi.org/10.1056/NEJMoa2513814</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nejm-2026-logical-oxygen-after-arrest</link>
    <guid isPermaLink="false">periop-signal:nejm-2026-logical-oxygen-after-arrest</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category><category>cardiac</category>
@@ -329,7 +329,7 @@
   </item>
   <item>
    <title>MARCH: carbocisteine and nebulized hypertonic saline do not shorten ventilation and both cause harm</title>
-   <link>https://doi.org/10.1056/NEJMoa2603406</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#nejm-2026-march-mucoactives</link>
    <guid isPermaLink="false">periop-signal:nejm-2026-march-mucoactives</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>criticalCare</category>
@@ -337,7 +337,7 @@
   </item>
   <item>
    <title>SNaPP: sugammadex modestly cuts pulmonary complications vs neostigmine in 3,498 abdominal and thoracic patients</title>
-   <link>https://doi.org/10.1016/S2213-2600(26)00158-X</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#lancet-resp-med-2026-snapp-sugammadex-neostigmine</link>
    <guid isPermaLink="false">periop-signal:lancet-resp-med-2026-snapp-sugammadex-neostigmine</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>general</category><category>thoracic</category>
@@ -345,7 +345,7 @@
   </item>
   <item>
    <title>FDA clears EchoNext, the first AI that reads a 12-lead ECG to flag six kinds of structural heart disease</title>
-   <link>https://www.accessdata.fda.gov/cdrh_docs/pdf26/K260332.pdf</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#fda-2026-echonext-ai-ecg-structural-heart-disease</link>
    <guid isPermaLink="false">periop-signal:fda-2026-echonext-ai-ecg-structural-heart-disease</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiac</category><category>echo</category><category>general</category>
@@ -353,7 +353,7 @@
   </item>
   <item>
    <title>Pooled RCTs: higher intraoperative BP targets do not reduce AKI, myocardial injury or death in noncardiac surgery</title>
-   <link>https://doi.org/10.1097/ALN.0000000000006190</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#anesthesiology-2026-higher-bp-targets-meta-analysis-tsa</link>
    <guid isPermaLink="false">periop-signal:anesthesiology-2026-higher-bp-targets-meta-analysis-tsa</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>general</category>
@@ -361,7 +361,7 @@
   </item>
   <item>
    <title>ASE's first M-TEER imaging guideline: standard views, standard steps, and 3D MPR preferred for puncture and grasp</title>
-   <link>https://doi.org/10.1016/j.echo.2026.03.003</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jase-2026-ase-mteer-intraprocedural-imaging-guideline</link>
    <guid isPermaLink="false">periop-signal:jase-2026-ase-mteer-intraprocedural-imaging-guideline</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>echo</category><category>cardiac</category>
@@ -369,7 +369,7 @@
   </item>
   <item>
    <title>Ninth STS-Pedimacs report: 1,465 pediatric VADs, 73% one-year survival, CHD now 28% of implants</title>
-   <link>https://doi.org/10.1016/j.athoracsur.2026.05.023</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#ats-2026-sts-pedimacs-ninth-report</link>
    <guid isPermaLink="false">periop-signal:ats-2026-sts-pedimacs-ninth-report</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>pedsCardiac</category><category>mcs</category>
@@ -377,7 +377,7 @@
   </item>
   <item>
    <title>Early neurodevelopment after infant heart surgery: genetic diagnosis costs &gt;1 SD; d-TGA fares best, TOF and AVSD worse</title>
-   <link>https://doi.org/10.1001/jamanetworkopen.2026.15885</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jamanetwopen-2026-cnoc-neurodevelopment-chd</link>
    <guid isPermaLink="false">periop-signal:jamanetwopen-2026-cnoc-neurodevelopment-chd</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>pedsCardiac</category><category>pediatric</category>
@@ -385,7 +385,7 @@
   </item>
   <item>
    <title>Sham-controlled trial: continuous parasternal (SPIP) blocks cut opioid use by ~21 MME over 72 h after sternotomy</title>
-   <link>https://doi.org/10.1016/j.lana.2026.101508</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#lancet-reg-health-am-2026-epoch-cardiolink-10-parasternal-block</link>
    <guid isPermaLink="false">periop-signal:lancet-reg-health-am-2026-epoch-cardiolink-10-parasternal-block</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>regional</category><category>cardiacSurgery</category>
@@ -393,7 +393,7 @@
   </item>
   <item>
    <title>End-ischemic HOPE cuts early allograft dysfunction nearly in half in extended-criteria liver grafts</title>
-   <link>https://doi.org/10.1001/jamasurg.2026.1604</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#jamasurg-2026-bridge-to-hope-hope-liver</link>
    <guid isPermaLink="false">periop-signal:jamasurg-2026-bridge-to-hope-hope-liver</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>liver</category>
@@ -401,7 +401,7 @@
   </item>
   <item>
    <title>OFACAR: opioid-free anaesthesia for on-pump cardiac surgery lowers 30-day complications, but the result is fragile</title>
-   <link>https://doi.org/10.1097/ALN.0000000000006164</link>
+   <link>https://periopsignal.github.io/PeriopSignal/#anesthesiology-2026-ofacar-opioid-free-cardiac-surgery</link>
    <guid isPermaLink="false">periop-signal:anesthesiology-2026-ofacar-opioid-free-cardiac-surgery</guid>
    <pubDate>Sat, 17 Oct 2026 11:00:00 +0000</pubDate>
    <category>cardiacSurgery</category><category>regional</category><category>general</category>
