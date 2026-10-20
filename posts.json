@@ -1,6 +1,6 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-20T10:01:38+00:00",
+ "generatedAt": "2026-10-20T15:19:37+00:00",
  "posts": [
   {
    "id": "jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy",
@@ -26,6 +26,206 @@
    "impact": 2,
    "trialName": "PELICAN",
    "firstAuthor": "Saugel"
+  },
+  {
+   "id": "lancet-2026-mist-minimally-invasive-cabg",
+   "date": "2026-07-31",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "RCT",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac",
+    "thoracic"
+   ],
+   "headline": "MIST: multivessel CABG through a small thoracotomy beat sternotomy on 1-month physical recovery, with no deaths or strokes",
+   "summary": "An investigator-initiated, open-label randomised trial at seven centres in six countries assigned 170 patients with multivessel coronary disease to minimally invasive CABG via a small thoracotomy or conventional sternotomy; the primary endpoint was patient-reported physical recovery (SF-36 physical component) at one month.",
+   "takeHome": [
+    "SF-36 physical component at 1 month: 45.1 vs 42.2, a 2.9-point gain for minimally invasive CABG (p=0.031).",
+    "No deaths or strokes through 12 months in either arm; one early major adverse cardiac or cerebrovascular event with the minimally invasive approach.",
+    "Experienced teams and selected patients; expect more one-lung ventilation, thoracotomy analgesia and peripheral cannulation in CABG rooms."
+   ],
+   "deepDive": "**Why it matters.** Minimally invasive multivessel CABG through a small left thoracotomy has spread on the promise of faster recovery, but until now the randomised evidence against sternotomy was thin. MIST is the first international randomised comparison with a patient-centred primary outcome.\n\n**What they did.** Ruel, Nambala, Guo and colleagues randomised 170 patients with multivessel coronary artery disease 1:1 to minimally invasive CABG (86) or sternotomy CABG (84) at seven centres in six countries (NCT03447938). The trial was open-label; the primary endpoint was physical recovery at one month measured by the SF-36 physical component summary, with safety followed to 12 months. Funding came from Medtronic.\n\n**What they found.**\n- One-month SF-36 physical component: 45.1 with minimally invasive CABG versus 42.2 with sternotomy, a mean difference of 2.9 points (95% CI 0.3 to 5.5; p=0.031).\n- No deaths and no strokes in either group through 12 months.\n- One major adverse cardiac or cerebrovascular event occurred in the minimally invasive group before one month.\n\n**Caveats.** The trial is small, the outcome is patient-reported in an unblinded design, the centres were experienced minimally invasive programs with selected patients, and a 2.9-point SF-36 difference is modest. Long-term graft patency is not addressed here. The authors themselves call for implementation and longer-term studies.\n\n**For the anesthesiologist.** If your surgeons take this up, the anesthetic changes more than the incision: lung isolation and one-lung ventilation during grafting, often with a double-lumen tube, TEE support for positioning and de-airing where cardiopulmonary bypass or peripheral cannulation is used, thoracotomy-appropriate analgesia (paravertebral, serratus or erector spinae blocks or catheters), and a team learning curve that the trial's experienced centres had already climbed.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)01288-2",
+   "impact": 2,
+   "trialName": "MIST",
+   "firstAuthor": "Ruel"
+  },
+  {
+   "id": "jcva-2026-vasopressin-make-cardiac-surgery",
+   "date": "2026-04-08",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "J Cardiothorac Vasc Anesth",
+   "jshort": "JCVA",
+   "kind": "Observational",
+   "topics": [
+    "cardiacSurgery",
+    "criticalCare"
+   ],
+   "headline": "Vasopressin after cardiac surgery: no change in 30-day kidney events or death in 3,753 vasopressor-dependent patients",
+   "summary": "In a four-ICU Queensland cohort of adults needing at least six hours of vasopressors after cardiac surgery, adding vasopressin within 24 hours was not associated with major adverse kidney events at 30 days (OR 1.02) or with mortality, though the sickest tertile showed a trend toward benefit.",
+   "takeHome": [
+    "Routine vasopressin for post-bypass vasoplegia does not appear to protect the kidney; pick it for pressure, not renal rescue.",
+    "Neutral for AKI (OR 1.04), new dialysis (OR 1.19) and 30-day death (OR 1.12) after overlap weighting.",
+    "Significant interaction with illness severity (p = 0.004) keeps the door open for the sickest patients."
+   ],
+   "deepDive": "**Why it matters.** Since the VANCS trial suggested vasopressin might reduce kidney injury and atrial fibrillation compared with norepinephrine in vasoplegic shock after cardiac surgery, many units reach for it early. Whether that renal benefit holds in everyday practice has been unclear.\n\n**What they did.** Multicentre retrospective cohort from four ICUs in the Queensland Critical Care Research Network, 2015-2021. Adults admitted after CABG, valve or combined surgery who needed at least six consecutive hours of vasopressor support in the first 24 hours were included; ECMO patients were excluded. Exposure was vasopressin within 24 hours of ICU admission. Inverse probability of treatment weighting with overlap weights balanced the groups.\n\n**What they found.**\n- 3,753 patients; 603 (16.1%) received vasopressin\n- Primary outcome, major adverse kidney events at 30 days (death, new renal replacement therapy or creatinine doubling): OR 1.02 (95% CI 0.76-1.38, p = 0.88)\n- 30-day mortality OR 1.12 (0.69-1.82); AKI within 7 days OR 1.04 (0.85-1.28); new renal replacement therapy OR 1.19 (0.80-1.76)\n- Effect modification by illness severity (interaction p = 0.004), with a trend toward benefit in the highest-severity tertile\n\n**Caveats.** Observational, with confounding by indication that weighting can only partly address; vasopressin dose, timing relative to shock onset and catecholamine exposure were not randomised. Four ICUs in one Australian network limit generalisability, and the severity subgroup finding is hypothesis-generating.\n\n**For the anaesthesiologist.** Use vasopressin to restore pressure and spare catecholamines when that is the problem, not as a kidney-protective strategy. The sickest-tertile signal is the question a prospective trial should answer. Print version: J Cardiothorac Vasc Anesth 2026;40(7):2112-2121.",
+   "url": "https://doi.org/10.1053/j.jvca.2026.04.011",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "White KC"
+  },
+  {
+   "id": "jcva-2026-cabg-racial-inequities-nis",
+   "date": "2026-03-10",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "J Cardiothorac Vasc Anesth",
+   "jshort": "JCVA",
+   "kind": "Registry",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac"
+   ],
+   "headline": "In 1.16 million US CABG admissions, Black patients died in hospital at 3.2% vs 2.4%; the gap did not narrow in six years",
+   "summary": "A National Inpatient Sample analysis of 1,159,040 isolated CABG hospitalisations found Black patients had higher in-hospital mortality (3.2% vs 2.4%, adjusted OR 1.22), two extra days in hospital and more cardiogenic shock and sepsis, with no narrowing of the gap across six years.",
+   "takeHome": [
+    "Black CABG patients were younger (mean 63) but sicker (Charlson index 3.25 vs 2.52) and still died more often after adjustment.",
+    "Mortality trends were flat for every group (P-trend > 0.30): national quality programmes have not closed the gap.",
+    "Preoperative optimisation and shock recognition are the modifiable parts of this story for perioperative teams."
+   ],
+   "deepDive": "**Why it matters.** Equity in cardiac surgical outcomes has been a stated priority of surgical and anaesthesia societies for a decade. This is the largest contemporary national look at whether anything has changed after CABG, and the answer is no.\n\n**What they did.** Retrospective cohort using the Healthcare Cost and Utilization Project National Inpatient Sample, 2016-2021. Adults undergoing isolated CABG were grouped by race and ethnicity; multivariable logistic regression adjusted for demographic and clinical factors. Primary outcome was in-hospital mortality; secondary outcomes were length of stay, cardiac arrest, cardiogenic shock and sepsis.\n\n**What they found.**\n- 1,159,040 CABG hospitalisations; Black patients were 6.7% of cases\n- Black patients were younger (mean age 63) with a higher comorbidity burden (Charlson index 3.25 vs 2.52)\n- In-hospital mortality 3.2% vs 2.4% in the comparison group (adjusted OR 1.22, p < 0.01)\n- Length of stay 11.8 vs 9.6 days; more cardiogenic shock and sepsis\n- No significant improvement in mortality for any group over time (P-trend > 0.30)\n\n**Caveats.** Administrative data rely on ICD coding without STS-style physiological risk variables, cannot separate hospital effects from patient effects fully, and capture only the index admission. Adjusted odds ratios describe association, not mechanism.\n\n**For the anaesthesiologist.** The excess risk travels with comorbidity, later presentation and more shock, which are things a perioperative team can act on: anaemia and diabetes optimisation, earlier mechanical support decisions, and structured handover to the ICU. The paper is also the citation for anyone building an equity dashboard around cardiac surgical outcomes. Print version: J Cardiothorac Vasc Anesth 2026;40(7):2096-2102.",
+   "url": "https://doi.org/10.1053/j.jvca.2026.03.013",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Moreira V"
+  },
+  {
+   "id": "aa-2026-sca-sts-doac-cardiac-surgery-consensus",
+   "date": "2026-01-29",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Anesthesia & Analgesia",
+   "jshort": "A&A",
+   "kind": "Consensus",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac",
+    "general"
+   ],
+   "headline": "SCA and STS publish the first joint consensus on managing DOACs before, during and after cardiac surgery",
+   "summary": "The Society of Cardiovascular Anesthesiologists and the Society of Thoracic Surgeons issued a joint consensus statement on patients taking factor Xa or direct thrombin inhibitors who need cardiac surgery, built on a systematic review plus expert consensus, published in Anesthesia & Analgesia (online 29 January 2026, April 2026 issue) and co-published in the Annals of Thoracic Surgery.",
+   "takeHome": [
+    "Five domains: when to stop the DOAC, how to check residual drug activity, whether to bridge, how to reverse, when to restart.",
+    "Summary statements pair the evidence with expert consensus for each domain, written for anesthesiologists and surgeons together.",
+    "Use it to rebuild your pre-admission DOAC protocol, assay access and emergency reversal pathway; read the full text for specifics."
+   ],
+   "deepDive": "**Why it matters.** A large share of patients arriving for CABG, valve or aortic surgery are on apixaban, rivaroxaban, edoxaban or dabigatran, and the questions come up every week: how many days to hold, whether a drug level is worth sending, what to do when surgery cannot wait, which reversal agent to reach for, and when the surgeon is comfortable restarting. Practice has varied by institution and by who was on call. European surgeons issued recommendations in 2023; this is the first joint statement from the two US societies that share these patients.\n\n**What they did.** Budd, Kertai, Wyler von Ballmoos, Raphael, Ghadimi and colleagues, writing for the SCA and the STS, ran a systematic review of the literature on stopping DOACs before cardiac surgery, monitoring options, the need for bridging, reversal agents, and resuming anticoagulation after surgery, then completed a structured expert consensus process. The output is a set of summary statements for each domain, each tied to the evidence and the panel's agreement.\n\n**What it covers.**\n- Preoperative cessation, including how renal function and drug choice change the timing.\n- Measuring residual effect, and where calibrated assays help when timing is uncertain or surgery is urgent.\n- Bridging, which the statement addresses directly rather than leaving to habit.\n- Reversal strategies for emergent and bleeding patients, including the specific reversal agents and prothrombin complex concentrate.\n- Postoperative resumption in a way both specialties can sign off on.\n\n**Caveats.** Much of the base is observational, so several statements rest on consensus rather than trial data, and the document is a guide rather than an hour-by-hour mandate; the full text carries the specifics this summary deliberately does not paraphrase.\n\n**For the anesthesiologist.** This is the document to cite when you standardize the DOAC questions in pre-admission testing, secure anti-Xa and dabigatran assays with a quick turnaround, agree a reversal pathway with pharmacy and blood bank, and set a resumption plan with your surgeons.",
+   "url": "https://doi.org/10.1213/ANE.0000000000007868",
+   "impact": 3,
+   "trialName": "",
+   "firstAuthor": "Budd"
+  },
+  {
+   "id": "jcva-2025-eactaic-monitoring-thoracic",
+   "date": "2025-12-18",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "J Cardiothorac Vasc Anesth",
+   "jshort": "JCVA",
+   "kind": "Consensus",
+   "topics": [
+    "thoracic"
+   ],
+   "headline": "EACTAIC issues its first consensus on monitoring in thoracic anaesthesia, from basic monitors to NMB and brain",
+   "summary": "A 45-author EACTAIC task force has published consensus recommendations on what to monitor during thoracic anaesthesia, covering respiratory, circulatory, neuromuscular and neurological monitoring in routine and specialised settings. It is the first of a series of thoracic consensus documents.",
+   "takeHome": [
+    "First European consensus on monitoring for thoracic cases; use it to audit your lung-resection and OLV monitoring bundle.",
+    "Recommendations are graded by agreement level: agreed (>60%), strong (>80%) and full (>95%) consensus.",
+    "Authors stress the evidence base is thin, so treat this as a shared baseline rather than a rulebook."
+   ],
+   "deepDive": "**Why it matters.** Thoracic anaesthesia has lacked a society document on which monitors belong in the room, when advanced haemodynamic or neuromonitoring is worth it, and how to interpret it during one-lung ventilation. EACTAIC's Thoracic Subcommittee has now published the first of a planned series of consensus documents, written by its General Management: Monitoring Task Force.\n\n**What they did.** Senior thoracic anaesthesiologists from Europe, the United States, Africa and the Middle East (45 named authors) reviewed the evidence and voted on statements. Agreement is reported in three tiers: agreed (more than 60%), strong (more than 80%) and, for some statements, full consensus (more than 95%).\n\n**What it covers.**\n- Standard basic and advanced monitoring for thoracic patients\n- Respiratory and circulatory monitoring in routine and specialised settings\n- Monitoring of neuromuscular blockade, depth of anaesthesia and neurological function\n- Research priorities, and how monitoring links to good clinical practice and enhanced recovery after lung surgery\n\n**Caveats.** The authors are candid that high-level evidence is limited and that controversies remain; the document consolidates diverse practice rather than settling it. Nothing here is a randomised result, and some statements reached only the lowest consensus tier.\n\n**For the anaesthesiologist.** This is the reference to cite when standardising a thoracic monitoring bundle, deciding on arterial and central access, or arguing for quantitative neuromuscular and depth-of-anaesthesia monitoring in a lung-resection pathway. Read it alongside the companion EACTAIC airway document published in the same month. Print version: J Cardiothorac Vasc Anesth 2026;40(3):985-993.",
+   "url": "https://doi.org/10.1053/j.jvca.2025.11.003",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "El Tahan MR"
+  },
+  {
+   "id": "jcva-2025-eactaic-airway-thoracic",
+   "date": "2025-12-05",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "J Cardiothorac Vasc Anesth",
+   "jshort": "JCVA",
+   "kind": "Consensus",
+   "topics": [
+    "thoracic"
+   ],
+   "headline": "EACTAIC airway consensus for thoracic anaesthesia: lung isolation goals, DLT practice, blockers and the difficult airway",
+   "summary": "EACTAIC's Airway Management Task Force has published a consensus document on lung isolation and separation, comparing double-lumen tubes and bronchial blockers in routine and difficult airways and answering six clinical questions. It is the third document in the society's thoracic consensus series.",
+   "takeHome": [
+    "Covers goals of lung isolation, best practice for double-lumen tubes, the role of bronchial blockers and difficult-airway plans.",
+    "Statements graded by agreement: agreed (>60%), strong (>80%), full (>95%); evidence base is acknowledged as limited.",
+    "Useful template for a departmental lung-isolation protocol and for teaching trainees the device trade-offs."
+   ],
+   "deepDive": "**Why it matters.** Lung isolation is the defining skill of thoracic anaesthesia, yet choices between double-lumen tubes and bronchial blockers, and plans for the patient with both a difficult airway and a need for one-lung ventilation, have mostly rested on local habit. This EACTAIC document gives the subspecialty a shared reference.\n\n**What they did.** The Airway Management Task Force of the EACTAIC Thoracic Subcommittee (around 40 authors, the TOSSCA Consensus Group) reviewed the evidence and had senior clinicians from Europe, the United States, Africa and the Middle East evaluate the statements. Consensus is reported as agreed (more than 60%), strong (more than 80%) and, in places, full (more than 95%).\n\n**What it covers.** Six clinical questions:\n- The goals of lung isolation and the means of achieving separation\n- Best practice for double-lumen tubes\n- The role of bronchial blockers\n- Management of the difficult airway in thoracic surgery\n- Special cases\n- Research priorities\n\nIt compares the benefits and drawbacks of each device in routine and difficult scenarios and ties the recommendations to good clinical practice and enhanced recovery.\n\n**Caveats.** As with the monitoring document, the authors state that high-level evidence is generally limited and that significant controversies remain. The abstract does not give a count of recommendations, and some statements sit at the lowest agreement tier.\n\n**For the anaesthesiologist.** Use it to standardise device selection and sizing, to write the difficult-airway-plus-OLV algorithm every thoracic unit should have on the wall, and as the citation when a surgeon asks why a blocker was chosen. Print version: J Cardiothorac Vasc Anesth 2026;40(4):1276-1287.",
+   "url": "https://doi.org/10.1053/j.jvca.2025.11.004",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Granell M"
+  },
+  {
+   "id": "jcva-2025-cabg-delirium-nis-trends",
+   "date": "2025-11-12",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "J Cardiothorac Vasc Anesth",
+   "jshort": "JCVA",
+   "kind": "Registry",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac"
+   ],
+   "headline": "Delirium is coded after 1 in 20 US CABGs and rising; it nearly doubles in-hospital death and adds 4 days and $8,565",
+   "summary": "In 911,910 isolated CABG admissions from the National Inpatient Sample (2016-2021), coded postoperative delirium occurred in 4.9% and rose each year. Delirium carried an adjusted 1.85-fold higher in-hospital mortality, four extra days in hospital and $8,565 in added cost.",
+   "takeHome": [
+    "Dementia (aOR 4.28), alcohol misuse (3.38) and psychotic disorders (2.40) flag the highest-risk CABG patients before induction.",
+    "Coded delirium is rising about 4% a year; expect the true screened incidence to be several times higher.",
+    "Cost and length-of-stay numbers are useful ammunition for funding a delirium prevention bundle."
+   ],
+   "deepDive": "**Why it matters.** Delirium after cardiac surgery is common, but national-scale numbers on trend, risk and cost have been scarce. This NIS analysis gives anaesthesiologists citable figures for prevention programmes and for the preoperative conversation with high-risk patients.\n\n**What they did.** Retrospective analysis of the US National Inpatient Sample, 2016-2021, using discharge weights. Adults with isolated CABG were identified, and postoperative delirium was defined by validated ICD-10 codes. Multivariable models adjusted for patient and hospital factors.\n\n**What they found.**\n- 911,910 weighted CABG hospitalisations; delirium coded in 4.91%\n- Incidence rose over the period (OR 1.04 per year, p < 0.001)\n- Strongest independent predictors: pre-existing dementia (aOR 4.28), alcohol abuse (aOR 3.38), psychotic disorders (aOR 2.40)\n- Delirium was independently associated with in-hospital death (aOR 1.85), more major complications, a 4-day longer stay and $8,565 higher cost (all p < 0.001)\n\n**Caveats.** Administrative coding under-detects delirium: prospective screening studies after cardiac surgery report far higher rates, so the 4.9% is a floor, and the rising trend may partly reflect better documentation. Associations with mortality are adjusted but not causal, and the dataset lacks STS-style physiological risk variables, anaesthetic technique and sedation data.\n\n**For the anaesthesiologist.** The risk-factor profile is actionable at the preoperative visit: cognitive screening, alcohol history and psychiatric medication review identify who needs the full delirium bundle (avoid benzodiazepines, multimodal analgesia, early mobilisation, sleep protection). The cost figure makes the business case. Print version: J Cardiothorac Vasc Anesth 2026;40(2):561-570.",
+   "url": "https://doi.org/10.1053/j.jvca.2025.11.011",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Potnuru P"
+  },
+  {
+   "id": "jcva-2025-chd-noncardiac-hospital-volume",
+   "date": "2025-10-08",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "J Cardiothorac Vasc Anesth",
+   "jshort": "JCVA",
+   "kind": "Registry",
+   "topics": [
+    "pedsCardiac",
+    "pediatric"
+   ],
+   "headline": "Children with heart disease having noncardiac surgery: mid-volume hospitals, not the smallest, had the highest mortality",
+   "summary": "Across 662,680 noncardiac surgical admissions in the Pediatric Health Information System (2016-2023), in-hospital mortality was highest at mid-volume children's hospitals, including 6.3% in children with complex congenital heart disease, rather than following a simple low-volume-is-worse pattern.",
+   "takeHome": [
+    "Volume-outcome logic from cardiac surgery does not transfer cleanly to noncardiac surgery in CHD children.",
+    "Complex CHD carried 6.3% in-hospital mortality at mid-volume centres; single-ventricle outcomes were similar across volume groups.",
+    "Regionalisation arguments need more than volume; team structure and case selection likely matter more."
+   ],
+   "deepDive": "**Why it matters.** Children with congenital heart disease (CHD) increasingly present for noncardiac surgery outside dedicated cardiac centres, and it has been assumed that higher-volume hospitals do better. This national paediatric database study challenges that assumption and will shape the regionalisation debate.\n\n**What they did.** Retrospective analysis of the Pediatric Health Information System, 2016-2023, covering 662,680 children undergoing noncardiac surgery: 617,396 without CHD, 23,712 with simple heart disease, 16,243 with complex CHD and 5,329 with single-ventricle physiology. Hospitals were split into quintiles by the number of CHD patients they took to noncardiac procedures (quintile 1 under 500; quintile 3 between 900 and 1,100; quintile 5 over 1,500).\n\n**What they found.**\n- In-hospital mortality was highest in quintile 3 for the whole cohort (0.83%), for children without CHD (0.56%) and for complex CHD (6.28%)\n- Mortality did not differ by volume for simple lesions or single-ventricle disease\n- In multivariable analysis, quintile 3 remained associated with higher mortality (adjusted OR 1.14, 95% CI 1.01-1.30)\n- Length of stay varied without a consistent pattern\n\n**Caveats.** PHIS captures only tertiary children's hospitals, so the lowest-volume community settings are absent. Volume was defined by CHD noncardiac procedures, not by cardiac-anaesthesia staffing or ICU capability, and administrative data cannot explain why mid-volume centres fared worse; the authors call for further study before drawing regionalisation conclusions.\n\n**For the anaesthesiologist.** The 6% mortality in complex CHD is the number to remember when triaging who needs a cardiac anaesthesiologist and a cardiac ICU bed for a seemingly minor procedure. Volume alone is not a proxy for safety. Print version: J Cardiothorac Vasc Anesth 2026;40(1):143-150.",
+   "url": "https://doi.org/10.1053/j.jvca.2025.10.009",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Kuntz MT"
   },
   {
    "id": "jama-2026-us-crs-heart-allocation-score",
@@ -54,32 +254,6 @@
    "firstAuthor": "Lyden"
   },
   {
-   "id": "ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus",
-   "date": "2026-10-07",
-   "dateApprox": false,
-   "addedAt": "2026-10-19",
-   "journal": "Eur J Cardiothorac Surg",
-   "jshort": "EJCTS",
-   "kind": "Consensus",
-   "topics": [
-    "cardiacSurgery",
-    "cardiac",
-    "echo"
-   ],
-   "headline": "EACTS issues the first dedicated guidance on iatrogenic aortic dissection, with procedure-specific algorithms",
-   "summary": "A multidisciplinary EACTS expert consensus on aortic dissection caused by cannulation, clamping, catheter manipulation or device deployment, covering definitions, risk factors, prevention, early diagnosis, acute management and follow-up.",
-   "takeHome": [
-    "Covers open cardiac surgery and catheter-based procedures; outcome depends on the setting and how fast the tear is recognized",
-    "Procedure-specific algorithms for rapid identification, containment, surgical or endovascular repair, or conservative care",
-    "The mechanisms it targets (cannulation, clamp, catheter, device) are the moments to have TEE on the aorta"
-   ],
-   "deepDive": "**Why it matters.** Iatrogenic aortic dissection is rare, but when it happens on bypass or in the cath lab it is one of the few true emergencies in which the anesthesiologist with the TEE probe is often the first person who can see it. Until now there was no dedicated guidance; management has been improvised from case series and from guidelines written for spontaneous type A dissection.\n\n**What this is.** An EACTS expert consensus document, first author Maximilian Luehr with an international writing group and EACTS document reviewers, published online 7 October 2026 in the European Journal of Cardio-Thoracic Surgery alongside the Barcelona annual meeting. The authors describe it as the first dedicated multidisciplinary guidance on the problem.\n\n**What it covers.**\n- Definitions and a classification of iatrogenic dissection, which the authors note usually follows direct intimal injury during cannulation, cross-clamping, catheter manipulation or device deployment.\n- Risk factors and prevention, early diagnosis, acute management pathways and post-discharge surveillance.\n- Procedure-specific algorithms for rapid identification, containment, surgical or endovascular repair, and conservative management where appropriate.\n\n**Caveats.** The evidence base is registries and observational reports, so most statements are expert opinion. The full recommendations sit behind the journal paywall; the abstract gives the structure, not the thresholds, so read the document itself before changing a protocol.\n\n**For us.** The practical message is about timing and vigilance: the dissection happens at a predictable moment, and recognition speed drives outcome. Keeping the TEE on the descending and ascending aorta when arterial perfusion starts, at clamp placement and release, and during any wire or device work is cheap insurance, and the algorithms give the team a shared plan for what happens next.",
-   "url": "https://doi.org/10.1093/ejcts/ezag221",
-   "impact": 2,
-   "trialName": "",
-   "firstAuthor": "Luehr"
-  },
-  {
    "id": "fda-2026-philips-lumify-early-alert",
    "date": "2026-10-09",
    "dateApprox": false,
@@ -106,6 +280,32 @@
    "firstAuthor": ""
   },
   {
+   "id": "ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus",
+   "date": "2026-10-07",
+   "dateApprox": false,
+   "addedAt": "2026-10-19",
+   "journal": "Eur J Cardiothorac Surg",
+   "jshort": "EJCTS",
+   "kind": "Consensus",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac",
+    "echo"
+   ],
+   "headline": "EACTS issues the first dedicated guidance on iatrogenic aortic dissection, with procedure-specific algorithms",
+   "summary": "A multidisciplinary EACTS expert consensus on aortic dissection caused by cannulation, clamping, catheter manipulation or device deployment, covering definitions, risk factors, prevention, early diagnosis, acute management and follow-up.",
+   "takeHome": [
+    "Covers open cardiac surgery and catheter-based procedures; outcome depends on the setting and how fast the tear is recognized",
+    "Procedure-specific algorithms for rapid identification, containment, surgical or endovascular repair, or conservative care",
+    "The mechanisms it targets (cannulation, clamp, catheter, device) are the moments to have TEE on the aorta"
+   ],
+   "deepDive": "**Why it matters.** Iatrogenic aortic dissection is rare, but when it happens on bypass or in the cath lab it is one of the few true emergencies in which the anesthesiologist with the TEE probe is often the first person who can see it. Until now there was no dedicated guidance; management has been improvised from case series and from guidelines written for spontaneous type A dissection.\n\n**What this is.** An EACTS expert consensus document, first author Maximilian Luehr with an international writing group and EACTS document reviewers, published online 7 October 2026 in the European Journal of Cardio-Thoracic Surgery alongside the Barcelona annual meeting. The authors describe it as the first dedicated multidisciplinary guidance on the problem.\n\n**What it covers.**\n- Definitions and a classification of iatrogenic dissection, which the authors note usually follows direct intimal injury during cannulation, cross-clamping, catheter manipulation or device deployment.\n- Risk factors and prevention, early diagnosis, acute management pathways and post-discharge surveillance.\n- Procedure-specific algorithms for rapid identification, containment, surgical or endovascular repair, and conservative management where appropriate.\n\n**Caveats.** The evidence base is registries and observational reports, so most statements are expert opinion. The full recommendations sit behind the journal paywall; the abstract gives the structure, not the thresholds, so read the document itself before changing a protocol.\n\n**For us.** The practical message is about timing and vigilance: the dissection happens at a predictable moment, and recognition speed drives outcome. Keeping the TEE on the descending and ascending aorta when arterial perfusion starts, at clamp placement and release, and during any wire or device work is cheap insurance, and the algorithms give the team a shared plan for what happens next.",
+   "url": "https://doi.org/10.1093/ejcts/ezag221",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Luehr"
+  },
+  {
    "id": "ejcts-2026-eacts-robotic-cardiac-surgery-minimum-standards",
    "date": "2026-10-07",
    "dateApprox": false,
@@ -129,31 +329,6 @@
    "impact": 1,
    "trialName": "",
    "firstAuthor": "Oosterlinck"
-  },
-  {
-   "id": "jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki",
-   "date": "2026-10-14",
-   "dateApprox": false,
-   "addedAt": "2026-10-17",
-   "journal": "JAMA",
-   "jshort": "JAMA",
-   "kind": "RCT",
-   "topics": [
-    "criticalCare",
-    "general"
-   ],
-   "headline": "Adding dobutamine to norepinephrine during source-control surgery for septic shock cuts 7-day AKI from 35% to 23%",
-   "summary": "A 39-centre Chinese trial randomized 584 adults in septic shock having surgical source control to intraoperative dobutamine (5 mcg/kg/min) on top of norepinephrine, or norepinephrine alone, both titrated to a MAP of 65 mm Hg. New or worsening KDIGO AKI within 7 days fell by about a third; mortality and dialysis did not change.",
-   "takeHome": [
-    "Dobutamine 5 mcg/kg/min from induction to skin closure, no cardiac dysfunction required; median exposure about 2.5 hours.",
-    "AKI 22.8% vs 34.7% (adjusted RR 0.64); no significant difference in 28- or 90-day death or kidney replacement.",
-    "Tachycardia over 100/min rose from 30% to 41%; open-label design and urine-output-defined AKI temper the result."
-   ],
-   "deepDive": "**Why it matters.** Intraoperative septic shock usually means norepinephrine to a MAP target and little else. Surviving Sepsis 2026 suggests dobutamine only for documented cardiac dysfunction with persistent hypoperfusion. This trial asks whether routine intraoperative inotropy protects the kidney during source control, in patients selected by shock rather than by echo.\n\n**What they did.** Open-label trial at 39 tertiary hospitals in China, 2024 to 2025. Adults with septic shock having source-control surgery lasting more than an hour, mostly gastrointestinal perforation or obstruction, were randomized 1:1. Dobutamine started at 5 mcg/kg/min after induction, was halved for heart rate above 130 or important arrhythmia, and stopped at the end of surgery (median 155 minutes). Chronic beta-blocker users were excluded; outcome assessors were blinded.\n\n**What they found.** New or worsening KDIGO AKI within 7 days: 22.8% with dobutamine vs 34.7% without (adjusted RR 0.64, 95% CI 0.49 to 0.83). Mortality at 28 days (16.2% vs 20.4%) and 90 days (18.6% vs 23.1%) was not significantly different, nor was kidney replacement therapy. Tachycardia above 100/min was more common with dobutamine (41.0% vs 29.9%); arrhythmias and arrest were rare and similar.\n\n**Caveats.** Clinicians knew the allocation and co-interventions differed (less norepinephrine, more volatile anesthesia with dobutamine). Most urine-output-only AKI was in controls, a third of baseline creatinines were estimated, and the analysis plan changed after unblinding.\n\n**For the anesthesiologist.** The first sizeable trial of a purely intraoperative hemodynamic strategy in septic shock, with a large, consistent renal signal. Not yet a reason to start dobutamine on every septic laparotomy, particularly with coronary disease or arrhythmia, but it argues for measuring flow and treating low output rather than chasing MAP with norepinephrine alone. A blinded confirmatory trial would settle it.",
-   "url": "https://doi.org/10.1001/jama.2026.21322",
-   "impact": 2,
-   "trialName": "",
-   "firstAuthor": "Li"
   },
   {
    "id": "fda-2026-sapien-m3-commander-m-delivery-early-alert",
@@ -228,6 +403,31 @@
    "impact": 3,
    "trialName": "SAVE-ICU",
    "firstAuthor": "Jerath"
+  },
+  {
+   "id": "jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki",
+   "date": "2026-10-14",
+   "dateApprox": false,
+   "addedAt": "2026-10-17",
+   "journal": "JAMA",
+   "jshort": "JAMA",
+   "kind": "RCT",
+   "topics": [
+    "criticalCare",
+    "general"
+   ],
+   "headline": "Adding dobutamine to norepinephrine during source-control surgery for septic shock cuts 7-day AKI from 35% to 23%",
+   "summary": "A 39-centre Chinese trial randomized 584 adults in septic shock having surgical source control to intraoperative dobutamine (5 mcg/kg/min) on top of norepinephrine, or norepinephrine alone, both titrated to a MAP of 65 mm Hg. New or worsening KDIGO AKI within 7 days fell by about a third; mortality and dialysis did not change.",
+   "takeHome": [
+    "Dobutamine 5 mcg/kg/min from induction to skin closure, no cardiac dysfunction required; median exposure about 2.5 hours.",
+    "AKI 22.8% vs 34.7% (adjusted RR 0.64); no significant difference in 28- or 90-day death or kidney replacement.",
+    "Tachycardia over 100/min rose from 30% to 41%; open-label design and urine-output-defined AKI temper the result."
+   ],
+   "deepDive": "**Why it matters.** Intraoperative septic shock usually means norepinephrine to a MAP target and little else. Surviving Sepsis 2026 suggests dobutamine only for documented cardiac dysfunction with persistent hypoperfusion. This trial asks whether routine intraoperative inotropy protects the kidney during source control, in patients selected by shock rather than by echo.\n\n**What they did.** Open-label trial at 39 tertiary hospitals in China, 2024 to 2025. Adults with septic shock having source-control surgery lasting more than an hour, mostly gastrointestinal perforation or obstruction, were randomized 1:1. Dobutamine started at 5 mcg/kg/min after induction, was halved for heart rate above 130 or important arrhythmia, and stopped at the end of surgery (median 155 minutes). Chronic beta-blocker users were excluded; outcome assessors were blinded.\n\n**What they found.** New or worsening KDIGO AKI within 7 days: 22.8% with dobutamine vs 34.7% without (adjusted RR 0.64, 95% CI 0.49 to 0.83). Mortality at 28 days (16.2% vs 20.4%) and 90 days (18.6% vs 23.1%) was not significantly different, nor was kidney replacement therapy. Tachycardia above 100/min was more common with dobutamine (41.0% vs 29.9%); arrhythmias and arrest were rare and similar.\n\n**Caveats.** Clinicians knew the allocation and co-interventions differed (less norepinephrine, more volatile anesthesia with dobutamine). Most urine-output-only AKI was in controls, a third of baseline creatinines were estimated, and the analysis plan changed after unblinding.\n\n**For the anesthesiologist.** The first sizeable trial of a purely intraoperative hemodynamic strategy in septic shock, with a large, consistent renal signal. Not yet a reason to start dobutamine on every septic laparotomy, particularly with coronary disease or arrhythmia, but it argues for measuring flow and treating low output rather than chasing MAP with norepinephrine alone. A blinded confirmatory trial would settle it.",
+   "url": "https://doi.org/10.1001/jama.2026.21322",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Li"
   },
   {
    "id": "jama-2026-vasspr-vasopressin-threshold",
