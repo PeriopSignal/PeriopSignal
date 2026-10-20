@@ -64,6 +64,15 @@ jobs:
           pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
           python3 ios/tools/asc_prepare.py
 
+      - name: Firebase (push notifications), when configured
+        working-directory: ios
+        env:
+          PLIST_B64: ${{ secrets.FIREBASE_PLIST_B64 }}
+        run: |
+          if [ -z "$PLIST_B64" ]; then echo "FIREBASE_PLIST_B64 not set: building without Firebase (background-refresh alerts still work)"; exit 0; fi
+          echo "$PLIST_B64" | base64 -d > PeriopSignal/Resources/GoogleService-Info.plist
+          python3 tools/add_firebase.py
+
       - name: Install XcodeGen and generate the project
         working-directory: ios
         run: |

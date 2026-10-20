@@ -10,7 +10,7 @@ final class SavedStore {
     private let key = "ps.saved"
     private let kv = NSUbiquitousKeyValueStore.default
     private let defaults = UserDefaults.standard
-    private var observer: NSObjectProtocol?
+    nonisolated(unsafe) private var observer: NSObjectProtocol?
 
     init() {
         load()

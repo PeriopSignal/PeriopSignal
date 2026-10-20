@@ -2,6 +2,10 @@ name: iOS build
 
 on:
   workflow_dispatch:
+    inputs:
+      with_firebase:
+        description: "Include Firebase Messaging (needs the FIREBASE_PLIST_B64 secret)"
+        default: "false"
   push:
     branches: [main]
     paths:
@@ -38,6 +42,16 @@ jobs:
 
       - name: Install XcodeGen
         run: brew install xcodegen
+
+      - name: Optional Firebase
+        if: inputs.with_firebase == 'true'
+        working-directory: ios
+        env:
+          PLIST_B64: ${{ secrets.FIREBASE_PLIST_B64 }}
+        run: |
+          if [ -z "$PLIST_B64" ]; then echo "::warning::with_firebase requested but FIREBASE_PLIST_B64 is not set"; exit 0; fi
+          echo "$PLIST_B64" | base64 -d > PeriopSignal/Resources/GoogleService-Info.plist
+          python3 tools/add_firebase.py
 
       - name: Generate project
         working-directory: ios
