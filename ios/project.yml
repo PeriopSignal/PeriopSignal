@@ -30,7 +30,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.periopsignal.app
-        PRODUCT_NAME: Periop Signal
+        PRODUCT_NAME: PeriopSignal
         PRODUCT_MODULE_NAME: PeriopSignal
         INFOPLIST_FILE: PeriopSignal/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: PeriopSignal/Resources/PeriopSignal.entitlements

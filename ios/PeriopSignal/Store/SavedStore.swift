@@ -10,7 +10,7 @@ final class SavedStore {
     private let key = "ps.saved"
     private let kv = NSUbiquitousKeyValueStore.default
     private let defaults = UserDefaults.standard
-    nonisolated(unsafe) private var observer: NSObjectProtocol?
+    private var observer: NSObjectProtocol?
 
     init() {
         load()
@@ -18,10 +18,6 @@ final class SavedStore {
             Task { @MainActor in self?.load() }
         }
         kv.synchronize()
-    }
-
-    deinit {
-        if let observer { NotificationCenter.default.removeObserver(observer) }
     }
 
     func contains(_ id: String) -> Bool { ids.contains(id) }
