@@ -133,7 +133,7 @@ jobs:
           shot 04-saved 12 -ps.presave "$LANDMARK" -ps.tab saved
           shot 05-about 10 -ps.tab about
           shot 06-widgets 12 -ps.screen widget
-          shot 07-feed-day 12 -ps.appearance light
+          shot 07-feed-day 12 -ps.forceAppearance light -ps.forceLaunchCount 2
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

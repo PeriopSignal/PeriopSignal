@@ -16,6 +16,7 @@ struct FeedView: View {
                     intro
                     FilterBar()
                     statusLine
+                    NotifyBanner()
                     postList
                 }
                 .padding(.horizontal, 16)
@@ -245,5 +246,55 @@ struct FilterChip: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+}
+
+// MARK: - One-time invitation to turn on alerts (shown from the second launch)
+
+struct NotifyBanner: View {
+    @AppStorage("ps.notifyBannerDismissed") private var dismissed = false
+    @AppStorage("ps.launchCount") private var launchCount = 0
+    @ObservedObject private var notifications = NotificationManager.shared
+    @State private var busy = false
+
+    private var visible: Bool {
+        !dismissed && launchCount >= 2 && !notifications.enabled && notifications.authorization != .denied
+    }
+
+    var body: some View {
+        if visible {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "bell.badge")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(PS.accent)
+                    .frame(width: 36, height: 36)
+                    .background(PS.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Morning alerts").font(.system(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text("One notification when new papers land.").font(.system(size: 12.5)).foregroundStyle(PS.fg2)
+                }
+                Spacer(minLength: 4)
+                Button {
+                    busy = true
+                    Task { _ = await notifications.requestPermission(); busy = false; dismissed = true }
+                } label: {
+                    Text(busy ? "…" : "Turn on")
+                        .font(.system(size: 13, weight: .semibold))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(PS.accent, in: Capsule())
+                        .foregroundStyle(PS.accentFg)
+                }
+                .buttonStyle(.plain)
+                Button { dismissed = true } label: {
+                    Image(systemName: "xmark").font(.system(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Dismiss")
+            }
+            .padding(12)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
+            .task { await notifications.refreshAuthorization() }
+        }
     }
 }

@@ -31,7 +31,10 @@ struct RootView: View {
                 .tag(Router.Tab.about)
         }
         .task {
+            UserDefaults.standard.set(UserDefaults.standard.integer(forKey: "ps.launchCount") + 1, forKey: "ps.launchCount")
             #if DEBUG
+            if let a = UserDefaults.standard.string(forKey: "ps.forceAppearance") { UserDefaults.standard.set(a, forKey: "ps.appearance") }
+            if let n = UserDefaults.standard.string(forKey: "ps.forceLaunchCount"), let v = Int(n) { UserDefaults.standard.set(v, forKey: "ps.launchCount") }
             if let id = DebugLaunch.presave, !saved.contains(id) { saved.toggle(id) }
             if DebugLaunch.tab == "saved" { self.router.selectedTab = .saved }
             if DebugLaunch.tab == "about" { self.router.selectedTab = .about }
