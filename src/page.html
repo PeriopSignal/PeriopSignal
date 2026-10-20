@@ -301,6 +301,12 @@ a { color: var(--accent-2); }
 .deep ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
 .deep h4 { margin: 4px 0 0; font-family: var(--font-display); font-size: 16px; }
 .deep strong { font-weight: 700; color: var(--fg); }
+.authors { margin: 0; padding: 11px 13px; list-style: none; border-radius: 13px; display: grid; gap: 7px; border: 1px solid var(--line); background: var(--surface-2); }
+.authors li { position: relative; padding-left: 18px; font-size: 14px; line-height: 1.42; }
+.authors li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); }
+.authors.limits li::before { background: var(--fg-3); border-radius: 2px; }
+.authors-basis { font-size: 12px; color: var(--fg-3); margin: 6px 0 0; }
+.authors-missing { font-size: 13px; color: var(--fg-3); margin: 0; padding: 10px 13px; border: 1px dashed var(--line-2); border-radius: 13px; }
 .note { font-size: 12.5px; color: var(--fg-3); border-top: 1px solid var(--line); padding-top: 12px; }
 .meta-grid { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; color: var(--fg-2); }
 .meta-grid dt { color: var(--fg-3); }
@@ -544,7 +550,7 @@ a { color: var(--accent-2); }
       </div>
       <h2 class="headline"><button data-act="open">${esc(p.headline)}</button></h2>
       <p class="summary">${esc(p.summary)}</p>
-      <ul class="takehome">${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
+      <ul class="takehome"${p.authorBasis ? ' title="The authors\u2019 key points"' : ''}>${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
       <div class="post-foot">
         <div class="topics">${p.topics.map(t => `<span class="tag" ${topicStyle(t)}>${esc(TOPIC_NAME[t] || t)}</span>`).join('')}</div>
         <div class="actions">
@@ -593,6 +599,20 @@ a { color: var(--accent-2); }
   }
 
   // ---------- sheet ----------
+  const RESEARCH_KINDS = new Set(['RCT', 'Observational', 'Registry', 'Meta-analysis', 'Trial update']);
+  function authorsBlock(p, which) {
+    const items = p.authorLimitations || [];
+    const basis = p.authorBasis || '';
+    if (items.length) {
+      const src = basis ? `<p class="authors-basis">Taken from the ${esc(basis)}.</p>` : '';
+      return `<div><p class="section-label">Limitations · stated by the authors</p><ul class="authors limits">${items.map(b => `<li>${esc(b)}</li>`).join('')}</ul>${src}</div>`;
+    }
+    if (RESEARCH_KINDS.has(p.kind)) {
+      const why = basis === 'abstract' ? 'the full text was not accessible; the abstract does not state them' : 'the source text was not accessible when this post was written';
+      return `<div><p class="section-label">Limitations · stated by the authors</p><p class="authors-missing">Not captured: ${why}. The paper\u2019s discussion section lists them.</p></div>`;
+    }
+    return '';
+  }
   function openSheet(p) {
     state.current = p;
     const saved = state.saved.has(p.id);
@@ -613,13 +633,14 @@ a { color: var(--accent-2); }
         <button class="btn" data-sheet="link">${icon.link} Copy link</button>
       </div>
       <div>
-        <p class="section-label">Take-home</p>
+        <p class="section-label">${p.authorBasis ? 'Take-home · the authors\u2019 key points' : 'Take-home'}</p>
         <ul class="takehome">${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
       </div>
       <div>
         <p class="section-label">Overview</p>
         <div class="deep">${md(p.deepDive)}</div>
       </div>
+      ${authorsBlock(p, 'limits')}
       <div class="topics">${p.topics.map(t => `<span class="tag" ${topicStyle(t)}>${esc(TOPIC_NAME[t] || t)}</span>`).join('')}</div>
       <p class="note">Overview written by Claude from the paper, abstract and society pages, then checked against the source link. Confirm details against the paper before changing practice. Added to the feed ${esc(fmtDate(p.addedAt, true))}.</p>`;
     showSheet();

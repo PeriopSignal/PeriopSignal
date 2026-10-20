@@ -7,7 +7,7 @@ A curated research feed for cardiothoracic, critical care and trauma anesthesiol
 | Path | What it is |
 |---|---|
 | `index.html` | The site. **Generated** from `src/page.html`; do not edit directly. |
-| `posts.json` | The feed data. One object per post, newest first. Updated by the daily and weekly runs. |
+| `posts.json` | The feed data. One object per post, newest first. `takeHome` holds the authors' own key points; `authorLimitations` the limitations they state; `authorBasis` what was read (full text, abstract, summary page). Updated by the daily and weekly runs. |
 | `inbox.txt` | Paste a DOI or link here (one per line) and the next run writes the post. |
 | `log/` | One triage log per run: what each journal published, what was posted, what was rejected and why. |
 | `feed.xml` | RSS feed, newest 50 posts. Generated. |
