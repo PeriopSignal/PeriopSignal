@@ -150,10 +150,13 @@ jobs:
           cd ..
           git config user.name "periop-signal-ci"
           git config user.email "ci@periopsignal.invalid"
-          git checkout --orphan "$RESULTS_BRANCH"
-          git rm -rf --cached . >/dev/null 2>&1 || true
-          rm -rf ios .github posts.json index.html feed.xml src tools icons log inbox.txt README.md manifest.webmanifest 2>/dev/null || true
-          mv ci-out results
-          git add results
-          git commit -q -m "CI results for run ${{ github.run_number }}"
-          git push --force origin "$RESULTS_BRANCH"
+          if git fetch origin "$RESULTS_BRANCH" 2>/dev/null; then
+            git checkout -B "$RESULTS_BRANCH" "origin/$RESULTS_BRANCH"
+          else
+            git checkout --orphan "$RESULTS_BRANCH"
+            git rm -rf --cached . >/dev/null 2>&1 || true
+          fi
+          rm -rf results/build && mkdir -p results/build && cp -R ci-out/. results/build/
+          git add -f results/build
+          git commit -q -m "Build results for run ${{ github.run_number }}" || true
+          git push origin "$RESULTS_BRANCH" || { git fetch origin "$RESULTS_BRANCH" && git rebase "origin/$RESULTS_BRANCH" && git push origin "$RESULTS_BRANCH"; }

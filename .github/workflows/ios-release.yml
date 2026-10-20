@@ -152,9 +152,13 @@ jobs:
           echo "run=${{ github.run_number }} version=${{ inputs.version }} status=${{ job.status }}" > ci-out/RELEASE_STATUS
           git config user.name "periop-signal-ci"
           git config user.email "ci@periopsignal.invalid"
-          git fetch origin "$RESULTS_BRANCH" && git checkout "$RESULTS_BRANCH" || git checkout --orphan "$RESULTS_BRANCH"
-          git rm -rf --cached . >/dev/null 2>&1 || true
-          mkdir -p results && cp ci-out/* results/
-          git add -f results
+          if git fetch origin "$RESULTS_BRANCH" 2>/dev/null; then
+            git checkout -B "$RESULTS_BRANCH" "origin/$RESULTS_BRANCH"
+          else
+            git checkout --orphan "$RESULTS_BRANCH"
+            git rm -rf --cached . >/dev/null 2>&1 || true
+          fi
+          rm -rf results/release && mkdir -p results/release && cp -R ci-out/. results/release/
+          git add -f results/release
           git commit -q -m "Release logs for run ${{ github.run_number }}" || true
-          git push --force origin "$RESULTS_BRANCH"
+          git push origin "$RESULTS_BRANCH" || { git fetch origin "$RESULTS_BRANCH" && git rebase "origin/$RESULTS_BRANCH" && git push origin "$RESULTS_BRANCH"; }
