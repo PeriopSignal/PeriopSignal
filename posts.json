@@ -1,6 +1,6 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-20T15:19:37+00:00",
+ "generatedAt": "2026-10-20T15:29:53+00:00",
  "posts": [
   {
    "id": "jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy",
@@ -26,6 +26,31 @@
    "impact": 2,
    "trialName": "PELICAN",
    "firstAuthor": "Saugel"
+  },
+  {
+   "id": "jcin-2026-tavr-surgical-bailout-cms-trends",
+   "date": "2026-09-14",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "JACC Cardiovasc Interv",
+   "jshort": "JACC Int",
+   "kind": "Registry",
+   "topics": [
+    "cardiac",
+    "cardiacSurgery"
+   ],
+   "headline": "Surgical bailout during TAVR fell to 0.4% of 400,000 Medicare cases, but 26% of bailed-out patients die within 30 days",
+   "summary": "A CMS analysis of 400,862 TAVR procedures from 2016 to 2024 finds same-day open surgery in 0.56% overall, halving over the period, with 30-day mortality of 26.3% versus 1.8% and no improvement in bailout mortality over time.",
+   "takeHome": [
+    "Bailout fell from 0.92% in 2016 to 0.40% in 2024: hematoma evacuation 38%, ventricular repair 20%, SAVR 16%, CABG 13%, aortic 11%",
+    "Mortality after bailout 26.3% at 30 days, 35% at one year, 48% at five years, versus 1.8%, 10% and 26% without",
+    "Thirty-day death was 41% when SAVR was combined with other repairs versus 19% for isolated SAVR; institutional SAVR volume made no difference"
+   ],
+   "deepDive": "**Why it matters.** The US national coverage determination for TAVR no longer requires on-site cardiac surgery in the way it once did, and the solo TAVR operator is being argued for in print. This is the largest contemporary look at what happens when a transfemoral valve goes wrong. Braasch and colleagues published it in JACC: Cardiovascular Interventions (19:2364-2375, September 2026) with two opposing editorials.\n\n**What they did.** Every Medicare TAVR from January 2016 to December 2024, 400,862 procedures, with surgical bailout defined as any open cardiac operation on the same day.\n\n**What they found.**\n- Bailout in 2,240 patients, 0.56% overall, falling from 0.92% in 2016 to 0.40% in 2024.\n- Procedures: mediastinal hematoma evacuation 38%, ventricular repair 20%, SAVR 16%, CABG 13%, aortic surgery 11%.\n- Mortality with versus without bailout: 26.3% versus 1.8% at 30 days, 35% versus 10% at one year, 48% versus 26% at five years. Early mortality did not fall over the study period. Patients who survived the first year had long-term outcomes comparable to those who never needed surgery.\n- Thirty-day mortality was 41% when SAVR was combined with other interventions and 19% for isolated SAVR. Institutional SAVR volume did not change the odds: 27%, 29% and 25% across low, intermediate and high-volume centers.\n\n**Caveats.** Administrative data cannot say why each bailout happened or how the decision was made, and a same-day operation misses rescue surgery on day two.\n\n**For the anesthesiologist.** One in roughly 250 TAVRs still ends in an open chest, and three in four of those patients survive the first month. The editorials split on what that means for surgical standby; for the anesthesia team it means the cannulation plan, blood, and a perfusionist's phone number belong in every TAVR briefing, however routine the case looks.",
+   "url": "https://doi.org/10.1016/j.jcin.2026.06.030",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Braasch"
   },
   {
    "id": "lancet-2026-mist-minimally-invasive-cabg",
@@ -54,6 +79,57 @@
    "firstAuthor": "Ruel"
   },
   {
+   "id": "transpl-int-2026-esot-bucharest-nrp-consensus",
+   "date": "2026-07-22",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Transpl Int",
+   "jshort": "TI",
+   "kind": "Consensus",
+   "topics": [
+    "mcs",
+    "liver",
+    "cardiacSurgery"
+   ],
+   "headline": "ESOT Bucharest consensus sets 130 rules for NRP in DCD donation: clamp, divide and vent the arch vessels",
+   "summary": "Thirty-one experts from nine countries reached 75% agreement on 130 statements covering when to use abdominal and thoraco-abdominal normothermic regional perfusion and how to run it; they could not agree on a maximum warm ischemia time or whether arch vessels must be transected.",
+   "takeHome": [
+    "TA-NRP brain exclusion: clamp or ligate the arch vessels, divide the cephalic ends and drain to atmosphere; ligation alone is not enough",
+    "Minimum team of five: cannulating clinician plus assistant, perfusionist, scrub and circulating nurses, coordinator; new teams work supervised",
+    "Blood gas at 3-4 minutes then every 30; avoid hyperoxemia, transfusion excess and cardiac distension; the heart comes out first"
+   ],
+   "deepDive": "**Why it matters.** NRP is spreading faster than agreement on how to do it. The OPTN safety notice of November 2025 told US teams to transect and vent each arch vessel; this European consensus from the ESOT International DCD Congress in Bucharest is the most detailed attempt yet to write down the whole procedure. Published in Transplant International on 22 July 2026 (Minambres, first author; Cillo, corresponding), it anchors a five-paper special issue on controlled DCD.\n\n**What they did.** Thirty-one experts from nine countries completed two Delphi rounds with 75% agreement as the threshold. Consensus landed on 130 statements.\n\n**What they agreed.**\n- Machine perfusion should be routine in cDCDD; NRP is recommended after withdrawal of life support, especially with long expected warm ischemia or a higher-risk donor.\n- For TA-NRP, clamping or ligating the arch vessels plus dividing their cephalic ends and draining to atmospheric pressure excludes brain perfusion; ligation alone does not. No consensus on mandatory transection. Transcranial Doppler is not required; a written abort plan is.\n- TA-NRP needs a hybrid open ECMO circuit with a rigid reservoir and a pre-withdrawal CT (or arch dissection); A-NRP needs the descending aorta clamped first. Pre-withdrawal peripheral cannulation is acceptable for TA-NRP, not A-NRP.\n- Heparin and antemortem guidewires where the law allows; balanced crystalloid plus heparin in the prime; gases at 3-4 minutes then every 30; avoid hyperoxemia, transfusion excess and cardiac distension.\n- Assess the heart with a PA catheter, TEE or a brief volume load. If it cannot carry the circulation, clamp the thoracic aorta and run 2.0-2.4 L/min for the abdominal organs. Order: heart, liver, lungs, then pancreas and kidneys.\n\n**Left open.** Maximum warm ischemia time, hypoperfusion thresholds, ideal NRP duration (typically 1-2 hours) and a case number for competence.",
+   "url": "https://doi.org/10.3389/ti.2026.16391",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Minambres"
+  },
+  {
+   "id": "ejhf-2026-hfa-heart-transplantation-consensus",
+   "date": "2026-05-05",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Eur J Heart Fail",
+   "jshort": "EJHF",
+   "kind": "Consensus",
+   "topics": [
+    "mcs",
+    "cardiacSurgery"
+   ],
+   "headline": "HFA heart transplant consensus: DCD hearts now standard, machine perfusion beats cold storage, ECMO bridge fares worst",
+   "summary": "The Heart Failure Association's Advanced Heart Failure Committee refreshed its heart transplant consensus in the European Journal of Heart Failure: candidate thresholds, donor expansion with DCD and ex vivo perfusion, bridging strategies and management of early graft failure.",
+   "takeHome": [
+    "One-year survival by bridge: ECMO 71%, percutaneous VAD 80%, temporary BiVAD 86%, temporary LVAD 90%; durable LVAD bridging does not hurt survival",
+    "Candidacy: VO2max 12 or less (14 off beta-blockers), VE/VCO2 slope over 35; PVR over 3 WU, BMI over 35, GFR under 30",
+    "Early graft failure: inotropes first, temporary MCS if severe; peripheral VA-ECMO needs LV venting; pace the atrium above 90"
+   ],
+   "deepDive": "**Why it matters.** Heart transplantation has changed quickly: DCD donors, ex vivo perfusion, and a waiting list where at least half the patients are bridged on a device. The HFA's Advanced Heart Failure Committee (Milicic, first author) updated its consensus in the European Journal of Heart Failure on 5 May 2026.\n\n**Donors.** DCD hearts are called a clinical reality with excellent early outcomes, not inferior to brain-dead donors, with the potential to raise volume by about 50% where DCD donation is common. Ex vivo machine perfusion is preferred over static cold storage, and stable hypothermic preservation lowers primary graft dysfunction. Coronary angiography is advised for donors over 50 or with multiple risk factors; donors with unexplained encephalitis or unexplained arrest are excluded. A predicted heart mass ratio at or below 0.80 is linked to worse outcomes. NRP is not addressed.\n\n**Candidates.** Contraindications are cumulative rather than absolute: persistent severe post-capillary pulmonary hypertension (PVR above 3 Wood units, tested for reversibility at catheterization), BMI above 35, GFR persistently below 30 mL/min, active substance abuse, recent cancer. Exercise thresholds: VO2max at or below 12 mL/kg/min (14 off beta-blockers) or VE/VCO2 slope above 35. PRA above 10% prompts a crossmatch.\n\n**Bridging.** One-year survival by strategy: ECMO 71.2%, percutaneous VAD 79.9%, temporary BiVAD 86.2%, temporary LVAD 89.5%. Durable LVAD bridging gives post-transplant survival comparable to no bridge, with allosensitization screened. LVAD infection, recurrent pump thrombosis, recurrent GI bleeding, severe RV failure or refractory ventricular arrhythmia justify urgent listing; endocarditis or mediastinitis must resolve first.\n\n**Early graft failure.** Recognize it fast, start inotropes, escalate to temporary MCS if severe. For RV failure: inotropes, inhaled nitric oxide or prostacyclin, preload optimization and atrial pacing above 90. Peripheral VA-ECMO cannot unload the LV, so add a left atrial cannula or a percutaneous VAD; VADs allow longer support.",
+   "url": "https://doi.org/10.1093/ejhf/xuag051",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Milicic"
+  },
+  {
    "id": "jcva-2026-vasopressin-make-cardiac-surgery",
    "date": "2026-04-08",
    "dateApprox": false,
@@ -77,6 +153,57 @@
    "impact": 1,
    "trialName": "",
    "firstAuthor": "White KC"
+  },
+  {
+   "id": "aic-2026-french-cardiogenic-shock-expert-recommendations",
+   "date": "2026-04-01",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "Ann Intensive Care",
+   "jshort": "AIC",
+   "kind": "Guideline",
+   "topics": [
+    "mcs",
+    "criticalCare",
+    "cardiac"
+   ],
+   "headline": "French shock guideline: norepinephrine first, dobutamine or milrinone next, Impella CP 'probably' in AMI shock",
+   "summary": "SRLF, the French Society of Cardiology, SFAR and the cardiac surgeons issue 41 GRADE recommendations on adult cardiogenic shock in Annals of Intensive Care, with Impella CP endorsed after a shock-team discussion in AMI shock and VA-ECMO reserved for selected deteriorating patients.",
+   "takeHome": [
+    "Norepinephrine is the first-line vasopressor (Grade 1+); dopamine only if nothing else exists (1-); epinephrine probably not, except as rescue",
+    "Inotropes probably yes, dobutamine or milrinone first with no preference between them; epinephrine probably not as an inotrope",
+    "IABP not routine in AMI or heart failure shock (Grade 1-), except bridging mechanical complications; Impella CP 'probably' in AMI shock"
+   ],
+   "deepDive": "**Why it matters.** After DanGer Shock, ECLS-SHOCK and the 2026 ESC heart failure guideline, every country is rewriting its shock pathway. This French document, from the Societe de Reanimation de Langue Francaise and the French Society of Cardiology with SFAR and the cardiovascular surgeons, appeared in Annals of Intensive Care (16:100038) in spring 2026 with Aissaoui and Delmas as co-first authors.\n\n**What they did.** Twenty-three PICO questions across six fields, from shock teams to de-escalation. Output: 41 recommendations, 7 Grade 1, 11 Grade 2, 17 expert opinion, 6 unanswered, all with strong agreement.\n\n**Drugs.**\n- Norepinephrine first (Grade 1+). Dopamine only when nothing else is available (1-). Epinephrine should probably not be used as vasopressor or inotrope (2-), with a last-resort caveat. Nothing on vasopressin or angiotensin II.\n- Inotropes should probably be used (2+), dobutamine or milrinone first with no preference between them.\n\n**Devices.**\n- IABP: not routine in AMI shock or decompensated heart failure shock (both 1-); suggested as initial support for mechanical complications of infarction as a bridge to repair.\n- Impella CP should probably be considered in AMI shock after shock-team discussion (2+), with the DanGer Shock price of more bleeding, limb ischemia and sepsis noted; Impella 5+ is suggested for predominant LV failure (expert opinion).\n- VA-ECMO should probably not be used routinely in AMI shock (2-); consider it in selected deteriorating patients after shock-team discussion, and in selected bridge-to-transplant candidates. No position on MCS timing relative to PCI or on LV unloading.\n\n**Revascularization.** Angiography as soon as feasible, culprit-lesion PCI as early as possible, non-culprit PCI staged (all 1+).\n\n**For the anesthesiologist.** Nothing here contradicts the ESC line, which makes it a useful second reference when building a shock team: pressor and inotrope choices are explicit, and every device decision runs through the team.",
+   "url": "https://doi.org/10.1016/j.aicoj.2026.100038",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Aissaoui"
+  },
+  {
+   "id": "pccm-2026-pediatric-surviving-sepsis-guideline",
+   "date": "2026-03-23",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Pediatr Crit Care Med",
+   "jshort": "PCCM",
+   "kind": "Guideline",
+   "topics": [
+    "pediatric",
+    "criticalCare"
+   ],
+   "headline": "Pediatric Surviving Sepsis 2026: 10-20 mL/kg boluses with reassessment, peripheral pressors early, no etomidate",
+   "summary": "The children's Surviving Sepsis Campaign guideline is rewritten for the first time since 2020: 68 experts from 13 organizations issued 61 statements, 20 of them new, and adopted the newer organ-dysfunction definition of pediatric sepsis.",
+   "takeHome": [
+    "Septic shock with ICU access: up to 40-60 mL/kg in the first hour as 10-20 mL/kg boluses, reassessing after each one",
+    "Start vasoactives through a peripheral line rather than waiting for central access; no first-line pick between epinephrine and norepinephrine",
+    "Suggests against hydrocortisone once shock responds to fluid and pressors, and against etomidate for intubation"
+   ],
+   "deepDive": "**Why it matters.** The adult Surviving Sepsis update landed in March 2026; this is the children's version, published online in Pediatric Critical Care Medicine on 23 March with an executive summary alongside (Weiss, first author). It comes from 68 experts across 13 organizations and adopts the newer definition of pediatric sepsis: infection plus life-threatening respiratory, cardiovascular, coagulation or neurologic dysfunction.\n\n**What they produced.** Sixty-one statements: 5 strong recommendations, 24 conditional, 10 good-practice statements, and 22 questions with no recommendation (7 carry an 'in our practice' note). Twenty recommendations are new, 13 updated, 6 unchanged, 22 carried forward. Only three rest on high or moderate certainty.\n\n**What they say.**\n- Septic shock with ICU access: up to 40-60 mL/kg in the first hour as 10-20 mL/kg boluses, reassessing after each. Sepsis without hypotension and without ICU access: no boluses (strong, high certainty). Balanced crystalloid over saline; crystalloid over albumin.\n- Vasoactives through a peripheral line rather than delaying for central access. No verdict on epinephrine versus norepinephrine, or on pressors before 40 mL/kg. At high catecholamine doses, add vasopressin or keep titrating.\n- Suggests against hydrocortisone once shock is stabilized with fluid and vasoactives; stress-dose steroids still for suspected adrenal insufficiency.\n- Antimicrobials within 1 hour for suspected septic shock, within 3 hours for probable sepsis without shock. Measure lactate. Cardiac and lung POCUS to guide resuscitation where skills allow; target ScvO2 of 70% or more when a central line exists.\n- Suggests against etomidate for intubation; SpO2 88-92% after resuscitation; VV ECMO for refractory hypoxemia, VA ECMO only as rescue.\n\n**For the anesthesiologist.** This is the playbook for the septic child who arrives for source control: modest boluses with reassessment, a peripheral pressor started early, no etomidate, and steroids only for adrenal insufficiency.",
+   "url": "https://doi.org/10.1097/PCC.0000000000003927",
+   "impact": 3,
+   "trialName": "",
+   "firstAuthor": "Weiss"
   },
   {
    "id": "jcva-2026-cabg-racial-inequities-nis",
@@ -104,6 +231,54 @@
    "firstAuthor": "Moreira V"
   },
   {
+   "id": "pediatrics-2026-aap-periprocedural-anesthesia-environment-policy",
+   "date": "2026-02-23",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "Pediatrics",
+   "jshort": "Peds",
+   "kind": "Guideline",
+   "topics": [
+    "pediatric"
+   ],
+   "headline": "AAP policy: infants and complex children belong with fellowship-trained pediatric anesthesiologists in equipped centers",
+   "summary": "The AAP Section on Anesthesiology and Pain Medicine updates its policy on the critical elements of a pediatric periprocedural anesthesia environment, published in Pediatrics (March 2026), with a companion clinical report on the pediatrician's role in preparing children for anesthesia.",
+   "takeHome": [
+    "Anesthesiologist privileges should reflect fellowship training and ongoing case experience; high-risk children by age, comorbidity or procedure go to designated specialists",
+    "Facilities with neonatal and pediatric ICUs should have pediatric fellowship-trained anesthesiologists; PACU needs pediatric equipment, experienced nurses, respiratory therapy and child life",
+    "Required infrastructure spans preoperative evaluation, pediatric-ready ORs, lab, blood bank and radiology, an opioid stewardship program and anesthesia QI"
+   ],
+   "deepDive": "**Why it matters.** Children under one year carry the highest risk of serious injury or death from anesthesia complications, and the question of which hospitals should anesthetize which children keeps surfacing in credentialing and in the ACS Children's Surgery Verification program. The AAP's Section on Anesthesiology and Pain Medicine (Long, Houck and Varughese, lead authors) has rewritten its policy, approved by the AAP board and released 23 February 2026 ahead of the March issue of Pediatrics (157:e2025075746). A companion clinical report, The Pediatrician's Role in the Evaluation and Preparation of Pediatric Patients Undergoing Anesthesia, appears in the same issue.\n\n**What it asks for.**\n- Physician anesthesiologists whose privileges reflect fellowship training and enough ongoing experience to stay competent, and advanced practice providers with appropriate pediatric training.\n- Designation of high-risk patients, by age, comorbidity or procedure, to specialized anesthesiologists, with pediatric fellowship-trained anesthesiologists in facilities that run neonatal and pediatric intensive care units.\n- Pediatric-specific care across the pathway: preoperative evaluation and preparation, operating rooms, laboratory, blood bank, radiology, and pediatric equipment and drugs.\n- A PACU with age-appropriate equipment and experienced nursing, plus respiratory therapy and child life, and the capacity for postoperative inpatient care or a transfer partnership when complications arise.\n- An acute pain program that includes opioid stewardship, and an anesthesia quality improvement program.\n\n**Caveats.** It is a policy statement, not a graded guideline; it sets no numeric staffing ratios and names no age cut-off beyond flagging infants under one year as highest risk.\n\n**For the anesthesiologist.** The recommendations track the ACS CSV standards closely, which is no accident given the overlap in authorship. For anyone arguing for pediatric equipment, a dedicated PACU nurse or a transfer agreement, this is the citation.",
+   "url": "https://doi.org/10.1542/peds.2025-075746",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Long"
+  },
+  {
+   "id": "ehjci-2026-ase-eacvi-strain-echocardiography-consensus",
+   "date": "2026-01-30",
+   "dateApprox": false,
+   "addedAt": "2026-10-20",
+   "journal": "Eur Heart J Cardiovasc Imaging",
+   "jshort": "EHJ CVI",
+   "kind": "Consensus",
+   "topics": [
+    "echo"
+   ],
+   "headline": "ASE/EACVI strain consensus endorses GLS, RV free-wall and LA reservoir strain; radial and regional strain are not",
+   "summary": "The first joint ASE/EACVI document devoted to clinical strain (Thomas, chair), published in JASE in November 2025 and in EHJ-Cardiovascular Imaging on 30 January 2026, grades every strain measure by indication and standardizes acquisition and reporting.",
+   "takeHome": [
+    "LV GLS endorsed for cardio-oncology and valve-disease prognosis; report end-systolic strain with the negative sign and quote vendor-specific normals",
+    "RV free-wall strain endorsed in MI, heart failure, cardiomyopathy and pulmonary hypertension; use the RV-focused apical view and dedicated RV software",
+    "Radial strain and regional strain are not endorsed; no randomized trial has tested strain-guided decisions, so the grades are expert opinion"
+   ],
+   "deepDive": "**Why it matters.** Strain has lived in guidelines piecemeal since 2015, with vendors, views and cut-offs that never quite lined up. This is the first joint ASE/EACVI document devoted to its clinical use, published in JASE in November 2025 and in European Heart Journal - Cardiovascular Imaging (27:335-368) on 30 January 2026.\n\n**What they did.** The writing group graded each measure, by indication, as clinically endorsed (+++), may be appropriate (++), or not currently endorsed, and set out technical standards and pitfalls. No large randomized trial has tested strain-based decisions, so the grades are expert opinion.\n\n**What is endorsed.**\n- LV GLS as a complementary measure of global function, reported as end-systolic longitudinal strain with the negative sign kept; lower limits of normal differ slightly by vendor. It gets +++ for diagnosis and prognosis in cardio-oncology and for prognosis in at least moderate valve disease.\n- RV free-wall longitudinal strain is +++ for diagnosis and prognosis in acute and chronic MI, heart failure, undifferentiated cardiomyopathy, CRT, athlete's heart and pulmonary hypertension, and ++ in adult congenital disease and stress echo. Use the RV-focused apical four-chamber view, because the standard view underestimates, and dedicated RV software rather than repurposed LV software.\n- LA reservoir strain is +++ in undifferentiated cardiomyopathy and acute and chronic heart failure, ++ in most other settings, and not endorsed in adult congenital disease.\n\n**What is not.** Radial strain is not endorsed. Regional strain is not supported because of variability, though curve shape can help. Midwall or full-wall tracking is preferred; speckle tracking for chamber-wide assessment, tissue Doppler for a single region.\n\n**For the perioperative echo reader.** RV free-wall strain and GLS now carry society backing for the RV-failure and valve-disease questions that precede LVAD and valve surgery, provided you use the right view and software.",
+   "url": "https://doi.org/10.1093/ehjci/jeag006",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Thomas"
+  },
+  {
    "id": "aa-2026-sca-sts-doac-cardiac-surgery-consensus",
    "date": "2026-01-29",
    "dateApprox": false,
@@ -128,6 +303,32 @@
    "impact": 3,
    "trialName": "",
    "firstAuthor": "Budd"
+  },
+  {
+   "id": "circhf-2026-aha-invasive-hemodynamic-protocols-statement",
+   "date": "2026-01-06",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "Circ Heart Fail",
+   "jshort": "Circ HF",
+   "kind": "Consensus",
+   "topics": [
+    "mcs",
+    "cardiac",
+    "liver"
+   ],
+   "headline": "AHA standardizes right heart cath protocols: LVAD ramp targets CVP under 12, PAWP under 18, CI over 2.2",
+   "summary": "An AHA scientific statement (Belkin, chair) sets common protocols for baseline, provocative and serial invasive hemodynamics in heart failure and pulmonary hypertension, including vasoreactivity testing before transplant, fluid and exercise challenges, LVAD ramp studies and when a PA catheter earns its place.",
+   "takeHome": [
+    "Pre-transplant PH reversibility: test with nitroprusside or a milrinone bolus, inhaled NO if PAWP is not elevated; PH predicts 30-day post-transplant death",
+    "Maglev LVAD optimization: invasive ramp and reverse-ramp studies over echo alone, aiming for CVP under 12, PAWP under 18, CI over 2.2",
+    "Continuous PAC monitoring endorsed for advanced PH or RV dysfunction in high-risk procedures, LVAD implant, pulmonary endarterectomy and POPH liver transplant"
+   ],
+   "deepDive": "**Why it matters.** Right heart catheterization numbers drive transplant listing, LVAD settings and the liver transplant go or no-go in portopulmonary hypertension, yet protocols vary from lab to lab. This AHA statement, in Circulation: Heart Failure (19:e000088) in January 2026 with Belkin as chair and Fudim as vice chair, sets common ground for static, provocative and serial measurements in heart failure, pulmonary hypertension, LVAD patients and cardiogenic shock.\n\n**What it says.**\n- Pre-transplant: pulmonary hypertension predicts 30-day mortality after heart transplant. Test reversibility with sodium nitroprusside or a milrinone bolus; inhaled nitric oxide can be used when wedge pressure is not elevated.\n- Occult post-capillary PH: when resting numbers do not explain dyspnea, a fluid bolus or passive leg raise can unmask it. Invasive exercise testing identifies the cause of exertional symptoms; exercise-induced PH predicts outcome but is not yet a treatment target.\n- Acute vasoreactivity testing in suspected idiopathic, heritable or drug-induced PAH: inhaled prostacyclin analogs or NO preferred; a positive response is a fall in mean PA pressure of 10 mm Hg or more to below 40 mm Hg without a drop in cardiac output.\n- Magnetically levitated LVADs: invasive ramp and reverse-ramp studies are preferred over echo alone, targeting CVP under 12 mm Hg, PAWP under 18 mm Hg and cardiac index above 2.2 L/min/m2, which track with fewer admissions and hemocompatibility events.\n- Continuous PA catheter monitoring is useful in advanced PH or RV dysfunction during high-risk procedures, LVAD implantation, pulmonary endarterectomy and liver transplantation with portopulmonary hypertension; routine early PAC use in cardiogenic shock still needs data.\n\n**For the anesthesiologist.** This is the reference for the pre-transplant vasodilator study, the LVAD ramp you are asked to supervise, and the argument for a PA catheter in the POPH liver transplant.",
+   "url": "https://doi.org/10.1161/HHF.0000000000000088",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Belkin"
   },
   {
    "id": "jcva-2025-eactaic-monitoring-thoracic",
@@ -178,6 +379,30 @@
    "firstAuthor": "Granell M"
   },
   {
+   "id": "erj-2025-ers-ests-fitness-lung-cancer-guideline",
+   "date": "2025-11-13",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "Eur Respir J",
+   "jshort": "ERJ",
+   "kind": "Guideline",
+   "topics": [
+    "thoracic"
+   ],
+   "headline": "ERS/ESTS replace the 2009 lung resection fitness algorithm: DLCO for everyone, ppoFEV1 or ppoDLCO under 40% is high risk",
+   "summary": "The first full rewrite of the ERS/ESTS fitness guideline, co-published in ERJ and EJCTS and endorsed by ESAIC, makes DLCO a strong recommendation for every surgical candidate, calls for routine predicted postoperative values, and sets field-test and CPET thresholds.",
+   "takeHome": [
+    "DLCO in every surgical candidate; ppoFEV1 and ppoDLCO calculated routinely, with under 40% high risk and 40-59% moderate",
+    "One field test screens: walk over 400 m or stair climb over 10 m suggests low risk; poor performers go to CPET",
+    "CPET: VO2peak under 12 mL/kg/min or VE/VCO2 slope over 40 flags high risk; repeat FEV1 and DLCO after neoadjuvant therapy"
+   ],
+   "deepDive": "**Why it matters.** The 2009 ERS/ESTS algorithm has decided who is offered a lung resection for 16 years. This replacement, chaired by Brunelli, Hardavella and Huber, was co-published in the European Respiratory Journal (66:2500156) and the European Journal of Cardio-Thoracic Surgery in November 2025 and endorsed by ESAIC, ESTRO and IASLC. Its scope now covers radiotherapy and systemic treatment as well as surgery, plus nutrition, frailty, prehabilitation and sublobar resection.\n\n**What they did.** A multidisciplinary panel with patient representatives answered four PICO and seven narrative questions with GRADE and an evidence-to-decision framework.\n\n**What changed.**\n- DLCO for every surgical candidate is now a strong recommendation, and ppoFEV1 and ppoDLCO should be calculated routinely rather than only when spirometry is impaired. Bands: DLCO 60-79% mild, 40-59% moderate, under 40% high; ppoFEV1 or ppoDLCO under 40% high, 40-59% moderate.\n- Repeat FEV1 and DLCO after neoadjuvant therapy; post-induction DLCO or ppo values under 80% signal higher risk.\n- One low-technology test screens exercise capacity: a 6-minute or shuttle walk above 400 m or a stair climb above 10 m suggests low risk, and poor performers are referred for CPET.\n- CPET: VO2peak below 12 mL/kg/min or a VE/VCO2 slope above 40 suggests high surgical risk, with no single parameter mandated.\n- Do not select on a risk score alone (EuroLung 2 is for benchmarking). Assess nutrition when BMI is under 18.5, weight loss is 10% or more, or age is over 70; screen frailty after 60. Prehabilitation can reduce pulmonary complications in high-risk patients (moderate certainty). Offer smoking cessation. Age alone should not decide treatment.\n\n**For the anesthesiologist.** Expect ppo values and a field test in every thoracic clinic note, and expect to anesthetize patients the 2009 rules would have declined, now with prehabilitation and sublobar options on the table.",
+   "url": "https://doi.org/10.1183/13993003.00156-2025",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Brunelli"
+  },
+  {
    "id": "jcva-2025-cabg-delirium-nis-trends",
    "date": "2025-11-12",
    "dateApprox": false,
@@ -201,6 +426,84 @@
    "impact": 1,
    "trialName": "",
    "firstAuthor": "Potnuru P"
+  },
+  {
+   "id": "asaio-2025-elso-pregnant-peripartum-ecmo-guideline",
+   "date": "2025-11-01",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "ASAIO J",
+   "jshort": "ASAIO",
+   "kind": "Guideline",
+   "topics": [
+    "ob",
+    "mcs",
+    "criticalCare"
+   ],
+   "headline": "ELSO issues a dedicated narrative guideline on ECMO for pregnant and peripartum patients",
+   "summary": "An international ELSO writing group led by Erika O'Neil, with Emily Naoum, Marc Anders, Kollengode Ramanathan and Matteo Di Nardo, publishes ELSO's guidance on extracorporeal support of pregnant and recently delivered patients in the November 2025 ASAIO Journal.",
+   "takeHome": [
+    "One ELSO reference now exists for peripartum ECMO; read it before the next amniotic fluid embolism or peripartum cardiomyopathy arrives",
+    "A narrative guideline: structured expert guidance on practices ELSO considers useful and safe, not a GRADE document or standard of care",
+    "Same issue carries ELSO's accidental hypothermia guideline; both were released by ELSO in October 2025"
+   ],
+   "deepDive": "**Why it matters.** Peripartum collapse is where obstetric and cardiac anesthesia meet: amniotic fluid embolism, peripartum cardiomyopathy, massive hemorrhage with arrest, and severe ARDS in a patient whose physiology, airway, anticoagulation and fetus all complicate the usual ECMO rules. Until now ELSO had no guideline specific to pregnancy. This narrative guideline fills that gap, published in ASAIO Journal 71(11):875-887 (November 2025, online 24 September 2025) by an international writing group led by Erika O'Neil, with Ahmed Labib Shehatta, Cara Agerstrand, Caroline Sampson, Farah Siddiqui, Priya Nair, Alexandra Schou, Javier Kattan, Emily Naoum, Marc Anders, Kollengode Ramanathan and Matteo Di Nardo.\n\n**What it is.** ELSO's narrative guidelines are structured expert documents rather than GRADE-graded recommendations. ELSO describes them as educational, built on practices it believes are useful and safe, based on the data available when written, and due for revision as evidence accrues; they explicitly do not guarantee an outcome or define a standard of care.\n\n**What to do with it.** Use it to build the pathway before the case rather than during it: who cannulates and where, which configuration, how anticoagulation and bleeding risk are weighed against the uterus and the surgical field, and how delivery is planned around the circuit. A short list of named roles, the multidisciplinary call tree, and a stocked cannulation cart on the labor floor are the kind of practical steps a document like this is meant to prompt.\n\n**Caveat.** The full text sits behind the ASAIO Journal paywall; this post rests on the citation, the author list and the guideline's stated scope, not on a line-by-line read. Pull the PDF through your library before writing local protocol from it.",
+   "url": "https://doi.org/10.1097/MAT.0000000000002556",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "O'Neil"
+  },
+  {
+   "id": "asaio-2025-elso-accidental-hypothermia-ecmo-guideline",
+   "date": "2025-11-01",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "ASAIO J",
+   "jshort": "ASAIO",
+   "kind": "Guideline",
+   "topics": [
+    "trauma",
+    "criticalCare",
+    "mcs"
+   ],
+   "headline": "ELSO: ECLS for hypothermic arrest below 30 C when HOPE survival is 10% or more; rewarm at up to 5 C per hour",
+   "summary": "ELSO's 2025 narrative guideline on accidental hypothermia (Cools and Swol, first authors) sets who goes on the pump, favors femoro-femoral VA-ECMO with a distal perfusion cannula, and gives rewarming and weaning targets.",
+   "takeHome": [
+    "Hypothermic arrest: ECLS if core temperature is under 30 C and HOPE survival probability is 10% or more; measure core temperature esophageally",
+    "Unwitnessed arrest, asystole, long no-flow, age over 70 and low EtCO2 are not contraindications; consider stopping without ROSC at 32-35 C",
+    "Rewarm up to 5 C/h; oxygenator gradient 4 C or less; heater at most 10 C above venous inflow, max 42 C"
+   ],
+   "deepDive": "**Why it matters.** Hypothermic cardiac arrest is the one arrest where hours of CPR can end with an intact brain, and the decision to cannulate usually falls to whoever is on call for ECMO. ELSO's narrative guideline, in ASAIO Journal 71:865-874 (November 2025 issue), puts the triage and the circuit settings in one place.\n\n**Who goes on.** Hypothermic arrest with core temperature below 30 C and an estimated HOPE survival probability of 10% or more is an indication; below 30 C there is no absolute contraindication. Core temperature 30-32 C or HOPE below 10% is exceptional-case territory. Measure core temperature with an esophageal probe. Unwitnessed arrest, asystole, long no-flow or low-flow times, age 70 or over and low EtCO2 do not exclude a patient; potassium feeds the HOPE score rather than acting as a stand-alone cut-off.\n\n**How to run it.** Femoro-femoral VA-ECMO with a distal perfusion cannula is preferred: fewer resources, less heparin, possibly better outcomes; cardiopulmonary bypass is reasonable if ECMO is unavailable. Switch to VAV if differential oxygenation appears. Rewarm at up to 5 C per hour until 30 C or ROSC, keeping the oxygenator venous-to-arterial gradient at 4 C or less and the heater no more than 10 C above venous inflow, maximum 42 C. Consider stopping if there is no ROSC at 32-35 C. Wean once core temperature exceeds 35 C with improved LV function on echo, stepping flow to 50% then 25%; weaning succeeds in 30-70%.\n\n**The numbers.** Survival after hypothermic arrest ranges from 37% to 85%, with good neurologic outcome in 80-90% of survivors. In ICE-CRASH, ECMO was associated with better 28-day survival (OR 0.17) and neurologic outcome (OR 0.22). Notify the ECLS center from the scene; long transport with ongoing CPR is no reason to withhold resuscitation.",
+   "url": "https://doi.org/10.1097/MAT.0000000000002557",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Cools"
+  },
+  {
+   "id": "ehjci-2025-eacvi-acvc-eactaic-cardiac-ultrasound-critical-care",
+   "date": "2025-11-01",
+   "dateApprox": true,
+   "addedAt": "2026-10-20",
+   "journal": "Eur Heart J Cardiovasc Imaging",
+   "jshort": "EHJ CVI",
+   "kind": "Consensus",
+   "topics": [
+    "echo",
+    "criticalCare",
+    "mcs"
+   ],
+   "headline": "EACVI/ACVC/EACTAIC set five tiers of cardiac ultrasound for emergency and ICU care, with focused TEE for ECMO and CPR",
+   "summary": "A joint consensus from the ESC imaging and acute care associations and the cardiothoracic anaesthesia society sorts cardiac ultrasound into FoCUS, emergency echo, targeted echo, critical care echo and focused TEE, and tabulates the cut-offs for shock and RV assessment.",
+   "takeHome": [
+    "Five tiers by training: FoCUS, emergency echo, targeted echo, critical care echo (advanced) and focused TEE (comprehensive TEE training)",
+    "Focused TEE for ECMO and MCS cannulation, troubleshooting and weaning, for CPR, and when windows fail; LVOT VTI from transgastric views",
+    "Scan during CPR only for reversible causes without interrupting compressions; EF is not validated in critical care and every index is load-dependent"
+   ],
+   "deepDive": "**Why it matters.** The last EACVI emergency echo document predates modern shock teams and ECMO programs. This update, with the Acute CardioVascular Care Association and EACTAIC as co-authors, extends it into cardiac critical care. It went online 21 August 2025 and appears in the November 2025 issue of European Heart Journal - Cardiovascular Imaging (26:1699-1724; Soliman Aboumarie and Tavazzi, joint first authors), with a correction in March 2026.\n\n**Who scans what.** Five levels: FoCUS by operators trained in focused ultrasound who are often the decision-maker; emergency echo by fully trained echocardiographers producing a complete dataset; targeted echo answering a specific question; critical care echo requiring advanced training; and focused TEE requiring comprehensive TEE training. Focused TEE earns its place when transthoracic windows fail, for dissection and endocarditis, for guiding ECMO and MCS cannulation and weaning, and during CPR. LVOT VTI is taken from transgastric views at 0 or 120 degrees.\n\n**Scenarios.** Cardiac arrest: look for tamponade, PE and hypovolemia, but scanning that interferes with compressions is not appropriate. Shock: separate cardiac from non-cardiac causes, assess effusion, ventricular function, valves and volume, with cardiogenic shock staged by SCAI-type categories including post-cardiotomy.\n\n**The numbers.** Normal LVOT VTI 18-22 cm, averaged over about 10 beats in AF. RV: TAPSE 16 mm or less, S' under 9.5 cm/s, FAC under 35%, RVEF under 45%, free-wall strain worse than -23%, RV/LV ratio over 0.6, TR velocity over 2.8 m/s, IVC over 2.1 cm with under 50% collapse. Ejection fraction is not validated in critical care, and every parameter moves with load, heart rate and operator.\n\n**For the perioperative TEE reader.** This is the document to cite when defining who may do a focused TEE on a VA-ECMO patient at 2 am, and what training that requires.",
+   "url": "https://doi.org/10.1093/ehjci/jeaf246",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Soliman Aboumarie"
   },
   {
    "id": "jcva-2025-chd-noncardiac-hospital-volume",
