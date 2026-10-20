@@ -1,0 +1,3 @@
+# Periop Signal inbox
+# Paste one paper per line (a DOI, a link, or a citation) and the next daily run will write the post.
+# Lines starting with # are ignored. The run replaces each handled line with "# posted <date>: <headline>".

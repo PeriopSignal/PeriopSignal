@@ -7,7 +7,9 @@ A curated research feed for cardiothoracic, critical care and trauma anesthesiol
 | Path | What it is |
 |---|---|
 | `index.html` | The site. **Generated** from `src/page.html`; do not edit directly. |
-| `posts.json` | The feed data. One object per post, newest first. This is the only file the daily update changes. |
+| `posts.json` | The feed data. One object per post, newest first. Updated by the daily and weekly runs. |
+| `inbox.txt` | Paste a DOI or link here (one per line) and the next run writes the post. |
+| `log/` | One triage log per run: what each journal published, what was posted, what was rejected and why. |
 | `feed.xml` | RSS feed, newest 50 posts. Generated. |
 | `manifest.webmanifest`, `icons/` | App icon and "Add to Home Screen" support. Generated. |
 | `src/page.html` | Page source, shared with the Claude artifact copy of the feed. |
