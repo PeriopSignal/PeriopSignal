@@ -242,6 +242,9 @@ a { color: var(--accent-2); }
 }
 .post:hover { border-color: var(--line-2); }
 .post.is-new { border-color: color-mix(in srgb, var(--new) 45%, var(--line)); }
+.post.is-landmark { border-color: color-mix(in srgb, var(--accent) 70%, var(--line)); box-shadow: var(--card-shadow), 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 0 32px color-mix(in srgb, var(--accent) 18%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface) 42%); }
+.post.is-landmark:hover { border-color: var(--accent); }
+.post.is-landmark::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(260px 120px at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%); }
 .post-head { display: flex; align-items: flex-start; gap: 12px; }
 .avatar {
   width: 44px; height: 44px; border-radius: 13px; flex: none; display: grid; place-items: center;
@@ -561,7 +564,7 @@ a { color: var(--accent-2); }
   function card(p) {
     const primary = p.topics[0] || 'general';
     const isNew = state.newIds.has(p.id), saved = state.saved.has(p.id);
-    return `<article class="post${isNew ? ' is-new' : ''}" id="post-${esc(p.id)}" data-id="${esc(p.id)}">
+    return `<article class="post${isNew ? ' is-new' : ''}${p.impact === 3 ? ' is-landmark' : ''}" id="post-${esc(p.id)}" data-id="${esc(p.id)}">
       <div class="post-head">
         <div class="avatar" ${topicStyle(primary)} aria-hidden="true">${esc(p.jshort)}</div>
         <div class="who">
