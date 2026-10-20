@@ -1,0 +1,29 @@
+{
+ "name": "Periop Signal",
+ "short_name": "Periop Signal",
+ "description": "A curated research feed for cardiothoracic, critical care and trauma anesthesiology: landmark trials, guidelines and regulatory news, with take-home points, paper links and AI overviews.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#F3F5F8",
+ "theme_color": "#D43A3C",
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

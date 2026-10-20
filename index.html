@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Periop Signal</title>
+<meta name="description" content="A curated research feed for cardiothoracic, critical care and trauma anesthesiology: landmark trials, guidelines and regulatory news, with take-home points, paper links and AI overviews.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161B21" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Periop Signal">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Periop Signal">
+<meta property="og:title" content="Periop Signal">
+<meta property="og:description" content="A curated research feed for cardiothoracic, critical care and trauma anesthesiology: landmark trials, guidelines and regulatory news, with take-home points, paper links and AI overviews.">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Periop Signal" href="feed.xml">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout concept: one 600px timeline column like a social feed; sticky masthead + topic rail; posts as cards; bottom sheet for the deep dive. */
+:root {
+  --bg: #F3F5F8;
+  --surface: #FFFFFF;
+  --surface-2: #EBEFF4;
+  --surface-3: #DFE5EC;
+  --fg: #141B25;
+  --fg-2: #4A5667;
+  --fg-3: #7A8697;
+  --line: #E0E5EC;
+  --line-2: #CBD3DD;
+  --accent: #D43A3C;        /* Doppler red: primary actions, landmark */
+  --accent-fg: #FFFFFF;
+  --accent-soft: #FBE7E7;
+  --accent-2: #2A6BD6;      /* Doppler blue: links, selection */
+  --accent-2-soft: #E4ECFB;
+  --shadow: 0 1px 2px rgba(20,27,37,.06), 0 8px 24px rgba(20,27,37,.06);
+  --sheet-shadow: 0 -12px 40px rgba(20,27,37,.18);
+  --scrim: rgba(20,27,37,.45);
+  --new: #1F9D55;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+  /* topic colors: fg on soft */
+  --t-cardiac-fg:#B4262A; --t-cardiac-bg:#FBE4E4;
+  --t-cardiacSurgery-fg:#A8215A; --t-cardiacSurgery-bg:#FBE2EC;
+  --t-mcs-fg:#B8430E; --t-mcs-bg:#FDE6DA;
+  --t-echo-fg:#1C5BC9; --t-echo-bg:#E1EAFB;
+  --t-thoracic-fg:#0E7580; --t-thoracic-bg:#DBF2F4;
+  --t-regional-fg:#2B7A30; --t-regional-bg:#E0F2E1;
+  --t-ob-fg:#9B2489; --t-ob-bg:#F7E1F4;
+  --t-trauma-fg:#8F5F00; --t-trauma-bg:#FAEDCB;
+  --t-pediatric-fg:#55820A; --t-pediatric-bg:#EAF4D6;
+  --t-pedsCardiac-fg:#6537C8; --t-pedsCardiac-bg:#ECE5FA;
+  --t-liver-fg:#85542A; --t-liver-bg:#F4E8DC;
+  --t-criticalCare-fg:#3B4DB0; --t-criticalCare-bg:#E4E7F7;
+  --t-general-fg:#4A5667; --t-general-bg:#E7EBF0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0E1216; --surface:#161B21; --surface-2:#1D242C; --surface-3:#273039;
+    --fg:#E8ECF1; --fg-2:#A9B3BF; --fg-3:#78838F; --line:#242C36; --line-2:#334050;
+    --accent:#F05553; --accent-fg:#1A0A0A; --accent-soft:#3A1C1E; --accent-2:#6B9CF5; --accent-2-soft:#172640;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); --sheet-shadow: 0 -12px 40px rgba(0,0,0,.6); --scrim: rgba(0,0,0,.6); --new:#3FC27A;
+    --t-cardiac-fg:#FF8E8A; --t-cardiac-bg:#3A1A1B; --t-cardiacSurgery-fg:#F58DB6; --t-cardiacSurgery-bg:#3A1727; --t-mcs-fg:#FFA373; --t-mcs-bg:#3A2114;
+    --t-echo-fg:#8DB7FF; --t-echo-bg:#15243E; --t-thoracic-fg:#6AD6E0; --t-thoracic-bg:#0F2F33; --t-regional-fg:#8FE093; --t-regional-bg:#15301A;
+    --t-ob-fg:#F2A6E6; --t-ob-bg:#361332; --t-trauma-fg:#FFD166; --t-trauma-bg:#342A0E; --t-pediatric-fg:#C8E56F; --t-pediatric-bg:#223010;
+    --t-pedsCardiac-fg:#C7ABFF; --t-pedsCardiac-bg:#241741; --t-liver-fg:#E3B383; --t-liver-bg:#332213; --t-criticalCare-fg:#A4ADFF; --t-criticalCare-bg:#1B1F40;
+    --t-general-fg:#B6C0CD; --t-general-bg:#28313C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0E1216; --surface:#161B21; --surface-2:#1D242C; --surface-3:#273039;
+  --fg:#E8ECF1; --fg-2:#A9B3BF; --fg-3:#78838F; --line:#242C36; --line-2:#334050;
+  --accent:#F05553; --accent-fg:#1A0A0A; --accent-soft:#3A1C1E; --accent-2:#6B9CF5; --accent-2-soft:#172640;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); --sheet-shadow: 0 -12px 40px rgba(0,0,0,.6); --scrim: rgba(0,0,0,.6); --new:#3FC27A;
+  --t-cardiac-fg:#FF8E8A; --t-cardiac-bg:#3A1A1B; --t-cardiacSurgery-fg:#F58DB6; --t-cardiacSurgery-bg:#3A1727; --t-mcs-fg:#FFA373; --t-mcs-bg:#3A2114;
+  --t-echo-fg:#8DB7FF; --t-echo-bg:#15243E; --t-thoracic-fg:#6AD6E0; --t-thoracic-bg:#0F2F33; --t-regional-fg:#8FE093; --t-regional-bg:#15301A;
+  --t-ob-fg:#F2A6E6; --t-ob-bg:#361332; --t-trauma-fg:#FFD166; --t-trauma-bg:#342A0E; --t-pediatric-fg:#C8E56F; --t-pediatric-bg:#223010;
+  --t-pedsCardiac-fg:#C7ABFF; --t-pedsCardiac-bg:#241741; --t-liver-fg:#E3B383; --t-liver-bg:#332213; --t-criticalCare-fg:#A4ADFF; --t-criticalCare-bg:#1B1F40;
+  --t-general-fg:#B6C0CD; --t-general-bg:#28313C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: var(--accent-2); }
+:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ---------- masthead ---------- */
+.masthead {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.masthead-inner {
+  max-width: 640px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 0;
+}
+.brand-row { display: flex; align-items: center; gap: 10px; }
+.logo { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; flex: none; }
+.logo svg { width: 24px; height: 24px; display: block; }
+.brand { min-width: 0; flex: 1; }
+.brand h1 { font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -0.01em; margin: 0; line-height: 1.1; }
+.brand p { margin: 2px 0 0; font-size: 12px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand p .live { color: var(--new); font-weight: 600; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: var(--fg-2); flex: none;
+}
+.icon-btn:hover { background: var(--surface-2); }
+.icon-btn[aria-pressed="true"] { background: var(--accent-2-soft); color: var(--accent-2); }
+.icon-btn svg { width: 20px; height: 20px; }
+.search-row { display: none; padding-block: 10px 2px; }
+.search-row.open { display: block; }
+.search-row input {
+  width: 100%; height: 40px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--fg);
+  padding: 0 12px; font: inherit; font-size: 15px;
+}
+.search-row input::placeholder { color: var(--fg-3); }
+
+.rail { display: flex; gap: 8px; overflow-x: auto; padding-block: 10px; scrollbar-width: none; -ms-overflow-style: none; margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
+.rail::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface);
+  font-size: 13px; font-weight: 600; color: var(--fg-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.chip .n { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { border-color: transparent; color: var(--t-fg); background: var(--t-bg); }
+.chip[aria-pressed="true"] .n { color: inherit; opacity: .75; }
+.chip.all[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.chip.all[aria-pressed="true"] .n { color: inherit; }
+.sub-row { display: flex; align-items: center; gap: 8px; padding-block: 0 10px; font-size: 12.5px; color: var(--fg-3); }
+.sub-row .count { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.toggle { height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--surface); font-size: 12px; font-weight: 600; color: var(--fg-2); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.toggle[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.toggle svg { width: 14px; height: 14px; }
+
+/* ---------- feed ---------- */
+.feed {
+  max-width: 640px; margin: 0 auto; padding-block: 12px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 10px;
+}
+.post {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 12px; box-shadow: var(--shadow);
+  display: grid; gap: 8px; min-width: 0;
+}
+.post.is-new { border-color: color-mix(in srgb, var(--new) 45%, var(--line)); }
+.post-head { display: flex; align-items: flex-start; gap: 10px; }
+.avatar {
+  width: 42px; height: 42px; border-radius: 12px; flex: none; display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .02em; color: var(--t-fg); background: var(--t-bg);
+  text-align: center; line-height: 1.05; padding: 2px;
+}
+.who { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.who-line { font-size: 13px; color: var(--fg-3); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; line-height: 1.3; }
+.who-line .journal { color: var(--fg); font-weight: 700; }
+.who-line .dot { color: var(--line-2); }
+.who-line time { font-variant-numeric: tabular-nums; }
+.who-sub { font-size: 12px; color: var(--fg-3); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.trial { font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+.signal { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.signal i { width: 4px; border-radius: 1px; background: var(--line-2); display: block; }
+.signal i:nth-child(1) { height: 5px; } .signal i:nth-child(2) { height: 8px; } .signal i:nth-child(3) { height: 12px; }
+.signal[data-level="1"] i:nth-child(1) { background: var(--fg-3); }
+.signal[data-level="2"] i:nth-child(-n+2) { background: var(--accent-2); }
+.signal[data-level="3"] i { background: var(--accent); }
+.pill { display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.pill.landmark { background: var(--accent-soft); color: var(--accent); }
+.pill.new { background: color-mix(in srgb, var(--new) 16%, transparent); color: var(--new); }
+.save { color: var(--fg-3); width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex: none; margin: -4px -4px 0 0; }
+.save:hover { background: var(--surface-2); }
+.save[aria-pressed="true"] { color: var(--accent); }
+.save svg { width: 20px; height: 20px; }
+.headline { margin: 0; font-family: var(--font-display); font-size: 18px; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; text-wrap: pretty; }
+.headline button { text-align: left; display: block; width: 100%; }
+.headline button:hover { color: var(--accent-2); }
+.summary { margin: 0; color: var(--fg-2); font-size: 14.5px; }
+.takehome { margin: 0; padding: 10px 12px; list-style: none; background: var(--surface-2); border-radius: 12px; display: grid; gap: 6px; }
+.takehome li { position: relative; padding-left: 18px; font-size: 14px; line-height: 1.4; }
+.takehome li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); transform: rotate(45deg); }
+.post-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.topics { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.tag { height: 22px; padding: 0 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; color: var(--t-fg); background: var(--t-bg); }
+.actions { display: flex; gap: 6px; margin-left: auto; }
+.btn { height: 34px; padding: 0 12px; border-radius: 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap; border: 1px solid var(--line-2); color: var(--fg); background: var(--surface); }
+.btn:hover { background: var(--surface-2); }
+.btn svg { width: 15px; height: 15px; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+.btn.primary:hover { filter: brightness(.95); }
+.btn.quiet { color: var(--accent-2); border-color: transparent; background: var(--accent-2-soft); }
+
+.divider { display: flex; align-items: center; gap: 10px; color: var(--new); font-size: 12.5px; font-weight: 600; padding-block: 4px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: color-mix(in srgb, var(--new) 40%, var(--line)); }
+.divider svg { width: 16px; height: 16px; }
+.month { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); padding: 10px 2px 0; }
+.empty { text-align: center; color: var(--fg-3); padding: 40px 12px; display: grid; gap: 10px; justify-items: center; }
+.empty strong { color: var(--fg); font-family: var(--font-display); font-size: 17px; }
+.skeleton { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; height: 190px; overflow: hidden; position: relative; }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--surface-2), transparent); animation: shimmer 1.4s infinite; }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.sentinel { height: 1px; }
+.end { text-align: center; color: var(--fg-3); font-size: 13px; padding: 20px 0 8px; }
+.end strong { display: block; font-family: var(--font-display); color: var(--fg-2); font-size: 15px; }
+
+/* ---------- sheet ---------- */
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.show { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--surface); border-radius: 20px 20px 0 0; box-shadow: var(--sheet-shadow);
+  max-height: calc(100% - env(safe-area-inset-top, 0px) - 28px); display: flex; flex-direction: column;
+  transform: translateY(104%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
+}
+.sheet.show { transform: translateY(0); }
+.sheet-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 0 16px; flex: none; }
+.handle { width: 40px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 6px auto 0; flex: none; }
+.sheet-body {
+  overflow-y: auto; padding-block: 4px calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+}
+.sheet-inner { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
+.sheet-head { display: flex; gap: 10px; align-items: flex-start; }
+.sheet h2 { margin: 0; font-family: var(--font-display); font-size: 22px; line-height: 1.2; font-weight: 700; letter-spacing: -0.012em; text-wrap: balance; }
+.sheet-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.section-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 6px; }
+.deep { display: grid; gap: 10px; font-size: 15px; line-height: 1.55; }
+.deep p { margin: 0; }
+.deep ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.deep h4 { margin: 4px 0 0; font-family: var(--font-display); font-size: 15px; }
+.deep strong { font-weight: 700; color: var(--fg); }
+.note { font-size: 12.5px; color: var(--fg-3); border-top: 1px solid var(--line); padding-top: 10px; }
+.meta-grid { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; color: var(--fg-2); }
+.meta-grid dt { color: var(--fg-3); }
+.meta-grid dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.about p { margin: 0 0 10px; }
+.about ul { margin: 0 0 10px; padding-left: 20px; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--fg); color: var(--bg); padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 60; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.fab { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: 44px; height: 44px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line-2); box-shadow: var(--shadow); display: grid; place-items: center; color: var(--fg-2); z-index: 25; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.fab.show { opacity: 1; pointer-events: auto; }
+.fab svg { width: 20px; height: 20px; }
+
+@media (min-width: 700px) {
+  .sheet { left: 50%; right: auto; width: min(680px, calc(100% - 32px)); transform: translate(-50%, 104%); border-radius: 20px 20px 0 0; }
+  .sheet.show { transform: translate(-50%, 0); }
+  .headline { font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet, .scrim, .toast, .fab, .chip { transition: none; }
+  .skeleton::after { animation: none; }
+}
+</style>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brand-row">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2.5-6 3 12 2.5-8 1.5 2H22"/></svg>
+      </div>
+      <div class="brand">
+        <h1>Periop Signal</h1>
+        <p id="tagline">Cardiothoracic, critical care and trauma anesthesia research, curated daily</p>
+      </div>
+      <button class="icon-btn" id="btn-search" aria-label="Search posts" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-saved" aria-label="Show saved posts" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-about" aria-label="About this feed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      </button>
+    </div>
+    <div class="search-row" id="search-row">
+      <input type="search" id="q" placeholder="Search headlines, trials, journals" autocomplete="off" aria-label="Search posts">
+    </div>
+    <div class="rail" id="rail" role="group" aria-label="Topics"></div>
+    <div class="sub-row">
+      <div class="count" id="count">Loading the feed</div>
+      <button class="toggle" id="btn-landmark" aria-pressed="false" title="Only landmark or practice-changing posts">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg> Landmark only
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="feed" id="feed" aria-live="polite">
+  <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+</main>
+<div class="sentinel" id="sentinel"></div>
+
+<button class="fab" id="fab" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <div class="handle"></div>
+  <div class="sheet-bar">
+    <span class="section-label" id="sheet-kicker">Deep dive</span>
+    <button class="icon-btn" id="sheet-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body"><div class="sheet-inner" id="sheet-content"></div></div>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+  const TOPICS = [
+    ['cardiac', 'Cardiac'], ['cardiacSurgery', 'Cardiac surgery'], ['mcs', 'MCS · LVAD · ECMO'], ['echo', 'Echo · TEE'],
+    ['thoracic', 'Thoracic'], ['regional', 'Regional'], ['ob', 'OB'], ['trauma', 'Trauma'], ['pediatric', 'Pediatric'],
+    ['pedsCardiac', 'Peds cardiac'], ['liver', 'Liver transplant'], ['criticalCare', 'Critical care'], ['general', 'General']
+  ];
+  const TOPIC_NAME = Object.fromEntries(TOPICS);
+  const PAGE = 12;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+
+  const state = {
+    posts: [], filtered: [], shown: 0,
+    topics: new Set(LS.get('ps.topics', [])),
+    landmark: false, savedOnly: false, q: '',
+    saved: new Set(LS.get('ps.saved', [])),
+    lastVisit: LS.get('ps.lastVisit', null), newIds: new Set(), current: null
+  };
+
+  const $ = (s) => document.querySelector(s);
+  const feed = $('#feed'), rail = $('#rail'), countEl = $('#count'), sheet = $('#sheet'), scrim = $('#scrim'), sheetContent = $('#sheet-content');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+  function fmtDate(s, long) {
+    const d = parseDate(s), now = new Date();
+    const str = MONTHS[d.getMonth()] + ' ' + d.getDate() + ((long || d.getFullYear() !== now.getFullYear()) ? ', ' + d.getFullYear() : '');
+    return str;
+  }
+  function fmtAgo(s) {
+    const d = parseDate(s), now = new Date(); const days = Math.round((now - d) / 86400000);
+    if (days <= 0) return 'today'; if (days === 1) return '1d'; if (days < 7) return days + 'd';
+    if (days < 30) return Math.round(days / 7) + 'w'; if (days < 365) return Math.round(days / 30) + 'mo'; return Math.round(days / 365) + 'y';
+  }
+  function md(src) {
+    const lines = esc(src).split('\n'); let out = '', list = [], para = [];
+    const inline = (t) => t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    const flushP = () => { if (para.length) { out += '<p>' + inline(para.join(' ')) + '</p>'; para = []; } };
+    const flushL = () => { if (list.length) { out += '<ul>' + list.map(l => '<li>' + inline(l) + '</li>').join('') + '</ul>'; list = []; } };
+    for (const raw of lines) {
+      const l = raw.trim();
+      if (!l) { flushP(); flushL(); continue; }
+      if (/^[-*•]\s+/.test(l)) { flushP(); list.push(l.replace(/^[-*•]\s+/, '')); continue; }
+      if (/^#{1,4}\s+/.test(l)) { flushP(); flushL(); out += '<h4>' + inline(l.replace(/^#{1,4}\s+/, '')) + '</h4>'; continue; }
+      flushL(); para.push(l);
+    }
+    flushP(); flushL(); return out;
+  }
+  const icon = {
+    bookmark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
+    bookmarkFill: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
+    ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>',
+    read: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>',
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>'
+  };
+  const topicStyle = (t) => `style="--t-fg:var(--t-${t}-fg);--t-bg:var(--t-${t}-bg)"`;
+  const signal = (n) => `<span class="signal" data-level="${n}" title="${n === 3 ? 'Landmark' : n === 2 ? 'Important' : 'Notable'}" aria-label="Signal ${n} of 3"><i></i><i></i><i></i></span>`;
+
+  // ---------- filters ----------
+  function applyFilters() {
+    const q = state.q.trim().toLowerCase();
+    state.filtered = state.posts.filter(p => {
+      if (state.topics.size && !p.topics.some(t => state.topics.has(t))) return false;
+      if (state.landmark && p.impact < 3) return false;
+      if (state.savedOnly && !state.saved.has(p.id)) return false;
+      if (q) {
+        const hay = (p.headline + ' ' + p.summary + ' ' + p.trialName + ' ' + p.journal + ' ' + p.kind + ' ' + p.takeHome.join(' ') + ' ' + p.topics.map(t => TOPIC_NAME[t]).join(' ')).toLowerCase();
+        if (!q.split(/\s+/).every(w => hay.includes(w))) return false;
+      }
+      return true;
+    });
+    state.shown = 0; feed.innerHTML = ''; renderMore();
+    const n = state.filtered.length, total = state.posts.length;
+    const parts = [];
+    if (state.topics.size) parts.push([...state.topics].map(t => TOPIC_NAME[t]).join(', '));
+    if (state.landmark) parts.push('landmark');
+    if (state.savedOnly) parts.push('saved');
+    if (q) parts.push('"' + state.q.trim() + '"');
+    countEl.textContent = (n === total ? total + ' posts' : n + ' of ' + total + ' posts') + (parts.length ? ' · ' + parts.join(' · ') : '') + (state.newIds.size && !parts.length ? ' · ' + state.newIds.size + ' new since your last visit' : '');
+    if (!n) {
+      feed.innerHTML = `<div class="empty"><strong>Nothing matches these filters</strong><span>Try fewer topics or clear the search.</span><button class="btn" id="clear-all">Clear filters</button></div>`;
+      $('#clear-all').addEventListener('click', clearFilters);
+    }
+  }
+  function clearFilters() {
+    state.topics.clear(); state.landmark = false; state.savedOnly = false; state.q = ''; $('#q').value = '';
+    $('#btn-landmark').setAttribute('aria-pressed', 'false'); $('#btn-saved').setAttribute('aria-pressed', 'false');
+    LS.set('ps.topics', []); renderRail(); applyFilters();
+  }
+
+  // ---------- rail ----------
+  function renderRail() {
+    const counts = {}; for (const p of state.posts) for (const t of p.topics) counts[t] = (counts[t] || 0) + 1;
+    const all = state.topics.size === 0;
+    let html = `<button class="chip all" data-topic="" aria-pressed="${all}">All <span class="n">${state.posts.length}</span></button>`;
+    for (const [t, name] of TOPICS) {
+      html += `<button class="chip" data-topic="${t}" aria-pressed="${state.topics.has(t)}" ${topicStyle(t)}>${esc(name)} <span class="n">${counts[t] || 0}</span></button>`;
+    }
+    rail.innerHTML = html;
+  }
+  rail.addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const t = b.dataset.topic;
+    if (!t) state.topics.clear(); else if (state.topics.has(t)) state.topics.delete(t); else state.topics.add(t);
+    LS.set('ps.topics', [...state.topics]); renderRail(); applyFilters();
+  });
+
+  // ---------- cards ----------
+  function card(p) {
+    const primary = p.topics[0] || 'general';
+    const isNew = state.newIds.has(p.id), saved = state.saved.has(p.id);
+    return `<article class="post${isNew ? ' is-new' : ''}" id="post-${esc(p.id)}" data-id="${esc(p.id)}">
+      <div class="post-head">
+        <div class="avatar" ${topicStyle(primary)} aria-hidden="true">${esc(p.jshort)}</div>
+        <div class="who">
+          <div class="who-line"><span class="journal">${esc(p.journal)}</span><span class="dot">·</span><span>${esc(p.kind)}</span><span class="dot">·</span><time datetime="${esc(p.date)}" title="${esc(fmtDate(p.date, true))}${p.dateApprox ? ' (approximate)' : ''}">${p.dateApprox ? '~' : ''}${esc(fmtDate(p.date))}</time>${isNew ? '<span class="pill new">New</span>' : ''}</div>
+          <div class="who-sub">${signal(p.impact)}${p.impact === 3 ? '<span class="pill landmark">Landmark</span>' : ''}${p.trialName ? `<span class="trial">${esc(p.trialName)}</span>` : ''}</div>
+        </div>
+        <button class="save" data-act="save" aria-pressed="${saved}" aria-label="${saved ? 'Remove from saved' : 'Save post'}">${saved ? icon.bookmarkFill : icon.bookmark}</button>
+      </div>
+      <h2 class="headline"><button data-act="open">${esc(p.headline)}</button></h2>
+      <p class="summary">${esc(p.summary)}</p>
+      <ul class="takehome">${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
+      <div class="post-foot">
+        <div class="topics">${p.topics.map(t => `<span class="tag" ${topicStyle(t)}>${esc(TOPIC_NAME[t] || t)}</span>`).join('')}</div>
+        <div class="actions">
+          <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">${icon.ext} Paper</a>
+          <button class="btn quiet" data-act="open">${icon.read} Deep dive</button>
+        </div>
+      </div>
+    </article>`;
+  }
+  function renderMore() {
+    const list = state.filtered; if (state.shown >= list.length) return;
+    const end = Math.min(list.length, state.shown + PAGE);
+    let html = '';
+    const sentinelEl = $('#sentinel');
+    for (let i = state.shown; i < end; i++) {
+      const p = list[i], prev = i > 0 ? list[i - 1] : null;
+      const wasNew = prev && state.newIds.has(prev.id), nowNew = state.newIds.has(p.id);
+      const crossed = wasNew && !nowNew;
+      if (crossed) html += `<div class="divider">${icon.check} You're all caught up</div>`;
+      const m = p.date.slice(0, 7), pm = prev ? prev.date.slice(0, 7) : null;
+      if (!prev || pm !== m || crossed) html += `<div class="month">${MONTHS[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}</div>`;
+      html += card(p);
+    }
+    const old = feed.querySelector('.end'); if (old) old.remove();
+    feed.insertAdjacentHTML('beforeend', html);
+    state.shown = end;
+    if (state.shown >= list.length && list.length) {
+      feed.insertAdjacentHTML('beforeend', `<div class="end"><strong>That's everything since October 2025</strong>New posts land each morning.</div>`);
+    }
+    sentinelEl.hidden = state.shown >= list.length;
+  }
+  feed.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const art = b.closest('.post'); const p = state.posts.find(x => x.id === art.dataset.id); if (!p) return;
+    if (b.dataset.act === 'open') openSheet(p);
+    if (b.dataset.act === 'save') toggleSave(p, b);
+  });
+  function toggleSave(p, btn) {
+    const now = !state.saved.has(p.id);
+    if (now) state.saved.add(p.id); else state.saved.delete(p.id);
+    LS.set('ps.saved', [...state.saved]);
+    document.querySelectorAll(`.post[data-id="${CSS.escape(p.id)}"] .save`).forEach(b => { b.setAttribute('aria-pressed', String(now)); b.innerHTML = now ? icon.bookmarkFill : icon.bookmark; b.setAttribute('aria-label', now ? 'Remove from saved' : 'Save post'); });
+    if (btn && btn.closest('.sheet')) { btn.setAttribute('aria-pressed', String(now)); btn.innerHTML = (now ? icon.bookmarkFill : icon.bookmark) + (now ? ' Saved' : ' Save'); }
+    toast(now ? 'Saved to your list' : 'Removed from saved');
+    if (state.savedOnly) applyFilters();
+  }
+
+  // ---------- sheet ----------
+  function openSheet(p) {
+    state.current = p;
+    const saved = state.saved.has(p.id);
+    $('#sheet-kicker').textContent = 'Deep dive';
+    sheetContent.innerHTML = `
+      <div class="sheet-head">
+        <div class="avatar" ${topicStyle(p.topics[0] || 'general')} aria-hidden="true">${esc(p.jshort)}</div>
+        <div class="who">
+          <div class="who-line"><span class="journal">${esc(p.journal)}</span><span class="dot">·</span><span>${esc(p.kind)}</span><span class="dot">·</span><time datetime="${esc(p.date)}">${p.dateApprox ? '~' : ''}${esc(fmtDate(p.date, true))}</time></div>
+          <div class="who-sub">${signal(p.impact)}${p.impact === 3 ? '<span class="pill landmark">Landmark</span>' : ''}${p.trialName ? `<span class="trial">${esc(p.trialName)}</span>` : ''}${p.firstAuthor ? `<span>${esc(p.firstAuthor)} et al.</span>` : ''}</div>
+        </div>
+      </div>
+      <h2 id="sheet-title">${esc(p.headline)}</h2>
+      <div class="sheet-actions">
+        <a class="btn primary" href="${esc(p.url)}" target="_blank" rel="noopener">${icon.ext} Open paper</a>
+        <button class="btn" data-sheet="save" aria-pressed="${saved}">${saved ? icon.bookmarkFill + ' Saved' : icon.bookmark + ' Save'}</button>
+        <button class="btn" data-sheet="copy">${icon.copy} Copy summary</button>
+        <button class="btn" data-sheet="link">${icon.link} Copy link</button>
+      </div>
+      <div>
+        <p class="section-label">Take-home</p>
+        <ul class="takehome">${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
+      </div>
+      <div>
+        <p class="section-label">Overview</p>
+        <div class="deep">${md(p.deepDive)}</div>
+      </div>
+      <div class="topics">${p.topics.map(t => `<span class="tag" ${topicStyle(t)}>${esc(TOPIC_NAME[t] || t)}</span>`).join('')}</div>
+      <p class="note">Overview written by Claude from the paper, abstract and society pages, then checked against the source link. Confirm details against the paper before changing practice. Added to the feed ${esc(fmtDate(p.addedAt, true))}.</p>`;
+    showSheet();
+    try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
+  }
+  function openAbout() {
+    state.current = null;
+    $('#sheet-kicker').textContent = 'About';
+    const newest = state.posts.reduce((a, p) => (p.addedAt > a ? p.addedAt : a), '0000');
+    sheetContent.innerHTML = `
+      <h2 id="sheet-title">Periop Signal</h2>
+      <div class="about">
+        <p>A curated research feed for cardiothoracic anesthesiology, mechanical circulatory support, perioperative echocardiography, trauma anesthesia, critical care, and the big stories across anesthesiology. Each post is a short summary with take-home points, a direct link to the paper, and a longer AI-written overview.</p>
+        <p class="section-label">How posts are chosen</p>
+        <ul>
+          <li>Each morning Claude scans the major journals, society guideline pages, FDA notices and meeting coverage for the previous few days.</li>
+          <li>Only items that could change practice or that every subspecialist will be discussing are added: landmark trials, guidelines and consensus statements, regulatory actions, major registry reports.</li>
+          <li>Case reports, small single-center series, narrative reviews and incremental studies are left out.</li>
+          <li>Every link points at the paper, guideline or notice itself. Summaries are written from the abstract and the source pages.</li>
+        </ul>
+        <p class="section-label">Using the feed</p>
+        <ul>
+          <li>Tap a headline or <strong>Deep dive</strong> for the full overview.</li>
+          <li>Tap topic chips to filter; several can be active at once. <strong>Landmark only</strong> narrows to practice-changing items.</li>
+          <li>The bookmark saves a post on this device; the bookmark button in the top bar shows your saved list.</li>
+          <li>Keep scrolling for older posts. Posts added since your last visit are marked <strong>New</strong>.</li>
+        </ul>
+        <p class="section-label">Status</p>
+        <dl class="meta-grid"><dt>Posts</dt><dd>${state.posts.length}</dd><dt>Covers</dt><dd>October 2025 to today</dd><dt>Last update</dt><dd>${esc(fmtDate(newest, true))}</dd></dl>
+        <p class="note">Summaries are AI-generated and can contain errors. They are a reading aid, not clinical advice. Always read the source before acting on it.</p>
+      </div>`;
+    showSheet();
+  }
+  function showSheet() {
+    sheet.hidden = false; scrim.classList.add('show'); requestAnimationFrame(() => sheet.classList.add('show'));
+    sheet.querySelector('.sheet-body').scrollTop = 0; document.body.style.overflow = 'hidden';
+    setTimeout(() => $('#sheet-close').focus(), 50);
+  }
+  function closeSheet() {
+    sheet.classList.remove('show'); scrim.classList.remove('show'); document.body.style.overflow = '';
+    setTimeout(() => { sheet.hidden = true; }, 300);
+    if (state.current) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    state.current = null;
+  }
+  $('#sheet-close').addEventListener('click', closeSheet);
+  scrim.addEventListener('click', closeSheet);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+  sheetContent.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sheet]'); if (!b || !state.current) return;
+    if (b.dataset.sheet === 'save') toggleSave(state.current, b);
+    if (b.dataset.sheet === 'copy') {
+      const p = state.current;
+      const text = `${p.headline}\n${p.journal} · ${p.kind} · ${fmtDate(p.date, true)}${p.trialName ? ' · ' + p.trialName : ''}\n\n${p.summary}\n\nTake-home:\n${p.takeHome.map(x => '• ' + x).join('\n')}\n\nPaper: ${p.url}`;
+      copyText(text, 'Summary copied');
+    }
+    if (b.dataset.sheet === 'link') {
+      copyText(location.origin + location.pathname + location.search + '#' + state.current.id, 'Link copied');
+    }
+  });
+  function copyText(text, okMsg) {
+    const done = () => toast(okMsg || 'Copied');
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, okMsg)); } else fallbackCopy(text, okMsg);
+  }
+  function fallbackCopy(text, okMsg) {
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta); toast(ok ? (okMsg || 'Copied') : 'Could not copy on this device');
+  }
+  let toastTimer;
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); }
+
+  // ---------- header controls ----------
+  $('#btn-search').addEventListener('click', () => {
+    const row = $('#search-row'), open = !row.classList.contains('open');
+    row.classList.toggle('open', open); $('#btn-search').setAttribute('aria-pressed', String(open));
+    if (open) $('#q').focus(); else { state.q = ''; $('#q').value = ''; applyFilters(); }
+  });
+  let qTimer;
+  $('#q').addEventListener('input', (e) => { clearTimeout(qTimer); qTimer = setTimeout(() => { state.q = e.target.value; applyFilters(); }, 150); });
+  $('#btn-saved').addEventListener('click', (e) => {
+    state.savedOnly = !state.savedOnly; e.currentTarget.setAttribute('aria-pressed', String(state.savedOnly)); applyFilters();
+    if (state.savedOnly && !state.saved.size) toast('Tap the bookmark on a post to save it');
+  });
+  $('#btn-landmark').addEventListener('click', (e) => { state.landmark = !state.landmark; e.currentTarget.setAttribute('aria-pressed', String(state.landmark)); applyFilters(); });
+  $('#btn-about').addEventListener('click', openAbout);
+
+  // ---------- infinite scroll + fab ----------
+  const io = new IntersectionObserver((entries) => { if (entries.some(en => en.isIntersecting)) renderMore(); }, { rootMargin: '600px 0px' });
+  io.observe($('#sentinel'));
+  const fab = $('#fab');
+  window.addEventListener('scroll', () => { fab.classList.toggle('show', window.scrollY > 900); }, { passive: true });
+  fab.addEventListener('click', () => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
+
+  // ---------- boot ----------
+  function boot(data) {
+    const posts = (data.posts || []).slice();
+    posts.sort((a, b) => (b.addedAt.localeCompare(a.addedAt)) || (b.date.localeCompare(a.date)) || (b.impact - a.impact));
+    state.posts = posts;
+    const today = new Date(), todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    if (state.lastVisit) { for (const p of posts) if (p.addedAt > state.lastVisit) state.newIds.add(p.id); }
+    LS.set('ps.lastVisit', todayStr);
+    const newest = posts.reduce((a, p) => (p.addedAt > a ? p.addedAt : a), '0000');
+    const land = posts.filter(p => p.impact === 3).length;
+    $('#tagline').innerHTML = `${posts.length} posts · ${land} landmark · <span class="live">${esc(fmtDate(newest))}</span>`;
+    $('#tagline').title = 'Last updated ' + fmtDate(newest, true);
+    renderRail(); applyFilters();
+    const h = decodeURIComponent((location.hash || '').slice(1));
+    if (h) { const p = posts.find(x => x.id === h); if (p) openSheet(p); }
+  }
+  fetch('posts.json', { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(boot).catch(() => {
+    feed.innerHTML = `<div class="empty"><strong>The feed didn't load</strong><span>Check your connection and try again.</span><button class="btn" id="retry">Reload</button></div>`;
+    $('#retry').addEventListener('click', () => location.reload());
+    countEl.textContent = 'Feed unavailable';
+  });
+})();
+</script>
+</body>
+</html>
