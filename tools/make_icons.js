@@ -9,7 +9,7 @@ const root = path.join(__dirname, '..');
 const out = path.join(root, 'icons');
 fs.mkdirSync(out, { recursive: true });
 
-const RED = '#D43A3C';
+const RED = '#F2634F';
 const trace = (s) => `<path d="M${2 * s} ${12 * s}h${4 * s}l${2.5 * s}-${6 * s} ${3 * s} ${12 * s} ${2.5 * s}-${8 * s} ${1.5 * s} ${2 * s}H${22 * s}" fill="none" stroke="#fff" stroke-width="${2.2 * s}" stroke-linecap="round" stroke-linejoin="round"/>`;
 
 // 512 canvas: rounded square with the trace (used for favicon, apple touch, 192/512)
@@ -17,20 +17,28 @@ function iconSvg(pad) {
   // pad = fraction of canvas kept clear around the artwork (maskable icons need ~0.1 extra)
   const size = 512, inner = size * (1 - 2 * pad), s = inner / 24, off = size * pad;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" rx="${pad > 0 ? 0 : 112}" fill="${RED}"/>
+  <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF7A66"/><stop offset="1" stop-color="#D9472F"/></linearGradient></defs>
+  <rect width="${size}" height="${size}" rx="${pad > 0 ? 0 : 112}" fill="url(#lg)"/>
   <g transform="translate(${off} ${off})">${trace(s)}</g>
 </svg>`;
 }
 
 const ogSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#F3F5F8"/>
-  <rect x="96" y="150" width="200" height="200" rx="48" fill="${RED}"/>
+  <defs>
+    <radialGradient id="g1" cx="50%" cy="-10%" r="70%"><stop offset="0" stop-color="#7AAAFF" stop-opacity=".28"/><stop offset="1" stop-color="#7AAAFF" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g2" cx="100%" cy="0%" r="55%"><stop offset="0" stop-color="${RED}" stop-opacity=".22"/><stop offset="1" stop-color="${RED}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF7A66"/><stop offset="1" stop-color="#D9472F"/></linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#0A0E14"/>
+  <rect width="1200" height="630" fill="url(#g1)"/>
+  <rect width="1200" height="630" fill="url(#g2)"/>
+  <rect x="96" y="150" width="200" height="200" rx="52" fill="url(#lg)"/>
   <g transform="translate(112 166)">${trace(7.3)}</g>
-  <text x="340" y="250" font-family="Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#141B25" letter-spacing="-2">Periop Signal</text>
-  <text x="340" y="320" font-family="Helvetica, Arial, sans-serif" font-size="36" fill="#4A5667">Cardiothoracic · critical care · trauma anesthesia</text>
-  <text x="340" y="370" font-family="Helvetica, Arial, sans-serif" font-size="36" fill="#4A5667">Curated research, updated daily</text>
-  <rect x="96" y="470" width="1008" height="2" fill="#CBD3DD"/>
-  <text x="96" y="530" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#7A8697">Landmark trials · guidelines · FDA notices · take-home points · paper links</text>
+  <text x="340" y="250" font-family="Georgia, 'DejaVu Serif', serif" font-size="96" font-weight="700" fill="#ECF0F6" letter-spacing="-2">Periop Signal</text>
+  <text x="340" y="318" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="34" fill="#A9B3C2">Cardiothoracic · critical care · trauma anesthesia</text>
+  <text x="340" y="366" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="34" fill="#A9B3C2">Curated research, updated daily</text>
+  <rect x="96" y="470" width="1008" height="1" fill="#2C3748"/>
+  <text x="96" y="528" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="27" fill="#717D8F">Landmark trials · guidelines · FDA notices · take-home points · paper links</text>
 </svg>`;
 
 (async () => {

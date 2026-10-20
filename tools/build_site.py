@@ -15,9 +15,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NAME = "Periop Signal"
 DESCRIPTION = ("A curated research feed for cardiothoracic, critical care and trauma anesthesiology: "
                "landmark trials, guidelines and regulatory news, with take-home points, paper links and AI overviews.")
-THEME_LIGHT = "#FFFFFF"
-THEME_DARK = "#161B21"
-ACCENT = "#D43A3C"
+THEME_DARK = "#0A0E14"
+THEME_LIGHT = "#F3F5F9"
+ACCENT = "#F2634F"
 
 
 def read(p):
@@ -47,12 +47,11 @@ def build_index(base_url):
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{html.escape(title)}</title>
 <meta name="description" content="{html.escape(DESCRIPTION)}">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="{THEME_LIGHT}" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="{THEME_DARK}" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="{THEME_DARK}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{html.escape(NAME)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{html.escape(NAME)}">
@@ -65,7 +64,7 @@ def build_index(base_url):
 <link rel="alternate" type="application/rss+xml" title="{html.escape(NAME)}" href="feed.xml">
 <style>
 :root {{ padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }}
-body {{ margin: 0; font: 14px system-ui, sans-serif; }}
+body {{ margin: 0; font: 14px system-ui, sans-serif; background: #0A0E14; }}
 img {{ max-width: 100%; }}
 [hidden] {{ display: none !important; }}
 </style>
@@ -80,7 +79,7 @@ def build_manifest():
     manifest = {
         "name": NAME, "short_name": NAME, "description": DESCRIPTION,
         "start_url": "./", "scope": "./", "display": "standalone", "orientation": "portrait",
-        "background_color": "#F3F5F8", "theme_color": ACCENT,
+        "background_color": THEME_DARK, "theme_color": THEME_DARK,
         "icons": [
             {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
             {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
