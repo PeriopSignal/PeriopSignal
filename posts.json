@@ -1,6 +1,6 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-20T19:08:46+00:00",
+ "generatedAt": "2026-10-20T22:50:22+00:00",
  "posts": [
   {
    "id": "jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy",
@@ -678,8 +678,12 @@
     "Scope is adults having planned non-cardiothoracic, non-obstetric, non-endocrine surgery, decision to operate to 30 days after"
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorLimitations": [
+    "No full systematic review or quantitative/qualitative synthesis of the identified evidence was performed.",
+    "Many recommendations were supported by weak or modest evidence, limiting the authors' ability to formally grade them.",
+    "Given the lack of high-quality evidence, especially for the peri-operative period, many recommendations were designed with pragmatism in mind."
+   ],
+   "authorBasis": "full text"
   },
   {
    "id": "circhf-2026-aha-invasive-hemodynamic-protocols-statement",
@@ -729,18 +733,25 @@
    "headline": "EACTAIC issues its first consensus on monitoring in thoracic anaesthesia, from basic monitors to NMB and brain",
    "summary": "A 45-author EACTAIC task force has published consensus recommendations on what to monitor during thoracic anaesthesia, covering respiratory, circulatory, neuromuscular and neurological monitoring in routine and specialised settings. It is the first of a series of thoracic consensus documents.",
    "takeHome": [
-    "First European consensus on monitoring for thoracic cases; use it to audit your lung-resection and OLV monitoring bundle.",
-    "Recommendations are graded by agreement level: agreed (>60%), strong (>80%) and full (>95%) consensus.",
-    "Authors stress the evidence base is thin, so treat this as a shared baseline rather than a rulebook."
+    "First of a series from the EACTAIC Thoracic Subcommittee Monitoring Task Force: structured expert opinion on monitoring as the core task in thoracic anaesthesia.",
+    "Covers basic vs advanced monitoring, respiratory and circulatory monitoring, neuromuscular blockade, depth of anaesthesia and neurologic function, and research priorities.",
+    "All recommendations reached agreed (>60%), strong (>80%) or full (>95%) consensus among senior clinicians from Europe, the US, Africa and the Middle East."
    ],
    "deepDive": "**Why it matters.** Thoracic anaesthesia has lacked a society document on which monitors belong in the room, when advanced haemodynamic or neuromonitoring is worth it, and how to interpret it during one-lung ventilation. EACTAIC's Thoracic Subcommittee has now published the first of a planned series of consensus documents, written by its General Management: Monitoring Task Force.\n\n**What they did.** Senior thoracic anaesthesiologists from Europe, the United States, Africa and the Middle East (45 named authors) reviewed the evidence and voted on statements. Agreement is reported in three tiers: agreed (more than 60%), strong (more than 80%) and, for some statements, full consensus (more than 95%).\n\n**What it covers.**\n- Standard basic and advanced monitoring for thoracic patients\n- Respiratory and circulatory monitoring in routine and specialised settings\n- Monitoring of neuromuscular blockade, depth of anaesthesia and neurological function\n- Research priorities, and how monitoring links to good clinical practice and enhanced recovery after lung surgery\n\n**Caveats.** The authors are candid that high-level evidence is limited and that controversies remain; the document consolidates diverse practice rather than settling it. Nothing here is a randomised result, and some statements reached only the lowest consensus tier.\n\n**For the anaesthesiologist.** This is the reference to cite when standardising a thoracic monitoring bundle, deciding on arterial and central access, or arguing for quantitative neuromuscular and depth-of-anaesthesia monitoring in a lung-resection pathway. Read it alongside the companion EACTAIC airway document published in the same month. Print version: J Cardiothorac Vasc Anesth 2026;40(3):985-993.",
    "url": "https://doi.org/10.1053/j.jvca.2025.11.003",
    "impact": 2,
    "trialName": "",
    "firstAuthor": "El Tahan MR",
-   "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorLimitations": [
+    "High-level evidence base is generally limited and significant controversies remain; the document represents the structured opinions of delegated experts."
+   ],
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "First European consensus on monitoring for thoracic cases; use it to audit your lung-resection and OLV monitoring bundle.",
+    "Recommendations are graded by agreement level: agreed (>60%), strong (>80%) and full (>95%) consensus.",
+    "Authors stress the evidence base is thin, so treat this as a shared baseline rather than a rulebook."
+   ]
   },
   {
    "id": "jcva-2025-eactaic-airway-thoracic",
@@ -856,9 +867,9 @@
    "headline": "Delirium is coded after 1 in 20 US CABGs and rising; it nearly doubles in-hospital death and adds 4 days and $8,565",
    "summary": "In 911,910 isolated CABG admissions from the National Inpatient Sample (2016-2021), coded postoperative delirium occurred in 4.9% and rose each year. Delirium carried an adjusted 1.85-fold higher in-hospital mortality, four extra days in hospital and $8,565 in added cost.",
    "takeHome": [
-    "Dementia (aOR 4.28), alcohol misuse (3.38) and psychotic disorders (2.40) flag the highest-risk CABG patients before induction.",
-    "Coded delirium is rising about 4% a year; expect the true screened incidence to be several times higher.",
-    "Cost and length-of-stay numbers are useful ammunition for funding a delirium prevention bundle."
+    "Among 911,910 US CABG hospitalisations (National Inpatient Sample 2016-2021), ICD-10-coded postoperative delirium occurred in 4.91%, rising each year (OR 1.04 per year).",
+    "Strongest adjusted associations: pre-existing dementia (aOR 4.28), alcohol abuse (aOR 3.38) and psychotic disorders (aOR 2.40).",
+    "Delirium was independently associated with higher mortality (aOR 1.85), major complications, a four-day longer stay and $8,565 higher costs."
    ],
    "deepDive": "**Why it matters.** Delirium after cardiac surgery is common, but national-scale numbers on trend, risk and cost have been scarce. This NIS analysis gives anaesthesiologists citable figures for prevention programmes and for the preoperative conversation with high-risk patients.\n\n**What they did.** Retrospective analysis of the US National Inpatient Sample, 2016-2021, using discharge weights. Adults with isolated CABG were identified, and postoperative delirium was defined by validated ICD-10 codes. Multivariable models adjusted for patient and hospital factors.\n\n**What they found.**\n- 911,910 weighted CABG hospitalisations; delirium coded in 4.91%\n- Incidence rose over the period (OR 1.04 per year, p < 0.001)\n- Strongest independent predictors: pre-existing dementia (aOR 4.28), alcohol abuse (aOR 3.38), psychotic disorders (aOR 2.40)\n- Delirium was independently associated with in-hospital death (aOR 1.85), more major complications, a 4-day longer stay and $8,565 higher cost (all p < 0.001)\n\n**Caveats.** Administrative coding under-detects delirium: prospective screening studies after cardiac surgery report far higher rates, so the 4.9% is a floor, and the rising trend may partly reflect better documentation. Associations with mortality are adjusted but not causal, and the dataset lacks STS-style physiological risk variables, anaesthetic technique and sedation data.\n\n**For the anaesthesiologist.** The risk-factor profile is actionable at the preoperative visit: cognitive screening, alcohol history and psychiatric medication review identify who needs the full delirium bundle (avoid benzodiazepines, multimodal analgesia, early mobilisation, sleep protection). The cost figure makes the business case. Print version: J Cardiothorac Vasc Anesth 2026;40(2):561-570.",
    "url": "https://doi.org/10.1053/j.jvca.2025.11.011",
@@ -866,8 +877,13 @@
    "trialName": "",
    "firstAuthor": "Potnuru P",
    "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "Dementia (aOR 4.28), alcohol misuse (3.38) and psychotic disorders (2.40) flag the highest-risk CABG patients before induction.",
+    "Coded delirium is rising about 4% a year; expect the true screened incidence to be several times higher.",
+    "Cost and length-of-stay numbers are useful ammunition for funding a delirium prevention bundle."
+   ]
   },
   {
    "id": "asaio-2025-elso-pregnant-peripartum-ecmo-guideline",
@@ -2592,9 +2608,9 @@
    "headline": "Ninth STS-Pedimacs report: 1,465 pediatric VADs, 73% one-year survival, CHD now 28% of implants",
    "summary": "Annual STS-Pedimacs registry report on durable pediatric ventricular assist devices implanted September 2012 to December 2024, with a focused analysis of biventricular support.",
    "takeHome": [
-    "Survival on device 77% at 6 months and 73% at 1 year, improving across eras; best in adolescents and cardiomyopathy.",
-    "CHD is 28% of implants and 61% of those are single-ventricle, the group with the worst transplant and survival rates.",
-    "Biventricular support means sicker children and significantly lower survival than LVAD alone."
+    "1,465 pediatric VAD implants (Sept 2012 to Dec 2024): survival on device 77% at 6 months and 73% at 1 year.",
+    "CHD now 28% of implants; 61% of CHD patients single-ventricle, with significantly lower transplant rates and survival than cardiomyopathy.",
+    "Survival improved across 2012-2015, 2016-2020 and 2021-2024; biventricular support had higher preimplant acuity and significantly lower survival than LVAD alone."
    ],
    "deepDive": "**Why it matters.** STS-Pedimacs is the North American registry for durable pediatric ventricular assist devices, and the annual report is the benchmark against which programs, payers and regulators judge outcomes.\n\n**What they did.** The ninth report analyses 1,465 patients implanted between 19 September 2012 and 31 December 2024, with a focused analysis of children who received biventricular support.\n\n**What they found.**\n- Congenital heart disease is a growing share of implants, now 28%; 61% of those CHD patients had single-ventricle physiology. Among cardiomyopathy patients, 93% had dilated cardiomyopathy.\n- Implantable continuous-flow pumps were the most common device type (508 patients, 35%).\n- Survival on device was 77% at 6 months and 73% at 1 year, best in 11- to 19-year-olds, in cardiomyopathy and with implantable continuous-flow devices, and improving across the 2012-2015, 2016-2020 and 2021-2024 eras.\n- Single-ventricle CHD patients had lower transplant rates and lower survival than cardiomyopathy patients.\n- Children needing biventricular support were sicker at implant and had significantly lower survival than LVAD-only patients.\n\nA companion UNOS analysis in the same journal (Bilgili et al.) of 254 US children bridged with the HeartMate 3 found 90.6% reached transplant, with 96.6% one-year and 85.8% five-year post-transplant survival, equivalent for CHD and acquired disease.\n\n**Caveats.** Registry data with evolving case mix; adverse-event rates are in the full report rather than the abstract, and survival is reported on device, not intention-to-treat from listing.\n\n**For the anesthesiologist.** Expect more VAD-supported children with single-ventricle anatomy and more BiVAD configurations coming for implant, revision and transplant; these are the groups with the worst numbers and the hardest inductions. The HM3 data support the trend toward implantable continuous-flow pumps in adolescents, which simplifies life out of hospital and the anesthetic for non-cardiac procedures.",
    "url": "https://doi.org/10.1016/j.athoracsur.2026.05.023",
@@ -2602,8 +2618,13 @@
    "trialName": "STS-Pedimacs",
    "firstAuthor": "Amdani",
    "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "Survival on device 77% at 6 months and 73% at 1 year, improving across eras; best in adolescents and cardiomyopathy.",
+    "CHD is 28% of implants and 61% of those are single-ventricle, the group with the worst transplant and survival rates.",
+    "Biventricular support means sicker children and significantly lower survival than LVAD alone."
+   ]
   },
   {
    "id": "jamanetwopen-2026-cnoc-neurodevelopment-chd",
@@ -2775,8 +2796,13 @@
     "Units stored 15-21 days did as well as fresher units; use the full shelf life.",
     "Exploratory harm signal in SBP <=70 mm Hg patients deserves caution before defaulting to whole blood."
    ],
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "Cluster randomized design, essential for prehospital logistics; several variables may have increased the risk of type II error for the primary analysis.",
+    "Blood product crossover between groups; pre-randomization transfusion was not an exclusion; prehospital transfusion volume was low compared with in-hospital.",
+    "Prehospital unit numbers were not protocolized, and the intervention could not be masked, with potential for treatment bias.",
+    "Coagulation and platelet measurements limited by missingness and spectrum bias; analyses could be limited by unmeasured or unknown confounders."
+   ],
+   "authorBasis": "full text",
    "takeHomeBy": "authors"
   },
   {
@@ -2809,8 +2835,12 @@
     "Early TXA does not trade survival for disability, but do not expect a functional benefit."
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorLimitations": [
+    "Post hoc subgroup analysis of PATCH-Trauma; the smaller sample size reduced statistical power and risks type 2 error.",
+    "Ongoing improvement in participants with severe disability at 6 months could affect interpretation of the PATCH-Trauma results.",
+    "Victorian cohort all transported by helicopter EMS with long prehospital times; results cannot be readily translated to shorter prehospital times."
+   ],
+   "authorBasis": "full text"
   },
   {
    "id": "jacc-2026-excor-active-driver-pediatric-vad",
@@ -2860,18 +2890,25 @@
    "headline": "AATS 2026 consensus sets 34 rules for antithrombotic care in neonates and infants having cardiac procedures",
    "summary": "AATS-commissioned multidisciplinary panel used a modified Delphi process to standardise periprocedural antithrombotic testing and therapy for neonates and infants undergoing congenital cardiac surgery and catheter interventions.",
    "takeHome": [
-    "Neonatal hemostasis is developmentally different; testing and therapy are framed around that.",
-    "Covers heparin, direct thrombin inhibitors and antiplatelet agents, their monitoring, and device-specific regimens.",
-    "Pre-, intra- and post-procedural guidance in one place: align your bypass and shunt protocols to it."
+    "Multidisciplinary AATS panel (surgeons, cardiologists, interventionalists, hematologists, intensivists, pharmacologists) used modified Delphi methodology; consensus reached on all 34 statements.",
+    "Statements cover the neonatal/infant coagulation cascade, testing for congenital, acquired and therapy-related abnormalities, and antithrombotic agents and their monitoring.",
+    "Recommendations span pre-, intra- and postprocedural management, including procedure- and device-specific guidance in the short and long term."
    ],
    "deepDive": "**Why it matters.** Neonates and infants undergoing cardiac surgery or catheter interventions have an immature, rapidly changing hemostatic system, and thrombosis of shunts, conduits and central lines remains a leading cause of death after stage 1 palliation. Practice has varied from center to center with little to anchor it.\n\n**What they did.** The AATS commissioned a panel of congenital cardiac surgeons, cardiologists, interventionalists, hematologists, intensivists and pharmacologists who used a modified Delphi process to build a framework for periprocedural antithrombotic testing and therapy. The result is 34 consensus statements with supporting figures and tables, published in JTCVS (172:618-662.e7).\n\n**What it covers.**\n- How neonatal and infant coagulation differs from older children and adults, and why that changes dosing and monitoring.\n- Testing for congenital, acquired and therapy-related hemostatic abnormalities before and after procedures.\n- The anticoagulants and antiplatelet agents in common use and how to monitor them.\n- Pre-, intra- and post-procedural management, including device- and procedure-specific recommendations for the short and long term.\n\n**Caveats.** Delphi consensus, not trial evidence: the underlying literature is thin, and the statements will need revision as prospective data (for example on bivalirudin in circuits) accrue. Dosing details should be read in the full tables rather than the abstract.\n\n**For the anesthesiologist.** This is the document to reconcile your heparin management on bypass, your post-shunt heparin-to-aspirin transition and your line-thrombosis prophylaxis against. For those running ECMO or VAD programs it also sets a shared vocabulary with hematology and surgery. Expect CCAS and institutional protocols to cite it.",
    "url": "https://doi.org/10.1016/j.jtcvs.2026.03.617",
    "impact": 2,
    "trialName": "",
    "firstAuthor": "Nathan",
-   "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorLimitations": [
+    "Evidence is limited, reflected in ongoing practice variation; the authors highlight the need for structured guidance and further study."
+   ],
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "Neonatal hemostasis is developmentally different; testing and therapy are framed around that.",
+    "Covers heparin, direct thrombin inhibitors and antiplatelet agents, their monitoring, and device-specific regimens.",
+    "Pre-, intra- and post-procedural guidance in one place: align your bypass and shunt protocols to it."
+   ]
   },
   {
    "id": "jase-2026-ase-cardiac-ultrasound-artifacts-guideline",
@@ -3127,9 +3164,9 @@
    "headline": "STEMI-DTU: Impella unloading before PCI in anterior STEMI without shock fails to shrink infarcts, 30% major bleeding",
    "summary": "In 527 patients with anterior STEMI and no shock, 30 minutes of Impella CP unloading before PCI did not reduce infarct size on cardiac MRI and exceeded the prespecified bleeding and vascular safety goal.",
    "takeHome": [
-    "Infarct size about 1% smaller with unloading, not significant; no difference in heart-failure events.",
-    "BARC 3 to 5 bleeding 30.4%, all access-site; door-to-PCI 40 minutes longer, ischemic time 47 minutes longer.",
-    "Impella remains a shock device; shock patients were excluded, so DanGer Shock still stands."
+    "527 anterior-STEMI patients without shock at 55 hospitals, open-label: 30-minute TV-mAFP unloading before PCI vs immediate PCI alone.",
+    "Infarct size/LV mass on CMR at 3-5 days: 30.8% vs 31.9% (mean difference -1.1%; 95% CI -4.2 to 2.0; P=0.50).",
+    "Major bleeding or vascular complications at 30 days were more frequent with unloading than control or the prespecified performance goal; ischemic time was longer."
    ],
    "deepDive": "**Why it matters.** The 'door-to-unload' idea is that 30 minutes of Impella CP unloading before reperfusion shrinks anterior infarcts and prevents later heart failure. It had animal data and a feasibility trial behind it, and a positive result would have put a large-bore pump into every anterior STEMI. STEMI-DTU (Kapur, with Stone and O'Neill as co-principal investigators; late-breaker at ACC.26 on 28 March 2026 with simultaneous JACC publication) tested it properly.\n\n**What they did.** 527 patients with anterior STEMI and no cardiogenic shock at 55 sites were randomized to Impella CP placement with a 30-minute delay before PCI, or immediate PCI. Primary endpoint: infarct size as a fraction of LV mass on cardiac MRI at 3 to 5 days.\n\n**What they found.**\n- No difference in infarct size: about 1% smaller with Impella by intention-to-treat and 1.9% by per-protocol, neither significant, consistent across subgroups.\n- No differences in heart-failure events or other secondary outcomes.\n- Door-to-PCI was 40 minutes longer and total ischemic time 47 minutes longer with unloading. Median support lasted 10.4 hours.\n- Treatment-related BARC 3 to 5 bleeding or major vascular complications exceeded the preset 26.5% performance goal: major bleeding 30.4%, all access-site, and major vascular complications 4.2%.\n\n**Caveats.** Blood pressure in the Impella arm was high (around 140 mmHg), which the investigators think limited unloading; a follow-up trial with nitroglycerin and beta-blockade is planned. Shock patients were excluded, so DanGer Shock is unaffected.\n\n**For us.** Large-bore access for unloading in a hemodynamically stable STEMI buys bleeding and delay, not myocardium. Impella stays a shock device. If a lab tries to extend it to non-shock STEMI, this is the trial to cite.",
    "url": "https://doi.org/10.1016/j.jacc.2026.03.071",
@@ -3137,8 +3174,13 @@
    "trialName": "STEMI-DTU",
    "firstAuthor": "Kapur",
    "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "Infarct size about 1% smaller with unloading, not significant; no difference in heart-failure events.",
+    "BARC 3 to 5 bleeding 30.4%, all access-site; door-to-PCI 40 minutes longer, ischemic time 47 minutes longer.",
+    "Impella remains a shock device; shock patients were excluded, so DanGer Shock still stands."
+   ]
   },
   {
    "id": "aln-2026-postanesthesia-apnea-preterm-ipd-meta",
@@ -3603,8 +3645,13 @@
     "Systemic opioids are rescue only; Joel-Cohen incision and unclosed peritoneum are part of the bundle."
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorLimitations": [
+    "Review limited by the quality of included studies; considerable heterogeneity in dosing regimens, routes, comparators and pain-assessment time points.",
+    "Most studies had small sample sizes, which when positive likely overrepresent effect size and increase type 2 error risk for rare adverse events.",
+    "Many treatments were not evaluated because trial protocols lacked a basic analgesic regimen; several studies judged at high risk of bias.",
+    "Likely an element of undetected positive publication bias, which may impact the conclusions drawn."
+   ],
+   "authorBasis": "full text"
   },
   {
    "id": "sts-2026-offpump-cabg-registry",
@@ -3802,8 +3849,13 @@
     "Spend effort on a good block rather than on eliminating opioids."
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorLimitations": [
+    "Certainty of evidence rated low for many comparisons, mainly from clinical and methodological heterogeneity, imprecision and suspected publication bias.",
+    "Heterogeneity may reflect differing performance of techniques across surgical settings; even overall-inferior strategies may remain appropriate in selected scenarios.",
+    "Opioid-sparing (opioid-inclusive) techniques were not analysed separately, so no specific conclusions about that increasingly adopted strategy.",
+    "Opioid-free anaesthesia comprises diverse techniques (dexmedetomidine, ketamine, lidocaine infusions); findings may not apply uniformly to every regimen."
+   ],
+   "authorBasis": "full text"
   },
   {
    "id": "jtcvs-2026-va-ecmo-vs-off-pump-lung-transplant-interim-rct",
@@ -3821,18 +3873,25 @@
    "headline": "First randomised data: routine VA-ECMO vs off-pump lung transplant shows no PGD difference at interim look",
    "summary": "A six-centre US trial (target 228) randomises bilateral lung transplant recipients without significant pulmonary hypertension to planned VA-ECMO or off-pump surgery. At the first pre-specified interim analysis of 75 patients, grade 3 primary graft dysfunction at 48-72 h was 13.6% vs 19.4%, not significant.",
    "takeHome": [
-    "Grade 3 PGD at 48-72 h: 13.6% (VA-ECMO) vs 19.4% (off-pump), p=0.51; 13% of off-pump patients converted to ECMO.",
-    "VA-ECMO arm received more fresh frozen plasma and platelets; no significant safety or secondary-endpoint differences.",
-    "Interim only (n=75 of 228): too early to change practice, but the retrospective 'ECMO is worse' signal is not reproduced so far."
+    "Interim analysis of 75 of a planned 228 patients (6 centers): PGD grade 3 at 48-72 h 13.6% VA ECMO vs 19.4% off-pump, P=.506.",
+    "No significant differences in safety profile or the 15 secondary end points; significantly more FFP and platelet transfusion with VA ECMO.",
+    "Four patients (12.9%) crossed over from off-pump to VA ECMO; continued enrollment is needed for adequate power."
    ],
    "deepDive": "**Why it matters.** Planned intraoperative VA-ECMO versus off-pump bilateral lung transplantation is one of the most debated choices in transplant anaesthesia. Retrospective series point both ways, and a 2025 meta-analysis of six retrospective studies suggested worse early outcomes with ECMO. This is the first randomised comparison.\n\n**What they did.** Six US centres randomise adults having bilateral lung transplantation with mean pulmonary artery pressure of 35 mmHg or less, 1:1 to planned VA-ECMO or off-pump surgery (NCT05547698). Exclusions include multiorgan transplant, DCD donors, retransplantation, planned postoperative ECMO, prior lung surgery or pleurodesis, and preoperative ECMO or mechanical ventilation. Conversion to ECMO for instability is allowed. The target of 228 patients is powered to detect a 15-point absolute reduction in grade 3 PGD at 48-72 h. This paper reports the first pre-specified interim analysis, first shown as a late-breaker at AATS in May 2025.\n\n**What they found (n=75).**\n- 44 randomised to VA-ECMO, 31 to off-pump; 4 off-pump patients (12.9%) converted.\n- Grade 3 PGD at 48-72 h: 6/44 (13.6%) vs 6/31 (19.4%), p=0.51.\n- No significant differences in 90-day mortality, the 15 secondary endpoints or serious graft-related adverse events.\n- The VA-ECMO arm received significantly more fresh frozen plasma and platelets.\n\n**Caveats.** A third of the planned sample; the authors say so and continue enrolling. Patients with pulmonary hypertension, who most often get ECMO anyway, were excluded, as were DCD and bridged patients.\n\n**What it means.** Nothing to change yet. But the fear that routine ECMO worsens PGD is not supported so far, and the transfusion cost of ECMO is real and measurable. Watch for the final analysis.",
    "url": "https://doi.org/10.1016/j.jtcvs.2025.12.021",
    "impact": 2,
    "trialName": "",
    "firstAuthor": "Villavicencio",
-   "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorLimitations": [
+    "Interim analysis of 75 patients against a 228-patient sample size estimate; continued enrollment is needed to ensure the study is adequately powered."
+   ],
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "Grade 3 PGD at 48-72 h: 13.6% (VA-ECMO) vs 19.4% (off-pump), p=0.51; 13% of off-pump patients converted to ECMO.",
+    "VA-ECMO arm received more fresh frozen plasma and platelets; no significant safety or secondary-endpoint differences.",
+    "Interim only (n=75 of 228): too early to change practice, but the retrospective 'ECMO is worse' signal is not reproduced so far."
+   ]
   },
   {
    "id": "aln-2025-maternal-cardiac-arrest-mpog",
@@ -4027,8 +4086,13 @@
     "Protocol adherence 95.9%; results consistent across subgroups and for disease-free survival.",
     "Together with earlier trials, this should end routine 'TIVA for cancer' practice based on recurrence claims."
    ],
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "Anesthesiologist in the operating room could not be blinded to study group, though confounders were well balanced and outcomes were assessed blind.",
+    "Lack of mechanistic data to explain no benefit with propofol despite a well-powered sample size and many events.",
+    "Adjuvant cycle counts, chemotherapy agents and post-recurrence treatments were not recorded; analysis would be underpowered given cancer heterogeneity.",
+    "Not powered to detect differences by surgical procedure type; sample sizes were small in several groups, so interpret with caution."
+   ],
+   "authorBasis": "full text",
    "takeHomeBy": "authors"
   },
   {
@@ -4217,9 +4281,9 @@
    "headline": "One-hour clear-fluid fasting in children: no extra aspiration risk, same gastric volume and pH, less thirst and PONV",
    "summary": "Systematic review and meta-analysis of 8 RCTs (1,234 children) comparing shorter with longer preoperative fasting before elective paediatric procedures.",
    "takeHome": [
-    "Gastric residual volume (SMD -0.05) and pH (SMD -0.11) unchanged with shorter fasting.",
-    "Shorter fasting groups had equal or fewer PONV, thirst and hunger; no aspiration signal at 1 hour or less.",
-    "Evidence now backs one-hour clear-fluid policies; the limiting factor is implementation."
+    "Eight RCTs, 1,234 children: gastric residual volume (SMD -0.05; 95% CI -0.17 to 0.07) and gastric pH (SMD -0.11; -0.31 to 0.09) unchanged.",
+    "No increased risk of pulmonary aspiration with clear-fluid fasting of 1 h or less; shorter fasting gave equivalent or reduced PONV, thirst and hunger.",
+    "Authors say findings support the safety and practicality of liberal fasting regimens; further rigorous RCTs and national audits are needed."
    ],
    "deepDive": "**Why it matters.** APAGBI, ESAIC and many children's hospitals have moved to 1-hour clear fluids, while the 2023 ASA update stopped at carbohydrate drinks 2 hours before, but the randomised evidence for liberal paediatric fasting had never been pooled.\n\n**What they did.** Systematic review of MEDLINE, Embase, Web of Science, CINAHL and CENTRAL to August 2024 for RCTs comparing shorter with longer preoperative fasting in children having elective procedures, with pooled standardised mean differences and Cochrane risk-of-bias assessment. Eight trials with 1,234 children were included.\n\n**What they found.** Shorter fasting did not increase gastric residual volume (SMD -0.05, 95% CI -0.17 to 0.07) or lower gastric pH (SMD -0.11, -0.31 to 0.09), the two surrogate markers for aspiration risk. Children fasted for shorter periods had equal or lower rates of postoperative nausea and vomiting, thirst and hunger. Clear-fluid fasting of 1 hour or less was not associated with pulmonary aspiration.\n\n**Caveats.** Aspiration is too rare for 1,234 children to detect a true difference; the conclusion rests on surrogates plus the large observational experience (EUROFAST and others). Trials were heterogeneous in what counted as a clear fluid and in the volumes allowed.\n\n**For the anesthesiologist.** The evidence now runs in one direction: a 1-hour clear-fluid rule is physiologically safe and leaves children less miserable, less dehydrated at induction and less nauseated afterwards. The remaining problem is operational, as the companion BJA piece on implementation (Sip, don't skip) argues. If your unit still writes nil by mouth after midnight for children, this is the paper to bring to the next committee.",
    "url": "https://doi.org/10.1016/j.bja.2025.10.037",
@@ -4227,8 +4291,13 @@
    "trialName": "",
    "firstAuthor": "Dabke",
    "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "Gastric residual volume (SMD -0.05) and pH (SMD -0.11) unchanged with shorter fasting.",
+    "Shorter fasting groups had equal or fewer PONV, thirst and hunger; no aspiration signal at 1 hour or less.",
+    "Evidence now backs one-hour clear-fluid policies; the limiting factor is implementation."
+   ]
   },
   {
    "id": "apsf-ismp-2025-txa-wrong-route-alert",
@@ -4343,9 +4412,9 @@
    "headline": "DOCS: 12 hours of dexmedetomidine did not reduce death or major complications after on-pump cardiac surgery",
    "summary": "Multicenter, double-blind, placebo-controlled trial of 1,073 adults in China given dexmedetomidine 0.4 mcg/kg/h or saline for 12 hours from induction, published in BJA.",
    "takeHome": [
-    "Major complications 30% vs 32% (RR 0.93); in-hospital death 1.9% vs 2.8%; no significant difference.",
-    "Only heart block differed between groups; stroke, MI, cardiac arrest and safety measures were the same.",
-    "Use dexmedetomidine for sedation or delirium if you like it, not as an organ-protection drug."
+    "Randomised, double-blind, placebo-controlled trial in nine Chinese hospitals: 1073 adults received dexmedetomidine 0.4 μg/kg/h or saline for 12 h after induction.",
+    "Major complications occurred in 161/536 (30%) with dexmedetomidine vs 169/537 (32%) with saline (RR 0.93, 95% CI 0.72-1.21; P=0.66).",
+    "In-hospital death 10/536 (1.9%) vs 15/537 (2.8%) (OR 0.66, 95% CI 0.29-1.49; P=0.32); complications other than heart block did not differ."
    ],
    "deepDive": "**Why it matters.** Dexmedetomidine has been sold for a decade as cardioprotective, renoprotective and delirium-sparing in cardiac surgery, largely on small trials and observational data. DECADE already dented the delirium claim. DOCS asked the bigger question: does it change hard outcomes?\n\n**What they did.** Nine hospitals in China randomized adults having cardiac surgery with cardiopulmonary bypass (mean age 54, 46% women) to dexmedetomidine 0.4 mcg/kg/h or saline for 12 hours starting at induction; 1,073 completed the study. Co-primary outcomes were in-hospital mortality and major complications (stroke, MI, heart block, cardiac arrest), analyzed by intention to treat.\n\n**What they found.**\n- Major complications: 161/536 (30%) vs 169/537 (32%), RR 0.93 (95% CI 0.72-1.21), P=0.66.\n- In-hospital death: 10 (1.9%) vs 15 (2.8%), OR 0.66 (0.29-1.49), P=0.32.\n- Individual complications did not differ except heart block; safety outcomes and process measures were similar.\n\n**Caveats.** A relatively young population (mean age 54); a single dosing regimen; the one component that differed was heart block, and the abstract does not say in which direction, though bradyarrhythmia is a known dexmedetomidine effect. Delirium was not the primary target.\n\n**For the anesthesiologist.** An editorial in Anaesthesia asked whether the case is now closed, and for organ protection it probably is. If you run dexmedetomidine for a smoother emergence or less agitation in the ICU, that is a reasonable preference; expect bradycardia and conduction slowing, and do not expect fewer strokes, infarcts or deaths.",
    "url": "https://doi.org/10.1016/j.bja.2025.09.026",
@@ -4353,8 +4422,13 @@
    "trialName": "DOCS",
    "firstAuthor": "Lei",
    "authorLimitations": [],
-   "authorBasis": "",
-   "takeHomeBy": "editor"
+   "authorBasis": "abstract",
+   "takeHomeBy": "authors",
+   "editorTakeHome": [
+    "Major complications 30% vs 32% (RR 0.93); in-hospital death 1.9% vs 2.8%; no significant difference.",
+    "Only heart block differed between groups; stroke, MI, cardiac arrest and safety measures were the same.",
+    "Use dexmedetomidine for sedation or delirium if you like it, not as an organ-protection drug."
+   ]
   },
   {
    "id": "icm-2025-esicm-shock-guideline",
@@ -4454,8 +4528,11 @@
     "Not FDA cleared and not validated for TEE; wait for prospective trials before trusting it near the OR."
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorLimitations": [
+    "Still images such as spectral Doppler and M-mode were excluded from training because the model relies on a video encoder.",
+    "All data were collected retrospectively, although evaluated at four geographically distinct academic centres; prospective real-world evaluation is needed."
+   ],
+   "authorBasis": "full text"
   },
   {
    "id": "jama-2025-top-transfusion-high-cardiac-risk",

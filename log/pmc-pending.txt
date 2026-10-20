@@ -1,0 +1,28 @@
+# Posts whose PMC full text was not yet readable (embargoed author manuscripts, OA-subset lag, or text longer than the fetch cap).
+# Format: post id | identifier | note. The weekly sweep re-checks each line through the NCBI BioC API and removes lines it resolves.
+nejm-2025-rsi-ketamine-vs-etomidate | PMC12711137 | embargoed
+jama-2026-icecap-hypothermia-duration | PMC13445112 | embargoed
+jama-2025-bicaricu-2 | PMC12573113 | embargoed
+anaesthesia-2026-sterile-gowns-single-shot-spinal-consensus | PMC13446829 | embargoed
+jama-2025-top-transfusion-high-cardiac-risk | PMC12596742 | embargoed
+jcva-2025-cabg-delirium-nis-trends | PMC12683655 | embargoed
+jama-2026-us-crs-heart-allocation-score | PMC13659629 | embargoed
+jama-2026-dapagliflozin-cardiac-surgery-aki | PMC13425237 | embargoed
+nejm-2026-prompt-bolus-balanced-vs-saline-children | PMC13134814 | embargoed
+bja-2025-lidocaine-vs-remifentanil-vats-lung-resection | PMC12597338 | embargoed
+jama-2025-clip-ii-cryopreserved-platelets | PMC12687203 | embargoed
+ehj-2026-fifth-universal-definition-mi | PMC13523810 | OA-subset lag
+hepatology-2025-aasld-ast-lt-candidate-evaluation-guideline | PMC13070310 | embargoed
+jama-2025-designation-driving-pressure-guided-peep | 41334859 | PMID; embargoed
+jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki | 42872914 | PMID; embargoed
+jama-2026-save-icu-isoflurane-sedation | PMC13670124 | embargoed
+jama-2026-chips-cold-stored-platelets | PMC13482631 | embargoed
+jamano-2026-covalent-videolaryngoscopy | PMC13434869 | OA-subset lag
+jacc-2026-harada-ase-diastolic-algorithm-misses-hfpef | PMC13482780 | embargoed
+jama-2025-andromeda-shock-2 | PMC12573117 | embargoed
+ajrccm-2026-ats-noninvasive-respiratory-support-guideline | PMC13519360 | embargoed
+bja-2025-paediatric-fasting-1h-clear-fluids-meta | PMC12851872 | embargoed
+aln-2025-chd-children-noncardiac-cardiac-events-registry | PMC12777584 | available but longer than the fetch cap
+jamanetwopen-2026-cnoc-neurodevelopment-chd | PMC13227305 | available but longer than the fetch cap
+ehj-2025-jpvad-danger-criteria | PMC12831186 | available but longer than the fetch cap
+aic-2026-french-cardiogenic-shock-expert-recommendations | PMC13081668 | available but longer than the fetch cap
