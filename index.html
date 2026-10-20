@@ -175,6 +175,13 @@ a { color: var(--accent-2); }
 .search-row input::placeholder { color: var(--fg-3); }
 .rail { display: flex; gap: 8px; overflow-x: auto; padding-block: 12px 8px; scrollbar-width: none; -ms-overflow-style: none; margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
 .rail::-webkit-scrollbar { display: none; }
+.rail[data-overflow="1"] { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 36px), transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 36px), transparent 100%); }
+.rail[data-overflow="1"][data-at-start="1"] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent 100%); mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent 100%); }
+.rail[data-overflow="1"][data-at-end="1"] { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px); mask-image: linear-gradient(to right, transparent 0, #000 16px); }
+@media (min-width: 700px) {
+  .rail { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; row-gap: 8px; }
+  .rail[data-overflow="1"] { -webkit-mask-image: none; mask-image: none; }
+}
 .chip {
   flex: none; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface);
   font-size: 13px; font-weight: 600; color: var(--fg-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
@@ -489,7 +496,19 @@ a { color: var(--accent-2); }
       html += `<button class="chip" data-topic="${t}" aria-pressed="${state.topics.has(t)}" ${topicStyle(t)}>${esc(name)} <span class="n">${counts[t] || 0}</span></button>`;
     }
     rail.innerHTML = html;
+    requestAnimationFrame(railState);
   }
+  function railState() {
+    const over = rail.scrollWidth > rail.clientWidth + 2;
+    rail.dataset.overflow = over ? '1' : '0';
+    rail.dataset.atStart = rail.scrollLeft <= 2 ? '1' : '0';
+    rail.dataset.atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 2 ? '1' : '0';
+  }
+  rail.addEventListener('scroll', railState, { passive: true });
+  window.addEventListener('resize', railState);
+  rail.addEventListener('wheel', (e) => {
+    if (rail.scrollWidth > rail.clientWidth + 2 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { rail.scrollLeft += e.deltaY; e.preventDefault(); }
+  }, { passive: false });
   rail.addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
     const t = b.dataset.topic;
