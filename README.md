@@ -7,7 +7,7 @@ A curated research feed for cardiothoracic, critical care and trauma anesthesiol
 | Path | What it is |
 |---|---|
 | `index.html` | The site. **Generated** from `src/page.html`; do not edit directly. |
-| `posts.json` | The feed data. One object per post, newest first. `takeHome` holds the authors' own key points; `authorLimitations` the limitations they state; `authorBasis` what was read (full text, abstract, summary page). Updated by the daily and weekly runs. |
+| `posts.json` | The feed data. One object per post, newest first. `takeHome` holds the authors' own key points when `takeHomeBy` is `authors` (otherwise an editorial take-home, kept where the readable abstract was too generic); `authorLimitations` the limitations they state; `authorBasis` what was read (full text, abstract, summary page); `editorTakeHome` keeps the earlier editorial bullets and is not displayed. Updated by the daily and weekly runs. |
 | `inbox.txt` | Paste a DOI or link here (one per line) and the next run writes the post. |
 | `log/` | One triage log per run: what each journal published, what was posted, what was rejected and why. |
 | `feed.xml` | RSS feed, newest 50 posts. Generated. |
@@ -35,7 +35,8 @@ python3 -I tools/build_site.py --base-url https://<user>.github.io/periop-signal
   "topics": ["criticalCare"],
   "headline": "States the finding in <= 120 characters",
   "summary": "One or two plain sentences.",
-  "takeHome": ["Bullet one", "Bullet two"],
+  "takeHome": ["Bullet one", "Bullet two"], "takeHomeBy": "authors",
+  "authorLimitations": ["Limitation the authors state"], "authorBasis": "abstract",
   "deepDive": "180-300 words of markdown (**bold**, '- ' bullets, blank-line paragraphs).",
   "url": "https://doi.org/...", "impact": 2, "trialName": "ACRONYM", "firstAuthor": "Surname"
 }

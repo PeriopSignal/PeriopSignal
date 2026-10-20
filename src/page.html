@@ -550,7 +550,7 @@ a { color: var(--accent-2); }
       </div>
       <h2 class="headline"><button data-act="open">${esc(p.headline)}</button></h2>
       <p class="summary">${esc(p.summary)}</p>
-      <ul class="takehome"${p.authorBasis ? ' title="The authors\u2019 key points"' : ''}>${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
+      <ul class="takehome"${p.takeHomeBy === 'authors' ? ' title="The authors\u2019 key points"' : ''}>${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
       <div class="post-foot">
         <div class="topics">${p.topics.map(t => `<span class="tag" ${topicStyle(t)}>${esc(TOPIC_NAME[t] || t)}</span>`).join('')}</div>
         <div class="actions">
@@ -633,7 +633,7 @@ a { color: var(--accent-2); }
         <button class="btn" data-sheet="link">${icon.link} Copy link</button>
       </div>
       <div>
-        <p class="section-label">${p.authorBasis ? 'Take-home · the authors\u2019 key points' : 'Take-home'}</p>
+        <p class="section-label">${p.takeHomeBy === 'authors' ? 'Take-home · the authors\u2019 key points' : 'Take-home'}</p>
         <ul class="takehome">${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
       </div>
       <div>
