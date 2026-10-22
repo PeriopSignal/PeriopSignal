@@ -1,0 +1,58 @@
+name: Merge feed update branch
+
+# The daily and weekly feed runs push to main directly. When a run's push to main is refused,
+# it pushes the same commit to claude/feed-<date>-<type> instead; this workflow merges that
+# branch into main, deletes it, rebuilds the website and pings the notify workflow.
+
+on:
+  push:
+    branches: ["claude/feed-**"]
+
+permissions:
+  contents: write
+  pages: write
+  actions: write
+
+concurrency:
+  group: merge-feed-branch
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Merge the branch into main
+        id: merge
+        run: |
+          BR="${GITHUB_REF_NAME}"
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          git fetch origin "$BR"
+          if git merge --ff-only "origin/$BR"; then
+            echo "Fast-forwarded main to $BR"
+          else
+            # Both sides changed: keep main's edits where they do not overlap, the run's where they do.
+            git merge --no-edit -X theirs "origin/$BR" -m "Merge feed update $BR"
+          fi
+          python3 -c "import json; d=json.load(open('posts.json', encoding='utf-8')); assert isinstance(d.get('posts'), list) and d['posts']; print(len(d['posts']), 'posts, valid JSON')"
+          git push origin main
+          git push origin --delete "$BR"
+          {
+            echo "## Merged $BR into main"
+            echo
+            git log -1 --format='%h %s'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Rebuild the website and send app notifications
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" >/dev/null && echo "Pages build requested" || echo "::warning::Pages build request failed; the site updates on the next push"
+          gh workflow run notify.yml --ref main && echo "notify workflow started" || echo "::warning::could not start notify workflow"
