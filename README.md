@@ -45,3 +45,7 @@ python3 -I tools/build_site.py --base-url https://<user>.github.io/periop-signal
 Topics: `cardiac`, `cardiacSurgery`, `mcs`, `echo`, `thoracic`, `regional`, `ob`, `trauma`, `pediatric`, `pedsCardiac`, `liver`, `criticalCare`, `general`. Impact: 3 landmark, 2 important, 1 notable.
 
 Summaries are AI-generated reading aids, not clinical advice. Read the source before acting on it.
+
+### How the daily run reaches the website
+
+The scheduled run commits to `main`. If GitHub refuses that push, it pushes the same commit to a `claude/feed-<date>-<daily|weekly>` branch instead, and `.github/workflows/merge-feed-branch.yml` merges it into `main`, deletes the branch and rebuilds the site. Every run also refreshes the Claude artifact mirror and records its status there: the mirror's `posts.json` carries a top-level `pipeline` object (run time, posts added, which push path worked or the exact error, and the triage log). That object is never committed here.
