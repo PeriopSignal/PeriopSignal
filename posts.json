@@ -1,7 +1,34 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-20T22:50:22+00:00",
+ "generatedAt": "2026-10-22T20:05:28+00:00",
  "posts": [
+  {
+   "id": "anesthesiology-2026-oracle-or-air-purification-ssi",
+   "date": "2026-10-19",
+   "dateApprox": false,
+   "addedAt": "2026-10-21",
+   "journal": "Anesthesiology",
+   "jshort": "ALN",
+   "kind": "RCT",
+   "topics": [
+    "general"
+   ],
+   "headline": "ORACLE: supplemental OR air purification did not cut wound infections or death in 110,538 surgeries; halted for futility",
+   "summary": "Cluster-crossover RCT in 68 Cleveland Clinic operating rooms: each room ran an active supplemental air purification-sterilization unit or an identical sham unit in 4-week blocks, with patients, clinicians and investigators blinded. The primary outcome was a 30-day composite of surgical wound infection, infection-related complications or death after inpatient surgery.",
+   "takeHome": [
+    "Primary composite after inpatient surgery: 8.1% (2,389) with active purification vs 8.2% (2,405) with sham; OR 0.98 (95% CI 0.92-1.05), P = 0.609",
+    "All surgeries (inpatient and outpatient): 5.5% vs 5.6%; OR 0.98 (0.93-1.05), P = 0.669; the futility boundary was crossed at the third interim analysis",
+    "Authors conclude supplemental active purification did not reduce wound infections or mortality; efforts may do better to focus on limiting direct wound contamination"
+   ],
+   "deepDive": "**Why it matters.** Surgical site infections are the most common hospital-acquired infections, and vendors sell supplemental air purification units on the premise that airborne bacteria seed wounds. Hospitals have been buying them without randomized evidence. ORACLE is that evidence.\n\n**What they did.** Sessler and colleagues, for the ORACLE investigators, randomized 68 operating rooms in 4-week blocks to an active supplemental air purification-sterilization unit or an identical-looking sham that ran and sounded the same. Investigators, clinicians and patients were blinded. The primary outcome was a composite of surgical wound infection, infection-related complications or death within 30 days after inpatient surgery; a secondary composite added outpatients. In all, 110,538 surgeries were enrolled and 107,334 analyzed. The trial was registered as NCT04610294.\n\n**What they found.** Nothing. The futility boundary was crossed at the third interim analysis, with 58,938 inpatients randomized. The primary composite occurred in 8.1% with active purification and 8.2% with sham (odds ratio 0.98, 95% CI 0.92 to 1.05, P = 0.609). Across all surgeries it was 5.5% vs 5.6% (OR 0.98, 0.93 to 1.05, P = 0.669), with no drift over the weeks of each period.\n\n**Caveats.** One health system with modern ventilation; the result says nothing about older rooms without HEPA filtration, or about wards and ICUs, which the authors flag as the next question. The composite blends superficial infections with deaths, and the abstract does not break out deep or implant infections.\n\n**For anesthesiologists.** If your hospital is being pitched supplemental air sterilization for the ORs, this trial is the answer. The modifiable drivers of surgical infection remain the ones we control at the table: antibiotic timing and redosing, skin antisepsis, normothermia, glucose control and sterile technique for lines and neuraxial procedures.",
+   "url": "https://doi.org/10.1097/ALN.0000000000006424",
+   "impact": 2,
+   "trialName": "ORACLE",
+   "firstAuthor": "Sessler",
+   "takeHomeBy": "authors",
+   "authorLimitations": [],
+   "authorBasis": "abstract"
+  },
   {
    "id": "jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy",
    "date": "2026-10-19",
