@@ -1,7 +1,66 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-22T20:05:28+00:00",
+ "generatedAt": "2026-10-24T12:23:14+00:00",
  "posts": [
+  {
+   "id": "circ-2026-aha-multidisciplinary-aortic-surgery-statement",
+   "date": "2026-10-22",
+   "dateApprox": false,
+   "addedAt": "2026-10-24",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "Consensus",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac"
+   ],
+   "headline": "AHA statement maps aortic surgery from the surgeon's, anesthesiologist's and perfusionist's seats and where they collide",
+   "summary": "An American Heart Association scientific statement, written by cardiac surgeons and cardiac anesthesiologists, walks through the aortic surgery patient from each of the three intraoperative roles and the specific concerns each brings.",
+   "takeHome": [
+    "Surgeons, anesthesiologists and perfusionists each act independently during cardiac surgery, yet one member's action can immediately affect the others.",
+    "Aortic surgery adds layers: single-lung ventilation, systemic cooling and rewarming, and myocardial, cerebral and visceral protection.",
+    "The statement presents each role's perspective to highlight specific concerns, and is explicitly not an exhaustive review of techniques."
+   ],
+   "authorLimitations": [
+    "The authors state the document is not meant to be an exhaustive review of the approaches to aortic surgery."
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Aortic operations are where the cardiac OR team is most interdependent: the surgeon picks the cannulation site and the perfusion strategy, the perfusionist runs cooling, rewarming and cerebral perfusion, and the anesthesiologist manages lung isolation, neuromonitoring, coagulation and TEE. A decision made in one seat changes the physiology the other two are managing, often within seconds.\n\n**What it is.** A scientific statement from the AHA Council on Cardiovascular Surgery and Anesthesia, written by a mixed surgeon-anesthesiologist group (DeAnda, Steppan, Boskovski, Cherry, Dickey, DeAngelis, Ibekwe, Tseng). Rather than grading evidence, it takes the aortic surgery patient through the surgeon's, the anesthesiologist's and the perfusionist's perspectives and names the concerns each brings to the room.\n\n**What it covers** (from the abstract):\n- The independent but coupled actions of the three disciplines during cardiac surgery\n- The extra demands of aortic work: one-lung ventilation for descending and thoracoabdominal repairs, deliberate cooling and rewarming, and protection of the heart, brain and viscera\n- How each role's priorities can align or conflict\n\n**Caveats.** This is a perspective-style statement, not a graded guideline, and the authors say up front it is not an exhaustive review of techniques. We read the abstract only; check the full text for any specific recommendations.\n\n**For the anesthesiologist.** A useful document to hand to trainees and to bring to a team debrief or a protocol meeting. It gives you shared language for the pre-incision huddle on aortic cases: cannulation and arterial line sites, neuromonitoring plan, temperature targets and rewarming rate, the cerebral perfusion strategy, and who calls what during circulatory arrest.",
+   "url": "https://doi.org/10.1161/CIR.0000000000001490",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "DeAnda"
+  },
+  {
+   "id": "ejhf-2026-hfa-acnap-heart-transplant-recipients-non-specialist-consensus",
+   "date": "2026-10-19",
+   "dateApprox": false,
+   "addedAt": "2026-10-24",
+   "journal": "Eur J Heart Fail",
+   "jshort": "EJHF",
+   "kind": "Consensus",
+   "topics": [
+    "mcs",
+    "cardiac",
+    "general"
+   ],
+   "headline": "ESC consensus gives non-transplant clinicians a playbook for heart transplant recipients, noncardiac surgery included",
+   "summary": "The Heart Failure Association and ACNAP of the ESC issued a clinical consensus statement on caring for heart transplant recipients outside transplant centres, covering immunosuppression, rejection, infection, late complications and situations such as noncardiac surgery.",
+   "takeHome": [
+    "Better post-transplant survival means more long-term heart transplant recipients are now seen by clinicians outside specialised transplant centres.",
+    "The statement gives a structured framework: care by time since transplant, immunosuppression and drug monitoring, recognising rejection, and infection prophylaxis and treatment.",
+    "It covers noncardiac surgery, pregnancy, rehabilitation and palliative care, and stresses shared care with the centre and early referral."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Heart transplant recipients now live long enough to need hip replacements, cholecystectomies, cancer surgery and emergency trauma care, and most of that happens far from the transplant centre. The anesthesiologist covering that case is often the first clinician in days to think hard about the denervated heart, tacrolimus levels and infection risk.\n\n**What it is.** A clinical consensus statement from the ESC's Heart Failure Association and its nursing and allied professions association (ACNAP), first author Baudry, written for non-transplant cardiologists, GPs and other clinicians with little post-transplant experience.\n\n**What it covers** (from the abstract):\n- Care principles by time since transplant\n- Immunosuppressive therapy and therapeutic drug monitoring\n- Recognising and managing early rejection\n- Infection prophylaxis and treatment\n- Surveillance for cardiac allograft vasculopathy, malignancy, chronic kidney disease and metabolic disease\n- Special situations: fertility and pregnancy, noncardiac surgery, rehabilitation, palliative care\n- Shared-care models and the scenarios that need early referral back to the centre\n\n**Caveats.** Consensus, not graded evidence, and we have read only the abstract, so the specific perioperative advice still needs checking in the full text.\n\n**For the anesthesiologist.** Worth a bookmark for the next transplant recipient on an elective list. The usual perioperative checklist applies: call the transplant team before surgery, keep immunosuppression going with minimal interruption (and check levels when absorption or drug interactions change), think about stress-dose steroids, use strict asepsis for lines, protect the kidneys, and remember the denervated heart ignores atropine, so reach for direct-acting agents such as epinephrine or isoproterenol.",
+   "url": "https://doi.org/10.1093/ejhf/xuag326",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Baudry"
+  },
   {
    "id": "anesthesiology-2026-oracle-or-air-purification-ssi",
    "date": "2026-10-19",
