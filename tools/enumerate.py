@@ -88,9 +88,9 @@ SOCIETY_PAGES = {
     "sca_publications": "https://scahq.org/education/publications/",
     "asa_standards": "https://www.asahq.org/standards-and-practice-parameters",
     "ase_guidelines": "https://www.asecho.org/guidelines",
-    "sts_guidelines": "https://www.sts.org/clinical-practice-guidelines",
+    "sts_guidelines": "https://www.sts.org/resources/clinical-decision-making/clinical-practice-documents-and-policies",
     "elso_guidelines": "https://www.elso.org/ecmo-resources/elso-ecmo-guidelines.aspx",
-    "apsf_newsletter": "https://www.apsf.org/newsletter",
+    "apsf_newsletter": "https://www.apsf.org/apsf-newsletter/",
     "fda_device_recalls": "https://www.fda.gov/medical-devices/medical-device-safety/medical-device-recalls",
 }
 
@@ -237,6 +237,37 @@ def openalex_enrich(items):
     return ok
 
 
+def europepmc_enrich(items):
+    """Fill missing abstracts and PMC/PMID ids from Europe PMC (PubMed records arrive within days), 40 DOIs per query."""
+    need = [it for it in items if it["doi"] and not it["noise"] and (not it["abstract"] or not it["pmcid"])]
+    found = 0
+    for i in range(0, len(need), 40):
+        chunk = {it["doi"]: it for it in need[i:i + 40]}
+        query = " OR ".join(f'DOI:"{doi}"' for doi in chunk)
+        params = {"query": query, "format": "json", "resultType": "core", "pageSize": "100"}
+        status, body = get("https://www.ebi.ac.uk/europepmc/webservices/rest/search?" + urllib.parse.urlencode(params), pause=1.0)
+        if status != 200:
+            log(f"Europe PMC chunk {i}: HTTP {status}")
+            continue
+        try:
+            results = json.loads(body).get("resultList", {}).get("result", [])
+        except Exception:
+            continue
+        for r in results:
+            it = chunk.get((r.get("doi") or "").lower())
+            if not it:
+                continue
+            found += 1
+            if not it["abstract"] and r.get("abstractText"):
+                it["abstract"] = clean(r["abstractText"])
+                it["abstractSource"] = "europepmc"
+            if not it["pmcid"] and r.get("pmcid"):
+                it["pmcid"] = r["pmcid"]
+            if not it["pmid"] and r.get("pmid"):
+                it["pmid"] = r["pmid"]
+    return found
+
+
 SENT = re.compile(r"(?<=[.!?])\s+(?=[A-Z(\[])")
 
 
@@ -371,6 +402,8 @@ def main():
     # 2. OpenAlex abstracts and ids
     matched = openalex_enrich(out["items"])
     out["notes"].append(f"OpenAlex matched {matched} of {len(out['items'])} DOIs")
+    epmc = europepmc_enrich(out["items"])
+    out["notes"].append(f"Europe PMC matched {epmc} of the DOIs that still lacked an abstract or PMC id")
 
     # 3. PMC limitations for open full texts among the items (most new papers have none yet)
     for it in out["items"]:
