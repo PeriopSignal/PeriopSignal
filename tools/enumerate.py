@@ -136,6 +136,26 @@ def get(url, accept="application/json", tries=4, timeout=60, pause=1.0):
     return last
 
 
+def post_json(url, payload, tries=3, timeout=90):
+    data = json.dumps(payload).encode()
+    for attempt in range(tries):
+        try:
+            req = urllib.request.Request(url, data=data, headers={"User-Agent": UA, "Content-Type": "application/json", "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.status, resp.read()
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503, 504) and attempt < tries - 1:
+                time.sleep(10 * (attempt + 1))
+                continue
+            return e.code, b""
+        except Exception as e:
+            if attempt < tries - 1:
+                time.sleep(10 * (attempt + 1))
+                continue
+            return 0, str(e).encode()
+    return 0, b""
+
+
 def clean(text):
     return WS.sub(" ", html.unescape(TAG.sub(" ", text or ""))).strip()
 
@@ -265,6 +285,37 @@ def europepmc_enrich(items):
                 it["pmcid"] = r["pmcid"]
             if not it["pmid"] and r.get("pmid"):
                 it["pmid"] = r["pmid"]
+    return found
+
+
+def semanticscholar_enrich(items, since):
+    """Last resort for abstracts of recent items: Semantic Scholar's batch endpoint, up to 500 DOIs per call."""
+    need = [it for it in items if it["doi"] and not it["noise"] and not it["abstract"] and it["created"] >= since]
+    found = 0
+    for i in range(0, len(need), 500):
+        chunk = need[i:i + 500]
+        status, body = post_json("https://api.semanticscholar.org/graph/v1/paper/batch?fields=abstract,externalIds",
+                                 {"ids": [f"DOI:{it['doi']}" for it in chunk]})
+        if status != 200:
+            log(f"Semantic Scholar chunk {i}: HTTP {status}")
+            continue
+        try:
+            results = json.loads(body)
+        except Exception:
+            continue
+        for it, r in zip(chunk, results):
+            if not r:
+                continue
+            ext = r.get("externalIds") or {}
+            if r.get("abstract"):
+                it["abstract"] = clean(r["abstract"])
+                it["abstractSource"] = "semanticscholar"
+                found += 1
+            if not it["pmcid"] and ext.get("PubMedCentral"):
+                it["pmcid"] = "PMC" + str(ext["PubMedCentral"]).replace("PMC", "")
+            if not it["pmid"] and ext.get("PubMed"):
+                it["pmid"] = str(ext["PubMed"])
+        time.sleep(2)
     return found
 
 
@@ -404,6 +455,9 @@ def main():
     out["notes"].append(f"OpenAlex matched {matched} of {len(out['items'])} DOIs")
     epmc = europepmc_enrich(out["items"])
     out["notes"].append(f"Europe PMC matched {epmc} of the DOIs that still lacked an abstract or PMC id")
+    recent = (now - dt.timedelta(days=8)).date().isoformat()
+    s2 = semanticscholar_enrich(out["items"], recent)
+    out["notes"].append(f"Semantic Scholar added {s2} abstracts for items of the last 8 days")
 
     # 3. PMC limitations for open full texts among the items (most new papers have none yet)
     for it in out["items"]:
@@ -438,9 +492,13 @@ def main():
         status, body = get(url, accept="text/html,application/xhtml+xml", pause=0.5)
         entry = {"url": url, "status": status, "text": "", "newLines": []}
         if status == 200 and body:
-            lines = page_text(body.decode("utf-8", "replace"))
-            text = "\n".join(lines)
-            entry["text"] = text[:20000]
+            lines, size = [], 0
+            for line in page_text(body.decode("utf-8", "replace")):
+                size += len(line) + 1
+                if size > 60000:
+                    break
+                lines.append(line)
+            entry["text"] = "\n".join(lines)
             old = set((prev_pages.get(key) or {}).get("text", "").splitlines())
             if old:
                 entry["newLines"] = [l for l in lines if len(l) >= 20 and l not in old][:80]
