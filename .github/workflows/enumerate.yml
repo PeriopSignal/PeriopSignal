@@ -1,0 +1,81 @@
+name: Enumerate journals
+
+# Collects what the scheduled feed runs need to read before they choose posts: every journal article Crossref
+# registered in the last 21 days for the feed's journals, abstracts and open-access ids from OpenAlex, author-stated
+# limitations from open PMC full text, and snapshots of the society and FDA pages the runs check.
+# The result is data.json on the orphan branch "data" (force-pushed, so it holds one commit and never grows).
+# The daily run starts at 05:51 America/New_York; this runs at 08:37 UTC (04:37 EDT, 03:37 EST).
+
+on:
+  schedule:
+    - cron: "37 8 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "tools/enumerate.py"
+      - ".github/workflows/enumerate.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: enumerate-journals
+  cancel-in-progress: false
+
+jobs:
+  enumerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Previous snapshot (for the society-page diff)
+        run: |
+          if git fetch --depth=1 origin data 2>/dev/null; then
+            git show FETCH_HEAD:data.json > "$RUNNER_TEMP/previous.json" || echo '{}' > "$RUNNER_TEMP/previous.json"
+          else
+            echo '{}' > "$RUNNER_TEMP/previous.json"
+          fi
+
+      - name: Collect
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          python3 -I tools/enumerate.py --days 21 \
+            --previous "$RUNNER_TEMP/previous.json" \
+            --pending log/pmc-pending.txt \
+            --out "$RUNNER_TEMP/out/data.json"
+          python3 -I -c "import json,sys; d=json.load(open(sys.argv[1])); assert d['items'], 'no items'; print(len(d['items']), 'items')" "$RUNNER_TEMP/out/data.json"
+
+      - name: Publish to the data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "$RUNNER_TEMP/out"
+          cat > README.md <<'EOF'
+          # Periop Signal enumeration data
+
+          Written every morning by `.github/workflows/enumerate.yml` on the main branch (script: `tools/enumerate.py`).
+          This branch is force-pushed, so it always holds a single commit. The scheduled feed runs read `data.json`:
+
+          - `generatedAt`, `windowStart`, `days`: when it was collected and the Crossref window (created date).
+          - `journals`: per journal, the ISSNs tried, `status` (ok / failed), `detail` and `count`.
+          - `items`: each journal article: `doi`, `title`, `journal`, `group`, `created`, `published`, `firstAuthor`,
+            `noise` (corrections, replies, letters and similar), `abstract` with `abstractSource` (crossref / openalex),
+            `pmid`, `pmcid`, `oa`, `oaUrl`, and `limitations` (sentences around "limitation" in open PMC full text).
+          - `pmcPending`: the same for posts listed in log/pmc-pending.txt, keyed by post id, with `status`
+            (full text / not available / error).
+          - `societyPages`: per page, `url`, HTTP `status`, page `text` and `newLines` (not on the previous snapshot).
+          EOF
+          git init -q -b data
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          git add data.json README.md
+          git commit -q -m "Enumeration $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" data
+          {
+            echo "## Enumeration published to the data branch"
+            python3 -I -c "import json,sys; d=json.load(open(sys.argv[1])); print('\n'.join(d['notes'])); print(); print('\n'.join(f\"- {j['journal']}: {j['count']} ({j['status']})\" for j in d['journals'])); print(); print('\n'.join(f\"- {k}: HTTP {v['status']}, {len(v['newLines'])} new lines\" for k,v in d['societyPages'].items()))" data.json
+          } >> "$GITHUB_STEP_SUMMARY"
