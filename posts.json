@@ -1,7 +1,36 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-24T12:23:14+00:00",
+ "generatedAt": "2026-10-25T13:14:53+00:00",
  "posts": [
+  {
+   "id": "fda-2026-bd-alaris-infusion-sets-class-i-recall-update",
+   "date": "2026-10-05",
+   "dateApprox": false,
+   "addedAt": "2026-10-25",
+   "journal": "FDA",
+   "jshort": "FDA",
+   "kind": "Safety alert",
+   "topics": [
+    "criticalCare",
+    "pediatric",
+    "general"
+   ],
+   "headline": "FDA Class I: BD Alaris pump infusion sets perform worse than disclosed below 1 mL/h and with boluses of 5 mL or less",
+   "summary": "FDA has updated its Class I recall of BD Alaris Pump Module (Model 8100) infusion sets after BD's August 2026 letter reported that sets with restrictive components perform worse than the 2025 field action disclosed. Under- or over-infusion, delayed occlusion alarms and inaccurate boluses are possible and may be hard to detect.",
+   "takeHome": [
+    "Sets with closed male luers, filters, check valves, Y-sites or microbore tubing perform worse than previously disclosed.",
+    "Problems are most common at programmed rates under 1 mL/h and bolus volumes of 5 mL or less.",
+    "Discard discontinued sets, prioritize alternates for critical care, neonatal and pediatric units, or move to a syringe pump."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** Alaris is the workhorse large-volume pump in many US hospitals, and this notice is about the infusions we care about most: vasopressors, inotropes and sedatives at a few tenths of a millilitre per hour, and small boluses. BD and CareFusion 303 recalled these sets in September 2025 (field action MMS-25-5311). Their August 19, 2026 letter replaces that information: updated testing found the earlier performance claims were overestimated and some sets perform significantly worse. FDA posted the updated notice on October 5, 2026 as a Class I recall.\n\n**What is affected.** Alaris Pump Infusion Sets used with the Pump Module Model 8100 on Guardrails Suite MX software up to version 12.6, specifically sets with restrictive components: closed male luers, in-line filters, check valves, Y-sites and microbore tubing. Effects: under- or over-infusion, delayed occlusion alarms and bolus inaccuracies, mostly at rates under 1 mL/h and boluses of 5 mL or less, which users may not easily detect. Neonates, children and critically ill patients are the groups flagged. As of August 19, 2026, BD had reported no serious injuries or deaths.\n\n**What FDA asks.** Discard the discontinued sets (Attachment C) and substitute appropriate alternates, prioritizing scarce ones for critical care, neonatal and pediatric areas; review the performance data in Attachment B; move to a syringe pump such as the Alaris Syringe Module where performance is not acceptable; otherwise use the recalled sets only with enhanced monitoring and the user-manual mitigations, including not hanging bags more than 21 inches above the pump.\n\n**Bedside take.** Low-rate vasoactive infusions in cardiac surgical and ICU patients belong on syringe pumps with a carrier line. Ask pharmacy and biomed which set codes your ORs stock, and treat an unexplained haemodynamic swing on a low-rate Alaris infusion as a possible delivery problem before changing the dose.",
+   "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/infusion-set-recall-bd-and-carefusion-303-inc-remove-bd-alaris-pump-infusion-sets",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": ""
+  },
   {
    "id": "circ-2026-aha-multidisciplinary-aortic-surgery-statement",
    "date": "2026-10-22",
