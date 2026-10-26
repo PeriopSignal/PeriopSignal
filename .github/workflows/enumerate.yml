@@ -4,12 +4,12 @@ name: Enumerate journals
 # registered in the last 21 days for the feed's journals, abstracts and open-access ids from OpenAlex, author-stated
 # limitations from open PMC full text, and snapshots of the society and FDA pages the runs check.
 # The result is data.json on the orphan branch "data" (force-pushed, so it holds one commit and never grows).
-# The daily run starts at 05:51 America/New_York; this runs at 07:17 UTC (03:17 EDT, 02:17 EST), early because
+# The feed run starts at 04:06 America/New_York; this runs at 06:07 UTC (02:07 EDT, 01:07 EST), early because
 # GitHub often starts scheduled workflows 30-60 minutes late.
 
 on:
   schedule:
-    - cron: "17 7 * * *"
+    - cron: "7 6 * * *"
   workflow_dispatch:
   push:
     branches: [main]
