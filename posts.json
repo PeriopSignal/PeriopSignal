@@ -1,7 +1,34 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-26T11:41:59+00:00",
+ "generatedAt": "2026-10-26T11:54:53+00:00",
  "posts": [
+  {
+   "id": "fda-2026-cipepofol-cypsedo-induction-approval",
+   "date": "2026-05-29",
+   "dateApprox": false,
+   "addedAt": "2026-10-26",
+   "journal": "FDA",
+   "jshort": "FDA",
+   "kind": "FDA/Regulatory",
+   "topics": [
+    "general"
+   ],
+   "headline": "FDA approves cipepofol (Cypsedo), a new IV agent for induction in adults; launch waits on DEA scheduling",
+   "summary": "FDA approved Haisco's Cypsedo (cipepofol) injection, 50 mg/20 mL, for induction of general anesthesia in adults undergoing surgery. The approval letter says it cannot be marketed until DEA schedules cipepofol and the label is updated.",
+   "takeHome": [
+    "Approved indication: induction of general anesthesia in adults undergoing surgery; cipepofol injection 50 mg/20 mL (NDA 220482, approval letter May 29, 2026).",
+    "Marketing may begin only after DEA publishes an interim final scheduling notice for cipepofol and the labeling is revised to reflect scheduling.",
+    "Not approved in children: FDA required deferred pediatric trials, ages 3 to under 17 (report due 2028) and birth to under 3 (due 2030)."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** US anesthesiologists get a new intravenous induction agent alongside propofol, etomidate and ketamine. Cipepofol (Cypsedo, Haisco) has been reported as the first China-developed IV anesthetic approved for the US market.\n\n**What FDA approved.** Cypsedo (cipepofol) injection, 50 mg in 20 mL (2.5 mg/mL) single-dose vials, for induction of general anesthesia in adults undergoing surgery (NDA 220482, letter signed May 29, 2026). Maintenance of anesthesia and procedural sedation are not part of the indication.\n\n**The catch: scheduling.** The approval letter says marketing can start only after DEA publishes an interim final rule scheduling cipepofol and the label is revised to show it. Unlike propofol, it will arrive as a controlled substance, with the storage, wastage and documentation that implies.\n\n**Label highlights.** The most common adverse reactions (2% or more) include injection-site pain and hypotension; procedural hypotension, hypertension and bradycardia are also listed. Warnings cover anaphylaxis, cardiorespiratory depression and additive hemodynamic effects with opioids and other sedatives, and patients with prior anaphylaxis to eggs, egg products, soybeans or soy products should not receive it. It is not approved in children; FDA required pediatric trials running to 2030.\n\n**What it means for us.** Nothing changes until DEA acts. When it launches, read the label's dosing and hemodynamic data before using it in frail or cardiac patients, and decide early with pharmacy how a scheduled induction agent will be stocked and wasted.",
+   "url": "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2026/220482Orig1s000ltr.pdf",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": ""
+  },
   {
    "id": "ats-2026-sts-borderline-left-heart-consensus",
    "date": "2026-10-20",
