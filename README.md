@@ -48,7 +48,7 @@ Summaries are AI-generated reading aids, not clinical advice. Read the source be
 
 ### Where the runs get their reading list
 
-`.github/workflows/enumerate.yml` runs `tools/enumerate.py` every morning at 08:37 UTC, before the daily run. It lists every journal article Crossref registered for the feed's journals in the last 21 days, adds abstracts and open-access ids from OpenAlex and author-stated limitations from open PMC full text, snapshots the society and FDA pages the runs check, and force-pushes the result as `data.json` to the `data` branch (one commit, so the branch never grows). The runs read that file first and enumerate through Crossref themselves only when it is missing or more than 30 hours old: a scheduled run with the repository attached cannot fetch API addresses it builds itself without someone approving each one.
+`.github/workflows/enumerate.yml` runs `tools/enumerate.py` every morning at 07:17 UTC, well before the daily run (GitHub often starts scheduled workflows late). It lists every journal article Crossref registered for the feed's journals in the last 21 days, adds abstracts and open-access ids from OpenAlex and author-stated limitations from open PMC full text, snapshots the society and FDA pages the runs check, and force-pushes the result as `data.json` to the `data` branch (one commit, so the branch never grows). The runs read that file first and enumerate through Crossref themselves only when it is missing or more than 30 hours old: a scheduled run with the repository attached cannot fetch API addresses it builds itself without someone approving each one.
 
 ### How the daily run reaches the website
 

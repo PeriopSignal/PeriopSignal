@@ -4,11 +4,12 @@ name: Enumerate journals
 # registered in the last 21 days for the feed's journals, abstracts and open-access ids from OpenAlex, author-stated
 # limitations from open PMC full text, and snapshots of the society and FDA pages the runs check.
 # The result is data.json on the orphan branch "data" (force-pushed, so it holds one commit and never grows).
-# The daily run starts at 05:51 America/New_York; this runs at 08:37 UTC (04:37 EDT, 03:37 EST).
+# The daily run starts at 05:51 America/New_York; this runs at 07:17 UTC (03:17 EDT, 02:17 EST), early because
+# GitHub often starts scheduled workflows 30-60 minutes late.
 
 on:
   schedule:
-    - cron: "37 8 * * *"
+    - cron: "17 7 * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -61,7 +62,8 @@ jobs:
           This branch is force-pushed, so it always holds a single commit. The scheduled feed runs read `data.json`:
 
           - `generatedAt`, `windowStart`, `days`: when it was collected and the Crossref window (created date).
-          - `journals`: per journal, the ISSNs tried, `status` (ok / failed), `detail` and `count`.
+          - `journals`: per journal, the ISSNs tried, `status` (ok / failed), `detail`, `count` and `supplementAbstractsSkipped`
+            (meeting-abstract supplements such as ESC Congress abstracts, left out of `items`).
           - `items`: each journal article: `doi`, `title`, `journal`, `group`, `created`, `published`, `firstAuthor`,
             `noise` (corrections, replies, letters and similar), `abstract` with `abstractSource` (crossref / openalex / europepmc / semanticscholar),
             `pmid`, `pmcid`, `oa`, `oaUrl`, and `limitations` (sentences around "limitation" in open PMC full text).

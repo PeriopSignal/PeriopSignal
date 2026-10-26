@@ -168,23 +168,35 @@ def date_of(parts_holder):
         return ""
 
 
-def crossref_items(issn, start):
-    params = {
-        "filter": f"from-created-date:{start},type:journal-article",
-        "rows": "1000",
-        "sort": "created",
-        "order": "desc",
-        "select": "DOI,title,created,published-online,published-print,container-title,author,abstract,type",
-    }
-    url = f"https://api.crossref.org/journals/{issn}/works?" + urllib.parse.urlencode(params)
-    status, body = get(url)
-    if status != 200:
-        return None, f"HTTP {status}"
-    try:
-        msg = json.loads(body)["message"]
-        return msg.get("items", []), "ok"
-    except Exception as e:
-        return None, f"bad JSON: {e}"
+# Meeting-abstract supplements registered as thousands of "journal articles": ESC Congress abstracts in EHJ and
+# EHJ-CI (10.1093/eurheartj/ehag785.4050) and AHA Scientific Sessions abstracts (10.1161/circ.152.suppl_3.4365112).
+SUPPLEMENT = re.compile(r"(/[a-z]+\d{3,4}\.\d{1,5}$)|(\.suppl_\d+\.\d+$)")
+
+
+def crossref_items(issn, start, cap=6000):
+    """All journal articles created since start, with cursor paging. Returns (items or None, status)."""
+    items, cursor = [], "*"
+    while True:
+        params = {
+            "filter": f"from-created-date:{start},type:journal-article",
+            "rows": "1000",
+            "cursor": cursor,
+            "select": "DOI,title,created,published-online,published-print,container-title,author,abstract,type",
+        }
+        status, body = get(f"https://api.crossref.org/journals/{issn}/works?" + urllib.parse.urlencode(params))
+        if status != 200:
+            return (items, f"partial (HTTP {status} after {len(items)})") if items else (None, f"HTTP {status}")
+        try:
+            msg = json.loads(body)["message"]
+        except Exception as e:
+            return (items, "partial (bad JSON)") if items else (None, f"bad JSON: {e}")
+        batch = msg.get("items", [])
+        items.extend(batch)
+        cursor = msg.get("next-cursor")
+        if not batch or not cursor or len(items) >= msg.get("total-results", 0):
+            return items, "ok"
+        if len(items) >= cap:
+            return items, f"ok (stopped at {len(items)})"
 
 
 def to_item(raw, group, journal):
@@ -433,21 +445,25 @@ def main():
     # 1. Crossref, journal by journal
     seen = set()
     for group, journal, issns in JOURNALS:
-        count, statuses = 0, []
+        count, supplement, statuses, ok = 0, 0, [], False
         for issn in issns:
             raw_items, status = crossref_items(issn, start)
             statuses.append(f"{issn}: {status}")
             if raw_items is None:
                 continue
+            ok = True
             for raw in raw_items:
                 it = to_item(raw, group, journal)
-                if it["doi"] and it["doi"] not in seen:
-                    seen.add(it["doi"])
-                    out["items"].append(it)
-                    count += 1
-        ok = any(s.endswith(": ok") for s in statuses)
+                if not it["doi"] or it["doi"] in seen:
+                    continue
+                seen.add(it["doi"])
+                if SUPPLEMENT.search(it["doi"]):
+                    supplement += 1
+                    continue
+                out["items"].append(it)
+                count += 1
         out["journals"].append({"group": group, "journal": journal, "issns": issns, "status": "ok" if ok else "failed",
-                                "detail": "; ".join(statuses), "count": count})
+                                "detail": "; ".join(statuses), "count": count, "supplementAbstractsSkipped": supplement})
         log(f"{journal}: {count} ({'; '.join(statuses)})")
 
     # 2. OpenAlex abstracts and ids
@@ -506,6 +522,24 @@ def main():
                 entry["newLines"] = ["(no previous snapshot to compare with)"]
         out["societyPages"][key] = entry
         log(f"{key}: HTTP {status}")
+    failed = [k for k, v in out["societyPages"].items() if v["status"] != 200]
+    if failed:
+        time.sleep(45)
+        for key in failed:
+            url = SOCIETY_PAGES[key]
+            status, body = get(url, accept="text/html,application/xhtml+xml", pause=0.5)
+            if status == 200 and body:
+                lines, size = [], 0
+                for line in page_text(body.decode("utf-8", "replace")):
+                    size += len(line) + 1
+                    if size > 60000:
+                        break
+                    lines.append(line)
+                old = set((prev_pages.get(key) or {}).get("text", "").splitlines())
+                out["societyPages"][key] = {"url": url, "status": 200, "text": "\n".join(lines),
+                                            "newLines": [l for l in lines if len(l) >= 20 and l not in old][:80] if old
+                                            else ["(no previous snapshot to compare with)"]}
+            log(f"{key} retry: HTTP {status}")
 
     out["notes"].append(f"{len(out['items'])} items, {sum(1 for i in out['items'] if not i['noise'])} not flagged as noise, "
                         f"{sum(1 for i in out['items'] if i['abstract'])} with abstracts")
