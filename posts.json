@@ -1,7 +1,36 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-25T13:14:53+00:00",
+ "generatedAt": "2026-10-26T11:41:59+00:00",
  "posts": [
+  {
+   "id": "ats-2026-sts-borderline-left-heart-consensus",
+   "date": "2026-10-20",
+   "dateApprox": false,
+   "addedAt": "2026-10-26",
+   "journal": "Ann Thorac Surg",
+   "jshort": "STS",
+   "kind": "Consensus",
+   "topics": [
+    "pedsCardiac",
+    "cardiacSurgery",
+    "echo"
+   ],
+   "headline": "STS borderline left heart consensus: stage LV recruitment in grey-zone neonates rather than primary biventricular repair",
+   "summary": "An STS panel of congenital surgeons, cardiologists and imagers used PICO questions, literature searches and a modified Delphi process to write consensus statements on borderline left heart in the first year of life, excluding unbalanced AVSD.",
+   "takeHome": [
+    "Primary biventricular repair in neonates with borderline left heart should be adopted cautiously, only with favorable anatomic and physiologic criteria on echo and/or MRI.",
+    "Grey-zone neonates (small mitral and aortic valves, endocardial fibroelastosis, small LV) should undergo staged recruitment to encourage left-sided growth.",
+    "Initial palliation can be surgical Norwood or hybrid stage 1; interval catheterization and MRI should guide timing of later biventricular conversion."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters:** Whether a small left heart can carry a biventricular circulation is one of the hardest calls in congenital cardiac surgery, and practice varies widely between centers. This is the first STS expert consensus to put structure around it, and it shapes which operations (and anesthetics) these infants will need over their first year.\n\n**What they did:** An STS panel of congenital cardiac surgeons, cardiologists and imaging experts framed key management questions with the PICO approach, searched the literature for each, and built consensus statements with a modified Delphi method. Scope: borderline left heart from the neonatal period through 1 year, excluding unbalanced atrioventricular septal defect.\n\n**What they recommend:**\n- Primary biventricular repair only for neonates with clearly favorable anatomy and physiology on echo and/or MRI.\n- For the 'grey zone' (smaller mitral and aortic valves, endocardial fibroelastosis, small indexed LV diastolic volume, low ascending aortic flow): staged LV recruitment.\n- Initial palliation by surgical Norwood or hybrid stage 1, possibly with atrial-level restriction; later EFE resection plus mitral and aortic valve repair as parts of complete biventricular conversion.\n- Interval catheterization and MRI to time later steps.\n\n**Caveats:** This is expert consensus built on a thin, mostly observational evidence base; the specific numeric thresholds are in the full document and were not legible in the abstract we read.\n\n**For the anesthesiologist:** Expect more hybrid stage 1 and staged recruitment pathways, which means repeated anesthetics for catheterization and MRI in fragile single-ventricle-physiology infants, and a central role for TEE in judging mitral and aortic inflow, LV size and EFE at each surgical step.",
+   "url": "https://doi.org/10.1016/j.athoracsur.2026.09.059",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Karamlou"
+  },
   {
    "id": "fda-2026-bd-alaris-infusion-sets-class-i-recall-update",
    "date": "2026-10-05",
