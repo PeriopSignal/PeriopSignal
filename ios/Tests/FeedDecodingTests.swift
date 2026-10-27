@@ -102,7 +102,8 @@ final class FeedDecodingTests: XCTestCase {
     func testSpokenTextStripsMarkdownAndExpandsAbbreviations() {
         XCTAssertEqual(SpeechPlayer.spoken("**Mortality** 31.8% vs 33.0% (HR 0.98, 95% CI 0.88-1.24)"), "Mortality 31.8% versus 33.0% (hazard ratio 0.98, 95% confidence interval 0.88-1.24)")
         let segments = SpeechPlayer.segments(for: .sample)
-        XCTAssertEqual(segments.first, Post.sample.headline)
+        XCTAssertEqual(segments.first, SpeechPlayer.spoken(Post.sample.headline))
+        XCTAssertTrue(segments.first?.contains("micrograms per kilogram per minute") == true)
         XCTAssertTrue(segments.contains("The authors' key points."))
         XCTAssertTrue(segments.contains("Limitations stated by the authors."))
     }
