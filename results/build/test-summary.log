@@ -1,14 +1,14 @@
-2026-10-27 20:28:30.323515+0000 PeriopSignal[8560:30371] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-10-27 20:28:30.476724+0000 PeriopSignal[8560:30417] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-27 20:53:49.707379+0000 PeriopSignal[4462:20900] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-27 20:53:50.426257+0000 PeriopSignal[4462:20900] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' passed (0.002 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' passed (0.007 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' passed (0.030 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testOptionalFieldsDefault]' started.
 Test Case '-[PeriopSignalTests.FeedDecodingTests testOptionalFieldsDefault]' passed (0.001 seconds).
-	 Executed 4 tests, with 0 failures (0 unexpected) in 0.020 (0.396) seconds
-	 Executed 4 tests, with 0 failures (0 unexpected) in 0.020 (0.400) seconds
-	 Executed 4 tests, with 0 failures (0 unexpected) in 0.020 (0.404) seconds
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.036 (0.045) seconds
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.036 (0.048) seconds
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.036 (0.052) seconds
 ** TEST SUCCEEDED **
