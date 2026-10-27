@@ -14,6 +14,9 @@ A curated research feed for cardiothoracic, critical care and trauma anesthesiol
 | `manifest.webmanifest`, `icons/` | App icon and "Add to Home Screen" support. Generated. |
 | `src/page.html` | Page source, shared with the Claude artifact copy of the feed. |
 | `tools/build_site.py` | Builds `index.html`, `manifest.webmanifest` and `feed.xml`. |
+| `tools/validate_posts.py` | Checks `posts.json` (required fields, allowed values, duplicates, and the optional `glance`, `quiz`, `title` and `citation` objects). The runs and the citation workflow run it before committing. |
+| `tools/backfill_citations.py` | Fills `title` and `citation` from Crossref for DOI posts; run daily by `.github/workflows/citations.yml`. |
+| `ios/` | The iPhone app (SwiftUI, built and shipped to TestFlight by GitHub Actions). See `ios/README.md` and `ios/OWNER_RUNBOOK.md`. |
 | `tools/make_icons.js` | Regenerates the icons and social preview image (needs the `sharp` npm package). |
 
 ## Daily update
@@ -38,9 +41,15 @@ python3 -I tools/build_site.py --base-url https://<user>.github.io/periop-signal
   "takeHome": ["Bullet one", "Bullet two"], "takeHomeBy": "authors",
   "authorLimitations": ["Limitation the authors state"], "authorBasis": "abstract",
   "deepDive": "180-300 words of markdown (**bold**, '- ' bullets, blank-line paragraphs).",
-  "url": "https://doi.org/...", "impact": 2, "trialName": "ACRONYM", "firstAuthor": "Surname"
+  "url": "https://doi.org/...", "impact": 2, "trialName": "ACRONYM", "firstAuthor": "Surname",
+  "title": "The paper's title as published",
+  "glance": {"design": "Multicentre RCT, 13 US hospitals", "n": "3,959 adults with septic shock", "outcome": "28-day mortality", "result": "31.8% vs 33.0%, adjusted OR 0.98; no difference"},
+  "quiz": {"question": "…?", "options": ["…", "…", "…", "…"], "answer": 2, "explanation": "…"},
+  "citation": {"title": "…", "authors": ["Family IN"], "journal": "JAMA", "year": 2026, "volume": "336", "issue": "15", "pages": "1234-1245", "doi": "10.1001/…"}
 }
 ```
+
+The last four are optional and used by the iPhone app: `glance` (research kinds only; four strings of at most 90 characters, written only from what the paper states), `quiz` (impact 2 and 3; one single-best-answer question with four options, answerable from the post alone), `title` and `citation` (from Crossref, filled by the citation workflow). The website ignores them for now.
 
 Topics: `cardiac`, `cardiacSurgery`, `mcs`, `echo`, `thoracic`, `regional`, `ob`, `trauma`, `pediatric`, `pedsCardiac`, `liver`, `criticalCare`, `general`. Impact: 3 landmark, 2 important, 1 notable.
 
