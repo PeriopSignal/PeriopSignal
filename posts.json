@@ -27,7 +27,25 @@
    "url": "https://doi.org/10.1111/anae.70427",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": "Mrazek"
+   "firstAuthor": "Mrazek",
+   "citation": {
+    "title": "Pain management after total shoulder arthroplasty: a systematic review and procedure‐specific postoperative pain management ( PROSPECT ) recommendations",
+    "authors": [
+     "Mrazek I",
+     "Desai N",
+     "Sauter AR",
+     "Wust M",
+     "Joshi GP",
+     "Wu CL",
+     "Elmers J",
+     "Albrecht E",
+     "the PROSPECT Working Group of the European Society of Regional Anaesthesia and Pain Therapy (ESRA)"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70427",
+    "year": 2026
+   },
+   "title": "Pain management after total shoulder arthroplasty: a systematic review and procedure‐specific postoperative pain management ( PROSPECT ) recommendations"
   },
   {
    "id": "fda-2026-cipepofol-cypsedo-induction-approval",
@@ -83,7 +101,28 @@
    "url": "https://doi.org/10.1016/j.athoracsur.2026.09.059",
    "impact": 2,
    "trialName": "",
-   "firstAuthor": "Karamlou"
+   "firstAuthor": "Karamlou",
+   "citation": {
+    "title": "The Society of Thoracic Surgeons (2026) Expert Consensus Document on Management of Borderline Left Heart Excluding Unbalanced Atrioventricular Septal Defect and Strategies for Biventricular Conversion",
+    "authors": [
+     "Karamlou T",
+     "Woo JL",
+     "Lam CZ",
+     "Emani S",
+     "Barron DJ",
+     "Honjo O",
+     "Jacobs JP",
+     "Oh N",
+     "Morales DL",
+     "Patel CR",
+     "Anderson BR",
+     "Najm HK"
+    ],
+    "journal": "The Annals of Thoracic Surgery",
+    "doi": "10.1016/j.athoracsur.2026.09.059",
+    "year": 2026
+   },
+   "title": "The Society of Thoracic Surgeons (2026) Expert Consensus Document on Management of Borderline Left Heart Excluding Unbalanced Atrioventricular Septal Defect and Strategies for Biventricular Conversion"
   },
   {
    "id": "fda-2026-bd-alaris-infusion-sets-class-i-recall-update",
@@ -142,7 +181,25 @@
    "url": "https://doi.org/10.1161/CIR.0000000000001490",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": "DeAnda"
+   "firstAuthor": "DeAnda",
+   "citation": {
+    "title": "Multidisciplinary Collaboration in the Performance of Aortic Surgery: A Scientific Statement From the American Heart Association",
+    "authors": [
+     "DeAnda A",
+     "Steppan J",
+     "Boskovski MT",
+     "Cherry AD",
+     "Dickey RA",
+     "Gray DeAngelis K",
+     "Ibekwe SO",
+     "Tseng EE",
+     "on behalf of the American Heart Association Council on Cardiovascular Surgery and Anesthesia, Education and Publication Committee; Council on Clinical Cardiology; Council on Cardiovascular Surgery and Anesthesia; Council on Peripheral Vascular Disease; Council on Lifelong Congenital Heart Disease and Heart Health in the Young; and Council on Cardiovascular Radiology and Intervention"
+    ],
+    "journal": "Circulation",
+    "doi": "10.1161/CIR.0000000000001490",
+    "year": 2026
+   },
+   "title": "Multidisciplinary Collaboration in the Performance of Aortic Surgery: A Scientific Statement From the American Heart Association"
   },
   {
    "id": "ejhf-2026-hfa-acnap-heart-transplant-recipients-non-specialist-consensus",
@@ -171,7 +228,28 @@
    "url": "https://doi.org/10.1093/ejhf/xuag326",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": "Baudry"
+   "firstAuthor": "Baudry",
+   "citation": {
+    "title": "Management of Heart transplant recipients for the non Heart Transplant health care provider. A Clinical Consensus Statement of the Heart Failure Association (HFA) and the Association of Cardiovascular Nursing &amp; Allied Professions (ACNAP) of the ESC",
+    "authors": [
+     "Baudry G",
+     "Joyce E",
+     "Adamo M",
+     "Batista dos Santos Pedrosa R",
+     "Ben Gal T",
+     "Bonios M",
+     "Crespo-Leiro MG",
+     "Hoejskov IE",
+     "Iacovoni A",
+     "Kapelios C",
+     "Lim HS",
+     "Metra M"
+    ],
+    "journal": "European Journal of Heart Failure",
+    "doi": "10.1093/ejhf/xuag326",
+    "year": 2026
+   },
+   "title": "Management of Heart transplant recipients for the non Heart Transplant health care provider. A Clinical Consensus Statement of the Heart Failure Association (HFA) and the Association of Cardiovascular Nursing &amp; Allied Professions (ACNAP) of the ESC"
   },
   {
    "id": "anesthesiology-2026-oracle-or-air-purification-ssi",
@@ -198,7 +276,25 @@
    "firstAuthor": "Sessler",
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Operating Room Air Filtration-Sterilization and Surgical Infections: The ORACLE Randomized Trial in 110,538 Surgeries",
+    "authors": [
+     "Sessler DI",
+     "Mascha EJ",
+     "Ekrami E",
+     "Bravo M",
+     "Dussan C",
+     "Almonacid-Cardenas F",
+     "Han Y",
+     "Turan A",
+     "for the ORACLE trial investigators"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000006424",
+    "year": 2026
+   },
+   "title": "Operating Room Air Filtration-Sterilization and Surgical Infections: The ORACLE Randomized Trial in 110,538 Surgeries"
   },
   {
    "id": "jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy",
@@ -231,7 +327,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Individualized Cardiac Index–Guided Hemodynamic Therapy in High-Risk Patients Undergoing Elective Major Abdominal Surgery",
+    "authors": [
+     "Saugel B",
+     "Meidert AS",
+     "Meyhoff CS",
+     "Sort R",
+     "Aasvang EK",
+     "Bergholz A",
+     "Serir A",
+     "Schwartze E",
+     "Thomsen KK",
+     "Zöllner C",
+     "Berthold S",
+     "Borrmann M"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.18574",
+    "year": 2026
+   },
+   "title": "Individualized Cardiac Index–Guided Hemodynamic Therapy in High-Risk Patients Undergoing Elective Major Abdominal Surgery"
   },
   {
    "id": "jcin-2026-tavr-surgical-bailout-cms-trends",
@@ -264,7 +381,30 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Surgical Bailout During TAVR",
+    "authors": [
+     "Braasch MC",
+     "Siki MA",
+     "Bai YZ",
+     "Rahimi M",
+     "He J",
+     "Hanafy A",
+     "Gulati S",
+     "Brescia AA",
+     "Kachroo P",
+     "Kouchoukos N",
+     "Kaneko T"
+    ],
+    "journal": "JACC: Cardiovascular Interventions",
+    "doi": "10.1016/j.jcin.2026.06.030",
+    "year": 2026,
+    "volume": "19",
+    "issue": "17",
+    "pages": "2364-2375"
+   },
+   "title": "Surgical Bailout During TAVR"
   },
   {
    "id": "lancet-2026-mist-minimally-invasive-cabg",
@@ -298,7 +438,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Multivessel coronary artery bypass grafting via small thoracotomy versus sternotomy (MIST): an investigator-initiated, international, open-label, randomised controlled trial",
+    "authors": [
+     "Ruel M",
+     "Nambala S",
+     "Guo MH",
+     "Verevkin A",
+     "Rabindranauth P",
+     "Kikuchi K",
+     "Davierwala PM",
+     "Lemma M",
+     "Ponnambalam M",
+     "Sheikh A",
+     "Black A",
+     "Borger MA"
+    ],
+    "journal": "The Lancet",
+    "doi": "10.1016/S0140-6736(26)01288-2",
+    "year": 2026,
+    "volume": "408",
+    "issue": "10556",
+    "pages": "711-720"
+   },
+   "title": "Multivessel coronary artery bypass grafting via small thoracotomy versus sternotomy (MIST): an investigator-initiated, international, open-label, randomised controlled trial"
   },
   {
    "id": "transpl-int-2026-esot-bucharest-nrp-consensus",
@@ -336,7 +500,29 @@
     "The panel was selected for NRP experience, an inherent bias that may shape its confidence on dead donor rule integrity; TA-NRP experience is limited"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Normothermic regional perfusion (NRP) use in controlled donation after circulatory determination of death (cDCDD): results of the European Society for Organ Transplantation Bucharest consensus conference",
+    "authors": [
+     "Miñambres E",
+     "Berman M",
+     "Antonini MV",
+     "Campo-Cañaveral De La Cruz JL",
+     "Croome K",
+     "Feltrin G",
+     "Hessheimer A",
+     "Jorns C",
+     "Messer S",
+     "Wall A",
+     "Domínguez-Gil B",
+     "Martin D"
+    ],
+    "journal": "Transpl. Int.",
+    "doi": "10.3389/ti.2026.16391",
+    "year": 2026,
+    "volume": "39"
+   },
+   "title": "Normothermic regional perfusion (NRP) use in controlled donation after circulatory determination of death (cDCDD): results of the European Society for Organ Transplantation Bucharest consensus conference"
   },
   {
    "id": "lancet-2026-rate-ecmo-anticoagulation",
@@ -370,7 +556,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Standard-dose unfractionated heparin versus low-dose unfractionated heparin and low-molecular-weight heparin in extracorporeal life support (RATE): an open-label, randomised, non-inferiority trial",
+    "authors": [
+     "Minnen OV",
+     "Lansink-Hartgring AO",
+     "van Amstel RBE",
+     "van den Bogaard B",
+     "Bunge JJH",
+     "Delnoij TSR",
+     "Droogh JM",
+     "Koppenhagen LV",
+     "Kraemer CVE",
+     "Kuijpers M",
+     "Maas JJ",
+     "Metz JD"
+    ],
+    "journal": "The Lancet",
+    "doi": "10.1016/S0140-6736(26)00851-2",
+    "year": 2026,
+    "volume": "408",
+    "issue": "10552",
+    "pages": "357-366"
+   },
+   "title": "Standard-dose unfractionated heparin versus low-dose unfractionated heparin and low-molecular-weight heparin in extracorporeal life support (RATE): an open-label, randomised, non-inferiority trial"
   },
   {
    "id": "circ-2026-second-universal-definition-heart-failure",
@@ -402,7 +612,30 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "AHA/ACC/ESC/WHF Expert Consensus Document: Second Universal Definition of Heart Failure (2026)",
+    "authors": [
+     "Walsh MN",
+     "Kober L",
+     "Sliwa K",
+     "Adamo M",
+     "Agarwal A",
+     "Banerjee A",
+     "Bozkurt B",
+     "Cikes M",
+     "Damasceno A",
+     "Desai AS",
+     "Felker GM",
+     "Hogan G"
+    ],
+    "journal": "Circulation",
+    "doi": "10.1161/CIR.0000000000001455",
+    "year": 2026,
+    "volume": "154",
+    "issue": "7"
+   },
+   "title": "AHA/ACC/ESC/WHF Expert Consensus Document: Second Universal Definition of Heart Failure (2026)"
   },
   {
    "id": "icm-2026-adqi-elso-aki-crrt-during-ecmo-consensus",
@@ -440,7 +673,31 @@
     "Voting was not anonymous, dissenting opinions were not documented during plenary refinement, and the process was not a traditional Delphi.",
     "Industry educational grants supported the meeting and many authors disclosed device and drug company relationships; sponsors did not take part in decisions."
    ],
-   "authorBasis": "full text"
+   "authorBasis": "full text",
+   "citation": {
+    "title": "Extracorporeal membrane oxygenation, acute kidney injury, fluid balance, and continuous renal replacement therapy: Acute Disease Quality Initiative (ADQI) and Extracorporeal Life Support Organization (ELSO) joint consensus conference",
+    "authors": [
+     "Gist KM",
+     "Selewski DT",
+     "Kashani KB",
+     "Akcan-Arikan A",
+     "Annich G",
+     "Antonini MV",
+     "Askenazi D",
+     "Awdishu L",
+     "Bridges BC",
+     "Connor MJ",
+     "Forni LG",
+     "Fuhrman DY"
+    ],
+    "journal": "Intensive Care Med",
+    "doi": "10.1007/s00134-026-08440-3",
+    "year": 2026,
+    "volume": "52",
+    "issue": "6",
+    "pages": "1175-1195"
+   },
+   "title": "Extracorporeal membrane oxygenation, acute kidney injury, fluid balance, and continuous renal replacement therapy: Acute Disease Quality Initiative (ADQI) and Extracorporeal Life Support Organization (ELSO) joint consensus conference"
   },
   {
    "id": "ejhf-2026-hfa-heart-transplantation-consensus",
@@ -468,7 +725,28 @@
    "firstAuthor": "Milicic",
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "Update on heart transplantation: a consensus document",
+    "authors": [
+     "Milicic D",
+     "Planinc I",
+     "Adamopoulos S",
+     "Gal TB",
+     "Masetti M",
+     "Tsui S",
+     "Skoric B",
+     "Cikes M",
+     "Gasparovic H",
+     "Goncalvesova E",
+     "Nalbantgil S",
+     "Ruhparwar A"
+    ],
+    "journal": "European Journal of Heart Failure",
+    "doi": "10.1093/ejhf/xuag051",
+    "year": 2026
+   },
+   "title": "Update on heart transplantation: a consensus document"
   },
   {
    "id": "jcva-2026-vasopressin-make-cardiac-surgery",
@@ -501,7 +779,30 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Vasopressin and Major Adverse Kidney Events in Patients Requiring Vasopressor Support After Cardiac Surgery: A Multicenter Retrospective Cohort Study",
+    "authors": [
+     "White KC",
+     "Coulson TG",
+     "Serpa-Neto A",
+     "Ramanan M",
+     "Burrell A",
+     "McCullough J",
+     "Shekar K",
+     "Costa-Pinto R",
+     "Whebell S",
+     "Blank S",
+     "Udy A"
+    ],
+    "journal": "Journal of Cardiothoracic and Vascular Anesthesia",
+    "doi": "10.1053/j.jvca.2026.04.011",
+    "year": 2026,
+    "volume": "40",
+    "issue": "7",
+    "pages": "2112-2121"
+   },
+   "title": "Vasopressin and Major Adverse Kidney Events in Patients Requiring Vasopressor Support After Cardiac Surgery: A Multicenter Retrospective Cohort Study"
   },
   {
    "id": "aic-2026-french-cardiogenic-shock-expert-recommendations",
@@ -535,7 +836,30 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Experts’ recommendations for the management of adult patients with cardiogenic shock",
+    "authors": [
+     "Aissaoui N",
+     "Delmas C",
+     "Merdji H",
+     "Schurtz G",
+     "Baudry G",
+     "Beurton A",
+     "Boissier F",
+     "Bonello L",
+     "Cholley B",
+     "Combaret N",
+     "Combes A",
+     "David CH"
+    ],
+    "journal": "Annals of Intensive Care",
+    "doi": "10.1016/j.aicoj.2026.100038",
+    "year": 2026,
+    "volume": "16",
+    "pages": "100038"
+   },
+   "title": "Experts’ recommendations for the management of adult patients with cardiogenic shock"
   },
   {
    "id": "annsurg-2026-sofrib-rib-fixation-rct",
@@ -568,7 +892,27 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "A Multicenter Randomized Controlled Trial on the Surgery of Fractured Ribs",
+    "authors": [
+     "Ang D",
+     "Nathens A",
+     "Nayduch D",
+     "Brady J",
+     "Liu H",
+     "Sugimoto J",
+     "Elkbuli A",
+     "Clark J",
+     "McKenney M",
+     "Kurek S",
+     "on behalf of the SOFRIB Consortium"
+    ],
+    "journal": "Annals of Surgery",
+    "doi": "10.1097/SLA.0000000000007053",
+    "year": 2026
+   },
+   "title": "A Multicenter Randomized Controlled Trial on the Surgery of Fractured Ribs"
   },
   {
    "id": "jvs-2026-svs-blunt-thoracic-aortic-injury-focused-update",
@@ -601,7 +945,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "summary page",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "The Society for Vascular Surgery clinical practice guideline on the management of blunt thoracic aortic injury: Focused update",
+    "authors": [
+     "DuBose J",
+     "Kundi R",
+     "Curi MA",
+     "Eagleton M",
+     "Eskandari MK",
+     "Gandhi S",
+     "Malgor RD",
+     "Mitchell EL",
+     "Murad MH",
+     "Quiroga E",
+     "Rajani RR",
+     "Sarac T"
+    ],
+    "journal": "Journal of Vascular Surgery",
+    "doi": "10.1016/j.jvs.2026.02.013",
+    "year": 2026,
+    "volume": "83",
+    "issue": "5",
+    "pages": "1281-1290.e8"
+   },
+   "title": "The Society for Vascular Surgery clinical practice guideline on the management of blunt thoracic aortic injury: Focused update"
   },
   {
    "id": "pccm-2026-pediatric-surviving-sepsis-guideline",
@@ -631,7 +999,31 @@
     "Only three recommendations were based on high or moderate certainty of evidence; most aspects of care have relatively low quality of evidence"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026",
+    "authors": [
+     "Weiss SL",
+     "Peters MJ",
+     "Oczkowski SJW",
+     "Belley-Cote E",
+     "Buysse C",
+     "Choong KLM",
+     "Deep A",
+     "Inwald DP",
+     "Flori HR",
+     "Kneyber MCJ",
+     "Menon K",
+     "Murthy S"
+    ],
+    "journal": "Pediatric Critical Care Medicine",
+    "doi": "10.1097/PCC.0000000000003927",
+    "year": 2026,
+    "volume": "27",
+    "issue": "4",
+    "pages": "379-434"
+   },
+   "title": "Surviving Sepsis Campaign International Guidelines for the Management of Sepsis and Septic Shock in Children 2026"
   },
   {
    "id": "lancet-2026-vats-vs-open-lobectomy-ipd-meta",
@@ -663,7 +1055,28 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Survival outcome of VATS compared with open lobectomy for lung cancer: an individual patient data meta-analysis of randomised trials",
+    "authors": [
+     "Harris RA",
+     "Law JJ",
+     "Hao L",
+     "Situ D",
+     "Dittberner FA",
+     "Bendixen M",
+     "Licht PB",
+     "Rogers CA",
+     "Lim E"
+    ],
+    "journal": "The Lancet",
+    "doi": "10.1016/S0140-6736(26)00031-0",
+    "year": 2026,
+    "volume": "407",
+    "issue": "10534",
+    "pages": "1182-1190"
+   },
+   "title": "Survival outcome of VATS compared with open lobectomy for lung cancer: an individual patient data meta-analysis of randomised trials"
   },
   {
    "id": "jcva-2026-cabg-racial-inequities-nis",
@@ -696,7 +1109,27 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Persistent Racial Inequities in Postoperative Outcomes After Coronary Artery Bypass Grafting: A National Cohort Study of More Than 1.1 Million Patients",
+    "authors": [
+     "Moreira V",
+     "Litvin R",
+     "Sapkota A",
+     "Ligocki M",
+     "Jain A",
+     "Khorasani A",
+     "Ebrahimi F",
+     "Knezevic N"
+    ],
+    "journal": "Journal of Cardiothoracic and Vascular Anesthesia",
+    "doi": "10.1053/j.jvca.2026.03.013",
+    "year": 2026,
+    "volume": "40",
+    "issue": "7",
+    "pages": "2096-2102"
+   },
+   "title": "Persistent Racial Inequities in Postoperative Outcomes After Coronary Artery Bypass Grafting: A National Cohort Study of More Than 1.1 Million Patients"
   },
   {
    "id": "pediatrics-2026-aap-periprocedural-anesthesia-environment-policy",
@@ -723,7 +1156,29 @@
    "firstAuthor": "Long",
    "authorLimitations": [],
    "authorBasis": "summary page",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "Critical Elements for the Pediatric Periprocedural Anesthesia Environment: Policy Statement",
+    "authors": [
+     "Long JB",
+     "Houck CS",
+     "Varughese AM",
+     "Section on Anesthesiology and Pain Medicine",
+     "Diaz CD",
+     "Drum ET",
+     "Lockman JL",
+     "Long JB",
+     "Sun LSY",
+     "Willer BL",
+     "Chatterjee D"
+    ],
+    "journal": "Pediatrics",
+    "doi": "10.1542/peds.2025-075746",
+    "year": 2026,
+    "volume": "157",
+    "issue": "3"
+   },
+   "title": "Critical Elements for the Pediatric Periprocedural Anesthesia Environment: Policy Statement"
   },
   {
    "id": "circ-2026-aha-acc-acute-pulmonary-embolism-guideline",
@@ -752,7 +1207,30 @@
    "firstAuthor": "Mark A. Creager",
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "2026 AHA/ACC/ACCP/ACEP/CHEST/SCAI/SHM/SIR/SVM/SVN Guideline for the Evaluation and Management of Acute Pulmonary Embolism in Adults: A Report of the American College of Cardiology/American Heart Association Joint Committee on Clinical Practice Guidelines",
+    "authors": [
+     "Writing Committee Members",
+     "Creager MA",
+     "Barnes GD",
+     "Giri J",
+     "Mukherjee D",
+     "Jones WS",
+     "Burnett AE",
+     "Carman T",
+     "Casanegra AI",
+     "Castellucci LA",
+     "Clark SM",
+     "Cushman M"
+    ],
+    "journal": "Circulation",
+    "doi": "10.1161/CIR.0000000000001415",
+    "year": 2026,
+    "volume": "153",
+    "issue": "12"
+   },
+   "title": "2026 AHA/ACC/ACCP/ACEP/CHEST/SCAI/SHM/SIR/SVM/SVN Guideline for the Evaluation and Management of Acute Pulmonary Embolism in Adults: A Report of the American College of Cardiology/American Heart Association Joint Committee on Clinical Practice Guidelines"
   },
   {
    "id": "anaesthesia-2026-international-perioperative-fasting-consensus",
@@ -789,7 +1267,29 @@
     "The statement carries no endorsement from any organisation or society"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Peri‐operative fasting in adults: an international, multidisciplinary consensus statement",
+    "authors": [
+     "Rüggeberg A",
+     "El‐Boghdadly K",
+     "Bilotta F",
+     "Vaz MD",
+     "Camilleri Podesta AM",
+     "Jammer I",
+     "Schindler E",
+     "Elmawieh J",
+     "Nagrebetsky A",
+     "Stakeholders"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70130",
+    "year": 2026,
+    "volume": "81",
+    "issue": "6",
+    "pages": "840-851"
+   },
+   "title": "Peri‐operative fasting in adults: an international, multidisciplinary consensus statement"
   },
   {
    "id": "ehjci-2026-ase-eacvi-strain-echocardiography-consensus",
@@ -816,7 +1316,31 @@
    "firstAuthor": "Thomas",
    "authorLimitations": [],
    "authorBasis": "",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "Clinical Applications of Strain Echocardiography: A Clinical Consensus Statement From the American Society of Echocardiography Developed in Collaboration With the European Association of Cardiovascular Imaging of the European Society of Cardiology",
+    "authors": [
+     "Thomas JD",
+     "Edvardsen T",
+     "Abraham T",
+     "Appadurai V",
+     "Badano L",
+     "Banchs J",
+     "Cho GY",
+     "Cosyns B",
+     "Delgado V",
+     "Donal E",
+     "Galderisi M",
+     "Lang RM"
+    ],
+    "journal": "European Heart Journal - Cardiovascular Imaging",
+    "doi": "10.1093/ehjci/jeag006",
+    "year": 2026,
+    "volume": "27",
+    "issue": "3",
+    "pages": "335-368"
+   },
+   "title": "Clinical Applications of Strain Echocardiography: A Clinical Consensus Statement From the American Society of Echocardiography Developed in Collaboration With the European Association of Cardiovascular Imaging of the European Society of Cardiology"
   },
   {
    "id": "aa-2026-sca-sts-doac-cardiac-surgery-consensus",
@@ -845,7 +1369,31 @@
    "firstAuthor": "Budd",
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "Management of Direct Oral Anticoagulants in Adult Patients Undergoing Cardiac Surgery: A Joint Consensus Statement by the Society of Cardiovascular Anesthesiologists and the Society of Thoracic Surgeons",
+    "authors": [
+     "Budd AN",
+     "Kertai MD",
+     "Wyler von Ballmoos MC",
+     "Raphael J",
+     "Ghadimi K",
+     "Levy JH",
+     "Shore-Lesserson LJ",
+     "Mazzeffi MA",
+     "Sniecinski RM",
+     "Tanaka KA",
+     "Bolliger D",
+     "Abdalla M"
+    ],
+    "journal": "Anesthesia &amp; Analgesia",
+    "doi": "10.1213/ANE.0000000000007868",
+    "year": 2026,
+    "volume": "142",
+    "issue": "4",
+    "pages": "668-681"
+   },
+   "title": "Management of Direct Oral Anticoagulants in Adult Patients Undergoing Cardiac Surgery: A Joint Consensus Statement by the Society of Cardiovascular Anesthesiologists and the Society of Thoracic Surgeons"
   },
   {
    "id": "anaesthesia-2026-perioperative-blood-pressure-guideline",
@@ -881,7 +1429,27 @@
     "Many recommendations were supported by weak or modest evidence, limiting the authors' ability to formally grade them.",
     "Given the lack of high-quality evidence, especially for the peri-operative period, many recommendations were designed with pragmatism in mind."
    ],
-   "authorBasis": "full text"
+   "authorBasis": "full text",
+   "citation": {
+    "title": "Measurement and management of adult blood pressure in the peri‐operative period: updated guidelines from the Association of Anaesthetists and the British and Irish Hypertension Society",
+    "authors": [
+     "McCormack T",
+     "Wickham A",
+     "McDonagh STJ",
+     "Wiles MD",
+     "Faconti L",
+     "Brooks R",
+     "Anderson SG",
+     "Hartle A"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70082",
+    "year": 2026,
+    "volume": "81",
+    "issue": "3",
+    "pages": "402-414"
+   },
+   "title": "Measurement and management of adult blood pressure in the peri‐operative period: updated guidelines from the Association of Anaesthetists and the British and Irish Hypertension Society"
   },
   {
    "id": "circhf-2026-aha-invasive-hemodynamic-protocols-statement",
@@ -915,7 +1483,30 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Standardization of Baseline and Provocative Invasive Hemodynamic Protocols for the Evaluation of Heart Failure and Pulmonary Hypertension: A Scientific Statement From the American Heart Association",
+    "authors": [
+     "Belkin MN",
+     "Fudim M",
+     "Baratto C",
+     "Grinstein J",
+     "Hollis I",
+     "Ijioma N",
+     "Kataria R",
+     "Lewis GD",
+     "Mak S",
+     "Tedford RJ",
+     "Thibodeau JT",
+     "Yaku H"
+    ],
+    "journal": "Circ: Heart Failure",
+    "doi": "10.1161/HHF.0000000000000088",
+    "year": 2026,
+    "volume": "19",
+    "issue": "2"
+   },
+   "title": "Standardization of Baseline and Provocative Invasive Hemodynamic Protocols for the Evaluation of Heart Failure and Pulmonary Hypertension: A Scientific Statement From the American Heart Association"
   },
   {
    "id": "jcva-2025-eactaic-monitoring-thoracic",
@@ -949,7 +1540,31 @@
     "First European consensus on monitoring for thoracic cases; use it to audit your lung-resection and OLV monitoring bundle.",
     "Recommendations are graded by agreement level: agreed (>60%), strong (>80%) and full (>95%) consensus.",
     "Authors stress the evidence base is thin, so treat this as a shared baseline rather than a rulebook."
-   ]
+   ],
+   "citation": {
+    "title": "Monitoring in Thoracic Anesthesia: EACTAIC Consensus Document",
+    "authors": [
+     "El Tahan MR",
+     "Tschernko E",
+     "Végh T",
+     "Mourisse J",
+     "Sentürk M",
+     "Lenartova K",
+     "Alberici MM",
+     "Wasserscheid T",
+     "Marczin N",
+     "Szegedi LL",
+     "Balla B",
+     "Bence J"
+    ],
+    "journal": "Journal of Cardiothoracic and Vascular Anesthesia",
+    "doi": "10.1053/j.jvca.2025.11.003",
+    "year": 2026,
+    "volume": "40",
+    "issue": "3",
+    "pages": "985-993"
+   },
+   "title": "Monitoring in Thoracic Anesthesia: EACTAIC Consensus Document"
   },
   {
    "id": "jcva-2025-eactaic-airway-thoracic",
@@ -983,7 +1598,31 @@
     "The authors state that the high-level evidence base is generally limited and that significant controversies persist"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Airway Management in Thoracic Anesthesia: EACTAIC Consensus Document",
+    "authors": [
+     "Granell M",
+     "Vanpeteghem C",
+     "Mourisse J",
+     "Sentürk M",
+     "Szegedi L",
+     "El Tahan M",
+     "Mukherjee C",
+     "Kawagoe I",
+     "Karzai W",
+     "Hofmeyr R",
+     "Lenartova K",
+     "Alberici MM"
+    ],
+    "journal": "Journal of Cardiothoracic and Vascular Anesthesia",
+    "doi": "10.1053/j.jvca.2025.11.004",
+    "year": 2026,
+    "volume": "40",
+    "issue": "4",
+    "pages": "1276-1287"
+   },
+   "title": "Airway Management in Thoracic Anesthesia: EACTAIC Consensus Document"
   },
   {
    "id": "jama-2025-designation-driving-pressure-guided-peep",
@@ -1016,7 +1655,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Intraoperative Driving Pressure–Guided High PEEP vs Standard Low PEEP for Postoperative Pulmonary Complications",
+    "authors": [
+     "Writing and Steering Committees for the DESIGNATION–Investigators",
+     "Aarts LPHJ",
+     "Aarts F",
+     "Akkerman RDL",
+     "Albersen JJE",
+     "Almac E",
+     "Argente-Navarro MP",
+     "Aslami H",
+     "Aurilio C",
+     "Baldini G",
+     "Ball L",
+     "Battaglini D"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2025.23373",
+    "year": 2026,
+    "volume": "335",
+    "issue": "8",
+    "pages": "693"
+   },
+   "title": "Intraoperative Driving Pressure–Guided High PEEP vs Standard Low PEEP for Postoperative Pulmonary Complications"
   },
   {
    "id": "erj-2025-ers-ests-fitness-lung-cancer-guideline",
@@ -1048,7 +1711,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "European Respiratory Society and European Society of Thoracic Surgeons clinical practice guideline on fitness for curative intent treatment of lung cancer",
+    "authors": [
+     "Brunelli A",
+     "Hardavella G",
+     "Huber RM",
+     "Berghmans T",
+     "Frille A",
+     "Rodriguez M",
+     "Tietzova I",
+     "Depypere L",
+     "Asteggiano R",
+     "Batchelor T",
+     "Costantini A",
+     "De Ruysscher D"
+    ],
+    "journal": "Eur Respir J",
+    "doi": "10.1183/13993003.00156-2025",
+    "year": 2025,
+    "volume": "66",
+    "issue": "5",
+    "pages": "2500156"
+   },
+   "title": "European Respiratory Society and European Society of Thoracic Surgeons clinical practice guideline on fitness for curative intent treatment of lung cancer"
   },
   {
    "id": "jcva-2025-cabg-delirium-nis-trends",
@@ -1081,7 +1768,25 @@
     "Dementia (aOR 4.28), alcohol misuse (3.38) and psychotic disorders (2.40) flag the highest-risk CABG patients before induction.",
     "Coded delirium is rising about 4% a year; expect the true screened incidence to be several times higher.",
     "Cost and length-of-stay numbers are useful ammunition for funding a delirium prevention bundle."
-   ]
+   ],
+   "citation": {
+    "title": "Postoperative Delirium After Coronary Artery Bypass Grafting in the United States, 2016-2021: Trends, Risk Factors, and Outcomes",
+    "authors": [
+     "Potnuru P",
+     "Allafy L",
+     "Khudirat M",
+     "Dhakal BR",
+     "Tore M",
+     "Chamoun R"
+    ],
+    "journal": "Journal of Cardiothoracic and Vascular Anesthesia",
+    "doi": "10.1053/j.jvca.2025.11.011",
+    "year": 2026,
+    "volume": "40",
+    "issue": "2",
+    "pages": "561-570"
+   },
+   "title": "Postoperative Delirium After Coronary Artery Bypass Grafting in the United States, 2016-2021: Trends, Risk Factors, and Outcomes"
   },
   {
    "id": "asaio-2025-elso-pregnant-peripartum-ecmo-guideline",
@@ -1110,7 +1815,28 @@
    "firstAuthor": "O'Neil",
    "authorLimitations": [],
    "authorBasis": "",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "ELSO 2025 Narrative Guideline on Pregnant and Peripartum Extracorporeal Membrane Oxygenation",
+    "authors": [
+     "O’Neil ER",
+     "Shehatta AL",
+     "Agerstrand C",
+     "Sampson C",
+     "Siddiqui F",
+     "Nair P",
+     "Schou AL",
+     "Kattan J",
+     "Naoum EE"
+    ],
+    "journal": "ASAIO Journal",
+    "doi": "10.1097/MAT.0000000000002556",
+    "year": 2025,
+    "volume": "71",
+    "issue": "11",
+    "pages": "875-887"
+   },
+   "title": "ELSO 2025 Narrative Guideline on Pregnant and Peripartum Extracorporeal Membrane Oxygenation"
   },
   {
    "id": "asaio-2025-elso-accidental-hypothermia-ecmo-guideline",
@@ -1139,7 +1865,31 @@
    "firstAuthor": "Cools",
    "authorLimitations": [],
    "authorBasis": "",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "ELSO 2025 Narrative Guideline on the Use of ECMO for Accidental Hypothermia",
+    "authors": [
+     "Cools E",
+     "Swol J",
+     "Wanscher M",
+     "Brugger H",
+     "Pasquier M",
+     "McIntosh S",
+     "Musi M",
+     "Oshiro K",
+     "Gordon L",
+     "Walpoth B",
+     "Hoffman JRH",
+     "Follis F"
+    ],
+    "journal": "ASAIO Journal",
+    "doi": "10.1097/MAT.0000000000002557",
+    "year": 2025,
+    "volume": "71",
+    "issue": "11",
+    "pages": "865-874"
+   },
+   "title": "ELSO 2025 Narrative Guideline on the Use of ECMO for Accidental Hypothermia"
   },
   {
    "id": "ehjci-2025-eacvi-acvc-eactaic-cardiac-ultrasound-critical-care",
@@ -1173,7 +1923,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Cardiac ultrasound in cardiovascular emergency and critical care: a clinical consensus statement of the European Association of Cardiovascular Imaging, the Acute CardioVascular Care Association of the European Society of Cardiology, and the European Association of Cardiothoracic Anaesthesia and Intensive Care",
+    "authors": [
+     "Soliman Aboumarie H",
+     "Tavazzi G",
+     "Via G",
+     "Guarracino F",
+     "Stankovic I",
+     "Hagendorff A",
+     "Gargani L",
+     "Cardim N",
+     "Flachskampf FA",
+     "Bax J",
+     "Mukherjee C",
+     "Meineri M"
+    ],
+    "journal": "European Heart Journal - Cardiovascular Imaging",
+    "doi": "10.1093/ehjci/jeaf246",
+    "year": 2025,
+    "volume": "26",
+    "issue": "11",
+    "pages": "1699-1724"
+   },
+   "title": "Cardiac ultrasound in cardiovascular emergency and critical care: a clinical consensus statement of the European Association of Cardiovascular Imaging, the Acute CardioVascular Care Association of the European Society of Cardiology, and the European Association of Cardiothoracic Anaesthesia and Intensive Care"
   },
   {
    "id": "icm-2025-erc-esicm-post-resuscitation-care-guideline",
@@ -1201,7 +1975,31 @@
    "firstAuthor": "Jerry P. Nolan",
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "European Resuscitation Council and European Society of Intensive Care Medicine guidelines 2025: post-resuscitation care",
+    "authors": [
+     "Nolan JP",
+     "Sandroni C",
+     "Cariou A",
+     "Cronberg T",
+     "D’Arrigo S",
+     "Haywood K",
+     "Hoedemaekers A",
+     "Lilja G",
+     "Nikolaou N",
+     "Olasveengen TM",
+     "Robba C",
+     "Skrifvars MB"
+    ],
+    "journal": "Intensive Care Med",
+    "doi": "10.1007/s00134-025-08117-3",
+    "year": 2025,
+    "volume": "51",
+    "issue": "12",
+    "pages": "2213-2288"
+   },
+   "title": "European Resuscitation Council and European Society of Intensive Care Medicine guidelines 2025: post-resuscitation care"
   },
   {
    "id": "wjes-2025-wses-aast-thoracic-trauma-guidelines",
@@ -1237,7 +2035,30 @@
     "Epidural and multimodal analgesia are only conditionally recommended, despite some limitations; little evidence addresses rib fixation safety in elderly patients"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Thoracic trauma WSES-AAST guidelines",
+    "authors": [
+     "Coccolini F",
+     "Cremonini C",
+     "Moore EE",
+     "Civil I",
+     "Balogh Z",
+     "Leppaniemi A",
+     "Horer T",
+     "Reva V",
+     "Ball C",
+     "Kirkpatrick AW",
+     "Colli A",
+     "Besola L"
+    ],
+    "journal": "World J Emerg Surg",
+    "doi": "10.1186/s13017-025-00651-1",
+    "year": 2025,
+    "volume": "20",
+    "issue": "1"
+   },
+   "title": "Thoracic trauma WSES-AAST guidelines"
   },
   {
    "id": "jcva-2025-chd-noncardiac-hospital-volume",
@@ -1270,7 +2091,23 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Hospital Volume and Noncardiac Surgery Outcomes for Patients With Congenital Heart Disease",
+    "authors": [
+     "Kuntz MT",
+     "Staffa SJ",
+     "Berry JG",
+     "Nasr VG"
+    ],
+    "journal": "Journal of Cardiothoracic and Vascular Anesthesia",
+    "doi": "10.1053/j.jvca.2025.10.009",
+    "year": 2026,
+    "volume": "40",
+    "issue": "1",
+    "pages": "143-150"
+   },
+   "title": "Hospital Volume and Noncardiac Surgery Outcomes for Patients With Congenital Heart Disease"
   },
   {
    "id": "icm-2025-uk-ecmo-emergencies-guideline",
@@ -1309,7 +2146,31 @@
     "ETCO2 is unreliable on ECMO and can only support other signs; the search was limited to English-language adult studies"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "British societies guideline on the management of emergencies in patients on extracorporeal membrane oxygenation",
+    "authors": [
+     "Akhtar W",
+     "Brain N",
+     "Hernandez Caballero C",
+     "Camporota L",
+     "Deakin CD",
+     "Elliott P",
+     "Fitzmaurice H",
+     "Flower L",
+     "Gaffey D",
+     "Garcia M",
+     "Gardner RS",
+     "Georgovasilis G"
+    ],
+    "journal": "Intensive Care Med",
+    "doi": "10.1007/s00134-025-08142-2",
+    "year": 2025,
+    "volume": "51",
+    "issue": "11",
+    "pages": "2013-2020"
+   },
+   "title": "British societies guideline on the management of emergencies in patients on extracorporeal membrane oxygenation"
   },
   {
    "id": "jama-2026-us-crs-heart-allocation-score",
@@ -1343,7 +2204,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Development and Validation of an Adult Medical Urgency Score for US Donor Heart Allocation",
+    "authors": [
+     "Lyden GR",
+     "White M",
+     "Ahn DJ",
+     "Menteer J",
+     "Daly RC",
+     "Narang N",
+     "Khush KK",
+     "Jasseron C",
+     "Dorent R",
+     "Masotti M",
+     "Wood NL",
+     "Colvin MM"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.17403",
+    "year": 2026
+   },
+   "title": "Development and Validation of an Adult Medical Urgency Score for US Donor Heart Allocation"
   },
   {
    "id": "fda-2026-philips-lumify-early-alert",
@@ -1403,7 +2285,28 @@
     "Evidence to guide management remains limited, largely derived from registries and observational reports, with substantial variation in diagnostic and therapeutic strategies"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "EACTS Expert Consensus Document on Iatrogenic Aortic Dissection",
+    "authors": [
+     "Luehr M",
+     "Nersesian G",
+     "Pitts L",
+     "Di Marco L",
+     "Dumfarth J",
+     "Nienaber CA",
+     "Kolowca MK",
+     "Stelzmüller ME",
+     "Milojevic M",
+     "Czerny M",
+     "Schoenhoff F",
+     "Potapov E"
+    ],
+    "journal": "European Journal of Cardio-Thoracic Surgery",
+    "doi": "10.1093/ejcts/ezag221",
+    "year": 2026
+   },
+   "title": "EACTS Expert Consensus Document on Iatrogenic Aortic Dissection"
   },
   {
    "id": "ejcts-2026-eacts-robotic-cardiac-surgery-minimum-standards",
@@ -1438,7 +2341,30 @@
     "Evidence gaps named: harmonised reporting standards, long-term and procedure-specific outcomes, prospective studies of training models, cost-effectiveness and new technologies"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "EACTS Expert Consensus Document on Robotic Cardiac Surgery Minimum Standards for Programme Implementation, Training and Quality Assurance, developed in collaboration with EACTAIC and EBCP",
+    "authors": [
+     "Oosterlinck W",
+     "Palmen M",
+     "Gianoli M",
+     "Milojevic M",
+     "Bekaert J",
+     "Beyersdorf F",
+     "Casselman FPA",
+     "Degezelle K",
+     "Falk V",
+     "Folliguet T",
+     "Franke U",
+     "Hedvicak P"
+    ],
+    "journal": "European Journal of Cardio-Thoracic Surgery",
+    "doi": "10.1093/ejcts/ezag187",
+    "year": 2026,
+    "volume": "68",
+    "issue": "10"
+   },
+   "title": "EACTS Expert Consensus Document on Robotic Cardiac Surgery Minimum Standards for Programme Implementation, Training and Quality Assurance, developed in collaboration with EACTAIC and EBCP"
   },
   {
    "id": "fda-2026-sapien-m3-commander-m-delivery-early-alert",
@@ -1538,7 +2464,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Isoflurane-Based Inhaled Sedation in Mechanically Ventilated Adults With Acute Hypoxemic Respiratory Failure",
+    "authors": [
+     "Jerath A",
+     "Slessarev M",
+     "Martin C",
+     "D’Aragon F",
+     "Carrier FM",
+     "Senaratne J",
+     "Meggison H",
+     "Hooper J",
+     "Cavayas YA",
+     "Goligher EC",
+     "Couture EJ",
+     "Randall IM"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.18471",
+    "year": 2026
+   },
+   "title": "Isoflurane-Based Inhaled Sedation in Mechanically Ventilated Adults With Acute Hypoxemic Respiratory Failure"
   },
   {
    "id": "jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki",
@@ -1571,7 +2518,28 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Intraoperative Dobutamine Plus Norepinephrine to Prevent Postoperative Acute Kidney Injury in Septic Shock",
+    "authors": [
+     "Chinese Perioperative Septic Shock Investigators for the Chinese Peri-Operative Organ Protection Group",
+     "Li C",
+     "Li H",
+     "Zhang H",
+     "Zhang X",
+     "Zhao B",
+     "Zhu S",
+     "Huang L",
+     "Ma Z",
+     "Wang Y",
+     "Wang D",
+     "Zhou R"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.21322",
+    "year": 2026
+   },
+   "title": "Intraoperative Dobutamine Plus Norepinephrine to Prevent Postoperative Acute Kidney Injury in Septic Shock"
   },
   {
    "id": "jama-2026-vasspr-vasopressin-threshold",
@@ -1603,7 +2571,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Effect of Vasopressin Initiation Threshold on Septic Shock Mortality",
+    "authors": [
+     "Peltan ID",
+     "Groat D",
+     "Jacobs JR",
+     "Tillman EH",
+     "Klippel C",
+     "Brintz BJ",
+     "Chauv S",
+     "Arizmendez N",
+     "Beesley SJ",
+     "Carr JR",
+     "Edwards JH",
+     "Hirshberg EL"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.21333",
+    "year": 2026
+   },
+   "title": "Effect of Vasopressin Initiation Threshold on Septic Shock Mortality"
   },
   {
    "id": "bja-2026-europe-cesarean-ga-9989",
@@ -1637,7 +2626,28 @@
     "The authors state the study cannot determine reasons for the differences observed or identify causal relationships"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Incidence of general anaesthesia according to urgency of surgery: a multicentre prospective cohort study of 9989 Caesarean deliveries in Europe",
+    "authors": [
+     "Weiniger CF",
+     "Lustig A",
+     "Afshari A",
+     "van den Bosch OFC",
+     "Romero CS",
+     "Hughes D",
+     "Kranke P",
+     "Berman A",
+     "Brogly N",
+     "Dewandre PY",
+     "Girard T",
+     "Guasch E"
+    ],
+    "journal": "British Journal of Anaesthesia",
+    "doi": "10.1016/j.bja.2026.08.046",
+    "year": 2026
+   },
+   "title": "Incidence of general anaesthesia according to urgency of surgery: a multicentre prospective cohort study of 9989 Caesarean deliveries in Europe"
   },
   {
    "id": "ejcts-2026-euromacs-young-hm3",
@@ -1671,7 +2681,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Long-term outcomes of contemporary durable left ventricular assist device support in younger patients: a European registry for patients with mechanical circulatory support (EUROMACS) analysis",
+    "authors": [
+     "Gallone G",
+     "Veen KM",
+     "Bernhardt AM",
+     "Caliskan K",
+     "Najjar E",
+     "Netuka I",
+     "Scandroglio AM",
+     "Spitaleri A",
+     "Sangiorgi D",
+     "Ivak P",
+     "Fiane A",
+     "Khaliel F"
+    ],
+    "journal": "European Journal of Cardio-Thoracic Surgery",
+    "doi": "10.1093/ejcts/ezag234",
+    "year": 2026
+   },
+   "title": "Long-term outcomes of contemporary durable left ventricular assist device support in younger patients: a European registry for patients with mechanical circulatory support (EUROMACS) analysis"
   },
   {
    "id": "fda-2026-impella-controller-class-i-recall",
@@ -1742,7 +2773,26 @@
     "Early termination with incomplete enrolment, loss to follow-up (161 of 210 completed) and wide confidence intervals limit precision.",
     "Clinically important differences between the techniques cannot be excluded; findings should be considered exploratory."
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Caudal versus penile block and urethrocutaneous fistula formation following hypospadias repair in children &lt;2 years: a multicenter randomized clinical trial",
+    "authors": [
+     "Taenzer A",
+     "Mandler TN",
+     "Gagliardi A",
+     "Brockel MA",
+     "Vemulakonda V",
+     "Pestieau SR",
+     "Polaner DM"
+    ],
+    "journal": "Reg Anesth Pain Med",
+    "doi": "10.1136/rapm-2026-108027",
+    "year": 2026,
+    "volume": "51",
+    "issue": "10",
+    "pages": "1112-1117"
+   },
+   "title": "Caudal versus penile block and urethrocutaneous fistula formation following hypospadias repair in children &lt;2 years: a multicenter randomized clinical trial"
   },
   {
    "id": "fda-2026-medline-reprocessed-ice-catheter-class-i-recall",
@@ -1809,7 +2859,30 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Important Residual Lesions and Early Unplanned Reinterventions After Pediatric Cardiac Surgery: A Scientific Statement From the American Heart Association",
+    "authors": [
+     "Costello JM",
+     "Mazwi ML",
+     "Riley CM",
+     "Gonzalez de Alba CE",
+     "Olivieri LJ",
+     "Rigsby CK",
+     "Hill KD",
+     "Bacha E",
+     "Newburger JW",
+     "Nathan M",
+     "on behalf of the American Heart Association Congenital Cardiac Defects Committee",
+     "Council on Lifelong Congenital Heart Disease and Heart Health in the Young"
+    ],
+    "journal": "Circulation",
+    "doi": "10.1161/CIR.0000000000001465",
+    "year": 2026,
+    "volume": "154",
+    "issue": "14"
+   },
+   "title": "Important Residual Lesions and Early Unplanned Reinterventions After Pediatric Cardiac Surgery: A Scientific Statement From the American Heart Association"
   },
   {
    "id": "lancet-healthy-longev-2026-ihope-spinal-vs-general-hip-fracture",
@@ -1846,7 +2919,31 @@
     "Substantial crossover between treatment groups"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Spinal versus general anaesthesia and serious complications in older patients undergoing hip fracture surgery in Germany: a multicentre randomised clinical trial",
+    "authors": [
+     "Kowark A",
+     "Schoenen S",
+     "Schmidt R",
+     "Zubanovic H",
+     "Elammari L",
+     "Engelhardt A",
+     "Ilies C",
+     "Keuler J",
+     "Pühringer FK",
+     "May V",
+     "Minarski C",
+     "Malisi T"
+    ],
+    "journal": "The Lancet Healthy Longevity",
+    "doi": "10.1016/j.lanhl.2026.100891",
+    "year": 2026,
+    "volume": "7",
+    "issue": "8",
+    "pages": "100891"
+   },
+   "title": "Spinal versus general anaesthesia and serious complications in older patients undergoing hip fracture surgery in Germany: a multicentre randomised clinical trial"
   },
   {
    "id": "esc26-laacs-2-surgical-laa-closure",
@@ -1914,7 +3011,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Tricuspid-Valve Intervention in Heart Failure",
+    "authors": [
+     "Hausleiter J",
+     "Stocker TJ",
+     "Geisler T",
+     "Lurz P",
+     "Rottbauer W",
+     "Lubos E",
+     "Schofer N",
+     "Frerker C",
+     "Frank J",
+     "Thiele H",
+     "Osteresch R",
+     "Rudolph V"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2606934",
+    "year": 2026,
+    "volume": "395",
+    "issue": "14",
+    "pages": "1363-1373"
+   },
+   "title": "Tricuspid-Valve Intervention in Heart Failure"
   },
   {
    "id": "nejm-2026-tavi-pci-sequencing",
@@ -1946,7 +3067,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Timing of PCI in Patients Undergoing Transcatheter Aortic-Valve Implantation",
+    "authors": [
+     "Stähli BE",
+     "Ruschitzka F",
+     "Westermann D",
+     "Linke A",
+     "Mangner N",
+     "Van Mieghem NM",
+     "Kesterke R",
+     "Oberholzer L",
+     "Rothe J",
+     "von zur Mühlen C",
+     "Zeus T",
+     "Kim WK"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2606924",
+    "year": 2026
+   },
+   "title": "Timing of PCI in Patients Undergoing Transcatheter Aortic-Valve Implantation"
   },
   {
    "id": "esc26-popular-ace-tavi-protamine",
@@ -2013,7 +3155,31 @@
    "firstAuthor": "Kober",
    "authorLimitations": [],
    "authorBasis": "",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "2026 ESC Guidelines for the management of heart failure",
+    "authors": [
+     "Køber L",
+     "Adamo M",
+     "Ruwald AC",
+     "Tomasoni D",
+     "Anderson LJ",
+     "Andersson C",
+     "Brugts JJ",
+     "Chioncel O",
+     "Donal E",
+     "Ferdinandy P",
+     "Jhund PS",
+     "Leyva F"
+    ],
+    "journal": "European Heart Journal",
+    "doi": "10.1093/eurheartj/ehag100",
+    "year": 2026,
+    "volume": "47",
+    "issue": "38",
+    "pages": "5346-5457"
+   },
+   "title": "2026 ESC Guidelines for the management of heart failure"
   },
   {
    "id": "ehj-2026-fifth-universal-definition-mi",
@@ -2047,7 +3213,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "summary page",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Fifth Universal Definition of Myocardial Infarction (2026)",
+    "authors": [
+     "Mills NL",
+     "Newby LK",
+     "Zaman S",
+     "Almahmeed WA",
+     "Bucciarelli-Ducci C",
+     "Colvin MM",
+     "Dangas GD",
+     "DeVon HA",
+     "Dharmakumar R",
+     "Gaziano TA",
+     "Hausenloy DJ",
+     "Jeilan M"
+    ],
+    "journal": "European Heart Journal",
+    "doi": "10.1093/eurheartj/ehag101",
+    "year": 2026,
+    "volume": "47",
+    "issue": "40",
+    "pages": "5911-5958"
+   },
+   "title": "Fifth Universal Definition of Myocardial Infarction (2026)"
   },
   {
    "id": "jama-2026-chips-cold-stored-platelets",
@@ -2081,7 +3271,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Cold and Room-Temperature Platelets in Cardiac Surgery",
+    "authors": [
+     "Spinella PC",
+     "Zantek ND",
+     "VanBuren JM",
+     "Nicolson SC",
+     "Khanna AK",
+     "Klompas AM",
+     "Boisen ML",
+     "Williams TM",
+     "Monteleone M",
+     "Bashir DA",
+     "Pavey W",
+     "Smith BB"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.13328",
+    "year": 2026,
+    "volume": "336",
+    "issue": "14",
+    "pages": "1216"
+   },
+   "title": "Cold and Room-Temperature Platelets in Cardiac Surgery"
   },
   {
    "id": "jtcvs-2026-nrp-vs-dpp-dcd-heart",
@@ -2115,7 +3329,22 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Pick your perfusion: National outcomes of normothermic regional perfusion versus direct procurement and perfusion in donation after circulatory death cardiac transplants",
+    "authors": [
+     "Shou BL",
+     "Goerlich CE",
+     "Zhou AL",
+     "Ruaengsri C",
+     "Shudo Y",
+     "Hiesinger W"
+    ],
+    "journal": "The Journal of Thoracic and Cardiovascular Surgery",
+    "doi": "10.1016/j.jtcvs.2026.08.001",
+    "year": 2026
+   },
+   "title": "Pick your perfusion: National outcomes of normothermic regional perfusion versus direct procurement and perfusion in donation after circulatory death cardiac transplants"
   },
   {
    "id": "circ-2026-aha-pediatric-cardiogenic-shock-statement",
@@ -2149,7 +3378,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Surviving Pediatric Cardiogenic Shock: Clinical Approach, Improving Outcomes, and Future Directions: A Scientific Statement From the American Heart Association",
+    "authors": [
+     "Puri K",
+     "Allen K",
+     "Jentzer J",
+     "Soderstrom R",
+     "Lorts A",
+     "Schumacher K",
+     "Barnes S",
+     "Greene CL",
+     "Jeewa A",
+     "on behalf of the American Heart Association’s Young Hearts Pediatric and Congenital Critical Care Cardiology Committee of the Council on Lifelong Congenital Heart Disease and Heart Health in the Young"
+    ],
+    "journal": "Circulation",
+    "doi": "10.1161/CIR.0000000000001461",
+    "year": 2026,
+    "volume": "154",
+    "issue": "10"
+   },
+   "title": "Surviving Pediatric Cardiogenic Shock: Clinical Approach, Improving Outcomes, and Future Directions: A Scientific Statement From the American Heart Association"
   },
   {
    "id": "jama-2026-icecap-hypothermia-duration",
@@ -2182,7 +3432,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Duration of Therapeutic Hypothermia After Out-of-Hospital Cardiac Arrest",
+    "authors": [
+     "Meurer WJ",
+     "Yeatts SD",
+     "Geocadin RG",
+     "Roy A",
+     "Callaway CW",
+     "Ramakrishnan V",
+     "Berry SM",
+     "Caveney AF",
+     "Meyer S",
+     "Bozeman N",
+     "Harney DM",
+     "Speers M"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.10247",
+    "year": 2026,
+    "volume": "336",
+    "issue": "10",
+    "pages": "857"
+   },
+   "title": "Duration of Therapeutic Hypothermia After Out-of-Hospital Cardiac Arrest"
   },
   {
    "id": "jamano-2026-covalent-videolaryngoscopy",
@@ -2215,7 +3489,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Conventional vs Video-Assisted Laryngoscopy for Perioperative Endotracheal Intubations",
+    "authors": [
+     "Schmid B",
+     "Grüßer L",
+     "Müller L",
+     "Wittmann M",
+     "Delis A",
+     "Dinc Dogan T",
+     "Werdehausen R",
+     "Neuhaus C",
+     "Paal P",
+     "Claassen C",
+     "Helmer P",
+     "Fischer P"
+    ],
+    "journal": "JAMA Netw Open",
+    "doi": "10.1001/jamanetworkopen.2026.25965",
+    "year": 2026,
+    "volume": "9",
+    "issue": "8",
+    "pages": "e2625965"
+   },
+   "title": "Conventional vs Video-Assisted Laryngoscopy for Perioperative Endotracheal Intubations"
   },
   {
    "id": "jama-2026-dapagliflozin-cardiac-surgery-aki",
@@ -2249,7 +3547,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Dapagliflozin and Acute Kidney Injury Following Cardiac Surgery",
+    "authors": [
+     "Oosterom-Eijmael MJP",
+     "Hulst AH",
+     "de Oliveira NPM",
+     "Niesten ED",
+     "Wietsma NE",
+     "Gerritse BM",
+     "Scohy TV",
+     "Rettig TCD",
+     "Snellen FTF",
+     "Voogd MF",
+     "Godfried MB",
+     "de Boer RN"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.9268",
+    "year": 2026,
+    "volume": "336",
+    "issue": "9",
+    "pages": "765"
+   },
+   "title": "Dapagliflozin and Acute Kidney Injury Following Cardiac Surgery"
   },
   {
    "id": "fda-2026-ezplaz-freeze-dried-plasma",
@@ -2321,7 +3643,25 @@
     "Included trials often treated repeated pain scores as independent, inflating type 1 error with small samples; significant results often fell short of clinical relevance"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "PROSPECT guideline for total hip arthroplasty: updated systematic review and procedure‐specific postoperative pain management recommendations",
+    "authors": [
+     "Carella M",
+     "Bugada D",
+     "Van de Velde M",
+     "Beloeil H",
+     "Albrecht E",
+     "Lavandhomme P",
+     "Raeder J",
+     "Joshi GP",
+     "the PROSPECT Working Group of the European Society of Regional Anesthesia and Pain Therapy"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70299",
+    "year": 2026
+   },
+   "title": "PROSPECT guideline for total hip arthroplasty: updated systematic review and procedure‐specific postoperative pain management recommendations"
   },
   {
    "id": "anaesthesia-2026-remimazolam-vs-propofol-delirium-lung-resection",
@@ -2354,7 +3694,27 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Remimazolam vs. propofol anaesthesia for delirium in older patients recovering from lung resections: a randomised non‐inferiority trial",
+    "authors": [
+     "Wang W",
+     "Zhang F",
+     "Ge Y",
+     "Zhang Y",
+     "Sessler DI",
+     "Wu J",
+     "Mu D",
+     "Qiu Y"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70290",
+    "year": 2026,
+    "volume": "81",
+    "issue": "11",
+    "pages": "1526-1534"
+   },
+   "title": "Remimazolam vs. propofol anaesthesia for delirium in older patients recovering from lung resections: a randomised non‐inferiority trial"
   },
   {
    "id": "nbe-2026-ieexam-interventional-echo-certification",
@@ -2420,7 +3780,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Noninvasive respiratory support for adult patients with acute respiratory failure: an official American Thoracic Society Clinical Practice Guideline",
+    "authors": [
+     "Goel NN",
+     "Ferreyro BL",
+     "Pitre T",
+     "Lewis K",
+     "Homer-Bouthiette C",
+     "Angriman F",
+     "Kawano Dourado L",
+     "Drake MG",
+     "Eaton TL",
+     "Esbrook CL",
+     "Frat JP",
+     "Grieco DL"
+    ],
+    "journal": "American Journal of Respiratory and Critical Care Medicine",
+    "doi": "10.1093/ajrccm/aamag302",
+    "year": 2026,
+    "volume": "212",
+    "issue": "9",
+    "pages": "2135-2158"
+   },
+   "title": "Noninvasive respiratory support for adult patients with acute respiratory failure: an official American Thoracic Society Clinical Practice Guideline"
   },
   {
    "id": "nyv-2026-early-tavr-5yr",
@@ -2491,7 +3875,26 @@
    "authorLimitations": [
     "NRP and back-to-base NMP were identified with surrogate markers in UNOS data; only on-site NMP was directly captured"
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Normothermic Machine and Regional Perfusion in US DCD Liver Transplantation",
+    "authors": [
+     "Acuna SA",
+     "Dayala H",
+     "Jones-Carr ME",
+     "MacLennan P",
+     "McLeod MC",
+     "Eckhoff DE",
+     "Cannon RM"
+    ],
+    "journal": "Annals of Surgery",
+    "doi": "10.1097/SLA.0000000000007120",
+    "year": 2026,
+    "volume": "284",
+    "issue": "3",
+    "pages": "481-491"
+   },
+   "title": "Normothermic Machine and Regional Perfusion in US DCD Liver Transplantation"
   },
   {
    "id": "nejm-2026-soda-bic",
@@ -2523,7 +3926,20 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Sodium Bicarbonate for Critically Ill Adults with Metabolic Acidosis and Shock",
+    "authors": [
+     "The SODa-BIC Investigators and the Australian and New Zealand Intensive Care Society Clinical Trials Group"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2600526",
+    "year": 2026,
+    "volume": "395",
+    "issue": "11",
+    "pages": "1062-1074"
+   },
+   "title": "Sodium Bicarbonate for Critically Ill Adults with Metabolic Acidosis and Shock"
   },
   {
    "id": "nejm-2026-arise-fluids",
@@ -2555,7 +3971,20 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Vasopressors or Fluids in Early Septic Shock",
+    "authors": [
+     "The ARISE FLUIDS Investigators, the ANZICS Clinical Trials Group, and the ACEM Clinical Trials Network"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2516225",
+    "year": 2026,
+    "volume": "395",
+    "issue": "14",
+    "pages": "1387-1398"
+   },
+   "title": "Vasopressors or Fluids in Early Septic Shock"
   },
   {
    "id": "jama-2026-bicarbonate-in-hospital-arrest",
@@ -2588,7 +4017,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Sodium Bicarbonate for In-Hospital Cardiac Arrest",
+    "authors": [
+     "Granfeldt A",
+     "Kirkegaard BL",
+     "Vallentin MF",
+     "Holmberg MJ",
+     "Stankovic N",
+     "Lind PC",
+     "Kjærgaard AG",
+     "Houe N",
+     "Vested M",
+     "Isbye DL",
+     "Kristensen CM",
+     "Kjærgaard J"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.10628",
+    "year": 2026,
+    "volume": "336",
+    "issue": "8",
+    "pages": "647"
+   },
+   "title": "Sodium Bicarbonate for In-Hospital Cardiac Arrest"
   },
   {
    "id": "nejm-2026-logical-oxygen-after-arrest",
@@ -2621,7 +4074,20 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Conservative Oxygen for Unresponsive Patients after Cardiac Arrest",
+    "authors": [
+     "The LOGICAL Investigators and the Australian and New Zealand Intensive Care Society Clinical Trials Group"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2513814",
+    "year": 2026,
+    "volume": "395",
+    "issue": "6",
+    "pages": "571-581"
+   },
+   "title": "Conservative Oxygen for Unresponsive Patients after Cardiac Arrest"
   },
   {
    "id": "nejm-2026-march-mucoactives",
@@ -2653,7 +4119,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Carbocisteine or Hypertonic Saline for Acute Respiratory Failure",
+    "authors": [
+     "Connolly B",
+     "Dickson N",
+     "Campbell C",
+     "Bradley JM",
+     "O’Neill B",
+     "Agus A",
+     "Barker M",
+     "Bewley JS",
+     "Blackwood B",
+     "Borthwick M",
+     "Camporota L",
+     "Chikhani M"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2603406",
+    "year": 2026,
+    "volume": "395",
+    "issue": "8",
+    "pages": "739-752"
+   },
+   "title": "Carbocisteine or Hypertonic Saline for Acute Respiratory Failure"
   },
   {
    "id": "lancet-resp-med-2026-snapp-sugammadex-neostigmine",
@@ -2686,7 +4176,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Sugammadex versus neostigmine for reversal of neuromuscular blockade and postoperative pulmonary complications (SNaPP): an international, randomised, controlled, phase 4 trial",
+    "authors": [
+     "Leslie K",
+     "Darvall JN",
+     "Chan MTV",
+     "Peyton PJ",
+     "Myles PS",
+     "Corcoran TB",
+     "Short TG",
+     "Olesnicky BL",
+     "Webb AR",
+     "Devlin N",
+     "Tran-Duy A",
+     "Maxwell-Wright H"
+    ],
+    "journal": "The Lancet Respiratory Medicine",
+    "doi": "10.1016/S2213-2600(26)00158-X",
+    "year": 2026,
+    "volume": "14",
+    "issue": "9",
+    "pages": "761-774"
+   },
+   "title": "Sugammadex versus neostigmine for reversal of neuromuscular blockade and postoperative pulmonary complications (SNaPP): an international, randomised, controlled, phase 4 trial"
   },
   {
    "id": "fda-2026-echonext-ai-ecg-structural-heart-disease",
@@ -2756,7 +4270,31 @@
    "authorLimitations": [
     "Evidence on 30-day major cardiovascular events, stroke and length of stay was insufficient to draw firm conclusions"
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Higher versus Routine Intraoperative Blood Pressure Targets in Noncardiac Surgery: A Systematic Review and Meta-analysis with Trial Sequential Analysis of Randomized Trials",
+    "authors": [
+     "Chiou K",
+     "Vikram S",
+     "Rowshan K",
+     "Shah S",
+     "Modha D",
+     "Engelman E",
+     "Guthrie D",
+     "Tiwari A",
+     "Rinehart J",
+     "Joosten A",
+     "Saugel B",
+     "Coeckelenbergh S"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000006190",
+    "year": 2026,
+    "volume": "145",
+    "issue": "4",
+    "pages": "872-888"
+   },
+   "title": "Higher versus Routine Intraoperative Blood Pressure Targets in Noncardiac Surgery: A Systematic Review and Meta-analysis with Trial Sequential Analysis of Randomized Trials"
   },
   {
    "id": "jase-2026-ase-mteer-intraprocedural-imaging-guideline",
@@ -2789,7 +4327,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Guidelines for the Intraprocedural Imaging for Mitral Valve Transcatheter Edge-to-Edge Repair (M-TEER): Recommendations from the American Society of Echocardiography",
+    "authors": [
+     "Little SH",
+     "Quader N",
+     "Brady M",
+     "Dillenbeck A",
+     "Garcia-Sayan E",
+     "Jain R",
+     "Mackensen GB",
+     "Price MJ",
+     "Saric M",
+     "Scalia GM",
+     "Wang DD",
+     "Hahn RT"
+    ],
+    "journal": "Journal of the American Society of Echocardiography",
+    "doi": "10.1016/j.echo.2026.03.003",
+    "year": 2026,
+    "volume": "39",
+    "issue": "6",
+    "pages": "529-550"
+   },
+   "title": "Guidelines for the Intraprocedural Imaging for Mitral Valve Transcatheter Edge-to-Edge Repair (M-TEER): Recommendations from the American Society of Echocardiography"
   },
   {
    "id": "ats-2026-sts-pedimacs-ninth-report",
@@ -2822,7 +4384,31 @@
     "Survival on device 77% at 6 months and 73% at 1 year, improving across eras; best in adolescents and cardiomyopathy.",
     "CHD is 28% of implants and 61% of those are single-ventricle, the group with the worst transplant and survival rates.",
     "Biventricular support means sicker children and significantly lower survival than LVAD alone."
-   ]
+   ],
+   "citation": {
+    "title": "The Ninth Annual STS-Pedimacs Report: Pediatric Ventricular Assist Device Outcomes and the Expanding Role of Biventricular Support",
+    "authors": [
+     "Amdani S",
+     "Peng DM",
+     "Edelson JB",
+     "Greiner E",
+     "Bleiweis MS",
+     "Mehegan M",
+     "Morales DLS",
+     "Rossano J",
+     "Adachi I",
+     "Kirklin JK",
+     "Koehl D",
+     "Cantor R"
+    ],
+    "journal": "The Annals of Thoracic Surgery",
+    "doi": "10.1016/j.athoracsur.2026.05.023",
+    "year": 2026,
+    "volume": "122",
+    "issue": "4",
+    "pages": "895-907"
+   },
+   "title": "The Ninth Annual STS-Pedimacs Report: Pediatric Ventricular Assist Device Outcomes and the Expanding Role of Biventricular Support"
   },
   {
    "id": "jamanetwopen-2026-cnoc-neurodevelopment-chd",
@@ -2855,7 +4441,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Early Neurodevelopmental Outcomes in Children With Congenital Heart Disease",
+    "authors": [
+     "Seed M",
+     "Ilardi D",
+     "Rofeberg V",
+     "Ortinau C",
+     "Goldberg C",
+     "Reichle G",
+     "Bush L",
+     "Elhoff J",
+     "Lisanti AJ",
+     "Butcher J",
+     "Rollins C",
+     "Van Bergen A"
+    ],
+    "journal": "JAMA Netw Open",
+    "doi": "10.1001/jamanetworkopen.2026.15885",
+    "year": 2026,
+    "volume": "9",
+    "issue": "6",
+    "pages": "e2615885"
+   },
+   "title": "Early Neurodevelopmental Outcomes in Children With Congenital Heart Disease"
   },
   {
    "id": "lancet-reg-health-am-2026-epoch-cardiolink-10-parasternal-block",
@@ -2890,7 +4500,30 @@
    "authorLimitations": [
     "There was no pre-specified analysis of adverse events"
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Superficial parasternal intercostal plane block with ropivacaine versus placebo for opioid exposure after cardiac surgery (EPOCH CardioLink-10): a multicentre, double-blind, randomised trial",
+    "authors": [
+     "Alli A",
+     "Mazer CD",
+     "Dennis F",
+     "Teoh H",
+     "Chin K",
+     "Quan A",
+     "Hassan SMA",
+     "Szarek M",
+     "Tran JD",
+     "Dhingra NK",
+     "Ghiringhelli JP",
+     "de Vasconcelos Papa F"
+    ],
+    "journal": "The Lancet Regional Health - Americas",
+    "doi": "10.1016/j.lana.2026.101508",
+    "year": 2026,
+    "volume": "60",
+    "pages": "101508"
+   },
+   "title": "Superficial parasternal intercostal plane block with ropivacaine versus placebo for opioid exposure after cardiac surgery (EPOCH CardioLink-10): a multicentre, double-blind, randomised trial"
   },
   {
    "id": "jamasurg-2026-bridge-to-hope-hope-liver",
@@ -2927,7 +4560,31 @@
     "Outcomes beyond one year unavailable; static cold storage comparator reflects historical practice, so comparisons with other perfusion methods are still needed"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Portal-Venous Hypothermic Oxygenated Perfusion for Liver Transplant",
+    "authors": [
+     "Reich DJ",
+     "Mao S",
+     "Satish S",
+     "Nassar A",
+     "Rizzari M",
+     "Al-Adra DP",
+     "DiNorcia J",
+     "Woloszyn J",
+     "Doyle MBM",
+     "Bohorquez H",
+     "Mihaylov P",
+     "Saharia A"
+    ],
+    "journal": "JAMA Surg",
+    "doi": "10.1001/jamasurg.2026.1604",
+    "year": 2026,
+    "volume": "161",
+    "issue": "7",
+    "pages": "691"
+   },
+   "title": "Portal-Venous Hypothermic Oxygenated Perfusion for Liver Transplant"
   },
   {
    "id": "anesthesiology-2026-ofacar-opioid-free-cardiac-surgery",
@@ -2963,7 +4620,26 @@
    "authorLimitations": [
     "Fragility index of 1 for the primary outcome; authors consider the results hypothesis-generating and requiring confirmation in larger trials."
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Opioid-free Anesthesia in Cardiac Surgery: The OFACAR Randomized Clinical Trial",
+    "authors": [
+     "Guinot PG",
+     "Besch G",
+     "Jonval L",
+     "Nguyen M",
+     "Grelet T",
+     "Bouhemad B",
+     "for the OFACAR study group"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000006164",
+    "year": 2026,
+    "volume": "145",
+    "issue": "3",
+    "pages": "557-568"
+   },
+   "title": "Opioid-free Anesthesia in Cardiac Surgery: The OFACAR Randomized Clinical Trial"
   },
   {
    "id": "nejm-2026-towar-whole-blood",
@@ -3001,7 +4677,31 @@
     "Coagulation and platelet measurements limited by missingness and spectrum bias; analyses could be limited by unmeasured or unknown confounders."
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Prehospital Resuscitation with Type O Whole Blood for Trauma and Hemorrhage",
+    "authors": [
+     "Sperry JL",
+     "Guyette FX",
+     "Cotton BA",
+     "Luther JF",
+     "Utarnachitt RB",
+     "Kutcher ME",
+     "Daley BJ",
+     "Peetz AB",
+     "Patel MB",
+     "Goodman MD",
+     "Claridge JA",
+     "Patel N"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2602167",
+    "year": 2026,
+    "volume": "394",
+    "issue": "23",
+    "pages": "2317-2328"
+   },
+   "title": "Prehospital Resuscitation with Type O Whole Blood for Trauma and Hemorrhage"
   },
   {
    "id": "jacepopen-2026-patch-trauma-24-month",
@@ -3038,7 +4738,31 @@
     "Ongoing improvement in participants with severe disability at 6 months could affect interpretation of the PATCH-Trauma results.",
     "Victorian cohort all transported by helicopter EMS with long prehospital times; results cannot be readily translated to shorter prehospital times."
    ],
-   "authorBasis": "full text"
+   "authorBasis": "full text",
+   "citation": {
+    "title": "Long-Term Outcomes of Trauma Patients After Treatment With Prehospital Tranexamic Acid: A Subgroup Analysis From the PATCH-Trauma Trial",
+    "authors": [
+     "Mitra B",
+     "MacKenzie S",
+     "Bourke EM",
+     "Aldous R",
+     "Grant A",
+     "Bernard S",
+     "Gantner D",
+     "Read DJ",
+     "Reade MC",
+     "Trapani T",
+     "Myles PS",
+     "Cameron PA"
+    ],
+    "journal": "JACEP Open",
+    "doi": "10.1016/j.acepjo.2026.100417",
+    "year": 2026,
+    "volume": "7",
+    "issue": "4",
+    "pages": "100417"
+   },
+   "title": "Long-Term Outcomes of Trauma Patients After Treatment With Prehospital Tranexamic Acid: A Subgroup Analysis From the PATCH-Trauma Trial"
   },
   {
    "id": "jacc-2026-excor-active-driver-pediatric-vad",
@@ -3071,7 +4795,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Prospective Multicenter Evaluation of a Novel Active Driving System for Pediatric Ventricular Assist Device Support",
+    "authors": [
+     "Edelson JB",
+     "O’Connor MJ",
+     "Shezad M",
+     "Duganiero T",
+     "Auerbach SR",
+     "Bleiweis M",
+     "Dykes JC",
+     "Joong A",
+     "Khan S",
+     "Law S",
+     "Mokshagundam D",
+     "Ploutz M"
+    ],
+    "journal": "JACC",
+    "doi": "10.1016/j.jacc.2026.03.080",
+    "year": 2026,
+    "volume": "87",
+    "issue": "22",
+    "pages": "3171-3182"
+   },
+   "title": "Prospective Multicenter Evaluation of a Novel Active Driving System for Pediatric Ventricular Assist Device Support"
   },
   {
    "id": "jtcvs-2026-aats-antithrombotic-neonates-infants-consensus",
@@ -3106,7 +4854,31 @@
     "Neonatal hemostasis is developmentally different; testing and therapy are framed around that.",
     "Covers heparin, direct thrombin inhibitors and antiplatelet agents, their monitoring, and device-specific regimens.",
     "Pre-, intra- and post-procedural guidance in one place: align your bypass and shunt protocols to it."
-   ]
+   ],
+   "citation": {
+    "title": "2026 American Association for Thoracic Surgery (AATS) expert consensus statement: Antithrombotic management of neonates/infants undergoing cardiac interventions",
+    "authors": [
+     "Nathan M",
+     "Kiskaddon AL",
+     "Emani S",
+     "Bigelow AM",
+     "Callahan RM",
+     "Cleveland JD",
+     "Federman M",
+     "Ma M",
+     "McMullan DM",
+     "Mir A",
+     "Branstetter J",
+     "VanderPluym C"
+    ],
+    "journal": "The Journal of Thoracic and Cardiovascular Surgery",
+    "doi": "10.1016/j.jtcvs.2026.03.617",
+    "year": 2026,
+    "volume": "172",
+    "issue": "3",
+    "pages": "618-662.e7"
+   },
+   "title": "2026 American Association for Thoracic Surgery (AATS) expert consensus statement: Antithrombotic management of neonates/infants undergoing cardiac interventions"
   },
   {
    "id": "jase-2026-ase-cardiac-ultrasound-artifacts-guideline",
@@ -3135,7 +4907,31 @@
    "firstAuthor": "Saric",
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "Recommendations for the Identification and Mitigation of Cardiac Ultrasound Artifacts: A Guideline from the American Society of Echocardiography",
+    "authors": [
+     "Saric M",
+     "Sadeghpour A",
+     "Alizadeh L",
+     "Alizadehasl A",
+     "Bertrand PB",
+     "Billick K",
+     "Chebrolu B",
+     "Faletra F",
+     "Kelsey A",
+     "Lang R",
+     "Levine RA",
+     "Pourafkari L"
+    ],
+    "journal": "Journal of the American Society of Echocardiography",
+    "doi": "10.1016/j.echo.2026.01.007",
+    "year": 2026,
+    "volume": "39",
+    "issue": "5",
+    "pages": "435-475"
+   },
+   "title": "Recommendations for the Identification and Mitigation of Cardiac Ultrasound Artifacts: A Guideline from the American Society of Echocardiography"
   },
   {
    "id": "nejm-2026-prompt-bolus-balanced-vs-saline-children",
@@ -3168,7 +4964,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Balanced Fluid or 0.9% Saline in Children Treated for Septic Shock",
+    "authors": [
+     "Balamuth F",
+     "Weiss SL",
+     "Long E",
+     "Thompson GC",
+     "Artis AS",
+     "Campos AB",
+     "Borland ML",
+     "Dalziel SR",
+     "Yock-Corrales A",
+     "Singh R",
+     "Williams A",
+     "Mickiewicz B"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2601969",
+    "year": 2026,
+    "volume": "395",
+    "issue": "9",
+    "pages": "870-881"
+   },
+   "title": "Balanced Fluid or 0.9% Saline in Children Treated for Septic Shock"
   },
   {
    "id": "ats-2026-sts-poaf-guideline",
@@ -3205,7 +5025,31 @@
     "Intraoperative methods are still evolving, and treatments carry side effects, so individualized risk assessment remains necessary"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "The Society of Thoracic Surgeons 2026 Clinical Practice Guidelines for the Prevention and Treatment of New-Onset Postoperative Atrial Fibrillation After Cardiac Surgery",
+    "authors": [
+     "Chatterjee S",
+     "Grant MC",
+     "Hui DS",
+     "Schwann TA",
+     "Alexander JH",
+     "Gaudino MFL",
+     "Mack CA",
+     "Malaisrie SC",
+     "Merritt H",
+     "Sood P",
+     "Wyler von Ballmoos M",
+     "Schena S"
+    ],
+    "journal": "The Annals of Thoracic Surgery",
+    "doi": "10.1016/j.athoracsur.2026.04.002",
+    "year": 2026,
+    "volume": "122",
+    "issue": "2",
+    "pages": "255-277"
+   },
+   "title": "The Society of Thoracic Surgeons 2026 Clinical Practice Guidelines for the Prevention and Treatment of New-Onset Postoperative Atrial Fibrillation After Cardiac Surgery"
   },
   {
    "id": "anaesthesia-2026-sterile-gowns-single-shot-spinal-consensus",
@@ -3238,7 +5082,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Use of sterile gowns for single‐shot spinal anaesthesia: consensus guidelines from the Association of Anaesthetists, Royal College of Anaesthetists, Obstetric Anaesthetists' Association, Regional Anaesthesia UK , College of Anaesthesiologists of Ireland and Australian and New Zealand College of Anaesthetists",
+    "authors": [
+     "Phillips C",
+     "Bahra M",
+     "Metodiev Y",
+     "Bamber JH",
+     "Cróinín DÓ",
+     "Fang L",
+     "Brooks L",
+     "Jóhannsson H",
+     "Haslam N",
+     "Shrivathsa A",
+     "Southall P",
+     "Shelton C"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70212",
+    "year": 2026,
+    "volume": "81",
+    "issue": "9",
+    "pages": "1257-1268"
+   },
+   "title": "Use of sterile gowns for single‐shot spinal anaesthesia: consensus guidelines from the Association of Anaesthetists, Royal College of Anaesthetists, Obstetric Anaesthetists' Association, Regional Anaesthesia UK , College of Anaesthesiologists of Ireland and Australian and New Zealand College of Anaesthetists"
   },
   {
    "id": "acc26-2026-triscend-ii-two-year",
@@ -3306,7 +5174,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Intraoperative Hemodynamic Management during Liver Transplantation and Postoperative Morbidity: A Multicenter Cohort Study",
+    "authors": [
+     "Carrier FM",
+     "Ferreira Guerra S",
+     "Soucy-Proulx M",
+     "Joosten A",
+     "McCluskey S",
+     "Luzzi C",
+     "Ghai P",
+     "Papamihali K",
+     "Karvellas C",
+     "Larbi S",
+     "Sitbon A",
+     "Monsel A"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000006071",
+    "year": 2026,
+    "volume": "145",
+    "issue": "2",
+    "pages": "300-312"
+   },
+   "title": "Intraoperative Hemodynamic Management during Liver Transplantation and Postoperative Morbidity: A Multicenter Cohort Study"
   },
   {
    "id": "acc26-surviv-mitral-viv-vs-redo-surgery",
@@ -3378,7 +5270,31 @@
     "Infarct size about 1% smaller with unloading, not significant; no difference in heart-failure events.",
     "BARC 3 to 5 bleeding 30.4%, all access-site; door-to-PCI 40 minutes longer, ischemic time 47 minutes longer.",
     "Impella remains a shock device; shock patients were excluded, so DanGer Shock still stands."
-   ]
+   ],
+   "citation": {
+    "title": "Left Ventricular Unloading in Anterior ST-Segment Elevation Myocardial Infarction Without Shock",
+    "authors": [
+     "Kapur NK",
+     "Mangner N",
+     "Aghili N",
+     "Faraz H",
+     "McElwee S",
+     "Nazir R",
+     "Chieffo A",
+     "Jolly S",
+     "Bieniarz M",
+     "Cuculi F",
+     "George Z",
+     "Katopodis J"
+    ],
+    "journal": "JACC",
+    "doi": "10.1016/j.jacc.2026.03.071",
+    "year": 2026,
+    "volume": "88",
+    "issue": "1",
+    "pages": "76-90"
+   },
+   "title": "Left Ventricular Unloading in Anterior ST-Segment Elevation Myocardial Infarction Without Shock"
   },
   {
    "id": "aln-2026-postanesthesia-apnea-preterm-ipd-meta",
@@ -3411,7 +5327,30 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Postanesthesia Apnea in Former Preterm Infants for Inguinal Herniorrhaphy: An Update of Risk Factors from an Individual Participant Data Meta-analysis",
+    "authors": [
+     "Dalal PG",
+     "Coté CJ",
+     "Malviya S",
+     "Qiu T",
+     "McCann ME",
+     "Davidson A",
+     "Sale S",
+     "Bong CL",
+     "Brown K",
+     "Chinchilli VM",
+     "for the Society for Pediatric Anesthesia Quality and Safety Committee–Apnea Task Force Collaborative Group"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005964",
+    "year": 2026,
+    "volume": "144",
+    "issue": "6",
+    "pages": "1442-1453"
+   },
+   "title": "Postanesthesia Apnea in Former Preterm Infants for Inguinal Herniorrhaphy: An Update of Risk Factors from an Individual Participant Data Meta-analysis"
   },
   {
    "id": "fda-2026-ai-aortic-stenosis-detection-autoas-cardiovision",
@@ -3476,7 +5415,31 @@
     "Certainty of evidence is often low or very low"
    ],
    "authorBasis": "summary page",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Surviving Sepsis Campaign: international guidelines for management of sepsis and septic shock 2026",
+    "authors": [
+     "Prescott HC",
+     "Antonelli M",
+     "Alhazzani W",
+     "Møller MH",
+     "Alshamsi F",
+     "Azevedo LCP",
+     "Belley-Cote E",
+     "De Waele J",
+     "Derde L",
+     "Dionne JC",
+     "Evans L",
+     "Gershengorn HB"
+    ],
+    "journal": "Intensive Care Med",
+    "doi": "10.1007/s00134-026-08361-1",
+    "year": 2026,
+    "volume": "52",
+    "issue": "5",
+    "pages": "863-936"
+   },
+   "title": "Surviving Sepsis Campaign: international guidelines for management of sepsis and septic shock 2026"
   },
   {
    "id": "nejm-2026-swift-prehospital-whole-blood",
@@ -3514,7 +5477,31 @@
     "Injury data came from the TARN database, and a 2023 cyber-attack on it caused missing data.",
     "Authors suggest the whole-blood dose (up to two units) may have been too small to show an effect."
    ],
-   "authorBasis": "full text"
+   "authorBasis": "full text",
+   "citation": {
+    "title": "Prehospital Whole Blood in Traumatic Hemorrhage — A Randomized Controlled Trial",
+    "authors": [
+     "Smith JE",
+     "Cardigan R",
+     "Sanderson E",
+     "Silsby L",
+     "Rourke C",
+     "Barnard EBG",
+     "Basham P",
+     "Antonacci G",
+     "Charlewood R",
+     "Dallas N",
+     "Davies J",
+     "Goodwin E"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2516043",
+    "year": 2026,
+    "volume": "394",
+    "issue": "23",
+    "pages": "2305-2316"
+   },
+   "title": "Prehospital Whole Blood in Traumatic Hemorrhage — A Randomized Controlled Trial"
   },
   {
    "id": "nejm-2026-soho-high-flow-oxygen",
@@ -3546,7 +5533,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "High-Flow or Standard Oxygen in Acute Hypoxemic Respiratory Failure",
+    "authors": [
+     "Frat JP",
+     "Quenot JP",
+     "Guitton C",
+     "Coudroy R",
+     "Gacouin A",
+     "Badie J",
+     "Demoule A",
+     "Contou D",
+     "Carteaux G",
+     "Ehrmann S",
+     "Jarousseau F",
+     "Sedillot N"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2516087",
+    "year": 2026,
+    "volume": "394",
+    "issue": "21",
+    "pages": "2095-2106"
+   },
+   "title": "High-Flow or Standard Oxygen in Acute Hypoxemic Respiratory Failure"
   },
   {
    "id": "jacc-2026-harada-ase-diastolic-algorithm-misses-hfpef",
@@ -3580,7 +5591,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Echocardiographic Diastolic Function Grading in HFpEF",
+    "authors": [
+     "Harada T",
+     "Sorimachi H",
+     "Obokata M",
+     "Naser JA",
+     "Ibe T",
+     "Tada A",
+     "Doi S",
+     "Kazui S",
+     "Murakami T",
+     "Kagami K",
+     "Reddy YNV",
+     "Miranda WR"
+    ],
+    "journal": "JACC",
+    "doi": "10.1016/j.jacc.2025.11.024",
+    "year": 2026,
+    "volume": "87",
+    "issue": "10",
+    "pages": "1261-1275"
+   },
+   "title": "Echocardiographic Diastolic Function Grading in HFpEF"
   },
   {
    "id": "jhlt-2026-ishlt-egd-pgd-consensus",
@@ -3615,7 +5650,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Summary of the International Society for Heart and Lung Transplantation (ISHLT) Consensus Conference on Graft Dysfunction within the First 72 hours after Heart Transplantation: A 10-year Update",
+    "authors": [
+     "Kobashigawa J",
+     "Zuckermann A",
+     "Potena L",
+     "Ardehali A",
+     "Berman M",
+     "Chang PP",
+     "Esmailian F",
+     "Farr M",
+     "Hall S",
+     "Hsich E",
+     "Khush K",
+     "Kittleson M"
+    ],
+    "journal": "The Journal of Heart and Lung Transplantation",
+    "doi": "10.1016/j.healun.2025.12.029",
+    "year": 2026,
+    "volume": "45",
+    "issue": "5",
+    "pages": "e149-e171"
+   },
+   "title": "Summary of the International Society for Heart and Lung Transplantation (ISHLT) Consensus Conference on Graft Dysfunction within the First 72 hours after Heart Transplantation: A 10-year Update"
   },
   {
    "id": "anaesthesia-2026-eit-individualised-peep-lung-cancer-surgery",
@@ -3647,7 +5706,26 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Pulmonary complications with individualised vs. fixed positive end‐expiratory pressure in older patients recovering from lung cancer surgery: a randomised trial",
+    "authors": [
+     "Wang W",
+     "Liu K",
+     "Huang C",
+     "Jiang Q",
+     "Ge Y",
+     "Sessler DI",
+     "Wu J"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70165",
+    "year": 2026,
+    "volume": "81",
+    "issue": "7",
+    "pages": "943-951"
+   },
+   "title": "Pulmonary complications with individualised vs. fixed positive end‐expiratory pressure in older patients recovering from lung cancer surgery: a randomised trial"
   },
   {
    "id": "eja-2026-esaic-espa-pediatric-neuromuscular-block-guideline",
@@ -3675,7 +5753,31 @@
    "firstAuthor": "Veyckemans",
    "authorLimitations": [],
    "authorBasis": "summary page",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "2025 ESAIC and ESPA Guidelines on neuromuscular block in anaesthetised children",
+    "authors": [
+     "Veyckemans F",
+     "Debouche S",
+     "Kaufmann J",
+     "Disma N",
+     "Amigoni A",
+     "Bonatti G",
+     "Christensen MI",
+     "Engelhardt T",
+     "Fuchs A",
+     "Fuchs-Buder T",
+     "Hansen TG",
+     "Karlsson J"
+    ],
+    "journal": "European Journal of Anaesthesiology",
+    "doi": "10.1097/EJA.0000000000002357",
+    "year": 2026,
+    "volume": "43",
+    "issue": "4",
+    "pages": "295-323"
+   },
+   "title": "2025 ESAIC and ESPA Guidelines on neuromuscular block in anaesthetised children"
   },
   {
    "id": "bja-2026-labour-neuraxial-autism-meta-analysis",
@@ -3707,7 +5809,22 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "The impact of neuraxial labour analgesia on neurodevelopmental disorders in offspring: a systematic review and meta-analysis",
+    "authors": [
+     "Li Y",
+     "Shuai B",
+     "Huang H"
+    ],
+    "journal": "British Journal of Anaesthesia",
+    "doi": "10.1016/j.bja.2026.02.002",
+    "year": 2026,
+    "volume": "136",
+    "issue": "5",
+    "pages": "1534-1545"
+   },
+   "title": "The impact of neuraxial labour analgesia on neurodevelopmental disorders in offspring: a systematic review and meta-analysis"
   },
   {
    "id": "anae-2026-sbp90-noradrenaline-cesarean-rct",
@@ -3739,7 +5856,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Effect on neonatal outcomes of maintenance of maternal blood pressure targets with noradrenaline after spinal anaesthesia for caesarean delivery: a multicentre, randomised, controlled trial",
+    "authors": [
+     "Chen Y",
+     "Wang M",
+     "Yang Z",
+     "Ta Z",
+     "Liu Y",
+     "Kong H",
+     "Li H",
+     "Song Y",
+     "Shi Y",
+     "Qin R",
+     "Zhou X",
+     "Ma S"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70179",
+    "year": 2026,
+    "volume": "81",
+    "issue": "7",
+    "pages": "952-958"
+   },
+   "title": "Effect on neonatal outcomes of maintenance of maternal blood pressure targets with noradrenaline after spinal anaesthesia for caesarean delivery: a multicentre, randomised, controlled trial"
   },
   {
    "id": "jhlt-2026-ishlt-xenotransplant-consensus",
@@ -3811,7 +5952,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Six-Year Outcomes After Transcatheter vs Surgical Aortic Valve Replacement in Low-Risk Patients With Aortic Stenosis",
+    "authors": [
+     "Forrest JK",
+     "Yakubov SJ",
+     "Deeb GM",
+     "Reardon MJ",
+     "Sorajja P",
+     "Byrne T",
+     "Kirshner M",
+     "Bajwa T",
+     "Crouch J",
+     "Coselli J",
+     "Silva G",
+     "Stoler R"
+    ],
+    "journal": "JACC",
+    "doi": "10.1016/j.jacc.2026.02.5063",
+    "year": 2026,
+    "volume": "87",
+    "issue": "23",
+    "pages": "3210-3221"
+   },
+   "title": "Six-Year Outcomes After Transcatheter vs Surgical Aortic Valve Replacement in Low-Risk Patients With Aortic Stenosis"
   },
   {
    "id": "anae-2026-prospect-cesarean-analgesia-update",
@@ -3849,7 +6014,30 @@
     "Many treatments were not evaluated because trial protocols lacked a basic analgesic regimen; several studies judged at high risk of bias.",
     "Likely an element of undetected positive publication bias, which may impact the conclusions drawn."
    ],
-   "authorBasis": "full text"
+   "authorBasis": "full text",
+   "citation": {
+    "title": "Pain management after elective caesarean section under neuraxial anaesthesia: an updated systematic review and procedure‐specific postoperative pain management ( PROSPECT ) recommendations",
+    "authors": [
+     "Crowe G",
+     "Atterton B",
+     "Roofthooft E",
+     "Joshi GP",
+     "Rawal N",
+     "Wu C",
+     "Sauter AR",
+     "Bonnet M",
+     "Lucas DN",
+     "Van de Velde M",
+     "the PROSPECT Working Group of the European Society of Regional Anaesthesia and Pain Therapy"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70141",
+    "year": 2026,
+    "volume": "81",
+    "issue": "6",
+    "pages": "819-839"
+   },
+   "title": "Pain management after elective caesarean section under neuraxial anaesthesia: an updated systematic review and procedure‐specific postoperative pain management ( PROSPECT ) recommendations"
   },
   {
    "id": "sts-2026-offpump-cabg-registry",
@@ -4015,7 +6203,27 @@
     "Search ended April 2024; a September 2025 update found three eligible references that could not be incorporated after the Delphi stage"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Pain management after open thoracotomy 2025: procedure‐specific postoperative pain management ( PROSPECT ) recommendations",
+    "authors": [
+     "Lemoine A",
+     "Alber A",
+     "Joshi GP",
+     "Van de Velde M",
+     "Dewinter G",
+     "Pogatzki‐Zahn E",
+     "Bonnet M",
+     "the PROSPECT Working Group of the European Society of Regional Anaesthesia and Pain Therapy"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70123",
+    "year": 2026,
+    "volume": "81",
+    "issue": "4",
+    "pages": "541-555"
+   },
+   "title": "Pain management after open thoracotomy 2025: procedure‐specific postoperative pain management ( PROSPECT ) recommendations"
   },
   {
    "id": "anaesthesia-2026-nma-opioid-free-vs-opioid-inclusive-regional",
@@ -4053,7 +6261,31 @@
     "Opioid-sparing (opioid-inclusive) techniques were not analysed separately, so no specific conclusions about that increasingly adopted strategy.",
     "Opioid-free anaesthesia comprises diverse techniques (dexmedetomidine, ketamine, lidocaine infusions); findings may not apply uniformly to every regimen."
    ],
-   "authorBasis": "full text"
+   "authorBasis": "full text",
+   "citation": {
+    "title": "Opioid‐free vs. opioid‐inclusive anaesthesia with or without regional anaesthesia for postoperative pain: a systematic review with network meta‐analysis of randomised controlled trials",
+    "authors": [
+     "de Carvalho CC",
+     "El‐Boghdadly K",
+     "Guedes IHL",
+     "Dantas MVM",
+     "Tomé DPB",
+     "Ramos IB",
+     "Gomes CSH",
+     "Alves GKPA",
+     "Bezerra AP",
+     "Santos Neto JM",
+     "Pandit JJ",
+     "Braz LG"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70121",
+    "year": 2026,
+    "volume": "81",
+    "issue": "5",
+    "pages": "702-712"
+   },
+   "title": "Opioid‐free vs. opioid‐inclusive anaesthesia with or without regional anaesthesia for postoperative pain: a systematic review with network meta‐analysis of randomised controlled trials"
   },
   {
    "id": "jtcvs-2026-va-ecmo-vs-off-pump-lung-transplant-interim-rct",
@@ -4089,7 +6321,31 @@
     "Grade 3 PGD at 48-72 h: 13.6% (VA-ECMO) vs 19.4% (off-pump), p=0.51; 13% of off-pump patients converted to ECMO.",
     "VA-ECMO arm received more fresh frozen plasma and platelets; no significant safety or secondary-endpoint differences.",
     "Interim only (n=75 of 228): too early to change practice, but the retrospective 'ECMO is worse' signal is not reproduced so far."
-   ]
+   ],
+   "citation": {
+    "title": "Venoarterial extracorporeal membrane oxygenation versus off-pump lung transplantation: Interim analysis of a prospective, randomized clinical trial",
+    "authors": [
+     "Villavicencio MA",
+     "Saddoughi SA",
+     "Spencer PJ",
+     "Fox M",
+     "Bermudez CA",
+     "Whitson BA",
+     "Choi K",
+     "Kashem A",
+     "Pennington KM",
+     "Yalamuri SM",
+     "Reiter JR",
+     "Lahr BD"
+    ],
+    "journal": "The Journal of Thoracic and Cardiovascular Surgery",
+    "doi": "10.1016/j.jtcvs.2025.12.021",
+    "year": 2026,
+    "volume": "171",
+    "issue": "5",
+    "pages": "1147-1158.e3"
+   },
+   "title": "Venoarterial extracorporeal membrane oxygenation versus off-pump lung transplantation: Interim analysis of a prospective, randomized clinical trial"
   },
   {
    "id": "aln-2025-maternal-cardiac-arrest-mpog",
@@ -4122,7 +6378,30 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Frequency and Management of Maternal Peripartum Cardiac Arrest during Anesthetic Care: A Multicenter Retrospective Cohort Analysis",
+    "authors": [
+     "Furdyna MJ",
+     "Mootz AA",
+     "Venkatachalam S",
+     "Mathis MR",
+     "Klumpner TT",
+     "Fields KG",
+     "Heydarpour M",
+     "Mhyre JM",
+     "Bateman BT",
+     "Reale SC",
+     "for the Multicenter Perioperative Outcomes Group Collaborators"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005905",
+    "year": 2026,
+    "volume": "144",
+    "issue": "4",
+    "pages": "796-810"
+   },
+   "title": "Frequency and Management of Maternal Peripartum Cardiac Arrest during Anesthetic Care: A Multicenter Retrospective Cohort Analysis"
   },
   {
    "id": "acc-aha-2025-achd-guideline",
@@ -4155,7 +6434,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "summary page",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "2025 ACC/AHA/HRS/ISACHD/SCAI Guideline for the Management of Adults With Congenital Heart Disease",
+    "authors": [
+     "Gurvitz M",
+     "Krieger EV",
+     "Fuller S",
+     "Davis LL",
+     "Kittleson MM",
+     "Aboulhosn JA",
+     "Bradley EA",
+     "Buber J",
+     "Daniels CJ",
+     "Dimopoulos K",
+     "Egbe A",
+     "Geoffrion TR"
+    ],
+    "journal": "JACC",
+    "doi": "10.1016/j.jacc.2025.09.006",
+    "year": 2026,
+    "volume": "87",
+    "issue": "7",
+    "pages": "822-976"
+   },
+   "title": "2025 ACC/AHA/HRS/ISACHD/SCAI Guideline for the Management of Adults With Congenital Heart Disease"
   },
   {
    "id": "fda-2025-ultrasight-pvad-iq-impella-position-ai",
@@ -4219,7 +6522,31 @@
    "firstAuthor": "Dove",
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "AASLD AST Practice Guideline on adult liver transplantation: Candidate evaluation",
+    "authors": [
+     "Dove L",
+     "Chadha RM",
+     "Lai JC",
+     "DiMartini A",
+     "Liapakis A",
+     "Parikh ND",
+     "Firpi-Morell R",
+     "Conteh L",
+     "Fallon M",
+     "Trotter J",
+     "Ladner DP",
+     "Sapisochin G"
+    ],
+    "journal": "Hepatology",
+    "doi": "10.1097/HEP.0000000000001644",
+    "year": 2026,
+    "volume": "83",
+    "issue": "6",
+    "pages": "1609-1645"
+   },
+   "title": "AASLD AST Practice Guideline on adult liver transplantation: Candidate evaluation"
   },
   {
    "id": "nejm-2025-rsi-ketamine-vs-etomidate",
@@ -4253,7 +6580,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Ketamine or Etomidate for Tracheal Intubation of Critically Ill Adults",
+    "authors": [
+     "Casey JD",
+     "Seitz KP",
+     "Driver BE",
+     "Gibbs KW",
+     "Ginde AA",
+     "Trent SA",
+     "Russell DW",
+     "Muhs AL",
+     "Prekker ME",
+     "Gaillard JP",
+     "Resnick-Ault D",
+     "Stewart LJ"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2511420",
+    "year": 2026,
+    "volume": "394",
+    "issue": "16",
+    "pages": "1608-1620"
+   },
+   "title": "Ketamine or Etomidate for Tracheal Intubation of Critically Ill Adults"
   },
   {
    "id": "anesthesiology-2025-ga-cares-propofol-volatile-cancer",
@@ -4291,7 +6642,31 @@
     "Not powered to detect differences by surgical procedure type; sample sizes were small in several groups, so interpret with caution."
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Anesthesia Type during Cancer Surgery: Results of the GA-CARES Randomized, Multicenter Trial",
+    "authors": [
+     "Bennett-Guerrero E",
+     "Romeiser JL",
+     "DeMaria S",
+     "Nadler JW",
+     "Quinn TD",
+     "Ponnappan SK",
+     "Wang R",
+     "Gloff MS",
+     "Lee KJ",
+     "Levin MA",
+     "Sroka RD",
+     "Stanley SL"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005769",
+    "year": 2026,
+    "volume": "144",
+    "issue": "1",
+    "pages": "51-62"
+   },
+   "title": "Anesthesia Type during Cancer Surgery: Results of the GA-CARES Randomized, Multicenter Trial"
   },
   {
    "id": "anesthesiology-2025-asa-guideline-regional-analgesia-cardiothoracic-abdominal",
@@ -4329,7 +6704,31 @@
    "authorLimitations": [
     "Data supporting the guideline were limited by low methodologic quality, inconsistent outcome measurements and small samples from individual centres."
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "2026 American Society of Anesthesiologists Practice Guideline on Perioperative Pain Management Using Local and Regional Analgesia for Cardiothoracic Surgeries, Mastectomy, and Abdominal Surgeries",
+    "authors": [
+     "Joshi GP",
+     "Mariano ER",
+     "Elkassabany NM",
+     "Harbell M",
+     "Johnson RL",
+     "Li J",
+     "Napolitano L",
+     "Schwartz G",
+     "Suresh S",
+     "Wyatt-Thompson KE",
+     "Burns A",
+     "Agarkar M"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005790",
+    "year": 2026,
+    "volume": "144",
+    "issue": "1",
+    "pages": "19-43"
+   },
+   "title": "2026 American Society of Anesthesiologists Practice Guideline on Perioperative Pain Management Using Local and Regional Analgesia for Cardiothoracic Surgeries, Mastectomy, and Abdominal Surgeries"
   },
   {
    "id": "jama-2025-clip-ii-cryopreserved-platelets",
@@ -4363,7 +6762,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Cryopreserved vs Liquid-Stored Platelets for the Treatment of Surgical Bleeding",
+    "authors": [
+     "Reade MC",
+     "Marks DC",
+     "Howe BD",
+     "Bailey MJ",
+     "Bannon PG",
+     "Eastwood GM",
+     "French CJ",
+     "Gattas DJ",
+     "Higgins AM",
+     "Holley AD",
+     "Hu RT",
+     "Irving DO"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2025.23355",
+    "year": 2026,
+    "volume": "335",
+    "issue": "7",
+    "pages": "600"
+   },
+   "title": "Cryopreserved vs Liquid-Stored Platelets for the Treatment of Surgical Bleeding"
   },
   {
    "id": "jts-2025-reboa-partial-occlusion-cpg",
@@ -4430,7 +6853,31 @@
     "In the second phase, the nurse preparing infusions was unblinded, though patients, clinicians and assessors remained blinded"
    ],
    "authorBasis": "full text",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Levosimendan to Facilitate Weaning From ECMO in Patients With Severe Cardiogenic Shock",
+    "authors": [
+     "Combes A",
+     "Saura O",
+     "Nesseler N",
+     "Lebbah S",
+     "Rozec B",
+     "Levy B",
+     "Fellahi JL",
+     "Beurton A",
+     "Meslin S",
+     "Gaudard P",
+     "Bouglé A",
+     "Vincentelli A"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2025.19843",
+    "year": 2026,
+    "volume": "335",
+    "issue": "1",
+    "pages": "60"
+   },
+   "title": "Levosimendan to Facilitate Weaning From ECMO in Patients With Severe Cardiogenic Shock"
   },
   {
    "id": "anesthesiology-2025-cleveland-tap-liposomal-bupivacaine",
@@ -4463,7 +6910,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Liposomal Bupivacaine, Plain Bupivacaine, and Saline for Transversus Abdominis Plane Blocks: The CLEVELAND Randomized Trial",
+    "authors": [
+     "Turan A",
+     "Ali Sakr Esa W",
+     "Brooker J",
+     "Rosen MJ",
+     "Ekrami E",
+     "Tok Cekmecelioglu B",
+     "Nair H",
+     "Al Jarkas A",
+     "Shah K",
+     "Mueller C",
+     "Valente M",
+     "El Hage Chehade N"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005869",
+    "year": 2026,
+    "volume": "144",
+    "issue": "3",
+    "pages": "546-558"
+   },
+   "title": "Liposomal Bupivacaine, Plain Bupivacaine, and Saline for Transversus Abdominis Plane Blocks: The CLEVELAND Randomized Trial"
   },
   {
    "id": "bja-2025-paediatric-fasting-1h-clear-fluids-meta",
@@ -4495,7 +6966,22 @@
     "Gastric residual volume (SMD -0.05) and pH (SMD -0.11) unchanged with shorter fasting.",
     "Shorter fasting groups had equal or fewer PONV, thirst and hunger; no aspiration signal at 1 hour or less.",
     "Evidence now backs one-hour clear-fluid policies; the limiting factor is implementation."
-   ]
+   ],
+   "citation": {
+    "title": "Impact of preoperative fasting duration on perioperative complications in elective paediatric procedures: a systematic review and meta-analysis",
+    "authors": [
+     "Dabke T",
+     "Scott TE",
+     "Taylor B"
+    ],
+    "journal": "British Journal of Anaesthesia",
+    "doi": "10.1016/j.bja.2025.10.037",
+    "year": 2026,
+    "volume": "136",
+    "issue": "1",
+    "pages": "158-166"
+   },
+   "title": "Impact of preoperative fasting duration on perioperative complications in elective paediatric procedures: a systematic review and meta-analysis"
   },
   {
    "id": "apsf-ismp-2025-txa-wrong-route-alert",
@@ -4556,7 +7042,25 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Incidence of Pain during Cesarean Delivery with Neuraxial Anesthesia: An International, Prospective Cohort Study",
+    "authors": [
+     "O’Carroll JE",
+     "Conti D",
+     "Gao N",
+     "Carvalho B",
+     "Sultan P",
+     "MID-CD Study Collaborators"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005868",
+    "year": 2026,
+    "volume": "144",
+    "issue": "4",
+    "pages": "784-795"
+   },
+   "title": "Incidence of Pain during Cesarean Delivery with Neuraxial Anesthesia: An International, Prospective Cohort Study"
   },
   {
    "id": "optn-2025-nrp-safety-notice",
@@ -4626,7 +7130,31 @@
     "Major complications 30% vs 32% (RR 0.93); in-hospital death 1.9% vs 2.8%; no significant difference.",
     "Only heart block differed between groups; stroke, MI, cardiac arrest and safety measures were the same.",
     "Use dexmedetomidine for sedation or delirium if you like it, not as an organ-protection drug."
-   ]
+   ],
+   "citation": {
+    "title": "Effects of Dexmedetomidine on Outcomes After Cardiac Surgery (DOCS): a randomised double-blind, placebo-controlled trial",
+    "authors": [
+     "Lei C",
+     "Zheng Z",
+     "Han J",
+     "Wang L",
+     "Zhai W",
+     "Li C",
+     "Hou L",
+     "Yu S",
+     "Liu J",
+     "Xu X",
+     "Wang S",
+     "Guo X"
+    ],
+    "journal": "British Journal of Anaesthesia",
+    "doi": "10.1016/j.bja.2025.09.026",
+    "year": 2026,
+    "volume": "136",
+    "issue": "1",
+    "pages": "55-64"
+   },
+   "title": "Effects of Dexmedetomidine on Outcomes After Cardiac Surgery (DOCS): a randomised double-blind, placebo-controlled trial"
   },
   {
    "id": "icm-2025-esicm-shock-guideline",
@@ -4662,7 +7190,31 @@
    "authorLimitations": [
     "Many statements are ungraded good practice statements, issued because strong evidence was lacking"
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "ESICM guidelines on circulatory shock and hemodynamic monitoring 2025",
+    "authors": [
+     "Monnet X",
+     "Messina A",
+     "Greco M",
+     "Bakker J",
+     "Aissaoui N",
+     "Cecconi M",
+     "Coppalini G",
+     "De Backer D",
+     "Edul VK",
+     "Evans L",
+     "Hernández G",
+     "Hunsicker O"
+    ],
+    "journal": "Intensive Care Med",
+    "doi": "10.1007/s00134-025-08137-z",
+    "year": 2025,
+    "volume": "51",
+    "issue": "11",
+    "pages": "1971-2012"
+   },
+   "title": "ESICM guidelines on circulatory shock and hemodynamic monitoring 2025"
   },
   {
    "id": "lancet-respir-med-2025-prothor-peep-olv",
@@ -4694,7 +7246,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Effects of intraoperative higher versus lower positive end-expiratory pressure during one-lung ventilation for thoracic surgery on postoperative pulmonary complications (PROTHOR): a multicentre, international, randomised, controlled, phase 3 trial",
+    "authors": [
+     "Wittenstein J",
+     "Şentürk NM",
+     "Kiss T",
+     "Schultz MJ",
+     "Serpa Neto A",
+     "Gama de Abreu M",
+     "Cinnella G",
+     "dos Reis Falcão LF",
+     "Cohen E",
+     "El Tahan MR",
+     "Gama de Abreu M",
+     "Granell Gil M"
+    ],
+    "journal": "The Lancet Respiratory Medicine",
+    "doi": "10.1016/S2213-2600(25)00330-3",
+    "year": 2026,
+    "volume": "14",
+    "issue": "1",
+    "pages": "17-28"
+   },
+   "title": "Effects of intraoperative higher versus lower positive end-expiratory pressure during one-lung ventilation for thoracic surgery on postoperative pulmonary complications (PROTHOR): a multicentre, international, randomised, controlled, phase 3 trial"
   },
   {
    "id": "nature-2025-echoprime-echo-foundation-model",
@@ -4730,7 +7306,29 @@
     "Still images such as spectral Doppler and M-mode were excluded from training because the model relies on a video encoder.",
     "All data were collected retrospectively, although evaluated at four geographically distinct academic centres; prospective real-world evaluation is needed."
    ],
-   "authorBasis": "full text"
+   "authorBasis": "full text",
+   "citation": {
+    "title": "Comprehensive echocardiogram evaluation with view primed vision language AI",
+    "authors": [
+     "Vukadinovic M",
+     "Chiu IM",
+     "Tang X",
+     "Yuan N",
+     "Chen TY",
+     "Cheng P",
+     "Li D",
+     "Cheng S",
+     "He B",
+     "Ouyang D"
+    ],
+    "journal": "Nature",
+    "doi": "10.1038/s41586-025-09850-x",
+    "year": 2026,
+    "volume": "650",
+    "issue": "8103",
+    "pages": "970-977"
+   },
+   "title": "Comprehensive echocardiogram evaluation with view primed vision language AI"
   },
   {
    "id": "jama-2025-top-transfusion-high-cardiac-risk",
@@ -4764,7 +7362,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Liberal or Restrictive Postoperative Transfusion in Patients at High Cardiac Risk",
+    "authors": [
+     "Kougias P",
+     "Sharath SE",
+     "Zhan M",
+     "Carson JL",
+     "Norman LE",
+     "Mi Z",
+     "Pal R",
+     "Dosluoglu H",
+     "Modrall JG",
+     "Sarosi GA",
+     "Nelson P",
+     "Arya S"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2025.20841",
+    "year": 2025,
+    "volume": "334",
+    "issue": "24",
+    "pages": "2197"
+   },
+   "title": "Liberal or Restrictive Postoperative Transfusion in Patients at High Cardiac Risk"
   },
   {
    "id": "bja-2025-das-2025-unanticipated-difficult-intubation-guidelines",
@@ -4797,7 +7419,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Difficult Airway Society 2025 guidelines for management of unanticipated difficult tracheal intubation in adults",
+    "authors": [
+     "Ahmad I",
+     "El-Boghdadly K",
+     "Iliff H",
+     "Dua G",
+     "Higgs A",
+     "Huntington M",
+     "Mir F",
+     "Nouraei SAR",
+     "O'Sullivan EP",
+     "Patel A",
+     "Rivett K",
+     "McNarry AF"
+    ],
+    "journal": "British Journal of Anaesthesia",
+    "doi": "10.1016/j.bja.2025.10.006",
+    "year": 2026,
+    "volume": "136",
+    "issue": "1",
+    "pages": "283-307"
+   },
+   "title": "Difficult Airway Society 2025 guidelines for management of unanticipated difficult tracheal intubation in adults"
   },
   {
    "id": "ehj-2025-aries-hm3-ttr",
@@ -4830,7 +7476,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Withdrawal of aspirin in patients with left ventricular assist device treated with vitamin K antagonists: impact of anticoagulation quality in the randomized ARIES-HM3 trial",
+    "authors": [
+     "Connors JM",
+     "Gustafsson F",
+     "Uriel N",
+     "Pagani FD",
+     "Jorde UP",
+     "Katz JN",
+     "Netuka I",
+     "Zimpfer D",
+     "Nemeh H",
+     "Ransom JM",
+     "Agarwal R",
+     "Byku M"
+    ],
+    "journal": "European Heart Journal",
+    "doi": "10.1093/eurheartj/ehaf745",
+    "year": 2026,
+    "volume": "47",
+    "issue": "8",
+    "pages": "942-952"
+   },
+   "title": "Withdrawal of aspirin in patients with left ventricular assist device treated with vitamin K antagonists: impact of anticoagulation quality in the randomized ARIES-HM3 trial"
   },
   {
    "id": "jtacs-2025-east-txa-guideline",
@@ -4866,7 +7536,31 @@
     "Dosing regimens and comparison groups varied widely across the included studies; evidence is Level III systematic review/meta-analysis.",
     "In patients with SBP 75 mm Hg or less, the mortality reduction was not statistically significant (log RR -0.18, 95% CI -0.46 to 0.09)."
    ],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "The use of tranexamic acid in the management of injured patients at risk of hemorrhage: a systematic review and meta-analysis and an Eastern Association for the Surgery of Trauma Practice Management Guideline",
+    "authors": [
+     "Dumas RP",
+     "Succar BE",
+     "Vella MA",
+     "Appelbaum RD",
+     "Neal MD",
+     "Dultz LA",
+     "Shah KH",
+     "Patel NJ",
+     "Brito AM",
+     "Kornblith LZ",
+     "Murphy PB",
+     "Bankhead BK"
+    ],
+    "journal": "J Trauma Acute Care Surg",
+    "doi": "10.1097/TA.0000000000004773",
+    "year": 2025,
+    "volume": "99",
+    "issue": "5",
+    "pages": "785-794"
+   },
+   "title": "The use of tranexamic acid in the management of injured patients at risk of hemorrhage: a systematic review and meta-analysis and an Eastern Association for the Surgery of Trauma Practice Management Guideline"
   },
   {
    "id": "acs-2025-chest-wall-injury-bpg",
@@ -4936,7 +7630,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Effect of intraoperative paravertebral or intravenous lidocaine infusion on postoperative complications and inflammation after lung resection surgery: a randomised controlled trial",
+    "authors": [
+     "de la Gala F",
+     "de la Fuente E",
+     "Piñeiro P",
+     "Reyes A",
+     "Duque P",
+     "Sánchez-Pedrosa G",
+     "Martínez-Gascueña D",
+     "Vara E",
+     "Rancan L",
+     "Simón C",
+     "Hortal J",
+     "Garutti I"
+    ],
+    "journal": "British Journal of Anaesthesia",
+    "doi": "10.1016/j.bja.2025.05.059",
+    "year": 2025,
+    "volume": "135",
+    "issue": "5",
+    "pages": "1297-1306"
+   },
+   "title": "Effect of intraoperative paravertebral or intravenous lidocaine infusion on postoperative complications and inflammation after lung resection surgery: a randomised controlled trial"
   },
   {
    "id": "ats-2025-intermacs-annual-report",
@@ -4970,7 +7688,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "The Society of Thoracic Surgeons Intermacs 2025 Annual Report: Focus on Outcomes in Older Adults",
+    "authors": [
+     "Nayak A",
+     "Cascino TM",
+     "DeFilippis EM",
+     "Hanff TC",
+     "Cevasco M",
+     "Keenan J",
+     "Zhen-Yu Tong M",
+     "Kilic A",
+     "Koehl D",
+     "Cantor R",
+     "Jacobs JP",
+     "Habib RH"
+    ],
+    "journal": "The Annals of Thoracic Surgery",
+    "doi": "10.1016/j.athoracsur.2025.10.005",
+    "year": 2026,
+    "volume": "121",
+    "issue": "1",
+    "pages": "15-38"
+   },
+   "title": "The Society of Thoracic Surgeons Intermacs 2025 Annual Report: Focus on Outcomes in Older Adults"
   },
   {
    "id": "jama-2025-andromeda-shock-2",
@@ -5003,7 +7745,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Personalized Hemodynamic Resuscitation Targeting Capillary Refill Time in Early Septic Shock",
+    "authors": [
+     "The ANDROMEDA-SHOCK-2 Investigators for the ANDROMEDA Research Network, Spanish Society of Anesthesiology, Reanimation and Pain Therapy (SEDAR), and Latin American Intensive Care Network (LIVEN)",
+     "Pálizas F",
+     "Lattanzio B",
+     "Durandal N",
+     "Alonso ME",
+     "Duque J",
+     "Falcon N",
+     "Mesa R",
+     "Hunter M",
+     "Pozo M",
+     "Gutierrez F",
+     "Sac S"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2025.20402",
+    "year": 2025,
+    "volume": "334",
+    "issue": "22",
+    "pages": "1988"
+   },
+   "title": "Personalized Hemodynamic Resuscitation Targeting Capillary Refill Time in Early Septic Shock"
   },
   {
    "id": "nejm-2025-everdac-deferred-arterial-line",
@@ -5036,7 +7802,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Deferring Arterial Catheterization in Critically Ill Patients with Shock",
+    "authors": [
+     "Muller G",
+     "Contou D",
+     "Ehrmann S",
+     "Martin M",
+     "Andreu P",
+     "Kamel T",
+     "Boissier F",
+     "Azais MA",
+     "Monnier A",
+     "Vimeux S",
+     "Chenal A",
+     "Nay MA"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2502136",
+    "year": 2025,
+    "volume": "393",
+    "issue": "19",
+    "pages": "1875-1888"
+   },
+   "title": "Deferring Arterial Catheterization in Critically Ill Patients with Shock"
   },
   {
    "id": "jama-2025-bicaricu-2",
@@ -5068,7 +7858,31 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Sodium Bicarbonate for Severe Metabolic Acidemia and Acute Kidney Injury",
+    "authors": [
+     "Jung B",
+     "Jabaudon M",
+     "De Jong A",
+     "Bitker L",
+     "Audard J",
+     "Klouche K",
+     "Sarton B",
+     "Guitton C",
+     "Lasocki S",
+     "Rieu B",
+     "Canet E",
+     "Jeantrelle C"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2025.20231",
+    "year": 2025,
+    "volume": "334",
+    "issue": "22",
+    "pages": "2000"
+   },
+   "title": "Sodium Bicarbonate for Severe Metabolic Acidemia and Acute Kidney Injury"
   },
   {
    "id": "nejm-2025-partner3-7yr",
@@ -5102,7 +7916,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Transcatheter or Surgical Aortic-Valve Replacement in Low-Risk Patients at 7 Years",
+    "authors": [
+     "Leon MB",
+     "Mack MJ",
+     "Pibarot P",
+     "Hahn RT",
+     "Thourani VH",
+     "Kodali SH",
+     "Généreux P",
+     "Kapadia SR",
+     "Cohen DJ",
+     "Pocock SJ",
+     "Zhang Y",
+     "Szerlip M"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2509766",
+    "year": 2026,
+    "volume": "394",
+    "issue": "8",
+    "pages": "773-783"
+   },
+   "title": "Transcatheter or Surgical Aortic-Valve Replacement in Low-Risk Patients at 7 Years"
   },
   {
    "id": "tct25-2025-encircle-sapien-m3-tmvr-one-year",
@@ -5206,7 +8044,30 @@
    "firstAuthor": "Lott",
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "European Resuscitation Council Guidelines 2025 Special Circumstances in Resuscitation",
+    "authors": [
+     "Lott C",
+     "Karageorgos V",
+     "Abelairas-Gomez C",
+     "Alfonzo A",
+     "Bierens J",
+     "Cantellow S",
+     "Debaty G",
+     "Einav S",
+     "Fischer M",
+     "González-Salvado V",
+     "Greif R",
+     "Metelmann B"
+    ],
+    "journal": "Resuscitation",
+    "doi": "10.1016/j.resuscitation.2025.110753",
+    "year": 2025,
+    "volume": "215",
+    "pages": "110753"
+   },
+   "title": "European Resuscitation Council Guidelines 2025 Special Circumstances in Resuscitation"
   },
   {
    "id": "jhlt-2025-ishlt-ecls-lung-transplant-consensus-part1",
@@ -5241,7 +8102,31 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "ISHLT Consensus Statement on the Perioperative use of ECLS in Lung Transplantation: Part I: Preoperative Considerations",
+    "authors": [
+     "Reed AK",
+     "Mercier O",
+     "Behr J",
+     "Dave K",
+     "Dellgren G",
+     "Kotecha S",
+     "Kukreja J",
+     "Landry C",
+     "Levvey B",
+     "Lyster H",
+     "Morrissey O",
+     "Saatee S"
+    ],
+    "journal": "The Journal of Heart and Lung Transplantation",
+    "doi": "10.1016/j.healun.2025.07.033",
+    "year": 2026,
+    "volume": "45",
+    "issue": "1",
+    "pages": "e1-e34"
+   },
+   "title": "ISHLT Consensus Statement on the Perioperative use of ECLS in Lung Transplantation: Part I: Preoperative Considerations"
   },
   {
    "id": "ehj-2025-jpvad-danger-criteria",
@@ -5275,7 +8160,23 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "DanGer shock criteria and outcomes in acute myocardial infarction-related cardiogenic shock treated with Impella: the J-PVAD registry",
+    "authors": [
+     "Arai R",
+     "Kojima K",
+     "Fukamachi D",
+     "Okumura Y"
+    ],
+    "journal": "European Heart Journal",
+    "doi": "10.1093/eurheartj/ehaf787",
+    "year": 2026,
+    "volume": "47",
+    "issue": "4",
+    "pages": "472-486"
+   },
+   "title": "DanGer shock criteria and outcomes in acute myocardial infarction-related cardiogenic shock treated with Impella: the J-PVAD registry"
   },
   {
    "id": "ejcts-2025-eacts-sts-aats-tmcs-guideline",
@@ -5307,7 +8208,30 @@
     "The authors state randomised trials in this setting are extremely challenging because of the short time to intervention, ethical concerns and heterogeneous clinical scenarios"
    ],
    "authorBasis": "summary page",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "EACTS/STS/AATS Guidelines on temporary mechanical circulatory support in adult cardiac surgery",
+    "authors": [
+     "Potapov EV",
+     "Whitman G",
+     "John R",
+     "Lanmüller P",
+     "Tucanova Z",
+     "Arora RC",
+     "Atluri P",
+     "de Waal EEC",
+     "Faerber G",
+     "Loforte A",
+     "Lorusso R",
+     "Morales DLS"
+    ],
+    "journal": "European Journal of Cardio-Thoracic Surgery",
+    "doi": "10.1093/ejcts/ezaf330",
+    "year": 2026,
+    "volume": "68",
+    "issue": "7"
+   },
+   "title": "EACTS/STS/AATS Guidelines on temporary mechanical circulatory support in adult cardiac surgery"
   },
   {
    "id": "ejcts-2025-eacts-protected-cardiac-surgery",
@@ -5340,7 +8264,30 @@
     "Substantial knowledge gaps remain, including long-term outcome data, device selection criteria and cost-effectiveness analyses"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "citation": {
+    "title": "EACTS Expert Consensus Document on protected cardiac surgery: pre-emptive use of temporary mechanical circulatory support in adult cardiac surgery patients at high risk for perioperative low cardiac output syndrome",
+    "authors": [
+     "Lorusso R",
+     "Salazar L",
+     "Nersesian G",
+     "Milojevic M",
+     "Schmack B",
+     "Engelman DT",
+     "Stein L",
+     "Silvestry S",
+     "Zimpfer D",
+     "Wiedemann D",
+     "Goldstein D",
+     "Soltesz E"
+    ],
+    "journal": "European Journal of Cardio-Thoracic Surgery",
+    "doi": "10.1093/ejcts/ezaf296",
+    "year": 2026,
+    "volume": "68",
+    "issue": "3"
+   },
+   "title": "EACTS Expert Consensus Document on protected cardiac surgery: pre-emptive use of temporary mechanical circulatory support in adult cardiac surgery patients at high risk for perioperative low cardiac output syndrome"
   },
   {
    "id": "aln-2025-regional-vs-ga-cesarean-neonatal-meta",
@@ -5375,7 +8322,24 @@
     "More studies needed to clarify the relationship with intensive care needs and long-term outcomes"
    ],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Neonatal Outcomes with Regional versus General Anesthesia for Cesarean Delivery: A Meta-analysis of Randomized Controlled Trials",
+    "authors": [
+     "Langer S",
+     "Lim G",
+     "Qiu Y",
+     "Biaesch J",
+     "Neuman MD"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005785",
+    "year": 2026,
+    "volume": "144",
+    "issue": "2",
+    "pages": "325-336"
+   },
+   "title": "Neonatal Outcomes with Regional versus General Anesthesia for Cesarean Delivery: A Meta-analysis of Randomized Controlled Trials"
   },
   {
    "id": "aln-2025-chd-children-noncardiac-cardiac-events-registry",
@@ -5408,7 +8372,28 @@
    ],
    "takeHomeBy": "authors",
    "authorLimitations": [],
-   "authorBasis": "abstract"
+   "authorBasis": "abstract",
+   "citation": {
+    "title": "Intraoperative Cardiac Events in Pediatric Patients with Congenital Heart Disease Undergoing Noncardiac Procedures: Analysis of a Large Multicenter Registry",
+    "authors": [
+     "Nasr VG",
+     "Kuntz M",
+     "Chin V",
+     "Deutsch N",
+     "Faraoni D",
+     "Miller-Hance WC",
+     "Nicolson SC",
+     "Richtsfeld M",
+     "Staffa SJ"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000005783",
+    "year": 2026,
+    "volume": "144",
+    "issue": "2",
+    "pages": "314-324"
+   },
+   "title": "Intraoperative Cardiac Events in Pediatric Patients with Congenital Heart Disease Undergoing Noncardiac Procedures: Analysis of a Large Multicenter Registry"
   },
   {
    "id": "ana-2025-glp1-gastric-ultrasound-mayo-magic",
@@ -5441,7 +8426,29 @@
    ],
    "authorLimitations": [],
    "authorBasis": "abstract",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "citation": {
+    "title": "Assessment of Gastric Content Using Gastric Ultrasound in Patients on Glucagon-Like Peptide-1 Receptor Agonists Before Anesthesia",
+    "authors": [
+     "Pai SL",
+     "Nimma SR",
+     "Beam WB",
+     "VanderWielen BA",
+     "Kalagara HK",
+     "Bettini LM",
+     "Yu S",
+     "Sharpe EE",
+     "Harbell MW",
+     "MAGIC (Mayo Anesthesia Gastric Imaging Collaborative) Collaborators"
+    ],
+    "journal": "Anesthesia &amp; Analgesia",
+    "doi": "10.1213/ANE.0000000000007764",
+    "year": 2026,
+    "volume": "142",
+    "issue": "4",
+    "pages": "640-649"
+   },
+   "title": "Assessment of Gastric Content Using Gastric Ultrasound in Patients on Glucagon-Like Peptide-1 Receptor Agonists Before Anesthesia"
   }
  ]
 }
