@@ -20,21 +20,23 @@ struct ListenBar: View {
                 .animation(.linear(duration: 0.3), value: speech.progress)
                 HStack(spacing: 10) {
                     Button { router.open(postID: post.id) } label: {
-                        HStack(spacing: 10) {
-                            JournalAvatar(post: post, size: 34)
+                        HStack(spacing: 8) {
+                            JournalAvatar(post: post, size: 32)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(post.headline)
-                                    .font(PS.sys(size: 13, weight: .semibold))
+                                    .font(PS.sys(size: 12.5, weight: .semibold))
                                     .foregroundStyle(PS.fg)
-                                    .lineLimit(1)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
                                 Text(status)
-                                    .font(PS.sys(size: 11)).foregroundStyle(PS.fg3).lineLimit(1)
+                                    .font(PS.sys(size: 10.5)).foregroundStyle(PS.fg3).lineLimit(1)
                             }
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    Spacer(minLength: 0)
+                    .layoutPriority(1)
                     Button { showRate = true } label: {
                         Text(rateLabel).font(PS.sys(size: 11, weight: .bold, design: .monospaced)).foregroundStyle(PS.fg2)
                             .frame(width: 34, height: 30)
@@ -47,9 +49,6 @@ struct ListenBar: View {
                             Button(r.label) { prefs.speechRate = r.rawValue; speech.setRate(r.rawValue) }
                         }
                     }
-                    Button { speech.previous() } label: { Image(systemName: "backward.end.fill") }
-                        .buttonStyle(BarButtonStyle())
-                        .accessibilityLabel("Previous")
                     Button { speech.toggle() } label: {
                         Image(systemName: speech.finished ? "arrow.counterclockwise" : (speech.isPlaying ? "pause.fill" : "play.fill"))
                     }
@@ -63,7 +62,7 @@ struct ListenBar: View {
                         .buttonStyle(BarButtonStyle())
                         .accessibilityLabel("Stop listening")
                 }
-                .padding(.horizontal, 12).padding(.vertical, 8)
+                .padding(.horizontal, 12).padding(.vertical, 7)
             }
             .background(.ultraThinMaterial)
             .background(PS.surface.opacity(0.85))
