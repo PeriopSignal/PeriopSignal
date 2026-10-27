@@ -36,15 +36,26 @@ Actions tab → **iOS release (TestFlight)** → *Run workflow* → version (e.g
 3. Colleagues install **TestFlight** from the App Store and open the link. Up to 10,000 testers; builds expire after 90 days, so run step 5 at least every three months (any code change or none).
 
 ## 7. Morning push notifications (optional, 10 minutes)
-Without this, the app still alerts through background refresh (iOS decides the timing, usually within a few hours). With it, everyone gets one push a few minutes after the daily run publishes.
+Without this, the app still alerts through background refresh (iOS decides the timing, usually within a few hours; the app holds the alert until the reader's chosen time and respects quiet weekends). With it, everyone gets one push at 06:31 Eastern (the `Notify app users of new posts` workflow runs hourly from 06:31 to 12:31 and sends whatever the morning run added, per topic, plus a Sunday digest at 09:31).
 1. https://console.firebase.google.com → **Add project** → name `Periop Signal` (Analytics off).
 2. In the project, add an **iOS app** with bundle ID `org.periopsignal.app`; download **GoogleService-Info.plist**.
 3. **Project settings** → **Cloud Messaging** → **Apple app configuration** → upload an **APNs Authentication Key**: create it at https://developer.apple.com/account/resources/authkeys/list (**+**, tick *Apple Push Notifications service*), download the .p8, and enter its Key ID and your Team ID.
 4. **Project settings** → **Service accounts** → **Generate new private key** (a JSON file).
 5. Add two more repository secrets: `FIREBASE_PLIST_B64` = the plist file base64-encoded (on any computer: `base64 -i GoogleService-Info.plist` on macOS, `certutil -encode` on Windows, or paste the file into an online base64 encoder), and `FIREBASE_SERVICE_ACCOUNT` = the full JSON text.
-6. Run step 5 again. New builds include Firebase; the `Notify app users of new posts` workflow sends the push each time posts.json changes.
+6. Run step 5 again. New builds include Firebase and subscribe each reader to the topics they chose (`t-cardiac`, …, or `new-posts` when they follow everything, `-weekdays` variants for quiet weekends, and `weekly-digest`). To check the sender without waiting for a morning: Actions → *Notify app users of new posts* → *Run workflow* with `test_message` = true (one test push to `new-posts`), or `dry_run` = true to see what a real run would send.
+
+## 8. What the app does with the feed
+- **Today card**: new and unread counts, *Start reading*, *Listen* (reads the posts aloud; works with the screen locked and from the lock-screen controls), *Mark all read*. The app icon badge counts unread posts from the last two weeks.
+- **Question of the day**: one board-style question from a recent post, with a streak. Questions live in `posts.json` (`quiz`), written by the morning run and checked by `tools/validate_posts.py`.
+- **At a glance**: design, population, primary outcome and result on research posts (`glance` in `posts.json`).
+- **Guidelines tab**: every guideline and consensus statement by society, then FDA and safety notices.
+- **Cite**: AMA citation, DOI, BibTeX or a RIS file for EndNote, Zotero, Mendeley and Papers, from the Crossref record the `Citations` workflow fills in daily at 10:15 UTC (`citation` in `posts.json`).
+- **Share as image**: a card with the headline, three take-home points and a QR code to the post.
+- **More tab**: your topics (the feed gets a *For you* filter and alerts only cover those topics), earliest alert time, quiet weekends, Sunday digest, theme, text size, listening speed.
+- Spotlight on the iPhone finds posts by trial name, drug or journal.
 
 ## Troubleshooting
 - The workflow writes its logs to the `ci-results` branch of the repository (folder `results/`), which Claude can read for you.
+- The notification sender keeps what it has already sent in `results/notify/state.json` on the same branch; delete that file to make it treat everything as already sent on its next run.
 - "No app record found" during upload: do step 4.
 - Cloud-signing errors: confirm the API key role is **Admin** and `APPLE_TEAM_ID` is the 10-character Team ID.
