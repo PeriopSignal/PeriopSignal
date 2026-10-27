@@ -39,6 +39,7 @@ struct MoreView: View {
                             .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
                         if !prefs.myTopics.isEmpty {
                             Button("Follow everything") { prefs.setTopics([]) }
+                                .buttonStyle(.borderless)
                                 .font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent2)
                         }
                     }

@@ -225,7 +225,7 @@ struct TopicChipGrid: View {
                     .overlay(Capsule().stroke(on ? t.fg.opacity(0.7) : PS.line2, lineWidth: 1))
                     .foregroundStyle(on ? t.fg : PS.fg2)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)   // not .plain: inside a List row, .plain would make the whole row a button
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }

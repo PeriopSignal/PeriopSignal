@@ -234,7 +234,7 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     }()
 
     /// The post as spoken paragraphs: headline, source line, take-home, overview, stated limitations.
-    static func segments(for post: Post) -> [String] {
+    nonisolated static func segments(for post: Post) -> [String] {
         var out: [String] = []
         out.append(spoken(post.headline))
         var source = "From \(post.journal), \(post.kind.lowercased())"
@@ -260,7 +260,7 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     /// Strips markdown and expands a few abbreviations the voice would otherwise spell out oddly.
-    static func spoken(_ s: String) -> String {
+    nonisolated static func spoken(_ s: String) -> String {
         var t = s.replacingOccurrences(of: "**", with: "")
             .replacingOccurrences(of: "__", with: "")
             .replacingOccurrences(of: "`", with: "")
