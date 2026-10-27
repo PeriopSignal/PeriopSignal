@@ -7,12 +7,32 @@ import WidgetKit
 ///   -ps.tab saved|about   start on a tab
 ///   -ps.presave <id>      bookmark a post before the first frame
 ///   -ps.screen widget     show the widget preview screen instead of the app
+///   -ps.screen cards      show the two posts with the most topic tags as cards (button-row layout check)
 ///   -ps.appearance light  (read by @AppStorage directly)
 enum DebugLaunch {
     static var openPost: String? { UserDefaults.standard.string(forKey: "ps.openPost") }
     static var tab: String? { UserDefaults.standard.string(forKey: "ps.tab") }
     static var presave: String? { UserDefaults.standard.string(forKey: "ps.presave") }
     static var screen: String? { UserDefaults.standard.string(forKey: "ps.screen") }
+}
+
+/// Renders the two posts with the most topic tags as feed cards, so the CI screenshot shows the
+/// tags-plus-buttons row at its most crowded.
+struct CardPreviewScreen: View {
+    @Environment(PostStore.self) private var store
+    var body: some View {
+        let posts = Array(store.posts.sorted { $0.topics.count > $1.topics.count }.prefix(2))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                ForEach(posts.isEmpty ? [Post.sample] : posts) { post in
+                    PostCard(post: post, onOpen: {}, onOpenPaper: { _ in })
+                }
+            }
+            .padding(16)
+        }
+        .background(PS.bg.ignoresSafeArea())
+        .task { await store.loadInitial() }
+    }
 }
 
 /// Renders the widget families at their real sizes so the CI run can screenshot them.

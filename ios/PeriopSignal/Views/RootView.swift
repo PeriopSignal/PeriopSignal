@@ -10,6 +10,8 @@ struct RootView: View {
         #if DEBUG
         if DebugLaunch.screen == "widget" {
             WidgetPreviewScreen()
+        } else if DebugLaunch.screen == "cards" {
+            CardPreviewScreen()
         } else {
             tabs($router)
         }
