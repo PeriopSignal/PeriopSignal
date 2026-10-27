@@ -63,7 +63,7 @@ final class NotificationManager: NSObject, ObservableObject {
 
     /// Keep the push subscriptions in line with the reader's topics and digest setting.
     func syncTopics() {
-        PushBridge.sync(topics: PushTopics.desired(myTopics: myTopics, digest: weeklyDigest, enabled: enabled))
+        PushBridge.sync(topics: PushTopics.desired(myTopics: myTopics, digest: weeklyDigest, quietWeekends: quietWeekends, enabled: enabled))
     }
 
     // MARK: Background refresh

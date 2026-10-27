@@ -1,17 +1,37 @@
 name: Notify app users of new posts
 
+# Morning push through Firebase Cloud Messaging. Runs hourly from 06:31 to 12:31 Eastern and sends
+# whatever landed in posts.json since the last send (state kept on the ci-results branch), so the
+# 04:06 daily run never wakes anyone up and a late run is still announced that morning.
+#
+# Topics (the app subscribes according to the reader's settings):
+#   new-posts, new-posts-weekdays        everything (the -weekdays variant skips Saturday and Sunday)
+#   t-<topic>, t-<topic>-weekdays        one topic
+#   weekly-digest                        the Sunday summary (sent at the 09:31 Eastern run)
+# Every message in one run shares an apns-collapse-id, so a reader on several topics sees one alert.
+
 on:
-  push:
-    branches: [main]
-    paths: ["posts.json"]
+  schedule:
+    - cron: "31 10-16 * * *"   # 06:31-12:31 EDT / 05:31-11:31 EST; the script skips runs before 06:00 Eastern
   workflow_dispatch:
     inputs:
       test_message:
-        description: "Send a test notification instead of diffing posts.json (true/false)"
+        description: "Send a test notification with the newest post to new-posts, without touching the state (true/false)"
+        default: "false"
+      dry_run:
+        description: "Work out what would be sent and print it, but do not send (true/false)"
         default: "false"
 
+concurrency:
+  group: notify
+  cancel-in-progress: false
+
 permissions:
-  contents: read
+  contents: write
+
+env:
+  RESULTS_BRANCH: ci-results
+  STATE_PATH: results/notify/state.json
 
 jobs:
   notify:
@@ -19,11 +39,13 @@ jobs:
     timeout-minutes: 10
     env:
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      TEST: ${{ inputs.test_message }}
+      DRY_RUN: ${{ inputs.dry_run }}
     steps:
       - name: Skip when Firebase is not configured
         id: gate
         run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ] && [ "$DRY_RUN" != "true" ]; then
             echo "No FIREBASE_SERVICE_ACCOUNT secret; nothing to send."; echo "go=false" >> "$GITHUB_OUTPUT"
           else
             echo "go=true" >> "$GITHUB_OUTPUT"
@@ -31,71 +53,164 @@ jobs:
 
       - uses: actions/checkout@v4
         if: steps.gate.outputs.go == 'true'
-        with:
-          fetch-depth: 2
 
-      - name: Work out what is new
+      - name: Load the send state
         if: steps.gate.outputs.go == 'true'
-        id: diff
         run: |
-          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
-          import json, subprocess, os
-          test = os.environ.get("TEST", "false") == "true"
-          cur = json.load(open("posts.json", encoding="utf-8"))["posts"]
-          try:
-              prev_raw = subprocess.run(["git", "show", "HEAD~1:posts.json"], capture_output=True, text=True, check=True).stdout
-              prev_ids = {p["id"] for p in json.loads(prev_raw)["posts"]}
-          except Exception:
-              prev_ids = {p["id"] for p in cur}  # first run: nothing counts as new
-          new = [p for p in cur if p["id"] not in prev_ids]
-          if test and not new:
-              new = cur[:1]
-          new.sort(key=lambda p: (p.get("impact", 1), p.get("date", "")), reverse=True)
-          if not new:
-              print("count=0"); raise SystemExit
-          lead = new[0]
-          title = "New in Periop Signal" if len(new) == 1 else f"{len(new)} new papers in Periop Signal"
-          if lead.get("impact") == 3: title = "Landmark paper · " + lead.get("journal", "")
-          body = lead["headline"]
-          print(f"count={len(new)}")
-          print(f"title={title}")
-          print("body<<B\n" + body + "\nB")
-          print(f"post_id={lead['id']}")
+          mkdir -p "$RUNNER_TEMP/state"
+          if git fetch -q origin "$RESULTS_BRANCH" 2>/dev/null && git show "origin/$RESULTS_BRANCH:$STATE_PATH" > "$RUNNER_TEMP/state/state.json" 2>/dev/null; then
+            echo "State loaded:"; cat "$RUNNER_TEMP/state/state.json" | head -c 600; echo
+          else
+            echo '{"notifiedIDs": [], "digestWeek": "", "lastRun": ""}' > "$RUNNER_TEMP/state/state.json"
+            echo "No state yet; starting fresh (nothing already in the feed counts as new)."
+          fi
+
+      - name: Work out what to send
+        if: steps.gate.outputs.go == 'true'
+        id: plan
+        run: |
+          python3 - <<'EOF'
+          import json, os, datetime, zoneinfo
+          ET = zoneinfo.ZoneInfo("America/New_York")
+          now = datetime.datetime.now(ET)
+          today = now.strftime("%Y-%m-%d")
+          yesterday = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+          test = os.environ.get("TEST") == "true"
+          dry = os.environ.get("DRY_RUN") == "true"
+          state_path = os.path.join(os.environ["RUNNER_TEMP"], "state", "state.json")
+          state = json.load(open(state_path))
+          posts = json.load(open("posts.json", encoding="utf-8"))["posts"]
+          plan = {"messages": [], "state": state, "note": ""}
+          weekend = now.weekday() >= 5
+          week = now.strftime("%G-%V")
+
+          def lead_of(items):
+              return sorted(items, key=lambda p: (p.get("impact", 1), p.get("date", "")), reverse=True)[0]
+
+          def message(topic, items, title=None, collapse=None, data=None):
+              lead = lead_of(items)
+              n = len(items)
+              if title is None:
+                  title = "New in Periop Signal" if n == 1 else f"{n} new papers in Periop Signal"
+                  if lead.get("impact") == 3 and n == 1:
+                      title = "Landmark paper · " + lead.get("journal", "")
+              return {"topic": topic, "title": title, "body": lead["headline"], "collapse": collapse or ("ps-" + today),
+                      "data": dict({"postID": lead["id"], "count": str(n)}, **(data or {}))}
+
+          if test:
+              plan["messages"].append(message("new-posts", posts[:1], title="Test · Periop Signal", collapse="ps-test"))
+              plan["note"] = "test message only; state untouched"
+          else:
+              if now.hour < 6:
+                  plan["note"] = f"{now.strftime('%H:%M')} Eastern is before 06:00; nothing sent"
+              else:
+                  notified = set(state.get("notifiedIDs", []))
+                  first_run = not state.get("lastRun")
+                  fresh = [p for p in posts if p.get("addedAt", p["date"]) in (today, yesterday) and p["id"] not in notified]
+                  if first_run:
+                      # Never announce the backlog on the very first run.
+                      fresh = []
+                      notified = {p["id"] for p in posts}
+                  if fresh:
+                      topics = sorted({t for p in fresh for t in p.get("topics", [])})
+                      names = {"cardiac": "Cardiac", "cardiacSurgery": "Cardiac surgery", "mcs": "MCS", "echo": "Echo", "thoracic": "Thoracic",
+                               "regional": "Regional", "ob": "OB", "trauma": "Trauma", "pediatric": "Pediatric", "pedsCardiac": "Peds cardiac",
+                               "liver": "Liver transplant", "criticalCare": "Critical care", "general": "General"}
+                      variants = [""] if weekend else ["", "-weekdays"]
+                      for v in variants:
+                          plan["messages"].append(message("new-posts" + v, fresh))
+                      for t in topics:
+                          items = [p for p in fresh if t in p.get("topics", [])]
+                          n = len(items)
+                          title = f"New in {names.get(t, t)}" if n == 1 else f"{n} new in {names.get(t, t)}"
+                          for v in variants:
+                              plan["messages"].append(message("t-" + t + v, items, title=title))
+                      notified |= {p["id"] for p in fresh}
+                  # Sunday digest at the first run at or after 09:00 Eastern.
+                  if now.weekday() == 6 and now.hour >= 9 and state.get("digestWeek") != week:
+                      cutoff = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+                      recent = [p for p in posts if p.get("addedAt", p["date"]) >= cutoff]
+                      if recent:
+                          landmark = sum(1 for p in recent if p.get("impact") == 3)
+                          body = f"{len(recent)} new post{'s' if len(recent) != 1 else ''}" + (f", {landmark} landmark" if landmark else "") + ". " + lead_of(recent)["headline"]
+                          plan["messages"].append({"topic": "weekly-digest", "title": "This week in Periop Signal", "body": body,
+                                                   "collapse": "ps-digest-" + week, "data": {"tab": "feed", "count": str(len(recent))}})
+                      state["digestWeek"] = week
+                  # Keep the id list bounded: the newest 400 by addedAt.
+                  order = {p["id"]: p.get("addedAt", p["date"]) for p in posts}
+                  state["notifiedIDs"] = sorted(notified, key=lambda i: order.get(i, ""), reverse=True)[:400]
+                  state["lastRun"] = now.isoformat(timespec="minutes")
+                  if not plan["messages"]:
+                      plan["note"] = "nothing new since the last send"
+          json.dump(plan, open(os.path.join(os.environ["RUNNER_TEMP"], "state", "plan.json"), "w"), indent=1)
+          print(json.dumps({k: v for k, v in plan.items() if k != "state"}, indent=1)[:4000])
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"count={len(plan['messages'])}\n")
+              fh.write(f"save_state={'false' if test or dry else 'true'}\n")
           EOF
-        env:
-          TEST: ${{ inputs.test_message }}
 
       - name: Send through Firebase Cloud Messaging
-        if: steps.gate.outputs.go == 'true' && steps.diff.outputs.count != '0'
-        env:
-          TITLE: ${{ steps.diff.outputs.title }}
-          BODY: ${{ steps.diff.outputs.body }}
-          POST_ID: ${{ steps.diff.outputs.post_id }}
-          COUNT: ${{ steps.diff.outputs.count }}
+        if: steps.gate.outputs.go == 'true' && steps.plan.outputs.count != '0' && inputs.dry_run != 'true'
         run: |
           pip3 install --quiet google-auth requests
           python3 - <<'EOF'
-          import json, os, requests
+          import json, os, requests, time
           from google.oauth2 import service_account
           from google.auth.transport.requests import Request
           sa = json.loads(os.environ["FIREBASE_SERVICE_ACCOUNT"])
           creds = service_account.Credentials.from_service_account_info(sa, scopes=["https://www.googleapis.com/auth/firebase.messaging"])
           creds.refresh(Request())
           project = sa["project_id"]
-          msg = {
-            "message": {
-              "topic": "new-posts",
-              "notification": {"title": os.environ["TITLE"], "body": os.environ["BODY"]},
-              "data": {"postID": os.environ["POST_ID"], "count": os.environ["COUNT"]},
-              "apns": {
-                "headers": {"apns-priority": "10"},
-                "payload": {"aps": {"sound": "default", "thread-id": "periop-signal", "mutable-content": 1}}
-              }
-            }
-          }
-          r = requests.post(f"https://fcm.googleapis.com/v1/projects/{project}/messages:send",
-                            headers={"Authorization": "Bearer " + creds.token, "Content-Type": "application/json"},
-                            data=json.dumps(msg), timeout=30)
-          print(r.status_code, r.text[:500])
-          r.raise_for_status()
+          plan = json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "state", "plan.json")))
+          failures = 0
+          for m in plan["messages"]:
+              msg = {"message": {
+                  "topic": m["topic"],
+                  "notification": {"title": m["title"], "body": m["body"]},
+                  "data": m["data"],
+                  "apns": {
+                      "headers": {"apns-priority": "10", "apns-collapse-id": m["collapse"][:64]},
+                      "payload": {"aps": {"sound": "default", "thread-id": "periop-signal", "mutable-content": 1}}
+                  }
+              }}
+              for attempt in range(3):
+                  r = requests.post(f"https://fcm.googleapis.com/v1/projects/{project}/messages:send",
+                                    headers={"Authorization": "Bearer " + creds.token, "Content-Type": "application/json"},
+                                    data=json.dumps(msg), timeout=30)
+                  print(m["topic"], r.status_code, r.text[:200].replace("\n", " "))
+                  if r.status_code < 500:
+                      break
+                  time.sleep(3 * (attempt + 1))
+              if r.status_code >= 400:
+                  failures += 1
+              time.sleep(0.2)
+          if failures:
+              raise SystemExit(f"{failures} message(s) failed")
           EOF
+
+      - name: Save the send state to the ci-results branch
+        if: steps.gate.outputs.go == 'true' && steps.plan.outputs.save_state == 'true'
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          d = os.path.join(os.environ["RUNNER_TEMP"], "state")
+          plan = json.load(open(os.path.join(d, "plan.json")))
+          json.dump(plan["state"], open(os.path.join(d, "state.json"), "w"), indent=1)
+          with open(os.path.join(d, "log.txt"), "w") as fh:
+              fh.write(plan["state"].get("lastRun", "") + " sent " + str(len(plan["messages"])) + " message(s)" + (" · " + plan["note"] if plan["note"] else "") + "\n")
+          EOF
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          if git fetch -q origin "$RESULTS_BRANCH" 2>/dev/null; then
+            git checkout -q -B "$RESULTS_BRANCH" "origin/$RESULTS_BRANCH"
+          else
+            git checkout -q --orphan "$RESULTS_BRANCH"
+            git rm -rfq --cached . >/dev/null 2>&1 || true
+          fi
+          mkdir -p results/notify
+          cp "$RUNNER_TEMP/state/state.json" "$STATE_PATH"
+          cat "$RUNNER_TEMP/state/log.txt" >> results/notify/log.txt
+          tail -n 400 results/notify/log.txt > results/notify/log.tmp && mv results/notify/log.tmp results/notify/log.txt
+          git add -f results/notify
+          git commit -q -m "Notify state $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "state unchanged"; exit 0; }
+          git push -q origin "$RESULTS_BRANCH" || { git fetch -q origin "$RESULTS_BRANCH" && git rebase -q "origin/$RESULTS_BRANCH" && git push -q origin "$RESULTS_BRANCH"; }

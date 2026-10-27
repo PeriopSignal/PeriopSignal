@@ -86,6 +86,7 @@ struct MoreView: View {
                         prefs.alertHour = c.hour ?? 6; prefs.alertMinute = c.minute ?? 30
                     }
                     Toggle("Quiet on weekends", isOn: $p.quietWeekends).tint(PS.accent)
+                        .onChange(of: prefs.quietWeekends) { _, _ in notifications.syncTopics() }
                     Toggle(isOn: $p.weeklyDigest) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Sunday digest")

@@ -153,3 +153,11 @@ enum PostStoreTestHelper {
         return store.related(to: post)
     }
 }
+
+final class PushTopicsTests: XCTestCase {
+    func testDesiredTopics() {
+        XCTAssertEqual(PushTopics.desired(myTopics: [], digest: true, quietWeekends: false, enabled: true), ["new-posts", "weekly-digest"])
+        XCTAssertEqual(PushTopics.desired(myTopics: ["cardiac", "echo"], digest: false, quietWeekends: true, enabled: true), ["t-cardiac-weekdays", "t-echo-weekdays"])
+        XCTAssertEqual(PushTopics.desired(myTopics: ["cardiac"], digest: true, quietWeekends: false, enabled: false), [])
+    }
+}
