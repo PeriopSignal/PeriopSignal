@@ -3,20 +3,26 @@ import SwiftUI
 struct FeedView: View {
     @Environment(PostStore.self) private var store
     @Environment(SavedStore.self) private var saved
+    @Environment(QuizStore.self) private var quiz
+    @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
     @State private var path = NavigationPath()
     @State private var webLink: WebLink?
     @State private var showShare = false
+    @State private var quizPost: Post?
 
     var body: some View {
         @Bindable var store = store
         NavigationStack(path: $path) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 14, pinnedViews: []) {
-                    intro
+                    TodayCard(onOpen: { path.append($0) })
+                        .padding(.top, 6)
+                    DailyQuestionCard(onOpenSheet: { quizPost = $0 })
                     FilterBar()
                     statusLine
                     NotifyBanner()
+                    PersonalizeBanner()
                     postList
                 }
                 .padding(.horizontal, 16)
@@ -43,6 +49,7 @@ struct FeedView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(PS.bg.opacity(0.9), for: .navigationBar)
+            .listenBar()
         }
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
@@ -51,8 +58,12 @@ struct FeedView: View {
             ShareSheet(items: ["Periop Signal: the practice-changing papers in anesthesiology and critical care, every morning.", FeedLoader.siteURL])
                 .presentationDetents([.medium, .large])
         }
+        .sheet(item: $quizPost) { post in
+            QuizSheet(post: post, onOpenPost: { p in path.append(p) })
+        }
         .onChange(of: router.pendingPostID) { _, _ in openPending() }
-        .onChange(of: store.posts.count) { _, _ in openPending() }
+        .onChange(of: store.posts.count) { _, _ in openPending(); openQuizIfAsked() }
+        .onChange(of: router.openQuiz) { _, _ in openQuizIfAsked() }
     }
 
     private func openPending() {
@@ -62,21 +73,13 @@ struct FeedView: View {
         path.append(post)
     }
 
-    // MARK: Sections
-
-    private var intro: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("The practice-changing papers in anesthesiology and critical care, from 50 journals every morning.")
-                .font(.system(size: 15))
-                .foregroundStyle(PS.fg2)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 6) {
-                Text("Creator:").font(.system(size: 11, weight: .semibold, design: .monospaced)).textCase(.uppercase).foregroundStyle(PS.fg3)
-                Text("Benjamin Mori, MD").font(.system(size: 12.5, weight: .medium)).foregroundStyle(PS.fg2)
-            }
-        }
-        .padding(.top, 6)
+    private func openQuizIfAsked() {
+        guard router.openQuiz, let post = quiz.todaysQuestion(from: store.posts) else { return }
+        router.openQuiz = false
+        quizPost = post
     }
+
+    // MARK: Sections
 
     private var statusLine: some View {
         HStack(spacing: 8) {
@@ -90,7 +93,7 @@ struct FeedView: View {
                 Text(countText).foregroundStyle(PS.fg3)
                 if store.hasFilters {
                     Button("Clear") { store.clearFilters() }
-                        .font(.system(size: 12.5, weight: .semibold))
+                        .font(PS.sys(size: 12.5, weight: .semibold))
                         .foregroundStyle(PS.accent2)
                 }
             }
@@ -101,7 +104,7 @@ struct FeedView: View {
                     .lineLimit(1)
             }
         }
-        .font(.system(size: 12.5))
+        .font(PS.sys(size: 12.5))
     }
 
     private var countText: String {
@@ -139,7 +142,7 @@ struct FeedView: View {
         HStack(spacing: 8) {
             Rectangle().fill(PS.line2).frame(height: 1)
             Label("You’re all caught up", systemImage: "checkmark.circle")
-                .font(.system(size: 12, weight: .semibold))
+                .font(PS.sys(size: 12, weight: .semibold))
                 .foregroundStyle(PS.green)
                 .fixedSize()
             Rectangle().fill(PS.line2).frame(height: 1)
@@ -149,8 +152,8 @@ struct FeedView: View {
 
     private var endNote: some View {
         VStack(spacing: 4) {
-            Text("That’s everything since October 2025").font(.system(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-            Text("New posts land each morning.").font(.system(size: 13)).foregroundStyle(PS.fg3)
+            Text("That’s everything since October 2025").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+            Text("New posts land each morning.").font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
@@ -161,7 +164,7 @@ struct MonthDivider: View {
     var title: String
     var body: some View {
         Text(title)
-            .font(.system(size: 11, weight: .bold, design: .monospaced))
+            .font(PS.sys(size: 11, weight: .bold, design: .monospaced))
             .textCase(.uppercase)
             .kerning(0.8)
             .foregroundStyle(PS.fg3)
@@ -193,12 +196,19 @@ struct FeedBackground: View {
 
 struct FilterBar: View {
     @Environment(PostStore.self) private var store
+    @Environment(Preferences.self) private var prefs
 
     var body: some View {
         @Bindable var store = store
+        @Bindable var prefs = prefs
         let counts = store.topicCounts()
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
+                if !prefs.myTopics.isEmpty {
+                    FilterChip(title: "For you", count: store.forYouCount, isOn: prefs.forYou, fg: PS.accent2, bg: PS.accent2.opacity(0.16)) {
+                        prefs.forYou.toggle()
+                    }
+                }
                 FilterChip(title: "This week", count: store.publishedThisWeek, isOn: store.recentOnly, fg: PS.green, bg: PS.green.opacity(0.16)) {
                     store.recentOnly.toggle()
                 }
@@ -235,10 +245,10 @@ struct FilterChip: View {
             HStack(spacing: 5) {
                 Text(title)
                 Text("\(count)")
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .font(PS.sys(size: 11, weight: .semibold, design: .monospaced))
                     .foregroundStyle(isOn ? fg.opacity(0.9) : PS.fg3)
             }
-            .font(.system(size: 13, weight: .semibold))
+            .font(PS.sys(size: 13, weight: .semibold))
             .padding(.horizontal, 11).padding(.vertical, 7)
             .background(isOn ? bg : PS.surface, in: Capsule())
             .overlay(Capsule().stroke(isOn ? fg.opacity(0.6) : PS.line2, lineWidth: 1))
@@ -265,13 +275,13 @@ struct NotifyBanner: View {
         if visible {
             HStack(alignment: .center, spacing: 12) {
                 Image(systemName: "bell.badge")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(PS.sys(size: 18, weight: .semibold))
                     .foregroundStyle(PS.accent)
                     .frame(width: 36, height: 36)
                     .background(PS.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Morning alerts").font(.system(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text("One notification when new papers land.").font(.system(size: 12.5)).foregroundStyle(PS.fg2)
+                    Text("Morning alerts").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text("One notification when new papers land.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
                 }
                 Spacer(minLength: 4)
                 Button {
@@ -279,14 +289,14 @@ struct NotifyBanner: View {
                     Task { _ = await notifications.requestPermission(); busy = false; dismissed = true }
                 } label: {
                     Text(busy ? "…" : "Turn on")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(PS.sys(size: 13, weight: .semibold))
                         .padding(.horizontal, 12).padding(.vertical, 7)
                         .background(PS.accent, in: Capsule())
                         .foregroundStyle(PS.accentFg)
                 }
                 .buttonStyle(.plain)
                 Button { dismissed = true } label: {
-                    Image(systemName: "xmark").font(.system(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
+                    Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Dismiss")

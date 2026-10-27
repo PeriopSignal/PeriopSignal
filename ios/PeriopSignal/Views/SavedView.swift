@@ -3,6 +3,7 @@ import SwiftUI
 struct SavedView: View {
     @Environment(PostStore.self) private var store
     @Environment(SavedStore.self) private var saved
+    @Environment(SpeechPlayer.self) private var speech
     @State private var path = NavigationPath()
     @State private var webLink: WebLink?
 
@@ -20,8 +21,13 @@ struct SavedView: View {
                         }
                         .padding(.top, 60)
                     } else {
-                        Text("\(posts.count) saved · synced with iCloud")
-                            .font(.system(size: 12.5)).foregroundStyle(PS.fg3)
+                        HStack {
+                            Text("\(posts.count) saved · synced with iCloud")
+                                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
+                            Spacer()
+                            Button { speech.play(posts) } label: { Label("Listen to all", systemImage: "headphones") }
+                                .buttonStyle(CapsuleButtonStyle(prominent: false))
+                        }
                         ForEach(posts) { post in
                             PostCard(post: post, onOpen: { path.append(post) }, onOpenPaper: { webLink = WebLink(url: $0) })
                         }
@@ -38,6 +44,7 @@ struct SavedView: View {
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
             }
             .toolbarBackground(PS.bg.opacity(0.9), for: .navigationBar)
+            .listenBar()
         }
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()

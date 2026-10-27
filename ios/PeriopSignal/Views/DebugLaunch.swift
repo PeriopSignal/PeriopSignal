@@ -3,17 +3,28 @@ import WidgetKit
 
 #if DEBUG
 /// Launch arguments used by the CI screenshot run (simulator only):
-///   -ps.openPost <id>     open a deep dive once the feed has loaded
-///   -ps.tab saved|about   start on a tab
-///   -ps.presave <id>      bookmark a post before the first frame
-///   -ps.screen widget     show the widget preview screen instead of the app
-///   -ps.screen cards      show the two posts with the most topic tags as cards (button-row layout check)
-///   -ps.appearance light  (read by @AppStorage directly)
+///   -ps.openPost <id>       open a deep dive once the feed has loaded
+///   -ps.tab saved|more|guidelines   start on a tab
+///   -ps.presave <id>        bookmark a post before the first frame
+///   -ps.topics a,b          follow these topics (turns on "For you")
+///   -ps.openQuiz 1          open the question of the day
+///   -ps.listen 1            show the mini player (paused)
+///   -ps.screen widget       show the widget preview screen instead of the app
+///   -ps.screen cards        show the two posts with the most topic tags as cards (button-row layout check)
+///   -ps.screen sharecard    render the share image for the newest landmark post
+///   -ps.onboardingDone 1    skip the first-launch sheet (every CI shot except the onboarding one)
+///   -ps.forceAppearance light / -ps.forceLaunchCount N
 enum DebugLaunch {
     static var openPost: String? { UserDefaults.standard.string(forKey: "ps.openPost") }
     static var tab: String? { UserDefaults.standard.string(forKey: "ps.tab") }
     static var presave: String? { UserDefaults.standard.string(forKey: "ps.presave") }
     static var screen: String? { UserDefaults.standard.string(forKey: "ps.screen") }
+    static var openQuiz: Bool { UserDefaults.standard.bool(forKey: "ps.openQuiz") }
+    static var listen: Bool { UserDefaults.standard.bool(forKey: "ps.listen") }
+    static var topics: [String]? {
+        guard let s = UserDefaults.standard.string(forKey: "ps.topics.debug"), !s.isEmpty else { return nil }
+        return s.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }
+    }
 }
 
 /// Renders the two posts with the most topic tags as feed cards, so the CI screenshot shows the
@@ -32,6 +43,36 @@ struct CardPreviewScreen: View {
         }
         .background(PS.bg.ignoresSafeArea())
         .task { await store.loadInitial() }
+    }
+}
+
+/// Shows the share image exactly as it is rendered (the newest landmark post).
+struct ShareCardPreviewScreen: View {
+    @Environment(PostStore.self) private var store
+    @State private var image: UIImage?
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                Text("Share image").font(.system(size: 22, weight: .bold, design: .rounded)).foregroundStyle(PS.fg)
+                if let image {
+                    Image(uiImage: image).resizable().scaledToFit()
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .padding(.horizontal, 16)
+                    Text("\(Int(image.size.width * image.scale)) × \(Int(image.size.height * image.scale)) px")
+                        .font(.caption).foregroundStyle(PS.fg3)
+                } else {
+                    ProgressView()
+                }
+            }
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity)
+        }
+        .background(PS.bg.ignoresSafeArea())
+        .task {
+            await store.loadInitial()
+            let post = store.newestLandmark ?? store.newestPost ?? .sample
+            image = ShareCardRenderer.render(post)
+        }
     }
 }
 

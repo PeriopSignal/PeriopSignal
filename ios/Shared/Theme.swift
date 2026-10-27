@@ -41,6 +41,22 @@ enum PS {
     static let blueGlow = Color(hex: "7AAAFF")
 
     static let logoGradient = LinearGradient(colors: [coralLight, coralDeep], startPoint: .topLeading, endPoint: .bottomTrailing)
+
+    /// In-app text size multiplier (More › Text size). The widget never changes it, so it stays 1.
+    nonisolated(unsafe) static var textScale: CGFloat = 1
+
+    /// System font at a design size, scaled by the in-app text size. App views use this instead of
+    /// `.system(size:)` so one setting resizes everything.
+    static func sys(size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) -> Font {
+        .system(size: (size * textScale).rounded(toPlaces: 1), weight: weight, design: design)
+    }
+}
+
+extension CGFloat {
+    func rounded(toPlaces places: Int) -> CGFloat {
+        let p = pow(10, CGFloat(places))
+        return (self * p).rounded() / p
+    }
 }
 
 struct TopicInfo: Identifiable, Hashable {
