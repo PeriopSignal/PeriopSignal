@@ -133,6 +133,11 @@ jobs:
             echo
             if grep -q "EXPORT SUCCEEDED" ios/build/export.log 2>/dev/null; then
               echo "Uploaded to App Store Connect. It appears under TestFlight after Apple finishes processing (usually 5-20 minutes)."
+              if [ -f ios/build/export/DistributionSummary.plist ]; then
+                echo; echo "Entitlements signed into the upload:"; echo '```'
+                plutil -convert xml1 -o - ios/build/export/DistributionSummary.plist | grep -E "aps-environment|ubiquity-kvstore|application-identifier|<string>(production|development)</string>" | head -20
+                echo '```'
+              fi
             elif [ "${{ steps.secrets.outputs.ready }}" != "true" ]; then
               if grep -q "ARCHIVE SUCCEEDED" ios/build/archive.log 2>/dev/null; then echo "Dry run: the release archive builds. Add the Apple secrets to sign and upload."; else echo "Dry run: the archive failed; see the log below."; tail -40 ios/build/archive.log; fi
             else
@@ -149,6 +154,10 @@ jobs:
           for f in archive export; do
             [ -f ios/build/$f.log ] && grep -vE "^\s*$" ios/build/$f.log | grep -E "error|warning: |SUCCEEDED|FAILED|Exported|Upload|signing|profile|certificate" | tail -300 > ci-out/release-$f.log || true
           done
+          if [ -f ios/build/export/DistributionSummary.plist ]; then
+            plutil -convert xml1 -o ci-out/DistributionSummary.plist ios/build/export/DistributionSummary.plist || cp ios/build/export/DistributionSummary.plist ci-out/
+          fi
+          ls -la ios/build/export > ci-out/export-dir.txt 2>&1 || true
           echo "run=${{ github.run_number }} version=${{ inputs.version }} status=${{ job.status }}" > ci-out/RELEASE_STATUS
           git config user.name "periop-signal-ci"
           git config user.email "ci@periopsignal.invalid"
