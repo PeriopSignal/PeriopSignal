@@ -76,6 +76,8 @@ struct DeepDiveView: View {
                 Button { onOpenPaper(url) } label: {
                     Label("Open paper", systemImage: "arrow.up.right.square")
                         .font(.system(size: 14, weight: .semibold))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                         .padding(.horizontal, 14).padding(.vertical, 9)
                         .background(PS.accent, in: Capsule())
                         .foregroundStyle(PS.accentFg)

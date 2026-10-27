@@ -56,25 +56,12 @@ struct PostCard: View {
 
             TakeHomeList(items: post.takeHome)
 
-            HStack(alignment: .center) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(post.topics, id: \.self) { TopicTag(topicID: $0) }
-                    }
-                }
-                Spacer(minLength: 8)
-                HStack(spacing: 6) {
-                    if let url = post.paperURL {
-                        Button { onOpenPaper(url) } label: {
-                            Label("Paper", systemImage: "arrow.up.right.square")
-                        }
-                        .buttonStyle(CardButtonStyle(prominent: false))
-                    }
-                    Button(action: onOpen) {
-                        Label("Deep dive", systemImage: "text.book.closed")
-                    }
-                    .buttonStyle(CardButtonStyle(prominent: true))
-                }
+            // The buttons keep their natural width so their labels never wrap; the topic tags scroll
+            // in whatever width is left.
+            HStack(alignment: .center, spacing: 8) {
+                topicsRow
+                Spacer(minLength: 0)
+                actionButtons
             }
         }
         .padding(14)
@@ -84,6 +71,32 @@ struct PostCard: View {
                 .stroke(post.isLandmark ? PS.accent.opacity(0.75) : PS.line, lineWidth: post.isLandmark ? 1.5 : 1)
         )
         .shadow(color: post.isLandmark ? PS.accent.opacity(0.18) : .black.opacity(0.25), radius: post.isLandmark ? 14 : 10, y: 6)
+    }
+
+    private var topicsRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(post.topics, id: \.self) { TopicTag(topicID: $0) }
+            }
+        }
+        .layoutPriority(0)
+    }
+
+    private var actionButtons: some View {
+        HStack(spacing: 6) {
+            if let url = post.paperURL {
+                Button { onOpenPaper(url) } label: {
+                    Label("Paper", systemImage: "arrow.up.right.square")
+                }
+                .buttonStyle(CardButtonStyle(prominent: false))
+            }
+            Button(action: onOpen) {
+                Label("Deep dive", systemImage: "text.book.closed")
+            }
+            .buttonStyle(CardButtonStyle(prominent: true))
+        }
+        .fixedSize(horizontal: true, vertical: false)
+        .layoutPriority(1)
     }
 
     private var cardBackground: some View {
@@ -102,6 +115,8 @@ struct CardButtonStyle: ButtonStyle {
         configuration.label
             .font(.system(size: 12.5, weight: .semibold))
             .labelStyle(.titleAndIcon)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 10).padding(.vertical, 7)
             .background(prominent ? PS.accent2.opacity(0.14) : PS.surface2, in: Capsule())
             .foregroundStyle(prominent ? PS.accent2 : PS.fg2)
