@@ -1,0 +1,5 @@
+org.periopsignal.app: present (24JWDB52H8)
+  PUSH_NOTIFICATIONS: already enabled
+  ICLOUD: already enabled
+org.periopsignal.app.widget: present (V34HYTWV2A)
+Bundle identifiers ready.
