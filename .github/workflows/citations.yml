@@ -1,0 +1,47 @@
+name: Fill in citations
+
+# Looks up the Crossref record for every post that links to a DOI and has no citation yet, and writes
+# `title` and `citation` (authors, journal, year, volume, issue, pages, doi) into posts.json. The app uses
+# them for "Copy citation" and RIS export. Runs after the morning feed run and on demand.
+
+on:
+  schedule:
+    - cron: "15 10 * * *"
+  workflow_dispatch:
+    inputs:
+      all:
+        description: "Refresh every DOI post, not only the ones without a citation (true/false)"
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: citations
+  cancel-in-progress: false
+
+jobs:
+  cite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Look up Crossref
+        run: |
+          if [ "${{ inputs.all }}" = "true" ]; then FLAG=--all; else FLAG=; fi
+          python3 -I tools/backfill_citations.py posts.json $FLAG | tee "$RUNNER_TEMP/summary.txt"
+          python3 -I tools/validate_posts.py posts.json
+
+      - name: Commit when anything changed
+        run: |
+          if git diff --quiet -- posts.json; then echo "No change"; exit 0; fi
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          git add posts.json
+          git commit -q -m "Citations: $(cat "$RUNNER_TEMP/summary.txt" | head -c 120)"
+          git pull --rebase -q origin main || true
+          git push origin HEAD:main
+          echo "## Citations" >> "$GITHUB_STEP_SUMMARY"; cat "$RUNNER_TEMP/summary.txt" >> "$GITHUB_STEP_SUMMARY"
