@@ -1,0 +1,4 @@
+   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/ReadStore.swift:91:61: warning: main actor-isolated static property 'baselineKey' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode
+   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/ReadStore.swift:90:66: warning: main actor-isolated static property 'key' can not be referenced from a nonisolated context; this is an error in the Swift 6 language mode
+   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/ReadStore.swift:43:94: warning: main actor-isolated static property 'unreadWindowDays' can not be referenced from a nonisolated autoclosure; this is an error in the Swift 6 language mode
+   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PushBridge.swift:19:30: error: cannot convert value of type 'Bool' to expected argument type 'String'
