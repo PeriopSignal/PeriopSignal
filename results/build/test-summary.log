@@ -1,37 +1,33 @@
-2026-10-27 22:25:57.406712+0000 PeriopSignal[4394:20257] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-10-27 22:25:57.531233+0000 PeriopSignal[4394:20249] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-27 22:47:02.590979+0000 PeriopSignal[6425:25219] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-27 22:47:02.827031+0000 PeriopSignal[6425:25217] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
 Test Case '-[PeriopSignalTests.FeedDecodingTests testAMACitationTruncatesLongAuthorLists]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testAMACitationTruncatesLongAuthorLists]' passed (0.002 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testAMACitationTruncatesLongAuthorLists]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testBrokenQuizIsDropped]' started.
 Test Case '-[PeriopSignalTests.FeedDecodingTests testBrokenQuizIsDropped]' passed (0.001 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' started.
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' passed (0.001 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesGlanceQuizCitation]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesGlanceQuizCitation]' passed (0.101 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesGlanceQuizCitation]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testFallbackCitationForNonDOI]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testFallbackCitationForNonDOI]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testFallbackCitationForNonDOI]' passed (0.001 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' passed (0.001 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testOptionalFieldsDefault]' started.
 Test Case '-[PeriopSignalTests.FeedDecodingTests testOptionalFieldsDefault]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testRelatedPostsPreferSameTrialAndTopics]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testRelatedPostsPreferSameTrialAndTopics]' passed (0.001 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testRelatedPostsPreferSameTrialAndTopics]' passed (0.011 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testSocietyDetection]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testSocietyDetection]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testSocietyDetection]' passed (0.009 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testSpokenTextStripsMarkdownAndExpandsAbbreviations]' started.
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/FeedDecodingTests.swift:105: error: -[PeriopSignalTests.FeedDecodingTests testSpokenTextStripsMarkdownAndExpandsAbbreviations] : XCTAssertEqual failed: ("Optional("Adding vasopressin at 0.1 versus 0.4 micrograms per kilogram per minute norepinephrine did not change 28-day mortality in septic shock")") is not equal to ("Optional("Adding vasopressin at 0.1 vs 0.4 mcg/kg/min norepinephrine did not change 28-day mortality in septic shock")")
-Test Case '-[PeriopSignalTests.FeedDecodingTests testSpokenTextStripsMarkdownAndExpandsAbbreviations]' failed (0.677 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testSpokenTextStripsMarkdownAndExpandsAbbreviations]' passed (0.008 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testTodaysQuestionIsStableForTheDay]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testTodaysQuestionIsStableForTheDay]' passed (0.047 seconds).
-Test Suite 'FeedDecodingTests' failed at 2026-10-27 22:26:08.163.
-	 Executed 12 tests, with 1 failure (0 unexpected) in 0.850 (2.583) seconds
+Test Case '-[PeriopSignalTests.FeedDecodingTests testTodaysQuestionIsStableForTheDay]' passed (0.027 seconds).
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.080 (0.814) seconds
 Test Case '-[PeriopSignalTests.PushTopicsTests testDesiredTopics]' started.
-Test Case '-[PeriopSignalTests.PushTopicsTests testDesiredTopics]' passed (0.001 seconds).
-	 Executed 1 test, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
-Test Suite 'PeriopSignalTests.xctest' failed at 2026-10-27 22:26:09.106.
-	 Executed 13 tests, with 1 failure (0 unexpected) in 0.850 (3.527) seconds
-Test Suite 'All tests' failed at 2026-10-27 22:26:09.107.
-	 Executed 13 tests, with 1 failure (0 unexpected) in 0.850 (3.528) seconds
-** TEST FAILED **
+Test Case '-[PeriopSignalTests.PushTopicsTests testDesiredTopics]' passed (0.321 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.321 (0.322) seconds
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.402 (1.137) seconds
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.402 (1.143) seconds
+** TEST SUCCEEDED **
