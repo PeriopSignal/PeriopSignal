@@ -1,7 +1,34 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-26T11:54:53+00:00",
+ "generatedAt": "2026-10-27T08:36:31+00:00",
  "posts": [
+  {
+   "id": "anaesthesia-2026-prospect-total-shoulder-arthroplasty",
+   "date": "2026-10-22",
+   "dateApprox": false,
+   "addedAt": "2026-10-27",
+   "journal": "Anaesthesia",
+   "jshort": "Anaes",
+   "kind": "Guideline",
+   "topics": [
+    "regional"
+   ],
+   "headline": "PROSPECT shoulder replacement: single-shot interscalene, paracetamol, NSAID, dexamethasone; not liposomal bupivacaine",
+   "summary": "A systematic review using PROSPECT methodology identified 1,809 articles, included 30 randomised trials and seven systematic reviews, and produced procedure-specific pain management recommendations for total shoulder arthroplasty.",
+   "takeHome": [
+    "Basic regimen: paracetamol, an NSAID started peri-operatively and continued afterwards, IV dexamethasone 8-10 mg, and opioids only for rescue.",
+    "Regional: single-bolus interscalene block with bupivacaine or ropivacaine, not liposomal bupivacaine; local infiltration analgesia if contraindicated or expertise is lacking.",
+    "Evidence was conflicting for continuous interscalene catheters and for liposomal bupivacaine, and no evidence favoured a specific surgical technique."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Total shoulder arthroplasty causes moderate-to-severe pain, and the analgesic menu varies a lot between centres: single-shot or catheter interscalene, liposomal bupivacaine, surgeon-delivered infiltration. PROSPECT recommendations are a widely used procedure-specific reference for enhanced-recovery pathways.\n\n**What they did.** A systematic review using PROSPECT methodology of English-language randomised trials and systematic reviews that measured postoperative pain after analgesic, anaesthetic or surgical interventions. Of 1,809 articles identified, 30 randomised trials and seven systematic reviews or meta-analyses were included, and the findings were turned into PROSPECT recommendations.\n\n**What they recommend.**\n- Paracetamol plus an NSAID given peri-operatively and continued after surgery.\n- IV dexamethasone 8-10 mg.\n- Single-bolus interscalene brachial plexus block with a long-acting local anaesthetic (bupivacaine or ropivacaine), not liposomal bupivacaine.\n- Local infiltration analgesia when the block is contraindicated or the expertise is not available.\n- Opioids for rescue only.\n\n**Caveats.** Evidence on continuous interscalene catheters and on liposomal bupivacaine was conflicting, and the authors call for more trials of continuous infusions. The abstract does not say how diaphragm-sparing options such as superior trunk or suprascapular-based blocks were judged, so read the full paper before rebuilding a pathway around them.\n\n**What it means for us.** The default for a shoulder arthroplasty list is simple and cheap: paracetamol, NSAID, 8-10 mg dexamethasone and a single-shot interscalene with plain bupivacaine or ropivacaine. When the interscalene is a poor choice, for example in a patient with little respiratory reserve, the recommended fallback is infiltration analgesia. Because the catheter question is still open, plan multimodal cover for the night the block wears off.",
+   "url": "https://doi.org/10.1111/anae.70427",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Mrazek"
+  },
   {
    "id": "fda-2026-cipepofol-cypsedo-induction-approval",
    "date": "2026-05-29",
