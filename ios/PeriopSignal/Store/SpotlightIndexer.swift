@@ -9,6 +9,9 @@ enum SpotlightIndexer {
     private static let stampKey = "ps.spotlightStamp"
 
     static func indexIfNeeded(_ posts: [Post]) async {
+        #if targetEnvironment(simulator)
+        return   // the simulator's index daemon can stall; devices only
+        #else
         guard CSSearchableIndex.isIndexingAvailable(), !posts.isEmpty else { return }
         let stamp = "\(posts.count)|\(posts.map(\.addedAt).max() ?? "")|\(posts.map(\.id).joined().hashValue)"
         guard UserDefaults.standard.string(forKey: stampKey) != stamp else { return }
@@ -31,6 +34,7 @@ enum SpotlightIndexer {
         } catch {
             // Indexing is a convenience; try again on the next refresh.
         }
+        #endif
     }
 
     /// The post id inside a Spotlight continuation activity, if it is one of ours.

@@ -135,7 +135,7 @@ jobs:
           shot 05-more 10 -ps.tab more
           shot 06-widgets 12 -ps.screen widget
           shot 07-feed-day 12 -ps.forceAppearance light -ps.forceLaunchCount 2
-          shot 08-cards 12 -ps.screen cards
+          shot 08-cards 12 -ps.screen cards -ps.forceAppearance dark
           shot 09-onboarding 12 -ps.onboardingDone 0
           shot 10-quiz 13 -ps.openQuiz 1
           shot 11-guidelines 12 -ps.tab guidelines

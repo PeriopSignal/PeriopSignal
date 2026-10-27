@@ -78,7 +78,8 @@ struct RootView: View {
         if !prefs.onboardingDone { showOnboarding = true }
         await store.loadInitial()
         read.prune(keeping: store.posts)
-        await ReadStore.updateBadge(unread: read.unread(in: store.posts).count)
+        let unread = read.unread(in: store.posts).count
+        Task { await ReadStore.updateBadge(unread: unread) }
         #if DEBUG
         if let id = DebugLaunch.openPost { router.open(postID: id) }
         if DebugLaunch.openQuiz { router.openQuiz = true }

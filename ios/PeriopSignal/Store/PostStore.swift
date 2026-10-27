@@ -60,7 +60,9 @@ final class PostStore {
             loadedFromCache = false
             errorMessage = nil
             WidgetCenter.shared.reloadAllTimelines()
-            await SpotlightIndexer.indexIfNeeded(posts)
+            // Off the refresh path: Spotlight can be slow to answer and must never hold up the feed.
+            let snapshot = posts
+            Task.detached(priority: .utility) { await SpotlightIndexer.indexIfNeeded(snapshot) }
         } catch {
             errorMessage = posts.isEmpty
                 ? "Couldn’t load the feed. Check your connection and pull to retry."
