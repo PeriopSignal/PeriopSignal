@@ -16,7 +16,7 @@ enum PushTopics {
         guard enabled else { return [] }
         let suffix = quietWeekends ? "-weekdays" : ""
         var s: Set<String> = myTopics.isEmpty ? [all + suffix] : Set(myTopics.map { topic($0) + suffix })
-        if digest { s.insert(digest) }
+        if digest { s.insert(Self.digest) }
         return s
     }
 }

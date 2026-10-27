@@ -11,13 +11,13 @@ import UserNotifications
 @Observable
 final class ReadStore {
     private(set) var ids: Set<String> = []
-    private static let key = "ps.read"
-    private static let baselineKey = "ps.readBaseline"
+    nonisolated private static let key = "ps.read"
+    nonisolated private static let baselineKey = "ps.readBaseline"
     private let kv = NSUbiquitousKeyValueStore.default
     private let defaults = UserDefaults.standard
     private var observer: NSObjectProtocol?
 
-    static let unreadWindowDays = 14
+    nonisolated static let unreadWindowDays = 14
 
     init() {
         if defaults.string(forKey: Self.baselineKey) == nil {
