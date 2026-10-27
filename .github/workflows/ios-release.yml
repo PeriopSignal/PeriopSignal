@@ -67,7 +67,8 @@ jobs:
         if: steps.secrets.outputs.ready == 'true'
         run: |
           pip3 install --quiet --break-system-packages pyjwt cryptography || pip3 install --quiet pyjwt cryptography
-          python3 ios/tools/asc_prepare.py
+          mkdir -p ios/build
+          python3 ios/tools/asc_prepare.py 2>&1 | tee ios/build/asc.log
 
       - name: Firebase (push notifications), when configured
         working-directory: ios
@@ -151,6 +152,7 @@ jobs:
         if: always()
         run: |
           mkdir -p ci-out
+          [ -f ios/build/asc.log ] && cp ios/build/asc.log ci-out/release-asc.log
           for f in archive export; do
             [ -f ios/build/$f.log ] && grep -vE "^\s*$" ios/build/$f.log | grep -E "error|warning: |SUCCEEDED|FAILED|Exported|Upload|signing|profile|certificate" | tail -300 > ci-out/release-$f.log || true
           done
