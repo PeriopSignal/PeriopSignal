@@ -137,6 +137,8 @@ final class FeedDecodingTests: XCTestCase {
             posts[i].quiz = Quiz(question: "Question number \(i) about the post?", options: ["a", "b", "c", "d"], answer: i % 4, explanation: "Because the post says so, in detail.")
         }
         UserDefaults.standard.removeObject(forKey: "ps.quiz.today")
+        // The test host shares the app's container on the simulator; leave no pick behind for the screenshot run.
+        addTeardownBlock { UserDefaults.standard.removeObject(forKey: "ps.quiz.today") }
         let store = QuizStore()
         let first = store.todaysQuestion(from: posts)
         let second = store.todaysQuestion(from: posts)
