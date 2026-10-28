@@ -1,0 +1,936 @@
+Command line invocation:
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xcodebuild -project PeriopSignal.xcodeproj -scheme PeriopSignal -destination id=291E4B86-C951-41A7-8327-84BF0304D0A9 -configuration Debug -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= build
+
+Build settings from command line:
+    CODE_SIGN_IDENTITY = 
+    CODE_SIGNING_ALLOWED = NO
+    CODE_SIGNING_REQUIRED = NO
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:291E4B86-C951-41A7-8327-84BF0304D0A9, OS:26.2, name:iPhone 16 Pro }
+{ platform:iOS Simulator, arch:x86_64, id:291E4B86-C951-41A7-8327-84BF0304D0A9, OS:26.2, name:iPhone 16 Pro }
+note: Using codesigning identity override: 
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'PeriopSignal' in project 'PeriopSignal'
+        ➜ Explicit dependency on target 'PeriopSignalWidget' in project 'PeriopSignal'
+    Target 'PeriopSignalWidget' in project 'PeriopSignal' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: d2172c653ea5786323e7980e04c132f7
+Build description path: /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/XCBuildData/d2172c653ea5786323e7980e04c132f7.xcbuilddata
+CreateBuildDirectory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    builtin-create-build-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products
+
+ClangStatCache /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache
+
+CreateBuildDirectory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    builtin-create-build-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal-f93ea07d46c74ce0f61a1e0feb9f595c-VFS-iphonesimulator/all-product-headers.yaml
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal-f93ea07d46c74ce0f61a1e0feb9f595c-VFS-iphonesimulator/all-product-headers.yaml
+
+CreateBuildDirectory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    builtin-create-build-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator
+
+CreateBuildDirectory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    builtin-create-build-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    builtin-create-build-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal.xcodeproj
+    builtin-create-build-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.hmap (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.DependencyStaticMetadataFileList (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.DependencyMetadataFileList (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-project-headers.hmap (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-own-target-headers.hmap (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-generated-files.hmap (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-all-target-headers.hmap (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-all-non-framework-target-headers.hmap (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugEntryPoint-normal-arm64.txt (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugEntryPoint-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugDylibPath-normal-arm64.txt (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugDylibInstallName-normal-arm64.txt (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugDylibInstallName-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_const_extract_protocols.json (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftFileList (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftConstValuesFileList (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.LinkFileList (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-OutputFileMap.json (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-OutputFileMap.json
+
+MkDir /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /bin/mkdir -p /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.DependencyStaticMetadataFileList (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.hmap (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.DependencyMetadataFileList (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-project-headers.hmap (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-own-target-headers.hmap (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-generated-files.hmap (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-all-target-headers.hmap (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-all-non-framework-target-headers.hmap (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-DebugDylibPath-normal-arm64.txt (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-DebugDylibInstallName-normal-arm64.txt (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-DebugDylibInstallName-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_const_extract_protocols.json (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftFileList (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftConstValuesFileList (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.LinkFileList (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-OutputFileMap.json (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    write-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-OutputFileMap.json
+
+MkDir /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /bin/mkdir -p /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns
+
+MkDir /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /bin/mkdir -p /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app
+
+Ld /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/__preview.dylib normal (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -install_name @rpath/PeriopSignalWidget.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_dependency_info.dat -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/__preview.dylib
+
+MkDir /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/unthinned (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /bin/mkdir -p /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/unthinned
+
+MkDir /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/thinned (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /bin/mkdir -p /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/thinned
+
+GenerateAssetSymbols /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/Assets.xcassets (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/Assets.xcassets --compile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_generated_info.plist --accent-color AccentColor --widget-background-color WidgetBackground --compress-pngs --enable-on-demand-resources NO --standalone-icon-behavior all --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 17.0 --platform iphonesimulator --bundle-identifier org.periopsignal.app.widget --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CompileAssetCatalogVariant thinned /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/Assets.xcassets (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/Assets.xcassets --compile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_generated_info.plist_thinned --accent-color AccentColor --widget-background-color WidgetBackground --compress-pngs --enable-on-demand-resources NO --standalone-icon-behavior all --filter-for-thinning-device-configuration iPhone17,1 --filter-for-device-os-version 26.2 --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 17.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver PeriopSignalWidget normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-SwiftDriver -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PeriopSignalWidget -Onone -enforce-exclusivity\=checked @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-generated-files.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-own-target-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-project-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-Swift.h -working-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdbool-C1S1PH4UVTZSSGYYHJSTM6WQ9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_AvailabilityInternal-6H1P52YSWGZ4K54MRPBQHFC20.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_SwiftConcurrencyShims-8MQ9HPIGIOFU1PVDSOT0ZXPSY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ptrauth-4YBTUDHY4WPRJB79F2P9S4Z4R.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdarg-EQ92SWGAHHQ3N8BLVP18K5WL4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/SwiftShims-4HCEUANFXYBGDYHR1ZCCJCXTU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/DeveloperToolsSupport-A6Y0ZED3BR78RSVNQ0AYXADKO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ActivityKit-4TCWP06FMZC77YUHIDDENQPA4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ptrcheck-5EDFL5VRL8FCT7H01DY87O4C3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_float-25IDI4KJVSW1Q57NAX97RLQ6J.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stddef-71M0NO1TC151YYBDL2J85SVYT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_DarwinFoundation1-7QI3FLAF0C690Z0283O23X944.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ExtensionFoundation-64I7RSFKGPSJKUH6TET4SSV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_DarwinFoundation2-1HDU3F9Y3NWSWFEY6E52AMFFI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_limits-C2J1VQ4XVLG1K501EA9Y279BN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/sys_types-BUAC32BGW149UG13ZJXNBGL4K.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdint-DMKH4YOGJ0J14GGM9RJ2E3KN6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_tgmath-E0ZP6ST42QJ8A9NUWD7ZPK7I0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_DarwinFoundation3-C69TKGQK4NJFJEHN49EHQ5CJ2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_intrinsics-31JIVAQNBVV1PTXTYD60FZDGS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdatomic-26P2J7PMFIXD9UR7VC5CYCKE1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_inttypes-6CPZ7PAYG7TCA8MAYSHCC41YT.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Darwin-1EOP3S1ZL1BG61EXK179ZY87B.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/simd-6SI25XE3X68H0LCTRWV969JV7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ObjectiveC-3EN50HKGAQS22O5W07HUBZD6J.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/MachO-4U49CEOGICA9U3I8PN6KJ7JZE.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Spatial-6B3K1HK43NWBUL065D1TQK1W1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/os_object-58NTM53FKSMDKU8518QJ600DU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/os_workgroup-AZ0HFFWU0NPCDAFU9RV4FU6Z4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Dispatch-B8HVQPOBDQ4MN1P4JATC9CY8X.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/dnssd-1THNG8OWVYJKCGQ1ZSCR4VRE2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/XPC-3SVJ2QUQJ14CKPP20YPX4EG3Z.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreFoundation-8DCPVI7DGQQ0NUYRQRM63U3IA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/os-73JBR723MCQ09D4PS1XRHG9OA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CFNetwork-3RTCS0A5FNTBC0HRM70COZJSR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Security-894Z8MNPT1007XFU57WUHBR1N.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreGraphics-T0Q4DIKCLUBPU7AB4EIOKKXC.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Foundation-CIHEB704TL9J4149B0HR1XJL4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ImageIO-4SBJNUSZ8A7V4ULFI4OMVCZS3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreText-4UWIM0OFPS85SBS9BDHNR534T.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Accessibility-88LSDUYNRF7BVKYPFEM9HUCH9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/OpenGLES-EPSQF43BBNW8XEA2N3I1BBZB7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/AppIntents-C2P7HLMMGQF9IOLV904UMK7ND.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/WidgetKit-4NPIXXXI85GYKMAJOK1TEN3KE.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/FileProvider-407PT7N9Q4QUOV4PSDPVJHQOX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/IOSurface-520K0VBDSJ95QVWO7K5DGDPHU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/OSLog-5OE9RAHWB0DJS8TBO5TFTNTIH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UniformTypeIdentifiers-4AJ1W5H12YB2GERU8ZEMBPANH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_LocationEssentials-3YTSKYXBBX2HTZF46QQN2TXKB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Metal-5LI3QEC7ZTOJ9MVMWTO9SXMQ9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreData-3G4NBX1IZ264MJ9V34G83C3F7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreSpotlight-RCTDG9B084CDR3ZUT10A0RUM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/RelevanceKit-4XYVCLN1R7RRZEGEJD8Z4M1CL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Symbols-DZ44313LYAC0519DCTUEMWXFA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreLocation-78ORQPB35KW9DA768SFXSYGB7.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Network-22FUC25I141A73QF1W1E1Y207.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreVideo-OHX0U5N4TK7C1N2G4EODQIA5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreTransferable-5V9JS4S9E2XDJXNJS0YZX2K2J.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/DataDetection-E639LLFHKIYCOM0VECLT0YJD1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreImage-46K7ZQTDA5OJDR08UIF5VLIW9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/QuartzCore-7JAXI9NMTVIDQEGVCRA6ZVSY4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UIUtilities-450KIKG0PEZZTUAHR1NYTYCNZ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UserNotifications-5D1QS42HXFMMP2M8V4SOX8VL8.pcm
+
+LinkAssetCatalog /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/Assets.xcassets (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-linkAssetCatalog --thinned /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex --plist-output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/Assets.car (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+ProcessInfoPlistFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/Info.plist /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/Info.plist (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-infoPlistUtility /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/Info.plist -producttype com.apple.product-type.app-extension -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/assetcatalog_generated_info.plist -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/Info.plist
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/SwiftUICore-4N62TPFORREGMIMMNDOK2ORRL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UIKit-7EGE5TJI93PR1EZMW1IILNQSL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Intents-2H13XVVHJJJL7K9UKJHTC0AC.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/SwiftUI-CYTQ7B4BV64KHL68JSQZNZJ75.pcm
+
+SwiftCompile normal arm64 Compiling\ Post.swift,\ Theme.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Post.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Theme.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Post.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Theme.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ PeriopSignalWidget (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+EmitSwiftModule normal arm64 (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 Compiling\ WidgetViews.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/WidgetViews.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/WidgetViews.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 Compiling\ FeedLoader.swift,\ LogoMark.swift,\ PeriopSignalWidget.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/FeedLoader.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/LogoMark.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/PeriopSignalWidget.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/FeedLoader.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/LogoMark.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignalWidget/PeriopSignalWidget.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for PeriopSignalWidget (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+SwiftDriver\ Compilation\ Requirements PeriopSignalWidget normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PeriopSignalWidget -Onone -enforce-exclusivity\=checked @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-generated-files.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-own-target-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-project-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-Swift.h -working-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling Post.swift, Theme.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+SwiftDriverJobDiscovery normal arm64 Compiling FeedLoader.swift, LogoMark.swift, PeriopSignalWidget.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+SwiftMergeGeneratedHeaders /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/PeriopSignalWidget-Swift.h /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-Swift.h (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-Swift.h -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/PeriopSignalWidget-Swift.h
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftmodule (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftmodule /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftdoc (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftdoc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.abi.json (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.abi.json /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftsourceinfo (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftsourceinfo /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+MkDir /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/unthinned (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /bin/mkdir -p /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/unthinned
+
+MkDir /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/thinned (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /bin/mkdir -p /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/thinned
+
+GenerateAssetSymbols /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Assets.xcassets (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Assets.xcassets --compile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_generated_info.plist --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 17.0 --platform iphonesimulator --bundle-identifier org.periopsignal.app --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CompileAssetCatalogVariant thinned /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Assets.xcassets (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/actool /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Assets.xcassets --compile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone17,1 --filter-for-device-os-version 26.2 --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 17.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_generated_info.plist_thinned
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriverJobDiscovery normal arm64 Compiling WidgetViews.swift, GeneratedAssetSymbols.swift (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+SwiftDriver\ Compilation PeriopSignalWidget normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-Swift-Compilation -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PeriopSignalWidget -Onone -enforce-exclusivity\=checked @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -enable-testing -index-store-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-generated-files.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-own-target-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-project-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-Swift.h -working-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/PeriopSignalWidget.debug.dylib normal (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -filelist /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.LinkFileList -install_name @rpath/PeriopSignalWidget.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/../../Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_dependency_info.dat -fapplication-extension -fobjc-link-runtime -L/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.swiftmodule @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget-linker-args.resp -Xlinker -alias -Xlinker _NSExtensionMain -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/PeriopSignalWidget.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-ExecutorLinkFileList-normal-arm64.txt (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    construct-stub-executor-link-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/PeriopSignalWidget.debug.dylib /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+
+Ld /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/PeriopSignalWidget normal (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/../../Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_entry -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugEntryPoint-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget-ExecutorLinkFileList-normal-arm64.txt /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/PeriopSignalWidget.debug.dylib -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/PeriopSignalWidget
+
+ExtractAppIntentsMetadata (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.0ia2O8/Metal.xctoolchain --module-name PeriopSignalWidget --sdk-root /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C529 --platform-family iOS --deployment-target 17.0 --bundle-identifier org.periopsignal.app.widget --output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/PeriopSignalWidget --dependency-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget_dependency_info.dat --stringsdata-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftFileList --metadata-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/Objects-normal/arm64/PeriopSignalWidget.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-28 09:33:50.298 appintentsmetadataprocessor[2940:12942] Starting appintentsmetadataprocessor export
+2026-10-28 09:33:50.528 appintentsmetadataprocessor[2940:12942] Extracted no relevant App Intents symbols, skipping writing output
+
+AppIntentsSSUTraining (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/Info.plist --temp-dir-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/ssu --bundle-id org.periopsignal.app.widget --product-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex --extracted-metadata-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex/Metadata.appintents --metadata-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignalWidget.build/PeriopSignalWidget.DependencyMetadataFileList --archive-ssu-assets
+2026-10-28 09:33:50.579 appintentsnltrainingprocessor[2941:12954] Parsing options for appintentsnltrainingprocessor
+2026-10-28 09:33:50.582 appintentsnltrainingprocessor[2941:12954] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-RegisterExecutionPolicyException /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex
+
+Touch /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex (in target 'PeriopSignalWidget' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /usr/bin/touch -c /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex
+
+Ld /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/__preview.dylib normal (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -install_name @rpath/PeriopSignal.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_dependency_info.dat -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/__preview.dylib
+
+LinkAssetCatalog /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Assets.xcassets (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-linkAssetCatalog --thinned /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/thinned --thinned-dependencies /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_generated_info.plist_unthinned --output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app --plist-output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/AppIcon76x76@2x~ipad.png (in target 'PeriopSignal' from project 'PeriopSignal')
+note: Emplaced /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Assets.car (in target 'PeriopSignal' from project 'PeriopSignal')
+note: Emplaced /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/AppIcon60x60@2x.png (in target 'PeriopSignal' from project 'PeriopSignal')
+
+SwiftDriver PeriopSignal normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-SwiftDriver -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PeriopSignal -Onone -enforce-exclusivity\=checked @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-generated-files.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-own-target-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-project-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-Swift.h -working-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ActivityKit-BOUYUCYHKOIKZIMLNQQ3GD4M8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdbool-9SNWYLMJC6GBEQPHMCM0ZCX1H.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/SwiftShims-2557RF1UVMQBCKUHCYO3JM8S0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/DeveloperToolsSupport-49HYM80W48TZEXRL395SE84UX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdarg-7NRI4PLB1DO2A26ZWIVDQO3HA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ptrcheck-3DANFY5SOPILMRL9GFXJGZZ2Q.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_SwiftConcurrencyShims-9ZY32DWW9EMZX11VA3N6F9F2S.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ptrauth-F29D6XTO2ZPL5N0TRVNVP9OJU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_AvailabilityInternal-7C7AZSXHMQ9TMS4O2T8DY34BS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_float-BOCEVATW1CDQM2WWJPOJ5GUEG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stddef-6A6SM1GOP5AXZ4TEF89HZS803.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_DarwinFoundation1-9PPT2EUN03UNVRV8TUG6CPPXX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_DarwinFoundation2-E7FPGUDVJ0CA6LBA5TY2TK4ZL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ExtensionFoundation-6U1J3BPTJTZBVUXU1MNZS4LA0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_limits-182OOG8M24WBXAZM7CPEZOBQ6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdint-82C36YTG4OJBFDEVK8RSX7U38.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_tgmath-BLAL71XA9DF99S4NGYS7P9UMZ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/sys_types-VHT737045S92BKAX0JMJBGTN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_stdatomic-8DCLQMXIIOR4PSNQI3HDFE7JD.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_intrinsics-AQLE1WSWXXP9I32VO29S5728E.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_DarwinFoundation3-CN6GULTIRF7CX5UATZJKRS87D.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_Builtin_inttypes-2VMKKQK7XV5A8XVOMX54BEJOG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Darwin-G9MGA4GAOGNLGB9ORSKP211D.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/simd-3V2X8V8B3Y8PENPYTEABKJKDI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/MachO-C7E5JQ8E6I3AK38896OZEKPXD.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ObjectiveC-3FPL80D7DAVBLV6CZC8EPVD99.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/os_object-BNTSMYBI5QG8Z1MS2T5RN2TX8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/os_workgroup-EAOHMF9POGF5R5O2AUNMXHRQ5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Spatial-6EOJVHQR89PJEO139OSPOSAVK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Dispatch-663R9HTEPMN8ZB47FWFUO56ZM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/dnssd-DKHLLQXEHI2VFHV2NY151RC7E.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreFoundation-D73DHOVVU1TUE7N0XUF70F97A.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/XPC-1E9BL0GM2EZEUXZ464EAUKHHJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreAudioTypes-9B2SAJG112E19VJ70KAMQ0508.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CFNetwork-333T36ZUXPDKHBEQ4LTX8U3WZ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreGraphics-HL06UKUJ54M7U91I846VLK6Y.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/os-38UX2E1OKWKA3PHVUPEBEXNEF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Security-4811LYTFDYK1WAI1H4IPR9DOG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreAudio-825E9SV3RYNMIGR86GT35269Y.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreText-7LDZ0O3ZK1PWYXC3OOB6K8VR5.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/ImageIO-AFKBWY9QEWITF396VV21I4AB0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Foundation-BHMYB4WE1RQP619BKWQV9B8ZB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/WidgetKit-7INL80P6L522A75PB9RJ804W9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/LocalAuthentication-3VQKLZMPXVKDZPJWJMFFVMDR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreTransferable-6BF39BL211KM0RIRSPYM6MM3Q.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UserNotifications-37EBFVTRBZKVXIQNTFH7ZXPPN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/BackgroundTasks-KEPWY30V09JJV72W2JW49Q44.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Network-68QE3F64TNB5117DXYYKWXJE2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreData-DZAUTXJ4M8YEG2YJL7HEY1PK2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/AppIntents-A5WDVS6ETVE1009BB5RWGE47.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Symbols-2O2I6G5T7QC36B83NSTZJPA3C.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/_LocationEssentials-8UHNUWK0J3T4ATTKVBOJ5QEJW.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/FileProvider-9MYHJS43PKDGIMNGTORKR8ARN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/AVRouting-CKKQY7IEA41ICPWG45F24QRCJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/RelevanceKit-3AKBF9MHOUXZ3KFJ4S3VRSIRV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreMIDI-B2USRB6CSJKG3AGUYISNCHIZC.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UIUtilities-8ZT84KUWBRI2O8E016QK7I01A.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Accessibility-3WH21OT1468BOPQZ8HF9IHDK3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/OSLog-X7PIR6MZX0RAM7WP0UUY40Q.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/IOSurface-4IDR5FP8IDF5DC24ZMKAPG7U6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/OpenGLES-A0MBQ0G8MRUWOVMRFOBL4GUUI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UniformTypeIdentifiers-8YOKTGKRZ0DLE0EAU8OSO4XAO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/AudioToolbox-C96AXSHSCNV0PXUJQP24DYYNW.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreSpotlight-VZ8S3OPQJ3IOQ5QY1IZ8INW8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Metal-F1VWHRX8152SPNBLEOC595SM8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/DataDetection-BWQ9FPL094515QOS4696DDRMB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreLocation-8U8TS15USS10CAZ2A6XWI1VC2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Intents-VGNVCKV6F1EYACTOISEFXDBZ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreVideo-BZYI6WXQC2U9N7MP68LT6YHOL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreMedia-1Q88AD22HHBCJ8HHRGNU67S3C.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/QuartzCore-9EKN1R05CKEOE96379LT0LBJQ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/CoreImage-2YWH9EWYTXS0EYBIBQ2F24JPA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/SwiftUICore-C8ASP1XSK3BILML585W43JIXI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/AVFAudio-A9LQ6XO2E9TQJH9WTXHAMMG5N.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/MediaToolbox-4BBBCSER9YNLZ1QMDN3O0ZG4N.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/UIKit-EXU1LLN7W52QH603HE74MAAII.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/AVFoundation-58ZMZBPJC7U3GTQ3EI9GYWS60.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/MediaPlayer-AM75OZ1M8H7A294J55ITH3MSX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/SafariServices-72I8M6HVPJFT11LXLT9WTGH0C.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/SwiftUI-C9FUPM87RVO49XDVUB6JBS8G6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/AuthenticationServices-B5DCZVYK6EZFC791U1MWUG1LX.pcm
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ PeriopSignal (in target 'PeriopSignal' from project 'PeriopSignal')
+
+EmitSwiftModule normal arm64 (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 Compiling\ OnboardingView.swift,\ PeriopSignalApp.swift,\ Post.swift,\ PostCard.swift,\ PostStore.swift,\ Preferences.swift,\ PushBridge.swift,\ QuizStore.swift,\ QuizViews.swift,\ ReadStore.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/OnboardingView.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/App/PeriopSignalApp.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Post.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/PostCard.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PostStore.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/Preferences.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PushBridge.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/QuizStore.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/QuizViews.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/ReadStore.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/OnboardingView.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/App/PeriopSignalApp.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Post.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/PostCard.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PostStore.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/Preferences.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PushBridge.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/QuizStore.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/QuizViews.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/ReadStore.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 Compiling\ RootView.swift,\ SavedStore.swift,\ SavedView.swift,\ ShareCard.swift,\ SpeechPlayer.swift,\ SpotlightIndexer.swift,\ Theme.swift,\ TodayCard.swift,\ WidgetViews.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/RootView.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SavedStore.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/SavedView.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/ShareCard.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpotlightIndexer.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Theme.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/TodayCard.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/WidgetViews.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/RootView.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SavedStore.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/SavedView.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/ShareCard.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift:248:37: warning: call to main actor-isolated static method 'parse' in a synchronous nonisolated context
+        for block in MarkdownBlocks.parse(post.deepDive) {
+                                    ^
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/DeepDiveView.swift:310:17: note: calls to static method 'parse' from outside of its actor context are implicitly asynchronous
+    static func parse(_ src: String) -> [Block] {
+                ^
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/DeepDiveView.swift:310:17: note: main actor isolation inferred from conformance to protocol 'View'
+    static func parse(_ src: String) -> [Block] {
+                ^
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpotlightIndexer.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/Theme.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/TodayCard.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/WidgetViews.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 Compiling\ Citations.swift,\ Components.swift,\ DebugLaunch.swift,\ DeepDiveView.swift,\ FeedLoader.swift,\ FeedView.swift,\ GuidelinesView.swift,\ ListenBar.swift,\ LogoMark.swift,\ MoreView.swift,\ NotificationManager.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/Citations.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/Components.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/DebugLaunch.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/DeepDiveView.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/FeedLoader.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/FeedView.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/GuidelinesView.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/ListenBar.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/LogoMark.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/MoreView.swift /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/NotificationManager.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/Citations.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/Components.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/DebugLaunch.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/DeepDiveView.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/FeedLoader.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/FeedView.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/GuidelinesView.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/ListenBar.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/LogoMark.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/MoreView.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftCompile normal arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/NotificationManager.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for PeriopSignal (in target 'PeriopSignal' from project 'PeriopSignal')
+
+SwiftDriver\ Compilation\ Requirements PeriopSignal normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PeriopSignal -Onone -enforce-exclusivity\=checked @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-generated-files.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-own-target-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-project-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-Swift.h -working-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling RootView.swift, SavedStore.swift, SavedView.swift, ShareCard.swift, SpeechPlayer.swift, SpotlightIndexer.swift, Theme.swift, TodayCard.swift, WidgetViews.swift, GeneratedAssetSymbols.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+
+SwiftMergeGeneratedHeaders /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/PeriopSignal-Swift.h /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-Swift.h (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-Swift.h -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/PeriopSignal-Swift.h
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftmodule (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftmodule /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftdoc (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftdoc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.abi.json (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.abi.json /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftsourceinfo (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftsourceinfo /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling OnboardingView.swift, PeriopSignalApp.swift, Post.swift, PostCard.swift, PostStore.swift, Preferences.swift, PushBridge.swift, QuizStore.swift, QuizViews.swift, ReadStore.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+
+SwiftDriverJobDiscovery normal arm64 Compiling Citations.swift, Components.swift, DebugLaunch.swift, DeepDiveView.swift, FeedLoader.swift, FeedView.swift, GuidelinesView.swift, ListenBar.swift, LogoMark.swift, MoreView.swift, NotificationManager.swift (in target 'PeriopSignal' from project 'PeriopSignal')
+
+SwiftDriver\ Compilation PeriopSignal normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-Swift-Compilation -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PeriopSignal -Onone -enforce-exclusivity\=checked @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios17.0-simulator -g -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-generated-files.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-own-target-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-project-headers.hmap -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-Swift.h -working-directory /Users/runner/work/PeriopSignal/PeriopSignal/ios -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal.debug.dylib normal (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -filelist /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.LinkFileList -install_name @rpath/PeriopSignal.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.swiftmodule @/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal-linker-args.resp -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-ExecutorLinkFileList-normal-arm64.txt (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    construct-stub-executor-link-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal.debug.dylib /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'PeriopSignal' from project 'PeriopSignal')
+
+Ld /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal normal (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios17.0-simulator -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -F/Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal-ExecutorLinkFileList-normal-arm64.txt /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal.debug.dylib -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal
+
+Copy /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns/PeriopSignalWidget.appex /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -exclude Headers -exclude PrivateHeaders -exclude Modules -exclude \*.tbd -resolve-src-symlinks -remove-static-executable /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignalWidget.appex /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns
+
+ProcessInfoPlistFile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Info.plist /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Info.plist (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-infoPlistUtility /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Resources/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/assetcatalog_generated_info.plist -scanforprivacyfile /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns/PeriopSignalWidget.appex -o /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Info.plist
+
+ExtractAppIntentsMetadata (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.0ia2O8/Metal.xctoolchain --module-name PeriopSignal --sdk-root /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C529 --platform-family iOS --deployment-target 17.0 --bundle-identifier org.periopsignal.app --output /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app --target-triple arm64-apple-ios17.0-simulator --binary-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal --dependency-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal_dependency_info.dat --stringsdata-file /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftFileList --metadata-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/Objects-normal/arm64/PeriopSignal.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-28 09:34:16.390 appintentsmetadataprocessor[3764:15172] Starting appintentsmetadataprocessor export
+2026-10-28 09:34:16.597 appintentsmetadataprocessor[3764:15172] Extracted no relevant App Intents symbols, skipping writing output
+
+CopySwiftLibs /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PeriopSignal.debug.dylib --scan-folder /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Frameworks --scan-folder /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns --scan-folder /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/SystemExtensions --scan-folder /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.0ia2O8/Metal.xctoolchain --toolchain /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ValidateEmbeddedBinary /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns/PeriopSignalWidget.appex (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/usr/bin/embeddedBinaryValidationUtility /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/PlugIns/PeriopSignalWidget.appex -info-plist-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Info.plist
+
+AppIntentsSSUTraining (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Info.plist --temp-dir-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/ssu --bundle-id org.periopsignal.app --product-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app --extracted-metadata-path /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app/Metadata.appintents --metadata-file-list /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Intermediates.noindex/PeriopSignal.build/Debug-iphonesimulator/PeriopSignal.build/PeriopSignal.DependencyMetadataFileList --archive-ssu-assets
+2026-10-28 09:34:16.620 appintentsnltrainingprocessor[3782:15217] Parsing options for appintentsnltrainingprocessor
+2026-10-28 09:34:16.621 appintentsnltrainingprocessor[3782:15217] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-RegisterExecutionPolicyException /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app
+
+Validate /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    builtin-validationUtility /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app (in target 'PeriopSignal' from project 'PeriopSignal')
+    cd /Users/runner/work/PeriopSignal/PeriopSignal/ios
+    /usr/bin/touch -c /Users/runner/work/PeriopSignal/PeriopSignal/ios/build/DerivedData/Build/Products/Debug-iphonesimulator/PeriopSignal.app
+
+** BUILD SUCCEEDED **
+
