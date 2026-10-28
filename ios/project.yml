@@ -10,7 +10,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.10"
-    MARKETING_VERSION: "1.2.0"
+    MARKETING_VERSION: "1.4.0"
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
@@ -27,6 +27,8 @@ targets:
     sources:
       - path: PeriopSignal
       - path: Shared
+      - path: ../reference.json
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.periopsignal.app
@@ -64,6 +66,8 @@ targets:
       - path: Tests
         excludes: ["Fixtures/**"]
       - path: Tests/Fixtures/posts-sample.json
+        buildPhase: resources
+      - path: ../reference.json
         buildPhase: resources
     dependencies:
       - target: PeriopSignal

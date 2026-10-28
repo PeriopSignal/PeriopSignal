@@ -1,0 +1,95 @@
+name: Ask worker (deploy)
+
+# Deploys worker/ (the Claude proxy behind the app's "Ask") to Cloudflare and records its URL in
+# reference.json so the app picks it up on its next refresh. Needs three repository secrets:
+# CLOUDFLARE_API_TOKEN (Workers Scripts: Edit), CLOUDFLARE_ACCOUNT_ID, ANTHROPIC_API_KEY.
+# See ios/OWNER_RUNBOOK.md, section 10.
+
+on:
+  push:
+    branches: [main]
+    paths: ["worker/**", ".github/workflows/worker-deploy.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: posts-json
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets
+        id: secrets
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          K: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          missing=""
+          [ -z "$T" ] && missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -z "$A" ] && missing="$missing CLOUDFLARE_ACCOUNT_ID"
+          [ -z "$K" ] && missing="$missing ANTHROPIC_API_KEY"
+          if [ -n "$missing" ]; then
+            echo "::warning::Not deploying: missing repository secrets:$missing (Settings > Secrets and variables > Actions)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Cloudflare
+        id: deploy
+        if: steps.secrets.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          command: deploy
+          secrets: |
+            ANTHROPIC_API_KEY
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Check the worker answers
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          URL="${{ steps.deploy.outputs.deployment-url }}"
+          echo "Deployed at $URL"
+          [ -n "$URL" ] || { echo "::error::wrangler did not report a deployment URL"; exit 1; }
+          curl -sS --max-time 20 "$URL/health" | tee health.json
+          grep -q '"ok":true' health.json
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "## Ask worker" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployed to \`$URL\` — $(cat health.json)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record the endpoint in reference.json
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          URL="${{ steps.deploy.outputs.deployment-url }}"
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          for i in 1 2 3; do
+            git fetch -q origin main && git checkout -q -B main origin/main
+            python3 - "$URL" <<'EOF'
+          import json, sys
+          url = sys.argv[1].rstrip("/") + "/ask"
+          with open("reference.json", encoding="utf-8") as f: data = json.load(f)
+          data.setdefault("ask", {})["endpoint"] = url
+          with open("reference.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2); f.write("\n")
+          EOF
+            python3 -I tools/validate_reference.py reference.json
+            git diff --quiet -- reference.json && { echo "Endpoint already recorded."; exit 0; }
+            git add reference.json
+            git commit -q -m "Ask: endpoint $URL/ask"
+            git push -q origin HEAD:main && exit 0
+            echo "push refused, retrying"; sleep 10
+          done
+          exit 1

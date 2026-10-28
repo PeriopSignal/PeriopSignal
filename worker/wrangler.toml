@@ -1,0 +1,16 @@
+# Periop Signal "Ask" worker. Deployed by .github/workflows/worker-deploy.yml; the Anthropic key is a
+# Worker secret (ANTHROPIC_API_KEY), set by that workflow from the repository secret of the same name.
+name = "periop-signal-ask"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+workers_dev = true
+
+[vars]
+# Change here (or as a Worker variable in the Cloudflare dashboard) to use another model.
+MODEL = "claude-sonnet-5-5"
+
+# 30 questions a minute per IP address.
+[[ratelimits]]
+name = "ASK_LIMIT"
+namespace_id = "1001"
+simple = { limit = 30, period = 60 }

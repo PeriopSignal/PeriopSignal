@@ -1,0 +1,2451 @@
+{
+  "version": 1,
+  "updated": "2026-10-28",
+  "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
+  "ask": {
+    "endpoint": null
+  },
+  "quickrefs": [
+    {
+      "id": "ponv-consensus",
+      "title": "PONV prophylaxis and rescue",
+      "society": "Consensus guideline (Gan et al.)",
+      "short": "PONV consensus",
+      "year": 2025,
+      "topic": "general",
+      "keywords": [
+        "ponv",
+        "nausea",
+        "vomiting",
+        "antiemetic",
+        "ondansetron",
+        "dexamethasone",
+        "droperidol",
+        "aprepitant",
+        "amisulpride",
+        "scopolamine",
+        "apfel",
+        "eberhart",
+        "rescue",
+        "tiva"
+      ],
+      "summary": "How many prophylactic interventions by risk, which agents at what dose and when, and what to give when prophylaxis fails — the Fifth consensus guideline (2025), with the adult dose table as set out in the Fourth (2020).",
+      "source": {
+        "title": "Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary",
+        "citation": "Gan TJ, Jin Z, Ayad S, et al. Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary. Anesth Analg. 2025; published online ahead of print. doi:10.1213/ANE.0000000000007816",
+        "url": "https://doi.org/10.1213/ANE.0000000000007816",
+        "doi": "10.1213/ANE.0000000000007816"
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "Adults: risk and how many interventions",
+          "kind": "facts",
+          "rows": [
+            [
+              "Risk factors",
+              "Apfel: female sex · non-smoker · history of PONV or motion sickness · postoperative opioids"
+            ],
+            [
+              "Risk class",
+              "0 factors low · 1–2 medium · ≥ 3 high (Fifth consensus)"
+            ],
+            [
+              "Any risk",
+              "Two prophylactic interventions for every adult at risk"
+            ],
+            [
+              "≥ 3 factors",
+              "Three to four interventions from different classes, plus baseline risk reduction"
+            ],
+            [
+              "Risk reduction",
+              "Propofol TIVA, avoiding volatile agents and nitrous oxide, regional anesthesia, opioid minimization, adequate hydration, sugammadex rather than neostigmine"
+            ]
+          ],
+          "note": "Apfel's predicted incidence by factor count: 10%, 21%, 39%, 61%, 79% (the Apfel calculator applies it)."
+        },
+        {
+          "heading": "Adult agents, doses and timing",
+          "kind": "table",
+          "columns": [
+            "Agent",
+            "Dose",
+            "Timing"
+          ],
+          "rows": [
+            [
+              "Ondansetron",
+              "4 mg IV or 8 mg ODT",
+              "End of surgery"
+            ],
+            [
+              "Dexamethasone",
+              "4–8 mg IV",
+              "At induction"
+            ],
+            [
+              "Droperidol",
+              "0.625 mg IV (0.625–1.25 mg)",
+              "End of surgery"
+            ],
+            [
+              "Haloperidol",
+              "0.5 to < 2 mg IV or IM",
+              "—"
+            ],
+            [
+              "Aprepitant",
+              "40 mg PO; the Fifth consensus adds 32 mg IV",
+              "At induction"
+            ],
+            [
+              "Scopolamine patch",
+              "1 patch transdermal",
+              "Evening before, or 2 h before surgery"
+            ],
+            [
+              "Amisulpride",
+              "5 mg IV (10 mg IV for treatment)",
+              "At induction"
+            ],
+            [
+              "Palonosetron",
+              "0.075 mg IV",
+              "—"
+            ],
+            [
+              "Granisetron",
+              "0.35–3 mg IV",
+              "End of surgery"
+            ],
+            [
+              "Promethazine",
+              "6.25 mg IV",
+              "—"
+            ],
+            [
+              "Dimenhydrinate",
+              "1 mg/kg IV",
+              "—"
+            ],
+            [
+              "Midazolam",
+              "2 mg IV",
+              "30 min before the end of surgery"
+            ],
+            [
+              "Gabapentin",
+              "600–800 mg PO",
+              "1–2 h before surgery"
+            ]
+          ],
+          "note": "Doses and timing as tabulated in the Fourth consensus (Gan TJ, et al. Anesth Analg 2020;131:411–448, Table 4); a dash means the table gave no timing. Metoclopramide is no longer recommended for prophylaxis in the Fifth consensus."
+        },
+        {
+          "heading": "Rescue when prophylaxis fails",
+          "kind": "list",
+          "items": [
+            "Give an antiemetic from a class that was not used for prophylaxis; repeating the same class within 6 hours adds no benefit.",
+            "After 6 hours, a second dose of a 5-HT₃ antagonist or a butyrophenone may be considered when no alternative is available.",
+            "Do not re-dose long-acting agents (aprepitant, fosaprepitant, palonosetron) in the PACU.",
+            "Amisulpride 10 mg IV was more effective than 5 mg for treatment after failed non-dopaminergic prophylaxis; propofol 20–40 mg is effective as treatment."
+          ]
+        },
+        {
+          "heading": "Children",
+          "kind": "facts",
+          "rows": [
+            [
+              "Risk factors",
+              "Eberhart: surgery ≥ 30 min · age ≥ 3 years · strabismus surgery · history of POV, or PONV in a first-degree relative (incidence 9%, 10%, 30%, 55%, 70% for 0–4 factors)"
+            ],
+            [
+              "0 factors",
+              "One agent: ondansetron or dexamethasone"
+            ],
+            [
+              "1–2 factors",
+              "Two agents: ondansetron + dexamethasone"
+            ],
+            [
+              "≥ 3 factors",
+              "At least two agents plus risk reduction: TIVA, no nitrous oxide, regional anesthesia, opioid minimization"
+            ],
+            [
+              "Pediatric doses",
+              "Ondansetron 0.05–0.1 mg/kg (max 4 mg) · dexamethasone 0.15 mg/kg (max 5 mg) · droperidol 0.01–0.015 mg/kg (max 1.25 mg) · granisetron 0.04 mg/kg (max 0.6 mg) · dimenhydrinate 0.5 mg/kg (max 25 mg) · aprepitant 3 mg/kg (max 125 mg) · palonosetron 0.5–1.5 mcg/kg (Fourth consensus, Table 6)"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "acc-aha-valve-intervention",
+      "title": "Valve repair and replacement: when and how (ACC/AHA)",
+      "society": "American College of Cardiology / American Heart Association",
+      "short": "ACC/AHA",
+      "year": 2020,
+      "topic": "cardiacSurgery",
+      "keywords": [
+        "valve",
+        "aortic stenosis",
+        "tavi",
+        "tavr",
+        "savr",
+        "aortic regurgitation",
+        "mitral regurgitation",
+        "teer",
+        "mitraclip",
+        "mitral stenosis",
+        "pmbc",
+        "tricuspid",
+        "prosthetic valve",
+        "mechanical valve",
+        "bioprosthesis",
+        "inr",
+        "warfarin",
+        "bridging",
+        "endocarditis prophylaxis",
+        "heart valve team",
+        "stages"
+      ],
+      "summary": "Who gets a valve intervention and which one, by lesion and stage, with the class of recommendation: the 2020 ACC/AHA guideline (still current; the next edition is scheduled for 2027). Echo severity grading itself is in the ASE reference.",
+      "source": {
+        "title": "2020 ACC/AHA Guideline for the Management of Patients With Valvular Heart Disease",
+        "citation": "Otto CM, Nishimura RA, Bonow RO, et al. 2020 ACC/AHA Guideline for the Management of Patients With Valvular Heart Disease: A Report of the American College of Cardiology/American Heart Association Joint Committee on Clinical Practice Guidelines. Circulation. 2021;143(5):e72–e227. doi:10.1161/CIR.0000000000000923",
+        "url": "https://doi.org/10.1161/CIR.0000000000000923",
+        "doi": "10.1161/CIR.0000000000000923"
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "How to read it",
+          "kind": "facts",
+          "rows": [
+            [
+              "Stages",
+              "A at risk · B progressive · C1 asymptomatic severe, ventricle compensated · C2 asymptomatic severe, ventricle decompensated · D symptomatic severe. Symptoms plus stage, not anatomy alone, drive the recommendations."
+            ],
+            [
+              "Class",
+              "1 recommended · 2a reasonable · 2b may be considered · 3 no benefit or harm. Level of evidence in brackets: A, B-R, B-NR, C-LD, C-EO."
+            ],
+            [
+              "Surgical risk",
+              "Low: STS predicted mortality < 3% for AVR (< 1% for mitral repair), no frailty, no major organ compromise, no procedure-specific impediment. High: STS > 8%, ≥ 2 frailty indices, or 1–2 uncorrectable organ systems. Prohibitive: predicted 1-year death or major morbidity > 50%, ≥ 3 organ systems, or a severe impediment."
+            ],
+            [
+              "Heart Valve Team",
+              "Severe valve disease is evaluated by a multidisciplinary team when intervention is considered (Class 1); TEER, PMBC, the Ross procedure, bicuspid-root surgery and TAVI for bicuspid valves are tied to a Comprehensive Valve Center."
+            ]
+          ]
+        },
+        {
+          "heading": "Aortic stenosis: when to intervene",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Symptomatic severe high-gradient AS (D1)",
+              "AVR",
+              "1 (A)"
+            ],
+            [
+              "Asymptomatic severe AS with LVEF < 50% (C2)",
+              "AVR",
+              "1 (B-NR)"
+            ],
+            [
+              "Asymptomatic severe AS (C1) having other cardiac surgery",
+              "AVR",
+              "1 (B-NR)"
+            ],
+            [
+              "Symptomatic low-flow, low-gradient AS, LVEF < 50% (D2)",
+              "AVR",
+              "1 (B-NR)"
+            ],
+            [
+              "Symptomatic low-flow, low-gradient AS, LVEF ≥ 50% (D3)",
+              "AVR when AS is the most likely cause of symptoms",
+              "1 (B-NR)"
+            ],
+            [
+              "Asymptomatic severe AS (C1), low surgical risk",
+              "AVR reasonable with: reduced exercise tolerance or a fall in systolic BP ≥ 10 mmHg on exercise testing; very severe AS (Vmax ≥ 5 m/s); BNP > 3× normal; or progression ≥ 0.3 m/s per year",
+              "2a"
+            ],
+            [
+              "Asymptomatic severe AS (C1), LVEF falling to < 60% on ≥ 3 serial studies",
+              "AVR may be considered",
+              "2b (B-NR)"
+            ],
+            [
+              "Moderate AS (B) having other cardiac surgery",
+              "AVR may be considered",
+              "2b (C-EO)"
+            ]
+          ],
+          "note": "Severe AS here: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg, AVA usually ≤ 1.0 cm²; very severe Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg."
+        },
+        {
+          "heading": "Aortic stenosis: SAVR or TAVI",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Age < 65 or life expectancy > 20 years",
+              "SAVR",
+              "1 (A)"
+            ],
+            [
+              "Age 65–80, no anatomic contraindication to transfemoral TAVI",
+              "SAVR or transfemoral TAVI after shared decision-making (longevity versus valve durability)",
+              "1 (A)"
+            ],
+            [
+              "Age > 80, or life expectancy < 10 years",
+              "Transfemoral TAVI in preference to SAVR",
+              "1 (A)"
+            ],
+            [
+              "Asymptomatic severe AS, LVEF < 50%, age ≤ 80",
+              "Same age rules as symptomatic patients",
+              "1 (B-NR)"
+            ],
+            [
+              "Asymptomatic AS with a 2a indication (exercise test, very severe AS, rapid progression, BNP)",
+              "SAVR in preference to TAVI",
+              "1 (B-NR)"
+            ],
+            [
+              "High or prohibitive surgical risk, any age",
+              "TAVI when predicted survival after TAVI is > 12 months with acceptable quality of life",
+              "1 (A)"
+            ],
+            [
+              "Predicted survival < 12 months or minimal expected benefit",
+              "Palliative care after shared decision-making",
+              "1 (C-EO)"
+            ],
+            [
+              "Anatomy unsuitable for transfemoral TAVI, bioprosthesis preferred",
+              "SAVR",
+              "1 (A)"
+            ],
+            [
+              "Critically ill",
+              "Balloon aortic valvuloplasty may be considered as a bridge",
+              "2b (C-EO)"
+            ],
+            [
+              "Bicuspid valve with symptomatic severe AS",
+              "TAVI may be considered as an alternative to SAVR at a Comprehensive Valve Center",
+              "2b (B-NR)"
+            ]
+          ],
+          "note": "Factors favoring SAVR: bicuspid valve, LVOT calcification, rheumatic disease, very small or large annulus, mechanical valve preferred, aortic dilation, severe primary MR, CAD needing bypass, septal hypertrophy, low coronary ostia or no transfemoral access, at-risk grafts, prior chest irradiation. Favoring TAVI: calcific trileaflet stenosis, AF, porcelain aorta, irreversible severe LV dysfunction, severe lung, liver or kidney disease, frailty likely to improve."
+        },
+        {
+          "heading": "Aortic regurgitation",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Symptomatic severe AR (D)",
+              "Aortic valve surgery regardless of LV function",
+              "1 (B-NR)"
+            ],
+            [
+              "Asymptomatic severe AR with LVEF ≤ 55% (C2)",
+              "Surgery, if no other cause of LV dysfunction",
+              "1 (B-NR)"
+            ],
+            [
+              "Severe AR (C or D) having other cardiac surgery",
+              "Surgery",
+              "1 (C-EO)"
+            ],
+            [
+              "Asymptomatic severe AR, LVEF > 55%, LVESD > 50 mm or indexed LVESD > 25 mm/m² (C2)",
+              "Surgery reasonable",
+              "2a (B-NR)"
+            ],
+            [
+              "Moderate AR (B) having other cardiac or aortic surgery",
+              "Surgery reasonable",
+              "2a (C-EO)"
+            ],
+            [
+              "Asymptomatic severe AR (C1), low risk, LVEF falling into 55–60% on ≥ 3 studies or LVEDD > 65 mm",
+              "Surgery may be considered",
+              "2b (B-NR)"
+            ],
+            [
+              "Bicuspid valve with severe AR",
+              "Valve repair may be considered in selected patients at a Comprehensive Valve Center",
+              "2b (C-LD)"
+            ],
+            [
+              "Isolated severe AR, surgical candidate",
+              "TAVI should not be performed",
+              "3: Harm"
+            ]
+          ]
+        },
+        {
+          "heading": "Bicuspid aortic valve: the aorta",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Aortic sinus or ascending aorta > 5.5 cm",
+              "Replace the sinuses and/or ascending aorta",
+              "1 (B-NR)"
+            ],
+            [
+              "5.0–5.5 cm with a dissection risk factor (family history, growth > 0.5 cm per year, coarctation)",
+              "Replacement reasonable at a Comprehensive Valve Center",
+              "2a (B-NR)"
+            ],
+            [
+              "5.0–5.5 cm, no added risk factor, low surgical risk",
+              "Replacement may be considered",
+              "2b (B-NR)"
+            ],
+            [
+              "Indication for SAVR and aorta ≥ 4.5 cm",
+              "Concomitant replacement of the sinuses and/or ascending aorta reasonable",
+              "2a (B-NR)"
+            ]
+          ]
+        },
+        {
+          "heading": "Primary (degenerative) mitral regurgitation",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Symptomatic severe primary MR (D)",
+              "Mitral intervention regardless of LV function",
+              "1 (B-NR)"
+            ],
+            [
+              "Asymptomatic severe MR with LVEF ≤ 60% or LVESD ≥ 40 mm (C2)",
+              "Mitral surgery",
+              "1 (B-NR)"
+            ],
+            [
+              "Asymptomatic severe MR, LVEF > 60% and LVESD < 40 mm (C1)",
+              "Repair reasonable when a durable repair without residual MR is > 95% likely with mortality < 1%, at a Primary or Comprehensive Valve Center",
+              "2a (B-NR)"
+            ],
+            [
+              "C1 with LV enlarging or EF falling on ≥ 3 serial studies",
+              "Surgery may be considered",
+              "2b (C-LD)"
+            ],
+            [
+              "Surgery indicated, degenerative disease",
+              "Repair rather than replacement whenever a durable repair is possible",
+              "1 (B-NR)"
+            ],
+            [
+              "NYHA III–IV, high or prohibitive surgical risk, favorable anatomy, life expectancy ≥ 1 year",
+              "Transcatheter edge-to-edge repair (TEER) reasonable",
+              "2a (B-NR)"
+            ],
+            [
+              "Pathology limited to less than half of the posterior leaflet",
+              "Replacement should not be done unless repair was attempted at a valve center and failed",
+              "3: Harm"
+            ],
+            [
+              "Rheumatic severe primary MR, surgery indicated",
+              "Repair may be considered at a Comprehensive Valve Center",
+              "2b (B-NR)"
+            ]
+          ]
+        },
+        {
+          "heading": "Secondary (functional) mitral regurgitation",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Severe secondary MR with HF and reduced LVEF",
+              "Guideline-directed medical therapy first (ACE inhibitor/ARB or sacubitril-valsartan, beta-blocker, aldosterone antagonist, biventricular pacing as indicated), led by a heart-failure cardiologist",
+              "1 (A)"
+            ],
+            [
+              "Persistent NYHA II–IV on optimal therapy, LVEF 20–50%, LVESD ≤ 70 mm, PA systolic pressure ≤ 70 mmHg, suitable anatomy on TEE",
+              "TEER reasonable",
+              "2a (B-R)"
+            ],
+            [
+              "Severe secondary MR when CABG is undertaken",
+              "Concomitant mitral surgery reasonable",
+              "2a (B-NR)"
+            ],
+            [
+              "LVEF < 50%, NYHA III–IV despite optimal therapy",
+              "Mitral surgery may be considered; chordal-sparing replacement may be preferred over downsized annuloplasty when CAD is present",
+              "2b"
+            ],
+            [
+              "Atrial annular dilation, LVEF ≥ 50%, NYHA III–IV despite therapy for HF and AF",
+              "Mitral surgery may be considered",
+              "2b (B-NR)"
+            ]
+          ],
+          "note": "Severe secondary MR in this guideline: EROA ≥ 0.40 cm², regurgitant volume ≥ 60 mL, regurgitant fraction ≥ 50%; 2D PISA underestimates crescentic orifices and the volume runs lower in low-flow states."
+        },
+        {
+          "heading": "Mitral stenosis (rheumatic unless stated)",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Symptomatic (NYHA II–IV) severe MS, MVA ≤ 1.5 cm², favorable morphology, < 2+ MR, no LA thrombus",
+              "Percutaneous mitral balloon commissurotomy (PMBC) at a Comprehensive Valve Center",
+              "1 (A)"
+            ],
+            [
+              "NYHA III–IV severe MS not suitable for PMBC, failed PMBC, needing other cardiac surgery, or no access to PMBC",
+              "Mitral surgery (repair, commissurotomy or replacement)",
+              "1 (B-NR)"
+            ],
+            [
+              "Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable",
+              "PMBC reasonable",
+              "2a (B-NR)"
+            ],
+            [
+              "Asymptomatic severe MS with new-onset AF, PMBC-suitable",
+              "PMBC may be considered",
+              "2b (C-LD)"
+            ],
+            [
+              "Symptomatic, MVA > 1.5 cm² but wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise",
+              "PMBC may be considered",
+              "2b (C-LD)"
+            ],
+            [
+              "NYHA III–IV, suboptimal anatomy, not a surgical candidate or high risk",
+              "PMBC may be considered",
+              "2b (B-NR)"
+            ],
+            [
+              "Calcific (non-rheumatic) severe MS from mitral annular calcification, NYHA III–IV",
+              "Intervention only after discussion of its high procedural risk",
+              "2b (C-LD)"
+            ]
+          ],
+          "note": "Severe rheumatic MS: planimetered MVA ≤ 1.5 cm² with pressure half-time ≥ 150 ms; the mean gradient is not a severity criterion because it varies with heart rate and flow."
+        },
+        {
+          "heading": "Tricuspid regurgitation",
+          "kind": "table",
+          "columns": [
+            "Situation",
+            "Recommendation",
+            "Class"
+          ],
+          "rows": [
+            [
+              "Severe TR (C, D) at left-sided valve surgery",
+              "Tricuspid surgery",
+              "1 (B-NR)"
+            ],
+            [
+              "Progressive TR (B) at left-sided valve surgery with annular dilation (end-diastolic diameter > 4.0 cm) or prior right-sided HF",
+              "Tricuspid surgery can be beneficial",
+              "2a (B-NR)"
+            ],
+            [
+              "Right-sided HF with severe primary TR (D)",
+              "Isolated tricuspid surgery can be beneficial",
+              "2a (B-NR)"
+            ],
+            [
+              "Right-sided HF with severe isolated secondary TR from annular dilation, no pulmonary hypertension or left-sided disease, poorly responsive to medical therapy",
+              "Isolated tricuspid surgery can be beneficial",
+              "2a (B-NR)"
+            ],
+            [
+              "Asymptomatic severe primary TR with progressive RV dilation or dysfunction",
+              "Isolated surgery may be considered",
+              "2b (C-LD)"
+            ],
+            [
+              "Severe TR after previous left-sided valve surgery, right-sided HF, no severe pulmonary hypertension or RV dysfunction",
+              "Reoperation may be considered",
+              "2b (B-NR)"
+            ]
+          ],
+          "note": "The 2020 guideline makes no transcatheter tricuspid recommendation; its message is to operate before severe RV dysfunction or end-organ damage."
+        },
+        {
+          "heading": "Choosing the prosthesis",
+          "kind": "facts",
+          "rows": [
+            [
+              "Shared decision",
+              "Weigh anticoagulation (indications and risks) against the likelihood and risk of reintervention (Class 1)"
+            ],
+            [
+              "Anticoagulation impossible or unwanted",
+              "Bioprosthesis at any age (Class 1)"
+            ],
+            [
+              "Aortic, age < 50",
+              "Mechanical reasonable (2a); the Ross procedure may be considered at a Comprehensive Valve Center (2b)"
+            ],
+            [
+              "Aortic, age 50–65",
+              "Either, individualized (2a)"
+            ],
+            [
+              "Aortic, age > 65",
+              "Bioprosthesis reasonable (2a)"
+            ],
+            [
+              "Mitral, age < 65",
+              "Mechanical reasonable (2a)"
+            ],
+            [
+              "Mitral, age ≥ 65",
+              "Bioprosthesis reasonable (2a)"
+            ]
+          ]
+        },
+        {
+          "heading": "Anticoagulation of prosthetic valves",
+          "kind": "facts",
+          "rows": [
+            [
+              "Mechanical valve",
+              "Vitamin K antagonist (Class 1, A). Dabigatran and anti-Xa DOACs: contraindicated or not recommended (Class 3)"
+            ],
+            [
+              "INR targets",
+              "Mechanical bileaflet or current single-tilting-disc AVR without risk factors: 2.5. AVR with AF, prior thromboembolism, LV dysfunction, hypercoagulable state or an older-generation valve: 3.0. Mechanical mitral: 3.0. On-X AVR without risk factors: 1.5–2.0 may be reasonable from 3 months, with aspirin 75–100 mg"
+            ],
+            [
+              "Aspirin with a mechanical valve",
+              "No longer routine: 75–100 mg daily may be considered with an antiplatelet indication and low bleeding risk (2b)"
+            ],
+            [
+              "Bioprosthetic SAVR or MVR",
+              "Aspirin 75–100 mg reasonable; VKA (INR 2.5) reasonable for 3 to 6 months when bleeding risk is low (2a)"
+            ],
+            [
+              "After TAVI",
+              "Aspirin 75–100 mg reasonable (2a); DAPT for 3–6 months or VKA for ≥ 3 months may be reasonable (2b); low-dose rivaroxaban plus aspirin contraindicated without another indication (3: Harm)"
+            ],
+            [
+              "AF with native valve disease or a bioprosthesis > 3 months old",
+              "A DOAC is an effective alternative to VKA except in rheumatic MS (Class 1, A); new AF within 3 months of a bioprosthesis: VKA reasonable (2a)"
+            ]
+          ]
+        },
+        {
+          "heading": "Bridging and reversal around procedures",
+          "kind": "facts",
+          "rows": [
+            [
+              "Minor procedures",
+              "Dental extraction or cataract surgery: continue the VKA at a therapeutic INR (Class 1)"
+            ],
+            [
+              "Bileaflet mechanical AVR, no risk factors",
+              "Interrupt the VKA without bridging (Class 1)"
+            ],
+            [
+              "Mechanical AVR with risk factors, older-generation AVR, or mechanical MVR",
+              "Bridging during the subtherapeutic interval is reasonable, individualized against bleeding risk (2a)"
+            ],
+            [
+              "Urgent surgery on a VKA",
+              "4-factor prothrombin complex concentrate (or its activated form) is reasonable for reversal (2a)"
+            ],
+            [
+              "Bioprosthesis or ring with AF",
+              "Decide on bridging from CHA₂DS₂-VASc against bleeding risk (2a)"
+            ]
+          ]
+        },
+        {
+          "heading": "Endocarditis prophylaxis",
+          "kind": "facts",
+          "rows": [
+            [
+              "Reasonable (2a)",
+              "Before dental procedures that manipulate gingival tissue, the periapical region or perforate the mucosa, in patients with prosthetic valves or transcatheter valves, prosthetic repair material (rings, chords, clips), previous endocarditis, unrepaired cyanotic congenital disease or repaired disease with residual defects next to prosthetic material, or a transplanted heart with valve regurgitation"
+            ],
+            [
+              "Not recommended (3)",
+              "Non-dental procedures (TEE, endoscopy, colonoscopy, cystoscopy) without active infection"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asra-anticoagulation",
+      "title": "Neuraxial and deep blocks with antithrombotic drugs (ASRA)",
+      "society": "ASRA Pain Medicine",
+      "short": "ASRA",
+      "year": 2025,
+      "topic": "regional",
+      "keywords": [
+        "anticoagulation",
+        "antithrombotic",
+        "neuraxial",
+        "epidural",
+        "spinal",
+        "catheter",
+        "heparin",
+        "enoxaparin",
+        "lmwh",
+        "warfarin",
+        "inr",
+        "apixaban",
+        "rivaroxaban",
+        "edoxaban",
+        "dabigatran",
+        "doac",
+        "fondaparinux",
+        "clopidogrel",
+        "prasugrel",
+        "ticagrelor",
+        "cangrelor",
+        "aspirin",
+        "nsaid",
+        "thrombolytic",
+        "alteplase",
+        "anti-xa",
+        "argatroban",
+        "bivalirudin"
+      ],
+      "summary": "How long to wait after each antithrombotic before a neuraxial or deep plexus block, whether a catheter may stay, and when the next dose may follow — the fifth edition (2025), which now writes doses as low or high and extends every interval to deep plexus and deep peripheral blocks.",
+      "source": {
+        "title": "Regional Anesthesia in the Patient Receiving Antithrombotic or Thrombolytic Therapy: ASRA Pain Medicine Evidence-Based Guidelines (Fifth Edition)",
+        "citation": "Kopp SL, Vandermeulen E, McBane RD, Perlas A, Leffert L, Horlocker T. Regional anesthesia in the patient receiving antithrombotic or thrombolytic therapy: American Society of Regional Anesthesia and Pain Medicine evidence-based guidelines (fifth edition). Reg Anesth Pain Med. 2025; published online first. doi:10.1136/rapm-2024-105766",
+        "url": "https://doi.org/10.1136/rapm-2024-105766",
+        "doi": "10.1136/rapm-2024-105766"
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "Ground rules",
+          "kind": "list",
+          "items": [
+            "Every interval below applies to neuraxial blocks and to deep plexus or deep peripheral blocks alike; for other peripheral blocks, judge by the site's compressibility, vascularity and the consequences of bleeding.",
+            "Low dose and high dose replace the old prophylactic and therapeutic labels; recommendations are graded strong or conditional.",
+            "Review the chart daily for every other hemostasis-altering drug: the additive effect of combinations is the recurring theme. With an indwelling catheter on LMWH, no concomitant antiplatelet drugs, heparin or oral anticoagulants.",
+            "Do not use PT/INR or aPTT to judge a DOAC. A drug-calibrated level below 30 ng/mL, or an anti-Xa at or below 0.1 IU/mL, counts as no relevant effect and permits a block before the full hold.",
+            "Routine reversal (idarucizumab, andexanet alfa, PCC) just to permit a block is discouraged: wait out the interval instead.",
+            "A bloody or difficult placement does not mandate cancelling surgery; with intraoperative heparin, discuss it with the surgeon; with LMWH, delay the first postoperative dose to 24 hours.",
+            "Check a platelet count before a neuraxial technique after more than 4 days of heparin or LMWH."
+          ]
+        },
+        {
+          "heading": "Heparins",
+          "kind": "table",
+          "columns": [
+            "Drug",
+            "Before block",
+            "Catheter in place",
+            "After block or removal"
+          ],
+          "rows": [
+            [
+              "Unfractionated heparin SC, low dose (5,000 U two or three times daily)",
+              "4–6 h after the last dose, or normal coagulation status",
+              "May stay; remove 4–6 h after the last dose",
+              "Next dose immediately after removal"
+            ],
+            [
+              "Unfractionated heparin SC, high dose (7,500–10,000 U twice daily, or up to 20,000 U/day)",
+              "12 h and normal coagulation status",
+              "Safety not established above 5,000 U per dose or 15,000 U/day: individual decision with neurologic monitoring",
+              "Not specified"
+            ],
+            [
+              "Unfractionated heparin SC, high dose (more than 10,000 U per dose or 20,000 U/day)",
+              "24 h and normal coagulation status",
+              "As above",
+              "Not specified"
+            ],
+            [
+              "Unfractionated heparin IV",
+              "Stop the infusion 4–6 h and confirm normal coagulation",
+              "Not recommended during a continuous infusion or cardiopulmonary bypass heparinization; if one must stay, dilute solutions and motor checks",
+              "Intraoperative heparin no sooner than 1 h after needle placement; stop 4–6 h and check coagulation before removal"
+            ],
+            [
+              "LMWH, low dose (enoxaparin 40 mg daily or 30 mg twice daily; dalteparin 5,000 IU daily)",
+              "12 h",
+              "Once-daily regimen: may stay, remove 12 h after the last dose. Twice-daily regimen: remove before the first dose",
+              "First dose 12 h or more after placement (twice-daily regimen: the next day); next dose 4 h after removal. Anti-Xa monitoring not recommended"
+            ],
+            [
+              "LMWH, high dose (enoxaparin 1 mg/kg twice daily or 1.5 mg/kg daily; dalteparin 120 IU/kg twice daily or 200 IU/kg daily; tinzaparin 175 IU/kg daily)",
+              "24 h; halve the last preoperative dose when CrCl is below 50 mL/min",
+              "Remove 4 h before the first postoperative dose",
+              "First dose 24 h after placement (48–72 h after high-bleeding-risk surgery) and 4 h after removal"
+            ]
+          ]
+        },
+        {
+          "heading": "Oral anticoagulants",
+          "kind": "table",
+          "columns": [
+            "Drug",
+            "Before block",
+            "Catheter in place",
+            "After block or removal"
+          ],
+          "rows": [
+            [
+              "Warfarin",
+              "Stop 5 days before and document a normal INR; if a first dose was given more than 24 h earlier, or a second dose, check the INR",
+              "May stay on low-dose warfarin with a daily INR and sensory-motor checks; hold or reduce the dose if INR is above 3",
+              "Remove when INR is below 1.5 (1.5–3: maintain or remove with caution); neurologic checks for 48 h after removal. Urgent reversal: vitamin K, PCC or rFVIIa rather than FFP"
+            ],
+            [
+              "Apixaban, high dose (5 mg twice daily, or the reduced 2.5 mg twice daily for stroke prevention)",
+              "72 h, or a level below 30 ng/mL / anti-Xa ≤ 0.1 IU/mL",
+              "No dosing with a catheter in place",
+              "First dose 24 h after placement or removal"
+            ],
+            [
+              "Apixaban, low dose (2.5 mg twice daily for VTE prophylaxis)",
+              "36 h, or level below 30 ng/mL",
+              "No dosing with a catheter in place",
+              "First dose 6 h after removal"
+            ],
+            [
+              "Rivaroxaban, high dose (15–20 mg daily)",
+              "72 h, or level below 30 ng/mL / anti-Xa ≤ 0.1 IU/mL",
+              "No dosing with a catheter in place",
+              "First dose 24 h after placement or removal"
+            ],
+            [
+              "Rivaroxaban, low dose (10 mg daily)",
+              "24 h (30 h when CrCl is below 30 mL/min), or level below 30 ng/mL",
+              "No dosing with a catheter in place",
+              "First dose 6 h after removal"
+            ],
+            [
+              "Edoxaban (30–60 mg daily)",
+              "72 h, or level below 30 ng/mL / anti-Xa ≤ 0.1 IU/mL",
+              "No dosing with a catheter in place",
+              "First dose 24 h after placement or removal. No recommendation for low-dose edoxaban (no FDA indication)"
+            ],
+            [
+              "Dabigatran, high dose",
+              "CrCl ≥ 50 mL/min: 72 h · CrCl 30–49: 120 h · CrCl below 30: avoid the block unless the level is below 30 ng/mL (TT or dTT, not aPTT)",
+              "No dosing with a catheter in place",
+              "First dose 24 h after placement or removal"
+            ],
+            [
+              "Dabigatran, low dose (VTE prophylaxis)",
+              "48 h, or level below 30 ng/mL; CrCl below 30: avoid unless level below 30 ng/mL",
+              "No dosing with a catheter in place",
+              "First dose 6 h after removal"
+            ]
+          ]
+        },
+        {
+          "heading": "Parenteral anticoagulants",
+          "kind": "table",
+          "columns": [
+            "Drug",
+            "Before block",
+            "Catheter in place",
+            "After block or removal"
+          ],
+          "rows": [
+            [
+              "Fondaparinux, low dose (2.5 mg daily)",
+              "36 h (42 h in the elderly) with normal renal function; 58 h when CrCl is 30–50 mL/min; CrCl below 30: no neuraxial or deep block; earlier only with a fondaparinux-calibrated anti-Xa ≤ 0.1 IU/mL",
+              "Not addressed as a maintenance regimen in the open summaries",
+              "Remove 6 h before the next dose"
+            ],
+            [
+              "Fondaparinux, high dose (5–10 mg daily)",
+              "70 h (105 h in the elderly), or anti-Xa ≤ 0.1 IU/mL",
+              "Remove before dosing",
+              "Remove 6 h before the first postoperative dose"
+            ],
+            [
+              "Argatroban, bivalirudin, desirudin",
+              "Suggest against neuraxial techniques while on a parenteral direct thrombin inhibitor (effect 1–3 h after an IV dose, aPTT-monitored, no reversal agent)",
+              "Not recommended",
+              "Not specified"
+            ],
+            [
+              "Thrombolytics (alteplase, tenecteplase, streptokinase)",
+              "At least 48 h after the drug with normal clotting studies including fibrinogen; before a neuraxial technique, ask about any dural puncture, spinal or epidural in the previous 10 days",
+              "If given unexpectedly with a catheter in place: neurologic checks about every 2 h for at least 48 h; removal timing guided by fibrinogen",
+              "Labeling: no thrombolytics within 10 days of a non-compressible vessel puncture"
+            ]
+          ]
+        },
+        {
+          "heading": "Antiplatelet drugs",
+          "kind": "table",
+          "columns": [
+            "Drug",
+            "Before block",
+            "Catheter in place",
+            "After block or removal"
+          ],
+          "rows": [
+            [
+              "Aspirin and NSAIDs (including COX-2 inhibitors)",
+              "No hold: no added risk for neuraxial or deep blocks on their own",
+              "May stay; caution only with other anticoagulants or coagulopathy",
+              "No restriction (interventional pain procedures follow a separate ASRA guideline)"
+            ],
+            [
+              "Clopidogrel",
+              "5–7 days",
+              "May stay 1–2 days provided no loading dose is given",
+              "Resume immediately; 6 h after removal if a loading dose is given"
+            ],
+            [
+              "Prasugrel",
+              "7–10 days",
+              "Do not maintain",
+              "Resume immediately; 6 h after removal if a loading dose is given"
+            ],
+            [
+              "Ticagrelor",
+              "5 days",
+              "Do not maintain (rapid onset)",
+              "Resume immediately; 6 h after removal if a loading dose is given"
+            ],
+            [
+              "Cangrelor IV",
+              "3 h after stopping",
+              "Remove before restarting",
+              "First dose 8 h after removal"
+            ],
+            [
+              "GP IIb/IIIa inhibitors (abciximab; eptifibatide, tirofiban)",
+              "Until platelet function recovers: 24–48 h after abciximab, 4–8 h after eptifibatide or tirofiban",
+              "If started with a catheter in place: dilute solutions and careful neurologic monitoring",
+              "Labeling contraindicates use within 4 weeks of surgery"
+            ],
+            [
+              "Cilostazol",
+              "2 days",
+              "Remove before restarting",
+              "First dose 6 h after removal"
+            ],
+            [
+              "Herbal agents (garlic, ginkgo, ginseng)",
+              "No hold on their own",
+              "No restriction alone",
+              "No restriction"
+            ]
+          ],
+          "note": "Ticlopidine, dipyridamole and betrixaban no longer appear in the fifth edition's open summaries and are left out here; the fourth edition gave 10 days, 24 h (extended-release) and 72 h respectively."
+        },
+        {
+          "heading": "Special situations",
+          "kind": "list",
+          "items": [
+            "Obstetrics: the same intervals apply to parturients; exceptions may be appropriate for a high-risk parturient needing urgent intervention when general anesthesia carries the greater risk; converting LMWH to unfractionated heparin near delivery is worth considering.",
+            "Warfarin epidurals: routine sensory and motor testing with low-concentration solutions while the catheter is in, and continued checks for 48 hours after removal.",
+            "Kidney function and age lengthen the DOAC, fondaparinux and LMWH intervals above; patients with low creatinine clearance are at particular risk.",
+            "ASRA's own ASRA Coags app carries the full fifth-edition logic; the full text (RAPM 2025) is the authority when this card and your judgement differ."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ase-valve-severity",
+      "title": "Valve disease severity by echo (ASE)",
+      "society": "American Society of Echocardiography",
+      "short": "ASE",
+      "year": 2017,
+      "topic": "echo",
+      "keywords": [
+        "echo",
+        "tee",
+        "aortic stenosis",
+        "aortic regurgitation",
+        "mitral regurgitation",
+        "mitral stenosis",
+        "tricuspid regurgitation",
+        "tricuspid stenosis",
+        "pulmonic regurgitation",
+        "vena contracta",
+        "eroa",
+        "pisa",
+        "regurgitant volume",
+        "regurgitant fraction",
+        "pressure half-time",
+        "ava",
+        "mean gradient",
+        "low flow low gradient",
+        "dobutamine",
+        "stroke volume index"
+      ],
+      "summary": "The grading tables for native valve stenosis and regurgitation: the 2017 ASE/EACVI aortic stenosis update, the 2017 ASE native regurgitation recommendations, and ASE's 2023 rheumatic heart disease document for mitral and tricuspid stenosis. Grades are mild, moderate and severe; the reading integrates specific, supportive and quantitative signs and discards outliers.",
+      "source": {
+        "title": "Recommendations for Noninvasive Evaluation of Native Valvular Regurgitation (ASE 2017); Recommendations on the Echocardiographic Assessment of Aortic Valve Stenosis: A Focused Update (EACVI/ASE 2017); Recommendations for the Use of Echocardiography in the Evaluation of Rheumatic Heart Disease (ASE 2023)",
+        "citation": "Zoghbi WA, et al. J Am Soc Echocardiogr. 2017;30:303–371 (doi:10.1016/j.echo.2017.01.007) · Baumgartner H, et al. J Am Soc Echocardiogr. 2017;30:372–392 (doi:10.1016/j.echo.2017.02.009) · Pandian NG, et al. J Am Soc Echocardiogr. 2023;36:3–28 (doi:10.1016/j.echo.2022.10.009)",
+        "url": "https://www.asecho.org/guideline/native-valvular-regurgitation-by-echo",
+        "doi": "10.1016/j.echo.2017.01.007"
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "Aortic stenosis (EACVI/ASE 2017)",
+          "kind": "table",
+          "columns": [
+            "Parameter",
+            "Mild",
+            "Moderate",
+            "Severe"
+          ],
+          "rows": [
+            [
+              "Peak velocity (m/s)",
+              "2.6–2.9",
+              "3.0–4.0",
+              "≥ 4.0 (sclerosis ≤ 2.5)"
+            ],
+            [
+              "Mean gradient (mmHg)",
+              "< 20",
+              "20–40",
+              "≥ 40"
+            ],
+            [
+              "AVA, continuity equation (cm²)",
+              "> 1.5",
+              "1.0–1.5",
+              "< 1.0 (cut-off ≤ 1.0)"
+            ],
+            [
+              "Indexed AVA (cm²/m²)",
+              "> 0.85",
+              "0.60–0.85",
+              "< 0.6"
+            ],
+            [
+              "Velocity ratio (LVOT/aortic)",
+              "> 0.50",
+              "0.25–0.50",
+              "< 0.25"
+            ]
+          ],
+          "note": "Velocity ≥ 4 m/s with a mean gradient ≥ 40 mmHg defines high-gradient AS; below both, low-gradient. A calculated AVA under 1.0 cm² suggests but does not confirm severe AS: a valve producing 40 mmHg at normal flow is nearer 0.8 than 1.0 cm². Average at least 5 beats in irregular rhythm; measure the LVOT at the level of the velocity sample; pressure recovery matters when the ascending aorta is under 30 mm."
+        },
+        {
+          "heading": "Aortic stenosis: low-gradient states",
+          "kind": "facts",
+          "rows": [
+            [
+              "Low flow",
+              "Stroke volume index < 35 mL/m² (normal ≥ 35; high flow > 58)"
+            ],
+            [
+              "Low-flow, low-gradient with reduced EF",
+              "AVA < 1.0 cm², mean gradient < 40 mmHg, LVEF < 50%, SVi < 35 mL/m² → low-dose dobutamine echo: severe if velocity reaches ≥ 4 m/s or mean gradient > 30–40 mmHg while AVA stays ≤ 1.0 cm² at any flow; an AVA rising above 1.0 cm² means not severe; a > 20% rise in stroke volume shows contractile reserve"
+            ],
+            [
+              "Low-flow, low-gradient with preserved EF",
+              "AVA < 1.0 cm², velocity < 4 m/s, mean gradient < 40 mmHg, LVEF ≥ 50%, SVi < 35 mL/m² (measured normotensive) → confirm low flow by another technique and apply the likelihood criteria below"
+            ],
+            [
+              "Normal-flow, low-gradient",
+              "SVi ≥ 35 mL/m² with AVA < 1.0 cm²: severe AS is very unlikely; do not label it severe"
+            ],
+            [
+              "Likelihood of severe AS when AVA < 1.0 and gradient < 40 with preserved EF",
+              "Examination consistent with severe AS; typical symptoms without other explanation; age over 70; LVH; reduced longitudinal LV function without other cause; mean gradient 30–40 mmHg when normotensive; AVA ≤ 0.8 cm²; low flow confirmed by 3D TEE, CT or CMR; CT calcium score severe AS likely at ≥ 2,000 AU in men / ≥ 1,200 in women, very likely ≥ 3,000 / ≥ 1,600, unlikely < 1,600 / < 800"
+            ],
+            [
+              "Prognostic marker",
+              "Peak velocity > 5.5 m/s in asymptomatic patients"
+            ]
+          ]
+        },
+        {
+          "heading": "Aortic regurgitation (ASE 2017)",
+          "kind": "table",
+          "columns": [
+            "Parameter",
+            "Mild",
+            "Moderate",
+            "Severe"
+          ],
+          "rows": [
+            [
+              "Leaflets and LV",
+              "Normal or mildly abnormal leaflets; normal LV",
+              "Moderately abnormal; LV normal or dilated",
+              "Abnormal, flail or wide coaptation defect; LV usually dilated (not in acute AR)"
+            ],
+            [
+              "Jet width in the LVOT (color)",
+              "Small in central jets",
+              "Intermediate",
+              "Large in central jets; variable when eccentric"
+            ],
+            [
+              "Flow convergence",
+              "None or very small",
+              "Intermediate",
+              "Large"
+            ],
+            [
+              "CW jet density and deceleration",
+              "Incomplete or faint; pressure half-time > 500 ms",
+              "Dense; 200–500 ms",
+              "Dense; pressure half-time < 200 ms"
+            ],
+            [
+              "Descending aorta diastolic flow reversal",
+              "Brief, early diastolic",
+              "Intermediate",
+              "Holodiastolic, end-diastolic velocity > 20 cm/s"
+            ],
+            [
+              "Vena contracta width (cm)",
+              "< 0.3",
+              "0.3–0.6",
+              "> 0.6"
+            ],
+            [
+              "Jet width / LVOT width (%)",
+              "< 25",
+              "25–45 · 46–64",
+              "≥ 65"
+            ],
+            [
+              "Jet area / LVOT area (%)",
+              "< 5",
+              "5–20 · 21–59",
+              "≥ 60"
+            ],
+            [
+              "Regurgitant volume (mL/beat)",
+              "< 30",
+              "30–44 · 45–59",
+              "≥ 60"
+            ],
+            [
+              "Regurgitant fraction (%)",
+              "< 30",
+              "30–39 · 40–49",
+              "≥ 50"
+            ],
+            [
+              "EROA (cm²)",
+              "< 0.10",
+              "0.10–0.19 · 0.20–0.29",
+              "≥ 0.30"
+            ]
+          ],
+          "note": "Pressure half-time shortens with high LV diastolic pressure or vasodilator therapy and lengthens in chronic adaptation, so it grades poorly in chronic AR; quantitative volumes are the anchor when the jet is eccentric."
+        },
+        {
+          "heading": "Mitral regurgitation (ASE 2017)",
+          "kind": "table",
+          "columns": [
+            "Parameter",
+            "Mild",
+            "Moderate",
+            "Severe"
+          ],
+          "rows": [
+            [
+              "Valve and chambers",
+              "None or mild leaflet abnormality; LV and LA usually normal",
+              "Moderate leaflet abnormality or moderate tethering; LV and LA normal or mildly dilated",
+              "Severe lesions (flail, ruptured papillary muscle, severe retraction, large perforation; in secondary MR severe tenting, poor coaptation); LV and LA dilated"
+            ],
+            [
+              "Color jet",
+              "Small, central, narrow, often brief",
+              "Variable",
+              "Large central jet (> 50% of the LA) or an eccentric wall-impinging jet of any size"
+            ],
+            [
+              "Flow convergence",
+              "Not visible, transient or small",
+              "Intermediate in size and duration",
+              "Large throughout systole"
+            ],
+            [
+              "CW jet",
+              "Faint, partial or parabolic",
+              "Dense but partial or parabolic",
+              "Holosystolic, dense, triangular"
+            ],
+            [
+              "Vena contracta width (cm)",
+              "< 0.3",
+              "Intermediate",
+              "≥ 0.7 (> 0.8 biplane); 3D vena contracta area ≥ 0.40 cm²"
+            ],
+            [
+              "Pulmonary vein flow",
+              "Systolic dominance (blunted with LV dysfunction or AF)",
+              "Normal or systolic blunting",
+              "Minimal to no systolic flow, or systolic reversal (specific when in more than one vein)"
+            ],
+            [
+              "Mitral inflow",
+              "A-wave dominant (virtually excludes severe MR)",
+              "Variable",
+              "E-wave dominant, E > 1.2 m/s"
+            ],
+            [
+              "EROA by 2D PISA (cm²)",
+              "< 0.20",
+              "0.20–0.29 · 0.30–0.39",
+              "≥ 0.40 (may be lower in secondary MR with an elliptical orifice)"
+            ],
+            [
+              "Regurgitant volume (mL)",
+              "< 30",
+              "30–44 · 45–59",
+              "≥ 60 (may be lower in low-flow states)"
+            ],
+            [
+              "Regurgitant fraction (%)",
+              "< 30",
+              "30–39 · 40–49",
+              "≥ 50"
+            ]
+          ],
+          "note": "Secondary MR: the orifice is crescentic and PISA underestimates EROA, the EROA is often biphasic, a high E velocity is not specific, and pulmonary-vein blunting is seen with raised LA pressure or AF; 3D vena contracta area can rescue the grade. Non-holosystolic (mid-to-late) MR overestimates from single-frame EROA, so prefer the regurgitant volume. In the operating room, reduced load or contractility usually underestimates the grade: let the preoperative study guide the decision."
+        },
+        {
+          "heading": "Mitral stenosis (ASE 2023, rheumatic)",
+          "kind": "table",
+          "columns": [
+            "Parameter",
+            "Mild (progressive)",
+            "Moderate (progressive)",
+            "Severe"
+          ],
+          "rows": [
+            [
+              "Valve area (cm²)",
+              "> 2.5",
+              "1.6–2.5",
+              "≤ 1.5"
+            ],
+            [
+              "Pressure half-time (ms)",
+              "< 100",
+              "100–149",
+              "≥ 150"
+            ],
+            [
+              "Mean gradient at 60–80 bpm (mmHg)",
+              "< 5",
+              "5–9",
+              "≥ 10"
+            ],
+            [
+              "Systolic PA pressure (mmHg)",
+              "< 30",
+              "30–49",
+              "≥ 50"
+            ]
+          ],
+          "note": "Planimetry (3D preferred) is the anatomic method; MVA = 220 / pressure half-time; continuity and PISA are reserved for inconclusive cases. Gradients depend on flow and heart rate — report the rhythm and rate and never grade on gradient alone. Pressure half-time misleads with severe AR, immediately after balloon commissurotomy, and with altered LA or LV compliance; trace the mid-diastolic slope of a biphasic E wave. Exercise PA systolic pressure > 60 mmHg marks hemodynamically significant MS."
+        },
+        {
+          "heading": "Tricuspid regurgitation (ASE 2017)",
+          "kind": "table",
+          "columns": [
+            "Parameter",
+            "Mild",
+            "Moderate",
+            "Severe"
+          ],
+          "rows": [
+            [
+              "Valve and chambers",
+              "Normal or mildly abnormal leaflets; RV, RA usually normal; IVC < 2.0 cm",
+              "Moderately abnormal; RV, RA normal or mildly dilated; IVC 2.1–2.5 cm",
+              "Flail, severe retraction or large perforation; RV and RA usually dilated; IVC > 2.5 cm"
+            ],
+            [
+              "Color jet",
+              "Small, narrow, central",
+              "Moderate, central",
+              "Large central jet (area > 10 cm² at Nyquist > 50 cm/s) or eccentric wall-impinging jet"
+            ],
+            [
+              "Flow convergence",
+              "Not visible, transient or small",
+              "Intermediate",
+              "Large throughout systole"
+            ],
+            [
+              "CW jet",
+              "Faint, partial, parabolic",
+              "Dense, parabolic or triangular",
+              "Dense, often triangular with early peak"
+            ],
+            [
+              "Vena contracta width (cm)",
+              "< 0.3",
+              "0.3–0.69",
+              "≥ 0.7 (3D vena contracta area > 0.4 cm²)"
+            ],
+            [
+              "PISA radius at Nyquist 28 cm/s (cm)",
+              "≤ 0.5",
+              "0.6–0.9",
+              "> 0.9"
+            ],
+            [
+              "Hepatic vein flow",
+              "Systolic dominance",
+              "Systolic blunting",
+              "Systolic flow reversal (specific, not sensitive)"
+            ],
+            [
+              "Tricuspid inflow",
+              "A-wave dominant",
+              "Variable",
+              "E-wave > 1.0 m/s"
+            ],
+            [
+              "EROA (cm²)",
+              "< 0.20",
+              "0.20–0.39",
+              "≥ 0.40"
+            ],
+            [
+              "Regurgitant volume by 2D PISA (mL)",
+              "< 30",
+              "30–44",
+              "≥ 45"
+            ]
+          ],
+          "note": "Annular dilation: end-diastolic diameter ≥ 40 mm or > 21 mm/m² in the apical four-chamber view (ASE 2023). The massive and torrential grades proposed for transcatheter trials are not ASE grades."
+        },
+        {
+          "heading": "Tricuspid stenosis (ASE 2023)",
+          "kind": "facts",
+          "rows": [
+            [
+              "Hemodynamically significant",
+              "Mean gradient ≥ 5 mmHg · inflow VTI ≥ 60 cm · valve area by continuity ≤ 1.0 cm² · pressure half-time ≥ 190 ms (less reliable than in MS)"
+            ],
+            [
+              "Valve area bands",
+              "Mild > 1.5 cm² · moderate 1.0–1.5 cm²"
+            ],
+            [
+              "Supportive",
+              "Dilated RA, IVC plethora, septal bowing toward the LA, loss of systolic predominance in hepatic or SVC flow (S/D < 1), tricuspid E/e' > 6"
+            ],
+            [
+              "Technique",
+              "Average 5 or more beats across the respiratory cycle or record at end-expiration; rate preferably 70–80 bpm; valve area is underestimated with more than mild TR"
+            ]
+          ]
+        },
+        {
+          "heading": "Pulmonic regurgitation (ASE 2017)",
+          "kind": "facts",
+          "rows": [
+            [
+              "Severe",
+              "Wide jet origin on color, dense CW signal with steep deceleration and early termination of diastolic flow (pressure half-time < 100 ms), dilated RV with volume-overload septal motion, markedly increased pulmonic versus aortic forward flow, regurgitant fraction > 40% on CMR"
+            ],
+            [
+              "Mild",
+              "Small jet, usually under 10 mm long with a narrow origin, soft CW signal with slow deceleration, normal RV"
+            ],
+            [
+              "Reading",
+              "Pulmonic grading leans on qualitative signs; the pressure half-time shortens with high RV diastolic pressure as well as with severe regurgitation"
+            ]
+          ]
+        },
+        {
+          "heading": "How ASE grades, and the traps",
+          "kind": "list",
+          "items": [
+            "Three grades (mild, moderate, severe; 'trace' when barely detected); integrate every available sign and set aside the outliers rather than averaging them.",
+            "Specific signs settle the grade (a vena contracta ≥ 0.7 cm, pulmonary-vein systolic reversal, a flail leaflet); supportive signs (chamber dilation, E velocity, jet density) raise or lower confidence; quantitative EROA, volume and fraction decide the ambiguous middle.",
+            "Color settings: Nyquist 50–70 cm/s for jets, aliasing velocity 30–40 cm/s shifted toward the jet for PISA; measure the vena contracta zoomed and perpendicular to the jet.",
+            "Jet area is imprecise, especially for eccentric wall-hugging jets; PISA fails with multiple, eccentric or crescentic orifices (the radius error is squared); the vena contracta is unreliable with multiple jets.",
+            "Formulas: EROA = 2πr²·Va ÷ peak jet velocity; regurgitant volume = EROA × jet VTI; regurgitant fraction = regurgitant volume ÷ total stroke volume; stroke volume = 0.785·d²·VTI."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asra-last",
+      "title": "Local anesthetic systemic toxicity (LAST)",
+      "society": "ASRA Pain Medicine",
+      "short": "ASRA",
+      "year": 2020,
+      "topic": "regional",
+      "emergency": true,
+      "keywords": [
+        "last",
+        "local anesthetic toxicity",
+        "lipid emulsion",
+        "intralipid",
+        "bupivacaine toxicity",
+        "seizure",
+        "regional",
+        "cardiac arrest",
+        "cardiopulmonary bypass",
+        "ecmo"
+      ],
+      "summary": "Recognize it, stop the drug, start lipid at the first serious sign, and run a modified ACLS — the ASRA checklist (2020 version), with the Society for Pediatric Anesthesia's pediatric lipid regimen.",
+      "source": {
+        "title": "American Society of Regional Anesthesia and Pain Medicine Checklist for Managing Local Anesthetic Systemic Toxicity: 2020 Version",
+        "citation": "Neal JM, Neal EJ, Weinberg GL. American Society of Regional Anesthesia and Pain Medicine checklist for managing local anesthetic systemic toxicity: 2020 version. Reg Anesth Pain Med. 2021;46:81–82. doi:10.1136/rapm-2020-101986",
+        "url": "https://asra.com/advisory-guidelines/article/3/local-anesthetic-systemic-toxicity",
+        "doi": "10.1136/rapm-2020-101986"
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "Recognize it",
+          "kind": "list",
+          "items": [
+            "Think of LAST in any patient with altered mental status, neurologic symptoms or cardiovascular instability after a regional anesthetic — the classic prodrome (metallic taste, perioral numbness, tinnitus, agitation) appears in fewer than half, and sedation hides it.",
+            "Central nervous system: excitation then depression, seizures, coma. Cardiovascular: an early hyperdynamic phase, then hypotension, conduction block, bradycardia, ventricular arrhythmias, asystole; cardiovascular signs may be the only ones.",
+            "Onset can be delayed 30 minutes or more after injection; keep monitoring after any block."
+          ]
+        },
+        {
+          "heading": "Immediate steps",
+          "kind": "steps",
+          "items": [
+            "Stop injecting the local anesthetic.",
+            "Call for help and send for the LAST rescue kit; alert the nearest cardiopulmonary bypass or ECMO team now, so support is ready if CPR and lipid fail.",
+            "Manage the airway: ventilate with 100% oxygen, avoid hyperventilation (alkalosis and hypocarbia worsen toxicity), secure the airway if needed.",
+            "Control seizures with a benzodiazepine; avoid large doses of propofol, above all with hemodynamic instability (small doses are acceptable when stable); low-dose neuromuscular blockade if seizures persist.",
+            "Give 20% lipid emulsion at the first sign of a serious event (see the doses below); do not wait for arrest.",
+            "If pulseless, CPR with the modified ACLS below; continue lipid and consider extracorporeal support if there is no response."
+          ]
+        },
+        {
+          "heading": "Lipid emulsion 20%",
+          "kind": "facts",
+          "rows": [
+            [
+              "Over 70 kg",
+              "Bolus 100 mL over 2–3 minutes, then 200–250 mL over 15–20 minutes"
+            ],
+            [
+              "Under 70 kg",
+              "Bolus 1.5 mL/kg (lean body weight) over 2–3 minutes, then about 0.25 mL/kg/min"
+            ],
+            [
+              "Still unstable",
+              "Re-bolus once or twice at the same dose and double the infusion to 0.5 mL/kg/min"
+            ],
+            [
+              "Continue",
+              "At least 10 minutes after circulatory stability; maximum about 12 mL/kg (ideal body weight) — a prolonged resuscitation can approach a litre"
+            ],
+            [
+              "Children (SPA Pedi Crisis 2025)",
+              "Bolus 1.5 mL/kg over 1 minute, infusion 0.25 mL/kg/min, repeat the bolus every 3–5 minutes to 4.5 mL/kg, double the rate if pressure stays low; maximum 10 mL/kg in the first 30 minutes"
+            ]
+          ]
+        },
+        {
+          "heading": "ACLS modifications",
+          "kind": "list",
+          "items": [
+            "Epinephrine in small boluses of 1 mcg/kg or less.",
+            "Avoid vasopressin, calcium channel blockers, beta blockers and any further local anesthetic (no lidocaine for arrhythmias); amiodarone is first-line for ventricular arrhythmias.",
+            "Propofol is not a substitute for lipid.",
+            "Expect a prolonged resuscitation; lipid plus CPR can take well over an hour, which is why bypass or ECMO are alerted early."
+          ]
+        },
+        {
+          "heading": "Afterwards",
+          "kind": "facts",
+          "rows": [
+            [
+              "Observation",
+              "At least 2 hours after a limited, rapidly resolving CNS event; at least 4–6 hours after a cardiovascular event, longer (24 hours is usual) after cardiac arrest"
+            ],
+            [
+              "Report",
+              "ASRA asks that events be reported to the LipidRescue registry (lipidrescue.org) and the institution's safety system"
+            ],
+            [
+              "Prevention",
+              "Lowest effective dose, incremental injection with aspiration, ultrasound guidance, a test dose where appropriate, and lipid available wherever significant doses are given"
+            ]
+          ],
+          "note": "ASRA states the 2020 checklist is current and under review, with an update expected in early 2027. Box wording here is a paraphrase; the ASRA PDF is the authority."
+        }
+      ]
+    },
+    {
+      "id": "mhaus-mh",
+      "title": "Malignant hyperthermia",
+      "society": "Malignant Hyperthermia Association of the United States",
+      "short": "MHAUS",
+      "year": 2026,
+      "topic": "general",
+      "emergency": true,
+      "keywords": [
+        "malignant hyperthermia",
+        "mh",
+        "dantrolene",
+        "ryanodex",
+        "hyperkalemia",
+        "rigidity",
+        "masseter spasm",
+        "etco2",
+        "succinylcholine",
+        "volatile",
+        "charcoal filter",
+        "hotline"
+      ],
+      "summary": "Stop the triggers, dantrolene 2.5 mg/kg at once and repeated, treat the potassium and the acidosis, cool to 38 °C — MHAUS's emergency treatment protocol and its post-crisis dantrolene recommendation, with the hotline number.",
+      "source": {
+        "title": "Emergency Treatment for an Acute MH Event (MHAUS)",
+        "citation": "Malignant Hyperthermia Association of the United States. Managing a crisis: emergency treatment for an acute MH event; and Dantrolene administration after an MH event (2017). mhaus.org, accessed October 2026.",
+        "url": "https://www.mhaus.org/healthcare-professionals/managing-a-crisis/",
+        "doi": null
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "Recognize it",
+          "kind": "list",
+          "items": [
+            "An unexplained rise in end-tidal CO₂ that outpaces ventilation is usually first; then tachycardia and tachypnea, masseter spasm or generalized rigidity, a mixed respiratory and metabolic acidosis, and rhabdomyolysis with myoglobinuria. Temperature can be a late sign.",
+            "Triggers are the volatile agents and succinylcholine; onset can be during the anesthetic or in the first hour or two of recovery.",
+            "MH hotline: 1-800-644-9737 (outside the United States 001-209-417-3722)."
+          ]
+        },
+        {
+          "heading": "First minutes",
+          "kind": "steps",
+          "items": [
+            "Tell the surgeon; stop the volatile agent and succinylcholine; finish or abandon the surgery under a non-triggering intravenous anesthetic.",
+            "Call for help, the MH cart and dantrolene; in a surgicenter call 911; phone the hotline.",
+            "Hyperventilate with 100% oxygen at 10 L/min; put activated-charcoal filters on both limbs of the circuit if you have them (replace hourly); do not delay treatment to change the machine or the absorbent.",
+            "Dantrolene 2.5 mg/kg IV rapidly through a large-bore line; repeat until end-tidal CO₂ falls, rigidity eases and the heart rate settles — more than 10 mg/kg is sometimes needed; if large doses do nothing, reconsider the diagnosis.",
+            "Ryanodex 250 mg: add 5 mL sterile water and shake to an orange suspension. Dantrium or Revonto 20 mg: add 60 mL sterile water (no bacteriostatic agent) and shake until clear. Stock: 3 vials of Ryanodex or 36 of Dantrium/Revonto.",
+            "Send blood gases, potassium, CK, glucose, coagulation studies and urine myoglobin; place arterial and urinary catheters as the situation allows."
+          ]
+        },
+        {
+          "heading": "Treat what the muscle releases",
+          "kind": "facts",
+          "rows": [
+            [
+              "Hyperkalemia (K⁺ above 5.9 mmol/L, or lower with ECG changes)",
+              "Calcium chloride 10 mg/kg (maximum 2 g) or calcium gluconate 10–50 mg/kg (maximum 3 g); sodium bicarbonate 1–2 mEq/kg; insulin and glucose — adult 10 units regular insulin with 50 mL of 50% dextrose, child 0.1 units/kg with 2 mL/kg of 25% dextrose, glucose hourly; refractory: beta-agonist, dialysis, ECMO if in arrest"
+            ],
+            [
+              "Acidosis",
+              "Sodium bicarbonate 1–2 mEq/kg when the base excess is more negative than −8, guided by blood gases"
+            ],
+            [
+              "Myoglobinuria",
+              "If CK or potassium is rising assume it: bicarbonate infusion about 1 mEq/kg/h to alkalinize the urine, diurese to more than 1 mL/kg/h (2 mL/kg/h once myoglobinuria is confirmed)"
+            ],
+            [
+              "Temperature",
+              "Cool when the core temperature passes 39 °C or climbs fast — cold intravenous saline, surface cooling, lavage; stop cooling at 38 °C to avoid overshoot"
+            ],
+            [
+              "Arrhythmias",
+              "Treat conventionally after correcting potassium and acidosis; never a calcium channel blocker with dantrolene"
+            ]
+          ]
+        },
+        {
+          "heading": "After the crisis",
+          "kind": "facts",
+          "rows": [
+            [
+              "Observation",
+              "ICU for at least 24 hours with continuous temperature, capnography if intubated, ECG, oximetry and muscle tone; recrudescence can occur a day or more after the signs settle"
+            ],
+            [
+              "Dantrolene",
+              "1 mg/kg IV every 4–6 hours for at least 24 hours (an infusion of 0.25 mg/kg/h is the alternative); stretch the interval or stop only when all of: 24 hours of metabolic stability, core temperature below 38 °C, CK falling, no myoglobinuria, rigidity resolved"
+            ],
+            [
+              "Laboratory",
+              "Blood gases, lactate and potassium every 8 hours; CK until it falls; creatinine daily if there was myoglobinuria"
+            ],
+            [
+              "Follow-up",
+              "Report the event to the North American MH Registry, counsel the patient and family, and refer for muscle contracture or RYR1 genetic testing"
+            ]
+          ],
+          "note": "MHAUS's web protocol carries no revision date (site © 2026); the laminated poster sold by MHAUS follows the same protocol."
+        }
+      ]
+    },
+    {
+      "id": "asa-fasting",
+      "title": "Preoperative fasting (ASA)",
+      "society": "American Society of Anesthesiologists",
+      "short": "ASA",
+      "year": 2023,
+      "topic": "general",
+      "keywords": [
+        "npo",
+        "fasting",
+        "clear liquids",
+        "breast milk",
+        "formula",
+        "carbohydrate drink",
+        "chewing gum",
+        "aspiration",
+        "pediatric fasting"
+      ],
+      "summary": "The minimum fasting periods by substance for healthy patients having elective procedures, and what the 2023 update says about carbohydrate drinks, protein drinks, chewing gum and children's clear liquids.",
+      "source": {
+        "title": "2023 American Society of Anesthesiologists Practice Guidelines for Preoperative Fasting: Carbohydrate-containing Clear Liquids with or without Protein, Chewing Gum, and Pediatric Fasting Duration — A Modular Update of the 2017 Practice Guidelines",
+        "citation": "Joshi GP, Abdelmalak BB, Weigel WA, et al. Anesthesiology. 2023;138:132–151. doi:10.1097/ALN.0000000000004381 · Practice Guidelines for Preoperative Fasting and the Use of Pharmacologic Agents to Reduce the Risk of Pulmonary Aspiration. Anesthesiology. 2017;126:376–393.",
+        "url": "https://doi.org/10.1097/ALN.0000000000004381",
+        "doi": "10.1097/ALN.0000000000004381"
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "Minimum fasting periods (2017, still in force)",
+          "kind": "facts",
+          "rows": [
+            [
+              "Clear liquids",
+              "2 hours — water, pulp-free fruit juice, carbonated drinks, clear tea, black coffee"
+            ],
+            [
+              "Breast milk",
+              "4 hours"
+            ],
+            [
+              "Infant formula",
+              "6 hours"
+            ],
+            [
+              "Non-human milk",
+              "6 hours (it empties like a solid; the amount matters)"
+            ],
+            [
+              "Light meal",
+              "6 hours — toast and clear liquids"
+            ],
+            [
+              "Fried or fatty food, meat",
+              "Additional time, 8 hours or more"
+            ]
+          ],
+          "note": "For healthy patients of all ages having elective procedures under general anesthesia, regional anesthesia or procedural sedation; not for women in labor. Meeting the times does not guarantee an empty stomach."
+        },
+        {
+          "heading": "The 2023 update",
+          "kind": "facts",
+          "rows": [
+            [
+              "Carbohydrate drinks",
+              "Healthy adults are encouraged to drink carbohydrate-containing clear liquids until 2 hours before; up to 400 mL is an appropriate volume (strong recommendation, moderate evidence). No separate recommendation for children"
+            ],
+            [
+              "Protein-containing clear liquids",
+              "No recommendation to prefer them: the evidence is insufficient, and every drink studied also contained carbohydrate"
+            ],
+            [
+              "Chewing gum",
+              "Do not delay or cancel an elective procedure because a healthy adult chewed gum; remove the gum before any sedative or anesthetic; gum is not recommended as a preparation"
+            ],
+            [
+              "Children's clear liquids",
+              "A 1-hour limit was not endorsed and 2 hours was not re-graded: the task force found the evidence insufficient either way, and advises letting low-risk children drink clear liquids as close to 2 hours before as possible"
+            ]
+          ]
+        },
+        {
+          "heading": "When these times do not apply",
+          "kind": "text",
+          "text": "The guideline is written for healthy patients. Conditions that change gastric emptying or volume call for modified plans: pregnancy, obesity, diabetes, hiatal hernia and uncontrolled reflux, Zenker diverticulum, achalasia or stricture, previous gastric surgery, gastroparesis, opioid use, ileus or bowel obstruction or an acute intra-abdominal process, emergency procedures, enteral tube feeding, and patients with a potentially difficult airway. It does not cover procedures done without anesthesia or under local anesthesia alone."
+        }
+      ]
+    },
+    {
+      "id": "asa-difficult-airway",
+      "title": "Difficult airway: the ASA 2022 algorithm in brief",
+      "society": "American Society of Anesthesiologists",
+      "short": "ASA",
+      "year": 2022,
+      "topic": "general",
+      "keywords": [
+        "difficult airway",
+        "awake intubation",
+        "videolaryngoscope",
+        "supraglottic",
+        "cricothyrotomy",
+        "cannot intubate",
+        "cannot ventilate",
+        "cicv",
+        "extubation",
+        "airway exchange catheter",
+        "pediatric airway",
+        "mallampati"
+      ],
+      "summary": "The decision points of the 2022 ASA practice guideline: when to intubate awake, how to prepare, what to do after each failed attempt, the limit on attempts, the emergency invasive pathway, extubation, and what differs in children. A summary in Periop Signal's words; the ASA infographics are the algorithm.",
+      "source": {
+        "title": "2022 American Society of Anesthesiologists Practice Guidelines for Management of the Difficult Airway",
+        "citation": "Apfelbaum JL, Hagberg CA, Connis RT, et al. 2022 American Society of Anesthesiologists Practice Guidelines for Management of the Difficult Airway. Anesthesiology. 2022;136:31–81. doi:10.1097/ALN.0000000000004002",
+        "url": "https://doi.org/10.1097/ALN.0000000000004002",
+        "doi": "10.1097/ALN.0000000000004002"
+      },
+      "reviewed": "2026-10-28",
+      "sections": [
+        {
+          "heading": "Before you start: five questions",
+          "kind": "list",
+          "items": [
+            "Is laryngoscopy likely to be difficult? Assess several features (mouth opening, upper-lip bite test, Mallampati, thyromental distance, neck mobility) rather than any one; add bedside endoscopy or imaging when they would change the plan.",
+            "Is ventilation by face mask or supraglottic airway likely to be difficult?",
+            "Is the aspiration risk increased?",
+            "Will the patient desaturate quickly or not tolerate a brief apnea?",
+            "Would an emergency invasive airway be difficult (neck anatomy, prior surgery, radiation, obesity)?"
+          ]
+        },
+        {
+          "heading": "Choose awake intubation when",
+          "kind": "text",
+          "text": "Difficult intubation is suspected and any one of the following holds: difficult mask or supraglottic ventilation, increased aspiration risk, intolerance of a brief apnea, or an expected difficult emergency invasive airway. When an awake technique is not feasible (an uncooperative patient, a child), intubate after induction with rescue options prepared. If the awake attempt fails and the case cannot wait or the patient is unstable, move to the post-induction pathway and prepare for an invasive airway."
+        },
+        {
+          "heading": "Preparation",
+          "kind": "list",
+          "items": [
+            "Standard equipment in the room and the portable difficult-airway unit immediately available; a second skilled clinician present or on call.",
+            "Tell the patient the risks; run a time-out that names the primary and backup airway managers and their roles; assign an observer to call out time, attempts and saturation so no one fixates.",
+            "Position, preoxygenate, and keep oxygen flowing throughout — including at extubation — with capnography to confirm ventilation."
+          ]
+        },
+        {
+          "heading": "After induction, attempt by attempt",
+          "kind": "steps",
+          "items": [
+            "Use the technique you know best first; if it struggles, combine devices (videolaryngoscope with a flexible scope, a supraglottic airway as a conduit).",
+            "Optimize before each try: position, relaxation, oxygenation (apneic oxygenation through the nose or a catheter).",
+            "After every attempt, provide and test mask ventilation when feasible, and decide: wake the patient and restore breathing, or carry on? Non-invasive or invasive next?",
+            "Limit attempts with any class of device to three, plus one more by a clinician with greater skill (3 + 1). Call for help early and use the algorithm as a cognitive aid."
+          ]
+        },
+        {
+          "heading": "Cannot intubate, cannot ventilate",
+          "kind": "steps",
+          "items": [
+            "Call for help; optimize oxygenation; try face mask, supraglottic airway and intubation as appropriate — treating functional obstruction (laryngospasm, light anesthesia) with drugs and anatomic obstruction with devices.",
+            "When non-invasive options have failed or are failing, go to an emergency invasive airway without further delay, by the most experienced person present, as fast as possible, with an alternative ready if it fails.",
+            "Techniques the guideline names: surgical cricothyrotomy, needle cricothyrotomy with a pressure-regulated jet device, large-bore cannula cricothyrotomy, surgical tracheostomy; rigid bronchoscopy in adults. The ASA does not name a single preferred technique; needle cricothyrotomy is reserved for age-appropriate children.",
+            "Start ECMO when appropriate and available."
+          ]
+        },
+        {
+          "heading": "Extubation",
+          "kind": "list",
+          "items": [
+            "Have a formulated extubation and reintubation plan: readiness, the right time and place, a skilled person present.",
+            "Weigh awake extubation against extubation before return of consciousness, and whether an elective tracheostomy is wiser.",
+            "Consider a short-term airway exchange catheter or supraglottic airway to guide expedited reintubation (used sparingly in children); oxygen throughout; steroids or racemic epinephrine afterwards when indicated.",
+            "Document the difficulty and tell the patient — letter, alert bracelet, registry."
+          ]
+        },
+        {
+          "heading": "Children",
+          "kind": "text",
+          "text": "Awake intubation is uncommon; the usual path is inhalational induction with spontaneous ventilation maintained. Keep the anesthetic deep enough and reassess ventilation after every attempt; the three core tools are the supraglottic airway, the flexible scope and the videolaryngoscope, alone or combined. Separate functional from anatomic obstruction. The attempt limit is the primary manager's attempts (about three) plus one by the backup, then consider emerging the child and reversing drugs. Contact ECMO and ENT early when non-invasive failure is foreseeable; use airway exchange catheters with caution."
+        }
+      ]
+    }
+  ],
+  "peds": {
+    "reviewed": "2026-10-28",
+    "note": "Doses are from the FDA label, the AHA PALS algorithms (2020, re-checked against the October 2025 edition) and the Society for Pediatric Anesthesia's Pedi Crisis checklists; the source is on every line. Where the label gives no pediatric dose the line says so.",
+    "drugs": [
+      {
+        "id": "propofol",
+        "name": "Propofol",
+        "use": "Induction",
+        "group": "Induction",
+        "route": "IV",
+        "low": 2.5,
+        "high": 3.5,
+        "unit": "mg",
+        "max": null,
+        "conc": "10 mg/mL",
+        "note": "Label: 3–16 years 2.5–3.5 mg/kg titrated to onset; adults 2–2.5 mg/kg; not labeled for induction under 3 years, where it is nonetheless the usual agent — titrate to effect. Maintenance 125–300 mcg/kg/min.",
+        "source": "Diprivan FDA label, revised 2022"
+      },
+      {
+        "id": "ketamine-iv",
+        "name": "Ketamine",
+        "use": "Induction",
+        "group": "Induction",
+        "route": "IV",
+        "low": 1,
+        "high": 2,
+        "unit": "mg",
+        "max": null,
+        "conc": "50 mg/mL or 100 mg/mL: dilute",
+        "note": "Label range 1–4.5 mg/kg over 60 seconds; 2 mg/kg gives 5–10 minutes of anesthesia. Pediatric use is off-label by the FDA wording.",
+        "source": "Ketamine hydrochloride injection label (Pfizer), revised 2026"
+      },
+      {
+        "id": "ketamine-im",
+        "name": "Ketamine",
+        "use": "Induction without IV access",
+        "group": "Induction",
+        "route": "IM",
+        "low": 6.5,
+        "high": 13,
+        "unit": "mg",
+        "max": null,
+        "conc": "100 mg/mL",
+        "note": "Label: 6.5–13 mg/kg; 9–13 mg/kg gives surgical anesthesia in 3–4 minutes lasting 12–25 minutes. Smaller doses are used for premedication; the label does not give them.",
+        "source": "Ketamine hydrochloride injection label (Pfizer), revised 2026"
+      },
+      {
+        "id": "etomidate",
+        "name": "Etomidate",
+        "use": "Induction",
+        "group": "Induction",
+        "route": "IV",
+        "low": 0.2,
+        "high": 0.3,
+        "unit": "mg",
+        "max": null,
+        "conc": "2 mg/mL",
+        "note": "Label: 0.2–0.6 mg/kg, usually 0.3 mg/kg over 30–60 seconds; not recommended under 10 years for lack of data.",
+        "source": "Amidate prescribing information"
+      },
+      {
+        "id": "midazolam-iv",
+        "name": "Midazolam",
+        "use": "Sedation",
+        "group": "Induction",
+        "route": "IV",
+        "low": 0.05,
+        "high": 0.1,
+        "unit": "mg",
+        "max": 6,
+        "conc": "1 mg/mL",
+        "note": "Label: 6 months to 5 years 0.05–0.1 mg/kg initially, total up to 0.6 mg/kg (usually ≤ 6 mg); 6–12 years 0.025–0.05 mg/kg initially, total up to 0.4 mg/kg (usually ≤ 10 mg); 12–16 years adult dosing.",
+        "source": "Midazolam hydrochloride injection label (Baxter)"
+      },
+      {
+        "id": "midazolam-po",
+        "name": "Midazolam",
+        "use": "Premedication",
+        "group": "Induction",
+        "route": "PO",
+        "low": 0.25,
+        "high": 0.5,
+        "unit": "mg",
+        "max": 20,
+        "conc": "2 mg/mL syrup",
+        "note": "Label: 0.25–0.5 mg/kg single dose from 6 months; younger or less cooperative children may need up to 1 mg/kg; maximum 20 mg.",
+        "source": "Midazolam hydrochloride syrup label"
+      },
+      {
+        "id": "dexmedetomidine",
+        "name": "Dexmedetomidine",
+        "use": "Procedural sedation, load over 10 min",
+        "group": "Induction",
+        "route": "IV",
+        "low": 1.5,
+        "high": 2,
+        "unit": "mcg",
+        "max": null,
+        "conc": "4 mcg/mL premix",
+        "note": "Label (non-intubated children 1 month to under 18 years): 1.5 mcg/kg (1 month to under 2 years) or 2 mcg/kg (2 years and older) over 10 minutes, then 1.5 mcg/kg/h titrated 0.5–1.5 mcg/kg/h. Intraoperative bolus doses used in practice are smaller.",
+        "source": "Precedex label, revised 2026"
+      },
+      {
+        "id": "succinylcholine-iv",
+        "name": "Succinylcholine",
+        "use": "Intubation",
+        "group": "Neuromuscular",
+        "route": "IV",
+        "low": 1,
+        "high": 2,
+        "unit": "mg",
+        "max": null,
+        "conc": "20 mg/mL",
+        "note": "Label: 2 mg/kg for infants and small children, 1 mg/kg for older children and adolescents; boxed warning (hyperkalemic rhabdomyolysis in undiagnosed myopathy): reserve for emergency intubation or immediate airway control. Laryngospasm (Pedi Crisis): 0.1–2 mg/kg IV with atropine 0.02 mg/kg.",
+        "source": "Succinylcholine chloride label; SPA Pedi Crisis 2025"
+      },
+      {
+        "id": "succinylcholine-im",
+        "name": "Succinylcholine",
+        "use": "Intubation without IV access",
+        "group": "Neuromuscular",
+        "route": "IM",
+        "low": 3,
+        "high": 4,
+        "unit": "mg",
+        "max": 150,
+        "conc": "20 mg/mL",
+        "note": "Label: up to 3–4 mg/kg IM, total not more than 150 mg. Laryngospasm without access (Pedi Crisis): 2–4 mg/kg IM with atropine 0.04 mg/kg IM.",
+        "source": "Succinylcholine chloride label; SPA Pedi Crisis 2025"
+      },
+      {
+        "id": "rocuronium",
+        "name": "Rocuronium",
+        "use": "Intubation",
+        "group": "Neuromuscular",
+        "route": "IV",
+        "low": 0.6,
+        "high": 1.2,
+        "unit": "mg",
+        "max": null,
+        "conc": "10 mg/mL",
+        "note": "Label: 0.6 mg/kg intubating dose (0.45 mg/kg may suffice with sevoflurane), neonates to 17 years; 1.2 mg/kg is the adult rapid-sequence dose and the label does not recommend rocuronium for rapid sequence in children. Maintenance 0.075–0.125 mg/kg.",
+        "source": "Rocuronium bromide label (DailyMed), revised 2019"
+      },
+      {
+        "id": "sugammadex-2",
+        "name": "Sugammadex",
+        "use": "Reversal with 2 twitches",
+        "group": "Neuromuscular",
+        "route": "IV",
+        "low": 2,
+        "high": null,
+        "unit": "mg",
+        "max": null,
+        "conc": "100 mg/mL; dilute to 10 mg/mL for small doses",
+        "note": "Approved from 2 years of age at 2 and 4 mg/kg, on actual body weight; under 2 years not established.",
+        "source": "Bridion FDA label, revised 2022"
+      },
+      {
+        "id": "sugammadex-4",
+        "name": "Sugammadex",
+        "use": "Deep block, 1–2 post-tetanic counts",
+        "group": "Neuromuscular",
+        "route": "IV",
+        "low": 4,
+        "high": null,
+        "unit": "mg",
+        "max": null,
+        "conc": "100 mg/mL",
+        "note": "Approved from 2 years of age.",
+        "source": "Bridion FDA label, revised 2022"
+      },
+      {
+        "id": "sugammadex-16",
+        "name": "Sugammadex",
+        "use": "Immediate reversal of rocuronium 1.2 mg/kg",
+        "group": "Neuromuscular",
+        "route": "IV",
+        "low": 16,
+        "high": null,
+        "unit": "mg",
+        "max": null,
+        "conc": "100 mg/mL",
+        "note": "Adult dose about 3 minutes after rocuronium; not studied in children, though the Pedi Crisis difficult-airway card lists it as rescue reversal.",
+        "source": "Bridion FDA label, revised 2022; SPA Pedi Crisis 2025"
+      },
+      {
+        "id": "neostigmine",
+        "name": "Neostigmine",
+        "use": "Reversal (with glycopyrrolate)",
+        "group": "Neuromuscular",
+        "route": "IV",
+        "low": 0.03,
+        "high": 0.07,
+        "unit": "mg",
+        "max": 5,
+        "conc": "0.5 or 1 mg/mL",
+        "note": "0.03 mg/kg when two twitches are back or for shorter-acting agents; 0.07 mg/kg for deeper block or longer-acting agents; maximum 0.07 mg/kg or 5 mg. Give glycopyrrolate 0.2 mg per 1 mg of neostigmine.",
+        "source": "Bloxiverz FDA label, revised 2023"
+      },
+      {
+        "id": "glycopyrrolate",
+        "name": "Glycopyrrolate",
+        "use": "Antisialagogue or bradycardia",
+        "group": "Neuromuscular",
+        "route": "IV",
+        "low": 4,
+        "high": null,
+        "unit": "mcg",
+        "max": 100,
+        "conc": "0.2 mg/mL",
+        "note": "Label: 4 mcg/kg, not more than 100 mcg per dose, repeated every 2–3 minutes as needed; premedication 4 mcg/kg IM 30–60 minutes before induction (infants under 2 years up to 9 mcg/kg). Reversal: 0.2 mg per 1 mg neostigmine.",
+        "source": "Glycopyrrolate label (DailyMed), revised 2026"
+      },
+      {
+        "id": "epinephrine-arrest",
+        "name": "Epinephrine",
+        "use": "Cardiac arrest, every 3–5 min",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 10,
+        "high": null,
+        "unit": "mcg",
+        "max": 1000,
+        "conc": "0.1 mg/mL (1:10,000) → 0.1 mL/kg",
+        "note": "0.01 mg/kg, maximum 1 mg; give the first dose as early as possible for non-shockable rhythms. Endotracheal: 0.1 mg/kg of the 1 mg/mL strength.",
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "epinephrine-anaphylaxis",
+        "name": "Epinephrine",
+        "use": "Anaphylaxis",
+        "group": "Emergency",
+        "route": "IM",
+        "low": 10,
+        "high": null,
+        "unit": "mcg",
+        "max": 500,
+        "conc": "1 mg/mL → 0.01 mL/kg",
+        "note": "0.01 mg/kg in the anterolateral thigh, maximum 0.3 mg under 30 kg and 0.5 mg at 30 kg or more, repeated every 5–15 minutes; IV 1–10 mcg/kg, infusion 0.02–1 mcg/kg/min, crystalloid 10–30 mL/kg (Pedi Crisis).",
+        "source": "Adrenalin prescribing information 2022; SPA Pedi Crisis 2025"
+      },
+      {
+        "id": "atropine",
+        "name": "Atropine",
+        "use": "Bradycardia",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 20,
+        "high": null,
+        "unit": "mcg",
+        "min": 100,
+        "max": 500,
+        "conc": "0.4 mg/mL vials; 0.1 mg/mL syringes",
+        "note": "0.02 mg/kg, may repeat once; minimum 0.1 mg and maximum 0.5 mg per dose in the PALS bradycardia algorithm (1 mg from 12 years per the label). As premedication for emergency intubation PALS gives 0.02 mg/kg with no minimum.",
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text; atropine sulfate label"
+      },
+      {
+        "id": "amiodarone",
+        "name": "Amiodarone",
+        "use": "Shock-refractory VF or pulseless VT",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 5,
+        "high": null,
+        "unit": "mg",
+        "max": 300,
+        "conc": "50 mg/mL",
+        "note": "5 mg/kg bolus, up to 3 doses; the 2025 algorithm adds a 300 mg maximum first dose and 150 mg subsequently. With a pulse: 5 mg/kg over 20–60 minutes with expert advice. Lidocaine 1 mg/kg (maximum 100 mg) is the alternative in arrest.",
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text; SPA Pedi Crisis critical events checklists, January 2025 revision"
+      },
+      {
+        "id": "adenosine-1",
+        "name": "Adenosine",
+        "use": "SVT, first dose, rapid push",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 0.1,
+        "high": null,
+        "unit": "mg",
+        "max": 6,
+        "conc": "3 mg/mL",
+        "note": "Follow with a rapid flush; record the rhythm.",
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "adenosine-2",
+        "name": "Adenosine",
+        "use": "SVT, second dose",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 0.2,
+        "high": null,
+        "unit": "mg",
+        "max": 12,
+        "conc": "3 mg/mL",
+        "note": null,
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "defib-1",
+        "name": "Defibrillation",
+        "use": "First shock",
+        "group": "Emergency",
+        "route": "Biphasic",
+        "low": 2,
+        "high": null,
+        "unit": "J",
+        "max": null,
+        "conc": null,
+        "note": "Guideline text allows 2–4 J/kg for the first shock.",
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "defib-2",
+        "name": "Defibrillation",
+        "use": "Second and later shocks",
+        "group": "Emergency",
+        "route": "Biphasic",
+        "low": 4,
+        "high": null,
+        "unit": "J",
+        "max": null,
+        "conc": null,
+        "note": "Second shock 4 J/kg; later shocks 4 J/kg or more, to a maximum of 10 J/kg or the adult dose.",
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "cardioversion",
+        "name": "Synchronized cardioversion",
+        "use": "Unstable tachyarrhythmia",
+        "group": "Emergency",
+        "route": "Biphasic",
+        "low": 0.5,
+        "high": 1,
+        "unit": "J",
+        "max": null,
+        "conc": null,
+        "note": "Start at 0.5–1 J/kg; increase to 2 J/kg if ineffective; sedate when possible but do not delay.",
+        "source": "AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "calcium-chloride",
+        "name": "Calcium chloride 10%",
+        "use": "Hyperkalemia, MH, calcium-channel blocker toxicity",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 10,
+        "high": 20,
+        "unit": "mg",
+        "max": 2000,
+        "conc": "100 mg/mL (27 mg elemental calcium per mL); central or large vein",
+        "note": "MHAUS: 10 mg/kg (maximum 2 g), or calcium gluconate 10–50 mg/kg (maximum 3 g); Pedi Crisis hyperkalemia 20 mg/kg. Routine calcium is not recommended in pediatric arrest without hyperkalemia, hypocalcemia, hypermagnesemia or calcium-channel-blocker overdose.",
+        "source": "MHAUS; SPA Pedi Crisis critical events checklists, January 2025 revision; AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "bicarbonate",
+        "name": "Sodium bicarbonate",
+        "use": "Hyperkalemia, MH, severe acidosis",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 1,
+        "high": 2,
+        "unit": "mEq",
+        "max": null,
+        "conc": "8.4% = 1 mEq/mL; 4.2% for neonates",
+        "note": "Not routine in pediatric arrest except hyperkalemia or sodium-channel-blocker toxicity.",
+        "source": "MHAUS; SPA Pedi Crisis critical events checklists, January 2025 revision; AHA PALS 2020 (Topjian AA, et al. Circulation 2020;142:S469–S523) and the 2025 PALS algorithm text"
+      },
+      {
+        "id": "dextrose",
+        "name": "Dextrose",
+        "use": "Hypoglycemia",
+        "group": "Emergency",
+        "route": "IV/IO",
+        "low": 0.5,
+        "high": 1,
+        "unit": "g",
+        "max": null,
+        "conc": "D25 = 0.25 g/mL → 2–4 mL/kg; D10 = 0.1 g/mL → 5–10 mL/kg",
+        "note": "Pedi Crisis: D25 4 mL/kg under 2 years, 2 mL/kg from 2 years; the D25 label gives 0.25–0.5 g/kg (1–2 mL/kg) for infants, repeated as needed.",
+        "source": "SPA Pedi Crisis critical events checklists, January 2025 revision; 25% dextrose injection label 2025"
+      },
+      {
+        "id": "dantrolene",
+        "name": "Dantrolene",
+        "use": "Malignant hyperthermia, repeat every 5 min",
+        "group": "Emergency",
+        "route": "IV",
+        "low": 2.5,
+        "high": null,
+        "unit": "mg",
+        "max": null,
+        "conc": "Ryanodex 250 mg in 5 mL; Dantrium or Revonto 20 mg in 60 mL",
+        "note": "Repeat until end-tidal CO₂, rigidity and heart rate improve; more than 10 mg/kg is sometimes needed. Afterwards 1 mg/kg every 4–6 hours for at least 24 hours.",
+        "source": "MHAUS emergency treatment protocol; Ryanodex label 2024"
+      },
+      {
+        "id": "lipid",
+        "name": "Lipid emulsion 20%",
+        "use": "Local anesthetic toxicity, bolus over 1 min",
+        "group": "Emergency",
+        "route": "IV",
+        "low": 1.5,
+        "high": null,
+        "unit": "mL",
+        "max": null,
+        "conc": "20% = 200 mg/mL",
+        "note": "Then 0.25 mL/kg/min; repeat the bolus every 3–5 minutes to 4.5 mL/kg; double the rate if pressure stays low; maximum 10 mL/kg over the first 30 minutes (Pedi Crisis). ASRA's adult regimen is in the LAST reference.",
+        "source": "SPA Pedi Crisis critical events checklists, January 2025 revision"
+      },
+      {
+        "id": "naloxone",
+        "name": "Naloxone",
+        "use": "Opioid overdose",
+        "group": "Emergency",
+        "route": "IV/IM",
+        "low": 10,
+        "high": null,
+        "unit": "mcg",
+        "max": null,
+        "conc": "0.4 mg/mL",
+        "note": "Label: 0.01 mg/kg initially, then 0.1 mg/kg if there is no response; for postoperative respiratory depression titrate 5–10 mcg increments every 2–3 minutes instead.",
+        "source": "Naloxone hydrochloride injection prescribing information"
+      },
+      {
+        "id": "fentanyl",
+        "name": "Fentanyl",
+        "use": "Analgesia",
+        "group": "Analgesia",
+        "route": "IV",
+        "low": 1,
+        "high": 2,
+        "unit": "mcg",
+        "max": null,
+        "conc": "50 mcg/mL",
+        "note": "The label's pediatric statement (2–12 years) is a reduced dose 'as low as 2–3 mcg/kg' for induction and maintenance; 1–2 mcg/kg increments are the usual intraoperative analgesic dose and are not label-derived.",
+        "source": "Fentanyl citrate prescribing information"
+      },
+      {
+        "id": "morphine",
+        "name": "Morphine",
+        "use": "Analgesia",
+        "group": "Analgesia",
+        "route": "IV",
+        "low": 0.05,
+        "high": 0.1,
+        "unit": "mg",
+        "max": null,
+        "conc": "varies — check the vial",
+        "note": "Titrated over 5–15 minutes (Pfizer label); IM or subcutaneous 0.1–0.2 mg/kg (maximum 15 mg) every 4–6 hours; neonatal safety not established.",
+        "source": "Morphine sulfate injection label (Pfizer)"
+      },
+      {
+        "id": "hydromorphone",
+        "name": "Hydromorphone",
+        "use": "Analgesia",
+        "group": "Analgesia",
+        "route": "IV",
+        "low": 10,
+        "high": 15,
+        "unit": "mcg",
+        "max": null,
+        "conc": "0.2 to 2 mg/mL syringes — check the strength",
+        "note": "Off-label in children: the label states safety and effectiveness in pediatric patients are not established; 10–15 mcg/kg is common practice and should be confirmed against your formulary.",
+        "source": "Hydromorphone hydrochloride injection label (Pfizer), revised 2026; institutional practice"
+      },
+      {
+        "id": "acetaminophen",
+        "name": "Acetaminophen",
+        "use": "Analgesia, every 6 h",
+        "group": "Analgesia",
+        "route": "IV",
+        "low": 15,
+        "high": null,
+        "unit": "mg",
+        "max": 750,
+        "conc": "10 mg/mL over 15 minutes",
+        "note": "2–12 years and adolescents under 50 kg: 15 mg/kg every 6 hours or 12.5 mg/kg every 4 hours, maximum 75 mg/kg/day; 29 days to 2 years 15 mg/kg every 6 hours (60 mg/kg/day); neonates 12.5 mg/kg every 6 hours (50 mg/kg/day); 50 kg and over 1 g every 6 hours.",
+        "source": "Ofirmev prescribing information, revised 2018"
+      },
+      {
+        "id": "ibuprofen",
+        "name": "Ibuprofen",
+        "use": "Analgesia, every 4–6 h",
+        "group": "Analgesia",
+        "route": "IV",
+        "low": 10,
+        "high": null,
+        "unit": "mg",
+        "max": 400,
+        "conc": "dilute to 4 mg/mL or less; over at least 10 minutes",
+        "note": "6 months to under 12 years: 10 mg/kg to a maximum single dose of 400 mg; daily maximum 40 mg/kg or 2.4 g; 12–17 years 400 mg.",
+        "source": "Caldolor FDA label, revised 2021"
+      },
+      {
+        "id": "ketorolac",
+        "name": "Ketorolac",
+        "use": "Analgesia",
+        "group": "Analgesia",
+        "route": "IV",
+        "low": 0.5,
+        "high": null,
+        "unit": "mg",
+        "max": 15,
+        "conc": "15 or 30 mg/mL",
+        "note": "Off-label: the label says ketorolac is not indicated in pediatric patients (only single-dose pharmacokinetics at 0.5 mg/kg); 0.5 mg/kg with an institutional maximum of 15–30 mg is common practice.",
+        "source": "Ketorolac tromethamine injection label, revised 2020; institutional practice"
+      },
+      {
+        "id": "ondansetron",
+        "name": "Ondansetron",
+        "use": "PONV prophylaxis",
+        "group": "Antiemetic",
+        "route": "IV",
+        "low": 0.1,
+        "high": null,
+        "unit": "mg",
+        "max": 4,
+        "conc": "2 mg/mL",
+        "note": "Label: 1 month to 12 years, 0.1 mg/kg up to 40 kg and 4 mg above 40 kg, over 2–5 minutes. The PONV consensus gives 0.05–0.1 mg/kg (maximum 4 mg).",
+        "source": "Ondansetron injection label; Fourth PONV consensus, Table 6"
+      },
+      {
+        "id": "dexamethasone",
+        "name": "Dexamethasone",
+        "use": "PONV prophylaxis",
+        "group": "Antiemetic",
+        "route": "IV",
+        "low": 0.15,
+        "high": null,
+        "unit": "mg",
+        "max": 5,
+        "conc": "4 or 10 mg/mL",
+        "note": "0.15 mg/kg, maximum 5 mg, from the consensus pediatric table (the FDA label gives no PONV dose).",
+        "source": "Fourth PONV consensus (Gan TJ, et al. Anesth Analg 2020), Table 6"
+      },
+      {
+        "id": "cefazolin",
+        "name": "Cefazolin",
+        "use": "Surgical prophylaxis, within 60 min of incision",
+        "group": "Antibiotic",
+        "route": "IV",
+        "low": 30,
+        "high": null,
+        "unit": "mg",
+        "max": 2000,
+        "conc": "varies",
+        "note": "30 mg/kg to a maximum of 2 g (3 g from 120 kg in adults), redosed every 4 hours of surgery, per the ASHP/IDSA/SIS/SHEA 2013 guideline as reproduced in open sources; follow your institution's antimicrobial protocol.",
+        "source": "Bratzler DW, et al. Am J Health Syst Pharm 2013;70:195–283 (via secondary sources)"
+      }
+    ],
+    "localAnesthetics": [
+      {
+        "id": "bupivacaine",
+        "name": "Bupivacaine",
+        "maxMgPerKg": 2.5,
+        "concentrations": [
+          0.25,
+          0.5
+        ],
+        "note": "Single injection; infusions 0.4 mg/kg/h (0.2 mg/kg/h under 6 months).",
+        "source": "ASRA/ESRA pediatric regional anesthesia recommendations 2018 (Suresh S, et al. Reg Anesth Pain Med 2018;43:211–216), as reproduced in open appraisals"
+      },
+      {
+        "id": "levobupivacaine",
+        "name": "Levobupivacaine",
+        "maxMgPerKg": 2.5,
+        "concentrations": [
+          0.25,
+          0.5
+        ],
+        "note": "Single injection.",
+        "source": "ASRA/ESRA 2018, via open appraisals"
+      },
+      {
+        "id": "ropivacaine",
+        "name": "Ropivacaine",
+        "maxMgPerKg": 3,
+        "concentrations": [
+          0.2,
+          0.5
+        ],
+        "note": "Single injection; 2 mg/kg is the cited maximum for a caudal.",
+        "source": "ASRA/ESRA 2018, via open appraisals"
+      },
+      {
+        "id": "lidocaine",
+        "name": "Lidocaine",
+        "maxMgPerKg": 5,
+        "concentrations": [
+          1,
+          2
+        ],
+        "note": "7 mg/kg with epinephrine. Widely cited maximum; confirm against your reference before relying on it.",
+        "source": "Standard references (not verified from the ASRA/ESRA text in this review)"
+      }
+    ],
+    "bloodVolume": [
+      {
+        "group": "Preterm newborn",
+        "fromMonths": null,
+        "toMonths": 0,
+        "mlPerKgLow": 90,
+        "mlPerKgHigh": 100
+      },
+      {
+        "group": "Term newborn to 3 months",
+        "fromMonths": 0,
+        "toMonths": 3,
+        "mlPerKgLow": 80,
+        "mlPerKgHigh": 90
+      },
+      {
+        "group": "Infant, 3 months to 2 years",
+        "fromMonths": 3,
+        "toMonths": 24,
+        "mlPerKgLow": 70,
+        "mlPerKgHigh": 80
+      },
+      {
+        "group": "Child, 2 to 12 years",
+        "fromMonths": 24,
+        "toMonths": 144,
+        "mlPerKgLow": 70,
+        "mlPerKgHigh": 75
+      },
+      {
+        "group": "Adolescent and adult",
+        "fromMonths": 144,
+        "toMonths": null,
+        "mlPerKgLow": 65,
+        "mlPerKgHigh": 70
+      }
+    ]
+  }
+}

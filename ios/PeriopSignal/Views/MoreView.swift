@@ -10,6 +10,7 @@ struct MoreView: View {
     @Environment(QuizStore.self) private var quiz
     @Environment(SpeechPlayer.self) private var speech
     @Environment(Router.self) private var router
+    @Environment(ReferenceStore.self) private var refs
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
     @ObservedObject private var notifications = NotificationManager.shared
     @State private var notifyOn = NotificationManager.shared.enabled
@@ -27,6 +28,7 @@ struct MoreView: View {
                     topicsCard(p: $p)
                     alertsCard(p: $p)
                     readingCard
+                    answersCard(p: $p)
                     feedCard
                     about
                 }
@@ -203,6 +205,31 @@ struct MoreView: View {
             }
             Hairline()
             VoiceRow()
+        }
+    }
+
+    private func answersCard(p: Bindable<Preferences>) -> some View {
+        let onDevice = AskEngine.onDeviceAvailable
+        let cloud = refs.askEndpoint != nil
+        return SettingsCard(title: "Answers") {
+            Text("When a search finds nothing in the references or the feed, you can ask the question instead. The answer is written from the best-matching posts and references, with the sources listed.")
+                .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+            Toggle(isOn: p.askOnDevice) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Answer on this phone when possible").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    Text(onDevice ? "Apple Intelligence is available: questions stay on the device." : "Apple Intelligence is not available on this phone, so questions go to Claude.")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .tint(PS.accent)
+            .disabled(!onDevice)
+            Hairline()
+            HStack(spacing: 8) {
+                Circle().fill(cloud ? PS.green : PS.fg3).frame(width: 7, height: 7)
+                Text(cloud ? "Claude through Periop Signal's proxy is set up." : "Claude is not set up yet (the proxy has no address); on-device answers only.")
+                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 

@@ -11,6 +11,7 @@ on:
     paths:
       - "ios/**"
       - "!ios/**/*.md"
+      - "reference.json"
       - ".github/workflows/ios-build.yml"
 
 concurrency:
@@ -138,10 +139,14 @@ jobs:
           shot 08-cards 12 -ps.screen cards
           shot 09-welcome 13 -ps.showWelcome 1 -ps.forceAppearance dark
           shot 10-quiz 13 -ps.openQuiz 1
-          shot 11-guidelines 12 -ps.tab guidelines
+          shot 11-reference 12 -ps.tab reference
           shot 12-listen 13 -ps.listen 1
           shot 13-sharecard 13 -ps.screen sharecard
           shot 14-feed-foryou 13 -ps.topics.debug cardiac,criticalCare -ps.forceLaunchCount 5
+          shot 15-rcri 12 -ps.ref score:rcri
+          shot 16-peds 12 -ps.ref peds -ps.peds.weight 18 -ps.peds.years 5 -ps.peds.months 0
+          shot 17-quickref 12 -ps.ref quickref:asra-anticoagulation
+          shot 18-ariscat 12 -ps.ref score:ariscat
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
