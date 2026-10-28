@@ -9723,6 +9723,12 @@
     ],
     "answer": 0,
     "explanation": "In persistent shock after initial fluids, the guideline says fluid responsiveness should be assessed before giving more, with dynamic indices preferred over static preload markers. Positions on pulmonary artery catheters and inotrope choice sit with the cardiology and surgical guidelines. Many of the 50 statements are ungraded good practice statements issued because strong evidence was lacking."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/icm-2025-esicm-shock-guideline.mp3",
+    "seconds": 185,
+    "bytes": 1482477,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -9796,6 +9802,12 @@
     ],
     "answer": 2,
     "explanation": "PPCs did not differ (53.6% vs 56.4%, p=0.155), but high PEEP brought more hypotension (37.3% vs 14.3%) and arrhythmias (9.9% vs 3.9%), while low PEEP needed more hypoxemia rescue (8.8% vs 3.3%). The authors' interpretation is to choose lung expansion or permissive atelectasis according to each patient's gas exchange and hemodynamics. PEEP was fixed rather than individualized, and BMI over 35 was excluded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-respir-med-2025-prothor-peep-olv.mp3",
+    "seconds": 229,
+    "bytes": 1834413,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -9871,6 +9883,12 @@
     ],
     "answer": 0,
     "explanation": "The authors say all data were collected retrospectively, although evaluated at four geographically distinct academic centers, and that prospective real-world evaluation is needed. It has already been benchmarked across five health systems and against cardiologists on paired studies (balanced accuracy 0.89 vs 0.82); nothing is validated for intraoperative TEE and there is no regulatory clearance."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nature-2025-echoprime-echo-foundation-model.mp3",
+    "seconds": 214,
+    "bytes": 1711917,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -9946,6 +9964,12 @@
     ],
     "answer": 3,
     "explanation": "Cardiac complications other than MI occurred in 5.9% with liberal vs 9.9% with restrictive transfusion, RR 0.59 (99% CI 0.36-0.98), which the authors call hypothesis-generating; the primary composite did not differ (9.1% vs 10.1%, RR 0.90). The trial was single-blind, protocol violations were more common in the liberal group (8.7% vs 3.8%), and a veteran population may not generalize."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2025-top-transfusion-high-cardiac-risk.mp3",
+    "seconds": 217,
+    "bytes": 1732461,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10014,6 +10038,12 @@
     ],
     "answer": 1,
     "explanation": "The central message is to maximize the chance of success, meaning first-attempt intubation and continuous oxygen delivery, rather than mainly managing failure once it happens. The four-step Plan A to D algorithm survives, and obstetric, pediatric, critical-care and cervical-spine guidance remain separate DAS documents. Many recommendations rest on moderate-quality evidence plus expert consensus."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/bja-2025-das-2025-unanticipated-difficult-intubation-guidelines.mp3",
+    "seconds": 207,
+    "bytes": 1654125,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10077,6 +10107,12 @@
     "n": "554 HeartMate 3 patients with analyzable INR data (of 628 randomized)",
     "outcome": "Primary endpoint success and non-surgical bleeding at 12 months, by TTR",
     "result": "Bleeding 26.4 vs 49.2 per 100 patient-years, higher vs lower TTR (rate ratio 1.84)"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ehj-2025-aries-hm3-ttr.mp3",
+    "seconds": 201,
+    "bytes": 1608813,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10148,6 +10184,12 @@
     ],
     "answer": 2,
     "explanation": "EAST makes no recommendation for or against a higher initial bolus (3-4 g) versus a standard 1-2 g bolus because the evidence is sparse and heterogeneous. Its conditional recommendations are for routine TXA prehospital, in hospital and in severe hypotension; vaso-occlusive events were similar in the meta-analysis. Dosing regimens varied widely across the included studies, and the evidence is Level III."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jtacs-2025-east-txa-guideline.mp3",
+    "seconds": 225,
+    "bytes": 1797933,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10196,6 +10238,12 @@
     ],
     "answer": 0,
     "explanation": "The guideline says serratus anterior and PECS-2 blocks generally do not require holding pharmacologic DVT prophylaxis, 12 hours should separate LMWH from an epidural, continuous catheter infusion is preferred over a single bolus, and paravertebral block carries a lower bleeding risk than epidural. It is best-practice consensus, not a GRADE guideline, and single-shot versus catheter data remain thin."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/acs-2025-chest-wall-injury-bpg.mp3",
+    "seconds": 216,
+    "bytes": 1727661,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10259,6 +10307,12 @@
     "n": "154 patients having video-assisted thoracoscopic lung resection",
     "outcome": "All-cause complications graded by Clavien-Dindo",
     "result": "Major complications 4.1%/3.7% lidocaine vs 11.8% remifentanil; pulmonary 22.3% vs 45.1%"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/bja-2025-lidocaine-vs-remifentanil-vats-lung-resection.mp3",
+    "seconds": 230,
+    "bytes": 1838061,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10334,6 +10388,12 @@
     ],
     "answer": 3,
     "explanation": "The authors' message is that in transplant-eligible older adults the choice between listing and durable LVAD should be individualized and value-based rather than defaulting to transplant, with eligibility criteria revisited to close an implementation gap. Survival at age 65 and older was 80.6% at 1 year and 51.1% at 5 years. These are registry data with no randomized comparison of LVAD against transplant."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ats-2025-intermacs-annual-report.mp3",
+    "seconds": 187,
+    "bytes": 1496493,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10408,6 +10468,12 @@
     ],
     "answer": 1,
     "explanation": "The win ratio was 1.16 (95% CI 1.02-1.33; P=.04), with 48.9% wins vs 42.1%, and the advantage came almost entirely from shorter duration of vital support (26.4% vs 21.1% of wins), not from death (19.1% vs 17.8%); 28-day mortality was 26.5% vs 26.6% (HR 0.99). The trial was open label with a composite endpoint, and the modest effect rests on organ-support days."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2025-andromeda-shock-2.mp3",
+    "seconds": 210,
+    "bytes": 1680429,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10482,6 +10548,12 @@
     ],
     "answer": 2,
     "explanation": "Deferral cut catheter-site hematoma or hemorrhage from 8.2% to about 1% and arterial catheter bloodstream infections from 2.7 to 0.6 per 1,000 ICU days, at the price of more arterial punctures for blood gases (742 vs 269 per 1,000 ICU days) and more cuff-related discomfort (13.1% vs 9%). 28-day mortality was 34.3% vs 36.9%, noninferior. The trial was open label in a heterogeneous shock population."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2025-everdac-deferred-arterial-line.mp3",
+    "seconds": 219,
+    "bytes": 1749357,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10555,6 +10627,12 @@
     ],
     "answer": 0,
     "explanation": "Kidney replacement therapy by day 28 fell from 50% to 35% (absolute difference -15.5 points, 95% CI -23.1 to -7.8) and median time to KRT doubled (30.9 vs 15.5 hours), while day-90 mortality was unchanged (62.1% vs 61.7%). The trial was open label in a very sick cohort with about 60% mortality in both arms."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2025-bicaricu-2.mp3",
+    "seconds": 210,
+    "bytes": 1679469,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10630,6 +10708,12 @@
     ],
     "answer": 2,
     "explanation": "Clinically significant valve thrombosis was 2.8% after TAVR vs 0.5% after surgery (HR 5.7), with about half the TAVR cases resolving with anticoagulation. Death (19.5% vs 16.8%), stroke (8.5% vs 8.1%) and rehospitalization (20.6% vs 23.5%) were not significantly different, and the primary composite was 34.6% vs 37.2%. The trial was not powered for mortality, and 7 years is still short for a 70-year-old."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2025-partner3-7yr.mp3",
+    "seconds": 223,
+    "bytes": 1783149,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10677,6 +10761,12 @@
     ],
     "answer": 3,
     "explanation": "ENCIRCLE was a prospective single-arm study with no control arm; the primary composite of 25.2% was tested against a prespecified 45% performance goal (p<0.0001), which is a historical benchmark rather than a comparator. The commentator notes that head-to-head comparisons with M-TEER and optimized medical therapy are still needed, and that the 6.7% one-year thrombosis rate is notable in the mitral position."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/tct25-2025-encircle-sapien-m3-tmvr-one-year.mp3",
+    "seconds": 243,
+    "bytes": 1942701,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10728,6 +10818,12 @@
     ],
     "answer": 1,
     "explanation": "The guideline gives a Class 1 recommendation to keep temperature between 32 and 37.5 C for at least 36 hours of total temperature control, with MAP at least 65 mmHg and no preferred vasopressor. The post's practical note: the range is wide and permissive, so avoid fever but do not chase 33 C. The authors describe temperature control definitions as evolving."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/aha-2025-cpr-ecc-guidelines.mp3",
+    "seconds": 281,
+    "bytes": 2248365,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10790,6 +10886,12 @@
     ],
     "answer": 2,
     "explanation": "The guideline's worked example says such a patient may benefit more from immediate pelvic binder and rapid transfer than from airway intervention: treat the most urgent reversible cause first rather than following a fixed sequence. REBOA is mentioned but no longer part of the algorithm. This is European consensus, and the sections verified do not spell out blood-product or termination rules."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/resus-2025-erc-traumatic-cardiac-arrest.mp3",
+    "seconds": 162,
+    "bytes": 1296045,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10860,6 +10962,12 @@
     ],
     "answer": 0,
     "explanation": "After a literature review, draft recommendations were refined through two Delphi rounds, and 50 preoperative recommendations met consensus criteria. The 28 authors came from surgery, anesthesiology, critical care, pulmonology, pharmacy, psychology, physiotherapy, nursing and perfusion. Consensus, not trial evidence: most recommendations rest on observational data and expert opinion."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jhlt-2025-ishlt-ecls-lung-transplant-consensus-part1.mp3",
+    "seconds": 186,
+    "bytes": 1488237,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10927,6 +11035,12 @@
     ],
     "answer": 3,
     "explanation": "In J-PVAD, 30-day mortality was 51.3% after OHCA and 63.4% in those without ROSC, against 37.6% in DanGer Shock-eligible patients and 27.6% in non-eligible STEMI. The post notes that realistic survival after an arrest without ROSC is about one in three, which belongs in family conversations. Registry data with no control arm; it cannot say whether the device helped or hurt any subgroup."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ehj-2025-jpvad-danger-criteria.mp3",
+    "seconds": 207,
+    "bytes": 1654125,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -10993,6 +11107,12 @@
     ],
     "answer": 0,
     "explanation": "The guideline says timely LV unloading on VA-ECLS is associated with lower early mortality and better weaning, and VA-ECLS plus a microaxial pump is first-line in overt biventricular failure. IABP gives only about 0.5 to 1 L/min and its use has declined, and full-support microaxial pumps are prioritized over partial support. Much of the evidence base is observational."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ejcts-2025-eacts-sts-aats-tmcs-guideline.mp3",
+    "seconds": 200,
+    "bytes": 1602669,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -11060,6 +11180,12 @@
     ],
     "answer": 1,
     "explanation": "The consensus lists right-sided triggers of TAPSE under 14 mm, RV free-wall strain above minus 20%, RVFAC 30% or less, CVP 20 mmHg or higher, CVP/PCWP ratio 0.8 or higher and PAPi under 1.85; LVEF under 30% and LVOT VTI under 13 cm flag the left side. These are expert consensus thresholds, with no randomized trial of pre-emptive support."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ejcts-2025-eacts-protected-cardiac-surgery.mp3",
+    "seconds": 217,
+    "bytes": 1733037,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -11118,6 +11244,12 @@
     "n": "3,456 neonates (42.7% general, 57.3% regional anesthesia) at cesarean delivery",
     "outcome": "Apgar scores, need for respiratory support and neonatal intensive care admission",
     "result": "Respiratory support less with regional, RR 0.62 (0.40-0.94); NICU RR 0.75, no difference"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/aln-2025-regional-vs-ga-cesarean-neonatal-meta.mp3",
+    "seconds": 217,
+    "bytes": 1734957,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -11189,6 +11321,12 @@
     ],
     "answer": 2,
     "explanation": "On univariate analysis, preoperative ventilatory support carried the highest odds (OR 3.88), ahead of severe CHD (OR 3.48), concurrent respiratory illness (OR 2.18) and gastrointestinal procedures (OR 1.51). Overall 5.2% of 6,455 procedures had an event, mostly hypotension (4.9%). Observational data from one calendar year at large academic centers, with local hypotension definitions."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/aln-2025-chd-children-noncardiac-cardiac-events-registry.mp3",
+    "seconds": 209,
+    "bytes": 1670061,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -11261,6 +11399,12 @@
     ],
     "answer": 3,
     "explanation": "Of 316 adults, 35.8% had high residual gastric content; the high-content group held weekly injections 6 vs 8 days (P=.003) and fasted from solids 15.0 vs 20.0 h (P<.001). Skipping one weekly dose does not reliably empty the stomach and long fasts do not guarantee it, so a two-minute antral scan decides the induction technique. Observational; ROC cutoffs were not tested prospectively and no aspiration outcomes."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ana-2025-glp1-gastric-ultrasound-mayo-magic.mp3",
+    "seconds": 222,
+    "bytes": 1774893,
+    "voice": "kokoro:af_heart"
    }
   }
  ]
