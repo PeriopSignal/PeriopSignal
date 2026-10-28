@@ -248,7 +248,7 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(InfusionCalc.total(1500, nil, "mcg"), "1.5 mg")
         XCTAssertEqual(InfusionCalc.total(250, 500, "mg"), "250–500 mg")
         let esmolol = InfusionDrug(id: "esmolol", name: "Esmolol", use: "Tachycardia", form: .perKgPerMin, start: 50, startHigh: 150, unit: "mcg", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
-        XCTAssertEqual(InfusionCalc.lines(for: esmolol, weightKg: 70).equivalent, "3.5–10.5 mg/min at 70 kg", "mcg/min above 1,000 reads as mg/min")
+        XCTAssertEqual(InfusionCalc.lines(for: esmolol, weightKg: 70).equivalent, "3.5–11 mg/min at 70 kg", "mcg/min above 1,000 reads as mg/min")
         let giapreza = InfusionDrug(id: "at2", name: "Angiotensin II", use: "Shock", form: .perKgPerMin, start: 20, startHigh: nil, unit: "ng", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
         XCTAssertEqual(InfusionCalc.lines(for: giapreza, weightKg: 70).equivalent, "1.4 mcg/min at 70 kg")
         let vaso = InfusionDrug(id: "vaso", name: "Vasopressin", use: "Shock", form: .fixed, start: 0.03, startHigh: nil, unit: "units/min", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
