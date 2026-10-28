@@ -208,7 +208,7 @@ struct MoreView: View {
         }
     }
 
-    private func answersCard(p: Binding<Preferences>) -> some View {
+    private func answersCard(p: Bindable<Preferences>) -> some View {
         let onDevice = AskEngine.onDeviceAvailable
         let cloud = refs.askEndpoint != nil
         return SettingsCard(title: "Answers") {
