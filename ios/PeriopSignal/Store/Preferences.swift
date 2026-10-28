@@ -48,6 +48,8 @@ final class Preferences {
     var voiceID: String? { didSet { defaults.set(voiceID, forKey: "ps.voiceID") } }
     /// Play the studio recordings when a post has one.
     var preferRecordings: Bool { didSet { defaults.set(preferRecordings, forKey: "ps.preferRecordings") } }
+    /// Answer questions on the phone with Apple Intelligence when it is available, before the Claude proxy.
+    var askOnDevice: Bool { didSet { defaults.set(askOnDevice, forKey: "ps.askOnDevice") } }
 
     init() {
         let d = UserDefaults.standard
@@ -66,6 +68,7 @@ final class Preferences {
         speechRate = d.object(forKey: "ps.speechRate") as? Double ?? 0.5
         voiceID = d.string(forKey: "ps.voiceID")
         preferRecordings = d.object(forKey: "ps.preferRecordings") as? Bool ?? true
+        askOnDevice = d.object(forKey: "ps.askOnDevice") as? Bool ?? true
         PS.textScale = CGFloat(textScale)
         if d.object(forKey: "ps.firstLaunch") == nil {
             d.set(Date().timeIntervalSince1970, forKey: "ps.firstLaunch")

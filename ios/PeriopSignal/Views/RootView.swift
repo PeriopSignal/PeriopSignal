@@ -7,6 +7,7 @@ struct RootView: View {
     @Environment(SpeechPlayer.self) private var speech
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
+    @Environment(ReferenceStore.self) private var refs
 
     var body: some View {
         #if DEBUG
@@ -47,9 +48,9 @@ struct RootView: View {
             FeedView()
                 .tabItem { Label("Feed", systemImage: "waveform.path.ecg") }
                 .tag(Router.Tab.feed)
-            GuidelinesView()
-                .tabItem { Label("Guidelines", systemImage: "list.bullet.rectangle.portrait") }
-                .tag(Router.Tab.guidelines)
+            ReferenceView()
+                .tabItem { Label("Reference", systemImage: "books.vertical") }
+                .tag(Router.Tab.reference)
             SavedView()
                 .tabItem { Label("Saved", systemImage: "bookmark") }
                 .tag(Router.Tab.saved)
@@ -71,11 +72,13 @@ struct RootView: View {
         switch DebugLaunch.tab {
         case "saved": router.selectedTab = .saved
         case "about", "more": router.selectedTab = .more
-        case "guidelines": router.selectedTab = .guidelines
+        case "guidelines", "reference": router.selectedTab = .reference
         default: break
         }
         #endif
+        async let refsLoad: Void = refs.load()
         await store.loadInitial()
+        _ = await refsLoad
         read.prune(keeping: store.posts)
         let unread = read.unread(in: store.posts).count
         Task { await ReadStore.updateBadge(unread: unread) }
@@ -83,6 +86,7 @@ struct RootView: View {
         if let id = DebugLaunch.openPost { router.open(postID: id) }
         if DebugLaunch.openQuiz { router.openQuiz = true }
         if DebugLaunch.showWelcome { router.showWelcome = true }
+        if let r = DebugLaunch.refRoute { router.selectedTab = .reference; router.pendingRefRoute = r }
         if DebugLaunch.listen, let first = store.latestBatch.first {
             // Show the mini player for the screenshot, paused, without audio on the simulator.
             speech.play([first] + Array(store.latestBatch.dropFirst().prefix(2)))

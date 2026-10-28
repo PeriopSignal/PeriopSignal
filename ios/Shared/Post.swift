@@ -234,6 +234,12 @@ enum PSDate {
         guard let d = parse(key + "-01") else { return key }
         return month.string(from: d)
     }
+    /// "Oct 2026" for a YYYY-MM-DD string (review dates).
+    static func monthYear(_ s: String) -> String {
+        guard let d = parse(s) else { return s }
+        return shortMonthYear.string(from: d)
+    }
+    static let shortMonthYear = display("MMM yyyy")
 
     /// Today's date in the feed's time zone, as YYYY-MM-DD.
     static var today: String { formatter.string(from: Date()) }

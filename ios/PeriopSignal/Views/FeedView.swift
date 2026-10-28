@@ -5,9 +5,11 @@ struct FeedView: View {
     @Environment(QuizStore.self) private var quiz
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
+    @Environment(ReferenceStore.self) private var refs
     @State private var path = NavigationPath()
     @State private var webLink: WebLink?
     @State private var quizPost: Post?
+    @State private var ask: AskPrompt?
     @State private var searching = false
     @FocusState private var searchFocused: Bool
 
@@ -52,6 +54,13 @@ struct FeedView: View {
         }
         .sheet(item: $quizPost) { post in
             QuizSheet(post: post, onOpenPost: { p in path.append(p) })
+        }
+        .sheet(item: $ask) { prompt in
+            AskView(question: prompt.question,
+                    onOpenPost: { p in ask = nil; path.append(p) },
+                    onOpenRef: { r in ask = nil; router.selectedTab = .reference; router.pendingRefRoute = .quickref(r.id) })
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .onChange(of: router.pendingPostID) { _, _ in openPending() }
         .onChange(of: store.posts.count) { _, _ in openPending(); openQuizIfAsked() }
@@ -129,7 +138,9 @@ struct FeedView: View {
         if list.isEmpty && !store.posts.isEmpty {
             ContentUnavailableView.search(text: store.query.isEmpty ? "these filters" : store.query)
                 .padding(.top, 40)
+            askRow
         } else {
+            if !store.query.trimmingCharacters(in: .whitespaces).isEmpty { askRow }
             ForEach(Array(list.enumerated()), id: \.element.id) { index, post in
                 let prev = index > 0 ? list[index - 1] : nil
                 let wasNew = prev.map { store.newIDs.contains($0.id) } ?? false
@@ -148,6 +159,14 @@ struct FeedView: View {
             if !list.isEmpty {
                 endNote
             }
+        }
+    }
+
+    /// Offers an AI answer for the typed question when the phone or the proxy can give one.
+    @ViewBuilder private var askRow: some View {
+        let q = store.query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !q.isEmpty {
+            AskRow(query: q, available: AskEngine.onDeviceAvailable || refs.askEndpoint != nil) { ask = AskPrompt(question: q) }
         }
     }
 

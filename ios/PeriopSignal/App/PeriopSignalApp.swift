@@ -12,6 +12,7 @@ struct PeriopSignalApp: App {
     @State private var read = ReadStore()
     @State private var quiz = QuizStore()
     @State private var router = Router()
+    @State private var refs = ReferenceStore()
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
 
     init() {
@@ -36,6 +37,7 @@ struct PeriopSignalApp: App {
                 .environment(speech)
                 .environment(preferences)
                 .environment(router)
+                .environment(refs)
                 .preferredColorScheme(appearance.colorScheme)
                 .tint(PS.accent)
                 .onOpenURL { url in router.handle(url) }
@@ -44,7 +46,7 @@ struct PeriopSignalApp: App {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: AppDelegate.openPostNotification)) { note in
                     if let id = note.userInfo?["postID"] as? String { router.open(postID: id) }
-                    else if let tab = note.userInfo?["tab"] as? String, let t = Router.Tab(rawValue: tab) { router.selectedTab = t }
+                    else if let tab = note.userInfo?["tab"] as? String, let t = Router.Tab(rawValue: tab == "guidelines" ? "reference" : tab) { router.selectedTab = t }
                 }
         }
     }
@@ -79,8 +81,10 @@ final class Router {
     var openQuiz = false
     /// Presents the welcome screen (topics and alerts) from More or a link.
     var showWelcome = false
+    /// A calculator or quick reference to open on the Reference tab (links, Spotlight, debug launches).
+    var pendingRefRoute: RefRoute?
 
-    enum Tab: String, Hashable { case feed, guidelines, saved, more }
+    enum Tab: String, Hashable { case feed, reference, saved, more }
 
     func open(postID: String) {
         selectedTab = .feed
@@ -94,7 +98,13 @@ final class Router {
         case "post":
             if let id = parts.first { open(postID: id) }
         case "saved": selectedTab = .saved
-        case "guidelines": selectedTab = .guidelines
+        case "guidelines", "reference": selectedTab = .reference
+        case "calculator", "score":
+            selectedTab = .reference
+            if let id = parts.first { pendingRefRoute = id == "peds" || id == "pediatric" ? .peds : .score(id) }
+        case "quickref", "ref":
+            selectedTab = .reference
+            if let id = parts.first { pendingRefRoute = .quickref(id) }
         case "more", "about", "settings": selectedTab = .more
         case "quiz", "question":
             selectedTab = .feed

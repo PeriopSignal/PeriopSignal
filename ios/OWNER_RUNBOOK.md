@@ -49,7 +49,8 @@ Without this, the app still alerts through background refresh (iOS decides the t
 - **Today card**: new and unread counts, *Start reading*, *Listen* (reads the posts aloud; works with the screen locked and from the lock-screen controls), *Mark all read*. The app icon badge counts unread posts from the last two weeks.
 - **Question of the day**: one board-style question from a recent post, with a streak. Questions live in `posts.json` (`quiz`), written by the morning run and checked by `tools/validate_posts.py`.
 - **At a glance**: design, population, primary outcome and result on research posts (`glance` in `posts.json`).
-- **Guidelines tab**: every guideline and consensus statement by society, then FDA and safety notices.
+- **Reference tab**: calculators (RCRI, ARISCAT, STOP-Bang, modified Aldrete, Apfel, pediatric weight-based doses with tube sizes, fluids and blood volume), quick references condensed from society documents (ASRA anticoagulation, ASE valve severity criteria, ACC/AHA valve intervention recommendations, ASA fasting, ASA difficult airway, ASRA LAST and MHAUS malignant hyperthermia checklists, PONV consensus), then every guideline and consensus statement from the feed by society, then FDA and safety notices. The quick references and the pediatric table are `reference.json` at the repository root, checked by `tools/validate_reference.py`; the app refreshes it on launch, so a correction there reaches phones without an app update. Each calculator's arithmetic is unit-tested (`ios/Tests/ReferenceTests.swift`).
+- **Ask**: when a search finds nothing (or next to its results), the question can be answered by AI with the best-matching posts and references as context and the sources listed: on the phone with Apple Intelligence (iPhone 15 Pro or newer, iOS 26), otherwise by Claude through a small proxy you host (section 10). Until the proxy exists, only the on-device route shows.
 - **Cite**: AMA citation, DOI, BibTeX or a RIS file for EndNote, Zotero, Mendeley and Papers, from the Crossref record the `Citations` workflow fills in daily at 10:15 UTC (`citation` in `posts.json`).
 - **Share as image**: a card with the headline, three take-home points and a QR code to the post.
 - **More tab**: your topics (the feed gets a *For you* filter and alerts only cover those topics), earliest alert time, quiet weekends, Sunday digest, theme, text size, listening speed.
@@ -60,6 +61,15 @@ Every post gets a recording made by **Kokoro**, an open-weights neural voice tha
 
 - **Change the voice**: add a repository **variable** `TTS_VOICE` (Settings → Secrets and variables → Actions → Variables), e.g. `af_bella`, `am_michael`, `bf_emma`, `bm_george` (list: https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md; the default `af_heart` is the best rated), then Actions → **Post audio** → *Run workflow* with `all` = true. About 70 posts are re-recorded per run; run it again until the summary says 0 pending.
 - **Google's voice instead** (optional, free up to 1M characters a month; needs a Google Cloud project with billing linked): enable *Cloud Text-to-Speech API*, create an API key restricted to it, add the secret `GOOGLE_TTS_API_KEY` and the variable `TTS_ENGINE` = `google` (`TTS_VOICE` e.g. `en-US-Chirp3-HD-Charon`), then run the workflow with `all` = true.
+
+## 10. Answers by Claude (optional, 10 minutes)
+The app never holds an API key; a tiny Cloudflare Worker (`worker/`) does, and the workflow **Ask worker (deploy)** publishes it.
+1. **Anthropic key**: https://console.anthropic.com → API keys → create one; under Settings → Limits set a monthly spend cap you are comfortable with (a question costs a fraction of a cent; a busy month is a few dollars).
+2. **Cloudflare** (free plan): sign up at https://dash.cloudflare.com → the *Account ID* is on the account overview page; then My Profile → API Tokens → *Create Token* → template **Edit Cloudflare Workers** → create and copy it.
+3. Add three repository secrets (Settings → Secrets and variables → Actions): `ANTHROPIC_API_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+4. Actions → **Ask worker (deploy)** → *Run workflow*. It deploys, checks the worker answers, and records its address in `reference.json`; the app picks it up at its next launch. Phones with Apple Intelligence keep answering on the device unless the switch under More → Answers is turned off.
+- Model: `MODEL` in `worker/wrangler.toml` (default `claude-sonnet-5-5`). Rate limit: 30 questions a minute per address, set in the same file.
+- To stop it: delete the Worker in the Cloudflare dashboard, or remove `ask.endpoint` from `reference.json`.
 
 ## Troubleshooting
 - The workflow writes its logs to the `ci-results` branch of the repository (folder `results/`), which Claude can read for you.
