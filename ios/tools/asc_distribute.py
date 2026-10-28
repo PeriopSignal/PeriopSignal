@@ -29,18 +29,29 @@ def token():
 
 
 def call(method, path, body=None, params=None):
+    """One API call; network hiccups, 429 and 5xx are retried (Apple's API drops connections now and then)."""
     url = BASE + path + ("?" + urllib.parse.urlencode(params) if params else "")
-    req = urllib.request.Request(url, method=method, data=json.dumps(body).encode() if body else None)
-    req.add_header("Authorization", "Bearer " + token())
-    req.add_header("Content-Type", "application/json")
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            return r.status, json.loads(r.read() or b"{}")
-    except urllib.error.HTTPError as e:
+    data = json.dumps(body).encode() if body else None
+    for attempt in range(5):
+        req = urllib.request.Request(url, method=method, data=data)
+        req.add_header("Authorization", "Bearer " + token())
+        req.add_header("Content-Type", "application/json")
         try:
-            return e.code, json.loads(e.read() or b"{}")
-        except ValueError:
-            return e.code, {}
+            with urllib.request.urlopen(req, timeout=90) as r:
+                return r.status, json.loads(r.read() or b"{}")
+        except urllib.error.HTTPError as e:
+            try:
+                payload = json.loads(e.read() or b"{}")
+            except ValueError:
+                payload = {}
+            if e.code not in (429, 500, 502, 503, 504) or attempt == 4:
+                return e.code, payload
+            print(f"  {method} {path}: HTTP {e.code}, retrying", flush=True)
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+            if attempt == 4:
+                raise
+            print(f"  {method} {path}: {type(e).__name__}, retrying", flush=True)
+        time.sleep(5 * 2 ** attempt)
 
 
 def err(data):
