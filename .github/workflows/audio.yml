@@ -83,12 +83,28 @@ jobs:
           ffmpeg -version | head -1
           ARGS="--limit ${{ inputs.limit || '70' }}"
           [ "${{ inputs.all }}" = "true" ] && ARGS="$ARGS --all"
-          python3 -I tools/synthesize_audio.py posts.json $ARGS | tee audio.log
+          python3 -I tools/synthesize_audio.py posts.json $ARGS 2>&1 | tee audio.log
           python3 -I tools/validate_posts.py posts.json
           {
             echo "## Post audio"
             grep -E "to synthesize|synthesized|FAILED" audio.log | head -40
           } >> "$GITHUB_STEP_SUMMARY"
+          # Fail loudly when nothing could be made.
+          if grep -qE "^synthesized 0, failed [1-9]" audio.log; then echo "::error::every post failed; see audio.log on the ci-results branch"; exit 1; fi
+
+      - name: Keep the log on the ci-results branch
+        if: always() && steps.pending.outputs.go == 'true'
+        run: |
+          cp audio.log "$RUNNER_TEMP/audio.log" 2>/dev/null || echo "(no log)" > "$RUNNER_TEMP/audio.log"
+          git stash -q --include-untracked || true
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          if git fetch -q origin ci-results 2>/dev/null; then git checkout -q -B ci-results origin/ci-results; else git checkout -q --orphan ci-results; git rm -rfq --cached . >/dev/null 2>&1 || true; fi
+          mkdir -p results/audio
+          cp "$RUNNER_TEMP/audio.log" results/audio/last-run.log
+          git add -f results/audio && git commit -q -m "Audio log for run ${{ github.run_number }}" || true
+          git push -q origin ci-results || { git fetch -q origin ci-results && git rebase -q origin/ci-results && git push -q origin ci-results; }
+          git checkout -q main && git stash pop -q || true
 
       - name: Commit the audio links
         if: steps.pending.outputs.go == 'true'
