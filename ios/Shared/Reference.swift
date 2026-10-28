@@ -170,6 +170,8 @@ struct LocalAnesthetic: Codable, Identifiable, Hashable {
     var adultEpiMgPerKg: Double?
     var adultEpiMaxMg: Double?
     var per24hMaxMg: Double?
+    /// Pediatric per-kg maximum with epinephrine, when a label gives one (lidocaine 7, chloroprocaine 14).
+    var pedsEpiMgPerKg: Double?
     /// Pediatric floor age in years when the label limits use (Exparel: 6).
     var pedsMinYears: Int?
     var pedsMaxMg: Double?

@@ -177,16 +177,16 @@ final class ReferenceTests: XCTestCase {
     // MARK: Local anesthetic mixtures
 
     private var lidocaine: LocalAnesthetic {
-        LocalAnesthetic(id: "lidocaine", name: "Lidocaine", maxMgPerKg: 5, concentrations: [1, 2], note: nil, source: nil, kind: "amide",
-                        adultPlainMgPerKg: 4.5, adultPlainMaxMg: 300, adultEpiMgPerKg: 7, adultEpiMaxMg: 500, per24hMaxMg: nil, pedsMinYears: nil, pedsMaxMg: nil, short: nil)
+        LocalAnesthetic(id: "lidocaine", name: "Lidocaine", maxMgPerKg: 4.5, concentrations: [1, 2], note: nil, source: nil, kind: "amide",
+                        adultPlainMgPerKg: 4.5, adultPlainMaxMg: 300, adultEpiMgPerKg: 7, adultEpiMaxMg: 500, per24hMaxMg: nil, pedsEpiMgPerKg: 7, pedsMinYears: nil, pedsMaxMg: nil, short: nil)
     }
     private var bupivacaine: LocalAnesthetic {
         LocalAnesthetic(id: "bupivacaine", name: "Bupivacaine", maxMgPerKg: 2.5, concentrations: [0.25, 0.5], note: nil, source: nil, kind: "amide",
-                        adultPlainMgPerKg: 2.5, adultPlainMaxMg: 175, adultEpiMgPerKg: nil, adultEpiMaxMg: 225, per24hMaxMg: 400, pedsMinYears: nil, pedsMaxMg: nil, short: nil)
+                        adultPlainMgPerKg: 2.5, adultPlainMaxMg: 175, adultEpiMgPerKg: nil, adultEpiMaxMg: 225, per24hMaxMg: 400, pedsEpiMgPerKg: nil, pedsMinYears: nil, pedsMaxMg: nil, short: nil)
     }
     private var exparel: LocalAnesthetic {
         LocalAnesthetic(id: "exparel", name: "Exparel", maxMgPerKg: 4, concentrations: [1.33], note: nil, source: nil, kind: "liposomal",
-                        adultPlainMgPerKg: nil, adultPlainMaxMg: 266, adultEpiMgPerKg: nil, adultEpiMaxMg: nil, per24hMaxMg: nil, pedsMinYears: 6, pedsMaxMg: 266, short: nil)
+                        adultPlainMgPerKg: nil, adultPlainMaxMg: 266, adultEpiMgPerKg: nil, adultEpiMaxMg: nil, per24hMaxMg: nil, pedsEpiMgPerKg: nil, pedsMinYears: 6, pedsMaxMg: 266, short: nil)
     }
 
     func testLocalAnestheticMaxima() {
@@ -194,6 +194,8 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(LAMixCalc.maxMg(for: lidocaine, weightKg: 70, pediatric: false, epinephrine: true, ageYears: nil), 490, "7 mg/kg × 70, under the 500 mg cap")
         XCTAssertEqual(LAMixCalc.maxMg(for: bupivacaine, weightKg: 70, pediatric: false, epinephrine: true, ageYears: nil), 175, "no epinephrine mg/kg on file: the plain per-kg figure applies under the epinephrine cap")
         XCTAssertEqual(LAMixCalc.maxMg(for: bupivacaine, weightKg: 20, pediatric: true, epinephrine: false, ageYears: 5), 50)
+        XCTAssertEqual(LAMixCalc.maxMg(for: lidocaine, weightKg: 20, pediatric: true, epinephrine: true, ageYears: 5), 140, "a child gets the 7 mg/kg epinephrine figure too")
+        XCTAssertEqual(LAMixCalc.maxMg(for: lidocaine, weightKg: 20, pediatric: true, epinephrine: false, ageYears: 5), 90)
         XCTAssertNil(LAMixCalc.maxMg(for: exparel, weightKg: 20, pediatric: true, epinephrine: false, ageYears: 5), "Exparel is not labeled under 6 years")
         XCTAssertEqual(LAMixCalc.maxMg(for: exparel, weightKg: 20, pediatric: true, epinephrine: false, ageYears: 8), 80)
         XCTAssertEqual(LAMixCalc.maxMg(for: exparel, weightKg: 90, pediatric: false, epinephrine: false, ageYears: nil), 266)

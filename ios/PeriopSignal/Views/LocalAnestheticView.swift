@@ -311,6 +311,9 @@ struct LocalAnestheticView: View {
                             Text(a.concentrations.map { "\(PedsCalc.fmt(m / ($0 * 10))) mL of \(PedsCalc.fmt($0))%" }.joined(separator: " · "))
                                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg2).lineLimit(2).minimumScaleFactor(0.85)
                         }
+                        if let n = a.note {
+                            Text(n).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                     .padding(.horizontal, 16).padding(.vertical, 11)
                     if i < agents.count - 1 { Hairline().padding(.leading, 16) }
@@ -341,7 +344,7 @@ struct LocalAnestheticView: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
             Hairline()
-            Text("Adult maxima are the FDA labels' figures; pediatric per-kilogram maxima follow the ASRA/ESRA recommendations. Label maxima are conservative conventions, not pharmacological thresholds: site, vascularity, age, hepatic and cardiac function change the risk. Exparel's rules come from its label. The LAST checklist is under Quick references.")
+            Text("Adult maxima are the FDA labels' figures (with a conventional per-kilogram ceiling where the label gives only milligrams); pediatric per-kilogram maxima follow the ASRA/ESRA 2018 recommendations. The additive rule for mixtures (each agent as a fraction of its own maximum, summed) is the convention described in ASRA's 2026 Pro-Con on mixing local anesthetics; no label or guideline codifies it. Label maxima are conservative conventions, not pharmacological thresholds: site, vascularity, age, hepatic and cardiac function change the risk. Exparel's rules come from its label. The LAST checklist is under Quick references.")
                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             ForEach(Array(Set(agents.compactMap(\.source))).sorted(), id: \.self) { s in
                 Text(s).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)

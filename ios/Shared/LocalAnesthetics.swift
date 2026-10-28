@@ -47,8 +47,10 @@ enum LAMixCalc {
         guard weightKg > 0 else { return nil }
         if pediatric {
             if let minYears = agent.pedsMinYears, let age = ageYears, age < minYears { return nil }
-            var m = agent.maxMgPerKg * weightKg
-            if let cap = agent.pedsMaxMg ?? agent.adultPlainMaxMg { m = min(m, cap) }
+            let perKg = (epinephrine ? agent.pedsEpiMgPerKg : nil) ?? agent.maxMgPerKg
+            var m = perKg * weightKg
+            let cap = epinephrine ? (agent.pedsMaxMg ?? agent.adultEpiMaxMg ?? agent.adultPlainMaxMg) : (agent.pedsMaxMg ?? agent.adultPlainMaxMg)
+            if let cap { m = min(m, cap) }
             return m
         }
         let perKg = epinephrine ? (agent.adultEpiMgPerKg ?? agent.adultPlainMgPerKg) : agent.adultPlainMgPerKg

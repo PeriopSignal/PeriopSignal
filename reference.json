@@ -2471,47 +2471,105 @@
     "localAnesthetics": [
       {
         "id": "bupivacaine",
-        "name": "Bupivacaine",
+        "name": "Bupivacaine HCl",
+        "kind": "amide",
         "maxMgPerKg": 2.5,
         "concentrations": [
           0.25,
-          0.5
+          0.5,
+          0.75
         ],
-        "note": "Single injection; infusions 0.4 mg/kg/h (0.2 mg/kg/h under 6 months).",
-        "source": "ASRA/ESRA pediatric regional anesthesia recommendations 2018 (Suresh S, et al. Reg Anesth Pain Med 2018;43:211–216), as reproduced in open appraisals"
+        "adultPlainMgPerKg": 2.5,
+        "adultPlainMaxMg": 175,
+        "adultEpiMgPerKg": 2.5,
+        "adultEpiMaxMg": 225,
+        "per24hMaxMg": 400,
+        "note": "Label: 175 mg plain, 225 mg with epinephrine 1:200,000, 400 mg in 24 hours, repeatable every 3 hours; no per-kg figure — the 2.5 mg/kg ceiling applied here below those caps is convention. Not recommended under 12 years by the label; 2.5 mg/kg is the ASRA/ESRA pediatric single-injection maximum. 0.75% is not for obstetric anesthesia; no Bier block.",
+        "source": "Marcaine / Marcaine with Epinephrine label (Hospira), revised 7/2023; ASRA/ESRA 2018 (Suresh S, et al. Reg Anesth Pain Med 2018;43:211–216)"
       },
       {
-        "id": "levobupivacaine",
-        "name": "Levobupivacaine",
-        "maxMgPerKg": 2.5,
+        "id": "chloroprocaine",
+        "name": "2-Chloroprocaine",
+        "kind": "ester",
+        "maxMgPerKg": 11,
+        "pedsEpiMgPerKg": 14,
         "concentrations": [
-          0.25,
-          0.5
+          1,
+          2,
+          3
         ],
-        "note": "Single injection.",
-        "source": "ASRA/ESRA 2018, via open appraisals"
+        "adultPlainMgPerKg": 11,
+        "adultPlainMaxMg": 800,
+        "adultEpiMgPerKg": 14,
+        "adultEpiMaxMg": 1000,
+        "note": "Label: 11 mg/kg to 800 mg plain, 14 mg/kg to 1,000 mg with epinephrine (added by the clinician, 0.1 mL of 1:1,000 per 20 mL); children over 3 years 11 mg/kg. Nesacaine is not for spinal use; Clorotekal 1% is the intrathecal product (50 mg).",
+        "source": "Nesacaine / Nesacaine-MPF label (Fresenius Kabi), revised 9/2022"
       },
       {
-        "id": "ropivacaine",
-        "name": "Ropivacaine",
-        "maxMgPerKg": 3,
+        "id": "exparel",
+        "name": "Exparel (liposomal bupivacaine)",
+        "kind": "liposomal",
+        "maxMgPerKg": 4,
         "concentrations": [
-          0.2,
-          0.5
+          1.33
         ],
-        "note": "Single injection; 2 mg/kg is the cited maximum for a caudal.",
-        "source": "ASRA/ESRA 2018, via open appraisals"
+        "adultPlainMaxMg": 266,
+        "pedsMinYears": 6,
+        "pedsMaxMg": 266,
+        "note": "Adults: up to 266 mg (20 mL of 13.3 mg/mL) by infiltration; 133 mg for interscalene, popliteal sciatic and adductor canal blocks (adductor canal admixed with 50 mg of 0.5% bupivacaine HCl). Children 6 to under 17 years: 4 mg/kg to 266 mg, infiltration only. May be diluted with preservative-free saline or lactated Ringer's to 0.89 mg/mL (never water). Bupivacaine HCl may be mixed in the same syringe if its milligram dose does not exceed half the Exparel dose; no admixture with other agents; give Exparel 20 minutes or more after lidocaine; avoid additional local anesthetics for 96 hours. Not for epidural, intrathecal, intravascular or intra-articular use.",
+        "source": "Exparel label (Pacira), revised 11/2023"
       },
       {
         "id": "lidocaine",
-        "name": "Lidocaine",
+        "name": "Lidocaine HCl",
+        "kind": "amide",
+        "maxMgPerKg": 4.5,
+        "pedsEpiMgPerKg": 7,
+        "concentrations": [
+          0.5,
+          1,
+          1.5,
+          2
+        ],
+        "adultPlainMgPerKg": 4.5,
+        "adultPlainMaxMg": 300,
+        "adultEpiMgPerKg": 7,
+        "adultEpiMaxMg": 500,
+        "note": "Label: 4.5 mg/kg to 300 mg plain, 7 mg/kg to 500 mg with epinephrine, for healthy adults, with reduced doses for children (the same per-kg figures are applied here); Bier block 3 mg/kg in children with 0.5% plain only. Methylparaben vials are not for neuraxial use.",
+        "source": "Xylocaine / Xylocaine-MPF label (Fresenius Kabi), revised 8/2020"
+      },
+      {
+        "id": "mepivacaine",
+        "name": "Mepivacaine HCl",
+        "kind": "amide",
         "maxMgPerKg": 5,
         "concentrations": [
           1,
+          1.5,
           2
         ],
-        "note": "7 mg/kg with epinephrine. Widely cited maximum; confirm against your reference before relying on it.",
-        "source": "Standard references (not verified from the ASRA/ESRA text in this review)"
+        "adultPlainMgPerKg": 7,
+        "adultPlainMaxMg": 400,
+        "per24hMaxMg": 1000,
+        "note": "Label: usually not more than 400 mg; 7 mg/kg (550 mg) only in exceptional circumstances; 1,000 mg in 24 hours; repeat no sooner than 90 minutes. Children 5–6 mg/kg, and under 3 years or 14 kg use concentrations below 2%. No epinephrine product outside dentistry; not for spinal use.",
+        "source": "Polocaine / Polocaine-MPF label (Fresenius Kabi), revised 10/2022"
+      },
+      {
+        "id": "ropivacaine",
+        "name": "Ropivacaine HCl",
+        "kind": "amide",
+        "maxMgPerKg": 2,
+        "concentrations": [
+          0.2,
+          0.5,
+          0.75,
+          1
+        ],
+        "adultPlainMgPerKg": 3,
+        "adultPlainMaxMg": 300,
+        "per24hMaxMg": 770,
+        "note": "Label: major nerve block 75–300 mg (0.75%, 10–40 mL; 0.5%, 175–250 mg), with caution at 300 mg; infiltration 5–200 mg; 770 mg over 24 hours tolerated for postoperative analgesia; no per-kg figure — 3 mg/kg below the 300 mg cap is convention; epinephrine does not limit absorption. Pediatric safety not established by the label; ASRA/ESRA caudal maximum 2 mg/kg (epidural 1.7 mg/kg, peripheral blocks 0.5–1.5 mg/kg).",
+        "source": "Naropin label (Fresenius Kabi), revised 3/2024; ASRA/ESRA 2018"
       }
     ],
     "bloodVolume": [
