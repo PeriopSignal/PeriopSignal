@@ -7,7 +7,6 @@ struct RootView: View {
     @Environment(SpeechPlayer.self) private var speech
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
-    @State private var showOnboarding = false
 
     var body: some View {
         #if DEBUG
@@ -26,8 +25,9 @@ struct RootView: View {
     }
 
     private var main: some View {
-        tabs
-            .sheet(isPresented: $showOnboarding) {
+        @Bindable var router = router
+        return tabs
+            .sheet(isPresented: $router.showWelcome) {
                 OnboardingView()
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
@@ -75,7 +75,6 @@ struct RootView: View {
         default: break
         }
         #endif
-        if !prefs.onboardingDone { showOnboarding = true }
         await store.loadInitial()
         read.prune(keeping: store.posts)
         let unread = read.unread(in: store.posts).count
@@ -83,6 +82,7 @@ struct RootView: View {
         #if DEBUG
         if let id = DebugLaunch.openPost { router.open(postID: id) }
         if DebugLaunch.openQuiz { router.openQuiz = true }
+        if DebugLaunch.showWelcome { router.showWelcome = true }
         if DebugLaunch.listen, let first = store.latestBatch.first {
             // Show the mini player for the screenshot, paused, without audio on the simulator.
             speech.play([first] + Array(store.latestBatch.dropFirst().prefix(2)))

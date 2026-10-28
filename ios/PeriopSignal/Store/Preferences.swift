@@ -24,6 +24,8 @@ final class Preferences {
     var forYou: Bool { didSet { defaults.set(forYou, forKey: "ps.forYou") } }
 
     var onboardingDone: Bool { didSet { defaults.set(onboardingDone, forKey: "ps.onboardingDone") } }
+    /// The question of the day on the feed and the "Test yourself" section in deep dives.
+    var showDailyQuestion: Bool { didSet { defaults.set(showDailyQuestion, forKey: "ps.showDailyQuestion") } }
     var personalizePromptDismissed: Bool { didSet { defaults.set(personalizePromptDismissed, forKey: "ps.personalizePromptDismissed") } }
 
     /// Earliest time of day for the morning alert (local notifications are held until then).
@@ -50,6 +52,7 @@ final class Preferences {
         myTopics = Set(local ?? cloud ?? [])
         forYou = d.object(forKey: "ps.forYou") as? Bool ?? !(local ?? cloud ?? []).isEmpty
         onboardingDone = d.bool(forKey: "ps.onboardingDone")
+        showDailyQuestion = d.object(forKey: "ps.showDailyQuestion") as? Bool ?? true
         personalizePromptDismissed = d.bool(forKey: "ps.personalizePromptDismissed")
         alertHour = d.object(forKey: "ps.alertHour") as? Int ?? 6
         alertMinute = d.object(forKey: "ps.alertMinute") as? Int ?? 30
@@ -74,9 +77,9 @@ final class Preferences {
 
     var launchCount: Int { defaults.integer(forKey: "ps.launchCount") }
 
-    /// Show the "personalize" reminder a few days in, when the reader skipped topics at launch.
+    /// Show the "personalize" reminder a few days in, when the reader has not picked topics.
     var shouldPromptToPersonalize: Bool {
-        onboardingDone && myTopics.isEmpty && !personalizePromptDismissed && launchCount >= 4 && daysSinceFirstLaunch >= 3
+        myTopics.isEmpty && !personalizePromptDismissed && launchCount >= 4 && daysSinceFirstLaunch >= 3
     }
 
     var alertTime: DateComponents { DateComponents(hour: alertHour, minute: alertMinute) }

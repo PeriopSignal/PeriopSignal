@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// First-launch sheet: what the app is, an optional choice of topics, and the alerts prompt.
+/// Welcome screen, opened from More (or a periopsignal://welcome link): what the app is, a choice of
+/// topics, and the alerts prompt. New installs open straight to the feed.
 struct OnboardingView: View {
     @Environment(Preferences.self) private var prefs
     @Environment(\.dismiss) private var dismiss
@@ -23,6 +24,7 @@ struct OnboardingView: View {
         }
         .background(PS.bg.ignoresSafeArea())
         .interactiveDismissDisabled(false)
+        .onAppear { topics = prefs.myTopics }
         .onDisappear { finish() }
     }
 
@@ -38,13 +40,13 @@ struct OnboardingView: View {
                 }
             }
             VStack(alignment: .leading, spacing: 12) {
-                point("waveform.path.ecg", "The practice-changing papers", "From about 50 journals and the society and FDA pages, every morning. Only what clears a high bar.")
+                point("waveform.path.ecg", "The practice-changing papers", "From about 60 journals and the society and FDA pages, every morning. Only what clears a high bar.")
                 point("diamond.fill", "The authors’ own key points", "Take-home bullets as the authors state them, an overview, and the limitations they acknowledge.")
                 point("brain.head.profile", "One question a day", "A board-style question from a recent post, so what you read sticks.")
             }
             VStack(alignment: .leading, spacing: 8) {
                 Text("Pick your areas").font(PS.sys(size: 17, weight: .bold)).foregroundStyle(PS.fg)
-                Text("Optional. The feed opens on these and alerts cover only these; everything stays one tap away.")
+                Text("Optional. The feed opens on these and alerts cover only these; everything stays one tap away. You can change them any time under More.")
                     .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                 TopicChipGrid(selection: $topics).padding(.top, 2)
             }
@@ -95,13 +97,13 @@ struct OnboardingView: View {
             if step == 0 {
                 Button {
                     prefs.setTopics(topics)
-                    withAnimation { step = 1 }
+                    if notifications.enabled { finish(); dismiss() } else { withAnimation { step = 1 } }
                 } label: {
                     Text(topics.isEmpty ? "Continue" : "Follow \(topics.count) topic\(topics.count == 1 ? "" : "s")")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(BigButtonStyle(prominent: true))
-                Button("Maybe later") { finish(); dismiss() }
+                Button("Not now") { finish(); dismiss() }
                     .font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg3)
             } else {
                 Button {

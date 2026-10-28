@@ -76,6 +76,8 @@ final class Router {
     var selectedTab: Tab = .feed
     /// Set to open today's question from a link or notification.
     var openQuiz = false
+    /// Presents the welcome screen (topics and alerts) from More or a link.
+    var showWelcome = false
 
     enum Tab: String, Hashable { case feed, guidelines, saved, more }
 
@@ -96,6 +98,8 @@ final class Router {
         case "quiz", "question":
             selectedTab = .feed
             openQuiz = true
+        case "welcome", "topics":
+            showWelcome = true
         default: selectedTab = .feed
         }
     }

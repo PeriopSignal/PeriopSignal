@@ -7,6 +7,7 @@ struct TodayCard: View {
     @Environment(ReadStore.self) private var read
     @Environment(QuizStore.self) private var quiz
     @Environment(SpeechPlayer.self) private var speech
+    @Environment(Preferences.self) private var prefs
     var onOpen: (Post) -> Void
 
     private var batch: [Post] { store.latestBatch }
@@ -24,7 +25,7 @@ struct TodayCard: View {
                     .textCase(.uppercase).kerning(0.8)
                     .foregroundStyle(PS.accent)
                 Spacer()
-                if quiz.streak >= 2 {
+                if prefs.showDailyQuestion && quiz.streak >= 2 {
                     Label("\(quiz.streak)-day streak", systemImage: "flame.fill")
                         .font(PS.sys(size: 11, weight: .semibold))
                         .foregroundStyle(PS.accent)

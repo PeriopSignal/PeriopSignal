@@ -7,6 +7,7 @@ struct MoreView: View {
     @Environment(Preferences.self) private var prefs
     @Environment(QuizStore.self) private var quiz
     @Environment(SpeechPlayer.self) private var speech
+    @Environment(Router.self) private var router
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
     @ObservedObject private var notifications = NotificationManager.shared
     @State private var notifyOn = NotificationManager.shared.enabled
@@ -37,8 +38,13 @@ struct MoreView: View {
                              ? "Following everything. Pick areas to get a “For you” filter and alerts only for those topics."
                              : "The feed opens on “For you” and alerts cover only these topics. Clear them to follow everything.")
                             .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
-                        if !prefs.myTopics.isEmpty {
-                            Button("Follow everything") { prefs.setTopics([]) }
+                        HStack(spacing: 16) {
+                            if !prefs.myTopics.isEmpty {
+                                Button("Follow everything") { prefs.setTopics([]) }
+                                    .buttonStyle(.borderless)
+                                    .font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent2)
+                            }
+                            Button("Show welcome screen") { router.showWelcome = true }
                                 .buttonStyle(.borderless)
                                 .font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent2)
                         }
@@ -122,6 +128,13 @@ struct MoreView: View {
                 .listRowBackground(PS.surface)
 
                 Section("Question of the day") {
+                    Toggle(isOn: $p.showDailyQuestion) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Question of the day")
+                            Text("The card on the feed and the “Test yourself” section in deep dives.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                        }
+                    }
+                    .tint(PS.accent)
                     LabeledContent("Streak", value: "\(quiz.streak) day\(quiz.streak == 1 ? "" : "s")")
                     LabeledContent("Answered", value: "\(quiz.answeredCount)")
                     LabeledContent("Correct", value: quiz.answeredCount == 0 ? "—" : "\(quiz.correctCount) (\(Int((Double(quiz.correctCount) / Double(quiz.answeredCount) * 100).rounded()))%)")
@@ -148,7 +161,7 @@ struct MoreView: View {
                 .listRowBackground(PS.surface)
 
                 Section("How it works") {
-                    Text("Every morning the feed sweeps about 50 journals plus the ASA, SCA, ASE, STS, ELSO, APSF and FDA pages, keeps only the papers that clear a high bar, and writes a short post for each: the authors’ own key points as the take-home, an overview, the limitations the authors state, and one question to check what stuck. Summaries are reading aids, not clinical advice. Read the source before acting on it.")
+                    Text("Every morning the feed sweeps about 60 journals plus the ASA, SCA, ASE, STS, ELSO, APSF and FDA pages, keeps only the papers that clear a high bar, and writes a short post for each: the authors’ own key points as the take-home, an overview, the limitations the authors state, and one question to check what stuck. Summaries are reading aids, not clinical advice. Read the source before acting on it.")
                         .font(PS.sys(size: 13.5))
                         .foregroundStyle(PS.fg2)
                 }

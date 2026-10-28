@@ -6,6 +6,7 @@ struct DeepDiveView: View {
     @Environment(SavedStore.self) private var saved
     @Environment(ReadStore.self) private var read
     @Environment(SpeechPlayer.self) private var speech
+    @Environment(Preferences.self) private var prefs
     var post: Post
     var onOpenPaper: (URL) -> Void
     @State private var shareItems: ShareItems?
@@ -44,7 +45,7 @@ struct DeepDiveView: View {
                     MarkdownBlocks(text: post.deepDive)
                 }
                 limitations
-                if post.quiz != nil {
+                if post.quiz != nil && prefs.showDailyQuestion {
                     section(label: "Test yourself") {
                         QuizView(post: post)
                             .padding(12)
@@ -358,5 +359,6 @@ struct MarkdownBlocks: View {
     .environment(ReadStore())
     .environment(QuizStore())
     .environment(SpeechPlayer())
+    .environment(Preferences())
     .preferredColorScheme(.dark)
 }

@@ -5,10 +5,11 @@ import SwiftUI
 struct DailyQuestionCard: View {
     @Environment(PostStore.self) private var store
     @Environment(QuizStore.self) private var quiz
+    @Environment(Preferences.self) private var prefs
     var onOpenSheet: (Post) -> Void
 
     var body: some View {
-        if let post = quiz.todaysQuestion(from: store.posts), let q = post.quiz {
+        if prefs.showDailyQuestion, let post = quiz.todaysQuestion(from: store.posts), let q = post.quiz {
             let answer = quiz.answer(for: post.id)
             Button { onOpenSheet(post) } label: {
                 VStack(alignment: .leading, spacing: 8) {
