@@ -126,6 +126,27 @@ def main(path):
                 if d.get("startHigh") is not None:
                     need(isinstance(d["startHigh"], (int, float)) and d["startHigh"] >= (d.get("start") or 0), f"infusion {did}: startHigh >= start")
 
+    nx = data.get("neuraxial")
+    if nx is not None:
+        need(isinstance(nx.get("source"), str) and nx["source"], "neuraxial.source required")
+        need(isinstance(nx.get("general"), list), "neuraxial.general must be a list")
+        seen = set()
+        for g in nx.get("groups") or []:
+            for d in g.get("drugs") or []:
+                did = d.get("id", "?")
+                need(did not in seen, f"neuraxial {did}: duplicate id"); seen.add(did)
+                tiers = d.get("tiers")
+                need(isinstance(tiers, list) and tiers, f"neuraxial {did}: tiers required")
+                for t in tiers or []:
+                    need(isinstance(t.get("id"), str) and isinstance(t.get("label"), str), f"neuraxial {did}: tier id/label required")
+                    for key in ("holdHours", "restartHours", "removalHours", "afterRemovalHours"):
+                        if t.get(key) is not None:
+                            need(isinstance(t[key], (int, float)) and t[key] >= 0, f"neuraxial {did}/{t.get('id')}: {key} must be a number >= 0")
+                    for r in t.get("renal") or []:
+                        need(isinstance(r.get("label"), str), f"neuraxial {did}/{t.get('id')}: renal rule label")
+                        if r.get("hours") is None:
+                            need(isinstance(r.get("text"), str), f"neuraxial {did}/{t.get('id')}: renal rule without hours needs text")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")

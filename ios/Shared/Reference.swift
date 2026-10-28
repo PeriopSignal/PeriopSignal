@@ -15,6 +15,58 @@ struct ReferenceBundle: Codable {
     var quickrefs: [QuickRef]
     var peds: PedsData?
     var infusions: InfusionData?
+    var neuraxial: NeuraxialData?
+}
+
+// MARK: Neuraxial and deep-block timing on antithrombotic drugs (ASRA)
+
+struct NeuraxialData: Codable {
+    var reviewed: String?
+    var source: String
+    var sourceURL: String?
+    var general: [String]
+    var groups: [NeuraxialGroup]
+    var allDrugs: [NeuraxialDrug] { groups.flatMap(\.drugs) }
+}
+
+struct NeuraxialGroup: Codable, Identifiable, Hashable {
+    var id: String { name }
+    var name: String
+    var drugs: [NeuraxialDrug]
+}
+
+struct NeuraxialDrug: Codable, Identifiable, Hashable {
+    var id: String
+    var name: String
+    var tiers: [NeuraxialTier]
+    var notes: [String]?
+}
+
+struct RenalRule: Codable, Identifiable, Hashable {
+    var id: String { label }
+    var label: String
+    /// Hours to hold; nil = the block is to be avoided (see `text`).
+    var hours: Double?
+    var elderlyHours: Double?
+    var text: String?
+}
+
+struct NeuraxialTier: Codable, Identifiable, Hashable {
+    var id: String
+    var label: String
+    /// Earliest block, hours after the last dose; nil with `holdText` explaining (e.g. avoid).
+    var holdHours: Double?
+    /// Next dose, hours after needle placement or catheter removal.
+    var restartHours: Double?
+    var holdText: String?
+    var restartText: String?
+    var catheter: String?
+    var level: String?
+    var renal: [RenalRule]?
+    var renalNote: String?
+    var removalHours: Double?
+    var afterRemovalHours: Double?
+    var inrRule: Bool?
 }
 
 // MARK: Vasoactive infusions and hematologic agents

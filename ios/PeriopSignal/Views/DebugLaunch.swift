@@ -28,11 +28,13 @@ enum DebugLaunch {
         if s == "peds" { return .peds }
         if s == "local" { return .local }
         if s == "infusions" { return .infusions }
+        if s == "neuraxial" { return .neuraxial }
         let parts = s.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return nil }
         switch parts[0] {
         case "score": return .score(parts[1])
         case "quickref": return .quickref(parts[1])
+        case "folder": return RefFolder(rawValue: parts[1]).map { .folder($0) }
         default: return nil
         }
     }

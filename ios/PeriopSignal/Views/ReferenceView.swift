@@ -7,10 +7,86 @@ enum RefRoute: Hashable {
     case peds
     case local
     case infusions
+    case neuraxial
+    case folder(RefFolder)
 }
 
-/// The Reference tab: calculators, condensed society quick references, and the society guidelines
-/// that have come through the feed — with one search across all of it and the papers.
+/// The Reference tab's folders. Each tool lives in one folder.
+enum RefFolder: String, CaseIterable, Identifiable, Hashable {
+    case emergency, preoperative, generalAnesthesia, medications, pediatrics
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .emergency: return "Emergency"
+        case .preoperative: return "Preoperative"
+        case .generalAnesthesia: return "General anesthesia"
+        case .medications: return "Medications and hematology"
+        case .pediatrics: return "Pediatrics"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .emergency: return "bolt.heart"
+        case .preoperative: return "checklist"
+        case .generalAnesthesia: return "lungs"
+        case .medications: return "ivfluid.bag"
+        case .pediatrics: return "figure.child"
+        }
+    }
+    var tint: Color {
+        switch self {
+        case .emergency: return PS.accent
+        case .preoperative: return PS.accent2
+        case .generalAnesthesia: return Topics.info("thoracic").fg
+        case .medications: return Topics.info("regional").fg
+        case .pediatrics: return Topics.info("pediatric").fg
+        }
+    }
+    /// The tools in this folder, in display order.
+    var items: [RefItem] {
+        switch self {
+        case .emergency: return [
+            RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local anesthetic toxicity", blurb: "Recognize, lipid doses, modified ACLS"),
+            RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant hyperthermia", blurb: "Dantrolene, potassium, cooling, hotline"),
+            RefItem(route: .quickref("asa-difficult-airway"), icon: "wind", title: "Difficult airway", blurb: "The 2022 ASA algorithm's decision points"),
+        ]
+        case .preoperative: return [
+            RefItem(route: .score("rcri"), icon: "heart.text.square", title: "RCRI", blurb: "Cardiac risk for non-cardiac surgery"),
+            RefItem(route: .score("ariscat"), icon: "lungs", title: "ARISCAT", blurb: "Postoperative pulmonary complications"),
+            RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-Bang", blurb: "Sleep apnea screening"),
+            RefItem(route: .score("apfel"), icon: "pills", title: "Apfel PONV", blurb: "Nausea risk and how much prophylaxis"),
+            RefItem(route: .quickref("asa-fasting"), icon: "cup.and.saucer", title: "Fasting", blurb: "Minimum fasting times, carbohydrate drinks, gum"),
+            RefItem(route: .neuraxial, icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out"),
+            RefItem(route: .quickref("ase-valve-severity"), icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "ASE grading tables by lesion"),
+            RefItem(route: .quickref("acc-aha-valve-intervention"), icon: "heart.circle", title: "Valve intervention", blurb: "When to repair or replace (ACC/AHA)"),
+        ]
+        case .generalAnesthesia: return [
+            RefItem(route: .local, icon: "syringe", title: "Local anesthetic doses", blurb: "Single agent or mixture, including Exparel"),
+            RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
+            RefItem(route: .quickref("ponv-consensus"), icon: "pills.circle", title: "PONV management", blurb: "Agents, doses, timing and rescue"),
+        ]
+        case .medications: return [
+            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Starting doses for pressors, dilators, inotropes and hematologic agents"),
+        ]
+        case .pediatrics: return [
+            RefItem(route: .peds, icon: "scalemass", title: "Pediatric doses", blurb: "Weight-based doses, tube sizes, fluids and blood volume"),
+        ]
+        }
+    }
+    /// One line of contents for the folder row.
+    var summary: String { items.map(\.title).joined(separator: " · ") }
+}
+
+struct RefItem: Hashable, Identifiable {
+    var route: RefRoute
+    var icon: String
+    var title: String
+    var blurb: String
+    var id: RefRoute { route }
+}
+
+/// The Reference tab: five folders of calculators and condensed society references, with one search
+/// across all of it and the feed.
 struct ReferenceView: View {
     @Environment(PostStore.self) private var store
     @Environment(ReadStore.self) private var read
@@ -31,9 +107,7 @@ struct ReferenceView: View {
                     if searching {
                         ReferenceSearchResults(query: trimmed, path: $path) { ask = AskPrompt(question: trimmed) }
                     } else {
-                        calculators
-                        quickReferences
-                        FeedGuidelinesSection(path: $path)
+                        folders
                     }
                 }
                 .padding(.horizontal, 20)
@@ -62,6 +136,10 @@ struct ReferenceView: View {
                     LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
                 case .infusions:
                     InfusionsView(onOpen: { webLink = WebLink(url: $0) })
+                case .neuraxial:
+                    NeuraxialTimingView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("asra-anticoagulation")) })
+                case .folder(let f):
+                    FolderView(folder: f, path: $path)
                 }
             }
             .navigationDestination(for: Post.self) { post in
@@ -93,47 +171,74 @@ struct ReferenceView: View {
         path.append(route)
     }
 
-    // MARK: Calculators
+    // MARK: Folders
 
-    private var calculators: some View {
+    private var folders: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Eyebrow(text: "Calculators").padding(.leading, 2)
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                ForEach(Scores.all) { def in
-                    CalculatorTile(icon: def.icon, title: def.short, blurb: def.blurb) { path.append(RefRoute.score(def.id)) }
-                }
-                CalculatorTile(icon: "scalemass", title: "Pediatric", blurb: "Weight-based doses, tube sizes, fluids and blood volume") { path.append(RefRoute.peds) }
-                CalculatorTile(icon: "syringe", title: "Local anesthetic", blurb: "Maximum doses for one agent or a mixture, including Exparel") { path.append(RefRoute.local) }
-                CalculatorTile(icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Starting doses for pressors, dilators, inotropes and hematologic agents") { path.append(RefRoute.infusions) }
-            }
-        }
-    }
-
-    // MARK: Quick references
-
-    private var quickReferences: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: "Quick references").padding(.leading, 2)
-                Spacer()
-                if let updated = refs.bundle?.updated { Eyebrow(text: "Reviewed \(PSDate.monthYear(updated))", size: 10) }
-            }
-            if refs.quickrefs.isEmpty {
-                Text("Loading the references…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3).padding(.vertical, 8)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(refs.quickrefs.enumerated()), id: \.element.id) { i, ref in
-                        QuickRefRow(ref: ref) { path.append(RefRoute.quickref(ref.id)) }
-                        if i < refs.quickrefs.count - 1 { Hairline().padding(.leading, 18) }
+            VStack(spacing: 0) {
+                ForEach(Array(RefFolder.allCases.enumerated()), id: \.element.id) { i, f in
+                    Button { path.append(RefRoute.folder(f)) } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: f.icon)
+                                .font(PS.sys(size: 17, weight: .semibold))
+                                .foregroundStyle(f.tint)
+                                .frame(width: 40, height: 40)
+                                .background(f.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(f.title).font(PS.serif(size: 17)).foregroundStyle(PS.fg)
+                                Text(f.summary).font(PS.sys(size: 12)).foregroundStyle(PS.fg2).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
+                            Text("\(f.items.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
+                            Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 13)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
+                    if i < RefFolder.allCases.count - 1 { Hairline().padding(.leading, 70) }
                 }
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-                Text("Condensed from the society documents in Periop Signal's words, each with a link to the original. Confirm against the source before acting on it.")
+            }
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            HStack(alignment: .firstTextBaseline) {
+                Text("Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. Confirm against the source before acting.")
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 2)
             }
+            .padding(.horizontal, 2)
+            if let updated = refs.bundle?.updated { Eyebrow(text: "Content reviewed \(PSDate.monthYear(updated))", size: 10).padding(.leading, 2) }
         }
+    }
+}
+
+/// One folder: its tools as tiles.
+struct FolderView: View {
+    @Environment(ReferenceStore.self) private var refs
+    var folder: RefFolder
+    @Binding var path: NavigationPath
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                    ForEach(folder.items) { item in
+                        CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
+                    }
+                }
+                if folder == .emergency {
+                    Text("Doses in the emergency cards are the published regimens; enter the weight in the pediatric or local-anesthetic calculators for computed amounts.")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 6)
+            .padding(.bottom, 28)
+        }
+        .background(FeedBackground())
+        .scrollContentBackground(.hidden)
+        .navigationTitle(folder.title)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 }
 
@@ -212,51 +317,6 @@ struct QuickRefRow: View {
     }
 }
 
-// MARK: - Society guidelines from the feed (the previous Guidelines tab, as a section)
-
-struct FeedGuidelinesSection: View {
-    @Environment(PostStore.self) private var store
-    @Environment(ReadStore.self) private var read
-    @Binding var path: NavigationPath
-    var groups: [(society: String, posts: [Post])]? = nil
-
-    private var shown: [(society: String, posts: [Post])] { groups ?? store.guidelineGroups }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: "Society guidelines from the feed").padding(.leading, 2)
-                Spacer()
-                let n = shown.reduce(0) { $0 + $1.posts.count }
-                if n > 0 { Text("\(n)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3) }
-            }
-            if store.posts.isEmpty {
-                ProgressView().frame(maxWidth: .infinity).padding(.vertical, 20)
-            } else {
-                ForEach(shown, id: \.society) { group in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(group.society)
-                                .font(PS.serif(size: 17))
-                                .foregroundStyle(group.society == "FDA and safety notices" ? PS.accent : PS.fg)
-                            Spacer()
-                            Text("\(group.posts.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
-                        }
-                        .padding(.top, 6)
-                        VStack(spacing: 0) {
-                            ForEach(Array(group.posts.enumerated()), id: \.element.id) { i, post in
-                                GuidelineRow(post: post, isUnread: read.isUnread(post)) { path.append(post) }
-                                if i < group.posts.count - 1 { Hairline().padding(.leading, 18) }
-                            }
-                        }
-                        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-                    }
-                }
-            }
-        }
-    }
-}
-
 // MARK: - Search across everything
 
 /// A question handed to the Ask sheet.
@@ -287,24 +347,22 @@ struct ReferenceSearchResults: View {
         let words = ["infusion", "drip", "pressor", "vasopressor", "inotrope", "vasodilator", "mcg/kg/min", "hematolog", "coagulation", "factor", "pcc", "antifibrinolytic"]
         return words.contains { $0.contains(q) || q.contains($0) } || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use).lowercased().contains(q) } }
     }
+    private var neuraxialMatches: Bool {
+        let words = ["anticoag", "neuraxial", "epidural", "spinal", "block", "heparin", "enoxaparin", "lmwh", "warfarin", "apixaban", "rivaroxaban", "edoxaban", "dabigatran", "doac", "fondaparinux", "clopidogrel", "prasugrel", "ticagrelor", "aspirin", "thrombolytic", "asra"]
+        return words.contains { $0.contains(q) || q.contains($0) }
+    }
     private var localMatches: Bool {
         guard let p = refs.peds else { return false }
         let words = ["local anesthetic", "local anaesthetic", "max dose", "maximum dose", "exparel", "liposomal", "mixture", "toxicity", "mg/kg"]
         return words.contains { $0.contains(q) || q.contains($0) } || p.localAnesthetics.contains { $0.name.lowercased().contains(q) }
     }
     private var quickrefs: [QuickRef] { refs.quickrefs.filter { $0.searchText.contains(q) } }
-    private var guidelineGroups: [(society: String, posts: [Post])] {
-        store.guidelineGroups.compactMap { g in
-            let hits = g.posts.filter { $0.searchText.contains(q) || g.society.lowercased().contains(q) }
-            return hits.isEmpty ? nil : (society: g.society, posts: hits)
-        }
-    }
     private var papers: [Post] {
-        store.posts.filter { !$0.isGuidance && !$0.isRegulatory && $0.searchText.contains(q) }
+        store.posts.filter { $0.searchText.contains(q) }
     }
 
     var body: some View {
-        let nothing = scores.isEmpty && !pedsMatches && !localMatches && !infusionMatches && quickrefs.isEmpty && guidelineGroups.isEmpty && papers.isEmpty
+        let nothing = scores.isEmpty && !pedsMatches && !localMatches && !infusionMatches && !neuraxialMatches && quickrefs.isEmpty && papers.isEmpty
         if nothing {
             VStack(spacing: 10) {
                 ContentUnavailableView.search(text: query)
@@ -312,7 +370,7 @@ struct ReferenceSearchResults: View {
             }
             .padding(.top, 30)
         } else {
-            if !scores.isEmpty || pedsMatches || localMatches || infusionMatches {
+            if !scores.isEmpty || pedsMatches || localMatches || infusionMatches || neuraxialMatches {
                 VStack(alignment: .leading, spacing: 12) {
                     Eyebrow(text: "Calculators").padding(.leading, 2)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
@@ -327,6 +385,9 @@ struct ReferenceSearchResults: View {
                         }
                         if infusionMatches {
                             CalculatorTile(icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Starting doses for pressors, dilators, inotropes and hematologic agents") { path.append(RefRoute.infusions) }
+                        }
+                        if neuraxialMatches {
+                            CalculatorTile(icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out") { path.append(RefRoute.neuraxial) }
                         }
                     }
                 }
@@ -343,13 +404,10 @@ struct ReferenceSearchResults: View {
                     .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                 }
             }
-            if !guidelineGroups.isEmpty {
-                FeedGuidelinesSection(path: $path, groups: guidelineGroups)
-            }
             if !papers.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .firstTextBaseline) {
-                        Eyebrow(text: "Papers in the feed").padding(.leading, 2)
+                        Eyebrow(text: "In the feed").padding(.leading, 2)
                         Spacer()
                         Text("\(papers.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
                     }

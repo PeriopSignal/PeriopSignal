@@ -172,3 +172,56 @@ enum InfusionCalc {
         return "\(PedsCalc.fmt(l)) \(u)"
     }
 }
+
+// MARK: - Neuraxial timing arithmetic
+
+enum NeuraxialCalc {
+    struct Answer: Hashable {
+        /// Earliest time for the block; nil when it is to be avoided or no interval applies.
+        var earliest: Date?
+        var hours: Double?
+        /// What the interval is, in words ("72 h after the last dose", "Avoid …").
+        var rule: String
+        var avoid: Bool
+    }
+
+    static func answer(tier: NeuraxialTier, renalIndex: Int?, elderly: Bool, lastDose: Date) -> Answer {
+        var hours = tier.holdHours
+        var rule = tier.holdText ?? ""
+        var avoid = false
+        if let renal = tier.renal, !renal.isEmpty {
+            let r = renal[min(max(renalIndex ?? 0, 0), renal.count - 1)]
+            if let h = r.hours {
+                hours = (elderly ? r.elderlyHours : nil) ?? h
+                rule = "\(fmtHours(hours!)) after the last dose (\(r.label.lowercased())\(elderly && r.elderlyHours != nil ? ", elderly" : ""))"
+            } else {
+                hours = nil; avoid = true
+                rule = r.text ?? "Avoid the block"
+            }
+        } else if let h = hours {
+            if rule.isEmpty { rule = "\(fmtHours(h)) after the last dose" }
+            if h == 0 { rule = tier.holdText ?? "No hold required" }
+        } else {
+            avoid = tier.holdText?.lowercased().contains("against") ?? false
+            if rule.isEmpty { rule = "No interval specified" }
+        }
+        let earliest = hours.map { lastDose.addingTimeInterval($0 * 3600) }
+        return Answer(earliest: earliest, hours: hours, rule: rule, avoid: avoid)
+    }
+
+    static func fmtHours(_ h: Double) -> String {
+        if h >= 48, h.truncatingRemainder(dividingBy: 24) == 0 { return "\(Int(h / 24)) days" }
+        return h == h.rounded() ? "\(Int(h)) h" : String(format: "%.1f h", h)
+    }
+
+    /// "in 41 h", "in 3 days 5 h", or "now" when the time has passed.
+    static func countdown(to date: Date, from now: Date = Date()) -> String {
+        let secs = date.timeIntervalSince(now)
+        if secs <= 0 { return "now" }
+        let totalMinutes = Int(secs / 60)
+        let days = totalMinutes / 1440, hours = (totalMinutes % 1440) / 60, minutes = totalMinutes % 60
+        if days > 0 { return "in \(days) d \(hours) h" }
+        if hours > 0 { return "in \(hours) h \(minutes) min" }
+        return "in \(minutes) min"
+    }
+}

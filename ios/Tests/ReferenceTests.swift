@@ -248,4 +248,42 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(InfusionCalc.total(1500, nil, "mcg"), "1.5 mg")
         XCTAssertEqual(InfusionCalc.total(250, 500, "mg"), "250–500 mg")
     }
+
+    // MARK: Neuraxial timing
+
+    func testNeuraxialTiming() {
+        let last = Date(timeIntervalSince1970: 1_700_000_000)
+        let apix = NeuraxialTier(id: "high", label: "High", holdHours: 72, restartHours: 24, holdText: nil, restartText: nil, catheter: nil, level: nil, renal: nil, renalNote: nil, removalHours: nil, afterRemovalHours: nil, inrRule: nil)
+        let a = NeuraxialCalc.answer(tier: apix, renalIndex: nil, elderly: false, lastDose: last)
+        XCTAssertEqual(a.earliest, last.addingTimeInterval(72 * 3600))
+        XCTAssertEqual(a.rule, "3 days after the last dose")
+        XCTAssertFalse(a.avoid)
+        let dabi = NeuraxialTier(id: "high", label: "High", holdHours: 72, restartHours: 24, holdText: nil, restartText: nil, catheter: nil, level: nil,
+                                 renal: [RenalRule(label: "CrCl 50 or more", hours: 72, elderlyHours: nil, text: nil), RenalRule(label: "CrCl 30–49", hours: 120, elderlyHours: nil, text: nil), RenalRule(label: "CrCl below 30", hours: nil, elderlyHours: nil, text: "Avoid")],
+                                 renalNote: nil, removalHours: nil, afterRemovalHours: nil, inrRule: nil)
+        XCTAssertEqual(NeuraxialCalc.answer(tier: dabi, renalIndex: 1, elderly: false, lastDose: last).hours, 120)
+        let avoid = NeuraxialCalc.answer(tier: dabi, renalIndex: 2, elderly: false, lastDose: last)
+        XCTAssertTrue(avoid.avoid)
+        XCTAssertNil(avoid.earliest)
+        let fonda = NeuraxialTier(id: "low", label: "Low", holdHours: 36, restartHours: 6, holdText: nil, restartText: nil, catheter: nil, level: nil,
+                                  renal: [RenalRule(label: "Normal", hours: 36, elderlyHours: 42, text: nil)], renalNote: nil, removalHours: nil, afterRemovalHours: nil, inrRule: nil)
+        XCTAssertEqual(NeuraxialCalc.answer(tier: fonda, renalIndex: 0, elderly: true, lastDose: last).hours, 42)
+        XCTAssertEqual(NeuraxialCalc.answer(tier: fonda, renalIndex: 0, elderly: false, lastDose: last).hours, 36)
+        XCTAssertEqual(NeuraxialCalc.fmtHours(168), "7 days")
+        XCTAssertEqual(NeuraxialCalc.fmtHours(36), "36 h")
+        XCTAssertEqual(NeuraxialCalc.countdown(to: last.addingTimeInterval(3600 * 26 + 60 * 5), from: last), "in 1 d 2 h")
+        XCTAssertEqual(NeuraxialCalc.countdown(to: last, from: last.addingTimeInterval(10)), "now")
+    }
+
+    func testNeuraxialBundleRulesAreComplete() throws {
+        let b = try bundled()
+        let nx = try XCTUnwrap(b.neuraxial)
+        XCTAssertFalse(nx.groups.isEmpty)
+        for d in nx.allDrugs {
+            XCTAssertFalse(d.tiers.isEmpty, d.id)
+            for t in d.tiers where t.holdHours == nil && (t.renal ?? []).isEmpty {
+                XCTAssertNotNil(t.holdText, "\(d.id)/\(t.id) has neither hours nor an explanation")
+            }
+        }
+    }
 }

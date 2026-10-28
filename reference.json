@@ -2609,5 +2609,466 @@
         "mlPerKgHigh": 70
       }
     ]
+  },
+  "neuraxial": {
+    "reviewed": "2026-10-28",
+    "source": "Kopp SL, et al. Regional anesthesia in the patient receiving antithrombotic or thrombolytic therapy: ASRA Pain Medicine evidence-based guidelines (fifth edition). Reg Anesth Pain Med 2025. doi:10.1136/rapm-2024-105766",
+    "sourceURL": "https://doi.org/10.1136/rapm-2024-105766",
+    "general": [
+      "The same intervals apply to neuraxial blocks and to deep plexus or deep peripheral blocks; for other peripheral blocks weigh the site's compressibility and the consequences of bleeding.",
+      "Review every other hemostasis-altering drug the patient takes: effects add up. With a catheter on LMWH, no concomitant antiplatelet drugs, heparin or oral anticoagulants.",
+      "PT/INR and aPTT do not measure a DOAC; a drug-calibrated level below 30 ng/mL or an anti-Xa at or below 0.1 IU/mL permits a block before the full hold.",
+      "Routine reversal just to permit a block is discouraged. A bloody tap does not mandate cancelling surgery; with LMWH, delay the first postoperative dose to 24 hours.",
+      "Platelet count before a neuraxial technique after more than 4 days of heparin or LMWH."
+    ],
+    "groups": [
+      {
+        "name": "Heparins",
+        "drugs": [
+          {
+            "id": "ufh-sc",
+            "name": "Heparin, subcutaneous",
+            "tiers": [
+              {
+                "id": "low",
+                "label": "Low dose: 5,000 units two or three times daily",
+                "holdHours": 6,
+                "restartHours": 0,
+                "holdText": "4–6 h, or normal coagulation status",
+                "catheter": "May stay; remove 4–6 h after the last dose",
+                "restartText": "Next dose immediately after catheter removal"
+              },
+              {
+                "id": "high1",
+                "label": "High dose: 7,500–10,000 units twice daily (up to 20,000 units/day)",
+                "holdHours": 12,
+                "restartHours": null,
+                "holdText": "12 h and normal coagulation status",
+                "catheter": "Safety of a catheter above 5,000 units per dose or 15,000 units/day is not established: individual decision with neurologic monitoring",
+                "restartText": "Not specified by the guideline"
+              },
+              {
+                "id": "high2",
+                "label": "High dose: more than 10,000 units per dose or 20,000 units/day",
+                "holdHours": 24,
+                "restartHours": null,
+                "holdText": "24 h and normal coagulation status",
+                "catheter": "As for the lower high-dose tier",
+                "restartText": "Not specified by the guideline"
+              }
+            ],
+            "notes": [
+              "Platelet count after more than 4 days of heparin."
+            ]
+          },
+          {
+            "id": "ufh-iv",
+            "name": "Heparin, intravenous infusion",
+            "tiers": [
+              {
+                "id": "iv",
+                "label": "Therapeutic infusion or intraoperative heparinization",
+                "holdHours": 6,
+                "restartHours": 1,
+                "holdText": "Stop the infusion 4–6 h and confirm normal coagulation (aPTT)",
+                "catheter": "Not recommended during a continuous infusion or cardiopulmonary bypass heparinization; if one must stay, dilute solutions and motor checks",
+                "restartText": "Intraoperative heparin no sooner than 1 h after needle placement; before removal stop 4–6 h and check coagulation"
+              }
+            ],
+            "notes": [
+              "A bloody or difficult placement does not mandate cancelling: discuss with the surgeon."
+            ]
+          },
+          {
+            "id": "lmwh",
+            "name": "LMWH (enoxaparin, dalteparin, tinzaparin)",
+            "tiers": [
+              {
+                "id": "low",
+                "label": "Low dose: enoxaparin 40 mg daily or 30 mg twice daily; dalteparin 5,000 IU daily",
+                "holdHours": 12,
+                "restartHours": 12,
+                "catheter": "Once-daily regimen: may stay, remove 12 h after the last dose. Twice-daily regimen: remove before the first dose",
+                "restartText": "First dose 12 h or more after placement (twice-daily regimen: the next day); next dose 4 h after catheter removal",
+                "removalHours": 12,
+                "afterRemovalHours": 4
+              },
+              {
+                "id": "high",
+                "label": "High dose: enoxaparin 1 mg/kg twice daily or 1.5 mg/kg daily; dalteparin 120 IU/kg twice daily or 200 IU/kg daily; tinzaparin 175 IU/kg daily",
+                "holdHours": 24,
+                "restartHours": 24,
+                "catheter": "Remove 4 h before the first postoperative dose",
+                "restartText": "First dose 24 h after placement (48–72 h after high-bleeding-risk surgery) and 4 h after removal",
+                "renalNote": "Halve the last preoperative dose when CrCl is below 50 mL/min",
+                "afterRemovalHours": 4
+              }
+            ],
+            "notes": [
+              "Anti-Xa monitoring is not recommended (not predictive of bleeding); platelet count after more than 4 days."
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Oral anticoagulants",
+        "drugs": [
+          {
+            "id": "warfarin",
+            "name": "Warfarin",
+            "tiers": [
+              {
+                "id": "w",
+                "label": "Any dose",
+                "holdHours": 120,
+                "restartHours": 0,
+                "holdText": "Stop 5 days before and document a normal INR; if a first dose was given more than 24 h earlier, or a second dose, check the INR",
+                "catheter": "May stay on low-dose warfarin with a daily INR and sensory-motor checks; hold or reduce the dose if INR is above 3; remove when INR is below 1.5 (1.5–3: with caution)",
+                "restartText": "No dosing interval; neurologic checks for 48 h after removal",
+                "inrRule": true
+              }
+            ],
+            "notes": [
+              "Urgent reversal: vitamin K, PCC or rFVIIa rather than FFP."
+            ]
+          },
+          {
+            "id": "apixaban",
+            "name": "Apixaban",
+            "tiers": [
+              {
+                "id": "high",
+                "label": "High dose: 5 mg twice daily (or the reduced 2.5 mg twice daily for stroke prevention)",
+                "holdHours": 72,
+                "restartHours": 24,
+                "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place"
+              },
+              {
+                "id": "low",
+                "label": "Low dose: 2.5 mg twice daily for VTE prophylaxis",
+                "holdHours": 36,
+                "restartHours": 6,
+                "level": "Level below 30 ng/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place"
+              }
+            ]
+          },
+          {
+            "id": "rivaroxaban",
+            "name": "Rivaroxaban",
+            "tiers": [
+              {
+                "id": "high",
+                "label": "High dose: 15–20 mg daily",
+                "holdHours": 72,
+                "restartHours": 24,
+                "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place"
+              },
+              {
+                "id": "low",
+                "label": "Low dose: 10 mg daily",
+                "holdHours": 24,
+                "restartHours": 6,
+                "renal": [
+                  {
+                    "label": "CrCl 30 mL/min or more",
+                    "hours": 24
+                  },
+                  {
+                    "label": "CrCl below 30 mL/min",
+                    "hours": 30
+                  }
+                ],
+                "level": "Level below 30 ng/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place"
+              }
+            ]
+          },
+          {
+            "id": "edoxaban",
+            "name": "Edoxaban",
+            "tiers": [
+              {
+                "id": "high",
+                "label": "30–60 mg daily",
+                "holdHours": 72,
+                "restartHours": 24,
+                "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place"
+              }
+            ],
+            "notes": [
+              "No recommendation for low-dose edoxaban (no FDA indication)."
+            ]
+          },
+          {
+            "id": "dabigatran",
+            "name": "Dabigatran",
+            "tiers": [
+              {
+                "id": "high",
+                "label": "Treatment or stroke-prevention dosing",
+                "holdHours": 72,
+                "restartHours": 24,
+                "renal": [
+                  {
+                    "label": "CrCl 50 mL/min or more",
+                    "hours": 72
+                  },
+                  {
+                    "label": "CrCl 30–49 mL/min",
+                    "hours": 120
+                  },
+                  {
+                    "label": "CrCl below 30 mL/min",
+                    "hours": null,
+                    "text": "Avoid the block unless the dabigatran level is below 30 ng/mL (TT or dTT, not aPTT)"
+                  }
+                ],
+                "level": "Level below 30 ng/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place"
+              },
+              {
+                "id": "low",
+                "label": "VTE-prophylaxis dosing",
+                "holdHours": 48,
+                "restartHours": 6,
+                "renal": [
+                  {
+                    "label": "CrCl 30 mL/min or more",
+                    "hours": 48
+                  },
+                  {
+                    "label": "CrCl below 30 mL/min",
+                    "hours": null,
+                    "text": "Avoid the block unless the level is below 30 ng/mL"
+                  }
+                ],
+                "level": "Level below 30 ng/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Parenteral anticoagulants",
+        "drugs": [
+          {
+            "id": "fondaparinux",
+            "name": "Fondaparinux",
+            "tiers": [
+              {
+                "id": "low",
+                "label": "Low dose: 2.5 mg daily",
+                "holdHours": 36,
+                "restartHours": 6,
+                "renal": [
+                  {
+                    "label": "Normal renal function",
+                    "hours": 36,
+                    "elderlyHours": 42
+                  },
+                  {
+                    "label": "CrCl 30–50 mL/min",
+                    "hours": 58
+                  },
+                  {
+                    "label": "CrCl below 30 mL/min",
+                    "hours": null,
+                    "text": "No neuraxial or deep block"
+                  }
+                ],
+                "level": "A fondaparinux-calibrated anti-Xa ≤ 0.1 IU/mL permits an earlier block",
+                "catheter": "Not addressed as a maintenance regimen; remove 6 h before the next dose",
+                "restartText": "Next dose 6 h after catheter removal"
+              },
+              {
+                "id": "high",
+                "label": "High dose: 5–10 mg daily",
+                "holdHours": 70,
+                "restartHours": 6,
+                "renal": [
+                  {
+                    "label": "Normal renal function",
+                    "hours": 70,
+                    "elderlyHours": 105
+                  }
+                ],
+                "level": "A fondaparinux-calibrated anti-Xa ≤ 0.1 IU/mL permits an earlier block",
+                "catheter": "Remove before dosing",
+                "restartText": "First postoperative dose 6 h after catheter removal"
+              }
+            ]
+          },
+          {
+            "id": "dti",
+            "name": "Argatroban, bivalirudin, desirudin",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any dose",
+                "holdHours": null,
+                "restartHours": null,
+                "holdText": "ASRA suggests against neuraxial techniques while on a parenteral direct thrombin inhibitor (effect 1–3 h after an IV dose, aPTT-monitored, no reversal agent)",
+                "catheter": "Not recommended",
+                "restartText": "Not specified"
+              }
+            ]
+          },
+          {
+            "id": "thrombolytic",
+            "name": "Thrombolytics (alteplase, tenecteplase, streptokinase)",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any dose",
+                "holdHours": 48,
+                "restartHours": null,
+                "holdText": "At least 48 h, with normal clotting studies including fibrinogen; ask about any dural puncture, spinal or epidural in the previous 10 days",
+                "catheter": "If given unexpectedly with a catheter in place: neurologic checks about every 2 h for at least 48 h; removal timing guided by fibrinogen",
+                "restartText": "Labeling: no thrombolytics within 10 days of a non-compressible vessel puncture"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Antiplatelet drugs",
+        "drugs": [
+          {
+            "id": "aspirin",
+            "name": "Aspirin and NSAIDs",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any dose",
+                "holdHours": 0,
+                "restartHours": 0,
+                "holdText": "No hold: no added risk on their own",
+                "catheter": "May stay; caution only with other anticoagulants or coagulopathy",
+                "restartText": "No restriction"
+              }
+            ]
+          },
+          {
+            "id": "clopidogrel",
+            "name": "Clopidogrel",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any dose",
+                "holdHours": 168,
+                "restartHours": 0,
+                "holdText": "5–7 days",
+                "catheter": "May stay 1–2 days provided no loading dose is given",
+                "restartText": "Resume immediately; 6 h after removal if a loading dose is given"
+              }
+            ]
+          },
+          {
+            "id": "prasugrel",
+            "name": "Prasugrel",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any dose",
+                "holdHours": 240,
+                "restartHours": 0,
+                "holdText": "7–10 days",
+                "catheter": "Do not maintain",
+                "restartText": "Resume immediately; 6 h after removal if a loading dose is given"
+              }
+            ]
+          },
+          {
+            "id": "ticagrelor",
+            "name": "Ticagrelor",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any dose",
+                "holdHours": 120,
+                "restartHours": 0,
+                "holdText": "5 days",
+                "catheter": "Do not maintain (rapid onset)",
+                "restartText": "Resume immediately; 6 h after removal if a loading dose is given"
+              }
+            ]
+          },
+          {
+            "id": "cangrelor",
+            "name": "Cangrelor",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Infusion",
+                "holdHours": 3,
+                "restartHours": 8,
+                "holdText": "3 h after stopping",
+                "catheter": "Remove before restarting",
+                "restartText": "First dose 8 h after catheter removal"
+              }
+            ]
+          },
+          {
+            "id": "gp2b3a",
+            "name": "GP IIb/IIIa inhibitors",
+            "tiers": [
+              {
+                "id": "abciximab",
+                "label": "Abciximab",
+                "holdHours": 48,
+                "restartHours": null,
+                "holdText": "24–48 h, until platelet function recovers",
+                "catheter": "If started with a catheter in place: dilute solutions and careful neurologic monitoring",
+                "restartText": "Labeling contraindicates use within 4 weeks of surgery"
+              },
+              {
+                "id": "small",
+                "label": "Eptifibatide or tirofiban",
+                "holdHours": 8,
+                "restartHours": null,
+                "holdText": "4–8 h, until platelet function recovers",
+                "catheter": "If started with a catheter in place: dilute solutions and careful neurologic monitoring",
+                "restartText": "Labeling contraindicates use within 4 weeks of surgery"
+              }
+            ]
+          },
+          {
+            "id": "cilostazol",
+            "name": "Cilostazol",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any dose",
+                "holdHours": 48,
+                "restartHours": 6,
+                "holdText": "2 days",
+                "catheter": "Remove before restarting",
+                "restartText": "First dose 6 h after catheter removal"
+              }
+            ]
+          },
+          {
+            "id": "herbal",
+            "name": "Herbal agents (garlic, ginkgo, ginseng)",
+            "tiers": [
+              {
+                "id": "any",
+                "label": "Any",
+                "holdHours": 0,
+                "restartHours": 0,
+                "holdText": "No hold on their own",
+                "catheter": "No restriction alone",
+                "restartText": "No restriction"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }
