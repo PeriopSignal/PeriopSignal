@@ -1,7 +1,6 @@
-[0;93m2026-10-28 10:33:02.807524532 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-2 post(s) to synthesize with kokoro:af_heart
-  icm-2026-esicm-human-centred-partnership-consensus: FAILED [Errno 2] No such file or directory: 'ffmpeg'
-  anaesthesia-2026-prospect-total-shoulder-arthroplasty: FAILED [Errno 2] No such file or directory: 'ffmpeg'
-synthesized 0, failed 2, 4914 characters, 3 min
-  icm-2026-esicm-human-centred-partnership-consensus: [Errno 2] No such file or directory: 'ffmpeg'
-  anaesthesia-2026-prospect-total-shoulder-arthroplasty: [Errno 2] No such file or directory: 'ffmpeg'
+[0;93m2026-10-28 10:37:05.397331944 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/VMBUS:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+3 post(s) to synthesize with kokoro:af_heart
+  icm-2026-esicm-human-centred-partnership-consensus: 174 s, 1356 KB, 76 s to make
+  anaesthesia-2026-prospect-total-shoulder-arthroplasty: 186 s, 1450 KB, 79 s to make
+  fda-2026-cipepofol-cypsedo-induction-approval: 175 s, 1370 KB, 75 s to make
+synthesized 3, failed 0, 7100 characters, 4 min
