@@ -45,7 +45,7 @@ struct NeuraxialTimingView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Anticoagulation and blocks")
+        .navigationTitle("Blocks on anticoagulants")
         .navigationBarTitleDisplayMode(.inline)
         .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { now = $0 }
     }

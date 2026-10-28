@@ -88,28 +88,28 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .emergency: return [
             RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local anesthetic toxicity", blurb: "Recognize, lipid doses, modified ACLS"),
             RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant hyperthermia", blurb: "Dantrolene, potassium, cooling, hotline"),
-            RefItem(route: .airway, icon: "wind", title: "Difficult airway", blurb: "Assessment in, the plan out; attempt counter and rescue steps"),
+            RefItem(route: .airway, icon: "wind", title: "Difficult airway", blurb: "Assessment in, the plan out; attempts and rescue"),
         ]
         case .preoperative: return [
             RefItem(route: .score("rcri"), icon: "heart.text.square", title: "RCRI", blurb: "Cardiac risk for non-cardiac surgery"),
             RefItem(route: .score("ariscat"), icon: "lungs", title: "ARISCAT", blurb: "Postoperative pulmonary complications"),
             RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-Bang", blurb: "Sleep apnea screening"),
             RefItem(route: .score("apfel"), icon: "pills", title: "Apfel PONV", blurb: "Nausea risk and how much prophylaxis"),
-            RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "What was taken and when, in; the earliest start, out"),
-            RefItem(route: .neuraxial, icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out"),
-            RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "Echo measurements in, the ASE grade out"),
-            RefItem(route: .intervention, icon: "heart.circle", title: "Valve intervention", blurb: "Does it need an operation, and which? Prompted from the ACC/AHA tables"),
+            RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
+            RefItem(route: .neuraxial, icon: "drop.triangle", title: "Blocks on anticoagulants", blurb: "Drug and last dose in, earliest block out"),
+            RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "Echo numbers in, ASE grade out"),
+            RefItem(route: .intervention, icon: "heart.circle", title: "Valve intervention", blurb: "Repair or replace? ACC/AHA, prompted"),
         ]
         case .generalAnesthesia: return [
-            RefItem(route: .local, icon: "syringe", title: "Local anesthetic doses", blurb: "Single agent or mixture, including Exparel"),
+            RefItem(route: .local, icon: "syringe", title: "Local anesthetic doses", blurb: "One agent or a mixture, with Exparel"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
             RefItem(route: .quickref("ponv-consensus"), icon: "pills.circle", title: "PONV management", blurb: "Agents, doses, timing and rescue"),
         ]
         case .medications: return [
-            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Starting doses for pressors, dilators, inotropes and hematologic agents"),
+            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Pressors, dilators, inotropes, blood products"),
         ]
         case .pediatrics: return [
-            RefItem(route: .peds, icon: "scalemass", title: "Pediatric doses", blurb: "Weight-based doses, tube sizes, fluids and blood volume"),
+            RefItem(route: .peds, icon: "scalemass", title: "Pediatric doses", blurb: "Doses, tube sizes, fluids and blood volume"),
         ]
         }
     }
@@ -367,8 +367,10 @@ struct CalculatorTile: View {
                 Text(title)
                     .font(PS.serif(size: 16.5))
                     .foregroundStyle(PS.fg)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(blurb)
                     .font(PS.sys(size: 12))
                     .foregroundStyle(PS.fg2)
