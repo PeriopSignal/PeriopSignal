@@ -167,5 +167,10 @@ final class ReferenceTests: XCTestCase {
         let range = PedsCalc.doseText(low: 2, high: 3, unit: "mg", weightKg: 18, max: nil)
         XCTAssertEqual(range.text, "36–54 mg")
         XCTAssertFalse(range.capped)
+        let floored = PedsCalc.doseText(low: 20, high: nil, unit: "mcg", weightKg: 3, min: 100, max: 500)
+        XCTAssertEqual(floored.text, "100 mcg", "atropine's minimum applies below 5 kg")
+        XCTAssertTrue(floored.capped)
+        XCTAssertEqual(PedsCalc.range(70, 70), "70")
+        XCTAssertEqual(PedsCalc.range(70, 75), "70–75")
     }
 }

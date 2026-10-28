@@ -377,7 +377,7 @@ struct PedsCalculatorView: View {
 
     private func drugRow(_ d: PedsDrug) -> some View {
         let perKg = PedsCalc.fmt(d.low) + (d.high.map { "–" + PedsCalc.fmt($0) } ?? "") + " \(d.unit)/kg"
-        let computed = weight.map { PedsCalc.doseText(low: d.low, high: d.high, unit: d.unit, weightKg: $0, max: d.max) }
+        let computed = weight.map { PedsCalc.doseText(low: d.low, high: d.high, unit: d.unit, weightKg: $0, min: d.min, max: d.max) }
         let open = expanded == d.id
         return Button {
             withAnimation(.snappy) { expanded = open ? nil : d.id }
@@ -395,14 +395,17 @@ struct PedsCalculatorView: View {
                             .foregroundStyle(computed == nil ? PS.fg3 : PS.fg)
                             .contentTransition(.numericText())
                         HStack(spacing: 4) {
-                            if computed?.capped == true { Text("max").font(PS.mono(size: 9.5)).foregroundStyle(PS.accent) }
+                            if computed?.capped == true { Text("limit").font(PS.mono(size: 9.5)).foregroundStyle(PS.accent) }
                             Text(perKg).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
                         }
                     }
                 }
                 if open {
                     VStack(alignment: .leading, spacing: 4) {
-                        if let m = d.max { Text("Maximum single dose \(PedsCalc.fmt(m)) \(d.unit)").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2) }
+                        if d.min != nil || d.max != nil {
+                            Text([d.min.map { "minimum \(PedsCalc.fmt($0)) \(d.unit)" }, d.max.map { "maximum \(PedsCalc.fmt($0)) \(d.unit)" }].compactMap { $0 }.joined(separator: " · ").capitalizedFirst)
+                                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
+                        }
                         if let c = d.conc { Text(c).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2) }
                         if let n = d.note { Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5) }
                         if let s = d.source { Text(s).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineSpacing(1.5) }
@@ -450,9 +453,9 @@ struct PedsCalculatorView: View {
         }()
         var rows: [[String]] = [
             ["Maintenance", weight == nil ? "—" : PedsCalc.fmt(maint) + " mL/h (4-2-1)"],
-            ["Blood volume", ebv.map { "\(PedsCalc.fmt($0.low))–\(PedsCalc.fmt($0.high)) mL · \($0.row.group), \(PedsCalc.fmt($0.row.mlPerKgLow))–\(PedsCalc.fmt($0.row.mlPerKgHigh)) mL/kg" } ?? "—"],
+            ["Blood volume", ebv.map { "\(PedsCalc.range($0.low, $0.high)) mL · \($0.row.group), \(PedsCalc.range($0.row.mlPerKgLow, $0.row.mlPerKgHigh)) mL/kg" } ?? "—"],
         ]
-        rows.append(["Allowable loss", mabl.map { "\(PedsCalc.fmt($0.0))–\(PedsCalc.fmt($0.1)) mL" } ?? "— (enter hematocrits)"])
+        rows.append(["Allowable loss", mabl.map { "\(PedsCalc.range($0.0, $0.1)) mL" } ?? "— (enter hematocrits)"])
         return VStack(alignment: .leading, spacing: 12) {
             FactTable(rows: rows)
             HStack(spacing: 12) {
@@ -463,7 +466,7 @@ struct PedsCalculatorView: View {
                 .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Blood volume by age").padding(.leading, 2)
-                FactTable(rows: peds.bloodVolume.map { [$0.group, "\(PedsCalc.fmt($0.mlPerKgLow))–\(PedsCalc.fmt($0.mlPerKgHigh)) mL/kg"] })
+                FactTable(rows: peds.bloodVolume.map { [$0.group, "\(PedsCalc.range($0.mlPerKgLow, $0.mlPerKgHigh)) mL/kg"] })
             }
         }
     }
@@ -528,4 +531,9 @@ struct PedsCalculatorView: View {
                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
     }
+}
+
+
+private extension String {
+    var capitalizedFirst: String { prefix(1).uppercased() + dropFirst() }
 }

@@ -94,6 +94,8 @@ def main(path):
                 need(isinstance(d["high"], (int, float)) and d["high"] >= (low or 0), f"peds drug {did}: high must be >= low")
             if d.get("max") is not None:
                 need(isinstance(d["max"], (int, float)) and d["max"] > 0, f"peds drug {did}: max must be > 0")
+            if d.get("min") is not None:
+                need(isinstance(d["min"], (int, float)) and 0 < d["min"] <= (d.get("max") or float("inf")), f"peds drug {did}: min must be > 0 and <= max")
             need(isinstance(d.get("source"), str) and d["source"].strip(), f"peds drug {did}: source required")
         for la in peds.get("localAnesthetics") or []:
             need(isinstance(la.get("maxMgPerKg"), (int, float)) and la["maxMgPerKg"] > 0, f"local anesthetic {la.get('id')}: maxMgPerKg > 0")

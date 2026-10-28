@@ -106,6 +106,8 @@ struct PedsDrug: Codable, Identifiable, Hashable {
     var low: Double
     var high: Double?
     var unit: String
+    /// Floor for one dose, in `unit` (atropine's 0.1 mg minimum).
+    var min: Double?
     /// Ceiling for one dose, in `unit` (e.g. 1 mg of epinephrine, 4 mg of ondansetron).
     var max: Double?
     /// Concentration note, shown as written ("0.1 mg/mL (1:10,000) → 0.1 mL/kg").

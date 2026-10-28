@@ -87,6 +87,9 @@ enum PedsCalc {
 
     // MARK: Formatting
 
+    /// "70–75" or a single number when the ends coincide.
+    static func range(_ lo: Double, _ hi: Double) -> String { abs(hi - lo) < 0.0001 ? fmt(lo) : fmt(lo) + "–" + fmt(hi) }
+
     /// Round to the nearest 0.5 (tube sizes).
     static func half(_ v: Double) -> String { fmt((v * 2).rounded() / 2) }
     static func tenth(_ v: Double) -> String { fmt((v * 10).rounded() / 10) }
@@ -104,11 +107,15 @@ enum PedsCalc {
         return s
     }
 
-    /// "12–18 mg" style range for a per-kg dose at a weight, capped at `max`.
-    static func doseText(low: Double, high: Double?, unit: String, weightKg: Double, max: Double?) -> (text: String, capped: Bool) {
+    /// "12–18 mg" style range for a per-kg dose at a weight, held within `min` and `max`.
+    static func doseText(low: Double, high: Double?, unit: String, weightKg: Double, min: Double? = nil, max: Double?) -> (text: String, capped: Bool) {
         var lo = low * weightKg
         var hi = (high ?? low) * weightKg
         var capped = false
+        if let m = min {
+            if lo < m { lo = m; capped = true }
+            if hi < m { hi = m; capped = true }
+        }
         if let m = max {
             if lo > m { lo = m; capped = true }
             if hi > m { hi = m; capped = true }
