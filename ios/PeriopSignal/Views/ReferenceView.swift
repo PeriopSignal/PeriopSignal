@@ -8,6 +8,8 @@ enum RefRoute: Hashable {
     case local
     case infusions
     case neuraxial
+    case fasting
+    case airway
     case folder(RefFolder)
 }
 
@@ -48,14 +50,14 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .emergency: return [
             RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local anesthetic toxicity", blurb: "Recognize, lipid doses, modified ACLS"),
             RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant hyperthermia", blurb: "Dantrolene, potassium, cooling, hotline"),
-            RefItem(route: .quickref("asa-difficult-airway"), icon: "wind", title: "Difficult airway", blurb: "The 2022 ASA algorithm's decision points"),
+            RefItem(route: .airway, icon: "wind", title: "Difficult airway", blurb: "Assessment in, the plan out; attempt counter and rescue steps"),
         ]
         case .preoperative: return [
             RefItem(route: .score("rcri"), icon: "heart.text.square", title: "RCRI", blurb: "Cardiac risk for non-cardiac surgery"),
             RefItem(route: .score("ariscat"), icon: "lungs", title: "ARISCAT", blurb: "Postoperative pulmonary complications"),
             RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-Bang", blurb: "Sleep apnea screening"),
             RefItem(route: .score("apfel"), icon: "pills", title: "Apfel PONV", blurb: "Nausea risk and how much prophylaxis"),
-            RefItem(route: .quickref("asa-fasting"), icon: "cup.and.saucer", title: "Fasting", blurb: "Minimum fasting times, carbohydrate drinks, gum"),
+            RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "What was taken and when, in; the earliest start, out"),
             RefItem(route: .neuraxial, icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out"),
             RefItem(route: .quickref("ase-valve-severity"), icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "ASE grading tables by lesion"),
             RefItem(route: .quickref("acc-aha-valve-intervention"), icon: "heart.circle", title: "Valve intervention", blurb: "When to repair or replace (ACC/AHA)"),
@@ -138,6 +140,10 @@ struct ReferenceView: View {
                     InfusionsView(onOpen: { webLink = WebLink(url: $0) })
                 case .neuraxial:
                     NeuraxialTimingView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("asra-anticoagulation")) })
+                case .fasting:
+                    FastingView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-fasting")) })
+                case .airway:
+                    AirwayGuideView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-difficult-airway")) })
                 case .folder(let f):
                     FolderView(folder: f, path: $path)
                 }
@@ -347,6 +353,14 @@ struct ReferenceSearchResults: View {
         let words = ["infusion", "drip", "pressor", "vasopressor", "inotrope", "vasodilator", "mcg/kg/min", "hematolog", "coagulation", "factor", "pcc", "antifibrinolytic"]
         return words.contains { $0.contains(q) || q.contains($0) } || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use).lowercased().contains(q) } }
     }
+    private var airwayMatches: Bool {
+        let words = ["airway", "intubat", "laryngoscop", "cricothyr", "cannot ventilate", "cicv", "awake", "videolaryngoscope", "supraglottic", "lma"]
+        return words.contains { $0.contains(q) || q.contains($0) }
+    }
+    private var fastingMatches: Bool {
+        let words = ["npo", "fasting", "fast", "clear liquid", "breast milk", "formula", "meal", "gum", "aspiration"]
+        return words.contains { $0.contains(q) || q.contains($0) }
+    }
     private var neuraxialMatches: Bool {
         let words = ["anticoag", "neuraxial", "epidural", "spinal", "block", "heparin", "enoxaparin", "lmwh", "warfarin", "apixaban", "rivaroxaban", "edoxaban", "dabigatran", "doac", "fondaparinux", "clopidogrel", "prasugrel", "ticagrelor", "aspirin", "thrombolytic", "asra"]
         return words.contains { $0.contains(q) || q.contains($0) }
@@ -362,7 +376,7 @@ struct ReferenceSearchResults: View {
     }
 
     var body: some View {
-        let nothing = scores.isEmpty && !pedsMatches && !localMatches && !infusionMatches && !neuraxialMatches && quickrefs.isEmpty && papers.isEmpty
+        let nothing = scores.isEmpty && !pedsMatches && !localMatches && !infusionMatches && !neuraxialMatches && !fastingMatches && !airwayMatches && quickrefs.isEmpty && papers.isEmpty
         if nothing {
             VStack(spacing: 10) {
                 ContentUnavailableView.search(text: query)
@@ -370,7 +384,7 @@ struct ReferenceSearchResults: View {
             }
             .padding(.top, 30)
         } else {
-            if !scores.isEmpty || pedsMatches || localMatches || infusionMatches || neuraxialMatches {
+            if !scores.isEmpty || pedsMatches || localMatches || infusionMatches || neuraxialMatches || fastingMatches || airwayMatches {
                 VStack(alignment: .leading, spacing: 12) {
                     Eyebrow(text: "Calculators").padding(.leading, 2)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
@@ -388,6 +402,12 @@ struct ReferenceSearchResults: View {
                         }
                         if neuraxialMatches {
                             CalculatorTile(icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out") { path.append(RefRoute.neuraxial) }
+                        }
+                        if fastingMatches {
+                            CalculatorTile(icon: "cup.and.saucer", title: "Fasting", blurb: "What was taken and when, in; the earliest start, out") { path.append(RefRoute.fasting) }
+                        }
+                        if airwayMatches {
+                            CalculatorTile(icon: "wind", title: "Difficult airway", blurb: "Assessment in, the plan out; attempt counter and rescue steps") { path.append(RefRoute.airway) }
                         }
                     }
                 }

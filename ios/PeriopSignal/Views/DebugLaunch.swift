@@ -29,6 +29,8 @@ enum DebugLaunch {
         if s == "local" { return .local }
         if s == "infusions" { return .infusions }
         if s == "neuraxial" { return .neuraxial }
+        if s == "fasting" { return .fasting }
+        if s == "airway" { return .airway }
         let parts = s.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return nil }
         switch parts[0] {

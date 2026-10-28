@@ -1554,6 +1554,36 @@
         "doi": "10.1136/rapm-2020-101986"
       },
       "reviewed": "2026-10-28",
+      "weightDoses": [
+        {
+          "label": "Lipid 20% bolus over 2–3 min",
+          "perKg": 1.5,
+          "unit": "mL",
+          "aboveKg": 70,
+          "aboveText": "100 mL (over 70 kg)",
+          "note": "Lean body weight; children: over 1 minute (Pedi Crisis)"
+        },
+        {
+          "label": "Lipid infusion",
+          "perKg": 15,
+          "unit": "mL/h",
+          "aboveKg": 70,
+          "aboveText": "200–250 mL over 15–20 min",
+          "note": "0.25 mL/kg/min; double to 0.5 mL/kg/min if still unstable"
+        },
+        {
+          "label": "Lipid maximum",
+          "perKg": 12,
+          "unit": "mL",
+          "note": "Ideal body weight; children 10 mL/kg in the first 30 minutes"
+        },
+        {
+          "label": "Epinephrine, if pulseless",
+          "perKg": 1,
+          "unit": "mcg",
+          "note": "Small boluses of 1 mcg/kg or less"
+        }
+      ],
       "sections": [
         {
           "heading": "Recognize it",
@@ -1663,6 +1693,50 @@
         "doi": null
       },
       "reviewed": "2026-10-28",
+      "weightDoses": [
+        {
+          "label": "Dantrolene, repeat every 5 min",
+          "perKg": 2.5,
+          "unit": "mg",
+          "vialSize": 250,
+          "vialName": "Ryanodex 250 mg (5 mL water each)",
+          "note": "Until end-tidal CO₂, rigidity and heart rate settle; more than 10 mg/kg is sometimes needed"
+        },
+        {
+          "label": "Dantrolene as Dantrium or Revonto",
+          "perKg": 2.5,
+          "unit": "mg",
+          "vialSize": 20,
+          "vialName": "20 mg vials (60 mL water each)",
+          "note": "Same dose; many more vials"
+        },
+        {
+          "label": "Sodium bicarbonate",
+          "perKg": 1,
+          "perKgHigh": 2,
+          "unit": "mEq",
+          "note": "For base excess more negative than −8, or hyperkalemia"
+        },
+        {
+          "label": "Calcium chloride for hyperkalemia",
+          "perKg": 10,
+          "unit": "mg",
+          "max": 2000,
+          "note": "Or calcium gluconate 10–50 mg/kg (maximum 3 g)"
+        },
+        {
+          "label": "Regular insulin (child)",
+          "perKg": 0.1,
+          "unit": "units",
+          "note": "With 2 mL/kg of 25% dextrose; adult 10 units with 50 mL of 50% dextrose; glucose hourly"
+        },
+        {
+          "label": "Dantrolene after the crisis, every 4–6 h",
+          "perKg": 1,
+          "unit": "mg",
+          "note": "For at least 24 hours"
+        }
+      ],
       "sections": [
         {
           "heading": "Recognize it",

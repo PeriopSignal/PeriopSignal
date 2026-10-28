@@ -133,6 +133,8 @@ struct QuickRef: Codable, Identifiable, Hashable {
     /// Emergency checklists get the coral treatment and sort first.
     var emergency: Bool?
     var sections: [RefSection]
+    /// Weight-based doses the card computes for the patient (emergency checklists).
+    var weightDoses: [WeightDose]?
 
     var isEmergency: Bool { emergency ?? false }
     var societyShort: String { short ?? society }
@@ -149,6 +151,23 @@ struct QuickRef: Codable, Identifiable, Hashable {
         }
         return parts.joined(separator: " ").lowercased()
     }
+}
+
+/// A dose the emergency card computes from the patient's weight.
+struct WeightDose: Codable, Hashable, Identifiable {
+    var id: String { label }
+    var label: String
+    var perKg: Double
+    var perKgHigh: Double?
+    var unit: String
+    var max: Double?
+    /// Fixed regimen above a weight threshold (ASRA lipid: 100 mL bolus over 70 kg).
+    var aboveKg: Double?
+    var aboveText: String?
+    var note: String?
+    /// Vial size in `unit` for a vial count (Ryanodex 250 mg, Dantrium 20 mg).
+    var vialSize: Double?
+    var vialName: String?
 }
 
 struct RefSection: Codable, Hashable {
