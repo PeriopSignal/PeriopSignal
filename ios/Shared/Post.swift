@@ -28,7 +28,7 @@ struct Glance: Codable, Hashable {
     var isEmpty: Bool { design.isEmpty && n.isEmpty && outcome.isEmpty && result.isEmpty }
     /// Label/value pairs that have a value, in display order.
     var rows: [(label: String, value: String)] {
-        [("Design", design), ("Population", n), ("Primary outcome", outcome), ("Result", result)].filter { !$0.1.isEmpty }
+        [("Design", design), ("Population", n), ("Outcome", outcome), ("Result", result)].filter { !$0.1.isEmpty }
     }
 }
 

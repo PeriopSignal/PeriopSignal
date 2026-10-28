@@ -121,6 +121,8 @@ struct MetaLine: View {
     var long = false
     var isNew = false
     var showDot = true
+    /// Cards drop the year (the month label above them carries it).
+    var short = false
     var body: some View {
         HStack(spacing: 6) {
             if showDot {
@@ -130,7 +132,7 @@ struct MetaLine: View {
             Text("·").foregroundStyle(PS.fg3)
             Text(post.kind)
             Text("·").foregroundStyle(PS.fg3)
-            Text((post.dateApprox ? "~" : "") + PSDate.display(post.date, long: long))
+            Text((post.dateApprox ? "~" : "") + (short ? PSDate.short.string(from: post.dateValue) : PSDate.display(post.date, long: long)))
             if isNew { Pill(text: "New", style: .new) }
         }
         .font(PS.sys(size: 12.5))
@@ -172,7 +174,7 @@ struct ECGLine: Shape {
         let base = rect.midY
         var x = rect.minX
         p.move(to: CGPoint(x: x, y: base))
-        while x < rect.maxX {
+        while x + cycle <= rect.maxX {
             let w = cycle / 30
             func to(_ dx: CGFloat, _ dy: CGFloat) { x += dx; p.addLine(to: CGPoint(x: x, y: base + dy)) }
             func curve(_ dx: CGFloat, _ depth: CGFloat) {
@@ -187,6 +189,7 @@ struct ECGLine: Shape {
             curve(5 * w, -4.2)                                   // T
             to(5.5 * w, 0)
         }
+        if x < rect.maxX { p.addLine(to: CGPoint(x: rect.maxX, y: base)) }
         return p.trimmedPath(from: 0, to: max(0, min(1, progress)))
     }
 }

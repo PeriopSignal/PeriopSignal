@@ -17,7 +17,7 @@ struct PostCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 8) {
-                MetaLine(post: post, isNew: isNew)
+                MetaLine(post: post, isNew: isNew, short: true)
                 if isUnread && !isNew { UnreadDot() }
                 Spacer(minLength: 6)
                 if post.isLandmark {
@@ -71,8 +71,10 @@ struct PostCard: View {
                     Spacer(minLength: 10)
                     actions
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    ScrollView(.horizontal, showsIndicators: false) { topicLabels }
+                VStack(alignment: .leading, spacing: 2) {
+                    FlowLayout(spacing: 12) {
+                        ForEach(post.topics, id: \.self) { id in topicLabel(id) }
+                    }
                     HStack { Spacer(minLength: 0); actions }
                 }
             }
@@ -99,14 +101,17 @@ struct PostCard: View {
 
     private var topicLabels: some View {
         HStack(spacing: 12) {
-            ForEach(post.topics, id: \.self) { id in
-                let t = Topics.info(id)
-                HStack(spacing: 5) {
-                    Circle().fill(t.fg).frame(width: 7, height: 7)
-                    Eyebrow(text: t.name, color: PS.fg3, size: 10)
-                }
-            }
+            ForEach(post.topics, id: \.self) { id in topicLabel(id) }
         }
+    }
+
+    private func topicLabel(_ id: String) -> some View {
+        let t = Topics.info(id)
+        return HStack(spacing: 5) {
+            Circle().fill(t.fg).frame(width: 7, height: 7)
+            Eyebrow(text: t.name, color: PS.fg3, size: 10)
+        }
+        .padding(.vertical, 3)
     }
 
     private var actions: some View {

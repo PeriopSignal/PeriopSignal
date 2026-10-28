@@ -298,7 +298,7 @@ struct NotifyBanner: View {
     var body: some View {
         if visible {
             VStack(spacing: 0) {
-                QuietRow(icon: "bell.badge", tint: PS.accent, eyebrow: "Morning alerts", text: "One notification when new papers land, at the time you choose.", textSize: 14, lines: 2) {
+                QuietRow(icon: "bell.badge", tint: PS.accent, eyebrow: "Morning alerts", text: "One notification when new papers land.", textSize: 14, lines: 2) {
                     HStack(spacing: 4) {
                         Button {
                             busy = true
