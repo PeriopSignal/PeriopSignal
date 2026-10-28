@@ -80,6 +80,7 @@ jobs:
       - name: Synthesize and upload
         if: steps.pending.outputs.go == 'true'
         run: |
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null; }
           ffmpeg -version | head -1
           ARGS="--limit ${{ inputs.limit || '70' }}"
           [ "${{ inputs.all }}" = "true" ] && ARGS="$ARGS --all"
