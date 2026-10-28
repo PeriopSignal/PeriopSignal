@@ -4,11 +4,15 @@ import MediaPlayer
 import Observation
 import SwiftUI
 
-/// Reads posts aloud with the system voice, podcast-style: a queue of posts, play/pause, skip,
-/// lock-screen controls, and background playback (UIBackgroundModes: audio).
+/// Reads posts aloud, podcast-style: a queue of posts, play/pause, skip, lock-screen controls and
+/// background playback (UIBackgroundModes: audio). A post with a studio recording (`post.audio`,
+/// made by the repository's audio workflow) streams that MP3; every other post is spoken by the
+/// phone's own voice.
 @MainActor
 @Observable
 final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
+    enum Mode { case idle, speech, recording }
+
     private(set) var queue: [Post] = []
     private(set) var index = 0
     private(set) var segmentIndex = 0
@@ -16,11 +20,22 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     /// True while the mini player should be shown.
     private(set) var isActive = false
     private(set) var finished = false
+    private(set) var isBuffering = false
+    private(set) var mode: Mode = .idle
+    /// 0…1 through the current recording (speech uses segment counts instead).
+    private(set) var recordingProgress: Double = 0
+
+    /// Injected at launch: voice choice and whether recordings are preferred.
+    var preferences: Preferences?
 
     private let synth = AVSpeechSynthesizer()
     private var segments: [String] = []
     private var remoteCommandsReady = false
     private var interruptionObserver: NSObjectProtocol?
+    private var player: AVPlayer?
+    private var timeObserver: Any?
+    private var endObserver: NSObjectProtocol?
+    private var downloadTask: Task<Void, Never>?
     var rate: Float = AVSpeechUtteranceDefaultSpeechRate
 
     override init() {
@@ -34,14 +49,20 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     var current: Post? { queue.indices.contains(index) ? queue[index] : nil }
     var hasNext: Bool { index + 1 < queue.count }
     var hasPrevious: Bool { index > 0 }
-    var progress: Double { segments.isEmpty ? 0 : Double(min(segmentIndex, segments.count)) / Double(segments.count) }
+    var progress: Double {
+        if mode == .recording { return recordingProgress }
+        return segments.isEmpty ? 0 : Double(min(segmentIndex, segments.count)) / Double(segments.count)
+    }
     var positionText: String { queue.count > 1 ? "\(index + 1) of \(queue.count)" : "" }
+
+    /// Playback speed as a multiplier of normal, derived from the stored speech rate.
+    var playbackMultiplier: Float { Float(SpeechRate.nearest(Double(rate)).multiplier) }
 
     // MARK: Controls
 
     func play(_ posts: [Post], startAt start: Int = 0) {
         guard !posts.isEmpty else { return }
-        stopSpeaking()
+        stopPlayback()
         queue = posts
         index = min(max(0, start), posts.count - 1)
         isActive = true
@@ -49,50 +70,66 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
         activateSession()
         setupRemoteCommands()
         loadCurrent()
-        speakSegment()
+        begin()
     }
 
     func play(_ post: Post) { play([post]) }
 
     func toggle() {
-        if finished { index = 0; finished = false; loadCurrent(); speakSegment(); return }
-        if isPlaying {
-            synth.pauseSpeaking(at: .word)
-            isPlaying = false
-        } else if synth.isPaused {
-            synth.continueSpeaking()
-            isPlaying = true
-        } else {
-            activateSession()
-            speakSegment()
+        if finished { index = 0; finished = false; loadCurrent(); begin(); return }
+        switch mode {
+        case .recording:
+            guard let player else {
+                // Still downloading: a tap pauses the download; the next tap starts again.
+                if isBuffering { stopPlayback(); mode = .recording } else { begin() }
+                return
+            }
+            if isPlaying { player.pause(); isPlaying = false } else { activateSession(); player.rate = playbackMultiplier; isPlaying = true }
+        case .speech:
+            if isPlaying {
+                synth.pauseSpeaking(at: .word)
+                isPlaying = false
+            } else if synth.isPaused {
+                synth.continueSpeaking()
+                isPlaying = true
+            } else {
+                activateSession()
+                speakSegment()
+            }
+        case .idle:
+            begin()
         }
         updateNowPlaying()
     }
 
     func next() {
         guard hasNext else { finish(); return }
-        stopSpeaking()
+        stopPlayback()
         index += 1
         loadCurrent()
-        speakSegment()
+        begin()
     }
 
     func previous() {
-        stopSpeaking()
-        if segmentIndex > 1 || !hasPrevious {
+        let restart: Bool
+        if mode == .recording, let t = player?.currentTime().seconds, t > 3 { restart = true }
+        else { restart = segmentIndex > 1 || !hasPrevious }
+        stopPlayback()
+        if restart {
             segmentIndex = 0
         } else {
             index -= 1
             loadCurrent()
         }
-        speakSegment()
+        begin()
     }
 
     func stop() {
-        stopSpeaking()
+        stopPlayback()
         isPlaying = false
         isActive = false
         finished = false
+        mode = .idle
         queue = []
         segments = []
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
@@ -102,23 +139,41 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
     func setRate(_ value: Double) {
         rate = Float(value)
         guard isPlaying else { return }
-        // Re-speak the current segment at the new rate.
-        stopSpeaking()
-        speakSegment()
+        switch mode {
+        case .recording: player?.rate = playbackMultiplier
+        case .speech:
+            // Re-speak the current segment at the new rate.
+            stopSpeech()
+            speakSegment()
+        case .idle: break
+        }
     }
 
     // MARK: Internals
 
     private func loadCurrent() {
         segmentIndex = 0
+        recordingProgress = 0
         segments = current.map(Self.segments(for:)) ?? []
         updateNowPlaying()
     }
 
+    /// Starts the current post: the recording when there is one and the reader wants it, else speech.
+    private func begin() {
+        guard let post = current else { return }
+        if preferences?.preferRecordings ?? true, let audio = post.audio, let url = URL(string: audio.url) {
+            startRecording(url: url, for: post)
+        } else {
+            mode = .speech
+            speakSegment()
+        }
+    }
+
     private func speakSegment() {
+        mode = .speech
         guard segmentIndex < segments.count else { advancePost(); return }
         let u = AVSpeechUtterance(string: segments[segmentIndex])
-        u.voice = Self.preferredVoice
+        u.voice = chosenVoice
         u.rate = rate
         u.postUtteranceDelay = 0.3
         synth.speak(u)
@@ -126,28 +181,94 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
         updateNowPlaying()
     }
 
+    private var chosenVoice: AVSpeechSynthesisVoice? {
+        if let id = preferences?.voiceID, let v = AVSpeechSynthesisVoice(identifier: id) { return v }
+        return Self.preferredVoice
+    }
+
+    private func startRecording(url: URL, for post: Post) {
+        mode = .recording
+        isBuffering = true
+        isPlaying = true
+        updateNowPlaying()
+        let id = post.id
+        downloadTask?.cancel()
+        downloadTask = Task { [weak self] in
+            let local = await AudioCache.localURL(for: url, id: id)
+            guard let self, !Task.isCancelled, self.current?.id == id, self.mode == .recording else { return }
+            self.isBuffering = false
+            guard let local else {
+                // No recording reachable: fall back to the phone's voice for this post.
+                self.speakSegment()
+                return
+            }
+            self.attachPlayer(url: local)
+        }
+    }
+
+    private func attachPlayer(url: URL) {
+        let item = AVPlayerItem(url: url)
+        item.audioTimePitchAlgorithm = .timeDomain
+        let p = AVPlayer(playerItem: item)
+        player = p
+        endObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.mode == .recording else { return }
+                self.recordingProgress = 1
+                self.advancePost()
+            }
+        }
+        timeObserver = p.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main) { [weak self] time in
+            Task { @MainActor in
+                guard let self, let d = self.player?.currentItem?.duration.seconds, d.isFinite, d > 0 else { return }
+                self.recordingProgress = min(1, max(0, time.seconds / d))
+                self.updateNowPlaying(elapsed: time.seconds, duration: d)
+            }
+        }
+        p.rate = playbackMultiplier
+        isPlaying = true
+        updateNowPlaying()
+    }
+
     private func advancePost() {
+        stopPlayback()
         if hasNext {
             index += 1
             loadCurrent()
-            speakSegment()
+            begin()
         } else {
             finish()
         }
     }
 
     private func finish() {
-        stopSpeaking()
+        stopPlayback()
         isPlaying = false
         finished = true
         segmentIndex = segments.count
+        recordingProgress = 1
         updateNowPlaying()
     }
 
-    private func stopSpeaking() {
+    private func stopSpeech() {
         if synth.isSpeaking || synth.isPaused {
             synth.stopSpeaking(at: .immediate)
         }
+    }
+
+    private func stopPlayback() {
+        stopSpeech()
+        downloadTask?.cancel()
+        downloadTask = nil
+        if let p = player {
+            p.pause()
+            if let t = timeObserver { p.removeTimeObserver(t) }
+        }
+        if let e = endObserver { NotificationCenter.default.removeObserver(e) }
+        timeObserver = nil
+        endObserver = nil
+        player = nil
+        isBuffering = false
         isPlaying = false
     }
 
@@ -162,7 +283,10 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
               let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
         switch type {
         case .began:
-            if isPlaying { synth.pauseSpeaking(at: .word); isPlaying = false }
+            if isPlaying {
+                if mode == .recording { player?.pause() } else { synth.pauseSpeaking(at: .word) }
+                isPlaying = false
+            }
         case .ended:
             let opts = AVAudioSession.InterruptionOptions(rawValue: note.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0)
             if opts.contains(.shouldResume), isActive, !finished { toggle() }
@@ -174,7 +298,7 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         Task { @MainActor in
-            guard self.isActive else { return }
+            guard self.isActive, self.mode == .speech else { return }
             self.segmentIndex += 1
             self.speakSegment()
         }
@@ -195,15 +319,17 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
         c.skipBackwardCommand.isEnabled = false
     }
 
-    private func updateNowPlaying() {
+    private func updateNowPlaying(elapsed: Double? = nil, duration: Double? = nil) {
         guard let post = current else { MPNowPlayingInfoCenter.default().nowPlayingInfo = nil; return }
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: post.headline,
             MPMediaItemPropertyArtist: "Periop Signal · \(post.journal)",
             MPMediaItemPropertyAlbumTitle: "\(post.kind) · \(PSDate.display(post.date, long: true))",
-            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0,
+            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? Double(playbackMultiplier) : 0.0,
             MPNowPlayingInfoPropertyIsLiveStream: false,
         ]
+        if let duration { info[MPMediaItemPropertyPlaybackDuration] = duration }
+        if let elapsed { info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed }
         if queue.count > 1 {
             info[MPNowPlayingInfoPropertyPlaybackQueueIndex] = index
             info[MPNowPlayingInfoPropertyPlaybackQueueCount] = queue.count
@@ -219,25 +345,62 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
         return MPMediaItemArtwork(boundsSize: image.size) { _ in image }
     }()
 
-    // MARK: Text
+    // MARK: Voices
+
+    /// Installed English voices, best first (Premium, Enhanced, then the compact ones).
+    nonisolated static func englishVoices() -> [AVSpeechSynthesisVoice] {
+        AVSpeechSynthesisVoice.speechVoices()
+            .filter { $0.language.hasPrefix("en") }
+            .sorted { a, b in
+                if rank(a) != rank(b) { return rank(a) > rank(b) }
+                if a.language != b.language { return a.language == "en-US" }
+                return a.name < b.name
+            }
+    }
+
+    nonisolated static func rank(_ v: AVSpeechSynthesisVoice) -> Int {
+        switch v.quality {
+        case .premium: return 3
+        case .enhanced: return 2
+        default: return 1
+        }
+    }
+
+    nonisolated static func qualityLabel(_ v: AVSpeechSynthesisVoice) -> String {
+        switch v.quality {
+        case .premium: return "Premium"
+        case .enhanced: return "Enhanced"
+        default: return "Compact"
+        }
+    }
 
     static let preferredVoice: AVSpeechSynthesisVoice? = {
         let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "en-US" }
-        func rank(_ v: AVSpeechSynthesisVoice) -> Int {
-            switch v.quality {
-            case .premium: return 3
-            case .enhanced: return 2
-            default: return 1
-            }
-        }
         return voices.max { rank($0) < rank($1) } ?? AVSpeechSynthesisVoice(language: "en-US")
     }()
+
+    /// Speaks a short sample with a given voice (voice picker preview), without touching the queue.
+    func preview(voice: AVSpeechSynthesisVoice) {
+        guard !isActive else { return }
+        activateSession()
+        stopSpeech()
+        let u = AVSpeechUtterance(string: "Periop Signal. In the RATE trial, low-dose heparin was noninferior to standard heparin on ECMO.")
+        u.voice = voice
+        u.rate = rate
+        synth.speak(u)
+    }
+
+    // MARK: Text
+
+    nonisolated static let kindSpoken: [String: String] = ["RCT": "a randomized trial", "Guideline": "a guideline", "Consensus": "a consensus statement", "Meta-analysis": "a meta-analysis",
+                                                        "Observational": "an observational study", "Registry": "a registry study", "FDA/Regulatory": "a regulatory notice",
+                                                        "Device": "device news", "Safety alert": "a safety alert", "Trial update": "a trial update", "Conference": "a conference report"]
 
     /// The post as spoken paragraphs: headline, source line, take-home, overview, stated limitations.
     nonisolated static func segments(for post: Post) -> [String] {
         var out: [String] = []
         out.append(spoken(post.headline))
-        var source = "From \(post.journal), \(post.kind.lowercased())"
+        var source = "From \(post.journal), \(kindSpoken[post.kind] ?? post.kind.lowercased())"
         if !post.trialName.isEmpty { source += ", the \(post.trialName) trial" }
         source += ", \(PSDate.display(post.date, long: true))."
         out.append(source)
@@ -278,5 +441,45 @@ final class SpeechPlayer: NSObject, AVSpeechSynthesizerDelegate {
             t = t.replacingOccurrences(of: pattern, with: rep, options: .regularExpression)
         }
         return t.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+/// Downloads recordings once into Caches/audio and hands back the local file.
+enum AudioCache {
+    static var directory: URL {
+        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
+        let dir = base.appendingPathComponent("audio", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    static func cached(id: String) -> URL? {
+        let f = directory.appendingPathComponent(id + ".mp3")
+        return FileManager.default.fileExists(atPath: f.path) ? f : nil
+    }
+
+    /// Returns the local file for a recording, downloading it first when needed; nil when unreachable.
+    static func localURL(for remote: URL, id: String) async -> URL? {
+        if let f = cached(id: id) { return f }
+        do {
+            let (tmp, response) = try await URLSession.shared.download(from: remote)
+            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) { return nil }
+            let dest = directory.appendingPathComponent(id + ".mp3")
+            try? FileManager.default.removeItem(at: dest)
+            try FileManager.default.moveItem(at: tmp, to: dest)
+            return dest
+        } catch {
+            return nil
+        }
+    }
+
+    /// Bytes on disk, for the settings screen.
+    static var sizeOnDisk: Int {
+        let files = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.fileSizeKey])) ?? []
+        return files.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
+    }
+
+    static func clear() {
+        try? FileManager.default.removeItem(at: directory)
     }
 }

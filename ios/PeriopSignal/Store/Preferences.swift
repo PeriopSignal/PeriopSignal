@@ -44,6 +44,10 @@ final class Preferences {
 
     /// AVSpeechUtterance rate (0.0–1.0; 0.5 is the system default).
     var speechRate: Double { didSet { defaults.set(speechRate, forKey: "ps.speechRate") } }
+    /// Identifier of the phone voice used when a post has no recording (nil = best installed).
+    var voiceID: String? { didSet { defaults.set(voiceID, forKey: "ps.voiceID") } }
+    /// Play the studio recordings when a post has one.
+    var preferRecordings: Bool { didSet { defaults.set(preferRecordings, forKey: "ps.preferRecordings") } }
 
     init() {
         let d = UserDefaults.standard
@@ -60,6 +64,8 @@ final class Preferences {
         weeklyDigest = d.object(forKey: "ps.weeklyDigest") as? Bool ?? true
         textScale = d.object(forKey: "ps.textScale") as? Double ?? 1.0
         speechRate = d.object(forKey: "ps.speechRate") as? Double ?? 0.5
+        voiceID = d.string(forKey: "ps.voiceID")
+        preferRecordings = d.object(forKey: "ps.preferRecordings") as? Bool ?? true
         PS.textScale = CGFloat(textScale)
         if d.object(forKey: "ps.firstLaunch") == nil {
             d.set(Date().timeIntervalSince1970, forKey: "ps.firstLaunch")

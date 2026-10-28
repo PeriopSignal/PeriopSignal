@@ -22,6 +22,7 @@ struct PeriopSignalApp: App {
         _store = State(initialValue: postStore)
         let player = SpeechPlayer()
         player.rate = Float(prefs.speechRate)
+        player.preferences = prefs
         _speech = State(initialValue: player)
     }
 

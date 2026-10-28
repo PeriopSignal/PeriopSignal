@@ -112,10 +112,14 @@ struct TodayHero: View {
         return n < w.count ? w[n] : String(n)
     }
 
-    /// Rough listening time at ~165 words a minute.
+    /// Listening time: the recordings' real length where they exist, ~165 words a minute otherwise.
     private var listenMinutes: Int {
-        let words = unread.reduce(0) { $0 + SpeechPlayer.segments(for: $1).reduce(0) { $0 + $1.split(separator: " ").count } }
-        return max(1, Int((Double(words) / 165).rounded()))
+        let seconds = unread.reduce(0.0) { total, post in
+            if let a = post.audio { return total + Double(a.seconds) }
+            let words = SpeechPlayer.segments(for: post).reduce(0) { $0 + $1.split(separator: " ").count }
+            return total + Double(words) / 165 * 60
+        }
+        return max(1, Int((seconds / 60).rounded()))
     }
 
     private var weekLine: some View {

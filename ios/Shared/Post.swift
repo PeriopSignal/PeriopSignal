@@ -42,6 +42,14 @@ struct Quiz: Codable, Hashable {
     var isValid: Bool { options.count == 4 && (0..<4).contains(answer) && !question.isEmpty }
 }
 
+/// A studio recording of the post (made by the repository's audio workflow).
+struct PostAudio: Codable, Hashable {
+    var url: String
+    var seconds: Int
+    var bytes: Int?
+    var voice: String?
+}
+
 /// Bibliographic record from Crossref, used for citations and RIS export.
 struct Citation: Codable, Hashable {
     var title: String
@@ -78,9 +86,10 @@ struct Post: Codable, Identifiable, Hashable {
     var glance: Glance?
     var quiz: Quiz?
     var citation: Citation?
+    var audio: PostAudio?
 
     enum CodingKeys: String, CodingKey {
-        case id, date, dateApprox, addedAt, journal, jshort, kind, topics, headline, summary, takeHome, deepDive, url, impact, trialName, firstAuthor, authorLimitations, authorBasis, takeHomeBy, title, glance, quiz, citation
+        case id, date, dateApprox, addedAt, journal, jshort, kind, topics, headline, summary, takeHome, deepDive, url, impact, trialName, firstAuthor, authorLimitations, authorBasis, takeHomeBy, title, glance, quiz, citation, audio
     }
 
     init(from decoder: Decoder) throws {
@@ -110,15 +119,17 @@ struct Post: Codable, Identifiable, Hashable {
         quiz = try? c.decodeIfPresent(Quiz.self, forKey: .quiz)
         if quiz?.isValid == false { quiz = nil }
         citation = try? c.decodeIfPresent(Citation.self, forKey: .citation)
+        audio = try? c.decodeIfPresent(PostAudio.self, forKey: .audio)
+        if let a = audio, a.seconds < 1 || URL(string: a.url) == nil { audio = nil }
     }
 
-    init(id: String, date: String, dateApprox: Bool = false, addedAt: String? = nil, journal: String, jshort: String, kind: String, topics: [String], headline: String, summary: String, takeHome: [String], deepDive: String, url: String, impact: Int, trialName: String = "", firstAuthor: String = "", authorLimitations: [String] = [], authorBasis: String = "", takeHomeBy: String = "", title: String? = nil, glance: Glance? = nil, quiz: Quiz? = nil, citation: Citation? = nil) {
+    init(id: String, date: String, dateApprox: Bool = false, addedAt: String? = nil, journal: String, jshort: String, kind: String, topics: [String], headline: String, summary: String, takeHome: [String], deepDive: String, url: String, impact: Int, trialName: String = "", firstAuthor: String = "", authorLimitations: [String] = [], authorBasis: String = "", takeHomeBy: String = "", title: String? = nil, glance: Glance? = nil, quiz: Quiz? = nil, citation: Citation? = nil, audio: PostAudio? = nil) {
         self.id = id; self.date = date; self.dateApprox = dateApprox; self.addedAt = addedAt ?? date
         self.journal = journal; self.jshort = jshort; self.kind = kind; self.topics = topics
         self.headline = headline; self.summary = summary; self.takeHome = takeHome; self.deepDive = deepDive
         self.url = url; self.impact = impact; self.trialName = trialName; self.firstAuthor = firstAuthor
         self.authorLimitations = authorLimitations; self.authorBasis = authorBasis; self.takeHomeBy = takeHomeBy
-        self.title = title; self.glance = glance; self.quiz = quiz; self.citation = citation
+        self.title = title; self.glance = glance; self.quiz = quiz; self.citation = citation; self.audio = audio
     }
 
     static func == (lhs: Post, rhs: Post) -> Bool { lhs.id == rhs.id }

@@ -53,6 +53,20 @@ final class FeedDecodingTests: XCTestCase {
         XCTAssertEqual(p.authorLine, "Smith AB and Jones C")
     }
 
+    func testAudioDecoding() throws {
+        let json = """
+        {"name":"x","generatedAt":"2026-10-20T00:00:00+00:00","posts":[
+          {"id":"a","date":"2026-10-01","journal":"JAMA","jshort":"JAMA","kind":"RCT","topics":["criticalCare"],"headline":"H","summary":"S","takeHome":["t"],"deepDive":"d","url":"https://doi.org/10.1001/jama.1","impact":3,
+           "audio":{"url":"https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/a.mp3","seconds":171,"bytes":700000,"voice":"en-US-Chirp3-HD-Charon"}},
+          {"id":"b","date":"2026-10-01","journal":"JAMA","jshort":"JAMA","kind":"RCT","topics":["criticalCare"],"headline":"H","summary":"S","takeHome":["t"],"deepDive":"d","url":"https://doi.org/10.1001/jama.2","impact":3,
+           "audio":{"url":"not a url","seconds":0,"voice":"x"}}]}
+        """
+        let posts = try FeedLoader.decode(Data(json.utf8)).posts
+        XCTAssertEqual(posts[0].audio?.seconds, 171)
+        XCTAssertNil(posts[1].audio, "a recording with no length or a bad link is ignored")
+        XCTAssertEqual(SpeechPlayer.kindSpoken["RCT"], "a randomized trial")
+    }
+
     func testBrokenQuizIsDropped() throws {
         let json = """
         {"name":"x","generatedAt":"2026-10-20T00:00:00+00:00","posts":[{"id":"a","date":"2026-10-01","journal":"JAMA","jshort":"JAMA","kind":"RCT","topics":["criticalCare"],"headline":"H","summary":"S","takeHome":["t"],"deepDive":"d","url":"https://doi.org/10.1001/jama.1","impact":3,

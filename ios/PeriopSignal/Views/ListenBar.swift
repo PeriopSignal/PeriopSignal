@@ -74,7 +74,9 @@ struct ListenBar: View {
     private var status: String {
         if speech.finished { return "Finished · tap to replay" }
         let pos = speech.positionText
-        return (speech.isPlaying ? "Playing" : "Paused") + (pos.isEmpty ? "" : " · " + pos)
+        if speech.isBuffering { return "Loading recording" + (pos.isEmpty ? "" : " · " + pos) }
+        let what = speech.mode == .recording ? "Recording" : "Phone voice"
+        return (speech.isPlaying ? "Playing" : "Paused") + " · " + what + (pos.isEmpty ? "" : " · " + pos)
     }
 
     private var rateLabel: String { SpeechRate.nearest(prefs.speechRate).label }
@@ -101,6 +103,15 @@ enum SpeechRate: Double, CaseIterable, Identifiable {
         case .normal: return "1×"
         case .brisk: return "1.2×"
         case .fast: return "1.5×"
+        }
+    }
+    /// Playback speed for recordings.
+    var multiplier: Double {
+        switch self {
+        case .slow: return 0.85
+        case .normal: return 1.0
+        case .brisk: return 1.2
+        case .fast: return 1.5
         }
     }
     static func nearest(_ v: Double) -> SpeechRate {

@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import UIKit
 
@@ -200,6 +201,8 @@ struct MoreView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            Hairline()
+            VoiceRow()
         }
     }
 
@@ -290,5 +293,60 @@ extension Bundle {
         let v = infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let b = infoDictionary?["CFBundleVersion"] as? String ?? "?"
         return "\(v) (\(b))"
+    }
+}
+
+/// Voice for the posts without a recording, with a preview, plus the recordings switch.
+struct VoiceRow: View {
+    @Environment(Preferences.self) private var prefs
+    @Environment(SpeechPlayer.self) private var speech
+    @Environment(PostStore.self) private var store
+    @State private var voices: [AVSpeechSynthesisVoice] = []
+
+    private var recordedCount: Int { store.posts.filter { $0.audio != nil }.count }
+
+    var body: some View {
+        @Bindable var p = prefs
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Phone voice").font(PS.sys(size: 15))
+                    Text(recordedCount > 0 ? "Reads the posts that have no recording." : "Reads every post until recordings are set up.")
+                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                }
+                Spacer()
+                Picker("Voice", selection: Binding(get: { prefs.voiceID ?? "" }, set: { prefs.voiceID = $0.isEmpty ? nil : $0 })) {
+                    Text("Best installed").tag("")
+                    ForEach(voices, id: \.identifier) { v in
+                        Text("\(v.name) · \(SpeechPlayer.qualityLabel(v))\(v.language == "en-US" ? "" : " · " + v.language)").tag(v.identifier)
+                    }
+                }
+                .pickerStyle(.menu)
+                .tint(PS.accent2)
+            }
+            HStack(spacing: 10) {
+                Button {
+                    let v = prefs.voiceID.flatMap { AVSpeechSynthesisVoice(identifier: $0) } ?? SpeechPlayer.preferredVoice
+                    if let v { speech.preview(voice: v) }
+                } label: { Label("Preview", systemImage: "speaker.wave.2") }
+                .buttonStyle(GhostButtonStyle())
+                .disabled(speech.isActive)
+                Text("More natural voices are a free download: iOS Settings › Accessibility › Spoken Content › Voices › English, e.g. Ava, Zoe or Evan (Premium). They appear here once installed.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if recordedCount > 0 {
+                Hairline()
+                Toggle(isOn: $p.preferRecordings) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Studio recordings").font(PS.sys(size: 15))
+                        Text("\(recordedCount) of \(store.posts.count) posts have one; they download once and play offline.")
+                            .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                    }
+                }
+                .tint(PS.accent)
+            }
+        }
+        .onAppear { voices = SpeechPlayer.englishVoices() }
     }
 }
