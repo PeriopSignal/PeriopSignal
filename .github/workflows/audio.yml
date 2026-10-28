@@ -96,27 +96,32 @@ jobs:
       - name: Keep the log on the ci-results branch
         if: always() && steps.pending.outputs.go == 'true'
         run: |
-          cp audio.log "$RUNNER_TEMP/audio.log" 2>/dev/null || echo "(no log)" > "$RUNNER_TEMP/audio.log"
-          git stash -q --include-untracked || true
           git config user.name "periop-signal-ci"
           git config user.email "ci@periopsignal.invalid"
-          if git fetch -q origin ci-results 2>/dev/null; then git checkout -q -B ci-results origin/ci-results; else git checkout -q --orphan ci-results; git rm -rfq --cached . >/dev/null 2>&1 || true; fi
-          mkdir -p results/audio
-          cp "$RUNNER_TEMP/audio.log" results/audio/last-run.log
-          git add -f results/audio && git commit -q -m "Audio log for run ${{ github.run_number }}" || true
-          git push -q origin ci-results || { git fetch -q origin ci-results && git rebase -q origin/ci-results && git push -q origin ci-results; }
-          git checkout -q main && git stash pop -q || true
+          W="$RUNNER_TEMP/ci-results"
+          if git fetch -q origin ci-results 2>/dev/null; then git worktree add -q "$W" origin/ci-results; else git worktree add -q --detach "$W" && git -C "$W" checkout -q --orphan ci-results && git -C "$W" rm -rfq --cached . >/dev/null 2>&1 || true; fi
+          mkdir -p "$W/results/audio"
+          cp audio.log "$W/results/audio/last-run.log" 2>/dev/null || echo "(no log)" > "$W/results/audio/last-run.log"
+          git -C "$W" add -f results/audio && git -C "$W" commit -q -m "Audio log for run ${{ github.run_number }}" || true
+          git -C "$W" push -q origin HEAD:ci-results || { git -C "$W" fetch -q origin ci-results && git -C "$W" rebase -q origin/ci-results && git -C "$W" push -q origin HEAD:ci-results; } || true
+          git worktree remove --force "$W" || true
 
       - name: Commit the audio links
         if: steps.pending.outputs.go == 'true'
         run: |
-          if git diff --quiet -- posts.json; then echo "No changes to commit."; exit 0; fi
+          [ -s audio-updates.json ] || { echo "No new links to commit."; exit 0; }
           git config user.name "periop-signal-ci"
           git config user.email "ci@periopsignal.invalid"
-          git add posts.json
-          git commit -q -m "Audio: $(grep -E '^synthesized' audio.log | head -1)"
-          for i in 1 2 3; do
-            git push origin HEAD:main && exit 0
-            git fetch origin main && git rebase origin/main || { git rebase --abort; exit 1; }
+          SUMMARY="$(grep -E '^synthesized' audio.log | head -1)"
+          for i in 1 2 3 4; do
+            git fetch -q origin main
+            git checkout -q -B main origin/main
+            python3 -I tools/apply_audio_updates.py audio-updates.json posts.json
+            python3 -I tools/validate_posts.py posts.json
+            git diff --quiet -- posts.json && { echo "Already on main."; exit 0; }
+            git add posts.json
+            git commit -q -m "Audio: $SUMMARY"
+            git push -q origin HEAD:main && exit 0
+            echo "push refused, retrying"; sleep 10
           done
           exit 1

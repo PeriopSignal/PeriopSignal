@@ -263,6 +263,7 @@ def main():
     if not dry:
         ensure_release()
     done, failed, total_chars = 0, [], 0
+    updates = {}
     workdir = tempfile.mkdtemp(prefix="ps-audio-")
     started = time.time()
     for p in todo:
@@ -280,6 +281,7 @@ def main():
                 synth_google(segs, voice, key, out, workdir, p["id"])
             url = upload(out)
             p["audio"] = {"url": url, "seconds": duration(out), "bytes": os.path.getsize(out), "voice": tag}
+            updates[p["id"]] = p["audio"]
             done += 1
             print(f"  {p['id']}: {p['audio']['seconds']} s, {p['audio']['bytes'] // 1024} KB, {time.time() - t0:.0f} s to make", flush=True)
         except Exception as e:  # keep going; the next run retries this post
@@ -287,8 +289,10 @@ def main():
             print(f"  {p['id']}: FAILED {e}", flush=True)
         if done and done % 10 == 0:
             json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+            json.dump(updates, open("audio-updates.json", "w", encoding="utf-8"), indent=1)
     if done:
         json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        json.dump(updates, open("audio-updates.json", "w", encoding="utf-8"), indent=1)
     print(f"synthesized {done}, failed {len(failed)}, {total_chars} characters, {(time.time() - started) / 60:.0f} min")
     for f in failed[:20]:
         print("  " + f)
