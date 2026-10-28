@@ -25,7 +25,9 @@ import urllib.request
 
 REPO = os.environ.get("GITHUB_REPOSITORY", "PeriopSignal/PeriopSignal")
 RELEASE_TAG = "audio"
-DEFAULT_VOICE = "en-US-Chirp3-HD-Charon"
+DEFAULT_VOICE = {"kokoro": "af_heart", "google": "en-US-Chirp3-HD-Charon"}
+KOKORO_DIR = os.environ.get("KOKORO_DIR", "kokoro")
+_kokoro = None
 MAX_CHUNK_BYTES = 4500          # Google's synthesize limit is 5,000 bytes of input
 TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
 
@@ -164,6 +166,39 @@ def synthesize(text, voice, key):
             time.sleep(5 * (attempt + 1))
 
 
+def synth_kokoro(segs, voice, out_path):
+    """Paragraph by paragraph, with a pause between sections, straight to MP3."""
+    import numpy as np
+    import soundfile as sf
+    from kokoro_onnx import Kokoro
+    global _kokoro
+    if _kokoro is None:
+        _kokoro = Kokoro(os.path.join(KOKORO_DIR, "kokoro-v1.0.onnx"), os.path.join(KOKORO_DIR, "voices-v1.0.bin"))
+    lang = "en-gb" if voice.startswith("b") else "en-us"
+    pieces, sr = [], 24000
+    for i, seg in enumerate(segs):
+        text = seg if seg.endswith((".", "!", "?", ":")) else seg + "."
+        samples, sr = _kokoro.create(text, voice=voice, speed=1.0, lang=lang)
+        pieces.append(np.asarray(samples, dtype=np.float32))
+        pause = 0.9 if i == 0 else (0.6 if text.endswith(("points.", "Take-home.", "authors.")) else 0.45)
+        pieces.append(np.zeros(int(sr * pause), dtype=np.float32))
+    wav = out_path + ".wav"
+    sf.write(wav, np.concatenate(pieces), sr)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-ac", "1", "-b:a", "64k", out_path], check=True)
+    os.remove(wav)
+
+
+def synth_google(segs, voice, key, out_path, workdir, pid):
+    files = []
+    for i, chunk in enumerate(chunks(segs)):
+        audio = synthesize(chunk, voice, key)
+        fp = os.path.join(workdir, f"{pid}.{i}.mp3")
+        open(fp, "wb").write(audio)
+        files.append(fp)
+        time.sleep(0.2)
+    join_mp3(files, out_path)
+
+
 def join_mp3(parts, out_path):
     if len(parts) == 1:
         os.replace(parts[0], out_path); return
@@ -199,57 +234,61 @@ def main():
     path = args[0] if args else "posts.json"
     force = "--all" in sys.argv
     dry = "--dry-run" in sys.argv
-    voice = os.environ.get("TTS_VOICE") or DEFAULT_VOICE
+    engine = os.environ.get("TTS_ENGINE") or "kokoro"
+    voice = os.environ.get("TTS_VOICE") or ""
     limit = None
     for i, a in enumerate(sys.argv):
-        if a == "--limit" and i + 1 < len(sys.argv):
+        if a == "--limit" and i + 1 < len(sys.argv) and sys.argv[i + 1]:
             limit = int(sys.argv[i + 1])
         if a == "--voice" and i + 1 < len(sys.argv):
             voice = sys.argv[i + 1]
+        if a == "--engine" and i + 1 < len(sys.argv):
+            engine = sys.argv[i + 1]
+    if engine not in DEFAULT_VOICE:
+        sys.exit(f"unknown engine {engine}")
+    voice = voice or DEFAULT_VOICE[engine]
+    tag = f"{engine}:{voice}"
     key = os.environ.get("GOOGLE_TTS_API_KEY", "").strip()
-    if not key and not dry:
+    if engine == "google" and not key and not dry:
         print("No GOOGLE_TTS_API_KEY; nothing to synthesize.")
         return
     data = json.load(open(path, encoding="utf-8"))
-    todo = [p for p in data["posts"] if force or not p.get("audio") or p["audio"].get("voice") != voice]
+    todo = [p for p in data["posts"] if force or not p.get("audio") or p["audio"].get("voice") != tag]
     if limit:
         todo = todo[:limit]
-    print(f"{len(todo)} post(s) to synthesize with {voice}" + (" (dry run)" if dry else ""))
+    print(f"{len(todo)} post(s) to synthesize with {tag}" + (" (dry run)" if dry else ""))
     if not todo:
         return
     if not dry:
         ensure_release()
     done, failed, total_chars = 0, [], 0
     workdir = tempfile.mkdtemp(prefix="ps-audio-")
+    started = time.time()
     for p in todo:
         segs = segments(p)
-        parts = chunks(segs)
-        total_chars += sum(len(c) for c in parts)
+        total_chars += sum(len(c) for c in segs)
         if dry:
-            print(f"  {p['id']}: {len(parts)} chunk(s), {sum(len(c) for c in parts)} chars")
+            print(f"  {p['id']}: {len(segs)} paragraph(s), {sum(len(c) for c in segs)} chars")
             continue
         try:
-            files = []
-            for i, chunk in enumerate(parts):
-                audio = synthesize(chunk, voice, key)
-                fp = os.path.join(workdir, f"{p['id']}.{i}.mp3")
-                open(fp, "wb").write(audio)
-                files.append(fp)
-                time.sleep(0.2)
             out = os.path.join(workdir, f"{p['id']}.mp3")
-            join_mp3(files, out)
+            t0 = time.time()
+            if engine == "kokoro":
+                synth_kokoro(segs, voice, out)
+            else:
+                synth_google(segs, voice, key, out, workdir, p["id"])
             url = upload(out)
-            p["audio"] = {"url": url, "seconds": duration(out), "bytes": os.path.getsize(out), "voice": voice}
+            p["audio"] = {"url": url, "seconds": duration(out), "bytes": os.path.getsize(out), "voice": tag}
             done += 1
-            print(f"  {p['id']}: {p['audio']['seconds']} s, {p['audio']['bytes'] // 1024} KB")
+            print(f"  {p['id']}: {p['audio']['seconds']} s, {p['audio']['bytes'] // 1024} KB, {time.time() - t0:.0f} s to make", flush=True)
         except Exception as e:  # keep going; the next run retries this post
             failed.append(f"{p['id']}: {e}")
-            print(f"  {p['id']}: FAILED {e}")
+            print(f"  {p['id']}: FAILED {e}", flush=True)
         if done and done % 10 == 0:
             json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     if done:
         json.dump(data, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"synthesized {done}, failed {len(failed)}, {total_chars} characters")
+    print(f"synthesized {done}, failed {len(failed)}, {total_chars} characters, {(time.time() - started) / 60:.0f} min")
     for f in failed[:20]:
         print("  " + f)
 

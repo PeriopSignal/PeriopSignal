@@ -54,13 +54,11 @@ Without this, the app still alerts through background refresh (iOS decides the t
 - **More tab**: your topics (the feed gets a *For you* filter and alerts only cover those topics), earliest alert time, quiet weekends, Sunday digest, theme, text size, listening speed.
 - Spotlight on the iPhone finds posts by trial name, drug or journal.
 
-## 9. Natural voice for Listen (optional, 10 minutes, free at the feed's volume)
-Without this, Listen uses the iPhone's own voice (download a Premium voice once under iOS Settings → Accessibility → Spoken Content → Voices → English, e.g. Ava, Zoe or Evan, and pick it under More → Reading → Voice). With it, every post gets a studio-quality recording from Google's Chirp 3 HD voice, generated once by GitHub and streamed by the app.
-1. https://console.cloud.google.com → create a project (e.g. `Periop Signal`) and link a billing account (required even though the first 1 million characters a month are free; the feed uses about 250,000).
-2. **APIs & Services → Library** → enable **Cloud Text-to-Speech API**.
-3. **APIs & Services → Credentials → Create credentials → API key**. Edit the key: **API restrictions → Restrict key → Cloud Text-to-Speech API**. Copy the key.
-4. Add it as the repository secret `GOOGLE_TTS_API_KEY` (same page as in step 3 above). Optional: a repository **variable** `TTS_VOICE` to pick another voice (defaults to `en-US-Chirp3-HD-Charon`; the list is at https://cloud.google.com/text-to-speech/docs/chirp3-hd).
-5. Actions → **Post audio** → *Run workflow* once. It records every existing post (about 20 minutes), uploads the MP3s to the repository's `audio` release, and from then on runs by itself a few minutes after each morning update. To switch voices later, set `TTS_VOICE` and run the workflow with `all` = true.
+## 9. Natural voice for Listen (nothing to set up)
+Every post gets a recording made by **Kokoro**, an open-weights neural voice that runs on GitHub's own machines: no account, no key, no cost. The `Post audio` workflow records new posts a few minutes after each morning update, keeps the MP3s in the repository's `audio` release, and the app streams them (downloaded once, then offline). Posts without a recording yet are read by the iPhone's own voice; for a better phone voice, download a free **Premium** one under iOS Settings → Accessibility → Spoken Content → Voices → English (Ava, Zoe, Evan) and pick it under More → Reading.
+
+- **Change the voice**: add a repository **variable** `TTS_VOICE` (Settings → Secrets and variables → Actions → Variables), e.g. `af_bella`, `am_michael`, `bf_emma`, `bm_george` (list: https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md; the default `af_heart` is the best rated), then Actions → **Post audio** → *Run workflow* with `all` = true. About 70 posts are re-recorded per run; run it again until the summary says 0 pending.
+- **Google's voice instead** (optional, free up to 1M characters a month; needs a Google Cloud project with billing linked): enable *Cloud Text-to-Speech API*, create an API key restricted to it, add the secret `GOOGLE_TTS_API_KEY` and the variable `TTS_ENGINE` = `google` (`TTS_VOICE` e.g. `en-US-Chirp3-HD-Charon`), then run the workflow with `all` = true.
 
 ## Troubleshooting
 - The workflow writes its logs to the `ci-results` branch of the repository (folder `results/`), which Claude can read for you.

@@ -1,25 +1,29 @@
 name: Post audio
 
-# Reads each new post aloud with Google Cloud Text-to-Speech (Chirp 3 HD), uploads the MP3 to the
-# "audio" GitHub release and records the link in posts.json. A no-op until the GOOGLE_TTS_API_KEY
-# secret exists (ios/OWNER_RUNBOOK.md, section 9).
+# Reads each new post aloud with a neural voice and links the MP3 from posts.json. Default engine:
+# Kokoro-82M (open weights, runs on the runner's CPU, no account). Set the repository variable
+# TTS_ENGINE=google plus the GOOGLE_TTS_API_KEY secret for Google's Chirp 3 HD voices instead
+# (ios/OWNER_RUNBOOK.md, section 9). MP3s live in the repository's "audio" release.
 
 on:
   push:
     branches: [main]
     paths: ["posts.json"]
   schedule:
-    - cron: "45 10 * * *"   # after the citations pass; catches anything a push run missed
+    - cron: "45 10 * * *"   # after the citations pass; also works through any backlog
   workflow_dispatch:
     inputs:
       all:
         description: "Regenerate every post (true/false), e.g. after changing the voice"
         default: "false"
       limit:
-        description: "At most this many posts this run (blank = all pending)"
+        description: "At most this many posts this run (blank = the default batch of 70)"
         default: ""
       voice:
-        description: "Google voice name (blank = the TTS_VOICE repository variable or en-US-Chirp3-HD-Charon)"
+        description: "Voice name (blank = the TTS_VOICE repository variable or the engine's default)"
+        default: ""
+      engine:
+        description: "kokoro or google (blank = the TTS_ENGINE repository variable or kokoro)"
         default: ""
 
 concurrency:
@@ -32,27 +36,53 @@ permissions:
 jobs:
   audio:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 300
     env:
       GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
       GH_TOKEN: ${{ github.token }}
+      TTS_ENGINE: ${{ inputs.engine || vars.TTS_ENGINE || 'kokoro' }}
       TTS_VOICE: ${{ inputs.voice || vars.TTS_VOICE }}
+      KOKORO_DIR: ${{ github.workspace }}/.kokoro
     steps:
-      - name: Skip when the key is not configured
-        id: gate
-        run: |
-          if [ -z "$GOOGLE_TTS_API_KEY" ]; then echo "No GOOGLE_TTS_API_KEY secret; nothing to do."; echo "go=false" >> "$GITHUB_OUTPUT"; else echo "go=true" >> "$GITHUB_OUTPUT"; fi
-
       - uses: actions/checkout@v4
-        if: steps.gate.outputs.go == 'true'
+
+      - name: Skip when nothing is pending
+        id: pending
+        run: |
+          PENDING=$(python3 -I tools/synthesize_audio.py posts.json --dry-run $([ "${{ inputs.all }}" = "true" ] && echo --all) | head -1)
+          echo "$PENDING"
+          case "$PENDING" in 0\ post*) echo "go=false" >> "$GITHUB_OUTPUT" ;; *) echo "go=true" >> "$GITHUB_OUTPUT" ;; esac
+
+      - uses: actions/setup-python@v5
+        if: steps.pending.outputs.go == 'true' && env.TTS_ENGINE == 'kokoro'
+        with:
+          python-version: "3.12"
+
+      - name: Kokoro model files (cached)
+        if: steps.pending.outputs.go == 'true' && env.TTS_ENGINE == 'kokoro'
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .kokoro
+          key: kokoro-model-files-v1.1
+
+      - name: Install Kokoro
+        if: steps.pending.outputs.go == 'true' && env.TTS_ENGINE == 'kokoro'
+        run: |
+          pip install --quiet kokoro-onnx soundfile numpy
+          mkdir -p .kokoro
+          if [ ! -s .kokoro/kokoro-v1.0.onnx ]; then
+            curl -sSL -o .kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx
+            curl -sSL -o .kokoro/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin
+          fi
+          ls -la .kokoro
 
       - name: Synthesize and upload
-        if: steps.gate.outputs.go == 'true'
+        if: steps.pending.outputs.go == 'true'
         run: |
           ffmpeg -version | head -1
-          ARGS=""
+          ARGS="--limit ${{ inputs.limit || '70' }}"
           [ "${{ inputs.all }}" = "true" ] && ARGS="$ARGS --all"
-          [ -n "${{ inputs.limit }}" ] && ARGS="$ARGS --limit ${{ inputs.limit }}"
           python3 -I tools/synthesize_audio.py posts.json $ARGS | tee audio.log
           python3 -I tools/validate_posts.py posts.json
           {
@@ -61,7 +91,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit the audio links
-        if: steps.gate.outputs.go == 'true'
+        if: steps.pending.outputs.go == 'true'
         run: |
           if git diff --quiet -- posts.json; then echo "No changes to commit."; exit 0; fi
           git config user.name "periop-signal-ci"
