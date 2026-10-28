@@ -10,7 +10,42 @@ enum RefRoute: Hashable {
     case neuraxial
     case fasting
     case airway
+    case valves
     case folder(RefFolder)
+
+    /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
+    var key: String {
+        switch self {
+        case .quickref(let id): return "quickref:" + id
+        case .score(let id): return "score:" + id
+        case .peds: return "peds"
+        case .local: return "local"
+        case .infusions: return "infusions"
+        case .neuraxial: return "neuraxial"
+        case .fasting: return "fasting"
+        case .airway: return "airway"
+        case .valves: return "valves"
+        case .folder(let f): return "folder:" + f.rawValue
+        }
+    }
+    init?(key: String) {
+        let parts = key.split(separator: ":", maxSplits: 1).map(String.init)
+        switch parts.first ?? "" {
+        case "quickref" where parts.count == 2: self = .quickref(parts[1])
+        case "score" where parts.count == 2: self = .score(parts[1])
+        case "peds": self = .peds
+        case "local": self = .local
+        case "infusions": self = .infusions
+        case "neuraxial": self = .neuraxial
+        case "fasting": self = .fasting
+        case "airway": self = .airway
+        case "valves": self = .valves
+        case "folder" where parts.count == 2:
+            guard let f = RefFolder(rawValue: parts[1]) else { return nil }
+            self = .folder(f)
+        default: return nil
+        }
+    }
 }
 
 /// The Reference tab's folders. Each tool lives in one folder.
@@ -59,7 +94,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .score("apfel"), icon: "pills", title: "Apfel PONV", blurb: "Nausea risk and how much prophylaxis"),
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "What was taken and when, in; the earliest start, out"),
             RefItem(route: .neuraxial, icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out"),
-            RefItem(route: .quickref("ase-valve-severity"), icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "ASE grading tables by lesion"),
+            RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "Echo measurements in, the ASE grade out"),
             RefItem(route: .quickref("acc-aha-valve-intervention"), icon: "heart.circle", title: "Valve intervention", blurb: "When to repair or replace (ACC/AHA)"),
         ]
         case .generalAnesthesia: return [
@@ -79,12 +114,40 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
     var summary: String { items.map(\.title).joined(separator: " · ") }
 }
 
+/// A star in the toolbar of every tool, to add it to the favorites at the top of the tab.
+struct FavoriteToolbar: ViewModifier {
+    @Environment(FavoritesStore.self) private var favorites
+    var route: RefRoute
+    func body(content: Content) -> some View {
+        if case .folder = route {
+            content
+        } else {
+            content.toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    let on = favorites.contains(route.key)
+                    Button {
+                        Haptics.light()
+                        withAnimation(.snappy) { favorites.toggle(route.key) }
+                    } label: { Image(systemName: on ? "star.fill" : "star") }
+                    .accessibilityLabel(on ? "Remove from favorites" : "Add to favorites")
+                }
+            }
+        }
+    }
+}
+
 struct RefItem: Hashable, Identifiable {
     var route: RefRoute
     var icon: String
     var title: String
     var blurb: String
     var id: RefRoute { route }
+
+    static var all: [RefItem] { RefFolder.allCases.flatMap(\.items) }
+    static func item(for route: RefRoute) -> RefItem? { all.first { $0.route == route } }
+    static func item(forKey key: String) -> RefItem? { RefRoute(key: key).flatMap { item(for: $0) } }
+    /// The folder a tool lives in.
+    static func folder(of route: RefRoute) -> RefFolder? { RefFolder.allCases.first { $0.items.contains { $0.route == route } } }
 }
 
 /// The Reference tab: five folders of calculators and condensed society references, with one search
@@ -94,6 +157,7 @@ struct ReferenceView: View {
     @Environment(ReadStore.self) private var read
     @Environment(ReferenceStore.self) private var refs
     @Environment(Router.self) private var router
+    @Environment(FavoritesStore.self) private var favorites
     @State private var path = NavigationPath()
     @State private var webLink: WebLink?
     @State private var query = ""
@@ -109,6 +173,7 @@ struct ReferenceView: View {
                     if searching {
                         ReferenceSearchResults(query: trimmed, path: $path) { ask = AskPrompt(question: trimmed) }
                     } else {
+                        if !favorites.keys.isEmpty { favoritesSection }
                         folders
                     }
                 }
@@ -123,30 +188,7 @@ struct ReferenceView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .navigationDestination(for: RefRoute.self) { route in
-                switch route {
-                case .quickref(let id):
-                    if let ref = refs.quickref(id) {
-                        QuickRefView(ref: ref, onOpen: { webLink = WebLink(url: $0) })
-                    } else {
-                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
-                    }
-                case .score(let id):
-                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }) }
-                case .peds:
-                    PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) })
-                case .local:
-                    LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
-                case .infusions:
-                    InfusionsView(onOpen: { webLink = WebLink(url: $0) })
-                case .neuraxial:
-                    NeuraxialTimingView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("asra-anticoagulation")) })
-                case .fasting:
-                    FastingView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-fasting")) })
-                case .airway:
-                    AirwayGuideView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-difficult-airway")) })
-                case .folder(let f):
-                    FolderView(folder: f, path: $path)
-                }
+                destination(route).modifier(FavoriteToolbar(route: route))
             }
             .navigationDestination(for: Post.self) { post in
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
@@ -168,6 +210,35 @@ struct ReferenceView: View {
         .onChange(of: refs.quickrefs.count) { _, _ in consumePending() }
     }
 
+    @ViewBuilder private func destination(_ route: RefRoute) -> some View {
+                switch route {
+                case .quickref(let id):
+                    if let ref = refs.quickref(id) {
+                        QuickRefView(ref: ref, onOpen: { webLink = WebLink(url: $0) })
+                    } else {
+                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
+                    }
+                case .score(let id):
+                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }) }
+                case .peds:
+                    PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) })
+                case .local:
+                    LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
+                case .infusions:
+                    InfusionsView(onOpen: { webLink = WebLink(url: $0) })
+                case .neuraxial:
+                    NeuraxialTimingView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("asra-anticoagulation")) })
+                case .fasting:
+                    FastingView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-fasting")) })
+                case .airway:
+                    AirwayGuideView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-difficult-airway")) })
+                case .valves:
+                    ValveGraderView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("ase-valve-severity")) })
+                case .folder(let f):
+                    FolderView(folder: f, path: $path)
+                }
+    }
+
     /// Opens a route requested from a link or launch argument once its content exists.
     private func consumePending() {
         guard let route = router.pendingRefRoute else { return }
@@ -175,6 +246,21 @@ struct ReferenceView: View {
         router.pendingRefRoute = nil
         path = NavigationPath()
         path.append(route)
+    }
+
+    // MARK: Favorites
+
+    private var favoritesSection: some View {
+        let items = favorites.keys.compactMap { RefItem.item(forKey: $0) }
+        return VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(text: "Favorites").padding(.leading, 2)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                ForEach(items) { item in
+                    CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: true) { path.append(item.route) }
+                        .contextMenu { Button(role: .destructive) { favorites.toggle(item.route.key) } label: { Label("Remove from favorites", systemImage: "star.slash") } }
+                }
+            }
+        }
     }
 
     // MARK: Folders
@@ -217,9 +303,10 @@ struct ReferenceView: View {
     }
 }
 
-/// One folder: its tools as tiles.
+/// One folder: its tools as tiles. Long-press a tile to star it.
 struct FolderView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(FavoritesStore.self) private var favorites
     var folder: RefFolder
     @Binding var path: NavigationPath
 
@@ -228,9 +315,15 @@ struct FolderView: View {
             VStack(alignment: .leading, spacing: 14) {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                     ForEach(folder.items) { item in
-                        CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
+                        let on = favorites.contains(item.route.key)
+                        CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: on) { path.append(item.route) }
+                            .contextMenu {
+                                Button { favorites.toggle(item.route.key) } label: { Label(on ? "Remove from favorites" : "Add to favorites", systemImage: on ? "star.slash" : "star") }
+                            }
                     }
                 }
+                Text("Long-press a tool to add it to your favorites at the top of the tab; the star in each tool's toolbar does the same.")
+                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
                 if folder == .emergency {
                     Text("Doses in the emergency cards are the published regimens; enter the weight in the pediatric or local-anesthetic calculators for computed amounts.")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
@@ -252,15 +345,20 @@ struct CalculatorTile: View {
     var icon: String
     var title: String
     var blurb: String
+    var starred = false
     var action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 8) {
-                Image(systemName: icon)
-                    .font(PS.sys(size: 17, weight: .semibold))
-                    .foregroundStyle(PS.accent)
-                    .frame(height: 22)
+                HStack {
+                    Image(systemName: icon)
+                        .font(PS.sys(size: 17, weight: .semibold))
+                        .foregroundStyle(PS.accent)
+                    Spacer()
+                    if starred { Image(systemName: "star.fill").font(PS.sys(size: 11)).foregroundStyle(PS.accent) }
+                }
+                .frame(height: 22)
                 Text(title)
                     .font(PS.serif(size: 16.5))
                     .foregroundStyle(PS.fg)
@@ -342,41 +440,50 @@ struct ReferenceSearchResults: View {
     private var askAvailable: Bool { AskEngine.onDeviceAvailable || refs.askEndpoint != nil }
 
     private var q: String { query.lowercased() }
-    private var scores: [ScoreDefinition] { Scores.all.filter { $0.searchText.contains(q) } }
-    private var pedsMatches: Bool {
-        guard let p = refs.peds else { return false }
-        let words = ["pediatric", "peds", "child", "weight", "dose", "dosing", "ett", "tube", "lma", "fluid", "blood volume", "mabl"]
-        return words.contains { $0.contains(q) || q.contains($0) } || p.drugs.contains { $0.name.lowercased().contains(q) }
+
+    /// Words that bring up each guided tool; the content it is built on is searched as well.
+    static func keywords(for route: RefRoute) -> [String] {
+        switch route {
+        case .peds: return ["pediatric", "peds", "child", "weight", "dose", "dosing", "ett", "tube", "lma", "fluid", "blood volume", "mabl"]
+        case .local: return ["local anesthetic", "local anaesthetic", "max dose", "maximum dose", "exparel", "liposomal", "mixture", "toxicity", "mg/kg"]
+        case .infusions: return ["infusion", "drip", "pressor", "vasopressor", "inotrope", "vasodilator", "mcg/kg/min", "hematolog", "coagulation", "factor", "pcc", "antifibrinolytic"]
+        case .neuraxial: return ["anticoag", "neuraxial", "epidural", "spinal", "block", "heparin", "enoxaparin", "lmwh", "warfarin", "apixaban", "rivaroxaban", "edoxaban", "dabigatran", "doac", "fondaparinux", "clopidogrel", "prasugrel", "ticagrelor", "aspirin", "thrombolytic", "asra"]
+        case .fasting: return ["npo", "fasting", "fast", "clear liquid", "breast milk", "formula", "meal", "gum", "aspiration"]
+        case .airway: return ["airway", "intubat", "laryngoscop", "cricothyr", "cannot ventilate", "cicv", "awake", "videolaryngoscope", "supraglottic", "lma"]
+        case .valves: return ["valve", "valvular", "echo", "tee", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "vena contracta", "eroa", "pisa", "gradient", "ase"]
+        case .quickref, .score, .folder: return []
+        }
     }
-    private var infusionMatches: Bool {
-        guard let data = refs.bundle?.infusions else { return false }
-        let words = ["infusion", "drip", "pressor", "vasopressor", "inotrope", "vasodilator", "mcg/kg/min", "hematolog", "coagulation", "factor", "pcc", "antifibrinolytic"]
-        return words.contains { $0.contains(q) || q.contains($0) } || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use).lowercased().contains(q) } }
+
+    private func matches(_ item: RefItem) -> Bool {
+        switch item.route {
+        case .quickref, .folder: return false          // quick references have their own list
+        case .score(let id): return Scores.byID(id)?.searchText.contains(q) ?? false
+        case .peds:
+            guard let p = refs.peds else { return false }
+            return wordsMatch(item.route) || p.drugs.contains { $0.name.lowercased().contains(q) }
+        case .local:
+            guard let p = refs.peds else { return false }
+            return wordsMatch(item.route) || p.localAnesthetics.contains { $0.name.lowercased().contains(q) }
+        case .infusions:
+            guard let data = refs.bundle?.infusions else { return false }
+            return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use).lowercased().contains(q) } }
+        case .neuraxial, .fasting, .airway, .valves:
+            return wordsMatch(item.route)
+        }
     }
-    private var airwayMatches: Bool {
-        let words = ["airway", "intubat", "laryngoscop", "cricothyr", "cannot ventilate", "cicv", "awake", "videolaryngoscope", "supraglottic", "lma"]
-        return words.contains { $0.contains(q) || q.contains($0) }
+    private func wordsMatch(_ route: RefRoute) -> Bool {
+        Self.keywords(for: route).contains { $0.contains(q) || q.contains($0) }
     }
-    private var fastingMatches: Bool {
-        let words = ["npo", "fasting", "fast", "clear liquid", "breast milk", "formula", "meal", "gum", "aspiration"]
-        return words.contains { $0.contains(q) || q.contains($0) }
-    }
-    private var neuraxialMatches: Bool {
-        let words = ["anticoag", "neuraxial", "epidural", "spinal", "block", "heparin", "enoxaparin", "lmwh", "warfarin", "apixaban", "rivaroxaban", "edoxaban", "dabigatran", "doac", "fondaparinux", "clopidogrel", "prasugrel", "ticagrelor", "aspirin", "thrombolytic", "asra"]
-        return words.contains { $0.contains(q) || q.contains($0) }
-    }
-    private var localMatches: Bool {
-        guard let p = refs.peds else { return false }
-        let words = ["local anesthetic", "local anaesthetic", "max dose", "maximum dose", "exparel", "liposomal", "mixture", "toxicity", "mg/kg"]
-        return words.contains { $0.contains(q) || q.contains($0) } || p.localAnesthetics.contains { $0.name.lowercased().contains(q) }
-    }
+
+    private var tools: [RefItem] { RefItem.all.filter(matches) }
     private var quickrefs: [QuickRef] { refs.quickrefs.filter { $0.searchText.contains(q) } }
     private var papers: [Post] {
         store.posts.filter { $0.searchText.contains(q) }
     }
 
     var body: some View {
-        let nothing = scores.isEmpty && !pedsMatches && !localMatches && !infusionMatches && !neuraxialMatches && !fastingMatches && !airwayMatches && quickrefs.isEmpty && papers.isEmpty
+        let nothing = tools.isEmpty && quickrefs.isEmpty && papers.isEmpty
         if nothing {
             VStack(spacing: 10) {
                 ContentUnavailableView.search(text: query)
@@ -384,30 +491,12 @@ struct ReferenceSearchResults: View {
             }
             .padding(.top, 30)
         } else {
-            if !scores.isEmpty || pedsMatches || localMatches || infusionMatches || neuraxialMatches || fastingMatches || airwayMatches {
+            if !tools.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
-                    Eyebrow(text: "Calculators").padding(.leading, 2)
+                    Eyebrow(text: "Calculators and guides").padding(.leading, 2)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                        ForEach(scores) { def in
-                            CalculatorTile(icon: def.icon, title: def.short, blurb: def.blurb) { path.append(RefRoute.score(def.id)) }
-                        }
-                        if pedsMatches {
-                            CalculatorTile(icon: "scalemass", title: "Pediatric", blurb: "Weight-based doses, tube sizes, fluids and blood volume") { path.append(RefRoute.peds) }
-                        }
-                        if localMatches {
-                            CalculatorTile(icon: "syringe", title: "Local anesthetic", blurb: "Maximum doses for one agent or a mixture, including Exparel") { path.append(RefRoute.local) }
-                        }
-                        if infusionMatches {
-                            CalculatorTile(icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Starting doses for pressors, dilators, inotropes and hematologic agents") { path.append(RefRoute.infusions) }
-                        }
-                        if neuraxialMatches {
-                            CalculatorTile(icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out") { path.append(RefRoute.neuraxial) }
-                        }
-                        if fastingMatches {
-                            CalculatorTile(icon: "cup.and.saucer", title: "Fasting", blurb: "What was taken and when, in; the earliest start, out") { path.append(RefRoute.fasting) }
-                        }
-                        if airwayMatches {
-                            CalculatorTile(icon: "wind", title: "Difficult airway", blurb: "Assessment in, the plan out; attempt counter and rescue steps") { path.append(RefRoute.airway) }
+                        ForEach(tools) { item in
+                            CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
                         }
                     }
                 }

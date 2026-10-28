@@ -13,6 +13,7 @@ struct PeriopSignalApp: App {
     @State private var quiz = QuizStore()
     @State private var router = Router()
     @State private var refs = ReferenceStore()
+    @State private var favorites = FavoritesStore()
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
 
     init() {
@@ -38,6 +39,7 @@ struct PeriopSignalApp: App {
                 .environment(preferences)
                 .environment(router)
                 .environment(refs)
+                .environment(favorites)
                 .preferredColorScheme(appearance.colorScheme)
                 .tint(PS.accent)
                 .onOpenURL { url in router.handle(url) }
@@ -99,9 +101,12 @@ final class Router {
             if let id = parts.first { open(postID: id) }
         case "saved": selectedTab = .saved
         case "guidelines", "reference": selectedTab = .reference
-        case "calculator", "score":
+        case "calculator", "score", "tool":
+            // periopsignal://tool/valves, periopsignal://score/rcri, periopsignal://calculator/peds
             selectedTab = .reference
-            if let id = parts.first { pendingRefRoute = id == "peds" || id == "pediatric" ? .peds : .score(id) }
+            if let id = parts.first {
+                pendingRefRoute = id == "pediatric" ? .peds : (RefRoute(key: id) ?? RefRoute(key: parts.joined(separator: ":")) ?? .score(id))
+            }
         case "quickref", "ref":
             selectedTab = .reference
             if let id = parts.first { pendingRefRoute = .quickref(id) }

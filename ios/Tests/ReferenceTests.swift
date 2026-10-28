@@ -286,4 +286,84 @@ final class ReferenceTests: XCTestCase {
             }
         }
     }
+
+    // MARK: Valve severity (ASE)
+
+    private func valve(_ lesion: ValveLesion, _ numbers: [String: Double] = [:], signs: Set<String> = []) -> ValveReading {
+        ValveGrading.read(lesion, ValveInput(numbers: numbers, signs: signs))
+    }
+
+    func testValveParamBands() {
+        let vc = ValveGrading.params(for: .mr).first { $0.id == "vc" }!
+        XCTAssertEqual(vc.grade(0.2), .mild)
+        XCTAssertEqual(vc.grade(0.5), .moderate)
+        XCTAssertEqual(vc.grade(0.7), .severe)
+        let ava = ValveGrading.params(for: .as_).first { $0.id == "ava" }!
+        XCTAssertEqual(ava.grade(1.6), .mild)
+        XCTAssertEqual(ava.grade(1.2), .moderate)
+        XCTAssertEqual(ava.grade(0.8), .severe)
+        let jet = ValveGrading.params(for: .tr).first { $0.id == "jet" }!
+        XCTAssertNil(jet.grade(6), "TR jet area below 10 cm² is not graded by the tables")
+        XCTAssertEqual(jet.grade(12), .severe)
+        for lesion in ValveLesion.allCases {
+            let ids = ValveGrading.params(for: lesion).map(\.id)
+            XCTAssertEqual(Set(ids).count, ids.count, "\(lesion) parameter ids are unique")
+        }
+    }
+
+    func testAorticStenosisPathways() {
+        XCTAssertNil(valve(.as_).overall)
+        XCTAssertEqual(valve(.as_, ["vmax": 4.2, "mg": 45, "ava": 0.8]).overall, .severe)
+        XCTAssertEqual(valve(.as_, ["vmax": 4.1, "ava": 1.3]).overall, .severe, "a high gradient is severe whatever the area")
+        XCTAssertFalse(valve(.as_, ["vmax": 4.1, "ava": 1.3]).cautions.isEmpty, "…but the discordance is flagged")
+        XCTAssertEqual(valve(.as_, ["vmax": 3.4, "mg": 28, "ava": 1.2]).overall, .moderate)
+        XCTAssertEqual(valve(.as_, ["vmax": 2.8, "mg": 15, "ava": 1.7]).overall, .mild)
+        XCTAssertEqual(valve(.as_, ["vmax": 2.3]).headline, "Aortic sclerosis")
+        // Low gradient, small area: the flow and the ejection fraction decide the pathway.
+        let lowGradient = valve(.as_, ["vmax": 3.2, "mg": 25, "ava": 0.9])
+        XCTAssertNil(lowGradient.overall)
+        XCTAssertTrue(lowGradient.explanation.contains("stroke volume index"))
+        XCTAssertEqual(valve(.as_, ["mg": 25, "ava": 0.9, "svi": 40]).overall, .moderate, "normal flow makes severe AS unlikely")
+        XCTAssertTrue(valve(.as_, ["mg": 25, "ava": 0.9, "svi": 30, "lvef": 35]).headline.contains("reduced EF"))
+        XCTAssertTrue(valve(.as_, ["mg": 25, "ava": 0.9, "svi": 30, "lvef": 60]).headline.contains("Paradoxical"))
+    }
+
+    func testMitralRegurgitationIntegration() {
+        XCTAssertNil(valve(.mr).overall)
+        XCTAssertEqual(valve(.mr, ["vc": 0.8, "pisa": 1.1], signs: ["flail", "pvrev"]).headline, "Definitely severe MR")
+        XCTAssertEqual(valve(.mr, ["vc": 0.2, "pisa": 0.2], signs: ["smalljet", "awave"]).headline, "Definitely mild MR")
+        XCTAssertEqual(valve(.mr, ["eroa": 0.45]).overall, .severe)
+        XCTAssertEqual(valve(.mr, ["eroa": 0.25, "rvol": 40]).overall, .moderate)
+        XCTAssertEqual(valve(.mr, ["eroa": 0.15]).overall, .mild)
+        XCTAssertEqual(valve(.mr, ["eroa": 0.35]).overall, .moderate, "grade III alone is upper moderate")
+        XCTAssertEqual(valve(.mr, ["eroa": 0.35], signs: ["secondary"]).overall, .severe, "grade III reads as severe in secondary MR")
+        XCTAssertEqual(valve(.mr, ["eroa": 0.35, "vc": 0.8], signs: ["flail", "pvrev"]).overall, .severe, "grade III with three severe signs")
+        XCTAssertNil(valve(.mr, ["eroa": 0.45, "vc": 0.2], signs: ["smalljet"]).overall, "numbers and signs that disagree are indeterminate")
+        XCTAssertEqual(valve(.mr, signs: ["flail", "bigjet"]).overall, .severe)
+        XCTAssertTrue(valve(.mr, signs: ["flail", "bigjet"]).headline.contains("quantify"))
+        XCTAssertFalse(valve(.mr, ["eroa": 0.3], signs: ["nonholo"]).cautions.isEmpty)
+    }
+
+    func testMitralStenosis() {
+        XCTAssertEqual(valve(.ms, ["mva": 1.2]).overall, .severe)
+        XCTAssertEqual(valve(.ms, ["pht": 160]).overall, .severe)
+        XCTAssertEqual(valve(.ms, ["mva": 2.0, "pht": 120]).overall, .moderate)
+        XCTAssertEqual(valve(.ms, ["mva": 2.8, "pht": 80]).overall, .mild)
+        XCTAssertNil(valve(.ms, ["mg": 12]).overall, "a gradient alone does not grade mitral stenosis")
+        XCTAssertTrue(valve(.ms, ["mva": 2.0, "mg": 12]).cautions.first?.contains("severe range") ?? false, "a severe-range gradient with a moderate area is flagged")
+    }
+
+    func testAorticAndTricuspidRegurgitation() {
+        XCTAssertEqual(valve(.ar, ["vc": 0.7], signs: ["holo"]).overall, .severe)
+        XCTAssertEqual(valve(.ar, ["rvol": 65, "rf": 55, "eroa": 0.35]).overall, .severe)
+        XCTAssertEqual(valve(.ar, ["rvol": 40, "pht": 350]).overall, .moderate)
+        XCTAssertEqual(valve(.ar, signs: ["faint"]).overall, .mild)
+        XCTAssertEqual(valve(.ar, ["pht": 600]).overall, .mild)
+        XCTAssertNil(valve(.ar, ["rvol": 65, "vc": 0.2]).overall, "severe volume with a mild specific sign is indeterminate")
+        XCTAssertEqual(valve(.tr, ["vc": 0.8], signs: ["hvrev"]).overall, .severe)
+        XCTAssertEqual(valve(.tr, ["eroa": 0.45]).overall, .severe)
+        XCTAssertEqual(valve(.tr, ["vc": 0.5, "jet": 6]).overall, .moderate)
+        XCTAssertTrue(valve(.tr, ["jet": 6]).lines.contains { $0.id == "jet" && $0.grade == nil })
+        XCTAssertEqual(valve(.tr, signs: ["dilated"]).overall, .moderate, "a supportive sign alone only suggests")
+    }
 }
