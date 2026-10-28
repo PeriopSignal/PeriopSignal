@@ -3147,7 +3147,7 @@
   },
   "infusions": {
     "reviewed": "2026-10-28",
-    "note": "Label figures are the FDA prescribing information as read on DailyMed; off-label regimens name their trial or guideline. Norepinephrine and phenylephrine are labeled in mcg/min: enter a weight for the per-kilogram equivalent.",
+    "note": "Label figures are the FDA prescribing information as read on DailyMed; off-label regimens name their trial or guideline. Norepinephrine, epinephrine and phenylephrine lead with the usual operating-room start in mcg/min (the label's figures follow); enter a weight for the per-kilogram equivalent.",
     "groups": [
       {
         "name": "Vasopressors",
@@ -3199,12 +3199,13 @@
           {
             "id": "epinephrine",
             "name": "Epinephrine",
-            "use": "Hypotension in septic shock (labeled); low-dose inotropy is under Inotropes",
-            "form": "perKgPerMin",
-            "start": 0.05,
+            "use": "Hypotension with low cardiac output; pressor at higher rates",
+            "form": "perMin",
+            "start": 2,
+            "startHigh": 4,
             "unit": "mcg",
-            "titration": "Increments of 0.05–0.2 mcg/kg/min every 10–15 min to the target MAP; wean gradually",
-            "range": "0.05–2 mcg/kg/min (label)",
+            "titration": "Label (septic shock): increments of 0.05–0.2 mcg/kg/min every 10–15 min to the target MAP; wean gradually",
+            "range": "2–4 mcg/min is the usual operating-room start (editor's practice). Label, septic shock: 0.05–2 mcg/kg/min (3.5–140 mcg/min at 70 kg)",
             "max": "2 mcg/kg/min, the top of the labeled range",
             "bolus": "None by vein in the label (anaphylaxis: 0.3–0.5 mg IM, repeated every 5–10 min)",
             "preparation": "Label: 1 mg in 1,000 mL D5W or D5/saline = 1 mcg/mL (not saline alone); more concentrated solutions by institutional protocol",
@@ -3248,15 +3249,15 @@
             "name": "Norepinephrine (Levophed)",
             "use": "Hypotension from vasodilation; first-line pressor",
             "form": "perMin",
-            "start": 8,
-            "startHigh": 12,
+            "start": 4,
+            "startHigh": 8,
             "unit": "mcg",
             "titration": "To the target pressure, checking BP every 2 min until there, then every 5 min; taper on stopping",
-            "range": "Label maintenance 2–4 mcg/min (target systolic 80–100, higher if previously hypertensive). Weight-based practice and reviews: 0.01–0.3 mcg/kg/min, up to 1 mcg/kg/min in shock (off-label units)",
+            "range": "4–8 mcg/min is the usual operating-room start (editor's practice). Label: initial 8–12 mcg/min in shock, maintenance 2–4 mcg/min (target systolic 80–100, higher if previously hypertensive); reviews: 0.01–0.3 mcg/kg/min, up to 1 mcg/kg/min in shock",
             "max": "No maximum in the label",
             "preparation": "Label: 4 mg in 1,000 mL D5W or D5/saline = 4 mcg/mL (not saline alone); more concentrated when fluid-restricted; large vein, not the leg veins of the elderly; light-protected, 24 h",
-            "caution": "Extravasation (phentolamine infiltration); hypotension if stopped abruptly; arrhythmias; sulfite. The label's starting figure is the shock dose: anesthetic practice usually starts far lower",
-            "source": "Levophed DailyMed prescribing information, Hospira, rev 6/2023; Shankar A et al, Clin Med Insights Cardiol 2022;16"
+            "caution": "Extravasation (phentolamine infiltration); hypotension if stopped abruptly; arrhythmias; sulfite",
+            "source": "Levophed DailyMed prescribing information, Hospira, rev 6/2023; Shankar A et al, Clin Med Insights Cardiol 2022;16; starting range: editor's practice"
           },
           {
             "id": "phenylephrine",
@@ -3481,17 +3482,17 @@
             "id": "epinephrine-low",
             "name": "Epinephrine, low dose",
             "use": "Inotropy after bypass or in cardiogenic shock (off-label range)",
-            "form": "perKgPerMin",
-            "start": 0.01,
-            "startHigh": 0.03,
+            "form": "perMin",
+            "start": 2,
+            "startHigh": 4,
             "unit": "mcg",
             "titration": "Label (septic shock): increments of 0.05–0.2 mcg/kg/min every 10–15 min; inotrope titration follows cardiac output and rhythm",
-            "range": "0.01–0.3 mcg/kg/min in cardiogenic shock (Shankar 2022); above that it is mainly a pressor",
+            "range": "2–4 mcg/min to start (editor's practice); 0.01–0.3 mcg/kg/min in cardiogenic shock (Shankar 2022); above that it is mainly a pressor",
             "max": "Label range tops at 2 mcg/kg/min",
             "preparation": "Label dilution 1 mg in 1,000 mL = 1 mcg/mL; concentrated syringes and infusions by institutional protocol",
             "caution": "Tachyarrhythmia, ischemia; lactate and glucose rise (β2) even at inotropic doses; extravasation necrosis",
             "offLabel": true,
-            "source": "Shankar A et al, Clin Med Insights Cardiol 2022;16:11795468221075064; Adrenalin DailyMed prescribing information, Par, rev 6/2026"
+            "source": "Shankar A et al, Clin Med Insights Cardiol 2022;16:11795468221075064; Adrenalin DailyMed prescribing information, Par, rev 6/2026; starting range: editor's practice"
           },
           {
             "id": "isoproterenol",
@@ -3589,6 +3590,21 @@
             "caution": "Heparin resistance is usually an ACT under 480 s after 400–450 units/kg; antithrombin concentrate reduces plasma transfusion for it (STS/SCA/AmSECT/SABM 2021 class I, A) but is not for bleeding (EACTS/EACTA 2017 class III); heparin effect then increases",
             "offLabel": true,
             "source": "Thrombate III DailyMed prescribing information, Grifols, rev 7/2025; Beattie GW, Jeffrey RR, Interact Cardiovasc Thorac Surg 2013;18:117–120; Tibi P et al, 2021; Pagano D et al, Eur J Cardiothorac Surg 2018;53:79–111"
+          },
+          {
+            "id": "bivalirudin",
+            "name": "Bivalirudin",
+            "use": "Anticoagulation for bypass or PCI when heparin cannot be used (HIT)",
+            "form": "perKg",
+            "start": 1,
+            "unit": "mg",
+            "titration": "Bypass in HIT (off-label, STS/SCA/AmSECT 2018): 1 mg/kg bolus, 2.5 mg/kg/h, 50 mg in the prime, ACT target 2.5 × baseline. PCI (label): 0.75 mg/kg bolus then 1.75 mg/kg/h for the procedure, ACT at 5 min and a further 0.3 mg/kg if needed; up to 4 h after PCI in STEMI",
+            "range": "Renal: infusion 1 mg/kg/h when CrCl is below 30 mL/min, 0.25 mg/kg/h on hemodialysis; the bolus is not reduced",
+            "bolus": "1 mg/kg (bypass); 0.75 mg/kg (PCI)",
+            "preparation": "250 mg vial + 5 mL sterile water, then diluted to 5 mg/mL",
+            "caution": "No reversal agent (half-life about 25 min, longer in renal failure); blood that stands still clots — keep cardiotomy suction, grafts and the circuit flushed and moving; more bleeding with heparin, warfarin, thrombolytics or GP IIb/IIIa inhibitors; thrombosis with gamma brachytherapy; studied with aspirin",
+            "offLabel": true,
+            "source": "Bivalirudin for injection DailyMed prescribing information, Fresenius Kabi, rev 4/2025; Shore-Lesserson L et al, STS/SCA/AmSECT anticoagulation guideline, J Extra Corpor Technol 2018;50:5–18"
           },
           {
             "id": "calcium-transfusion",
@@ -3811,6 +3827,116 @@
             "preparation": "10 mg/mL and 1 mg/0.5 mL; dilute only in saline, D5W or D5/saline; give at once, protected from light",
             "caution": "Boxed warning: fatal anaphylaxis by the IV and IM routes even when diluted and given slowly, so subcutaneous when time allows; aluminum",
             "source": "Vitamin K1 injectable emulsion prescribing information, Hospira/Pfizer, rev 9–10/2025; Rossaint R et al, Crit Care 2023;27:80 (R33)"
+          }
+        ]
+      },
+      {
+        "name": "Anesthesia and other infusions",
+        "drugs": [
+          {
+            "id": "amiodarone",
+            "name": "Amiodarone (Nexterone)",
+            "use": "Ventricular arrhythmias; rate and rhythm control in atrial fibrillation",
+            "form": "fixed",
+            "start": 150,
+            "unit": "mg",
+            "titration": "150 mg over 10 min (15 mg/min), then 1 mg/min for 6 h (360 mg), then 0.5 mg/min (540 mg over the next 18 h; 720 mg per 24 h thereafter); repeat 150 mg over 10 min for breakthrough VF or unstable VT",
+            "range": "Cardiac arrest, VF or pulseless VT: 300 mg IV push, then 150 mg (AHA ACLS 2020)",
+            "max": "Concentrations above 3 mg/mL cause phlebitis: a dedicated central line whenever possible",
+            "bolus": "150 mg over 10 min",
+            "preparation": "Premixed in dextrose: 150 mg/100 mL (1.5 mg/mL) and 360 mg/200 mL (1.8 mg/mL), no dilution",
+            "caution": "Hypotension (slow the infusion; pressors or volume); bradycardia and AV block (slow or stop; pacing available); QTc prolongation and torsades; hepatic and pulmonary injury with continued use",
+            "source": "Nexterone (amiodarone) premixed injection DailyMed prescribing information, Baxter, rev 4/2024; AHA 2020 adult cardiac arrest algorithm"
+          },
+          {
+            "id": "dexmedetomidine",
+            "name": "Dexmedetomidine (Precedex)",
+            "use": "Sedation without respiratory depression; opioid-sparing adjunct",
+            "form": "perKgPerHour",
+            "start": 0.2,
+            "startHigh": 0.7,
+            "unit": "mcg",
+            "titration": "Procedural sedation: start 0.6 mcg/kg/h, 0.2–1 mcg/kg/h; 0.7 mcg/kg/h until the tube is secured for awake fiberoptic intubation; ICU sedation 0.2–0.7 mcg/kg/h",
+            "range": "0.2–1 mcg/kg/h",
+            "max": "Beyond 24 h: tolerance, tachyphylaxis and more adverse effects",
+            "bolus": "Load 1 mcg/kg over 10 min (0.5 mcg/kg over 65 or for less invasive procedures); often omitted, and not needed when converting from another sedative",
+            "preparation": "Premixed 4 mcg/mL (200 mcg/50 mL, 400 mcg/100 mL)",
+            "caution": "Bradycardia and hypotension, some fatal, worse with hypovolemia, diabetes, chronic hypertension and age; transient hypertension during the load (slow it); reduce the dose in the elderly and in hepatic impairment; patients are arousable, which is not failure",
+            "source": "Dexmedetomidine in 0.9% sodium chloride DailyMed prescribing information, Baxter, rev 12/2025"
+          },
+          {
+            "id": "insulin",
+            "name": "Insulin, regular, IV",
+            "use": "Hyperglycemia during and after cardiac surgery",
+            "form": "text",
+            "range": "By institutional protocol (commonly 1–2 units/h to start, or 0.02–0.05 units/kg/h, adjusted hourly to the glucose); diabetic ketoacidosis 0.1 units/kg/h. Cardiac surgery: an insulin infusion to keep glucose ≤ 180 mg/dL in the operating room and for at least 24 h after (STS 2009, class I)",
+            "preparation": "Regular insulin 100 units/mL diluted to 1 unit/mL in 0.9% saline; prime the tubing",
+            "caution": "Hypoglycemia: glucose at least hourly on an infusion; potassium falls with insulin; the target is ≤ 180 mg/dL, not tight control (NICE-SUGAR)",
+            "source": "Lazar HL et al, STS practice guideline: blood glucose management during adult cardiac surgery, Ann Thorac Surg 2009;87:663–669; Humulin R prescribing information (IV use under medical supervision); starting rates: institutional practice"
+          },
+          {
+            "id": "ketamine",
+            "name": "Ketamine (Ketalar)",
+            "use": "Induction with hemodynamic support; analgesic adjunct at subanesthetic doses",
+            "form": "perKg",
+            "start": 1,
+            "startHigh": 2,
+            "unit": "mg",
+            "titration": "Label induction 1–4.5 mg/kg IV over 60 s (2 mg/kg gives 5–10 min); maintenance half to the full induction dose as needed, or 0.1–0.5 mg/min by infusion; less when combined with other agents",
+            "range": "Analgesic (subanesthetic) use: bolus up to 0.35 mg/kg and infusion up to 1 mg/kg/h without intensive monitoring (ASRA/AAPM/ASA 2018 consensus)",
+            "bolus": "1–2 mg/kg over 60 s; IM 6.5–13 mg/kg",
+            "preparation": "10, 50 and 100 mg/mL; the 100 mg/mL must be diluted for IV use; infusion 1 mg/mL (500 mg in 500 mL), used at once",
+            "caution": "Transient hypertension, tachycardia and a rise in cardiac index; intracranial pressure rises; emergence reactions in about 12%, fewer with a benzodiazepine and lower doses; respiratory depression with fast injection; abuse potential",
+            "source": "Ketalar DailyMed prescribing information, Par, rev 3/2026; Schwenk ES et al, Reg Anesth Pain Med 2018;43:456–466"
+          },
+          {
+            "id": "lidocaine-iv",
+            "name": "Lidocaine, intravenous",
+            "use": "Ventricular arrhythmias (labeled); analgesic infusion (off-label)",
+            "form": "perKg",
+            "start": 1,
+            "startHigh": 1.5,
+            "unit": "mg",
+            "titration": "Antiarrhythmic (label): 1–1.5 mg/kg at 25–50 mg/min, then 1–4 mg/min (20–50 mcg/kg/min), halved after 24 h; stop once the rhythm is stable. Analgesic (consensus 2021): no more than 1.5 mg/kg of ideal body weight over 10 min, then up to 1.5 mg/kg/h (ideal weight), for no longer than 24 h",
+            "range": "Infusion 1–4 mg/min",
+            "max": "Analgesic infusion: 120 mg/h and 24 h; not under 40 kg; CNS toxicity above 6 mcg/mL",
+            "bolus": "1–1.5 mg/kg (label); 1.5 mg/kg of ideal weight over 10 min (analgesic)",
+            "preparation": "Premixed 4 and 8 mg/mL in dextrose for the antiarrhythmic infusion; the analgesic bolus is given with ECG, oximetry and an anesthesiologist present",
+            "caution": "Neurological symptoms come first (perioral numbness, tinnitus, confusion), cardiac depression late; bradycardia and heart block; no nerve or fascial plane block within 4 h before or after the infusion, and no epidural or wound-catheter bolus for 4 h after; 20% lipid emulsion at hand; additive with other antiarrhythmics; lower rates in hepatic and severe renal impairment",
+            "offLabel": true,
+            "source": "Lidocaine hydrochloride and dextrose injection DailyMed prescribing information, Baxter, rev 2/2026; Foo I et al, international consensus statement on intravenous lidocaine, Anaesthesia 2021;76:238–250"
+          },
+          {
+            "id": "propofol",
+            "name": "Propofol (Diprivan)",
+            "use": "Induction and maintenance of anesthesia; sedation",
+            "form": "perKgPerMin",
+            "start": 100,
+            "startHigh": 200,
+            "unit": "mcg",
+            "titration": "Maintenance 100–200 mcg/kg/min in healthy adults, 50–100 in the elderly, debilitated or ASA III–IV, 25–100 for cardiac anesthesia; sedation 25–75 mcg/kg/min after 100–150 for 3–5 min (or 0.5 mg/kg slowly); ICU: start 5 mcg/kg/min, steps of 5–10 every 5 min or more, usual 5–50",
+            "range": "Intermittent maintenance boluses 20–50 mg",
+            "max": "ICU: not above 4 mg/kg/h (67 mcg/kg/min) unless the benefit outweighs the risk; infusion syndrome with more than 5 mg/kg/h beyond 48 h",
+            "bolus": "Induction 2–2.5 mg/kg (healthy, under 65), 1–1.5 mg/kg (elderly, debilitated, ASA III–IV), 0.5–1.5 mg/kg (cardiac anesthesia), 1–2 mg/kg (neurosurgical), given until induction",
+            "preparation": "10 mg/mL emulsion; strict asepsis, one patient per vial, finished within 12 h of opening",
+            "caution": "Hypotension, more with hypovolemia and age (about 80% of the adult dose, no fast boluses); infusion syndrome; lipid load and triglycerides on long infusions; pain on injection",
+            "source": "Diprivan DailyMed prescribing information, Fresenius Kabi, rev 1/2025"
+          },
+          {
+            "id": "remifentanil",
+            "name": "Remifentanil (Ultiva)",
+            "use": "Intense, short-acting opioid for anesthesia maintenance and sedation",
+            "form": "perKgPerMin",
+            "start": 0.05,
+            "startHigh": 0.25,
+            "unit": "mcg",
+            "titration": "Maintenance with propofol or isoflurane 0.25 (0.05–2) mcg/kg/min, with nitrous oxide 0.4 (0.1–2); induction 0.5–1; continued as the postoperative analgesic 0.1 (0.025–0.2); sedation 0.1 then 0.05 (0.025–0.2), halved with midazolam",
+            "range": "0.025–2 mcg/kg/min by phase",
+            "max": "Elderly (over 65): halve the starting doses; dose obese patients (over 30% above ideal) on ideal body weight",
+            "bolus": "1 mcg/kg over 30–60 s, optional at induction and as a supplement (0.5 mcg/kg with midazolam for sedation)",
+            "preparation": "20, 25, 50 or 250 mcg/mL (25 for sedation)",
+            "caution": "Analgesia is gone 5–10 min after stopping: establish other analgesia before the end; chest-wall rigidity with boluses above 1 mcg/kg or fast rates; respiratory depression in the spontaneously breathing (halve the rate); no bolus for postoperative analgesia",
+            "source": "Ultiva DailyMed prescribing information, Mylan, rev 12/2025"
           }
         ]
       }

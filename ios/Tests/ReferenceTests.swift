@@ -272,7 +272,7 @@ final class ReferenceTests: XCTestCase {
     func testInfusionBundleIsComplete() throws {
         let b = try bundled()
         let inf = try XCTUnwrap(b.infusions)
-        XCTAssertEqual(inf.groups.count, 4)
+        XCTAssertEqual(inf.groups.count, 5)
         let all = inf.groups.flatMap(\.drugs)
         XCTAssertGreaterThanOrEqual(all.count, 40)
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "infusion ids are unique")
@@ -292,7 +292,8 @@ final class ReferenceTests: XCTestCase {
             let names = g.drugs.map { $0.name.lowercased() }
             XCTAssertEqual(names, names.sorted(), "\(g.name) is alphabetical")
         }
-        let wanted = ["phenylephrine", "norepinephrine", "epinephrine", "vasopressin", "nitroglycerin", "nitroprusside", "esmolol", "clevidipine", "nicardipine", "milrinone", "dobutamine", "tranexamic", "aminocaproic", "iepo", "ino", "factor-viia", "pcc", "antithrombin"]
+        let wanted = ["phenylephrine", "norepinephrine", "epinephrine", "vasopressin", "nitroglycerin", "nitroprusside", "esmolol", "clevidipine", "nicardipine", "milrinone", "dobutamine", "tranexamic", "aminocaproic", "iepo", "ino", "factor-viia", "pcc", "antithrombin",
+                      "bivalirudin", "insulin", "amiodarone", "propofol", "dexmedetomidine", "lidocaine-iv", "ketamine", "remifentanil"]
         for id in wanted { XCTAssertTrue(all.contains { $0.id == id }, "\(id) is in the table") }
     }
 
