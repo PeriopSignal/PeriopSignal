@@ -63,5 +63,6 @@ Every post gets a recording made by **Kokoro**, an open-weights neural voice tha
 ## Troubleshooting
 - The workflow writes its logs to the `ci-results` branch of the repository (folder `results/`), which Claude can read for you.
 - The notification sender keeps what it has already sent in `results/notify/state.json` on the same branch; delete that file to make it treat everything as already sent on its next run.
+- A build or release that sits "queued" for 15 minutes and ends "cancelled" with *The job was not acquired by Runner* means GitHub's macOS pool for that runner label ran out of capacity (it posts a notice about arm64 runners). The iOS workflows run on `macos-15-intel`, a separate pool, for that reason; `macos-15` (Apple silicon) is a little faster when it is available — change `runs-on` in `.github/workflows/ios-build.yml` and `ios-release.yml` to switch.
 - "No app record found" during upload: do step 4.
 - Cloud-signing errors: confirm the API key role is **Admin** and `APPLE_TEAM_ID` is the 10-character Team ID.
