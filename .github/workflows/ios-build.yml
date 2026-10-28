@@ -148,6 +148,7 @@ jobs:
           shot 17-quickref 12 -ps.ref quickref:asra-anticoagulation
           shot 18-ariscat 12 -ps.ref score:ariscat
           shot 19-local 12 -ps.ref local -ps.la.weight 70
+          shot 20-infusions 12 -ps.ref infusions -ps.la.weight 70
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

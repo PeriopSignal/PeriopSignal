@@ -27,6 +27,7 @@ enum DebugLaunch {
         guard let s = UserDefaults.standard.string(forKey: "ps.ref"), !s.isEmpty else { return nil }
         if s == "peds" { return .peds }
         if s == "local" { return .local }
+        if s == "infusions" { return .infusions }
         let parts = s.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return nil }
         switch parts[0] {

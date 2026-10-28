@@ -14,6 +14,43 @@ struct ReferenceBundle: Codable {
     var ask: AskConfig?
     var quickrefs: [QuickRef]
     var peds: PedsData?
+    var infusions: InfusionData?
+}
+
+// MARK: Vasoactive infusions and hematologic agents
+
+struct InfusionData: Codable {
+    var reviewed: String?
+    var note: String?
+    var groups: [InfusionGroup]
+}
+
+struct InfusionGroup: Codable, Identifiable, Hashable {
+    var id: String { name }
+    var name: String
+    var drugs: [InfusionDrug]
+}
+
+struct InfusionDrug: Codable, Identifiable, Hashable {
+    /// How `start` is expressed: perKgPerMin (mcg/kg/min), perMin (mcg/min), perKg (a weight-based bolus or load),
+    /// perKgPerHour (mg/kg/h), perHour (mg/h), fixed (a fixed dose), text (no number to compute).
+    enum Form: String, Codable, Hashable { case perKgPerMin, perMin, perKg, perKgPerHour, perHour, fixed, text }
+    var id: String
+    var name: String
+    var use: String
+    var form: Form
+    var start: Double?
+    var startHigh: Double?
+    /// Unit of `start`: mcg, mg, g, units, ng, ppm, mL.
+    var unit: String?
+    var titration: String?
+    var range: String?
+    var max: String?
+    var bolus: String?
+    var preparation: String?
+    var caution: String?
+    var offLabel: Bool?
+    var source: String?
 }
 
 /// Where the app sends questions the references and the feed cannot answer (set once the proxy exists).

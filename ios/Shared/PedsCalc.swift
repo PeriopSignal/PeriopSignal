@@ -124,3 +124,51 @@ enum PedsCalc {
         return (fmt(lo) + "–" + fmt(hi) + " " + unit, capped)
     }
 }
+
+// MARK: - Infusion arithmetic
+
+enum InfusionCalc {
+    /// The starting dose as written ("0.05–0.1 mcg/kg/min") and, for a weight, its equivalent in the other
+    /// form ("3.5–7 mcg/min at 70 kg"); weight-based boluses become totals.
+    static func lines(for d: InfusionDrug, weightKg: Double?) -> (dose: String, equivalent: String?) {
+        guard let start = d.start else { return (d.range ?? "see notes", nil) }
+        let unit = d.unit ?? "mcg"
+        func span(_ lo: Double, _ hi: Double?, _ u: String) -> String {
+            if let hi, abs(hi - lo) > 0.0001 { return "\(PedsCalc.fmt(lo))–\(PedsCalc.fmt(hi)) \(u)" }
+            return "\(PedsCalc.fmt(lo)) \(u)"
+        }
+        switch d.form {
+        case .perKgPerMin:
+            let dose = span(start, d.startHigh, unit + "/kg/min")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            return (dose, span(start * w, d.startHigh.map { $0 * w }, unit + "/min") + " at \(PedsCalc.fmt(w)) kg")
+        case .perMin:
+            let dose = span(start, d.startHigh, unit + "/min")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            return (dose, span(start / w, d.startHigh.map { $0 / w }, unit + "/kg/min") + " at \(PedsCalc.fmt(w)) kg")
+        case .perKg:
+            let dose = span(start, d.startHigh, unit + "/kg")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            return (dose, total(start * w, d.startHigh.map { $0 * w }, unit) + " at \(PedsCalc.fmt(w)) kg")
+        case .perKgPerHour:
+            let dose = span(start, d.startHigh, unit + "/kg/h")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            return (dose, span(start * w, d.startHigh.map { $0 * w }, unit + "/h") + " at \(PedsCalc.fmt(w)) kg")
+        case .perHour:
+            return (span(start, d.startHigh, unit + "/h"), nil)
+        case .fixed:
+            return (span(start, d.startHigh, unit), nil)
+        case .text:
+            return (d.range ?? "see notes", nil)
+        }
+    }
+
+    /// mcg totals above 1,000 read better as mg; mg above 1,000 as g.
+    static func total(_ lo: Double, _ hi: Double?, _ unit: String) -> String {
+        var l = lo, h = hi, u = unit
+        if u == "mcg", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "mg" }
+        if u == "mg", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "g" }
+        if let h, abs(h - l) > 0.0001 { return "\(PedsCalc.fmt(l))–\(PedsCalc.fmt(h)) \(u)" }
+        return "\(PedsCalc.fmt(l)) \(u)"
+    }
+}

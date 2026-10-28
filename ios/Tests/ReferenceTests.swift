@@ -226,4 +226,24 @@ final class ReferenceTests: XCTestCase {
                                       agents: agents, weightKg: 80, pediatric: false, epinephrine: false, ageYears: nil)
         XCTAssertTrue(lido.warnings.contains { $0.contains("20 minutes") })
     }
+
+    // MARK: Infusion conversions
+
+    func testInfusionLines() {
+        let norepi = InfusionDrug(id: "norepi", name: "Norepinephrine", use: "Hypotension", form: .perKgPerMin, start: 0.05, startHigh: 0.1, unit: "mcg", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
+        let a = InfusionCalc.lines(for: norepi, weightKg: 70)
+        XCTAssertEqual(a.dose, "0.05–0.1 mcg/kg/min")
+        XCTAssertEqual(a.equivalent, "3.5–7 mcg/min at 70 kg")
+        XCTAssertNil(InfusionCalc.lines(for: norepi, weightKg: nil).equivalent)
+        let ntg = InfusionDrug(id: "ntg", name: "Nitroglycerin", use: "Hypertension", form: .perMin, start: 5, startHigh: nil, unit: "mcg", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
+        let b = InfusionCalc.lines(for: ntg, weightKg: 100)
+        XCTAssertEqual(b.dose, "5 mcg/min")
+        XCTAssertEqual(b.equivalent, "0.05 mcg/kg/min at 100 kg")
+        let txa = InfusionDrug(id: "txa", name: "Tranexamic acid", use: "Cardiac surgery load", form: .perKg, start: 30, startHigh: nil, unit: "mg", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: true, source: "BART")
+        let c = InfusionCalc.lines(for: txa, weightKg: 70)
+        XCTAssertEqual(c.dose, "30 mg/kg")
+        XCTAssertEqual(c.equivalent, "2.1 g at 70 kg", "2,100 mg reads as grams")
+        XCTAssertEqual(InfusionCalc.total(1500, nil, "mcg"), "1.5 mg")
+        XCTAssertEqual(InfusionCalc.total(250, 500, "mg"), "250–500 mg")
+    }
 }

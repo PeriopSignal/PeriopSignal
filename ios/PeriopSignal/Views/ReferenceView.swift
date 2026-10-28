@@ -6,6 +6,7 @@ enum RefRoute: Hashable {
     case score(String)
     case peds
     case local
+    case infusions
 }
 
 /// The Reference tab: calculators, condensed society quick references, and the society guidelines
@@ -59,6 +60,8 @@ struct ReferenceView: View {
                     PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) })
                 case .local:
                     LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
+                case .infusions:
+                    InfusionsView(onOpen: { webLink = WebLink(url: $0) })
                 }
             }
             .navigationDestination(for: Post.self) { post in
@@ -101,6 +104,7 @@ struct ReferenceView: View {
                 }
                 CalculatorTile(icon: "scalemass", title: "Pediatric", blurb: "Weight-based doses, tube sizes, fluids and blood volume") { path.append(RefRoute.peds) }
                 CalculatorTile(icon: "syringe", title: "Local anesthetic", blurb: "Maximum doses for one agent or a mixture, including Exparel") { path.append(RefRoute.local) }
+                CalculatorTile(icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Starting doses for pressors, dilators, inotropes and hematologic agents") { path.append(RefRoute.infusions) }
             }
         }
     }
@@ -278,6 +282,11 @@ struct ReferenceSearchResults: View {
         let words = ["pediatric", "peds", "child", "weight", "dose", "dosing", "ett", "tube", "lma", "fluid", "blood volume", "mabl"]
         return words.contains { $0.contains(q) || q.contains($0) } || p.drugs.contains { $0.name.lowercased().contains(q) }
     }
+    private var infusionMatches: Bool {
+        guard let data = refs.bundle?.infusions else { return false }
+        let words = ["infusion", "drip", "pressor", "vasopressor", "inotrope", "vasodilator", "mcg/kg/min", "hematolog", "coagulation", "factor", "pcc", "antifibrinolytic"]
+        return words.contains { $0.contains(q) || q.contains($0) } || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use).lowercased().contains(q) } }
+    }
     private var localMatches: Bool {
         guard let p = refs.peds else { return false }
         let words = ["local anesthetic", "local anaesthetic", "max dose", "maximum dose", "exparel", "liposomal", "mixture", "toxicity", "mg/kg"]
@@ -295,7 +304,7 @@ struct ReferenceSearchResults: View {
     }
 
     var body: some View {
-        let nothing = scores.isEmpty && !pedsMatches && !localMatches && quickrefs.isEmpty && guidelineGroups.isEmpty && papers.isEmpty
+        let nothing = scores.isEmpty && !pedsMatches && !localMatches && !infusionMatches && quickrefs.isEmpty && guidelineGroups.isEmpty && papers.isEmpty
         if nothing {
             VStack(spacing: 10) {
                 ContentUnavailableView.search(text: query)
@@ -303,7 +312,7 @@ struct ReferenceSearchResults: View {
             }
             .padding(.top, 30)
         } else {
-            if !scores.isEmpty || pedsMatches || localMatches {
+            if !scores.isEmpty || pedsMatches || localMatches || infusionMatches {
                 VStack(alignment: .leading, spacing: 12) {
                     Eyebrow(text: "Calculators").padding(.leading, 2)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
@@ -315,6 +324,9 @@ struct ReferenceSearchResults: View {
                         }
                         if localMatches {
                             CalculatorTile(icon: "syringe", title: "Local anesthetic", blurb: "Maximum doses for one agent or a mixture, including Exparel") { path.append(RefRoute.local) }
+                        }
+                        if infusionMatches {
+                            CalculatorTile(icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Starting doses for pressors, dilators, inotropes and hematologic agents") { path.append(RefRoute.infusions) }
                         }
                     }
                 }
