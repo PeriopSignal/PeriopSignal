@@ -184,7 +184,8 @@ def synth_kokoro(segs, voice, out_path):
         pieces.append(np.zeros(int(sr * pause), dtype=np.float32))
     wav = out_path + ".wav"
     sf.write(wav, np.concatenate(pieces), sr)
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-ac", "1", "-b:a", "64k", out_path], check=True)
+    # Podcast loudness (-16 LUFS) so the recordings sit at the same level as other spoken audio.
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ac", "1", "-b:a", "64k", out_path], check=True)
     os.remove(wav)
 
 
