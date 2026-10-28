@@ -21,7 +21,7 @@ env:
 jobs:
   release:
     name: Archive, sign in the cloud, upload to TestFlight
-    runs-on: macos-latest
+    runs-on: macos-15-intel   # Intel pool; the arm64 (macos-15 / macos-latest) pool has been capacity-constrained and jobs were never acquired
     timeout-minutes: 90
     env:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
