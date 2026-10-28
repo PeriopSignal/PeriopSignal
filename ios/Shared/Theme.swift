@@ -50,6 +50,13 @@ enum PS {
     static func sys(size: CGFloat, weight: Font.Weight = .regular, design: Font.Design = .default) -> Font {
         .system(size: (size * textScale).rounded(toPlaces: 1), weight: weight, design: design)
     }
+
+    /// Headline serif (New York on iOS), scaled like `sys`.
+    static func serif(size: CGFloat, weight: Font.Weight = .semibold) -> Font { sys(size: size, weight: weight, design: .serif) }
+    /// Small monospaced caps labels (eyebrows, section labels, dates).
+    static func mono(size: CGFloat, weight: Font.Weight = .bold) -> Font { sys(size: size, weight: weight, design: .monospaced) }
+
+    static let cardRadius: CGFloat = 20
 }
 
 extension CGFloat {

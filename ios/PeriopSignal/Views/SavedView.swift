@@ -22,18 +22,18 @@ struct SavedView: View {
                         .padding(.top, 60)
                     } else {
                         HStack {
-                            Text("\(posts.count) saved · synced with iCloud")
-                                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
+                            Eyebrow(text: "\(posts.count) saved · synced with iCloud")
                             Spacer()
                             Button { speech.play(posts) } label: { Label("Listen to all", systemImage: "headphones") }
-                                .buttonStyle(CapsuleButtonStyle(prominent: false))
+                                .buttonStyle(GhostButtonStyle())
                         }
+                        .padding(.bottom, 4)
                         ForEach(posts) { post in
                             PostCard(post: post, onOpen: { path.append(post) }, onOpenPaper: { webLink = WebLink(url: $0) })
                         }
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 24)
             }
             .background(FeedBackground())
@@ -43,7 +43,7 @@ struct SavedView: View {
             .navigationDestination(for: Post.self) { post in
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
             }
-            .toolbarBackground(PS.bg.opacity(0.9), for: .navigationBar)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .listenBar()
         }
         .fullScreenCover(item: $webLink) { link in

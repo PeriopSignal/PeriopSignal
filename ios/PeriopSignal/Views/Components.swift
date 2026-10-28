@@ -79,28 +79,29 @@ struct JournalAvatar: View {
     }
 }
 
-/// Bulleted take-home list with the site's coral diamond markers.
+/// Take-home bullets with the coral diamond markers, grouped by a thin left rule (no box).
 struct TakeHomeList: View {
     var items: [String]
+    var size: CGFloat = 14.5
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 7) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 9) {
                     Image(systemName: "diamond.fill")
                         .font(PS.sys(size: 6))
                         .foregroundStyle(PS.accent)
                         .padding(.top, 1)
                     Text(item)
-                        .font(PS.sys(size: 14.5))
+                        .font(PS.sys(size: size))
                         .foregroundStyle(PS.fg)
+                        .lineSpacing(1.5)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
-        .padding(12)
+        .padding(.leading, 12)
+        .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 1).fill(PS.line2).frame(width: 2) }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line, lineWidth: 1))
     }
 }
 
@@ -119,8 +120,12 @@ struct MetaLine: View {
     var post: Post
     var long = false
     var isNew = false
+    var showDot = true
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 6) {
+            if showDot {
+                Circle().fill(Topics.info(post.primaryTopic).fg).frame(width: 8, height: 8)
+            }
             Text(post.journal).fontWeight(.semibold).foregroundStyle(PS.fg)
             Text("·").foregroundStyle(PS.fg3)
             Text(post.kind)
@@ -135,6 +140,123 @@ struct MetaLine: View {
     }
 }
 
+/// Small monospaced caps label used for eyebrows, section headings and dates.
+struct Eyebrow: View {
+    var text: String
+    var color: Color = PS.fg3
+    var size: CGFloat = 11
+    var body: some View {
+        Text(text)
+            .font(PS.mono(size: size))
+            .textCase(.uppercase)
+            .kerning(size * 0.12)
+            .foregroundStyle(color)
+            .lineLimit(1)
+    }
+}
+
+struct Hairline: View {
+    var body: some View { Rectangle().fill(PS.line).frame(height: 1) }
+}
+
+/// One ECG cycle repeated across the width; the brand's hairline. `progress` draws it in.
+struct ECGLine: Shape {
+    var progress: CGFloat = 1
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let cycle: CGFloat = 118
+        let base = rect.midY
+        var x = rect.minX
+        p.move(to: CGPoint(x: x, y: base))
+        while x < rect.maxX {
+            let w = cycle / 30
+            func to(_ dx: CGFloat, _ dy: CGFloat) { x += dx; p.addLine(to: CGPoint(x: x, y: base + dy)) }
+            func curve(_ dx: CGFloat, _ depth: CGFloat) {
+                let c1 = CGPoint(x: x + dx * 0.3, y: base + depth), c2 = CGPoint(x: x + dx * 0.7, y: base + depth)
+                x += dx; p.addCurve(to: CGPoint(x: x, y: base), control1: c1, control2: c2)
+            }
+            to(6 * w, 0)
+            curve(3.5 * w, -3)                                   // P
+            to(2.5 * w, 0)
+            to(1 * w, 1.6); to(1.5 * w, -10); to(1.5 * w, 11.5); to(1 * w, -3.1)   // QRS
+            to(2.5 * w, 0)
+            curve(5 * w, -4.2)                                   // T
+            to(5.5 * w, 0)
+        }
+        return p.trimmedPath(from: 0, to: max(0, min(1, progress)))
+    }
+}
+
+/// A hairline-separated row: icon tile, eyebrow + text, optional trailing control. Replaces the
+/// boxed banners on the feed.
+struct QuietRow<Trailing: View>: View {
+    var icon: String
+    var tint: Color
+    var eyebrow: String
+    var text: String
+    var textSize: CGFloat = 14.5
+    var lines: Int = 3
+    @ViewBuilder var trailing: () -> Trailing
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(PS.sys(size: 14, weight: .bold))
+                .foregroundStyle(tint)
+                .frame(width: 34, height: 34)
+                .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 4) {
+                Eyebrow(text: eyebrow, color: tint, size: 10.5)
+                Text(text)
+                    .font(PS.sys(size: textSize))
+                    .foregroundStyle(PS.fg)
+                    .lineSpacing(1.5)
+                    .lineLimit(lines)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 6)
+            trailing().frame(maxHeight: .infinity, alignment: .center)
+        }
+        .padding(.vertical, 14)
+    }
+}
+
+/// Text-only actions ("Deep dive →", "Paper ↗") for card footers.
+struct TextButtonStyle: ButtonStyle {
+    var color: Color = PS.accent
+    var size: CGFloat = 13
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(PS.sys(size: size, weight: .semibold))
+            .foregroundStyle(color)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.5 : 1)
+    }
+}
+
+/// Outlined capsule button (the quiet sibling of CapsuleButtonStyle's filled form).
+struct GhostButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(PS.sys(size: 13.5, weight: .semibold))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, 15).padding(.vertical, 9)
+            .foregroundStyle(PS.fg)
+            .overlay(Capsule().stroke(PS.line2, lineWidth: 1))
+            .contentShape(Capsule())
+            .opacity(configuration.isPressed ? 0.6 : 1)
+    }
+}
+
 /// Small coral dot marking an unread post.
 struct UnreadDot: View {
     var body: some View {
@@ -144,59 +266,50 @@ struct UnreadDot: View {
 }
 
 /// The at-a-glance strip: design, population, primary outcome, result. `compact` is the one-line card
-/// version; the full version is a labelled grid for the deep dive.
+/// version; the full version is a hairline table for the deep dive.
 struct GlanceStrip: View {
     var glance: Glance
     var compact = false
 
     var body: some View {
         if compact {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(Array(glance.rows.enumerated()), id: \.offset) { _, row in
-                        HStack(spacing: 4) {
-                            Text(shortLabel(row.label)).font(PS.sys(size: 9.5, weight: .bold, design: .monospaced)).foregroundStyle(PS.fg3)
-                            Text(row.value).font(PS.sys(size: 11.5, weight: .medium)).foregroundStyle(PS.fg2).lineLimit(1)
-                        }
-                        .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    }
-                }
-            }
-            .scrollClipDisabled()
-            .accessibilityElement(children: .combine)
+            (Text(compactLine))
+                .font(PS.sys(size: 11.5, weight: .medium, design: .monospaced))
+                .foregroundStyle(PS.fg3)
+                .lineLimit(2)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel("At a glance: " + compactPlain)
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(glance.rows.enumerated()), id: \.offset) { i, row in
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text(row.label.uppercased())
-                            .font(PS.sys(size: 10, weight: .bold, design: .monospaced))
-                            .kerning(0.5)
-                            .foregroundStyle(PS.fg3)
-                            .frame(width: 92, alignment: .leading)
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        Eyebrow(text: row.label, size: 10)
+                            .frame(width: 96, alignment: .leading)
                         Text(row.value)
-                            .font(PS.sys(size: 13.5, weight: row.label == "Result" ? .semibold : .regular))
+                            .font(PS.sys(size: 14, weight: row.label == "Result" ? .semibold : .regular))
                             .foregroundStyle(PS.fg)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .padding(.vertical, 8)
-                    if i < glance.rows.count - 1 { Divider().overlay(PS.line) }
+                    .padding(.vertical, 9)
+                    if i < glance.rows.count - 1 { Hairline() }
                 }
             }
-            .padding(.horizontal, 12).padding(.vertical, 2)
-            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line, lineWidth: 1))
         }
     }
 
-    private func shortLabel(_ l: String) -> String {
-        switch l {
-        case "Design": return "DESIGN"
-        case "Population": return "N"
-        case "Primary outcome": return "OUTCOME"
-        default: return "RESULT"
+    private var compactLine: AttributedString {
+        var out = AttributedString()
+        let parts = glance.rows
+        for (i, row) in parts.enumerated() {
+            var piece = AttributedString(row.value)
+            if row.label == "Design" || row.label == "Result" { piece.foregroundColor = PS.fg2 }
+            out += piece
+            if i < parts.count - 1 { out += AttributedString("  ·  ") }
         }
+        return out
     }
+    private var compactPlain: String { glance.rows.map(\.value).joined(separator: ", ") }
 }
 
 /// Wrapping grid of topic chips used by onboarding and the More tab.

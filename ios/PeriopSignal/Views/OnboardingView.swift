@@ -148,44 +148,30 @@ struct BigButtonStyle: ButtonStyle {
     }
 }
 
-/// Reminder shown a few days in when the reader skipped topics at launch.
+/// Reminder shown a few days in when the reader has not picked topics.
 struct PersonalizeBanner: View {
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
 
     var body: some View {
         if prefs.shouldPromptToPersonalize {
-            HStack(alignment: .center, spacing: 12) {
-                Image(systemName: "slider.horizontal.3")
-                    .font(PS.sys(size: 18, weight: .semibold))
-                    .foregroundStyle(PS.accent2)
-                    .frame(width: 36, height: 36)
-                    .background(PS.accent2.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Make it yours").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text("Pick your areas for a For you feed and alerts that matter.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
+            VStack(spacing: 0) {
+                QuietRow(icon: "slider.horizontal.3", tint: PS.accent2, eyebrow: "Make it yours", text: "Pick your areas for a For you feed and alerts that matter.", textSize: 14, lines: 2) {
+                    HStack(spacing: 4) {
+                        Button {
+                            prefs.personalizePromptDismissed = true
+                            router.selectedTab = .more
+                        } label: { Text("Pick topics") }
+                        .buttonStyle(CapsuleButtonStyle(prominent: true, color: PS.accent2, onColor: .white))
+                        Button { prefs.personalizePromptDismissed = true } label: {
+                            Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Dismiss")
+                    }
                 }
-                Spacer(minLength: 4)
-                Button {
-                    prefs.personalizePromptDismissed = true
-                    router.selectedTab = .more
-                } label: {
-                    Text("Pick topics")
-                        .font(PS.sys(size: 13, weight: .semibold))
-                        .padding(.horizontal, 12).padding(.vertical, 7)
-                        .background(PS.accent2, in: Capsule())
-                        .foregroundStyle(.white)
-                }
-                .buttonStyle(.plain)
-                Button { prefs.personalizePromptDismissed = true } label: {
-                    Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Dismiss")
+                Hairline()
             }
-            .padding(12)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
         }
     }
 }

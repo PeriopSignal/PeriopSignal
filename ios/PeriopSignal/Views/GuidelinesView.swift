@@ -33,28 +33,26 @@ struct GuidelinesView: View {
                                 VStack(spacing: 0) {
                                     ForEach(Array(group.posts.enumerated()), id: \.element.id) { i, post in
                                         GuidelineRow(post: post, isUnread: read.isUnread(post)) { path.append(post) }
-                                        if i < group.posts.count - 1 { Divider().overlay(PS.line).padding(.leading, 14) }
+                                        if i < group.posts.count - 1 { Hairline().padding(.leading, 18) }
                                     }
                                 }
-                                .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line, lineWidth: 1))
+                                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                             } header: {
-                                HStack {
+                                HStack(alignment: .firstTextBaseline) {
                                     Text(group.society)
-                                        .font(PS.sys(size: 12, weight: .bold, design: .monospaced))
-                                        .textCase(.uppercase).kerning(0.6)
-                                        .foregroundStyle(group.society == "FDA and safety notices" ? PS.accent : PS.fg2)
+                                        .font(PS.serif(size: 18))
+                                        .foregroundStyle(group.society == "FDA and safety notices" ? PS.accent : PS.fg)
                                     Spacer()
-                                    Text("\(group.posts.count)").font(PS.sys(size: 11.5, weight: .semibold, design: .monospaced)).foregroundStyle(PS.fg3)
+                                    Text("\(group.posts.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
                                 }
-                                .padding(.vertical, 6)
-                                .padding(.top, 6)
-                                .background(PS.bg.opacity(0.92))
+                                .padding(.top, 14)
+                                .padding(.bottom, 8)
+                                .background(PS.bg.opacity(0.94))
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 24)
             }
             .background(FeedBackground())
@@ -62,10 +60,10 @@ struct GuidelinesView: View {
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Society, topic, drug, procedure")
             .navigationTitle("Guidelines")
             .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .navigationDestination(for: Post.self) { post in
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
             }
-            .toolbarBackground(PS.bg.opacity(0.9), for: .navigationBar)
             .listenBar()
         }
         .fullScreenCover(item: $webLink) { link in
@@ -77,8 +75,9 @@ struct GuidelinesView: View {
         let guidance = store.posts.filter(\.isGuidance).count
         let regulatory = store.posts.filter(\.isRegulatory).count
         return Text("\(guidance) guidelines and consensus statements from \(max(0, store.guidelineGroups.count - (regulatory > 0 ? 1 : 0))) societies, plus \(regulatory) FDA and safety notices. Newest first within each society.")
-            .font(PS.sys(size: 13.5))
+            .font(PS.sys(size: 14))
             .foregroundStyle(PS.fg2)
+            .lineSpacing(2)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 2)
     }
@@ -91,28 +90,32 @@ struct GuidelineRow: View {
 
     var body: some View {
         Button(action: onOpen) {
-            HStack(alignment: .top, spacing: 10) {
-                JournalAvatar(post: post, size: 36)
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(post.headline)
-                        .font(PS.sys(size: 14.5, weight: .semibold, design: .serif))
+                        .font(PS.serif(size: 15.5))
                         .foregroundStyle(PS.fg)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
-                    HStack(spacing: 5) {
+                    HStack(spacing: 6) {
+                        Circle().fill(Topics.info(post.primaryTopic).fg).frame(width: 7, height: 7)
+                        Text(post.journal).fontWeight(.semibold)
+                        Text("·").foregroundStyle(PS.fg3)
                         Text(post.kind)
                         Text("·").foregroundStyle(PS.fg3)
                         Text(PSDate.display(post.date, long: true))
-                        if post.isLandmark { Pill(text: "Landmark", style: .landmark) }
+                        if post.isLandmark { Eyebrow(text: "Landmark", color: PS.accent, size: 9.5) }
                         if isUnread { UnreadDot() }
                     }
                     .font(PS.sys(size: 12))
                     .foregroundStyle(PS.fg2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3).padding(.top, 4)
             }
-            .padding(12)
+            .padding(.horizontal, 18).padding(.vertical, 13)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

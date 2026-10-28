@@ -2,61 +2,53 @@ import SwiftUI
 
 struct FeedView: View {
     @Environment(PostStore.self) private var store
-    @Environment(SavedStore.self) private var saved
     @Environment(QuizStore.self) private var quiz
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
     @State private var path = NavigationPath()
     @State private var webLink: WebLink?
-    @State private var showShare = false
     @State private var quizPost: Post?
+    @State private var searching = false
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         @Bindable var store = store
         NavigationStack(path: $path) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 14, pinnedViews: []) {
-                    TodayCard(onOpen: { path.append($0) })
-                        .padding(.top, 6)
+                LazyVStack(alignment: .leading, spacing: 0, pinnedViews: []) {
+                    FeedHeader(searching: $searching) {
+                        withAnimation(.snappy) { searching.toggle() }
+                        if searching { searchFocused = true } else { store.query = "" }
+                    }
+                    if searching {
+                        searchField
+                    }
+                    TodayHero(onOpen: { path.append($0) })
+                    Hairline()
                     DailyQuestionCard(onOpenSheet: { quizPost = $0 })
-                    FilterBar()
-                    statusLine
+                    if prefs.showDailyQuestion, quiz.todaysQuestion(from: store.posts) != nil { Hairline() }
                     NotifyBanner()
                     PersonalizeBanner()
+                    FilterBar()
+                        .padding(.top, 12)
+                    statusLine
+                        .padding(.top, 14)
                     postList
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 24)
             }
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
             .refreshable { await store.refresh() }
-            .searchable(text: $store.query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search papers, journals, trials")
             .navigationDestination(for: Post.self) { post in
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
             }
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
-                        LogoMark(size: 26, cornerRadius: 7)
-                        Wordmark(size: 19)
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
-                        .accessibilityLabel("Share Periop Signal")
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(PS.bg.opacity(0.9), for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .listenBar()
         }
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
-        }
-        .sheet(isPresented: $showShare) {
-            ShareSheet(items: ["Periop Signal: the practice-changing papers in anesthesiology and critical care, every morning.", FeedLoader.siteURL])
-                .presentationDetents([.medium, .large])
         }
         .sheet(item: $quizPost) { post in
             QuizSheet(post: post, onOpenPost: { p in path.append(p) })
@@ -81,30 +73,48 @@ struct FeedView: View {
 
     // MARK: Sections
 
-    private var statusLine: some View {
-        HStack(spacing: 8) {
-            if store.isRefreshing && store.posts.isEmpty {
-                ProgressView().controlSize(.small)
-                Text("Loading the feed…").foregroundStyle(PS.fg3)
-            } else if let msg = store.errorMessage {
-                Image(systemName: "wifi.exclamationmark").foregroundStyle(PS.accent)
-                Text(msg).foregroundStyle(PS.fg2)
-            } else {
-                Text(countText).foregroundStyle(PS.fg3)
-                if store.hasFilters {
-                    Button("Clear") { store.clearFilters() }
-                        .font(PS.sys(size: 12.5, weight: .semibold))
-                        .foregroundStyle(PS.accent2)
-                }
-            }
-            Spacer()
-            if let d = store.lastRefresh {
-                Text("Updated " + d.formatted(.relative(presentation: .named)))
-                    .foregroundStyle(PS.fg3)
-                    .lineLimit(1)
+    private var searchField: some View {
+        @Bindable var store = store
+        return HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass").foregroundStyle(PS.fg3)
+            TextField("Search papers, journals, trials", text: $store.query)
+                .font(PS.sys(size: 15))
+                .focused($searchFocused)
+                .submitLabel(.search)
+                .autocorrectionDisabled()
+            if !store.query.isEmpty {
+                Button { store.query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(PS.fg3) }
+                    .buttonStyle(.plain)
             }
         }
-        .font(PS.sys(size: 12.5))
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
+        .padding(.top, 10)
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
+    private var statusLine: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            if store.isRefreshing && store.posts.isEmpty {
+                ProgressView().controlSize(.small)
+                Text("Loading the feed…").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
+            } else if let msg = store.errorMessage {
+                Image(systemName: "wifi.exclamationmark").foregroundStyle(PS.accent)
+                Text(msg).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
+            } else {
+                Eyebrow(text: monthEyebrow)
+            }
+            Spacer()
+            Text(countText).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineLimit(1)
+        }
+        .padding(.bottom, 10)
+    }
+
+    private var monthEyebrow: String {
+        if store.hasFilters { return "Results" }
+        guard let first = store.filtered.first else { return "" }
+        return PSDate.monthTitle(first.monthKey)
     }
 
     private var countText: String {
@@ -127,10 +137,13 @@ struct FeedView: View {
                 if wasNew && !nowNew {
                     caughtUp
                 }
-                if prev == nil || prev!.monthKey != post.monthKey || (wasNew && !nowNew) {
-                    MonthDivider(title: PSDate.monthTitle(post.monthKey))
+                if let prev, prev.monthKey != post.monthKey || (wasNew && !nowNew) {
+                    Eyebrow(text: PSDate.monthTitle(post.monthKey))
+                        .padding(.top, 18)
+                        .padding(.bottom, 10)
                 }
                 PostCard(post: post, isNew: nowNew, onOpen: { path.append(post) }, onOpenPaper: { webLink = WebLink(url: $0) })
+                    .padding(.bottom, 12)
             }
             if !list.isEmpty {
                 endNote
@@ -139,36 +152,57 @@ struct FeedView: View {
     }
 
     private var caughtUp: some View {
-        HStack(spacing: 8) {
-            Rectangle().fill(PS.line2).frame(height: 1)
+        HStack(spacing: 10) {
+            Hairline()
             Label("You’re all caught up", systemImage: "checkmark.circle")
                 .font(PS.sys(size: 12, weight: .semibold))
                 .foregroundStyle(PS.green)
                 .fixedSize()
-            Rectangle().fill(PS.line2).frame(height: 1)
+            Hairline()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 
     private var endNote: some View {
-        VStack(spacing: 4) {
-            Text("That’s everything since October 2025").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+        VStack(spacing: 6) {
+            ECGLine().stroke(PS.line2, lineWidth: 1.2).frame(width: 118, height: 20)
+            Text("That’s everything since October 2025").font(PS.serif(size: 15)).foregroundStyle(PS.fg)
             Text("New posts land each morning.").font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, 28)
     }
 }
 
-struct MonthDivider: View {
-    var title: String
+/// Brand row with the date underneath and a search button; replaces the navigation bar.
+struct FeedHeader: View {
+    @Binding var searching: Bool
+    var onSearch: () -> Void
+
+    private var dateText: String {
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "EEEE, MMMM d"
+        return f.string(from: Date())
+    }
+
     var body: some View {
-        Text(title)
-            .font(PS.sys(size: 11, weight: .bold, design: .monospaced))
-            .textCase(.uppercase)
-            .kerning(0.8)
-            .foregroundStyle(PS.fg3)
-            .padding(.top, 8)
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 9) {
+                LogoMark(size: 30, cornerRadius: 8)
+                Wordmark(size: 21)
+                Spacer()
+                Button(action: onSearch) {
+                    Image(systemName: searching ? "xmark" : "magnifyingglass")
+                        .font(PS.sys(size: 15, weight: .semibold))
+                        .foregroundStyle(PS.fg2)
+                        .frame(width: 36, height: 36)
+                        .background(PS.surface, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(searching ? "Close search" : "Search")
+            }
+            Eyebrow(text: dateText).padding(.leading, 1)
+        }
+        .padding(.top, 8)
     }
 }
 
@@ -178,14 +212,14 @@ struct FeedBackground: View {
         ZStack {
             PS.bg
             GeometryReader { geo in
-                Circle().fill(PS.blueGlow.opacity(0.16))
+                Circle().fill(PS.blueGlow.opacity(0.12))
                     .frame(width: geo.size.width * 1.2)
-                    .blur(radius: 90)
-                    .offset(x: -geo.size.width * 0.2, y: -geo.size.height * 0.45)
-                Circle().fill(PS.coral.opacity(0.10))
+                    .blur(radius: 100)
+                    .offset(x: -geo.size.width * 0.25, y: -geo.size.height * 0.5)
+                Circle().fill(PS.coral.opacity(0.08))
                     .frame(width: geo.size.width * 0.9)
-                    .blur(radius: 90)
-                    .offset(x: geo.size.width * 0.5, y: -geo.size.height * 0.35)
+                    .blur(radius: 100)
+                    .offset(x: geo.size.width * 0.5, y: -geo.size.height * 0.4)
             }
         }
         .ignoresSafeArea()
@@ -201,23 +235,16 @@ struct FilterBar: View {
     var body: some View {
         @Bindable var store = store
         @Bindable var prefs = prefs
-        let counts = store.topicCounts()
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
+                FilterChip(title: "All", isOn: !store.hasFilters, fg: PS.accent) { store.clearFilters() }
                 if !prefs.myTopics.isEmpty {
-                    FilterChip(title: "For you", count: store.forYouCount, isOn: prefs.forYou, fg: PS.accent2, bg: PS.accent2.opacity(0.16)) {
-                        prefs.forYou.toggle()
-                    }
+                    FilterChip(title: "For you", isOn: prefs.forYou, fg: PS.accent) { prefs.forYou.toggle() }
                 }
-                FilterChip(title: "This week", count: store.publishedThisWeek, isOn: store.recentOnly, fg: PS.green, bg: PS.green.opacity(0.16)) {
-                    store.recentOnly.toggle()
-                }
-                FilterChip(title: "Landmark", count: store.landmarkCount, isOn: store.landmarkOnly, fg: PS.accent, bg: PS.accent.opacity(0.16)) {
-                    store.landmarkOnly.toggle()
-                }
-                Rectangle().fill(PS.line2).frame(width: 1, height: 18)
+                FilterChip(title: "This week", isOn: store.recentOnly, fg: PS.accent) { store.recentOnly.toggle() }
+                FilterChip(title: "Landmark", isOn: store.landmarkOnly, fg: PS.accent) { store.landmarkOnly.toggle() }
                 ForEach(Topics.all) { t in
-                    FilterChip(title: t.name, count: counts[t.id] ?? 0, isOn: store.selectedTopics.contains(t.id), fg: t.fg, bg: t.bg) {
+                    FilterChip(title: t.name, isOn: store.selectedTopics.contains(t.id), fg: PS.accent, dot: t.fg) {
                         if store.selectedTopics.contains(t.id) { store.selectedTopics.remove(t.id) } else { store.selectedTopics.insert(t.id) }
                     }
                 }
@@ -225,34 +252,31 @@ struct FilterBar: View {
             .padding(.vertical, 2)
         }
         .scrollClipDisabled()
-        .padding(.horizontal, -16)
-        .contentMargins(.horizontal, 16, for: .scrollContent)
+        .padding(.horizontal, -20)
+        .contentMargins(.horizontal, 20, for: .scrollContent)
     }
 }
 
 struct FilterChip: View {
     var title: String
-    var count: Int
     var isOn: Bool
     var fg: Color
-    var bg: Color
+    var dot: Color? = nil
     var action: () -> Void
     var body: some View {
         Button {
             Haptics.light()
             action()
         } label: {
-            HStack(spacing: 5) {
+            HStack(spacing: 7) {
+                if let dot { Circle().fill(isOn ? PS.accentFg.opacity(0.8) : dot).frame(width: 7, height: 7) }
                 Text(title)
-                Text("\(count)")
-                    .font(PS.sys(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(isOn ? fg.opacity(0.9) : PS.fg3)
             }
-            .font(PS.sys(size: 13, weight: .semibold))
-            .padding(.horizontal, 11).padding(.vertical, 7)
-            .background(isOn ? bg : PS.surface, in: Capsule())
-            .overlay(Capsule().stroke(isOn ? fg.opacity(0.6) : PS.line2, lineWidth: 1))
-            .foregroundStyle(isOn ? fg : PS.fg2)
+            .font(PS.sys(size: 12.5, weight: .semibold))
+            .padding(.horizontal, 13).padding(.vertical, 7)
+            .background(isOn ? fg : Color.clear, in: Capsule())
+            .overlay(Capsule().stroke(isOn ? .clear : PS.line2, lineWidth: 1))
+            .foregroundStyle(isOn ? PS.accentFg : PS.fg2)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
@@ -273,37 +297,23 @@ struct NotifyBanner: View {
 
     var body: some View {
         if visible {
-            HStack(alignment: .center, spacing: 12) {
-                Image(systemName: "bell.badge")
-                    .font(PS.sys(size: 18, weight: .semibold))
-                    .foregroundStyle(PS.accent)
-                    .frame(width: 36, height: 36)
-                    .background(PS.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Morning alerts").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text("One notification when new papers land.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
+            VStack(spacing: 0) {
+                QuietRow(icon: "bell.badge", tint: PS.accent, eyebrow: "Morning alerts", text: "One notification when new papers land, at the time you choose.", textSize: 14, lines: 2) {
+                    HStack(spacing: 4) {
+                        Button {
+                            busy = true
+                            Task { _ = await notifications.requestPermission(); busy = false; dismissed = true }
+                        } label: { Text(busy ? "…" : "Turn on") }
+                        .buttonStyle(CapsuleButtonStyle(prominent: true))
+                        Button { dismissed = true } label: {
+                            Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Dismiss")
+                    }
                 }
-                Spacer(minLength: 4)
-                Button {
-                    busy = true
-                    Task { _ = await notifications.requestPermission(); busy = false; dismissed = true }
-                } label: {
-                    Text(busy ? "…" : "Turn on")
-                        .font(PS.sys(size: 13, weight: .semibold))
-                        .padding(.horizontal, 12).padding(.vertical, 7)
-                        .background(PS.accent, in: Capsule())
-                        .foregroundStyle(PS.accentFg)
-                }
-                .buttonStyle(.plain)
-                Button { dismissed = true } label: {
-                    Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Dismiss")
+                Hairline()
             }
-            .padding(12)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
             .task { await notifications.refreshAuthorization() }
         }
     }

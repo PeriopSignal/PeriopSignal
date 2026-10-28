@@ -5,6 +5,7 @@ struct PostCard: View {
     @Environment(SavedStore.self) private var saved
     @Environment(ReadStore.self) private var read
     @Environment(SpeechPlayer.self) private var speech
+    @Environment(\.colorScheme) private var scheme
     var post: Post
     var isNew: Bool = false
     var onOpen: () -> Void
@@ -14,41 +15,34 @@ struct PostCard: View {
     private var isUnread: Bool { read.isUnread(post) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 10) {
-                JournalAvatar(post: post)
-                VStack(alignment: .leading, spacing: 4) {
-                    MetaLine(post: post, isNew: isNew)
-                    HStack(spacing: 8) {
-                        SignalBars(impact: post.impact)
-                        if post.isLandmark { Pill(text: "Landmark", style: .landmark) }
-                        if !post.trialName.isEmpty {
-                            Text(post.trialName)
-                                .font(PS.sys(size: 11, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(PS.fg2)
-                        }
-                        if isUnread && !isNew { UnreadDot() }
-                    }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 8) {
+                MetaLine(post: post, isNew: isNew)
+                if isUnread && !isNew { UnreadDot() }
+                Spacer(minLength: 6)
+                if post.isLandmark {
+                    Eyebrow(text: "Landmark", color: PS.accent, size: 10)
                 }
-                Spacer(minLength: 0)
                 Button {
                     Haptics.light()
                     saved.toggle(post.id)
                 } label: {
                     Image(systemName: saved.contains(post.id) ? "bookmark.fill" : "bookmark")
-                        .font(PS.sys(size: 16, weight: .medium))
+                        .font(PS.sys(size: 14, weight: .medium))
                         .foregroundStyle(saved.contains(post.id) ? PS.accent : PS.fg3)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 30, height: 30)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(saved.contains(post.id) ? "Remove from saved" : "Save post")
+                .padding(.trailing, -8)
             }
 
             Button(action: onOpen) {
                 Text(post.headline)
-                    .font(PS.sys(size: 19, weight: .semibold, design: .serif))
+                    .font(PS.serif(size: 20.5))
                     .foregroundStyle(PS.fg)
+                    .lineSpacing(1)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -59,40 +53,73 @@ struct PostCard: View {
             Text(post.summary)
                 .font(PS.sys(size: 14.5))
                 .foregroundStyle(PS.fg2)
+                .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
+
+            TakeHomeList(items: post.takeHome, size: 14)
+                .padding(.top, 2)
 
             if let g = post.glance {
                 GlanceStrip(glance: g, compact: true)
+                    .padding(.top, 2)
             }
 
-            TakeHomeList(items: post.takeHome)
-
-            // Tags and buttons share one row when both fit at their natural width; otherwise the
-            // buttons move to their own line and the tags scroll. The labels never wrap or shrink.
+            // Topics and actions share one row when both fit; otherwise the actions take their own line.
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .center, spacing: 8) {
-                    HStack(spacing: 6) { ForEach(post.topics, id: \.self) { TopicTag(topicID: $0) } }
-                        .fixedSize()
-                    Spacer(minLength: 8)
-                    actionButtons
+                    topicLabels.fixedSize()
+                    Spacer(minLength: 10)
+                    actions
                 }
-                VStack(alignment: .leading, spacing: 10) {
-                    topicsRow
-                    HStack { Spacer(minLength: 0); actionButtons }
+                VStack(alignment: .leading, spacing: 4) {
+                    ScrollView(.horizontal, showsIndicators: false) { topicLabels }
+                    HStack { Spacer(minLength: 0); actions }
                 }
             }
+            .padding(.top, 4)
         }
-        .padding(14)
-        .background(cardBackground)
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(post.isLandmark ? PS.accent.opacity(0.75) : PS.line, lineWidth: post.isLandmark ? 1.5 : 1)
-        )
-        .shadow(color: post.isLandmark ? PS.accent.opacity(0.18) : .black.opacity(0.25), radius: post.isLandmark ? 14 : 10, y: 6)
+        .padding(.horizontal, 18)
+        .padding(.top, 16)
+        .padding(.bottom, 10)
+        .background(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).fill(PS.surface))
+        .overlay(alignment: .top) {
+            if post.isLandmark {
+                LinearGradient(colors: [PS.accent, PS.accent.opacity(0.15)], startPoint: .leading, endPoint: .trailing)
+                    .frame(height: 3)
+                    .clipShape(UnevenRoundedRectangle(topLeadingRadius: PS.cardRadius, topTrailingRadius: PS.cardRadius))
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .shadow(color: .black.opacity(scheme == .dark ? 0.22 : 0.05), radius: scheme == .dark ? 10 : 6, y: 4)
         .contextMenu { contextMenu }
         .sheet(item: $shareItems) { s in
             ShareSheet(items: s.items).presentationDetents([.medium, .large])
         }
+    }
+
+    private var topicLabels: some View {
+        HStack(spacing: 12) {
+            ForEach(post.topics, id: \.self) { id in
+                let t = Topics.info(id)
+                HStack(spacing: 5) {
+                    Circle().fill(t.fg).frame(width: 7, height: 7)
+                    Eyebrow(text: t.name, color: PS.fg3, size: 10)
+                }
+            }
+        }
+    }
+
+    private var actions: some View {
+        HStack(spacing: 16) {
+            if let url = post.paperURL {
+                Button { onOpenPaper(url) } label: { Text("Paper ↗") }
+                    .buttonStyle(TextButtonStyle(color: PS.fg2))
+            }
+            Button(action: onOpen) { Text("Deep dive →") }
+                .buttonStyle(TextButtonStyle(color: PS.accent))
+        }
+        .fixedSize(horizontal: true, vertical: false)
+        .layoutPriority(1)
     }
 
     @ViewBuilder
@@ -121,54 +148,21 @@ struct PostCard: View {
             Button { read.markRead(post.id) } label: { Label("Mark as read", systemImage: "checkmark.circle") }
         }
     }
-
-    private var topicsRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(post.topics, id: \.self) { TopicTag(topicID: $0) }
-            }
-        }
-        .layoutPriority(0)
-    }
-
-    private var actionButtons: some View {
-        HStack(spacing: 6) {
-            if let url = post.paperURL {
-                Button { onOpenPaper(url) } label: {
-                    Label("Paper", systemImage: "arrow.up.right.square")
-                }
-                .buttonStyle(CardButtonStyle(prominent: false))
-            }
-            Button(action: onOpen) {
-                Label("Deep dive", systemImage: "text.book.closed")
-            }
-            .buttonStyle(CardButtonStyle(prominent: true))
-        }
-        .fixedSize(horizontal: true, vertical: false)
-        .layoutPriority(1)
-    }
-
-    private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(PS.surface)
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(LinearGradient(colors: [PS.accent.opacity(post.isLandmark ? 0.10 : 0), .clear], startPoint: .topLeading, endPoint: .bottom))
-            )
-    }
 }
 
+/// Capsule buttons used in the deep dive's action row.
 struct CardButtonStyle: ButtonStyle {
     var prominent: Bool
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(PS.sys(size: 12.5, weight: .semibold))
+            .font(PS.sys(size: 13, weight: .semibold))
             .labelStyle(.titleAndIcon)
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, 10).padding(.vertical, 7)
-            .background(prominent ? PS.accent2.opacity(0.14) : PS.surface2, in: Capsule())
-            .foregroundStyle(prominent ? PS.accent2 : PS.fg2)
+            .padding(.horizontal, 13).padding(.vertical, 8)
+            .background(prominent ? PS.accent : Color.clear, in: Capsule())
+            .overlay(Capsule().stroke(prominent ? .clear : PS.line2, lineWidth: 1))
+            .foregroundStyle(prominent ? PS.accentFg : PS.fg)
             .opacity(configuration.isPressed ? 0.6 : 1)
     }
 }

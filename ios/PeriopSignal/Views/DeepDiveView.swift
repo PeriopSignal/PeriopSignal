@@ -19,16 +19,17 @@ struct DeepDiveView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 22) {
                 header
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text(post.headline)
-                        .font(PS.sys(size: 24, weight: .bold, design: .serif))
+                        .font(PS.serif(size: 26))
                         .foregroundStyle(PS.fg)
+                        .lineSpacing(1)
                         .fixedSize(horizontal: false, vertical: true)
                     if let title = post.title, !title.isEmpty, title.lowercased() != post.headline.lowercased() {
                         Text(title)
-                            .font(PS.sys(size: 13).italic())
+                            .font(PS.sys(size: 13.5).italic())
                             .foregroundStyle(PS.fg3)
                             .lineLimit(3)
                             .fixedSize(horizontal: false, vertical: true)
@@ -36,7 +37,9 @@ struct DeepDiveView: View {
                 }
                 actions
                 if let g = post.glance {
-                    section(label: "At a glance") { GlanceStrip(glance: g) }
+                    section(label: "At a glance") {
+                        VStack(spacing: 0) { Hairline(); GlanceStrip(glance: g); Hairline() }
+                    }
                 }
                 section(label: post.takeHomeIsAuthors ? "Take-home · the authors’ key points" : "Take-home") {
                     TakeHomeList(items: post.takeHome)
@@ -48,13 +51,18 @@ struct DeepDiveView: View {
                 if post.quiz != nil && prefs.showDailyQuestion {
                     section(label: "Test yourself") {
                         QuizView(post: post)
-                            .padding(12)
-                            .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line, lineWidth: 1))
+                            .padding(14)
+                            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                     }
                 }
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) { ForEach(post.topics, id: \.self) { TopicTag(topicID: $0) } }
+                HStack(spacing: 14) {
+                    ForEach(post.topics, id: \.self) { id in
+                        let t = Topics.info(id)
+                        HStack(spacing: 5) {
+                            Circle().fill(t.fg).frame(width: 7, height: 7)
+                            Eyebrow(text: t.name, size: 10)
+                        }
+                    }
                 }
                 related
                 Text("Overview written by Claude from the paper, abstract and society pages, then checked against the source link. Confirm details against the paper before changing practice. Added to the feed \(PSDate.display(post.addedAt, long: true)).")
@@ -93,19 +101,19 @@ struct DeepDiveView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .top, spacing: 10) {
-            JournalAvatar(post: post, size: 44)
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
                 MetaLine(post: post, long: true)
-                HStack(spacing: 8) {
-                    SignalBars(impact: post.impact)
-                    if post.isLandmark { Pill(text: "Landmark", style: .landmark) }
-                    if !post.trialName.isEmpty {
-                        Text(post.trialName).font(PS.sys(size: 11, weight: .semibold, design: .monospaced)).foregroundStyle(PS.fg2)
-                    }
-                    if !post.authorLine.isEmpty {
-                        Text(post.authorLine).font(PS.sys(size: 12)).foregroundStyle(PS.fg2).lineLimit(1)
-                    }
+                Spacer(minLength: 6)
+                if post.isLandmark { Eyebrow(text: "Landmark", color: PS.accent, size: 10) }
+            }
+            HStack(spacing: 8) {
+                SignalBars(impact: post.impact)
+                if !post.trialName.isEmpty {
+                    Text(post.trialName).font(PS.mono(size: 11)).foregroundStyle(PS.fg2)
+                }
+                if !post.authorLine.isEmpty {
+                    Text(post.authorLine).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineLimit(1)
                 }
             }
         }
@@ -201,10 +209,11 @@ struct DeepDiveView: View {
         if !others.isEmpty {
             section(label: "Related in Periop Signal") {
                 VStack(spacing: 0) {
+                    Hairline()
                     ForEach(Array(others.enumerated()), id: \.element.id) { i, other in
                         NavigationLink(value: other) {
                             HStack(alignment: .top, spacing: 10) {
-                                JournalAvatar(post: other, size: 34)
+                                Circle().fill(Topics.info(other.primaryTopic).fg).frame(width: 8, height: 8).padding(.top, 7)
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(other.headline)
                                         .font(PS.sys(size: 14, weight: .semibold, design: .serif))
@@ -225,15 +234,13 @@ struct DeepDiveView: View {
                                 Spacer(minLength: 0)
                                 Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3).padding(.top, 4)
                             }
-                            .padding(12)
+                            .padding(.vertical, 12)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        if i < others.count - 1 { Divider().overlay(PS.line).padding(.leading, 12) }
+                        Hairline()
                     }
                 }
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line, lineWidth: 1))
             }
         }
     }
@@ -244,9 +251,9 @@ struct DeepDiveView: View {
             section(label: "Limitations · stated by the authors") {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(Array(post.authorLimitations.enumerated()), id: \.offset) { _, item in
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        HStack(alignment: .firstTextBaseline, spacing: 9) {
                             Image(systemName: "minus").font(PS.sys(size: 9, weight: .bold)).foregroundStyle(PS.fg3)
-                            Text(item).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                            Text(item).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     if !post.authorBasis.isEmpty {
@@ -254,10 +261,9 @@ struct DeepDiveView: View {
                             .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).padding(.top, 2)
                     }
                 }
-                .padding(12)
+                .padding(.leading, 12)
+                .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 1).fill(PS.line2).frame(width: 2) }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line, lineWidth: 1))
             }
         } else if post.isResearch {
             section(label: "Limitations · stated by the authors") {
@@ -273,8 +279,8 @@ struct DeepDiveView: View {
     }
 
     private func section<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(text: label)
+        VStack(alignment: .leading, spacing: 10) {
+            Eyebrow(text: label)
             content()
         }
     }
@@ -325,7 +331,7 @@ struct MarkdownBlocks: View {
             ForEach(Array(Self.parse(text).enumerated()), id: \.offset) { _, block in
                 switch block {
                 case .paragraph(let s):
-                    inline(s).font(PS.sys(size: 15.5)).foregroundStyle(PS.fg).lineSpacing(3)
+                    inline(s).font(PS.sys(size: 16)).foregroundStyle(PS.fg).lineSpacing(4)
                 case .heading(let s):
                     inline(s).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
                 case .bullets(let items):
@@ -333,7 +339,7 @@ struct MarkdownBlocks: View {
                         ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                             HStack(alignment: .firstTextBaseline, spacing: 8) {
                                 Text("•").foregroundStyle(PS.fg3)
-                                inline(item).font(PS.sys(size: 15)).foregroundStyle(PS.fg).lineSpacing(2)
+                                inline(item).font(PS.sys(size: 15.5)).foregroundStyle(PS.fg).lineSpacing(3)
                             }
                         }
                     }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The question of the day on the feed: a short card that opens the question sheet, and shows the
+/// The question of the day on the feed: a quiet row that opens the question sheet, and shows the
 /// result once answered.
 struct DailyQuestionCard: View {
     @Environment(PostStore.self) private var store
@@ -12,38 +12,21 @@ struct DailyQuestionCard: View {
         if prefs.showDailyQuestion, let post = quiz.todaysQuestion(from: store.posts), let q = post.quiz {
             let answer = quiz.answer(for: post.id)
             Button { onOpenSheet(post) } label: {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Label("Question of the day", systemImage: "brain.head.profile")
-                            .font(PS.sys(size: 11, weight: .bold, design: .monospaced))
-                            .textCase(.uppercase).kerning(0.6)
-                            .foregroundStyle(PS.accent2)
-                        Spacer()
-                        if let answer {
-                            Label(answer.correct ? "Correct" : "Missed", systemImage: answer.correct ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .font(PS.sys(size: 11.5, weight: .semibold))
-                                .foregroundStyle(answer.correct ? PS.green : PS.accent)
-                        } else {
-                            Text(post.jshort + " · " + post.kind).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
-                        }
-                    }
-                    Text(q.question)
-                        .font(PS.sys(size: 15, weight: .medium))
-                        .foregroundStyle(PS.fg)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                    HStack {
-                        Text(answer == nil ? "Four options · one tap" : "See the explanation")
-                            .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
-                        Spacer()
-                        Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                    }
+                QuietRow(icon: answer == nil ? "questionmark" : (answer!.correct ? "checkmark" : "xmark"),
+                         tint: answer == nil ? PS.accent2 : (answer!.correct ? PS.green : PS.accent),
+                         eyebrow: eyebrow(answer: answer, post: post),
+                         text: q.question, textSize: 14.5, lines: 4) {
+                    Image(systemName: "chevron.right").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .cardChrome(tint: PS.accent2)
         }
+    }
+
+    private func eyebrow(answer: QuizStore.Answer?, post: Post) -> String {
+        guard let answer else { return "Question of the day · " + post.jshort }
+        return (answer.correct ? "Correct" : "Missed") + " · see the explanation"
     }
 }
 
