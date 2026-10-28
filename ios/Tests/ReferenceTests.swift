@@ -173,4 +173,57 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(PedsCalc.range(70, 70), "70")
         XCTAssertEqual(PedsCalc.range(70, 75), "70–75")
     }
+
+    // MARK: Local anesthetic mixtures
+
+    private var lidocaine: LocalAnesthetic {
+        LocalAnesthetic(id: "lidocaine", name: "Lidocaine", maxMgPerKg: 5, concentrations: [1, 2], note: nil, source: nil, kind: "amide",
+                        adultPlainMgPerKg: 4.5, adultPlainMaxMg: 300, adultEpiMgPerKg: 7, adultEpiMaxMg: 500, per24hMaxMg: nil, pedsMinYears: nil, pedsMaxMg: nil, short: nil)
+    }
+    private var bupivacaine: LocalAnesthetic {
+        LocalAnesthetic(id: "bupivacaine", name: "Bupivacaine", maxMgPerKg: 2.5, concentrations: [0.25, 0.5], note: nil, source: nil, kind: "amide",
+                        adultPlainMgPerKg: 2.5, adultPlainMaxMg: 175, adultEpiMgPerKg: nil, adultEpiMaxMg: 225, per24hMaxMg: 400, pedsMinYears: nil, pedsMaxMg: nil, short: nil)
+    }
+    private var exparel: LocalAnesthetic {
+        LocalAnesthetic(id: "exparel", name: "Exparel", maxMgPerKg: 4, concentrations: [1.33], note: nil, source: nil, kind: "liposomal",
+                        adultPlainMgPerKg: nil, adultPlainMaxMg: 266, adultEpiMgPerKg: nil, adultEpiMaxMg: nil, per24hMaxMg: nil, pedsMinYears: 6, pedsMaxMg: 266, short: nil)
+    }
+
+    func testLocalAnestheticMaxima() {
+        XCTAssertEqual(LAMixCalc.maxMg(for: lidocaine, weightKg: 70, pediatric: false, epinephrine: false, ageYears: nil), 300, "4.5 mg/kg × 70 = 315, capped at the label's 300 mg")
+        XCTAssertEqual(LAMixCalc.maxMg(for: lidocaine, weightKg: 70, pediatric: false, epinephrine: true, ageYears: nil), 490, "7 mg/kg × 70, under the 500 mg cap")
+        XCTAssertEqual(LAMixCalc.maxMg(for: bupivacaine, weightKg: 70, pediatric: false, epinephrine: true, ageYears: nil), 175, "no epinephrine mg/kg on file: the plain per-kg figure applies under the epinephrine cap")
+        XCTAssertEqual(LAMixCalc.maxMg(for: bupivacaine, weightKg: 20, pediatric: true, epinephrine: false, ageYears: 5), 50)
+        XCTAssertNil(LAMixCalc.maxMg(for: exparel, weightKg: 20, pediatric: true, epinephrine: false, ageYears: 5), "Exparel is not labeled under 6 years")
+        XCTAssertEqual(LAMixCalc.maxMg(for: exparel, weightKg: 20, pediatric: true, epinephrine: false, ageYears: 8), 80)
+        XCTAssertEqual(LAMixCalc.maxMg(for: exparel, weightKg: 90, pediatric: false, epinephrine: false, ageYears: nil), 266)
+    }
+
+    func testMixtureAddsFractions() {
+        let agents = [lidocaine, bupivacaine, exparel]
+        let entries = [LAEntry(agentID: "bupivacaine", percent: 0.5, mL: 20), LAEntry(agentID: "lidocaine", percent: 1, mL: 15)]
+        let r = LAMixCalc.evaluate(entries: entries, agents: agents, weightKg: 70, pediatric: false, epinephrine: false, ageYears: nil)
+        XCTAssertEqual(r.agents[0].mg, 100)
+        XCTAssertEqual(r.agents[1].mg, 150)
+        XCTAssertEqual(r.combined, 100.0 / 175 + 150.0 / 300, accuracy: 0.0001)
+        XCTAssertEqual(r.percentUsed, 107)
+        XCTAssertTrue(r.warnings.contains { $0.contains("exceeds the combined maximum") })
+        XCTAssertEqual(r.agents[0].maxMLAlone ?? 0, 35, accuracy: 0.001, "175 mg of 0.5% is 35 mL")
+        XCTAssertEqual(r.agents[0].remainingML ?? -1, 0, accuracy: 0.001, "nothing left once over the limit")
+        let half = LAMixCalc.evaluate(entries: [LAEntry(agentID: "lidocaine", percent: 1, mL: 15)], agents: agents, weightKg: 70, pediatric: false, epinephrine: false, ageYears: nil)
+        XCTAssertEqual(half.agents[0].remainingML ?? -1, 15, accuracy: 0.001, "half the lidocaine budget used: 15 mL of 1% remain")
+    }
+
+    func testExparelRules() {
+        let agents = [lidocaine, bupivacaine, exparel]
+        let ratio = LAMixCalc.evaluate(entries: [LAEntry(agentID: "exparel", percent: 1.33, mL: 20), LAEntry(agentID: "bupivacaine", percent: 0.5, mL: 30)],
+                                       agents: agents, weightKg: 80, pediatric: false, epinephrine: false, ageYears: nil)
+        XCTAssertTrue(ratio.warnings.contains { $0.contains("1:2") }, "150 mg HCl against 266 mg Exparel breaks the 1:2 ratio")
+        let fine = LAMixCalc.evaluate(entries: [LAEntry(agentID: "exparel", percent: 1.33, mL: 20), LAEntry(agentID: "bupivacaine", percent: 0.5, mL: 20)],
+                                      agents: agents, weightKg: 80, pediatric: false, epinephrine: false, ageYears: nil)
+        XCTAssertFalse(fine.warnings.contains { $0.contains("1:2") }, "100 mg HCl is within half of 266 mg")
+        let lido = LAMixCalc.evaluate(entries: [LAEntry(agentID: "exparel", percent: 1.33, mL: 10), LAEntry(agentID: "lidocaine", percent: 1, mL: 10)],
+                                      agents: agents, weightKg: 80, pediatric: false, epinephrine: false, ageYears: nil)
+        XCTAssertTrue(lido.warnings.contains { $0.contains("20 minutes") })
+    }
 }

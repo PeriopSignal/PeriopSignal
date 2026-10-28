@@ -5,6 +5,7 @@ enum RefRoute: Hashable {
     case quickref(String)
     case score(String)
     case peds
+    case local
 }
 
 /// The Reference tab: calculators, condensed society quick references, and the society guidelines
@@ -56,6 +57,8 @@ struct ReferenceView: View {
                     if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }) }
                 case .peds:
                     PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) })
+                case .local:
+                    LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
                 }
             }
             .navigationDestination(for: Post.self) { post in
@@ -97,6 +100,7 @@ struct ReferenceView: View {
                     CalculatorTile(icon: def.icon, title: def.short, blurb: def.blurb) { path.append(RefRoute.score(def.id)) }
                 }
                 CalculatorTile(icon: "scalemass", title: "Pediatric", blurb: "Weight-based doses, tube sizes, fluids and blood volume") { path.append(RefRoute.peds) }
+                CalculatorTile(icon: "syringe", title: "Local anesthetic", blurb: "Maximum doses for one agent or a mixture, including Exparel") { path.append(RefRoute.local) }
             }
         }
     }
@@ -272,7 +276,12 @@ struct ReferenceSearchResults: View {
     private var pedsMatches: Bool {
         guard let p = refs.peds else { return false }
         let words = ["pediatric", "peds", "child", "weight", "dose", "dosing", "ett", "tube", "lma", "fluid", "blood volume", "mabl"]
-        return words.contains { $0.contains(q) || q.contains($0) } || p.drugs.contains { $0.name.lowercased().contains(q) } || p.localAnesthetics.contains { $0.name.lowercased().contains(q) }
+        return words.contains { $0.contains(q) || q.contains($0) } || p.drugs.contains { $0.name.lowercased().contains(q) }
+    }
+    private var localMatches: Bool {
+        guard let p = refs.peds else { return false }
+        let words = ["local anesthetic", "local anaesthetic", "max dose", "maximum dose", "exparel", "liposomal", "mixture", "toxicity", "mg/kg"]
+        return words.contains { $0.contains(q) || q.contains($0) } || p.localAnesthetics.contains { $0.name.lowercased().contains(q) }
     }
     private var quickrefs: [QuickRef] { refs.quickrefs.filter { $0.searchText.contains(q) } }
     private var guidelineGroups: [(society: String, posts: [Post])] {
@@ -286,7 +295,7 @@ struct ReferenceSearchResults: View {
     }
 
     var body: some View {
-        let nothing = scores.isEmpty && !pedsMatches && quickrefs.isEmpty && guidelineGroups.isEmpty && papers.isEmpty
+        let nothing = scores.isEmpty && !pedsMatches && !localMatches && quickrefs.isEmpty && guidelineGroups.isEmpty && papers.isEmpty
         if nothing {
             VStack(spacing: 10) {
                 ContentUnavailableView.search(text: query)
@@ -294,7 +303,7 @@ struct ReferenceSearchResults: View {
             }
             .padding(.top, 30)
         } else {
-            if !scores.isEmpty || pedsMatches {
+            if !scores.isEmpty || pedsMatches || localMatches {
                 VStack(alignment: .leading, spacing: 12) {
                     Eyebrow(text: "Calculators").padding(.leading, 2)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
@@ -303,6 +312,9 @@ struct ReferenceSearchResults: View {
                         }
                         if pedsMatches {
                             CalculatorTile(icon: "scalemass", title: "Pediatric", blurb: "Weight-based doses, tube sizes, fluids and blood volume") { path.append(RefRoute.peds) }
+                        }
+                        if localMatches {
+                            CalculatorTile(icon: "syringe", title: "Local anesthetic", blurb: "Maximum doses for one agent or a mixture, including Exparel") { path.append(RefRoute.local) }
                         }
                     }
                 }

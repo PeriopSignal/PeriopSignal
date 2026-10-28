@@ -119,12 +119,27 @@ struct PedsDrug: Codable, Identifiable, Hashable {
 struct LocalAnesthetic: Codable, Identifiable, Hashable {
     var id: String
     var name: String
-    /// Maximum single-injection dose, mg/kg.
+    /// Pediatric maximum single-injection dose, mg/kg (ASRA/ESRA).
     var maxMgPerKg: Double
-    /// Typical concentrations as percent, for the mL conversion (0.25 → 0.25% = 2.5 mg/mL).
+    /// Concentrations as percent, for the mL conversion (0.25 → 0.25% = 2.5 mg/mL).
     var concentrations: [Double]
     var note: String?
     var source: String?
+    // Adult label maxima (added for the mixture calculator; optional so older data still decodes).
+    /// "amide", "ester" or "liposomal".
+    var kind: String?
+    var adultPlainMgPerKg: Double?
+    var adultPlainMaxMg: Double?
+    var adultEpiMgPerKg: Double?
+    var adultEpiMaxMg: Double?
+    var per24hMaxMg: Double?
+    /// Pediatric floor age in years when the label limits use (Exparel: 6).
+    var pedsMinYears: Int?
+    var pedsMaxMg: Double?
+    /// Short label for pickers ("Bupivacaine 0.5%" is built from name + concentration).
+    var short: String?
+
+    var isLiposomal: Bool { kind == "liposomal" }
 }
 
 struct BloodVolumeRow: Codable, Identifiable, Hashable {

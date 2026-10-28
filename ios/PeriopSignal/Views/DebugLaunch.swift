@@ -5,7 +5,7 @@ import WidgetKit
 /// Launch arguments used by the CI screenshot run (simulator only):
 ///   -ps.openPost <id>       open a deep dive once the feed has loaded
 ///   -ps.tab saved|more|reference   start on a tab
-///   -ps.ref score:rcri | quickref:<id> | peds   open a calculator or quick reference on the Reference tab
+///   -ps.ref score:rcri | quickref:<id> | peds | local   open a calculator or quick reference on the Reference tab
 ///   -ps.presave <id>        bookmark a post before the first frame
 ///   -ps.topics a,b          follow these topics (turns on "For you")
 ///   -ps.openQuiz 1          open the question of the day
@@ -26,6 +26,7 @@ enum DebugLaunch {
     static var refRoute: RefRoute? {
         guard let s = UserDefaults.standard.string(forKey: "ps.ref"), !s.isEmpty else { return nil }
         if s == "peds" { return .peds }
+        if s == "local" { return .local }
         let parts = s.split(separator: ":", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return nil }
         switch parts[0] {
