@@ -17,6 +17,7 @@ DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 GLANCE_KEYS = ["design", "n", "outcome", "result"]
 QUIZ_KEYS = ["question", "options", "answer", "explanation"]
 CITATION_KEYS = ["title", "authors", "journal", "year", "volume", "issue", "pages", "doi"]
+AUDIO_KEYS = ["url", "seconds", "bytes", "voice"]
 
 
 def check(path="posts.json"):
@@ -120,6 +121,19 @@ def check(path="posts.json"):
         t = p.get("title")
         if t is not None and (not isinstance(t, str) or not t.strip()):
             problems.append(f"{tag}: title must be a non-empty string when present")
+
+        # Optional: spoken version of the post (tools/synthesize_audio.py)
+        a = p.get("audio")
+        if a is not None:
+            if not isinstance(a, dict) or set(a) - set(AUDIO_KEYS) or not {"url", "seconds", "voice"} <= set(a):
+                problems.append(f"{tag}: audio must be an object with url, seconds, voice (and optional bytes)")
+            else:
+                if not isinstance(a["url"], str) or not a["url"].startswith("https://"):
+                    problems.append(f"{tag}: audio.url must be an https link")
+                if not isinstance(a["seconds"], int) or isinstance(a["seconds"], bool) or a["seconds"] < 1:
+                    problems.append(f"{tag}: audio.seconds must be a positive integer")
+                if not isinstance(a["voice"], str) or not a["voice"]:
+                    problems.append(f"{tag}: audio.voice must be a string")
     return problems
 
 
@@ -131,8 +145,9 @@ if __name__ == "__main__":
     with_quiz = sum(1 for p in data.get("posts", []) if p.get("quiz"))
     with_glance = sum(1 for p in data.get("posts", []) if p.get("glance"))
     with_cit = sum(1 for p in data.get("posts", []) if p.get("citation"))
+    with_audio = sum(1 for p in data.get("posts", []) if p.get("audio"))
     if probs:
         print("\n".join(probs[:60]))
         print(f"FAILED: {len(probs)} problem(s) in {n} posts")
         sys.exit(1)
-    print(f"OK: {n} posts; {with_quiz} with quiz, {with_glance} with glance, {with_cit} with citation")
+    print(f"OK: {n} posts; {with_quiz} with quiz, {with_glance} with glance, {with_cit} with citation, {with_audio} with audio")

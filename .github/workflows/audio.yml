@@ -1,0 +1,75 @@
+name: Post audio
+
+# Reads each new post aloud with Google Cloud Text-to-Speech (Chirp 3 HD), uploads the MP3 to the
+# "audio" GitHub release and records the link in posts.json. A no-op until the GOOGLE_TTS_API_KEY
+# secret exists (ios/OWNER_RUNBOOK.md, section 9).
+
+on:
+  push:
+    branches: [main]
+    paths: ["posts.json"]
+  schedule:
+    - cron: "45 10 * * *"   # after the citations pass; catches anything a push run missed
+  workflow_dispatch:
+    inputs:
+      all:
+        description: "Regenerate every post (true/false), e.g. after changing the voice"
+        default: "false"
+      limit:
+        description: "At most this many posts this run (blank = all pending)"
+        default: ""
+      voice:
+        description: "Google voice name (blank = the TTS_VOICE repository variable or en-US-Chirp3-HD-Charon)"
+        default: ""
+
+concurrency:
+  group: posts-json
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      TTS_VOICE: ${{ inputs.voice || vars.TTS_VOICE }}
+    steps:
+      - name: Skip when the key is not configured
+        id: gate
+        run: |
+          if [ -z "$GOOGLE_TTS_API_KEY" ]; then echo "No GOOGLE_TTS_API_KEY secret; nothing to do."; echo "go=false" >> "$GITHUB_OUTPUT"; else echo "go=true" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.go == 'true'
+
+      - name: Synthesize and upload
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          ffmpeg -version | head -1
+          ARGS=""
+          [ "${{ inputs.all }}" = "true" ] && ARGS="$ARGS --all"
+          [ -n "${{ inputs.limit }}" ] && ARGS="$ARGS --limit ${{ inputs.limit }}"
+          python3 -I tools/synthesize_audio.py posts.json $ARGS | tee audio.log
+          python3 -I tools/validate_posts.py posts.json
+          {
+            echo "## Post audio"
+            grep -E "to synthesize|synthesized|FAILED" audio.log | head -40
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit the audio links
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          if git diff --quiet -- posts.json; then echo "No changes to commit."; exit 0; fi
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          git add posts.json
+          git commit -q -m "Audio: $(grep -E '^synthesized' audio.log | head -1)"
+          for i in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            git fetch origin main && git rebase origin/main || { git rebase --abort; exit 1; }
+          done
+          exit 1

@@ -54,6 +54,14 @@ Without this, the app still alerts through background refresh (iOS decides the t
 - **More tab**: your topics (the feed gets a *For you* filter and alerts only cover those topics), earliest alert time, quiet weekends, Sunday digest, theme, text size, listening speed.
 - Spotlight on the iPhone finds posts by trial name, drug or journal.
 
+## 9. Natural voice for Listen (optional, 10 minutes, free at the feed's volume)
+Without this, Listen uses the iPhone's own voice (download a Premium voice once under iOS Settings → Accessibility → Spoken Content → Voices → English, e.g. Ava, Zoe or Evan, and pick it under More → Reading → Voice). With it, every post gets a studio-quality recording from Google's Chirp 3 HD voice, generated once by GitHub and streamed by the app.
+1. https://console.cloud.google.com → create a project (e.g. `Periop Signal`) and link a billing account (required even though the first 1 million characters a month are free; the feed uses about 250,000).
+2. **APIs & Services → Library** → enable **Cloud Text-to-Speech API**.
+3. **APIs & Services → Credentials → Create credentials → API key**. Edit the key: **API restrictions → Restrict key → Cloud Text-to-Speech API**. Copy the key.
+4. Add it as the repository secret `GOOGLE_TTS_API_KEY` (same page as in step 3 above). Optional: a repository **variable** `TTS_VOICE` to pick another voice (defaults to `en-US-Chirp3-HD-Charon`; the list is at https://cloud.google.com/text-to-speech/docs/chirp3-hd).
+5. Actions → **Post audio** → *Run workflow* once. It records every existing post (about 20 minutes), uploads the MP3s to the repository's `audio` release, and from then on runs by itself a few minutes after each morning update. To switch voices later, set `TTS_VOICE` and run the workflow with `all` = true.
+
 ## Troubleshooting
 - The workflow writes its logs to the `ci-results` branch of the repository (folder `results/`), which Claude can read for you.
 - The notification sender keeps what it has already sent in `results/notify/state.json` on the same branch; delete that file to make it treat everything as already sent on its next run.
