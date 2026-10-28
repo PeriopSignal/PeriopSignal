@@ -153,6 +153,8 @@ struct CalculatorTile: View {
                     .lineSpacing(1)
                     .lineLimit(2, reservesSpace: true)
                     .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
