@@ -34,8 +34,7 @@ struct LocalAnestheticView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 patient
-                summary
-                mixture
+                table
                 if !result.warnings.isEmpty { warnings }
                 maxima
                 footer
@@ -105,22 +104,58 @@ struct LocalAnestheticView: View {
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 
-    // MARK: Summary
+    // MARK: The table
 
-    private var summary: some View {
+    private var table: some View {
         let r = result
-        let tone: Color = r.combined > 1 ? PS.accent : (r.combined > 0.8 ? PS.accent2 : PS.green)
+        let over = r.combined > 1
+        let tone: Color = weight == nil ? PS.fg3 : (over ? PS.accent : PS.green)
+        let totalMg = r.agents.reduce(0) { $0 + $1.mg }
         return VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "Of the combined maximum")
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(weight == nil ? "—" : "\(r.percentUsed)%")
-                    .font(PS.serif(size: 44, weight: .semibold))
-                    .foregroundStyle(weight == nil ? PS.fg3 : PS.fg)
-                    .contentTransition(.numericText())
-                Text(weight == nil ? "enter a weight" : (r.combined > 1 ? "over the limit" : "within limits"))
-                    .font(PS.sys(size: 14))
-                    .foregroundStyle(weight == nil ? PS.fg3 : tone)
+            HStack {
+                Eyebrow(text: "Doses").padding(.leading, 2)
                 Spacer()
+                Menu {
+                    ForEach(agents) { a in Button(a.name) { add(a) } }
+                } label: { Label("Add agent", systemImage: "plus").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent) }
+            }
+            VStack(spacing: 0) {
+                // Header
+                HStack(spacing: 8) {
+                    Eyebrow(text: "Agent", size: 9.5).frame(maxWidth: .infinity, alignment: .leading)
+                    Eyebrow(text: "Conc", size: 9.5).frame(width: 58, alignment: .leading)
+                    Eyebrow(text: "mL", size: 9.5).frame(width: 62, alignment: .trailing)
+                    Eyebrow(text: "mg", size: 9.5).frame(width: 64, alignment: .trailing)
+                    Color.clear.frame(width: entries.count > 1 ? 22 : 0)
+                }
+                .padding(.horizontal, 14).padding(.top, 10).padding(.bottom, 6)
+                Hairline()
+                ForEach(Array(entries.enumerated()), id: \.element.id) { _, entry in
+                    row(entry, result: r.agents.first { $0.id == entry.id })
+                    Hairline()
+                }
+                // Total
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Total").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
+                        Text(statusLine(r)).font(PS.sys(size: 12)).foregroundStyle(tone).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    Text(weight == nil ? "—" : "\(PedsCalc.fmt(totalMg)) mg")
+                        .font(PS.serif(size: 26, weight: .semibold))
+                        .foregroundStyle(tone)
+                        .contentTransition(.numericText())
+                }
+                .padding(.horizontal, 14).padding(.vertical, 12)
+                .background(tone.opacity(weight == nil ? 0 : 0.10))
+            }
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(weight == nil ? PS.line : tone.opacity(0.6), lineWidth: 1))
+            HStack {
+                Text("Green: under the maximum for this weight. Red: above it. With more than one agent, each counts as a fraction of its own maximum and the fractions add up.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 8)
                 Button {
                     UIPasteboard.general.string = summaryText
                     copied = true
@@ -128,51 +163,27 @@ struct LocalAnestheticView: View {
                 .buttonStyle(GhostButtonStyle())
                 .disabled(weight == nil)
             }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(PS.line2).frame(height: 6)
-                    Capsule().fill(tone).frame(width: geo.size.width * CGFloat(min(1, r.combined)), height: 6)
-                }
-            }
-            .frame(height: 6)
-            Text("Each agent counts as a fraction of its own maximum; the fractions add up, and the mixture stays within limits while the total is at or below 100%.")
-                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         .animation(.snappy, value: r.percentUsed)
     }
 
+    private func statusLine(_ r: LAMixResult) -> String {
+        guard weight != nil else { return "Enter the weight" }
+        let dosed = r.agents.filter { $0.mg > 0 }
+        if dosed.isEmpty { return "Type the volumes" }
+        if dosed.count == 1, let only = dosed.first, let m = only.maxMg {
+            return r.combined > 1 ? "Above the maximum of \(PedsCalc.fmt(m)) mg" : "Under the maximum of \(PedsCalc.fmt(m)) mg (\(r.percentUsed)%)"
+        }
+        return r.combined > 1 ? "Above the combined maximum (\(r.percentUsed)%)" : "Under the combined maximum (\(r.percentUsed)% used)"
+    }
+
     private var summaryText: String {
-        var s = "Local anesthetic mixture for \(weightText) kg \(pediatric ? "child" : "adult")\(epinephrine ? " with epinephrine" : ""): \(result.percentUsed)% of the combined maximum."
+        var s = "Local anesthetic for \(weightText) kg \(pediatric ? "child" : "adult")\(epinephrine ? " with epinephrine" : ""): \(statusLine(result))."
         for a in result.agents where a.mL > 0 {
-            s += "\n• \(a.agent.name) \(PedsCalc.fmt(a.percent))% × \(PedsCalc.fmt(a.mL)) mL = \(PedsCalc.fmt(a.mg)) mg" + (a.maxMg.map { " of \(PedsCalc.fmt($0)) mg maximum" } ?? "")
+            s += "\n• \(a.agent.name) \(PedsCalc.fmt(a.percent))% × \(PedsCalc.fmt(a.mL)) mL = \(PedsCalc.fmt(a.mg)) mg" + (a.maxMg.map { " (max \(PedsCalc.fmt($0)) mg)" } ?? "")
         }
         for w in result.warnings { s += "\n! " + w }
         return s
-    }
-
-    // MARK: Mixture rows
-
-    private var mixture: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Eyebrow(text: "Agents").padding(.leading, 2)
-                Spacer()
-                Menu {
-                    ForEach(agents) { a in Button(a.name) { add(a) } }
-                } label: { Label("Add", systemImage: "plus").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent) }
-            }
-            VStack(spacing: 0) {
-                ForEach(Array(entries.enumerated()), id: \.element.id) { i, entry in
-                    row(entry, result: result.agents.first { $0.id == entry.id })
-                    if i < entries.count - 1 { Hairline().padding(.leading, 16) }
-                }
-            }
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-        }
     }
 
     private func row(_ entry: LAEntry, result r: LAAgentResult?) -> some View {
@@ -180,7 +191,8 @@ struct LocalAnestheticView: View {
         let binding = Binding<LAEntry>(
             get: { entries.first { $0.id == entry.id } ?? entry },
             set: { new in if let i = entries.firstIndex(where: { $0.id == entry.id }) { entries[i] = new } })
-        return VStack(alignment: .leading, spacing: 8) {
+        let overRow = (r?.fraction ?? 0) > 1
+        return VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
                 Menu {
                     ForEach(agents) { a in
@@ -191,57 +203,61 @@ struct LocalAnestheticView: View {
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(agent?.name ?? entry.agentID).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg).lineLimit(1)
-                        Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 10, weight: .bold)).foregroundStyle(PS.fg3)
+                        Text(agent?.name ?? entry.agentID).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg).lineLimit(1).minimumScaleFactor(0.8)
+                        Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 9, weight: .bold)).foregroundStyle(PS.fg3)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 Menu {
                     ForEach(agent?.concentrations ?? [], id: \.self) { c in
                         Button("\(PedsCalc.fmt(c))%") { binding.wrappedValue.percent = c }
                     }
                 } label: {
-                    HStack(spacing: 4) {
-                        Text("\(PedsCalc.fmt(entry.percent))%").font(PS.sys(size: 14, weight: .medium, design: .monospaced)).foregroundStyle(PS.fg)
-                        Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 10, weight: .bold)).foregroundStyle(PS.fg3)
+                    HStack(spacing: 3) {
+                        Text("\(PedsCalc.fmt(entry.percent))%").font(PS.sys(size: 13.5, weight: .medium, design: .monospaced)).foregroundStyle(PS.fg)
+                        Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 9, weight: .bold)).foregroundStyle(PS.fg3)
                     }
                 }
-                Spacer(minLength: 4)
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    TextField("0", text: Binding(get: { volumes[entry.id] ?? "" }, set: { volumes[entry.id] = $0 }))
-                        .keyboardType(.decimalPad)
-                        .focused($focused)
-                        .multilineTextAlignment(.trailing)
-                        .font(PS.sys(size: 18, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(PS.fg)
-                        .frame(width: 58)
-                    Text("mL").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
-                }
+                .frame(width: 58, alignment: .leading)
+                TextField("0", text: Binding(get: { volumes[entry.id] ?? "" }, set: { volumes[entry.id] = $0 }))
+                    .keyboardType(.decimalPad)
+                    .focused($focused)
+                    .multilineTextAlignment(.trailing)
+                    .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(PS.fg)
+                    .padding(.horizontal, 6).padding(.vertical, 5)
+                    .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .frame(width: 62)
+                Text(r.map { PedsCalc.fmt($0.mg) } ?? "0")
+                    .font(PS.sys(size: 15, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(overRow ? PS.accent : PS.fg)
+                    .frame(width: 64, alignment: .trailing)
+                    .contentTransition(.numericText())
                 if entries.count > 1 {
                     Button { withAnimation(.snappy) { remove(entry) } } label: {
-                        Image(systemName: "xmark.circle.fill").font(PS.sys(size: 16)).foregroundStyle(PS.fg3)
+                        Image(systemName: "xmark.circle.fill").font(PS.sys(size: 15)).foregroundStyle(PS.fg3)
                     }
                     .buttonStyle(.plain)
+                    .frame(width: 22)
                 }
             }
-            if let r, let w = weight, w > 0 {
-                HStack(spacing: 8) {
-                    Text("\(PedsCalc.fmt(r.mg)) mg")
-                        .font(PS.sys(size: 12.5, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(r.fraction > 1 ? PS.accent : PS.fg)
-                    if let m = r.maxMg {
-                        Text("of \(PedsCalc.fmt(m)) mg max · \(Int((r.fraction * 100).rounded()))%").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
-                    } else {
-                        Text("no maximum on file for this patient").font(PS.sys(size: 12.5)).foregroundStyle(PS.accent)
-                    }
-                }
-                if let alone = r.maxMLAlone {
-                    Text("Alone: up to \(PedsCalc.fmt(alone)) mL at \(PedsCalc.fmt(r.percent))%" + (r.remainingML.map { "; in this mixture you could still add \(PedsCalc.fmt($0)) mL" } ?? ""))
-                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            if let r, weight != nil {
+                Text(rowDetail(r))
+                    .font(PS.sys(size: 11.5)).foregroundStyle(overRow ? PS.accent : PS.fg3)
+                    .lineLimit(2).minimumScaleFactor(0.85)
             }
         }
-        .padding(.horizontal, 16).padding(.vertical, 12)
+        .padding(.horizontal, 14).padding(.vertical, 9)
+    }
+
+    private func rowDetail(_ r: LAAgentResult) -> String {
+        guard let m = r.maxMg else {
+            if pediatric, let y = r.agent.pedsMinYears { return "Not labeled under \(y) years" }
+            return "No maximum on file for this patient"
+        }
+        var s = "Max \(PedsCalc.fmt(m)) mg = \(PedsCalc.fmt(m / (r.percent * 10))) mL of \(PedsCalc.fmt(r.percent))% alone"
+        if r.mg > 0, let left = r.remainingML { s += " · \(left < 0.05 ? "nothing" : PedsCalc.fmt(left) + " mL") more fits in this mix" }
+        return s
     }
 
     private func add(_ agent: LocalAnesthetic) {
