@@ -201,15 +201,16 @@ enum PSDate {
     }()
     static func parse(_ s: String) -> Date? { formatter.date(from: String(s.prefix(10))) }
 
-    static let short: DateFormatter = {
-        let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "MMM d"; return f
-    }()
-    static let long: DateFormatter = {
-        let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "MMM d, yyyy"; return f
-    }()
-    static let month: DateFormatter = {
-        let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "MMMM yyyy"; return f
-    }()
+    private static func display(_ format: String) -> DateFormatter {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US")
+        f.timeZone = TimeZone(identifier: "America/New_York")   // same zone as `parse`, so the day never shifts
+        f.dateFormat = format
+        return f
+    }
+    static let short = display("MMM d")
+    static let long = display("MMM d, yyyy")
+    static let month = display("MMMM yyyy")
 
     /// "Oct 14" for the current year, "Oct 14, 2025" otherwise.
     static func display(_ s: String, long wantLong: Bool = false) -> String {
