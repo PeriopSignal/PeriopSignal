@@ -1,7 +1,35 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-27T08:36:31+00:00",
+ "generatedAt": "2026-10-28T08:30:06+00:00",
  "posts": [
+  {
+   "id": "icm-2026-esicm-human-centred-partnership-consensus",
+   "date": "2026-10-26",
+   "dateApprox": false,
+   "addedAt": "2026-10-28",
+   "journal": "Intensive Care Med",
+   "jshort": "ICM",
+   "kind": "Consensus",
+   "topics": [
+    "criticalCare"
+   ],
+   "headline": "ESICM consensus on human-centred ICU care: flexible family visiting, structured team communication, staff support too",
+   "summary": "An international ESICM panel of 46 ran rapid reviews on 20 PICO questions across six domains, put 53 draft statements through a two-round eDelphi (201, then 149 stakeholders) and ratified 43 at a consensus meeting with patient and family representatives.",
+   "takeHome": [
+    "Key recommendations support flexible family visitation, structured interdisciplinary communication and empathy-based training for ICU staff.",
+    "Psychological support should reach both patients and ICU professionals, together with culturally responsive care.",
+    "Environmental measures to improve sleep and reduce delirium, and integration of digital technologies, complete a 43-statement framework for diverse ICU settings."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** ICU care is no longer judged on survival alone: how families are included, how the team communicates and how staff cope all shape delirium, recovery after discharge and burnout. ESICM has now put a formal consensus behind practices that many units apply unevenly, from open visiting to structured family updates.\n\n**What they did.** A 46-member international, multidisciplinary panel ran rapid reviews on 20 PICO questions in six domains: person-centred care; communication and transparency; emotional well-being; equity, diversity and inclusion; the ICU environment; and technology and innovation. Of 53 draft statements, a two-round eDelphi (201 participants in round 1, 149 in round 2) and a consensus meeting that included patient and family representatives endorsed 43.\n\n**What they recommend** (from the abstract):\n- Flexible family visitation\n- Structured interdisciplinary communication\n- Empathy-based training for staff\n- Psychological support for patients and for ICU professionals\n- Culturally responsive care\n- Environmental measures to improve sleep and reduce delirium\n- Integration of digital technologies\n\n**Caveats.** This is a Delphi consensus built on rapid reviews rather than a graded guideline, so the statements record agreement, not proven effects on hard outcomes. We read the abstract only; the full document gives the exact wording of each statement and the level of agreement behind it.\n\n**For the anesthesiologist.** If you staff a cardiothoracic or surgical ICU, this is an ESICM-backed reference for local policy: open visiting after cardiac surgery, a fixed structure for family updates and handovers, night-time noise and light rules as part of delirium prevention, and debriefing or psychological support for the team after hard cases.",
+   "url": "https://doi.org/10.1007/s00134-026-08626-9",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Latour",
+   "title": "European Society of Intensive Care Medicine consensus statement on human-centred partnership in the intensive care unit"
+  },
   {
    "id": "anaesthesia-2026-prospect-total-shoulder-arthroplasty",
    "date": "2026-10-22",

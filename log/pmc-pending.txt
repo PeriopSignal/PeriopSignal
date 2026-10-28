@@ -27,3 +27,4 @@ jamanetwopen-2026-cnoc-neurodevelopment-chd | PMC13227305 | available but longer
 ehj-2025-jpvad-danger-criteria | PMC12831186 | available but longer than the fetch cap
 aic-2026-french-cardiogenic-shock-expert-recommendations | PMC13081668 | available but longer than the fetch cap
 anaesthesia-2026-prospect-total-shoulder-arthroplasty | 42910655 | PMID; open access at Wiley, no PMC copy yet
+icm-2026-esicm-human-centred-partnership-consensus | 42931902 | PMID; open access at Springer, no PMC copy yet
