@@ -28,7 +28,13 @@
    "impact": 1,
    "trialName": "",
    "firstAuthor": "Latour",
-   "title": "European Society of Intensive Care Medicine consensus statement on human-centred partnership in the intensive care unit"
+   "title": "European Society of Intensive Care Medicine consensus statement on human-centred partnership in the intensive care unit",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/icm-2026-esicm-human-centred-partnership-consensus.mp3",
+    "seconds": 174,
+    "bytes": 1389549,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "anaesthesia-2026-prospect-total-shoulder-arthroplasty",
@@ -73,7 +79,13 @@
     "doi": "10.1111/anae.70427",
     "year": 2026
    },
-   "title": "Pain management after total shoulder arthroplasty: a systematic review and procedure‐specific postoperative pain management ( PROSPECT ) recommendations"
+   "title": "Pain management after total shoulder arthroplasty: a systematic review and procedure‐specific postoperative pain management ( PROSPECT ) recommendations",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anaesthesia-2026-prospect-total-shoulder-arthroplasty.mp3",
+    "seconds": 186,
+    "bytes": 1485741,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "fda-2026-cipepofol-cypsedo-induction-approval",
@@ -111,6 +123,12 @@
     ],
     "answer": 2,
     "explanation": "The approval letter says marketing may begin only after DEA publishes an interim final rule scheduling cipepofol and the labeling is revised to show it, so unlike propofol it will arrive as a controlled substance. The deferred pediatric trials (reports due 2028 and 2030) are a post-approval requirement, not a condition of launch; maintenance and procedural sedation are not part of the indication."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-cipepofol-cypsedo-induction-approval.mp3",
+    "seconds": 175,
+    "bytes": 1403181,
+    "voice": "kokoro:af_heart"
    }
   },
   {
