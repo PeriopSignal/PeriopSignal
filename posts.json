@@ -32,7 +32,7 @@
    "audio": {
     "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/icm-2026-esicm-human-centred-partnership-consensus.mp3",
     "seconds": 174,
-    "bytes": 1389549,
+    "bytes": 1389357,
     "voice": "kokoro:af_heart"
    }
   },
@@ -83,7 +83,7 @@
    "audio": {
     "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anaesthesia-2026-prospect-total-shoulder-arthroplasty.mp3",
     "seconds": 186,
-    "bytes": 1485741,
+    "bytes": 1485549,
     "voice": "kokoro:af_heart"
    }
   },
@@ -127,7 +127,7 @@
    "audio": {
     "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-cipepofol-cypsedo-induction-approval.mp3",
     "seconds": 175,
-    "bytes": 1403181,
+    "bytes": 1402797,
     "voice": "kokoro:af_heart"
    }
   },
@@ -190,6 +190,12 @@
     ],
     "answer": 0,
     "explanation": "The panel recommends interval catheterization and MRI to time the later steps of staged LV recruitment, including EFE resection plus mitral and aortic valve repair as parts of complete biventricular conversion. Echo and/or MRI select neonates for primary repair, but echo alone is not the stated tool for timing conversion. This is expert consensus on a thin, mostly observational evidence base."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ats-2026-sts-borderline-left-heart-consensus.mp3",
+    "seconds": 180,
+    "bytes": 1437357,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -230,6 +236,12 @@
     ],
     "answer": 3,
     "explanation": "BD's August 2026 letter reports that sets with closed male luers, filters, check valves, Y-sites or microbore tubing perform worse than previously disclosed, mostly at programmed rates under 1 mL/h and boluses of 5 mL or less, which users may not easily detect. FDA asks units to discard discontinued sets, prioritize alternates for critical care, neonatal and pediatric areas, or move to a syringe pump."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-bd-alaris-infusion-sets-class-i-recall-update.mp3",
+    "seconds": 187,
+    "bytes": 1496685,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -278,7 +290,13 @@
     "doi": "10.1161/CIR.0000000000001490",
     "year": 2026
    },
-   "title": "Multidisciplinary Collaboration in the Performance of Aortic Surgery: A Scientific Statement From the American Heart Association"
+   "title": "Multidisciplinary Collaboration in the Performance of Aortic Surgery: A Scientific Statement From the American Heart Association",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circ-2026-aha-multidisciplinary-aortic-surgery-statement.mp3",
+    "seconds": 172,
+    "bytes": 1373037,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "ejhf-2026-hfa-acnap-heart-transplant-recipients-non-specialist-consensus",
@@ -328,7 +346,13 @@
     "doi": "10.1093/ejhf/xuag326",
     "year": 2026
    },
-   "title": "Management of Heart transplant recipients for the non Heart Transplant health care provider. A Clinical Consensus Statement of the Heart Failure Association (HFA) and the Association of Cardiovascular Nursing &amp; Allied Professions (ACNAP) of the ESC"
+   "title": "Management of Heart transplant recipients for the non Heart Transplant health care provider. A Clinical Consensus Statement of the Heart Failure Association (HFA) and the Association of Cardiovascular Nursing &amp; Allied Professions (ACNAP) of the ESC",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ejhf-2026-hfa-acnap-heart-transplant-recipients-non-specialist-consensus.mp3",
+    "seconds": 169,
+    "bytes": 1349229,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "anesthesiology-2026-oracle-or-air-purification-ssi",
@@ -390,6 +414,12 @@
     ],
     "answer": 1,
     "explanation": "Each of the 68 operating rooms ran an active unit or an identical sham that ran and sounded the same in 4-week blocks, with investigators, clinicians and patients blinded. The primary composite after inpatient surgery was 8.1% vs 8.2% (OR 0.98, 95% CI 0.92-1.05) and the trial was stopped for futility at the third interim analysis. Caveat: one health system with modern ventilation."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anesthesiology-2026-oracle-or-air-purification-ssi.mp3",
+    "seconds": 229,
+    "bytes": 1830381,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -461,6 +491,12 @@
     ],
     "answer": 3,
     "explanation": "The 90-day mortality signal (5.7% vs 2.8%, RR 2.06, 1.13 to 3.78) was an exploratory secondary outcome not adjusted for multiplicity and could be chance; the trial cannot say whether dobutamine (given to 64.1% vs 0.5%), extra fluid or something else drove it. The primary 7-day composite did not differ (44.3% vs 46.9%, RR 0.94). Single-blind, one surgical population."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy.mp3",
+    "seconds": 217,
+    "bytes": 1738989,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -534,6 +570,12 @@
     ],
     "answer": 0,
     "explanation": "Thirty-day mortality after bailout was 27%, 29% and 25% across low, intermediate and high SAVR-volume centers (P=0.28), and early mortality did not fall over 2016-2024 even as bailout incidence halved from 0.92% to 0.40%. The 41% and 19% figures are mortality for SAVR combined with other interventions versus isolated SAVR. Administrative data cannot say why each bailout happened."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcin-2026-tavr-surgical-bailout-cms-trends.mp3",
+    "seconds": 232,
+    "bytes": 1854189,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -609,6 +651,12 @@
     ],
     "answer": 2,
     "explanation": "The trial was open-label, the primary endpoint was patient-reported (SF-36 physical component 45.1 vs 42.2, a modest 2.9-point difference), and the seven centers were experienced minimally invasive programs with selected patients. There were no deaths or strokes in either group through 12 months, and long-term graft patency was not addressed."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-2026-mist-minimally-invasive-cabg.mp3",
+    "seconds": 198,
+    "bytes": 1584621,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -680,6 +728,12 @@
     ],
     "answer": 1,
     "explanation": "If the heart cannot carry the circulation, the consensus says to clamp the thoracic aorta and run 2.0-2.4 L/min for the abdominal organs, while avoiding hyperoxemia, transfusion excess and cardiac distension. Recovery order is heart, liver, lungs, then pancreas and kidneys. Maximum warm ischemia time and whether arch vessels must be transected were left unresolved."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/transpl-int-2026-esot-bucharest-nrp-consensus.mp3",
+    "seconds": 234,
+    "bytes": 1875309,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -755,6 +809,12 @@
     ],
     "answer": 0,
     "explanation": "The trial excluded patients with a compelling indication for full anticoagulation, known PE or intracardiac thrombus, or HIT, so the post keeps full dosing for mechanical valves, known thrombus or active PE. For the rest, UFH to an aPTT of 1.5-2.0 times baseline or therapeutic LMWH when renal function allows was noninferior on the composite (72% and 75% vs 81%). Open label, with 13-28% crossover."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-2026-rate-ecmo-anticoagulation.mp3",
+    "seconds": 240,
+    "bytes": 1919469,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -821,6 +881,12 @@
     ],
     "answer": 3,
     "explanation": "Staging keeps A (at risk), B (pre-HF), C (HF) and D (advanced HF), adds Stage 0 for people without risk factors, and sharpens the criteria for each stage. Improvement, remission and recovery are defined as trajectories, not stages. This is a definition document, not a treatment guideline, so numeric EF thresholds will persist in labels and trial criteria for years."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circ-2026-second-universal-definition-heart-failure.mp3",
+    "seconds": 189,
+    "bytes": 1510701,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -894,6 +960,12 @@
     ],
     "answer": 1,
     "explanation": "The statements put AKI (diagnosed by KDIGO) at roughly 50-70% of ECMO patients across ages, more with VA ECMO, and about half of ECMO patients receive kidney replacement therapy; AKI tracks with worse short- and long-term outcomes. The 44 statements are deliberately ungraded and rest largely on expert judgment where trials are absent."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/icm-2026-adqi-elso-aki-crrt-during-ecmo-consensus.mp3",
+    "seconds": 243,
+    "bytes": 1941357,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -954,6 +1026,12 @@
     ],
     "answer": 2,
     "explanation": "For early graft failure the consensus says to recognize it fast, start inotropes and escalate to temporary MCS if severe; for RV failure it lists inotropes, inhaled nitric oxide or prostacyclin, preload optimization and atrial pacing above 90. Peripheral VA-ECMO cannot unload the LV, so a left atrial cannula or percutaneous VAD is added if it is used."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ejhf-2026-hfa-heart-transplantation-consensus.mp3",
+    "seconds": 223,
+    "bytes": 1787181,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1016,6 +1094,12 @@
     "n": "3,753 vasopressor-dependent adults after cardiac surgery; 603 (16.1%) got vasopressin",
     "outcome": "Major adverse kidney events at 30 days (death, new RRT or creatinine doubling)",
     "result": "No association: OR 1.02 (95% CI 0.76-1.38, p = 0.88); 30-day mortality OR 1.12"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcva-2026-vasopressin-make-cardiac-surgery.mp3",
+    "seconds": 230,
+    "bytes": 1843053,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1073,7 +1157,13 @@
     "volume": "16",
     "pages": "100038"
    },
-   "title": "Experts’ recommendations for the management of adult patients with cardiogenic shock"
+   "title": "Experts’ recommendations for the management of adult patients with cardiogenic shock",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/aic-2026-french-cardiogenic-shock-expert-recommendations.mp3",
+    "seconds": 204,
+    "bytes": 1628973,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "annsurg-2026-sofrib-rib-fixation-rct",
@@ -1143,6 +1233,12 @@
     ],
     "answer": 3,
     "explanation": "Inclusion required three or more displaced fractures plus pulmonary compromise, severe pain or chest wall deformity; 236 adults were randomized to fixation within 5 days or standardized non-operative care. ICU stay did not differ (mean difference 1.8 days, P = 0.17), pneumonia rose from 3.3% to 11.4%, and the authors conclude that selective rather than routine stabilization is supported."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/annsurg-2026-sofrib-rib-fixation-rct.mp3",
+    "seconds": 220,
+    "bytes": 1757805,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1211,6 +1307,12 @@
     ],
     "answer": 0,
     "explanation": "For grade 1-2 injuries with TBI, the guideline recommends against anti-impulse therapy and says blood pressure management should prioritize the brain; grades 1-2 are managed non-operatively, with a single follow-up CTA for grade 2. Individualized decisions with trauma surgery and neurosurgery apply to grade 3 injuries with TBI or solid organ injury. Evidence quality is low throughout."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jvs-2026-svs-blunt-thoracic-aortic-injury-focused-update.mp3",
+    "seconds": 205,
+    "bytes": 1640109,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1276,6 +1378,12 @@
     ],
     "answer": 1,
     "explanation": "Sepsis without hypotension and without ICU access gets no boluses, a strong recommendation with high certainty; only three recommendations in the guideline rest on high or moderate certainty. The 10-20 mL/kg boluses with reassessment, up to 40-60 mL/kg in the first hour, apply to septic shock with ICU access, using balanced crystalloid over saline and crystalloid over albumin."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/pccm-2026-pediatric-surviving-sepsis-guideline.mp3",
+    "seconds": 214,
+    "bytes": 1714221,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1346,6 +1454,12 @@
     ],
     "answer": 2,
     "explanation": "Because recurrence was not reduced (disease-free survival HR 0.91, 95% CI 0.75-1.12), the 21% lower hazard of death (HR 0.79, 0.65-0.96) presumably reflects fewer complications and better delivery of adjuvant therapy rather than a better cancer operation. Robotic approaches were not studied, and VIOLET follow-up (3.8 years) is still short."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-2026-vats-vs-open-lobectomy-ipd-meta.mp3",
+    "seconds": 218,
+    "bytes": 1748205,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1405,6 +1519,12 @@
     "n": "1,159,040 isolated CABG hospitalizations; Black patients 6.7%",
     "outcome": "In-hospital mortality",
     "result": "Black patients 3.2% vs 2.4%, adjusted OR 1.22; gap did not narrow over six years"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcva-2026-cabg-racial-inequities-nis.mp3",
+    "seconds": 209,
+    "bytes": 1671981,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1454,7 +1574,13 @@
     "volume": "157",
     "issue": "3"
    },
-   "title": "Critical Elements for the Pediatric Periprocedural Anesthesia Environment: Policy Statement"
+   "title": "Critical Elements for the Pediatric Periprocedural Anesthesia Environment: Policy Statement",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/pediatrics-2026-aap-periprocedural-anesthesia-environment-policy.mp3",
+    "seconds": 200,
+    "bytes": 1596333,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "circ-2026-aha-acc-acute-pulmonary-embolism-guideline",
@@ -1517,6 +1643,12 @@
     ],
     "answer": 0,
     "explanation": "Deep sedation and mechanical ventilation are Class 3 Harm in categories C to E unless clinically necessary; if intubation is unavoidable, have VA-ECMO ready at the bedside and use the gentlest induction you can. Norepinephrine, not dobutamine, is first line, and routine IVC filters in anticoagulated patients are Class 3 Harm. Many interventional recommendations rest on registry and single-arm data."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circ-2026-aha-acc-acute-pulmonary-embolism-guideline.mp3",
+    "seconds": 184,
+    "bytes": 1472877,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1587,6 +1719,12 @@
     ],
     "answer": 2,
     "explanation": "The 68-stakeholder panel agreed that clear liquids should be actively encouraged until 2 h before anesthesia or sedation, and that institutions may adopt protocols allowing intake within 2 h, such as sipping until called to the procedure room (100% agreement). Solids keep the 6 h rule (8 h after large fatty meals) and non-clear liquids 6 h. This is consensus, not trial evidence, and carries no society endorsement."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anaesthesia-2026-international-perioperative-fasting-consensus.mp3",
+    "seconds": 214,
+    "bytes": 1708653,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1649,6 +1787,12 @@
     ],
     "answer": 3,
     "explanation": "The consensus says to use the RV-focused apical four-chamber view, because the standard view underestimates, and dedicated RV software rather than repurposed LV software. Radial strain is not endorsed, and tissue Doppler is for a single region while speckle tracking serves chamber-wide assessment. The grades are expert opinion: no randomized trial has tested strain-guided decisions."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ehjci-2026-ase-eacvi-strain-echocardiography-consensus.mp3",
+    "seconds": 197,
+    "bytes": 1574253,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1713,6 +1857,12 @@
     ],
     "answer": 1,
     "explanation": "The statement covers five domains: when to stop the DOAC, how to check residual drug activity, whether to bridge (addressed directly rather than left to habit), how to reverse, including specific reversal agents and prothrombin complex concentrate, and when to restart. It pairs a systematic review with structured expert consensus; much of the evidence base is observational, and the full text carries the specifics."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/aa-2026-sca-sts-doac-cardiac-surgery-consensus.mp3",
+    "seconds": 180,
+    "bytes": 1442733,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1780,6 +1930,12 @@
     ],
     "answer": 2,
     "explanation": "Without primary-care documentation of normotension, patients may proceed if the clinic BP is below 180/120 mmHg or an ambulatory or home reading is below 175/115 mmHg. The 2016 guideline's clinic cut-off was 180/110, and 160/100 is the clinic threshold for accepting a referral. The recommendations are consensus-based, UK-focused and exclude cardiothoracic surgery."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anaesthesia-2026-perioperative-blood-pressure-guideline.mp3",
+    "seconds": 244,
+    "bytes": 1954029,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1837,7 +1993,13 @@
     "volume": "19",
     "issue": "2"
    },
-   "title": "Standardization of Baseline and Provocative Invasive Hemodynamic Protocols for the Evaluation of Heart Failure and Pulmonary Hypertension: A Scientific Statement From the American Heart Association"
+   "title": "Standardization of Baseline and Provocative Invasive Hemodynamic Protocols for the Evaluation of Heart Failure and Pulmonary Hypertension: A Scientific Statement From the American Heart Association",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circhf-2026-aha-invasive-hemodynamic-protocols-statement.mp3",
+    "seconds": 205,
+    "bytes": 1642029,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "jcva-2025-eactaic-monitoring-thoracic",
@@ -1906,6 +2068,12 @@
     ],
     "answer": 1,
     "explanation": "The authors are candid that the high-level evidence base is generally limited and that significant controversies remain; the document represents the structured opinions of delegated experts. Agreement is reported as agreed (over 60%), strong (over 80%) or full (over 95%), and some statements reached only the lowest tier, so nothing here is a randomized result."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcva-2025-eactaic-monitoring-thoracic.mp3",
+    "seconds": 188,
+    "bytes": 1506477,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -1975,6 +2143,12 @@
     ],
     "answer": 1,
     "explanation": "Consensus is reported as agreed (more than 60%), strong (more than 80%) and, in places, full (more than 95%); every recommendation across the six clinical questions reached at least the agreed tier, and some sit at that lowest level. The authors note that high-level evidence is generally limited and significant controversies persist."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcva-2025-eactaic-airway-thoracic.mp3",
+    "seconds": 182,
+    "bytes": 1457901,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2049,6 +2223,12 @@
     ],
     "answer": 3,
     "explanation": "Pulmonary complications within 5 days were 19.8% with driving pressure-guided high PEEP vs 17.4% with fixed PEEP 5 (P = .23), while the high PEEP group had more hypotension (54.0% vs 45.0%) and vasoactive use (32.0% vs 18.8%); desaturation was more common with low PEEP (2.8% vs 0.8%). Event rates were below planning assumptions and clinicians could not be blinded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2025-designation-driving-pressure-guided-peep.mp3",
+    "seconds": 236,
+    "bytes": 1891629,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2116,6 +2296,12 @@
     ],
     "answer": 0,
     "explanation": "DLCO for every surgical candidate is now a strong recommendation, with ppoFEV1 and ppoDLCO calculated routinely rather than only when spirometry is impaired; a ppoFEV1 or ppoDLCO under 40% signals high risk. CPET is for poor performers on a walk or stair-climb test, with no single parameter mandated, and EuroLung 2 is for benchmarking, not selection."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/erj-2025-ers-ests-fitness-lung-cancer-guideline.mp3",
+    "seconds": 209,
+    "bytes": 1675053,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2173,6 +2359,12 @@
     "n": "911,910 weighted isolated CABG hospitalizations",
     "outcome": "ICD-10-coded postoperative delirium and its association with death, stay and cost",
     "result": "Delirium 4.91% and rising (OR 1.04/year); mortality aOR 1.85, +4 days, +$8,565"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcva-2025-cabg-delirium-nis-trends.mp3",
+    "seconds": 215,
+    "bytes": 1720749,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2234,6 +2426,12 @@
     ],
     "answer": 1,
     "explanation": "ELSO's narrative guidelines are structured expert documents built on practices ELSO believes are useful and safe, based on the data available when written and due for revision; they are not GRADE-graded recommendations and explicitly do not guarantee an outcome or define a standard of care. This post rests on the citation, author list and stated scope, as the full text sits behind a paywall."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/asaio-2025-elso-pregnant-peripartum-ecmo-guideline.mp3",
+    "seconds": 160,
+    "bytes": 1276845,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2287,7 +2485,13 @@
     "issue": "11",
     "pages": "865-874"
    },
-   "title": "ELSO 2025 Narrative Guideline on the Use of ECMO for Accidental Hypothermia"
+   "title": "ELSO 2025 Narrative Guideline on the Use of ECMO for Accidental Hypothermia",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/asaio-2025-elso-accidental-hypothermia-ecmo-guideline.mp3",
+    "seconds": 192,
+    "bytes": 1533933,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "ehjci-2025-eacvi-acvc-eactaic-cardiac-ultrasound-critical-care",
@@ -2345,7 +2549,13 @@
     "issue": "11",
     "pages": "1699-1724"
    },
-   "title": "Cardiac ultrasound in cardiovascular emergency and critical care: a clinical consensus statement of the European Association of Cardiovascular Imaging, the Acute CardioVascular Care Association of the European Society of Cardiology, and the European Association of Cardiothoracic Anaesthesia and Intensive Care"
+   "title": "Cardiac ultrasound in cardiovascular emergency and critical care: a clinical consensus statement of the European Association of Cardiovascular Imaging, the Acute CardioVascular Care Association of the European Society of Cardiology, and the European Association of Cardiothoracic Anaesthesia and Intensive Care",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ehjci-2025-eacvi-acvc-eactaic-cardiac-ultrasound-critical-care.mp3",
+    "seconds": 215,
+    "bytes": 1721325,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "icm-2025-erc-esicm-post-resuscitation-care-guideline",
@@ -2408,6 +2618,12 @@
     ],
     "answer": 3,
     "explanation": "The emergent cath lab is reserved for persistent ST elevation; otherwise catheterization is delayed unless acute occlusion is likely, and dual-phase head-to-pelvis CT including pulmonary angiography is obtained. Temperature control means fever prevention at or below 37.5 C, not 32-34 C, and prognostication waits until 72 h or later. Most recommendations rest on low-certainty evidence."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/icm-2025-erc-esicm-post-resuscitation-care-guideline.mp3",
+    "seconds": 226,
+    "bytes": 1806765,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2478,6 +2694,12 @@
     ],
     "answer": 0,
     "explanation": "The guideline says to operate for hemodynamic instability from thoracic bleeding, output over 1,500 mL, or over 200 mL/h for 3 hours (low evidence, strong recommendation). A stable hemothorax of 500 mL or more is drained, and one under 300 mL can be observed for 24 hours. The document is surgeon-led, and its analgesia section is thin."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/wjes-2025-wses-aast-thoracic-trauma-guidelines.mp3",
+    "seconds": 237,
+    "bytes": 1899693,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2533,6 +2755,12 @@
     "n": "662,680 children having noncardiac surgery, including 16,243 with complex CHD",
     "outcome": "In-hospital mortality by hospital CHD-volume quintile",
     "result": "Highest at mid-volume quintile 3: 0.83% overall, 6.28% complex CHD; adjusted OR 1.14"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcva-2025-chd-noncardiac-hospital-volume.mp3",
+    "seconds": 232,
+    "bytes": 1855341,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2607,6 +2835,12 @@
     ],
     "answer": 2,
     "explanation": "Arrest on ECMO is defined as unresponsive and/or not breathing normally plus a confirmed MAP below 30 mmHg on a leveled, working transducer; pulselessness is normal on ECMO and ETCO2 is unreliable, so an ETCO2 fall and lost flow are only supportive. MAP above 55 mmHg, flow above 2 L/min and SpO2 above 88% define adequate circulation on reassessment. The thresholds are consensus judgments, not evidence-derived."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/icm-2025-uk-ecmo-emergencies-guideline.mp3",
+    "seconds": 249,
+    "bytes": 1993965,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2679,6 +2913,12 @@
     ],
     "answer": 0,
     "explanation": "Reordering by US-CRS moved 67% of actual recipients down in rank, and the first-ranked candidate's 6-week transplant-censored mortality was 15.7% under US-CRS vs 11.2% today, with no growth in donor-to-candidate distance; 0.807 vs 0.693 are the time-dependent AUCs for 6-week mortality. This is registry data and simulation, not a prospective policy trial."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-us-crs-heart-allocation-score.mp3",
+    "seconds": 210,
+    "bytes": 1679277,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2708,7 +2948,13 @@
    "firstAuthor": "",
    "authorLimitations": [],
    "authorBasis": "",
-   "takeHomeBy": "editor"
+   "takeHomeBy": "editor",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-philips-lumify-early-alert.mp3",
+    "seconds": 177,
+    "bytes": 1417005,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus",
@@ -2771,6 +3017,12 @@
     ],
     "answer": 1,
     "explanation": "The post states the evidence base is registries and observational reports, so most statements are expert opinion, and the authors note substantial variation in diagnostic and therapeutic strategies. Before this document, management had been improvised from case series and from guidelines written for spontaneous type A dissection."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus.mp3",
+    "seconds": 184,
+    "bytes": 1475565,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2829,7 +3081,13 @@
     "volume": "68",
     "issue": "10"
    },
-   "title": "EACTS Expert Consensus Document on Robotic Cardiac Surgery Minimum Standards for Programme Implementation, Training and Quality Assurance, developed in collaboration with EACTAIC and EBCP"
+   "title": "EACTS Expert Consensus Document on Robotic Cardiac Surgery Minimum Standards for Programme Implementation, Training and Quality Assurance, developed in collaboration with EACTAIC and EBCP",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ejcts-2026-eacts-robotic-cardiac-surgery-minimum-standards.mp3",
+    "seconds": 215,
+    "bytes": 1718253,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "fda-2026-sapien-m3-commander-m-delivery-early-alert",
@@ -2875,6 +3133,12 @@
     ],
     "answer": 0,
     "explanation": "The notice asks hospitals to remove and return only lots 67718561, 67804014, 67887043 and 67887044; the post states other lots are not affected and may continue in use. FDA posted an early alert on October 15, has not yet assigned a formal recall classification, and says it is still reviewing the issue."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-sapien-m3-commander-m-delivery-early-alert.mp3",
+    "seconds": 217,
+    "bytes": 1738221,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2924,6 +3188,12 @@
     ],
     "answer": 2,
     "explanation": "ICRAKI could not show intermittent hemodialysis noninferior to CRRT (MAKE-90 78.1% vs 71.6%; adjusted difference 6.28 points) and day-90 mortality was higher (63.1% vs 53.5%; HR 1.30, 95% CI 1.04-1.63), so the post supports CRRT as the initial modality in ventilated, catecholamine-dependent patients. Open label, stopped early at 554 of 1,000 planned, and kidney recovery did not differ."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2026-icraki-ihd-vs-crrt.mp3",
+    "seconds": 225,
+    "bytes": 1798509,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -2995,6 +3265,12 @@
     ],
     "answer": 1,
     "explanation": "The post says delirium- and coma-free days were fewer with isoflurane (2 vs 4; difference -0.95 days, 95% CI -1.69 to -0.22), driven by longer coma (median 6 vs 5 days) rather than more delirium (41.5% vs 40.6%). Hospital mortality was 42.5% vs 43.8%. The trial was open label and about half the inhaled group also received IV sedation on any day."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-save-icu-isoflurane-sedation.mp3",
+    "seconds": 246,
+    "bytes": 1969005,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3066,6 +3342,12 @@
     ],
     "answer": 2,
     "explanation": "The post reports tachycardia above 100/min in 41.0% with dobutamine vs 29.9% without, while arrhythmias and arrest were rare and similar. Mortality at 28 days (16.2% vs 20.4%) and 90 days (18.6% vs 23.1%) and kidney replacement therapy did not differ significantly. The trial was open label and clinicians knew the allocation."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki.mp3",
+    "seconds": 232,
+    "bytes": 1852461,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3136,6 +3418,12 @@
     ],
     "answer": 0,
     "explanation": "Under the lower threshold 52.4% of patients received vasopressin vs 32.9%, yet 28-day mortality was 31.8% vs 33.0% (adjusted OR 0.98, P=.62), and kidney replacement therapy-free days were a median of 29 in both arms. The trial was open label with incomplete adherence (45% strict adherence to the lower threshold) and excludes a large benefit rather than proving equivalence."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-vasspr-vasopressin-threshold.mp3",
+    "seconds": 246,
+    "bytes": 1970157,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3208,6 +3496,12 @@
     ],
     "answer": 2,
     "explanation": "The post states that in elective cases maternal request was the leading reason for initial GA (47.0%), whereas in emergencies the dominant reason was too little time for neuraxial (58.4%). The 6.1% figure is the rate of conversion from neuraxial to GA in elective cases, a separate finding. Observational data with voluntary participation."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/bja-2026-europe-cesarean-ga-9989.mp3",
+    "seconds": 220,
+    "bytes": 1763181,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3269,6 +3563,12 @@
     "n": "2,850 adult HeartMate 3 recipients in four age groups",
     "outcome": "Five-year on-device survival, censored at transplant or explant",
     "result": "74.7% (<50 y), 65.5% (50-59), 53.9% (60-69), 48.8% (>=70); p<0.001"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ejcts-2026-euromacs-young-hm3.mp3",
+    "seconds": 208,
+    "bytes": 1662957,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3315,6 +3615,12 @@
     ],
     "answer": 2,
     "explanation": "The notice says on a Purge Disc Disconnected or Not Detected alarm, reseat the purge disc and, if the alarm persists, switch to a backup AIC; controllers stay in use until Abiomed replaces the purge flag and retainer. As of August 17, Abiomed had reported 37 serious injuries and 3 deaths, counts that are manufacturer reports and not adjudicated."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-impella-controller-class-i-recall.mp3",
+    "seconds": 182,
+    "bytes": 1453485,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3376,6 +3682,12 @@
     "n": "210 children under 2 years having primary distal or midshaft hypospadias repair",
     "outcome": "Urethrocutaneous fistula within 3 months",
     "result": "8.9% caudal vs 7.3% penile; RR 0.98 (95% CI 0.35-2.76), p=0.9; not significant"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/rapm-2026-caudal-vs-penile-block-hypospadias-fistula.mp3",
+    "seconds": 239,
+    "bytes": 1908717,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3409,7 +3721,13 @@
    ],
    "authorLimitations": [],
    "authorBasis": "summary page",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-medline-reprocessed-ice-catheter-class-i-recall.mp3",
+    "seconds": 182,
+    "bytes": 1453869,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "circ-2026-aha-residual-lesions-reintervention-statement",
@@ -3477,6 +3795,12 @@
     ],
     "answer": 1,
     "explanation": "The statement reports early unplanned reintervention during the index hospitalization after about 5% of pediatric cardiac operations, more often in younger patients and more complex procedures, with wide center-level variation. It is a consensus synthesis rather than new data and does not prescribe a single imaging algorithm or timing rule."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circ-2026-aha-residual-lesions-reintervention-statement.mp3",
+    "seconds": 182,
+    "bytes": 1453293,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3555,6 +3879,12 @@
     ],
     "answer": 1,
     "explanation": "The trial ended early at 75% of the 1,032 target because of slow recruitment and COVID-19 staffing shortages, leaving limited power, and crossover between arms was substantial. The 30-day composite was 14% spinal vs 12% general (HR 1.23, 95% CI 0.83-1.82, p=0.29), and the authors support an individualized choice of anesthetic."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-healthy-longev-2026-ihope-spinal-vs-general-hip-fracture.mp3",
+    "seconds": 223,
+    "bytes": 1787181,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3600,6 +3930,12 @@
     ],
     "answer": 0,
     "explanation": "The post notes the trial enrolled a CABG-heavy population with only 4.1% prior AF, so it says nothing against closure in patients with AF, which LAAOS III established. The 56% reduction (p=0.018) was seen in patients with above-median CHA2DS2-VASc and is hypothesis-generating; 676 of 747 assigned to closure received it."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/esc26-laacs-2-surgical-laa-closure.mp3",
+    "seconds": 216,
+    "bytes": 1729773,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3675,6 +4011,12 @@
     ],
     "answer": 3,
     "explanation": "The post says TRILUMINATE and TRISCEND II showed better symptoms and quality of life but not survival, whereas TRIC-I-HF showed freedom from death or HF hospitalization of 52.4% vs 21.0% at 3 years (HR 0.40, 95% CI 0.29-0.55). Caveats: open label, a very elderly high-risk population at expert centers, and a very high control-arm event rate."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2026-tric-i-hf-tricuspid-repair.mp3",
+    "seconds": 217,
+    "bytes": 1734573,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3734,6 +4076,12 @@
     "n": "986 patients with severe aortic stenosis and significant coronary artery disease",
     "outcome": "1-year composite of death, MI, revascularization, major bleeding or rehospitalization",
     "result": "22.2% TAVI-first vs 24.2% PCI-first; RD -2.0 points (95% CI -7.4 to 3.4); noninferior"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2026-tavi-pci-sequencing.mp3",
+    "seconds": 194,
+    "bytes": 1550637,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3771,7 +4119,13 @@
     "Outcomes for patients with PCI more than 3 months earlier not yet analysed"
    ],
    "authorBasis": "summary page",
-   "takeHomeBy": "authors"
+   "takeHomeBy": "authors",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/esc26-popular-ace-tavi-protamine.mp3",
+    "seconds": 218,
+    "bytes": 1744557,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "ehj-2026-esc-heart-failure-guideline",
@@ -3836,6 +4190,12 @@
     ],
     "answer": 3,
     "explanation": "The guideline says a microaxial flow pump should be considered (IIa) in selected STEMI-related shock with LV dysfunction and no risk of hypoxic brain injury, while temporary MCS is Class III (harm) in unselected AMI shock and IABP Class III in unselected cardiogenic shock. The post notes several shock recommendations rest on single trials (DanGer Shock, ECLS-SHOCK)."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ehj-2026-esc-heart-failure-guideline.mp3",
+    "seconds": 199,
+    "bytes": 1590573,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3905,6 +4265,12 @@
     ],
     "answer": 3,
     "explanation": "The post states procedure-related MI covers ischemia and injury from a complication of any cardiac procedure within 30 days, and that later stent thrombosis or graft failure counts as primary MI. The numbered types 1-5 are retired. The press release does not spell out biomarker thresholds for procedure-related MI after CABG, so read the full text before changing local definitions."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/ehj-2026-fifth-universal-definition-mi.mp3",
+    "seconds": 172,
+    "bytes": 1374381,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -3980,6 +4346,12 @@
     ],
     "answer": 2,
     "explanation": "Reexploration was more frequent in the cold-stored arm, the one exception the authors flag as worth watching. Thrombotic events, transfusion reactions, ARDS, renal failure, septic shock and mortality were similar, and 24-hour chest tube output was 8.9 vs 8.4 mL/kg, not different. The trial was in cardiac surgery, not trauma, and only partially blinded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-chips-cold-stored-platelets.mp3",
+    "seconds": 193,
+    "bytes": 1543341,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -4035,6 +4407,12 @@
     "n": "2,831 adult DCD heart transplants (61.4% DPP, 38.6% NRP); 939 matched pairs",
     "outcome": "Survival at 1 month, 1 year and 3 years",
     "result": "1 month: 97.9% NRP vs 95.8% DPP; 1-year survival 94.0% in both among 1-month survivors"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jtcvs-2026-nrp-vs-dpp-dcd-heart.mp3",
+    "seconds": 205,
+    "bytes": 1640109,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -4101,6 +4479,12 @@
     ],
     "answer": 0,
     "explanation": "The statement stresses that many children continue to deteriorate during the first 24 hours and that timely decisions about escalation to mechanical circulatory support are central to survival. The staging still needs prospective validation in pediatric cohorts, biomarkers and decision tools remain research priorities, and device selection is left to local programs. It is a consensus framework, not a validated score."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circ-2026-aha-pediatric-cardiogenic-shock-statement.mp3",
+    "seconds": 187,
+    "bytes": 1492269,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -4175,6 +4559,12 @@
     ],
     "answer": 3,
     "explanation": "All 1,158 patients were cooled to 33 C and randomized only to cooling duration, with no normothermia control, so the trial says nothing about whether cooling helps at all. Both shockable and nonshockable rhythms were enrolled, the 90-day weighted mRS had blinded central assessment, and closed-loop devices were used. Shockable numbers were small and the trial stopped early at an interim analysis."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-icecap-hypothermia-duration.mp3",
+    "seconds": 217,
+    "bytes": 1739949,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -4249,6 +4639,12 @@
     ],
     "answer": 1,
     "explanation": "After a failed first attempt, lip or dental injury or blood on the blade was 10.9% with the hyperangulated video blade vs 23.2% and 24.1% in the other arms, although dental injury overall did not differ. The about 4% vs 11.8% figures are for intermittent mask ventilation, not injury. Operators were unblinded and all patients were elective."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jamano-2026-covalent-videolaryngoscopy.mp3",
+    "seconds": 215,
+    "bytes": 1719405,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -4324,6 +4720,12 @@
     ],
     "answer": 0,
     "explanation": "Patients received dapagliflozin 10 mg or placebo once daily from the day before surgery through postoperative day 2, four doses in all, and KDIGO AKI within 7 days fell from 52% to 28% (RR 0.54, 95% CI 0.45-0.65). The usual advice to stop SGLT2 inhibitors 3-4 days before surgery was deliberately contradicted, so the ketoacidosis safety data in the full paper will decide uptake."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-dapagliflozin-cardiac-surgery-aki.mp3",
+    "seconds": 208,
+    "bytes": 1660461,
+    "voice": "kokoro:af_heart"
    }
   },
   {
