@@ -67,12 +67,19 @@ struct PostCard: View {
 
             TakeHomeList(items: post.takeHome)
 
-            // The buttons keep their natural width so their labels never wrap; the topic tags scroll
-            // in whatever width is left.
-            HStack(alignment: .center, spacing: 8) {
-                topicsRow
-                Spacer(minLength: 0)
-                actionButtons
+            // Tags and buttons share one row when both fit at their natural width; otherwise the
+            // buttons move to their own line and the tags scroll. The labels never wrap or shrink.
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center, spacing: 8) {
+                    HStack(spacing: 6) { ForEach(post.topics, id: \.self) { TopicTag(topicID: $0) } }
+                        .fixedSize()
+                    Spacer(minLength: 8)
+                    actionButtons
+                }
+                VStack(alignment: .leading, spacing: 10) {
+                    topicsRow
+                    HStack { Spacer(minLength: 0); actionButtons }
+                }
             }
         }
         .padding(14)
