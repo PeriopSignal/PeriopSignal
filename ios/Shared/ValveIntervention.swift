@@ -369,7 +369,7 @@ enum ValveIntervention {
         case .mrSecondary:
             return "No intervention criterion met: optimize heart-failure therapy (and revascularization or resynchronization where indicated) and reassess the regurgitation once the ventricle has responded."
         case .ms:
-            return "No intervention criterion met. Echo every 1–2 years for progressive MS (MVA > 1.5 cm²), yearly for severe MS; rate control and anticoagulation for AF, and an exercise study when symptoms and the resting findings disagree."
+            return "No intervention criterion met. Echo every 3–5 years for progressive MS (MVA > 1.5 cm²), every 1–2 years for severe (MVA 1.0–1.5 cm²) and yearly for very severe (MVA < 1.0 cm²); rate control and anticoagulation for AF, and an exercise study when symptoms and the resting findings disagree."
         case .tr:
             return "No intervention criterion met. Treat the cause (left-sided disease, pulmonary hypertension, volume overload) with diuretics for right-sided congestion, and operate before severe RV dysfunction or end-organ damage sets in."
         }
