@@ -24,7 +24,7 @@ final class Preferences {
     var forYou: Bool { didSet { defaults.set(forYou, forKey: "ps.forYou") } }
 
     var onboardingDone: Bool { didSet { defaults.set(onboardingDone, forKey: "ps.onboardingDone") } }
-    /// The question of the day on the feed and the "Test yourself" section in deep dives.
+    /// Also show the question of the day at the top of the feed (it always lives under More).
     var showDailyQuestion: Bool { didSet { defaults.set(showDailyQuestion, forKey: "ps.showDailyQuestion") } }
     var personalizePromptDismissed: Bool { didSet { defaults.set(personalizePromptDismissed, forKey: "ps.personalizePromptDismissed") } }
 
@@ -52,7 +52,7 @@ final class Preferences {
         myTopics = Set(local ?? cloud ?? [])
         forYou = d.object(forKey: "ps.forYou") as? Bool ?? !(local ?? cloud ?? []).isEmpty
         onboardingDone = d.bool(forKey: "ps.onboardingDone")
-        showDailyQuestion = d.object(forKey: "ps.showDailyQuestion") as? Bool ?? true
+        showDailyQuestion = d.object(forKey: "ps.showDailyQuestion") as? Bool ?? false
         personalizePromptDismissed = d.bool(forKey: "ps.personalizePromptDismissed")
         alertHour = d.object(forKey: "ps.alertHour") as? Int ?? 6
         alertMinute = d.object(forKey: "ps.alertMinute") as? Int ?? 30

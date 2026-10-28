@@ -48,7 +48,7 @@ struct DeepDiveView: View {
                     MarkdownBlocks(text: post.deepDive)
                 }
                 limitations
-                if post.quiz != nil && prefs.showDailyQuestion {
+                if post.quiz != nil {
                     section(label: "Test yourself") {
                         QuizView(post: post)
                             .padding(14)

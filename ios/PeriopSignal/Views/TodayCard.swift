@@ -29,7 +29,7 @@ struct TodayHero: View {
             HStack(alignment: .firstTextBaseline) {
                 Eyebrow(text: eyebrow, color: PS.accent)
                 Spacer()
-                if prefs.showDailyQuestion && quiz.streak >= 2 {
+                if quiz.streak >= 2 {
                     Label("\(quiz.streak)-day streak", systemImage: "flame.fill")
                         .font(PS.sys(size: 11, weight: .semibold))
                         .foregroundStyle(PS.fg3)
