@@ -28,12 +28,13 @@ Run the **iOS release (TestFlight)** workflow once first (Actions tab → *iOS r
 2. Platform iOS, Name `Periop Signal`, Primary language English (U.S.), Bundle ID `org.periopsignal.app`, SKU `periopsignal`. Full Access.
 
 ## 5. Build and upload (every release, 1 click)
-Actions tab → **iOS release (TestFlight)** → *Run workflow* → version (e.g. `1.0.0`). About 15 minutes later the build appears under the app's **TestFlight** tab in App Store Connect (Apple's processing adds 5–20 minutes). Each run gets a new build number automatically.
+Actions tab → **iOS release (TestFlight)** → *Run workflow* → version (e.g. `1.0.0`), optionally *What to test* text. About 15 minutes later the build is uploaded; a second job then waits for Apple's processing (5–20 minutes), submits the build for Beta App Review and adds it to the **Colleagues** TestFlight group, so testers get it without anyone opening App Store Connect. Each run gets a new build number automatically. Leave the *group* input blank to upload without distributing.
 
 ## 6. Invite colleagues (TestFlight)
-1. App Store Connect → your app → **TestFlight** → the build → complete the short **Test Information** (what to test, contact email).
-2. **External Testing** → **+** group, e.g. `Colleagues` → enable **Public link** → copy the link. The first build in a group goes through a brief Beta App Review (usually a day).
-3. Colleagues install **TestFlight** from the App Store and open the link. Up to 10,000 testers; builds expire after 90 days, so run step 5 at least every three months (any code change or none).
+Done once (October 2026): the external group **Colleagues** exists with a **public link**, which is under App Store Connect → TestFlight → Colleagues. Colleagues install **TestFlight** from the App Store and open the link; every later release reaches them automatically (step 5).
+- Up to 10,000 testers per public link; the first build in the group went through Beta App Review, later ones usually clear within hours.
+- Builds expire after 90 days, so ship a release at least every three months (any code change or none).
+- To put an existing build in the group by hand (or after a failed distribution): Actions → **TestFlight distribute** → version and build number.
 
 ## 7. Morning push notifications (optional, 10 minutes)
 Without this, the app still alerts through background refresh (iOS decides the timing, usually within a few hours; the app holds the alert until the reader's chosen time and respects quiet weekends). With it, everyone gets one push at 06:31 Eastern (the `Notify app users of new posts` workflow runs hourly from 06:31 to 12:31 and sends whatever the morning run added, per topic, plus a Sunday digest at 09:31).
@@ -65,4 +66,6 @@ Every post gets a recording made by **Kokoro**, an open-weights neural voice tha
 - The notification sender keeps what it has already sent in `results/notify/state.json` on the same branch; delete that file to make it treat everything as already sent on its next run.
 - A build or release that sits "queued" for 15 minutes and ends "cancelled" with *The job was not acquired by Runner* means GitHub's macOS pool for that runner label ran out of capacity (it posts a notice about arm64 runners). The iOS workflows run on `macos-15-intel`, a separate pool, for that reason; `macos-15` (Apple silicon) is a little faster when it is available — change `runs-on` in `.github/workflows/ios-build.yml` and `ios-release.yml` to switch.
 - "No app record found" during upload: do step 4.
+- The *TestFlight group* job says "No TestFlight group named 'Colleagues'": the group was renamed or deleted; recreate it under TestFlight → External Testing, or run the release with the new name in the *group* input.
+- "beta app review not submitted": Test Information (beta description, contact email) is missing under TestFlight → Test Information; fill it in, then run **TestFlight distribute** for that build.
 - Cloud-signing errors: confirm the API key role is **Admin** and `APPLE_TEAM_ID` is the 10-character Team ID.

@@ -1,0 +1,84 @@
+name: TestFlight distribute
+
+# Puts an uploaded build in front of the colleagues: waits for Apple to finish processing it, sets
+# "What to Test", submits it for Beta App Review and adds it to the external TestFlight group. The
+# release workflow calls this after every upload; run it by hand to (re)distribute an existing build.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      build:
+        type: string
+        required: true
+      group:
+        type: string
+        default: "Colleagues"
+      notes:
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Marketing version of the build (e.g. 1.3.1)"
+        required: true
+      build:
+        description: "Build number = the release run's number (e.g. 9)"
+        required: true
+      group:
+        description: "TestFlight group to add the build to"
+        default: "Colleagues"
+      notes:
+        description: "What to test (shown to testers); blank keeps what is there or writes a generic line"
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  distribute:
+    name: Add build ${{ inputs.build }} to the ${{ inputs.group }} group
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      VERSION: ${{ inputs.version }}
+      BUILD: ${{ inputs.build }}
+      GROUP: ${{ inputs.group }}
+      NOTES: ${{ inputs.notes }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for processing, submit for beta review, add to the group
+        run: |
+          pip3 install --quiet --break-system-packages pyjwt cryptography 2>/dev/null || pip3 install --quiet pyjwt cryptography
+          set -o pipefail
+          python3 ios/tools/asc_distribute.py --version "$VERSION" --build "$BUILD" --group "$GROUP" --notes "$NOTES" 2>&1 | tee distribute.log
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## TestFlight $VERSION (build $BUILD) → $GROUP"
+            echo; echo '```'
+            grep -v "; waiting$" distribute.log 2>/dev/null || echo "(no log)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the result on the ci-results branch
+        if: always()
+        run: |
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          W="$RUNNER_TEMP/ci-results"
+          if git fetch -q origin ci-results 2>/dev/null; then git worktree add -q "$W" origin/ci-results; else git worktree add -q --detach "$W" && git -C "$W" checkout -q --orphan ci-results && git -C "$W" rm -rfq --cached . >/dev/null 2>&1 || true; fi
+          mkdir -p "$W/results/release"
+          cp distribute.log "$W/results/release/distribute.log" 2>/dev/null || echo "(no log)" > "$W/results/release/distribute.log"
+          echo "version=$VERSION build=$BUILD group=$GROUP status=${{ job.status }}" > "$W/results/release/DISTRIBUTE_STATUS"
+          git -C "$W" add -f results/release && git -C "$W" commit -q -m "TestFlight distribution of $VERSION ($BUILD)" || true
+          git -C "$W" push -q origin HEAD:ci-results || { git -C "$W" fetch -q origin ci-results && git -C "$W" rebase -q origin/ci-results && git -C "$W" push -q origin HEAD:ci-results; } || true
+          git worktree remove --force "$W" || true
