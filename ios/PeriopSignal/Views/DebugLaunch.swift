@@ -5,9 +5,10 @@ import WidgetKit
 /// Launch arguments used by the CI screenshot run (simulator only):
 ///   -ps.openPost <id>       open a deep dive once the feed has loaded
 ///   -ps.tab saved|more|reference   start on a tab
-///   -ps.ref score:rcri | quickref:<id> | peds   open a calculator or quick reference on the Reference tab
+///   -ps.ref <RefRoute.key>  open a tool, quick reference or folder on the Reference tab (score:rcri, quickref:<id>, peds, valves, folder:<id> …)
 ///   -ps.presave <id>        bookmark a post before the first frame
 ///   -ps.topics a,b          follow these topics (turns on "For you")
+///   -ps.favorites.debug a,b  star these Reference tools (RefRoute keys) for this launch
 ///   -ps.openQuiz 1          open the question of the day
 ///   -ps.listen 1            show the mini player (paused)
 ///   -ps.screen widget       show the widget preview screen instead of the app
@@ -23,16 +24,10 @@ enum DebugLaunch {
     static var openQuiz: Bool { UserDefaults.standard.bool(forKey: "ps.openQuiz") }
     static var listen: Bool { UserDefaults.standard.bool(forKey: "ps.listen") }
     static var showWelcome: Bool { UserDefaults.standard.bool(forKey: "ps.showWelcome") }
+    /// Any `RefRoute.key`: score:rcri, quickref:<id>, peds, local, infusions, neuraxial, fasting, airway, valves, folder:<id>.
     static var refRoute: RefRoute? {
         guard let s = UserDefaults.standard.string(forKey: "ps.ref"), !s.isEmpty else { return nil }
-        if s == "peds" { return .peds }
-        let parts = s.split(separator: ":", maxSplits: 1).map(String.init)
-        guard parts.count == 2 else { return nil }
-        switch parts[0] {
-        case "score": return .score(parts[1])
-        case "quickref": return .quickref(parts[1])
-        default: return nil
-        }
+        return RefRoute(key: s)
     }
     static var topics: [String]? {
         guard let s = UserDefaults.standard.string(forKey: "ps.topics.debug"), !s.isEmpty else { return nil }

@@ -29,8 +29,9 @@ final class ReferenceStore {
         let bundled = ReferenceLoader.loadBundled()
         let cached = ReferenceLoader.loadCached()
         // Prefer whichever is newer by its `updated` date; the bundled copy wins ties (it matched the build).
+        // Either way, a section only one of them has is kept.
         if let c = cached, let b = bundled {
-            bundle = c.updated > b.updated ? c : b
+            bundle = c.updated > b.updated ? c.filling(from: b) : b.filling(from: c)
         } else {
             bundle = cached ?? bundled
         }
@@ -39,7 +40,14 @@ final class ReferenceStore {
 
     func refresh() async {
         guard let (fresh, data) = try? await ReferenceLoader.fetch() else { return }
-        if bundle == nil || fresh.updated >= (bundle?.updated ?? "") {
+        if let current = bundle {
+            if fresh.updated >= current.updated {
+                bundle = fresh.filling(from: current)
+                ReferenceLoader.saveCache(data)
+            } else {
+                bundle = current.filling(from: fresh)
+            }
+        } else {
             bundle = fresh
             ReferenceLoader.saveCache(data)
         }

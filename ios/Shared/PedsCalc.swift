@@ -72,11 +72,11 @@ enum PedsCalc {
         return (row, row.mlPerKgLow * weightKg, row.mlPerKgHigh * weightKg)
     }
 
-    /// Maximum allowable blood loss (Gross 1983): EBV × (Hct₀ − Hct_min) / Hct_average.
+    /// Maximum allowable blood loss: EBV × (Hct₀ − Hct_min) / Hct₀ (the starting-hematocrit form, more
+    /// conservative than Gross's mean-hematocrit denominator).
     static func mabl(ebv: Double, hctStart: Double, hctMin: Double) -> Double? {
         guard ebv > 0, hctStart > hctMin, hctMin > 0 else { return nil }
-        let average = (hctStart + hctMin) / 2
-        return ebv * (hctStart - hctMin) / average
+        return ebv * (hctStart - hctMin) / hctStart
     }
 
     /// Maximum local-anesthetic dose in mg and the equivalent volume at a concentration in percent.
@@ -122,5 +122,114 @@ enum PedsCalc {
         }
         if abs(hi - lo) < 0.0001 { return (fmt(lo) + " " + unit, capped) }
         return (fmt(lo) + "–" + fmt(hi) + " " + unit, capped)
+    }
+}
+
+// MARK: - Infusion arithmetic
+
+enum InfusionCalc {
+    /// The starting dose as written ("0.05–0.1 mcg/kg/min") and, for a weight, its equivalent in the other
+    /// form ("3.5–7 mcg/min at 70 kg"); weight-based boluses become totals.
+    static func lines(for d: InfusionDrug, weightKg: Double?) -> (dose: String, equivalent: String?) {
+        guard let start = d.start else { return (d.range ?? "see notes", nil) }
+        let unit = d.unit ?? "mcg"
+        func span(_ lo: Double, _ hi: Double?, _ u: String) -> String {
+            if let hi, abs(hi - lo) > 0.0001 { return "\(PedsCalc.fmt(lo))–\(PedsCalc.fmt(hi)) \(u)" }
+            return "\(PedsCalc.fmt(lo)) \(u)"
+        }
+        switch d.form {
+        case .perKgPerMin:
+            let dose = span(start, d.startHigh, unit + "/kg/min")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
+            return (dose, span(s.lo, s.hi, s.unit + "/min") + " at \(PedsCalc.fmt(w)) kg")
+        case .perMin:
+            let dose = span(start, d.startHigh, unit + "/min")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            return (dose, span(start / w, d.startHigh.map { $0 / w }, unit + "/kg/min") + " at \(PedsCalc.fmt(w)) kg")
+        case .perKg:
+            let dose = span(start, d.startHigh, unit + "/kg")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            return (dose, total(start * w, d.startHigh.map { $0 * w }, unit) + " at \(PedsCalc.fmt(w)) kg")
+        case .perKgPerHour:
+            let dose = span(start, d.startHigh, unit + "/kg/h")
+            guard let w = weightKg, w > 0 else { return (dose, nil) }
+            let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
+            return (dose, span(s.lo, s.hi, s.unit + "/h") + " at \(PedsCalc.fmt(w)) kg")
+        case .perHour:
+            return (span(start, d.startHigh, unit + "/h"), nil)
+        case .fixed:
+            return (span(start, d.startHigh, unit), nil)
+        case .text:
+            return (d.range ?? "see notes", nil)
+        }
+    }
+
+    /// ng above 1,000 read better as mcg, mcg above 1,000 as mg, mg above 1,000 as g (both ends of a range move together).
+    static func scaled(_ lo: Double, _ hi: Double?, _ unit: String) -> (lo: Double, hi: Double?, unit: String) {
+        var l = lo, h = hi, u = unit
+        if u == "ng", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "mcg" }
+        if u == "mcg", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "mg" }
+        if u == "mg", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "g" }
+        return (l, h, u)
+    }
+
+    static func total(_ lo: Double, _ hi: Double?, _ unit: String) -> String {
+        let s = scaled(lo, hi, unit)
+        if let h = s.hi, abs(h - s.lo) > 0.0001 { return "\(PedsCalc.fmt(s.lo))–\(PedsCalc.fmt(h)) \(s.unit)" }
+        return "\(PedsCalc.fmt(s.lo)) \(s.unit)"
+    }
+}
+
+// MARK: - Neuraxial timing arithmetic
+
+enum NeuraxialCalc {
+    struct Answer: Hashable {
+        /// Earliest time for the block; nil when it is to be avoided or no interval applies.
+        var earliest: Date?
+        var hours: Double?
+        /// What the interval is, in words ("72 h after the last dose", "Avoid …").
+        var rule: String
+        var avoid: Bool
+    }
+
+    static func answer(tier: NeuraxialTier, renalIndex: Int?, elderly: Bool, lastDose: Date) -> Answer {
+        var hours = tier.holdHours
+        var rule = tier.holdText ?? ""
+        var avoid = false
+        if let renal = tier.renal, !renal.isEmpty {
+            let r = renal[min(max(renalIndex ?? 0, 0), renal.count - 1)]
+            if let h = r.hours {
+                hours = (elderly ? r.elderlyHours : nil) ?? h
+                rule = "\(fmtHours(hours!)) after the last dose (\(r.label.lowercased())\(elderly && r.elderlyHours != nil ? ", elderly" : ""))"
+            } else {
+                hours = nil; avoid = true
+                rule = r.text ?? "Avoid the block"
+            }
+        } else if let h = hours {
+            if rule.isEmpty { rule = "\(fmtHours(h)) after the last dose" }
+            if h == 0 { rule = tier.holdText ?? "No hold required" }
+        } else {
+            avoid = tier.holdText?.lowercased().contains("against") ?? false
+            if rule.isEmpty { rule = "No interval specified" }
+        }
+        let earliest = hours.map { lastDose.addingTimeInterval($0 * 3600) }
+        return Answer(earliest: earliest, hours: hours, rule: rule, avoid: avoid)
+    }
+
+    static func fmtHours(_ h: Double) -> String {
+        if h >= 48, h.truncatingRemainder(dividingBy: 24) == 0 { return "\(Int(h / 24)) days" }
+        return h == h.rounded() ? "\(Int(h)) h" : String(format: "%.1f h", h)
+    }
+
+    /// "in 41 h", "in 3 days 5 h", or "now" when the time has passed.
+    static func countdown(to date: Date, from now: Date = Date()) -> String {
+        let secs = date.timeIntervalSince(now)
+        if secs <= 0 { return "now" }
+        let totalMinutes = Int(secs / 60)
+        let days = totalMinutes / 1440, hours = (totalMinutes % 1440) / 60, minutes = totalMinutes % 60
+        if days > 0 { return "in \(days) d \(hours) h" }
+        if hours > 0 { return "in \(hours) h \(minutes) min" }
+        return "in \(minutes) min"
     }
 }

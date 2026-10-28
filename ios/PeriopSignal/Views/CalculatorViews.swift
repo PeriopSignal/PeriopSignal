@@ -5,6 +5,7 @@ import SwiftUI
 struct ScoreCalculatorView: View {
     var def: ScoreDefinition
     var onOpen: (URL) -> Void
+    var onOpenRef: (String) -> Void = { _ in }
     @State private var selection = ScoreSelection()
     @State private var copied = false
 
@@ -73,6 +74,11 @@ struct ScoreCalculatorView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .animation(.snappy, value: score)
+            }
+            if let n = def.next {
+                Button { onOpenRef(n.quickref) } label: { Label(n.label, systemImage: "arrow.right.circle") }
+                    .buttonStyle(GhostButtonStyle())
+                    .padding(.top, 2)
             }
             Text(def.readout)
                 .font(PS.sys(size: 12.5))
@@ -274,17 +280,21 @@ struct PedsCalculatorView: View {
                 Picker("Section", selection: $tab) {
                     Text("Drugs").tag(0)
                     Text("Airway").tag(1)
-                    Text("Fluids").tag(2)
-                    Text("Local").tag(3)
+                    Text("Fluids & blood").tag(2)
                 }
                 .pickerStyle(.segmented)
                 if let peds = refs.peds {
                     switch tab {
                     case 0: drugs(peds)
                     case 1: airway
-                    case 2: fluids(peds)
-                    default: locals(peds)
+                    default: fluids(peds)
                     }
+                    NavigationLink(value: RefRoute.local) {
+                        QuietRow(icon: "syringe", tint: PS.accent, eyebrow: "Local anesthetic", text: "Maximum doses for a child of this weight, single agent or mixture", textSize: 14, lines: 2) {
+                            Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+                        }
+                    }
+                    .buttonStyle(.plain)
                     footer(peds)
                 } else {
                     Text("Loading the dosing table…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
@@ -462,7 +472,7 @@ struct PedsCalculatorView: View {
                 hctField("Starting Hct %", text: $hctStart)
                 hctField("Lowest acceptable Hct %", text: $hctMin)
             }
-            Text("Maintenance by Holliday–Segar (4 mL/kg/h for the first 10 kg, 2 for the next 10, 1 beyond). Blood volume uses the age band in the table. Allowable blood loss = EBV × (Hct₀ − Hct_min) ÷ mean Hct (Gross 1983); a guide for planning, not a transfusion trigger.")
+            Text("Maintenance by Holliday–Segar (4 mL/kg/h for the first 10 kg, 2 for the next 10, 1 beyond). Blood volume uses the age band in the table. Allowable blood loss = EBV × (Hct₀ − Hct_min) ÷ Hct₀; a guide for planning, not a transfusion trigger.")
                 .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Blood volume by age").padding(.leading, 2)
@@ -483,42 +493,6 @@ struct PedsCalculatorView: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    // MARK: Local anesthetics
-
-    private func locals(_ peds: PedsData) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(spacing: 0) {
-                ForEach(Array(peds.localAnesthetics.enumerated()), id: \.element.id) { i, la in
-                    VStack(alignment: .leading, spacing: 5) {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(la.name).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                            Spacer()
-                            Text(weight.map { PedsCalc.fmt(la.maxMgPerKg * $0) + " mg" } ?? "—")
-                                .font(PS.sys(size: 15, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(weight == nil ? PS.fg3 : PS.fg)
-                        }
-                        HStack(spacing: 10) {
-                            Text("\(PedsCalc.fmt(la.maxMgPerKg)) mg/kg").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
-                            if let w = weight {
-                                ForEach(la.concentrations, id: \.self) { c in
-                                    let v = PedsCalc.localAnestheticMax(mgPerKg: la.maxMgPerKg, weightKg: w, percent: c)
-                                    Text("\(PedsCalc.fmt(v.mL)) mL of \(PedsCalc.fmt(c))%").font(PS.sys(size: 12)).foregroundStyle(PS.fg2)
-                                }
-                            }
-                        }
-                        .lineLimit(1).minimumScaleFactor(0.8)
-                        if let n = la.note { Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true) }
-                    }
-                    .padding(.horizontal, 16).padding(.vertical, 11)
-                    if i < peds.localAnesthetics.count - 1 { Hairline().padding(.leading, 16) }
-                }
-            }
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            Text("Maximum single-injection doses; reduce in neonates and infants under six months and with reduced clearance. Volumes are the same dose expressed at common concentrations. See the LAST checklist for toxicity.")
-                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-        }
     }
 
     private func footer(_ peds: PedsData) -> some View {

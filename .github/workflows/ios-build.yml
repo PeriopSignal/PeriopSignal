@@ -147,6 +147,16 @@ jobs:
           shot 16-peds 12 -ps.ref peds -ps.peds.weight 18 -ps.peds.years 5 -ps.peds.months 0
           shot 17-quickref 12 -ps.ref quickref:asra-anticoagulation
           shot 18-ariscat 12 -ps.ref score:ariscat
+          shot 19-local 12 -ps.ref local -ps.la.weight 70
+          shot 20-infusions 12 -ps.ref infusions -ps.la.weight 70
+          shot 21-preop 12 -ps.ref folder:preoperative
+          shot 22-neuraxial 12 -ps.ref neuraxial
+          shot 23-fasting 12 -ps.ref fasting
+          shot 24-last 12 -ps.ref quickref:asra-last -ps.la.weight 70
+          shot 25-airway 12 -ps.ref airway
+          shot 26-valves 12 -ps.ref valves
+          shot 27-intervention 12 -ps.ref intervention
+          shot 28-favorites 12 -ps.tab reference -ps.favorites.debug "valves,neuraxial,score:rcri"
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

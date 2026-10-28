@@ -14,6 +14,106 @@ struct ReferenceBundle: Codable {
     var ask: AskConfig?
     var quickrefs: [QuickRef]
     var peds: PedsData?
+    var infusions: InfusionData?
+    var neuraxial: NeuraxialData?
+
+    /// This bundle with any section it lacks taken from `other`: a server file written before a section
+    /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
+    func filling(from other: ReferenceBundle) -> ReferenceBundle {
+        var b = self
+        if b.peds == nil { b.peds = other.peds }
+        if b.infusions == nil { b.infusions = other.infusions }
+        if b.neuraxial == nil { b.neuraxial = other.neuraxial }
+        if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
+        return b
+    }
+}
+
+// MARK: Neuraxial and deep-block timing on antithrombotic drugs (ASRA)
+
+struct NeuraxialData: Codable {
+    var reviewed: String?
+    var source: String
+    var sourceURL: String?
+    var general: [String]
+    var groups: [NeuraxialGroup]
+    var allDrugs: [NeuraxialDrug] { groups.flatMap(\.drugs) }
+}
+
+struct NeuraxialGroup: Codable, Identifiable, Hashable {
+    var id: String { name }
+    var name: String
+    var drugs: [NeuraxialDrug]
+}
+
+struct NeuraxialDrug: Codable, Identifiable, Hashable {
+    var id: String
+    var name: String
+    var tiers: [NeuraxialTier]
+    var notes: [String]?
+}
+
+struct RenalRule: Codable, Identifiable, Hashable {
+    var id: String { label }
+    var label: String
+    /// Hours to hold; nil = the block is to be avoided (see `text`).
+    var hours: Double?
+    var elderlyHours: Double?
+    var text: String?
+}
+
+struct NeuraxialTier: Codable, Identifiable, Hashable {
+    var id: String
+    var label: String
+    /// Earliest block, hours after the last dose; nil with `holdText` explaining (e.g. avoid).
+    var holdHours: Double?
+    /// Next dose, hours after needle placement or catheter removal.
+    var restartHours: Double?
+    var holdText: String?
+    var restartText: String?
+    var catheter: String?
+    var level: String?
+    var renal: [RenalRule]?
+    var renalNote: String?
+    var removalHours: Double?
+    var afterRemovalHours: Double?
+    var inrRule: Bool?
+}
+
+// MARK: Vasoactive infusions and hematologic agents
+
+struct InfusionData: Codable {
+    var reviewed: String?
+    var note: String?
+    var groups: [InfusionGroup]
+}
+
+struct InfusionGroup: Codable, Identifiable, Hashable {
+    var id: String { name }
+    var name: String
+    var drugs: [InfusionDrug]
+}
+
+struct InfusionDrug: Codable, Identifiable, Hashable {
+    /// How `start` is expressed: perKgPerMin (mcg/kg/min), perMin (mcg/min), perKg (a weight-based bolus or load),
+    /// perKgPerHour (mg/kg/h), perHour (mg/h), fixed (a fixed dose), text (no number to compute).
+    enum Form: String, Codable, Hashable { case perKgPerMin, perMin, perKg, perKgPerHour, perHour, fixed, text }
+    var id: String
+    var name: String
+    var use: String
+    var form: Form
+    var start: Double?
+    var startHigh: Double?
+    /// Unit of `start`: mcg, mg, g, units, ng, ppm, mL.
+    var unit: String?
+    var titration: String?
+    var range: String?
+    var max: String?
+    var bolus: String?
+    var preparation: String?
+    var caution: String?
+    var offLabel: Bool?
+    var source: String?
 }
 
 /// Where the app sends questions the references and the feed cannot answer (set once the proxy exists).
@@ -44,6 +144,8 @@ struct QuickRef: Codable, Identifiable, Hashable {
     /// Emergency checklists get the coral treatment and sort first.
     var emergency: Bool?
     var sections: [RefSection]
+    /// Weight-based doses the card computes for the patient (emergency checklists).
+    var weightDoses: [WeightDose]?
 
     var isEmergency: Bool { emergency ?? false }
     var societyShort: String { short ?? society }
@@ -60,6 +162,23 @@ struct QuickRef: Codable, Identifiable, Hashable {
         }
         return parts.joined(separator: " ").lowercased()
     }
+}
+
+/// A dose the emergency card computes from the patient's weight.
+struct WeightDose: Codable, Hashable, Identifiable {
+    var id: String { label }
+    var label: String
+    var perKg: Double
+    var perKgHigh: Double?
+    var unit: String
+    var max: Double?
+    /// Fixed regimen above a weight threshold (ASRA lipid: 100 mL bolus over 70 kg).
+    var aboveKg: Double?
+    var aboveText: String?
+    var note: String?
+    /// Vial size in `unit` for a vial count (Ryanodex 250 mg, Dantrium 20 mg).
+    var vialSize: Double?
+    var vialName: String?
 }
 
 struct RefSection: Codable, Hashable {
@@ -119,12 +238,29 @@ struct PedsDrug: Codable, Identifiable, Hashable {
 struct LocalAnesthetic: Codable, Identifiable, Hashable {
     var id: String
     var name: String
-    /// Maximum single-injection dose, mg/kg.
+    /// Pediatric maximum single-injection dose, mg/kg (ASRA/ESRA).
     var maxMgPerKg: Double
-    /// Typical concentrations as percent, for the mL conversion (0.25 → 0.25% = 2.5 mg/mL).
+    /// Concentrations as percent, for the mL conversion (0.25 → 0.25% = 2.5 mg/mL).
     var concentrations: [Double]
     var note: String?
     var source: String?
+    // Adult label maxima (added for the mixture calculator; optional so older data still decodes).
+    /// "amide", "ester" or "liposomal".
+    var kind: String?
+    var adultPlainMgPerKg: Double?
+    var adultPlainMaxMg: Double?
+    var adultEpiMgPerKg: Double?
+    var adultEpiMaxMg: Double?
+    var per24hMaxMg: Double?
+    /// Pediatric per-kg maximum with epinephrine, when a label gives one (lidocaine 7, chloroprocaine 14).
+    var pedsEpiMgPerKg: Double?
+    /// Pediatric floor age in years when the label limits use (Exparel: 6).
+    var pedsMinYears: Int?
+    var pedsMaxMg: Double?
+    /// Short label for pickers ("Bupivacaine 0.5%" is built from name + concentration).
+    var short: String?
+
+    var isLiposomal: Bool { kind == "liposomal" }
 }
 
 struct BloodVolumeRow: Codable, Identifiable, Hashable {

@@ -6,6 +6,14 @@ struct QuickRefView: View {
     var ref: QuickRef
     var onOpen: (URL) -> Void
     @State private var copied = false
+    @AppStorage("ps.la.weight") private var weightText = ""
+    @State private var resetToken = 0
+    @FocusState private var focused: Bool
+
+    private var weight: Double? {
+        let v = Double(weightText.replacingOccurrences(of: ",", with: "."))
+        return (v ?? 0) > 0 ? v : nil
+    }
 
     private var tint: Color { ref.isEmergency ? PS.accent : Topics.info(ref.topic ?? "general").fg }
 
@@ -13,8 +21,9 @@ struct QuickRefView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 header
+                if let doses = ref.weightDoses, !doses.isEmpty { weightCard(doses) }
                 ForEach(Array(ref.sections.enumerated()), id: \.offset) { _, section in
-                    RefSectionView(section: section, tint: tint)
+                    RefSectionView(section: section, tint: tint, checkable: ref.isEmergency, resetToken: resetToken)
                 }
                 footer
             }
@@ -26,8 +35,15 @@ struct QuickRefView: View {
         .scrollContentBackground(.hidden)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { focused = false }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    if ref.isEmergency {
+                        Button { withAnimation(.snappy) { resetToken += 1 } } label: { Label("Reset the checklist", systemImage: "arrow.counterclockwise") }
+                    }
                     if let url = URL(string: ref.source.url) {
                         Button { onOpen(url) } label: { Label("Open the source document", systemImage: "arrow.up.right.square") }
                     }
@@ -61,6 +77,67 @@ struct QuickRefView: View {
         }
     }
 
+    /// Weight in, the regimen's doses out (lipid volumes and rates, dantrolene with vial counts…).
+    private func weightCard(_ doses: [WeightDose]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Eyebrow(text: "Doses for this patient", color: tint)
+                Spacer()
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    TextField("kg", text: $weightText)
+                        .keyboardType(.decimalPad)
+                        .focused($focused)
+                        .multilineTextAlignment(.trailing)
+                        .font(PS.serif(size: 24, weight: .semibold))
+                        .foregroundStyle(PS.fg)
+                        .frame(width: 72)
+                    Text("kg").font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
+                }
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(doses.enumerated()), id: \.element.id) { i, d in
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(d.label).font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                            if let n = d.note { Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+                        }
+                        Spacer(minLength: 8)
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(computed(d))
+                                .font(PS.sys(size: 15, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(weight == nil ? PS.fg3 : PS.fg)
+                                .multilineTextAlignment(.trailing)
+                            if let v = vials(d) { Text(v).font(PS.sys(size: 11.5)).foregroundStyle(tint) }
+                        }
+                    }
+                    .padding(.vertical, 9)
+                    if i < doses.count - 1 { Hairline() }
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(tint.opacity(0.35), lineWidth: 1))
+    }
+
+    private func computed(_ d: WeightDose) -> String {
+        guard let w = weight else {
+            let perKg = PedsCalc.fmt(d.perKg) + (d.perKgHigh.map { "–" + PedsCalc.fmt($0) } ?? "")
+            return "\(perKg) \(d.unit)/kg"
+        }
+        if let above = d.aboveKg, w > above, let text = d.aboveText { return text }
+        return PedsCalc.doseText(low: d.perKg, high: d.perKgHigh, unit: d.unit, weightKg: w, max: d.max).text
+    }
+
+    private func vials(_ d: WeightDose) -> String? {
+        guard let w = weight, let size = d.vialSize, size > 0 else { return nil }
+        var mg = d.perKg * w
+        if let m = d.max { mg = min(mg, m) }
+        let n = Int((mg / size).rounded(.up))
+        return "\(n) × \(d.vialName ?? "vial")"
+    }
+
     private var footer: some View {
         VStack(alignment: .leading, spacing: 10) {
             Hairline()
@@ -88,6 +165,8 @@ struct QuickRefView: View {
 struct RefSectionView: View {
     var section: RefSection
     var tint: Color
+    var checkable = false
+    var resetToken = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -120,7 +199,7 @@ struct RefSectionView: View {
         case .list:
             TakeHomeList(items: section.items ?? [], size: 14.5)
         case .steps:
-            StepList(items: section.items ?? [], tint: tint)
+            StepList(items: section.items ?? [], tint: tint, checkable: checkable, resetToken: resetToken)
         case .facts:
             FactTable(rows: section.rows ?? [])
         case .table:
@@ -129,32 +208,55 @@ struct RefSectionView: View {
     }
 }
 
-/// Numbered steps (emergency checklists).
+/// Numbered steps; on emergency cards each step is a checkbox, like a pilot's checklist.
 struct StepList: View {
     var items: [String]
     var tint: Color
+    var checkable = false
+    var resetToken = 0
+    @State private var done: Set<Int> = []
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.offset) { i, item in
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text("\(i + 1)")
-                        .font(PS.mono(size: 11.5))
-                        .foregroundStyle(tint)
-                        .frame(width: 22, height: 22)
-                        .background(tint.opacity(0.12), in: Circle())
-                        .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] + 4 }
-                    Text(item)
-                        .font(PS.sys(size: 14.5))
-                        .foregroundStyle(PS.fg)
-                        .lineSpacing(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                let isDone = done.contains(i)
+                Button {
+                    guard checkable else { return }
+                    Haptics.light()
+                    withAnimation(.snappy) { if isDone { done.remove(i) } else { done.insert(i) } }
+                } label: {
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        if checkable {
+                            Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
+                                .font(PS.sys(size: 20))
+                                .foregroundStyle(isDone ? PS.green : tint)
+                                .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] + 5 }
+                        } else {
+                            Text("\(i + 1)")
+                                .font(PS.mono(size: 11.5))
+                                .foregroundStyle(tint)
+                                .frame(width: 22, height: 22)
+                                .background(tint.opacity(0.12), in: Circle())
+                                .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] + 4 }
+                        }
+                        Text(item)
+                            .font(PS.sys(size: 14.5))
+                            .foregroundStyle(isDone ? PS.fg3 : PS.fg)
+                            .strikethrough(isDone, color: PS.fg3)
+                            .lineSpacing(2)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.vertical, 9)
+                    .contentShape(Rectangle())
                 }
-                .padding(.vertical, 9)
+                .buttonStyle(.plain)
                 if i < items.count - 1 { Hairline().padding(.leading, 34) }
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 4)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .onChange(of: resetToken) { _, _ in done = [] }
     }
 }
 

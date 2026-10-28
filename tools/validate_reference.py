@@ -104,12 +104,56 @@ def main(path):
         for row in peds.get("bloodVolume") or []:
             need(0 < row.get("mlPerKgLow", 0) <= row.get("mlPerKgHigh", 0), f"blood volume {row.get('group')}: low <= high and > 0")
 
+    inf = data.get("infusions")
+    if inf is not None:
+        groups = inf.get("groups")
+        need(isinstance(groups, list) and groups, "infusions.groups must be a non-empty list")
+        seen = set()
+        forms = {"perKgPerMin", "perMin", "perKg", "perKgPerHour", "perHour", "fixed", "text"}
+        for g in groups or []:
+            need(isinstance(g.get("name"), str) and g["name"], "infusion group needs a name")
+            names = [d.get("name", "") for d in g.get("drugs") or []]
+            need(names == sorted(names, key=str.lower), f"infusion group {g.get('name')}: drugs must be alphabetical")
+            for d in g.get("drugs") or []:
+                did = d.get("id", "?")
+                need(did not in seen, f"infusion {did}: duplicate id"); seen.add(did)
+                for key in ("name", "use", "form", "source"):
+                    need(isinstance(d.get(key), str) and d[key].strip(), f"infusion {did}: {key} required")
+                need(d.get("form") in forms, f"infusion {did}: form must be one of {sorted(forms)}")
+                if d.get("form") not in ("text",):
+                    need(isinstance(d.get("start"), (int, float)) and d["start"] > 0, f"infusion {did}: start must be > 0")
+                    need(isinstance(d.get("unit"), str) and d["unit"], f"infusion {did}: unit required")
+                if d.get("startHigh") is not None:
+                    need(isinstance(d["startHigh"], (int, float)) and d["startHigh"] >= (d.get("start") or 0), f"infusion {did}: startHigh >= start")
+
+    nx = data.get("neuraxial")
+    if nx is not None:
+        need(isinstance(nx.get("source"), str) and nx["source"], "neuraxial.source required")
+        need(isinstance(nx.get("general"), list), "neuraxial.general must be a list")
+        seen = set()
+        for g in nx.get("groups") or []:
+            for d in g.get("drugs") or []:
+                did = d.get("id", "?")
+                need(did not in seen, f"neuraxial {did}: duplicate id"); seen.add(did)
+                tiers = d.get("tiers")
+                need(isinstance(tiers, list) and tiers, f"neuraxial {did}: tiers required")
+                for t in tiers or []:
+                    need(isinstance(t.get("id"), str) and isinstance(t.get("label"), str), f"neuraxial {did}: tier id/label required")
+                    for key in ("holdHours", "restartHours", "removalHours", "afterRemovalHours"):
+                        if t.get(key) is not None:
+                            need(isinstance(t[key], (int, float)) and t[key] >= 0, f"neuraxial {did}/{t.get('id')}: {key} must be a number >= 0")
+                    for r in t.get("renal") or []:
+                        need(isinstance(r.get("label"), str), f"neuraxial {did}/{t.get('id')}: renal rule label")
+                        if r.get("hours") is None:
+                            need(isinstance(r.get("text"), str), f"neuraxial {did}/{t.get('id')}: renal rule without hours needs text")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")
         return 1
     n_sections = sum(len(r["sections"]) for r in refs)
-    print(f"OK: {len(refs)} quick references, {n_sections} sections; {len((peds or {}).get('drugs') or [])} pediatric drugs")
+    n_inf = sum(len(g.get("drugs") or []) for g in (inf or {}).get("groups") or [])
+    print(f"OK: {len(refs)} quick references, {n_sections} sections; {len((peds or {}).get('drugs') or [])} pediatric drugs; {n_inf} infusion rows")
     return 0
 
 
