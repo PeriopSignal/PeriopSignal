@@ -353,6 +353,92 @@ final class ReferenceTests: XCTestCase {
         XCTAssertTrue(valve(.ms, ["mva": 2.0, "mg": 12]).cautions.first?.contains("severe range") ?? false, "a severe-range gradient with a moderate area is flagged")
     }
 
+    // MARK: Valve intervention (ACC/AHA 2020)
+
+    private func vi(_ lesion: VILesion, _ answers: [String: String]) -> VIResult { ValveIntervention.evaluate(lesion, answers: answers) }
+    private func ids(_ r: VIResult) -> [String] { r.matched.map(\.id) }
+
+    func testInterventionRulesReferToRealQuestions() {
+        for lesion in VILesion.allCases {
+            let qs = ValveIntervention.questions(for: lesion)
+            let qids = Set(qs.map(\.id))
+            XCTAssertEqual(qids.count, qs.count, "\(lesion) question ids are unique")
+            let rules = ValveIntervention.rules(for: lesion)
+            XCTAssertEqual(Set(rules.map(\.id)).count, rules.count, "\(lesion) rule ids are unique")
+            for r in rules {
+                for conj in r.when {
+                    for c in conj {
+                        let q = qs.first { $0.id == c.question }
+                        XCTAssertNotNil(q, "\(lesion) rule \(r.id) asks for unknown question \(c.question)")
+                        if let q { XCTAssertTrue(c.any.isSubset(of: Set(q.options)), "\(lesion) rule \(r.id): \(c.any) are not options of \(q.id)") }
+                    }
+                }
+            }
+        }
+    }
+
+    func testAorticStenosisIntervention() {
+        XCTAssertNil(vi(.as_, [:]).fallback)
+        XCTAssertFalse(vi(.as_, [:]).needed.isEmpty, "with nothing answered the tool asks")
+        let d1 = vi(.as_, ["sev": "Severe", "sx": "Yes"])
+        XCTAssertEqual(d1.matched.first?.id, "as-d1")
+        XCTAssertTrue(d1.needed.contains("age"), "once AVR is indicated the procedure questions are asked")
+        XCTAssertEqual(vi(.as_, ["sev": "Severe", "sx": "Yes", "age": "< 50", "risk": "Low", "anticoag": "Yes"]).matched.map(\.id), ["as-d1", "as-savr-age", "pr-ao-young"])
+        XCTAssertTrue(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "age": "> 80", "risk": "Low", "tf": "Yes"])).contains("as-tavi-age"))
+        XCTAssertTrue(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "age": "50–64", "risk": "High or prohibitive", "survival": "Yes"])).contains("as-tavi-risk"))
+        XCTAssertFalse(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "age": "50–64", "risk": "High or prohibitive", "survival": "Yes"])).contains("as-savr-age"), "the age rule is for operable patients")
+        XCTAssertTrue(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "survival": "No"])).contains("as-pall"))
+        XCTAssertEqual(vi(.as_, ["sev": "Severe", "sx": "No", "ef": "< 50%"]).matched.first?.id, "as-c2")
+        XCTAssertEqual(vi(.as_, ["sev": "Low-flow, low-gradient", "sx": "Yes", "ef": "< 50%"]).matched.first?.id, "as-d2")
+        XCTAssertEqual(vi(.as_, ["sev": "Low-flow, low-gradient", "sx": "Yes", "ef": "≥ 60%"]).matched.first?.id, "as-d3")
+        XCTAssertEqual(vi(.as_, ["sev": "Very severe", "sx": "No", "risk": "Low"]).matched.first?.cls, .twoA)
+        XCTAssertEqual(vi(.as_, ["sev": "Moderate", "surg": "Yes"]).matched.first?.cls, .twoB)
+        let watch = vi(.as_, ["sev": "Moderate", "sx": "No", "surg": "No", "ef": "≥ 60%", "risk": "Low", "markers": "No", "effall": "No"])
+        XCTAssertTrue(watch.matched.isEmpty)
+        XCTAssertNotNil(watch.fallback, "nothing met and nothing pending → surveillance")
+        XCTAssertTrue(watch.fallback?.contains("1–2 years") ?? false)
+    }
+
+    func testRegurgitationAndStenosisIntervention() {
+        XCTAssertEqual(vi(.ar, ["sev": "Severe", "sx": "Yes"]).matched.first?.id, "ar-d")
+        XCTAssertEqual(vi(.ar, ["sev": "Severe", "sx": "No", "ef": "≤ 55%"]).matched.first?.id, "ar-c2")
+        XCTAssertEqual(vi(.ar, ["sev": "Severe", "sx": "No", "ef": "> 60%", "lvesd": "Yes"]).matched.first?.id, "ar-c2-dim")
+        XCTAssertEqual(vi(.ar, ["sev": "Severe", "sx": "No", "ef": "> 60%", "lvesd": "No", "risk": "Low", "lvedd": "Yes"]).matched.first?.id, "ar-2b")
+        XCTAssertTrue(ids(vi(.ar, ["sev": "Severe", "sx": "Yes", "candidate": "Yes"])).contains("ar-tavi"), "the harm line shows once surgery is indicated")
+        XCTAssertFalse(ids(vi(.ar, ["sev": "Moderate", "sx": "No", "surg": "No", "candidate": "Yes"])).contains("ar-tavi"))
+
+        XCTAssertEqual(vi(.mrPrimary, ["sev": "Severe", "sx": "Yes"]).matched.first?.id, "mr-d")
+        XCTAssertEqual(vi(.mrPrimary, ["sev": "Severe", "sx": "No", "lvesd": "Yes"]).matched.first?.id, "mr-c2")
+        XCTAssertEqual(vi(.mrPrimary, ["sev": "Severe", "sx": "No", "ef": "> 60%", "lvesd": "No", "durable": "Yes"]).matched.first?.id, "mr-c1")
+        let teer = vi(.mrPrimary, ["sev": "Severe", "sx": "Yes", "nyha": "III–IV", "risk": "High or prohibitive", "anatomy": "Yes", "rheumatic": "No"])
+        XCTAssertEqual(ids(teer).prefix(2), ["mr-d", "mr-teer"])
+        XCTAssertTrue(ids(teer).contains("mr-repair"))
+        XCTAssertTrue(ids(vi(.mrPrimary, ["sev": "Severe", "sx": "Yes", "posterior": "Yes"])).contains("mr-posterior"))
+
+        XCTAssertEqual(vi(.mrSecondary, ["sev": "Severe", "hf": "Yes"]).matched.first?.id, "smr-gdmt")
+        let smrTeer = vi(.mrSecondary, ["sev": "Severe", "hf": "Yes", "gdmt": "Yes", "nyha": "III–IV", "ef": "20–49%", "lvesd70": "Yes", "pasp70": "Yes", "anatomy": "Yes"])
+        XCTAssertTrue(ids(smrTeer).contains("smr-teer"))
+        XCTAssertTrue(ids(smrTeer).contains("smr-surg"))
+        XCTAssertEqual(ids(smrTeer).first, "smr-gdmt", "medical therapy stays first")
+        XCTAssertEqual(vi(.mrSecondary, ["sev": "Severe", "hf": "No", "gdmt": "Yes", "nyha": "III–IV", "ef": "≥ 50%", "af": "Yes"]).matched.first?.id, "smr-atrial")
+
+        XCTAssertEqual(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "II", "pmbc": "Yes", "calcific": "No"]).matched.first?.id, "ms-pmbc")
+        XCTAssertEqual(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "III–IV", "pmbc": "No", "calcific": "No", "candidate": "Yes"]).matched.first?.id, "ms-surg")
+        XCTAssertEqual(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "III–IV", "pmbc": "No", "calcific": "No", "candidate": "No"]).matched.first?.id, "ms-highrisk")
+        XCTAssertEqual(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "I", "pasp": "Yes", "pmbc": "Yes"]).matched.first?.id, "ms-pasp")
+        XCTAssertEqual(vi(.ms, ["sev": "Not severe (MVA > 1.5 cm²)", "nyha": "II", "exercise": "Yes"]).matched.first?.id, "ms-ex")
+        XCTAssertEqual(vi(.ms, ["calcific": "Yes", "nyha": "III–IV", "sev": "Severe (MVA ≤ 1.5 cm²)", "pmbc": "Yes"]).matched.first?.id, "ms-mac", "calcific stenosis is not a PMBC case")
+
+        XCTAssertEqual(vi(.tr, ["sev": "Severe", "left": "Yes"]).matched.first?.id, "tr-left")
+        XCTAssertEqual(vi(.tr, ["sev": "Progressive (moderate)", "left": "Yes", "annulus": "Yes"]).matched.first?.id, "tr-prog")
+        XCTAssertEqual(vi(.tr, ["sev": "Severe", "cause": "Primary (leaflet)", "rhf": "Yes", "left": "No"]).matched.first?.id, "tr-primary")
+        XCTAssertEqual(vi(.tr, ["sev": "Severe", "cause": "Secondary (annular dilation)", "rhf": "Yes", "left": "No", "ph": "No", "medical": "Yes"]).matched.first?.id, "tr-secondary")
+        XCTAssertEqual(vi(.tr, ["sev": "Severe", "prior": "Yes", "rhf": "Yes", "severeph": "No"]).matched.first?.id, "tr-redo")
+        let trWatch = vi(.tr, ["sev": "Progressive (moderate)", "left": "No", "cause": "Secondary (annular dilation)", "rhf": "No", "prior": "No"])
+        XCTAssertTrue(trWatch.matched.isEmpty)
+        XCTAssertNotNil(trWatch.fallback)
+    }
+
     func testAorticAndTricuspidRegurgitation() {
         XCTAssertEqual(valve(.ar, ["vc": 0.7], signs: ["holo"]).overall, .severe)
         XCTAssertEqual(valve(.ar, ["rvol": 65, "rf": 55, "eroa": 0.35]).overall, .severe)

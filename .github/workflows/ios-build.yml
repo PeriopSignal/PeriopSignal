@@ -155,6 +155,7 @@ jobs:
           shot 24-last 12 -ps.ref quickref:asra-last -ps.la.weight 70
           shot 25-airway 12 -ps.ref airway
           shot 26-valves 12 -ps.ref valves
+          shot 27-intervention 12 -ps.ref intervention
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

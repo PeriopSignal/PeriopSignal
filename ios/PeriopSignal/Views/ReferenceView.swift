@@ -11,6 +11,7 @@ enum RefRoute: Hashable {
     case fasting
     case airway
     case valves
+    case intervention
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -25,6 +26,7 @@ enum RefRoute: Hashable {
         case .fasting: return "fasting"
         case .airway: return "airway"
         case .valves: return "valves"
+        case .intervention: return "intervention"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -40,6 +42,7 @@ enum RefRoute: Hashable {
         case "fasting": self = .fasting
         case "airway": self = .airway
         case "valves": self = .valves
+        case "intervention": self = .intervention
         case "folder" where parts.count == 2:
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
@@ -95,7 +98,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "What was taken and when, in; the earliest start, out"),
             RefItem(route: .neuraxial, icon: "drop.triangle", title: "Anticoagulation and blocks", blurb: "When can I block? Drug and last dose in, the time out"),
             RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "Echo measurements in, the ASE grade out"),
-            RefItem(route: .quickref("acc-aha-valve-intervention"), icon: "heart.circle", title: "Valve intervention", blurb: "When to repair or replace (ACC/AHA)"),
+            RefItem(route: .intervention, icon: "heart.circle", title: "Valve intervention", blurb: "Does it need an operation, and which? Prompted from the ACC/AHA tables"),
         ]
         case .generalAnesthesia: return [
             RefItem(route: .local, icon: "syringe", title: "Local anesthetic doses", blurb: "Single agent or mixture, including Exparel"),
@@ -234,6 +237,8 @@ struct ReferenceView: View {
                     AirwayGuideView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-difficult-airway")) })
                 case .valves:
                     ValveGraderView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("ase-valve-severity")) })
+                case .intervention:
+                    ValveInterventionView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("acc-aha-valve-intervention")) })
                 case .folder(let f):
                     FolderView(folder: f, path: $path)
                 }
@@ -451,6 +456,7 @@ struct ReferenceSearchResults: View {
         case .fasting: return ["npo", "fasting", "fast", "clear liquid", "breast milk", "formula", "meal", "gum", "aspiration"]
         case .airway: return ["airway", "intubat", "laryngoscop", "cricothyr", "cannot ventilate", "cicv", "awake", "videolaryngoscope", "supraglottic", "lma"]
         case .valves: return ["valve", "valvular", "echo", "tee", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "vena contracta", "eroa", "pisa", "gradient", "ase"]
+        case .intervention: return ["valve", "valvular", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "tavi", "tavr", "savr", "avr", "teer", "mitraclip", "pmbc", "commissurotomy", "repair", "replacement", "prosthesis", "mechanical", "bioprosthe", "acc", "aha"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -468,7 +474,7 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves:
+        case .neuraxial, .fasting, .airway, .valves, .intervention:
             return wordsMatch(item.route)
         }
     }
