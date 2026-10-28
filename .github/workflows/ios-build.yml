@@ -156,6 +156,7 @@ jobs:
           shot 25-airway 12 -ps.ref airway
           shot 26-valves 12 -ps.ref valves
           shot 27-intervention 12 -ps.ref intervention
+          shot 28-favorites 12 -ps.tab reference -ps.favorites.debug "valves,neuraxial,score:rcri"
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

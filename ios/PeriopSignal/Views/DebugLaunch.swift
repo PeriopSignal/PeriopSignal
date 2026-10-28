@@ -8,6 +8,7 @@ import WidgetKit
 ///   -ps.ref <RefRoute.key>  open a tool, quick reference or folder on the Reference tab (score:rcri, quickref:<id>, peds, valves, folder:<id> …)
 ///   -ps.presave <id>        bookmark a post before the first frame
 ///   -ps.topics a,b          follow these topics (turns on "For you")
+///   -ps.favorites.debug a,b  star these Reference tools (RefRoute keys) for this launch
 ///   -ps.openQuiz 1          open the question of the day
 ///   -ps.listen 1            show the mini player (paused)
 ///   -ps.screen widget       show the widget preview screen instead of the app

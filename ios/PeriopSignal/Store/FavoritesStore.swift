@@ -14,6 +14,12 @@ final class FavoritesStore {
 
     init() {
         load()
+        #if DEBUG
+        // CI screenshots: -ps.favorites.debug "valves,score:rcri" seeds the list for this launch only.
+        if let seed = UserDefaults.standard.string(forKey: "ps.favorites.debug"), !seed.isEmpty {
+            keys = seed.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        }
+        #endif
         observer = NotificationCenter.default.addObserver(forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: kv, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.adoptCloud() }
         }
