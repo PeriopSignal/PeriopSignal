@@ -21,7 +21,7 @@ env:
 jobs:
   release:
     name: Archive, sign in the cloud, upload to TestFlight
-    runs-on: macos-15
+    runs-on: macos-latest
     timeout-minutes: 90
     env:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
