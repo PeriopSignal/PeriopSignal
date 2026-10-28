@@ -71,7 +71,8 @@ final class PostStore {
     }
 
     private func apply(_ feed: Feed) {
-        posts = feed.posts.sorted { ($0.date, $0.addedAt, $0.id) > ($1.date, $1.addedAt, $1.id) }
+        // Same order as the website: newest arrival first, then publication date, then impact.
+        posts = feed.posts.sorted { ($0.addedAt, $0.date, $0.impact) > ($1.addedAt, $1.date, $1.impact) }
         generatedAt = feed.generatedAt
         let lastSeen = UserDefaults.standard.string(forKey: lastSeenKey) ?? ""
         if lastSeen.isEmpty {

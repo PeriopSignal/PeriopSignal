@@ -1,133 +1,76 @@
 import SwiftUI
 
-/// The top of the feed: the brand's ECG hairline, one sentence about what arrived, and the two
-/// ways through it (read or listen). No box: this is the page's headline, not a widget.
+/// The thin strip under the masthead: the brand's ECG hairline and one line saying how many new
+/// publications there are (they sit at the top of the feed already), with Listen on the right.
 struct TodayHero: View {
     @Environment(PostStore.self) private var store
     @Environment(ReadStore.self) private var read
-    @Environment(QuizStore.self) private var quiz
     @Environment(SpeechPlayer.self) private var speech
-    @Environment(Preferences.self) private var prefs
     var onOpen: (Post) -> Void
     @State private var drawn: CGFloat = 0
 
-    private var batch: [Post] { store.latestBatch }
     private var unread: [Post] { read.unread(in: store.forYouPosts) }
-    private var fresh: Int { batch.filter { read.isUnread($0) }.count }
-    private var isWeekend: Bool {
-        let wd = Calendar.current.component(.weekday, from: Date())
-        return wd == 1 || wd == 2
-    }
+    /// Posts that arrived since the previous visit (the site's "New" marker).
+    private var newSinceLastVisit: [Post] { store.forYouPosts.filter { store.newIDs.contains($0.id) } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ECGLine(progress: drawn)
-                .stroke(PS.accent.opacity(0.9), style: StrokeStyle(lineWidth: 1.4, lineCap: .round, lineJoin: .round))
-                .frame(height: 24)
-                .padding(.bottom, 14)
+                .stroke(PS.accent.opacity(0.85), style: StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                .frame(height: 20)
+                .padding(.vertical, 10)
                 .onAppear { withAnimation(.easeInOut(duration: 1.4)) { drawn = 1 } }
-            HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: eyebrow, color: PS.accent)
-                Spacer()
-                if quiz.streak >= 2 {
-                    Label("\(quiz.streak)-day streak", systemImage: "flame.fill")
-                        .font(PS.sys(size: 11, weight: .semibold))
-                        .foregroundStyle(PS.fg3)
-                }
-            }
-            Text(sentence)
-                .font(PS.serif(size: 27))
-                .foregroundStyle(PS.fg)
-                .lineSpacing(1)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 8)
-                .contentTransition(.opacity)
-            if let lead = unread.first {
-                Text(lead.headline)
-                    .font(PS.sys(size: 14))
-                    .foregroundStyle(PS.fg2)
-                    .lineSpacing(2)
-                    .lineLimit(3)
-                    .padding(.top, 10)
-            } else if !batch.isEmpty {
-                Text(store.latestBatchIsToday ? "Next edition tomorrow morning." : "The next edition lands in the morning.")
-                    .font(PS.sys(size: 14))
-                    .foregroundStyle(PS.fg3)
-                    .padding(.top, 8)
-            }
-            if isWeekend, store.weekSummary.posts > 0 {
-                weekLine.padding(.top, 8)
-            }
-            if !batch.isEmpty {
-                HStack(spacing: 10) {
-                    if let first = unread.first {
-                        Button { onOpen(first) } label: { Label("Start reading", systemImage: "play.fill") }
-                            .buttonStyle(CapsuleButtonStyle(prominent: true))
-                    }
+            HStack(alignment: .center, spacing: 8) {
+                if !listenable.isEmpty { Circle().fill(PS.accent).frame(width: 7, height: 7) }
+                Text(line)
+                    .font(PS.sys(size: 14, weight: listenable.isEmpty ? .regular : .semibold))
+                    .foregroundStyle(listenable.isEmpty ? PS.fg3 : PS.fg)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                Spacer(minLength: 8)
+                if !listenable.isEmpty {
                     Button {
                         Haptics.light()
-                        speech.play(unread.isEmpty ? batch : unread)
-                    } label: {
-                        Text(unread.isEmpty ? "Listen again" : "Listen · \(listenMinutes) min")
-                    }
-                    .buttonStyle(GhostButtonStyle())
-                    Spacer(minLength: 0)
-                    if !unread.isEmpty {
-                        Button {
-                            Haptics.success()
-                            withAnimation(.snappy) { read.markAllRead(unread) }
-                        } label: { Text("Mark all read") }
-                        .buttonStyle(TextButtonStyle(color: PS.fg3, size: 12.5))
-                    }
+                        speech.play(listenable)
+                    } label: { Text("Listen · \(listenMinutes) min") }
+                    .buttonStyle(TextButtonStyle(color: PS.accent, size: 13))
                 }
-                .padding(.top, 16)
+            }
+            .padding(.bottom, 10)
+            .contextMenu {
+                if !unread.isEmpty {
+                    Button { withAnimation(.snappy) { read.markAllRead(unread) } } label: { Label("Mark all as read", systemImage: "checkmark.circle") }
+                }
+                if let first = listenable.first {
+                    Button { onOpen(first) } label: { Label("Open the first one", systemImage: "text.book.closed") }
+                }
             }
         }
-        .padding(.top, 18)
-        .padding(.bottom, 18)
         .animation(.snappy, value: unread.count)
     }
 
-    private var eyebrow: String {
-        var s = store.latestBatchIsToday ? "Today" : (batch.isEmpty ? "Periop Signal" : "Latest · " + PSDate.display(store.latestBatchDate))
-        if !unread.isEmpty { s += " · \(unread.count) unread" }
-        return s
+    /// What Listen plays: new since the last visit, else the unread backlog.
+    private var listenable: [Post] {
+        if !newSinceLastVisit.isEmpty { return newSinceLastVisit }
+        return unread
     }
 
-    private var sentence: String {
+    private var line: String {
         if store.posts.isEmpty { return "Loading the feed…" }
-        let n = unread.count
-        if n == 0 {
-            return store.latestBatchIsToday && !batch.isEmpty ? "You’re all caught up." : "Nothing new this morning."
-        }
-        let waiting = n - fresh
-        if fresh == 0 { return "\(Self.words(n).capitalized) \(n == 1 ? "paper" : "papers") waiting from the last few days." }
-        if waiting == 0 { return "\(Self.words(fresh).capitalized) new this morning." }
-        return "\(Self.words(fresh).capitalized) new this morning, \(Self.words(waiting)) still waiting."
-    }
-
-    /// "one" … "ten", digits above that.
-    static func words(_ n: Int) -> String {
-        let w = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
-        return n < w.count ? w[n] : String(n)
+        let n = newSinceLastVisit.count
+        if n > 0 { return "\(n) new publication\(n == 1 ? "" : "s") since your last visit" }
+        let u = unread.count
+        if u > 0 { return "\(u) unread publication\(u == 1 ? "" : "s") at the top" }
+        return "Nothing new since your last visit · next edition " + (store.latestBatchIsToday ? "tomorrow morning" : "in the morning")
     }
 
     /// Listening time: the recordings' real length where they exist, ~165 words a minute otherwise.
     private var listenMinutes: Int {
-        let seconds = unread.reduce(0.0) { total, post in
+        let seconds = listenable.reduce(0.0) { total, post in
             if let a = post.audio { return total + Double(a.seconds) }
             let words = SpeechPlayer.segments(for: post).reduce(0) { $0 + $1.split(separator: " ").count }
             return total + Double(words) / 165 * 60
         }
         return max(1, Int((seconds / 60).rounded()))
-    }
-
-    private var weekLine: some View {
-        let s = store.weekSummary
-        let topics = s.topTopics.map { "\(Topics.name($0.0)) \($0.1)" }.joined(separator: ", ")
-        return Text("This week: \(s.posts) post\(s.posts == 1 ? "" : "s")" + (s.landmark > 0 ? " · \(s.landmark) landmark" : "") + (topics.isEmpty ? "" : " · " + topics))
-            .font(PS.sys(size: 12.5))
-            .foregroundStyle(PS.fg3)
-            .fixedSize(horizontal: false, vertical: true)
     }
 }

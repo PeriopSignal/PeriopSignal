@@ -152,8 +152,9 @@ struct Post: Codable, Identifiable, Hashable {
     var dateValue: Date { PSDate.parse(date) ?? .distantPast }
     var addedAtValue: Date { PSDate.parse(addedAt) ?? dateValue }
 
-    /// Year-month key used for the month dividers in the feed.
-    var monthKey: String { String(date.prefix(7)) }
+    /// Year-month key used for the month dividers in the feed (the month the post was added, which is
+    /// also the feed's order).
+    var monthKey: String { String(addedAt.prefix(7)) }
 
     /// Text that the site's search box matches against.
     var searchText: String {
