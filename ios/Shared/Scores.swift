@@ -43,6 +43,11 @@ struct ScoreBand: Hashable {
     let tone: Tone
 }
 
+struct ScoreNext: Hashable {
+    let label: String
+    let quickref: String
+}
+
 struct ScoreDefinition: Identifiable, Hashable {
     let id: String
     let name: String
@@ -60,6 +65,8 @@ struct ScoreDefinition: Identifiable, Hashable {
     let rateSource: RefSource?
     let notes: [String]
     var keywords: [String] = []
+    /// Where the score leads next (a quick reference opened from the result card).
+    var next: ScoreNext? = nil
 
     var maxScore: Int {
         items.reduce(0) { total, item in
@@ -227,5 +234,6 @@ enum Scores {
         source: RefSource(title: "A simplified risk score for predicting postoperative nausea and vomiting", citation: "Apfel CC, et al. Anesthesiology. 1999;91:693–700.", url: "https://doi.org/10.1097/00000542-199909000-00022", doi: "10.1097/00000542-199909000-00022"),
         rateSource: RefSource(title: "Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary", citation: "Gan TJ, Jin Z, Ayad S, et al. Anesth Analg. 2025; published online ahead of print.", url: "https://doi.org/10.1213/ANE.0000000000007816", doi: "10.1213/ANE.0000000000007816"),
         notes: ["See the PONV quick reference for agents, doses and timing.", "The Fifth consensus (2025) supersedes the 2020 Fourth: it counts 0 factors as low, 1–2 as medium and ≥ 3 as high risk, adds IV aprepitant and IV amisulpride, and no longer recommends metoclopramide for prophylaxis."],
-        keywords: ["ponv", "nausea", "vomiting", "antiemetic", "prophylaxis"])
+        keywords: ["ponv", "nausea", "vomiting", "antiemetic", "prophylaxis"],
+        next: ScoreNext(label: "Prophylaxis plan", quickref: "ponv-consensus"))
 }

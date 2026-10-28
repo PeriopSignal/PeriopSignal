@@ -222,7 +222,7 @@ struct ReferenceView: View {
                         ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
                     }
                 case .score(let id):
-                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }) }
+                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }, onOpenRef: { path.append(RefRoute.quickref($0)) }) }
                 case .peds:
                     PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) })
                 case .local:

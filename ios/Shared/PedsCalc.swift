@@ -141,7 +141,8 @@ enum InfusionCalc {
         case .perKgPerMin:
             let dose = span(start, d.startHigh, unit + "/kg/min")
             guard let w = weightKg, w > 0 else { return (dose, nil) }
-            return (dose, span(start * w, d.startHigh.map { $0 * w }, unit + "/min") + " at \(PedsCalc.fmt(w)) kg")
+            let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
+            return (dose, span(s.lo, s.hi, s.unit + "/min") + " at \(PedsCalc.fmt(w)) kg")
         case .perMin:
             let dose = span(start, d.startHigh, unit + "/min")
             guard let w = weightKg, w > 0 else { return (dose, nil) }
@@ -153,7 +154,8 @@ enum InfusionCalc {
         case .perKgPerHour:
             let dose = span(start, d.startHigh, unit + "/kg/h")
             guard let w = weightKg, w > 0 else { return (dose, nil) }
-            return (dose, span(start * w, d.startHigh.map { $0 * w }, unit + "/h") + " at \(PedsCalc.fmt(w)) kg")
+            let s = scaled(start * w, d.startHigh.map { $0 * w }, unit)
+            return (dose, span(s.lo, s.hi, s.unit + "/h") + " at \(PedsCalc.fmt(w)) kg")
         case .perHour:
             return (span(start, d.startHigh, unit + "/h"), nil)
         case .fixed:
@@ -163,13 +165,19 @@ enum InfusionCalc {
         }
     }
 
-    /// mcg totals above 1,000 read better as mg; mg above 1,000 as g.
-    static func total(_ lo: Double, _ hi: Double?, _ unit: String) -> String {
+    /// ng above 1,000 read better as mcg, mcg above 1,000 as mg, mg above 1,000 as g (both ends of a range move together).
+    static func scaled(_ lo: Double, _ hi: Double?, _ unit: String) -> (lo: Double, hi: Double?, unit: String) {
         var l = lo, h = hi, u = unit
+        if u == "ng", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "mcg" }
         if u == "mcg", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "mg" }
         if u == "mg", l >= 1000, (h ?? l) >= 1000 { l /= 1000; h = h.map { $0 / 1000 }; u = "g" }
-        if let h, abs(h - l) > 0.0001 { return "\(PedsCalc.fmt(l))–\(PedsCalc.fmt(h)) \(u)" }
-        return "\(PedsCalc.fmt(l)) \(u)"
+        return (l, h, u)
+    }
+
+    static func total(_ lo: Double, _ hi: Double?, _ unit: String) -> String {
+        let s = scaled(lo, hi, unit)
+        if let h = s.hi, abs(h - s.lo) > 0.0001 { return "\(PedsCalc.fmt(s.lo))–\(PedsCalc.fmt(h)) \(s.unit)" }
+        return "\(PedsCalc.fmt(s.lo)) \(s.unit)"
     }
 }
 

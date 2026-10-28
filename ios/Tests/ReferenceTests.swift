@@ -247,6 +247,40 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(c.equivalent, "2.1 g at 70 kg", "2,100 mg reads as grams")
         XCTAssertEqual(InfusionCalc.total(1500, nil, "mcg"), "1.5 mg")
         XCTAssertEqual(InfusionCalc.total(250, 500, "mg"), "250–500 mg")
+        let esmolol = InfusionDrug(id: "esmolol", name: "Esmolol", use: "Tachycardia", form: .perKgPerMin, start: 50, startHigh: 150, unit: "mcg", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
+        XCTAssertEqual(InfusionCalc.lines(for: esmolol, weightKg: 70).equivalent, "3.5–10.5 mg/min at 70 kg", "mcg/min above 1,000 reads as mg/min")
+        let giapreza = InfusionDrug(id: "at2", name: "Angiotensin II", use: "Shock", form: .perKgPerMin, start: 20, startHigh: nil, unit: "ng", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
+        XCTAssertEqual(InfusionCalc.lines(for: giapreza, weightKg: 70).equivalent, "1.4 mcg/min at 70 kg")
+        let vaso = InfusionDrug(id: "vaso", name: "Vasopressin", use: "Shock", form: .fixed, start: 0.03, startHigh: nil, unit: "units/min", titration: nil, range: nil, max: nil, bolus: nil, preparation: nil, caution: nil, offLabel: nil, source: "label")
+        XCTAssertEqual(InfusionCalc.lines(for: vaso, weightKg: 70).dose, "0.03 units/min")
+        XCTAssertNil(InfusionCalc.lines(for: vaso, weightKg: 70).equivalent)
+    }
+
+    func testInfusionBundleIsComplete() throws {
+        let b = try bundled()
+        let inf = try XCTUnwrap(b.infusions)
+        XCTAssertEqual(inf.groups.count, 4)
+        let all = inf.groups.flatMap(\.drugs)
+        XCTAssertGreaterThanOrEqual(all.count, 40)
+        XCTAssertEqual(Set(all.map(\.id)).count, all.count, "infusion ids are unique")
+        for d in all {
+            XCTAssertFalse(d.source?.isEmpty ?? true, "\(d.id) cites a source")
+            if d.form != .text {
+                XCTAssertNotNil(d.start, "\(d.id) has a starting dose")
+                XCTAssertNotNil(d.unit, "\(d.id) has a unit")
+            } else {
+                XCTAssertNotNil(d.range, "\(d.id): a text row carries its dosing in range")
+            }
+            // Every row renders a dose line, with and without a weight.
+            XCTAssertFalse(InfusionCalc.lines(for: d, weightKg: nil).dose.isEmpty, d.id)
+            XCTAssertFalse(InfusionCalc.lines(for: d, weightKg: 70).dose.isEmpty, d.id)
+        }
+        for g in inf.groups {
+            let names = g.drugs.map { $0.name.lowercased() }
+            XCTAssertEqual(names, names.sorted(), "\(g.name) is alphabetical")
+        }
+        let wanted = ["phenylephrine", "norepinephrine", "epinephrine", "vasopressin", "nitroglycerin", "nitroprusside", "esmolol", "clevidipine", "nicardipine", "milrinone", "dobutamine", "tranexamic", "aminocaproic", "iepo", "ino", "factor-viia", "pcc", "antithrombin"]
+        for id in wanted { XCTAssertTrue(all.contains { $0.id == id }, "\(id) is in the table") }
     }
 
     // MARK: Neuraxial timing

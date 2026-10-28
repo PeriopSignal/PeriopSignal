@@ -5,6 +5,7 @@ import SwiftUI
 struct ScoreCalculatorView: View {
     var def: ScoreDefinition
     var onOpen: (URL) -> Void
+    var onOpenRef: (String) -> Void = { _ in }
     @State private var selection = ScoreSelection()
     @State private var copied = false
 
@@ -73,6 +74,11 @@ struct ScoreCalculatorView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .animation(.snappy, value: score)
+            }
+            if let n = def.next {
+                Button { onOpenRef(n.quickref) } label: { Label(n.label, systemImage: "arrow.right.circle") }
+                    .buttonStyle(GhostButtonStyle())
+                    .padding(.top, 2)
             }
             Text(def.readout)
                 .font(PS.sys(size: 12.5))
