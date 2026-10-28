@@ -1,1 +1,1 @@
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/MoreView.swift:31:36: error: cannot convert value of type 'Bindable<Preferences>' to expected argument type 'Binding<Preferences>'
+   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift:411:37: warning: call to main actor-isolated static method 'parse' in a synchronous nonisolated context
