@@ -16,6 +16,17 @@ struct ReferenceBundle: Codable {
     var peds: PedsData?
     var infusions: InfusionData?
     var neuraxial: NeuraxialData?
+
+    /// This bundle with any section it lacks taken from `other`: a server file written before a section
+    /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
+    func filling(from other: ReferenceBundle) -> ReferenceBundle {
+        var b = self
+        if b.peds == nil { b.peds = other.peds }
+        if b.infusions == nil { b.infusions = other.infusions }
+        if b.neuraxial == nil { b.neuraxial = other.neuraxial }
+        if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
+        return b
+    }
 }
 
 // MARK: Neuraxial and deep-block timing on antithrombotic drugs (ASRA)

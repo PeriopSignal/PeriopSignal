@@ -256,6 +256,19 @@ final class ReferenceTests: XCTestCase {
         XCTAssertNil(InfusionCalc.lines(for: vaso, weightKg: 70).equivalent)
     }
 
+    func testOlderServerFileDoesNotHideNewSections() throws {
+        let b = try bundled()
+        var server = b
+        server.infusions = nil
+        server.neuraxial = nil
+        server.ask = AskConfig(endpoint: "https://ask.example.workers.dev/ask")
+        let merged = server.filling(from: b)
+        XCTAssertNotNil(merged.infusions, "the app's own infusion table survives a server file written before it existed")
+        XCTAssertNotNil(merged.neuraxial)
+        XCTAssertEqual(merged.ask?.endpoint, "https://ask.example.workers.dev/ask", "the server's endpoint is kept")
+        XCTAssertEqual(b.filling(from: server).ask?.endpoint, "https://ask.example.workers.dev/ask", "…and reaches a newer bundled copy too")
+    }
+
     func testInfusionBundleIsComplete() throws {
         let b = try bundled()
         let inf = try XCTUnwrap(b.infusions)
