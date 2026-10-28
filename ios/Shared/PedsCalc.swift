@@ -72,11 +72,11 @@ enum PedsCalc {
         return (row, row.mlPerKgLow * weightKg, row.mlPerKgHigh * weightKg)
     }
 
-    /// Maximum allowable blood loss (Gross 1983): EBV × (Hct₀ − Hct_min) / Hct_average.
+    /// Maximum allowable blood loss: EBV × (Hct₀ − Hct_min) / Hct₀ (the starting-hematocrit form, more
+    /// conservative than Gross's mean-hematocrit denominator).
     static func mabl(ebv: Double, hctStart: Double, hctMin: Double) -> Double? {
         guard ebv > 0, hctStart > hctMin, hctMin > 0 else { return nil }
-        let average = (hctStart + hctMin) / 2
-        return ebv * (hctStart - hctMin) / average
+        return ebv * (hctStart - hctMin) / hctStart
     }
 
     /// Maximum local-anesthetic dose in mg and the equivalent volume at a concentration in percent.

@@ -466,7 +466,7 @@ struct PedsCalculatorView: View {
                 hctField("Starting Hct %", text: $hctStart)
                 hctField("Lowest acceptable Hct %", text: $hctMin)
             }
-            Text("Maintenance by Holliday–Segar (4 mL/kg/h for the first 10 kg, 2 for the next 10, 1 beyond). Blood volume uses the age band in the table. Allowable blood loss = EBV × (Hct₀ − Hct_min) ÷ mean Hct (Gross 1983); a guide for planning, not a transfusion trigger.")
+            Text("Maintenance by Holliday–Segar (4 mL/kg/h for the first 10 kg, 2 for the next 10, 1 beyond). Blood volume uses the age band in the table. Allowable blood loss = EBV × (Hct₀ − Hct_min) ÷ Hct₀; a guide for planning, not a transfusion trigger.")
                 .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Blood volume by age").padding(.leading, 2)

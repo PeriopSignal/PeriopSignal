@@ -144,7 +144,7 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(PedsCalc.maintenanceMLPerHour(weightKg: 25), 65)
         XCTAssertEqual(PedsCalc.maintenanceMLPerHour(weightKg: 8), 32)
         let mabl = try! XCTUnwrap(PedsCalc.mabl(ebv: 1000, hctStart: 40, hctMin: 30))
-        XCTAssertEqual(mabl, 1000 * 10 / 35, accuracy: 0.01)
+        XCTAssertEqual(mabl, 250, accuracy: 0.01, "EBV × (40 − 30) / 40")
         XCTAssertNil(PedsCalc.mabl(ebv: 1000, hctStart: 30, hctMin: 30))
         let rows = [BloodVolumeRow(group: "Infant", fromMonths: 1, toMonths: 12, mlPerKgLow: 75, mlPerKgHigh: 80),
                     BloodVolumeRow(group: "Child", fromMonths: 12, toMonths: nil, mlPerKgLow: 70, mlPerKgHigh: 75)]

@@ -1025,7 +1025,7 @@
         "dobutamine",
         "stroke volume index"
       ],
-      "summary": "The grading tables for native valve stenosis and regurgitation: the 2017 ASE/EACVI aortic stenosis update, the 2017 ASE native regurgitation recommendations, and ASE's 2023 rheumatic heart disease document for mitral and tricuspid stenosis. Grades are mild, moderate and severe; the reading integrates specific, supportive and quantitative signs and discards outliers.",
+      "summary": "The grading tables for native valve stenosis and regurgitation, transcribed from the 2017 EACVI/ASE aortic stenosis update, the 2017 ASE native regurgitation recommendations (Tables 8, 11, 14 and 16) and ASE's 2023 rheumatic heart disease document for mitral and tricuspid stenosis. Grades are mild, moderate and severe; the reading integrates specific, supportive and quantitative signs and discards outliers.",
       "source": {
         "title": "Recommendations for Noninvasive Evaluation of Native Valvular Regurgitation (ASE 2017); Recommendations on the Echocardiographic Assessment of Aortic Valve Stenosis: A Focused Update (EACVI/ASE 2017); Recommendations for the Use of Echocardiography in the Evaluation of Rheumatic Heart Disease (ASE 2023)",
         "citation": "Zoghbi WA, et al. J Am Soc Echocardiogr. 2017;30:303–371 (doi:10.1016/j.echo.2017.01.007) · Baumgartner H, et al. J Am Soc Echocardiogr. 2017;30:372–392 (doi:10.1016/j.echo.2017.02.009) · Pandian NG, et al. J Am Soc Echocardiogr. 2023;36:3–28 (doi:10.1016/j.echo.2022.10.009)",
@@ -1108,7 +1108,7 @@
           ]
         },
         {
-          "heading": "Aortic regurgitation (ASE 2017)",
+          "heading": "Aortic regurgitation (ASE 2017, Table 11)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1118,34 +1118,46 @@
           ],
           "rows": [
             [
-              "Leaflets and LV",
-              "Normal or mildly abnormal leaflets; normal LV",
-              "Moderately abnormal; LV normal or dilated",
-              "Abnormal, flail or wide coaptation defect; LV usually dilated (not in acute AR)"
+              "Aortic leaflets",
+              "Normal or abnormal",
+              "Normal or abnormal",
+              "Abnormal/flail, or wide coaptation defect"
             ],
             [
-              "Jet width in the LVOT (color)",
+              "LV size",
+              "Normal (unless another cause of dilation)",
+              "Normal or dilated",
+              "Usually dilated (specific with normal LV function and no other volume load; not in acute AR)"
+            ],
+            [
+              "Jet width in LVOT, color flow",
               "Small in central jets",
               "Intermediate",
-              "Large in central jets; variable when eccentric"
+              "Large in central jets; variable in eccentric jets"
             ],
             [
-              "Flow convergence",
+              "Flow convergence, color flow",
               "None or very small",
               "Intermediate",
               "Large"
             ],
             [
-              "CW jet density and deceleration",
-              "Incomplete or faint; pressure half-time > 500 ms",
-              "Dense; 200–500 ms",
-              "Dense; pressure half-time < 200 ms"
+              "Jet density, CW",
+              "Incomplete or faint",
+              "Dense",
+              "Dense"
             ],
             [
-              "Descending aorta diastolic flow reversal",
-              "Brief, early diastolic",
+              "Jet deceleration rate, CW (PHT, ms)",
+              "Incomplete or faint; slow, > 500",
+              "Medium, 500–200",
+              "Steep, < 200"
+            ],
+            [
+              "Diastolic flow reversal in descending aorta, PW",
+              "Brief, early diastolic reversal",
               "Intermediate",
-              "Holodiastolic, end-diastolic velocity > 20 cm/s"
+              "Prominent holodiastolic reversal"
             ],
             [
               "Vena contracta width (cm)",
@@ -1154,13 +1166,13 @@
               "> 0.6"
             ],
             [
-              "Jet width / LVOT width (%)",
+              "Jet width / LVOT width, central jets (%)",
               "< 25",
               "25–45 · 46–64",
               "≥ 65"
             ],
             [
-              "Jet area / LVOT area (%)",
+              "Jet CSA / LVOT CSA, central jets (%)",
               "< 5",
               "5–20 · 21–59",
               "≥ 60"
@@ -1184,10 +1196,10 @@
               "≥ 0.30"
             ]
           ],
-          "note": "Pressure half-time shortens with high LV diastolic pressure or vasodilator therapy and lengthens in chronic adaptation, so it grades poorly in chronic AR; quantitative volumes are the anchor when the jet is eccentric."
+          "note": "Color Doppler at a Nyquist limit of 50–70 cm/s. PHT shortens with rising LV diastolic pressure and may lengthen in chronic adaptation to severe AR. Quantitative parameters subclassify the moderate group."
         },
         {
-          "heading": "Mitral regurgitation (ASE 2017)",
+          "heading": "Mitral regurgitation (ASE 2017, Table 8)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1197,26 +1209,32 @@
           ],
           "rows": [
             [
-              "Valve and chambers",
-              "None or mild leaflet abnormality; LV and LA usually normal",
-              "Moderate leaflet abnormality or moderate tethering; LV and LA normal or mildly dilated",
-              "Severe lesions (flail, ruptured papillary muscle, severe retraction, large perforation; in secondary MR severe tenting, poor coaptation); LV and LA dilated"
+              "MV morphology",
+              "None or mild leaflet abnormality (mild thickening, calcification or prolapse, mild tenting)",
+              "Moderate leaflet abnormality or moderate tenting",
+              "Severe valve lesions (primary: flail leaflet, ruptured papillary muscle, severe retraction, large perforation; secondary: severe tenting, poor leaflet coaptation)"
             ],
             [
-              "Color jet",
+              "LV and LA size",
+              "Usually normal",
+              "Normal or mildly dilated",
+              "Dilated (can be normal in acute severe MR, small patients, or a small LV before the MR)"
+            ],
+            [
+              "Color flow jet area",
               "Small, central, narrow, often brief",
               "Variable",
-              "Large central jet (> 50% of the LA) or an eccentric wall-impinging jet of any size"
+              "Large central jet (> 50% of LA) or eccentric wall-impinging jet of variable size"
             ],
             [
               "Flow convergence",
-              "Not visible, transient or small",
+              "Not visible, transient or small (< 0.3 cm)",
               "Intermediate in size and duration",
-              "Large throughout systole"
+              "Large throughout systole (≥ 1 cm at Nyquist 30–40 cm/s)"
             ],
             [
               "CW jet",
-              "Faint, partial or parabolic",
+              "Faint, partial, parabolic",
               "Dense but partial or parabolic",
               "Holosystolic, dense, triangular"
             ],
@@ -1224,22 +1242,22 @@
               "Vena contracta width (cm)",
               "< 0.3",
               "Intermediate",
-              "≥ 0.7 (> 0.8 biplane); 3D vena contracta area ≥ 0.40 cm²"
+              "≥ 0.7 (> 0.8 for biplane average)"
             ],
             [
               "Pulmonary vein flow",
-              "Systolic dominance (blunted with LV dysfunction or AF)",
+              "Systolic dominance (may be blunted in LV dysfunction or AF)",
               "Normal or systolic blunting",
-              "Minimal to no systolic flow, or systolic reversal (specific when in more than one vein)"
+              "Minimal to no systolic flow, or systolic flow reversal"
             ],
             [
               "Mitral inflow",
-              "A-wave dominant (virtually excludes severe MR)",
+              "A-wave dominant",
               "Variable",
-              "E-wave dominant, E > 1.2 m/s"
+              "E-wave dominant (> 1.2 m/s)"
             ],
             [
-              "EROA by 2D PISA (cm²)",
+              "EROA, 2D PISA (cm²)",
               "< 0.20",
               "0.20–0.29 · 0.30–0.39",
               "≥ 0.40 (may be lower in secondary MR with an elliptical orifice)"
@@ -1248,7 +1266,7 @@
               "Regurgitant volume (mL)",
               "< 30",
               "30–44 · 45–59",
-              "≥ 60 (may be lower in low-flow states)"
+              "≥ 60 (may be lower in low-flow conditions)"
             ],
             [
               "Regurgitant fraction (%)",
@@ -1257,7 +1275,38 @@
               "≥ 50"
             ]
           ],
-          "note": "Secondary MR: the orifice is crescentic and PISA underestimates EROA, the EROA is often biphasic, a high E velocity is not specific, and pulmonary-vein blunting is seen with raised LA pressure or AF; 3D vena contracta area can rescue the grade. Non-holosystolic (mid-to-late) MR overestimates from single-frame EROA, so prefer the regurgitant volume. In the operating room, reduced load or contractility usually underestimates the grade: let the preoperative study guide the decision."
+          "note": "Nyquist 50–70 cm/s for jets. Inflow and pulmonary-vein signs are influenced by LV diastolic function, AF and LA pressure; the inflow sign is most valid over 50 years. Quantitative parameters subclassify moderate MR (grades II and III); discrepancies among EROA, RVol and RF arise in low- or high-flow states."
+        },
+        {
+          "heading": "Integrating the MR signs (ASE 2017, Figure 18)",
+          "kind": "facts",
+          "rows": [
+            [
+              "Specific for mild",
+              "Small, narrow central jet · vena contracta ≤ 0.3 cm · PISA radius absent or ≤ 0.3 cm at Nyquist 30–40 cm/s · A-wave dominant inflow · soft or incomplete CW jet · normal LV and LA size"
+            ],
+            [
+              "Specific for severe",
+              "Flail leaflet · vena contracta ≥ 0.7 cm · PISA radius ≥ 1.0 cm at Nyquist 30–40 cm/s · central jet > 50% of LA area · pulmonary-vein systolic flow reversal · enlarged LV with normal function"
+            ],
+            [
+              "Four or more criteria",
+              "Definitely mild, or definitely severe"
+            ],
+            [
+              "Two or three, or mixed signals",
+              "Quantify: EROA < 0.2 / 0.2–0.29 / 0.30–0.39 / ≥ 0.4 cm², RVol < 30 / 30–44 / 45–59 / ≥ 60 mL, RF < 30 / 30–39 / 40–49 / ≥ 50% = grades I–IV; grade III with three specific signs of severe MR, or an elliptical orifice, is read as severe"
+            ],
+            [
+              "Indeterminate",
+              "Poor image quality, low confidence in the Doppler data, or discordant quantitative, qualitative or clinical findings: TEE or CMR for quantitation"
+            ],
+            [
+              "Cautions",
+              "Eccentric wall-impinging jets are underestimated (quantify); single-frame PISA and vena contracta overestimate non-holosystolic MR; RVol for severe MR may be lower in low-flow states"
+            ]
+          ],
+          "note": "Secondary MR: the orifice is crescentic and 2D PISA underestimates it, the EROA is often biphasic, a high E velocity and pulmonary-vein blunting are not specific; 3D vena contracta area can rescue the grade. In the operating room, reduced load or contractility usually underestimates the grade: let the preoperative study guide the decision."
         },
         {
           "heading": "Mitral stenosis (ASE 2023, rheumatic)",
@@ -1297,7 +1346,7 @@
           "note": "Planimetry (3D preferred) is the anatomic method; MVA = 220 / pressure half-time; continuity and PISA are reserved for inconclusive cases. Gradients depend on flow and heart rate — report the rhythm and rate and never grade on gradient alone. Pressure half-time misleads with severe AR, immediately after balloon commissurotomy, and with altered LA or LV compliance; trace the mid-diastolic slope of a biphasic E wave. Exercise PA systolic pressure > 60 mmHg marks hemodynamically significant MS."
         },
         {
-          "heading": "Tricuspid regurgitation (ASE 2017)",
+          "heading": "Tricuspid regurgitation (ASE 2017, Table 14)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1307,28 +1356,40 @@
           ],
           "rows": [
             [
-              "Valve and chambers",
-              "Normal or mildly abnormal leaflets; RV, RA usually normal; IVC < 2.0 cm",
-              "Moderately abnormal; RV, RA normal or mildly dilated; IVC 2.1–2.5 cm",
-              "Flail, severe retraction or large perforation; RV and RA usually dilated; IVC > 2.5 cm"
+              "TV morphology",
+              "Normal or mildly abnormal leaflets",
+              "Moderately abnormal leaflets",
+              "Severe valve lesions (flail leaflet, severe retraction, large perforation)"
             ],
             [
-              "Color jet",
+              "RV and RA size",
+              "Usually normal",
+              "Normal or mild dilatation",
+              "Usually dilated (can be normal in acute severe TR)"
+            ],
+            [
+              "Inferior vena cava diameter",
+              "Normal, < 2 cm",
+              "Normal or mildly dilated, 2.1–2.5 cm",
+              "Dilated, > 2.5 cm"
+            ],
+            [
+              "Color flow jet area",
               "Small, narrow, central",
               "Moderate, central",
-              "Large central jet (area > 10 cm² at Nyquist > 50 cm/s) or eccentric wall-impinging jet"
+              "Large central jet or eccentric wall-impinging jet of variable size; > 10 cm² at Nyquist > 50–70 cm/s"
             ],
             [
-              "Flow convergence",
+              "Flow convergence zone",
               "Not visible, transient or small",
-              "Intermediate",
+              "Intermediate in size and duration",
               "Large throughout systole"
             ],
             [
               "CW jet",
               "Faint, partial, parabolic",
               "Dense, parabolic or triangular",
-              "Dense, often triangular with early peak"
+              "Dense, often triangular"
             ],
             [
               "Vena contracta width (cm)",
@@ -1346,7 +1407,7 @@
               "Hepatic vein flow",
               "Systolic dominance",
               "Systolic blunting",
-              "Systolic flow reversal (specific, not sensitive)"
+              "Systolic flow reversal"
             ],
             [
               "Tricuspid inflow",
@@ -1361,13 +1422,13 @@
               "≥ 0.40"
             ],
             [
-              "Regurgitant volume by 2D PISA (mL)",
+              "Regurgitant volume, 2D PISA (mL)",
               "< 30",
               "30–44",
               "≥ 45"
             ]
           ],
-          "note": "Annular dilation: end-diastolic diameter ≥ 40 mm or > 21 mm/m² in the apical four-chamber view (ASE 2023). The massive and torrential grades proposed for transcatheter trials are not ASE grades."
+          "note": "Hepatic-vein and inflow signs are nonspecific (RV diastolic function, AF, RA pressure). Annular dilation: end-diastolic diameter ≥ 40 mm or > 21 mm/m² in the apical four-chamber view (ASE 2023). The massive and torrential grades proposed for transcatheter trials are not ASE grades."
         },
         {
           "heading": "Tricuspid stenosis (ASE 2023)",
@@ -1392,22 +1453,65 @@
           ]
         },
         {
-          "heading": "Pulmonic regurgitation (ASE 2017)",
-          "kind": "facts",
+          "heading": "Pulmonic regurgitation (ASE 2017, Table 16)",
+          "kind": "table",
+          "columns": [
+            "Parameter",
+            "Mild",
+            "Moderate",
+            "Severe"
+          ],
           "rows": [
             [
-              "Severe",
-              "Wide jet origin on color, dense CW signal with steep deceleration and early termination of diastolic flow (pressure half-time < 100 ms), dilated RV with volume-overload septal motion, markedly increased pulmonic versus aortic forward flow, regurgitant fraction > 40% on CMR"
+              "Pulmonic valve",
+              "Normal",
+              "Normal or abnormal",
+              "Abnormal, may not be visible"
             ],
             [
-              "Mild",
-              "Small jet, usually under 10 mm long with a narrow origin, soft CW signal with slow deceleration, normal RV"
+              "RV size",
+              "Normal (unless another cause)",
+              "Normal or dilated",
+              "Dilated (not in acute PR)"
             ],
             [
-              "Reading",
-              "Pulmonic grading leans on qualitative signs; the pressure half-time shortens with high RV diastolic pressure as well as with severe regurgitation"
+              "Jet size, color Doppler (Nyquist 50–70 cm/s)",
+              "Thin, usually < 10 mm long, narrow origin",
+              "Intermediate",
+              "Broad origin; variable depth of penetration; jet width / pulmonary annulus > 0.7"
+            ],
+            [
+              "Jet density and contour, CW",
+              "Soft",
+              "Dense",
+              "Dense; early termination of diastolic flow; deceleration time < 260 ms; pressure half-time < 100 ms (unreliable with high RV end-diastolic pressure; a steep deceleration is not specific)"
+            ],
+            [
+              "PR index (PR signal duration ÷ diastole)",
+              "—",
+              "< 0.77",
+              "< 0.77 (identifies a CMR regurgitant fraction > 25%)"
+            ],
+            [
+              "Diastolic flow reversal in main or branch PAs, PW",
+              "—",
+              "—",
+              "Prominent"
+            ],
+            [
+              "Pulmonic systolic VTI versus LVOT VTI, PW",
+              "Slightly increased",
+              "Intermediate",
+              "Greatly increased"
+            ],
+            [
+              "Regurgitant fraction (CMR-derived)",
+              "< 20%",
+              "20–40%",
+              "> 40%"
             ]
-          ]
+          ],
+          "note": "Significant PR is uncommon and usually secondary to pulmonary hypertension or congenital heart disease; combine color, pulsed-wave and CW signs. CMR is the best method to quantify PR and follow RV remodeling."
         },
         {
           "heading": "How ASE grades, and the traps",
@@ -2244,12 +2348,12 @@
         "group": "Analgesia",
         "route": "IV",
         "low": 1,
-        "high": 2,
+        "high": 3,
         "unit": "mcg",
         "max": null,
         "conc": "50 mcg/mL",
-        "note": "The label's pediatric statement (2–12 years) is a reduced dose 'as low as 2–3 mcg/kg' for induction and maintenance; 1–2 mcg/kg increments are the usual intraoperative analgesic dose and are not label-derived.",
-        "source": "Fentanyl citrate prescribing information"
+        "note": "The label's pediatric statement (2–12 years) is a reduced dose 'as low as 2–3 mcg/kg' for induction and maintenance; 1–2 mcg/kg increments are the usual intraoperative analgesic dose.",
+        "source": "Fentanyl citrate prescribing information; practice"
       },
       {
         "id": "morphine",
@@ -2316,9 +2420,9 @@
         "low": 0.5,
         "high": null,
         "unit": "mg",
-        "max": 15,
+        "max": 30,
         "conc": "15 or 30 mg/mL",
-        "note": "Off-label: the label says ketorolac is not indicated in pediatric patients (only single-dose pharmacokinetics at 0.5 mg/kg); 0.5 mg/kg with an institutional maximum of 15–30 mg is common practice.",
+        "note": "Off-label: the label says ketorolac is not indicated in pediatric patients (only single-dose pharmacokinetics at 0.5 mg/kg); 0.5 mg/kg to a maximum of 30 mg is the practice adopted here.",
         "source": "Ketorolac tromethamine injection label, revised 2020; institutional practice"
       },
       {
