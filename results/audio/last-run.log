@@ -1,73 +1,73 @@
-[0;93m2026-10-28 10:43:11.574214319 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+[0;93m2026-10-28 12:33:06.325767756 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/VMBUS:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
 70 post(s) to synthesize with kokoro:af_heart
-  icm-2026-esicm-human-centred-partnership-consensus: 174 s, 1356 KB, 80 s to make
-  anaesthesia-2026-prospect-total-shoulder-arthroplasty: 186 s, 1450 KB, 84 s to make
-  fda-2026-cipepofol-cypsedo-induction-approval: 175 s, 1369 KB, 80 s to make
-  ats-2026-sts-borderline-left-heart-consensus: 180 s, 1403 KB, 80 s to make
+  ats-2026-sts-borderline-left-heart-consensus: 180 s, 1403 KB, 83 s to make
   fda-2026-bd-alaris-infusion-sets-class-i-recall-update: 187 s, 1461 KB, 84 s to make
   circ-2026-aha-multidisciplinary-aortic-surgery-statement: 172 s, 1340 KB, 77 s to make
   ejhf-2026-hfa-acnap-heart-transplant-recipients-non-specialist-consensus: 169 s, 1317 KB, 76 s to make
   anesthesiology-2026-oracle-or-air-purification-ssi: 229 s, 1787 KB, 103 s to make
-  jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy: 217 s, 1698 KB, 98 s to make
+  jama-2026-pelican-cardiac-index-guided-hemodynamic-therapy: 217 s, 1698 KB, 99 s to make
   jcin-2026-tavr-surgical-bailout-cms-trends: 232 s, 1810 KB, 104 s to make
-  lancet-2026-mist-minimally-invasive-cabg: 198 s, 1547 KB, 89 s to make
+  lancet-2026-mist-minimally-invasive-cabg: 198 s, 1547 KB, 90 s to make
   transpl-int-2026-esot-bucharest-nrp-consensus: 234 s, 1831 KB, 105 s to make
   lancet-2026-rate-ecmo-anticoagulation: 240 s, 1874 KB, 108 s to make
-  circ-2026-second-universal-definition-heart-failure: 189 s, 1475 KB, 84 s to make
-  icm-2026-adqi-elso-aki-crrt-during-ecmo-consensus: 243 s, 1895 KB, 108 s to make
-  ejhf-2026-hfa-heart-transplantation-consensus: 223 s, 1745 KB, 100 s to make
+  circ-2026-second-universal-definition-heart-failure: 189 s, 1475 KB, 87 s to make
+  icm-2026-adqi-elso-aki-crrt-during-ecmo-consensus: 243 s, 1895 KB, 109 s to make
+  ejhf-2026-hfa-heart-transplantation-consensus: 223 s, 1745 KB, 101 s to make
   jcva-2026-vasopressin-make-cardiac-surgery: 230 s, 1799 KB, 103 s to make
   aic-2026-french-cardiogenic-shock-expert-recommendations: 204 s, 1590 KB, 91 s to make
-  annsurg-2026-sofrib-rib-fixation-rct: 220 s, 1716 KB, 98 s to make
+  annsurg-2026-sofrib-rib-fixation-rct: 220 s, 1716 KB, 99 s to make
   jvs-2026-svs-blunt-thoracic-aortic-injury-focused-update: 205 s, 1601 KB, 92 s to make
   pccm-2026-pediatric-surviving-sepsis-guideline: 214 s, 1674 KB, 96 s to make
-  lancet-2026-vats-vs-open-lobectomy-ipd-meta: 218 s, 1707 KB, 99 s to make
+  lancet-2026-vats-vs-open-lobectomy-ipd-meta: 218 s, 1707 KB, 98 s to make
   jcva-2026-cabg-racial-inequities-nis: 209 s, 1632 KB, 94 s to make
-  pediatrics-2026-aap-periprocedural-anesthesia-environment-policy: 200 s, 1558 KB, 90 s to make
-  circ-2026-aha-acc-acute-pulmonary-embolism-guideline: 184 s, 1438 KB, 83 s to make
-  anaesthesia-2026-international-perioperative-fasting-consensus: 214 s, 1668 KB, 96 s to make
-  ehjci-2026-ase-eacvi-strain-echocardiography-consensus: 197 s, 1537 KB, 88 s to make
+  pediatrics-2026-aap-periprocedural-anesthesia-environment-policy: 199 s, 1558 KB, 90 s to make
+  circ-2026-aha-acc-acute-pulmonary-embolism-guideline: 184 s, 1438 KB, 82 s to make
+  anaesthesia-2026-international-perioperative-fasting-consensus: 214 s, 1668 KB, 95 s to make
+  ehjci-2026-ase-eacvi-strain-echocardiography-consensus: 197 s, 1537 KB, 89 s to make
   aa-2026-sca-sts-doac-cardiac-surgery-consensus: 180 s, 1408 KB, 81 s to make
   anaesthesia-2026-perioperative-blood-pressure-guideline: 244 s, 1908 KB, 109 s to make
   circhf-2026-aha-invasive-hemodynamic-protocols-statement: 205 s, 1603 KB, 92 s to make
-  jcva-2025-eactaic-monitoring-thoracic: 188 s, 1471 KB, 84 s to make
+  jcva-2025-eactaic-monitoring-thoracic: 188 s, 1470 KB, 84 s to make
   jcva-2025-eactaic-airway-thoracic: 182 s, 1423 KB, 82 s to make
   jama-2025-designation-driving-pressure-guided-peep: 236 s, 1847 KB, 106 s to make
   erj-2025-ers-ests-fitness-lung-cancer-guideline: 209 s, 1635 KB, 94 s to make
-  jcva-2025-cabg-delirium-nis-trends: 215 s, 1680 KB, 97 s to make
+  jcva-2025-cabg-delirium-nis-trends: 215 s, 1680 KB, 96 s to make
   asaio-2025-elso-pregnant-peripartum-ecmo-guideline: 160 s, 1246 KB, 72 s to make
-  asaio-2025-elso-accidental-hypothermia-ecmo-guideline: 192 s, 1497 KB, 87 s to make
+  asaio-2025-elso-accidental-hypothermia-ecmo-guideline: 192 s, 1498 KB, 86 s to make
   ehjci-2025-eacvi-acvc-eactaic-cardiac-ultrasound-critical-care: 215 s, 1680 KB, 97 s to make
-  icm-2025-erc-esicm-post-resuscitation-care-guideline: 226 s, 1764 KB, 101 s to make
-  wjes-2025-wses-aast-thoracic-trauma-guidelines: 237 s, 1855 KB, 106 s to make
-  jcva-2025-chd-noncardiac-hospital-volume: 232 s, 1811 KB, 104 s to make
+  icm-2025-erc-esicm-post-resuscitation-care-guideline: 226 s, 1764 KB, 102 s to make
+  wjes-2025-wses-aast-thoracic-trauma-guidelines: 237 s, 1855 KB, 107 s to make
+  jcva-2025-chd-noncardiac-hospital-volume: 232 s, 1811 KB, 105 s to make
   icm-2025-uk-ecmo-emergencies-guideline: 249 s, 1947 KB, 111 s to make
   jama-2026-us-crs-heart-allocation-score: 210 s, 1639 KB, 94 s to make
   fda-2026-philips-lumify-early-alert: 177 s, 1383 KB, 80 s to make
-  ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus: 184 s, 1440 KB, 83 s to make
+  ejcts-2026-eacts-iatrogenic-aortic-dissection-consensus: 184 s, 1440 KB, 84 s to make
   ejcts-2026-eacts-robotic-cardiac-surgery-minimum-standards: 215 s, 1677 KB, 96 s to make
-  fda-2026-sapien-m3-commander-m-delivery-early-alert: 217 s, 1697 KB, 98 s to make
+  fda-2026-sapien-m3-commander-m-delivery-early-alert: 217 s, 1697 KB, 99 s to make
   nejm-2026-icraki-ihd-vs-crrt: 225 s, 1756 KB, 102 s to make
   jama-2026-save-icu-isoflurane-sedation: 246 s, 1922 KB, 112 s to make
-  jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki: 232 s, 1809 KB, 104 s to make
-  jama-2026-vasspr-vasopressin-threshold: 246 s, 1923 KB, 111 s to make
-  bja-2026-europe-cesarean-ga-9989: 220 s, 1721 KB, 99 s to make
+  jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki: 232 s, 1809 KB, 105 s to make
+  jama-2026-vasspr-vasopressin-threshold: 246 s, 1923 KB, 112 s to make
+  bja-2026-europe-cesarean-ga-9989: 220 s, 1721 KB, 98 s to make
   ejcts-2026-euromacs-young-hm3: 208 s, 1623 KB, 93 s to make
-  fda-2026-impella-controller-class-i-recall: 182 s, 1419 KB, 82 s to make
-  rapm-2026-caudal-vs-penile-block-hypospadias-fistula: 239 s, 1863 KB, 107 s to make
+  fda-2026-impella-controller-class-i-recall: 182 s, 1419 KB, 81 s to make
+  rapm-2026-caudal-vs-penile-block-hypospadias-fistula: 239 s, 1864 KB, 107 s to make
   fda-2026-medline-reprocessed-ice-catheter-class-i-recall: 182 s, 1419 KB, 82 s to make
   circ-2026-aha-residual-lesions-reintervention-statement: 182 s, 1419 KB, 82 s to make
-  lancet-healthy-longev-2026-ihope-spinal-vs-general-hip-fracture: 223 s, 1745 KB, 101 s to make
-  esc26-laacs-2-surgical-laa-closure: 216 s, 1689 KB, 97 s to make
-  nejm-2026-tric-i-hf-tricuspid-repair: 217 s, 1693 KB, 97 s to make
+  lancet-healthy-longev-2026-ihope-spinal-vs-general-hip-fracture: 223 s, 1745 KB, 100 s to make
+  esc26-laacs-2-surgical-laa-closure: 216 s, 1689 KB, 98 s to make
+  nejm-2026-tric-i-hf-tricuspid-repair: 217 s, 1693 KB, 98 s to make
   nejm-2026-tavi-pci-sequencing: 194 s, 1514 KB, 87 s to make
-  esc26-popular-ace-tavi-protamine: 218 s, 1703 KB, 98 s to make
+  esc26-popular-ace-tavi-protamine: 218 s, 1702 KB, 98 s to make
   ehj-2026-esc-heart-failure-guideline: 199 s, 1553 KB, 89 s to make
   ehj-2026-fifth-universal-definition-mi: 172 s, 1342 KB, 77 s to make
-  jama-2026-chips-cold-stored-platelets: 193 s, 1507 KB, 87 s to make
+  jama-2026-chips-cold-stored-platelets: 193 s, 1506 KB, 87 s to make
   jtcvs-2026-nrp-vs-dpp-dcd-heart: 205 s, 1601 KB, 92 s to make
-  circ-2026-aha-pediatric-cardiogenic-shock-statement: 187 s, 1457 KB, 83 s to make
-  jama-2026-icecap-hypothermia-duration: 217 s, 1699 KB, 98 s to make
+  circ-2026-aha-pediatric-cardiogenic-shock-statement: 186 s, 1456 KB, 83 s to make
+  jama-2026-icecap-hypothermia-duration: 217 s, 1698 KB, 98 s to make
   jamano-2026-covalent-videolaryngoscopy: 215 s, 1679 KB, 96 s to make
-  jama-2026-dapagliflozin-cardiac-surgery-aki: 208 s, 1621 KB, 93 s to make
-synthesized 70, failed 0, 179270 characters, 109 min
+  jama-2026-dapagliflozin-cardiac-surgery-aki: 207 s, 1620 KB, 94 s to make
+  fda-2026-ezplaz-freeze-dried-plasma: 203 s, 1582 KB, 91 s to make
+  anaesthesia-2026-prospect-total-hip-arthroplasty-update: 228 s, 1782 KB, 102 s to make
+  anaesthesia-2026-remimazolam-vs-propofol-delirium-lung-resection: 205 s, 1605 KB, 92 s to make
+synthesized 70, failed 0, 180173 characters, 110 min
