@@ -118,12 +118,12 @@ enum Scores {
             .toggle("creatinine", "Creatinine > 2.0 mg/dL", "> 177 µmol/L preoperatively"),
         ],
         bands: [
-            ScoreBand(range: 0...0, label: "Class I · 0 predictors", detail: "3.9% (95% CI 2.8–5.4) · original cohort 0.4%", tone: .low),
-            ScoreBand(range: 1...1, label: "Class II · 1 predictor", detail: "6.0% (4.9–7.4) · original 0.9%", tone: .low),
-            ScoreBand(range: 2...2, label: "Class III · 2 predictors", detail: "10.1% (8.1–12.6) · original 6.6%", tone: .moderate),
-            ScoreBand(range: 3...6, label: "Class IV · 3 or more", detail: "15.0% (11.1–20.0) · original 11%", tone: .high),
+            ScoreBand(range: 0...0, label: "Class I · 0 predictors", detail: "3.9% (95% CI 2.8–5.4) · Lee 1999 validation cohort 0.4%", tone: .low),
+            ScoreBand(range: 1...1, label: "Class II · 1 predictor", detail: "6.0% (4.9–7.4) · Lee 0.9%", tone: .low),
+            ScoreBand(range: 2...2, label: "Class III · 2 predictors", detail: "10.1% (8.1–12.6) · Lee 6.6%", tone: .moderate),
+            ScoreBand(range: 3...6, label: "Class IV · 3 or more", detail: "15.0% (11.1–20.0) · Lee 11.0%", tone: .high),
         ],
-        readout: "Risk of MI, pulmonary edema, ventricular fibrillation or cardiac arrest, or complete heart block. First figure: 2017 CCS pooled estimate (MI, cardiac arrest, death at 30 days); second: Lee's 1999 derivation cohort.",
+        readout: "First figure: pooled 30-day risk of MI, cardiac arrest or death from the 2017 CCS guideline's external validation studies. Second: Lee's 1999 validation cohort (in-hospital MI, pulmonary edema, VF or cardiac arrest, complete heart block).",
         source: RefSource(title: "Derivation and prospective validation of a simple index for prediction of cardiac risk of major noncardiac surgery", citation: "Lee TH, et al. Circulation. 1999;100:1043–1049.", url: "https://doi.org/10.1161/01.CIR.100.10.1043", doi: "10.1161/01.CIR.100.10.1043"),
         rateSource: RefSource(title: "Canadian Cardiovascular Society guidelines on perioperative cardiac risk assessment and management for patients who undergo noncardiac surgery", citation: "Duceppe E, et al. Can J Cardiol. 2017;33:17–32.", url: "https://doi.org/10.1016/j.cjca.2016.09.008", doi: "10.1016/j.cjca.2016.09.008"),
         notes: ["Derived in patients ≥ 50 years having elective major non-cardiac surgery; emergency surgery and low-risk procedures were excluded.",
@@ -138,21 +138,22 @@ enum Scores {
         items: [
             .choice("age", "Age", nil, [("≤ 50", 0), ("51–80", 3), ("> 80", 16)]),
             .choice("spo2", "Preoperative SpO₂", "Room air, supine", [("≥ 96%", 0), ("91–95%", 8), ("≤ 90%", 24)]),
-            .toggle("infection", "Respiratory infection in the last month", "Upper or lower, with fever and antibiotic treatment", points: 17),
+            .toggle("infection", "Respiratory infection in the last month", "Upper or lower respiratory infection within the previous month", points: 17),
             .toggle("anemia", "Preoperative anemia", "Hemoglobin ≤ 10 g/dL", points: 11),
             .choice("incision", "Surgical incision", nil, [("Peripheral", 0), ("Upper abdominal", 15), ("Intrathoracic", 24)]),
-            .choice("duration", "Duration of surgery", nil, [("< 2 h", 0), ("2–3 h", 16), ("> 3 h", 23)]),
+            .choice("duration", "Duration of surgery", nil, [("≤ 2 h", 0), ("> 2–3 h", 16), ("> 3 h", 23)]),
             .toggle("emergency", "Emergency procedure", nil, points: 8),
         ],
         bands: [
-            ScoreBand(range: 0...25, label: "Low risk · < 26 points", detail: "1.6% pulmonary complications (validation 1.6%)", tone: .low),
-            ScoreBand(range: 26...44, label: "Intermediate · 26–44", detail: "13.3% (validation 13.3%)", tone: .moderate),
-            ScoreBand(range: 45...123, label: "High · ≥ 45", detail: "42.1% (validation 42.1%)", tone: .high),
+            ScoreBand(range: 0...25, label: "Low risk · < 26 points", detail: "1.6% pulmonary complications in the development sample", tone: .low),
+            ScoreBand(range: 26...44, label: "Intermediate · 26–44", detail: "13.3%", tone: .moderate),
+            ScoreBand(range: 45...123, label: "High · ≥ 45", detail: "42.1%", tone: .high),
         ],
-        readout: "In-hospital postoperative pulmonary complications: respiratory infection or failure, bronchospasm, atelectasis, pleural effusion, pneumothorax or aspiration pneumonitis.",
+        readout: "In-hospital postoperative pulmonary complications (respiratory infection or failure, bronchospasm, atelectasis, pleural effusion, pneumothorax, aspiration pneumonitis); 5% overall in the 2,464-patient cohort.",
         source: RefSource(title: "Prediction of postoperative pulmonary complications in a population-based surgical cohort", citation: "Canet J, et al. Anesthesiology. 2010;113:1338–1350.", url: "https://doi.org/10.1097/ALN.0b013e3181fc6e0a", doi: "10.1097/ALN.0b013e3181fc6e0a"),
         rateSource: nil,
-        notes: ["Derived from 2,464 Catalan patients having non-obstetric surgery under general, neuraxial or regional anesthesia."],
+        notes: ["Derived from 2,464 patients in 59 Catalan hospitals having non-obstetric surgery under general, neuraxial or regional anesthesia; AUC 0.90 (development) and 0.88 (validation).",
+                "External validation (PERISCOPE, 2014) found higher observed rates in the low and intermediate classes than predicted."],
         keywords: ["pulmonary complications", "ppc", "respiratory risk", "canet"])
 
     /// STOP-Bang. Chung F et al. Anesthesiology 2008;108:812-21; Chest 2016;149:631-8.
@@ -167,18 +168,18 @@ enum Scores {
             .toggle("pressure", "Pressure", "Treated or untreated high blood pressure"),
             .toggle("bmi", "BMI > 35 kg/m²"),
             .toggle("age", "Age > 50 years"),
-            .toggle("neck", "Neck circumference > 40 cm", "Measured at the laryngeal prominence (about 16 inches)"),
+            .toggle("neck", "Neck circumference > 40 cm", "About 16 in, measured at the laryngeal prominence (the Toronto form uses ≥ 43 cm for men and ≥ 41 cm for women)"),
             .toggle("gender", "Male"),
         ],
         bands: [
-            ScoreBand(range: 0...2, label: "Low risk · 0–2", detail: "OSA unlikely on screening alone", tone: .low),
-            ScoreBand(range: 3...4, label: "Intermediate · 3–4", detail: "Consider sleep study if other features present", tone: .moderate),
+            ScoreBand(range: 0...2, label: "Low risk · 0–2", detail: "Moderate-to-severe OSA unlikely", tone: .low),
+            ScoreBand(range: 3...4, label: "Intermediate · 3–4", detail: "A score ≥ 3 is 93% sensitive for AHI > 15 and 100% for AHI > 30; specificity is modest, so weigh BMI, neck size and sex", tone: .moderate),
             ScoreBand(range: 5...8, label: "High risk · 5–8", detail: "High probability of moderate-to-severe OSA", tone: .high),
         ],
-        readout: "Count of yes answers. The 2016 update also classes STOP ≥ 2 plus male sex, BMI > 35 or neck > 40 cm as high risk.",
+        readout: "Count of yes answers. The 2016 update also classes yes to ≥ 2 of the STOP questions plus male sex, BMI > 35 or neck > 40 cm as high risk.",
         source: RefSource(title: "STOP questionnaire: a tool to screen patients for obstructive sleep apnea", citation: "Chung F, et al. Anesthesiology. 2008;108:812–821.", url: "https://doi.org/10.1097/ALN.0b013e31816d83e4", doi: "10.1097/ALN.0b013e31816d83e4"),
         rateSource: RefSource(title: "STOP-Bang questionnaire: a practical approach to screen for obstructive sleep apnea", citation: "Chung F, Abdullah HR, Liao P. Chest. 2016;149:631–638.", url: "https://doi.org/10.1378/chest.15-0903", doi: "10.1378/chest.15-0903"),
-        notes: ["Sensitivity rises with the score; a score ≥ 3 has high sensitivity but modest specificity, so intermediate scores are read together with BMI, neck size and sex."],
+        notes: ["Validated against polysomnography in surgical patients; the probability of moderate-to-severe OSA rises steadily with the score."],
         keywords: ["osa", "sleep apnea", "screening", "airway"])
 
     /// Modified Aldrete score. Aldrete JA. J Clin Anesth 1995;7:89-91.
@@ -189,7 +190,7 @@ enum Scores {
         items: [
             .choice("activity", "Activity", "Voluntary or on command", [("Moves 4 extremities", 2), ("Moves 2 extremities", 1), ("Moves 0 extremities", 0)]),
             .choice("respiration", "Respiration", nil, [("Breathes deeply and coughs freely", 2), ("Dyspnea, shallow or limited breathing", 1), ("Apneic", 0)]),
-            .choice("circulation", "Circulation", "Blood pressure versus pre-anesthetic level", [("Within 20 mmHg", 2), ("20–50 mmHg off", 1), ("More than 50 mmHg off", 0)]),
+            .choice("circulation", "Circulation", "Blood pressure versus the pre-anesthetic level", [("Within ± 20%", 2), ("± 20–49%", 1), ("± 50% or more", 0)]),
             .choice("consciousness", "Consciousness", nil, [("Fully awake", 2), ("Arousable on calling", 1), ("Not responding", 0)]),
             .choice("oxygen", "Oxygen saturation", nil, [("> 92% on room air", 2), ("Needs O₂ to keep > 90%", 1), ("< 90% even with O₂", 0)]),
         ],
@@ -200,7 +201,7 @@ enum Scores {
         readout: "Total 0–10; a score of 9 or more is the usual criterion for discharge from phase I recovery.",
         source: RefSource(title: "The post-anesthesia recovery score revisited", citation: "Aldrete JA. J Clin Anesth. 1995;7:89–91.", url: "https://doi.org/10.1016/0952-8180(94)00001-K", doi: "10.1016/0952-8180(94)00001-K"),
         rateSource: nil,
-        notes: ["The 1995 revision replaced the original 1970 color criterion with pulse oximetry."],
+        notes: ["The 1995 revision replaced the 1970 score's color criterion (pink / pale or dusky / cyanotic) with pulse oximetry."],
         keywords: ["pacu", "recovery", "discharge criteria", "phase i"])
 
     /// Apfel simplified PONV score. Apfel CC et al. Anesthesiology 1999;91:693-700; prophylaxis per the
@@ -216,15 +217,15 @@ enum Scores {
             .toggle("opioids", "Postoperative opioids expected"),
         ],
         bands: [
-            ScoreBand(range: 0...0, label: "0 factors · ~10%", detail: "Consensus: 1–2 agents are still reasonable; antiemetic prophylaxis is encouraged for all patients", tone: .low),
-            ScoreBand(range: 1...1, label: "1 factor · ~21%", detail: "Consensus: multimodal prophylaxis with 2 agents", tone: .low),
-            ScoreBand(range: 2...2, label: "2 factors · ~39%", detail: "Consensus: multimodal prophylaxis with 2 agents", tone: .moderate),
-            ScoreBand(range: 3...3, label: "3 factors · ~61%", detail: "Consensus: 3–4 agents (e.g. dexamethasone + 5-HT₃ antagonist + a third class), consider TIVA", tone: .high),
-            ScoreBand(range: 4...4, label: "4 factors · ~79%", detail: "Consensus: 3–4 agents, consider TIVA and opioid-sparing analgesia", tone: .high),
+            ScoreBand(range: 0...0, label: "0 factors · 10%", detail: "Low risk. Fifth consensus (2025): two prophylactic interventions for adults at any risk", tone: .low),
+            ScoreBand(range: 1...1, label: "1 factor · 21%", detail: "Medium risk: two interventions (e.g. dexamethasone + a 5-HT₃ antagonist)", tone: .low),
+            ScoreBand(range: 2...2, label: "2 factors · 39%", detail: "Medium risk: two interventions", tone: .moderate),
+            ScoreBand(range: 3...3, label: "3 factors · 61%", detail: "High risk: three to four interventions from different classes, plus risk reduction (TIVA, opioid-sparing, regional)", tone: .high),
+            ScoreBand(range: 4...4, label: "4 factors · 79%", detail: "High risk: three to four interventions, plus risk reduction", tone: .high),
         ],
-        readout: "Predicted incidence of PONV within 24 h (Apfel 1999). Rescue uses an agent from a class not already given.",
+        readout: "Incidence of PONV within 24 h in Apfel's 1999 cohorts (inhalational anesthesia, no prophylaxis). Rescue uses a class not already given; a same-class repeat within 6 h adds nothing.",
         source: RefSource(title: "A simplified risk score for predicting postoperative nausea and vomiting", citation: "Apfel CC, et al. Anesthesiology. 1999;91:693–700.", url: "https://doi.org/10.1097/00000542-199909000-00022", doi: "10.1097/00000542-199909000-00022"),
-        rateSource: RefSource(title: "Fourth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting", citation: "Gan TJ, et al. Anesth Analg. 2020;131:411–448.", url: "https://doi.org/10.1213/ANE.0000000000004833", doi: "10.1213/ANE.0000000000004833"),
-        notes: ["See the PONV quick reference for agents, doses and timing."],
+        rateSource: RefSource(title: "Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary", citation: "Gan TJ, Jin Z, Ayad S, et al. Anesth Analg. 2025; published online ahead of print.", url: "https://doi.org/10.1213/ANE.0000000000007816", doi: "10.1213/ANE.0000000000007816"),
+        notes: ["See the PONV quick reference for agents, doses and timing.", "The Fifth consensus (2025) supersedes the 2020 Fourth: it counts 0 factors as low, 1–2 as medium and ≥ 3 as high risk, adds IV aprepitant and IV amisulpride, and no longer recommends metoclopramide for prophylaxis."],
         keywords: ["ponv", "nausea", "vomiting", "antiemetic", "prophylaxis"])
 }
