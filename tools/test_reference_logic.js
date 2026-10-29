@@ -426,6 +426,20 @@ test('echo values in reference.json', () => {
   eq([39, 40].map((v) => gr('ta', 'male', v)), [0, 4], 'tricuspid annulus ≥ 40 mm');
   eq([21, 21.5].map((v) => R.echo.grade(R.echo.indexed(find('ta')), 'male', v)), [0, 4], 'tricuspid annulus > 21 mm/m²');
   eq(R.echo.ageLimit(find('sov'), 'female', { age: 45, bsa: 1.7 }).value, 3.6, 'Goldstein 2015 women 40–49');
+  // Lang 2015 Supplemental Table 3: mild, moderate and severe for LV size, wall thickness and mass
+  eq([58.4, 58.5, 63, 64, 68, 69].map((v) => gr('lvidd', 'male', v)), [0, 1, 1, 2, 2, 3], 'LV end-diastolic diameter, men (mm)');
+  eq([52.2, 53, 56, 57, 61, 62].map((v) => gr('lvidd', 'female', v)), [0, 1, 1, 2, 2, 3], 'LV end-diastolic diameter, women (mm)');
+  eq([1.0, 1.05, 1.3, 1.4, 1.6, 1.7].map((v) => gr('ivsd', 'male', v)), [0, 1, 1, 2, 2, 3], 'septum, men');
+  eq([0.9, 1.0, 1.2, 1.3, 1.5, 1.6].map((v) => gr('pwd', 'female', v)), [0, 1, 1, 2, 2, 3], 'posterior wall, women');
+  eq([115, 116, 131, 132, 148, 149].map((v) => gr('lvmi', 'male', v)), [0, 1, 1, 2, 2, 3], 'LV mass index (linear), men');
+  eq([88, 89, 100, 101, 112, 113].map((v) => gr('lvmi2d', 'female', v)), [0, 1, 1, 2, 2, 3], 'LV mass index (2D), women');
+  eq([74, 75, 89, 90, 100, 101].map((v) => gr('lvedvi', 'male', v)), [0, 1, 1, 2, 2, 3], 'LV end-diastolic volume index, men');
+  eq(R.echo.ranges(find('lvids'), 'female').map((x) => x.text).join(' · '), 'Normal 21.6–34.8 · mild ≤ 38 · moderate ≤ 41 · severe > 41');
+  // RV free-wall strain: normal limit by sex (2025 strain consensus); the limit itself is normal
+  eq([20, 19.9, 15, 14.9, 11, 10.9].map((v) => gr('rvfws', 'male', v)), [0, 1, 1, 2, 2, 3], 'free-wall strain, men');
+  eq([21, 20.5, 15, 11, 10.9].map((v) => gr('rvfws', 'female', v)), [0, 1, 1, 2, 3], 'free-wall strain, women');
+  // main PA diameter (ASE 2025 Table 1, May 2025 file)
+  eq([2.5, 2.6, 3.0, 3.1, 3.5, 3.6].map((v) => gr('pa', 'male', v)), [0, 1, 1, 2, 2, 3], 'PA diameter');
 });
 
 // ---------- ASE 2025 diastolic function ----------
@@ -477,6 +491,12 @@ test('diastolic: the main algorithm (Figure 3)', () => {
   eq(r.lap, 'unknown', 'S/D above 0.67 alone is not evidence of normal LAP');
   r = dd({ E: 90, A: 70, eSeptal: 5, eLateral: 6, tr: 2.2, pvsd: 0.5 });
   eq(r.lap, 'increased', 'S/D 0.67 or less still counts');
+  // with a reduced LVEF an S/D above 0.67 is an absent sign; with 50% or more it still settles nothing
+  r = dd({ E: 90, A: 70, eSeptal: 5, eLateral: 6, tr: 2.2, pvsd: 1.0, lvef: 35 });
+  eq([r.lap, r.grade], ['normal', null], 'S/D 1.0 with LVEF 35%');
+  assert.ok(r.steps.find((s) => s.id === 'pvsd').text.includes('counts as normal'));
+  eq(dd({ E: 90, A: 70, eSeptal: 5, eLateral: 6, tr: 2.2, pvsd: 1.0, lvef: 50 }).lap, 'unknown', 'LVEF 50% is not reduced');
+  eq(dd({ E: 90, A: 70, eSeptal: 5, eLateral: 6, tr: 2.2, pvsd: 0.6, lvef: 35 }).lap, 'increased');
   // second-line signs when the supplemental four are missing
   r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, ara: 40 });
   eq(r.lap, 'lvedp', 'Ar − A alone is an LVEDP marker');
@@ -489,13 +509,24 @@ test('diastolic: the main algorithm (Figure 3)', () => {
   r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, valsalva: 0 });
   eq(r.lap, 'normal', 'no fall with Valsalva is an absent sign');
   // cutoffs: ≤ for e′, ≥ for E/e′ and TR
-  eq(R.diastolicPrimaries({ eSeptal: 6, eLateral: 8 }).v1, true, 'septal 6 is reduced');
+  eq(R.diastolicPrimaries({ eSeptal: 6 }).v1, true, 'septal 6 alone is reduced');
+  eq(R.diastolicPrimaries({ eLateral: 7 }).v1, true, 'lateral 7 alone is reduced');
   eq(R.diastolicPrimaries({ eSeptal: 6.1, eLateral: 7.1 }).v1, false);
+  // both sites measured: the average decides (septal 6 with lateral 8 averages 7)
+  eq(R.diastolicPrimaries({ eSeptal: 6, eLateral: 8 }).v1, false, 'average 7 is not reduced');
+  eq(R.diastolicPrimaries({ eSeptal: 5, eLateral: 8 }).v1, true, 'average 6.5 is reduced');
+  eq(R.diastolicPrimaries({ E: 100, eSeptal: 6.5, eLateral: 9 }).v2, false, 'septal E/e′ 15.4 but average 12.9');
+  eq(R.diastolicPrimaries({ E: 100, eSeptal: 6.5 }).v2, true, 'septal E/e′ 15.4 alone counts');
+  assert.ok(dd({ E: 100, A: 80, eSeptal: 6, eLateral: 8, tr: 2.2 }).steps[0].text.endsWith('by the average'));
   eq(R.diastolicPrimaries({ E: 98, eSeptal: 7, eLateral: 7 }).v2, true, 'average E/e′ 14 counts (Figure 3: ≥ 14)');
   eq(R.diastolicPrimaries({ tr: 2.8 }).v3, true, 'TR 2.8 counts');
   // age-specific e′ (Table 6, strict <)
-  eq(R.diastolicPrimaries({ eSeptal: 6.5, eLateral: 9.5, ageBand: '20-39' }).v1, true, 'septal 6.5 < 7 at 20–39 y');
+  eq(R.diastolicPrimaries({ eSeptal: 6.5, eLateral: 9.5, ageBand: '20-39' }).v1, true, 'average 8 < 9 at 20–39 y');
+  eq(R.diastolicPrimaries({ eSeptal: 6.5, ageBand: '20-39' }).v1, true, 'septal 6.5 < 7 at 20–39 y');
   eq(R.diastolicPrimaries({ eSeptal: 6, eLateral: 7, ageBand: '>65' }).v1, false, 'strict < at > 65 y');
+});
+test('diastolic: the shipped content carries the intraoperative warning', () => {
+  assert.ok(/intraoperative/.test(bundle.diastolic.readingWarning || ''));
 });
 test('diastolic: presence (Figure 2), MAC (Figure 4) and transplant', () => {
   let pr = R.diastolicPresence({ E: 50, A: 80, eSeptal: 5, eLateral: 6 });

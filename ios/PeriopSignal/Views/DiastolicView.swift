@@ -43,7 +43,7 @@ struct DiastolicView: View {
         i.lungDisease = lungDisease; i.ageBand = ageBand.isEmpty ? nil : ageBand
         i.pvsd = num("pvsd"); i.lars = num("lars"); i.lavi = num("lavi"); i.ivrt = num("ivrt")
         i.prEdv = num("prEdv"); i.padp = num("padp"); i.lwave = num("lwave"); i.ara = num("ara"); i.valsalva = num("valsalva")
-        i.esr = num("esr"); i.lvmi = num("lvmi"); i.female = female
+        i.esr = num("esr"); i.lvmi = num("lvmi"); i.lvef = num("lvef"); i.female = female
         return i
     }
 
@@ -57,7 +57,8 @@ struct DiastolicView: View {
         Field(id: "tr", label: "Peak TR velocity", unit: "m/s", hint: "Used when RAP cannot be estimated"),
     ]
     private static let supp: [Field] = [
-        Field(id: "pvsd", label: "Pulmonary vein S/D", unit: "", hint: "Abnormal ≤ 0.67; reliable mainly with reduced EF"),
+        Field(id: "lvef", label: "LVEF", unit: "%", hint: "Below 50%: a pulmonary vein S/D above 0.67 counts as normal"),
+        Field(id: "pvsd", label: "Pulmonary vein S/D", unit: "", hint: "Abnormal ≤ 0.67; above 0.67 settles nothing unless LVEF is reduced"),
         Field(id: "lars", label: "LA reservoir strain", unit: "%", hint: "Abnormal ≤ 18%; not with AF, significant MR, transplant, normal EF with GLS > 18%, or LA stunning"),
         Field(id: "lavi", label: "LA volume index", unit: "mL/m²", hint: "Abnormal > 34; not from athletes, anemia, AF or mitral disease"),
         Field(id: "ivrt", label: "IVRT", unit: "ms", hint: "Abnormal ≤ 70 ms; rate dependent"),
@@ -79,8 +80,8 @@ struct DiastolicView: View {
                     let pop = d.populations.first { $0.id == population } ?? d.populations[0]
                     switch pop.mode {
                     case "main": mainPathway(d, pop)
-                    case "mac", "transplant": shortPathway(pop)
-                    default: listPathway(pop)
+                    case "mac", "transplant": shortPathway(d, pop)
+                    default: listPathway(d, pop)
                     }
                     footer(d)
                 } else {
@@ -186,7 +187,7 @@ struct DiastolicView: View {
                 Eyebrow(text: "ASE 2025 · Figure 3", color: t)
                 Spacer()
                 Button {
-                    UIPasteboard.general.string = summary(r)
+                    UIPasteboard.general.string = summary(r, d)
                     copied.toggle()
                 } label: { Text("Copy") }
                 .buttonStyle(GhostButtonStyle())
@@ -218,6 +219,7 @@ struct DiastolicView: View {
                     Text(c).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                 }
             }
+            readingWarning(d)
         }
         // §13A: test symptomatic patients with grade 1, normal LAP without a grade, or an undetermined reading; not grade 0
         let anyMain = [r.primaries.v1, r.primaries.v2, r.primaries.v3].contains { $0 != nil }
@@ -238,7 +240,8 @@ struct DiastolicView: View {
         fieldsCard("Main variables", Self.main, flags: ["eSeptal": p.eFlags.first ?? nil, "eLateral": p.eFlags.count > 1 ? p.eFlags[1] : nil, "pasp": p.v3ByTR ? nil : p.v3, "tr": p.v3ByTR ? p.v3 : nil])
         let derived = [p.EA.map { "E/A " + PedsCalc.fmt($0) }, p.ea.map { "average e′ " + PedsCalc.fmt($0) + " cm/s" }, p.ees.map { "septal E/e′ " + PedsCalc.fmt($0) }, p.eel.map { "lateral E/e′ " + PedsCalc.fmt($0) }, p.eea.map { "average E/e′ " + PedsCalc.fmt($0) }].compactMap { $0 }
         if !derived.isEmpty { note(derived.joined(separator: " · ")) }
-        fieldsCard("Supplemental, when the main three disagree", Self.supp, flags: ["pvsd": num("pvsd").flatMap { $0 <= 0.67 ? true : nil }, "lars": num("lars").map { $0 <= 18 }, "lavi": num("lavi").map { $0 > 34 }, "ivrt": num("ivrt").map { $0 <= 70 }])
+        let reducedEF = DiastolicCalc.reducedEF(input) == true
+        fieldsCard("Supplemental, when the main three disagree", Self.supp, flags: ["pvsd": num("pvsd").flatMap { $0 <= 0.67 ? true : (reducedEF ? false : nil) }, "lars": num("lars").map { $0 <= 18 }, "lavi": num("lavi").map { $0 > 34 }, "ivrt": num("ivrt").map { $0 <= 70 }])
         VStack(alignment: .leading, spacing: 8) {
             Button { withAnimation(.snappy) { showMore.toggle() } } label: {
                 HStack {
@@ -266,13 +269,14 @@ struct DiastolicView: View {
 
     // MARK: Annular calcification and transplant
 
-    @ViewBuilder private func shortPathway(_ pop: DiastolicPopulation) -> some View {
+    @ViewBuilder private func shortPathway(_ d: DiastolicData, _ pop: DiastolicPopulation) -> some View {
         let r = pop.mode == "mac" ? DiastolicCalc.mac(input) : DiastolicCalc.transplant(input)
         let t: Color = r.lap == .increased ? PS.accent : (r.lap == .normal ? PS.green : PS.fg3)
         resultCard(tone: t) {
             Eyebrow(text: pop.mode == "mac" ? "ASE 2025 · Figure 4" : "ASE 2025 · Section 15B", color: t)
             Text(r.headline).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(r.lap == .unknown ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
             Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            readingWarning(d)
         }
         let fields: [Field] = pop.mode == "mac"
             ? [Field(id: "E", label: "Mitral E velocity", unit: "cm/s"), Field(id: "A", label: "Mitral A velocity", unit: "cm/s"), Field(id: "ivrt", label: "IVRT", unit: "ms", hint: "Decides when E/A is 0.8–1.8")]
@@ -283,12 +287,13 @@ struct DiastolicView: View {
 
     // MARK: Populations outside the algorithm
 
-    @ViewBuilder private func listPathway(_ pop: DiastolicPopulation) -> some View {
+    @ViewBuilder private func listPathway(_ d: DiastolicData, _ pop: DiastolicPopulation) -> some View {
         resultCard(tone: PS.accent2) {
             Eyebrow(text: "Main algorithm does not apply", color: PS.accent2)
             Text(pop.name).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
             Text("The 2025 document reads filling pressure in this group from its own signs, listed below; enter them in the report rather than a grade.")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            readingWarning(d)
         }
         if let ind = pop.indicators, !ind.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
@@ -311,6 +316,17 @@ struct DiastolicView: View {
                     .fill(tone.opacity(0.9)).frame(height: 3)
                     .clipShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
             }
+    }
+
+    /// The guideline's scope on every reading: not for intraoperative use.
+    @ViewBuilder private func readingWarning(_ d: DiastolicData) -> some View {
+        if let w = d.readingWarning {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill").font(PS.sys(size: 11)).foregroundStyle(PS.accent)
+                Text(w).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.top, 2)
+        }
     }
 
     private func note(_ text: String) -> some View {
@@ -363,7 +379,7 @@ struct DiastolicView: View {
         }
     }
 
-    private func summary(_ r: DiastolicCalc.Reading) -> String {
+    private func summary(_ r: DiastolicCalc.Reading, _ d: DiastolicData) -> String {
         let p = r.primaries
         var parts: [String] = []
         if let v = p.E { parts.append("E \(PedsCalc.fmt(v)) cm/s") }
@@ -375,6 +391,6 @@ struct DiastolicView: View {
         if let v = num("pasp") { parts.append("PASP \(PedsCalc.fmt(v)) mmHg") }
         if let v = num("tr") { parts.append("TR \(PedsCalc.fmt(v)) m/s") }
         for fld in Self.supp + Self.more { if let v = num(fld.id) { parts.append("\(fld.label) \(PedsCalc.fmt(v))\(fld.unit.isEmpty ? "" : " " + fld.unit)") } }
-        return "LV diastolic function (ASE 2025): \(r.headline). \(r.explanation)\n" + parts.joined(separator: "; ")
+        return "LV diastolic function (ASE 2025): \(r.headline). \(r.explanation)\n" + parts.joined(separator: "; ") + (d.readingWarning.map { "\n" + $0 } ?? "")
     }
 }

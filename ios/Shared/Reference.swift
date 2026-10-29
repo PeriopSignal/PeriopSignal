@@ -683,6 +683,8 @@ struct DiastolicData: Codable {
     var source: EchoSource
     var validation: String?
     var scope: String
+    /// Shown on every reading and copied with it: the guideline is not for intraoperative use.
+    var readingWarning: String?
     var supersedes: String?
     var populations: [DiastolicPopulation]
     /// Diastolic exercise echo: [reading, criteria].

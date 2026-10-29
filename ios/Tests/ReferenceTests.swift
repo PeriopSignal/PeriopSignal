@@ -692,6 +692,17 @@ final class ReferenceTests: XCTestCase {
         let taIndexed = try XCTUnwrap(EchoCalc.indexed(try m("ta")))
         XCTAssertEqual([21.0, 21.5].map { EchoCalc.grade(taIndexed, .male, $0) }, [0, 4], "tricuspid annulus > 21 mm/m²")
         XCTAssertEqual(EchoCalc.ageLimit(try m("sov"), .female, EchoCalc.Context(age: 45, bsa: 1.7))?.value, 3.6, "Goldstein 2015 women 40–49")
+        // Lang 2015 Supplemental Table 3: mild, moderate and severe for LV size, wall thickness and mass
+        XCTAssertEqual(try [58.4, 58.5, 63, 64, 68, 69].map { EchoCalc.grade(try m("lvidd"), .male, $0) }, [0, 1, 1, 2, 2, 3], "LV end-diastolic diameter, men (mm)")
+        XCTAssertEqual(try [52.2, 53, 56, 57, 61, 62].map { EchoCalc.grade(try m("lvidd"), .female, $0) }, [0, 1, 1, 2, 2, 3], "LV end-diastolic diameter, women (mm)")
+        XCTAssertEqual(try [1.0, 1.05, 1.3, 1.4, 1.6, 1.7].map { EchoCalc.grade(try m("ivsd"), .male, $0) }, [0, 1, 1, 2, 2, 3], "septum, men")
+        XCTAssertEqual(try [0.9, 1.0, 1.2, 1.3, 1.5, 1.6].map { EchoCalc.grade(try m("pwd"), .female, $0) }, [0, 1, 1, 2, 2, 3], "posterior wall, women")
+        XCTAssertEqual(try [115.0, 116, 131, 132, 148, 149].map { EchoCalc.grade(try m("lvmi"), .male, $0) }, [0, 1, 1, 2, 2, 3], "LV mass index (linear), men")
+        // RV free-wall strain: normal limit by sex (2025 strain consensus); the limit itself is normal
+        XCTAssertEqual(try [20.0, 19.9, 15, 14.9, 11, 10.9].map { EchoCalc.grade(try m("rvfws"), .male, $0) }, [0, 1, 1, 2, 2, 3], "free-wall strain, men")
+        XCTAssertEqual(try [21.0, 20.5, 15, 11, 10.9].map { EchoCalc.grade(try m("rvfws"), .female, $0) }, [0, 1, 1, 2, 3], "free-wall strain, women")
+        // main PA diameter (ASE 2025 Table 1, May 2025 file)
+        XCTAssertEqual(try [2.5, 2.6, 3.0, 3.1, 3.5, 3.6].map { EchoCalc.grade(try m("pa"), .male, $0) }, [0, 1, 1, 2, 2, 3], "PA diameter")
     }
 
     func testAorticAndTricuspidRegurgitation() {
@@ -715,7 +726,7 @@ final class ReferenceTests: XCTestCase {
         i.E = v["E"]; i.A = v["A"]; i.eSeptal = v["eSeptal"]; i.eLateral = v["eLateral"]; i.pasp = v["pasp"]; i.tr = v["tr"]
         i.pvsd = v["pvsd"]; i.lars = v["lars"]; i.lavi = v["lavi"]; i.ivrt = v["ivrt"]
         i.prEdv = v["prEdv"]; i.padp = v["padp"]; i.lwave = v["lwave"]; i.ara = v["ara"]; i.valsalva = v["valsalva"]
-        i.esr = v["esr"]; i.lvmi = v["lvmi"]
+        i.esr = v["esr"]; i.lvmi = v["lvmi"]; i.lvef = v["lvef"]
         i.lungDisease = lung; i.ageBand = age
         return i
     }
@@ -754,6 +765,12 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(r.lap, .unknown, "S/D above 0.67 alone is not evidence of normal LAP")
         r = dd(["E": 90, "A": 70, "eSeptal": 5, "eLateral": 6, "tr": 2.2, "pvsd": 0.5])
         XCTAssertEqual(r.lap, .increased, "S/D 0.67 or less still counts")
+        // with a reduced LVEF an S/D above 0.67 is an absent sign; with 50% or more it still settles nothing
+        r = dd(["E": 90, "A": 70, "eSeptal": 5, "eLateral": 6, "tr": 2.2, "pvsd": 1.0, "lvef": 35])
+        XCTAssertEqual(r.lap, .normal, "S/D 1.0 with LVEF 35%"); XCTAssertNil(r.grade)
+        XCTAssertTrue(r.steps.first { $0.id == "pvsd" }?.text.contains("counts as normal") ?? false)
+        XCTAssertEqual(dd(["E": 90, "A": 70, "eSeptal": 5, "eLateral": 6, "tr": 2.2, "pvsd": 1.0, "lvef": 50]).lap, .unknown, "LVEF 50% is not reduced")
+        XCTAssertEqual(dd(["E": 90, "A": 70, "eSeptal": 5, "eLateral": 6, "tr": 2.2, "pvsd": 0.6, "lvef": 35]).lap, .increased)
         r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0, "ara": 40])
         XCTAssertEqual(r.lap, .lvedp, "Ar − A alone is an LVEDP marker")
         r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0, "padp": 18])
@@ -762,11 +779,19 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(r.lap, .normal, "Ar − A of −20 ms is an absent sign"); XCTAssertNil(r.grade)
         r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0, "valsalva": 0])
         XCTAssertEqual(r.lap, .normal, "no fall with Valsalva is an absent sign")
-        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6, "eLateral": 8])).v1, true, "septal 6 is reduced")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6])).v1, true, "septal 6 alone is reduced")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eLateral": 7])).v1, true, "lateral 7 alone is reduced")
         XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6.1, "eLateral": 7.1])).v1, false)
+        // both sites measured: the average decides (septal 6 with lateral 8 averages 7)
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6, "eLateral": 8])).v1, false, "average 7 is not reduced")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 5, "eLateral": 8])).v1, true, "average 6.5 is reduced")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["E": 100, "eSeptal": 6.5, "eLateral": 9])).v2, false, "septal E/e′ 15.4 but average 12.9")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["E": 100, "eSeptal": 6.5])).v2, true, "septal E/e′ 15.4 alone counts")
+        XCTAssertTrue(dd(["E": 100, "A": 80, "eSeptal": 6, "eLateral": 8, "tr": 2.2]).steps[0].text.hasSuffix("by the average"))
         XCTAssertEqual(DiastolicCalc.primaries(ddInput(["E": 98, "eSeptal": 7, "eLateral": 7])).v2, true, "average E/e′ 14 counts (Figure 3: 14 or more)")
         XCTAssertEqual(DiastolicCalc.primaries(ddInput(["tr": 2.8])).v3, true, "TR 2.8 counts")
-        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6.5, "eLateral": 9.5], age: "20-39")).v1, true, "septal 6.5 is under 7 at 20–39 y")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6.5, "eLateral": 9.5], age: "20-39")).v1, true, "average 8 is under 9 at 20–39 y")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6.5], age: "20-39")).v1, true, "septal 6.5 is under 7 at 20–39 y")
         XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6, "eLateral": 7], age: ">65")).v1, false, "strictly under at > 65 y")
     }
 
@@ -797,6 +822,7 @@ final class ReferenceTests: XCTestCase {
         XCTAssertTrue(dd.populations.contains { $0.mode == "mac" })
         XCTAssertTrue(dd.populations.contains { $0.mode == "transplant" })
         XCTAssertFalse(dd.scope.isEmpty)
+        XCTAssertTrue(dd.readingWarning?.contains("intraoperative") ?? false, "every reading carries the intraoperative warning")
     }
 
     // MARK: ACLS code timer (mirrors tools/test_reference_logic.js)

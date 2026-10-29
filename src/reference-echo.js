@@ -140,7 +140,8 @@
     ['tr', 'Peak TR velocity', 'm/s', 'Used when RAP cannot be estimated'],
   ];
   const SUPP = [
-    ['pvsd', 'Pulmonary vein S/D', '', 'Abnormal ≤ 0.67; reliable mainly with reduced EF'],
+    ['lvef', 'LVEF', '%', 'Below 50%: a pulmonary vein S/D above 0.67 counts as normal'],
+    ['pvsd', 'Pulmonary vein S/D', '', 'Abnormal ≤ 0.67; above 0.67 settles nothing unless LVEF is reduced'],
     ['lars', 'LA reservoir strain', '%', 'Abnormal ≤ 18%; not with AF, significant MR, transplant, normal EF with GLS > 18%, or LA stunning'],
     ['lavi', 'LA volume index', 'mL/m²', 'Abnormal > 34; not from athletes, anemia, AF or mitral disease'],
     ['ivrt', 'IVRT', 'ms', 'Abnormal ≤ 70 ms; rate dependent'],
@@ -160,11 +161,12 @@
     const data = () => (c.bundle() && c.bundle().diastolic) || null;
     const input = () => ({ E: num('E'), A: num('A'), eSeptal: num('eSeptal'), eLateral: num('eLateral'), pasp: num('pasp'), tr: num('tr'), lungDisease: st.lung, ageBand: st.age || null,
       pvsd: num('pvsd'), lars: num('lars'), lavi: num('lavi'), ivrt: num('ivrt'), prEdv: num('prEdv'), padp: num('padp'), lwave: num('lwave'), ara: num('ara'), valsalva: num('valsalva'),
-      esr: num('esr'), lvmi: num('lvmi'), sex: st.sex });
+      esr: num('esr'), lvmi: num('lvmi'), lvef: num('lvef'), sex: st.sex });
     const rows = (list, flags) => `<div class="r-card flush">${list.map(([k, label, unit, hint]) => {
       const fl = flags ? flags[k] : null;
       return `<div class="r-meas"><label class="mt" for="dd-${k}"><span>${esc(label)}</span>${hint ? `<small>${esc(hint)}</small>` : ''}</label>${fl === true ? '<i class="gd" style="background:var(--accent)" title="Abnormal"></i>' : (fl === false ? '<i class="gd" style="background:var(--new)" title="Normal"></i>' : '<i class="gd"></i>')}${numIn('dd-' + k, st.v[k], 'val', { k, label, signed: SIGNED.includes(k) })}<span class="mu">${esc(unit)}</span></div>`;
     }).join('')}</div>`;
+    const warnLine = (d) => (d && d.readingWarning ? c.caution(d.readingWarning) : '');
     const toneFor = (r) => r.lap === 'increased' ? 'var(--accent)' : (r.lap === 'lvedp' ? 'var(--orange)' : (r.lap === 'normal' ? (r.grade === 1 ? 'var(--amber)' : 'var(--new)') : 'var(--fg-3)'));
     function summaryText(r) {
       const p = r.primaries || R.diastolicPrimaries(input());
@@ -173,7 +175,8 @@
       if (p.es !== null) parts.push('septal e′ ' + R.fmt(p.es)); if (p.el !== null) parts.push('lateral e′ ' + R.fmt(p.el)); if (p.eea !== null) parts.push('average E/e′ ' + R.fmt(p.eea));
       if (num('pasp') !== null) parts.push('PASP ' + R.fmt(num('pasp')) + ' mmHg'); if (num('tr') !== null) parts.push('TR ' + R.fmt(num('tr')) + ' m/s');
       for (const [k, label, unit] of SUPP.concat(MORE)) if (num(k) !== null) parts.push(label + ' ' + R.fmt(num(k)) + (unit ? ' ' + unit : ''));
-      return `LV diastolic function (ASE 2025): ${r.headline}. ${r.explanation}\n${parts.join('; ')}`;
+      const d = data();
+      return `LV diastolic function (ASE 2025): ${r.headline}. ${r.explanation}\n${parts.join('; ')}${d && d.readingWarning ? '\n' + d.readingWarning : ''}`;
     }
     const update = c.view(host, () => {
       const d = data();
@@ -194,7 +197,7 @@
         let inner = `<div class="r-rowtop">${eyebrow('ASE 2025 · Figure 3', tone)}<button type="button" class="r-ghost sm" data-a="copy">${I.copy}Copy</button></div><p class="r-headline big${r.lap === 'unknown' ? ' muted' : ''}">${esc(r.headline)}</p><p class="r-detail">${esc(r.explanation)}</p>`;
         inner += `<div class="dd-steps">${r.steps.map((s) => `<div class="dd-step"><i style="background:${s.state === true ? 'var(--accent)' : (s.state === false ? 'var(--new)' : 'var(--fg-3)')}"></i><span><strong>${esc(s.label)}</strong> ${esc(s.text)}</span></div>`).join('')}</div>`;
         if (pr && pr.state !== null) inner += `<p class="r-note2">${I.info}<span>Diastolic dysfunction (Figure 2): ${esc(pr.text)}${pr.supportive ? '; LV mass index supports it' : ''}.</span></p>`;
-        inner += r.cautions.map(c.caution).join('');
+        inner += r.cautions.map(c.caution).join('') + warnLine(d);
         h += resultCard(tone, inner);
         // §13A: test symptomatic patients with grade 1, normal LAP without a grade, or an undetermined reading; not grade 0
         const anyMain = [r.primaries.v1, r.primaries.v2, r.primaries.v3].some((x) => x !== null);
@@ -204,19 +207,19 @@
         h += `<section class="r-sec">${eyebrow('Main variables')}${rows(MAIN, { E: null, A: null, eSeptal: p.eFlags[0], eLateral: p.eFlags[1], pasp: p.v3by === 'pasp' ? p.v3 : null, tr: p.v3by === 'tr' ? p.v3 : null })}`;
         const derived = [p.EA !== null ? 'E/A ' + R.fmt(p.EA) : null, p.ea !== null ? 'average e′ ' + R.fmt(p.ea) + ' cm/s' : null, p.ees !== null ? 'septal E/e′ ' + R.fmt(p.ees) : null, p.eel !== null ? 'lateral E/e′ ' + R.fmt(p.eel) : null, p.eea !== null ? 'average E/e′ ' + R.fmt(p.eea) : null].filter(Boolean);
         if (derived.length) h += `<p class="r-small">${esc(derived.join(' · '))}</p>`;
-        h += `</section><section class="r-sec">${eyebrow('Supplemental, when the main three disagree')}${rows(SUPP, { pvsd: num('pvsd') === null ? null : (num('pvsd') <= 0.67 ? true : null), lars: num('lars') === null ? null : num('lars') <= 18, lavi: num('lavi') === null ? null : num('lavi') > 34, ivrt: num('ivrt') === null ? null : num('ivrt') <= 70 })}</section>`;
+        h += `</section><section class="r-sec">${eyebrow('Supplemental, when the main three disagree')}${rows(SUPP, { pvsd: num('pvsd') === null ? null : (num('pvsd') <= 0.67 ? true : (R.diastolicReducedEF(i) === true ? false : null)), lars: num('lars') === null ? null : num('lars') <= 18, lavi: num('lavi') === null ? null : num('lavi') > 34, ivrt: num('ivrt') === null ? null : num('ivrt') <= 70 })}</section>`;
         h += `<section class="r-sec"><button type="button" class="r-disclose" data-a="more" aria-expanded="${st.more}">${eyebrow('If those are not available or reliable')}<span>${st.more ? '−' : '+'}</span></button>${st.more ? rows(MORE, { prEdv: num('prEdv') === null ? null : num('prEdv') >= 2, padp: num('padp') === null ? null : num('padp') >= 16, lwave: num('lwave') === null ? null : num('lwave') >= 50, ara: num('ara') === null ? null : num('ara') > 30, valsalva: num('valsalva') === null ? null : num('valsalva') >= 50 }) : ''}</section>`;
         h += `<section class="r-sec">${eyebrow('Supportive')}<div class="r-inline"><span class="lab">Sex, for LV mass</span>${seg('sex', [['male', 'Male'], ['female', 'Female']], st.sex, 'Sex')}</div>${rows([['lvmi', 'LV mass index', 'g/m²', 'Supports diastolic dysfunction above 95 (women) or 115 (men), not in athletes']], { lvmi: num('lvmi') === null ? null : (st.sex === 'female' ? num('lvmi') > 95 : num('lvmi') > 115) })}</section>`;
       } else if (pop.mode === 'mac' || pop.mode === 'transplant') {
         const r = pop.mode === 'mac' ? R.diastolicMAC(i) : R.diastolicTransplant(i);
         const tone = r.lap === 'increased' ? 'var(--accent)' : (r.lap === 'normal' ? 'var(--new)' : 'var(--fg-3)');
-        h += resultCard(tone, `${eyebrow(pop.mode === 'mac' ? 'ASE 2025 · Figure 4' : 'ASE 2025 · Section 15B', tone)}<p class="r-headline big${r.lap === 'unknown' ? ' muted' : ''}">${esc(r.headline)}</p><p class="r-detail">${esc(r.explanation)}</p>`);
+        h += resultCard(tone, `${eyebrow(pop.mode === 'mac' ? 'ASE 2025 · Figure 4' : 'ASE 2025 · Section 15B', tone)}<p class="r-headline big${r.lap === 'unknown' ? ' muted' : ''}">${esc(r.headline)}</p><p class="r-detail">${esc(r.explanation)}</p>${warnLine(d)}`);
         const list = pop.mode === 'mac' ? [['E', 'Mitral E velocity', 'cm/s', null], ['A', 'Mitral A velocity', 'cm/s', null], ['ivrt', 'IVRT', 'ms', 'Decides when E/A is 0.8–1.8']]
           : [['E', 'Mitral E velocity', 'cm/s', null], ['eSeptal', 'Septal e′', 'cm/s', null], ['eLateral', 'Lateral e′', 'cm/s', null], ['esr', 'E/SRIVR', 'cm', 'Decides when average E/e′ is 7–14'], ['tr', 'Peak TR velocity', 'm/s', 'When SRIVR cannot be measured']];
         h += `<section class="r-sec">${eyebrow('Measurements')}${rows(list, null)}</section>`;
         if (pop.notes) h += `<section class="r-sec">${pop.notes.map((n) => footnote(n)).join('')}</section>`;
       } else {
-        h += resultCard('var(--accent-2)', `${eyebrow('Main algorithm does not apply', 'var(--accent-2)')}<p class="r-headline big">${esc(pop.name)}</p><p class="r-detail">The 2025 document reads filling pressure in this group from its own signs, listed below; enter them in the report rather than a grade.</p>`);
+        h += resultCard('var(--accent-2)', `${eyebrow('Main algorithm does not apply', 'var(--accent-2)')}<p class="r-headline big">${esc(pop.name)}</p><p class="r-detail">The 2025 document reads filling pressure in this group from its own signs, listed below; enter them in the report rather than a grade.</p>${warnLine(d)}`);
         if (pop.indicators && pop.indicators.length) h += `<section class="r-sec">${eyebrow('Signs of increased filling pressure')}${c.takeList(pop.indicators)}</section>`;
         if (pop.notes) h += `<section class="r-sec">${pop.notes.map((n) => footnote(n)).join('')}</section>`;
       }

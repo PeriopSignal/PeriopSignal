@@ -1103,11 +1103,14 @@
     eeSeptal: 15, eeLateral: 13, eeAverage: 14,          // increased E/e′ when ≥ (Figure 2 uses average > 14)
     pasp: 35, tr: 2.8,                                   // increased when ≥
     pvsd: 0.67, lars: 18, lavi: 34, ivrt: 70,            // S/D ≤, LARS ≤, LAVi >, IVRT ≤
+    lvefReduced: 50,                                     // LVEF below this lets S/D above 0.67 count as normal (the guideline names no number)
     prEdv: 2, padp: 16, lwave: 50, ara: 30, valsalva: 50, // ≥, ≥, ≥, >, ≥ (% fall in E/A)
     ageE: { '20-39': [7, 10, 9], '40-65': [6, 8, 7], '>65': [6, 7, 6.5] }, // Table 6: abnormal when < septal, lateral, average
   };
   const has = (x) => x !== null && x !== undefined && Number.isFinite(x);
-  /** The three main variables and the derived ratios. i: { E, A, eSeptal, eLateral, tr, pasp, lungDisease, ageBand } */
+  /** The three main variables and the derived ratios. i: { E, A, eSeptal, eLateral, tr, pasp, lungDisease, ageBand }.
+      With both e′ sites measured, the average decides e′ and E/e′; a single site's cutoff applies only when that is
+      the one site measured (Figure 3 lists septal, lateral and average joined by "or"). */
   R.diastolicPrimaries = function (i) {
     const E = has(i.E) ? i.E : null, A = has(i.A) ? i.A : null;
     const es = has(i.eSeptal) ? i.eSeptal : null, el = has(i.eLateral) ? i.eLateral : null;
@@ -1117,24 +1120,29 @@
     const age = i.ageBand && DD.ageE[i.ageBand];
     const low = (v, cut, k) => v === null ? null : (age ? v < age[k] : v <= cut);
     const eFlags = [low(es, DD.eSeptal, 0), low(el, DD.eLateral, 1), low(ea, DD.eAverage, 2)];
-    const v1 = eFlags.every((f) => f === null) ? null : eFlags.some((f) => f === true);
+    const both = es !== null && el !== null;
+    const v1 = both ? eFlags[2] : (eFlags[0] ?? eFlags[1] ?? null);
     const rFlags = [ees === null ? null : ees >= DD.eeSeptal, eel === null ? null : eel >= DD.eeLateral, eea === null ? null : eea >= DD.eeAverage];
-    const v2 = rFlags.every((f) => f === null) ? null : rFlags.some((f) => f === true);
+    const v2 = both ? rFlags[2] : (rFlags[0] ?? rFlags[1] ?? null);
     let v3 = null, v3by = null;
     if (!i.lungDisease) {
       if (has(i.pasp)) { v3 = i.pasp >= DD.pasp; v3by = 'pasp'; }
       else if (has(i.tr)) { v3 = i.tr >= DD.tr; v3by = 'tr'; }
     }
-    return { E, A, EA, es, el, ea, ees, eel, eea, v1, v2, v3, v3by, eFlags, rFlags };
+    return { E, A, EA, es, el, ea, ees, eel, eea, v1, v2, v3, v3by, eFlags, rFlags, byAverage: both };
   };
   const pick = (val, test) => (has(val) ? test(val) : null);
+  /** Whether LVEF is reduced (below 50%), or null when not entered. */
+  R.diastolicReducedEF = (i) => (has(i.lvef) ? i.lvef < DD.lvefReduced : null);
   /** The supplemental signs (S/D, LARS, LAVi, IVRT) and the second-line ones, each true (present), false (absent)
-      or null (not entered, or not decisive). A pulmonary vein S/D above 0.67 is not taken as evidence of normal
-      LAP: with a normal LVEF the ratio can exceed 0.67 despite raised filling pressure (2025, p. 554). */
+      or null (not entered, or not decisive). A pulmonary vein S/D above 0.67 counts as an absent sign only with a
+      reduced LVEF: with a normal LVEF the ratio can exceed 0.67 despite raised filling pressure (2025, p. 554). */
   R.diastolicSigns = function (i) {
     const f = (x) => R.fmt(x);
+    const rEF = R.diastolicReducedEF(i);
+    const sdText = (x) => f(x) + (x > DD.pvsd ? (rEF === true ? ' · counts as normal with LVEF ' + f(i.lvef) + '%' : rEF === false ? ' · not decisive with LVEF ' + f(i.lvef) + '%' : ' · not decisive unless LVEF is below 50%') : '');
     const first = [
-      { id: 'pvsd', label: 'Pulmonary vein S/D ≤ 0.67', v: pick(i.pvsd, (x) => (x <= DD.pvsd ? true : null)), text: has(i.pvsd) ? f(i.pvsd) + (i.pvsd > DD.pvsd ? ' · not decisive with a normal LVEF' : '') : null, shown: has(i.pvsd) },
+      { id: 'pvsd', label: 'Pulmonary vein S/D ≤ 0.67', v: pick(i.pvsd, (x) => (x <= DD.pvsd ? true : (rEF === true ? false : null))), text: has(i.pvsd) ? sdText(i.pvsd) : null, shown: has(i.pvsd) },
       { id: 'lars', label: 'LA reservoir strain ≤ 18%', v: pick(i.lars, (x) => x <= DD.lars), text: has(i.lars) ? f(i.lars) + '%' : null, shown: has(i.lars) },
       { id: 'lavi', label: 'LA volume index > 34 mL/m²', v: pick(i.lavi, (x) => x > DD.lavi), text: has(i.lavi) ? f(i.lavi) + ' mL/m²' : null, shown: has(i.lavi) },
       { id: 'ivrt', label: 'IVRT ≤ 70 ms', v: pick(i.ivrt, (x) => x <= DD.ivrt), text: has(i.ivrt) ? f(i.ivrt) + ' ms' : null, shown: has(i.ivrt) },
@@ -1184,8 +1192,9 @@
     const v3name = p.v3by === 'tr' ? 'TR velocity' : 'PASP';
     const eText = [p.es !== null ? 'septal ' + f(p.es) : null, p.el !== null ? 'lateral ' + f(p.el) : null, p.ea !== null ? 'average ' + f(p.ea) : null].filter(Boolean).join(', ');
     const rText = [p.ees !== null ? 'septal ' + f(p.ees) : null, p.eel !== null ? 'lateral ' + f(p.eel) : null, p.eea !== null ? 'average ' + f(p.eea) : null].filter(Boolean).join(', ');
-    steps.push({ id: 'v1', label: 'e′ reduced', state: p.v1, text: p.v1 === null ? 'Enter septal and lateral e′' : eText + ' cm/s · ' + show(p.v1) });
-    steps.push({ id: 'v2', label: 'E/e′ increased', state: p.v2, text: p.v2 === null ? 'Needs E and e′' : rText + ' · ' + show(p.v2) });
+    const byAvg = p.byAverage ? ' by the average' : '';
+    steps.push({ id: 'v1', label: 'e′ reduced', state: p.v1, text: p.v1 === null ? 'Enter septal and lateral e′' : eText + ' cm/s · ' + show(p.v1) + byAvg });
+    steps.push({ id: 'v2', label: 'E/e′ increased', state: p.v2, text: p.v2 === null ? 'Needs E and e′' : rText + ' · ' + show(p.v2) + (p.v2 === null ? '' : byAvg) });
     steps.push({ id: 'v3', label: p.v3by === 'tr' ? 'TR velocity increased' : 'PASP increased', state: p.v3,
       text: i.lungDisease ? 'Not used: lung or pulmonary vascular disease' : (p.v3 === null ? 'Enter PASP, or TR velocity when RAP cannot be estimated' : (p.v3by === 'pasp' ? 'PASP ' + f(i.pasp) + ' mmHg' : 'TR ' + f(i.tr) + ' m/s') + ' · ' + show(p.v3)) });
     for (const x of sg.first.concat(sg.second)) if (x.shown) steps.push({ id: x.id, label: x.label, state: x.v, text: x.text + (x.v === null ? '' : ' · ' + (x.v ? 'present' : 'absent')) });

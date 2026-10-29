@@ -15,6 +15,8 @@ enum DiastolicCalc {
     static let eeSeptal = 15.0, eeLateral = 13.0, eeAverage = 14.0    // increased E/e′ when ≥ (Figure 2: average > 14)
     static let pasp = 35.0, tr = 2.8                                  // increased when ≥
     static let pvsd = 0.67, lars = 18.0, lavi = 34.0, ivrt = 70.0     // S/D ≤, LARS ≤, LAVi >, IVRT ≤
+    /// LVEF below this lets a pulmonary vein S/D above 0.67 count as normal (the guideline names no number).
+    static let lvefReduced = 50.0
     static let prEdv = 2.0, padp = 16.0, lwave = 50.0, ara = 30.0, valsalva = 50.0
     /// Table 6: age-specific e′, abnormal when below (septal, lateral, average).
     static let ageE: [String: [Double]] = ["20-39": [7, 10, 9], "40-65": [6, 8, 7], ">65": [6, 7, 6.5]]
@@ -26,6 +28,7 @@ enum DiastolicCalc {
         var pvsd: Double?, lars: Double?, lavi: Double?, ivrt: Double?
         var prEdv: Double?, padp: Double?, lwave: Double?, ara: Double?, valsalva: Double?
         var esr: Double?, lvmi: Double?
+        var lvef: Double?
         var female = false
     }
 
@@ -36,6 +39,8 @@ enum DiastolicCalc {
         var v1: Bool?, v2: Bool?, v3: Bool?
         var v3ByTR = false
         var eFlags: [Bool?] = []
+        /// Both e′ sites measured: the average decided e′ and E/e′.
+        var byAverage = false
     }
 
     struct Step: Hashable, Identifiable {
@@ -85,10 +90,13 @@ enum DiastolicCalc {
             if let age { return v < age[k] }
             return v <= cut
         }
+        // With both sites measured the average decides e′ and E/e′; a single site's cutoff applies only when it is
+        // the one site measured (Figure 3 lists septal, lateral and average joined by "or").
         p.eFlags = [low(p.es, eSeptal, 0), low(p.el, eLateral, 1), low(p.ea, eAverage, 2)]
-        p.v1 = p.eFlags.allSatisfy { $0 == nil } ? nil : p.eFlags.contains(true)
+        p.byAverage = p.es != nil && p.el != nil
+        p.v1 = p.byAverage ? p.eFlags[2] : (p.eFlags[0] ?? p.eFlags[1])
         let r: [Bool?] = [p.ees.map { $0 >= eeSeptal }, p.eel.map { $0 >= eeLateral }, p.eea.map { $0 >= eeAverage }]
-        p.v2 = r.allSatisfy { $0 == nil } ? nil : r.contains(true)
+        p.v2 = p.byAverage ? r[2] : (r[0] ?? r[1])
         if !i.lungDisease {
             if let pa = i.pasp { p.v3 = pa >= pasp; p.v3ByTR = false }
             else if let t = i.tr { p.v3 = t >= tr; p.v3ByTR = true }
@@ -116,13 +124,25 @@ enum DiastolicCalc {
     /// One supplemental or second-line sign: true (present), false (absent) or nil (not entered, or not decisive).
     struct Sign: Hashable { var id: String; var label: String; var v: Bool?; var text: String? }
 
-    /// The supplemental signs (S/D, LARS, LAVi, IVRT) and the second-line ones. A pulmonary vein S/D above 0.67 is
-    /// not taken as evidence of normal LAP: with a normal LVEF the ratio can exceed 0.67 despite raised filling
-    /// pressure (2025, p. 554).
+    /// Whether LVEF is reduced (below 50%), or nil when not entered.
+    static func reducedEF(_ i: Input) -> Bool? { i.lvef.map { $0 < lvefReduced } }
+
+    /// The supplemental signs (S/D, LARS, LAVi, IVRT) and the second-line ones. A pulmonary vein S/D above 0.67
+    /// counts as an absent sign only with a reduced LVEF: with a normal LVEF the ratio can exceed 0.67 despite
+    /// raised filling pressure (2025, p. 554).
     static func signs(_ i: Input) -> (first: [Sign], second: [Sign]) {
+        let rEF = reducedEF(i)
+        func sdText(_ x: Double) -> String {
+            guard x > pvsd else { return f(x) }
+            switch rEF {
+            case true?: return f(x) + " · counts as normal with LVEF " + f(i.lvef ?? 0) + "%"
+            case false?: return f(x) + " · not decisive with LVEF " + f(i.lvef ?? 0) + "%"
+            case nil: return f(x) + " · not decisive unless LVEF is below 50%"
+            }
+        }
         let first = [
-            Sign(id: "pvsd", label: "Pulmonary vein S/D ≤ 0.67", v: i.pvsd.flatMap { $0 <= pvsd ? true : nil },
-                 text: i.pvsd.map { f($0) + ($0 > pvsd ? " · not decisive with a normal LVEF" : "") }),
+            Sign(id: "pvsd", label: "Pulmonary vein S/D ≤ 0.67", v: i.pvsd.flatMap { $0 <= pvsd ? true : (rEF == true ? false : nil) },
+                 text: i.pvsd.map(sdText)),
             Sign(id: "lars", label: "LA reservoir strain ≤ 18%", v: i.lars.map { $0 <= lars }, text: i.lars.map { f($0) + "%" }),
             Sign(id: "lavi", label: "LA volume index > 34 mL/m²", v: i.lavi.map { $0 > lavi }, text: i.lavi.map { f($0) + " mL/m²" }),
             Sign(id: "ivrt", label: "IVRT ≤ 70 ms", v: i.ivrt.map { $0 <= ivrt }, text: i.ivrt.map { f($0) + " ms" }),
@@ -181,8 +201,9 @@ enum DiastolicCalc {
         let v3name = p.v3ByTR ? "TR velocity" : "PASP"
         let eText = [p.es.map { "septal " + f($0) }, p.el.map { "lateral " + f($0) }, p.ea.map { "average " + f($0) }].compactMap { $0 }.joined(separator: ", ")
         let rText = [p.ees.map { "septal " + f($0) }, p.eel.map { "lateral " + f($0) }, p.eea.map { "average " + f($0) }].compactMap { $0 }.joined(separator: ", ")
-        steps.append(Step(id: "v1", label: "e′ reduced", state: p.v1, text: p.v1 == nil ? "Enter septal and lateral e′" : eText + " cm/s · " + show(p.v1)))
-        steps.append(Step(id: "v2", label: "E/e′ increased", state: p.v2, text: p.v2 == nil ? "Needs E and e′" : rText + " · " + show(p.v2)))
+        let byAvg = p.byAverage ? " by the average" : ""
+        steps.append(Step(id: "v1", label: "e′ reduced", state: p.v1, text: p.v1 == nil ? "Enter septal and lateral e′" : eText + " cm/s · " + show(p.v1) + byAvg))
+        steps.append(Step(id: "v2", label: "E/e′ increased", state: p.v2, text: p.v2 == nil ? "Needs E and e′" : rText + " · " + show(p.v2) + byAvg))
         let v3Text: String
         if i.lungDisease { v3Text = "Not used: lung or pulmonary vascular disease" }
         else if p.v3 == nil { v3Text = "Enter PASP, or TR velocity when RAP cannot be estimated" }
