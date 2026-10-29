@@ -4,6 +4,7 @@ import SwiftUI
 /// E/A for the grade. Special populations take their own pathway or show the document's signs.
 struct DiastolicView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
 
     @State private var population = LaunchSeed.string("ps.dd.pop").isEmpty ? "standard" : LaunchSeed.string("ps.dd.pop")
@@ -95,6 +96,7 @@ struct DiastolicView: View {
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
+        .onAppear { if myPatient.sex == .female && !LaunchSeed.bool("ps.dd.female") { female = true } }
         .navigationTitle("ASE Diastolic Function")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

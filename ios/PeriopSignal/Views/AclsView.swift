@@ -43,6 +43,7 @@ private extension String { var nilIfEmpty: String? { isEmpty ? nil : self } }
 /// copy into the record. The screen stays awake while it is open.
 struct AclsView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
 
     @State private var store = AclsStore.shared
@@ -124,7 +125,8 @@ struct AclsView: View {
                     WeightField(text: Binding(get: { store.weightText }, set: { v in
                         store.weightText = v
                         store.state?.weight = WeightField.value(v)
-                    }), focus: $focused, prompt: "Enter the weight for the child doses and energies; it clears when the code ends.")
+                    }), focus: $focused, prompt: "Enter the weight for the child doses and energies; it clears when the code ends.",
+                        patientWeight: myPatient.record.isChild ? myPatient.weightKg : nil)
                 }
                 modeTabs(d, m)
                 if let pts = m.patients, !pts.contains(s.patient) {

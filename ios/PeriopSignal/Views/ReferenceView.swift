@@ -263,55 +263,7 @@ struct ReferenceView: View {
     }
 
     @ViewBuilder private func destination(_ route: RefRoute) -> some View {
-                switch route {
-                case .quickref(let id):
-                    if let ref = refs.quickref(id) {
-                        QuickRefView(ref: ref, onOpen: { webLink = WebLink(url: $0) })
-                    } else {
-                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
-                    }
-                case .score(let id):
-                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }, onOpenRef: { path.append(RefRoute.quickref($0)) }) }
-                case .peds:
-                    PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) }, onOpenLocal: { w, y in
-                        handoff.pass(weightKg: w, ageYears: y)
-                        path.append(RefRoute.local)
-                    })
-                case .local:
-                    LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
-                case .infusions:
-                    InfusionsView(onOpen: { webLink = WebLink(url: $0) })
-                case .neuraxial:
-                    NeuraxialTimingView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("asra-anticoagulation")) })
-                case .fasting:
-                    FastingView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-fasting")) })
-                case .airway:
-                    AirwayGuideView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-difficult-airway")) })
-                case .valves:
-                    ValveGraderView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("ase-valve-severity")) })
-                case .intervention:
-                    ValveInterventionView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("acc-aha-valve-intervention")) })
-                case .ponv:
-                    PONVView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("ponv-consensus")) })
-                case .chamber:
-                    ChamberQuantView(onOpen: { webLink = WebLink(url: $0) })
-                case .diastolic:
-                    DiastolicView(onOpen: { webLink = WebLink(url: $0) })
-                case .acls:
-                    AclsView(onOpen: { webLink = WebLink(url: $0) })
-                case .abg:
-                    AbgView(onOpen: { webLink = WebLink(url: $0) })
-                case .obEmergency:
-                    ObEmergencyView(onOpen: { webLink = WebLink(url: $0) })
-                case .regionalFinder:
-                    RegionalFinderView(onOpen: { webLink = WebLink(url: $0) }, onOpenBlocks: { path.append(RefRoute.blocks) })
-                case .blocks:
-                    BlocksView(onOpen: { webLink = WebLink(url: $0) })
-                case .neuraxialGuide:
-                    NeuraxialGuideView(onOpen: { webLink = WebLink(url: $0) })
-                case .folder(let f):
-                    FolderView(folder: f, path: $path)
-                }
+        RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: $path, handoff: handoff)
     }
 
     /// Opens a route requested from a link or launch argument once its content exists.
@@ -677,5 +629,68 @@ struct GuidelineRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// A Reference tool or card for a route: pushed from the Reference tab, and from My Patient for its prompts.
+struct RefDestination: View {
+    @Environment(ReferenceStore.self) private var refs
+    var route: RefRoute
+    var push: (RefRoute) -> Void
+    var openURL: (URL) -> Void
+    /// The Reference tab's path, for folders; nil elsewhere.
+    var path: Binding<NavigationPath>?
+    var handoff: PatientHandoff
+
+    var body: some View {
+                switch route {
+                case .quickref(let id):
+                    if let ref = refs.quickref(id) {
+                        QuickRefView(ref: ref, onOpen: { openURL($0) })
+                    } else {
+                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
+                    }
+                case .score(let id):
+                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { openURL($0) }, onOpenRef: { push(RefRoute.quickref($0)) }) }
+                case .peds:
+                    PedsCalculatorView(onOpen: { openURL($0) }, onOpenLocal: { w, y in
+                        handoff.pass(weightKg: w, ageYears: y)
+                        push(RefRoute.local)
+                    })
+                case .local:
+                    LocalAnestheticView(onOpen: { openURL($0) })
+                case .infusions:
+                    InfusionsView(onOpen: { openURL($0) })
+                case .neuraxial:
+                    NeuraxialTimingView(onOpen: { openURL($0) }, onOpenTable: { push(RefRoute.quickref("asra-anticoagulation")) })
+                case .fasting:
+                    FastingView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("asa-fasting")) })
+                case .airway:
+                    AirwayGuideView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("asa-difficult-airway")) })
+                case .valves:
+                    ValveGraderView(onOpen: { openURL($0) }, onOpenTable: { push(RefRoute.quickref("ase-valve-severity")) })
+                case .intervention:
+                    ValveInterventionView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("acc-aha-valve-intervention")) })
+                case .ponv:
+                    PONVView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("ponv-consensus")) })
+                case .chamber:
+                    ChamberQuantView(onOpen: { openURL($0) })
+                case .diastolic:
+                    DiastolicView(onOpen: { openURL($0) })
+                case .acls:
+                    AclsView(onOpen: { openURL($0) })
+                case .abg:
+                    AbgView(onOpen: { openURL($0) })
+                case .obEmergency:
+                    ObEmergencyView(onOpen: { openURL($0) })
+                case .regionalFinder:
+                    RegionalFinderView(onOpen: { openURL($0) }, onOpenBlocks: { push(RefRoute.blocks) })
+                case .blocks:
+                    BlocksView(onOpen: { openURL($0) })
+                case .neuraxialGuide:
+                    NeuraxialGuideView(onOpen: { openURL($0) })
+                case .folder(let f):
+                    if let path { FolderView(folder: f, path: path) }
+                }
     }
 }

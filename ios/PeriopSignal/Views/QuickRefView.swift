@@ -3,6 +3,7 @@ import SwiftUI
 /// Renders one condensed reference: eyebrow, title, summary, then its sections (tables, facts,
 /// lists, steps, paragraphs), the source and the review line.
 struct QuickRefView: View {
+    @Environment(PatientStore.self) private var myPatient
     var ref: QuickRef
     var onOpen: (URL) -> Void
     @State private var copied = false
@@ -93,7 +94,7 @@ struct QuickRefView: View {
     private func weightCard(_ doses: [WeightDose]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Doses for this patient", color: tint)
-            WeightField(text: $weightText, focus: $focused, prompt: "Enter the weight: the doses below are per kilogram until you do.")
+            WeightField(text: $weightText, focus: $focused, prompt: "Enter the weight: the doses below are per kilogram until you do.", patientWeight: myPatient.weightKg)
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(doses.enumerated()), id: \.element.id) { i, d in
                     HStack(alignment: .firstTextBaseline, spacing: 12) {

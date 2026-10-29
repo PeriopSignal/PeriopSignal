@@ -48,12 +48,12 @@ struct RootView: View {
             FeedView()
                 .tabItem { Label("Feed", systemImage: "waveform.path.ecg") }
                 .tag(Router.Tab.feed)
+            PatientView()
+                .tabItem { Label("My Patient", systemImage: "person.text.rectangle") }
+                .tag(Router.Tab.patient)
             ReferenceView()
                 .tabItem { Label("Reference", systemImage: "books.vertical") }
                 .tag(Router.Tab.reference)
-            SavedView()
-                .tabItem { Label("Saved", systemImage: "bookmark") }
-                .tag(Router.Tab.saved)
             MoreView()
                 .tabItem { Label("More", systemImage: "ellipsis.circle") }
                 .tag(Router.Tab.more)
@@ -70,7 +70,8 @@ struct RootView: View {
         if let id = DebugLaunch.presave, !saved.contains(id) { saved.toggle(id) }
         if let topics = DebugLaunch.topics { prefs.setTopics(Set(topics)) }
         switch DebugLaunch.tab {
-        case "saved": router.selectedTab = .saved
+        case "saved": router.showSaved()
+        case "patient": router.selectedTab = .patient
         case "about", "more": router.selectedTab = .more
         case "guidelines", "reference": router.selectedTab = .reference
         default: break

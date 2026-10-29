@@ -471,7 +471,7 @@ private struct FlowChips: View {
 }
 
 /// A simple wrapping layout for chips.
-private struct WrapLayout: Layout {
+struct WrapLayout: Layout {
     var spacing: CGFloat = 6
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let maxW = proposal.width ?? .infinity

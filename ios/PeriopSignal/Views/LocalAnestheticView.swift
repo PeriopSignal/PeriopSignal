@@ -4,6 +4,7 @@ import SwiftUI
 struct LocalAnestheticView: View {
     @Environment(ReferenceStore.self) private var refs
     @Environment(PatientHandoff.self) private var handoff
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
 
     // Patient details last only while the calculator is open.
@@ -70,7 +71,7 @@ struct LocalAnestheticView: View {
 
     private var patient: some View {
         VStack(alignment: .leading, spacing: 12) {
-            WeightField(text: $weightText, focus: $focused, prompt: "Enter the weight: the maximum for each agent, and whether the total is under it, depend on it.")
+            WeightField(text: $weightText, focus: $focused, prompt: "Enter the weight: the maximum for each agent, and whether the total is under it, depend on it.", patientWeight: myPatient.weightKg)
             HStack(spacing: 14) {
                 Text("Patient").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
                 Spacer()

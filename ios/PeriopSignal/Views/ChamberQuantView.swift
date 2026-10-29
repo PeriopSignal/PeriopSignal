@@ -4,7 +4,9 @@ import SwiftUI
 /// body surface area; each row shows its cutoffs as a strip with the value marked. Nothing is stored.
 struct ChamberQuantView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
+    @State private var changingPatient = false
 
     @State private var sex: EchoSex = EchoSex(rawValue: LaunchSeed.string("ps.echo.sex")) ?? .male
     @State private var heightText = LaunchSeed.string("ps.echo.height")
@@ -63,6 +65,7 @@ struct ChamberQuantView: View {
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
+        .onAppear(perform: fillFromPatient)
         .navigationTitle("ASE Chamber Quantification")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -75,7 +78,47 @@ struct ChamberQuantView: View {
 
     // MARK: Patient
 
-    private var patient: some View {
+    /// My Patient's age, sex, height and weight, as this tool writes them.
+    private var patientValues: (sex: EchoSex?, height: String, weight: String, age: String) {
+        let r = myPatient.record
+        return (r.sex.map { $0 == .female ? EchoSex.female : EchoSex.male },
+                r.heightCm.map { PedsCalc.fmt($0) } ?? "", r.weightKg.map { PedsCalc.fmt($0) } ?? "",
+                r.ageYears.map { String(Int($0)) } ?? "")
+    }
+
+    /// The tool still holds My Patient's values, untouched.
+    private var showsPatient: Bool {
+        let p = patientValues
+        guard p.sex != nil || !p.height.isEmpty || !p.weight.isEmpty else { return false }
+        return !changingPatient && (p.sex == nil || p.sex == sex) && heightText == p.height && weightText == p.weight && ageText == p.age
+    }
+
+    private func fillFromPatient() {
+        let p = patientValues
+        guard heightText.isEmpty, weightText.isEmpty, ageText.isEmpty else { return }
+        if let s = p.sex { sex = s }
+        heightText = p.height
+        weightText = p.weight
+        ageText = p.age
+    }
+
+    @ViewBuilder private var patient: some View {
+        if showsPatient {
+            let p = patientValues
+            let values = [p.age.isEmpty ? nil : p.age + " y", p.sex?.label, p.height.isEmpty ? nil : p.height + " cm", p.weight.isEmpty ? nil : p.weight + " kg"].compactMap { $0 }
+            VStack(alignment: .leading, spacing: 8) {
+                FromPatientLine(values: values, what: "age, sex, height and weight") { changingPatient = true }
+                if let b = bsa {
+                    Text("Body surface area \(EchoCalc.fmt(b)) m² (\(data?.bsaFormula == "mosteller" ? "Mosteller" : "DuBois")).")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).padding(.horizontal, 2)
+                }
+            }
+        } else {
+            patientFields
+        }
+    }
+
+    private var patientFields: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
                 Text("Sex").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)

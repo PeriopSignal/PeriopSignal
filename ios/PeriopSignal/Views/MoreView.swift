@@ -4,8 +4,12 @@ import UIKit
 
 /// Settings and about: the question of the day lives here, then topics, alerts, reading
 /// preferences and the feed. Built as cards on the feed's background rather than a system list.
+/// Pages pushed from More.
+enum MoreRoute: Hashable { case saved }
+
 struct MoreView: View {
     @Environment(PostStore.self) private var store
+    @Environment(SavedStore.self) private var saved
     @Environment(Preferences.self) private var prefs
     @Environment(QuizStore.self) private var quiz
     @Environment(SpeechPlayer.self) private var speech
@@ -24,6 +28,7 @@ struct MoreView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     brand
+                    savedRow
                     questionCard
                     topicsCard(p: $p)
                     alertsCard(p: $p)
@@ -43,6 +48,11 @@ struct MoreView: View {
             .navigationDestination(for: Post.self) { post in
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
             }
+            .navigationDestination(for: MoreRoute.self) { _ in
+                SavedView(onOpenPost: { path.append($0) }, onOpenPaper: { webLink = WebLink(url: $0) })
+            }
+            .onAppear { openSavedIfAsked() }
+            .onChange(of: router.openSaved) { _, _ in openSavedIfAsked() }
             .task {
                 await notifications.refreshAuthorization()
                 var c = DateComponents(); c.hour = prefs.alertHour; c.minute = prefs.alertMinute
@@ -55,7 +65,39 @@ struct MoreView: View {
         }
     }
 
+    private func openSavedIfAsked() {
+        guard router.openSaved else { return }
+        router.openSaved = false
+        path = NavigationPath()
+        path.append(MoreRoute.saved)
+    }
+
     // MARK: Cards
+
+    private var savedRow: some View {
+        let count = store.posts.filter { saved.contains($0.id) }.count
+        return Button { path.append(MoreRoute.saved) } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "bookmark.fill")
+                    .font(PS.sys(size: 15, weight: .semibold))
+                    .foregroundStyle(PS.accent)
+                    .frame(width: 36, height: 36)
+                    .background(PS.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Saved posts").font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text(count == 0 ? "Bookmark a post to keep it here" : "\(count) saved · synced with iCloud")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
+            }
+            .padding(14)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(count == 0 ? "Saved posts" : "Saved posts, \(count)")
+    }
 
     private var brand: some View {
         HStack(spacing: 14) {

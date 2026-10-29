@@ -12,6 +12,9 @@ struct WeightField: View {
     var badge: String = "Required"
     /// The field's name ("Newborn Weight" where the doses are the baby's, not the mother's).
     var title: String = "Patient Weight"
+    /// My Patient's weight, when it applies to this tool: filled in at once and shown as one line until changed.
+    var patientWeight: Double? = nil
+    @State private var changing = false
 
     static func value(_ text: String) -> Double? {
         let v = Double(text.replacingOccurrences(of: ",", with: "."))
@@ -19,8 +22,21 @@ struct WeightField: View {
     }
 
     var body: some View {
+        Group {
+            if let w = patientWeight, !changing, text == PedsCalc.fmt(w) {
+                FromPatientLine(values: [PedsCalc.fmt(w) + " kg"], what: "weight") { changing = true; focus.wrappedValue = true }
+            } else {
+                field
+            }
+        }
+        .onAppear {
+            if let w = patientWeight, Self.value(text) == nil { text = PedsCalc.fmt(w) }
+        }
+    }
+
+    private var field: some View {
         let empty = Self.value(text) == nil
-        VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 7) {
                 Image(systemName: "scalemass.fill")
                     .font(PS.sys(size: 12.5, weight: .semibold))
@@ -76,10 +92,26 @@ struct CompactWeightField: View {
     @Binding var text: String
     var focus: FocusState<Bool>.Binding
     var badge: String = "For totals"
+    /// My Patient's weight: filled in at once and shown as one line until changed.
+    var patientWeight: Double? = nil
+    @State private var changing = false
 
     var body: some View {
+        Group {
+            if let w = patientWeight, !changing, text == PedsCalc.fmt(w) {
+                FromPatientLine(values: [PedsCalc.fmt(w) + " kg"], what: "weight") { changing = true; focus.wrappedValue = true }
+            } else {
+                field
+            }
+        }
+        .onAppear {
+            if let w = patientWeight, WeightField.value(text) == nil { text = PedsCalc.fmt(w) }
+        }
+    }
+
+    private var field: some View {
         let empty = WeightField.value(text) == nil
-        HStack(spacing: 10) {
+        return HStack(spacing: 10) {
             Image(systemName: "scalemass.fill")
                 .font(PS.sys(size: 13, weight: .semibold))
                 .foregroundStyle(empty ? PS.accent : PS.fg3)
@@ -109,6 +141,41 @@ struct CompactWeightField: View {
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(empty ? PS.accent.opacity(0.8) : PS.line, lineWidth: empty ? 1.5 : 1))
         .contentShape(Rectangle())
         .onTapGesture { focus.wrappedValue = true }
+    }
+}
+
+// MARK: - My Patient values in a tool
+
+/// "82 kg · From My Patient · Change": a value the tool took from My Patient, in one line instead of a question.
+struct FromPatientLine: View {
+    var values: [String]
+    /// What the values are, for VoiceOver ("weight", "age, sex, height and weight").
+    var what: String
+    var onChange: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "person.text.rectangle")
+                .font(PS.sys(size: 13, weight: .semibold))
+                .foregroundStyle(PS.accent2)
+            Text(values.joined(separator: " · "))
+                .font(PS.sys(size: 15, weight: .semibold))
+                .foregroundStyle(PS.fg)
+                .lineLimit(2)
+            Text("From My Patient")
+                .font(PS.sys(size: 11.5))
+                .foregroundStyle(PS.fg3)
+            Spacer(minLength: 6)
+            Button("Change", action: onChange)
+                .font(PS.sys(size: 13, weight: .semibold))
+                .buttonStyle(.borderless)
+                .tint(PS.accent)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.accent2.opacity(0.35), lineWidth: 1))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(what) from My Patient: \(values.joined(separator: ", "))")
     }
 }
 

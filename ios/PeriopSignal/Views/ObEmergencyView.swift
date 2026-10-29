@@ -7,6 +7,7 @@ import SwiftUI
 /// clocks live only while the screen is open.
 struct ObEmergencyView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
 
     @State private var eventId = LaunchSeed.string("ps.ob.event")
@@ -161,7 +162,8 @@ struct ObEmergencyView: View {
             Eyebrow(text: wf?.eyebrow ?? "Doses for this patient", color: tint)
             WeightField(text: Binding(get: { weights[key] ?? "" }, set: { weights[key] = $0 }), focus: $focused,
                         prompt: wf?.prompt ?? "Enter the weight: the doses below are per kilogram until you do.",
-                        title: wf?.title ?? "Patient Weight")
+                        title: wf?.title ?? "Patient Weight",
+                        patientWeight: key.isEmpty && myPatient.sex == .female ? myPatient.weightKg : nil)
             if tooHigh {
                 Label(wf?.maxText ?? "Check the weight.", systemImage: "exclamationmark.triangle.fill")
                     .font(PS.sys(size: 13, weight: .semibold))

@@ -186,6 +186,15 @@ jobs:
           shot 55-ob-arrest 12 -ps.ref ob -ps.ob.event arrest -ps.la.weight 80
           shot 56-ob-newborn 12 -ps.ref ob -ps.forceAppearance light -ps.ob.event newborn -ps.ob.newborn 3.2
           shot 57-ob-hypertension 12 -ps.ref ob -ps.ob.event hypertension
+          shot 58-patient 12 -ps.tab patient -ps.patient demo
+          shot 59-patient-empty 12 -ps.tab patient -ps.forceAppearance light
+          shot 60-patient-assessment 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment
+          shot 61-patient-airway 12 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.forceAppearance light
+          shot 62-patient-intraop 12 -ps.tab patient -ps.patient demo -ps.patient.open intraop
+          shot 63-patient-handoff 12 -ps.tab patient -ps.patient demo -ps.patient.open handoff
+          shot 64-patient-rcri 12 -ps.tab patient -ps.patient demo -ps.patient.open score:ariscat
+          shot 65-patient-local 12 -ps.tab patient -ps.patient demo -ps.patient.open local
+          shot 66-more-saved 12 -ps.tab more
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
