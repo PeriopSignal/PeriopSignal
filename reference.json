@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-29",
-  "revision": 1793279547,
+  "revision": 1793281706,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -5589,6 +5589,2321 @@
       "The source tables print whole numbers, so a value between two printed cutoffs (an LVEF of 51–52% in men, an LA volume index of 34–35 mL/m²) is read as the worse grade.",
       "Body surface area by DuBois & DuBois; the guidelines do not name a formula.",
       "The ASE 2025 right-heart guideline replaces the 2010 one; RV and RA cutoffs here follow Table 1 of its corrected May 2025 file, which differs from the March 2025 publisher PDF in a few cells (TAPSE, S′ and RA volume grades)."
+    ]
+  },
+  "acls": {
+    "reviewed": "2026-10",
+    "cycleSec": 120,
+    "sources": [
+      {
+        "id": "aha2025-als",
+        "citation": "Wigginton JG, Agarwal S, Bartos JA, et al. Part 9: Adult Advanced Life Support: 2025 American Heart Association Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care. Circulation. 2025;152(suppl 2).",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support"
+      },
+      {
+        "id": "aha2025-pals",
+        "citation": "Topjian AA, Lasa JJ, et al. Part 8: Pediatric Advanced Life Support: 2025 American Heart Association and American Academy of Pediatrics Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care. Circulation. 2025;152(suppl 2).",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/pediatric-advanced-life-support"
+      },
+      {
+        "id": "aha2025-pcac",
+        "citation": "Hirsch KG, Amorim E, Coppler PJ, et al. Part 11: Post–Cardiac Arrest Care: 2025 American Heart Association Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care. Circulation. 2025;152(suppl 2).",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/post-cardiac-arrest-care"
+      },
+      {
+        "id": "aha2025-special",
+        "citation": "Part 10: Adult and Pediatric Special Circumstances of Resuscitation: 2025 American Heart Association Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care. Circulation. 2025;152(suppl 2).",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation"
+      },
+      {
+        "id": "aha2025-algorithms",
+        "citation": "American Heart Association. 2025 Adult and Pediatric algorithms: Cardiac Arrest, Bradycardia With a Pulse, Tachyarrhythmia With a Pulse, Electrical Cardioversion, Post–Cardiac Arrest Care; change notices of October 2025 and February 2026.",
+        "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/algorithms"
+      },
+      {
+        "id": "sts2017",
+        "citation": "The Society of Thoracic Surgeons Task Force on Resuscitation After Cardiac Surgery (Dunning J, Levine A, Ley J, et al.). The Society of Thoracic Surgeons Expert Consensus for the Resuscitation of Patients Who Arrest After Cardiac Surgery. Ann Thorac Surg. 2017;103:1005–1020.",
+        "url": "https://www.sts.org/sites/default/files/documents/ExpertConsensus_ResuscitationAfterCardiacSurgery.pdf"
+      },
+      {
+        "id": "erc2025-special",
+        "citation": "Lott C, Karageorgos V, Abelairas-Gómez C, et al. European Resuscitation Council Guidelines 2025: Cardiac arrest in special circumstances. Resuscitation. 2025.",
+        "url": "https://www.cprguidelines.eu/"
+      },
+      {
+        "id": "icon2019",
+        "citation": "Garvey LH, Dewachter P, Hepner DL, et al. Management of suspected immediate perioperative allergic reactions: an international overview and consensus recommendations. Br J Anaesth. 2019;123:e50–e64.",
+        "url": "https://www.sciencedirect.com/science/article/pii/S0007091219303290"
+      },
+      {
+        "id": "anzaag2022",
+        "citation": "Australian and New Zealand Anaesthetic Allergy Group and Australian and New Zealand College of Anaesthetists. Perioperative Anaphylaxis Management Guidelines and cards. 2022.",
+        "url": "https://www.anzca.edu.au/resources/professional-documents/endorsed-guidelines/anaphylaxis-guideline-bp-2022.pdf"
+      },
+      {
+        "id": "rcuk2024",
+        "citation": "Resuscitation Council UK. Peri-operative anaphylaxis algorithm. 2024.",
+        "url": "https://www.resus.org.uk/sites/default/files/2024-01/2526%20AAP%20RCUK%20periop%20anaphylaxis-8C.pdf"
+      }
+    ],
+    "actions": {
+      "vf": {
+        "label": "VF / pVT",
+        "kind": "rhythm",
+        "rhythm": "shockable",
+        "cycleReset": true,
+        "log": "Rhythm: VF/pVT",
+        "detail": "Shockable"
+      },
+      "nonsh": {
+        "label": "Asystole / PEA",
+        "kind": "rhythm",
+        "rhythm": "nonshockable",
+        "cycleReset": true,
+        "log": "Rhythm: asystole/PEA",
+        "detail": "Not shockable"
+      },
+      "rosc": {
+        "label": "ROSC",
+        "kind": "rhythm",
+        "rhythm": "rosc",
+        "log": "ROSC",
+        "detail": "Pulse and pressure back: opens post-ROSC care",
+        "goto": "rosc"
+      },
+      "shock": {
+        "label": "Shock",
+        "kind": "shock",
+        "adult": {
+          "text": "the device’s recommended biphasic dose (e.g. 120–200 J), or its maximum if unknown; later shocks equal or higher; monophasic 360 J"
+        },
+        "child": {
+          "perKgSeq": [
+            2,
+            4
+          ],
+          "thenPerKg": 4,
+          "thenAtLeast": true,
+          "maxPerKg": 10,
+          "capText": "or the adult dose"
+        }
+      },
+      "epi": {
+        "label": "Epinephrine",
+        "kind": "drug",
+        "adult": {
+          "dose": 1,
+          "unit": "mg",
+          "route": "IV/IO"
+        },
+        "child": {
+          "perKg": 0.01,
+          "unit": "mg",
+          "max": 1,
+          "route": "IV/IO",
+          "conc": {
+            "value": 0.1,
+            "unit": "mg/mL"
+          }
+        },
+        "repeat": {
+          "min": 180,
+          "max": 300
+        }
+      },
+      "amio": {
+        "label": "Amiodarone",
+        "kind": "drug",
+        "adult": {
+          "unit": "mg",
+          "route": "IV/IO",
+          "doses": [
+            {
+              "dose": 300
+            },
+            {
+              "dose": 150
+            }
+          ],
+          "maxDoses": 2
+        },
+        "child": {
+          "perKg": 5,
+          "unit": "mg",
+          "route": "IV/IO",
+          "doses": [
+            {
+              "max": 300
+            },
+            {
+              "max": 150
+            },
+            {
+              "max": 150
+            }
+          ],
+          "maxDoses": 3
+        }
+      },
+      "lido": {
+        "label": "Lidocaine",
+        "kind": "drug",
+        "adult": {
+          "unit": "mg",
+          "route": "IV/IO",
+          "doses": [
+            {
+              "text": "1–1.5 mg/kg"
+            },
+            {
+              "text": "0.5–0.75 mg/kg"
+            }
+          ]
+        },
+        "child": {
+          "perKg": 1,
+          "unit": "mg",
+          "route": "IV/IO"
+        }
+      },
+      "cpr": {
+        "label": "CPR started",
+        "kind": "event",
+        "cycleReset": true,
+        "log": "CPR started"
+      },
+      "ivio": {
+        "label": "IV/IO access",
+        "kind": "event",
+        "log": "IV/IO access",
+        "detail": "IV first; IO if IV fails"
+      },
+      "airway": {
+        "label": "Advanced airway",
+        "kind": "event",
+        "log": "Advanced airway placed",
+        "detail": "ET tube or supraglottic; confirm with continuous waveform capnography"
+      },
+      "asys": {
+        "label": "Asystole / severe bradycardia",
+        "kind": "rhythm",
+        "rhythm": "nonshockable",
+        "log": "Rhythm: asystole or severe bradycardia",
+        "detail": "Pace first"
+      },
+      "pea": {
+        "label": "PEA",
+        "kind": "rhythm",
+        "rhythm": "nonshockable",
+        "log": "Rhythm: PEA",
+        "detail": "QRS without a pulsatile trace or ETCO₂"
+      },
+      "cshock": {
+        "label": "Shock (stacked)",
+        "kind": "shock",
+        "adult": {
+          "text": "Up to 3 shocks in a row with no compressions between, if the defibrillator is ready within 1 minute; the device's dose (biphasic 120–200 J), or the maximum if unknown. No source prints an energy for this setting"
+        }
+      },
+      "pace": {
+        "label": "Epicardial pacing",
+        "kind": "event",
+        "log": "Pacing through the epicardial wires",
+        "detail": "DDD 80–100/min, maximum atrial and ventricular output; the emergency button is acceptable"
+      },
+      "ecm": {
+        "label": "External compressions",
+        "kind": "event",
+        "log": "External compressions started",
+        "detail": "100–120/min; aim for a systolic above 60 mmHg"
+      },
+      "ventbag": {
+        "label": "Ventilator off, bag 100% O₂",
+        "kind": "event",
+        "log": "Ventilator disconnected; hand ventilation with 100% oxygen",
+        "detail": "Breath sounds and chest movement both sides; ETCO₂; exclude tension pneumothorax"
+      },
+      "infusions": {
+        "label": "Infusions stopped",
+        "kind": "event",
+        "log": "Pre-arrest infusions stopped",
+        "detail": "Sedation may continue if awareness is a concern"
+      },
+      "pacer-off": {
+        "label": "Pacemaker paused",
+        "kind": "event",
+        "log": "Pacemaker paused to exclude VF",
+        "detail": "PEA with a working pacemaker: a brief pause shows underlying VF"
+      },
+      "reopen": {
+        "label": "Resternotomy",
+        "kind": "event",
+        "log": "Emergency resternotomy",
+        "detail": "Within 5 minutes; at once if the systolic with compressions stays under 60 mmHg"
+      },
+      "internal": {
+        "label": "Internal massage",
+        "kind": "event",
+        "log": "Internal cardiac massage",
+        "detail": "Two-handed, 100–120/min, systolic above 60 mmHg; internal defibrillation as appropriate (no energy is printed)"
+      },
+      "epi-small": {
+        "label": "Epinephrine, small dose",
+        "kind": "drug",
+        "adult": {
+          "text": "50–100 mcg IV (ERC 2025: 0.05–0.1 mg). STS 2017: no routine full doses; any epinephrine only when an experienced clinician directs it"
+        }
+      },
+      "iabp": {
+        "label": "IABP adjusted",
+        "kind": "event",
+        "log": "IABP to pressure trigger",
+        "detail": "Internal mode at 100/min if there is a long gap without massage"
+      },
+      "ecmo": {
+        "label": "ECMO / bypass",
+        "kind": "event",
+        "log": "Mechanical support started",
+        "detail": "An alternative to resternotomy within the same 5 minutes in expert centres; for bypass, heparin 30,000 IU to the patient and 10,000 IU in the reservoir (STS)"
+      },
+      "atropine": {
+        "label": "Atropine",
+        "kind": "drug",
+        "adult": {
+          "dose": 1,
+          "unit": "mg",
+          "route": "IV",
+          "maxDoses": 3
+        },
+        "child": {
+          "perKg": 0.02,
+          "unit": "mg",
+          "route": "IV/IO",
+          "min": 0.1,
+          "max": 0.5,
+          "maxDoses": 2
+        },
+        "repeat": {
+          "min": 180,
+          "max": 300
+        }
+      },
+      "tcp": {
+        "label": "Transcutaneous pacing",
+        "kind": "event",
+        "log": "Transcutaneous pacing started",
+        "detail": "No pacing settings are printed"
+      },
+      "tvp": {
+        "label": "Transvenous pacing",
+        "kind": "event",
+        "log": "Transvenous pacing",
+        "detail": "With expert consultation"
+      },
+      "dopa": {
+        "label": "Dopamine infusion",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "5–20 mcg/kg/min, titrated; taper slowly"
+        }
+      },
+      "epi-inf": {
+        "label": "Epinephrine infusion",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "2–10 mcg/min, titrated"
+        }
+      },
+      "epi-brady": {
+        "label": "Epinephrine",
+        "kind": "drug",
+        "patients": [
+          "child"
+        ],
+        "child": {
+          "perKg": 0.01,
+          "unit": "mg",
+          "max": 1,
+          "route": "IV/IO",
+          "conc": {
+            "value": 0.1,
+            "unit": "mg/mL"
+          }
+        }
+      },
+      "cardiovert": {
+        "label": "Synchronized cardioversion",
+        "kind": "shock",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "AF or flutter 200 J; narrow-complex or monomorphic VT 100 J; polymorphic VT unsynchronized; or the device’s recommended energy, the maximum if unknown"
+        }
+      },
+      "cardiovert-child": {
+        "label": "Synchronized cardioversion",
+        "kind": "shock",
+        "patients": [
+          "child"
+        ],
+        "child": {
+          "text": "0.5–1 J/kg; if not effective, 2 J/kg. Sedate if needed, but do not delay"
+        }
+      },
+      "adenosine": {
+        "label": "Adenosine",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "unit": "mg",
+          "route": "IV rapid push, then a saline flush",
+          "doses": [
+            {
+              "dose": 6
+            },
+            {
+              "dose": 12
+            }
+          ],
+          "maxDoses": 2
+        }
+      },
+      "adenosine-child": {
+        "label": "Adenosine",
+        "kind": "drug",
+        "patients": [
+          "child"
+        ],
+        "child": {
+          "unit": "mg",
+          "route": "IV/IO rapid push, then flush",
+          "doses": [
+            {
+              "perKg": 0.1,
+              "max": 6
+            },
+            {
+              "perKg": 0.2,
+              "max": 12
+            }
+          ],
+          "maxDoses": 2
+        }
+      },
+      "procainamide": {
+        "label": "Procainamide",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "20–50 mg/min until the arrhythmia stops, hypotension, QRS widens by more than 50%, or 17 mg/kg; then 1–4 mg/min. Avoid with a long QT or heart failure"
+        }
+      },
+      "amio-vt": {
+        "label": "Amiodarone",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "150 mg IV over 10 min; repeat if VT recurs; then 1 mg/min for the first 6 hours"
+        }
+      },
+      "diltiazem": {
+        "label": "Diltiazem",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "0.25 mg/kg IV over 2 min; infusion 5–10 mg/h"
+        }
+      },
+      "esmolol": {
+        "label": "Esmolol",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "500 mcg/kg IV over 1 min; infusion 50–300 mcg/kg/min"
+        }
+      },
+      "metoprolol": {
+        "label": "Metoprolol",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "2.5–5 mg IV over 2 min, up to 3 doses"
+        }
+      },
+      "verapamil": {
+        "label": "Verapamil",
+        "kind": "drug",
+        "patients": [
+          "adult"
+        ],
+        "adult": {
+          "text": "0.075–0.15 mg/kg IV over 2 min; a further dose after 30 min if no response; infusion 0.005 mg/kg/min"
+        }
+      },
+      "vagal": {
+        "label": "Vagal maneuvers",
+        "kind": "event",
+        "log": "Vagal maneuvers"
+      },
+      "ana-help": {
+        "label": "Help called",
+        "kind": "event",
+        "log": "Help called; leader and scribe assigned",
+        "detail": "Call for help and the anaphylaxis box; assign a leader and a scribe"
+      },
+      "ana-triggers": {
+        "label": "Triggers removed",
+        "kind": "event",
+        "log": "Possible triggers removed",
+        "detail": "Stop the drug, chlorhexidine, colloid, latex; stop the procedure, lighten anesthesia"
+      },
+      "ana-o2": {
+        "label": "100% oxygen",
+        "kind": "event",
+        "log": "FiO₂ 1.0",
+        "detail": "Check the capnograph trace"
+      },
+      "ana-legs": {
+        "label": "Legs elevated",
+        "kind": "event",
+        "log": "Legs elevated",
+        "detail": "If hypotensive"
+      },
+      "ana-epi-2": {
+        "label": "Epinephrine IV · grade II",
+        "kind": "drug",
+        "adult": {
+          "unit": "mcg",
+          "route": "IV",
+          "doses": [
+            {
+              "dose": 20
+            },
+            {
+              "dose": 50
+            }
+          ]
+        },
+        "child": {
+          "perKg": 2,
+          "unit": "mcg",
+          "route": "IV",
+          "conc": {
+            "value": 20,
+            "unit": "mcg/mL"
+          }
+        },
+        "repeat": {
+          "min": 120,
+          "max": 180
+        }
+      },
+      "ana-epi-3": {
+        "label": "Epinephrine IV · grade III",
+        "kind": "drug",
+        "adult": {
+          "unit": "mcg",
+          "route": "IV",
+          "doses": [
+            {
+              "dose": 50
+            },
+            {
+              "dose": 200
+            }
+          ]
+        },
+        "child": {
+          "perKg": 4,
+          "unit": "mcg",
+          "route": "IV",
+          "conc": {
+            "value": 20,
+            "unit": "mcg/mL"
+          }
+        },
+        "repeat": {
+          "min": 120,
+          "max": 180
+        }
+      },
+      "ana-epi-im": {
+        "label": "Epinephrine IM",
+        "kind": "drug",
+        "adult": {
+          "dose": 500,
+          "unit": "mcg",
+          "route": "IM, lateral thigh"
+        },
+        "child": {
+          "perKg": 10,
+          "unit": "mcg",
+          "max": 500,
+          "route": "IM, lateral thigh"
+        },
+        "repeat": {
+          "min": 300,
+          "max": 600
+        }
+      },
+      "ana-epi-inf": {
+        "label": "Epinephrine infusion",
+        "kind": "drug",
+        "adult": {
+          "text": "0.05–0.1 mcg/kg/min, a peripheral line is acceptable; after more than 3 boluses or no response at 10 min (ICON)"
+        },
+        "child": {
+          "text": "0.1–2 mcg/kg/min: 1 mg in 50 mL at 0.3–6 mL/kg/h, start as soon as possible (ANZAAG)"
+        }
+      },
+      "ana-fluid": {
+        "label": "Crystalloid bolus",
+        "kind": "drug",
+        "adult": {
+          "text": "500 mL rapid bolus (grade II) or 1 L (grade III); reassess and repeat; up to 30 mL/kg if refractory (ICON)"
+        },
+        "child": {
+          "perKg": 20,
+          "unit": "mL",
+          "route": "IV/IO rapid bolus, repeat as needed"
+        }
+      },
+      "ana-norepi": {
+        "label": "Norepinephrine",
+        "kind": "drug",
+        "adult": {
+          "text": "0.05–0.5 mcg/kg/min (ICON)"
+        },
+        "child": {
+          "text": "0.1–2 mcg/kg/min (ANZAAG: 0.15 mg/kg in 50 mL at 2–40 mL/h)"
+        }
+      },
+      "ana-vaso": {
+        "label": "Vasopressin",
+        "kind": "drug",
+        "adult": {
+          "text": "1–2 units IV bolus, then 2 units/h (ICON, ANZAAG)"
+        },
+        "child": {
+          "text": "0.02–0.06 units/kg/h (ANZAAG: 1 unit/kg in 50 mL; 2 mL bolus, then 1–3 mL/h)"
+        }
+      },
+      "ana-glucagon": {
+        "label": "Glucagon (β-blocked)",
+        "kind": "drug",
+        "adult": {
+          "text": "1–2 mg IV, every 5 min until a response (ICON, ANZAAG)"
+        },
+        "child": {
+          "perKg": 0.04,
+          "unit": "mg",
+          "max": 1,
+          "route": "IV"
+        }
+      },
+      "ana-broncho": {
+        "label": "Bronchodilator",
+        "kind": "drug",
+        "adult": {
+          "text": "Inhaled salbutamol via the circuit (ANZAAG: 12 puffs) and volatile; IV salbutamol 100–200 mcg, then 5–25 mcg/min; magnesium 2 g over 20 min; consider ketamine (ICON)"
+        },
+        "child": {
+          "text": "Salbutamol 6 puffs under 6 y, 12 puffs over 6 y; magnesium 50 mg/kg (max 2 g) over 20 min (ANZAAG)"
+        }
+      },
+      "ana-ecls": {
+        "label": "ECLS considered",
+        "kind": "event",
+        "log": "Extracorporeal support considered"
+      },
+      "ana-steroid": {
+        "label": "Steroid, after resuscitation",
+        "kind": "drug",
+        "adult": {
+          "text": "Hydrocortisone 200 mg IV once stable (ICON: may be given, not a priority; ANZAAG: hydrocortisone 2–4 mg/kg or dexamethasone 0.1–0.4 mg/kg)"
+        },
+        "child": {
+          "text": "Hydrocortisone 2–4 mg/kg (max 200 mg) or dexamethasone 0.1–0.4 mg/kg (max 12 mg), once stable (ANZAAG)"
+        }
+      },
+      "ana-tryptase": {
+        "label": "Tryptase sent",
+        "kind": "event",
+        "log": "Tryptase sent",
+        "detail": "At 1 h and 2–4 h; baseline at least 24 h later"
+      }
+    },
+    "modes": [
+      {
+        "id": "arrest",
+        "name": "Cardiac arrest",
+        "short": "Arrest",
+        "patients": [
+          "adult",
+          "child"
+        ],
+        "cycle": true,
+        "cycleText": "Rhythm check now: pause compressions under 10 seconds, switch compressors, then log the rhythm.",
+        "note": "AHA 2025: one shock at a time, epinephrine every 3–5 minutes (every second cycle after the first dose), amiodarone or lidocaine after the third shock. Vasopressin, routine calcium, bicarbonate and magnesium are not recommended.",
+        "groups": [
+          {
+            "title": "Rhythm check",
+            "actions": [
+              "vf",
+              "nonsh",
+              "rosc"
+            ]
+          },
+          {
+            "title": "Treat",
+            "actions": [
+              "shock",
+              "epi",
+              "amio",
+              "lido"
+            ],
+            "note": "Lidocaine for adults is per kg: 1–1.5 mg/kg, then 0.5–0.75 mg/kg. Child doses need the weight above."
+          },
+          {
+            "title": "Team",
+            "actions": [
+              "cpr",
+              "ivio",
+              "airway"
+            ]
+          }
+        ],
+        "prompts": [
+          {
+            "id": "first-adult",
+            "level": "info",
+            "patient": "adult",
+            "text": "Start CPR: push at least 5 cm at 100–120/min, 30:2 without an advanced airway; bag-mask ventilation with oxygen; attach the monitor-defibrillator. Log the first rhythm.",
+            "when": [
+              {
+                "count": [
+                  "vf",
+                  "==",
+                  0
+                ]
+              },
+              {
+                "count": [
+                  "nonsh",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "first-child",
+            "level": "info",
+            "patient": "child",
+            "text": "Start CPR: at least one-third of the chest depth at 100–120/min; 15:2 with two rescuers before puberty, 30:2 after puberty or alone; bag-mask ventilation with oxygen; attach the monitor-defibrillator. Log the first rhythm.",
+            "when": [
+              {
+                "count": [
+                  "vf",
+                  "==",
+                  0
+                ]
+              },
+              {
+                "count": [
+                  "nonsh",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "shock-now",
+            "level": "now",
+            "alert": true,
+            "action": "shock",
+            "text": "Shock now: {energy:shock}. Resume compressions straight after; the next rhythm check is in 2 minutes.",
+            "when": [
+              {
+                "rhythm": "shockable"
+              },
+              {
+                "countSince": [
+                  "shock",
+                  "vf",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "epi-ns",
+            "level": "now",
+            "alert": true,
+            "action": "epi",
+            "text": "Epinephrine as soon as possible: {dose:epi}.",
+            "when": [
+              {
+                "rhythm": "nonshockable"
+              },
+              {
+                "count": [
+                  "epi",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "epi-s",
+            "level": "now",
+            "alert": true,
+            "action": "epi",
+            "text": "Two shocks have not worked: epinephrine {dose:epi}.",
+            "when": [
+              {
+                "rhythm": "shockable"
+              },
+              {
+                "count": [
+                  "shock",
+                  ">=",
+                  2
+                ]
+              },
+              {
+                "count": [
+                  "epi",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "epi-due",
+            "level": "now",
+            "alert": true,
+            "action": "epi",
+            "text": "Epinephrine due (every 3–5 minutes): {dose:epi}.",
+            "when": [
+              {
+                "count": [
+                  "epi",
+                  ">=",
+                  1
+                ]
+              },
+              {
+                "since": [
+                  "epi",
+                  ">=",
+                  180
+                ]
+              }
+            ]
+          },
+          {
+            "id": "anti",
+            "level": "now",
+            "alert": true,
+            "action": "amio",
+            "text": "Three shocks have not worked: amiodarone {dose:amio}, or lidocaine {dose:lido}.",
+            "when": [
+              {
+                "rhythm": "shockable"
+              },
+              {
+                "count": [
+                  "shock",
+                  ">=",
+                  3
+                ]
+              },
+              {
+                "notAny": [
+                  "amio",
+                  "lido"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "anti-2",
+            "level": "info",
+            "text": "If VF/pVT persists a second amiodarone dose ({dose:amio}) or lidocaine ({dose:lido}) may follow; the algorithm prints no interval for it.",
+            "when": [
+              {
+                "rhythm": "shockable"
+              },
+              {
+                "count": [
+                  "amio",
+                  "==",
+                  1
+                ]
+              },
+              {
+                "countSince": [
+                  "shock",
+                  "amio",
+                  ">=",
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "id": "airway",
+            "level": "info",
+            "text": "Consider an advanced airway (ET tube or supraglottic) with continuous waveform capnography.",
+            "when": [
+              {
+                "not": "airway"
+              },
+              {
+                "elapsed": [
+                  ">=",
+                  120
+                ]
+              }
+            ]
+          },
+          {
+            "id": "vent-adult",
+            "level": "info",
+            "patient": "adult",
+            "text": "With the advanced airway: 1 breath every 6 seconds (10/min) with continuous compressions. A sudden rise in ETCO₂ can signal ROSC.",
+            "when": [
+              {
+                "done": "airway"
+              }
+            ]
+          },
+          {
+            "id": "vent-child",
+            "level": "info",
+            "patient": "child",
+            "text": "With the advanced airway: 1 breath every 2–3 seconds (20–30/min) with continuous compressions. Diastolic pressure on an arterial line: at least 25 mmHg in infants, 30 mmHg in children.",
+            "when": [
+              {
+                "done": "airway"
+              }
+            ]
+          },
+          {
+            "id": "causes",
+            "level": "info",
+            "text": "Work through the reversible causes below.",
+            "when": [
+              {
+                "elapsed": [
+                  ">=",
+                  240
+                ]
+              }
+            ]
+          }
+        ],
+        "lists": [
+          {
+            "id": "causes",
+            "title": "Reversible causes",
+            "verb": "Considered",
+            "patient": "adult",
+            "items": [
+              {
+                "id": "hypovolemia",
+                "label": "Hypovolemia"
+              },
+              {
+                "id": "hypoxia",
+                "label": "Hypoxia"
+              },
+              {
+                "id": "acidosis",
+                "label": "Hydrogen ion (acidosis)"
+              },
+              {
+                "id": "potassium",
+                "label": "Hypo-/hyperkalemia"
+              },
+              {
+                "id": "hypothermia",
+                "label": "Hypothermia"
+              },
+              {
+                "id": "pneumothorax",
+                "label": "Tension pneumothorax"
+              },
+              {
+                "id": "tamponade",
+                "label": "Tamponade, cardiac"
+              },
+              {
+                "id": "toxins",
+                "label": "Toxins"
+              },
+              {
+                "id": "pe",
+                "label": "Thrombosis, pulmonary"
+              },
+              {
+                "id": "mi",
+                "label": "Thrombosis, coronary"
+              }
+            ]
+          },
+          {
+            "id": "causes-child",
+            "title": "Reversible causes",
+            "verb": "Considered",
+            "patient": "child",
+            "items": [
+              {
+                "id": "hypovolemia",
+                "label": "Hypovolemia"
+              },
+              {
+                "id": "hypoxia",
+                "label": "Hypoxia"
+              },
+              {
+                "id": "acidosis",
+                "label": "Hydrogen ion (acidosis)"
+              },
+              {
+                "id": "hypoglycemia",
+                "label": "Hypoglycemia"
+              },
+              {
+                "id": "potassium",
+                "label": "Hypo-/hyperkalemia"
+              },
+              {
+                "id": "hypothermia",
+                "label": "Hypothermia"
+              },
+              {
+                "id": "pneumothorax",
+                "label": "Tension pneumothorax"
+              },
+              {
+                "id": "tamponade",
+                "label": "Tamponade, cardiac"
+              },
+              {
+                "id": "toxins",
+                "label": "Toxins"
+              },
+              {
+                "id": "pe",
+                "label": "Thrombosis, pulmonary"
+              },
+              {
+                "id": "mi",
+                "label": "Thrombosis, coronary"
+              }
+            ]
+          }
+        ],
+        "sources": [
+          "aha2025-als",
+          "aha2025-pals",
+          "aha2025-algorithms"
+        ]
+      },
+      {
+        "id": "cals",
+        "name": "After cardiac surgery",
+        "short": "CALS",
+        "patients": [
+          "adult"
+        ],
+        "patientNote": "Written for adults within 10 days of cardiac surgery (STS 2017). For children, AHA 2025 advises compressions when resternotomy is not at hand, early resternotomy, internal massage and ECLS; use the Arrest tab's doses.",
+        "note": "STS 2017 protocol: VF gets up to three stacked shocks, asystole gets pacing, PEA gets a quick search for reversible causes; compressions may wait at most 1 minute for these, and the chest is reopened within 5 minutes. Full-dose epinephrine is not routine.",
+        "groups": [
+          {
+            "title": "Rhythm",
+            "actions": [
+              "vf",
+              "asys",
+              "pea",
+              "rosc"
+            ],
+            "note": "No 10-second pulse check: VF or asystole on the monitor, or a flat arterial trace without an ETCO₂ waveform, is an arrest (STS)."
+          },
+          {
+            "title": "Treat",
+            "actions": [
+              "cshock",
+              "pace",
+              "ecm",
+              "reopen",
+              "internal",
+              "ecmo"
+            ]
+          },
+          {
+            "title": "Drugs",
+            "actions": [
+              "amio",
+              "lido",
+              "epi-small",
+              "epi"
+            ],
+            "note": "Epinephrine policy differs: STS withholds routine 1 mg doses, ERC 2025 gives 50–100 mcg, AHA 2025 says nothing specific for this setting (its default is 1 mg every 3–5 minutes). Follow local policy and log what was given."
+          },
+          {
+            "title": "Airway and lines",
+            "actions": [
+              "ventbag",
+              "infusions",
+              "pacer-off",
+              "iabp"
+            ]
+          }
+        ],
+        "deadlines": [
+          {
+            "id": "ecm",
+            "label": "Compressions unless shocks or pacing restore output",
+            "sec": 60,
+            "until": "ecm"
+          },
+          {
+            "id": "reopen",
+            "label": "Resternotomy",
+            "sec": 300,
+            "until": "reopen"
+          }
+        ],
+        "prompts": [
+          {
+            "id": "start",
+            "level": "info",
+            "text": "Confirm the arrest from the monitor and the arterial and ETCO₂ traces, call the arrest, and log the rhythm. Assign the six roles below.",
+            "when": [
+              {
+                "count": [
+                  "vf",
+                  "==",
+                  0
+                ]
+              },
+              {
+                "count": [
+                  "asys",
+                  "==",
+                  0
+                ]
+              },
+              {
+                "count": [
+                  "pea",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "vf-shock",
+            "level": "now",
+            "alert": true,
+            "action": "cshock",
+            "text": "VF/pVT: three stacked shocks now if the defibrillator is ready within a minute ({energy:cshock}); otherwise start compressions.",
+            "when": [
+              {
+                "done": "vf"
+              },
+              {
+                "count": [
+                  "cshock",
+                  "<",
+                  3
+                ]
+              },
+              {
+                "not": "ecm"
+              }
+            ]
+          },
+          {
+            "id": "vf-fail",
+            "level": "now",
+            "alert": true,
+            "action": "reopen",
+            "text": "Three shocks have failed: compressions, then open the chest. Amiodarone {dose:amio} through a central line (lidocaine {dose:lido} is the alternative).",
+            "when": [
+              {
+                "done": "vf"
+              },
+              {
+                "count": [
+                  "cshock",
+                  ">=",
+                  3
+                ]
+              },
+              {
+                "not": "reopen"
+              }
+            ]
+          },
+          {
+            "id": "asys-pace",
+            "level": "now",
+            "alert": true,
+            "action": "pace",
+            "text": "Asystole or severe bradycardia: pace through the epicardial wires now (DDD 80–100/min, maximum output). No wires, or no capture within a minute: start compressions, then transcutaneous pacing.",
+            "when": [
+              {
+                "done": "asys"
+              },
+              {
+                "not": "pace"
+              },
+              {
+                "not": "ecm"
+              }
+            ]
+          },
+          {
+            "id": "pea",
+            "level": "now",
+            "alert": true,
+            "action": "reopen",
+            "text": "PEA: if paced, pause the pacemaker briefly to exclude VF. Exclude tamponade, bleeding and tension pneumothorax, then reopen without delay.",
+            "when": [
+              {
+                "done": "pea"
+              },
+              {
+                "not": "reopen"
+              }
+            ]
+          },
+          {
+            "id": "ecm-rule",
+            "level": "now",
+            "alert": true,
+            "action": "ecm",
+            "text": "One minute: shocks or pacing have not restored output, so start external compressions at 100–120/min, aiming for a systolic above 60 mmHg.",
+            "when": [
+              {
+                "elapsed": [
+                  ">=",
+                  60
+                ]
+              },
+              {
+                "not": "ecm"
+              },
+              {
+                "not": "reopen"
+              },
+              {
+                "count": [
+                  "rosc",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "under-60",
+            "level": "info",
+            "text": "A systolic under 60 mmHg with compressions means tamponade or hypovolemia until proved otherwise: reopen now.",
+            "when": [
+              {
+                "done": "ecm"
+              },
+              {
+                "not": "reopen"
+              }
+            ]
+          },
+          {
+            "id": "reopen-rule",
+            "level": "now",
+            "alert": true,
+            "action": "reopen",
+            "text": "Five minutes: emergency resternotomy now.",
+            "when": [
+              {
+                "elapsed": [
+                  ">=",
+                  300
+                ]
+              },
+              {
+                "not": "reopen"
+              },
+              {
+                "count": [
+                  "rosc",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "open",
+            "level": "now",
+            "action": "internal",
+            "text": "Chest open: two-handed internal massage at 100–120/min to a systolic above 60 mmHg; internal defibrillation as appropriate.",
+            "when": [
+              {
+                "done": "reopen"
+              },
+              {
+                "not": "internal"
+              }
+            ]
+          },
+          {
+            "id": "airway",
+            "level": "info",
+            "text": "Disconnect the ventilator and hand-ventilate with 100% oxygen; check both sides for breath sounds and chest movement and the ETCO₂ trace. Suspected tension pneumothorax: needle in the 2nd intercostal space, midclavicular line.",
+            "when": [
+              {
+                "not": "ventbag"
+              }
+            ]
+          },
+          {
+            "id": "infusions",
+            "level": "info",
+            "text": "Stop all pre-arrest infusions; sedation may continue if awareness is a concern.",
+            "when": [
+              {
+                "not": "infusions"
+              },
+              {
+                "elapsed": [
+                  ">=",
+                  30
+                ]
+              }
+            ]
+          }
+        ],
+        "lists": [
+          {
+            "id": "roles",
+            "title": "Six roles",
+            "verb": "Assigned",
+            "items": [
+              {
+                "id": "ecm",
+                "label": "External cardiac massage"
+              },
+              {
+                "id": "airway",
+                "label": "Airway and breathing"
+              },
+              {
+                "id": "defib",
+                "label": "Defibrillation, pacing and the internal paddles"
+              },
+              {
+                "id": "leader",
+                "label": "Team leader"
+              },
+              {
+                "id": "drugs",
+                "label": "Drugs"
+              },
+              {
+                "id": "coord",
+                "label": "ICU coordinator"
+              },
+              {
+                "id": "gowned",
+                "label": "Two or three staff gowned and gloved, resternotomy set opened",
+                "detail": "No hand-washing before closed-sleeve gloving"
+              }
+            ]
+          },
+          {
+            "id": "causes",
+            "title": "Causes to exclude",
+            "verb": "Excluded",
+            "note": "None of these should delay resternotomy; tamponade is the commonest cause of a non-VF arrest (STS).",
+            "items": [
+              {
+                "id": "tamponade",
+                "label": "Tamponade",
+                "detail": "Reopen"
+              },
+              {
+                "id": "bleeding",
+                "label": "Bleeding / hypovolemia",
+                "detail": "Reopen to control it"
+              },
+              {
+                "id": "ptx",
+                "label": "Tension pneumothorax",
+                "detail": "Needle, then a drain, or open the pleura at resternotomy"
+              },
+              {
+                "id": "hypoxia",
+                "label": "Hypoxia",
+                "detail": "Covered by the airway steps"
+              },
+              {
+                "id": "graft",
+                "label": "Graft or pulmonary thrombosis, obstructed valve",
+                "detail": "Needs bypass"
+              },
+              {
+                "id": "unlikely",
+                "label": "Potassium, pH, hypothermia, toxins",
+                "detail": "Unlikely in a monitored patient; stop infusions, rewarm on bypass"
+              }
+            ]
+          }
+        ],
+        "sources": [
+          "sts2017",
+          "aha2025-special",
+          "erc2025-special",
+          "aha2025-als"
+        ]
+      },
+      {
+        "id": "brady",
+        "name": "Bradycardia with a pulse",
+        "short": "Brady",
+        "patients": [
+          "adult",
+          "child"
+        ],
+        "note": "The tree follows the printed algorithm; the clock runs so the atropine interval and the record are kept.",
+        "tree": {
+          "adult": {
+            "title": "AHA 2025 bradycardia with a pulse",
+            "start": "q1",
+            "nodes": {
+              "q1": {
+                "q": "Heart rate typically under 50/min. Cardiopulmonary compromise: hypotension, acutely altered mental status, signs of shock, ischemic chest discomfort or acute heart failure?",
+                "crumb": "Compromise?",
+                "options": [
+                  {
+                    "label": "Yes",
+                    "next": "support"
+                  },
+                  {
+                    "label": "No",
+                    "next": "observe"
+                  }
+                ]
+              },
+              "observe": {
+                "title": "No compromise",
+                "crumb": "No compromise",
+                "items": [
+                  "Identify and treat the underlying causes",
+                  "Support ABCs",
+                  "Consider oxygen",
+                  "12-lead ECG",
+                  "Observe"
+                ]
+              },
+              "support": {
+                "title": "Assessment and support",
+                "crumb": "Support",
+                "items": [
+                  "Maintain a patent airway and give oxygen",
+                  "Assist breathing with positive-pressure ventilation as necessary",
+                  "Attach the cardiorespiratory monitor; monitor the pulse",
+                  "Establish vascular access (added by the February 2026 change notice)"
+                ],
+                "q": "Does bradycardia persist with compromise?",
+                "options": [
+                  {
+                    "label": "Yes",
+                    "next": "treat"
+                  },
+                  {
+                    "label": "No",
+                    "next": "observe"
+                  }
+                ]
+              },
+              "treat": {
+                "title": "Treat",
+                "crumb": "Treat",
+                "text": "Atropine first. If it does not work: transcutaneous pacing and/or a dopamine or epinephrine infusion. Consider expert consultation and transvenous pacing; immediate pacing for unstable high-degree block when there is no access.",
+                "items": [
+                  "Causes: myocardial ischemia or infarction; drugs (calcium-channel blockers, β-blockers, digoxin); hypoxia; electrolytes (hyperkalemia)"
+                ],
+                "actions": [
+                  "atropine",
+                  "tcp",
+                  "dopa",
+                  "epi-inf",
+                  "tvp"
+                ]
+              }
+            }
+          },
+          "child": {
+            "title": "PALS 2025 bradycardia with a pulse",
+            "start": "q1",
+            "nodes": {
+              "q1": {
+                "q": "Cardiopulmonary compromise: acutely altered mental status, signs of shock or hypotension?",
+                "crumb": "Compromise?",
+                "options": [
+                  {
+                    "label": "Yes",
+                    "next": "support"
+                  },
+                  {
+                    "label": "No",
+                    "next": "observe"
+                  }
+                ]
+              },
+              "observe": {
+                "title": "No compromise",
+                "crumb": "No compromise",
+                "items": [
+                  "Identify and treat the underlying causes",
+                  "Support ABCs",
+                  "Consider oxygen",
+                  "Consider a 12-lead ECG",
+                  "Observe"
+                ]
+              },
+              "support": {
+                "title": "Assessment and support",
+                "crumb": "Support",
+                "items": [
+                  "Maintain a patent airway and give oxygen",
+                  "Assist breathing with positive-pressure ventilation as necessary",
+                  "Attach the cardiorespiratory monitor; monitor the pulse"
+                ],
+                "q": "Does bradycardia persist with compromise?",
+                "options": [
+                  {
+                    "label": "Yes",
+                    "next": "treat"
+                  },
+                  {
+                    "label": "No",
+                    "next": "observe"
+                  }
+                ]
+              },
+              "treat": {
+                "title": "Treat",
+                "crumb": "Treat",
+                "text": "Start CPR if the heart rate stays under 60/min with compromise despite oxygenation and ventilation. IV/IO access; epinephrine; atropine for increased vagal tone or primary AV block; consider transthoracic or transvenous pacing. Check the pulse every 2 minutes: if it goes, switch to the Arrest tab.",
+                "items": [
+                  "Causes: hypothermia, hypoxia, toxins or medications, raised intracranial pressure, increased vagal tone, heart block, physiologic"
+                ],
+                "actions": [
+                  "cpr",
+                  "epi-brady",
+                  "atropine",
+                  "tcp",
+                  "tvp"
+                ]
+              }
+            }
+          }
+        },
+        "prompts": [
+          {
+            "id": "atropine-adult",
+            "level": "soon",
+            "patient": "adult",
+            "action": "atropine",
+            "text": "Atropine may be repeated: {dose:atropine}, every 3–5 minutes, 3 mg in total.",
+            "when": [
+              {
+                "count": [
+                  "atropine",
+                  ">=",
+                  1
+                ]
+              },
+              {
+                "count": [
+                  "atropine",
+                  "<",
+                  3
+                ]
+              },
+              {
+                "since": [
+                  "atropine",
+                  ">=",
+                  180
+                ]
+              }
+            ]
+          },
+          {
+            "id": "atropine-child",
+            "level": "info",
+            "patient": "child",
+            "action": "atropine",
+            "text": "Atropine may be repeated once: {dose:atropine} (minimum 0.1 mg, maximum single dose 0.5 mg).",
+            "when": [
+              {
+                "count": [
+                  "atropine",
+                  "==",
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "id": "epi-child",
+            "level": "info",
+            "patient": "child",
+            "text": "The 2025 algorithm prints no repeat interval for epinephrine in bradycardia.",
+            "when": [
+              {
+                "count": [
+                  "epi-brady",
+                  ">=",
+                  1
+                ]
+              }
+            ]
+          }
+        ],
+        "sources": [
+          "aha2025-als",
+          "aha2025-pals",
+          "aha2025-algorithms"
+        ]
+      },
+      {
+        "id": "tachy",
+        "name": "Tachyarrhythmia with a pulse",
+        "short": "Tachy",
+        "patients": [
+          "adult",
+          "child"
+        ],
+        "note": "Unstable means the tachyarrhythmia itself is causing the compromise. Cardioversion energies are from the AHA 2025 Electrical Cardioversion algorithm.",
+        "tree": {
+          "adult": {
+            "title": "AHA 2025 tachyarrhythmia with a pulse",
+            "start": "q1",
+            "nodes": {
+              "q1": {
+                "q": "Heart rate typically 150/min or more. Is the tachyarrhythmia causing hypotension, acutely altered mental status, signs of shock, ischemic chest discomfort or acute heart failure?",
+                "crumb": "Unstable?",
+                "options": [
+                  {
+                    "label": "Yes: unstable",
+                    "next": "unstable"
+                  },
+                  {
+                    "label": "No: stable",
+                    "next": "q2"
+                  }
+                ]
+              },
+              "unstable": {
+                "title": "Unstable: synchronized cardioversion",
+                "crumb": "Unstable",
+                "text": "Sedate whenever feasible; have oxygen, suction, an IV and intubation equipment at hand. If the rhythm is regular and narrow, adenosine may be tried first. Resynchronize after each shock; if synchronization delays a critical patient, shock unsynchronized.",
+                "items": [
+                  "Energies: atrial fibrillation 200 J, atrial flutter 200 J, narrow-complex tachycardia 100 J, monomorphic VT 100 J; polymorphic VT: unsynchronized high-energy shock",
+                  "If refractory: treat the cause, raise the energy for the next shock, add an antiarrhythmic, expert consultation"
+                ],
+                "actions": [
+                  "cardiovert",
+                  "adenosine",
+                  "procainamide",
+                  "amio-vt"
+                ]
+              },
+              "q2": {
+                "q": "Wide QRS (0.12 s or more)?",
+                "crumb": "QRS width",
+                "options": [
+                  {
+                    "label": "Wide",
+                    "next": "wide"
+                  },
+                  {
+                    "label": "Narrow",
+                    "next": "narrow"
+                  }
+                ]
+              },
+              "narrow": {
+                "title": "Stable, narrow complex",
+                "crumb": "Narrow",
+                "items": [
+                  "Vagal maneuvers, if regular",
+                  "Adenosine, if regular",
+                  "β-blocker or calcium-channel blocker",
+                  "Expert consultation"
+                ],
+                "text": "Rate control for atrial fibrillation or flutter (Part 9, Table 2): not with pre-excitation, and no calcium-channel blockers or IV β-blockers in decompensated heart failure.",
+                "actions": [
+                  "vagal",
+                  "adenosine",
+                  "diltiazem",
+                  "esmolol",
+                  "metoprolol",
+                  "verapamil"
+                ]
+              },
+              "wide": {
+                "title": "Stable, wide complex",
+                "crumb": "Wide",
+                "items": [
+                  "Adenosine only if regular and monomorphic",
+                  "Antiarrhythmic infusion: procainamide or amiodarone (sotalol is no longer on the algorithm)",
+                  "Expert consultation",
+                  "No verapamil or diltiazem",
+                  "Sustained polymorphic VT: unsynchronized shock; recurrent torsades with a long QT: magnesium (no 2025 dose is printed)"
+                ],
+                "actions": [
+                  "adenosine",
+                  "procainamide",
+                  "amio-vt",
+                  "cardiovert"
+                ]
+              }
+            }
+          },
+          "child": {
+            "title": "PALS 2025 tachyarrhythmia with a pulse",
+            "start": "q1",
+            "nodes": {
+              "q1": {
+                "q": "Airway, oxygen, monitor, IV/IO, 12-lead ECG. Probable sinus tachycardia: normal P waves, variable R–R, infant under 220/min, child under 180/min?",
+                "crumb": "Sinus?",
+                "options": [
+                  {
+                    "label": "Yes: sinus",
+                    "next": "sinus"
+                  },
+                  {
+                    "label": "No: tachyarrhythmia",
+                    "next": "q2"
+                  }
+                ]
+              },
+              "sinus": {
+                "title": "Probable sinus tachycardia",
+                "crumb": "Sinus",
+                "text": "Search for and treat the cause."
+              },
+              "q2": {
+                "q": "Cardiopulmonary compromise: acutely altered mental status, signs of shock or hypotension?",
+                "crumb": "Compromise?",
+                "options": [
+                  {
+                    "label": "Yes",
+                    "next": "q3u"
+                  },
+                  {
+                    "label": "No",
+                    "next": "q3s"
+                  }
+                ]
+              },
+              "q3u": {
+                "q": "QRS duration?",
+                "crumb": "QRS",
+                "options": [
+                  {
+                    "label": "Narrow (0.09 s or less)",
+                    "next": "svt-u"
+                  },
+                  {
+                    "label": "Wide (over 0.09 s)",
+                    "next": "vt-u"
+                  }
+                ]
+              },
+              "q3s": {
+                "q": "QRS duration?",
+                "crumb": "QRS",
+                "options": [
+                  {
+                    "label": "Narrow (0.09 s or less)",
+                    "next": "svt-s"
+                  },
+                  {
+                    "label": "Wide (over 0.09 s)",
+                    "next": "vt-s"
+                  }
+                ]
+              },
+              "svt-u": {
+                "title": "Probable SVT with compromise",
+                "crumb": "SVT, unstable",
+                "text": "Adenosine if IV/IO access is already in; otherwise synchronized cardioversion. Sedate if needed, but do not delay the shock.",
+                "actions": [
+                  "adenosine-child",
+                  "cardiovert-child"
+                ]
+              },
+              "vt-u": {
+                "title": "Possible VT with compromise",
+                "crumb": "VT, unstable",
+                "text": "Synchronized cardioversion; expert consultation before further drugs.",
+                "actions": [
+                  "cardiovert-child"
+                ]
+              },
+              "svt-s": {
+                "title": "Probable SVT, stable",
+                "crumb": "SVT, stable",
+                "text": "Consider vagal maneuvers, then IV/IO adenosine. If it does not respond and no expert is available, procainamide, amiodarone or sotalol may be considered; the 2025 algorithm prints no doses for them.",
+                "actions": [
+                  "vagal",
+                  "adenosine-child"
+                ]
+              },
+              "vt-s": {
+                "title": "Possible VT, or SVT with aberrancy, stable",
+                "crumb": "Wide, stable",
+                "text": "If regular and monomorphic, consider adenosine. Expert consultation is recommended.",
+                "actions": [
+                  "adenosine-child"
+                ]
+              }
+            }
+          }
+        },
+        "prompts": [
+          {
+            "id": "adenosine-2",
+            "level": "info",
+            "patient": "adult",
+            "action": "adenosine",
+            "text": "If needed, a second adenosine dose: {dose:adenosine}. With a central line or after heart transplant 1 mg may be enough.",
+            "when": [
+              {
+                "count": [
+                  "adenosine",
+                  "==",
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "id": "adenosine-2-child",
+            "level": "info",
+            "patient": "child",
+            "action": "adenosine-child",
+            "text": "If needed, a second adenosine dose: {dose:adenosine-child}.",
+            "when": [
+              {
+                "count": [
+                  "adenosine-child",
+                  "==",
+                  1
+                ]
+              }
+            ]
+          }
+        ],
+        "sources": [
+          "aha2025-als",
+          "aha2025-pals",
+          "aha2025-algorithms"
+        ]
+      },
+      {
+        "id": "rosc",
+        "name": "Post-cardiac arrest care",
+        "short": "Post-ROSC",
+        "patients": [
+          "adult",
+          "child"
+        ],
+        "note": "Tick each item as it is done; the clock keeps running from the start of the code.",
+        "lists": [
+          {
+            "id": "rosc",
+            "title": "Adult post-cardiac arrest care (AHA 2025)",
+            "verb": "Done",
+            "patient": "adult",
+            "items": [
+              {
+                "id": "airway",
+                "label": "Airway secured and confirmed",
+                "detail": "Place or exchange the advanced airway as needed; confirm with capnography"
+              },
+              {
+                "id": "o2",
+                "label": "100% oxygen until SpO₂ or PaO₂ can be measured reliably",
+                "detail": "Then SpO₂ 90–98% (PaO₂ 60–105 mmHg)"
+              },
+              {
+                "id": "co2",
+                "label": "PaCO₂ 35–45 mmHg",
+                "detail": "Unless severe acidemia; check a blood gas"
+              },
+              {
+                "id": "map",
+                "label": "MAP at least 65 mmHg",
+                "detail": "No systolic target; no specific vasopressor is recommended"
+              },
+              {
+                "id": "ecg",
+                "label": "12-lead ECG as soon as feasible"
+              },
+              {
+                "id": "imaging",
+                "label": "Consider CT and/or ultrasound",
+                "detail": "Head-to-pelvis CT and echo may be reasonable"
+              },
+              {
+                "id": "cath",
+                "label": "Emergency coronary angiography if ST elevation",
+                "detail": "Also without ST elevation for cardiogenic shock, recurrent ventricular arrhythmias or ongoing ischemia"
+              },
+              {
+                "id": "temp",
+                "label": "Temperature control 32–37.5 °C, started as soon as possible",
+                "detail": "For at least 36 hours; rewarm no faster than 0.5 °C/h"
+              },
+              {
+                "id": "glucose",
+                "label": "Glucose kept between 70 and 180 mg/dL"
+              },
+              {
+                "id": "eeg",
+                "label": "EEG if not following commands; treat seizures",
+                "detail": "No routine seizure prophylaxis"
+              },
+              {
+                "id": "prog",
+                "label": "Multimodal prognostication at 72 hours or later",
+                "detail": "After normothermia and off sedation"
+              }
+            ]
+          },
+          {
+            "id": "rosc-child",
+            "title": "Pediatric post-cardiac arrest care (AHA/AAP 2025)",
+            "verb": "Done",
+            "patient": "child",
+            "note": "The guideline text targets SpO₂ 94–99%; the 2025 checklist prints 94–98%.",
+            "items": [
+              {
+                "id": "o2",
+                "label": "SpO₂ 94–99% (or the child's normal)",
+                "detail": "Avoid hyperoxia and hypoxemia"
+              },
+              {
+                "id": "co2",
+                "label": "PaCO₂ appropriate to the condition",
+                "detail": "Limit severe hypercapnia or hypocapnia"
+              },
+              {
+                "id": "monitor",
+                "label": "Telemetry and arterial pressure monitoring"
+              },
+              {
+                "id": "bp",
+                "label": "Systolic and mean pressure above the 10th percentile for age",
+                "detail": "Fluid bolus with or without inotropes or vasopressors"
+              },
+              {
+                "id": "perfusion",
+                "label": "Lactate and urine output followed; echo for myocardial dysfunction"
+              },
+              {
+                "id": "lytes",
+                "label": "Electrolytes kept normal"
+              },
+              {
+                "id": "temp",
+                "label": "Core temperature monitored; fever treated at once",
+                "detail": "Avoid a central temperature above 37.5 °C if comatose"
+              },
+              {
+                "id": "ttm",
+                "label": "Temperature management if comatose",
+                "detail": "32–34 °C then 36–37.5 °C, or 36–37.5 °C throughout, as a 5-day course; prevent shivering"
+              },
+              {
+                "id": "eeg",
+                "label": "Continuous EEG if not at neurologic baseline; treat seizures"
+              },
+              {
+                "id": "glucose",
+                "label": "Glucose measured; hypoglycemia avoided"
+              },
+              {
+                "id": "sedation",
+                "label": "Sedation and analgesia to a score target"
+              },
+              {
+                "id": "prog",
+                "label": "Prognostication delayed at least 72 hours, multimodal"
+              }
+            ]
+          }
+        ],
+        "sources": [
+          "aha2025-pcac",
+          "aha2025-pals",
+          "aha2025-algorithms"
+        ]
+      },
+      {
+        "id": "anaphylaxis",
+        "name": "Anaphylaxis",
+        "short": "Anaphylaxis",
+        "patients": [
+          "adult",
+          "child"
+        ],
+        "note": "Adult doses: ICON 2019 international consensus; IM dose 500 mcg as ANZAAG, AAGBI and RCUK print it (ICON prints 300 mcg for grade II). Child IV doses: ANZAAG–ANZCA 2022 (ICON records no consensus); IM 10 mcg/kg, maximum 500 mcg (RCUK 2024).",
+        "tree": {
+          "all": {
+            "title": "Grade the reaction (ICON 2019)",
+            "start": "grade",
+            "nodes": {
+              "grade": {
+                "q": "Grade?",
+                "crumb": "Grade",
+                "options": [
+                  {
+                    "label": "I · skin or mucosa only",
+                    "next": "g1"
+                  },
+                  {
+                    "label": "II · moderate: hypotension, tachycardia, bronchospasm, GI signs",
+                    "next": "g2"
+                  },
+                  {
+                    "label": "III · life-threatening: severe hypotension, severe bronchospasm, arrhythmia",
+                    "next": "g3"
+                  },
+                  {
+                    "label": "IV · cardiac arrest",
+                    "next": "g4"
+                  }
+                ]
+              },
+              "g1": {
+                "title": "Grade I",
+                "crumb": "Grade I",
+                "text": "Skin or mucosal signs only: no epinephrine. Remove the triggers and watch; refer for allergy testing if the urticaria or erythema is generalized.",
+                "actions": [
+                  "ana-triggers"
+                ]
+              },
+              "g2": {
+                "title": "Grade II",
+                "crumb": "Grade II",
+                "text": "Epinephrine 20 mcg IV, then 50 mcg at 2 minutes if the response is inadequate, every 2 minutes (adult, ICON). Child: 2 mcg/kg IV (ANZAAG). No IV access: 500 mcg IM. Crystalloid 500 mL rapid bolus (child 20 mL/kg), reassess, repeat.",
+                "actions": [
+                  "ana-epi-2",
+                  "ana-epi-im",
+                  "ana-fluid"
+                ]
+              },
+              "g3": {
+                "title": "Grade III",
+                "crumb": "Grade III",
+                "text": "Epinephrine 50 mcg IV (100 mcg if other vasopressors have failed), then 200 mcg at 2 minutes, every 2 minutes (adult, ICON). Child: 4–10 mcg/kg IV (ANZAAG). Crystalloid 1 L rapid bolus (child 20 mL/kg), repeat. Start compressions if the systolic falls under 50 mmHg or there is no output, even with a rhythm.",
+                "actions": [
+                  "ana-epi-3",
+                  "ana-epi-im",
+                  "ana-fluid",
+                  "ana-epi-inf"
+                ]
+              },
+              "g4": {
+                "title": "Grade IV: cardiac arrest",
+                "crumb": "Grade IV",
+                "text": "Switch to the Arrest tab: compressions and ALS doses of epinephrine (1 mg; child 0.01 mg/kg). Large-volume crystalloid (ANZAAG: 2 L adult, 20 mL/kg child).",
+                "actions": [
+                  "cpr",
+                  "epi"
+                ]
+              }
+            }
+          }
+        },
+        "groups": [
+          {
+            "title": "Immediate",
+            "actions": [
+              "ana-help",
+              "ana-triggers",
+              "ana-o2",
+              "ana-legs"
+            ]
+          },
+          {
+            "title": "Epinephrine",
+            "actions": [
+              "ana-epi-2",
+              "ana-epi-3",
+              "ana-epi-im",
+              "ana-epi-inf"
+            ],
+            "note": "IV boluses from a 1 mg in 10 mL (100 mcg/mL) syringe for adults, 1 mg in 50 mL (20 mcg/mL) for children (ANZAAG). Repeat every 2 minutes if the response is inadequate."
+          },
+          {
+            "title": "Fluids and refractory shock",
+            "actions": [
+              "ana-fluid",
+              "ana-norepi",
+              "ana-vaso",
+              "ana-glucagon",
+              "ana-broncho",
+              "ana-ecls"
+            ],
+            "note": "After 10 minutes without a sustained response: double the bolus, start the infusion after more than three boluses, add a second vasopressor (ICON)."
+          },
+          {
+            "title": "Afterwards",
+            "actions": [
+              "ana-steroid",
+              "ana-tryptase"
+            ]
+          }
+        ],
+        "prompts": [
+          {
+            "id": "start",
+            "level": "info",
+            "text": "Call for help, remove the triggers (the drug, chlorhexidine, colloid, latex), 100% oxygen, legs up if hypotensive; stop the procedure and lighten the anesthetic. Grade the reaction below.",
+            "when": [
+              {
+                "not": "ana-help"
+              }
+            ]
+          },
+          {
+            "id": "epi2-due",
+            "level": "now",
+            "alert": true,
+            "action": "ana-epi-2",
+            "text": "Two minutes: if the response is inadequate, repeat epinephrine {dose:ana-epi-2}.",
+            "when": [
+              {
+                "count": [
+                  "ana-epi-2",
+                  ">=",
+                  1
+                ]
+              },
+              {
+                "since": [
+                  "ana-epi-2",
+                  ">=",
+                  120
+                ]
+              },
+              {
+                "count": [
+                  "ana-epi-3",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "epi3-due",
+            "level": "now",
+            "alert": true,
+            "action": "ana-epi-3",
+            "text": "Two minutes: if the response is inadequate, repeat epinephrine {dose:ana-epi-3}.",
+            "when": [
+              {
+                "count": [
+                  "ana-epi-3",
+                  ">=",
+                  1
+                ]
+              },
+              {
+                "since": [
+                  "ana-epi-3",
+                  ">=",
+                  120
+                ]
+              }
+            ]
+          },
+          {
+            "id": "im-due",
+            "level": "soon",
+            "action": "ana-epi-im",
+            "text": "IM epinephrine may be repeated every 5 minutes: {dose:ana-epi-im}.",
+            "when": [
+              {
+                "count": [
+                  "ana-epi-im",
+                  ">=",
+                  1
+                ]
+              },
+              {
+                "since": [
+                  "ana-epi-im",
+                  ">=",
+                  300
+                ]
+              },
+              {
+                "not": "ana-epi-inf"
+              }
+            ]
+          },
+          {
+            "id": "infusion-2",
+            "level": "now",
+            "action": "ana-epi-inf",
+            "text": "More than three boluses: start an epinephrine infusion ({dose:ana-epi-inf}).",
+            "when": [
+              {
+                "count": [
+                  "ana-epi-2",
+                  ">=",
+                  4
+                ]
+              },
+              {
+                "not": "ana-epi-inf"
+              }
+            ]
+          },
+          {
+            "id": "infusion-3",
+            "level": "now",
+            "action": "ana-epi-inf",
+            "text": "More than three boluses: start an epinephrine infusion ({dose:ana-epi-inf}).",
+            "when": [
+              {
+                "count": [
+                  "ana-epi-3",
+                  ">=",
+                  4
+                ]
+              },
+              {
+                "not": "ana-epi-inf"
+              }
+            ]
+          },
+          {
+            "id": "refractory",
+            "level": "soon",
+            "text": "Ten minutes: if hypotension persists add norepinephrine or vasopressin, glucagon if β-blocked, and consider ECLS; if bronchospasm persists, inhaled or IV bronchodilators and volatile.",
+            "when": [
+              {
+                "elapsed": [
+                  ">=",
+                  600
+                ]
+              },
+              {
+                "not": "ana-norepi"
+              },
+              {
+                "not": "ana-vaso"
+              }
+            ]
+          },
+          {
+            "id": "tryptase",
+            "level": "soon",
+            "text": "Send the first tryptase now (1 hour), then at 2–4 hours; a baseline sample at least 24 hours later.",
+            "when": [
+              {
+                "elapsed": [
+                  ">=",
+                  3300
+                ]
+              },
+              {
+                "not": "ana-tryptase"
+              }
+            ]
+          }
+        ],
+        "lists": [
+          {
+            "id": "after",
+            "title": "After the reaction",
+            "verb": "Done",
+            "items": [
+              {
+                "id": "observe",
+                "label": "Monitored for at least 6 hours",
+                "detail": "Consider 24 hours of ICU or HDU after a severe reaction"
+              },
+              {
+                "id": "plan",
+                "label": "Decided whether to proceed, cancel or postpone the surgery"
+              },
+              {
+                "id": "letter",
+                "label": "Letter to the patient and the primary team"
+              },
+              {
+                "id": "refer",
+                "label": "Allergy referral",
+                "detail": "All grade II–IV reactions, and grade I with generalized urticaria or erythema"
+              }
+            ]
+          }
+        ],
+        "sources": [
+          "icon2019",
+          "anzaag2022",
+          "rcuk2024",
+          "aha2025-special"
+        ]
+      }
+    ],
+    "notes": [
+      "Adult doses, energies and steps are the AHA 2025 algorithms and Part 9, each read in two official copies; the journal page numbers were not confirmed. Pediatric values are the AHA/AAP 2025 Part 8 text and algorithms; the Part 8 bradycardia and tachyarrhythmia sections could not be read, so those values come from the algorithms and the 2025 Highlights.",
+      "After cardiac surgery: STS 2017 expert consensus (read from the STS copy; its poster figure could not be read), AHA 2025 Part 10 and ERC 2025. No source prints a defibrillation energy for this setting; the tool shows the general adult dose. Epinephrine policy differs between STS, ERC and AHA, so the tool does not prompt it.",
+      "Anaphylaxis: the ANZAAG card values were read from extracted text and should be checked against the rendered cards; terlipressin and methylene blue have no published dose and are not offered.",
+      "Not printed in the 2025 sources and so not prompted: a magnesium dose for torsades, a sotalol dose, a pediatric lidocaine maximum or repeat, a pediatric epinephrine interval in bradycardia, endotracheal epinephrine, pacing settings, and an ETCO₂ or diastolic pressure target in any adult recommendation."
     ]
   }
 }

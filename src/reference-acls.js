@@ -92,6 +92,19 @@
           return `<div class="a-p ${esc(p.level)}"><p>${esc(p.text)}</p>${a ? `<button type="button" class="a-give" data-a="act" data-k="${esc(p.action)}">${a.kind === 'shock' ? 'Shock given' : a.kind === 'drug' ? 'Given' : 'Done'}</button>` : ''}</div>`;
         }).join('')}</section>`;
       }
+      // decision tree
+      const tr = A.tree(live, d);
+      if (tr) {
+        h += `<section class="r-sec">${eyebrow(tr.tree.title || 'Algorithm')}<div class="r-card a-tree">`;
+        if (tr.path.length) h += `<div class="a-path">${tr.path.map((id) => `<span>${esc(tr.tree.nodes[id].crumb || tr.tree.nodes[id].q || tr.tree.nodes[id].title || '')}</span>`).join('')}<button type="button" class="r-link" data-a="back">${I.reset} Back</button></div>`;
+        const node = tr.node;
+        if (node.title) h += `<p class="a-ttl">${esc(node.title)}</p>`;
+        if (node.text) h += `<p class="a-tx">${esc(node.text)}</p>`;
+        if (node.items) h += c.takeList(node.items);
+        if (node.q) h += `<p class="a-q">${esc(node.q)}</p><div class="a-opts">${node.options.map((o, i) => `<button type="button" class="a-opt" data-a="choose" data-k="${i}">${esc(o.label)}</button>`).join('')}</div>`;
+        if (node.actions && node.actions.length) h += `<div class="a-grid">${node.actions.filter((id) => d.actions[id]).map((id) => actionButton(id, d.actions[id], d, t)).join('')}</div>`;
+        h += `</div></section>`;
+      }
       // action groups
       for (const g of mode.groups || []) {
         const ids = g.actions.filter((id) => d.actions[id] && (!d.actions[id].patients || d.actions[id].patients.includes(live.patient)));
@@ -105,19 +118,6 @@
         h += `<div class="a-grid">${ids.map((id) => actionButton(id, d.actions[id], d, t)).join('')}</div>`;
         if (g.note) h += footnote(g.note);
         h += `</section>`;
-      }
-      // decision tree
-      const tr = A.tree(live, d);
-      if (tr) {
-        h += `<section class="r-sec">${eyebrow(tr.tree.title || 'Algorithm')}<div class="r-card a-tree">`;
-        if (tr.path.length) h += `<div class="a-path">${tr.path.map((id) => `<span>${esc(tr.tree.nodes[id].crumb || tr.tree.nodes[id].q || tr.tree.nodes[id].title || '')}</span>`).join('')}<button type="button" class="r-link" data-a="back">${I.reset} Back</button></div>`;
-        const node = tr.node;
-        if (node.title) h += `<p class="a-ttl">${esc(node.title)}</p>`;
-        if (node.text) h += `<p class="a-tx">${esc(node.text)}</p>`;
-        if (node.items) h += c.takeList(node.items);
-        if (node.q) h += `<p class="a-q">${esc(node.q)}</p><div class="a-opts">${node.options.map((o, i) => `<button type="button" class="a-opt" data-a="choose" data-k="${i}">${esc(o.label)}</button>`).join('')}</div>`;
-        if (node.actions && node.actions.length) h += `<div class="a-grid">${node.actions.filter((id) => d.actions[id]).map((id) => actionButton(id, d.actions[id], d, t)).join('')}</div>`;
-        h += `</div></section>`;
       }
       // checklists
       for (const l of mode.lists || []) {

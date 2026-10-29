@@ -940,6 +940,110 @@ final class ReferenceTests: XCTestCase {
         }
         for (id, act) in a.actions { if let g = act.goto { XCTAssertTrue(ids.contains(g), "\(id) goes to \(g)") } }
     }
+
+    /// The shipped content, walked the way tools/test_reference_logic.js walks it.
+    func testAclsContentWalk() throws {
+        guard let d = try bundled().acls else { return }
+        XCTAssertEqual(d.modes.count, 6)
+        var s = AclsState(startedAt: 0, mode: "arrest", patient: "adult")
+        func ids(_ t: Double) -> [String] { AclsCalc.prompts(s, d, t).map(\.id) }
+        XCTAssertEqual(ids(0), ["first-adult"])
+        s.add(10000, "vf", "Rhythm: VF/pVT")
+        var ps = AclsCalc.prompts(s, d, 11000)
+        XCTAssertEqual(ps.map(\.id), ["shock-now"])
+        XCTAssertTrue(ps[0].text.hasPrefix("Shock now: the device’s recommended biphasic dose (e.g. 120–200 J)"), ps[0].text)
+        s.add(12000, "shock", AclsCalc.entryText(d.actions["shock"]!, s, 0, joules: 200))
+        XCTAssertEqual(s.log.last?.text, "Shock 1: 200 J")
+        s.add(130000, "vf", "Rhythm: VF/pVT"); s.add(131000, "shock", "Shock 2: 200 J")
+        ps = AclsCalc.prompts(s, d, 132000)
+        XCTAssertEqual(ps.map(\.id), ["epi-s", "airway"])
+        XCTAssertEqual(ps[0].text, "Two shocks have not worked: epinephrine 1 mg IV/IO.")
+        s.add(140000, "epi", AclsCalc.entryText(d.actions["epi"]!, s, 0))
+        XCTAssertEqual(s.log.last?.text, "Epinephrine 1 mg IV/IO")
+        s.add(250000, "vf", "Rhythm: VF/pVT"); s.add(251000, "shock", "Shock 3: 200 J")
+        ps = AclsCalc.prompts(s, d, 252000)
+        XCTAssertEqual(ps.map(\.id), ["anti", "airway", "causes"])
+        XCTAssertEqual(ps[0].text, "Three shocks have not worked: amiodarone 300 mg IV/IO, or lidocaine 1–1.5 mg/kg.")
+        s.add(260000, "amio", AclsCalc.entryText(d.actions["amio"]!, s, 0))
+        XCTAssertEqual(ids(330000), ["epi-due", "airway", "causes"], "epinephrine due 3 min after the first dose")
+        s.add(331000, "epi", AclsCalc.entryText(d.actions["epi"]!, s, 1))
+        XCTAssertEqual(s.log.last?.text, "Epinephrine 1 mg IV/IO (dose 2)")
+        s.add(370000, "vf", "Rhythm: VF/pVT"); s.add(371000, "shock", "Shock 4: 200 J")
+        ps = AclsCalc.prompts(s, d, 372000)
+        XCTAssertEqual(ps.map(\.id), ["anti-2", "airway", "causes"])
+        XCTAssertTrue(ps[0].text.contains("second amiodarone dose (150 mg IV/IO)"), ps[0].text)
+        s.add(380000, "airway", "Advanced airway placed")
+        XCTAssertEqual(ids(381000), ["anti-2", "vent-adult", "causes"])
+        XCTAssertEqual(AclsCalc.cycle(s, d, 400000).from, 370000)
+        XCTAssertEqual(d.actions["rosc"]?.goto, "rosc")
+
+        // a child, asystole first, with weight-based doses
+        var c = AclsState(startedAt: 0, mode: "arrest", patient: "child"); c.weight = 18
+        XCTAssertEqual(AclsCalc.prompts(c, d, 0).map(\.id), ["first-child"])
+        c.add(5000, "nonsh", "Rhythm: asystole/PEA")
+        let cp = AclsCalc.prompts(c, d, 6000)
+        XCTAssertEqual(cp.map(\.id), ["epi-ns"])
+        XCTAssertEqual(cp[0].text, "Epinephrine as soon as possible: 0.18 mg IV/IO · 1.8 mL of 0.1 mg/mL (0.01 mg/kg).")
+        XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, c, 0)?.text, "36 J (2 J/kg)")
+        XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, c, 1)?.text, "72 J (4 J/kg)")
+        XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, c, 2)?.text, "≥ 72 J (4 J/kg), up to 180 J")
+        XCTAssertEqual(AclsCalc.dose(d.actions["amio"]!, c, 0)?.text, "90 mg IV/IO (5 mg/kg)")
+        XCTAssertEqual(AclsCalc.maxDoses(d.actions["amio"]!, c), 3)
+        var big = AclsState(startedAt: 0, mode: "arrest", patient: "child"); big.weight = 70
+        XCTAssertEqual(AclsCalc.dose(d.actions["amio"]!, big, 0)?.text, "300 mg IV/IO (the maximum)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["amio"]!, big, 1)?.text, "150 mg IV/IO (the maximum)", "later doses are capped at 150 mg")
+        XCTAssertEqual(AclsCalc.dose(d.actions["epi"]!, big, 0)?.text, "0.7 mg IV/IO · 7 mL of 0.1 mg/mL (0.01 mg/kg)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["lido"]!, c, 0)?.text, "18 mg IV/IO (1 mg/kg)")
+        var b = AclsState(startedAt: 0, mode: "brady", patient: "child"); b.weight = 3
+        XCTAssertEqual(AclsCalc.dose(d.actions["atropine"]!, b, 0)?.text, "0.1 mg IV/IO (the minimum)")
+        b.weight = 40
+        XCTAssertEqual(AclsCalc.dose(d.actions["atropine"]!, b, 0)?.text, "0.5 mg IV/IO (the maximum)")
+        var t = AclsState(startedAt: 0, mode: "tachy", patient: "child"); t.weight = 18
+        XCTAssertEqual(AclsCalc.dose(d.actions["adenosine-child"]!, t, 0)?.text, "1.8 mg IV/IO rapid push, then flush (0.1 mg/kg)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["adenosine-child"]!, t, 1)?.text, "3.6 mg IV/IO rapid push, then flush (0.2 mg/kg)")
+        var an = AclsState(startedAt: 0, mode: "anaphylaxis", patient: "child"); an.weight = 18
+        XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-2"]!, an, 0)?.text, "36 mcg IV · 1.8 mL of 20 mcg/mL (2 mcg/kg)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-im"]!, an, 0)?.text, "180 mcg IM, lateral thigh (10 mcg/kg)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["ana-glucagon"]!, an, 0)?.text, "0.72 mg IV (0.04 mg/kg)")
+
+        // CALS: the one-minute and five-minute rules
+        var k = AclsState(startedAt: 0, mode: "cals", patient: "adult")
+        XCTAssertEqual(AclsCalc.deadlines(k, d, 0).map { [$0.id, "\(Int($0.remaining))"] }, [["ecm", "60"], ["reopen", "300"]])
+        k.add(5000, "vf", "Rhythm: VF/pVT")
+        XCTAssertEqual(AclsCalc.prompts(k, d, 6000).map(\.id), ["vf-shock", "airway"])
+        for t0 in [10000.0, 20000, 30000] { k.add(t0, "cshock", "Shock") }
+        XCTAssertEqual(AclsCalc.prompts(k, d, 61000).map(\.id), ["vf-fail", "ecm-rule", "airway", "infusions"])
+        k.add(62000, "ecm", "External compressions started")
+        XCTAssertEqual(AclsCalc.prompts(k, d, 301000).map(\.id), ["vf-fail", "under-60", "reopen-rule", "airway", "infusions"])
+        k.add(302000, "reopen", "Emergency resternotomy")
+        XCTAssertEqual(AclsCalc.deadlines(k, d, 303000).count, 0)
+        XCTAssertNil(AclsCalc.tree(k, d))
+        // trees start where the JS test says; every node reachable
+        for (mode, who, start) in [("brady", "adult", "q1"), ("brady", "child", "q1"), ("tachy", "adult", "q1"), ("tachy", "child", "q1"), ("anaphylaxis", "adult", "grade"), ("anaphylaxis", "child", "grade")] {
+            XCTAssertEqual(AclsCalc.tree(AclsState(startedAt: 0, mode: mode, patient: who), d)?.nodeId, start, "\(mode) \(who)")
+        }
+        for m in d.modes {
+            for (who, tr) in m.tree ?? [:] {
+                var seen: Set<String> = [tr.start]; var todo = [tr.start]
+                while let cur = todo.popLast() {
+                    for o in tr.nodes[cur]?.options ?? [] where !seen.contains(o.next) { seen.insert(o.next); todo.append(o.next) }
+                }
+                XCTAssertEqual(seen, Set(tr.nodes.keys), "\(m.id)/\(who): every node reachable")
+            }
+        }
+        // anaphylaxis prompts
+        var a2 = AclsState(startedAt: 0, mode: "anaphylaxis", patient: "adult")
+        XCTAssertEqual(AclsCalc.prompts(a2, d, 0).map(\.id), ["start"])
+        a2.add(1000, "ana-help", "Help called")
+        a2.add(2000, "ana-epi-3", AclsCalc.entryText(d.actions["ana-epi-3"]!, a2, 0))
+        XCTAssertEqual(a2.log.last?.text, "Epinephrine IV · grade III 50 mcg IV")
+        let ap = AclsCalc.prompts(a2, d, 123000)
+        XCTAssertEqual(ap.map(\.id), ["epi3-due"])
+        XCTAssertEqual(ap[0].text, "Two minutes: if the response is inadequate, repeat epinephrine 200 mcg IV.")
+        for t0 in [130000.0, 260000, 390000] { a2.add(t0, "ana-epi-3", "Epinephrine") }
+        XCTAssertEqual(AclsCalc.prompts(a2, d, 391000).map(\.id), ["infusion-3"])
+        XCTAssertEqual(AclsCalc.prompts(a2, d, 3400000).map(\.id), ["epi3-due", "infusion-3", "refractory", "tryptase"])
+    }
     // MARK: ABG (mirrors tools/test_reference_logic.js)
 
     private static let abgFixture = """

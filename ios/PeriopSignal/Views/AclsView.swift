@@ -133,8 +133,8 @@ struct AclsView: View {
                 if let n = m.note { note(n) }
                 deadlines(d, s, t)
                 prompts(d, s, t, m)
-                ForEach(Array((m.groups ?? []).enumerated()), id: \.offset) { _, g in group(d, s, t, g) }
                 if let tr = AclsCalc.tree(s, d) { treeCard(d, s, t, tr) }
+                ForEach(Array((m.groups ?? []).enumerated()), id: \.offset) { _, g in group(d, s, t, g) }
                 ForEach((m.lists ?? []).filter { $0.patient == nil || $0.patient == s.patient }, id: \.id) { l in checklist(s, l) }
                 logSection(s)
                 footer(d, m)
