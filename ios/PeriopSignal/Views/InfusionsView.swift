@@ -59,7 +59,7 @@ struct InfusionsView: View {
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle("Medications and Hematology")
+        .navigationTitle("Medications & Hematology")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

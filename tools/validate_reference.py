@@ -173,6 +173,43 @@ def main(path):
         need(any(a.get("rescue") for a in ponv.get("agents") or []), "ponv: at least one rescue agent")
         need(isinstance(ponv.get("rescueRules"), list) and ponv["rescueRules"], "ponv.rescueRules required")
 
+    echo = data.get("echo")
+    if echo is not None:
+        need(echo.get("bsaFormula") in (None, "dubois", "mosteller"), "echo.bsaFormula must be dubois or mosteller")
+        src_ids = {s.get("id") for s in echo.get("sources") or []}
+        for s_ in echo.get("sources") or []:
+            need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"echo source {s_.get('id')}: citation required")
+        gids, mids = set(), set()
+        for g in echo.get("groups") or []:
+            gid = g.get("id", "?")
+            need(gid not in gids, f"echo group {gid}: duplicate id"); gids.add(gid)
+            need(isinstance(g.get("name"), str) and g["name"], f"echo group {gid}: name required")
+            need(g.get("measures"), f"echo group {gid}: measures required")
+            for m in g.get("measures") or []:
+                mid = m.get("id", "?")
+                need(mid not in mids, f"echo measure {mid}: duplicate id"); mids.add(mid)
+                for key in ("name", "unit"):
+                    need(isinstance(m.get(key), str) and m[key].strip(), f"echo measure {mid}: {key} required")
+                need(m.get("dir") in (None, "high", "low"), f"echo measure {mid}: dir must be high or low")
+                need(m.get("index") in (None, "bsa"), f"echo measure {mid}: index must be bsa")
+                need(m.get("edge") in (None, "inclusive"), f"echo measure {mid}: edge must be inclusive")
+                need(m.get("source") in src_ids, f"echo measure {mid}: source must name an echo source")
+                refs_ = [m.get(k) for k in ("male", "female", "all") if m.get(k) is not None]
+                need(refs_, f"echo measure {mid}: needs male/female or all reference values")
+                for r in refs_:
+                    cuts = r.get("cuts") or []
+                    need(len(cuts) in (1, 3) and all(isinstance(c, (int, float)) for c in cuts), f"echo measure {mid}: cuts must be 1 or 3 numbers")
+                    need(cuts == sorted(cuts, reverse=(m.get("dir") == "low")), f"echo measure {mid}: cuts must run from normal towards severe")
+                    n = r.get("normal")
+                    if n is not None:
+                        need(isinstance(n, list) and len(n) == 2 and n[0] < n[1], f"echo measure {mid}: normal must be [low, high]")
+                        if n and len(n) == 2 and cuts:
+                            edge = cuts[0]
+                            need((n[1] <= edge + 1e-9) if m.get("dir") != "low" else (n[0] >= edge - 1e-9), f"echo measure {mid}: the first cut must sit at the edge of the normal range")
+        ivc = echo.get("ivc")
+        if ivc is not None:
+            need(ivc.get("group") in gids, "echo.ivc.group must name an echo group")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")

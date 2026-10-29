@@ -201,7 +201,7 @@ enum NeuraxialCalc {
             let r = renal[min(max(renalIndex ?? 0, 0), renal.count - 1)]
             if let h = r.hours {
                 hours = (elderly ? r.elderlyHours : nil) ?? h
-                rule = "\(fmtHours(hours!)) after the last dose (\(r.label.lowercased())\(elderly && r.elderlyHours != nil ? ", elderly" : ""))"
+                rule = "\(fmtHours(hours!)) after the last dose (\(softLowercased(r.label))\(elderly && r.elderlyHours != nil ? ", elderly" : ""))"
             } else {
                 hours = nil; avoid = true
                 rule = r.text ?? "Avoid the block"
@@ -215,6 +215,13 @@ enum NeuraxialCalc {
         }
         let earliest = hours.map { lastDose.addingTimeInterval($0 * 3600) }
         return Answer(earliest: earliest, hours: hours, rule: rule, avoid: avoid)
+    }
+
+    /// "Normal renal function" → "normal renal function"; "CrCl 30–49 mL/min" stays as written.
+    static func softLowercased(_ s: String) -> String {
+        let first = s.split(separator: " ").first.map(String.init) ?? s
+        if first.dropFirst().contains(where: { $0.isUppercase }) { return s }
+        return s.prefix(1).lowercased() + s.dropFirst()
     }
 
     static func fmtHours(_ h: Double) -> String {

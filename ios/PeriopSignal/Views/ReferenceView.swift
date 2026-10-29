@@ -13,6 +13,8 @@ enum RefRoute: Hashable {
     case valves
     case intervention
     case ponv
+    case chamber
+    case diastolic
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -29,6 +31,8 @@ enum RefRoute: Hashable {
         case .valves: return "valves"
         case .intervention: return "intervention"
         case .ponv: return "ponv"
+        case .chamber: return "chamber"
+        case .diastolic: return "diastolic"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -46,6 +50,8 @@ enum RefRoute: Hashable {
         case "valves": self = .valves
         case "intervention": self = .intervention
         case "ponv": self = .ponv
+        case "chamber": self = .chamber
+        case "diastolic": self = .diastolic
         case "folder" where parts.count == 2:
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
@@ -65,7 +71,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .generalAnesthesia: return "General Anesthesia"
         case .regional: return "Regional"
         case .cardiothoracic: return "Cardiothoracic"
-        case .medications: return "Medications and Hematology"
+        case .medications: return "Medications & Hematology"
         case .pediatrics: return "Pediatrics"
         }
     }
@@ -116,9 +122,11 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .cardiothoracic: return [
             RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "ASE Valve Severity Grading", blurb: "Echo numbers in, ASE grade out"),
             RefItem(route: .intervention, icon: "heart.circle", title: "AHA/ACC Valve Intervention", blurb: "Repair or replace? Prompted questions"),
+            RefItem(route: .chamber, icon: "ruler", title: "ASE Chamber Quantification", blurb: "Sizes and function against the ASE cutoffs"),
+            RefItem(route: .diastolic, icon: "waveform", title: "ASE Diastolic Function", blurb: "Grade and filling pressure, step by step"),
         ]
         case .medications: return [
-            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Medications and Hematology", blurb: "Drips, single doses, blood products and factors"),
+            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Medications & Hematology", blurb: "Drips, single doses, blood products and factors"),
         ]
         case .pediatrics: return [
             RefItem(route: .peds, icon: "scalemass", title: "Pediatric Doses", blurb: "Doses, tube sizes, fluids and blood volume"),
@@ -261,6 +269,10 @@ struct ReferenceView: View {
                     ValveInterventionView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("acc-aha-valve-intervention")) })
                 case .ponv:
                     PONVView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("ponv-consensus")) })
+                case .chamber:
+                    ChamberQuantView(onOpen: { webLink = WebLink(url: $0) })
+                case .diastolic:
+                    DiastolicView(onOpen: { webLink = WebLink(url: $0) })
                 case .folder(let f):
                     FolderView(folder: f, path: $path)
                 }
@@ -500,6 +512,8 @@ struct ReferenceSearchResults: View {
         case .valves: return ["cardiothoracic", "cardiac", "valve", "valvular", "echo", "tee", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "vena contracta", "eroa", "pisa", "gradient", "ase"]
         case .intervention: return ["cardiothoracic", "cardiac", "valve", "valvular", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "tavi", "tavr", "savr", "avr", "teer", "mitraclip", "pmbc", "commissurotomy", "repair", "replacement", "prosthesis", "mechanical", "bioprosthe", "acc", "aha"]
         case .ponv: return ["ponv", "nausea", "vomiting", "antiemetic", "apfel", "ondansetron", "dexamethasone", "droperidol", "amisulpride", "aprepitant", "scopolamine", "palonosetron", "granisetron", "promethazine", "rescue", "prophylaxis"]
+        case .chamber: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "chamber", "quantification", "dilated", "dilation", "lvidd", "lvedd", "lvesd", "lv size", "lv mass", "hypertrophy", "wall thickness", "rwt", "ejection fraction", "lvef", "la volume", "lavi", "atrial", "rv", "right ventricle", "tapse", "fac", "basal", "tricuspid annulus", "annulus", "aorta", "aortic root", "sinus", "ivc", "ra pressure"]
+        case .diastolic: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "diastolic", "diastology", "dysfunction", "filling pressure", "lap", "e/e", "e/a", "tr velocity", "la strain", "lars", "pulmonary vein", "hfpef", "relaxation", "restrictive"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -517,7 +531,7 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv:
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic:
             return wordsMatch(item.route)
         }
     }

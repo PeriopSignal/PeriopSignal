@@ -5,8 +5,13 @@
   posts.json     ->  feed.xml     (RSS 2.0, newest 50 posts)
   manifest.webmanifest is written from the constants below.
 
-Usage:  python3 -I tools/build_site.py [--base-url https://user.github.io/periop-signal/]
+Usage:  python3 -I tools/build_site.py [--base-url https://user.github.io/periop-signal/] [--artifact-out PATH]
 The base URL only matters for absolute links in feed.xml and the social preview tags.
+
+src/page.html pulls the Reference tab in with include tags, <style data-include="src/x.css"></style> and
+<script data-include="src/x.js"></script>; the builder inlines those files, so index.html stays one file.
+--artifact-out writes the same inlined page as a fragment (no <html>/<head>), the form the Claude artifact
+mirror is published in; publish it together with posts.json and reference.json.
 """
 import argparse, datetime, html, json, os, re, sys
 from xml.sax.saxutils import escape
@@ -30,8 +35,25 @@ def write(p, s):
         fh.write(s)
 
 
+INCLUDE = re.compile(r'<(style|script) data-include="([^"]+)"></\1>')
+
+
+def inline_includes(page):
+    """Replace each include tag with the file's contents in a plain <style> or <script> element."""
+    def sub(m):
+        tag, path = m.group(1), m.group(2)
+        body = read(path).rstrip()
+        if ("</" + tag) in body.lower():
+            raise SystemExit(f"{path} contains '</{tag}' and cannot be inlined")
+        return f"<{tag}>\n{body}\n</{tag}>"
+    out = INCLUDE.sub(sub, page)
+    if "data-include=" in out:
+        raise SystemExit("an include tag in src/page.html did not match the expected form")
+    return out
+
+
 def build_index(base_url):
-    page = read("src/page.html")
+    page = inline_includes(read("src/page.html"))
     # lift the <title>, drop the artifact-only meta line
     m = re.search(r"<title>(.*?)</title>\s*", page, re.S)
     title = html.unescape(m.group(1).strip()) if m else NAME
@@ -151,8 +173,12 @@ def build_rss(base_url, limit=50):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base-url", default=os.environ.get("PERIOP_BASE_URL", ""))
+    ap.add_argument("--artifact-out", default="", help="also write the inlined page fragment here, for the artifact mirror")
     a = ap.parse_args()
     title = build_index(a.base_url)
+    if a.artifact_out:
+        with open(a.artifact_out, "w", encoding="utf-8") as fh:
+            fh.write(inline_includes(read("src/page.html")))
     build_manifest()
     n = build_rss(a.base_url)
     print(f"built index.html ({title}), manifest.webmanifest, feed.xml ({n} items); base_url={a.base_url or '(none)'}")

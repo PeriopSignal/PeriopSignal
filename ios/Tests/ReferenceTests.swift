@@ -396,6 +396,8 @@ final class ReferenceTests: XCTestCase {
                                  renal: [RenalRule(label: "CrCl 50 or more", hours: 72, elderlyHours: nil, text: nil), RenalRule(label: "CrCl 30–49", hours: 120, elderlyHours: nil, text: nil), RenalRule(label: "CrCl below 30", hours: nil, elderlyHours: nil, text: "Avoid")],
                                  renalNote: nil, removalHours: nil, afterRemovalHours: nil, inrRule: nil)
         XCTAssertEqual(NeuraxialCalc.answer(tier: dabi, renalIndex: 1, elderly: false, lastDose: last).hours, 120)
+        XCTAssertEqual(NeuraxialCalc.answer(tier: dabi, renalIndex: 1, elderly: false, lastDose: last).rule, "5 days after the last dose (CrCl 30–49)", "acronyms in the kidney label keep their case")
+        XCTAssertEqual(NeuraxialCalc.softLowercased("Normal renal function"), "normal renal function")
         let avoid = NeuraxialCalc.answer(tier: dabi, renalIndex: 2, elderly: false, lastDose: last)
         XCTAssertTrue(avoid.avoid)
         XCTAssertNil(avoid.earliest)
@@ -571,6 +573,49 @@ final class ReferenceTests: XCTestCase {
         let trWatch = vi(.tr, ["sev": "Progressive (moderate)", "left": "No", "cause": "Secondary (annular dilation)", "rhf": "No", "prior": "No"])
         XCTAssertTrue(trWatch.matched.isEmpty)
         XCTAssertNotNil(trWatch.fallback)
+    }
+
+    // MARK: Echo chamber quantification
+
+    private func measure(_ id: String, dir: String? = nil, edge: String? = nil, word: String, male: EchoRef? = nil, all: EchoRef? = nil, index: String? = nil) -> EchoMeasure {
+        EchoMeasure(id: id, name: id, short: nil, unit: "mm", rawUnit: nil, method: nil, dir: dir, index: index, edge: edge, word: word, male: male, female: nil, all: all, source: "test", ref: nil, note: nil)
+    }
+
+    func testEchoGrading() {
+        let lv = measure("lvedd", word: "dilated", male: EchoRef(normal: [42, 58.4], cuts: [58.4, 63, 68]))
+        XCTAssertEqual([40, 50, 58.4, 58.5, 63, 63.1, 68, 70].map { EchoCalc.grade(lv, .male, $0) }, [-1, 0, 0, 1, 1, 2, 2, 3])
+        XCTAssertEqual(EchoCalc.label(lv, 2), "Moderately dilated")
+        XCTAssertNil(EchoCalc.grade(lv, .female, 60), "no female values in this example")
+        let ef = measure("lvef", dir: "low", word: "reduced", male: EchoRef(normal: [52, 72], cuts: [52, 41, 30]))
+        XCTAssertEqual([75, 60, 52, 51.5, 41, 40, 30, 29].map { EchoCalc.grade(ef, .male, $0) }, [-1, 0, 0, 1, 1, 2, 2, 3])
+        XCTAssertEqual(EchoCalc.label(ef, -1), "Above the normal range")
+        let ta = measure("ta", edge: "inclusive", word: "dilated", all: EchoRef(normal: nil, cuts: [40]))
+        XCTAssertEqual([39.9, 40, 41].map { EchoCalc.grade(ta, .female, $0) }, [0, 4, 4], "≥ 40 mm: the cutoff itself is dilated")
+        XCTAssertEqual(EchoCalc.label(ta, 4), "Dilated")
+        let lavi = measure("lavi", word: "dilated", all: EchoRef(normal: nil, cuts: [34, 41, 48]), index: "bsa")
+        XCTAssertEqual(EchoCalc.value(lavi, text: "50", raw: true, bsa: 2), 25)
+        XCTAssertNil(EchoCalc.value(lavi, text: "50", raw: true, bsa: nil), "a raw volume needs the body surface area")
+        XCTAssertEqual(EchoCalc.bands(ef, .male).map(\.grade), [3, 2, 1, 0, -1])
+        XCTAssertEqual(EchoCalc.bands(lv, .male).map(\.grade), [-1, 0, 1, 2, 3])
+        XCTAssertEqual(EchoCalc.bsa(heightCm: 175, weightKg: 70, formula: nil) ?? 0, 1.848, accuracy: 0.001)
+        XCTAssertEqual(EchoCalc.bsa(heightCm: 175, weightKg: 70, formula: "mosteller") ?? 0, 1.845, accuracy: 0.001)
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: true, cut: nil)?.value, 3)
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 2.4, collapses: false, cut: nil)?.value, 15)
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: false, cut: nil)?.value, 8)
+    }
+
+    func testEchoBundleDrawsEveryRow() throws {
+        guard let echo = try bundled().echo else { return }
+        var ids = Set<String>()
+        for m in echo.groups.flatMap(\.measures) {
+            XCTAssertTrue(ids.insert(m.id).inserted, "\(m.id) is unique")
+            for sex in EchoSex.allCases {
+                XCTAssertNotNil(EchoCalc.ref(m, sex), "\(m.id) has \(sex) values")
+                let b = EchoCalc.bands(m, sex)
+                XCTAssertGreaterThanOrEqual(b.count, 2, "\(m.id) draws a strip")
+                for i in b.indices.dropFirst() { XCTAssertEqual(b[i].from, b[i - 1].to, accuracy: 1e-9, "\(m.id) bands are contiguous") }
+            }
+        }
     }
 
     func testAorticAndTricuspidRegurgitation() {

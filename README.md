@@ -12,8 +12,11 @@ A curated research feed for cardiothoracic, critical care and trauma anesthesiol
 | `log/` | One triage log per run: what each journal published, what was posted, what was rejected and why. |
 | `feed.xml` | RSS feed, newest 50 posts. Generated. |
 | `manifest.webmanifest`, `icons/` | App icon and "Add to Home Screen" support. Generated. |
-| `src/page.html` | Page source, shared with the Claude artifact copy of the feed. |
-| `tools/build_site.py` | Builds `index.html`, `manifest.webmanifest` and `feed.xml`. |
+| `src/page.html` | Page source, shared with the Claude artifact copy of the feed. It pulls in the Reference tab with include tags. |
+| `src/reference-logic.js`, `src/reference-echo.js`, `src/reference-ui.js`, `src/reference.css` | The website's Reference tab: the app's calculators and guided tools in JavaScript (`reference-logic.js` mirrors `ios/Shared/*.swift`), the echo tools, the views and their styles. Inlined into `index.html` by the builder. |
+| `reference.json` | The Reference content (quick references, pediatric doses, infusions, ASRA timing, PONV agents, echo reference values). Read by the app and the website; check it with `tools/validate_reference.py`. |
+| `tools/test_reference_logic.js` | Unit tests for the website's calculators, mirroring `ios/Tests/ReferenceTests.swift`: `node tools/test_reference_logic.js`. |
+| `tools/build_site.py` | Builds `index.html` (inlining the include tags), `manifest.webmanifest` and `feed.xml`; `--artifact-out PATH` also writes the inlined page for the artifact mirror. |
 | `tools/validate_posts.py` | Checks `posts.json` (required fields, allowed values, duplicates, and the optional `glance`, `quiz`, `title` and `citation` objects). The runs and the citation workflow run it before committing. |
 | `tools/backfill_citations.py` | Fills `title` and `citation` from Crossref for DOI posts; run daily by `.github/workflows/citations.yml`. |
 | `ios/` | The iPhone app (SwiftUI, built and shipped to TestFlight by GitHub Actions). See `ios/README.md` and `ios/OWNER_RUNBOOK.md`. |

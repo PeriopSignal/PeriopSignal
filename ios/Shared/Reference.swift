@@ -25,6 +25,7 @@ struct ReferenceBundle: Codable {
     var infusions: InfusionData?
     var neuraxial: NeuraxialData?
     var ponv: PONVData?
+    var echo: EchoData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -34,9 +35,79 @@ struct ReferenceBundle: Codable {
         if b.infusions == nil { b.infusions = other.infusions }
         if b.neuraxial == nil { b.neuraxial = other.neuraxial }
         if b.ponv == nil { b.ponv = other.ponv }
+        if b.echo == nil { b.echo = other.echo }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }
+}
+
+// MARK: Echo reference values (ASE chamber quantification) and the diastolic algorithm
+
+struct EchoData: Codable {
+    var reviewed: String?
+    /// "dubois" (default) or "mosteller".
+    var bsaFormula: String?
+    var sources: [EchoSource]
+    var groups: [EchoGroup]
+    /// Right-atrial pressure from the IVC, shown under the group named here.
+    var ivc: EchoIVC?
+    var notes: [String]?
+}
+
+struct EchoSource: Codable, Hashable, Identifiable {
+    var id: String
+    var citation: String
+    var url: String?
+}
+
+struct EchoGroup: Codable, Hashable, Identifiable {
+    var id: String
+    var name: String
+    /// Tab label ("LV", "RA").
+    var short: String?
+    var note: String?
+    var measures: [EchoMeasure]
+}
+
+struct EchoMeasure: Codable, Hashable, Identifiable {
+    var id: String
+    var name: String
+    var short: String?
+    /// Unit of the reference values (per m² for indexed rows).
+    var unit: String
+    /// Unit of the un-indexed value, for an indexed row typed raw ("mL").
+    var rawUnit: String?
+    var method: String?
+    /// "high" (default): larger is abnormal; "low": smaller is abnormal.
+    var dir: String?
+    /// "bsa": the reference values are indexed to body surface area.
+    var index: String?
+    /// "inclusive": the cutoff value itself is abnormal (≥ 40 mm); otherwise it is the last normal value.
+    var edge: String?
+    /// The grade's word: "dilated", "increased", "reduced"; "abnormal" when absent.
+    var word: String?
+    var male: EchoRef?
+    var female: EchoRef?
+    var all: EchoRef?
+    var source: String?
+    /// Table or page in the source ("Lang 2015, Table 2").
+    var ref: String?
+    var note: String?
+}
+
+struct EchoRef: Codable, Hashable {
+    /// The normal range, low and high (mean ± 2 SD in the ASE tables).
+    var normal: [Double]?
+    /// Cutoffs between grades: three for normal / mild / moderate / severe, one for normal / abnormal.
+    var cuts: [Double]
+}
+
+struct EchoIVC: Codable, Hashable {
+    var group: String
+    /// Diameter, cm, at or below which the IVC counts as normal size.
+    var cut: Double?
+    var method: String?
+    var notes: [String]?
 }
 
 // MARK: PONV (Fifth consensus): how many agents by Apfel risk, the agents, rescue by class
