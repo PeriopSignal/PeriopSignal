@@ -29,6 +29,14 @@
     const v = parseFloat(String(text).trim().replace(',', '.'));
     return Number.isFinite(v) && v > 0 ? v : null;
   };
+  /** Like R.num but keeps zero and negative values (Ar − A, the change in E/A with Valsalva); "−" counts as a minus. */
+  R.numSigned = function (text) {
+    if (text === null || text === undefined) return null;
+    const t = String(text).trim().replace(',', '.').replace(/^[\u2212\u2013]/, '-');
+    if (!/^-?(\d+\.?\d*|\.\d+)$/.test(t)) return null;
+    const v = parseFloat(t);
+    return Number.isFinite(v) ? v : null;
+  };
 
   // ---------- Title Case (TitleCase.swift) ----------
   const SMALL = new Set(['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'from', 'if', 'in', 'into', 'nor', 'of', 'off', 'on', 'or', 'per', 'than', 'the', 'to', 'up', 'vs', 'vs.', 'via', 'with']);
@@ -1069,13 +1077,14 @@
       return out.filter((b) => b.to > b.from);
     },
     /** Right-atrial pressure from IVC diameter (cm): with spontaneous breathing, whether it collapses by 50% or
-        more with a sniff (ASE 2025); on positive-pressure ventilation only a small IVC says anything. */
-    rap(ivcCm, collapses, cut, ventilated) {
-      const c = cut || 2.1;
+        more with a sniff (ASE 2025); on positive-pressure ventilation only a small IVC says anything. The
+        ventilated cutoff is 1.2 cm (ASE 2010): the 2025 text prints 2.1 cm for the same statement. */
+    rap(ivcCm, collapses, cut, ventilated, ventCut) {
+      const c = cut || 2.1, vc = ventCut || 1.2;
       if (!(ivcCm > 0)) return null;
       if (ventilated) {
-        return ivcCm <= c
-          ? { value: null, range: 'below 10', label: 'Likely below 10 mmHg', detail: `An IVC of ${R.echo.fmt(c)} cm or less in an intubated patient identifies RA pressure below 10 mmHg.` }
+        return ivcCm <= vc
+          ? { value: null, range: 'below 10', label: 'Likely below 10 mmHg', detail: `An IVC of ${R.echo.fmt(vc)} cm or less in an intubated patient identifies RA pressure below 10 mmHg.` }
           : { value: null, range: null, label: 'Not estimable', detail: 'On positive-pressure ventilation a larger IVC, and its collapse, do not estimate RA pressure.' };
       }
       if (collapses === null || collapses === undefined) return null;
@@ -1119,69 +1128,103 @@
     return { E, A, EA, es, el, ea, ees, eel, eea, v1, v2, v3, v3by, eFlags, rFlags };
   };
   const pick = (val, test) => (has(val) ? test(val) : null);
+  /** The supplemental signs (S/D, LARS, LAVi, IVRT) and the second-line ones, each true (present), false (absent)
+      or null (not entered, or not decisive). A pulmonary vein S/D above 0.67 is not taken as evidence of normal
+      LAP: with a normal LVEF the ratio can exceed 0.67 despite raised filling pressure (2025, p. 554). */
+  R.diastolicSigns = function (i) {
+    const f = (x) => R.fmt(x);
+    const first = [
+      { id: 'pvsd', label: 'Pulmonary vein S/D ≤ 0.67', v: pick(i.pvsd, (x) => (x <= DD.pvsd ? true : null)), text: has(i.pvsd) ? f(i.pvsd) + (i.pvsd > DD.pvsd ? ' · not decisive with a normal LVEF' : '') : null, shown: has(i.pvsd) },
+      { id: 'lars', label: 'LA reservoir strain ≤ 18%', v: pick(i.lars, (x) => x <= DD.lars), text: has(i.lars) ? f(i.lars) + '%' : null, shown: has(i.lars) },
+      { id: 'lavi', label: 'LA volume index > 34 mL/m²', v: pick(i.lavi, (x) => x > DD.lavi), text: has(i.lavi) ? f(i.lavi) + ' mL/m²' : null, shown: has(i.lavi) },
+      { id: 'ivrt', label: 'IVRT ≤ 70 ms', v: pick(i.ivrt, (x) => x <= DD.ivrt), text: has(i.ivrt) ? f(i.ivrt) + ' ms' : null, shown: has(i.ivrt) },
+    ];
+    const second = [
+      { id: 'predv', label: 'PR end-diastolic velocity ≥ 2 m/s', v: pick(i.prEdv, (x) => x >= DD.prEdv), text: has(i.prEdv) ? f(i.prEdv) + ' m/s' : null, shown: has(i.prEdv) },
+      { id: 'padp', label: 'PA diastolic pressure ≥ 16 mmHg', v: pick(i.padp, (x) => x >= DD.padp), text: has(i.padp) ? f(i.padp) + ' mmHg' : null, shown: has(i.padp) },
+      { id: 'lwave', label: 'Mitral L-wave ≥ 50 cm/s', v: pick(i.lwave, (x) => x >= DD.lwave), text: has(i.lwave) ? f(i.lwave) + ' cm/s' : null, shown: has(i.lwave) },
+      { id: 'ara', label: 'Ar − A > 30 ms', v: pick(i.ara, (x) => x > DD.ara), text: has(i.ara) ? f(i.ara) + ' ms' : null, shown: has(i.ara) },
+      { id: 'valsalva', label: 'E/A falls ≥ 50% with Valsalva', v: pick(i.valsalva, (x) => x >= DD.valsalva), text: has(i.valsalva) ? f(i.valsalva) + '%' : null, shown: has(i.valsalva) },
+    ];
+    return { first, second };
+  };
+  /** Figure 3 for one set of main variables (all three known): { lap, grade, why } with lap 'normal' | 'increased' |
+      'lvedp' | 'unknown', grade 0–3 or null, and `why` the reason without the E/A sentence. */
+  function ddCore(v1, v2, v3, p, sg, v3name) {
+    const abn = [v1, v2, v3].filter(Boolean).length;
+    const byEA = (why) => ({ lap: 'increased', grade: p.EA === null ? null : (p.EA >= 2 ? 3 : 2), why, ea: true });
+    const supp = (why, eOnly) => {
+      const pos = sg.first.filter((x) => x.v === true), neg = sg.first.filter((x) => x.v === false);
+      if (pos.length) return byEA(why + ' ' + pos.map((x) => x.label).join(', ') + ': increased LAP.');
+      if (neg.length) return { lap: 'normal', grade: null, why: why + ' None of the supplemental signs is present, so LAP is likely normal.' + (eOnly ? ' The guideline assigns no grade on this path (Grade 1 needs E/A ≤ 0.8).' : '') };
+      const mp = sg.second.filter((x) => x.v === true), mn = sg.second.filter((x) => x.v === false);
+      if (mp.length && mp.every((x) => x.id === 'ara')) return { lap: 'lvedp', grade: null, why: why + ' Ar − A above 30 ms reflects LV end-diastolic pressure rather than mean LAP; report it as an isolated LVEDP increase.' };
+      if (mp.length) return byEA(why + ' ' + mp.map((x) => x.label).join(', ') + ': increased LAP.');
+      if (mn.length) return { lap: 'normal', grade: null, why: why + ' None of the further signs is present, so LAP is likely normal.' };
+      return { lap: 'unknown', grade: null, why: why + ' Enter the supplemental parameters: pulmonary vein S/D, LA reservoir strain, LA volume index or IVRT.' };
+    };
+    if (abn === 0) return { lap: 'normal', grade: 0, why: 'e′, E/e′ and ' + v3name + ' are all normal: normal LAP and normal diastolic function.' };
+    if (abn === 3) return byEA('All three main variables are abnormal.');
+    if (v1 && !v2 && !v3) {
+      if (p.EA !== null && p.EA <= 0.8) return { lap: 'normal', grade: 1, why: 'Only e′ is reduced and E/A is ' + R.fmt(p.EA) + ' (0.8 or less): impaired relaxation with normal LAP.' };
+      return supp(p.EA === null ? 'Only e′ is reduced; E/A is not entered.' : 'Only e′ is reduced, with E/A ' + R.fmt(p.EA) + ' above 0.8.', true);
+    }
+    const which = [v1 ? 'e′' : null, v2 ? 'E/e′' : null, v3 ? v3name : null].filter(Boolean);
+    return supp(which.length === 1 ? 'Only ' + which[0] + ' is abnormal.' : which.join(' and ') + ' are abnormal.', false);
+  }
+  const DD_HEAD = { 0: 'Normal Diastolic Function', 1: 'Grade 1 Diastolic Dysfunction', 2: 'Grade 2 Diastolic Dysfunction', 3: 'Grade 3 Diastolic Dysfunction' };
   /** Figure 3 for sinus rhythm. Returns { lap, grade, headline, explanation, steps[], cautions[], dysfunction } with
-      lap 'normal' | 'increased' | 'lvedp' | 'unknown' and grade 0 (normal) | 1 | 2 | 3 | null. */
+      lap 'normal' | 'increased' | 'lvedp' | 'unknown' and grade 0 (normal) | 1 | 2 | 3 | null. With a main variable
+      missing (or PASP/TR set aside for lung disease) the tool reads every way the missing one could fall and
+      reports only a reading they all share; the guideline does not cover this case. */
   R.diastolic = function (i) {
-    const p = R.diastolicPrimaries(i), steps = [], cautions = [];
+    const p = R.diastolicPrimaries(i), sg = R.diastolicSigns(i), steps = [], cautions = [];
     const f = (x) => R.fmt(x);
     const show = (flag) => (flag === null ? 'not entered' : (flag ? 'abnormal' : 'normal'));
-    // the three main variables, described
+    const v3name = p.v3by === 'tr' ? 'TR velocity' : 'PASP';
     const eText = [p.es !== null ? 'septal ' + f(p.es) : null, p.el !== null ? 'lateral ' + f(p.el) : null, p.ea !== null ? 'average ' + f(p.ea) : null].filter(Boolean).join(', ');
     const rText = [p.ees !== null ? 'septal ' + f(p.ees) : null, p.eel !== null ? 'lateral ' + f(p.eel) : null, p.eea !== null ? 'average ' + f(p.eea) : null].filter(Boolean).join(', ');
     steps.push({ id: 'v1', label: 'e′ reduced', state: p.v1, text: p.v1 === null ? 'Enter septal and lateral e′' : eText + ' cm/s · ' + show(p.v1) });
     steps.push({ id: 'v2', label: 'E/e′ increased', state: p.v2, text: p.v2 === null ? 'Needs E and e′' : rText + ' · ' + show(p.v2) });
     steps.push({ id: 'v3', label: p.v3by === 'tr' ? 'TR velocity increased' : 'PASP increased', state: p.v3,
       text: i.lungDisease ? 'Not used: lung or pulmonary vascular disease' : (p.v3 === null ? 'Enter PASP, or TR velocity when RAP cannot be estimated' : (p.v3by === 'pasp' ? 'PASP ' + f(i.pasp) + ' mmHg' : 'TR ' + f(i.tr) + ' m/s') + ' · ' + show(p.v3)) });
-    const prim = [p.v1, p.v2, p.v3], avail = prim.filter((x) => x !== null), abn = avail.filter((x) => x).length;
-    const out = (lap, grade, headline, explanation) => ({ lap, grade, headline, explanation, steps, cautions, primaries: p, dysfunction: R.diastolicPresence(i, p) });
-    const grading = (why) => {
-      if (p.EA === null) return out('increased', null, 'Increased LAP', why + ' Enter E and A: E/A below 2 is Grade 2, 2 or more is Grade 3.');
-      steps.push({ id: 'ea', label: 'E/A', state: null, text: f(p.EA) + (p.EA >= 2 ? ' · 2 or more' : ' · below 2') });
-      return p.EA >= 2 ? out('increased', 3, 'Grade 3 Diastolic Dysfunction', why + ' E/A ' + f(p.EA) + ' is 2 or more: marked increase in LAP.')
-        : out('increased', 2, 'Grade 2 Diastolic Dysfunction', why + ' E/A ' + f(p.EA) + ' is below 2: mild to moderate increase in LAP.');
+    for (const x of sg.first.concat(sg.second)) if (x.shown) steps.push({ id: x.id, label: x.label, state: x.v, text: x.text + (x.v === null ? '' : ' · ' + (x.v ? 'present' : 'absent')) });
+    const finish = (r, extra) => {
+      let explanation = r.why;
+      if (r.ea && p.EA !== null) {
+        steps.push({ id: 'ea', label: 'E/A', state: null, text: f(p.EA) + (p.EA >= 2 ? ' · 2 or more' : ' · below 2') });
+        explanation += p.EA >= 2 ? ' E/A ' + f(p.EA) + ' is 2 or more: marked increase in LAP.' : ' E/A ' + f(p.EA) + ' is below 2: mild to moderate increase in LAP.';
+      } else if (r.ea) explanation += ' Enter E and A: E/A below 2 is Grade 2, 2 or more is Grade 3.';
+      const headline = r.lap === 'unknown' ? 'LAP Not Yet Determined' : r.lap === 'lvedp' ? 'Isolated LVEDP Elevation'
+        : r.grade !== null ? DD_HEAD[r.grade] : (r.lap === 'increased' ? 'Increased LAP' : 'Normal LAP');
+      return { lap: r.lap, grade: r.grade, headline, explanation: (extra ? extra + ' ' : '') + explanation, steps, cautions, primaries: p, dysfunction: R.diastolicPresence(i, p) };
     };
-    const supplemental = (why, eOnly) => {
-      const s = [
-        { id: 'pvsd', label: 'Pulmonary vein S/D ≤ 0.67', v: pick(i.pvsd, (x) => x <= DD.pvsd), text: has(i.pvsd) ? f(i.pvsd) : null },
-        { id: 'lars', label: 'LA reservoir strain ≤ 18%', v: pick(i.lars, (x) => x <= DD.lars), text: has(i.lars) ? f(i.lars) + '%' : null },
-        { id: 'lavi', label: 'LA volume index > 34 mL/m²', v: pick(i.lavi, (x) => x > DD.lavi), text: has(i.lavi) ? f(i.lavi) + ' mL/m²' : null },
-        { id: 'ivrt', label: 'IVRT ≤ 70 ms', v: pick(i.ivrt, (x) => x <= DD.ivrt), text: has(i.ivrt) ? f(i.ivrt) + ' ms' : null },
-      ];
-      const entered = s.filter((x) => x.v !== null), pos = entered.filter((x) => x.v);
-      for (const x of entered) steps.push({ id: x.id, label: x.label, state: x.v, text: x.text + ' · ' + (x.v ? 'present' : 'absent') });
-      if (pos.length) return grading(why + ' ' + pos.map((x) => x.label).join(', ') + ': increased LAP.');
-      if (entered.length) {
-        const noGrade = eOnly ? ' The guideline assigns no grade on this path (Grade 1 needs E/A ≤ 0.8).' : '';
-        return out('normal', null, 'Normal LAP', why + ' None of the supplemental signs is present, so LAP is likely normal.' + noGrade);
-      }
-      // second line: when S/D, LARS, LAVi and IVRT are unavailable or unreliable
-      const m = [
-        { id: 'predv', label: 'PR end-diastolic velocity ≥ 2 m/s', v: pick(i.prEdv, (x) => x >= DD.prEdv), text: has(i.prEdv) ? f(i.prEdv) + ' m/s' : null },
-        { id: 'padp', label: 'PA diastolic pressure ≥ 16 mmHg', v: pick(i.padp, (x) => x >= DD.padp), text: has(i.padp) ? f(i.padp) + ' mmHg' : null },
-        { id: 'lwave', label: 'Mitral L-wave ≥ 50 cm/s', v: pick(i.lwave, (x) => x >= DD.lwave), text: has(i.lwave) ? f(i.lwave) + ' cm/s' : null },
-        { id: 'ara', label: 'Ar − A > 30 ms', v: pick(i.ara, (x) => x > DD.ara), text: has(i.ara) ? f(i.ara) + ' ms' : null },
-        { id: 'valsalva', label: 'E/A falls ≥ 50% with Valsalva', v: pick(i.valsalva, (x) => x >= DD.valsalva), text: has(i.valsalva) ? f(i.valsalva) + '%' : null },
-      ];
-      const me = m.filter((x) => x.v !== null), mp = me.filter((x) => x.v);
-      for (const x of me) steps.push({ id: x.id, label: x.label, state: x.v, text: x.text + ' · ' + (x.v ? 'present' : 'absent') });
-      if (mp.length && mp.every((x) => x.id === 'ara')) return out('lvedp', null, 'Isolated LVEDP Elevation', why + ' Ar − A above 30 ms reflects LV end-diastolic pressure rather than mean LAP; report it as an isolated LVEDP increase.');
-      if (mp.length) return grading(why + ' ' + mp.map((x) => x.label).join(', ') + ': increased LAP.');
-      if (me.length) return out('normal', null, 'Normal LAP', why + ' None of the further signs is present, so LAP is likely normal.');
-      return out('unknown', null, 'LAP Not Yet Determined', why + ' Enter the supplemental parameters: pulmonary vein S/D, LA reservoir strain, LA volume index or IVRT.');
-    };
-    if (!avail.length) return out('unknown', null, 'Enter the Measurements', 'Start with septal and lateral e′, mitral E and A, and PASP or TR velocity.');
-    if (avail.length < 3) {
-      cautions.push('One of the three main variables is missing. The guideline does not say how to read the other two alone, so the tool goes on to the supplemental parameters.');
-      return supplemental((abn ? abn + ' of the ' + avail.length + ' main variables entered ' + (abn === 1 ? 'is' : 'are') + ' abnormal.' : 'The ' + avail.length + ' main variables entered are normal.'), false);
+    const prim = [p.v1, p.v2, p.v3];
+    if (prim.every((x) => x === null)) return { lap: 'unknown', grade: null, headline: 'Enter the Measurements', explanation: 'Start with septal and lateral e′, mitral E and A, and PASP or TR velocity.', steps, cautions, primaries: p, dysfunction: R.diastolicPresence(i, p) };
+    if (prim.every((x) => x !== null)) return finish(ddCore(p.v1, p.v2, p.v3, p, sg, v3name));
+    // a main variable missing: read every way it could fall
+    const names = ['e′', 'E/e′', 'PASP or TR velocity'];
+    const missing = prim.map((x, k) => (x === null ? k : -1)).filter((k) => k >= 0);
+    const results = [];
+    for (let mask = 0; mask < (1 << missing.length); mask++) {
+      const v = prim.slice();
+      missing.forEach((k, j) => { v[k] = !!(mask & (1 << j)); });
+      results.push(ddCore(v[0], v[1], v[2], p, sg, 'PASP or TR velocity'));
     }
-    if (abn === 0) return out('normal', 0, 'Normal Diastolic Function', 'e′, E/e′ and ' + (p.v3by === 'tr' ? 'TR velocity' : 'PASP') + ' are all normal: normal LAP and normal diastolic function.');
-    if (abn === 3) return grading('All three main variables are abnormal.');
-    if (p.v1 && !p.v2 && !p.v3) {
-      if (p.EA !== null && p.EA <= 0.8) return out('normal', 1, 'Grade 1 Diastolic Dysfunction', 'Only e′ is reduced and E/A is ' + f(p.EA) + ' (0.8 or less): impaired relaxation with normal LAP.');
-      return supplemental(p.EA === null ? 'Only e′ is reduced; E/A is not entered.' : 'Only e′ is reduced, with E/A ' + f(p.EA) + ' above 0.8.', true);
+    const miss = missing.map((k) => names[k]).join(' and ');
+    if (i.lungDisease && missing.includes(2)) cautions.push('With lung or pulmonary vascular disease, TR velocity and PASP do not stand in for LAP, so the reading has to hold without them.');
+    else cautions.push(miss + (missing.length > 1 ? ' are' : ' is') + ' not entered. The guideline does not cover this case, so the tool reports a reading only when every possible value of the missing one would give it.');
+    const known = [p.v1 !== null ? 'e′ ' + (p.v1 ? 'reduced' : 'normal') : null, p.v2 !== null ? 'E/e′ ' + (p.v2 ? 'increased' : 'normal') : null, p.v3 !== null ? v3name + ' ' + (p.v3 ? 'increased' : 'normal') : null].filter(Boolean).join(', ');
+    const lap = results[0].lap;
+    if (lap !== 'unknown' && results.every((r) => r.lap === lap)) {
+      const grade = results.every((r) => r.grade === results[0].grade) ? results[0].grade : null;
+      const pos = sg.first.filter((x) => x.v === true).map((x) => x.label), neg = sg.first.some((x) => x.v === false);
+      const why = 'With ' + known + ', the reading is the same whichever way ' + miss + ' would fall'
+        + (pos.length ? ': ' + pos.join(', ') + ' point' + (pos.length === 1 ? 's' : '') + ' to increased LAP.' : neg ? ': none of the supplemental signs entered is present.' : '.');
+      return finish({ lap, grade, why, ea: lap === 'increased' });
     }
-    const which = [p.v1 ? 'e′' : null, p.v2 ? 'E/e′' : null, p.v3 ? (p.v3by === 'tr' ? 'TR velocity' : 'PASP') : null].filter(Boolean);
-    return supplemental((which.length === 1 ? 'Only ' + which[0] + ' is abnormal.' : which.join(' and ') + ' are abnormal.'), false);
+    const outcomes = [...new Set(results.map((r) => r.lap === 'unknown' ? 'not determined' : r.lap === 'lvedp' ? 'isolated LVEDP elevation' : r.grade !== null ? DD_HEAD[r.grade].toLowerCase() : r.lap + ' LAP'))];
+    return finish({ lap: 'unknown', grade: null, why: 'With ' + known + ', the reading depends on ' + miss + ' (' + outcomes.join(' or ') + '). ' + (i.lungDisease && missing.includes(2) ? 'Add the supplemental signs: LA reservoir strain, pulmonary vein S/D, LA volume index or IVRT.' : 'Measure ' + miss + ', or add the supplemental signs.') });
   };
   /** Figure 2: is diastolic dysfunction present? Reduced e′ with 1 marker, or normal e′ with 2. */
   R.diastolicPresence = function (i, p) {

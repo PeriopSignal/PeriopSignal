@@ -406,6 +406,8 @@ struct EchoIVC: Codable, Hashable {
     var group: String
     /// Diameter, cm, at or below which the IVC counts as normal size.
     var cut: Double?
+    /// On positive-pressure ventilation: diameter, cm, at or below which RA pressure is likely below 10 mmHg.
+    var ventCut: Double?
     var method: String?
     var notes: [String]?
 }

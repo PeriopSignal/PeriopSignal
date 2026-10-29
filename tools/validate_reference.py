@@ -240,6 +240,8 @@ def main(path):
         ivc = echo.get("ivc")
         if ivc is not None:
             need(ivc.get("group") in gids, "echo.ivc.group must name an echo group")
+            for k in ("cut", "ventCut"):
+                need(ivc.get(k) is None or (isinstance(ivc[k], (int, float)) and 0 < ivc[k] < 5), f"echo.ivc.{k} must be a diameter in cm")
 
     dia = data.get("diastolic")
     if dia is not None:

@@ -340,7 +340,7 @@ struct ChamberQuantView: View {
     // MARK: Right-atrial pressure
 
     private func ivcCard(_ ivc: EchoIVC) -> some View {
-        let rap = EchoCalc.rap(ivcCm: WeightField.value(ivcText), collapses: collapses, cut: ivc.cut, ventilated: ventilated)
+        let rap = EchoCalc.rap(ivcCm: WeightField.value(ivcText), collapses: collapses, cut: ivc.cut, ventilated: ventilated, ventCut: ivc.ventCut)
         return VStack(alignment: .leading, spacing: 8) {
             Eyebrow(text: "Right-atrial pressure from the IVC").padding(.leading, 2)
             VStack(alignment: .leading, spacing: 12) {

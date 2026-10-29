@@ -27,7 +27,15 @@ struct DiastolicView: View {
         return out
     }
 
-    private func num(_ k: String) -> Double? { WeightField.value(values[k] ?? "") }
+    /// Ar − A and the change in E/A with Valsalva can be zero or negative; the rest must be positive.
+    private static let signed: Set<String> = ["ara", "valsalva"]
+    private func num(_ k: String) -> Double? {
+        let text = values[k] ?? ""
+        guard Self.signed.contains(k) else { return WeightField.value(text) }
+        let t = text.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".").replacingOccurrences(of: "\u{2212}", with: "-")
+        guard let v = Double(t), v.isFinite else { return nil }
+        return v
+    }
 
     private var input: DiastolicCalc.Input {
         var i = DiastolicCalc.Input()
@@ -49,8 +57,8 @@ struct DiastolicView: View {
         Field(id: "tr", label: "Peak TR velocity", unit: "m/s", hint: "Used when RAP cannot be estimated"),
     ]
     private static let supp: [Field] = [
-        Field(id: "pvsd", label: "Pulmonary vein S/D", unit: "", hint: "Abnormal ≤ 0.67; most reliable with reduced EF"),
-        Field(id: "lars", label: "LA reservoir strain", unit: "%", hint: "Abnormal ≤ 18%"),
+        Field(id: "pvsd", label: "Pulmonary vein S/D", unit: "", hint: "Abnormal ≤ 0.67; reliable mainly with reduced EF"),
+        Field(id: "lars", label: "LA reservoir strain", unit: "%", hint: "Abnormal ≤ 18%; not with AF, significant MR, transplant, normal EF with GLS > 18%, or LA stunning"),
         Field(id: "lavi", label: "LA volume index", unit: "mL/m²", hint: "Abnormal > 34; not from athletes, anemia, AF or mitral disease"),
         Field(id: "ivrt", label: "IVRT", unit: "ms", hint: "Abnormal ≤ 70 ms; rate dependent"),
     ]
@@ -58,8 +66,8 @@ struct DiastolicView: View {
         Field(id: "prEdv", label: "PR end-diastolic velocity", unit: "m/s", hint: "Abnormal ≥ 2 m/s"),
         Field(id: "padp", label: "PA diastolic pressure", unit: "mmHg", hint: "Abnormal ≥ 16 mmHg"),
         Field(id: "lwave", label: "Mitral L-wave", unit: "cm/s", hint: "Abnormal ≥ 50 cm/s"),
-        Field(id: "ara", label: "Ar − A duration", unit: "ms", hint: "Abnormal > 30 ms (reflects LVEDP)"),
-        Field(id: "valsalva", label: "Fall in E/A with Valsalva", unit: "%", hint: "Abnormal ≥ 50%"),
+        Field(id: "ara", label: "Ar − A duration", unit: "ms", hint: "Abnormal > 30 ms with pulmonary vein Ar above 35 cm/s; reflects LVEDP"),
+        Field(id: "valsalva", label: "Fall in E/A with Valsalva", unit: "%", hint: "Abnormal ≥ 50%; 0 or negative if E/A does not fall"),
     ]
 
     var body: some View {
@@ -211,7 +219,9 @@ struct DiastolicView: View {
                 }
             }
         }
-        if (r.lap == .normal || r.grade == 1), let ex = d.exercise, !ex.isEmpty {
+        // §13A: test symptomatic patients with grade 1, normal LAP without a grade, or an undetermined reading; not grade 0
+        let anyMain = [r.primaries.v1, r.primaries.v2, r.primaries.v3].contains { $0 != nil }
+        if anyMain, r.grade == 1 || (r.lap == .normal && r.grade == nil) || r.lap == .unknown, let ex = d.exercise, !ex.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "If symptomatic: diastolic exercise echo").padding(.leading, 2)
                 FactTable(rows: ex)
@@ -228,7 +238,7 @@ struct DiastolicView: View {
         fieldsCard("Main variables", Self.main, flags: ["eSeptal": p.eFlags.first ?? nil, "eLateral": p.eFlags.count > 1 ? p.eFlags[1] : nil, "pasp": p.v3ByTR ? nil : p.v3, "tr": p.v3ByTR ? p.v3 : nil])
         let derived = [p.EA.map { "E/A " + PedsCalc.fmt($0) }, p.ea.map { "average e′ " + PedsCalc.fmt($0) + " cm/s" }, p.ees.map { "septal E/e′ " + PedsCalc.fmt($0) }, p.eel.map { "lateral E/e′ " + PedsCalc.fmt($0) }, p.eea.map { "average E/e′ " + PedsCalc.fmt($0) }].compactMap { $0 }
         if !derived.isEmpty { note(derived.joined(separator: " · ")) }
-        fieldsCard("Supplemental, when the main three disagree", Self.supp, flags: ["pvsd": num("pvsd").map { $0 <= 0.67 }, "lars": num("lars").map { $0 <= 18 }, "lavi": num("lavi").map { $0 > 34 }, "ivrt": num("ivrt").map { $0 <= 70 }])
+        fieldsCard("Supplemental, when the main three disagree", Self.supp, flags: ["pvsd": num("pvsd").flatMap { $0 <= 0.67 ? true : nil }, "lars": num("lars").map { $0 <= 18 }, "lavi": num("lavi").map { $0 > 34 }, "ivrt": num("ivrt").map { $0 <= 70 }])
         VStack(alignment: .leading, spacing: 8) {
             Button { withAnimation(.snappy) { showMore.toggle() } } label: {
                 HStack {
@@ -321,7 +331,7 @@ struct DiastolicView: View {
                         let flag = flags[fld.id] ?? nil
                         Circle().fill(flag == true ? PS.accent : (flag == false ? PS.green : Color.clear)).frame(width: 8, height: 8)
                         TextField("—", text: Binding(get: { values[fld.id] ?? "" }, set: { values[fld.id] = $0 }))
-                            .keyboardType(.decimalPad)
+                            .keyboardType(Self.signed.contains(fld.id) ? .numbersAndPunctuation : .decimalPad)
                             .focused($focused)
                             .multilineTextAlignment(.trailing)
                             .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))

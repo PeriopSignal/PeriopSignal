@@ -105,7 +105,7 @@
       h += `</div>${cur.note ? footnote(cur.note) : ''}</section>`;
       // right-atrial pressure from the IVC
       if (d.ivc && cur.id === d.ivc.group) {
-        const rap = E.rap(R.num(st.ivc), st.collapse, d.ivc.cut, st.vent);
+        const rap = E.rap(R.num(st.ivc), st.collapse, d.ivc.cut, st.vent, d.ivc.ventCut);
         h += `<section class="r-sec">${eyebrow('Right-atrial pressure from the IVC')}<div class="r-card">
           <div class="r-inline wide"><span class="lab">Breathing</span>${seg('vent', [['no', 'Spontaneous'], ['yes', 'Ventilated']], st.vent ? 'yes' : 'no', 'Breathing')}</div>
           <div class="e-top"><label class="e-name" for="ch-ivc"><strong>IVC diameter</strong><small>${esc(d.ivc.method || 'Subcostal, just proximal to the hepatic veins')}</small></label><span class="e-in">${numIn('ch-ivc', st.ivc, 'ivc', { label: 'IVC diameter in centimetres' })}<span class="e-u">cm</span></span></div>
@@ -140,8 +140,8 @@
     ['tr', 'Peak TR velocity', 'm/s', 'Used when RAP cannot be estimated'],
   ];
   const SUPP = [
-    ['pvsd', 'Pulmonary vein S/D', '', 'Abnormal ≤ 0.67; most reliable with reduced EF'],
-    ['lars', 'LA reservoir strain', '%', 'Abnormal ≤ 18%'],
+    ['pvsd', 'Pulmonary vein S/D', '', 'Abnormal ≤ 0.67; reliable mainly with reduced EF'],
+    ['lars', 'LA reservoir strain', '%', 'Abnormal ≤ 18%; not with AF, significant MR, transplant, normal EF with GLS > 18%, or LA stunning'],
     ['lavi', 'LA volume index', 'mL/m²', 'Abnormal > 34; not from athletes, anemia, AF or mitral disease'],
     ['ivrt', 'IVRT', 'ms', 'Abnormal ≤ 70 ms; rate dependent'],
   ];
@@ -149,20 +149,21 @@
     ['prEdv', 'PR end-diastolic velocity', 'm/s', 'Abnormal ≥ 2 m/s'],
     ['padp', 'PA diastolic pressure', 'mmHg', 'Abnormal ≥ 16 mmHg'],
     ['lwave', 'Mitral L-wave', 'cm/s', 'Abnormal ≥ 50 cm/s'],
-    ['ara', 'Ar − A duration', 'ms', 'Abnormal > 30 ms (reflects LVEDP)'],
-    ['valsalva', 'Fall in E/A with Valsalva', '%', 'Abnormal ≥ 50%'],
+    ['ara', 'Ar − A duration', 'ms', 'Abnormal > 30 ms with pulmonary vein Ar above 35 cm/s; reflects LVEDP'],
+    ['valsalva', 'Fall in E/A with Valsalva', '%', 'Abnormal ≥ 50%; 0 or negative if E/A does not fall'],
   ];
   function mountDiastolic(host, c) {
     const { R, esc, eyebrow, seg, numIn, resultCard, footnote, I } = c;
     const st = { pop: 'standard', sex: 'male', age: '', lung: false, v: {}, more: false };
-    const num = (k) => R.num(st.v[k]);
+    const SIGNED = ['ara', 'valsalva']; // can be zero or negative
+    const num = (k) => (SIGNED.includes(k) ? R.numSigned(st.v[k]) : R.num(st.v[k]));
     const data = () => (c.bundle() && c.bundle().diastolic) || null;
     const input = () => ({ E: num('E'), A: num('A'), eSeptal: num('eSeptal'), eLateral: num('eLateral'), pasp: num('pasp'), tr: num('tr'), lungDisease: st.lung, ageBand: st.age || null,
       pvsd: num('pvsd'), lars: num('lars'), lavi: num('lavi'), ivrt: num('ivrt'), prEdv: num('prEdv'), padp: num('padp'), lwave: num('lwave'), ara: num('ara'), valsalva: num('valsalva'),
       esr: num('esr'), lvmi: num('lvmi'), sex: st.sex });
     const rows = (list, flags) => `<div class="r-card flush">${list.map(([k, label, unit, hint]) => {
       const fl = flags ? flags[k] : null;
-      return `<div class="r-meas"><label class="mt" for="dd-${k}"><span>${esc(label)}</span>${hint ? `<small>${esc(hint)}</small>` : ''}</label>${fl === true ? '<i class="gd" style="background:var(--accent)" title="Abnormal"></i>' : (fl === false ? '<i class="gd" style="background:var(--new)" title="Normal"></i>' : '<i class="gd"></i>')}${numIn('dd-' + k, st.v[k], 'val', { k, label })}<span class="mu">${esc(unit)}</span></div>`;
+      return `<div class="r-meas"><label class="mt" for="dd-${k}"><span>${esc(label)}</span>${hint ? `<small>${esc(hint)}</small>` : ''}</label>${fl === true ? '<i class="gd" style="background:var(--accent)" title="Abnormal"></i>' : (fl === false ? '<i class="gd" style="background:var(--new)" title="Normal"></i>' : '<i class="gd"></i>')}${numIn('dd-' + k, st.v[k], 'val', { k, label, signed: SIGNED.includes(k) })}<span class="mu">${esc(unit)}</span></div>`;
     }).join('')}</div>`;
     const toneFor = (r) => r.lap === 'increased' ? 'var(--accent)' : (r.lap === 'lvedp' ? 'var(--orange)' : (r.lap === 'normal' ? (r.grade === 1 ? 'var(--amber)' : 'var(--new)') : 'var(--fg-3)'));
     function summaryText(r) {
@@ -195,13 +196,15 @@
         if (pr && pr.state !== null) inner += `<p class="r-note2">${I.info}<span>Diastolic dysfunction (Figure 2): ${esc(pr.text)}${pr.supportive ? '; LV mass index supports it' : ''}.</span></p>`;
         inner += r.cautions.map(c.caution).join('');
         h += resultCard(tone, inner);
-        if ((r.lap === 'normal' || r.grade === 1) && d.exercise) h += `<section class="r-sec">${eyebrow('If symptomatic: diastolic exercise echo')}${c.factTable(d.exercise)}</section>`;
+        // §13A: test symptomatic patients with grade 1, normal LAP without a grade, or an undetermined reading; not grade 0
+        const anyMain = [r.primaries.v1, r.primaries.v2, r.primaries.v3].some((x) => x !== null);
+        if (anyMain && (r.grade === 1 || (r.lap === 'normal' && r.grade === null) || r.lap === 'unknown') && d.exercise) h += `<section class="r-sec">${eyebrow('If symptomatic: diastolic exercise echo')}${c.factTable(d.exercise)}</section>`;
         if (pop.indicators && pop.indicators.length) h += `<section class="r-sec">${eyebrow(pop.name + ': also look for')}${c.takeList(pop.indicators)}${(pop.notes || []).map((n) => footnote(n)).join('')}</section>`;
         const p = r.primaries;
         h += `<section class="r-sec">${eyebrow('Main variables')}${rows(MAIN, { E: null, A: null, eSeptal: p.eFlags[0], eLateral: p.eFlags[1], pasp: p.v3by === 'pasp' ? p.v3 : null, tr: p.v3by === 'tr' ? p.v3 : null })}`;
         const derived = [p.EA !== null ? 'E/A ' + R.fmt(p.EA) : null, p.ea !== null ? 'average e′ ' + R.fmt(p.ea) + ' cm/s' : null, p.ees !== null ? 'septal E/e′ ' + R.fmt(p.ees) : null, p.eel !== null ? 'lateral E/e′ ' + R.fmt(p.eel) : null, p.eea !== null ? 'average E/e′ ' + R.fmt(p.eea) : null].filter(Boolean);
         if (derived.length) h += `<p class="r-small">${esc(derived.join(' · '))}</p>`;
-        h += `</section><section class="r-sec">${eyebrow('Supplemental, when the main three disagree')}${rows(SUPP, { pvsd: R.num(st.v.pvsd) === null ? null : num('pvsd') <= 0.67, lars: num('lars') === null ? null : num('lars') <= 18, lavi: num('lavi') === null ? null : num('lavi') > 34, ivrt: num('ivrt') === null ? null : num('ivrt') <= 70 })}</section>`;
+        h += `</section><section class="r-sec">${eyebrow('Supplemental, when the main three disagree')}${rows(SUPP, { pvsd: num('pvsd') === null ? null : (num('pvsd') <= 0.67 ? true : null), lars: num('lars') === null ? null : num('lars') <= 18, lavi: num('lavi') === null ? null : num('lavi') > 34, ivrt: num('ivrt') === null ? null : num('ivrt') <= 70 })}</section>`;
         h += `<section class="r-sec"><button type="button" class="r-disclose" data-a="more" aria-expanded="${st.more}">${eyebrow('If those are not available or reliable')}<span>${st.more ? '−' : '+'}</span></button>${st.more ? rows(MORE, { prEdv: num('prEdv') === null ? null : num('prEdv') >= 2, padp: num('padp') === null ? null : num('padp') >= 16, lwave: num('lwave') === null ? null : num('lwave') >= 50, ara: num('ara') === null ? null : num('ara') > 30, valsalva: num('valsalva') === null ? null : num('valsalva') >= 50 }) : ''}</section>`;
         h += `<section class="r-sec">${eyebrow('Supportive')}<div class="r-inline"><span class="lab">Sex, for LV mass</span>${seg('sex', [['male', 'Male'], ['female', 'Female']], st.sex, 'Sex')}</div>${rows([['lvmi', 'LV mass index', 'g/m²', 'Supports diastolic dysfunction above 95 (women) or 115 (men), not in athletes']], { lvmi: num('lvmi') === null ? null : (st.sex === 'female' ? num('lvmi') > 95 : num('lvmi') > 115) })}</section>`;
       } else if (pop.mode === 'mac' || pop.mode === 'transplant') {

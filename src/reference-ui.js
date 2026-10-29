@@ -202,7 +202,7 @@
   const eyebrow = (text, color) => `<p class="r-eyebrow"${color ? ` style="color:${color}"` : ''}>${esc(text)}</p>`;
   const TONE = { low: 'var(--new)', moderate: 'var(--accent-2)', high: 'var(--accent)' };
   const GRADE_COLOR = { 1: 'var(--new)', 2: 'var(--accent-2)', 3: 'var(--accent)' };
-  const numIn = (id, value, a, opts) => `<input class="r-in${opts && opts.wide ? ' wide' : ''}" id="${id}" data-a="${a}"${opts && opts.k ? ` data-k="${esc(opts.k)}"` : ''} type="text" inputmode="decimal" autocomplete="off" placeholder="${(opts && opts.ph) || '—'}" value="${esc(value || '')}" aria-label="${esc((opts && opts.label) || 'Value')}">`;
+  const numIn = (id, value, a, opts) => `<input class="r-in${opts && opts.wide ? ' wide' : ''}" id="${id}" data-a="${a}"${opts && opts.k ? ` data-k="${esc(opts.k)}"` : ''} type="text" inputmode="${opts && opts.signed ? 'text' : 'decimal'}" autocomplete="off" placeholder="${(opts && opts.ph) || '—'}" value="${esc(value || '')}" aria-label="${esc((opts && opts.label) || 'Value')}">`;
   function weightField(id, text, prompt) {
     const empty = R.num(text) === null;
     return `<div class="r-weight${empty ? '' : ' ok'}">

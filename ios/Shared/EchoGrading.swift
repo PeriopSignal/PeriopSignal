@@ -200,13 +200,14 @@ enum EchoCalc {
     }
 
     /// Right-atrial pressure from the IVC diameter (cm): with spontaneous breathing, whether it collapses by
-    /// 50% or more with a sniff (ASE 2025); on positive-pressure ventilation only a small IVC says anything.
-    static func rap(ivcCm: Double?, collapses: Bool?, cut: Double?, ventilated: Bool = false) -> RAP? {
+    /// 50% or more with a sniff (ASE 2025); on positive-pressure ventilation only a small IVC says anything. The
+    /// ventilated cutoff is 1.2 cm (ASE 2010): the 2025 text prints 2.1 cm for the same statement.
+    static func rap(ivcCm: Double?, collapses: Bool?, cut: Double?, ventilated: Bool = false, ventCut: Double? = nil) -> RAP? {
         guard let d = ivcCm, d > 0 else { return nil }
-        let c = cut ?? 2.1
+        let c = cut ?? 2.1, vc = ventCut ?? 1.2
         if ventilated {
-            return d <= c
-                ? RAP(value: nil, range: "below 10", label: "Likely below 10 mmHg", detail: "An IVC of \(fmt(c)) cm or less in an intubated patient identifies RA pressure below 10 mmHg.")
+            return d <= vc
+                ? RAP(value: nil, range: "below 10", label: "Likely below 10 mmHg", detail: "An IVC of \(fmt(vc)) cm or less in an intubated patient identifies RA pressure below 10 mmHg.")
                 : RAP(value: nil, range: nil, label: "Not estimable", detail: "On positive-pressure ventilation a larger IVC, and its collapse, do not estimate RA pressure.")
         }
         guard let collapses else { return nil }

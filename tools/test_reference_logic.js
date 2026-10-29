@@ -394,7 +394,9 @@ test('echo: per-cut edges, ranges, indexed rows, age tables, ventilated RAP', ()
   eq(R.echo.grade(sov, 'male', 4.1), null, 'no age, no grade');
   // RA pressure from the IVC
   eq(R.echo.rap(2.4, null, 2.1, true).label, 'Not estimable');
-  eq(R.echo.rap(1.9, null, 2.1, true).label, 'Likely below 10 mmHg');
+  eq(R.echo.rap(1.9, null, 2.1, true, 1.2).label, 'Not estimable', 'ventilated: 1.2 cm (ASE 2010), not 2.1');
+  eq(R.echo.rap(1.2, null, 2.1, true, 1.2).label, 'Likely below 10 mmHg');
+  eq(R.echo.rap(1.1, null, 2.1, true).label, 'Likely below 10 mmHg', 'defaults to 1.2 cm');
   eq(R.echo.rap(1.9, null, 2.1, false), null, 'spontaneous breathing needs the sniff');
   eq(R.echo.fmt(58.4), '58.4'); eq(R.echo.fmt(3.85000001), '3.85'); eq(R.echo.fmt(145.26), '145.3');
 });
@@ -456,15 +458,36 @@ test('diastolic: the main algorithm (Figure 3)', () => {
   // PASP is preferred over TR when entered
   r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, pasp: 30 });
   eq([r.lap, r.grade], ['normal', 0], 'PASP 30 overrides TR 3.0');
-  // lung disease: TR/PASP not used → missing variable → supplemental
+  // lung disease: TR/PASP set aside → read both ways; normal function vs not determined → not determined
   r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, lungDisease: true });
   eq(r.lap, 'unknown');
   assert.ok(r.cautions.length > 0);
+  // review finding: TR missing, e′ and E/e′ normal, LAVi 40 must not read as Grade 2
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, lavi: 40 });
+  eq([r.lap, r.grade], ['unknown', null], 'depends on TR');
+  // TR missing but every way gives Grade 2: e′ and E/e′ abnormal with LARS ≤ 18%
+  r = dd({ E: 100, A: 80, eSeptal: 5, eLateral: 6, lars: 15 });
+  eq([r.lap, r.grade], ['increased', 2]);
+  assert.ok(r.explanation.includes('whichever way'));
+  // TR missing, e′ and E/e′ normal, supplemental normal: normal LAP either way, but no grade
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, lars: 30 });
+  eq([r.lap, r.grade, r.headline], ['normal', null, 'Normal LAP']);
+  // a pulmonary vein S/D above 0.67 does not settle it (normal LVEF)
+  r = dd({ E: 90, A: 70, eSeptal: 5, eLateral: 6, tr: 2.2, pvsd: 1.0 });
+  eq(r.lap, 'unknown', 'S/D above 0.67 alone is not evidence of normal LAP');
+  r = dd({ E: 90, A: 70, eSeptal: 5, eLateral: 6, tr: 2.2, pvsd: 0.5 });
+  eq(r.lap, 'increased', 'S/D 0.67 or less still counts');
   // second-line signs when the supplemental four are missing
   r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, ara: 40 });
   eq(r.lap, 'lvedp', 'Ar − A alone is an LVEDP marker');
   r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, padp: 18 });
   eq([r.lap, r.grade], ['increased', 2]);
+  // signed second-line inputs: Ar shorter than A, or no fall in E/A, are absent signs rather than missing ones
+  eq([R.numSigned('−20'), R.numSigned('-5.5'), R.numSigned('0'), R.numSigned(''), R.numSigned('12a'), R.numSigned('-')], [-20, -5.5, 0, null, null, null]);
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, ara: -20 });
+  eq([r.lap, r.grade], ['normal', null], 'Ar − A of −20 ms is an absent sign');
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, valsalva: 0 });
+  eq(r.lap, 'normal', 'no fall with Valsalva is an absent sign');
   // cutoffs: ≤ for e′, ≥ for E/e′ and TR
   eq(R.diastolicPrimaries({ eSeptal: 6, eLateral: 8 }).v1, true, 'septal 6 is reduced');
   eq(R.diastolicPrimaries({ eSeptal: 6.1, eLateral: 7.1 }).v1, false);

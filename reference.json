@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-29",
-  "revision": 1793275675,
+  "revision": 1793279547,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -4191,7 +4191,7 @@
     },
     "validation": "Validated against invasive pressures in 951 patients (Lababidi et al., Circulation 2025): accuracy 86%, with 2 indeterminate readings against 38 by the 2016 method.",
     "scope": "Written for adults in sinus rhythm studied by transthoracic echo. The 2025 document says it should not be applied to children, to normal pregnancy, or in the intraoperative setting, and gives no TEE-specific cutoffs.",
-    "supersedes": "Replaces the 2016 ASE/EACVI recommendations (one algorithm for any LVEF; e′, E/e′ and PASP first; LA volume, LA strain, pulmonary vein flow and IVRT second).",
+    "supersedes": "Replaces the 2016 ASE/EACVI recommendations. The 2025 approach uses one algorithm for any LVEF: e′, E/e′ and PASP or TR velocity first; LA strain, pulmonary vein flow, LA volume and IVRT when they disagree.",
     "populations": [
       {
         "id": "standard",
@@ -4371,6 +4371,10 @@
     ],
     "exercise": [
       [
+        "Who to test",
+        "Exertional symptoms with grade 1, or with filling pressure not determined at rest; completely normal function with preserved e′ needs no stress test"
+      ],
+      [
         "Definitely abnormal",
         "Average E/e′ 14 or more (or septal 15 or more) with peak TR velocity above 3.2 m/s"
       ],
@@ -4381,12 +4385,20 @@
       [
         "HFpEF likely",
         "E/e′ above 14 with TR velocity above 2.8 but under 3.2 m/s"
+      ],
+      [
+        "Not supported",
+        "E/e′ under 14, even when TR velocity rises above 3.2 m/s"
       ]
     ],
     "notes": [
-      "Where the document's own figures and text differ by an equals sign (E/e′ ≥ 14 or > 14, LARS ≤ or < 18%), the tool follows Figure 3; a value exactly on a cutoff deserves a second look.",
+      "Where the document's figures, tables and text differ by an equals sign, the tool follows Figure 3: E/e′ ≥ 14 (Figure 2 and the text: > 14), LARS ≤ 18% (elsewhere < 18%), e′ ≤ 6, 7 or 6.5 cm/s (Table 6 and Key Point 2: below), Ar − A > 30 ms (Table 7: ≥ 30) and TR ≥ 2.8 m/s (Table 7: > 2.8). With an age band picked, Table 6's 'below' applies, so over 65 a septal e′ of exactly 6 counts as normal. Figure 4's 0.8–1.8 band (Table 7: above 0.8 and below 1.8) and the transplant band of 7–14 (Table 7 leaves exactly 7 and 14 unassigned) keep their edges in the middle. A value exactly on a cutoff deserves a second look.",
       "When e′ is reduced on one side only, Figure 3 counts it (septal ≤ 6, lateral ≤ 7 or average ≤ 6.5 cm/s); the document does not say how to weigh discordant sites.",
-      "Report mitral E, A, E/A, e′, average E/e′ and peak TR velocity, plus whichever supplemental measures decided the reading; if the grade cannot be set, report the filling pressure."
+      "Report mitral E, A, E/A, e′, average E/e′ and peak TR velocity, plus whichever supplemental measures decided the reading; if the grade cannot be set, report the filling pressure.",
+      "With one of the three main variables missing, the guideline gives no rule. The tool reads every way the missing one could fall and reports only a reading they all share, with a grade only when every way gives the same grade.",
+      "The tool does not ask for LVEF, so a pulmonary vein S/D above 0.67 never counts as evidence of normal LAP: the ratio is reliable mainly with reduced LVEF and can exceed 0.67 despite raised filling pressure when LVEF is normal (p. 554). Table 4 also limits it in AF, mitral valve disease and HCM.",
+      "LA reservoir strain should not be used with AF, significant MR, after heart transplant, with a normal EF and GLS above 18%, or with suspected LA stunning; with a normal LVEF a value above 18% does not rule out raised LAP (Table 4, p. 554).",
+      "Ar − A above 30 ms on its own is read as an isolated rise in LVEDP, as the text says (p. 552, footnote d), although Figure 3 lists it among the signs of increased LAP. Footnote d also asks for a pulmonary vein Ar velocity above 35 cm/s; the tool does not ask for it, nor for premature termination of mitral inflow or diastolic MR (footnote c)."
     ]
   },
   "echo": {
@@ -4731,7 +4743,7 @@
             "dir": "high"
           }
         ],
-        "note": "Normal ranges are mean ± 2 SD (Lang 2015). The update gives mild, moderate and severe partitions for LV size, wall thickness and mass only in its online appendix, so those rows read normal or above the normal range; LVEF carries the published partitions."
+        "note": "Table 2 ranges and LVEF are mean ± 2 SD (Lang 2015); the wall-thickness, relative wall thickness and mass ranges (Table 6) are carried over from the previous guideline. The update gives mild, moderate and severe partitions for LV size, wall thickness and mass only in its online appendix, so those rows read normal or above the normal range; LVEF carries the published partitions."
       },
       {
         "id": "la",
@@ -4904,7 +4916,7 @@
             },
             "source": "zoghbi2017",
             "ref": "ASE 2017 regurgitation guideline",
-            "note": "Significant annular dilatation is 40 mm or more, or above 21 mm/m² (ASE 2017; ESC/EACTS 2025 uses the same values). At left-sided valve surgery, tricuspid repair can be considered for mild secondary TR with a dilated annulus (ESC/EACTS 2025, IIb); ACC/AHA 2020 uses an annulus above 4.0 cm for progressive TR (2a)."
+            "note": "Significant annular dilatation is 40 mm or more, or above 21 mm/m² (ASE 2017; ESC/EACTS 2025 uses the same values). At left-sided valve surgery, tricuspid repair can be considered in selected patients with mild secondary TR and a dilated annulus (ESC/EACTS 2025, IIb); ACC/AHA 2020 uses an annulus above 4.0 cm for progressive TR (2a)."
           },
           {
             "id": "rvotplax",
@@ -5448,6 +5460,7 @@
             ],
             "source": "mukherjee2025",
             "ref": "ASE 2025, Table 1",
+            "note": "Table 1 puts normal below 33 mL/m²; the Key Points of the same guideline say below 32.",
             "index": "bsa",
             "rawUnit": "mL"
           }
@@ -5562,18 +5575,20 @@
     "ivc": {
       "group": "ra",
       "cut": 2.1,
+      "ventCut": 1.2,
       "method": "Subcostal view, end-expiration, 0.5–3 cm from the RA junction",
       "notes": [
         "Secondary signs of raised RA pressure: RA enlargement, the interatrial septum bowing into the LA throughout the cycle, restrictive RV filling, tricuspid E/e′ above 6, diastolic predominance of hepatic vein flow (systolic filling fraction below 55%).",
         "An IVC above 2.5 cm without respiratory variation, with spontaneous contrast or colour-flow reflux: 20 mmHg can be considered. A small, collapsed IVC suggests RA pressure below 3 mmHg (hypovolemia).",
-        "On positive-pressure ventilation the collapse cannot be used; an IVC of 2.1 cm or less in an intubated patient identifies RA pressure below 10 mmHg.",
+        "On positive-pressure ventilation the collapse cannot be used. An IVC of 1.2 cm or less in an intubated patient identifies RA pressure below 10 mmHg (ASE 2010); the 2025 update prints 2.1 cm for the same statement, and the tool keeps the stricter value.",
         "A dilated IVC can be normal in young adults and athletes."
       ]
     },
     "notes": [
-      "All reference values come from transthoracic studies in healthy adults; none of these guidelines gives TEE-specific values, so applying them to intraoperative TEE is an extrapolation.",
+      "Normal ranges come from transthoracic studies in healthy adults; severity partitions, the tricuspid annulus threshold and the IVC scheme are consensus or literature based. None of these guidelines gives TEE-specific values, so applying them to intraoperative TEE is an extrapolation.",
+      "The source tables print whole numbers, so a value between two printed cutoffs (an LVEF of 51–52% in men, an LA volume index of 34–35 mL/m²) is read as the worse grade.",
       "Body surface area by DuBois & DuBois; the guidelines do not name a formula.",
-      "The ASE 2025 right-heart guideline replaces the 2010 one; RV and RA cutoffs here follow its current Table 1."
+      "The ASE 2025 right-heart guideline replaces the 2010 one; RV and RA cutoffs here follow Table 1 of its corrected May 2025 file, which differs from the March 2025 publisher PDF in a few cells (TAPSE, S′ and RA volume grades)."
     ]
   }
 }
