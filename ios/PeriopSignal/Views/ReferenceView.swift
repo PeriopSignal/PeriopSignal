@@ -274,11 +274,9 @@ struct ReferenceView: View {
         let items = favorites.keys.compactMap { RefItem.item(forKey: $0) }
         return VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Favorites").padding(.leading, 2)
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                ForEach(items) { item in
-                    CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: true) { path.append(item.route) }
-                        .contextMenu { Button(role: .destructive) { favorites.toggle(item.route.key) } label: { Label("Remove from favorites", systemImage: "star.slash") } }
-                }
+            TileGrid(items: items) { item in
+                CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: true) { path.append(item.route) }
+                    .contextMenu { Button(role: .destructive) { favorites.toggle(item.route.key) } label: { Label("Remove from favorites", systemImage: "star.slash") } }
             }
         }
     }
@@ -333,14 +331,12 @@ struct FolderView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                    ForEach(folder.items) { item in
-                        let on = favorites.contains(item.route.key)
-                        CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: on) { path.append(item.route) }
-                            .contextMenu {
-                                Button { favorites.toggle(item.route.key) } label: { Label(on ? "Remove from favorites" : "Add to favorites", systemImage: on ? "star.slash" : "star") }
-                            }
-                    }
+                TileGrid(items: folder.items) { item in
+                    let on = favorites.contains(item.route.key)
+                    CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: on) { path.append(item.route) }
+                        .contextMenu {
+                            Button { favorites.toggle(item.route.key) } label: { Label(on ? "Remove from favorites" : "Add to favorites", systemImage: on ? "star.slash" : "star") }
+                        }
                 }
                 Text("Long-press a tool to add it to your favorites at the top of the tab; the star in each tool's toolbar does the same.")
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
@@ -358,6 +354,28 @@ struct FolderView: View {
         .navigationTitle(folder.title)
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(.hidden, for: .navigationBar)
+    }
+}
+
+/// Two-column tiles; the tiles in a row share one height, so a wrapped title never leaves its
+/// neighbour floating.
+struct TileGrid<Item: Identifiable, Tile: View>: View {
+    var items: [Item]
+    @ViewBuilder var tile: (Item) -> Tile
+
+    var body: some View {
+        Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+            ForEach(Array(stride(from: 0, to: items.count, by: 2)), id: \.self) { i in
+                GridRow {
+                    tile(items[i])
+                    if i + 1 < items.count {
+                        tile(items[i + 1])
+                    } else {
+                        Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -396,7 +414,7 @@ struct CalculatorTile: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
@@ -518,10 +536,8 @@ struct ReferenceSearchResults: View {
             if !tools.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     Eyebrow(text: "Calculators and guides").padding(.leading, 2)
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                        ForEach(tools) { item in
-                            CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
-                        }
+                    TileGrid(items: tools) { item in
+                        CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
                     }
                 }
             }
