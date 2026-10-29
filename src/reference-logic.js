@@ -1493,5 +1493,135 @@
     },
   };
 
+  // ---------- ABG: acid–base and compensation (AbgCalc.swift; rules in reference.json "abg") ----------
+  // pH, PaCO2 (mmHg) and HCO3 (mEq/L) in: the primary disorder, whether the compensation is what the rule
+  // expects, and the second disorder when it is not. Each rule is a straight line read from the reference
+  // file, expected = slope × x + intercept ± tol, so a review can change a coefficient without touching code.
+  // Any two of the three values are enough: the third comes from Henderson–Hasselbalch.
+  const ABG_NAME = { metAcid: 'metabolic acidosis', metAlk: 'metabolic alkalosis', respAcid: 'respiratory acidosis', respAlk: 'respiratory alkalosis' };
+  const cap = (s) => s.split(' ').map((w) => (w === 'and' ? w : w[0].toUpperCase() + w.slice(1))).join(' ');
+  R.abg = {
+    /** pH from PaCO2 and HCO3, and the two inverses (Henderson–Hasselbalch with the file's pK and CO2 solubility). */
+    ph(d, paco2, hco3) { return d.check.pk + Math.log10(hco3 / (d.check.solubility * paco2)); },
+    hco3(d, ph, paco2) { return d.check.solubility * paco2 * Math.pow(10, ph - d.check.pk); },
+    paco2(d, ph, hco3) { return hco3 / (d.check.solubility * Math.pow(10, ph - d.check.pk)); },
+    /** The band a rule expects at x. */
+    expect(rule, x) { const v = rule.slope * x + rule.intercept; return { v, lo: v - (rule.tol || 0), hi: v + (rule.tol || 0) }; },
+    /** 24.84 → "24.8"; 31 → "31"; pH to two places. */
+    f1(v) { const r = Math.round(v * 10) / 10; return r === Math.trunc(r) ? String(Math.trunc(r)) : r.toFixed(1); },
+    fph(v) { return (Math.round(v * 100) / 100).toFixed(2); },
+    band(e) { return R.abg.f1(e.lo) + '–' + R.abg.f1(e.hi); },
+    /** The two disorders in the order found: "Metabolic and Respiratory Acidosis", "Respiratory Acidosis and Metabolic Alkalosis". */
+    title(a, b) {
+      if (!b) return cap(ABG_NAME[a]);
+      const [ka, ta] = ABG_NAME[a].split(' '), [kb, tb] = ABG_NAME[b].split(' ');
+      return ta === tb ? cap(`${ka} and ${kb} ${ta}`) : cap(`${ABG_NAME[a]} and ${ABG_NAME[b]}`);
+    },
+    /** i: { ph, paco2, hco3 }, d: the "abg" section. Returns { state: 'empty' | 'read', headline, explanation,
+        status: 'acidemia' | 'alkalemia' | 'normal', primary, second, phase, disorders[], steps[], cautions[],
+        visual, values { ph, paco2, hco3 }, derived: null | 'ph' | 'paco2' | 'hco3', check }. */
+    read(i, d) {
+      const A = R.abg, N = d.normal, M = d.mid, steps = [], cautions = [];
+      let ph = has(i.ph) ? i.ph : null, pc = has(i.paco2) ? i.paco2 : null, hc = has(i.hco3) ? i.hco3 : null;
+      const given = [ph, pc, hc].filter((x) => x !== null).length;
+      if (given < 2) return { state: 'empty', headline: 'Enter the Gas', explanation: 'Enter pH, PaCO₂ and HCO₃. Any two are enough: the third is worked out from them.', status: null, primary: null, second: null, phase: null, disorders: [], steps, cautions, visual: null, values: { ph, paco2: pc, hco3: hc }, derived: null, check: null };
+      let derived = null;
+      if (ph === null) { ph = A.ph(d, pc, hc); derived = 'ph'; }
+      else if (hc === null) { hc = A.hco3(d, ph, pc); derived = 'hco3'; }
+      else if (pc === null) { pc = A.paco2(d, ph, hc); derived = 'paco2'; }
+      const P = d.plausible || {};
+      if ((P.ph && (ph < P.ph[0] || ph > P.ph[1])) || (P.paco2 && (pc < P.paco2[0] || pc > P.paco2[1])) || (P.hco3 && (hc < P.hco3[0] || hc > P.hco3[1])))
+        cautions.push('A value lies outside what a blood gas usually shows. Check the entry and the units (mmHg, not kPa).');
+      const status = ph < N.ph[0] ? 'acidemia' : ph > N.ph[1] ? 'alkalemia' : 'normal';
+      const pcHi = pc > N.paco2[1], pcLo = pc < N.paco2[0], hcLo = hc < N.hco3[0], hcHi = hc > N.hco3[1];
+      steps.push({ id: 'ph', label: 'pH', tone: status === 'normal' ? 'ok' : 'bad', text: `${A.fph(ph)}${derived === 'ph' ? ' (calculated)' : ''} · ${status === 'normal' ? 'normal' : status}` });
+      let check = null;
+      if (given === 3) {
+        const calc = A.ph(d, pc, hc), diff = calc - ph;
+        check = { calc, diff, ok: Math.abs(diff) <= d.check.tol };
+        if (!check.ok) cautions.push(`The three values do not agree: PaCO₂ ${A.f1(pc)} and HCO₃ ${A.f1(hc)} give pH ${A.fph(calc)}, not ${A.fph(ph)}. Look for a typing error, or an HCO₃ from a separate chemistry sample; the reading below uses the values as entered.`);
+      }
+      const out = (o) => {
+        if (check) steps.push({ id: 'check', label: 'Values agree', tone: check.ok ? 'ok' : 'bad', text: `PaCO₂ and HCO₃ give pH ${A.fph(check.calc)} · ${check.ok ? 'consistent' : 'differs by ' + Math.abs(check.diff).toFixed(2)}` });
+        if (derived) steps.push({ id: 'derived', label: 'Calculated', tone: 'info', text: derived === 'hco3' ? `HCO₃ ${A.f1(hc)} mEq/L from pH and PaCO₂` : derived === 'paco2' ? `PaCO₂ ${A.f1(pc)} mmHg from pH and HCO₃` : `pH ${A.fph(ph)} from PaCO₂ and HCO₃` });
+        return Object.assign({ state: 'read', status, primary: null, second: null, phase: null, disorders: [], steps, cautions, visual: null, values: { ph, paco2: pc, hco3: hc }, derived, check }, o);
+      };
+      if (status === 'normal' && !pcHi && !pcLo && !hcLo && !hcHi) {
+        steps.push({ id: 'primary', label: 'PaCO₂ and HCO₃', tone: 'ok', text: `${A.f1(pc)} mmHg and ${A.f1(hc)} mEq/L · both normal` });
+        return out({ headline: 'Normal Acid–Base Status', explanation: 'pH, PaCO₂ and HCO₃ are all in the normal range. A metabolic acidosis and alkalosis that cancel out can still hide behind a normal gas.' });
+      }
+      // Which process moves pH the way it went (toward the side of 7.40 it sits on)
+      const side = ph < M.ph ? 'acid' : ph > M.ph ? 'alk' : null;
+      let resp, met;
+      if (side === 'acid') { resp = pc > M.paco2; met = hc < M.hco3; }
+      else if (side === 'alk') { resp = pc < M.paco2; met = hc > M.hco3; }
+      else { resp = pcHi || pcLo; met = hcHi || hcLo; }
+      const respOut = side === 'acid' ? pcHi : side === 'alk' ? pcLo : resp;
+      const metOut = side === 'acid' ? hcLo : side === 'alk' ? hcHi : met;
+      const respKind = pc > M.paco2 ? 'respAcid' : 'respAlk', metKind = hc < M.hco3 ? 'metAcid' : 'metAlk';
+      const pcText = `PaCO₂ ${A.f1(pc)} mmHg${pcHi ? ' (above ' + N.paco2[1] + ')' : pcLo ? ' (below ' + N.paco2[0] + ')' : ''}`;
+      const hcText = `HCO₃ ${A.f1(hc)} mEq/L${hcLo ? ' (below ' + N.hco3[0] + ')' : hcHi ? ' (above ' + N.hco3[1] + ')' : ''}`;
+      const phText = status === 'normal' ? `pH ${A.fph(ph)} is normal.` : `pH ${A.fph(ph)}: ${status}.`;
+      if (!resp && !met) {
+        cautions.push('Neither PaCO₂ nor HCO₃ moves pH the way it went, which a blood gas cannot do. Check the values.');
+        return out({ headline: 'Check the Values', explanation: `pH ${A.fph(ph)} does not follow from ${pcText} and ${hcText}.` });
+      }
+      let primary;
+      if (resp && met && (respOut === metOut)) {
+        if (side === null || respOut) {
+          // Both move pH the same way and both are outside their range (or pH sits at 7.40 with both abnormal)
+          const both = side === null ? [respKind, metKind] : [respKind, metKind];
+          steps.push({ id: 'primary', label: 'Primary', tone: 'bad', text: `${pcText}; ${hcText} · both` });
+          const head = A.title(both[0], both[1]);
+          return out({ headline: head, primary: both[0], second: both[1], disorders: both,
+            explanation: side === null
+              ? `pH ${A.fph(ph)} sits at the middle of the range while ${pcText} and ${hcText} are both abnormal: two opposing disorders.`
+              : `${phText} ${pcText} and ${hcText} both push pH the same way, so both are primary and there is no compensation to check.` });
+        }
+        // Neither outside its range: the larger shift, scaled by the width of its normal half-range, leads
+        const dr = Math.abs(pc - M.paco2) / Math.max(N.paco2[1] - M.paco2, M.paco2 - N.paco2[0]);
+        const dm = Math.abs(hc - M.hco3) / Math.max(N.hco3[1] - M.hco3, M.hco3 - N.hco3[0]);
+        primary = dr >= dm ? respKind : metKind;
+      } else if (resp && met) primary = respOut ? respKind : metKind;
+      else primary = resp ? respKind : metKind;
+      const isResp = primary === 'respAcid' || primary === 'respAlk';
+      steps.push({ id: 'primary', label: 'Primary', tone: 'bad', text: (isResp ? pcText : hcText) + ' · ' + ABG_NAME[primary] });
+      let second = null, phase = null, visual, compText;
+      if (!isResp) {
+        const rule = d.rules[primary], e = A.expect(rule, hc);
+        second = pc > e.hi ? 'respAcid' : pc < e.lo ? 'respAlk' : null;
+        visual = { variable: 'PaCO₂', unit: 'mmHg', measured: pc, bands: [{ id: 'expected', label: 'Expected', lo: e.lo, hi: e.hi }] };
+        compText = `${rule.label ? rule.label + ' expects' : 'Expected'} PaCO₂ ${A.band(e)} mmHg; ${A.f1(pc)} ${second ? (second === 'respAcid' ? 'is above it' : 'is below it') : 'sits in it'}`;
+        steps.push({ id: 'comp', label: 'Respiratory compensation', tone: second ? 'bad' : 'ok', text: `expected ${A.band(e)} · measured ${A.f1(pc)}${second ? ', ' + (second === 'respAcid' ? 'above' : 'below') : ''}` });
+      } else {
+        const acid = primary === 'respAcid';
+        const ra = d.rules[acid ? 'respAcidAcute' : 'respAlkAcute'], rc = d.rules[acid ? 'respAcidChronic' : 'respAlkChronic'];
+        const a = A.expect(ra, pc), c = A.expect(rc, pc);
+        const inA = hc >= a.lo && hc <= a.hi, inC = hc >= c.lo && hc <= c.hi;
+        if (hc < Math.min(a.lo, c.lo)) second = 'metAcid';
+        else if (hc > Math.max(a.hi, c.hi)) second = 'metAlk';
+        else phase = inA && inC ? 'either' : inA ? 'acute' : inC ? 'chronic' : 'between';
+        visual = { variable: 'HCO₃', unit: 'mEq/L', measured: hc, bands: [{ id: 'acute', label: 'Acute', lo: a.lo, hi: a.hi }, { id: 'chronic', label: 'Chronic', lo: c.lo, hi: c.hi }] };
+        const where = second ? (second === 'metAcid' ? 'is below both' : 'is above both')
+          : phase === 'acute' ? 'fits an acute change' : phase === 'chronic' ? 'fits a chronic change' : phase === 'either' ? 'fits either; the change is too small to tell them apart' : 'falls between them: subacute, or acute on chronic';
+        compText = `An acute change expects HCO₃ ${A.band(a)} mEq/L and a chronic one ${A.band(c)}; ${A.f1(hc)} ${where}`;
+        steps.push({ id: 'comp', label: 'Metabolic compensation', tone: second ? 'bad' : 'ok', text: `acute ${A.band(a)} · chronic ${A.band(c)} · measured ${A.f1(hc)}${second ? ', ' + (second === 'metAcid' ? 'below' : 'above') : ''}` });
+      }
+      const disorders = second ? [primary, second] : [primary];
+      let headline = A.title(primary, second);
+      if (!second && isResp) headline = phase === 'acute' ? 'Acute ' + headline : phase === 'chronic' ? 'Chronic ' + headline : phase === 'between' ? headline + ', Partly Compensated' : headline;
+      const kind = isResp ? 'respiratory' : 'metabolic';
+      const lead = status === 'normal' ? `pH ${A.fph(ph)} is normal, but ${isResp ? pcText : hcText} points to a ${kind} process.` : `${phText} ${isResp ? pcText : hcText} makes it ${kind}.`;
+      const tail = second ? `. ${ABG_NAME[second][0].toUpperCase() + ABG_NAME[second].slice(1)} as well.` : isResp ? '.' : ': the respiratory compensation is appropriate.';
+      return out({ headline, primary, second, phase, disorders, visual, explanation: `${lead} ${compText}${tail}` });
+    },
+    /** One line for the record. */
+    summary(r) {
+      if (r.state !== 'read') return '';
+      const v = r.values, A = R.abg;
+      return `ABG: pH ${A.fph(v.ph)}, PaCO₂ ${A.f1(v.paco2)} mmHg, HCO₃ ${A.f1(v.hco3)} mEq/L${r.derived ? ' (' + (r.derived === 'hco3' ? 'HCO₃' : r.derived === 'paco2' ? 'PaCO₂' : 'pH') + ' calculated)' : ''}. ${r.headline}. ${r.explanation}`;
+    },
+  };
+
   global.PSRef = R;
 })(typeof window !== 'undefined' ? window : globalThis);

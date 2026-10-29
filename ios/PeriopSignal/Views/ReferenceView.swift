@@ -16,6 +16,7 @@ enum RefRoute: Hashable {
     case chamber
     case diastolic
     case acls
+    case abg
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -35,6 +36,7 @@ enum RefRoute: Hashable {
         case .chamber: return "chamber"
         case .diastolic: return "diastolic"
         case .acls: return "acls"
+        case .abg: return "abg"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -55,6 +57,7 @@ enum RefRoute: Hashable {
         case "chamber": self = .chamber
         case "diastolic": self = .diastolic
         case "acls": self = .acls
+        case "abg": self = .abg
         case "folder" where parts.count == 2:
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
@@ -116,6 +119,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
         ]
         case .generalAnesthesia: return [
+            RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "Apfel score, how many agents, rescue"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
         ]
@@ -279,6 +283,8 @@ struct ReferenceView: View {
                     DiastolicView(onOpen: { webLink = WebLink(url: $0) })
                 case .acls:
                     AclsView(onOpen: { webLink = WebLink(url: $0) })
+                case .abg:
+                    AbgView(onOpen: { webLink = WebLink(url: $0) })
                 case .folder(let f):
                     FolderView(folder: f, path: $path)
                 }
@@ -521,6 +527,7 @@ struct ReferenceSearchResults: View {
         case .chamber: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "chamber", "quantification", "dilated", "dilation", "lvidd", "lvedd", "lvesd", "lv size", "lv mass", "hypertrophy", "wall thickness", "rwt", "ejection fraction", "lvef", "la volume", "lavi", "atrial", "rv", "right ventricle", "tapse", "fac", "basal", "tricuspid annulus", "annulus", "aorta", "aortic root", "sinus", "sinuses of valsalva", "ivc", "ra pressure", "right atrium", "rvot", "strain", "rimp", "tei", "s prime"]
         case .diastolic: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "diastolic", "diastology", "dysfunction", "filling pressure", "lap", "e/e", "e/a", "tr velocity", "la strain", "lars", "pulmonary vein", "hfpef", "relaxation", "restrictive"]
         case .acls: return ["acls", "pals", "code", "code blue", "cardiac arrest", "arrest", "cpr", "resuscitation", "defibrillation", "defibrillator", "shock", "vf", "vt", "pea", "asystole", "epinephrine", "adrenaline", "amiodarone", "lidocaine", "bradycardia", "tachycardia", "atropine", "adenosine", "cardioversion", "pacing", "rosc", "post-arrest", "cals", "resternotomy", "cardiac surgery arrest", "anaphylaxis", "allergic reaction", "timer"]
+        case .abg: return ["abg", "blood gas", "arterial blood gas", "acid", "base", "acid-base", "acidosis", "alkalosis", "acidemia", "alkalemia", "ph", "paco2", "pco2", "hco3", "bicarbonate", "compensation", "winter", "respiratory acidosis", "metabolic acidosis", "respiratory alkalosis", "metabolic alkalosis", "mixed disorder", "henderson"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -538,7 +545,7 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls:
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg:
             return wordsMatch(item.route)
         }
     }

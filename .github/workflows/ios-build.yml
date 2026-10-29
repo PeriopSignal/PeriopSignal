@@ -176,6 +176,8 @@ jobs:
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals
           shot 46-acls-tachy 12 -ps.ref acls -ps.acls.mode tachy -ps.forceAppearance light
           shot 47-acls-anaphylaxis 12 -ps.ref acls -ps.acls.mode anaphylaxis
+          shot 48-abg-metabolic 12 -ps.ref abg -ps.abg.values "ph=7.28,paco2=30,hco3=14"
+          shot 49-abg-respiratory 12 -ps.ref abg -ps.forceAppearance light -ps.abg.values "ph=7.29,paco2=60,hco3=28.5"
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -625,5 +625,59 @@ test('acls: deadlines, trees and the copied log', () => {
   eq(A.logText(l, wall), 'Code log (child, 18 kg), started 12:00:00\n12:00:00  +0:00  Code clock started\n12:01:15  +1:15  Epinephrine 0.18 mg IV/IO');
 });
 
+// ---------- ABG: acid–base and compensation ----------
+// A fixture with the textbook rules; the shipped coefficients are checked against reference.json below.
+const ABG = {
+  normal: { ph: [7.35, 7.45], paco2: [35, 45], hco3: [22, 26] }, mid: { ph: 7.4, paco2: 40, hco3: 24 },
+  check: { pk: 6.1, solubility: 0.0307, tol: 0.03 }, plausible: { ph: [6.8, 7.8], paco2: [10, 150], hco3: [3, 60] },
+  rules: {
+    metAcid: { slope: 1.5, intercept: 8, tol: 2, label: 'Winter’s formula' }, metAlk: { slope: 0.7, intercept: 23.2, tol: 2 },
+    respAcidAcute: { slope: 0.1, intercept: 20, tol: 2 }, respAcidChronic: { slope: 0.35, intercept: 10, tol: 2 },
+    respAlkAcute: { slope: 0.2, intercept: 16, tol: 2 }, respAlkChronic: { slope: 0.5, intercept: 4, tol: 2 },
+  },
+};
+const abg = (ph, paco2, hco3) => R.abg.read({ ph, paco2, hco3 }, ABG);
+test('abg: primary disorder, compensation and mixed disorders', () => {
+  let r = abg(7.28, 30, 14);
+  eq([r.headline, r.primary, r.second, r.check.ok], ['Metabolic Acidosis', 'metAcid', null, true]);
+  eq(r.visual.bands.map((b) => [R.abg.f1(b.lo), R.abg.f1(b.hi)]), [['27', '31']], 'Winter’s formula: 1.5 × 14 + 8 ± 2');
+  eq(r.explanation, 'pH 7.28: acidemia. HCO₃ 14 mEq/L (below 22) makes it metabolic. Winter’s formula expects PaCO₂ 27–31 mmHg; 30 sits in it: the respiratory compensation is appropriate.');
+  r = abg(7.19, 40, 15);
+  eq([r.headline, r.second], ['Metabolic and Respiratory Acidosis', 'respAcid'], 'PaCO₂ above Winter’s band');
+  r = abg(7.38, 30, 17.5);
+  eq([r.status, r.headline], ['normal', 'Metabolic Acidosis and Respiratory Alkalosis'], 'normal pH, mixed');
+  r = abg(7.25, 60, 26);
+  eq([r.headline, r.phase], ['Acute Respiratory Acidosis', 'acute']);
+  r = abg(7.33, 60, 31.5);
+  eq(r.headline, 'Chronic Respiratory Acidosis');
+  r = abg(7.29, 60, 28.5);
+  eq([r.headline, r.phase], ['Respiratory Acidosis, Partly Compensated', 'between']);
+  r = abg(7.39, 60, 36);
+  eq(r.headline, 'Respiratory Acidosis and Metabolic Alkalosis', 'HCO₃ above the chronic band');
+  r = abg(7.4, 60, 36);
+  eq(r.headline, 'Respiratory Acidosis and Metabolic Alkalosis', 'pH at 7.40 with both abnormal');
+  r = abg(7.49, 48, 36);
+  eq([r.headline, r.second], ['Metabolic Alkalosis', null]);
+  r = abg(7.55, 25, 21.5);
+  eq(r.headline, 'Acute Respiratory Alkalosis');
+  r = abg(7.1, 55, 17);
+  eq([r.headline, r.disorders], ['Respiratory and Metabolic Acidosis', ['respAcid', 'metAcid']]);
+  r = abg(7.4, 40, 24);
+  eq(r.headline, 'Normal Acid–Base Status');
+  // two values: the third from Henderson–Hasselbalch
+  r = abg(7.28, 30, null);
+  eq([r.derived, R.abg.f1(r.values.hco3), r.headline], ['hco3', '13.9', 'Metabolic Acidosis']);
+  eq(abg(null, 30, 14).derived, 'ph');
+  eq(R.abg.fph(abg(null, 30, 14).values.ph), '7.28');
+  eq(abg(7.28, null, 14).derived, 'paco2');
+  eq(abg(7.28, null, null).state, 'empty');
+  // values that do not agree
+  r = abg(7.4, 30, 14);
+  eq(r.check.ok, false);
+  assert.ok(r.cautions.some((c) => c.includes('do not agree')));
+  // copy text
+  assert.ok(R.abg.summary(abg(7.28, 30, 14)).startsWith('ABG: pH 7.28, PaCO₂ 30 mmHg, HCO₃ 14 mEq/L. Metabolic Acidosis.'));
+});
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

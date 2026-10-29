@@ -373,6 +373,45 @@ def main(path):
                 ids = [x.get("id") for x in l.get("items") or []]
                 need(ids and len(ids) == len(set(ids)) and all(isinstance(x.get("label"), str) and x["label"] for x in l["items"]), f"acls mode {mid}: list {l.get('id')} needs unique, labelled items")
 
+    abg = data.get("abg")
+    if abg is not None:
+        num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+        pair = lambda r: isinstance(r, list) and len(r) == 2 and all(num(x) for x in r) and r[0] < r[1]
+        for key in ("normal", "plausible"):
+            rng = abg.get(key)
+            if key == "plausible" and rng is None:
+                continue
+            for k in ("ph", "paco2", "hco3"):
+                need(isinstance(rng, dict) and pair(rng.get(k)), f"abg.{key}.{k} must be [low, high]")
+        mid = abg.get("mid") or {}
+        for k in ("ph", "paco2", "hco3"):
+            need(num(mid.get(k)) and pair((abg.get("normal") or {}).get(k)) and abg["normal"][k][0] < mid[k] < abg["normal"][k][1], f"abg.mid.{k} must sit inside the normal range")
+        chk = abg.get("check") or {}
+        need(num(chk.get("pk")) and 5.5 < chk["pk"] < 6.5 and num(chk.get("solubility")) and 0 < chk["solubility"] < 0.1 and num(chk.get("tol")) and 0 < chk["tol"] < 0.2,
+             "abg.check needs pk (about 6.1), solubility (about 0.03) and a small pH tolerance")
+        rules = abg.get("rules") or {}
+        src_ids = {s_.get("id") for s_ in abg.get("sources") or []}
+        for s_ in abg.get("sources") or []:
+            need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"abg source {s_.get('id')}: citation required")
+            need(s_.get("url") is None or str(s_["url"]).startswith("https://"), f"abg source {s_.get('id')}: url must be https")
+        for rid in ("metAcid", "metAlk", "respAcidAcute", "respAcidChronic", "respAlkAcute", "respAlkChronic"):
+            r_ = rules.get(rid)
+            need(isinstance(r_, dict) and num(r_.get("slope")) and r_["slope"] > 0 and num(r_.get("intercept")) and (r_.get("tol") is None or (num(r_["tol"]) and r_["tol"] >= 0)),
+                 f"abg.rules.{rid} needs a positive slope, an intercept and an optional tolerance")
+            if isinstance(r_, dict):
+                need(isinstance(r_.get("formula"), str) and r_["formula"].strip(), f"abg.rules.{rid}: formula text required")
+                need(r_.get("source") in src_ids, f"abg.rules.{rid}: source must name an abg source")
+        # every rule must pass through normal at the midpoint (24 mEq/L and 40 mmHg), within its tolerance
+        if all(isinstance(rules.get(k), dict) and num(rules[k].get("slope")) and num(rules[k].get("intercept")) for k in rules) and mid:
+            for rid in ("metAcid", "metAlk"):
+                if rid in rules:
+                    v = rules[rid]["slope"] * mid.get("hco3", 24) + rules[rid]["intercept"]
+                    need(abs(v - mid.get("paco2", 40)) <= (rules[rid].get("tol") or 0) + 2.5, f"abg.rules.{rid}: expected PaCO2 at HCO3 {mid.get('hco3')} is {v:.1f}, far from {mid.get('paco2')}")
+            for rid in ("respAcidAcute", "respAcidChronic", "respAlkAcute", "respAlkChronic"):
+                if rid in rules:
+                    v = rules[rid]["slope"] * mid.get("paco2", 40) + rules[rid]["intercept"]
+                    need(abs(v - mid.get("hco3", 24)) <= 0.01, f"abg.rules.{rid}: expected HCO3 at PaCO2 {mid.get('paco2')} is {v:.2f}, not {mid.get('hco3')}")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")

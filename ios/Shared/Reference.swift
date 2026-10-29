@@ -28,6 +28,7 @@ struct ReferenceBundle: Codable {
     var echo: EchoData?
     var diastolic: DiastolicData?
     var acls: AclsData?
+    var abg: AbgData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -40,9 +41,62 @@ struct ReferenceBundle: Codable {
         if b.echo == nil { b.echo = other.echo }
         if b.diastolic == nil { b.diastolic = other.diastolic }
         if b.acls == nil { b.acls = other.acls }
+        if b.abg == nil { b.abg = other.abg }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }
+}
+
+// MARK: ABG: normal ranges, the Henderson–Hasselbalch constants and the compensation rules. AbgCalc reads them;
+// the website reads the same JSON (src/reference-logic.js, R.abg).
+
+struct AbgData: Codable {
+    var reviewed: String?
+    /// Normal ranges, [low, high]: pH, PaCO2 (mmHg), HCO3 (mEq/L).
+    var normal: AbgRanges
+    /// The midpoints a change is read from (7.40, 40, 24).
+    var mid: AbgPoint
+    var check: AbgCheck
+    /// Values outside these draw a "check the entry" caution.
+    var plausible: AbgRanges?
+    /// metAcid and metAlk predict PaCO2 from HCO3; respAcidAcute, respAcidChronic, respAlkAcute and
+    /// respAlkChronic predict HCO3 from PaCO2.
+    var rules: [String: AbgRule]
+    var notes: [String]?
+    var sources: [EchoSource]
+}
+
+struct AbgRanges: Codable, Hashable {
+    var ph: [Double]
+    var paco2: [Double]
+    var hco3: [Double]
+}
+
+struct AbgPoint: Codable, Hashable {
+    var ph: Double
+    var paco2: Double
+    var hco3: Double
+}
+
+/// Henderson–Hasselbalch: pH = pk + log10(HCO3 / (solubility × PaCO2)); `tol` is how far, in pH units, the entered
+/// pH may sit from that before the values are flagged as not agreeing.
+struct AbgCheck: Codable, Hashable {
+    var pk: Double
+    var solubility: Double
+    var tol: Double
+}
+
+/// expected = slope × x + intercept ± tol.
+struct AbgRule: Codable, Hashable {
+    var name: String?
+    var slope: Double
+    var intercept: Double
+    var tol: Double?
+    /// Shown before "expects" in the reading ("Winter's formula").
+    var label: String?
+    /// The rule as printed ("PaCO₂ = 1.5 × HCO₃ + 8 ± 2").
+    var formula: String?
+    var source: String?
 }
 
 // MARK: ACLS code tool: actions (drugs, shocks, rhythm checks, events), modes and their prompts, trees, lists.

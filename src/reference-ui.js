@@ -51,6 +51,7 @@
     heartCircle: svg('<circle cx="12" cy="12" r="9"/><path d="M12 16.6s-4.2-2.5-4.2-5.6A2.3 2.3 0 0 1 12 9.7a2.3 2.3 0 0 1 4.2 1.3c0 3.1-4.2 5.6-4.2 5.6z"/>'),
     ruler: svg('<path d="M3.5 16.5L16.5 3.5l4 4-13 13z"/><path d="M7.5 12.5l1.8 1.8M10 10l1.8 1.8M12.5 7.5l1.8 1.8"/>'),
     inflow: svg('<path d="M3 18.5h3l2.2-11 3 11h2l2-6.5 2 6.5H21"/>'),
+    flask: svg('<path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A2 2 0 0 0 6.3 21.5h11.4a2 2 0 0 0 1.7-3.1L14 9.5V3"/><path d="M7.2 15h9.6"/>', 2),
   };
 
   // ---------- reference.json ----------
@@ -71,7 +72,7 @@
     { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['tool-acls', 'card-asra-last', 'card-mhaus-mh', 'tool-airway'],
       note: 'ACLS starts its code clock when it opens. The checklists take the patient’s weight at the top and work out the doses; the weight clears when you leave.' },
     { id: 'preoperative', title: 'Preoperative', icon: 'clipboard', tint: 'var(--accent-2)', items: ['tool-rcri', 'tool-ariscat', 'tool-stopbang', 'tool-fasting'] },
-    { id: 'general-anesthesia', title: 'General Anesthesia', icon: 'lungs', tint: 'var(--t-thoracic-fg)', items: ['tool-ponv', 'tool-aldrete'] },
+    { id: 'general-anesthesia', title: 'General Anesthesia', icon: 'lungs', tint: 'var(--t-thoracic-fg)', items: ['tool-abg', 'tool-ponv', 'tool-aldrete'] },
     { id: 'regional', title: 'Regional', icon: 'syringe', tint: 'var(--t-regional-fg)', items: ['tool-neuraxial', 'tool-local'] },
     { id: 'cardiothoracic', title: 'Cardiothoracic', icon: 'heart', tint: 'var(--t-cardiacSurgery-fg)', items: ['tool-valves', 'tool-intervention', 'tool-chamber', 'tool-diastolic'] },
     { id: 'medications', title: 'Medications & Hematology', icon: 'ivbag', tint: 'var(--new)', items: ['tool-infusions'] },
@@ -87,6 +88,7 @@
     'tool-ariscat': T('ARISCAT', 'Postoperative pulmonary complications', 'lungs', [], (h) => mountScore(h, 'ariscat'), { score: 'ariscat' }),
     'tool-stopbang': T('STOP-Bang', 'Sleep apnea screening', 'zzz', [], (h) => mountScore(h, 'stopbang'), { score: 'stopbang' }),
     'tool-fasting': T('Fasting', 'Last intake in, earliest start out', 'cup', ['npo', 'fasting', 'fast', 'clear liquid', 'breast milk', 'formula', 'meal', 'gum', 'aspiration'], mountFasting),
+    'tool-abg': T('ABG Interpretation', 'Primary disorder, compensation, mixed disorders', 'flask', ['abg', 'blood gas', 'arterial blood gas', 'acid', 'base', 'acid-base', 'acidosis', 'alkalosis', 'acidemia', 'alkalemia', 'ph', 'paco2', 'pco2', 'hco3', 'bicarbonate', 'compensation', 'winter', 'respiratory acidosis', 'metabolic acidosis', 'respiratory alkalosis', 'metabolic alkalosis', 'mixed disorder', 'henderson'], (h) => window.PSAbg ? window.PSAbg.mount(h, ctxFor('tool-abg')) : notReady(h)),
     'tool-ponv': T('PONV', 'Apfel score, how many agents, rescue', 'pills', ['ponv', 'nausea', 'vomiting', 'antiemetic', 'apfel', 'ondansetron', 'dexamethasone', 'droperidol', 'amisulpride', 'aprepitant', 'scopolamine', 'palonosetron', 'granisetron', 'promethazine', 'rescue', 'prophylaxis'], mountPONV),
     'tool-aldrete': T('Modified Aldrete', 'Ready to leave recovery?', 'bed', [], (h) => mountScore(h, 'aldrete'), { score: 'aldrete' }),
     'tool-neuraxial': T('Blocks on Anticoagulants', 'Drug and last dose in, earliest block out', 'drop', ['anticoag', 'neuraxial', 'epidural', 'spinal', 'block', 'heparin', 'enoxaparin', 'lmwh', 'warfarin', 'apixaban', 'rivaroxaban', 'edoxaban', 'dabigatran', 'doac', 'fondaparinux', 'clopidogrel', 'prasugrel', 'ticagrelor', 'aspirin', 'thrombolytic', 'asra'], mountNeuraxial),

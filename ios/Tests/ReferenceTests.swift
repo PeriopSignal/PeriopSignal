@@ -940,4 +940,51 @@ final class ReferenceTests: XCTestCase {
         }
         for (id, act) in a.actions { if let g = act.goto { XCTAssertTrue(ids.contains(g), "\(id) goes to \(g)") } }
     }
+    // MARK: ABG (mirrors tools/test_reference_logic.js)
+
+    private static let abgFixture = """
+    {"normal":{"ph":[7.35,7.45],"paco2":[35,45],"hco3":[22,26]},"mid":{"ph":7.4,"paco2":40,"hco3":24},
+     "check":{"pk":6.1,"solubility":0.0307,"tol":0.03},"plausible":{"ph":[6.8,7.8],"paco2":[10,150],"hco3":[3,60]},
+     "rules":{"metAcid":{"slope":1.5,"intercept":8,"tol":2,"label":"Winter’s formula"},"metAlk":{"slope":0.7,"intercept":23.2,"tol":2},
+      "respAcidAcute":{"slope":0.1,"intercept":20,"tol":2},"respAcidChronic":{"slope":0.35,"intercept":10,"tol":2},
+      "respAlkAcute":{"slope":0.2,"intercept":16,"tol":2},"respAlkChronic":{"slope":0.5,"intercept":4,"tol":2}},
+     "sources":[]}
+    """
+
+    func testAbgReadings() throws {
+        let d = try JSONDecoder().decode(AbgData.self, from: Data(Self.abgFixture.utf8))
+        func abg(_ ph: Double?, _ pc: Double?, _ hc: Double?) -> AbgCalc.Reading { AbgCalc.read(ph: ph, paco2: pc, hco3: hc, data: d) }
+        var r = abg(7.28, 30, 14)
+        XCTAssertEqual(r.headline, "Metabolic Acidosis"); XCTAssertEqual(r.primary, .metAcid); XCTAssertNil(r.second); XCTAssertEqual(r.check?.ok, true)
+        XCTAssertEqual(r.visual?.bands.map { [AbgCalc.f1($0.lo), AbgCalc.f1($0.hi)] }, [["27", "31"]], "Winter’s formula: 1.5 × 14 + 8 ± 2")
+        XCTAssertEqual(r.explanation, "pH 7.28: acidemia. HCO₃ 14 mEq/L (below 22) makes it metabolic. Winter’s formula expects PaCO₂ 27–31 mmHg; 30 sits in it: the respiratory compensation is appropriate.")
+        r = abg(7.19, 40, 15)
+        XCTAssertEqual(r.headline, "Metabolic and Respiratory Acidosis"); XCTAssertEqual(r.second, .respAcid)
+        r = abg(7.38, 30, 17.5)
+        XCTAssertEqual(r.status, "normal"); XCTAssertEqual(r.headline, "Metabolic Acidosis and Respiratory Alkalosis")
+        r = abg(7.25, 60, 26)
+        XCTAssertEqual(r.headline, "Acute Respiratory Acidosis"); XCTAssertEqual(r.phase, .acute)
+        XCTAssertEqual(abg(7.33, 60, 31.5).headline, "Chronic Respiratory Acidosis")
+        r = abg(7.29, 60, 28.5)
+        XCTAssertEqual(r.headline, "Respiratory Acidosis, Partly Compensated"); XCTAssertEqual(r.phase, .between)
+        XCTAssertEqual(abg(7.39, 60, 36).headline, "Respiratory Acidosis and Metabolic Alkalosis", "HCO₃ above the chronic band")
+        XCTAssertEqual(abg(7.4, 60, 36).headline, "Respiratory Acidosis and Metabolic Alkalosis", "pH at 7.40 with both abnormal")
+        r = abg(7.49, 48, 36)
+        XCTAssertEqual(r.headline, "Metabolic Alkalosis"); XCTAssertNil(r.second)
+        XCTAssertEqual(abg(7.55, 25, 21.5).headline, "Acute Respiratory Alkalosis")
+        r = abg(7.1, 55, 17)
+        XCTAssertEqual(r.headline, "Respiratory and Metabolic Acidosis"); XCTAssertEqual(r.disorders, [.respAcid, .metAcid])
+        XCTAssertEqual(abg(7.4, 40, 24).headline, "Normal Acid–Base Status")
+        // two values: the third from Henderson–Hasselbalch
+        r = abg(7.28, 30, nil)
+        XCTAssertEqual(r.derived, .hco3); XCTAssertEqual(AbgCalc.f1(r.values.hco3 ?? 0), "13.9"); XCTAssertEqual(r.headline, "Metabolic Acidosis")
+        r = abg(nil, 30, 14)
+        XCTAssertEqual(r.derived, .ph); XCTAssertEqual(AbgCalc.fph(r.values.ph ?? 0), "7.28")
+        XCTAssertEqual(abg(7.28, nil, 14).derived, .paco2)
+        XCTAssertTrue(abg(7.28, nil, nil).empty)
+        // values that do not agree
+        r = abg(7.4, 30, 14)
+        XCTAssertEqual(r.check?.ok, false); XCTAssertTrue(r.cautions.contains { $0.contains("do not agree") })
+        XCTAssertTrue(AbgCalc.summary(abg(7.28, 30, 14)).hasPrefix("ABG: pH 7.28, PaCO₂ 30 mmHg, HCO₃ 14 mEq/L. Metabolic Acidosis."))
+    }
 }
