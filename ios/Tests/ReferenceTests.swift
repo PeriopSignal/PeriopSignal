@@ -1202,7 +1202,7 @@ final class ReferenceTests: XCTestCase {
         for b in d.blocks {
             XCTAssertTrue(groups.contains(b.group), "\(b.id) is in a listed group")
             XCTAssertFalse((b.volume?.items ?? []).isEmpty, "\(b.id) has a volume")
-            XCTAssertTrue((b.url ?? "").hasPrefix("https://www.nysora.com/"), "\(b.id) links to NYSORA")
+            XCTAssertTrue(["https://www.nysora.com/", "https://nysora.com/"].contains { (b.url ?? "").hasPrefix($0) }, "\(b.id) links to NYSORA")
             if let pr = b.art?.probe { XCTAssertTrue(["front", "back"].contains(pr.view), "\(b.id) probe view") }
         }
         for (rid, m) in d.map ?? [:] {
@@ -1217,5 +1217,29 @@ final class ReferenceTests: XCTestCase {
             XCTAssertFalse(n.procedures.isEmpty)
             for p in n.procedures { XCTAssertGreaterThanOrEqual(RegionalCalc.rank(p.level), 0, "\(p.id) has a sensory level") }
         }
+    }
+
+    // MARK: OB emergencies
+
+    func testObEmergencyShippedContent() throws {
+        guard let d = try bundled().obEmergency else { return }
+        let src = Set((d.sources ?? []).map(\.id))
+        XCTAssertEqual(d.events.first?.id, "arrest", "the arrest opens first")
+        XCTAssertEqual(d.events.first?.timer?.marks.map(\.sec), [240, 300], "hysterotomy by 4, delivery by 5 minutes")
+        for e in d.events {
+            XCTAssertTrue(e.sections.contains { $0.kind == .steps && !($0.items ?? []).isEmpty }, "\(e.id) has a checklist")
+            for id in e.sources ?? [] { XCTAssertTrue(src.contains(id), "\(e.id) → \(id)") }
+            if e.id != "newborn" { XCTAssertNil(e.weightFor, "\(e.id) uses the mother's weight") }
+        }
+        let nb = try XCTUnwrap(d.events.first { $0.id == "newborn" })
+        XCTAssertEqual(nb.weightFor?.key, "newborn", "the newborn has its own weight")
+        XCTAssertLessThanOrEqual(nb.weightFor?.maxKg ?? 99, 10, "an adult weight is refused")
+        let epi = try XCTUnwrap(nb.weightDoses?.first { $0.label.hasPrefix("Epinephrine IV") })
+        XCTAssertEqual(PedsCalc.doseText(low: epi.perKg, high: epi.perKgHigh, unit: epi.unit, weightKg: 3, max: epi.max).text, "0.03–0.09 mg")
+        let last = try XCTUnwrap(d.events.first { $0.id == "last" })
+        let bolus = try XCTUnwrap(last.weightDoses?.first { $0.label.hasPrefix("Lipid 20% bolus") })
+        XCTAssertEqual(bolus.aboveKg, 70)
+        XCTAssertEqual(bolus.aboveText, "100 mL (over 70 kg)")
+        XCTAssertNotNil(d.manual?.url, "the Stanford manual is linked")
     }
 }

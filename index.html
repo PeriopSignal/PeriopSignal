@@ -1025,6 +1025,23 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
 .rg-st.dim { font-weight: 500; fill: #9aa3ad; font-size: 5.5px; }
 .rg-nxfig { display: flex; justify-content: center; }
 .rg-nxfig .rg-fig { max-width: 190px; }
+
+/* ---------- OB Emergencies ---------- */
+.ob-title { margin: 0; font-family: var(--font-serif); font-size: 26px; line-height: 1.15; font-weight: 600; text-wrap: balance; }
+.ob-clock { display: grid; gap: 10px; }
+.ob-clock.on { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.ob-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ob-row > div { display: grid; gap: 4px; }
+.ob-big { font-family: var(--font-mono); font-size: 40px; font-weight: 600; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ob-marks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ob-mark { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 12px; background: var(--surface-2); color: var(--fg-2); font-size: 14px; line-height: 1.45; }
+.ob-mark .ob-at { font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--fg-3); }
+.ob-mark.near { background: color-mix(in srgb, var(--amber) 16%, var(--surface-2)); color: var(--fg); }
+.ob-mark.past { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); color: var(--fg); }
+.ob-mark.past .ob-at, .ob-mark.near .ob-at { color: var(--accent); }
+.ob-manual { display: grid; gap: 6px; margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.rg-li { display: block; }
+.rg-li + .rg-li { margin-top: 7px; }
 </style>
 
 <section class="intro">
@@ -4279,8 +4296,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
             if (b.art.sono) h += `<div class="rg-artsono">${sono(b.art.sono, 'Ultrasound schematic for the ' + b.name)}${b.art.caption ? `<p class="r-small">${esc(b.art.caption)}</p>` : ''}</div>`;
             h += `</div>`;
           }
-          h += `<div class="r-facts">${fields.filter(([k]) => b[k] && text(b[k]).length).map(([k, label]) => `<div class="fr"><span class="fl">${esc(label)}</span><span class="fv">${text(b[k]).map(esc).join('<br>')}</span></div>`).join('')}</div>`;
-          if (b.url) h += `<div class="r-btns">${c.ghostLink(b.url, I.ext, 'NYSORA: ' + b.name, true)}</div>`;
+          h += `<div class="r-facts">${fields.filter(([k]) => b[k] && text(b[k]).length).map(([k, label]) => `<div class="fr"><span class="fl">${esc(label)}</span><span class="fv">${text(b[k]).map((t) => `<span class="rg-li">${esc(t)}</span>`).join('')}</span></div>`).join('')}</div>`;
+          if (b.url) h += `<div class="r-btns">${c.ghostLink(b.url, I.ext, 'NYSORA technique page', true)}</div>`;
           h += `</div>`;
         }
         h += `</div>`;
@@ -4314,7 +4331,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         let inner = `${eyebrow('Target sensory level', 'var(--accent-2)')}<p class="r-headline big">${esc(p.level || '—')}</p>${p.levelText ? `<p class="r-detail">${esc(p.levelText)}</p>` : ''}`;
         inner += `<div class="rg-nxfig">${figure(d.figure, 'front', { id: 'nxf', shadeFrom: saddle ? null : y, saddle, levels: marks, sides: false, label: 'Block height ' + (p.level || '') })}</div>`;
         const rows = [['Technique', p.technique], ['Insertion', p.insertion], ['Spinal', p.spinal], ['Epidural', p.epidural], ['Adjuvants', p.adjuvants], ['Notes', p.notes]].filter(([, v]) => v && (Array.isArray(v) ? v.length : true));
-        inner += `<div class="r-facts">${rows.map(([k, v]) => `<div class="fr"><span class="fl">${esc(k)}</span><span class="fv">${(Array.isArray(v) ? v : [v]).map(esc).join('<br>')}</span></div>`).join('')}</div>`;
+        inner += `<div class="r-facts">${rows.map(([k, v]) => `<div class="fr"><span class="fl">${esc(k)}</span><span class="fv">${(Array.isArray(v) ? v : [v]).map((t) => `<span class="rg-li">${esc(t)}</span>`).join('')}</span></div>`).join('')}</div>`;
         h += c.resultCard('var(--accent-2)', inner);
       }
       for (const t of N.tables || []) h += `<section class="r-sec">${eyebrow(t.title)}${c.refTable(t.columns, t.rows)}${(t.notes || []).map((x) => footnote(x)).join('')}</section>`;
@@ -4327,6 +4344,113 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   }
 
   window.PSRegional = { mountFinder, mountBlocks, mountNeuraxial, figure, sono };
+})();
+</script>
+<script>
+/* Periop Signal OB Emergencies for the website's Reference tab: one checklist per obstetric crisis (maternal
+   cardiac arrest, hemorrhage, and the rest), with the doses for the patient's weight and, for the arrest, a clock
+   for the 4- to 5-minute delivery decision. Built from the primary sources (AHA, SOAP, ACOG, SMFM, ASRA and others);
+   the Stanford Obstetric Anesthesia Emergency Manual is linked, not reproduced. Content: reference.json
+   "obEmergency"; the app has the same tool (ObEmergencyView.swift). Nothing is stored: the weight, the ticks and
+   the clock live in this page's memory and clear when the page closes. */
+(function () {
+  'use strict';
+  const mem = { ev: null, weights: {}, done: {}, clock: {} };   // kept while the page is open; weights by whose: '' the mother's, 'newborn'
+  const cur = (d) => d.events.find((e) => e.id === mem.ev) || d.events[0];
+
+  function mount(host, c) {
+    const { R, I, esc, eyebrow, takeList, factTable, refTable, checkRow, weightField, caution, footnote, sourceLine, ghostLink, progress } = c;
+    const tint = 'var(--accent)';
+    const data = () => (c.bundle() && c.bundle().obEmergency) || null;
+    const clock = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+    function doses(ev) {
+      const wf = ev.weightFor || {}, key = wf.key || '';
+      const entered = R.num(mem.weights[key] || ''), tooHigh = entered !== null && wf.maxKg && entered > wf.maxKg;
+      const w = tooHigh ? null : entered;
+      let h = `<section class="r-card" style="border-color:color-mix(in srgb, ${tint} 40%, var(--line))">${eyebrow(wf.eyebrow || 'Doses for this patient', tint)}${weightField('ob-weight' + (key ? '-' + key : ''), mem.weights[key] || '', wf.prompt || 'Enter the weight: the doses below are per kilogram until you do.', wf.title)}`;
+      if (tooHigh) h += caution(wf.maxText || 'Check the weight.');
+      h += `<div class="r-doses">`;
+      for (const d of ev.weightDoses) {
+        let text;
+        if (w === null) text = R.fmt(d.perKg) + (d.perKgHigh ? '–' + R.fmt(d.perKgHigh) : '') + ' ' + d.unit + '/kg';
+        else if (d.aboveKg && w > d.aboveKg && d.aboveText) text = d.aboveText;
+        else text = R.peds.doseText(d.perKg, d.perKgHigh ?? null, d.unit, w, null, d.max ?? null).text;
+        h += `<div class="dr"><div class="dl"><span>${esc(d.label)}</span>${d.note ? `<small>${esc(d.note)}</small>` : ''}</div><div class="dv"><span class="${w === null ? 'muted' : ''}">${esc(text)}</span></div></div>`;
+      }
+      return h + `</div></section>`;
+    }
+
+    function timer(ev) {
+      const t0 = mem.clock[ev.id], tm = ev.timer;
+      const el = t0 ? Date.now() - t0 : 0;
+      let h = `<section class="r-card ob-clock${t0 ? ' on' : ''}"><div class="ob-row"><div>${eyebrow(tm.label || 'Clock', tint)}<span class="ob-big">${clock(el)}</span></div>`;
+      h += t0 ? `<button type="button" class="r-ghost sm" data-a="clockReset">${I.reset}Reset</button>` : `<button type="button" class="r-cta" data-a="clockStart">${esc(tm.start || 'Start the clock')}</button>`;
+      h += `</div><ol class="ob-marks">`;
+      for (const m of tm.marks || []) {
+        const st = !t0 ? '' : el >= m.sec * 1000 ? ' past' : el >= (m.sec - 60) * 1000 ? ' near' : '';
+        h += `<li class="ob-mark${st}"><span class="ob-at">${clock(m.sec * 1000)}</span><span>${esc(m.text)}</span></li>`;
+      }
+      return h + `</ol>${tm.note ? `<p class="r-small">${esc(tm.note)}</p>` : ''}</section>`;
+    }
+
+    const update = c.view(host, () => {
+      const d = data();
+      if (!d) return `<p class="r-muted">${c.bundle() ? 'The OB emergency content is not in this copy of the reference file yet; reload in a minute.' : 'Loading the checklists…'}</p>`;
+      const ev = d.events.find((e) => e.id === mem.ev) || d.events[0];
+      const done = mem.done[ev.id] || (mem.done[ev.id] = {});
+      const steps = (ev.sections || []).map((s, i) => (s.kind === 'steps' ? i : -1)).filter((i) => i >= 0);
+      const total = steps.reduce((t, i) => t + (ev.sections[i].items || []).length, 0);
+      const doneN = Object.values(done).reduce((t, s) => t + s.size, 0);
+      let h = `<div class="r-stack ob">`;
+      h += `<div class="r-tabs ob-tabs" role="tablist" aria-label="Emergency">${d.events.map((e) => `<button type="button" role="tab" data-a="ev" data-v="${esc(e.id)}" aria-selected="${e.id === ev.id}">${esc(e.short || e.title)}</button>`).join('')}</div>`;
+      h += `<header class="r-qhead"><div class="r-eyes">${eyebrow('Emergency checklist', tint)}</div><h2 class="ob-title">${esc(R.titleCase(ev.title))}</h2><p class="r-lede">${esc(ev.summary || '')}</p></header>`;
+      if (ev.timer) h += timer(ev);
+      if (ev.weightDoses && ev.weightDoses.length) h += doses(ev);
+      if (total > 0) h += `<section class="r-card" style="border-color:color-mix(in srgb, ${tint} 40%, var(--line))">${progress(doneN, total, tint, 'Emergency Checklist', 'done', 'resetChecks')}</section>`;
+      (ev.sections || []).forEach((s, i) => {
+        const isCheck = steps.includes(i), dn = done[i] || new Set();
+        h += `<section class="r-sec">`;
+        if (s.heading) h += `<div class="r-sechead"><h3>${esc(R.titleCase(s.heading))}</h3>${isCheck ? `<span class="${dn.size === (s.items || []).length ? 'ok' : ''}">${dn.size}/${(s.items || []).length}</span>` : ''}</div>`;
+        if (s.kind === 'text') h += `<p class="r-text">${esc(s.text || '')}</p>`;
+        else if (s.kind === 'list') h += takeList(s.items || []);
+        else if (s.kind === 'steps') h += `<div class="r-card flush r-checks" style="border-color:color-mix(in srgb, ${tint} 30%, var(--line))">${(s.items || []).map((t, j) => checkRow('step', i + ':' + j, j + 1, t, dn.has(j), tint)).join('')}</div>`;
+        else if (s.kind === 'facts') h += factTable(s.rows || []);
+        else if (s.kind === 'table') h += refTable(s.columns || [], s.rows || []);
+        if (s.note) h += `<p class="r-note">${esc(s.note)}</p>`;
+        h += `</section>`;
+      });
+      const srcs = (ev.sources || []).map((id) => (d.sources || []).find((s) => s.id === id)).filter(Boolean);
+      h += `<footer class="r-footer">${eyebrow(srcs.length > 1 ? 'Sources' : 'Source')}${srcs.map(sourceLine).join('')}`;
+      if (d.manual) h += `<div class="ob-manual">${eyebrow('Stanford OB Emergency Manual')}<p class="r-small">${esc(d.manual.note || '')}</p>${d.manual.url ? `<div class="r-btns">${ghostLink(d.manual.url, I.ext, 'Open the manual', true)}</div>` : ''}</div>`;
+      for (const n of d.notes || []) h += footnote(n);
+      h += footnote('Condensed by Periop Signal' + (d.reviewed ? ', reviewed ' + d.reviewed : '') + '. A checklist to prompt, not a protocol: follow your institution’s obstetric emergency plan and confirm doses against the sources.');
+      return h + `</footer></div>`;
+    }, {
+      ev(el) { mem.ev = el.dataset.v; window.scrollTo({ top: Math.max(0, host.getBoundingClientRect().top + window.scrollY - 90), behavior: 'smooth' }); },
+      weight(el) { const d = data(); if (!d) return false; const k = (cur(d).weightFor || {}).key || ''; mem.weights[k] = el.value; },
+      step(el) {
+        const d = data(); if (!d) return false;
+        const ev = d.events.find((e) => e.id === mem.ev) || d.events[0];
+        const done = mem.done[ev.id] || (mem.done[ev.id] = {});
+        const [i, j] = el.dataset.k.split(':').map(Number);
+        const s = done[i] || (done[i] = new Set());
+        if (s.has(j)) s.delete(j); else s.add(j);
+      },
+      resetChecks() { const d = data(); const ev = d && (d.events.find((e) => e.id === mem.ev) || d.events[0]); if (ev) mem.done[ev.id] = {}; },
+      clockStart() { const d = data(); const ev = d && (d.events.find((e) => e.id === mem.ev) || d.events[0]); if (ev) mem.clock[ev.id] = Date.now(); },
+      clockReset() { const d = data(); const ev = d && (d.events.find((e) => e.id === mem.ev) || d.events[0]); if (ev) delete mem.clock[ev.id]; },
+    });
+    const tick = setInterval(() => {
+      if (!host.isConnected) return;
+      const d = data(), ev = d && (d.events.find((e) => e.id === mem.ev) || d.events[0]);
+      if (ev && ev.timer && mem.clock[ev.id]) update();
+    }, 1000);
+    if (!data()) c.loadBundle().then(update);
+    return () => clearInterval(tick);
+  }
+
+  window.PSOb = { mount };
 })();
 </script>
 <script>
@@ -4386,6 +4510,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     person: svg('<circle cx="12" cy="4.5" r="2.2"/><path d="M8 21l1.2-8.5L7 11.5 8.2 7.5h7.6L17 11.5l-2.2 1L16 21"/><path d="M12 12.5V21"/>', 1.9),
     probe: svg('<path d="M9 3h6l1 9H8z"/><path d="M8 12h8l-1.2 3.2a1.6 1.6 0 0 1-1.5 1H10.7a1.6 1.6 0 0 1-1.5-1z"/><path d="M12 16v5"/>', 1.9),
     spine: svg('<rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><rect x="9" y="8" width="6" height="3.6" rx="1.2"/><rect x="9" y="13.5" width="6" height="3.6" rx="1.2"/><path d="M12 19v3M7 4.3h2M15 4.3h2M7 9.8h2M15 9.8h2M7 15.3h2M15 15.3h2"/>', 1.8),
+    ob: svg('<circle cx="11" cy="4.3" r="2.1"/><path d="M9.6 8.2h2.6c2.9 0 4.8 2.6 4 5.4l-.4 1.4a3.2 3.2 0 0 1-3.1 2.3H12V21.5"/><path d="M9.6 8.2 8.7 13.5l1.4 3.4v4.6"/>', 1.9),
     flask: svg('<path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A2 2 0 0 0 6.3 21.5h11.4a2 2 0 0 0 1.7-3.1L14 9.5V3"/><path d="M7.2 15h9.6"/>', 2),
   };
 
@@ -4404,7 +4529,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
 
   // ---------- catalog: folders and tools ----------
   const FOLDERS = [
-    { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['tool-acls', 'card-asra-last', 'card-mhaus-mh', 'tool-airway'],
+    { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['tool-acls', 'tool-ob', 'card-asra-last', 'card-mhaus-mh', 'tool-airway'],
       note: 'ACLS starts its code clock when it opens. The checklists take the patient’s weight at the top and work out the doses; the weight clears when you leave.' },
     { id: 'preoperative', title: 'Preoperative', icon: 'clipboard', tint: 'var(--accent-2)', items: ['tool-rcri', 'tool-ariscat', 'tool-stopbang', 'tool-fasting'] },
     { id: 'general-anesthesia', title: 'General Anesthesia', icon: 'lungs', tint: 'var(--t-thoracic-fg)', items: ['tool-abg', 'tool-ponv', 'tool-aldrete'] },
@@ -4416,6 +4541,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   const T = (title, blurb, icon, keywords, mount, extra) => Object.assign({ title, blurb, icon, keywords: keywords || [], mount }, extra || {});
   const TOOLS = {
     'tool-acls': T('ACLS', 'Code clock, checklists and doses as it runs', 'heartPulse', ['acls', 'pals', 'code', 'code blue', 'cardiac arrest', 'arrest', 'cpr', 'resuscitation', 'defibrillation', 'defibrillator', 'shock', 'vf', 'vt', 'pea', 'asystole', 'epinephrine', 'adrenaline', 'amiodarone', 'lidocaine', 'bradycardia', 'tachycardia', 'atropine', 'adenosine', 'cardioversion', 'pacing', 'rosc', 'post-arrest', 'cals', 'resternotomy', 'cardiac surgery arrest', 'anaphylaxis', 'allergic reaction', 'timer'], (h) => window.PSAcls ? window.PSAcls.mount(h, ctxFor('tool-acls')) : notReady(h)),
+    'tool-ob': T('OB Emergencies', 'Arrest, hemorrhage and other obstetric crises', 'ob', ['ob', 'obstetric', 'obstetrics', 'pregnancy', 'pregnant', 'maternal', 'labor', 'labour', 'cesarean', 'caesarean', 'c-section', 'postpartum', 'hemorrhage', 'haemorrhage', 'pph', 'atony', 'oxytocin', 'carboprost', 'methylergonovine', 'misoprostol', 'tranexamic', 'amniotic fluid embolism', 'afe', 'eclampsia', 'preeclampsia', 'magnesium', 'perimortem', 'resuscitative hysterotomy', 'uterine displacement', 'high spinal', 'total spinal', 'stanford'], (h) => window.PSOb ? window.PSOb.mount(h, ctxFor('tool-ob')) : notReady(h)),
     'card-asra-last': T('Local Anesthetic Toxicity', 'Checklist with lipid doses for the weight', 'vial', ['last', 'lipid', 'toxicity', 'local anesthetic'], (h) => mountQuickref(h, 'asra-last'), { quickref: 'asra-last' }),
     'card-mhaus-mh': T('Malignant Hyperthermia', 'Checklist with dantrolene for the weight', 'thermo', ['mh', 'dantrolene', 'hyperthermia', 'ryanodex'], (h) => mountQuickref(h, 'mhaus-mh'), { quickref: 'mhaus-mh' }),
     'tool-airway': T('Difficult Airway', 'Assessment in, plan and checklists out', 'wind', ['airway', 'intubat', 'laryngoscop', 'cricothyr', 'cannot ventilate', 'cicv', 'awake', 'videolaryngoscope', 'supraglottic', 'lma'], mountAirway),
@@ -4543,11 +4669,11 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   const TONE = { low: 'var(--new)', moderate: 'var(--accent-2)', high: 'var(--accent)' };
   const GRADE_COLOR = { 1: 'var(--new)', 2: 'var(--accent-2)', 3: 'var(--accent)' };
   const numIn = (id, value, a, opts) => `<input class="r-in${opts && opts.wide ? ' wide' : ''}" id="${id}" data-a="${a}"${opts && opts.k ? ` data-k="${esc(opts.k)}"` : ''} type="text" inputmode="${opts && opts.signed ? 'text' : 'decimal'}" autocomplete="off" placeholder="${(opts && opts.ph) || '—'}" value="${esc(value || '')}" aria-label="${esc((opts && opts.label) || 'Value')}">`;
-  function weightField(id, text, prompt) {
+  function weightField(id, text, prompt, title) {
     const empty = R.num(text) === null;
     return `<div class="r-weight${empty ? '' : ' ok'}">
-      <div class="wl">${I.scale}<span>Patient Weight</span>${empty ? '<span class="r-badge">Required</span>' : '<span class="r-cleared">Cleared when you leave</span>'}</div>
-      <label class="wbox" for="${id}"><input id="${id}" data-a="weight" type="text" inputmode="decimal" autocomplete="off" placeholder="Enter weight" value="${esc(text)}" aria-label="Patient weight in kilograms"><span class="unit">kg</span></label>
+      <div class="wl">${I.scale}<span>${esc(title || 'Patient Weight')}</span>${empty ? '<span class="r-badge">Required</span>' : '<span class="r-cleared">Cleared when you leave</span>'}</div>
+      <label class="wbox" for="${id}"><input id="${id}" data-a="weight" type="text" inputmode="decimal" autocomplete="off" placeholder="Enter weight" value="${esc(text)}" aria-label="${esc(title || 'Patient weight')} in kilograms"><span class="unit">kg</span></label>
       ${empty ? `<p class="wp">${esc(prompt || 'Enter the weight to calculate the doses.')}</p>` : ''}
     </div>`;
   }
@@ -4591,7 +4717,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   /** Re-render once the bundle arrives (tools that need reference.json). */
   function whenBundle(update) { if (!bundle) loadBundle().then(() => update()); }
   // Context handed to tools that live in other files (the echo tools).
-  function ctxFor(id) { return { R, F, I, esc, view, eyebrow, numIn, seg, switchRow, radioRow, pills, resultCard, caution, footnote, ghostLink, takeList, factTable, refTable, sourceLine, weightField, checkRow, bundle: () => bundle, loadBundle, toolId: id }; }
+  function ctxFor(id) { return { R, F, I, esc, view, eyebrow, numIn, seg, switchRow, radioRow, pills, resultCard, caution, footnote, ghostLink, takeList, factTable, refTable, sourceLine, weightField, checkRow, progress, bundle: () => bundle, loadBundle, toolId: id }; }
 
   // ---------- quick reference card ----------
   function mountQuickref(host, id) {

@@ -585,3 +585,20 @@
 .rg-st.dim { font-weight: 500; fill: #9aa3ad; font-size: 5.5px; }
 .rg-nxfig { display: flex; justify-content: center; }
 .rg-nxfig .rg-fig { max-width: 190px; }
+
+/* ---------- OB Emergencies ---------- */
+.ob-title { margin: 0; font-family: var(--font-serif); font-size: 26px; line-height: 1.15; font-weight: 600; text-wrap: balance; }
+.ob-clock { display: grid; gap: 10px; }
+.ob-clock.on { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.ob-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ob-row > div { display: grid; gap: 4px; }
+.ob-big { font-family: var(--font-mono); font-size: 40px; font-weight: 600; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.ob-marks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ob-mark { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 12px; background: var(--surface-2); color: var(--fg-2); font-size: 14px; line-height: 1.45; }
+.ob-mark .ob-at { font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--fg-3); }
+.ob-mark.near { background: color-mix(in srgb, var(--amber) 16%, var(--surface-2)); color: var(--fg); }
+.ob-mark.past { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); color: var(--fg); }
+.ob-mark.past .ob-at, .ob-mark.near .ob-at { color: var(--accent); }
+.ob-manual { display: grid; gap: 6px; margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.rg-li { display: block; }
+.rg-li + .rg-li { margin-top: 7px; }

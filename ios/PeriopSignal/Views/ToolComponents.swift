@@ -10,6 +10,8 @@ struct WeightField: View {
     /// What the weight unlocks, shown while it is empty.
     var prompt: String = "Enter the weight to calculate the doses."
     var badge: String = "Required"
+    /// The field's name ("Newborn Weight" where the doses are the baby's, not the mother's).
+    var title: String = "Patient Weight"
 
     static func value(_ text: String) -> Double? {
         let v = Double(text.replacingOccurrences(of: ",", with: "."))
@@ -23,7 +25,7 @@ struct WeightField: View {
                 Image(systemName: "scalemass.fill")
                     .font(PS.sys(size: 12.5, weight: .semibold))
                     .foregroundStyle(empty ? PS.accent : PS.fg3)
-                Text("Patient Weight")
+                Text(title)
                     .font(PS.sys(size: 13.5, weight: .semibold))
                     .foregroundStyle(empty ? PS.fg : PS.fg2)
                 Spacer(minLength: 6)

@@ -54,6 +54,7 @@
     person: svg('<circle cx="12" cy="4.5" r="2.2"/><path d="M8 21l1.2-8.5L7 11.5 8.2 7.5h7.6L17 11.5l-2.2 1L16 21"/><path d="M12 12.5V21"/>', 1.9),
     probe: svg('<path d="M9 3h6l1 9H8z"/><path d="M8 12h8l-1.2 3.2a1.6 1.6 0 0 1-1.5 1H10.7a1.6 1.6 0 0 1-1.5-1z"/><path d="M12 16v5"/>', 1.9),
     spine: svg('<rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><rect x="9" y="8" width="6" height="3.6" rx="1.2"/><rect x="9" y="13.5" width="6" height="3.6" rx="1.2"/><path d="M12 19v3M7 4.3h2M15 4.3h2M7 9.8h2M15 9.8h2M7 15.3h2M15 15.3h2"/>', 1.8),
+    ob: svg('<circle cx="11" cy="4.3" r="2.1"/><path d="M9.6 8.2h2.6c2.9 0 4.8 2.6 4 5.4l-.4 1.4a3.2 3.2 0 0 1-3.1 2.3H12V21.5"/><path d="M9.6 8.2 8.7 13.5l1.4 3.4v4.6"/>', 1.9),
     flask: svg('<path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A2 2 0 0 0 6.3 21.5h11.4a2 2 0 0 0 1.7-3.1L14 9.5V3"/><path d="M7.2 15h9.6"/>', 2),
   };
 
@@ -72,7 +73,7 @@
 
   // ---------- catalog: folders and tools ----------
   const FOLDERS = [
-    { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['tool-acls', 'card-asra-last', 'card-mhaus-mh', 'tool-airway'],
+    { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['tool-acls', 'tool-ob', 'card-asra-last', 'card-mhaus-mh', 'tool-airway'],
       note: 'ACLS starts its code clock when it opens. The checklists take the patient’s weight at the top and work out the doses; the weight clears when you leave.' },
     { id: 'preoperative', title: 'Preoperative', icon: 'clipboard', tint: 'var(--accent-2)', items: ['tool-rcri', 'tool-ariscat', 'tool-stopbang', 'tool-fasting'] },
     { id: 'general-anesthesia', title: 'General Anesthesia', icon: 'lungs', tint: 'var(--t-thoracic-fg)', items: ['tool-abg', 'tool-ponv', 'tool-aldrete'] },
@@ -84,6 +85,7 @@
   const T = (title, blurb, icon, keywords, mount, extra) => Object.assign({ title, blurb, icon, keywords: keywords || [], mount }, extra || {});
   const TOOLS = {
     'tool-acls': T('ACLS', 'Code clock, checklists and doses as it runs', 'heartPulse', ['acls', 'pals', 'code', 'code blue', 'cardiac arrest', 'arrest', 'cpr', 'resuscitation', 'defibrillation', 'defibrillator', 'shock', 'vf', 'vt', 'pea', 'asystole', 'epinephrine', 'adrenaline', 'amiodarone', 'lidocaine', 'bradycardia', 'tachycardia', 'atropine', 'adenosine', 'cardioversion', 'pacing', 'rosc', 'post-arrest', 'cals', 'resternotomy', 'cardiac surgery arrest', 'anaphylaxis', 'allergic reaction', 'timer'], (h) => window.PSAcls ? window.PSAcls.mount(h, ctxFor('tool-acls')) : notReady(h)),
+    'tool-ob': T('OB Emergencies', 'Arrest, hemorrhage and other obstetric crises', 'ob', ['ob', 'obstetric', 'obstetrics', 'pregnancy', 'pregnant', 'maternal', 'labor', 'labour', 'cesarean', 'caesarean', 'c-section', 'postpartum', 'hemorrhage', 'haemorrhage', 'pph', 'atony', 'oxytocin', 'carboprost', 'methylergonovine', 'misoprostol', 'tranexamic', 'amniotic fluid embolism', 'afe', 'eclampsia', 'preeclampsia', 'magnesium', 'perimortem', 'resuscitative hysterotomy', 'uterine displacement', 'high spinal', 'total spinal', 'stanford'], (h) => window.PSOb ? window.PSOb.mount(h, ctxFor('tool-ob')) : notReady(h)),
     'card-asra-last': T('Local Anesthetic Toxicity', 'Checklist with lipid doses for the weight', 'vial', ['last', 'lipid', 'toxicity', 'local anesthetic'], (h) => mountQuickref(h, 'asra-last'), { quickref: 'asra-last' }),
     'card-mhaus-mh': T('Malignant Hyperthermia', 'Checklist with dantrolene for the weight', 'thermo', ['mh', 'dantrolene', 'hyperthermia', 'ryanodex'], (h) => mountQuickref(h, 'mhaus-mh'), { quickref: 'mhaus-mh' }),
     'tool-airway': T('Difficult Airway', 'Assessment in, plan and checklists out', 'wind', ['airway', 'intubat', 'laryngoscop', 'cricothyr', 'cannot ventilate', 'cicv', 'awake', 'videolaryngoscope', 'supraglottic', 'lma'], mountAirway),
@@ -211,11 +213,11 @@
   const TONE = { low: 'var(--new)', moderate: 'var(--accent-2)', high: 'var(--accent)' };
   const GRADE_COLOR = { 1: 'var(--new)', 2: 'var(--accent-2)', 3: 'var(--accent)' };
   const numIn = (id, value, a, opts) => `<input class="r-in${opts && opts.wide ? ' wide' : ''}" id="${id}" data-a="${a}"${opts && opts.k ? ` data-k="${esc(opts.k)}"` : ''} type="text" inputmode="${opts && opts.signed ? 'text' : 'decimal'}" autocomplete="off" placeholder="${(opts && opts.ph) || '—'}" value="${esc(value || '')}" aria-label="${esc((opts && opts.label) || 'Value')}">`;
-  function weightField(id, text, prompt) {
+  function weightField(id, text, prompt, title) {
     const empty = R.num(text) === null;
     return `<div class="r-weight${empty ? '' : ' ok'}">
-      <div class="wl">${I.scale}<span>Patient Weight</span>${empty ? '<span class="r-badge">Required</span>' : '<span class="r-cleared">Cleared when you leave</span>'}</div>
-      <label class="wbox" for="${id}"><input id="${id}" data-a="weight" type="text" inputmode="decimal" autocomplete="off" placeholder="Enter weight" value="${esc(text)}" aria-label="Patient weight in kilograms"><span class="unit">kg</span></label>
+      <div class="wl">${I.scale}<span>${esc(title || 'Patient Weight')}</span>${empty ? '<span class="r-badge">Required</span>' : '<span class="r-cleared">Cleared when you leave</span>'}</div>
+      <label class="wbox" for="${id}"><input id="${id}" data-a="weight" type="text" inputmode="decimal" autocomplete="off" placeholder="Enter weight" value="${esc(text)}" aria-label="${esc(title || 'Patient weight')} in kilograms"><span class="unit">kg</span></label>
       ${empty ? `<p class="wp">${esc(prompt || 'Enter the weight to calculate the doses.')}</p>` : ''}
     </div>`;
   }
@@ -259,7 +261,7 @@
   /** Re-render once the bundle arrives (tools that need reference.json). */
   function whenBundle(update) { if (!bundle) loadBundle().then(() => update()); }
   // Context handed to tools that live in other files (the echo tools).
-  function ctxFor(id) { return { R, F, I, esc, view, eyebrow, numIn, seg, switchRow, radioRow, pills, resultCard, caution, footnote, ghostLink, takeList, factTable, refTable, sourceLine, weightField, checkRow, bundle: () => bundle, loadBundle, toolId: id }; }
+  function ctxFor(id) { return { R, F, I, esc, view, eyebrow, numIn, seg, switchRow, radioRow, pills, resultCard, caution, footnote, ghostLink, takeList, factTable, refTable, sourceLine, weightField, checkRow, progress, bundle: () => bundle, loadBundle, toolId: id }; }
 
   // ---------- quick reference card ----------
   function mountQuickref(host, id) {

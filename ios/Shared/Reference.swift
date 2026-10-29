@@ -30,6 +30,7 @@ struct ReferenceBundle: Codable {
     var acls: AclsData?
     var abg: AbgData?
     var regional: RegionalData?
+    var obEmergency: ObEmergencyData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -44,9 +45,66 @@ struct ReferenceBundle: Codable {
         if b.acls == nil { b.acls = other.acls }
         if b.abg == nil { b.abg = other.abg }
         if b.regional == nil { b.regional = other.regional }
+        if b.obEmergency == nil { b.obEmergency = other.obEmergency }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }
+}
+
+// MARK: OB emergencies: one checklist per obstetric crisis, in the quick references' section format, with weight
+// doses and, for the arrest, a clock with its decision marks. The website reads the same JSON (src/reference-ob.js).
+
+struct ObEmergencyData: Codable {
+    var reviewed: String?
+    var manual: ObManual?
+    var events: [ObEvent]
+    var sources: [EchoSource]?
+    var notes: [String]?
+}
+
+/// The Stanford manual: linked, not reproduced.
+struct ObManual: Codable, Hashable {
+    var title: String
+    var url: String?
+    var note: String?
+}
+
+struct ObEvent: Codable, Hashable, Identifiable {
+    var id: String
+    var title: String
+    var short: String?
+    var summary: String?
+    var timer: ObTimer?
+    /// Whose weight the doses use when it is not the mother's (the newborn): its own field and its own value.
+    var weightFor: ObWeightFor?
+    var weightDoses: [WeightDose]?
+    var sections: [RefSection]
+    /// Ids into `ObEmergencyData.sources`.
+    var sources: [String]?
+}
+
+/// A separate weight for an event's doses (the newborn's), kept apart from the mother's so one is never used for
+/// the other; above `maxKg` the doses are withheld and `maxText` says why.
+struct ObWeightFor: Codable, Hashable {
+    var key: String
+    var title: String?
+    var eyebrow: String?
+    var prompt: String?
+    var maxKg: Double?
+    var maxText: String?
+}
+
+struct ObTimer: Codable, Hashable {
+    var label: String?
+    /// The start button's text.
+    var start: String?
+    var marks: [ObMark]
+    var note: String?
+}
+
+struct ObMark: Codable, Hashable {
+    var sec: Double
+    var text: String
 }
 
 // MARK: Regional anesthesia: the body figure, peripheral blocks, the finder's map and the neuraxial guide. RegionalCalc

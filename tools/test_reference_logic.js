@@ -913,5 +913,47 @@ test('regional: sides, labels, levels and the recommendation', () => {
   eq(G.recommend(['chest:M'], RG).top, null);
 });
 
+test('regional content: the shipped figure, map, blocks and guide', () => {
+  const G = R.regional, d = bundle.regional;
+  const ids = new Set(d.blocks.map((x) => x.id));
+  eq(ids.size, d.blocks.length, 'block ids are unique');
+  for (const r of d.figure.regions) assert.ok(d.map[r.id], r.id + ' has options');
+  for (const [rid, m] of Object.entries(d.map)) for (const x of m.blocks || []) assert.ok(ids.has(x.id), rid + ' → ' + x.id);
+  let r = G.recommend(['knee:R'], d);
+  eq(r.items[0].blocks.map((x) => x.id), ['adductor-canal', 'ipack', 'femoral']);
+  eq(r.items[0].neuraxial.level, 'T10');
+  r = G.recommend(['foot:L', 'knee:R', 'lower-abdomen:M'], d);
+  eq(r.items.map((x) => x.label), ['Lower abdomen', 'Right knee', 'Left ankle and foot']);
+  eq(r.top, { level: 'T6', region: 'Lower abdomen' }, 'the highest level wins');
+  eq(G.recommend(['shoulder:R', 'chest:M'], d).top, null, 'no lumbar-type level above the waist');
+  eq(G.recommend(['perineum:M'], d).items[0].neuraxial.level, 'S2–S5');
+  for (const p of d.neuraxial.procedures) assert.ok(G.rank(p.level) >= 0, p.id + ' level');
+  for (const b of d.blocks) assert.ok(/^https:\/\/(www\.)?nysora\.com\//.test(b.url), b.id + ' links to NYSORA');
+});
+
+test('OB emergencies: shipped checklists, clock and doses', () => {
+  const d = bundle.obEmergency, src = new Set(d.sources.map((x) => x.id));
+  eq(d.events.length, 13);
+  eq(d.events[0].id, 'arrest', 'the arrest opens first');
+  eq(d.events[0].timer.marks.map((m) => m.sec), [240, 300], 'hysterotomy by 4, delivery by 5 minutes');
+  for (const e of d.events) {
+    assert.ok(e.sections.some((s) => s.kind === 'steps' && s.items.length), e.id + ' has a checklist');
+    for (const id of e.sources) assert.ok(src.has(id), e.id + ' → ' + id);
+  }
+  const ev = (id) => d.events.find((e) => e.id === id), dose = (id, label) => ev(id).weightDoses.find((x) => x.label.startsWith(label));
+  const nb = ev('newborn');
+  eq(nb.weightFor.key, 'newborn', 'the newborn has its own weight');
+  assert.ok(nb.weightFor.maxKg > 0 && nb.weightFor.maxKg <= 10, 'an adult weight is refused');
+  for (const e of d.events) if (e.id !== 'newborn') assert.ok(!e.weightFor, e.id + ' uses the mother\'s weight');
+  const epi = dose('newborn', 'Epinephrine IV');
+  eq(R.peds.doseText(epi.perKg, epi.perKgHigh, epi.unit, 3, null, null).text, '0.03–0.09 mg');
+  const bolus = dose('last', 'Lipid 20% bolus');
+  eq(R.peds.doseText(bolus.perKg, null, bolus.unit, 60, null, null).text, '90 mL');
+  eq([bolus.aboveKg, bolus.aboveText], [70, '100 mL (over 70 kg)']);
+  const lev = dose('hypertension', 'Levetiracetam');
+  eq(R.peds.doseText(lev.perKg, null, lev.unit, 90, null, lev.max).text, '4500 mg', 'held at the maximum');
+  assert.ok(d.manual && /^https:\/\//.test(d.manual.url), 'the Stanford manual is linked');
+});
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

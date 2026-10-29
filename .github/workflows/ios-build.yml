@@ -178,6 +178,14 @@ jobs:
           shot 47-acls-anaphylaxis 12 -ps.ref acls -ps.acls.mode anaphylaxis
           shot 48-abg-metabolic 12 -ps.ref abg -ps.abg.values "ph=7.28,paco2=30,hco3=14"
           shot 49-abg-respiratory 12 -ps.ref abg -ps.forceAppearance light -ps.abg.values "ph=7.29,paco2=60,hco3=28.5"
+          shot 50-regional-finder 12 -ps.ref regional-finder -ps.rg.sel "knee:R,hip:R,lower-abdomen:M"
+          shot 51-regional-back 12 -ps.ref regional-finder -ps.forceAppearance light -ps.rg.view back -ps.rg.sel "lumbar-spine:M,back-chest:L"
+          shot 52-blocks 12 -ps.ref blocks -ps.blk.group upper -ps.blk.open interscalene
+          shot 53-blocks-lower 12 -ps.ref blocks -ps.forceAppearance light -ps.blk.group lower -ps.blk.open popliteal-sciatic
+          shot 54-neuraxial-guide 12 -ps.ref neuraxial-guide -ps.nx.proc cesarean
+          shot 55-ob-arrest 12 -ps.ref ob -ps.ob.event arrest -ps.la.weight 80
+          shot 56-ob-newborn 12 -ps.ref ob -ps.forceAppearance light -ps.ob.event newborn -ps.ob.newborn 3.2
+          shot 57-ob-hypertension 12 -ps.ref ob -ps.ob.event hypertension
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

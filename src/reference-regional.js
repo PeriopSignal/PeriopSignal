@@ -205,8 +205,8 @@
             if (b.art.sono) h += `<div class="rg-artsono">${sono(b.art.sono, 'Ultrasound schematic for the ' + b.name)}${b.art.caption ? `<p class="r-small">${esc(b.art.caption)}</p>` : ''}</div>`;
             h += `</div>`;
           }
-          h += `<div class="r-facts">${fields.filter(([k]) => b[k] && text(b[k]).length).map(([k, label]) => `<div class="fr"><span class="fl">${esc(label)}</span><span class="fv">${text(b[k]).map(esc).join('<br>')}</span></div>`).join('')}</div>`;
-          if (b.url) h += `<div class="r-btns">${c.ghostLink(b.url, I.ext, 'NYSORA: ' + b.name, true)}</div>`;
+          h += `<div class="r-facts">${fields.filter(([k]) => b[k] && text(b[k]).length).map(([k, label]) => `<div class="fr"><span class="fl">${esc(label)}</span><span class="fv">${text(b[k]).map((t) => `<span class="rg-li">${esc(t)}</span>`).join('')}</span></div>`).join('')}</div>`;
+          if (b.url) h += `<div class="r-btns">${c.ghostLink(b.url, I.ext, 'NYSORA technique page', true)}</div>`;
           h += `</div>`;
         }
         h += `</div>`;
@@ -240,7 +240,7 @@
         let inner = `${eyebrow('Target sensory level', 'var(--accent-2)')}<p class="r-headline big">${esc(p.level || '—')}</p>${p.levelText ? `<p class="r-detail">${esc(p.levelText)}</p>` : ''}`;
         inner += `<div class="rg-nxfig">${figure(d.figure, 'front', { id: 'nxf', shadeFrom: saddle ? null : y, saddle, levels: marks, sides: false, label: 'Block height ' + (p.level || '') })}</div>`;
         const rows = [['Technique', p.technique], ['Insertion', p.insertion], ['Spinal', p.spinal], ['Epidural', p.epidural], ['Adjuvants', p.adjuvants], ['Notes', p.notes]].filter(([, v]) => v && (Array.isArray(v) ? v.length : true));
-        inner += `<div class="r-facts">${rows.map(([k, v]) => `<div class="fr"><span class="fl">${esc(k)}</span><span class="fv">${(Array.isArray(v) ? v : [v]).map(esc).join('<br>')}</span></div>`).join('')}</div>`;
+        inner += `<div class="r-facts">${rows.map(([k, v]) => `<div class="fr"><span class="fl">${esc(k)}</span><span class="fv">${(Array.isArray(v) ? v : [v]).map((t) => `<span class="rg-li">${esc(t)}</span>`).join('')}</span></div>`).join('')}</div>`;
         h += c.resultCard('var(--accent-2)', inner);
       }
       for (const t of N.tables || []) h += `<section class="r-sec">${eyebrow(t.title)}${c.refTable(t.columns, t.rows)}${(t.notes || []).map((x) => footnote(x)).join('')}</section>`;

@@ -317,7 +317,11 @@ private func factRows(_ rows: [(String, [String])]) -> some View {
         ForEach(Array(rows.enumerated()), id: \.offset) { i, row in
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(row.0).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2).frame(width: 96, alignment: .leading)
-                Text(row.1.joined(separator: "\n")).font(PS.sys(size: 14)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 7) {
+                    ForEach(Array(row.1.enumerated()), id: \.offset) { _, line in
+                        Text(line).font(PS.sys(size: 14)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
                 Spacer(minLength: 0)
             }
             .padding(.vertical, 9)

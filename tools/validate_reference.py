@@ -28,31 +28,10 @@ def main(path):
         ep = (ask or {}).get("endpoint")
         need(ep is None or (isinstance(ep, str) and ep.startswith("https://")), "ask.endpoint must be https")
 
-    refs = data.get("quickrefs")
-    need(isinstance(refs, list) and refs, "quickrefs must be a non-empty list")
-    ids = set()
-    for r in refs or []:
-        rid = r.get("id", "?")
-        need(re.match(r"^[a-z0-9-]+$", rid or ""), f"{rid}: id must be lowercase letters, digits and dashes")
-        need(rid not in ids, f"{rid}: duplicate id")
-        ids.add(rid)
-        for key in ("title", "society", "summary"):
-            need(isinstance(r.get(key), str) and r[key].strip(), f"{rid}: {key} required")
-        src = r.get("source") or {}
-        need(isinstance(src.get("title"), str) and src["title"], f"{rid}: source.title required")
-        need(isinstance(src.get("url"), str) and src["url"].startswith("https://"), f"{rid}: source.url must be https")
-        if "year" in r:
-            need(isinstance(r["year"], int) and 1990 <= r["year"] <= 2100, f"{rid}: year out of range")
-        if "reviewed" in r:
-            need(DATE.match(r["reviewed"] or ""), f"{rid}: reviewed must be YYYY-MM-DD")
-        if "emergency" in r:
-            need(isinstance(r["emergency"], bool), f"{rid}: emergency must be true/false")
-        if "keywords" in r:
-            need(isinstance(r["keywords"], list) and all(isinstance(k, str) for k in r["keywords"]), f"{rid}: keywords must be strings")
-        sections = r.get("sections")
-        need(isinstance(sections, list) and sections, f"{rid}: sections must be a non-empty list")
+    def check_sections(owner, sections):
+        need(isinstance(sections, list) and sections, f"{owner}: sections must be a non-empty list")
         for i, s in enumerate(sections or []):
-            tag = f"{rid} section {i + 1}"
+            tag = f"{owner} section {i + 1}"
             kind = s.get("kind")
             need(kind in SECTION_KINDS, f"{tag}: kind must be one of {sorted(SECTION_KINDS)}")
             if kind == "table":
@@ -75,6 +54,29 @@ def main(path):
                 need(isinstance(s.get("text"), str) and s["text"].strip(), f"{tag}: text required")
             if "note" in s:
                 need(isinstance(s["note"], str), f"{tag}: note must be a string")
+
+    refs = data.get("quickrefs")
+    need(isinstance(refs, list) and refs, "quickrefs must be a non-empty list")
+    ids = set()
+    for r in refs or []:
+        rid = r.get("id", "?")
+        need(re.match(r"^[a-z0-9-]+$", rid or ""), f"{rid}: id must be lowercase letters, digits and dashes")
+        need(rid not in ids, f"{rid}: duplicate id")
+        ids.add(rid)
+        for key in ("title", "society", "summary"):
+            need(isinstance(r.get(key), str) and r[key].strip(), f"{rid}: {key} required")
+        src = r.get("source") or {}
+        need(isinstance(src.get("title"), str) and src["title"], f"{rid}: source.title required")
+        need(isinstance(src.get("url"), str) and src["url"].startswith("https://"), f"{rid}: source.url must be https")
+        if "year" in r:
+            need(isinstance(r["year"], int) and 1990 <= r["year"] <= 2100, f"{rid}: year out of range")
+        if "reviewed" in r:
+            need(DATE.match(r["reviewed"] or ""), f"{rid}: reviewed must be YYYY-MM-DD")
+        if "emergency" in r:
+            need(isinstance(r["emergency"], bool), f"{rid}: emergency must be true/false")
+        if "keywords" in r:
+            need(isinstance(r["keywords"], list) and all(isinstance(k, str) for k in r["keywords"]), f"{rid}: keywords must be strings")
+        check_sections(rid, r.get("sections"))
 
     peds = data.get("peds")
     if peds is not None:
@@ -460,7 +462,7 @@ def main(path):
             for k in ("indications", "coverage", "position", "equipment", "target", "volume", "onset", "cautions", "tips"):
                 need(texts(b.get(k)), f"regional block {bid}: {k} must be text or a list of text")
             need(b.get("volume"), f"regional block {bid}: volume required")
-            need(isinstance(b.get("url"), str) and b["url"].startswith("https://www.nysora.com/"), f"regional block {bid}: url must be a NYSORA page")
+            need(isinstance(b.get("url"), str) and re.match(r"^https://(www\.)?nysora\.com/", b["url"]) is not None, f"regional block {bid}: url must be a NYSORA page")
             art = b.get("art")
             if art:
                 pr = art.get("probe")
@@ -502,6 +504,44 @@ def main(path):
                     need(isinstance(row, list) and len(row) == len(cols), f"regional.neuraxial table {t.get('title')}: row width matches columns")
             for s_ in nx.get("sources") or []:
                 need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"regional.neuraxial source {s_.get('id')}: citation required")
+
+    ob = data.get("obEmergency")
+    if ob is not None:
+        num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+        src_ids = {s_.get("id") for s_ in ob.get("sources") or []}
+        for s_ in ob.get("sources") or []:
+            need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"obEmergency source {s_.get('id')}: citation required")
+            need(s_.get("url") is None or str(s_["url"]).startswith("https://"), f"obEmergency source {s_.get('id')}: url must be https")
+        m = ob.get("manual")
+        if m is not None:
+            need(isinstance(m.get("title"), str) and m["title"], "obEmergency.manual.title required")
+            need(m.get("url") is None or str(m["url"]).startswith("https://"), "obEmergency.manual.url must be https")
+        evs = ob.get("events")
+        need(isinstance(evs, list) and evs, "obEmergency.events must be a non-empty list")
+        eids = [e.get("id") for e in evs or []]
+        need(len(eids) == len(set(eids)), "obEmergency.events: duplicate id")
+        for e in evs or []:
+            eid = e.get("id", "?")
+            need(re.match(r"^[a-z0-9-]+$", eid or ""), f"ob event {eid}: id must be lowercase letters, digits and dashes")
+            need(isinstance(e.get("title"), str) and e["title"].strip(), f"ob event {eid}: title required")
+            need(isinstance(e.get("summary"), str) and e["summary"].strip(), f"ob event {eid}: summary required")
+            check_sections(f"ob event {eid}", e.get("sections"))
+            need(any(s_.get("kind") == "steps" for s_ in e.get("sections") or []), f"ob event {eid}: needs a steps section (the checklist)")
+            need(e.get("sources") and all(x in src_ids for x in e["sources"]), f"ob event {eid}: sources must name listed sources")
+            tm = e.get("timer")
+            if tm is not None:
+                marks = tm.get("marks") or []
+                need(marks and all(num(x.get("sec")) and x["sec"] > 0 and isinstance(x.get("text"), str) and x["text"] for x in marks), f"ob event {eid}: timer marks need sec and text")
+                need([x.get("sec") for x in marks] == sorted(x.get("sec") for x in marks), f"ob event {eid}: timer marks must be in time order")
+            wf = e.get("weightFor")
+            if wf is not None:
+                need(isinstance(wf.get("key"), str) and re.match(r"^[a-z0-9-]+$", wf["key"]), f"ob event {eid}: weightFor.key must be lowercase letters, digits and dashes")
+                need(wf.get("maxKg") is None or (num(wf["maxKg"]) and wf["maxKg"] > 0 and isinstance(wf.get("maxText"), str) and wf["maxText"]), f"ob event {eid}: weightFor.maxKg must be positive, with maxText")
+                need(bool(e.get("weightDoses")), f"ob event {eid}: weightFor without weight doses")
+            for wd in e.get("weightDoses") or []:
+                need(isinstance(wd.get("label"), str) and wd["label"] and num(wd.get("perKg")) and wd["perKg"] > 0 and isinstance(wd.get("unit"), str) and wd["unit"], f"ob event {eid}: weight dose needs label, perKg and unit")
+                need(wd.get("max") is None or (num(wd["max"]) and wd["max"] > 0), f"ob event {eid}: weight dose max must be positive")
+                need(wd.get("aboveKg") is None or (num(wd["aboveKg"]) and isinstance(wd.get("aboveText"), str)), f"ob event {eid}: aboveKg needs aboveText")
 
     if problems:
         print("\n".join("- " + p for p in problems))

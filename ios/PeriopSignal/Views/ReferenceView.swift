@@ -17,6 +17,7 @@ enum RefRoute: Hashable {
     case diastolic
     case acls
     case abg
+    case obEmergency
     case regionalFinder
     case blocks
     case neuraxialGuide
@@ -40,6 +41,7 @@ enum RefRoute: Hashable {
         case .diastolic: return "diastolic"
         case .acls: return "acls"
         case .abg: return "abg"
+        case .obEmergency: return "ob"
         case .regionalFinder: return "regional-finder"
         case .blocks: return "blocks"
         case .neuraxialGuide: return "neuraxial-guide"
@@ -64,6 +66,7 @@ enum RefRoute: Hashable {
         case "diastolic": self = .diastolic
         case "acls": self = .acls
         case "abg": self = .abg
+        case "ob": self = .obEmergency
         case "regional-finder": self = .regionalFinder
         case "blocks": self = .blocks
         case "neuraxial-guide": self = .neuraxialGuide
@@ -117,6 +120,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .emergency: return [
             RefItem(route: .acls, icon: "waveform.path.ecg", title: "ACLS", blurb: "Code clock, checklists and doses as it runs"),
+            RefItem(route: .obEmergency, icon: "figure.and.child.holdinghands", title: "OB Emergencies", blurb: "Arrest, hemorrhage and other obstetric crises"),
             RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local Anesthetic Toxicity", blurb: "Checklist with lipid doses for the weight"),
             RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant Hyperthermia", blurb: "Checklist with dantrolene for the weight"),
             RefItem(route: .airway, icon: "wind", title: "Difficult Airway", blurb: "Assessment in, plan and checklists out"),
@@ -297,6 +301,8 @@ struct ReferenceView: View {
                     AclsView(onOpen: { webLink = WebLink(url: $0) })
                 case .abg:
                     AbgView(onOpen: { webLink = WebLink(url: $0) })
+                case .obEmergency:
+                    ObEmergencyView(onOpen: { webLink = WebLink(url: $0) })
                 case .regionalFinder:
                     RegionalFinderView(onOpen: { webLink = WebLink(url: $0) }, onOpenBlocks: { path.append(RefRoute.blocks) })
                 case .blocks:
@@ -546,6 +552,7 @@ struct ReferenceSearchResults: View {
         case .diastolic: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "diastolic", "diastology", "dysfunction", "filling pressure", "lap", "e/e", "e/a", "tr velocity", "la strain", "lars", "pulmonary vein", "hfpef", "relaxation", "restrictive"]
         case .acls: return ["acls", "pals", "code", "code blue", "cardiac arrest", "arrest", "cpr", "resuscitation", "defibrillation", "defibrillator", "shock", "vf", "vt", "pea", "asystole", "epinephrine", "adrenaline", "amiodarone", "lidocaine", "bradycardia", "tachycardia", "atropine", "adenosine", "cardioversion", "pacing", "rosc", "post-arrest", "cals", "resternotomy", "cardiac surgery arrest", "anaphylaxis", "allergic reaction", "timer"]
         case .abg: return ["abg", "blood gas", "arterial blood gas", "acid", "base", "acid-base", "acidosis", "alkalosis", "acidemia", "alkalemia", "ph", "paco2", "pco2", "hco3", "bicarbonate", "compensation", "winter", "respiratory acidosis", "metabolic acidosis", "respiratory alkalosis", "metabolic alkalosis", "mixed disorder", "henderson"]
+        case .obEmergency: return ["ob", "obstetric", "obstetrics", "pregnancy", "pregnant", "maternal", "labor", "labour", "cesarean", "caesarean", "c-section", "postpartum", "hemorrhage", "haemorrhage", "pph", "atony", "oxytocin", "carboprost", "methylergonovine", "misoprostol", "tranexamic", "amniotic fluid embolism", "afe", "eclampsia", "preeclampsia", "magnesium", "perimortem", "resuscitative hysterotomy", "uterine displacement", "high spinal", "total spinal", "stanford"]
         case .regionalFinder: return ["regional", "block", "nerve block", "neuraxial", "spinal", "epidural", "incision", "dermatome", "surgery site", "technique", "which block", "analgesia"]
         case .blocks: return ["regional", "block", "nerve block", "peripheral", "pnb", "nysora", "ultrasound", "interscalene", "supraclavicular", "infraclavicular", "axillary", "suprascapular", "cervical plexus", "femoral", "adductor", "saphenous", "sciatic", "popliteal", "ipack", "pericapsular", "peng", "fascia iliaca", "obturator", "lateral femoral cutaneous", "ankle", "tap", "transversus", "rectus sheath", "quadratus", "erector", "esp", "paravertebral", "pecs", "serratus", "parasternal", "ilioinguinal", "caudal", "wrist", "volume"]
         case .neuraxialGuide: return ["neuraxial", "spinal", "epidural", "cse", "combined spinal", "intrathecal", "bupivacaine", "chloroprocaine", "ropivacaine", "dermatome", "level", "t4", "t10", "saddle", "cesarean", "c-section", "laparotomy", "appendectomy", "hip", "knee", "hernia", "turp", "anal", "perianal", "hemorrhoid", "labor"]
@@ -566,7 +573,7 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg, .regionalFinder, .neuraxialGuide:
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg, .regionalFinder, .neuraxialGuide, .obEmergency:
             return wordsMatch(item.route)
         case .blocks:
             guard let data = refs.bundle?.regional else { return wordsMatch(item.route) }
