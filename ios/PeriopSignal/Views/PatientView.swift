@@ -69,7 +69,7 @@ struct PatientView: View {
             }
         }
         .environment(handoff)
-        .task { openForScreenshot() }
+        .task { await openForScreenshot() }
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
         }
@@ -85,7 +85,7 @@ struct PatientView: View {
     }
 
     /// Screenshot runs: -ps.patient.open history | medications | assessment | airway | intraop | plan | handoff | score:rcri.
-    private func openForScreenshot() {
+    private func openForScreenshot() async {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         switch o {
@@ -96,7 +96,10 @@ struct PatientView: View {
         case "airway": path.append(PatientEditor.airway)
         case "intraop": path.append(PatientEditor.intraop)
         case "plan": path.append(PatientEditor.plan)
-        case "handoff": showHandoff = true
+        case "handoff":
+            // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            showHandoff = true
         default: if let route = RefRoute(key: o) { path.append(route) }
         }
         #endif
