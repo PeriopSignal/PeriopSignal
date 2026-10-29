@@ -3,7 +3,8 @@ import Foundation
 // MARK: - Assessment content for My Patient: ASA definitions, functional capacity (METs, DASI), the stepwise cardiac
 // evaluation, perioperative medication notes and the airway exam's method. Wording is ours; the facts and cutoffs
 // are the sources' (see each note). The 2024 AHA/ACC recommendations were read from the guideline's text and the
-// AHA's official slide set (Thompson A, et al. Circulation 2024;150:e351–e442; reaffirmed unchanged in September 2026).
+// AHA's official slide set, and the stepwise approach from its Figure 1 (Thompson A, et al. Circulation
+// 2024;150:e351–e442; reaffirmed unchanged in September 2026).
 
 struct CardiacStep: Hashable {
     var title: String
@@ -76,15 +77,28 @@ enum PatientFunctional {
 
     // MARK: Cardiac evaluation
 
-    /// Acute conditions that stop elective surgery for evaluation and treatment (ACS: §6.1.1, class 1; decompensated
-    /// heart failure: §6.3; "uncontrolled arrhythmia" among the unstable syndromes of §4.3.1).
+    // The 2024 AHA/ACC "Stepwise Approach to Perioperative Cardiac Assessment" (Figure 1, p e371), checked against the
+    // figure itself; each recommendation's wording and class against the guideline's text.
+
+    /// Figure 1's acute conditions, which stop elective surgery for management (ACS: §6.1.1, class 1).
     static let activeCardiac: [PatientFlag] = [
         PatientFlag("acs", "Acute coronary syndrome"),
         PatientFlag("decomp-hf", "Decompensated heart failure"),
-        PatientFlag("arrhythmia", "Uncontrolled arrhythmia"),
+        PatientFlag("arrhythmia", "Unstable arrhythmia"),
     ]
 
-    static let cardiacNote = "2024 AHA/ACC stepwise approach: urgency, acute cardiac conditions, the risk estimate and conditions that add risk, functional capacity, then natriuretic peptides. Stress testing or CT angiography only where it would be indicated regardless of the surgery; routine testing has no benefit."
+    /// Active symptoms and signs of cardiovascular disease (§4.1's footnote), with §4.2.1's signs of heart failure.
+    static let cardiacSymptomFlags: [PatientFlag] = [
+        PatientFlag("chest-pain", "Chest pain"),
+        PatientFlag("dyspnea", "New or worsening dyspnea"),
+        PatientFlag("palpitations", "Undiagnosed palpitations"),
+        PatientFlag("tachycardia", "Tachycardia"),
+        PatientFlag("syncope", "Syncope"),
+        PatientFlag("murmur", "Murmur"),
+        PatientFlag("hf-signs", "Signs of heart failure"),
+    ]
+
+    static let cardiacNote = "Follows the 2024 AHA/ACC stepwise approach (Figure 1): cardiovascular risk factors, disease or symptoms; urgency; acute cardiac conditions; the risk estimate and the conditions that add risk; functional capacity; then natriuretic peptides. Routine testing has no benefit."
 
     /// The acute conditions recorded: the flags, and decompensated heart failure from the problem list.
     static func acuteConditions(_ r: PatientRecord) -> [String] {
@@ -93,23 +107,80 @@ enum PatientFunctional {
         return out
     }
 
+    /// Known heart, vascular or cerebrovascular disease (§4.1: coronary disease, significant arrhythmia, peripheral
+    /// arterial disease, cerebrovascular disease or other significant structural heart disease).
+    static let cvdProblems: Set<String> = [
+        "cad", "pci", "pci-recent", "cad-recent", "cabg", "ischemia", "hf", "hf-decomp", "ef-moderate", "ef-severe",
+        "valve-severe", "as", "mr", "prosthetic-valve", "af", "arrhythmia", "pacemaker", "icd", "pulm-htn", "pulm-htn-severe",
+        "pvd", "chd", "chd-elevated", "cva", "cva-recent", "peripartum-cm",
+    ]
+
+    static func knownCVD(_ r: PatientRecord) -> Bool { !r.problems.isDisjoint(with: cvdProblems) }
+
+    /// Figure 1's cardiovascular risk factors that the record shows (its footnote: hypertension, smoking, high
+    /// cholesterol, diabetes, women over 65, men over 55, obesity, family history of premature CAD). A raised blood
+    /// pressure reading counts here, so that it never ends the evaluation at the first question.
+    static func riskFactors(_ r: PatientRecord) -> [String] {
+        var out: [String] = []
+        if r.has("htn") || r.has("htn-poor") || (r.vitals["sbp"] ?? 0) >= 140 || (r.vitals["dbp"] ?? 0) >= 90 { out.append("hypertension") }
+        if r.smoking == "current" { out.append("smoking") }
+        if r.has("hyperlipidemia") { out.append("high cholesterol") }
+        if r.has("dm") || r.has("dm-poor") || r.has("insulin") { out.append("diabetes") }
+        if let age = r.ageYears, age > (r.sex == .female ? 65 : 55) {
+            out.append(r.sex == .female ? "woman over 65" : (r.sex == .male ? "man over 55" : "over 55"))
+        }
+        if let b = r.bmi, b >= 30 { out.append("obesity") }
+        if r.has("fh-cad") { out.append("family history of premature CAD") }
+        return out
+    }
+
+    /// Figure 1's first question answered no: only when the record can answer it (age, height and weight, and smoking
+    /// recorded) and shows no risk factor, heart or vascular disease, symptom, tachycardia or acute condition.
+    static func noCardiacRisk(_ r: PatientRecord) -> Bool {
+        guard r.ageYears != nil, r.bmi != nil, r.smoking != nil else { return false }
+        return riskFactors(r).isEmpty && !knownCVD(r) && r.cardiacSymptoms.isEmpty && acuteConditions(r).isEmpty
+            && (r.vitals["hr"] ?? 0) <= 100
+    }
+
     /// The RCRI: a saved result, else what the record answers.
     static func rcri(_ r: PatientRecord) -> Int { r.scores["rcri"]?.points ?? PatientRules.prefill("rcri", r).on.count }
 
-    /// Elevated estimated risk: traditionally RCRI over 1 (Figure 1's footnote; Table 2 words it as 1% or more).
+    /// Elevated calculated risk: RCRI over 1, the figure's traditional threshold (its footnote †).
     static func elevated(_ r: PatientRecord) -> Bool { rcri(r) > 1 }
 
-    /// Conditions that add risk beyond the calculators (the figure's risk modifiers, as secondary summaries list
-    /// them; the figure is an image), from what is recorded.
+    /// Figure 1's risk modifiers, the conditions that add risk beyond the calculators, from what is recorded.
     static func riskModifiers(_ r: PatientRecord) -> [String] {
         var out: [String] = []
         if r.has("valve-severe") { out.append("severe valve disease") }
         if r.has("pulm-htn-severe") { out.append("severe pulmonary hypertension") }
-        if r.has("chd") { out.append("congenital heart disease") }
-        if r.has("pci") || r.has("cabg") { out.append(r.has("pci") && r.has("cabg") ? "prior stent and CABG" : (r.has("pci") ? "prior coronary stent" : "prior CABG")) }
+        if r.has("chd-elevated") { out.append("elevated-risk congenital heart disease") }
+        let stent = r.has("pci") || r.has("pci-recent")
+        if stent || r.has("cabg") {
+            out.append(stent && r.has("cabg") ? "prior stent and CABG" : (stent ? (r.has("pci-recent") ? "coronary stent within 3 months" : "prior coronary stent") : "prior CABG"))
+        }
         if r.has("cva-recent") { out.append("stroke or TIA within 3 months") }
         if r.has("pacemaker") || r.has("icd") { out.append(r.has("icd") ? "implanted defibrillator" : "pacemaker") }
         if r.frail { out.append("frailty") }
+        return out
+    }
+
+    /// The figure's boxes between the risk estimate and functional capacity, for a patient who goes on to that step:
+    /// elevated calculated risk, or a condition that adds risk at any calculated risk. ECG: §4.1; echo: §4.2.1, §6.4.
+    static func branchAdvice(_ r: PatientRecord) -> [String] {
+        guard !r.emergency, !noCardiacRisk(r), acuteConditions(r).isEmpty else { return [] }
+        let mods = riskModifiers(r)
+        guard elevated(r) || !mods.isEmpty else { return [] }
+        var out: [String] = []
+        if !mods.isEmpty { out.append("Consider team-based consultation on the timing of surgery and on perioperative testing and management.") }
+        if knownCVD(r) || !r.cardiacSymptoms.isEmpty {
+            out.append("A resting 12-lead ECG is reasonable with known heart, vascular or cerebrovascular disease or cardiac symptoms (class 2a).")
+        } else if elevated(r) {
+            out.append("A baseline 12-lead ECG may be considered without known cardiovascular disease or symptoms (class 2b).")
+        }
+        if !mods.isEmpty {
+            out.append("An echo is recommended for suspected moderate or severe valve stenosis or regurgitation, new dyspnea, or suspected new or worsening ventricular dysfunction (class 1; class 2a when known heart failure worsens).")
+        }
+        out.append("Consider starting guideline-directed medical therapy for long-term cardiovascular risk reduction, as applicable.")
         return out
     }
 
@@ -117,27 +188,29 @@ enum PatientFunctional {
     static func conditionAdvice(_ r: PatientRecord) -> [String] {
         var out: [String] = []
         if r.has("cad-recent") {
-            out.append("Recent MI, ACS or stent: after an acute coronary syndrome, revascularization as appropriate and deferral of elective surgery are recommended (class 1); within 30 days of a stent, elective surgery that stops an antiplatelet is potentially harmful (class 3: harm).")
+            out.append("Recent MI or ACS: after an acute coronary syndrome, revascularization as appropriate and deferral of elective surgery are recommended (class 1).")
+        }
+        if r.has("pci-recent") {
+            out.append("Stent within 3 months: within 30 days of any stent, elective surgery that stops an antiplatelet is potentially harmful (class 3: harm); flag the P2Y12 inhibitor under Medications for the timing rules.")
         }
         if r.has("cva-recent") { out.append("Stroke or TIA within 3 months: delaying elective surgery until 3 months or more after it is reasonable (class 2a).") }
         if r.has("valve-severe") { out.append("Severe valve disease: severe aortic or mitral stenosis should be evaluated for valve intervention before elective surgery (class 1).") }
         if (r.has("as") || r.has("mr")) && !r.has("valve-severe") { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
-        if r.has("chd") { out.append("Congenital heart disease: for intermediate- or elevated-risk lesions, an adult congenital heart disease specialist consult before elective surgery is recommended (class 1).") }
+        if r.has("chd") || r.has("chd-elevated") { out.append("Congenital heart disease: for intermediate- or elevated-risk lesions, an adult congenital heart disease specialist consult before elective surgery is recommended (class 1).") }
         if r.has("pulm-htn-severe") { out.append("Severe pulmonary hypertension: continue targeted therapy (class 1); before elevated-risk surgery, referral to a pulmonary hypertension center is reasonable (class 2a).") }
         if r.has("pacemaker") || r.has("icd") { out.append("Pacemaker or ICD: a device management plan before surgery when electromagnetic interference is expected (class 1).") }
-        if r.has("pci"), !r.has("cad-recent"), !r.medFlags.contains("p2y12") {
+        if r.has("pci"), !r.has("pci-recent"), !r.medFlags.contains("p2y12") {
             out.append("Prior stent: if surgery will stop an antiplatelet, the stent-timing rules apply (flag the P2Y12 inhibitor under Medications); continue aspirin if possible (class 1).")
         }
         let sbp = r.vitals["sbp"] ?? 0, dbp = r.vitals["dbp"] ?? 0
         if r.has("htn-poor") || sbp >= 180 || dbp >= 110 {
             out.append("Blood pressure 180/110 or higher before elective elevated-risk surgery: deferring surgery may be considered (class 2b).")
         }
-        if r.has("hf") || r.has("ef-moderate") || r.has("ef-severe") {
+        let hf = r.has("hf") || r.has("ef-moderate") || r.has("ef-severe")
+        if hf {
             out.append("Heart failure: assess LV function if dyspnea is new or heart failure signs appear (class 1), or if known heart failure has worsened (class 2a).")
-        }
-        let knownCVD = ["cad", "pci", "cad-recent", "cabg", "ischemia", "arrhythmia", "af", "pvd", "cva", "cva-recent", "valve-severe", "as", "mr", "chd", "hf", "ef-moderate", "ef-severe"].contains { r.has($0) }
-        if knownCVD && elevated(r) {
-            out.append("A resting 12-lead ECG is reasonable as a baseline before elevated-risk surgery with known heart, vascular or cerebrovascular disease (class 2a).")
+        } else if r.cardiacSymptoms.contains("dyspnea") || r.cardiacSymptoms.contains("hf-signs") {
+            out.append("New dyspnea or signs of heart failure: assessing LV function before surgery is recommended (class 1).")
         }
         return out
     }
@@ -164,15 +237,19 @@ enum PatientFunctional {
             step.detail += " The condition-specific steps below still apply."
         }
         if r.urgency == .urgent {
+            // §4.5: CCTA "is contraindicated and may be harmful" when surgery is urgent or emergent.
             step.detail = "Urgent surgery: evaluate only as time allows; CT coronary angiography is contraindicated. " + step.detail
         }
         return step
     }
 
     private static func stepBeforeSurgery(_ r: PatientRecord) -> CardiacStep {
+        if noCardiacRisk(r) {
+            return CardiacStep(title: "No cardiovascular risk factors, disease or symptoms: proceed", detail: "None recorded: hypertension, smoking, high cholesterol, diabetes, age over 65 in women or 55 in men, obesity, a family history of premature coronary disease, known heart or vascular disease, or cardiac symptoms.", alert: false)
+        }
         let active = acuteConditions(r)
         if !active.isEmpty {
-            return CardiacStep(title: "Acute cardiac condition: defer elective surgery", detail: active.joined(separator: "; ") + ": evaluate and treat first. With an acute coronary syndrome, revascularization as appropriate and deferral of elective surgery are recommended (class 1).", alert: true)
+            return CardiacStep(title: "Acute cardiac condition: manage it first", detail: active.joined(separator: "; ") + ": treat the condition, and discuss with the team deferring surgery, noninvasive treatment or palliation. With an acute coronary syndrome, revascularization as appropriate and deferral of elective surgery are recommended (class 1).", alert: true)
         }
         let score = rcri(r)
         let riskText = "RCRI " + String(score) + (r.scores["rcri"] != nil ? "" : " from the record (open the RCRI to confirm)")
@@ -198,9 +275,9 @@ enum PatientFunctional {
         case .some(false):
             return CardiacStep(title: "Natriuretic peptide normal: proceed", detail: why + "; " + fc + ". " + peptideText(r) + ".", alert: false)
         case .some(true):
-            return CardiacStep(title: "Natriuretic peptide raised", detail: why + "; " + fc + ". " + peptideText(r) + ". Discuss with the team; an echo to assess LV function may be reasonable. Stress testing or CT coronary angiography may be considered (class 2b) when high-risk ischemia or coronary anatomy is suspected, or when testing is indicated regardless of the surgery; routine testing has no benefit.", alert: true)
+            return CardiacStep(title: "Natriuretic peptide raised", detail: why + "; " + fc + ". " + peptideText(r) + ". Discuss with the team the risks and benefits of more cardiac evaluation. If it is pursued, consider an echo, and stress testing or CT coronary angiography (class 2b); with low-risk findings, proceed. With high-risk findings (left main or multivessel disease), or without more evaluation: consider deferring surgery, noninvasive or invasive treatment, or palliation, or proceed; postoperative troponin surveillance may be considered (class 2b).", alert: true)
         case .none:
-            return CardiacStep(title: "Poor or unknown functional capacity", detail: why + "; " + fc + ". Before elevated-risk surgery, BNP or NT-proBNP is reasonable (class 2a) with known cardiovascular disease, age 65 or older, or 45 or older with symptoms; troponin may be considered (class 2b). Abnormal: BNP over 92 or NT-proBNP 300 or more (ng/L), troponin above the assay's 99th percentile. Add a result under Labs.", alert: true)
+            return CardiacStep(title: "Poor or unknown functional capacity", detail: why + "; " + fc + ". If more testing would not change management, proceed, or consider deferring surgery, noninvasive treatment or palliation. If it would: before elevated-risk surgery, BNP or NT-proBNP is reasonable (class 2a) with known cardiovascular disease, age 65 or older, or 45 or older with symptoms; troponin may be considered (class 2b). Abnormal: BNP over 92 or NT-proBNP 300 or more (ng/L), troponin above the assay's 99th percentile. Add a result under Labs.", alert: true)
         }
     }
 

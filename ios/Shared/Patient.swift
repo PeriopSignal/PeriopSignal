@@ -154,6 +154,8 @@ struct PatientRecord: Codable, Equatable {
     var mets: String?
     var dasi: Set<String> = []
     var activeCardiac: Set<String> = []
+    /// Active cardiac symptoms and signs (PatientFunctional.cardiacSymptomFlags).
+    var cardiacSymptoms: Set<String> = []
     /// Frail by a validated tool (a risk modifier in the stepwise cardiac evaluation).
     var frail = false
     /// The class the clinician chose (1–6); the suggestion is never stored.
@@ -247,6 +249,7 @@ struct PatientRecord: Codable, Equatable {
         mets = try? c.decodeIfPresent(String.self, forKey: .mets)
         dasi = v(.dasi, [])
         activeCardiac = v(.activeCardiac, [])
+        cardiacSymptoms = v(.cardiacSymptoms, [])
         frail = v(.frail, false)
         asaClass = try? c.decodeIfPresent(Int.self, forKey: .asaClass)
         asaE = try? c.decodeIfPresent(Bool.self, forKey: .asaE)

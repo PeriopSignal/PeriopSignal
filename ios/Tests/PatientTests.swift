@@ -145,12 +145,86 @@ final class PatientTests: XCTestCase {
         XCTAssertTrue(PatientFunctional.cardiacStep(urgent).detail.hasPrefix("Urgent surgery"))
     }
 
+    /// The 2024 AHA/ACC Figure 1, box by box.
+    func testFigureOne() {
+        // First question: cardiovascular risk factors, disease or symptoms.
+        var healthy = PatientRecord()
+        healthy.ageYears = 40; healthy.sex = .female; healthy.heightCm = 165; healthy.weightKg = 60; healthy.smoking = "never"
+        XCTAssertTrue(PatientFunctional.noCardiacRisk(healthy))
+        XCTAssertEqual(PatientFunctional.cardiacStep(healthy).title, "No cardiovascular risk factors, disease or symptoms: proceed")
+        var noWeight = healthy; noWeight.weightKg = nil
+        XCTAssertFalse(PatientFunctional.noCardiacRisk(noWeight), "obesity can't be ruled out")
+        var noSmoking = healthy; noSmoking.smoking = nil
+        XCTAssertFalse(PatientFunctional.noCardiacRisk(noSmoking), "smoking not recorded")
+        var woman = healthy; woman.ageYears = 64
+        XCTAssertTrue(PatientFunctional.riskFactors(woman).isEmpty, "women count from over 65")
+        var man = healthy; man.sex = .male; man.ageYears = 56
+        XCTAssertEqual(PatientFunctional.riskFactors(man), ["man over 55"])
+        var obese = healthy; obese.weightKg = 90
+        XCTAssertEqual(PatientFunctional.riskFactors(obese), ["obesity"], "BMI 33")
+        var family = healthy; family.problems = ["fh-cad"]
+        XCTAssertEqual(PatientFunctional.riskFactors(family), ["family history of premature CAD"])
+        var symptomatic = healthy; symptomatic.cardiacSymptoms = ["syncope"]
+        XCTAssertFalse(PatientFunctional.noCardiacRisk(symptomatic))
+        var raisedBP = healthy; raisedBP.vitals["sbp"] = 150
+        XCTAssertFalse(PatientFunctional.noCardiacRisk(raisedBP), "a raised reading doesn't end the evaluation")
+        var fast = healthy; fast.vitals["hr"] = 118
+        XCTAssertFalse(PatientFunctional.noCardiacRisk(fast))
+
+        // Acute conditions, in the figure's words.
+        XCTAssertEqual(PatientFunctional.activeCardiac.map(\.label), ["Acute coronary syndrome", "Decompensated heart failure", "Unstable arrhythmia"])
+        var acute = demo; acute.activeCardiac = ["arrhythmia"]
+        XCTAssertTrue(PatientFunctional.cardiacStep(acute).detail.contains("deferring surgery, noninvasive treatment or palliation"))
+
+        // The seven risk modifiers.
+        var r = PatientRecord(); r.problems = ["chd"]
+        XCTAssertTrue(PatientFunctional.riskModifiers(r).isEmpty, "only elevated-risk congenital disease")
+        r.problems = ["valve-severe", "pulm-htn-severe", "chd-elevated", "pci-recent", "cva-recent", "pacemaker"]; r.frail = true
+        XCTAssertEqual(PatientFunctional.riskModifiers(r), ["severe valve disease", "severe pulmonary hypertension", "elevated-risk congenital heart disease", "coronary stent within 3 months", "stroke or TIA within 3 months", "pacemaker", "frailty"])
+        var mi = PatientRecord(); mi.problems = ["cad-recent"]
+        XCTAssertTrue(PatientFunctional.riskModifiers(mi).isEmpty, "a recent MI is not one of the figure's modifiers")
+
+        // Branches after the risk estimate.
+        let branch = PatientFunctional.branchAdvice(demo)
+        XCTAssertEqual(branch.count, 4, "\(branch)")
+        XCTAssertTrue(branch[0].hasPrefix("Consider team-based consultation"), "a modifier is present")
+        XCTAssertTrue(branch[1].contains("ECG") && branch[1].hasSuffix("(class 2a)."), "known coronary disease")
+        XCTAssertTrue(branch[2].hasPrefix("An echo is recommended"))
+        XCTAssertTrue(branch[3].hasPrefix("Consider starting guideline-directed medical therapy"))
+        var elevatedOnly = PatientRecord(); elevatedOnly.ageYears = 70; elevatedOnly.problems = ["insulin"]; elevatedOnly.highRiskSurgery = true
+        let b2 = PatientFunctional.branchAdvice(elevatedOnly)
+        XCTAssertEqual(b2.count, 2, "RCRI 2 without modifiers: \(b2)")
+        XCTAssertTrue(b2[0].hasSuffix("(class 2b)."), "no known disease or symptoms")
+        var low = PatientRecord(); low.ageYears = 60; low.problems = ["htn"]
+        XCTAssertTrue(PatientFunctional.branchAdvice(low).isEmpty, "low risk and no modifiers: proceed")
+        low.frail = true
+        XCTAssertEqual(PatientFunctional.branchAdvice(low).count, 3, "a modifier at low calculated risk: consult, echo, therapy")
+
+        // Functional capacity, testing and biomarkers.
+        var poor = demo; poor.mets = "lt4"
+        XCTAssertTrue(PatientFunctional.cardiacStep(poor).detail.contains("If more testing would not change management, proceed"))
+        var raised = poor; raised.labs["bnp"] = 150
+        let d = PatientFunctional.cardiacStep(raised).detail
+        XCTAssertTrue(d.contains("stress testing or CT coronary angiography (class 2b)"))
+        XCTAssertTrue(d.hasSuffix("postoperative troponin surveillance may be considered (class 2b)."))
+
+        // The H&P carries the symptoms and the figure's ECG, echo and consultation boxes.
+        var noted = demo; noted.cardiacSymptoms = ["chest-pain", "murmur"]
+        let lines = PatientSummary.assessmentLines(noted)
+        XCTAssertEqual(lines.first { $0.label == "Cardiac symptoms" }?.text, "Chest pain; Murmur")
+        XCTAssertEqual(lines.filter { $0.label == "Cardiac advice" }.count, 4, "3 boxes and the stent advice")
+    }
+
     func testConditionAdvice() {
         let advice = PatientFunctional.conditionAdvice(demo)
-        XCTAssertEqual(advice.count, 2, "\(advice)")
+        XCTAssertEqual(advice.count, 1, "\(advice)")
         XCTAssertTrue(advice[0].hasPrefix("Prior stent"))
-        XCTAssertTrue(advice[1].hasPrefix("A resting 12-lead ECG"), "known coronary disease and RCRI over 1")
         XCTAssertTrue(PatientFunctional.cardiacStep(demo).detail.hasSuffix("The condition-specific steps below still apply."))
+        var recentStent = demo; recentStent.problems.remove("pci"); recentStent.problems.insert("pci-recent")
+        XCTAssertTrue(PatientFunctional.conditionAdvice(recentStent).contains { $0.hasPrefix("Stent within 3 months") })
+        XCTAssertFalse(PatientFunctional.conditionAdvice(recentStent).contains { $0.hasPrefix("Prior stent") })
+        var dyspnea = PatientRecord(); dyspnea.ageYears = 70; dyspnea.cardiacSymptoms = ["dyspnea"]
+        XCTAssertTrue(PatientFunctional.conditionAdvice(dyspnea).contains { $0.hasPrefix("New dyspnea or signs of heart failure") && $0.hasSuffix("(class 1).") })
         var stroke = demo; stroke.problems.insert("cva-recent")
         XCTAssertTrue(PatientFunctional.conditionAdvice(stroke).contains { $0.hasPrefix("Stroke or TIA within 3 months") })
         var bp = demo; bp.vitals["sbp"] = 185
@@ -225,6 +299,7 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(a.scores["rcri"]?.points, b.scores["rcri"]?.points)
         var c = demo
         c.urgency = .timeSensitive; c.maskGrade = 2; c.sga = "easy"; c.airwayFollowUp = ["told"]; c.callIf = "SBP under 90"; c.frail = true
+        c.cardiacSymptoms = ["syncope"]
         let c2 = try JSONDecoder().decode(PatientRecord.self, from: try JSONEncoder().encode(c))
         XCTAssertEqual(c2.urgency, .timeSensitive)
         XCTAssertEqual(c2.maskGrade, 2)
@@ -232,6 +307,7 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(c2.airwayFollowUp, ["told"])
         XCTAssertEqual(c2.callIf, "SBP under 90")
         XCTAssertTrue(c2.frail)
+        XCTAssertEqual(c2.cardiacSymptoms, ["syncope"])
         let empty = try JSONDecoder().decode(PatientRecord.self, from: Data("{\"weightKg\": 70, \"future\": 1}".utf8))
         XCTAssertEqual(empty.weightKg, 70, "an older or newer file still opens")
         XCTAssertTrue(PatientRecord().isEmpty)

@@ -113,11 +113,17 @@ enum PatientSummary {
             out.append(Line("Functional capacity", fc.joined(separator: " · "), alert: r.mets == "lt4" || (d.map { $0 <= PatientFunctional.dasiCutoff } ?? false)))
         }
         if r.frail { out.append(Line("Frailty", "Frail by a validated tool")) }
+        let symptoms = PatientFunctional.cardiacSymptomFlags.filter { r.cardiacSymptoms.contains($0.id) }.map(\.label)
+        if !symptoms.isEmpty { out.append(Line("Cardiac symptoms", symptoms.joined(separator: "; "), alert: true)) }
         let active = PatientFunctional.acuteConditions(r)
         if !active.isEmpty { out.append(Line("Acute cardiac conditions", active.joined(separator: "; "), alert: true)) }
         if r.isAdult, !r.emergency, r.ageYears != nil {
             let step = PatientFunctional.cardiacStep(r)
             out.append(Line("Cardiac evaluation", step.title, alert: step.alert))
+            // The figure's ECG, echo and consultation boxes; the general therapy reminder stays on the screen.
+            for a in PatientFunctional.branchAdvice(r) where !a.hasPrefix("Consider starting guideline-directed") {
+                out.append(Line("Cardiac advice", a))
+            }
             for a in PatientFunctional.conditionAdvice(r) { out.append(Line("Cardiac advice", a, alert: true)) }
         }
         return out

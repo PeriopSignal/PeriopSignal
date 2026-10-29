@@ -108,6 +108,21 @@ struct PatientEditorView: View {
         Text(text).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
     }
 
+    /// A titled list of recommendations, each on its own line.
+    private func adviceList(_ title: String, _ items: [String], tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+            ForEach(Array(items.enumerated()), id: \.offset) { _, a in
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(systemName: "arrow.turn.down.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(tint)
+                    Text(a).font(PS.sys(size: 13)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14).padding(.vertical, 10)
+    }
+
     private func toggleRow(_ title: String, _ detail: String?, _ isOn: Binding<Bool>) -> some View {
         Toggle(isOn: isOn) {
             VStack(alignment: .leading, spacing: 2) {
@@ -360,6 +375,7 @@ struct PatientEditorView: View {
             toggleRow("Frail", "By a validated tool, such as the Clinical Frailty Scale; assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a)", bind(\.frail))
         }
         PatientGroup(title: "Cardiac evaluation", note: PatientFunctional.cardiacNote) {
+            PatientChipRow(label: "Cardiac symptoms or signs") { PatientChips(options: PatientFunctional.cardiacSymptomFlags, selection: bind(\.cardiacSymptoms)) }
             PatientChipRow(label: "Acute cardiac conditions") { PatientChips(options: PatientFunctional.activeCardiac, selection: bind(\.activeCardiac)) }
             let mods = PatientFunctional.riskModifiers(r)
             if !mods.isEmpty {
@@ -372,19 +388,15 @@ struct PatientEditorView: View {
                 Text(step.detail).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 14).padding(.vertical, 10)
+            let branch = PatientFunctional.branchAdvice(r)
+            if !branch.isEmpty {
+                Hairline().padding(.leading, 14)
+                adviceList("For this risk", branch, tint: PS.fg3)
+            }
             let advice = PatientFunctional.conditionAdvice(r)
             if !advice.isEmpty {
                 Hairline().padding(.leading, 14)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("By condition").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
-                    ForEach(Array(advice.enumerated()), id: \.offset) { _, a in
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Image(systemName: "arrow.turn.down.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.accent)
-                            Text(a).font(PS.sys(size: 13)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-                .padding(.horizontal, 14).padding(.vertical, 10)
+                adviceList("By condition", advice, tint: PS.accent)
             }
         }
         .id("cardiac")

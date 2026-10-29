@@ -56,9 +56,11 @@ enum PatientCatalog {
         PatientSystem(id: "cv", name: "Cardiovascular", icon: "heart", problems: [
             PatientProblem("htn", "Hypertension, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", stopBang: "pressure"),
             PatientProblem("htn-poor", "Hypertension, poorly controlled", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
+            PatientProblem("hyperlipidemia", "High cholesterol"),
             PatientProblem("cad", "Coronary disease or MI, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("pci", "Coronary stent, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
-            PatientProblem("cad-recent", "MI, ACS or stent within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
+            PatientProblem("pci-recent", "Coronary stent within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
+            PatientProblem("cad-recent", "MI or ACS within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
             PatientProblem("ischemia", "Ongoing cardiac ischemia", asa: 4, asaExample: "ongoing cardiac ischemia", rcri: "ihd"),
             PatientProblem("cabg", "Prior CABG", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("hf", "Heart failure", peds: 4, pedsExample: "congestive heart failure", rcri: "hf"),
@@ -77,6 +79,9 @@ enum PatientCatalog {
             PatientProblem("pulm-htn-severe", "Severe pulmonary hypertension"),
             PatientProblem("pvd", "Peripheral vascular disease"),
             PatientProblem("chd", "Congenital heart disease"),
+            // 2024 AHA/ACC Table 10: single ventricle or Fontan, cyanotic disease, TGA and similar lesions.
+            PatientProblem("chd-elevated", "Congenital heart disease, elevated-risk lesion"),
+            PatientProblem("fh-cad", "Family history of premature coronary disease"),
         ]),
         PatientSystem(id: "resp", name: "Respiratory", icon: "lungs", problems: [
             PatientProblem("lung-mild", "Mild lung disease", asa: 2, asaExample: "mild lung disease"),
