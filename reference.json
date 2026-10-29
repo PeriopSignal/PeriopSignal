@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-29",
-  "revision": 1793266951,
+  "revision": 1793274525,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -4180,6 +4180,213 @@
       "After 6 hours, a second dose of a 5-HT₃ antagonist or a butyrophenone may be considered when no alternative is available.",
       "Do not re-dose long-acting agents (aprepitant, fosaprepitant, palonosetron) in the PACU.",
       "Amisulpride 10 mg IV was more effective than 5 mg for treatment after failed non-dopaminergic prophylaxis; propofol 20–40 mg is effective as treatment."
+    ]
+  },
+  "diastolic": {
+    "reviewed": "2026-10",
+    "source": {
+      "id": "nagueh2025",
+      "citation": "Nagueh SF, Sanborn DY, Oh JK, et al. Recommendations for the Evaluation of Left Ventricular Diastolic Function by Echocardiography and for Heart Failure With Preserved Ejection Fraction Diagnosis: An Update From the American Society of Echocardiography. J Am Soc Echocardiogr. 2025;38:537–569.",
+      "url": "https://doi.org/10.1016/j.echo.2025.03.011"
+    },
+    "validation": "Validated against invasive pressures in 951 patients (Lababidi et al., Circulation 2025): accuracy 86%, with 2 indeterminate readings against 38 by the 2016 method.",
+    "scope": "Written for adults in sinus rhythm studied by transthoracic echo. The 2025 document says it should not be applied to children, to normal pregnancy, or in the intraoperative setting, and gives no TEE-specific cutoffs.",
+    "supersedes": "Replaces the 2016 ASE/EACVI recommendations (one algorithm for any LVEF; e′, E/e′ and PASP first; LA volume, LA strain, pulmonary vein flow and IVRT second).",
+    "populations": [
+      {
+        "id": "standard",
+        "name": "Sinus rhythm",
+        "mode": "main"
+      },
+      {
+        "id": "mac",
+        "name": "Moderate or severe mitral annular calcification",
+        "mode": "mac",
+        "notes": [
+          "Figure 4: E/A below 0.8 means normal LAP and above 1.8 increased LAP; between them, IVRT of 80 ms or more means normal and under 80 ms increased.",
+          "e′ and E/e′ are not used with annular calcification."
+        ]
+      },
+      {
+        "id": "transplant",
+        "name": "Heart transplant",
+        "mode": "transplant",
+        "notes": [
+          "E/A of 2 or more with a preserved EF is common after transplant; pulmonary vein S/D does not help, and LA reservoir strain should not be used.",
+          "SRIVR is the LV strain rate during isovolumic relaxation, averaged from the three apical views; E/SRIVR is in cm."
+        ]
+      },
+      {
+        "id": "af",
+        "name": "Atrial fibrillation or flutter",
+        "mode": "list",
+        "indicators": [
+          "Deceleration time under 160 ms with depressed LVEF",
+          "Peak acceleration rate of mitral E 1,900 cm/s² or more",
+          "IVRT 65 ms or less",
+          "Deceleration time of the pulmonary venous diastolic velocity 220 ms or less",
+          "E/Vp 1.4 or more",
+          "Septal E/e′ 11 or more",
+          "Peak TR velocity above 2.8 m/s"
+        ],
+        "notes": [
+          "Table 7 lists these as indicators of increased filling pressure in AF.",
+          "LA reservoir strain should not be used in AF; E/A and the A wave do not apply, and LA size is not a valid marker.",
+          "The 2025 document's dedicated AF algorithm is not built into this tool."
+        ]
+      },
+      {
+        "id": "ms",
+        "name": "Mitral stenosis",
+        "mode": "list",
+        "indicators": [
+          "IVRT under 60 ms (specific, not sensitive)",
+          "Mitral A velocity above 1.5 m/s",
+          "IVRT/TE–e′ under 4.2"
+        ],
+        "notes": [
+          "E/e′ is not useful in mitral stenosis."
+        ]
+      },
+      {
+        "id": "mr",
+        "name": "Severe primary mitral regurgitation",
+        "mode": "list",
+        "indicators": [
+          "IVRT under 60 ms (specific, not sensitive)",
+          "Ar − A 30 ms or more",
+          "IVRT/TE–e′ under 5.6",
+          "Average E/e′ above 14, only with depressed EF"
+        ],
+        "notes": [
+          "E/e′ is not useful in primary MR with a normal EF, and LA reservoir strain should not be used in significant MR.",
+          "Measure time intervals over several beats with matched RR intervals."
+        ]
+      },
+      {
+        "id": "mvsurg",
+        "name": "After mitral repair, replacement or TEER",
+        "mode": "list",
+        "indicators": [
+          "Time intervals and PA pressures may help after repair or replacement",
+          "After TEER: LAP = 4V² + RAP across the iatrogenic atrial septal shunt; a shunt velocity above 1.7 m/s usually means increased LAP"
+        ],
+        "notes": [
+          "e′ and E/e′ are not accurate with a prosthetic mitral valve or an annuloplasty ring."
+        ]
+      },
+      {
+        "id": "lvad",
+        "name": "LV assist device",
+        "mode": "list",
+        "indicators": [
+          "E/A above 2",
+          "RAP above 10 mmHg",
+          "PASP above 40 mmHg",
+          "Average E/e′ above 14 or septal E/e′ 15 or more",
+          "LA maximum volume index above 33 mL/m²",
+          "Interatrial septum: neutral, LAP about equal to RAP; bowing toward the right atrium, LAP about 5 mmHg above RAP; bowing toward the left atrium, about 5 mmHg below"
+        ],
+        "notes": [
+          "Table 7 lists these as indicators of increased filling pressure with an LVAD."
+        ]
+      },
+      {
+        "id": "ph",
+        "name": "Pulmonary hypertension without left heart disease",
+        "mode": "list",
+        "indicators": [
+          "E/A 2 or more favors postcapillary PH; 0.8 or less favors precapillary PH",
+          "With E/A between 0.8 and 2: lateral E/e′ above 13, LA volume index above 34 mL/m² and LA reservoir strain under 18% favor postcapillary PH"
+        ],
+        "notes": [
+          "TR velocity and PASP stand in for LAP only without lung parenchymal or pulmonary vascular disease.",
+          "The 2025 document's dedicated PH algorithm is not built into this tool."
+        ]
+      },
+      {
+        "id": "constriction",
+        "name": "Constrictive pericarditis",
+        "mode": "list",
+        "indicators": [],
+        "notes": [
+          "Excluded from the main algorithm: e′ and E/e′ are inaccurate in pericardial disease.",
+          "The 2025 document's constriction criteria are not built into this tool."
+        ]
+      },
+      {
+        "id": "hcm",
+        "name": "Hypertrophic cardiomyopathy",
+        "mode": "main",
+        "indicators": [
+          "Average E/e′ above 14",
+          "Ar − A 30 ms or more",
+          "Peak TR velocity above 2.8 m/s",
+          "LA maximum volume index above 34 mL/m²"
+        ],
+        "notes": [
+          "Table 7 indicators of increased filling pressure in HCM, shown alongside the main algorithm."
+        ]
+      },
+      {
+        "id": "restrictive",
+        "name": "Restrictive cardiomyopathy",
+        "mode": "main",
+        "indicators": [
+          "Average E/e′ above 14",
+          "Deceleration time under 140 ms (specific, not sensitive)",
+          "E/A above 2.5 (specific, not sensitive)",
+          "IVRT under 50 ms (specific, not sensitive)"
+        ],
+        "notes": [
+          "Table 7 indicators, shown alongside the main algorithm."
+        ]
+      },
+      {
+        "id": "tachy",
+        "name": "Sinus tachycardia or fused E and A",
+        "mode": "main",
+        "indicators": [
+          "Predominant early filling with depressed LVEF",
+          "IVRT 70 ms or less (specificity 79%)",
+          "Pulmonary vein systolic filling fraction 40% or less (specificity 88%)",
+          "Average E/e′ above 14 (high specificity, low sensitivity)"
+        ],
+        "notes": [
+          "E/A is unreliable when E at the onset of A is above 20 cm/s; a compensatory pause after an ectopic beat often separates E and A."
+        ]
+      },
+      {
+        "id": "ar",
+        "name": "Aortic regurgitation",
+        "mode": "main",
+        "indicators": [
+          "LA enlargement, average E/e′ above 14, LA reservoir strain under 18% and TR above 2.8 m/s support increased filling pressure",
+          "Acute severe AR: premature mitral valve closure and diastolic MR mean increased LV filling pressure"
+        ],
+        "notes": [
+          "Keep the AR jet out of the mitral inflow sample."
+        ]
+      }
+    ],
+    "exercise": [
+      [
+        "Definitely abnormal",
+        "Average E/e′ 14 or more (or septal 15 or more) with peak TR velocity above 3.2 m/s"
+      ],
+      [
+        "Normal",
+        "Average (or septal) E/e′ under 10 with TR velocity under 2.8 m/s"
+      ],
+      [
+        "HFpEF likely",
+        "E/e′ above 14 with TR velocity above 2.8 but under 3.2 m/s"
+      ]
+    ],
+    "notes": [
+      "Where the document's own figures and text differ by an equals sign (E/e′ ≥ 14 or > 14, LARS ≤ or < 18%), the tool follows Figure 3; a value exactly on a cutoff deserves a second look.",
+      "When e′ is reduced on one side only, Figure 3 counts it (septal ≤ 6, lateral ≤ 7 or average ≤ 6.5 cm/s); the document does not say how to weigh discordant sites.",
+      "Report mitral E, A, E/A, e′, average E/e′ and peak TR velocity, plus whichever supplemental measures decided the reading; if the grade cannot be set, report the filling pressure."
     ]
   }
 }

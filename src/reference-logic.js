@@ -1022,5 +1022,144 @@
     },
   };
 
+  // ---------- ASE 2025 diastolic function (DiastolicCalc.swift) ----------
+  // Nagueh SF, et al. J Am Soc Echocardiogr 2025;38:537–569. Figure 3 (LAP and grade, sinus rhythm,
+  // irrespective of LVEF), Figure 2 (is diastolic dysfunction present), Figure 4 (moderate or severe MAC),
+  // Section 15B (heart transplant). Inequalities follow Figure 3 where the document is inconsistent.
+  const DD = R.diastolicCutoffs = {
+    eSeptal: 6, eLateral: 7, eAverage: 6.5,              // reduced e′ when ≤
+    eeSeptal: 15, eeLateral: 13, eeAverage: 14,          // increased E/e′ when ≥ (Figure 2 uses average > 14)
+    pasp: 35, tr: 2.8,                                   // increased when ≥
+    pvsd: 0.67, lars: 18, lavi: 34, ivrt: 70,            // S/D ≤, LARS ≤, LAVi >, IVRT ≤
+    prEdv: 2, padp: 16, lwave: 50, ara: 30, valsalva: 50, // ≥, ≥, ≥, >, ≥ (% fall in E/A)
+    ageE: { '20-39': [7, 10, 9], '40-65': [6, 8, 7], '>65': [6, 7, 6.5] }, // Table 6: abnormal when < septal, lateral, average
+  };
+  const has = (x) => x !== null && x !== undefined && Number.isFinite(x);
+  /** The three main variables and the derived ratios. i: { E, A, eSeptal, eLateral, tr, pasp, lungDisease, ageBand } */
+  R.diastolicPrimaries = function (i) {
+    const E = has(i.E) ? i.E : null, A = has(i.A) ? i.A : null;
+    const es = has(i.eSeptal) ? i.eSeptal : null, el = has(i.eLateral) ? i.eLateral : null;
+    const ea = es !== null && el !== null ? (es + el) / 2 : null;
+    const EA = E !== null && A !== null && A > 0 ? E / A : null;
+    const ees = E !== null && es ? E / es : null, eel = E !== null && el ? E / el : null, eea = E !== null && ea ? E / ea : null;
+    const age = i.ageBand && DD.ageE[i.ageBand];
+    const low = (v, cut, k) => v === null ? null : (age ? v < age[k] : v <= cut);
+    const eFlags = [low(es, DD.eSeptal, 0), low(el, DD.eLateral, 1), low(ea, DD.eAverage, 2)];
+    const v1 = eFlags.every((f) => f === null) ? null : eFlags.some((f) => f === true);
+    const rFlags = [ees === null ? null : ees >= DD.eeSeptal, eel === null ? null : eel >= DD.eeLateral, eea === null ? null : eea >= DD.eeAverage];
+    const v2 = rFlags.every((f) => f === null) ? null : rFlags.some((f) => f === true);
+    let v3 = null, v3by = null;
+    if (!i.lungDisease) {
+      if (has(i.pasp)) { v3 = i.pasp >= DD.pasp; v3by = 'pasp'; }
+      else if (has(i.tr)) { v3 = i.tr >= DD.tr; v3by = 'tr'; }
+    }
+    return { E, A, EA, es, el, ea, ees, eel, eea, v1, v2, v3, v3by, eFlags, rFlags };
+  };
+  const pick = (val, test) => (has(val) ? test(val) : null);
+  /** Figure 3 for sinus rhythm. Returns { lap, grade, headline, explanation, steps[], cautions[], dysfunction } with
+      lap 'normal' | 'increased' | 'lvedp' | 'unknown' and grade 0 (normal) | 1 | 2 | 3 | null. */
+  R.diastolic = function (i) {
+    const p = R.diastolicPrimaries(i), steps = [], cautions = [];
+    const f = (x) => R.fmt(x);
+    const show = (flag) => (flag === null ? 'not entered' : (flag ? 'abnormal' : 'normal'));
+    // the three main variables, described
+    const eText = [p.es !== null ? 'septal ' + f(p.es) : null, p.el !== null ? 'lateral ' + f(p.el) : null, p.ea !== null ? 'average ' + f(p.ea) : null].filter(Boolean).join(', ');
+    const rText = [p.ees !== null ? 'septal ' + f(p.ees) : null, p.eel !== null ? 'lateral ' + f(p.eel) : null, p.eea !== null ? 'average ' + f(p.eea) : null].filter(Boolean).join(', ');
+    steps.push({ id: 'v1', label: 'e′ reduced', state: p.v1, text: p.v1 === null ? 'Enter septal and lateral e′' : eText + ' cm/s · ' + show(p.v1) });
+    steps.push({ id: 'v2', label: 'E/e′ increased', state: p.v2, text: p.v2 === null ? 'Needs E and e′' : rText + ' · ' + show(p.v2) });
+    steps.push({ id: 'v3', label: p.v3by === 'tr' ? 'TR velocity increased' : 'PASP increased', state: p.v3,
+      text: i.lungDisease ? 'Not used: lung or pulmonary vascular disease' : (p.v3 === null ? 'Enter PASP, or TR velocity when RAP cannot be estimated' : (p.v3by === 'pasp' ? 'PASP ' + f(i.pasp) + ' mmHg' : 'TR ' + f(i.tr) + ' m/s') + ' · ' + show(p.v3)) });
+    const prim = [p.v1, p.v2, p.v3], avail = prim.filter((x) => x !== null), abn = avail.filter((x) => x).length;
+    const out = (lap, grade, headline, explanation) => ({ lap, grade, headline, explanation, steps, cautions, primaries: p, dysfunction: R.diastolicPresence(i, p) });
+    const grading = (why) => {
+      if (p.EA === null) return out('increased', null, 'Increased LAP', why + ' Enter E and A: E/A below 2 is Grade 2, 2 or more is Grade 3.');
+      steps.push({ id: 'ea', label: 'E/A', state: null, text: f(p.EA) + (p.EA >= 2 ? ' · 2 or more' : ' · below 2') });
+      return p.EA >= 2 ? out('increased', 3, 'Grade 3 Diastolic Dysfunction', why + ' E/A ' + f(p.EA) + ' is 2 or more: marked increase in LAP.')
+        : out('increased', 2, 'Grade 2 Diastolic Dysfunction', why + ' E/A ' + f(p.EA) + ' is below 2: mild to moderate increase in LAP.');
+    };
+    const supplemental = (why, eOnly) => {
+      const s = [
+        { id: 'pvsd', label: 'Pulmonary vein S/D ≤ 0.67', v: pick(i.pvsd, (x) => x <= DD.pvsd), text: has(i.pvsd) ? f(i.pvsd) : null },
+        { id: 'lars', label: 'LA reservoir strain ≤ 18%', v: pick(i.lars, (x) => x <= DD.lars), text: has(i.lars) ? f(i.lars) + '%' : null },
+        { id: 'lavi', label: 'LA volume index > 34 mL/m²', v: pick(i.lavi, (x) => x > DD.lavi), text: has(i.lavi) ? f(i.lavi) + ' mL/m²' : null },
+        { id: 'ivrt', label: 'IVRT ≤ 70 ms', v: pick(i.ivrt, (x) => x <= DD.ivrt), text: has(i.ivrt) ? f(i.ivrt) + ' ms' : null },
+      ];
+      const entered = s.filter((x) => x.v !== null), pos = entered.filter((x) => x.v);
+      for (const x of entered) steps.push({ id: x.id, label: x.label, state: x.v, text: x.text + ' · ' + (x.v ? 'present' : 'absent') });
+      if (pos.length) return grading(why + ' ' + pos.map((x) => x.label).join(', ') + ': increased LAP.');
+      if (entered.length) {
+        const noGrade = eOnly ? ' The guideline assigns no grade on this path (Grade 1 needs E/A ≤ 0.8).' : '';
+        return out('normal', null, 'Normal LAP', why + ' None of the supplemental signs is present, so LAP is likely normal.' + noGrade);
+      }
+      // second line: when S/D, LARS, LAVi and IVRT are unavailable or unreliable
+      const m = [
+        { id: 'predv', label: 'PR end-diastolic velocity ≥ 2 m/s', v: pick(i.prEdv, (x) => x >= DD.prEdv), text: has(i.prEdv) ? f(i.prEdv) + ' m/s' : null },
+        { id: 'padp', label: 'PA diastolic pressure ≥ 16 mmHg', v: pick(i.padp, (x) => x >= DD.padp), text: has(i.padp) ? f(i.padp) + ' mmHg' : null },
+        { id: 'lwave', label: 'Mitral L-wave ≥ 50 cm/s', v: pick(i.lwave, (x) => x >= DD.lwave), text: has(i.lwave) ? f(i.lwave) + ' cm/s' : null },
+        { id: 'ara', label: 'Ar − A > 30 ms', v: pick(i.ara, (x) => x > DD.ara), text: has(i.ara) ? f(i.ara) + ' ms' : null },
+        { id: 'valsalva', label: 'E/A falls ≥ 50% with Valsalva', v: pick(i.valsalva, (x) => x >= DD.valsalva), text: has(i.valsalva) ? f(i.valsalva) + '%' : null },
+      ];
+      const me = m.filter((x) => x.v !== null), mp = me.filter((x) => x.v);
+      for (const x of me) steps.push({ id: x.id, label: x.label, state: x.v, text: x.text + ' · ' + (x.v ? 'present' : 'absent') });
+      if (mp.length && mp.every((x) => x.id === 'ara')) return out('lvedp', null, 'Isolated LVEDP Elevation', why + ' Ar − A above 30 ms reflects LV end-diastolic pressure rather than mean LAP; report it as an isolated LVEDP increase.');
+      if (mp.length) return grading(why + ' ' + mp.map((x) => x.label).join(', ') + ': increased LAP.');
+      if (me.length) return out('normal', null, 'Normal LAP', why + ' None of the further signs is present, so LAP is likely normal.');
+      return out('unknown', null, 'LAP Not Yet Determined', why + ' Enter the supplemental parameters: pulmonary vein S/D, LA reservoir strain, LA volume index or IVRT.');
+    };
+    if (!avail.length) return out('unknown', null, 'Enter the Measurements', 'Start with septal and lateral e′, mitral E and A, and PASP or TR velocity.');
+    if (avail.length < 3) {
+      cautions.push('One of the three main variables is missing. The guideline does not say how to read the other two alone, so the tool goes on to the supplemental parameters.');
+      return supplemental((abn ? abn + ' of the ' + avail.length + ' main variables entered ' + (abn === 1 ? 'is' : 'are') + ' abnormal.' : 'The ' + avail.length + ' main variables entered are normal.'), false);
+    }
+    if (abn === 0) return out('normal', 0, 'Normal Diastolic Function', 'e′, E/e′ and ' + (p.v3by === 'tr' ? 'TR velocity' : 'PASP') + ' are all normal: normal LAP and normal diastolic function.');
+    if (abn === 3) return grading('All three main variables are abnormal.');
+    if (p.v1 && !p.v2 && !p.v3) {
+      if (p.EA !== null && p.EA <= 0.8) return out('normal', 1, 'Grade 1 Diastolic Dysfunction', 'Only e′ is reduced and E/A is ' + f(p.EA) + ' (0.8 or less): impaired relaxation with normal LAP.');
+      return supplemental(p.EA === null ? 'Only e′ is reduced; E/A is not entered.' : 'Only e′ is reduced, with E/A ' + f(p.EA) + ' above 0.8.', true);
+    }
+    const which = [p.v1 ? 'e′' : null, p.v2 ? 'E/e′' : null, p.v3 ? (p.v3by === 'tr' ? 'TR velocity' : 'PASP') : null].filter(Boolean);
+    return supplemental((which.length === 1 ? 'Only ' + which[0] + ' is abnormal.' : which.join(' and ') + ' are abnormal.'), false);
+  };
+  /** Figure 2: is diastolic dysfunction present? Reduced e′ with 1 marker, or normal e′ with 2. */
+  R.diastolicPresence = function (i, p) {
+    p = p || R.diastolicPrimaries(i);
+    if (p.v1 === null) return { state: null, markers: [], text: 'Needs e′' };
+    const markers = [
+      { label: 'average E/e′ > 14', v: p.eea === null ? null : p.eea > DD.eeAverage },
+      { label: 'LA reservoir strain ≤ 18%', v: pick(i.lars, (x) => x <= DD.lars) },
+      { label: 'E/A ≤ 0.8 or ≥ 2', v: p.EA === null ? null : (p.EA <= 0.8 || p.EA >= 2) },
+      { label: 'LA volume index > 34 mL/m²', v: pick(i.lavi, (x) => x > DD.lavi) },
+    ];
+    const n = markers.filter((m) => m.v === true).length;
+    const present = (p.v1 && n >= 1) || (!p.v1 && n >= 2);
+    const supportive = has(i.lvmi) && i.sex ? (i.sex === 'female' ? i.lvmi > 95 : i.lvmi > 115) : false;
+    return { state: present, markers, count: n, supportive,
+      text: present ? 'Present: ' + (p.v1 ? 'reduced e′ with ' : 'normal e′ with ') + n + ' marker' + (n === 1 ? '' : 's')
+        : 'Criteria not met (' + (p.v1 ? 'reduced e′, no marker' : 'normal e′, ' + n + ' marker' + (n === 1 ? '' : 's')) + ')' };
+  };
+  /** Figure 4: moderate or severe mitral annular calcification. */
+  R.diastolicMAC = function (i) {
+    const EA = has(i.E) && has(i.A) && i.A > 0 ? i.E / i.A : null;
+    if (EA === null) return { lap: 'unknown', headline: 'Enter E and A', explanation: 'With annular calcification the grade rests on E/A and IVRT; e′ and E/e′ are not used.' };
+    if (EA < 0.8) return { lap: 'normal', EA, headline: 'Normal LAP', explanation: 'E/A ' + R.fmt(EA) + ' is below 0.8.' };
+    if (EA > 1.8) return { lap: 'increased', EA, headline: 'Increased LAP', explanation: 'E/A ' + R.fmt(EA) + ' is above 1.8.' };
+    if (!has(i.ivrt)) return { lap: 'unknown', EA, headline: 'Enter IVRT', explanation: 'E/A ' + R.fmt(EA) + ' sits between 0.8 and 1.8: IVRT decides (80 ms or more normal, under 80 ms increased).' };
+    return i.ivrt >= 80 ? { lap: 'normal', EA, headline: 'Normal LAP', explanation: 'E/A ' + R.fmt(EA) + ' with IVRT ' + R.fmt(i.ivrt) + ' ms (80 ms or more).' }
+      : { lap: 'increased', EA, headline: 'Increased LAP', explanation: 'E/A ' + R.fmt(EA) + ' with IVRT ' + R.fmt(i.ivrt) + ' ms (under 80 ms).' };
+  };
+  /** Section 15B: heart transplant recipients. */
+  R.diastolicTransplant = function (i) {
+    const p = R.diastolicPrimaries(i);
+    const ee = p.eea !== null ? p.eea : null;
+    if (ee === null) return { lap: 'unknown', headline: 'Enter E and Both e′', explanation: 'The transplant pathway starts from average E/e′.' };
+    if (ee < 7) return { lap: 'normal', headline: 'Normal Filling Pressure', explanation: 'Average E/e′ ' + R.fmt(ee) + ' is below 7.' };
+    if (ee > 14) return { lap: 'increased', headline: 'Increased Filling Pressure', explanation: 'Average E/e′ ' + R.fmt(ee) + ' is above 14.' };
+    if (has(i.esr)) return i.esr <= 200 ? { lap: 'normal', headline: 'Normal Filling Pressure', explanation: 'Average E/e′ ' + R.fmt(ee) + ' (7–14), E/SRIVR ' + R.fmt(i.esr) + ' cm (200 or less).' }
+      : { lap: 'increased', headline: 'Increased Filling Pressure', explanation: 'Average E/e′ ' + R.fmt(ee) + ' (7–14), E/SRIVR ' + R.fmt(i.esr) + ' cm (above 200).' };
+    if (has(i.tr)) return i.tr <= 2.8 ? { lap: 'normal', headline: 'Normal Filling Pressure', explanation: 'Average E/e′ ' + R.fmt(ee) + ' (7–14), no E/SRIVR, TR ' + R.fmt(i.tr) + ' m/s (2.8 or less).' }
+      : { lap: 'increased', headline: 'Increased Filling Pressure', explanation: 'Average E/e′ ' + R.fmt(ee) + ' (7–14), no E/SRIVR, TR ' + R.fmt(i.tr) + ' m/s (above 2.8).' };
+    return { lap: 'unknown', headline: 'Enter E/SRIVR or TR', explanation: 'Average E/e′ ' + R.fmt(ee) + ' sits between 7 and 14: E/SRIVR decides (200 cm or less normal), or TR velocity when SRIVR cannot be measured.' };
+  };
+
   global.PSRef = R;
 })(typeof window !== 'undefined' ? window : globalThis);

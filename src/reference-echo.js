@@ -108,10 +108,105 @@
     if (!data()) c.loadBundle().then(update);
   }
 
-  // ---------- ASE diastolic function (filled in from the guideline research) ----------
+  // ---------- ASE 2025 diastolic function ----------
+  const MAIN = [
+    ['E', 'Mitral E velocity', 'cm/s', 'Pulsed Doppler at the leaflet tips'],
+    ['A', 'Mitral A velocity', 'cm/s', null],
+    ['eSeptal', 'Septal e′', 'cm/s', 'Tissue Doppler'],
+    ['eLateral', 'Lateral e′', 'cm/s', 'Tissue Doppler'],
+    ['pasp', 'PA systolic pressure', 'mmHg', 'From TR velocity plus RAP; preferred when RAP can be estimated'],
+    ['tr', 'Peak TR velocity', 'm/s', 'Used when RAP cannot be estimated'],
+  ];
+  const SUPP = [
+    ['pvsd', 'Pulmonary vein S/D', '', 'Abnormal ≤ 0.67; most reliable with reduced EF'],
+    ['lars', 'LA reservoir strain', '%', 'Abnormal ≤ 18%'],
+    ['lavi', 'LA volume index', 'mL/m²', 'Abnormal > 34; not from athletes, anemia, AF or mitral disease'],
+    ['ivrt', 'IVRT', 'ms', 'Abnormal ≤ 70 ms; rate dependent'],
+  ];
+  const MORE = [
+    ['prEdv', 'PR end-diastolic velocity', 'm/s', 'Abnormal ≥ 2 m/s'],
+    ['padp', 'PA diastolic pressure', 'mmHg', 'Abnormal ≥ 16 mmHg'],
+    ['lwave', 'Mitral L-wave', 'cm/s', 'Abnormal ≥ 50 cm/s'],
+    ['ara', 'Ar − A duration', 'ms', 'Abnormal > 30 ms (reflects LVEDP)'],
+    ['valsalva', 'Fall in E/A with Valsalva', '%', 'Abnormal ≥ 50%'],
+  ];
   function mountDiastolic(host, c) {
-    if (window.PSDiastolic) return window.PSDiastolic(host, c);
-    host.innerHTML = '<p class="r-muted">Loading…</p>';
+    const { R, esc, eyebrow, seg, numIn, resultCard, footnote, I } = c;
+    const st = { pop: 'standard', sex: 'male', age: '', lung: false, v: {}, more: false };
+    const num = (k) => R.num(st.v[k]);
+    const data = () => (c.bundle() && c.bundle().diastolic) || null;
+    const input = () => ({ E: num('E'), A: num('A'), eSeptal: num('eSeptal'), eLateral: num('eLateral'), pasp: num('pasp'), tr: num('tr'), lungDisease: st.lung, ageBand: st.age || null,
+      pvsd: num('pvsd'), lars: num('lars'), lavi: num('lavi'), ivrt: num('ivrt'), prEdv: num('prEdv'), padp: num('padp'), lwave: num('lwave'), ara: num('ara'), valsalva: num('valsalva'),
+      esr: num('esr'), lvmi: num('lvmi'), sex: st.sex });
+    const rows = (list, flags) => `<div class="r-card flush">${list.map(([k, label, unit, hint]) => {
+      const fl = flags ? flags[k] : null;
+      return `<div class="r-meas"><label class="mt" for="dd-${k}"><span>${esc(label)}</span>${hint ? `<small>${esc(hint)}</small>` : ''}</label>${fl === true ? '<i class="gd" style="background:var(--accent)" title="Abnormal"></i>' : (fl === false ? '<i class="gd" style="background:var(--new)" title="Normal"></i>' : '<i class="gd"></i>')}${numIn('dd-' + k, st.v[k], 'val', { k, label })}<span class="mu">${esc(unit)}</span></div>`;
+    }).join('')}</div>`;
+    const toneFor = (r) => r.lap === 'increased' ? 'var(--accent)' : (r.lap === 'lvedp' ? 'var(--orange)' : (r.lap === 'normal' ? (r.grade === 1 ? 'var(--amber)' : 'var(--new)') : 'var(--fg-3)'));
+    function summaryText(r) {
+      const p = r.primaries || R.diastolicPrimaries(input());
+      const parts = [];
+      if (p.E !== null) parts.push('E ' + R.fmt(p.E) + ' cm/s'); if (p.A !== null) parts.push('A ' + R.fmt(p.A) + ' cm/s'); if (p.EA !== null) parts.push('E/A ' + R.fmt(p.EA));
+      if (p.es !== null) parts.push('septal e′ ' + R.fmt(p.es)); if (p.el !== null) parts.push('lateral e′ ' + R.fmt(p.el)); if (p.eea !== null) parts.push('average E/e′ ' + R.fmt(p.eea));
+      if (num('pasp') !== null) parts.push('PASP ' + R.fmt(num('pasp')) + ' mmHg'); if (num('tr') !== null) parts.push('TR ' + R.fmt(num('tr')) + ' m/s');
+      for (const [k, label, unit] of SUPP.concat(MORE)) if (num(k) !== null) parts.push(label + ' ' + R.fmt(num(k)) + (unit ? ' ' + unit : ''));
+      return `LV diastolic function (ASE 2025): ${r.headline}. ${r.explanation}\n${parts.join('; ')}`;
+    }
+    const update = c.view(host, () => {
+      const d = data();
+      if (!d) return `<p class="r-muted">${c.bundle() ? 'The diastolic content is not in this copy of the reference file yet; reload in a minute.' : 'Loading the algorithm…'}</p>`;
+      const pop = d.populations.find((x) => x.id === st.pop) || d.populations[0];
+      const i = input();
+      let h = `<div class="r-stack"><section class="r-warnbox">${c.caution(d.scope)}</section>`;
+      h += `<section class="r-card"><label class="r-lesion plain r-pick" for="dd-pop"><span class="r-eyebrow">Patient</span><span class="r-picked"><span>${esc(pop.name)}</span>${I.updown}</span><select id="dd-pop" data-a="pop" aria-label="Patient group">${d.populations.map((x) => `<option value="${esc(x.id)}"${x.id === pop.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>`;
+      if (pop.mode === 'main') {
+        h += `<div class="r-inline"><span class="lab">e′ cutoffs</span><select id="dd-age" data-a="age" aria-label="e′ cutoffs"><option value=""${st.age ? '' : ' selected'}>Figure 3 (any age)</option><option value="20-39"${st.age === '20-39' ? ' selected' : ''}>Age 20–39 (Table 6)</option><option value="40-65"${st.age === '40-65' ? ' selected' : ''}>Age 40–65 (Table 6)</option><option value=">65"${st.age === '>65' ? ' selected' : ''}>Age over 65 (Table 6)</option></select></div>`;
+        h += c.switchRow('lung', st.lung, 'Lung or pulmonary vascular disease', 'TR velocity and PASP then stop standing in for LAP');
+      }
+      h += `</section>`;
+      // result
+      if (pop.mode === 'main') {
+        const r = R.diastolic(i), tone = toneFor(r);
+        const pr = r.dysfunction;
+        let inner = `<div class="r-rowtop">${eyebrow('ASE 2025 · Figure 3', tone)}<button type="button" class="r-ghost sm" data-a="copy">${I.copy}Copy</button></div><p class="r-headline big${r.lap === 'unknown' ? ' muted' : ''}">${esc(r.headline)}</p><p class="r-detail">${esc(r.explanation)}</p>`;
+        inner += `<div class="dd-steps">${r.steps.map((s) => `<div class="dd-step"><i style="background:${s.state === true ? 'var(--accent)' : (s.state === false ? 'var(--new)' : 'var(--fg-3)')}"></i><span><strong>${esc(s.label)}</strong> ${esc(s.text)}</span></div>`).join('')}</div>`;
+        if (pr && pr.state !== null) inner += `<p class="r-note2">${I.info}<span>Diastolic dysfunction (Figure 2): ${esc(pr.text)}${pr.supportive ? '; LV mass index supports it' : ''}.</span></p>`;
+        inner += r.cautions.map(c.caution).join('');
+        h += resultCard(tone, inner);
+        if ((r.lap === 'normal' || r.grade === 1) && d.exercise) h += `<section class="r-sec">${eyebrow('If symptomatic: diastolic exercise echo')}${c.factTable(d.exercise)}</section>`;
+        if (pop.indicators && pop.indicators.length) h += `<section class="r-sec">${eyebrow(pop.name + ': also look for')}${c.takeList(pop.indicators)}${(pop.notes || []).map((n) => footnote(n)).join('')}</section>`;
+        const p = r.primaries;
+        h += `<section class="r-sec">${eyebrow('Main variables')}${rows(MAIN, { E: null, A: null, eSeptal: p.eFlags[0], eLateral: p.eFlags[1], pasp: p.v3by === 'pasp' ? p.v3 : null, tr: p.v3by === 'tr' ? p.v3 : null })}`;
+        const derived = [p.EA !== null ? 'E/A ' + R.fmt(p.EA) : null, p.ea !== null ? 'average e′ ' + R.fmt(p.ea) + ' cm/s' : null, p.ees !== null ? 'septal E/e′ ' + R.fmt(p.ees) : null, p.eel !== null ? 'lateral E/e′ ' + R.fmt(p.eel) : null, p.eea !== null ? 'average E/e′ ' + R.fmt(p.eea) : null].filter(Boolean);
+        if (derived.length) h += `<p class="r-small">${esc(derived.join(' · '))}</p>`;
+        h += `</section><section class="r-sec">${eyebrow('Supplemental, when the main three disagree')}${rows(SUPP, { pvsd: R.num(st.v.pvsd) === null ? null : num('pvsd') <= 0.67, lars: num('lars') === null ? null : num('lars') <= 18, lavi: num('lavi') === null ? null : num('lavi') > 34, ivrt: num('ivrt') === null ? null : num('ivrt') <= 70 })}</section>`;
+        h += `<section class="r-sec"><button type="button" class="r-disclose" data-a="more" aria-expanded="${st.more}">${eyebrow('If those are not available or reliable')}<span>${st.more ? '−' : '+'}</span></button>${st.more ? rows(MORE, { prEdv: num('prEdv') === null ? null : num('prEdv') >= 2, padp: num('padp') === null ? null : num('padp') >= 16, lwave: num('lwave') === null ? null : num('lwave') >= 50, ara: num('ara') === null ? null : num('ara') > 30, valsalva: num('valsalva') === null ? null : num('valsalva') >= 50 }) : ''}</section>`;
+        h += `<section class="r-sec">${eyebrow('Supportive')}<div class="r-inline"><span class="lab">Sex, for LV mass</span>${seg('sex', [['male', 'Male'], ['female', 'Female']], st.sex, 'Sex')}</div>${rows([['lvmi', 'LV mass index', 'g/m²', 'Supports diastolic dysfunction above 95 (women) or 115 (men), not in athletes']], { lvmi: num('lvmi') === null ? null : (st.sex === 'female' ? num('lvmi') > 95 : num('lvmi') > 115) })}</section>`;
+      } else if (pop.mode === 'mac' || pop.mode === 'transplant') {
+        const r = pop.mode === 'mac' ? R.diastolicMAC(i) : R.diastolicTransplant(i);
+        const tone = r.lap === 'increased' ? 'var(--accent)' : (r.lap === 'normal' ? 'var(--new)' : 'var(--fg-3)');
+        h += resultCard(tone, `${eyebrow(pop.mode === 'mac' ? 'ASE 2025 · Figure 4' : 'ASE 2025 · Section 15B', tone)}<p class="r-headline big${r.lap === 'unknown' ? ' muted' : ''}">${esc(r.headline)}</p><p class="r-detail">${esc(r.explanation)}</p>`);
+        const list = pop.mode === 'mac' ? [['E', 'Mitral E velocity', 'cm/s', null], ['A', 'Mitral A velocity', 'cm/s', null], ['ivrt', 'IVRT', 'ms', 'Decides when E/A is 0.8–1.8']]
+          : [['E', 'Mitral E velocity', 'cm/s', null], ['eSeptal', 'Septal e′', 'cm/s', null], ['eLateral', 'Lateral e′', 'cm/s', null], ['esr', 'E/SRIVR', 'cm', 'Decides when average E/e′ is 7–14'], ['tr', 'Peak TR velocity', 'm/s', 'When SRIVR cannot be measured']];
+        h += `<section class="r-sec">${eyebrow('Measurements')}${rows(list, null)}</section>`;
+        if (pop.notes) h += `<section class="r-sec">${pop.notes.map((n) => footnote(n)).join('')}</section>`;
+      } else {
+        h += resultCard('var(--accent-2)', `${eyebrow('Main algorithm does not apply', 'var(--accent-2)')}<p class="r-headline big">${esc(pop.name)}</p><p class="r-detail">The 2025 document reads filling pressure in this group from its own signs, listed below; enter them in the report rather than a grade.</p>`);
+        if (pop.indicators && pop.indicators.length) h += `<section class="r-sec">${eyebrow('Signs of increased filling pressure')}${c.takeList(pop.indicators)}</section>`;
+        if (pop.notes) h += `<section class="r-sec">${pop.notes.map((n) => footnote(n)).join('')}</section>`;
+      }
+      h += `<footer class="r-footer">${eyebrow('Source')}<div class="r-src"><p>${esc(d.source.citation)}</p><a href="${esc(d.source.url)}" target="_blank" rel="noopener">Open ${I.ext}</a></div>${footnote(d.supersedes)}${footnote(d.validation)}${(d.notes || []).map((n) => footnote(n)).join('')}</footer>`;
+      return h + `</div>`;
+    }, {
+      pop(el) { st.pop = el.value; },
+      age(el) { st.age = el.value; },
+      lung() { st.lung = !st.lung; },
+      sex(el) { st.sex = el.dataset.v; },
+      val(el) { st.v[el.dataset.k] = el.value; },
+      more() { st.more = !st.more; },
+      copy() { const r = R.diastolic(input()); c.F.copyText(summaryText(r), 'Reading copied'); return false; },
+    });
+    if (!data()) c.loadBundle().then(update);
   }
 
   window.PSEcho = { mountChamber, mountDiastolic };

@@ -15,6 +15,7 @@
     search: svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>', 2.2),
     chevR: svg('<path d="M9 5l7 7-7 7"/>', 2.2),
     chevL: svg('<path d="M15 5l-7 7 7 7"/>', 2.4),
+    updown: svg('<path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4"/>', 2.2),
     star: svg('<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>'),
     starFill: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
     reset: svg('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/>', 2.1),
@@ -138,10 +139,38 @@
       if (v !== null && from.value !== v) from.value = v;
     }
   }
+  // Children match by key where they have one (their id, a data-key, or the first id inside them), so a section
+  // appearing above a field never turns the field being typed in into a different one; the rest match by
+  // position. Unwanted nodes are removed rather than the kept one moved, since moving a node blurs its field.
+  const keyOf = (n) => {
+    if (n.nodeType !== 1) return null;
+    if (n.id) return '#' + n.id;
+    if (n.dataset && n.dataset.key) return 'k:' + n.dataset.key;
+    const d = n.querySelector('[id]');
+    return d ? '>' + d.id : null;
+  };
   function morphChildren(from, to) {
-    const fc = Array.from(from.childNodes), tc = Array.from(to.childNodes);
-    for (let i = 0; i < tc.length; i++) { if (i < fc.length) morphNode(fc[i], tc[i]); else from.appendChild(tc[i]); }
-    for (let i = tc.length; i < fc.length; i++) from.removeChild(fc[i]);
+    const tc = Array.from(to.childNodes), tk = tc.map(keyOf);
+    const keyed = new Map();
+    for (let n = from.firstChild; n; n = n.nextSibling) { const k = keyOf(n); if (k && !keyed.has(k)) keyed.set(k, n); }
+    let cur = from.firstChild;
+    for (let i = 0; i < tc.length; i++) {
+      const t = tc[i], k = tk[i];
+      let match = null;
+      if (k) { match = keyed.get(k) || null; keyed.delete(k); }
+      else if (cur && cur.nodeType === t.nodeType && cur.nodeName === t.nodeName && !keyOf(cur)) match = cur;
+      if (!match) { from.insertBefore(t, cur); continue; }
+      if (match === cur) cur = cur.nextSibling;
+      else {
+        const later = new Set(tk.slice(i + 1).filter(Boolean));
+        let reorder = false;
+        for (let n = cur; n && n !== match; n = n.nextSibling) { const nk = keyOf(n); if (nk && later.has(nk)) { reorder = true; break; } }
+        if (reorder) from.insertBefore(match, cur);
+        else { while (cur && cur !== match) { const nx = cur.nextSibling; from.removeChild(cur); cur = nx; } cur = match.nextSibling; }
+      }
+      morphNode(match, t);
+    }
+    while (cur) { const nx = cur.nextSibling; from.removeChild(cur); cur = nx; }
   }
   function patch(host, html) { const t = document.createElement('template'); t.innerHTML = html; morphChildren(host, t.content); }
 

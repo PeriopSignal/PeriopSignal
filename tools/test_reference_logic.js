@@ -365,5 +365,71 @@ test('echo values in reference.json', () => {
   }
 });
 
+// ---------- ASE 2025 diastolic function ----------
+const dd = (i) => R.diastolic(i);
+test('diastolic: the main algorithm (Figure 3)', () => {
+  // all normal
+  let r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 2.3 });
+  eq([r.lap, r.grade], ['normal', 0]);
+  // all abnormal: grade by E/A
+  r = dd({ E: 100, A: 80, eSeptal: 5, eLateral: 6, tr: 3.0 });
+  eq([r.lap, r.grade], ['increased', 2], 'E/A 1.25 → Grade 2');
+  r = dd({ E: 120, A: 50, eSeptal: 5, eLateral: 6, tr: 3.0 });
+  eq([r.lap, r.grade], ['increased', 3], 'E/A 2.4 → Grade 3');
+  // e′ only, E/A ≤ 0.8 → Grade 1
+  r = dd({ E: 50, A: 80, eSeptal: 5, eLateral: 6.5, tr: 2.2 });
+  eq([r.lap, r.grade], ['normal', 1]);
+  // e′ only, E/A > 0.8 → supplemental; none present → normal LAP without grade
+  r = dd({ E: 70, A: 70, eSeptal: 5, eLateral: 6.5, tr: 2.2, lars: 30, lavi: 28 });
+  eq([r.lap, r.grade], ['normal', null]);
+  assert.ok(r.explanation.includes('no grade'));
+  // e′ only, E/A > 0.8, LARS ≤ 18 → increased LAP, grade by E/A
+  r = dd({ E: 70, A: 70, eSeptal: 5, eLateral: 6.5, tr: 2.2, lars: 16 });
+  eq([r.lap, r.grade], ['increased', 2]);
+  // TR only abnormal → supplemental; LAVi 40 → increased
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, lavi: 40 });
+  eq([r.lap, r.grade], ['increased', 2]);
+  // two abnormal, supplemental negative → normal LAP
+  r = dd({ E: 90, A: 70, eSeptal: 5, eLateral: 6, tr: 2.2, pvsd: 1.2, lars: 25 });
+  eq(r.lap, 'normal', 'e′ and E/e′ abnormal, S/D and LARS normal');
+  // PASP is preferred over TR when entered
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, pasp: 30 });
+  eq([r.lap, r.grade], ['normal', 0], 'PASP 30 overrides TR 3.0');
+  // lung disease: TR/PASP not used → missing variable → supplemental
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, lungDisease: true });
+  eq(r.lap, 'unknown');
+  assert.ok(r.cautions.length > 0);
+  // second-line signs when the supplemental four are missing
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, ara: 40 });
+  eq(r.lap, 'lvedp', 'Ar − A alone is an LVEDP marker');
+  r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 3.0, padp: 18 });
+  eq([r.lap, r.grade], ['increased', 2]);
+  // cutoffs: ≤ for e′, ≥ for E/e′ and TR
+  eq(R.diastolicPrimaries({ eSeptal: 6, eLateral: 8 }).v1, true, 'septal 6 is reduced');
+  eq(R.diastolicPrimaries({ eSeptal: 6.1, eLateral: 7.1 }).v1, false);
+  eq(R.diastolicPrimaries({ E: 98, eSeptal: 7, eLateral: 7 }).v2, true, 'average E/e′ 14 counts (Figure 3: ≥ 14)');
+  eq(R.diastolicPrimaries({ tr: 2.8 }).v3, true, 'TR 2.8 counts');
+  // age-specific e′ (Table 6, strict <)
+  eq(R.diastolicPrimaries({ eSeptal: 6.5, eLateral: 9.5, ageBand: '20-39' }).v1, true, 'septal 6.5 < 7 at 20–39 y');
+  eq(R.diastolicPrimaries({ eSeptal: 6, eLateral: 7, ageBand: '>65' }).v1, false, 'strict < at > 65 y');
+});
+test('diastolic: presence (Figure 2), MAC (Figure 4) and transplant', () => {
+  let pr = R.diastolicPresence({ E: 50, A: 80, eSeptal: 5, eLateral: 6 });
+  eq(pr.state, true, 'reduced e′ with E/A ≤ 0.8');
+  pr = R.diastolicPresence({ E: 80, A: 60, eSeptal: 9, eLateral: 12, lavi: 40 });
+  eq(pr.state, false, 'normal e′ needs two markers');
+  pr = R.diastolicPresence({ E: 80, A: 60, eSeptal: 9, eLateral: 12, lavi: 40, lars: 15 });
+  eq(pr.state, true);
+  eq(R.diastolicMAC({ E: 50, A: 80 }).lap, 'normal');
+  eq(R.diastolicMAC({ E: 120, A: 60 }).lap, 'increased');
+  eq(R.diastolicMAC({ E: 80, A: 80, ivrt: 90 }).lap, 'normal');
+  eq(R.diastolicMAC({ E: 80, A: 80, ivrt: 70 }).lap, 'increased');
+  eq(R.diastolicMAC({ E: 80, A: 80 }).lap, 'unknown');
+  eq(R.diastolicTransplant({ E: 60, eSeptal: 10, eLateral: 12 }).lap, 'normal', 'E/e′ 5.5');
+  eq(R.diastolicTransplant({ E: 120, eSeptal: 7, eLateral: 8 }).lap, 'increased', 'E/e′ 16');
+  eq(R.diastolicTransplant({ E: 100, eSeptal: 9, eLateral: 11, esr: 250 }).lap, 'increased', 'E/e′ 10, E/SRIVR 250');
+  eq(R.diastolicTransplant({ E: 100, eSeptal: 9, eLateral: 11, tr: 2.5 }).lap, 'normal', 'E/e′ 10, no SRIVR, TR 2.5');
+});
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

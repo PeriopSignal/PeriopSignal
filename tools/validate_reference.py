@@ -210,6 +210,25 @@ def main(path):
         if ivc is not None:
             need(ivc.get("group") in gids, "echo.ivc.group must name an echo group")
 
+    dia = data.get("diastolic")
+    if dia is not None:
+        src = dia.get("source") or {}
+        need(isinstance(src.get("citation"), str) and src["citation"], "diastolic.source.citation required")
+        need(isinstance(src.get("url"), str) and src["url"].startswith("https://"), "diastolic.source.url must be https")
+        need(isinstance(dia.get("scope"), str) and dia["scope"], "diastolic.scope required")
+        pops = dia.get("populations") or []
+        need(pops and pops[0].get("mode") == "main", "diastolic.populations must start with the main algorithm")
+        seen = set()
+        for pop in pops:
+            pid = pop.get("id", "?")
+            need(pid not in seen, f"diastolic population {pid}: duplicate id"); seen.add(pid)
+            need(pop.get("mode") in ("main", "mac", "transplant", "list"), f"diastolic population {pid}: mode must be main, mac, transplant or list")
+            need(isinstance(pop.get("name"), str) and pop["name"], f"diastolic population {pid}: name required")
+            if pop.get("mode") == "list":
+                need(pop.get("indicators") or pop.get("notes"), f"diastolic population {pid}: a list population needs indicators or notes")
+        for row in dia.get("exercise") or []:
+            need(isinstance(row, list) and len(row) == 2, "diastolic.exercise rows are [label, text]")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")

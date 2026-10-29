@@ -26,6 +26,7 @@ struct ReferenceBundle: Codable {
     var neuraxial: NeuraxialData?
     var ponv: PONVData?
     var echo: EchoData?
+    var diastolic: DiastolicData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -36,6 +37,7 @@ struct ReferenceBundle: Codable {
         if b.neuraxial == nil { b.neuraxial = other.neuraxial }
         if b.ponv == nil { b.ponv = other.ponv }
         if b.echo == nil { b.echo = other.echo }
+        if b.diastolic == nil { b.diastolic = other.diastolic }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }
@@ -100,6 +102,30 @@ struct EchoRef: Codable, Hashable {
     var normal: [Double]?
     /// Cutoffs between grades: three for normal / mild / moderate / severe, one for normal / abnormal.
     var cuts: [Double]
+}
+
+/// The 2025 ASE diastolic document's scope, special populations and notes; the cutoffs and the algorithm
+/// are in DiastolicCalc.
+struct DiastolicData: Codable {
+    var reviewed: String?
+    var source: EchoSource
+    var validation: String?
+    var scope: String
+    var supersedes: String?
+    var populations: [DiastolicPopulation]
+    /// Diastolic exercise echo: [reading, criteria].
+    var exercise: [[String]]?
+    var notes: [String]?
+}
+
+struct DiastolicPopulation: Codable, Hashable, Identifiable {
+    var id: String
+    var name: String
+    /// "main" (Figure 3, with any indicators alongside), "mac" (Figure 4), "transplant" (Section 15B),
+    /// or "list" (the document's signs only; no grade).
+    var mode: String
+    var indicators: [String]?
+    var notes: [String]?
 }
 
 struct EchoIVC: Codable, Hashable {

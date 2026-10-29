@@ -450,3 +450,17 @@
 .e-sr .v { font-family: var(--font-mono); font-size: 12.5px; color: var(--fg-2); text-align: right; font-variant-numeric: tabular-nums; }
 .e-sr .l { grid-column: 2 / -1; font-size: 12.5px; font-weight: 600; }
 .e-rap { font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--fg-2); }
+.dd-steps { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.dd-step { display: flex; gap: 8px; align-items: baseline; font-size: 13px; color: var(--fg-2); line-height: 1.45; }
+.dd-step i { flex: none; width: 7px; height: 7px; border-radius: 50%; transform: translateY(-1px); }
+.dd-step strong { color: var(--fg); font-weight: 600; }
+.r-lesion.plain { padding: 0; border: 0; background: none; }
+.r-lesion.plain select { font-size: 17px; }
+.r-pick { position: relative; min-width: 0; }
+.r-pick .r-picked { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-family: var(--font-display); font-size: 17px; font-weight: 600; line-height: 1.3; color: var(--fg); text-wrap: balance; }
+.r-pick .r-picked svg { flex: none; width: 16px; height: 16px; color: var(--fg-3); }
+.r-pick select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.r-pick:focus-within { outline: 2px solid var(--accent-2); outline-offset: 4px; border-radius: 8px; }
+.r-more { font-size: 13px; color: var(--fg-2); }
+.r-more summary { cursor: pointer; font-weight: 600; color: var(--accent-2); padding: 4px 0; }
+.r-more .r-facts { margin-top: 8px; }

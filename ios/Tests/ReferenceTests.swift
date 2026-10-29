@@ -631,4 +631,79 @@ final class ReferenceTests: XCTestCase {
         XCTAssertTrue(valve(.tr, ["jet": 6]).lines.contains { $0.id == "jet" && $0.grade == nil })
         XCTAssertEqual(valve(.tr, signs: ["dilated"]).overall, .moderate, "a supportive sign alone only suggests")
     }
+
+    // MARK: ASE 2025 diastolic function (mirrors tools/test_reference_logic.js)
+
+    private func ddInput(_ v: [String: Double], lung: Bool = false, age: String? = nil) -> DiastolicCalc.Input {
+        var i = DiastolicCalc.Input()
+        i.E = v["E"]; i.A = v["A"]; i.eSeptal = v["eSeptal"]; i.eLateral = v["eLateral"]; i.pasp = v["pasp"]; i.tr = v["tr"]
+        i.pvsd = v["pvsd"]; i.lars = v["lars"]; i.lavi = v["lavi"]; i.ivrt = v["ivrt"]
+        i.prEdv = v["prEdv"]; i.padp = v["padp"]; i.lwave = v["lwave"]; i.ara = v["ara"]; i.valsalva = v["valsalva"]
+        i.esr = v["esr"]; i.lvmi = v["lvmi"]
+        i.lungDisease = lung; i.ageBand = age
+        return i
+    }
+
+    func testDiastolicFigure3() {
+        func dd(_ v: [String: Double], lung: Bool = false) -> DiastolicCalc.Reading { DiastolicCalc.read(ddInput(v, lung: lung)) }
+        var r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 2.3])
+        XCTAssertEqual(r.lap, .normal); XCTAssertEqual(r.grade, 0)
+        r = dd(["E": 100, "A": 80, "eSeptal": 5, "eLateral": 6, "tr": 3.0])
+        XCTAssertEqual(r.lap, .increased); XCTAssertEqual(r.grade, 2, "E/A 1.25 is Grade 2")
+        r = dd(["E": 120, "A": 50, "eSeptal": 5, "eLateral": 6, "tr": 3.0])
+        XCTAssertEqual(r.lap, .increased); XCTAssertEqual(r.grade, 3, "E/A 2.4 is Grade 3")
+        r = dd(["E": 50, "A": 80, "eSeptal": 5, "eLateral": 6.5, "tr": 2.2])
+        XCTAssertEqual(r.lap, .normal); XCTAssertEqual(r.grade, 1, "e′ alone with E/A 0.8 or less")
+        r = dd(["E": 70, "A": 70, "eSeptal": 5, "eLateral": 6.5, "tr": 2.2, "lars": 30, "lavi": 28])
+        XCTAssertEqual(r.lap, .normal); XCTAssertNil(r.grade); XCTAssertTrue(r.explanation.contains("no grade"))
+        r = dd(["E": 70, "A": 70, "eSeptal": 5, "eLateral": 6.5, "tr": 2.2, "lars": 16])
+        XCTAssertEqual(r.lap, .increased); XCTAssertEqual(r.grade, 2)
+        r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0, "lavi": 40])
+        XCTAssertEqual(r.lap, .increased); XCTAssertEqual(r.grade, 2)
+        r = dd(["E": 90, "A": 70, "eSeptal": 5, "eLateral": 6, "tr": 2.2, "pvsd": 1.2, "lars": 25])
+        XCTAssertEqual(r.lap, .normal, "e′ and E/e′ abnormal, S/D and LARS normal")
+        r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0, "pasp": 30])
+        XCTAssertEqual(r.lap, .normal); XCTAssertEqual(r.grade, 0, "PASP 30 overrides TR 3.0")
+        r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0], lung: true)
+        XCTAssertEqual(r.lap, .unknown); XCTAssertFalse(r.cautions.isEmpty)
+        r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0, "ara": 40])
+        XCTAssertEqual(r.lap, .lvedp, "Ar − A alone is an LVEDP marker")
+        r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 3.0, "padp": 18])
+        XCTAssertEqual(r.lap, .increased); XCTAssertEqual(r.grade, 2)
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6, "eLateral": 8])).v1, true, "septal 6 is reduced")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6.1, "eLateral": 7.1])).v1, false)
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["E": 98, "eSeptal": 7, "eLateral": 7])).v2, true, "average E/e′ 14 counts (Figure 3: 14 or more)")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["tr": 2.8])).v3, true, "TR 2.8 counts")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6.5, "eLateral": 9.5], age: "20-39")).v1, true, "septal 6.5 is under 7 at 20–39 y")
+        XCTAssertEqual(DiastolicCalc.primaries(ddInput(["eSeptal": 6, "eLateral": 7], age: ">65")).v1, false, "strictly under at > 65 y")
+    }
+
+    func testDiastolicPresenceMACAndTransplant() {
+        func present(_ v: [String: Double]) -> Bool? {
+            let i = ddInput(v)
+            return DiastolicCalc.presence(i, DiastolicCalc.primaries(i)).state
+        }
+        XCTAssertEqual(present(["E": 50, "A": 80, "eSeptal": 5, "eLateral": 6]), true, "reduced e′ with E/A 0.8 or less")
+        XCTAssertEqual(present(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "lavi": 40]), false, "normal e′ needs two markers")
+        XCTAssertEqual(present(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "lavi": 40, "lars": 15]), true)
+        XCTAssertEqual(DiastolicCalc.mac(ddInput(["E": 50, "A": 80])).lap, .normal)
+        XCTAssertEqual(DiastolicCalc.mac(ddInput(["E": 120, "A": 60])).lap, .increased)
+        XCTAssertEqual(DiastolicCalc.mac(ddInput(["E": 80, "A": 80, "ivrt": 90])).lap, .normal)
+        XCTAssertEqual(DiastolicCalc.mac(ddInput(["E": 80, "A": 80, "ivrt": 70])).lap, .increased)
+        XCTAssertEqual(DiastolicCalc.mac(ddInput(["E": 80, "A": 80])).lap, .unknown)
+        XCTAssertEqual(DiastolicCalc.transplant(ddInput(["E": 60, "eSeptal": 10, "eLateral": 12])).lap, .normal, "E/e′ 5.5")
+        XCTAssertEqual(DiastolicCalc.transplant(ddInput(["E": 120, "eSeptal": 7, "eLateral": 8])).lap, .increased, "E/e′ 16")
+        XCTAssertEqual(DiastolicCalc.transplant(ddInput(["E": 100, "eSeptal": 9, "eLateral": 11, "esr": 250])).lap, .increased, "E/e′ 10, E/SRIVR 250")
+        XCTAssertEqual(DiastolicCalc.transplant(ddInput(["E": 100, "eSeptal": 9, "eLateral": 11, "tr": 2.5])).lap, .normal, "E/e′ 10, no SRIVR, TR 2.5")
+    }
+
+    func testDiastolicBundle() throws {
+        guard let dd = try bundled().diastolic else { return }
+        XCTAssertEqual(dd.populations.first?.id, "standard", "the main algorithm comes first")
+        XCTAssertEqual(Set(dd.populations.map(\.id)).count, dd.populations.count, "population ids are unique")
+        XCTAssertTrue(Set(dd.populations.map(\.mode)).isSubset(of: ["main", "mac", "transplant", "list"]))
+        XCTAssertTrue(dd.populations.contains { $0.mode == "mac" })
+        XCTAssertTrue(dd.populations.contains { $0.mode == "transplant" })
+        XCTAssertFalse(dd.scope.isEmpty)
+    }
 }
