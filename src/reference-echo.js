@@ -38,7 +38,7 @@
 
     const update = c.view(host, () => {
       const d = data();
-      if (!d) return `<p class="r-muted">Loading the reference values…</p>`;
+      if (!d) return `<p class="r-muted">${c.bundle() ? 'The echo reference values are not in this copy of the reference file yet; reload in a minute.' : 'Loading the reference values…'}</p>`;
       const bsa = bsaOf(d);
       const groups = d.groups;
       const cur = groups.find((g) => g.id === st.group) || groups[0];
