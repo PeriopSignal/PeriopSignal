@@ -8,6 +8,8 @@ struct RootView: View {
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
     @Environment(ReferenceStore.self) private var refs
+    /// The terms version this phone accepted; a new version asks again.
+    @AppStorage("ps.terms.accepted") private var termsAccepted = ""
 
     var body: some View {
         #if DEBUG
@@ -33,6 +35,9 @@ struct RootView: View {
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
             }
+            .fullScreenCover(isPresented: Binding(get: { needsTerms }, set: { _ in })) {
+                TermsGateView { termsAccepted = Terms.version }
+            }
             .task { await launch() }
             .onChange(of: read.ids.count) { _, _ in
                 Task { await ReadStore.updateBadge(unread: read.unread(in: store.posts).count) }
@@ -40,6 +45,14 @@ struct RootView: View {
             .onChange(of: store.posts.count) { _, _ in
                 Task { await ReadStore.updateBadge(unread: read.unread(in: store.posts).count) }
             }
+    }
+
+    /// First launch, or new terms. Screenshot runs (debug builds) skip it unless -ps.terms show.
+    private var needsTerms: Bool {
+        #if DEBUG
+        if LaunchSeed.string("ps.terms") != "show" { return false }
+        #endif
+        return termsAccepted != Terms.version
     }
 
     private var tabs: some View {

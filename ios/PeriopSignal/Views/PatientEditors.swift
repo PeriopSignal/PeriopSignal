@@ -144,7 +144,7 @@ struct PatientEditorView: View {
     // MARK: Patient
 
     @ViewBuilder private var details: some View {
-        PatientGroup(title: "Patient", note: "No name, record number or date of birth: the age is enough for the calculators.") {
+        PatientGroup(title: "Patient", note: "Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules.") {
             PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), focus: $focused)
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }

@@ -226,6 +226,9 @@ struct ReferenceView: View {
                     } else {
                         if !favorites.keys.isEmpty { favoritesSection }
                         folders
+                        Text("A reference aid for licensed clinicians: confirm against the source and your institution's protocols before acting. Not reviewed or cleared by the FDA.")
+                            .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .padding(.horizontal, 20)

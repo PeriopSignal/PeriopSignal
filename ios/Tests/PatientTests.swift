@@ -43,6 +43,14 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(PatientRules.asaText(e), "ASA III", "the clinician's E wins")
     }
 
+    func testTermsText() {
+        XCTAssertFalse(Terms.version.isEmpty)
+        XCTAssertEqual(Terms.points.count, 4)
+        XCTAssertTrue(Terms.sections.contains { $0.title == "No warranty" })
+        XCTAssertTrue(Terms.sections.contains { $0.body.contains("not been reviewed or cleared") })
+        XCTAssertTrue(Terms.privacy.contains { $0.title == "My Patient" && $0.body.contains("leaves the phone") })
+    }
+
     func testPediatricAsaSuggestion() {
         var kid = PatientRecord(); kid.ageYears = 8
         kid.problems = ["asthma"]

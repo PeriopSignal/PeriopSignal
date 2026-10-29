@@ -140,8 +140,8 @@ struct AskView: View {
 
     private var provenance: String {
         switch backend {
-        case .onDevice: return "Answered on this phone by Apple Intelligence; nothing left the device."
-        case .cloud: return "Answered by Claude through Periop Signal's proxy; the question and the material above were sent, nothing else."
+        case .onDevice: return "Answered on this phone by Apple Intelligence; nothing left the device. AI answers can be wrong: check the sources."
+        case .cloud: return "Answered by Claude through Periop Signal's proxy; the question and the material above were sent, nothing else. AI answers can be wrong: check the sources."
         case nil: return "Answers are not available on this phone yet."
         }
     }

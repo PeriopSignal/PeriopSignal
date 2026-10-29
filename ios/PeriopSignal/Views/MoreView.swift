@@ -5,7 +5,7 @@ import UIKit
 /// Settings and about: the question of the day lives here, then topics, alerts, reading
 /// preferences and the feed. Built as cards on the feed's background rather than a system list.
 /// Pages pushed from More.
-enum MoreRoute: Hashable { case saved }
+enum MoreRoute: Hashable { case saved, terms }
 
 struct MoreView: View {
     @Environment(PostStore.self) private var store
@@ -48,8 +48,11 @@ struct MoreView: View {
             .navigationDestination(for: Post.self) { post in
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
             }
-            .navigationDestination(for: MoreRoute.self) { _ in
-                SavedView(onOpenPost: { path.append($0) }, onOpenPaper: { webLink = WebLink(url: $0) })
+            .navigationDestination(for: MoreRoute.self) { route in
+                switch route {
+                case .saved: SavedView(onOpenPost: { path.append($0) }, onOpenPaper: { webLink = WebLink(url: $0) })
+                case .terms: TermsView()
+                }
             }
             .onAppear { openSavedIfAsked() }
             .onChange(of: router.openSaved) { _, _ in openSavedIfAsked() }
@@ -304,6 +307,11 @@ struct MoreView: View {
                 .font(PS.sys(size: 13.5))
                 .foregroundStyle(PS.fg2)
                 .lineSpacing(2)
+            Button { path.append(MoreRoute.terms) } label: { Label("Terms and privacy", systemImage: "doc.text") }
+                .font(PS.sys(size: 14, weight: .semibold))
+                .buttonStyle(.borderless)
+                .tint(PS.accent)
+                .padding(.top, 4)
             Text("Version " + Bundle.main.versionString)
                 .font(PS.mono(size: 11, weight: .semibold))
                 .foregroundStyle(PS.fg3)

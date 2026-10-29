@@ -884,7 +884,7 @@
       const summary = one ? t1.blurb : f.items.map((id) => (toolMeta(id) || {}).title).join(' · ');
       return `<a class="r-folder" href="#${one ? f.items[0] : 'folder-' + f.id}" style="--tint:${f.tint}"><span class="fi">${I[f.icon]}</span><span class="ft"><span class="fn">${esc(f.title)}</span><span class="fs">${esc(summary)}</span></span>${one ? '' : `<span class="fc">${f.items.length}</span>`}${I.chevR}</a>`;
     }).join('')}</nav>`;
-    h += footnote('Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. Confirm against the source before acting. Favorites are kept on this device.');
+    h += footnote('Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. A reference aid for licensed clinicians: it does not replace clinical judgment or your institution\'s protocols, and it has not been reviewed or cleared by the FDA. Confirm against the source before acting. Favorites are kept on this device.');
     if (bundle && bundle.updated) h += `<p class="r-eyebrow small">Content reviewed ${esc(monthYear(bundle.updated))}</p>`;
     return h + `</section>`;
   }

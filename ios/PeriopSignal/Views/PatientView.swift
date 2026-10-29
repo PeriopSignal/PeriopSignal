@@ -127,6 +127,8 @@ struct PatientView: View {
                 .font(PS.serif(size: 22)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
             Text("They fill in the calculators for you, and the rest of the tab builds a short history and physical, the intraoperative course and a handoff.")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            Text("Everything stays on this phone. Don't enter names, record numbers or dates of birth.")
+                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             NavigationLink(value: PatientEditor.details) {
                 Label("Add patient details", systemImage: "plus")
             }
