@@ -94,7 +94,7 @@ struct PONVView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let t = target { Text(t.text + " (Fifth consensus).").font(PS.sys(size: 13)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
-            ChecklistProgress(done: min(classes.count, need), total: need, tint: toneColor, title: "Classes Chosen") { chosen = [] }
+            ChecklistProgress(done: min(classes.count, need), total: need, tint: toneColor, title: "Classes Chosen", doneWord: "chosen") { chosen = [] }
             if factors >= 3 {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Reduce the Baseline Risk").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)

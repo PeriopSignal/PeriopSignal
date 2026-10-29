@@ -75,6 +75,8 @@ struct RootView: View {
         case "guidelines", "reference": router.selectedTab = .reference
         default: break
         }
+        // Screenshot runs open their tool at once; the reference data is already bundled.
+        if let r = DebugLaunch.refRoute { router.selectedTab = .reference; router.pendingRefRoute = r }
         #endif
         async let refsLoad: Void = refs.load()
         await store.loadInitial()
@@ -86,7 +88,6 @@ struct RootView: View {
         if let id = DebugLaunch.openPost { router.open(postID: id) }
         if DebugLaunch.openQuiz { router.openQuiz = true }
         if DebugLaunch.showWelcome { router.showWelcome = true }
-        if let r = DebugLaunch.refRoute { router.selectedTab = .reference; router.pendingRefRoute = r }
         if DebugLaunch.listen, let first = store.latestBatch.first {
             // Show the mini player for the screenshot, paused, without audio on the simulator.
             speech.play([first] + Array(store.latestBatch.dropFirst().prefix(2)))

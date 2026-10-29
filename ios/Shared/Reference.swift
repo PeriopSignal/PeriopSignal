@@ -10,6 +10,14 @@ import Foundation
 struct ReferenceBundle: Codable {
     var version: Int
     var updated: String
+    /// Build stamp (seconds since 1970) that orders two files written on the same day.
+    var revision: Int? = nil
+
+    /// Whether this file is at least as new as `other`: the date first, then the build stamp.
+    func isAtLeastAsNew(as other: ReferenceBundle) -> Bool {
+        if updated != other.updated { return updated > other.updated }
+        return (revision ?? 0) >= (other.revision ?? 0)
+    }
     var disclaimer: String?
     var ask: AskConfig?
     var quickrefs: [QuickRef]

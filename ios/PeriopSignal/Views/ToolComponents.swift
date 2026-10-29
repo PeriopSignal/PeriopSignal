@@ -77,6 +77,7 @@ struct ChecklistProgress: View {
     var total: Int
     var tint: Color = PS.accent
     var title: String = "Checklist"
+    var doneWord: String = "done"
     var onReset: (() -> Void)?
 
     var body: some View {
@@ -89,7 +90,7 @@ struct ChecklistProgress: View {
                 Text(title)
                     .font(PS.sys(size: 13.5, weight: .semibold))
                     .foregroundStyle(PS.fg)
-                Text("\(done) of \(total) done")
+                Text("\(done) of \(total) \(doneWord)")
                     .font(PS.mono(size: 11, weight: .semibold))
                     .foregroundStyle(complete ? PS.green : PS.fg3)
                     .contentTransition(.numericText())

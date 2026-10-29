@@ -314,6 +314,18 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(RefItem.folder(of: .local), .regional)
     }
 
+    func testNewerFileWinsBySameDayStamp() throws {
+        var a = try bundled()
+        var b = a
+        a.revision = 100; b.revision = 200
+        XCTAssertTrue(b.isAtLeastAsNew(as: a))
+        XCTAssertFalse(a.isAtLeastAsNew(as: b), "same date: the later build stamp wins")
+        b.updated = "2000-01-01"
+        XCTAssertTrue(a.isAtLeastAsNew(as: b), "a later date wins whatever the stamps")
+        a.revision = nil; b = a
+        XCTAssertTrue(a.isAtLeastAsNew(as: b), "identical files tie, and a tie keeps the download")
+    }
+
     func testOlderServerFileDoesNotHideNewSections() throws {
         let b = try bundled()
         var server = b
