@@ -330,6 +330,10 @@ struct AclsSpec: Codable, Hashable {
     var thenAtLeast: Bool?
     var maxPerKg: Double?
     var capText: String?
+    /// A child's shock energy is capped here (the adult dose).
+    var maxJ: Double?
+    /// No repeat timer for this patient (the action's `repeat` applies to the other).
+    var noRepeat: Bool?
 
     /// This spec with the fields of `o` laid over it (the nth entry of `doses`).
     func merged(_ o: AclsSpec) -> AclsSpec {
@@ -398,11 +402,27 @@ struct AclsCond: Codable, Hashable {
     var not: String?
     var notAny: [String]?
     var count: AclsCountCond?
+    var countAny: AclsCountAnyCond?
     var countSince: AclsCountSinceCond?
     var since: AclsCountCond?
     var elapsed: AclsTimeCond?
     var cycle: AclsTimeCond?
     var weight: Bool?
+}
+
+/// [[ids], op, n]: the entries of all these actions together.
+struct AclsCountAnyCond: Codable, Hashable {
+    var ids: [String]
+    var op: String
+    var n: Double
+    init(from decoder: Decoder) throws {
+        var c = try decoder.unkeyedContainer()
+        ids = try c.decode([String].self); op = try c.decode(String.self); n = try c.decode(Double.self)
+    }
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.unkeyedContainer()
+        try c.encode(ids); try c.encode(op); try c.encode(n)
+    }
 }
 
 /// [id, op, n]: the number of entries (count) or the seconds since the last one (since).

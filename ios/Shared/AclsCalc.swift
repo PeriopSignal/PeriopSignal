@@ -167,9 +167,17 @@ enum AclsCalc {
                 let upTo = later && e.maxPerKg != nil ? " (up to \(num(e.maxPerKg!)) J/kg\(e.capText.map { " " + $0 } ?? ""))" : ""
                 return AclsEnergy(text: "\(atLeast)\(num(per)) J/kg\(upTo)", joules: nil, needsWeight: true)
             }
-            let j = Int((per * w).rounded())
-            let upTo = later && e.maxPerKg != nil ? ", up to \(Int((e.maxPerKg! * w).rounded())) J" : ""
-            return AclsEnergy(text: "\(atLeast)\(j) J (\(num(per)) J/kg)\(upTo)", joules: j)
+            // maxJ: the adult ceiling ("or the adult dose, whichever is lower"), so a large child never reads above it
+            let raw = Int((per * w).rounded())
+            if let cap = e.maxJ, raw > Int(cap) {
+                return AclsEnergy(text: "\(Int(cap)) J, the adult dose (\(num(per)) J/kg would be \(raw) J)", joules: Int(cap))
+            }
+            var upTo = ""
+            if later, let mpk = e.maxPerKg {
+                let up = Int((mpk * w).rounded())
+                if let cap = e.maxJ, up > Int(cap) { upTo = ", up to \(Int(cap)) J (the adult dose)" } else { upTo = ", up to \(up) J" }
+            }
+            return AclsEnergy(text: "\(atLeast)\(raw) J (\(num(per)) J/kg)\(upTo)", joules: raw)
         }
         return AclsEnergy(text: e.text ?? "", joules: e.joules.map { Int($0) })
     }
@@ -185,7 +193,8 @@ enum AclsCalc {
 
     /// A repeatable action's state: next in n s, due, or overdue (seconds since the last dose).
     static func timer(_ a: AclsAction?, _ s: AclsState, _ id: String, _ t: Double) -> AclsTimerState? {
-        guard let rep = a?.repeats, let lastT = last(s, id) else { return nil }
+        guard let a, let rep = a.repeats, let lastT = last(s, id) else { return nil }
+        if spec(a, s.patient)?.noRepeat == true { return nil }   // e.g. a child's atropine: "may repeat once", no interval printed
         let since = (t - lastT) / 1000
         if since < rep.min { return AclsTimerState(state: "wait", since: since, remaining: rep.min - since) }
         if let mx = rep.max, since >= mx { return AclsTimerState(state: "overdue", since: since, remaining: 0) }
@@ -212,6 +221,7 @@ enum AclsCalc {
             if let id = k.not, count(s, id) > 0 { return false }
             if let ids = k.notAny, ids.contains(where: { count(s, $0) > 0 }) { return false }
             if let c = k.count, !cmp(Double(count(s, c.id)), c.op, c.n) { return false }
+            if let c = k.countAny, !cmp(Double(c.ids.reduce(0) { $0 + count(s, $1) }), c.op, c.n) { return false }
             if let c = k.countSince {
                 let from = last(s, c.sinceId)
                 let v = s.log.filter { $0.action == c.id && (from == nil || $0.t > from!) }.count

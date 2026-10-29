@@ -971,10 +971,16 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(s.log.last?.text, "Epinephrine 1 mg IV/IO (dose 2)")
         s.add(370000, "vf", "Rhythm: VF/pVT"); s.add(371000, "shock", "Shock 4: 200 J")
         ps = AclsCalc.prompts(s, d, 372000)
-        XCTAssertEqual(ps.map(\.id), ["anti-2", "airway", "causes"])
-        XCTAssertTrue(ps[0].text.contains("second amiodarone dose (150 mg IV/IO)"), ps[0].text)
+        XCTAssertEqual(ps.map(\.id), ["anti-2a", "airway", "causes"])
+        XCTAssertEqual(ps[0].text, "If VF/pVT persists, a second amiodarone dose: 150 mg IV/IO. The algorithm prints no interval for it.")
         s.add(380000, "airway", "Advanced airway placed")
-        XCTAssertEqual(ids(381000), ["anti-2", "vent-adult", "causes"])
+        XCTAssertEqual(ids(381000), ["anti-2a", "vent-adult", "causes"])
+        // lidocaine first: the second lidocaine dose is offered, not a switch to amiodarone
+        var l = AclsState(startedAt: 0, mode: "arrest", patient: "adult")
+        for (t0, id) in [(1000.0, "vf"), (2000, "shock"), (125000, "vf"), (126000, "shock"), (130000, "epi"), (250000, "vf"), (251000, "shock"), (255000, "lido"), (370000, "vf"), (371000, "shock")] { l.add(t0, id, id) }
+        let lp = AclsCalc.prompts(l, d, 372000)
+        XCTAssertEqual(lp.map(\.id).filter { $0.hasPrefix("anti") }, ["anti-2b"])
+        XCTAssertEqual(lp.first { $0.id == "anti-2b" }?.text, "If VF/pVT persists, a second lidocaine dose: 0.5–0.75 mg/kg. The algorithm prints no interval for it.")
         XCTAssertEqual(AclsCalc.cycle(s, d, 400000).from, 370000)
         XCTAssertEqual(d.actions["rosc"]?.goto, "rosc")
 
@@ -984,7 +990,7 @@ final class ReferenceTests: XCTestCase {
         c.add(5000, "nonsh", "Rhythm: asystole/PEA")
         let cp = AclsCalc.prompts(c, d, 6000)
         XCTAssertEqual(cp.map(\.id), ["epi-ns"])
-        XCTAssertEqual(cp[0].text, "Epinephrine as soon as possible: 0.18 mg IV/IO · 1.8 mL of 0.1 mg/mL (0.01 mg/kg).")
+        XCTAssertEqual(cp[0].text, "Epinephrine as soon as possible: 0.18 mg IV/IO · 1.8 mL of 0.1 mg/mL = 100 mcg/mL (0.01 mg/kg).")
         XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, c, 0)?.text, "36 J (2 J/kg)")
         XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, c, 1)?.text, "72 J (4 J/kg)")
         XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, c, 2)?.text, "≥ 72 J (4 J/kg), up to 180 J")
@@ -993,17 +999,36 @@ final class ReferenceTests: XCTestCase {
         var big = AclsState(startedAt: 0, mode: "arrest", patient: "child"); big.weight = 70
         XCTAssertEqual(AclsCalc.dose(d.actions["amio"]!, big, 0)?.text, "300 mg IV/IO (the maximum)")
         XCTAssertEqual(AclsCalc.dose(d.actions["amio"]!, big, 1)?.text, "150 mg IV/IO (the maximum)", "later doses are capped at 150 mg")
-        XCTAssertEqual(AclsCalc.dose(d.actions["epi"]!, big, 0)?.text, "0.7 mg IV/IO · 7 mL of 0.1 mg/mL (0.01 mg/kg)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["epi"]!, big, 0)?.text, "0.7 mg IV/IO · 7 mL of 0.1 mg/mL = 100 mcg/mL (0.01 mg/kg)")
+        // a large child's shocks stop at the adult dose (10 J/kg or the adult dose, whichever is lower)
+        XCTAssertEqual([0, 1, 2].map { AclsCalc.energy(d.actions["shock"]!, big, $0)?.text ?? "" },
+                       ["140 J (2 J/kg)", "200 J, the adult dose (4 J/kg would be 280 J)", "200 J, the adult dose (4 J/kg would be 280 J)"])
+        var forty = AclsState(startedAt: 0, mode: "arrest", patient: "child"); forty.weight = 40
+        XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, forty, 2)?.text, "≥ 160 J (4 J/kg), up to 200 J (the adult dose)")
+        XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, forty, 2)?.joules, 160)
+        XCTAssertEqual(AclsCalc.energy(d.actions["shock"]!, AclsState(startedAt: 0, mode: "arrest", patient: "child"), 2)?.text,
+                       "≥ 4 J/kg (up to 10 J/kg or the adult dose, whichever is lower)")
         XCTAssertEqual(AclsCalc.dose(d.actions["lido"]!, c, 0)?.text, "18 mg IV/IO (1 mg/kg)")
         var b = AclsState(startedAt: 0, mode: "brady", patient: "child"); b.weight = 3
         XCTAssertEqual(AclsCalc.dose(d.actions["atropine"]!, b, 0)?.text, "0.1 mg IV/IO (the minimum)")
         b.weight = 40
         XCTAssertEqual(AclsCalc.dose(d.actions["atropine"]!, b, 0)?.text, "0.5 mg IV/IO (the maximum)")
+        // a child's atropine "may repeat once" with no printed interval: no countdown; an adult's runs every 3–5 min
+        b.add(1000, "atropine", "Atropine")
+        XCTAssertNil(AclsCalc.timer(d.actions["atropine"], b, "atropine", 400000))
+        var ba = AclsState(startedAt: 0, mode: "brady", patient: "adult"); ba.add(1000, "atropine", "Atropine")
+        XCTAssertEqual(AclsCalc.timer(d.actions["atropine"], ba, "atropine", 200000)?.state, "due")
         var t = AclsState(startedAt: 0, mode: "tachy", patient: "child"); t.weight = 18
         XCTAssertEqual(AclsCalc.dose(d.actions["adenosine-child"]!, t, 0)?.text, "1.8 mg IV/IO rapid push, then flush (0.1 mg/kg)")
         XCTAssertEqual(AclsCalc.dose(d.actions["adenosine-child"]!, t, 1)?.text, "3.6 mg IV/IO rapid push, then flush (0.2 mg/kg)")
         var an = AclsState(startedAt: 0, mode: "anaphylaxis", patient: "child"); an.weight = 18
-        XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-2"]!, an, 0)?.text, "36 mcg IV · 1.8 mL of 20 mcg/mL (2 mcg/kg)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-2"]!, an, 0)?.text, "20 mcg IV · 1 mL of 20 mcg/mL (the maximum)", "capped at the adult grade II dose")
+        XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-2"]!, an, 1)?.text, "36 mcg IV · 1.8 mL of 20 mcg/mL (2 mcg/kg)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-3"]!, an, 0)?.text, "50 mcg IV · 2.5 mL of 20 mcg/mL (the maximum)")
+        XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-3"]!, an, 1)?.text, "180 mcg IV · 9 mL of 20 mcg/mL (10 mcg/kg)", "escalates: ANZAAG 4–10 mcg/kg")
+        var teen = AclsState(startedAt: 0, mode: "anaphylaxis", patient: "child"); teen.weight = 70
+        XCTAssertEqual([AclsCalc.dose(d.actions["ana-epi-2"]!, teen, 0)?.amount, AclsCalc.dose(d.actions["ana-epi-3"]!, teen, 1)?.amount, AclsCalc.dose(d.actions["ana-fluid"]!, teen, 0)?.amount],
+                       [20, 200, 1000], "never above the adult doses")
         XCTAssertEqual(AclsCalc.dose(d.actions["ana-epi-im"]!, an, 0)?.text, "180 mcg IM, lateral thigh (10 mcg/kg)")
         XCTAssertEqual(AclsCalc.dose(d.actions["ana-glucagon"]!, an, 0)?.text, "0.72 mg IV (0.04 mg/kg)")
 
@@ -1040,10 +1065,19 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(a2.log.last?.text, "Epinephrine IV · grade III 50 mcg IV")
         let ap = AclsCalc.prompts(a2, d, 123000)
         XCTAssertEqual(ap.map(\.id), ["epi3-due"])
-        XCTAssertEqual(ap[0].text, "Two minutes: if the response is inadequate, repeat epinephrine 200 mcg IV.")
+        XCTAssertEqual(ap[0].text, "Two minutes: if the response is inadequate, repeat epinephrine 200 mcg IV · 2 mL of 100 mcg/mL.")
         for t0 in [130000.0, 260000, 390000] { a2.add(t0, "ana-epi-3", "Epinephrine") }
-        XCTAssertEqual(AclsCalc.prompts(a2, d, 391000).map(\.id), ["infusion-3"])
-        XCTAssertEqual(AclsCalc.prompts(a2, d, 3400000).map(\.id), ["epi3-due", "infusion-3", "refractory", "tryptase"])
+        XCTAssertEqual(AclsCalc.prompts(a2, d, 391000).map(\.id), ["infusion"])
+        XCTAssertEqual(AclsCalc.prompts(a2, d, 3400000).map(\.id), ["epi3-due", "infusion", "refractory", "tryptase"])
+        // boluses of both grades count together towards the infusion
+        var mix = AclsState(startedAt: 0, mode: "anaphylaxis", patient: "adult")
+        for (t0, id) in [(1000.0, "ana-help"), (2000, "ana-epi-2"), (60000, "ana-epi-2"), (120000, "ana-epi-3"), (180000, "ana-epi-3")] { mix.add(t0, id, id) }
+        XCTAssertEqual(AclsCalc.prompts(mix, d, 181000).map(\.id), ["infusion"])
+        var ch = AclsState(startedAt: 0, mode: "anaphylaxis", patient: "child"); ch.weight = 18
+        ch.add(1000, "ana-help", "Help called"); ch.add(2000, "ana-epi-3", "Epinephrine")
+        let chp = AclsCalc.prompts(ch, d, 123000)
+        XCTAssertEqual(chp.map(\.id), ["child-doses", "epi3-due-child"], "the age limit for the child doses stays on screen")
+        XCTAssertEqual(chp.last?.text, "Two minutes: if the response is inadequate, increase the dose: 180 mcg IV · 9 mL of 20 mcg/mL (10 mcg/kg) (ANZAAG: 4–10 mcg/kg).")
     }
     // MARK: ABG (mirrors tools/test_reference_logic.js)
 

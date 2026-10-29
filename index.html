@@ -3190,12 +3190,17 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       const e = R.acls.spec(a, s.patient);
       if (!e) return null;
       if (e.perKgSeq) {
-        const seq = e.perKgSeq, per = n < seq.length ? seq[n] : e.thenPerKg, kg = R.acls.kg(s);
-        const upTo = n >= seq.length && e.maxPerKg ? ` (up to ${R.acls.num(e.maxPerKg)} J/kg${e.capText ? ' ' + e.capText : ''})` : '';
-        const atLeast = n >= seq.length && e.thenAtLeast ? '≥ ' : '';
+        const seq = e.perKgSeq, later = n >= seq.length, per = later ? e.thenPerKg : seq[n], kg = R.acls.kg(s);
+        const upTo = later && e.maxPerKg ? ` (up to ${R.acls.num(e.maxPerKg)} J/kg${e.capText ? ' ' + e.capText : ''})` : '';
+        const atLeast = later && e.thenAtLeast ? '≥ ' : '';
         if (!kg) return { text: `${atLeast}${R.acls.num(per)} J/kg${upTo}`, joules: null, needsWeight: true };
-        const j = Math.round(per * kg);
-        return { text: `${atLeast}${j} J (${R.acls.num(per)} J/kg)${n >= seq.length && e.maxPerKg ? `, up to ${Math.round(e.maxPerKg * kg)} J` : ''}`, joules: j };
+        // maxJ: the adult ceiling ("or the adult dose, whichever is lower"), so a large child never reads above it
+        const cap = e.maxJ || null, raw = Math.round(per * kg);
+        if (cap && raw > cap) return { text: `${cap} J, the adult dose (${R.acls.num(per)} J/kg would be ${raw} J)`, joules: cap, capped: true };
+        let up = later && e.maxPerKg ? Math.round(e.maxPerKg * kg) : null;
+        const upCapped = cap && up !== null && up > cap;
+        if (upCapped) up = cap;
+        return { text: `${atLeast}${raw} J (${R.acls.num(per)} J/kg)${up !== null ? `, up to ${up} J${upCapped ? ' (the adult dose)' : ''}` : ''}`, joules: raw };
       }
       return { text: e.text, joules: e.joules || null };
     },
@@ -3217,6 +3222,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     /** Each repeatable action's state: never given, next in n s, due, or overdue (seconds since the last dose). */
     timer(a, s, id, t) {
       if (!a || !a.repeat) return null;
+      const sp = R.acls.spec(a, s.patient);
+      if (sp && sp.noRepeat) return null;   // e.g. a child's atropine: "may repeat once", no interval printed
       const last = R.acls.last(s, id);
       if (last === null) return null;
       const since = (t - last) / 1000;
@@ -3235,6 +3242,11 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         if (k.notAny && k.notAny.some((id) => R.acls.count(s, id) > 0)) return false;
         if (k.count) {
           const [id, op, n] = k.count, v = R.acls.count(s, id);
+          if (!R.acls.cmp(v, op, n)) return false;
+        }
+        if (k.countAny) {
+          // [[ids], op, n]: the entries of all these actions together
+          const [ids, op, n] = k.countAny, v = ids.reduce((sum, id) => sum + R.acls.count(s, id), 0);
           if (!R.acls.cmp(v, op, n)) return false;
         }
         if (k.countSince) {

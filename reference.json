@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-29",
-  "revision": 1793282237,
+  "revision": 1793284088,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -5726,7 +5726,8 @@
           "thenPerKg": 4,
           "thenAtLeast": true,
           "maxPerKg": 10,
-          "capText": "or the adult dose"
+          "capText": "or the adult dose, whichever is lower",
+          "maxJ": 200
         }
       },
       "epi": {
@@ -5744,7 +5745,7 @@
           "route": "IV/IO",
           "conc": {
             "value": 0.1,
-            "unit": "mg/mL"
+            "unit": "mg/mL = 100 mcg/mL"
           }
         },
         "repeat": {
@@ -5817,7 +5818,7 @@
         "label": "IV/IO access",
         "kind": "event",
         "log": "IV/IO access",
-        "detail": "IV first; IO if IV fails"
+        "detail": "Adult: IV first, IO if IV fails (Part 9). Child: IV or IO, whichever is fastest (Part 8)"
       },
       "airway": {
         "label": "Advanced airway",
@@ -5862,7 +5863,7 @@
         "label": "Ventilator off, bag 100% O₂",
         "kind": "event",
         "log": "Ventilator disconnected; hand ventilation with 100% oxygen",
-        "detail": "Breath sounds and chest movement both sides; ETCO₂; exclude tension pneumothorax"
+        "detail": "Remove PEEP; breath sounds and chest movement both sides; ETCO₂; exclude tension pneumothorax"
       },
       "infusions": {
         "label": "Infusions stopped",
@@ -5922,7 +5923,8 @@
           "route": "IV/IO",
           "min": 0.1,
           "max": 0.5,
-          "maxDoses": 2
+          "maxDoses": 2,
+          "noRepeat": true
         },
         "repeat": {
           "min": 180,
@@ -5974,7 +5976,7 @@
           "route": "IV/IO",
           "conc": {
             "value": 0.1,
-            "unit": "mg/mL"
+            "unit": "mg/mL = 100 mcg/mL"
           }
         }
       },
@@ -6135,6 +6137,10 @@
         "adult": {
           "unit": "mcg",
           "route": "IV",
+          "conc": {
+            "value": 100,
+            "unit": "mcg/mL"
+          },
           "doses": [
             {
               "dose": 20
@@ -6151,7 +6157,15 @@
           "conc": {
             "value": 20,
             "unit": "mcg/mL"
-          }
+          },
+          "doses": [
+            {
+              "max": 20
+            },
+            {
+              "max": 50
+            }
+          ]
         },
         "repeat": {
           "min": 120,
@@ -6164,6 +6178,10 @@
         "adult": {
           "unit": "mcg",
           "route": "IV",
+          "conc": {
+            "value": 100,
+            "unit": "mcg/mL"
+          },
           "doses": [
             {
               "dose": 50
@@ -6180,7 +6198,16 @@
           "conc": {
             "value": 20,
             "unit": "mcg/mL"
-          }
+          },
+          "doses": [
+            {
+              "max": 50
+            },
+            {
+              "perKg": 10,
+              "max": 200
+            }
+          ]
         },
         "repeat": {
           "min": 120,
@@ -6225,6 +6252,7 @@
         "child": {
           "perKg": 20,
           "unit": "mL",
+          "max": 1000,
           "route": "IV/IO rapid bolus, repeat as needed"
         }
       },
@@ -6252,7 +6280,7 @@
         "label": "Glucagon (β-blocked)",
         "kind": "drug",
         "adult": {
-          "text": "1–2 mg IV, every 5 min until a response (ICON, ANZAAG)"
+          "text": "1–2 mg IV (ICON, ANZAAG), every 5 min until a response (ANZAAG); AHA 2025 prints 1–5 mg"
         },
         "child": {
           "perKg": 0.04,
@@ -6265,7 +6293,7 @@
         "label": "Bronchodilator",
         "kind": "drug",
         "adult": {
-          "text": "Inhaled salbutamol via the circuit (ANZAAG: 12 puffs) and volatile; IV salbutamol 100–200 mcg, then 5–25 mcg/min; magnesium 2 g over 20 min; consider ketamine (ICON)"
+          "text": "Inhaled salbutamol via the circuit (12 puffs) and volatile; IV salbutamol 100–200 mcg, then 5–25 mcg/min; magnesium 2 g over 20 min; consider ketamine (doses: ANZAAG card 3; ICON lists the agents without doses)"
         },
         "child": {
           "text": "Salbutamol 6 puffs under 6 y, 12 puffs over 6 y; magnesium 50 mg/kg (max 2 g) over 20 min (ANZAAG)"
@@ -6280,7 +6308,7 @@
         "label": "Steroid, after resuscitation",
         "kind": "drug",
         "adult": {
-          "text": "Hydrocortisone 200 mg IV once stable (ICON: may be given, not a priority; ANZAAG: hydrocortisone 2–4 mg/kg or dexamethasone 0.1–0.4 mg/kg)"
+          "text": "Once stable, if used: hydrocortisone 200 mg IV (AAGBI 2009) or 2–4 mg/kg (ANZAAG card). ICON: may be given after adequate epinephrine and fluids; ANZAAG: no evidence that it changes the outcome"
         },
         "child": {
           "text": "Hydrocortisone 2–4 mg/kg (max 200 mg) or dexamethasone 0.1–0.4 mg/kg (max 12 mg), once stable (ANZAAG)"
@@ -6304,7 +6332,7 @@
         ],
         "cycle": true,
         "cycleText": "Rhythm check now: pause compressions under 10 seconds, switch compressors, then log the rhythm.",
-        "note": "AHA 2025: one shock at a time, epinephrine every 3–5 minutes (every second cycle after the first dose), amiodarone or lidocaine after the third shock. Vasopressin, routine calcium, bicarbonate and magnesium are not recommended.",
+        "note": "AHA 2025: one shock at a time, epinephrine every 3–5 minutes (every second cycle after the first dose), amiodarone or lidocaine after the third shock. Adults: vasopressin, routine calcium, bicarbonate and magnesium are not recommended (Part 9). Children: routine calcium and bicarbonate are not recommended (Part 8).",
         "groups": [
           {
             "title": "Rhythm check",
@@ -6492,9 +6520,10 @@
             ]
           },
           {
-            "id": "anti-2",
+            "id": "anti-2a",
             "level": "info",
-            "text": "If VF/pVT persists a second amiodarone dose ({dose:amio}) or lidocaine ({dose:lido}) may follow; the algorithm prints no interval for it.",
+            "action": "amio",
+            "text": "If VF/pVT persists, a second amiodarone dose: {dose:amio}. The algorithm prints no interval for it.",
             "when": [
               {
                 "rhythm": "shockable"
@@ -6507,9 +6536,50 @@
                 ]
               },
               {
+                "count": [
+                  "lido",
+                  "==",
+                  0
+                ]
+              },
+              {
                 "countSince": [
                   "shock",
                   "amio",
+                  ">=",
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "id": "anti-2b",
+            "level": "info",
+            "patient": "adult",
+            "action": "lido",
+            "text": "If VF/pVT persists, a second lidocaine dose: {dose:lido}. The algorithm prints no interval for it.",
+            "when": [
+              {
+                "rhythm": "shockable"
+              },
+              {
+                "count": [
+                  "lido",
+                  "==",
+                  1
+                ]
+              },
+              {
+                "count": [
+                  "amio",
+                  "==",
+                  0
+                ]
+              },
+              {
+                "countSince": [
+                  "shock",
+                  "lido",
                   ">=",
                   1
                 ]
@@ -6683,8 +6753,8 @@
         "patients": [
           "adult"
         ],
-        "patientNote": "Written for adults within 10 days of cardiac surgery (STS 2017). For children, AHA 2025 advises compressions when resternotomy is not at hand, early resternotomy, internal massage and ECLS; use the Arrest tab's doses.",
-        "note": "STS 2017 protocol: VF gets up to three stacked shocks, asystole gets pacing, PEA gets a quick search for reversible causes; compressions may wait at most 1 minute for these, and the chest is reopened within 5 minutes. Full-dose epinephrine is not routine.",
+        "patientNote": "STS 2017 applies to all cardiac-surgical ICU patients, children included, but its drug doses are adult doses, so this tab is set for adults; resternotomy is part of the protocol until postoperative day 10. For children, AHA 2025 advises compressions when resternotomy is not at hand, early resternotomy, internal massage and ECLS; use the Arrest tab's doses.",
+        "note": "STS 2017 protocol: VF gets up to three stacked shocks, asystole gets pacing, PEA gets a quick search for reversible causes; compressions may wait at most 1 minute for these, and the chest is reopened within 5 minutes. Full-dose epinephrine and atropine are not routine.",
         "groups": [
           {
             "title": "Rhythm",
@@ -6715,7 +6785,7 @@
               "epi-small",
               "epi"
             ],
-            "note": "Epinephrine policy differs: STS withholds routine 1 mg doses, ERC 2025 gives 50–100 mcg, AHA 2025 says nothing specific for this setting (its default is 1 mg every 3–5 minutes). Follow local policy and log what was given."
+            "note": "Epinephrine policy differs: STS 2017 gives no epinephrine or vasopressin during the arrest unless an experienced clinician directs it; ERC 2025 gives 50–100 mcg; AHA 2025 says nothing specific for this setting (its default is 1 mg every 3–5 minutes). Follow local policy and log what was given."
           },
           {
             "title": "Airway and lines",
@@ -6837,7 +6907,7 @@
             "level": "now",
             "alert": true,
             "action": "reopen",
-            "text": "PEA: if paced, pause the pacemaker briefly to exclude VF. Exclude tamponade, bleeding and tension pneumothorax, then reopen without delay.",
+            "text": "PEA: if paced, pause the pacemaker briefly to exclude VF. Exclude quickly reversible causes (tension pneumothorax, airway and ventilation, pacing), then reopen within 5 minutes; tamponade and bleeding are treated by reopening.",
             "when": [
               {
                 "done": "pea"
@@ -6930,7 +7000,7 @@
           {
             "id": "airway",
             "level": "info",
-            "text": "Disconnect the ventilator and hand-ventilate with 100% oxygen; check both sides for breath sounds and chest movement and the ETCO₂ trace. Suspected tension pneumothorax: needle in the 2nd intercostal space, midclavicular line.",
+            "text": "Disconnect the ventilator and hand-ventilate with 100% oxygen, removing PEEP; check both sides for breath sounds and chest movement and the ETCO₂ trace. Suspected tension pneumothorax: needle in the 2nd intercostal space, midclavicular line.",
             "when": [
               {
                 "not": "ventbag"
@@ -7265,7 +7335,7 @@
             "start": "q1",
             "nodes": {
               "q1": {
-                "q": "Heart rate typically 150/min or more. Is the tachyarrhythmia causing hypotension, acutely altered mental status, signs of shock, ischemic chest discomfort or acute heart failure?",
+                "q": "Heart rate typically 150/min or more. Oxygen if hypoxemic, IV access, a 12-lead ECG if available. Is the tachyarrhythmia causing hypotension, acutely altered mental status, signs of shock, ischemic chest discomfort or acute heart failure?",
                 "crumb": "Unstable?",
                 "options": [
                   {
@@ -7281,7 +7351,7 @@
               "unstable": {
                 "title": "Unstable: synchronized cardioversion",
                 "crumb": "Unstable",
-                "text": "Sedate whenever feasible; have oxygen, suction, an IV and intubation equipment at hand. If the rhythm is regular and narrow, adenosine may be tried first. Resynchronize after each shock; if synchronization delays a critical patient, shock unsynchronized.",
+                "text": "Sedate whenever feasible; have oxygen, suction, an IV and intubation equipment at hand. If the rhythm is regular and narrow, adenosine may be tried first (with a central line or after heart transplant, 1 mg may be adequate). Resynchronize after each shock; if synchronization delays a critical patient, shock unsynchronized.",
                 "items": [
                   "Energies: atrial fibrillation 200 J, atrial flutter 200 J, narrow-complex tachycardia 100 J, monomorphic VT 100 J; polymorphic VT: unsynchronized high-energy shock",
                   "If refractory: treat the cause, raise the energy for the next shock, add an antiarrhythmic, expert consultation"
@@ -7316,7 +7386,7 @@
                   "β-blocker or calcium-channel blocker",
                   "Expert consultation"
                 ],
-                "text": "Rate control for atrial fibrillation or flutter (Part 9, Table 2): not with pre-excitation, and no calcium-channel blockers or IV β-blockers in decompensated heart failure.",
+                "text": "Adenosine: with a central line or after heart transplant, 1 mg may be adequate. Rate control for atrial fibrillation or flutter (Part 9, Table 2): not with pre-excitation, and no calcium-channel blockers or IV β-blockers in decompensated heart failure; diltiazem and verapamil: avoid in hypotension, heart failure, cardiomyopathy and acute coronary syndromes.",
                 "actions": [
                   "vagal",
                   "adenosine",
@@ -7330,7 +7400,7 @@
                 "title": "Stable, wide complex",
                 "crumb": "Wide",
                 "items": [
-                  "Adenosine only if regular and monomorphic",
+                  "Adenosine only if regular and monomorphic (central line or heart transplant: 1 mg may be adequate)",
                   "Antiarrhythmic infusion: procainamide or amiodarone (sotalol is no longer on the algorithm)",
                   "Expert consultation",
                   "No verapamil or diltiazem",
@@ -7413,7 +7483,7 @@
               "svt-u": {
                 "title": "Probable SVT with compromise",
                 "crumb": "SVT, unstable",
-                "text": "Adenosine if IV/IO access is already in; otherwise synchronized cardioversion. Sedate if needed, but do not delay the shock.",
+                "text": "Adenosine if IV/IO access is already in; otherwise synchronized cardioversion. Sedate if needed, but do not delay the shock. If unresponsive to vagal maneuvers, adenosine and synchronized cardioversion and no expert is available, IV procainamide, amiodarone or sotalol may be considered; no doses are printed.",
                 "actions": [
                   "adenosine-child",
                   "cardiovert-child"
@@ -7430,7 +7500,7 @@
               "svt-s": {
                 "title": "Probable SVT, stable",
                 "crumb": "SVT, stable",
-                "text": "Consider vagal maneuvers, then IV/IO adenosine. If it does not respond and no expert is available, procainamide, amiodarone or sotalol may be considered; the 2025 algorithm prints no doses for them.",
+                "text": "Consider vagal maneuvers, then IV/IO adenosine. If no response: expert consultation.",
                 "actions": [
                   "vagal",
                   "adenosine-child"
@@ -7538,8 +7608,13 @@
                 "detail": "Also without ST elevation for cardiogenic shock, recurrent ventricular arrhythmias or ongoing ischemia"
               },
               {
+                "id": "assess",
+                "label": "Assessed off sedation and neuromuscular blockade, if able: follows commands?",
+                "detail": "Not following commands: temperature control and EEG below"
+              },
+              {
                 "id": "temp",
-                "label": "Temperature control 32–37.5 °C, started as soon as possible",
+                "label": "Temperature control 32–37.5 °C if not following commands, started as soon as possible",
                 "detail": "For at least 36 hours; rewarm no faster than 0.5 °C/h"
               },
               {
@@ -7635,7 +7710,7 @@
           "adult",
           "child"
         ],
-        "note": "Adult doses: ICON 2019 international consensus; IM dose 500 mcg as ANZAAG, AAGBI and RCUK print it (ICON prints 300 mcg for grade II). Child IV doses: ANZAAG–ANZCA 2022 (ICON records no consensus); IM 10 mcg/kg, maximum 500 mcg (RCUK 2024).",
+        "note": "Adult doses: ICON 2019 international consensus; IM dose 500 mcg as ANZAAG, AAGBI and RCUK print it (ICON prints 300 mcg for grade II). Child IV doses: ANZAAG–ANZCA 2022 (ICON records no consensus; RCUK gives 1 mcg/kg); IM 10 mcg/kg, maximum 500 mcg (RCUK 2024). Child glucagon: ANZAAG 40 mcg/kg (max 1 mg); AHA 2025 prints 20–30 mcg/kg up to 1 mg. Sugammadex has no immediate role (ICON).",
         "tree": {
           "all": {
             "title": "Grade the reaction (ICON 2019)",
@@ -7658,7 +7733,7 @@
                     "next": "g3"
                   },
                   {
-                    "label": "IV · cardiac arrest",
+                    "label": "IV · cardiac or respiratory arrest",
                     "next": "g4"
                   }
                 ]
@@ -7674,7 +7749,7 @@
               "g2": {
                 "title": "Grade II",
                 "crumb": "Grade II",
-                "text": "Epinephrine 20 mcg IV, then 50 mcg at 2 minutes if the response is inadequate, every 2 minutes (adult, ICON). Child: 2 mcg/kg IV (ANZAAG). No IV access: 500 mcg IM. Crystalloid 500 mL rapid bolus (child 20 mL/kg), reassess, repeat.",
+                "text": "Epinephrine 20 mcg IV, then 50 mcg at 2 minutes if the response is inadequate, every 2 minutes (adult, ICON). Child under 12: 2 mcg/kg IV, increased if there is no response (ANZAAG). No IV access: IM epinephrine 500 mcg (child 10 mcg/kg, max 500 mcg). Crystalloid 500 mL rapid bolus (child 20 mL/kg), reassess, repeat.",
                 "actions": [
                   "ana-epi-2",
                   "ana-epi-im",
@@ -7684,7 +7759,7 @@
               "g3": {
                 "title": "Grade III",
                 "crumb": "Grade III",
-                "text": "Epinephrine 50 mcg IV (100 mcg if other vasopressors have failed), then 200 mcg at 2 minutes, every 2 minutes (adult, ICON). Child: 4–10 mcg/kg IV (ANZAAG). Crystalloid 1 L rapid bolus (child 20 mL/kg), repeat. Start compressions if the systolic falls under 50 mmHg or there is no output, even with a rhythm.",
+                "text": "Epinephrine 50 mcg IV (100 mcg if other vasopressors have failed), then 200 mcg at 2 minutes, every 2 minutes (adult, ICON). Child under 12: 4–10 mcg/kg IV, increased if there is no response (ANZAAG). Crystalloid 1 L rapid bolus (child 20 mL/kg), repeat. Adults: start compressions if the systolic falls under 50 mmHg or there is no output, even with a rhythm (ICON, ANZAAG); ICON also advises considering compressions when ETCO₂ falls under 20 mmHg. Children: CPR for arrest or no output.",
                 "actions": [
                   "ana-epi-3",
                   "ana-epi-im",
@@ -7693,9 +7768,9 @@
                 ]
               },
               "g4": {
-                "title": "Grade IV: cardiac arrest",
+                "title": "Grade IV: cardiac or respiratory arrest",
                 "crumb": "Grade IV",
-                "text": "Switch to the Arrest tab: compressions and ALS doses of epinephrine (1 mg; child 0.01 mg/kg). Large-volume crystalloid (ANZAAG: 2 L adult, 20 mL/kg child).",
+                "text": "Switch to the Arrest tab: compressions and ALS doses of epinephrine (1 mg; child 0.01 mg/kg, from the 0.1 mg/mL = 100 mcg/mL syringe). Large-volume crystalloid (ANZAAG: 2 L adult, 20 mL/kg child). ANZAAG repeats epinephrine every 1–2 minutes in adults (1–4 in children); the Arrest tab uses AHA's 3–5. Pregnant: left uterine displacement, and delivery if there is no ROSC by 4–5 minutes (ICON, ANZAAG).",
                 "actions": [
                   "cpr",
                   "epi"
@@ -7722,7 +7797,7 @@
               "ana-epi-im",
               "ana-epi-inf"
             ],
-            "note": "IV boluses from a 1 mg in 10 mL (100 mcg/mL) syringe for adults, 1 mg in 50 mL (20 mcg/mL) for children (ANZAAG). Repeat every 2 minutes if the response is inadequate."
+            "note": "IV boluses from a 1 mg in 10 mL (100 mcg/mL) syringe for adults, 1 mg in 50 mL (20 mcg/mL) for children (ANZAAG). Repeat every 2 minutes if the response is inadequate. Grade IV uses the arrest syringe (0.1 mg/mL = 100 mcg/mL), five times as strong as the child bolus syringe."
           },
           {
             "title": "Fluids and refractory shock",
@@ -7756,11 +7831,50 @@
             ]
           },
           {
+            "id": "child-doses",
+            "level": "info",
+            "patient": "child",
+            "text": "Child doses are ANZAAG's, for children under 12; from 12 years use the adult doses. Each child IV dose is capped at the adult dose for the grade.",
+            "when": []
+          },
+          {
             "id": "epi2-due",
             "level": "now",
             "alert": true,
+            "patient": "adult",
             "action": "ana-epi-2",
             "text": "Two minutes: if the response is inadequate, repeat epinephrine {dose:ana-epi-2}.",
+            "when": [
+              {
+                "count": [
+                  "ana-epi-2",
+                  ">=",
+                  1
+                ]
+              },
+              {
+                "since": [
+                  "ana-epi-2",
+                  ">=",
+                  120
+                ]
+              },
+              {
+                "count": [
+                  "ana-epi-3",
+                  "==",
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "id": "epi2-due-child",
+            "level": "now",
+            "alert": true,
+            "patient": "child",
+            "action": "ana-epi-2",
+            "text": "Two minutes: if the response is inadequate, repeat epinephrine {dose:ana-epi-2}; ANZAAG: increase the dose if there is no response (grade III is 4–10 mcg/kg).",
             "when": [
               {
                 "count": [
@@ -7789,8 +7903,33 @@
             "id": "epi3-due",
             "level": "now",
             "alert": true,
+            "patient": "adult",
             "action": "ana-epi-3",
             "text": "Two minutes: if the response is inadequate, repeat epinephrine {dose:ana-epi-3}.",
+            "when": [
+              {
+                "count": [
+                  "ana-epi-3",
+                  ">=",
+                  1
+                ]
+              },
+              {
+                "since": [
+                  "ana-epi-3",
+                  ">=",
+                  120
+                ]
+              }
+            ]
+          },
+          {
+            "id": "epi3-due-child",
+            "level": "now",
+            "alert": true,
+            "patient": "child",
+            "action": "ana-epi-3",
+            "text": "Two minutes: if the response is inadequate, increase the dose: {dose:ana-epi-3} (ANZAAG: 4–10 mcg/kg).",
             "when": [
               {
                 "count": [
@@ -7834,32 +7973,17 @@
             ]
           },
           {
-            "id": "infusion-2",
+            "id": "infusion",
             "level": "now",
             "action": "ana-epi-inf",
             "text": "More than three boluses: start an epinephrine infusion ({dose:ana-epi-inf}).",
             "when": [
               {
-                "count": [
-                  "ana-epi-2",
-                  ">=",
-                  4
-                ]
-              },
-              {
-                "not": "ana-epi-inf"
-              }
-            ]
-          },
-          {
-            "id": "infusion-3",
-            "level": "now",
-            "action": "ana-epi-inf",
-            "text": "More than three boluses: start an epinephrine infusion ({dose:ana-epi-inf}).",
-            "when": [
-              {
-                "count": [
-                  "ana-epi-3",
+                "countAny": [
+                  [
+                    "ana-epi-2",
+                    "ana-epi-3"
+                  ],
                   ">=",
                   4
                 ]
@@ -7943,8 +8067,9 @@
     "notes": [
       "Adult doses, energies and steps are the AHA 2025 algorithms and Part 9, each read in two official copies; the journal page numbers were not confirmed. Pediatric values are the AHA/AAP 2025 Part 8 text and algorithms; the Part 8 bradycardia and tachyarrhythmia sections could not be read, so those values come from the algorithms and the 2025 Highlights.",
       "After cardiac surgery: STS 2017 expert consensus (read from the STS copy; its poster figure could not be read), AHA 2025 Part 10 and ERC 2025. No source prints a defibrillation energy for this setting; the tool shows the general adult dose. Epinephrine policy differs between STS, ERC and AHA, so the tool does not prompt it.",
-      "Anaphylaxis: the ANZAAG card values were read from extracted text and should be checked against the rendered cards; terlipressin and methylene blue have no published dose and are not offered.",
-      "Not printed in the 2025 sources and so not prompted: a magnesium dose for torsades, a sotalol dose, a pediatric lidocaine maximum or repeat, a pediatric epinephrine interval in bradycardia, endotracheal epinephrine, pacing settings, and an ETCO₂ or diastolic pressure target in any adult recommendation."
+      "Anaphylaxis: the ANZAAG card values were read from extracted text and should be checked against the rendered cards; terlipressin and methylene blue: no dose appears in the sources reviewed (ICON, ANZAAG, RCUK, AHA 2025), so they are not offered. The child IV epinephrine and fluid caps at the adult dose for the grade are a safety choice, not printed values.",
+      "Not printed in the 2025 sources and so not prompted: a magnesium dose for torsades, a sotalol dose, a pediatric lidocaine maximum or repeat, a pediatric epinephrine interval in bradycardia, a pediatric atropine repeat interval, endotracheal epinephrine, pacing settings, and an ETCO₂ or diastolic pressure target in any adult recommendation.",
+      "A child's shock energy is shown capped at 200 J, the top of the adult biphasic range in the adult algorithm (120–200 J per the manufacturer): PALS gives 10 J/kg or the adult dose, whichever is lower. Pediatric amiodarone is read as 3 doses in total, the conservative reading of 'may repeat up to 3 doses'."
     ]
   },
   "abg": {

@@ -655,16 +655,22 @@ test('acls content: an adult VF code prompts the printed sequence', () => {
   eq(s.log.at(-1).text, 'Epinephrine 1 mg IV/IO (dose 2)');
   A.add(s, 370000, 'vf', 'Rhythm: VF/pVT'); A.add(s, 371000, 'shock', 'Shock 4: 200 J');
   ps = A.prompts(s, d, 372000);
-  eq(ids(ps), ['anti-2', 'airway', 'causes']);
-  assert.ok(ps[0].text.includes('second amiodarone dose (150 mg IV/IO)'), ps[0].text);
+  eq(ids(ps), ['anti-2a', 'airway', 'causes']);
+  eq(ps[0].text, 'If VF/pVT persists, a second amiodarone dose: 150 mg IV/IO. The algorithm prints no interval for it.');
   A.add(s, 380000, 'airway', 'Advanced airway placed');
-  eq(ids(A.prompts(s, d, 381000)), ['anti-2', 'vent-adult', 'causes']);
+  eq(ids(A.prompts(s, d, 381000)), ['anti-2a', 'vent-adult', 'causes']);
+  // lidocaine first: the second lidocaine dose is offered, not a switch to amiodarone
+  const l = A.session(0, 'arrest', 'adult');
+  for (const [t0, id] of [[1000, 'vf'], [2000, 'shock'], [125000, 'vf'], [126000, 'shock'], [130000, 'epi'], [250000, 'vf'], [251000, 'shock'], [255000, 'lido'], [370000, 'vf'], [371000, 'shock']]) A.add(l, t0, id, id);
+  ps = A.prompts(l, d, 372000);
+  eq(ids(ps).filter((x) => x.startsWith('anti')), ['anti-2b']);
+  eq(ps.find((p) => p.id === 'anti-2b').text, 'If VF/pVT persists, a second lidocaine dose: 0.5–0.75 mg/kg. The algorithm prints no interval for it.');
   // the cycle clock resets at each rhythm check
   eq(A.cycle(s, d, 400000).from, 370000);
   // ROSC switches to post-arrest care
   eq(d.actions.rosc.goto, 'rosc');
   const rosc = d.modes.find((m) => m.id === 'rosc');
-  eq(rosc.lists.map((l) => [l.patient, l.items.length]), [['adult', 11], ['child', 12]]);
+  eq(rosc.lists.map((l) => [l.patient, l.items.length]), [['adult', 12], ['child', 12]]);
 });
 test('acls content: a child code, asystole first, with weight-based doses', () => {
   const A = R.acls, d = bundle.acls;
@@ -674,7 +680,7 @@ test('acls content: a child code, asystole first, with weight-based doses', () =
   A.add(s, 5000, 'nonsh', 'Rhythm: asystole/PEA');
   const ps = A.prompts(s, d, 6000);
   eq(ps.map((p) => p.id), ['epi-ns']);
-  eq(ps[0].text, 'Epinephrine as soon as possible: 0.18 mg IV/IO · 1.8 mL of 0.1 mg/mL (0.01 mg/kg).');
+  eq(ps[0].text, 'Epinephrine as soon as possible: 0.18 mg IV/IO · 1.8 mL of 0.1 mg/mL = 100 mcg/mL (0.01 mg/kg).');
   eq(A.energy(d.actions.shock, s, 0).text, '36 J (2 J/kg)');
   eq(A.energy(d.actions.shock, s, 1).text, '72 J (4 J/kg)');
   eq(A.energy(d.actions.shock, s, 2).text, '≥ 72 J (4 J/kg), up to 180 J');
@@ -684,7 +690,13 @@ test('acls content: a child code, asystole first, with weight-based doses', () =
   const big = A.session(0, 'arrest', 'child'); big.weight = 70;
   eq(A.dose(d.actions.amio, big, 0).text, '300 mg IV/IO (the maximum)');
   eq(A.dose(d.actions.amio, big, 1).text, '150 mg IV/IO (the maximum)', 'later doses are capped at 150 mg');
-  eq(A.dose(d.actions.epi, big, 0).text, '0.7 mg IV/IO · 7 mL of 0.1 mg/mL (0.01 mg/kg)');
+  eq(A.dose(d.actions.epi, big, 0).text, '0.7 mg IV/IO · 7 mL of 0.1 mg/mL = 100 mcg/mL (0.01 mg/kg)');
+  // a large child's shocks stop at the adult dose (10 J/kg or the adult dose, whichever is lower)
+  eq([0, 1, 2].map((n) => A.energy(d.actions.shock, big, n).text), ['140 J (2 J/kg)', '200 J, the adult dose (4 J/kg would be 280 J)', '200 J, the adult dose (4 J/kg would be 280 J)']);
+  const forty = A.session(0, 'arrest', 'child'); forty.weight = 40;
+  eq(A.energy(d.actions.shock, forty, 2).text, '≥ 160 J (4 J/kg), up to 200 J (the adult dose)');
+  eq(A.energy(d.actions.shock, forty, 2).joules, 160);
+  eq(A.energy(d.actions.shock, A.session(0, 'arrest', 'child'), 2).text, '≥ 4 J/kg (up to 10 J/kg or the adult dose, whichever is lower)');
   eq(A.dose(d.actions.lido, s, 0).text, '18 mg IV/IO (1 mg/kg)');
   // the child lists carry hypoglycemia
   const arrest = d.modes.find((m) => m.id === 'arrest');
@@ -695,6 +707,11 @@ test('acls content: a child code, asystole first, with weight-based doses', () =
   b.weight = 40;
   eq(A.dose(d.actions.atropine, b, 0).text, '0.5 mg IV/IO (the maximum)');
   eq(A.maxDoses(d.actions.atropine, b), 2);
+  // a child's atropine "may repeat once" with no printed interval: no countdown; an adult's runs every 3–5 min
+  A.add(b, 1000, 'atropine', 'Atropine');
+  eq(A.timer(d.actions.atropine, b, 'atropine', 400000), null);
+  const ba = A.session(0, 'brady', 'adult'); A.add(ba, 1000, 'atropine', 'Atropine');
+  eq(A.timer(d.actions.atropine, ba, 'atropine', 200000).state, 'due');
   // tachyarrhythmia: adenosine by weight, cardioversion as text
   const t = A.session(0, 'tachy', 'child'); t.weight = 18;
   eq(A.dose(d.actions['adenosine-child'], t, 0).text, '1.8 mg IV/IO rapid push, then flush (0.1 mg/kg)');
@@ -702,7 +719,15 @@ test('acls content: a child code, asystole first, with weight-based doses', () =
   eq(A.energy(d.actions['cardiovert-child'], t, 0).text, '0.5–1 J/kg; if not effective, 2 J/kg. Sedate if needed, but do not delay');
   // anaphylaxis: child doses
   const an = A.session(0, 'anaphylaxis', 'child'); an.weight = 18;
-  eq(A.dose(d.actions['ana-epi-2'], an, 0).text, '36 mcg IV · 1.8 mL of 20 mcg/mL (2 mcg/kg)');
+  eq(A.dose(d.actions['ana-epi-2'], an, 0).text, '20 mcg IV · 1 mL of 20 mcg/mL (the maximum)', 'capped at the adult grade II dose');
+  eq(A.dose(d.actions['ana-epi-2'], an, 1).text, '36 mcg IV · 1.8 mL of 20 mcg/mL (2 mcg/kg)');
+  eq(A.dose(d.actions['ana-epi-3'], an, 0).text, '50 mcg IV · 2.5 mL of 20 mcg/mL (the maximum)');
+  eq(A.dose(d.actions['ana-epi-3'], an, 1).text, '180 mcg IV · 9 mL of 20 mcg/mL (10 mcg/kg)', 'escalates: ANZAAG 4–10 mcg/kg');
+  const small = A.session(0, 'anaphylaxis', 'child'); small.weight = 8;
+  eq(A.dose(d.actions['ana-epi-2'], small, 0).text, '16 mcg IV · 0.8 mL of 20 mcg/mL (2 mcg/kg)');
+  eq(A.dose(d.actions['ana-epi-3'], small, 0).text, '32 mcg IV · 1.6 mL of 20 mcg/mL (4 mcg/kg)');
+  const teen = A.session(0, 'anaphylaxis', 'child'); teen.weight = 70;
+  eq([A.dose(d.actions['ana-epi-2'], teen, 0).amount, A.dose(d.actions['ana-epi-3'], teen, 1).amount, A.dose(d.actions['ana-fluid'], teen, 0).amount], [20, 200, 1000], 'never above the adult doses');
   eq(A.dose(d.actions['ana-epi-im'], an, 0).text, '180 mcg IM, lateral thigh (10 mcg/kg)');
   eq(A.dose(d.actions['ana-fluid'], an, 0).text, '360 mL IV/IO rapid bolus, repeat as needed (20 mL/kg)');
   eq(A.dose(d.actions['ana-glucagon'], an, 0).text, '0.72 mg IV (0.04 mg/kg)');
@@ -748,7 +773,7 @@ test('acls content: CALS deadlines, the trees and the anaphylaxis grades', () =>
   A.choose(t, d, 1000, 'q2', 'No: stable');
   A.choose(t, d, 2000, 'wide', 'Wide');
   eq(A.tree(t, d).node.title, 'Stable, wide complex');
-  eq(t.log.map((e) => e.text), ['Tachy: Heart rate typically 150/min or more. Is the tachyarrhythmia causing hypotension, acutely altered mental status, signs of shock, ischemic chest discomfort or acute heart failure? No: stable', 'Tachy: Wide QRS (0.12 s or more)? Wide']);
+  eq(t.log.map((e) => e.text), ['Tachy: Heart rate typically 150/min or more. Oxygen if hypoxemic, IV access, a 12-lead ECG if available. Is the tachyarrhythmia causing hypotension, acutely altered mental status, signs of shock, ischemic chest discomfort or acute heart failure? No: stable', 'Tachy: Wide QRS (0.12 s or more)? Wide']);
   // anaphylaxis prompts
   const an = A.session(0, 'anaphylaxis', 'adult');
   eq(A.prompts(an, d, 0).map((p) => p.id), ['start']);
@@ -757,11 +782,21 @@ test('acls content: CALS deadlines, the trees and the anaphylaxis grades', () =>
   eq(an.log.at(-1).text, 'Epinephrine IV · grade III 50 mcg IV');
   ps = A.prompts(an, d, 123000);
   eq(ps.map((p) => p.id), ['epi3-due']);
-  eq(ps[0].text, 'Two minutes: if the response is inadequate, repeat epinephrine 200 mcg IV.');
+  eq(ps[0].text, 'Two minutes: if the response is inadequate, repeat epinephrine 200 mcg IV · 2 mL of 100 mcg/mL.');
   for (const t0 of [130000, 260000, 390000]) A.add(an, t0, 'ana-epi-3', 'Epinephrine');
-  eq(A.prompts(an, d, 391000).map((p) => p.id), ['infusion-3']);
-  eq(A.prompts(an, d, 700000).map((p) => p.id), ['epi3-due', 'infusion-3', 'refractory']);
-  eq(A.prompts(an, d, 3400000).map((p) => p.id), ['epi3-due', 'infusion-3', 'refractory', 'tryptase']);
+  eq(A.prompts(an, d, 391000).map((p) => p.id), ['infusion']);
+  eq(A.prompts(an, d, 700000).map((p) => p.id), ['epi3-due', 'infusion', 'refractory']);
+  eq(A.prompts(an, d, 3400000).map((p) => p.id), ['epi3-due', 'infusion', 'refractory', 'tryptase']);
+  // boluses of both grades count together towards the infusion
+  const mix = A.session(0, 'anaphylaxis', 'adult');
+  for (const [t0, id] of [[1000, 'ana-help'], [2000, 'ana-epi-2'], [60000, 'ana-epi-2'], [120000, 'ana-epi-3'], [180000, 'ana-epi-3']]) A.add(mix, t0, id, id);
+  eq(A.prompts(mix, d, 181000).map((p) => p.id), ['infusion']);
+  // a child sees the ANZAAG escalation
+  const ch = A.session(0, 'anaphylaxis', 'child'); ch.weight = 18;
+  A.add(ch, 1000, 'ana-help', 'Help called'); A.add(ch, 2000, 'ana-epi-3', 'Epinephrine');
+  ps = A.prompts(ch, d, 123000);
+  eq(ps.map((p) => p.id), ['child-doses', 'epi3-due-child'], 'the age limit for the child doses stays on screen');
+  eq(ps[1].text, 'Two minutes: if the response is inadequate, increase the dose: 180 mcg IV · 9 mL of 20 mcg/mL (10 mcg/kg) (ANZAAG: 4–10 mcg/kg).');
 });
 
 // ---------- ABG: acid–base and compensation ----------

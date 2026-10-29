@@ -341,7 +341,10 @@ def main(path):
                     need(aid in actions, f"acls prompt {mid}/{pid}: {{{kind}:{aid}}} names no action")
                 for c in p.get("when") or []:
                     keys = set(c)
-                    need(keys and keys <= {"patient", "rhythm", "done", "not", "notAny", "count", "countSince", "since", "elapsed", "cycle", "weight"}, f"acls prompt {mid}/{pid}: unknown condition {sorted(keys)}")
+                    need(keys and keys <= {"patient", "rhythm", "done", "not", "notAny", "count", "countAny", "countSince", "since", "elapsed", "cycle", "weight"}, f"acls prompt {mid}/{pid}: unknown condition {sorted(keys)}")
+                    if "countAny" in c:
+                        v = c["countAny"]
+                        need(isinstance(v, list) and len(v) == 3 and isinstance(v[0], list) and v[0] and all(x in actions for x in v[0]) and v[1] in ops and num(v[2]), f"acls prompt {mid}/{pid}: countAny is [[ids], op, n]")
                     if "count" in c or "since" in c:
                         v = c.get("count") or c.get("since")
                         need(isinstance(v, list) and len(v) == 3 and v[1] in ops and num(v[2]), f"acls prompt {mid}/{pid}: count/since is [id, op, n]")
