@@ -31,7 +31,9 @@ final class ReferenceStore {
         // Prefer whichever is newer by its `updated` date; the bundled copy wins ties (it matched the build).
         // Either way, a section only one of them has is kept.
         if let c = cached, let b = bundled {
-            bundle = c.updated > b.updated ? c.filling(from: b) : b.filling(from: c)
+            // A cached download only wins when it is strictly newer than what shipped with the app.
+            let cachedNewer = c.isAtLeastAsNew(as: b) && !b.isAtLeastAsNew(as: c)
+            bundle = cachedNewer ? c.filling(from: b) : b.filling(from: c)
         } else {
             bundle = cached ?? bundled
         }
@@ -41,7 +43,7 @@ final class ReferenceStore {
     func refresh() async {
         guard let (fresh, data) = try? await ReferenceLoader.fetch() else { return }
         if let current = bundle {
-            if fresh.updated >= current.updated {
+            if fresh.isAtLeastAsNew(as: current) {
                 bundle = fresh.filling(from: current)
                 ReferenceLoader.saveCache(data)
             } else {

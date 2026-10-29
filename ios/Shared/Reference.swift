@@ -10,12 +10,21 @@ import Foundation
 struct ReferenceBundle: Codable {
     var version: Int
     var updated: String
+    /// Build stamp (seconds since 1970) that orders two files written on the same day.
+    var revision: Int? = nil
+
+    /// Whether this file is at least as new as `other`: the date first, then the build stamp.
+    func isAtLeastAsNew(as other: ReferenceBundle) -> Bool {
+        if updated != other.updated { return updated > other.updated }
+        return (revision ?? 0) >= (other.revision ?? 0)
+    }
     var disclaimer: String?
     var ask: AskConfig?
     var quickrefs: [QuickRef]
     var peds: PedsData?
     var infusions: InfusionData?
     var neuraxial: NeuraxialData?
+    var ponv: PONVData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -24,8 +33,73 @@ struct ReferenceBundle: Codable {
         if b.peds == nil { b.peds = other.peds }
         if b.infusions == nil { b.infusions = other.infusions }
         if b.neuraxial == nil { b.neuraxial = other.neuraxial }
+        if b.ponv == nil { b.ponv = other.ponv }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
+    }
+}
+
+// MARK: PONV (Fifth consensus): how many agents by Apfel risk, the agents, rescue by class
+
+struct PONVData: Codable {
+    var reviewed: String?
+    var source: String
+    var sourceURL: String?
+    var counts: [PONVCount]
+    var riskReduction: [String]
+    var agents: [PONVAgent]
+    var rescueRules: [String]
+}
+
+struct PONVCount: Codable, Hashable {
+    var minFactors: Int
+    var maxFactors: Int
+    var agents: Int
+    var agentsHigh: Int?
+    var text: String
+}
+
+struct PONVAgent: Codable, Identifiable, Hashable {
+    var id: String
+    var name: String
+    var cls: String
+    var dose: String
+    var timing: String?
+    /// Fast-acting agents offered for treatment after failed prophylaxis.
+    var rescue: Bool?
+    var rescueDose: String?
+    /// Not redosed in recovery (aprepitant, palonosetron).
+    var longActing: Bool?
+    /// False for rescue-only agents (propofol).
+    var prophylaxis: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, cls = "class", dose, timing, rescue, rescueDose, longActing, prophylaxis
+    }
+}
+
+enum PONVPlan {
+    /// The consensus count for this many Apfel factors: (fewest, most) interventions and the wording.
+    static func target(factors: Int, counts: [PONVCount]) -> PONVCount? {
+        counts.first { factors >= $0.minFactors && factors <= $0.maxFactors }
+    }
+
+    /// Classes covered by the chosen agents; two agents of one class count once.
+    static func classes(of chosen: Set<String>, in agents: [PONVAgent]) -> [String] {
+        var seen: [String] = []
+        for a in agents where chosen.contains(a.id) && !seen.contains(a.cls) { seen.append(a.cls) }
+        return seen
+    }
+
+    /// Rescue options: fast-acting agents from classes not given for prophylaxis, in table order.
+    static func rescueOptions(chosen: Set<String>, agents: [PONVAgent]) -> [PONVAgent] {
+        let used = Set(classes(of: chosen, in: agents))
+        return agents.filter { $0.rescue == true && !used.contains($0.cls) }
+    }
+
+    /// Long-acting agents among those given (not to be redosed in recovery).
+    static func longActingGiven(chosen: Set<String>, agents: [PONVAgent]) -> [PONVAgent] {
+        agents.filter { chosen.contains($0.id) && $0.longActing == true }
     }
 }
 
@@ -114,6 +188,12 @@ struct InfusionDrug: Codable, Identifiable, Hashable {
     var caution: String?
     var offLabel: Bool?
     var source: String?
+    /// The drug's class as a short tag ("Vasopressor", "Inodilator").
+    var role: String? = nil
+    /// Always-visible line for blood products: when to transfuse.
+    var threshold: String? = nil
+    /// Overrides the generated dose text in the row ("1 unit per 7–10 kg").
+    var display: String? = nil
 }
 
 /// Where the app sends questions the references and the feed cannot answer (set once the proxy exists).

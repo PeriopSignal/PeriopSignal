@@ -33,21 +33,29 @@ final class FavoritesStore {
         persist()
     }
 
+    /// Tools that were merged into another keep their place in the list under the new key.
+    static let renamed: [String: String] = ["score:apfel": "ponv", "quickref:ponv-consensus": "ponv"]
+
+    static func migrate(_ list: [String]) -> [String] {
+        var out: [String] = []
+        for k in list.map({ renamed[$0] ?? $0 }) where !out.contains(k) { out.append(k) }
+        return out
+    }
+
     /// First launch: union of what iCloud and this device know (so nothing starred is lost).
     private func load() {
         let cloud = kv.array(forKey: key) as? [String]
         let local = defaults.array(forKey: key) as? [String]
-        var merged: [String] = []
-        for k in (cloud ?? []) + (local ?? []) where !merged.contains(k) { merged.append(k) }
+        let merged = Self.migrate((cloud ?? []) + (local ?? []))
         keys = merged
-        if cloud == nil, let local, !local.isEmpty { kv.set(local, forKey: key) }
+        if merged != (cloud ?? []) && !merged.isEmpty { persist() }
     }
 
     /// Another device changed the list: take it as it is, removals included.
     private func adoptCloud() {
         guard let cloud = kv.array(forKey: key) as? [String] else { return }
-        keys = cloud
-        defaults.set(cloud, forKey: key)
+        keys = Self.migrate(cloud)
+        defaults.set(keys, forKey: key)
     }
 
     private func persist() {

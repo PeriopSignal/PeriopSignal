@@ -256,6 +256,76 @@ final class ReferenceTests: XCTestCase {
         XCTAssertNil(InfusionCalc.lines(for: vaso, weightKg: 70).equivalent)
     }
 
+    func testInfusionGroupsAsReviewed() throws {
+        let inf = try XCTUnwrap(try bundled().infusions)
+        XCTAssertEqual(inf.groups.map(\.name), ["Hemodynamic Infusions", "Single-Dose Medications", "Anesthetic and Other Infusions", "Blood Products", "Factor Concentrates and Hematologic Drugs"])
+        let hemodynamic = try XCTUnwrap(inf.groups.first)
+        XCTAssertTrue(hemodynamic.drugs.allSatisfy { $0.role != nil }, "every hemodynamic infusion carries its class")
+        XCTAssertEqual(hemodynamic.drugs.filter { $0.name.hasPrefix("Epinephrine") }.count, 1, "one epinephrine row")
+        let blood = try XCTUnwrap(inf.groups.first { $0.name == "Blood Products" })
+        XCTAssertEqual(Set(blood.drugs.map(\.id)), ["red-cells", "plasma", "platelets", "cryoprecipitate"])
+        for d in blood.drugs { XCTAssertNotNil(d.threshold, "\(d.id) shows its transfusion threshold") }
+        let norepi = try XCTUnwrap(hemodynamic.drugs.first { $0.id == "norepinephrine" })
+        XCTAssertEqual(InfusionCalc.lines(for: norepi, weightKg: 80).dose, "4–8 mcg/min")
+        XCTAssertEqual(InfusionCalc.lines(for: norepi, weightKg: 80).equivalent, "0.05–0.1 mcg/kg/min at 80 kg")
+        let cryo = try XCTUnwrap(blood.drugs.first { $0.id == "cryoprecipitate" })
+        XCTAssertEqual(InfusionCalc.lines(for: cryo, weightKg: 70).equivalent, "7–10 units at 70 kg")
+    }
+
+    func testTitleCase() {
+        XCTAssertEqual("Blocks on anticoagulants".titleCased, "Blocks on Anticoagulants")
+        XCTAssertEqual("Recognize it".titleCased, "Recognize It")
+        XCTAssertEqual("Aortic stenosis: low-gradient states".titleCased, "Aortic Stenosis: Low-Gradient States")
+        XCTAssertEqual("Cardiac risk for non-cardiac surgery".titleCased, "Cardiac Risk for Non-cardiac Surgery")
+        XCTAssertEqual("Doses in mg/kg".titleCased, "Doses in mg/kg")
+        XCTAssertEqual("5-HT₃ antagonist".titleCased, "5-HT₃ Antagonist")
+        XCTAssertEqual("STOP-Bang and the ASA".titleCased, "STOP-Bang and the ASA")
+        XCTAssertEqual("a plan for the airway".titleCased, "A Plan for the Airway")
+        XCTAssertEqual("Severe, high-gradient AS".titleCased, "Severe, High-Gradient AS")
+        XCTAssertEqual("Local Anesthetic Systemic Toxicity (LAST)".titleCased, "Local Anesthetic Systemic Toxicity (LAST)", "already Title Case stays")
+    }
+
+    func testPONVPlan() throws {
+        let ponv = try XCTUnwrap(try bundled().ponv)
+        XCTAssertEqual(PONVPlan.target(factors: 0, counts: ponv.counts)?.agents, 2)
+        XCTAssertEqual(PONVPlan.target(factors: 2, counts: ponv.counts)?.agents, 2)
+        XCTAssertEqual(PONVPlan.target(factors: 3, counts: ponv.counts)?.agents, 3)
+        XCTAssertEqual(PONVPlan.target(factors: 4, counts: ponv.counts)?.agentsHigh, 4)
+        XCTAssertEqual(PONVPlan.classes(of: ["ondansetron", "granisetron", "dexamethasone"], in: ponv.agents), ["5-HT₃ antagonist", "Corticosteroid"], "two 5-HT₃ antagonists count once")
+        let rescue = PONVPlan.rescueOptions(chosen: ["ondansetron", "dexamethasone"], agents: ponv.agents).map(\.id)
+        XCTAssertFalse(rescue.contains("ondansetron"))
+        XCTAssertFalse(rescue.contains("granisetron"), "no 5-HT₃ antagonist again within 6 h")
+        XCTAssertTrue(rescue.contains("amisulpride"))
+        XCTAssertTrue(rescue.contains("propofol"))
+        XCTAssertEqual(ponv.agents.first { $0.id == "amisulpride" }?.rescueDose, "10 mg IV")
+        XCTAssertEqual(PONVPlan.longActingGiven(chosen: ["palonosetron", "dexamethasone"], agents: ponv.agents).map(\.id), ["palonosetron"])
+        XCTAssertFalse(ponv.agents.filter { $0.prophylaxis != false }.contains { $0.id == "propofol" }, "propofol is rescue only")
+        // The card's table and the tool share one list.
+        let card = try XCTUnwrap(try bundled().quickrefs.first { $0.id == "ponv-consensus" })
+        let table = try XCTUnwrap(card.sections.first { $0.kind == .table })
+        XCTAssertEqual(table.rows?.map { $0.first ?? "" }, ponv.agents.filter { $0.prophylaxis != false }.map(\.name))
+    }
+
+    @MainActor func testFavoritesMigrateMergedTools() {
+        XCTAssertEqual(FavoritesStore.migrate(["score:rcri", "score:apfel", "quickref:ponv-consensus", "valves"]), ["score:rcri", "ponv", "valves"])
+        XCTAssertEqual(RefRoute(key: "ponv"), .ponv)
+        XCTAssertNotNil(RefItem.item(forKey: "ponv"))
+        XCTAssertEqual(RefItem.folder(of: .neuraxial), .regional)
+        XCTAssertEqual(RefItem.folder(of: .local), .regional)
+    }
+
+    func testNewerFileWinsBySameDayStamp() throws {
+        var a = try bundled()
+        var b = a
+        a.revision = 100; b.revision = 200
+        XCTAssertTrue(b.isAtLeastAsNew(as: a))
+        XCTAssertFalse(a.isAtLeastAsNew(as: b), "same date: the later build stamp wins")
+        b.updated = "2000-01-01"
+        XCTAssertTrue(a.isAtLeastAsNew(as: b), "a later date wins whatever the stamps")
+        a.revision = nil; b = a
+        XCTAssertTrue(a.isAtLeastAsNew(as: b), "identical files tie, and a tie keeps the download")
+    }
+
     func testOlderServerFileDoesNotHideNewSections() throws {
         let b = try bundled()
         var server = b
@@ -293,7 +363,7 @@ final class ReferenceTests: XCTestCase {
             XCTAssertEqual(names, names.sorted(), "\(g.name) is alphabetical")
         }
         let wanted = ["phenylephrine", "norepinephrine", "epinephrine", "vasopressin", "nitroglycerin", "nitroprusside", "esmolol", "clevidipine", "nicardipine", "milrinone", "dobutamine", "tranexamic", "aminocaproic", "iepo", "ino", "factor-viia", "pcc", "antithrombin",
-                      "bivalirudin", "insulin", "amiodarone", "propofol", "dexmedetomidine", "lidocaine-iv", "ketamine", "remifentanil"]
+                      "bivalirudin", "insulin", "amiodarone", "propofol", "dexmedetomidine", "lidocaine-iv", "ketamine", "remifentanil", "red-cells", "phenylephrine-bolus"]
         for id in wanted { XCTAssertTrue(all.contains { $0.id == id }, "\(id) is in the table") }
     }
 

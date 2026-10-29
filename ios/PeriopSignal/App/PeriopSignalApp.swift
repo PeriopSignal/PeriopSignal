@@ -17,6 +17,8 @@ struct PeriopSignalApp: App {
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
 
     init() {
+        // Earlier versions kept the last patient weight and age on the device; nothing about a patient is stored now.
+        PatientHandoff.purgeStoredPatientValues()
         let prefs = Preferences()
         let postStore = PostStore()
         postStore.preferences = prefs

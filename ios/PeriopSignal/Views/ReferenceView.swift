@@ -12,6 +12,7 @@ enum RefRoute: Hashable {
     case airway
     case valves
     case intervention
+    case ponv
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -27,6 +28,7 @@ enum RefRoute: Hashable {
         case .airway: return "airway"
         case .valves: return "valves"
         case .intervention: return "intervention"
+        case .ponv: return "ponv"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -43,6 +45,7 @@ enum RefRoute: Hashable {
         case "airway": self = .airway
         case "valves": self = .valves
         case "intervention": self = .intervention
+        case "ponv": self = .ponv
         case "folder" where parts.count == 2:
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
@@ -53,14 +56,15 @@ enum RefRoute: Hashable {
 
 /// The Reference tab's folders. Each tool lives in one folder.
 enum RefFolder: String, CaseIterable, Identifiable, Hashable {
-    case emergency, preoperative, generalAnesthesia, medications, pediatrics
+    case emergency, preoperative, generalAnesthesia, regional, medications, pediatrics
     var id: String { rawValue }
     var title: String {
         switch self {
         case .emergency: return "Emergency"
         case .preoperative: return "Preoperative"
-        case .generalAnesthesia: return "General anesthesia"
-        case .medications: return "Medications and hematology"
+        case .generalAnesthesia: return "General Anesthesia"
+        case .regional: return "Regional"
+        case .medications: return "Medications and Hematology"
         case .pediatrics: return "Pediatrics"
         }
     }
@@ -69,6 +73,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .emergency: return "bolt.heart"
         case .preoperative: return "checklist"
         case .generalAnesthesia: return "lungs"
+        case .regional: return "syringe"
         case .medications: return "ivfluid.bag"
         case .pediatrics: return "figure.child"
         }
@@ -78,7 +83,8 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .emergency: return PS.accent
         case .preoperative: return PS.accent2
         case .generalAnesthesia: return Topics.info("thoracic").fg
-        case .medications: return Topics.info("regional").fg
+        case .regional: return Topics.info("regional").fg
+        case .medications: return PS.green
         case .pediatrics: return Topics.info("pediatric").fg
         }
     }
@@ -86,30 +92,31 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
     var items: [RefItem] {
         switch self {
         case .emergency: return [
-            RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local anesthetic toxicity", blurb: "Recognize, lipid doses, modified ACLS"),
-            RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant hyperthermia", blurb: "Dantrolene, potassium, cooling, hotline"),
-            RefItem(route: .airway, icon: "wind", title: "Difficult airway", blurb: "Assessment in, the plan out; attempts and rescue"),
+            RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local Anesthetic Toxicity", blurb: "Checklist with lipid doses for the weight"),
+            RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant Hyperthermia", blurb: "Checklist with dantrolene for the weight"),
+            RefItem(route: .airway, icon: "wind", title: "Difficult Airway", blurb: "Assessment in, plan and checklists out"),
         ]
         case .preoperative: return [
             RefItem(route: .score("rcri"), icon: "heart.text.square", title: "RCRI", blurb: "Cardiac risk for non-cardiac surgery"),
             RefItem(route: .score("ariscat"), icon: "lungs", title: "ARISCAT", blurb: "Postoperative pulmonary complications"),
             RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-Bang", blurb: "Sleep apnea screening"),
-            RefItem(route: .score("apfel"), icon: "pills", title: "Apfel PONV", blurb: "Nausea risk and how much prophylaxis"),
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
-            RefItem(route: .neuraxial, icon: "drop.triangle", title: "Blocks on anticoagulants", blurb: "Drug and last dose in, earliest block out"),
-            RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "Valve severity", blurb: "Echo numbers in, ASE grade out"),
-            RefItem(route: .intervention, icon: "heart.circle", title: "Valve intervention", blurb: "Repair or replace? ACC/AHA, prompted"),
+            RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "Valve Severity", blurb: "Echo numbers in, ASE grade out"),
+            RefItem(route: .intervention, icon: "heart.circle", title: "Valve Intervention", blurb: "Repair or replace? ACC/AHA, prompted"),
         ]
         case .generalAnesthesia: return [
-            RefItem(route: .local, icon: "syringe", title: "Local anesthetic doses", blurb: "One agent or a mixture, with Exparel"),
+            RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "Apfel score, how many agents, rescue"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
-            RefItem(route: .quickref("ponv-consensus"), icon: "pills.circle", title: "PONV management", blurb: "Agents, doses, timing and rescue"),
+        ]
+        case .regional: return [
+            RefItem(route: .neuraxial, icon: "drop.triangle", title: "Blocks on Anticoagulants", blurb: "Drug and last dose in, earliest block out"),
+            RefItem(route: .local, icon: "syringe", title: "Local Anesthetic Doses", blurb: "One agent or a mixture, with Exparel"),
         ]
         case .medications: return [
-            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Infusions and blood", blurb: "Pressors, dilators, inotropes, blood products"),
+            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Infusions and Blood", blurb: "Hemodynamic drips, boluses, blood products, factors"),
         ]
         case .pediatrics: return [
-            RefItem(route: .peds, icon: "scalemass", title: "Pediatric doses", blurb: "Doses, tube sizes, fluids and blood volume"),
+            RefItem(route: .peds, icon: "scalemass", title: "Pediatric Doses", blurb: "Doses, tube sizes, fluids and blood volume"),
         ]
         }
     }
@@ -165,6 +172,8 @@ struct ReferenceView: View {
     @State private var webLink: WebLink?
     @State private var query = ""
     @State private var ask: AskPrompt?
+    /// Passes a child's weight and age from the pediatric calculator to the local anesthetic one, once.
+    @State private var handoff = PatientHandoff()
 
     private var trimmed: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var searching: Bool { !trimmed.isEmpty }
@@ -198,6 +207,7 @@ struct ReferenceView: View {
             }
             .listenBar()
         }
+        .environment(handoff)
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
         }
@@ -224,7 +234,10 @@ struct ReferenceView: View {
                 case .score(let id):
                     if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }, onOpenRef: { path.append(RefRoute.quickref($0)) }) }
                 case .peds:
-                    PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) })
+                    PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) }, onOpenLocal: { w, y in
+                        handoff.pass(weightKg: w, ageYears: y)
+                        path.append(RefRoute.local)
+                    })
                 case .local:
                     LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
                 case .infusions:
@@ -239,6 +252,8 @@ struct ReferenceView: View {
                     ValveGraderView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("ase-valve-severity")) })
                 case .intervention:
                     ValveInterventionView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("acc-aha-valve-intervention")) })
+                case .ponv:
+                    PONVView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("ponv-consensus")) })
                 case .folder(let f):
                     FolderView(folder: f, path: $path)
                 }
@@ -259,11 +274,9 @@ struct ReferenceView: View {
         let items = favorites.keys.compactMap { RefItem.item(forKey: $0) }
         return VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Favorites").padding(.leading, 2)
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                ForEach(items) { item in
-                    CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: true) { path.append(item.route) }
-                        .contextMenu { Button(role: .destructive) { favorites.toggle(item.route.key) } label: { Label("Remove from favorites", systemImage: "star.slash") } }
-                }
+            TileGrid(items: items) { item in
+                CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: true) { path.append(item.route) }
+                    .contextMenu { Button(role: .destructive) { favorites.toggle(item.route.key) } label: { Label("Remove from favorites", systemImage: "star.slash") } }
             }
         }
     }
@@ -318,19 +331,17 @@ struct FolderView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                    ForEach(folder.items) { item in
-                        let on = favorites.contains(item.route.key)
-                        CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: on) { path.append(item.route) }
-                            .contextMenu {
-                                Button { favorites.toggle(item.route.key) } label: { Label(on ? "Remove from favorites" : "Add to favorites", systemImage: on ? "star.slash" : "star") }
-                            }
-                    }
+                TileGrid(items: folder.items) { item in
+                    let on = favorites.contains(item.route.key)
+                    CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb, starred: on) { path.append(item.route) }
+                        .contextMenu {
+                            Button { favorites.toggle(item.route.key) } label: { Label(on ? "Remove from favorites" : "Add to favorites", systemImage: on ? "star.slash" : "star") }
+                        }
                 }
                 Text("Long-press a tool to add it to your favorites at the top of the tab; the star in each tool's toolbar does the same.")
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
                 if folder == .emergency {
-                    Text("Doses in the emergency cards are the published regimens; enter the weight in the pediatric or local-anesthetic calculators for computed amounts.")
+                    Text("Each emergency checklist takes the patient's weight at the top and works out the doses; the weight clears when you leave.")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
                 }
             }
@@ -343,6 +354,28 @@ struct FolderView: View {
         .navigationTitle(folder.title)
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(.hidden, for: .navigationBar)
+    }
+}
+
+/// Two-column tiles; the tiles in a row share one height, so a wrapped title never leaves its
+/// neighbour floating.
+struct TileGrid<Item: Identifiable, Tile: View>: View {
+    var items: [Item]
+    @ViewBuilder var tile: (Item) -> Tile
+
+    var body: some View {
+        Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+            ForEach(Array(stride(from: 0, to: items.count, by: 2)), id: \.self) { i in
+                GridRow {
+                    tile(items[i])
+                    if i + 1 < items.count {
+                        tile(items[i + 1])
+                    } else {
+                        Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -381,7 +414,7 @@ struct CalculatorTile: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
@@ -453,12 +486,13 @@ struct ReferenceSearchResults: View {
         switch route {
         case .peds: return ["pediatric", "peds", "child", "weight", "dose", "dosing", "ett", "tube", "lma", "fluid", "blood volume", "mabl"]
         case .local: return ["local anesthetic", "local anaesthetic", "max dose", "maximum dose", "exparel", "liposomal", "mixture", "toxicity", "mg/kg"]
-        case .infusions: return ["infusion", "drip", "pressor", "vasopressor", "inotrope", "vasodilator", "mcg/kg/min", "hematolog", "coagulation", "factor", "pcc", "antifibrinolytic"]
+        case .infusions: return ["infusion", "drip", "pressor", "vasopressor", "inotrope", "vasodilator", "hemodynamic", "bolus", "mcg/kg/min", "hematolog", "coagulation", "factor", "pcc", "antifibrinolytic", "transfus", "blood product", "red cell", "rbc", "prbc", "ffp", "plasma", "platelet", "cryo", "sedation", "antiarrhythmic"]
         case .neuraxial: return ["anticoag", "neuraxial", "epidural", "spinal", "block", "heparin", "enoxaparin", "lmwh", "warfarin", "apixaban", "rivaroxaban", "edoxaban", "dabigatran", "doac", "fondaparinux", "clopidogrel", "prasugrel", "ticagrelor", "aspirin", "thrombolytic", "asra"]
         case .fasting: return ["npo", "fasting", "fast", "clear liquid", "breast milk", "formula", "meal", "gum", "aspiration"]
         case .airway: return ["airway", "intubat", "laryngoscop", "cricothyr", "cannot ventilate", "cicv", "awake", "videolaryngoscope", "supraglottic", "lma"]
         case .valves: return ["valve", "valvular", "echo", "tee", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "vena contracta", "eroa", "pisa", "gradient", "ase"]
         case .intervention: return ["valve", "valvular", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "tavi", "tavr", "savr", "avr", "teer", "mitraclip", "pmbc", "commissurotomy", "repair", "replacement", "prosthesis", "mechanical", "bioprosthe", "acc", "aha"]
+        case .ponv: return ["ponv", "nausea", "vomiting", "antiemetic", "apfel", "ondansetron", "dexamethasone", "droperidol", "amisulpride", "aprepitant", "scopolamine", "palonosetron", "granisetron", "promethazine", "rescue", "prophylaxis"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -475,8 +509,8 @@ struct ReferenceSearchResults: View {
             return wordsMatch(item.route) || p.localAnesthetics.contains { $0.name.lowercased().contains(q) }
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
-            return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention:
+            return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv:
             return wordsMatch(item.route)
         }
     }
@@ -502,10 +536,8 @@ struct ReferenceSearchResults: View {
             if !tools.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     Eyebrow(text: "Calculators and guides").padding(.leading, 2)
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                        ForEach(tools) { item in
-                            CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
-                        }
+                    TileGrid(items: tools) { item in
+                        CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
                     }
                 }
             }

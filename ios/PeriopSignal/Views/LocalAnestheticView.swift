@@ -3,22 +3,21 @@ import SwiftUI
 /// Maximum local-anesthetic doses for one agent or a mixture, with Exparel's rules.
 struct LocalAnestheticView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientHandoff.self) private var handoff
     var onOpen: (URL) -> Void
 
-    @AppStorage("ps.la.weight") private var weightText = ""
-    @AppStorage("ps.la.pediatric") private var pediatric = false
-    @AppStorage("ps.la.years") private var years = 8
-    @AppStorage("ps.la.epi") private var epinephrine = false
+    // Patient details last only while the calculator is open.
+    @State private var weightText = LaunchSeed.string("ps.la.weight")
+    @State private var pediatric = LaunchSeed.bool("ps.la.pediatric")
+    @State private var years = LaunchSeed.int("ps.la.years", default: 8)
+    @State private var epinephrine = LaunchSeed.bool("ps.la.epi")
     @State private var entries: [LAEntry] = []
     @State private var volumes: [UUID: String] = [:]
     @State private var copied = false
     @FocusState private var focused: Bool
 
     private var agents: [LocalAnesthetic] { refs.peds?.localAnesthetics ?? [] }
-    private var weight: Double? {
-        let v = Double(weightText.replacingOccurrences(of: ",", with: "."))
-        return (v ?? 0) > 0 ? v : nil
-    }
+    private var weight: Double? { WeightField.value(weightText) }
     private var liveEntries: [LAEntry] {
         entries.map { e in
             var copy = e
@@ -45,7 +44,7 @@ struct LocalAnestheticView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Local anesthetic")
+        .navigationTitle("Local Anesthetic Doses")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
@@ -53,7 +52,16 @@ struct LocalAnestheticView: View {
                 Button("Done") { focused = false }
             }
         }
-        .onAppear { if entries.isEmpty, let first = agents.first { add(first) } }
+        .onAppear {
+            // Arriving from the pediatric calculator: take that child's weight and age once.
+            let passed = handoff.take()
+            if weightText.isEmpty, let w = passed.weightKg {
+                weightText = PedsCalc.fmt(w)
+                pediatric = true
+                if let y = passed.ageYears { years = y }
+            }
+            if entries.isEmpty, let first = agents.first { add(first) }
+        }
         .onChange(of: agents.count) { _, _ in if entries.isEmpty, let first = agents.first { add(first) } }
         .sensoryFeedback(.success, trigger: copied)
     }
@@ -62,19 +70,9 @@ struct LocalAnestheticView: View {
 
     private var patient: some View {
         VStack(alignment: .leading, spacing: 12) {
+            WeightField(text: $weightText, focus: $focused, prompt: "Enter the weight: the maximum for each agent, and whether the total is under it, depend on it.")
             HStack(spacing: 14) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Eyebrow(text: "Weight", size: 10)
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        TextField("0", text: $weightText)
-                            .keyboardType(.decimalPad)
-                            .focused($focused)
-                            .font(PS.serif(size: 30, weight: .semibold))
-                            .foregroundStyle(PS.fg)
-                            .frame(width: 96)
-                        Text("kg").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
-                    }
-                }
+                Text("Patient").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 6) {
                     Picker("Patient", selection: $pediatric) {
@@ -344,7 +342,7 @@ struct LocalAnestheticView: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
             Hairline()
-            Text("Adult maxima are the FDA labels' figures (with a conventional per-kilogram ceiling where the label gives only milligrams); pediatric per-kilogram maxima follow the ASRA/ESRA 2018 recommendations. The additive rule for mixtures (each agent as a fraction of its own maximum, summed) is the convention described in ASRA's 2026 Pro-Con on mixing local anesthetics; no label or guideline codifies it. Label maxima are conservative conventions, not pharmacological thresholds: site, vascularity, age, hepatic and cardiac function change the risk. Exparel's rules come from its label. The LAST checklist is under Quick references.")
+            Text("Adult maxima are the FDA labels' figures (with a conventional per-kilogram ceiling where the label gives only milligrams); pediatric per-kilogram maxima follow the ASRA/ESRA 2018 recommendations. The additive rule for mixtures (each agent as a fraction of its own maximum, summed) is the convention described in ASRA's 2026 Pro-Con on mixing local anesthetics; no label or guideline codifies it. Label maxima are conservative conventions, not pharmacological thresholds: site, vascularity, age, hepatic and cardiac function change the risk. Exparel's rules come from its label. The LAST checklist is in the Emergency folder.")
                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             ForEach(Array(Set(agents.compactMap(\.source))).sorted(), id: \.self) { s in
                 Text(s).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
