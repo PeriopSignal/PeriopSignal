@@ -112,6 +112,8 @@ def main(path):
         forms = {"perKgPerMin", "perMin", "perKg", "perKgPerHour", "perHour", "fixed", "text"}
         for g in groups or []:
             need(isinstance(g.get("name"), str) and g["name"], "infusion group needs a name")
+            if g.get("tab") is not None:
+                need(isinstance(g["tab"], str) and g["tab"].strip(), f"infusion group {g.get('name')}: tab must be text")
             names = [d.get("name", "") for d in g.get("drugs") or []]
             need(names == sorted(names, key=str.lower), f"infusion group {g.get('name')}: drugs must be alphabetical")
             for d in g.get("drugs") or []:
@@ -120,6 +122,8 @@ def main(path):
                 for key in ("name", "use", "form", "source"):
                     need(isinstance(d.get(key), str) and d[key].strip(), f"infusion {did}: {key} required")
                 need(d.get("form") in forms, f"infusion {did}: form must be one of {sorted(forms)}")
+                if d.get("form") == "text":
+                    need(isinstance(d.get("display"), str), f"infusion {did}: text rows need a short display dose")
                 if d.get("form") not in ("text",):
                     need(isinstance(d.get("start"), (int, float)) and d["start"] > 0, f"infusion {did}: start must be > 0")
                     need(isinstance(d.get("unit"), str) and d["unit"], f"infusion {did}: unit required")

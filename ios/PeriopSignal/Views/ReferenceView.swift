@@ -118,15 +118,17 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .intervention, icon: "heart.circle", title: "AHA/ACC Valve Intervention", blurb: "Repair or replace? Prompted from the guideline"),
         ]
         case .medications: return [
-            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Infusions and Blood", blurb: "Hemodynamic drips, boluses, blood products, factors"),
+            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Medications and Hematology", blurb: "Drips, single doses, blood products and factors"),
         ]
         case .pediatrics: return [
             RefItem(route: .peds, icon: "scalemass", title: "Pediatric Doses", blurb: "Doses, tube sizes, fluids and blood volume"),
         ]
         }
     }
-    /// One line of contents for the folder row.
-    var summary: String { items.map(\.title).joined(separator: " · ") }
+    /// One line of contents for the folder row; a folder with one tool describes the tool instead.
+    var summary: String { items.count == 1 ? items[0].blurb : items.map(\.title).joined(separator: " · ") }
+    /// Where the folder row goes: straight to the tool when the folder holds only one.
+    var route: RefRoute { items.count == 1 ? items[0].route : .folder(self) }
 }
 
 /// A star in the toolbar of every tool, to add it to the favorites at the top of the tab.
@@ -292,7 +294,7 @@ struct ReferenceView: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(spacing: 0) {
                 ForEach(Array(RefFolder.allCases.enumerated()), id: \.element.id) { i, f in
-                    Button { path.append(RefRoute.folder(f)) } label: {
+                    Button { path.append(f.route) } label: {
                         HStack(spacing: 14) {
                             Image(systemName: f.icon)
                                 .font(PS.sys(size: 17, weight: .semibold))
@@ -304,7 +306,7 @@ struct ReferenceView: View {
                                 Text(f.summary).font(PS.sys(size: 12)).foregroundStyle(PS.fg2).lineLimit(2).fixedSize(horizontal: false, vertical: true)
                             }
                             Spacer(minLength: 0)
-                            Text("\(f.items.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
+                            if f.items.count > 1 { Text("\(f.items.count)").font(PS.mono(size: 11, weight: .semibold)).foregroundStyle(PS.fg3) }
                             Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                         }
                         .padding(.horizontal, 16).padding(.vertical, 13)

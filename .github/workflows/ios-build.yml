@@ -159,7 +159,9 @@ jobs:
           shot 28-favorites 12 -ps.tab reference -ps.favorites.debug "valves,neuraxial,score:rcri"
           shot 29-regional 12 -ps.ref folder:regional
           shot 30-ponv 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,opioids" -ps.ponv.agents "ondansetron,dexamethasone"
-          shot 31-blood 12 -ps.ref infusions -ps.la.weight 70 -ps.inf.group "Blood Products"
+          shot 31-blood 12 -ps.ref infusions -ps.la.weight 70 -ps.inf.tab "Blood Products"
+          shot 36-hematologic 12 -ps.ref infusions -ps.inf.tab Hematologic
+          shot 37-medications-empty 12 -ps.ref infusions
           shot 32-local-empty 12 -ps.ref local
           shot 33-last-empty 12 -ps.ref quickref:asra-last
           shot 34-general 12 -ps.ref folder:generalAnesthesia
