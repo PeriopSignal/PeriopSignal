@@ -328,7 +328,7 @@ struct PatientEditorView: View {
             }
             toggleRow("Emergency (E)", "Delay would significantly increase the threat to life or body part", Binding(get: { patient.record.asaE ?? patient.record.emergency }, set: { v in patient.update { $0.asaE = v } }))
             if let c = r.asaClass {
-                line(PatientFunctional.asaDefinition(c))
+                line(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))
                     .padding(.horizontal, 14).padding(.bottom, 10)
             }
         }

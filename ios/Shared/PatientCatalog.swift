@@ -133,6 +133,11 @@ enum PatientCatalog {
         ]),
         PatientSystem(id: "ob", name: "Obstetric", icon: "figure.2.and.child.holdinghands", problems: [
             PatientProblem("pregnant", "Pregnant", asa: 2, asaExample: "pregnancy"),
+            PatientProblem("gest-htn", "Gestational hypertension, well controlled", asa: 2, asaExample: "well-controlled gestational HTN"),
+            PatientProblem("preeclampsia", "Preeclampsia without severe features, controlled", asa: 2, asaExample: "controlled preeclampsia without severe features"),
+            PatientProblem("gdm-diet", "Gestational diabetes, diet-controlled", asa: 2, asaExample: "diet-controlled gestational DM"),
+            PatientProblem("gdm-complex", "Gestational diabetes with complications or high insulin needs", asa: 3, asaExample: "gestational DM with complications or high insulin requirements"),
+            PatientProblem("thrombophilia", "Thrombophilia needing anticoagulation", asa: 3, asaExample: "a thrombophilic disease requiring anticoagulation"),
             PatientProblem("preeclampsia-severe", "Preeclampsia with severe features", asa: 3, asaExample: "preeclampsia with severe features"),
             PatientProblem("hellp", "Preeclampsia complicated by HELLP or another adverse event", asa: 4, asaExample: "preeclampsia with severe features complicated by HELLP or other adverse event"),
             PatientProblem("peripartum-cm", "Peripartum cardiomyopathy, EF below 40%", asa: 4, asaExample: "peripartum cardiomyopathy with EF <40"),

@@ -3,8 +3,7 @@ import Foundation
 // MARK: - Assessment content for My Patient: ASA definitions, functional capacity (METs, DASI), the stepwise cardiac
 // evaluation, perioperative medication notes and the airway exam's method. Wording is ours; the facts and cutoffs
 // are the sources' (see each note). The 2024 AHA/ACC recommendations were read from the guideline's text and the
-// AHA's official slide set (Thompson A, et al. Circulation 2024, doi:10.1161/CIR.0000000000001285; reaffirmed
-// unchanged in September 2026).
+// AHA's official slide set (Thompson A, et al. Circulation 2024;150:e351–e442; reaffirmed unchanged in September 2026).
 
 struct CardiacStep: Hashable {
     var title: String
@@ -14,6 +13,15 @@ struct CardiacStep: Hashable {
 
 enum PatientFunctional {
     // MARK: ASA
+
+    /// How the ASA's adult examples open for classes II and III: the line between them is functional limitation.
+    static func asaExampleLead(_ c: Int) -> String? {
+        switch c {
+        case 2: return "ASA examples: mild diseases only, without substantive functional limitations."
+        case 3: return "ASA examples: substantive functional limitations; one or more moderate to severe diseases."
+        default: return nil
+        }
+    }
 
     /// The ASA Physical Status Classification System's definitions (last amended December 13, 2020).
     static func asaDefinition(_ c: Int) -> String {
@@ -32,8 +40,9 @@ enum PatientFunctional {
     /// 2024 AHA/ACC, Sections 3.2 and 4.3.
     static let metsNote = "Under 4 METs is poor functional capacity. Climbing two flights of stairs is over 4 METs; being unable to climb one or two flights, or to walk on level ground at 3 mph, is under 4 (2024 AHA/ACC). The DASI below is the structured version."
 
-    /// Duke Activity Status Index (Hlatky MA, et al. Am J Cardiol 1989;64:651–654), as the 2024 AHA/ACC guideline
-    /// reprints it (Table 5): the activities in our words, with the published weights.
+    /// Duke Activity Status Index (Hlatky MA, et al. Am J Cardiol 1989;64:651–654; the original items as reproduced by
+    /// Coutinho-Myrrha MA, Hlatky MA, et al. Arq Bras Cardiol 2014, and reprinted in the 2024 AHA/ACC guideline's
+    /// Table 5): the activities in our words, with the published weights.
     static let dasiItems: [PatientDasiItem] = [
         PatientDasiItem("self-care", "Takes care of themselves: eating, dressing, bathing, toilet", 2.75),
         PatientDasiItem("walk-indoors", "Walks indoors, around the house", 1.75),
@@ -46,7 +55,7 @@ enum PatientFunctional {
         PatientDasiItem("yardwork", "Yard work: raking leaves, weeding, pushing a power mower", 4.50),
         PatientDasiItem("sex", "Sexual relations", 5.25),
         PatientDasiItem("moderate-sport", "Moderate recreation: golf, bowling, dancing, doubles tennis, throwing a baseball or football", 6.00),
-        PatientDasiItem("strenuous-sport", "Strenuous sports: swimming, singles tennis, basketball, skiing", 7.50),
+        PatientDasiItem("strenuous-sport", "Strenuous sports: swimming, singles tennis, football, basketball, skiing", 7.50),
     ]
 
     /// The DASI score (0–58.2), the sum of the ticked activities' weights; nil until one is ticked.
