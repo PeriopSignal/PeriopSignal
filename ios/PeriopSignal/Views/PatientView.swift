@@ -355,6 +355,20 @@ struct HandoffSheet: View {
                         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                     Text("Share only through channels your institution approves for patient information.")
                         .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Eyebrow(text: "Handing over")
+                        ForEach(Array(HandoffWriter.steps.enumerated()), id: \.offset) { i, step in
+                            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                                Text("\(i + 1)").font(PS.mono(size: 12, weight: .bold)).foregroundStyle(PS.accent).frame(width: 16, alignment: .leading)
+                                Text(step).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        Text("From the HATRICC handoff protocol (Lane-Fall MB, et al. Implement Sci 2021). In a PACU, anesthesia often reports alone.")
+                            .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                 }
                 .padding(20)
             }

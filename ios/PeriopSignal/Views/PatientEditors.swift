@@ -497,11 +497,21 @@ struct PatientEditorView: View {
             PatientChipRow(label: "Laryngeal view (Cormack–Lehane)") {
                 PatientChoice(options: PatientCatalog.grades.map { (id: $0, label: $0) }, selection: bind(\.laryngoscopyGrade))
             }
+            if let g = r.laryngoscopyGrade, let d = PatientCatalog.gradeDetail(g) {
+                line("Grade " + g + ": " + d.lowercased() + (g == "3" || g == "4" ? " (difficult laryngoscopy)." : "."))
+                    .padding(.horizontal, 14).padding(.bottom, 6)
+            }
             Stepper(value: Binding(get: { patient.record.attempts ?? 0 }, set: { v in patient.update { $0.attempts = v > 0 ? v : nil } }), in: 0...9) {
                 Text("Attempts: " + (r.attempts.map { String($0) } ?? "not recorded")).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
             PatientTextField(label: "Tube", prompt: "e.g. 7.5 ETT, 23 cm at the lip", text: bind(\.tube), focus: $focused)
+            PatientChipRow(label: "At handoff") {
+                PatientChoice(options: PatientCatalog.airwayAtEnd, selection: bind(\.airwayAtEnd))
+            }
+            if r.airwayAtEnd == "intubated" {
+                PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: bind(\.ventilation), focus: $focused)
+            }
         }
         if PatientSummary.difficultAirway(r) {
             PatientGroup(title: "Difficult-airway follow-up", note: "ASA 2022: tell the patient or a responsible person, document the nature of the difficulty and what worked, and advise registering with an alert service.") {

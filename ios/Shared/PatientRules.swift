@@ -188,6 +188,7 @@ enum PatientAirway {
         PatientFlag("smd", "Sternomental distance 12.5 cm or less", "Head fully extended, mouth closed (Savva 1994)"),
         PatientFlag("neck", "Limited neck movement", "Cannot touch chin to chest, or cannot extend the neck"),
         PatientFlag("jaw", "Cannot protrude the jaw", "Lower incisors cannot come in front of the upper incisors"),
+        PatientFlag("ulbt", "Upper lip bite test class III", "Lower incisors cannot bite the upper lip (Khan 2003)"),
         PatientFlag("incisors", "Long or prominent upper incisors"),
         PatientFlag("palate", "High-arched or very narrow palate"),
         PatientFlag("mandible", "Stiff mandibular space", "Indurated, nonresilient or occupied by a mass"),

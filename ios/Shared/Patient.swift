@@ -186,12 +186,16 @@ struct PatientRecord: Codable, Equatable {
     var laryngoscopyGrade: String?
     var attempts: Int?
     var tube = ""
+    /// At handoff: "extubated", "intubated", "sga", "natural".
+    var airwayAtEnd: String?
+    /// Ventilator settings when the patient leaves intubated.
+    var ventilation = ""
     /// After a difficult airway: "told", "documented", "alert" (ASA 2022 follow-up care).
     var airwayFollowUp: Set<String> = []
     var lines: [PatientLine] = []
     var regional: [PatientRegional] = []
     var infusions: [PatientInfusion] = []
-    /// Units: "prbc", "plasma", "platelets", "cryo"; mL: "cellSaver", "crystalloid", "colloid", "ebl", "uop".
+    /// Units: "prbc", "wholeBlood", "plasma", "platelets", "cryo"; mL: "cellSaver", "crystalloid", "colloid", "ebl", "uop".
     var fluids: [String: Double] = [:]
     var factors = ""
     var medsGiven = ""
@@ -263,6 +267,8 @@ struct PatientRecord: Codable, Equatable {
         laryngoscopyGrade = try? c.decodeIfPresent(String.self, forKey: .laryngoscopyGrade)
         attempts = try? c.decodeIfPresent(Int.self, forKey: .attempts)
         tube = v(.tube, "")
+        airwayAtEnd = try? c.decodeIfPresent(String.self, forKey: .airwayAtEnd)
+        ventilation = v(.ventilation, "")
         airwayFollowUp = v(.airwayFollowUp, [])
         lines = v(.lines, [])
         regional = v(.regional, [])

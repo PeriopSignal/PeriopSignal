@@ -201,7 +201,8 @@ enum PatientCatalog {
 
     static let fluids: [PatientField] = [
         PatientField("crystalloid", "Crystalloid", "mL"), PatientField("colloid", "Colloid or albumin", "mL"),
-        PatientField("prbc", "Red cells", "units"), PatientField("plasma", "Plasma", "units"), PatientField("platelets", "Platelets", "units"),
+        PatientField("prbc", "Red cells", "units"), PatientField("wholeBlood", "Whole blood", "units"),
+        PatientField("plasma", "Plasma", "units"), PatientField("platelets", "Platelets", "units"),
         PatientField("cryo", "Cryoprecipitate", "units"), PatientField("cellSaver", "Cell salvage returned", "mL"),
         PatientField("ebl", "Estimated blood loss", "mL"), PatientField("uop", "Urine output", "mL"),
     ]
@@ -209,4 +210,22 @@ enum PatientCatalog {
     static let dispositions = ["PACU", "ICU", "Ward", "Same-day discharge", "Other"]
     static let devices = ["Direct laryngoscope", "Video laryngoscope", "Flexible scope", "Supraglottic airway", "Face mask only"]
     static let grades = ["1", "2a", "2b", "3", "4"]
+
+    /// Cormack and Lehane's grades with Yentis and Lee's 2a and 2b (Anaesthesia 1984; 1998). Grades 3 and 4 are
+    /// difficult laryngoscopy.
+    static func gradeDetail(_ g: String) -> String? {
+        switch g {
+        case "1": return "Full view of the glottis"
+        case "2a": return "Part of the vocal cords visible"
+        case "2b": return "Only the arytenoids or the very back of the cords visible"
+        case "3": return "Epiglottis only; the cords are not seen"
+        case "4": return "Neither the glottis nor the epiglottis seen"
+        default: return nil
+        }
+    }
+
+    /// The airway when care is handed over.
+    static let airwayAtEnd: [(id: String, label: String)] = [
+        ("extubated", "Extubated"), ("intubated", "Intubated"), ("sga", "Supraglottic airway in"), ("natural", "Never instrumented"),
+    ]
 }

@@ -155,7 +155,9 @@ enum PatientFunctional {
 
     // MARK: Airway
 
-    static let mallampatiHow = "Sitting, mouth open as wide as possible and the tongue out as far as possible; look twice (Mallampati 1985). Saying \u{201C}ah\u{201D} improves the view, so examine the same way each time (Tham 1992). Tap the view you see (modified Mallampati, Samsoon and Young)."
+    /// The modified test as usually done (seated, mouth fully open, tongue out, no phonation); phonation changes the
+    /// class (Tham 1992; Oates 1990); used alone it has limited accuracy (Lee A, et al. Anesth Analg 2006).
+    static let mallampatiHow = "Sitting, mouth open as wide as possible, tongue out as far as possible, without phonation; saying \u{201C}ah\u{201D} improves the view, so examine the same way each time. Tap the view you see (Samsoon and Young's four classes). Used alone, the Mallampati has limited accuracy."
 
     static let echoPhrases = [
         "Normal LV size and function", "Reduced LV systolic function", "RV dysfunction", "New regional wall-motion abnormality",

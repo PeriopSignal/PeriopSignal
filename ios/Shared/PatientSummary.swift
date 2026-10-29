@@ -160,6 +160,10 @@ enum PatientSummary {
         case "none": parts.append("Not intubated" + (detail.isEmpty ? "" : ": " + detail))
         default: if !detail.isEmpty { parts.append(detail.prefix(1).uppercased() + detail.dropFirst()) }
         }
+        if let end = r.airwayAtEnd, let label = PatientCatalog.airwayAtEnd.first(where: { $0.id == end })?.label {
+            let vent = r.ventilation.trimmingCharacters(in: .whitespacesAndNewlines)
+            parts.append("At handoff: " + label.lowercased() + (end == "intubated" && !vent.isEmpty ? ", " + vent : ""))
+        }
         guard !parts.isEmpty else { return nil }
         return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
     }
@@ -197,7 +201,7 @@ enum PatientSummary {
         if !blocks.isEmpty { out.append(Line("Regional", blocks.joined(separator: "; "))) }
         let inf = r.infusions.map(\.text).filter { !$0.isEmpty }
         if !inf.isEmpty { out.append(Line("Infusions", inf.joined(separator: "; "))) }
-        if let i = PatientRules.fluidLine(r, ids: ["crystalloid", "colloid", "prbc", "plasma", "platelets", "cryo", "cellSaver"]) { out.append(Line("In", i)) }
+        if let i = PatientRules.fluidLine(r, ids: ["crystalloid", "colloid", "prbc", "wholeBlood", "plasma", "platelets", "cryo", "cellSaver"]) { out.append(Line("In", i)) }
         if !r.factors.isEmpty { out.append(Line("Factor concentrates and other products", r.factors)) }
         if let o = PatientRules.fluidLine(r, ids: ["ebl", "uop"]) { out.append(Line("Out", o)) }
         if !r.medsGiven.isEmpty { out.append(Line("Medications and interventions", r.medsGiven)) }
@@ -220,6 +224,16 @@ enum PatientSummary {
 // MARK: - Handoff
 
 enum HandoffWriter {
+    /// How to hand over, from the HATRICC operating-room-to-ICU protocol (Lane-Fall MB, et al. Implement Sci 2021) and
+    /// the open handoff studies; in a PACU, anesthesia often reports alone.
+    static let steps = [
+        "Connect the monitors and make sure the patient is stable before the report.",
+        "Face to face, with this template, and with as few interruptions as possible.",
+        "Surgeon's report, then anesthesia's.",
+        "The receiving clinician sums up; questions answered.",
+        "Exchange contact details.",
+    ]
+
     /// The anesthesia handoff, section by section, leaving out what is not recorded.
     static func text(_ r: PatientRecord, now: Date = Date()) -> String {
         var out: [String] = ["ANESTHESIA HANDOFF"]

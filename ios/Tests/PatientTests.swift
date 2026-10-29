@@ -126,7 +126,7 @@ final class PatientTests: XCTestCase {
         let t = HandoffWriter.text(demo)
         for s in ["ANESTHESIA HANDOFF", "67-year-old man", "Laparoscopic sigmoid colectomy", "ASA III", "Penicillin", "Mallampati III",
                   "Intubation easy", "PACU", "RCRI 3", "No notable events", "Crystalloid 1800 mL", "Hb 12.8", "Creatinine 1.1",
-                  "Medications: Metoprolol", "Langeron", "Call if: "] {
+                  "Medications: Metoprolol", "Langeron", "Call if: ", "At handoff: extubated."] {
             XCTAssertTrue(t.contains(s), "handoff has \(s)")
         }
         XCTAssertFalse(t.contains("(Beta-blocker"), "the flags do not repeat the typed list")
@@ -134,6 +134,12 @@ final class PatientTests: XCTestCase {
         var hard = demo; hard.intubation = "difficult"; hard.airwayFollowUp = ["told"]
         let h = HandoffWriter.text(hard)
         XCTAssertTrue(h.contains("Difficult-airway follow-up: Patient told. Still to do: document"), h)
+        var vent = demo; vent.airwayAtEnd = "intubated"; vent.ventilation = "VC 450 × 14, PEEP 8"; vent.fluids["wholeBlood"] = 2
+        let v = HandoffWriter.text(vent)
+        XCTAssertTrue(v.contains("At handoff: intubated, VC 450 × 14, PEEP 8."), v)
+        XCTAssertTrue(v.contains("Whole blood 2 units"), v)
+        XCTAssertEqual(PatientCatalog.gradeDetail("2b"), "Only the arytenoids or the very back of the cords visible")
+        XCTAssertEqual(PatientCatalog.grades.compactMap { PatientCatalog.gradeDetail($0) }.count, PatientCatalog.grades.count, "every grade has its meaning")
         var alert = demo; alert.medFlags.insert("sglt2")
         XCTAssertTrue(HandoffWriter.text(alert).contains("Medication alerts: SGLT2 inhibitor"))
         XCTAssertFalse(t.contains("Optional("))

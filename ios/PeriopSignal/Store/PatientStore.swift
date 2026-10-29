@@ -163,6 +163,7 @@ enum PatientDemo {
         r.dentition = "Upper partial denture, removed"
         r.mask = "easy"; r.intubation = "easy"; r.airwayDevice = "Video laryngoscope"; r.laryngoscopyGrade = "1"; r.attempts = 1
         r.tube = "7.5 ETT, 23 cm at the lip"
+        r.airwayAtEnd = "extubated"
         r.lines = [PatientLine(kind: "Peripheral IV", site: "left forearm", size: "18 G"), PatientLine(kind: "Arterial line", site: "right radial", size: "20 G")]
         r.regional = [PatientRegional(technique: "TAP block", side: "Bilateral", drug: "ropivacaine 0.25% 20 mL each side")]
         r.infusions = [PatientInfusion(drug: "Phenylephrine", rate: "0.3 mcg/kg/min")]
