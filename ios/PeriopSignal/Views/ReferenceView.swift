@@ -115,7 +115,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         ]
         case .cardiothoracic: return [
             RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "ASE Valve Severity Grading", blurb: "Echo numbers in, ASE grade out"),
-            RefItem(route: .intervention, icon: "heart.circle", title: "AHA/ACC Valve Intervention", blurb: "Repair or replace? Prompted from the guideline"),
+            RefItem(route: .intervention, icon: "heart.circle", title: "AHA/ACC Valve Intervention", blurb: "Repair or replace? Prompted questions"),
         ]
         case .medications: return [
             RefItem(route: .infusions, icon: "ivfluid.bag", title: "Medications and Hematology", blurb: "Drips, single doses, blood products and factors"),

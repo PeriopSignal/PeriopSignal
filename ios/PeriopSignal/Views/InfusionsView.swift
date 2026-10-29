@@ -87,25 +87,31 @@ struct InfusionsView: View {
     }
 
     private var tabBar: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(tabs, id: \.self) { t in
-                    let on = t == currentTab
-                    Button {
-                        Haptics.light()
-                        withAnimation(.snappy) { tab = t; expanded = nil }
-                    } label: {
-                        Text(t)
-                            .font(PS.sys(size: 13.5, weight: .semibold))
-                            .foregroundStyle(on ? PS.bg : PS.fg2)
-                            .padding(.horizontal, 13).padding(.vertical, 8)
-                            .background(on ? PS.fg : PS.surface, in: Capsule())
-                            .overlay(Capsule().stroke(on ? Color.clear : PS.line2, lineWidth: 1))
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(tabs, id: \.self) { t in
+                        let on = t == currentTab
+                        Button {
+                            Haptics.light()
+                            withAnimation(.snappy) { tab = t; expanded = nil }
+                        } label: {
+                            Text(t)
+                                .font(PS.sys(size: 13.5, weight: .semibold))
+                                .foregroundStyle(on ? PS.bg : PS.fg2)
+                                .padding(.horizontal, 13).padding(.vertical, 8)
+                                .background(on ? PS.fg : PS.surface, in: Capsule())
+                                .overlay(Capsule().stroke(on ? Color.clear : PS.line2, lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .id(t)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(.horizontal, 1)
             }
-            .padding(.horizontal, 1)
+            // Keep the selected tab in view (it can start off-screen, e.g. Blood Products).
+            .onAppear { proxy.scrollTo(currentTab, anchor: .center) }
+            .onChange(of: currentTab) { _, t in withAnimation(.snappy) { proxy.scrollTo(t, anchor: .center) } }
         }
     }
 
