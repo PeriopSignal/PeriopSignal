@@ -85,6 +85,26 @@
     "seconds": 174,
     "bytes": 1389357,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "European Society of Intensive Care Medicine consensus statement on human-centred partnership in the intensive care unit",
+    "authors": [
+     "Latour JM",
+     "Rodriguez-Ruiz E",
+     "Arabi YM",
+     "Benbenishty J",
+     "Boulanger C",
+     "Cai S",
+     "Cecconi M",
+     "da Costa Oliveira D",
+     "Coventry A",
+     "Darfelt IS",
+     "Efstathiou N",
+     "Eggmann S"
+    ],
+    "journal": "Intensive Care Med",
+    "doi": "10.1007/s00134-026-08626-9",
+    "year": 2026
    }
   },
   {
