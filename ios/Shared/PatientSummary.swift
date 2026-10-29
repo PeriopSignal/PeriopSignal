@@ -113,11 +113,12 @@ enum PatientSummary {
             out.append(Line("Functional capacity", fc.joined(separator: " · "), alert: r.mets == "lt4" || (d.map { $0 <= PatientFunctional.dasiCutoff } ?? false)))
         }
         if r.frail { out.append(Line("Frailty", "Frail by a validated tool")) }
-        let active = PatientFunctional.activeCardiac.filter { r.activeCardiac.contains($0.id) }.map(\.label)
+        let active = PatientFunctional.acuteConditions(r)
         if !active.isEmpty { out.append(Line("Acute cardiac conditions", active.joined(separator: "; "), alert: true)) }
         if r.isAdult, !r.emergency, r.ageYears != nil {
             let step = PatientFunctional.cardiacStep(r)
             out.append(Line("Cardiac evaluation", step.title, alert: step.alert))
+            for a in PatientFunctional.conditionAdvice(r) { out.append(Line("Cardiac advice", a, alert: true)) }
         }
         return out
     }
@@ -256,7 +257,7 @@ enum HandoffWriter {
             for l in lines { out.append((l.label.map { $0 + ": " } ?? "") + l.text) }
         }
         section("History", PatientSummary.historyLines(r, now: now))
-        var assess = PatientSummary.assessmentLines(r).filter { $0.label != "Cardiac evaluation" }
+        var assess = PatientSummary.assessmentLines(r).filter { $0.label != "Cardiac evaluation" && $0.label != "Cardiac advice" }
         for (id, sc) in r.scores.sorted(by: { $0.key < $1.key }) {
             assess.append(PatientSummary.Line(Scores.byID(id)?.name ?? id, PatientRules.scoreLine(id, sc) + (sc.detail.map { " (" + $0 + ")" } ?? "")))
         }

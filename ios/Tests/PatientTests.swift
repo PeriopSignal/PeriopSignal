@@ -131,6 +131,29 @@ final class PatientTests: XCTestCase {
         XCTAssertTrue(PatientFunctional.cardiacStep(em).title.hasPrefix("Emergency"))
         var active = demo; active.activeCardiac = ["acs"]
         XCTAssertTrue(PatientFunctional.cardiacStep(active).title.hasPrefix("Acute cardiac condition"))
+        var decompensated = demo; decompensated.problems.insert("hf-decomp")
+        XCTAssertTrue(PatientFunctional.cardiacStep(decompensated).title.hasPrefix("Acute cardiac condition"), "from the problem list too")
+        var urgent = demo; urgent.urgency = .urgent
+        XCTAssertTrue(PatientFunctional.cardiacStep(urgent).detail.hasPrefix("Urgent surgery"))
+    }
+
+    func testConditionAdvice() {
+        let advice = PatientFunctional.conditionAdvice(demo)
+        XCTAssertEqual(advice.count, 2, "\(advice)")
+        XCTAssertTrue(advice[0].hasPrefix("Prior stent"))
+        XCTAssertTrue(advice[1].hasPrefix("A resting 12-lead ECG"), "known coronary disease and RCRI over 1")
+        XCTAssertTrue(PatientFunctional.cardiacStep(demo).detail.hasSuffix("The condition-specific steps below still apply."))
+        var stroke = demo; stroke.problems.insert("cva-recent")
+        XCTAssertTrue(PatientFunctional.conditionAdvice(stroke).contains { $0.hasPrefix("Stroke or TIA within 3 months") })
+        var bp = demo; bp.vitals["sbp"] = 185
+        XCTAssertTrue(PatientFunctional.conditionAdvice(bp).contains { $0.hasPrefix("Blood pressure 180/110") })
+        var stented = demo; stented.medFlags.insert("p2y12")
+        XCTAssertFalse(PatientFunctional.conditionAdvice(stented).contains { $0.hasPrefix("Prior stent") }, "the P2Y12 note carries the timing")
+        var healthy = PatientRecord(); healthy.ageYears = 40
+        XCTAssertTrue(PatientFunctional.conditionAdvice(healthy).isEmpty)
+        let p2y12 = PatientFunctional.medNotes["p2y12"] ?? ""
+        XCTAssertTrue(p2y12.contains("(class 2a)") && p2y12.contains("(class 2b)"), "6 months is 2a, 3 months 2b")
+        XCTAssertTrue((PatientFunctional.medNotes["acei"] ?? "").hasPrefix("In selected patients with controlled blood pressure"))
     }
 
     func testMaskVentilationPredictors() {
@@ -167,6 +190,7 @@ final class PatientTests: XCTestCase {
         }
         XCTAssertFalse(t.contains("(Beta-blocker"), "the flags do not repeat the typed list")
         XCTAssertFalse(t.contains("Cardiac evaluation"), "the cardiac step stays out of the handoff")
+        XCTAssertFalse(t.contains("Cardiac advice"), "and so does the preoperative advice")
         var hard = demo; hard.intubation = "difficult"; hard.airwayFollowUp = ["told"]
         let h = HandoffWriter.text(hard)
         XCTAssertTrue(h.contains("Difficult-airway follow-up: Patient told. Still to do: document"), h)

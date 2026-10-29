@@ -357,7 +357,7 @@ struct PatientEditorView: View {
             .tint(PS.fg2)
             .padding(.horizontal, 14).padding(.vertical, 10)
             Hairline().padding(.leading, 14)
-            toggleRow("Frail", "By a validated tool, such as the Clinical Frailty Scale; assessing frailty is reasonable at 65 or older before elevated-risk surgery (2024 AHA/ACC, class 2a)", bind(\.frail))
+            toggleRow("Frail", "By a validated tool, such as the Clinical Frailty Scale; assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a)", bind(\.frail))
         }
         PatientGroup(title: "Cardiac evaluation", note: PatientFunctional.cardiacNote) {
             PatientChipRow(label: "Acute cardiac conditions") { PatientChips(options: PatientFunctional.activeCardiac, selection: bind(\.activeCardiac)) }
@@ -372,6 +372,20 @@ struct PatientEditorView: View {
                 Text(step.detail).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 14).padding(.vertical, 10)
+            let advice = PatientFunctional.conditionAdvice(r)
+            if !advice.isEmpty {
+                Hairline().padding(.leading, 14)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("By condition").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+                    ForEach(Array(advice.enumerated()), id: \.offset) { _, a in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Image(systemName: "arrow.turn.down.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.accent)
+                            Text(a).font(PS.sys(size: 13)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+            }
         }
         .id("cardiac")
         PatientGroup(title: "Risk scores and checks") {
