@@ -1,7 +1,52 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-28T08:30:06+00:00",
+ "generatedAt": "2026-10-29T09:15:05+00:00",
  "posts": [
+  {
+   "id": "jcf-2026-hfsa-right-heart-failure-statement",
+   "date": "2026-10-27",
+   "dateApprox": false,
+   "addedAt": "2026-10-29",
+   "journal": "J Card Fail",
+   "jshort": "JCF",
+   "kind": "Consensus",
+   "topics": [
+    "mcs",
+    "cardiac",
+    "criticalCare"
+   ],
+   "headline": "HFSA: right heart failure is its own syndrome; acute care must address preload, RV afterload and contractility together",
+   "summary": "The Heart Failure Society of America published a scientific statement in the Journal of Cardiac Failure that frames right heart failure as a distinct clinical syndrome, with ten take-home messages on diagnosis, acute care, PAH drugs, temporary MCS and the timing of tricuspid intervention.",
+   "takeHome": [
+    "Acute RHF needs all three pillars at once: optimize preload, reduce RV afterload, support contractility and perfusion, plus rhythm control and RV-protective ventilation",
+    "After LVAD or heart transplant, standardized perioperative management of preload, pulmonary vascular load, contractility and rhythm may enable earlier recognition",
+    "Temporary MCS (percutaneous or surgical RVAD, VA-ECMO) may be considered for refractory RHF with shock; choose by physiology, oxygenation needs and destination"
+   ],
+   "authorLimitations": [
+    "The authors list consensus definitions as a research need; reported RHF rates after LVAD or transplant depend on the definition used",
+    "Survival benefit of transcatheter tricuspid intervention remains unclear, even where symptoms and quality of life improve",
+    "They call RHF understudied and ask for standardized patient-centred endpoints, richer registries, validated prediction models and dedicated trials"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** Right ventricular failure is among the hardest problems in cardiac anesthesia, off bypass, at LVAD implantation and after transplant, yet it is often treated as a by-product of left heart disease. HFSA now calls it common, prognostically important across heart failure, and a distinct clinical syndrome.\n\n**What they did.** Corresponding author Manreet Kanwar (University of Chicago) and senior author Ryan Tedford (Medical University of South Carolina) published the statement in the Journal of Cardiac Failure on 27 October 2026, with ten take-home messages.\n\n**What they say.**\n- No single measurement defines RHF: combine examination, biomarkers and echo, adding right-heart catheterization when precision is needed.\n- Acute RHF: optimize preload, reduce RV afterload and support contractility and systemic perfusion simultaneously, with rhythm management and RV-protective ventilation.\n- After LVAD or transplant, standardized perioperative management of preload, pulmonary vascular load, contractility and rhythm may speed recognition and treatment.\n- PAH-targeted drugs help properly classified PAH but should not be used routinely in pulmonary hypertension from left heart disease, where trials mostly showed no benefit and some agents caused edema or harm; hemodynamic phenotyping comes first.\n- Temporary MCS (percutaneous RVADs, surgical RVADs, VA-ECMO) may be considered for refractory RHF with cardiogenic shock, chosen by dominant physiology, oxygenation needs and destination.\n- Consider surgical or transcatheter tricuspid intervention before RV dysfunction is advanced.\n\n**Caveats.** We read the HFSA press release, not the full statement; it gives no staging system or numeric cut-offs, and the authors list consensus definitions as a research need.\n\n**For the anesthesiologist.** The three pillars are the levers we already pull after bypass or at LVAD implantation: volume, pulmonary vasodilation with RV-sparing ventilation, inotropes and rhythm. Judge the RV on TEE with several measures, not one number, and decide early who needs a right-sided device.",
+   "url": "https://www.prnewswire.com/news-releases/new-hfsa-scientific-statement-calls-for-right-heart-failure-to-be-recognized-as-a-distinct-clinical-syndrome-302921108.html",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "",
+   "title": "Right Heart Failure: An HFSA Scientific Statement",
+   "quiz": {
+    "question": "In pulmonary hypertension due to left heart disease with a failing RV, what does the HFSA right heart failure statement advise about PAH-targeted drugs?",
+    "options": [
+     "Use them routinely to lower RV afterload in this group",
+     "Avoid routine use; trials mostly showed no benefit, some harm",
+     "Start them whenever echocardiography shows RV dilation",
+     "Reserve them for patients already on temporary MCS"
+    ],
+    "answer": 1,
+    "explanation": "The statement says PAH-targeted drugs help properly classified PAH but should not be used routinely in pulmonary hypertension from left heart disease, where trials mostly showed no benefit and some agents caused edema or harm; hemodynamic phenotyping comes first. Caveat: this post rests on the HFSA press release, not the full statement."
+   }
+  },
   {
    "id": "icm-2026-esicm-human-centred-partnership-consensus",
    "date": "2026-10-26",
