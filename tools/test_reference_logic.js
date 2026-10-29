@@ -980,7 +980,7 @@ test('OB emergencies: shipped checklists, clock and doses', () => {
   eq(R.peds.doseText(epi.perKg, epi.perKgHigh, epi.unit, 3, null, null).text, '0.03–0.09 mg');
   const bolus = dose('last', 'Lipid 20% bolus');
   eq(R.peds.doseText(bolus.perKg, null, bolus.unit, 60, null, null).text, '90 mL');
-  eq([bolus.aboveKg, bolus.aboveText], [70, '100 mL (over 70 kg)']);
+  eq([bolus.aboveKg, bolus.aboveText], [70, 'About 100 mL (over 70 kg)']);
   const lev = dose('hypertension', 'Levetiracetam');
   eq(R.peds.doseText(lev.perKg, null, lev.unit, 90, null, lev.max).text, '4500 mg', 'held at the maximum');
   assert.ok(d.manual && /^https:\/\//.test(d.manual.url), 'the Stanford manual is linked');

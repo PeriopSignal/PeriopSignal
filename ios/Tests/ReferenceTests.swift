@@ -1265,7 +1265,7 @@ final class ReferenceTests: XCTestCase {
         let last = try XCTUnwrap(d.events.first { $0.id == "last" })
         let bolus = try XCTUnwrap(last.weightDoses?.first { $0.label.hasPrefix("Lipid 20% bolus") })
         XCTAssertEqual(bolus.aboveKg, 70)
-        XCTAssertEqual(bolus.aboveText, "100 mL (over 70 kg)")
+        XCTAssertEqual(bolus.aboveText, "About 100 mL (over 70 kg)")
         XCTAssertNotNil(d.manual?.url, "the Stanford manual is linked")
     }
 }

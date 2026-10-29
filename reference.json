@@ -1561,22 +1561,22 @@
           "perKg": 1.5,
           "unit": "mL",
           "aboveKg": 70,
-          "aboveText": "100 mL (over 70 kg)",
-          "note": "Lean body weight; children: over 1 minute (Pedi Crisis)"
+          "aboveText": "About 100 mL (over 70 kg)",
+          "note": "Repeat if still unstable; children: over 1 minute (Pedi Crisis)"
         },
         {
           "label": "Lipid infusion",
           "perKg": 15,
           "unit": "mL/h",
           "aboveKg": 70,
-          "aboveText": "200–250 mL over 15–20 min",
-          "note": "0.25 mL/kg/min; double to 0.5 mL/kg/min if still unstable"
+          "aboveText": "About 250 mL over 15–20 min",
+          "note": "0.25 mL/kg/min (a pump under 40 kg); double if still unstable"
         },
         {
           "label": "Lipid maximum",
           "perKg": 12,
           "unit": "mL",
-          "note": "Ideal body weight; children 10 mL/kg in the first 30 minutes"
+          "note": "ASRA 2020 states no weight basis; children 10 mL/kg in the first 30 minutes (Pedi Crisis)"
         },
         {
           "label": "Epinephrine, if pulseless",
@@ -1613,25 +1613,26 @@
           "rows": [
             [
               "Over 70 kg",
-              "Bolus 100 mL over 2–3 minutes, then 200–250 mL over 15–20 minutes"
+              "Bolus about 100 mL over 2–3 minutes, then about 250 mL over 15–20 minutes"
             ],
             [
               "Under 70 kg",
-              "Bolus 1.5 mL/kg (lean body weight) over 2–3 minutes, then about 0.25 mL/kg/min"
+              "Bolus about 1.5 mL/kg over 2–3 minutes, then about 0.25 mL/kg/min (consider a pump under 40 kg)"
             ],
             [
               "Still unstable",
-              "Re-bolus once or twice at the same dose and double the infusion to 0.5 mL/kg/min"
+              "Repeat the bolus and double the infusion"
             ],
             [
               "Continue",
-              "At least 10 minutes after circulatory stability; maximum about 12 mL/kg (ideal body weight) — a prolonged resuscitation can approach a litre"
+              "More than 15 minutes after hemodynamic stability; maximum 12 mL/kg"
             ],
             [
               "Children (SPA Pedi Crisis 2025)",
               "Bolus 1.5 mL/kg over 1 minute, infusion 0.25 mL/kg/min, repeat the bolus every 3–5 minutes to 4.5 mL/kg, double the rate if pressure stays low; maximum 10 mL/kg in the first 30 minutes"
             ]
-          ]
+          ],
+          "note": "ASRA 2020: the order (bolus or infusion first) and the method (by hand, roller clamp or pump) are not critical, and no weight basis is given. The 2017 advisory gave 200–250 mL over 15–20 minutes over 70 kg and ideal body weight for the infusion under 70 kg."
         },
         {
           "heading": "ACLS Modifications",
@@ -13357,14 +13358,14 @@
         "id": "arrest",
         "title": "Maternal Cardiac Arrest",
         "short": "Arrest",
-        "summary": "Standard ALS with continuous left uterine displacement, airway early, IV above the diaphragm, and resuscitative delivery by 5 minutes if there is no return of circulation.",
+        "summary": "Standard ALS with continuous left uterine displacement, airway early, IV above the diaphragm, and resuscitative delivery by 5 minutes if there is no return of circulation (fundus at or above the umbilicus; SOAP and OAA: 20 weeks or more).",
         "timer": {
           "label": "Since the arrest",
           "start": "Arrest: start the clock",
           "marks": [
             {
               "sec": 240,
-              "text": "No ROSC: start the resuscitative hysterotomy where she is (SOAP 2014: incision at 4 minutes; SMFM 2026: begin within 4 minutes)."
+              "text": "No ROSC, fundus at or above the umbilicus (SOAP and OAA: 20 weeks or more): start the resuscitative hysterotomy where she is (SOAP 2014: incision at 4 minutes; SMFM 2026: begin within 4 minutes)."
             },
             {
               "sec": 300,
@@ -13403,7 +13404,7 @@
               "IV or IO access above the diaphragm.",
               "Magnesium running: stop it and give calcium.",
               "Amniotic fluid embolism suspected: activate the massive transfusion protocol; balanced red cells, plasma and platelets.",
-              "Start the clock above and prepare for resuscitative delivery at the bedside from the start.",
+              "Start the clock above; with the fundus at or above the umbilicus (SOAP and OAA: 20 weeks or more), prepare for resuscitative delivery at the bedside from the start.",
               "Consider extracorporeal CPR where it is available (AHA 2025: reasonable).",
               "After delivery the neonatal team resuscitates the baby; continue maternal ALS and look for the cause."
             ]
@@ -13426,7 +13427,7 @@
               ],
               [
                 "On magnesium",
-                "Stop it and give IV calcium; the 2025 algorithm prints no dose (OAA's calcium dose: calcium chloride 10% 10 mL or calcium gluconate 10% 30 mL)"
+                "Stop it and give IV calcium; the AHA 2025 algorithm prints no dose. OAA card 1-1: calcium chloride 10% 10 mL IV; the equivalent is calcium gluconate 10% 30 mL (ALSO 2017, adapted from AHA 2015)"
               ],
               [
                 "LAST suspected",
@@ -13439,7 +13440,7 @@
             "heading": "Cautions",
             "kind": "list",
             "items": [
-              "Do not take her to the operating room to deliver: deliver where she is.",
+              "Do not take her to the operating room to deliver: deliver where she is (SMFM 2026 allows a transfer only if it takes 1–2 minutes).",
               "Cricoid pressure is not routine during the arrest airway (AHA 2015).",
               "After delivery, large oxytocin boluses can cause collapse or re-arrest."
             ]
@@ -13457,7 +13458,10 @@
           "aha2025-preg",
           "aha2025-highlights",
           "soap2014",
-          "aha2015"
+          "aha2015",
+          "oaa-qrh",
+          "smfm-afe",
+          "also2017"
         ]
       },
       {
@@ -13470,8 +13474,8 @@
             "heading": "Recognize",
             "kind": "list",
             "items": [
-              "Hemorrhage (ACOG): cumulative loss of 1000 mL or more, or any loss with signs of hypovolemia, within 24 hours of birth.",
-              "Stage 1: over 500 mL after vaginal or over 1000 mL after cesarean birth, or a vital-sign change (CMQCC: heart rate 110 or more, BP 85/45 or less, SpO₂ under 95%).",
+              "Hemorrhage (ACOG, as summarized by AAFP 2023): cumulative loss of 1000 mL or more, or any loss with signs of hypovolemia, within 24 hours of birth.",
+              "Stage 1: over 500 mL after vaginal or over 1000 mL after cesarean birth, or a vital-sign change (CMQCC: by more than 15%, or heart rate 110 or more, BP 85/45 or less, SpO₂ under 95%).",
               "Stage 2: bleeding continuing up to 1500 mL, or more than two uterotonics needed. Stage 3: over 1500 mL, more than 2 units of red cells, unstable vital signs or suspected coagulopathy. Stage 4: cardiovascular collapse."
             ]
           },
@@ -13483,7 +13487,7 @@
               "Two large-bore IVs (16–18 G); type and crossmatch; send CBC, coagulation tests and fibrinogen.",
               "Oxytocin infusion, vigorous fundal massage, empty the bladder.",
               "Second-line uterotonic chosen by contraindication: methylergonovine (not if hypertensive), carboprost (not if asthmatic), misoprostol.",
-              "Tranexamic acid 1 g IV over 10 minutes, within 3 hours of birth; a second 1 g if bleeding continues after 30 minutes.",
+              "Tranexamic acid 1 g IV at 1 mL/min (10–20 minutes), within 3 hours of birth; a second 1 g if bleeding continues after 30 minutes or restarts within 24 hours.",
               "Stage 2: transfuse on clinical grounds, without waiting for results; 2 units of red cells in the room; thaw plasma.",
               "Stage 3: massive transfusion protocol, red cells to plasma near 1:1, a platelet pack per 4–6 units (CMQCC); cryoprecipitate for coagulopathy.",
               "Check and treat low calcium during transfusion; warm the patient and fluids; cell salvage and viscoelastic testing where available.",
@@ -13520,18 +13524,18 @@
               ],
               [
                 "Misoprostol",
-                "600–1000 mcg PR, SL or PO, once (sources differ)",
+                "800–1000 mcg PR, 800 mcg SL or 600 mcg PO (SMI 2015)",
                 "Once",
                 "—"
               ],
               [
                 "Tranexamic acid",
-                "1 g IV at 1 mL/min (about 10 min)",
-                "1 g after 30 min if bleeding continues",
+                "1 g IV at 1 mL/min, never faster (10–20 min)",
+                "1 g after 30 min if bleeding continues, or if it restarts within 24 h",
                 "First dose after 3 h: no benefit"
               ]
             ],
-            "note": "Methylergonovine repeat interval is from its label; the other values are from the SMI 2015 checklist, CMQCC, the uterotonic chart and FIGO/ICM."
+            "note": "Methylergonovine repeat interval is from its label; the other values are from the SMI 2015 checklist, CMQCC, the Indiana uterotonic chart and FIGO/ICM."
           },
           {
             "heading": "Calcium and Blood",
@@ -13556,14 +13560,14 @@
             "kind": "list",
             "items": [
               "A normal hemoglobin before adequate fluid resuscitation is falsely reassuring.",
-              "Tranexamic acid faster than 1 mL/min can cause hypotension."
+              "Tranexamic acid faster than 1 mL/min can cause hypotension (FIGO/ICM)."
             ]
           },
           {
             "heading": "Where Sources Differ",
             "kind": "list",
             "items": [
-              "Misoprostol: from 600 mcg PO to 1000 mcg PR across US and UK sources.",
+              "Misoprostol: CMQCC 800 mcg SL; OAA 1000 mcg PR or 800 mcg SL; the Indiana chart 600–800 mcg SL, PO or PR once.",
               "Carboprost interval: 15–90 minutes (label) or every 15 minutes (SMI, OAA); all agree on 8 doses at most.",
               "Oxytocin: US charts give an infusion without a bolus; OAA (UK) gives 5 IU slowly IV, up to twice, then 40 IU in 50 mL at 12.5 mL/h.",
               "Thresholds: US staging at 500, 1000 and 1500 mL; UK major over 1.5 L, massive over 2.5 L."
@@ -13575,7 +13579,9 @@
           "cmqcc-hem",
           "figo-txa",
           "labels",
-          "oaa-qrh"
+          "oaa-qrh",
+          "indiana-uterotonics",
+          "aafp2023"
         ]
       },
       {
@@ -13619,7 +13625,7 @@
               "Once controlled, aim for 130–150/80–100 mmHg; BP every 10 min for an hour, every 15 min for an hour, every 30 min for an hour, then hourly for 4 hours.",
               "Recurrent seizure on magnesium: 2–4 g more IV over 5 minutes (CMQCC); still seizing, a benzodiazepine or another anticonvulsant; consider head imaging.",
               "Watch for magnesium toxicity: lost reflexes, respiratory depression; check the level 4 hours after starting.",
-              "Plan delivery once she is stable; continue magnesium 24–48 hours after the last seizure or delivery."
+              "Plan delivery once she is stable; continue magnesium at least 24–48 hours after the last seizure or after delivery, whichever is later (ACOG 2023)."
             ]
           },
           {
@@ -13651,7 +13657,7 @@
                 "IV labetalol and consult"
               ]
             ],
-            "note": "Maximums: hydralazine 25 mg IV in 24 h; labetalol 300 mg IV in 24 h (SMI 2020; the SMI 2019 checklist prints 220 mg). Hold labetalol if the pulse is under 60. Swallow nifedipine whole, never sublingual."
+            "note": "24-hour maximums: hydralazine 25 mg IV (SMI 2019, Texas 2025); labetalol 300 mg IV (SMI 2020, Texas 2025) or 220 mg (SMI 2019). Hold labetalol if the pulse is under 60 (SMI 2020; Texas 2025: under 70). Swallow nifedipine whole, never sublingual (SMI 2019)."
           },
           {
             "heading": "Magnesium and Seizures",
@@ -13675,11 +13681,11 @@
               ],
               [
                 "Levels (mg/dL)",
-                "Therapeutic 4.9–8.5; reflexes lost 8.5–12.2; respiratory paralysis 12.2–15.8 (ACOG 2023 algorithm)"
+                "Therapeutic 4.9–8.5; reflexes lost 8.5–12.2; respiratory paralysis 12.2–15.8; stop the infusion above 9.6, restart below 8.4 (ACOG 2023 algorithm)"
               ],
               [
                 "Nicardipine",
-                "2.5–5 mg/h, titrate, maximum 15 mg/h, with the consultant (single source)"
+                "2.5–5 mg/h, titrate, maximum 15 mg/h, with the consultant (Nationwide Children's pathway, single source)"
               ]
             ]
           },
@@ -13687,9 +13693,8 @@
             "heading": "Cautions",
             "kind": "list",
             "items": [
-              "Magnesium is not an antihypertensive.",
               "No methylergonovine in hypertension or preeclampsia.",
-              "Magnesium: contraindicated in myasthenia gravis; reduce in renal impairment; magnesium with nifedipine can drop the pressure fast (OAA)."
+              "Magnesium: contraindicated in myasthenia gravis (SMI 2019); reduce in renal impairment; magnesium with nifedipine can drop the pressure fast (OAA)."
             ]
           },
           {
@@ -13697,7 +13702,7 @@
             "kind": "list",
             "items": [
               "Labetalol 24-hour maximum: 300 mg (SMI 2020, Texas 2025) or 220 mg (SMI 2019).",
-              "Magnesium: US load over 20–30 min with 1–2 g/h (Texas 2 g/h); UK 4 g over 5 min with 1 g/h.",
+              "Magnesium: US load over 20–30 min with 1–2 g/h (Texas 2025: 2 g/h); UK 4 g over 5 min with 1 g/h.",
               "UK first-line regimens differ (oral labetalol 200 mg; IV labetalol 50 mg every 5 min to 200 mg)."
             ]
           }
@@ -13706,6 +13711,9 @@
           "acog-htn",
           "acog-eclampsia",
           "cmqcc-htn",
+          "smi2019",
+          "texas2025",
+          "nch2023",
           "labels",
           "oaa-qrh"
         ]
@@ -13720,8 +13728,8 @@
             "heading": "Recognize",
             "kind": "list",
             "items": [
-              "After any epidural, spinal or combined technique (a spinal after an epidural is a recurrent story): difficulty breathing or speaking, weak arms or hands, a high sensory level, hypotension, bradycardia, drowsiness, apnea.",
-              "It can come on fast, or late and slowly. Consider subarachnoid hemorrhage, LAST, eclampsia and amniotic fluid embolism."
+              "After any epidural, spinal or combined technique: difficulty breathing, weak arms or hands, hypotension and bradycardia, impaired consciousness, apnea (OAA, AAGBI).",
+              "It can come on fast, or late and slowly. Consider a vasovagal event, aortocaval compression, LAST, amniotic fluid embolism and concealed hemorrhage (OAA, AAGBI); subarachnoid hemorrhage (NHS Borders)."
             ]
           },
           {
@@ -13763,7 +13771,7 @@
               ],
               [
                 "Fluid",
-                "250–500 mL bolus (OAA); 500–1000 mL rapidly (NHS Lothian)"
+                "250–500 mL bolus (OAA); 500–1000 mL rapidly (NHS Borders)"
               ]
             ]
           },
@@ -13772,14 +13780,14 @@
             "kind": "list",
             "items": [
               "No head-down tilt.",
-              "Sit her up only without cardiovascular compromise.",
-              "Deaths followed delayed recognition and missing airway skills."
+              "Sit her up only without cardiovascular compromise."
             ]
           }
         ],
         "sources": [
           "oaa-qrh",
-          "aagbi-qrh"
+          "aagbi-qrh",
+          "borders-high-block"
         ]
       },
       {
@@ -13847,7 +13855,7 @@
             "items": [
               "Volume overload worsens right-heart failure.",
               "No evidence supports routine steroids.",
-              "SMFM 2026 advises against routine use of the atropine–ondansetron–ketorolac ('A-OK') regimen."
+              "SMFM 2026 cites an expert panel that recommends against routine use of the atropine–ondansetron–ketorolac ('A-OK') regimen; the evidence is case reports only."
             ]
           },
           {
@@ -13903,9 +13911,9 @@
               "Gentle mask ventilation is allowed (peak pressure under 20 cmH₂O).",
               "Laryngoscopy at most twice, optimizing between attempts (cricoid, position, bougie, a different laryngoscope).",
               "Failed: call for help; second-generation supraglottic airway, cricoid released during insertion, at most two attempts; otherwise two-person mask ventilation.",
-              "Wake or proceed by the plan. Waking: keep oxygenating, head up or left lateral, sugammadex to reverse rocuronium, tell the neonatal team.",
-              "Proceeding: maintain anesthesia and ventilation, gastric tube through the airway, minimal fundal pressure, senior obstetrician operating.",
-              "Can't intubate, can't oxygenate: declare it, 100% oxygen, full paralysis, front-of-neck access (scalpel technique); arrest means the Arrest tab."
+              "Wake or proceed by the plan. Waking: keep oxygenating, head up or left lateral, sugammadex to reverse rocuronium.",
+              "Proceeding: maintain anesthesia and ventilation, gastric tube through the airway, minimal fundal pressure, senior obstetrician operating; tell the neonatal team about the failed intubation.",
+              "Can't intubate, can't oxygenate: declare it, 100% oxygen, full paralysis, front-of-neck access; arrest means the Arrest tab."
             ]
           },
           {
@@ -13941,16 +13949,16 @@
             "perKg": 1.5,
             "unit": "mL",
             "aboveKg": 70,
-            "aboveText": "100 mL (over 70 kg)",
-            "note": "Lean body weight; repeat if still unstable (OAA: at 5 and 10 min)"
+            "aboveText": "About 100 mL (over 70 kg)",
+            "note": "Weight basis not stated (ASRA 2020, OAA); SOAP 2014: ideal body weight. Repeat if still unstable (OAA: at 5 and 10 min)"
           },
           {
             "label": "Lipid infusion",
             "perKg": 15,
             "unit": "mL/h",
             "aboveKg": 70,
-            "aboveText": "200–250 mL over 15–20 min",
-            "note": "0.25 mL/kg/min; double if still unstable"
+            "aboveText": "About 250 mL over 15–20 min",
+            "note": "0.25 mL/kg/min; double if still unstable (ASRA 2020; 2017 advisory: 200–250 mL over 70 kg)"
           },
           {
             "label": "Lipid upper limit",
@@ -13972,7 +13980,7 @@
             "kind": "list",
             "items": [
               "Central: sudden change in mental state, agitation, loss of consciousness, seizures. Cardiovascular: bradycardia, conduction block, ventricular arrhythmias, hypotension, collapse.",
-              "Can follow an epidural top-up or abdominal wall blocks for cesarean, sometimes well after the injection."
+              "It may occur some time after the initial injection (OAA)."
             ]
           },
           {
@@ -13981,7 +13989,7 @@
             "items": [
               "Stop all local anesthetic, epidural pumps included; call for help, the LAST kit and the arrest trolley; alert a bypass or ECMO team early.",
               "Airway and oxygen; avoid hypercarbia. Left lateral, or supine with manual uterine displacement.",
-              "Seizures: a benzodiazepine; propofol only in small doses if nothing else, never with cardiovascular instability.",
+              "Seizures: a benzodiazepine; propofol only in small doses if nothing else (ASRA 2020), never with cardiovascular compromise (ASRA 2017).",
               "Lipid emulsion 20% at the first serious sign: the doses for her weight are above.",
               "Still unstable: repeat the bolus and double the infusion, within 12 mL/kg in all.",
               "Arrest: CPR with small epinephrine doses (1 mcg/kg or less), no vasopressin, calcium-channel blockers, beta-blockers or lidocaine; continue lipid; the Arrest tab's clock for delivery; expect a long resuscitation.",
@@ -14001,14 +14009,15 @@
             "kind": "list",
             "items": [
               "Lipid limit: 12 mL/kg (ASRA, OAA) or about 10 mL/kg over 30 minutes (SOAP 2014).",
-              "Weight: ideal body weight for under 70 kg (ASRA 2017, SOAP 2014); not stated in the 2020 checklist or OAA."
+              "Weight: ASRA 2017 uses ideal body weight for the under-70 kg infusion; SOAP 2014 for bolus and infusion; ASRA 2020 and OAA do not state one."
             ]
           }
         ],
         "sources": [
           "asra-last",
           "oaa-qrh",
-          "soap2014"
+          "soap2014",
+          "asra2017"
         ]
       },
       {
@@ -14032,11 +14041,11 @@
             "items": [
               "Treat as an emergency: the first bundle within 1 hour in shock, within 3 hours otherwise.",
               "Blood cultures before antibiotics, if that does not delay them; measure lactate.",
-              "Broad-spectrum antibiotics within 1 hour, chosen by the likely source.",
+              "Broad-spectrum antibiotics within 1 hour in septic shock or a high likelihood of sepsis, chosen by the likely source.",
               "Hypotension or hypoperfusion: 1–2 L of balanced crystalloid within 3 hours, reassessing the response; no starches or gelatins.",
               "Septic shock: norepinephrine first, MAP 65 mmHg; vasopressin second; dobutamine or epinephrine for myocardial dysfunction.",
               "Find and control the source; if it is the uterus, deliver or evacuate it regardless of gestation.",
-              "Shock persisting on vasopressors: hydrocortisone 50 mg IV every 6 hours; VTE prophylaxis; insulin above 180 mg/dL."
+              "Norepinephrine or epinephrine still at 0.25 mcg/kg/min or more 4 hours after starting: hydrocortisone 50 mg IV every 6 hours. VTE prophylaxis; insulin above 180 mg/dL."
             ]
           },
           {
@@ -14087,7 +14096,8 @@
         ],
         "sources": [
           "rcog-cord",
-          "oaa-qrh"
+          "oaa-qrh",
+          "lanarkshire-cord"
         ]
       },
       {
@@ -14155,7 +14165,7 @@
             "rows": [
               [
                 "Terbutaline",
-                "0.25 mg subcutaneously (OAA, RCOG)"
+                "0.25 mg subcutaneously (OAA)"
               ],
               [
                 "Nitroglycerin",
@@ -14167,7 +14177,7 @@
             "heading": "Cautions",
             "kind": "list",
             "items": [
-              "Relaxants cause hypotension and can worsen atony afterwards."
+              "Relaxants can cause hypotension (Hicks 2000)."
             ]
           }
         ],
@@ -14200,7 +14210,7 @@
               "A tight cervical ring: terbutaline 0.25 mg subcutaneously or sublingual nitroglycerin; general anesthesia with a volatile agent if those fail.",
               "Avoid a phenylephrine bolus, above all if bradycardic.",
               "Manual replacement fails: hydrostatic replacement (warm saline), then laparotomy.",
-              "Once replaced: stop the relaxants, start oxytocin, remove the placenta in theatre, antibiotics; atonic hemorrhage follows in over 90% (OAA)."
+              "Once replaced: start oxytocin, remove the placenta in theatre, antibiotics; atonic hemorrhage follows in over 90% (OAA)."
             ]
           },
           {
@@ -14236,14 +14246,14 @@
             "perKg": 0.01,
             "perKgHigh": 0.03,
             "unit": "mg",
-            "note": "Every 3–5 min"
+            "note": "Every 3–5 min; 0.1–0.3 mL/kg of 0.1 mg/mL"
           },
           {
             "label": "Epinephrine endotracheal",
             "perKg": 0.05,
             "perKgHigh": 0.1,
             "unit": "mg",
-            "note": "Only until vascular access"
+            "note": "Only until vascular access; 0.5–1 mL/kg of 0.1 mg/mL"
           },
           {
             "label": "Volume (saline or blood)",
@@ -14267,7 +14277,7 @@
             "kind": "steps",
             "items": [
               "Warm, dry, position the airway, stimulate; clear the airway only if needed; temperature 36.5–37.5 °C.",
-              "Apneic, gasping or heart rate under 100: positive-pressure ventilation within 60 seconds, 30–60 breaths/min, pulse oximetry; 21% oxygen from 35 weeks (21–30% at 32–35, 30–100% under 32).",
+              "Apneic, gasping or heart rate under 100: positive-pressure ventilation within 60 seconds, 30–60 breaths/min, pulse oximetry; 21% oxygen from 35 weeks (21–30% at 32–34 weeks, 30–100% under 32).",
               "Heart rate still under 100: ventilation corrective steps; consider a tube or laryngeal mask.",
               "Heart rate under 60 after 30 seconds of effective ventilation: secure the airway, compressions 3:1 with ventilation, 100% oxygen, umbilical venous or IO access.",
               "Still under 60: epinephrine every 3–5 minutes; consider hypovolemia and pneumothorax."
@@ -14315,7 +14325,7 @@
     "sources": [
       {
         "id": "aha2025-preg",
-        "citation": "American Heart Association. Cardiac Arrest in Pregnancy In-Hospital ACLS Algorithm, 2025 Guidelines for CPR and ECC (and its accessible text).",
+        "citation": "American Heart Association. Cardiac Arrest in Pregnancy Algorithm, 2025 Guidelines for CPR and ECC (and its accessible text).",
         "url": "https://cpr.heart.org/-/media/CPR-Files/CPR-Guidelines-Files/2025-Algorithms/Algorithm-SC-ACLS-CA-in-Pregnancy-250620.pdf?sc_lang=en"
       },
       {
@@ -14415,8 +14425,53 @@
       },
       {
         "id": "nhs-inversion",
-        "citation": "NHS Wales. Uterine inversion guideline UHBOBS151 v3. 2018.",
+        "citation": "Health board guideline UHBOBS151 v3: uterine inversion (2018), hosted by NHS Wales WISDOM; its 2020 review date has passed.",
         "url": "https://wisdom.nhs.wales/a-z-guidelines/u/uterine-inversionpdf/"
+      },
+      {
+        "id": "also2017",
+        "citation": "American Academy of Family Physicians, Advanced Life Support in Obstetrics. Cardiac arrest in the pregnant adult: algorithm poster, 2017 (adapted from AHA 2015).",
+        "url": "https://www.aafp.org/assets/image/upload/v1771245611/Migrated%20-%20PDFs%20%28AEM%29/Patient%20Care/also/provider-course/pregnant-adult-algorithm-poster-pdf.pdf"
+      },
+      {
+        "id": "indiana-uterotonics",
+        "citation": "Indiana Perinatal Quality Improvement Collaborative. Uterotonic agents for postpartum hemorrhage (chart).",
+        "url": "https://secure.in.gov/health/mch/files/ipqic/Uterotonic-Agents-for-Postpartum-Hemorrhage.pdf"
+      },
+      {
+        "id": "aafp2023",
+        "citation": "American Academy of Family Physicians. Practice guidelines: postpartum hemorrhage (ACOG recommendations). Am Fam Physician 2023.",
+        "url": "https://www.aafp.org/pubs/afp/issues/2023/0400/practice-guidelines-postpartum-hemorrhage.html"
+      },
+      {
+        "id": "smi2019",
+        "citation": "Safe Motherhood Initiative (ACOG District II). Hypertensive emergency checklist and algorithms, 2019.",
+        "url": "https://kansaspqc.kdhe.ks.gov/wp-content/uploads/2022/05/HTN-Bundle.Hypertensive-Emergency-protocol.-ACOG-2019.pdf"
+      },
+      {
+        "id": "texas2025",
+        "citation": "Texas Children's Hospital. Hypertensive emergency checklist, October 2025.",
+        "url": "https://www.texaschildrens.org/sites/tc/files/uploads/documents/Hypertensive%20Emergency%20Checklist%2010.17.25%20%28002%29.pdf"
+      },
+      {
+        "id": "nch2023",
+        "citation": "Nationwide Children's Hospital. Obstetric hypertensive emergency clinical pathway, 2023.",
+        "url": "https://www.nationwidechildrens.org/-/media/nch/for-medical-professionals/clinical-pathways/obstetric-hypertensive-emergency.pdf"
+      },
+      {
+        "id": "borders-high-block",
+        "citation": "NHS Borders clinical guideline (Right Decisions): high regional or total spinal block.",
+        "url": "https://www.rightdecisions.scot.nhs.uk/nhs-borders-clinical-guidelines/emergency-care/obstetric-emergencies/high-regional-or-total-spinal-block"
+      },
+      {
+        "id": "asra2017",
+        "citation": "Neal JM, Barrington MJ, Fettiplace MR, et al. The Third American Society of Regional Anesthesia and Pain Medicine Practice Advisory on Local Anesthetic Systemic Toxicity: Executive Summary 2017. Reg Anesth Pain Med. 2018;43:113–123.",
+        "url": "https://doi.org/10.1097/AAP.0000000000000720"
+      },
+      {
+        "id": "lanarkshire-cord",
+        "citation": "NHS Lanarkshire. Umbilical cord prolapse guideline, 2024.",
+        "url": "https://rightdecisions.scot.nhs.uk/media/qwpkotab/umbilical-cord-prolapse.pdf"
       },
       {
         "id": "nrp2025",
@@ -14425,7 +14480,8 @@
       }
     ],
     "notes": [
-      "Values are as printed by the sources named on each card; where sources disagree, the card says so. Several US documents (ACOG PB 183, CO 767, PB 222) could not be read, so their values come from ACOG District II, ACOG 2023 algorithms and CMQCC tools that carry them."
+      "Values are as printed by the sources named on each card; where sources disagree, the card says so. Several US documents (ACOG PB 183, CO 767, PB 222) could not be read, so their values come from ACOG District II, ACOG 2023 algorithms, CMQCC and hospital tools that carry them.",
+      "Checked item by item against the primary sources on 29 October 2026 (208 items); the AHA 2015 algorithm figure could not be read."
     ]
   }
 }
