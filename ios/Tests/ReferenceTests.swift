@@ -256,20 +256,28 @@ final class ReferenceTests: XCTestCase {
         XCTAssertNil(InfusionCalc.lines(for: vaso, weightKg: 70).equivalent)
     }
 
-    func testInfusionGroupsAsReviewed() throws {
+    func testInfusionTabsAsReviewed() throws {
         let inf = try XCTUnwrap(try bundled().infusions)
-        XCTAssertEqual(inf.groups.map(\.name), ["Hemodynamic Infusions", "Single-Dose Medications", "Anesthetic and Other Infusions", "Blood Products", "Factor Concentrates and Hematologic Drugs"])
-        let hemodynamic = try XCTUnwrap(inf.groups.first)
-        XCTAssertTrue(hemodynamic.drugs.allSatisfy { $0.role != nil }, "every hemodynamic infusion carries its class")
-        XCTAssertEqual(hemodynamic.drugs.filter { $0.name.hasPrefix("Epinephrine") }.count, 1, "one epinephrine row")
+        var tabs: [String] = []
+        for g in inf.groups where !tabs.contains(g.tab ?? g.name) { tabs.append(g.tab ?? g.name) }
+        XCTAssertEqual(tabs, ["Hemodynamic", "Single-Dose", "Anesthetic", "Blood Products", "Hematologic"])
+        XCTAssertEqual(inf.groups.filter { $0.tab == "Hemodynamic" }.map(\.name), ["Vasopressors", "Inotropes", "Vasodilators and Antihypertensives", "Pulmonary Vasodilators"])
+        XCTAssertEqual(inf.groups.filter { $0.tab == "Hematologic" }.map(\.name), ["Factor Concentrates", "Antifibrinolytics and Hemostatics", "Anticoagulants", "Reversal Agents"])
+        let all = inf.groups.flatMap(\.drugs)
+        XCTAssertEqual(all.filter { $0.name.hasPrefix("Epinephrine") }.count, 1, "one epinephrine row")
         let blood = try XCTUnwrap(inf.groups.first { $0.name == "Blood Products" })
         XCTAssertEqual(Set(blood.drugs.map(\.id)), ["red-cells", "plasma", "platelets", "cryoprecipitate"])
         for d in blood.drugs { XCTAssertNotNil(d.threshold, "\(d.id) shows its transfusion threshold") }
-        let norepi = try XCTUnwrap(hemodynamic.drugs.first { $0.id == "norepinephrine" })
+        // Rows whose dosing is a formula or protocol show a short dose, not the paragraph.
+        for d in all where d.form == .text { XCTAssertNotNil(d.display, "\(d.id) has a short dose for the row") }
+        let norepi = try XCTUnwrap(all.first { $0.id == "norepinephrine" })
         XCTAssertEqual(InfusionCalc.lines(for: norepi, weightKg: 80).dose, "4–8 mcg/min")
         XCTAssertEqual(InfusionCalc.lines(for: norepi, weightKg: 80).equivalent, "0.05–0.1 mcg/kg/min at 80 kg")
         let cryo = try XCTUnwrap(blood.drugs.first { $0.id == "cryoprecipitate" })
         XCTAssertEqual(InfusionCalc.lines(for: cryo, weightKg: 70).equivalent, "7–10 units at 70 kg")
+        XCTAssertEqual(norepi.nameParts.main, "Norepinephrine")
+        XCTAssertEqual(norepi.nameParts.alias, "Levophed")
+        XCTAssertNil(try XCTUnwrap(all.first { $0.id == "dobutamine" }).nameParts.alias)
     }
 
     func testTitleCase() {
@@ -312,6 +320,14 @@ final class ReferenceTests: XCTestCase {
         XCTAssertNotNil(RefItem.item(forKey: "ponv"))
         XCTAssertEqual(RefItem.folder(of: .neuraxial), .regional)
         XCTAssertEqual(RefItem.folder(of: .local), .regional)
+        XCTAssertEqual(RefItem.folder(of: .valves), .cardiothoracic)
+        XCTAssertEqual(RefItem.folder(of: .intervention), .cardiothoracic)
+        XCTAssertEqual(RefItem.item(for: .valves)?.title, "ASE Valve Severity Grading")
+        XCTAssertEqual(RefItem.item(for: .intervention)?.title, "AHA/ACC Valve Intervention")
+        XCTAssertFalse(RefFolder.preoperative.items.contains { $0.route == .valves || $0.route == .intervention })
+        XCTAssertEqual(RefFolder.medications.route, .infusions, "a one-tool folder opens the tool")
+        XCTAssertEqual(RefFolder.pediatrics.route, .peds)
+        XCTAssertEqual(RefFolder.cardiothoracic.route, .folder(.cardiothoracic))
     }
 
     func testNewerFileWinsBySameDayStamp() throws {
@@ -342,7 +358,7 @@ final class ReferenceTests: XCTestCase {
     func testInfusionBundleIsComplete() throws {
         let b = try bundled()
         let inf = try XCTUnwrap(b.infusions)
-        XCTAssertEqual(inf.groups.count, 5)
+        XCTAssertGreaterThanOrEqual(inf.groups.count, 5)
         let all = inf.groups.flatMap(\.drugs)
         XCTAssertGreaterThanOrEqual(all.count, 40)
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "infusion ids are unique")

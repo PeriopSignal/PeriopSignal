@@ -36,25 +36,34 @@ struct ValveGraderView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Valve severity")
+        .navigationTitle("ASE Valve Severity Grading")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("Done") { focused = false }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Clear") { withAnimation(.snappy) { texts = [:]; signs = [] } }.disabled(texts.isEmpty && signs.isEmpty)
-            }
         }
     }
 
     private var picker: some View {
-        Picker("Lesion", selection: $lesion) {
-            ForEach(ValveLesion.allCases) { l in Text(l.short).tag(l) }
+        HStack(spacing: 10) {
+            Picker("Lesion", selection: $lesion) {
+                ForEach(ValveLesion.allCases) { l in Text(l.short).tag(l) }
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: lesion) { _, _ in texts = [:]; signs = [] }
+            if !(texts.isEmpty && signs.isEmpty) {
+                Button {
+                    Haptics.light()
+                    withAnimation(.snappy) { texts = [:]; signs = [] }
+                } label: { Image(systemName: "arrow.counterclockwise") }
+                    .font(PS.sys(size: 14, weight: .semibold))
+                    .foregroundStyle(PS.fg2)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear the measurements")
+            }
         }
-        .pickerStyle(.segmented)
-        .onChange(of: lesion) { _, _ in texts = [:]; signs = [] }
     }
 
     private var result: some View {

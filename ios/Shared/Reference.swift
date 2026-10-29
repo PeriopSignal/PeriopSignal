@@ -166,6 +166,8 @@ struct InfusionGroup: Codable, Identifiable, Hashable {
     var id: String { name }
     var name: String
     var drugs: [InfusionDrug]
+    /// The tab this group is shown under ("Hemodynamic"); groups without one are their own tab.
+    var tab: String? = nil
 }
 
 struct InfusionDrug: Codable, Identifiable, Hashable {
@@ -194,6 +196,12 @@ struct InfusionDrug: Codable, Identifiable, Hashable {
     var threshold: String? = nil
     /// Overrides the generated dose text in the row ("1 unit per 7–10 kg").
     var display: String? = nil
+
+    /// "Dexmedetomidine (Precedex)" → ("Dexmedetomidine", "Precedex").
+    var nameParts: (main: String, alias: String?) {
+        guard name.hasSuffix(")"), let open = name.range(of: " (", options: .backwards) else { return (name, nil) }
+        return (String(name[..<open.lowerBound]), String(name[open.upperBound..<name.index(before: name.endIndex)]))
+    }
 }
 
 /// Where the app sends questions the references and the feed cannot answer (set once the proxy exists).

@@ -69,6 +69,47 @@ struct WeightField: View {
     }
 }
 
+/// A one-line weight entry for lists where the weight refines rather than unlocks the numbers.
+struct CompactWeightField: View {
+    @Binding var text: String
+    var focus: FocusState<Bool>.Binding
+    var badge: String = "For totals"
+
+    var body: some View {
+        let empty = WeightField.value(text) == nil
+        HStack(spacing: 10) {
+            Image(systemName: "scalemass.fill")
+                .font(PS.sys(size: 13, weight: .semibold))
+                .foregroundStyle(empty ? PS.accent : PS.fg3)
+            Text("Weight").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+            TextField("—", text: $text)
+                .keyboardType(.decimalPad)
+                .focused(focus)
+                .multilineTextAlignment(.trailing)
+                .font(PS.serif(size: 22, weight: .semibold))
+                .foregroundStyle(PS.fg)
+                .frame(width: 70)
+            Text("kg").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
+            Spacer(minLength: 6)
+            if empty {
+                Text(badge.uppercased())
+                    .font(PS.mono(size: 9.5, weight: .bold))
+                    .kerning(0.6)
+                    .foregroundStyle(PS.accentFg)
+                    .padding(.horizontal, 7).padding(.vertical, 3)
+                    .background(PS.accent, in: Capsule())
+            } else {
+                Text("Clears when you leave").font(PS.sys(size: 11)).foregroundStyle(PS.fg3)
+            }
+        }
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(empty ? PS.accent.opacity(0.8) : PS.line, lineWidth: empty ? 1.5 : 1))
+        .contentShape(Rectangle())
+        .onTapGesture { focus.wrappedValue = true }
+    }
+}
+
 // MARK: - Checklists
 
 /// "4 of 9 done" with a bar and a visible reset: the head of every checklist.

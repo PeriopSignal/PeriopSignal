@@ -27,16 +27,33 @@ struct ValveInterventionView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Valve intervention")
+        .navigationTitle("AHA/ACC Valve Intervention")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Clear") { withAnimation(.snappy) { answers = [:] } }.disabled(answers.isEmpty)
-            }
         }
     }
 
     private var picker: some View {
+        HStack(spacing: 10) {
+            lesionMenu
+            if !answers.isEmpty {
+                Button {
+                    Haptics.light()
+                    withAnimation(.snappy) { answers = [:] }
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(PS.sys(size: 15, weight: .semibold))
+                        .foregroundStyle(PS.fg2)
+                        .frame(width: 46, height: 46)
+                        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear the answers")
+            }
+        }
+    }
+
+    private var lesionMenu: some View {
         Menu {
             ForEach(VILesion.allCases) { l in
                 Button { withAnimation(.snappy) { lesion = l; answers = [:] } } label: {
