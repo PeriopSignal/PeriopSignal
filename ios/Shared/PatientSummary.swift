@@ -11,7 +11,8 @@ enum PatientSummary {
         init(_ label: String?, _ text: String, alert: Bool = false) { self.label = label; self.text = text; self.alert = alert }
     }
 
-    private static func f(_ v: Double) -> String { PedsCalc.fmt(v) }
+    /// Typed values as typed (to two decimals): "Hb 12.8", "Creatinine 1.15".
+    private static func f(_ v: Double) -> String { NumText.short(v) }
 
     /// "96 kg · 178 cm · BMI 30.3 · BSA 2.17 m² · IBW 73 kg · LBW 67 kg".
     static func bodyLine(_ r: PatientRecord) -> String {
@@ -69,11 +70,16 @@ enum PatientSummary {
         if let s = r.smoking { out.append(Line("Smoking", s == "current" ? "Current smoker" : (s == "former" ? "Former smoker" : "Never smoked"))) }
         if r.nkda { out.append(Line("Allergies", "No known drug allergies")) }
         else if !r.allergies.isEmpty { out.append(Line("Allergies", r.allergies, alert: true)) }
-        let flags = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }.map(\.label)
-        if !r.medications.isEmpty || !flags.isEmpty {
-            let meds = [r.medications.trimmingCharacters(in: .whitespacesAndNewlines), flags.isEmpty ? "" : "(" + flags.joined(separator: ", ") + ")"].filter { !$0.isEmpty }.joined(separator: " ")
-            let watch: Set<String> = ["anticoagulant", "p2y12", "glp1", "sglt2", "maoi"]
-            out.append(Line("Medications", meds, alert: !r.medFlags.isDisjoint(with: watch)))
+        // The list as typed; the flags only add what needs action (an anticoagulant, a GLP-1 agonist), so the
+        // same drugs are not listed twice. With no list typed, the flags are the list.
+        let flags = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }
+        let watched = flags.filter { watchFlags.contains($0.id) }.map(\.label)
+        let typed = r.medications.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !typed.isEmpty {
+            out.append(Line("Medications", typed))
+            if !watched.isEmpty { out.append(Line("Medication alerts", watched.joined(separator: ", "), alert: true)) }
+        } else if !flags.isEmpty {
+            out.append(Line("Medications", flags.map(\.label).joined(separator: ", "), alert: !watched.isEmpty))
         }
         let ah = PatientCatalog.anesthesiaHistory.filter { r.anesthesiaHistory.contains($0.id) }.map(\.label)
         let ahNote = r.anesthesiaNotes.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -91,27 +97,37 @@ enum PatientSummary {
         return out
     }
 
+    /// Medication flags that need an action before or after surgery.
+    static let watchFlags: Set<String> = ["anticoagulant", "p2y12", "glp1", "sglt2", "maoi", "steroid", "opioid"]
+
     static func assessmentLines(_ r: PatientRecord) -> [Line] {
         var out: [Line] = []
         if let a = PatientRules.asaText(r) {
             out.append(Line("ASA physical status", a))
         } else if let s = PatientRules.asaSuggestion(r) {
-            out.append(Line("ASA physical status (suggested, not confirmed)", s.label + (s.reasons.first.map { ": " + $0 } ?? "")))
+            out.append(Line("ASA physical status", "Suggested " + s.label + ", not yet chosen: " + s.topFindings.joined(separator: "; ")))
         }
-        if let m = metsText(r) {
-            let d = PatientFunctional.dasi(r)
-            out.append(Line("Functional capacity", m + (d.map { " · DASI " + f($0.score) + " (about " + String(format: "%.1f", $0.mets) + " METs)" } ?? ""), alert: r.mets == "lt4"))
+        let d = PatientFunctional.dasi(r)
+        let fc = [metsText(r), d.map { PatientFunctional.dasiText($0) }].compactMap { $0 }
+        if !fc.isEmpty {
+            out.append(Line("Functional capacity", fc.joined(separator: " · "), alert: r.mets == "lt4" || (d.map { $0 <= PatientFunctional.dasiCutoff } ?? false)))
         }
+        if r.frail { out.append(Line("Frailty", "Frail by a validated tool")) }
         let active = PatientFunctional.activeCardiac.filter { r.activeCardiac.contains($0.id) }.map(\.label)
-        if !active.isEmpty { out.append(Line("Active cardiac conditions", active.joined(separator: "; "), alert: true)) }
+        if !active.isEmpty { out.append(Line("Acute cardiac conditions", active.joined(separator: "; "), alert: true)) }
+        if r.isAdult, !r.emergency, r.ageYears != nil {
+            let step = PatientFunctional.cardiacStep(r)
+            out.append(Line("Cardiac evaluation", step.title, alert: step.alert))
+        }
         return out
     }
 
     static func airwayLines(_ r: PatientRecord) -> [Line] {
         var out: [Line] = []
-        if let m = r.mallampati { out.append(Line(nil, "Mallampati " + PatientRules.roman(m) + ": " + PatientAirway.mallampati(m).lowercased() + " visible", alert: m >= 3)) }
+        if let m = r.mallampati { out.append(Line(nil, PatientAirway.mallampatiLine(m), alert: m >= 3)) }
         let signs = PatientAirway.signs.filter { r.airwaySigns.contains($0.id) }.map(\.label)
         if !signs.isEmpty { out.append(Line("Difficult-airway signs", signs.joined(separator: "; "), alert: signs.count >= 2 || (r.mallampati ?? 0) >= 3)) }
+        for m in PatientAirway.maskRisk(r) where m.alert { out.append(Line(nil, m.text, alert: true)) }
         if !r.dentition.isEmpty { out.append(Line("Teeth", r.dentition)) }
         if !r.airwayNotes.isEmpty { out.append(Line("Airway notes", r.airwayNotes)) }
         if !r.examNotes.isEmpty { out.append(Line("Examination", r.examNotes)) }
@@ -121,10 +137,16 @@ enum PatientSummary {
     /// "Mask ventilation easy. Intubation easy: video laryngoscope, grade 1, 1 attempt; 7.5 ETT, 23 cm at the lip."
     static func airwayCourse(_ r: PatientRecord) -> Line? {
         var parts: [String] = []
+        let grade = r.maskGrade.map { " (grade \($0))" } ?? ""
         switch r.mask {
-        case "easy": parts.append("Mask ventilation easy")
-        case "difficult": parts.append("Mask ventilation DIFFICULT" + (r.maskNote.isEmpty ? "" : ": " + r.maskNote))
+        case "easy": parts.append("Mask ventilation easy" + grade)
+        case "difficult": parts.append("Mask ventilation DIFFICULT" + grade + (r.maskNote.isEmpty ? "" : ": " + r.maskNote))
         case "none": parts.append("No mask ventilation")
+        default: if !grade.isEmpty { parts.append("Mask ventilation" + grade) }
+        }
+        switch r.sga {
+        case "easy": parts.append("Supraglottic airway easy")
+        case "difficult": parts.append("Supraglottic airway DIFFICULT" + (r.sgaNote.isEmpty ? "" : ": " + r.sgaNote))
         default: break
         }
         var tube: [String] = []
@@ -139,12 +161,36 @@ enum PatientSummary {
         default: if !detail.isEmpty { parts.append(detail.prefix(1).uppercased() + detail.dropFirst()) }
         }
         guard !parts.isEmpty else { return nil }
-        return Line("Airway", parts.joined(separator: ". ") + ".", alert: r.mask == "difficult" || r.intubation == "difficult")
+        return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
+    }
+
+    /// Mask, supraglottic airway or intubation recorded as difficult.
+    static func difficultAirway(_ r: PatientRecord) -> Bool {
+        r.mask == "difficult" || r.sga == "difficult" || r.intubation == "difficult" || (r.maskGrade ?? 0) >= 3
+    }
+
+    /// ASA 2022 follow-up care after a difficult airway: tell the patient, document it, advise an alert or registry.
+    static let followUp: [(id: String, label: String, todo: String)] = [
+        ("told", "Patient told", "tell the patient (or a responsible person)"),
+        ("documented", "Documented in the chart", "document the difficulty and what worked"),
+        ("alert", "Alert or registry advised", "advise an alert bracelet or registry"),
+    ]
+
+    /// "Patient told. Still to do: document the difficulty and what worked; advise an alert bracelet or registry".
+    static func followUpLine(_ r: PatientRecord) -> Line? {
+        guard difficultAirway(r) else { return nil }
+        let done = followUp.filter { r.airwayFollowUp.contains($0.id) }.map(\.label)
+        let todo = followUp.filter { !r.airwayFollowUp.contains($0.id) }.map(\.todo)
+        var parts: [String] = []
+        if !done.isEmpty { parts.append(done.joined(separator: "; ")) }
+        if !todo.isEmpty { parts.append("Still to do: " + todo.joined(separator: "; ")) }
+        return Line("Difficult-airway follow-up", parts.joined(separator: ". "), alert: !todo.isEmpty)
     }
 
     static func intraopLines(_ r: PatientRecord) -> [Line] {
         var out: [Line] = []
         if let a = airwayCourse(r) { out.append(a) }
+        if let fu = followUpLine(r) { out.append(fu) }
         let lines = r.lines.map(\.text).filter { !$0.isEmpty }
         if !lines.isEmpty { out.append(Line("Lines", lines.joined(separator: "; "))) }
         let blocks = r.regional.map(\.text).filter { !$0.isEmpty }
@@ -165,6 +211,7 @@ enum PatientSummary {
         var out: [Line] = []
         if let d = r.disposition { out.append(Line("Disposition", d)) }
         if !r.painPlan.isEmpty { out.append(Line("Pain plan", r.painPlan)) }
+        if !r.callIf.isEmpty { out.append(Line("Call if", r.callIf)) }
         if !r.todos.isEmpty { out.append(Line("To do and concerns", r.todos)) }
         return out
     }
@@ -195,15 +242,16 @@ enum HandoffWriter {
             for l in lines { out.append((l.label.map { $0 + ": " } ?? "") + l.text) }
         }
         section("History", PatientSummary.historyLines(r, now: now))
-        var assess = PatientSummary.assessmentLines(r)
+        var assess = PatientSummary.assessmentLines(r).filter { $0.label != "Cardiac evaluation" }
         for (id, sc) in r.scores.sorted(by: { $0.key < $1.key }) {
             assess.append(PatientSummary.Line(Scores.byID(id)?.name ?? id, PatientRules.scoreLine(id, sc) + (sc.detail.map { " (" + $0 + ")" } ?? "")))
         }
         section("Assessment", assess)
         var airway = PatientSummary.airwayLines(r)
         if let c = PatientSummary.airwayCourse(r) { airway.append(PatientSummary.Line("Course", c.text, alert: c.alert)) }
+        if let fu = PatientSummary.followUpLine(r) { airway.append(fu) }
         section("Airway", airway)
-        let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" }
+        let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" }
         section("Intraoperative", intraop)
         section("Plan", PatientSummary.planLines(r))
         out.append("")

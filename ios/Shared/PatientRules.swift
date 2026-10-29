@@ -4,10 +4,21 @@ import Foundation
 
 struct AsaSuggestion: Hashable {
     var level: Int
-    /// The findings that set it, highest class first ("COPD: ASA III example").
-    var reasons: [String]
+    /// The findings that set it, highest class first.
+    var reasons: [AsaReason]
     var emergency: Bool
     var label: String { "ASA " + PatientRules.roman(level) + (emergency ? "E" : "") }
+    /// The findings at the suggested class ("Coronary disease or MI, over 3 months; COPD").
+    var topFindings: [String] { reasons.filter { $0.level == level }.map(\.finding) }
+}
+
+/// One recorded finding and the ASA example class it matches.
+struct AsaReason: Hashable {
+    /// What is recorded: "COPD", "BMI 41.2".
+    var finding: String
+    var level: Int
+    /// The ASA's example, when it says more than the finding: "history (>3 months) of MI, CVA, TIA, or CAD/stents".
+    var example: String?
 }
 
 /// A test or tool the record suggests opening next.
@@ -27,7 +38,7 @@ enum PatientRules {
         return n >= 0 && n < r.count ? r[n] : "\(n)"
     }
 
-    private static func f(_ v: Double) -> String { PedsCalc.fmt(v) }
+    private static func f(_ v: Double) -> String { NumText.short(v) }
 
     // MARK: ASA
 
@@ -35,19 +46,26 @@ enum PatientRules {
     /// a child (the pediatric examples differ) or when nothing is recorded and "no significant history" is not set.
     static func asaSuggestion(_ r: PatientRecord) -> AsaSuggestion? {
         guard !r.isChild else { return nil }
-        var found: [(Int, String)] = []
+        var found: [AsaReason] = []
+        /// The example is shown only when it adds to the finding's own words ("COPD" is not repeated).
+        func example(_ finding: String, _ ex: String?) -> String? {
+            guard let ex, ex.lowercased() != finding.lowercased() else { return nil }
+            return ex
+        }
         for p in PatientCatalog.allProblems where r.problems.contains(p.id) {
-            if let a = p.asa { found.append((a, p.label + ": ASA " + roman(a) + " example (" + (p.asaExample ?? p.label) + ")")) }
+            if let a = p.asa { found.append(AsaReason(finding: p.label, level: a, example: example(p.label, p.asaExample))) }
         }
         if let b = r.bmi {
-            if b >= 40 { found.append((3, "BMI " + f(b) + ": ASA III example (morbid obesity, BMI ≥40)")) }
-            else if b > 30 { found.append((2, "BMI " + f(b) + ": ASA II example (obesity, 30 < BMI < 40)")) }
+            let bmi = "BMI " + String(format: "%.1f", b)
+            if b >= 40 { found.append(AsaReason(finding: bmi, level: 3, example: "morbid obesity (BMI ≥40)")) }
+            else if b > 30 { found.append(AsaReason(finding: bmi, level: 2, example: "obesity (30 < BMI < 40)")) }
         }
-        if r.smoking == "current" { found.append((2, "Current smoker: ASA II example")) }
-        guard let top = found.map(\.0).max() else {
-            return r.noHistory ? AsaSuggestion(level: 1, reasons: ["No systemic disease recorded: ASA I is a normal healthy patient"], emergency: r.emergency) : nil
+        if r.smoking == "current" { found.append(AsaReason(finding: "Current smoker", level: 2, example: nil)) }
+        guard let top = found.map(\.level).max() else {
+            return r.noHistory ? AsaSuggestion(level: 1, reasons: [AsaReason(finding: "No systemic disease recorded", level: 1, example: "a normal healthy patient")], emergency: r.emergency) : nil
         }
-        let reasons = found.sorted { $0.0 > $1.0 }.map(\.1)
+        // Highest class first; the order recorded within a class.
+        let reasons = found.enumerated().sorted { $0.element.level != $1.element.level ? $0.element.level > $1.element.level : $0.offset < $1.offset }.map(\.element)
         return AsaSuggestion(level: top, reasons: reasons, emergency: r.emergency)
     }
 
@@ -137,13 +155,14 @@ enum PatientRules {
 
     // MARK: Airway
 
-    /// The airway signs recorded, with Mallampati III–IV and the history items counted in.
+    /// The airway signs recorded, with Mallampati III–IV and the history items the ASA's 2022 guideline names
+    /// (previous difficult airway, sleep apnea, obesity) counted in.
     static func airwayPredictors(_ r: PatientRecord) -> [String] {
         var out = PatientAirway.signs.filter { r.airwaySigns.contains($0.id) }.map(\.label)
         if let m = r.mallampati, m >= 3 { out.insert("Mallampati " + roman(m), at: 0) }
         if r.anesthesiaHistory.contains("difficult-airway") { out.insert("Known difficult airway", at: 0) }
         if r.has("osa") { out.append("Obstructive sleep apnea") }
-        if let b = r.bmi, b >= 30 { out.append("BMI " + f(b)) }
+        if let b = r.bmi, b >= 30 { out.append("BMI " + String(format: "%.1f", b)) }
         return out
     }
 
@@ -159,22 +178,25 @@ enum PatientRules {
     }
 }
 
-/// The airway examination's findings, grouped as the exam is done.
+/// The airway examination's findings, grouped as the exam is done. Nonreassuring findings from the ASA's
+/// examination table (2003 and 2013 difficult-airway guidelines) and the features its 2022 guideline lists; the
+/// 2022 guideline gives no cutoffs and finds no single sign consistently more predictive than another.
 enum PatientAirway {
     static let signs: [PatientFlag] = [
         PatientFlag("mouth", "Mouth opening under 3 cm", "Interincisor distance"),
-        PatientFlag("tmd", "Thyromental distance under 6 cm"),
-        PatientFlag("neck", "Limited neck extension"),
-        PatientFlag("jaw", "Cannot protrude the lower jaw", "Upper lip bite test class III"),
-        PatientFlag("incisors", "Prominent upper incisors"),
-        PatientFlag("palate", "High-arched or narrow palate"),
-        PatientFlag("thick-neck", "Short, thick neck"),
-        PatientFlag("neck40", "Neck circumference over 40 cm"),
+        PatientFlag("tmd", "Thyromental distance under 3 fingerbreadths"),
+        PatientFlag("smd", "Sternomental distance 12.5 cm or less", "Head fully extended, mouth closed (Savva 1994)"),
+        PatientFlag("neck", "Limited neck movement", "Cannot touch chin to chest, or cannot extend the neck"),
+        PatientFlag("jaw", "Cannot protrude the jaw", "Lower incisors cannot come in front of the upper incisors"),
+        PatientFlag("incisors", "Long or prominent upper incisors"),
+        PatientFlag("palate", "High-arched or very narrow palate"),
+        PatientFlag("mandible", "Stiff mandibular space", "Indurated, nonresilient or occupied by a mass"),
+        PatientFlag("thick-neck", "Short or thick neck"),
+        PatientFlag("neck40", "Neck circumference over 40 cm", "The STOP-Bang item"),
         PatientFlag("beard", "Beard"),
         PatientFlag("edentulous", "No teeth"),
         PatientFlag("radiation", "Neck radiation changes"),
-        PatientFlag("mass", "Airway mass, tumor, abscess or swelling"),
-        PatientFlag("stridor", "Stridor or voice change"),
+        PatientFlag("mass", "Airway mass or obstruction", "Tumor, abscess, swelling or stridor"),
     ]
 
     /// Modified Mallampati (Samsoon and Young): what is visible with the mouth open and the tongue out.
@@ -183,7 +205,59 @@ enum PatientAirway {
         case 1: return "Soft palate, fauces, uvula and pillars"
         case 2: return "Soft palate, fauces and uvula"
         case 3: return "Soft palate and the base of the uvula"
-        default: return "Hard palate only"
+        default: return "Soft palate not visible"
         }
     }
+
+    /// "Mallampati III: soft palate and the base of the uvula visible".
+    static func mallampatiLine(_ n: Int) -> String {
+        "Mallampati " + PatientRules.roman(n) + ": " + mallampati(n).lowercased() + (n >= 4 ? "" : " visible")
+    }
+
+    /// Langeron 2000's independent predictors of difficult mask ventilation that the record shows: age over 55,
+    /// BMI over 26, beard, lack of teeth, snoring. Two or more predicted it (sensitivity 0.72, specificity 0.73).
+    static func langeron(_ r: PatientRecord) -> [String] {
+        var out: [String] = []
+        if let a = r.ageYears, a > 55 { out.append("age over 55") }
+        if let b = r.bmi, b > 26 { out.append("BMI over 26") }
+        if r.airwaySigns.contains("beard") { out.append("beard") }
+        if r.airwaySigns.contains("edentulous") { out.append("no teeth") }
+        if r.has("snoring") { out.append("snoring") }
+        return out
+    }
+
+    /// Kheterpal 2009's independent predictors of impossible mask ventilation that the record shows: neck
+    /// radiation changes, male sex, sleep apnea, Mallampati III or IV, beard. Three or more: markedly increased risk.
+    static func kheterpal(_ r: PatientRecord) -> [String] {
+        var out: [String] = []
+        if r.airwaySigns.contains("radiation") { out.append("neck radiation changes") }
+        if r.sex == .male { out.append("male") }
+        if r.has("osa") { out.append("sleep apnea") }
+        if let m = r.mallampati, m >= 3 { out.append("Mallampati " + PatientRules.roman(m)) }
+        if r.airwaySigns.contains("beard") { out.append("beard") }
+        return out
+    }
+
+    /// The mask-ventilation predictions, for adults: "Langeron 3 of 5: age over 55, BMI over 26, snoring".
+    static func maskRisk(_ r: PatientRecord) -> [(text: String, alert: Bool)] {
+        guard r.isAdult else { return [] }
+        var out: [(text: String, alert: Bool)] = []
+        let l = langeron(r), k = kheterpal(r)
+        if !l.isEmpty {
+            out.append(("Difficult mask ventilation: \(l.count) of 5 Langeron predictors (" + l.joined(separator: ", ") + "); 2 or more predicted it.", l.count >= 2))
+        }
+        if !k.isEmpty {
+            out.append(("Impossible mask ventilation: \(k.count) of 5 Kheterpal predictors (" + k.joined(separator: ", ") + "); 3 or more mark a markedly increased risk.", k.count >= 3))
+        }
+        return out
+    }
+
+    /// Han mask-ventilation grades (Han R, et al. Anesthesiology 2004;101:267, as Kheterpal 2006 tabulates them), in
+    /// our words; each applies with or without a muscle relaxant.
+    static let maskGrades: [(id: String, label: String, detail: String)] = [
+        ("1", "1", "Ventilated by mask"),
+        ("2", "2", "Ventilated with an oral airway or other adjunct"),
+        ("3", "3", "Difficult (inadequate, unstable, or needing two providers)"),
+        ("4", "4", "Unable to ventilate by mask"),
+    ]
 }

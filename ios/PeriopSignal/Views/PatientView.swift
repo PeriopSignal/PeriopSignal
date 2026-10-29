@@ -84,13 +84,14 @@ struct PatientView: View {
         if let route = RefRoute(key: key) { path.append(route) }
     }
 
-    /// Screenshot runs: -ps.patient.open history | assessment | airway | intraop | plan | handoff | score:rcri.
+    /// Screenshot runs: -ps.patient.open history | medications | assessment | airway | intraop | plan | handoff | score:rcri.
     private func openForScreenshot() {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         switch o {
         case "details": path.append(PatientEditor.details)
         case "history": path.append(PatientEditor.history)
+        case "medications": path.append(PatientEditor.medications)
         case "assessment": path.append(PatientEditor.assessment)
         case "airway": path.append(PatientEditor.airway)
         case "intraop": path.append(PatientEditor.intraop)

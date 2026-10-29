@@ -148,7 +148,7 @@ enum PatientDemo {
         r.highRiskSurgery = true
         r.incision = "Upper abdominal"; r.duration = "> 3 h"
         r.vitals = ["sbp": 148, "dbp": 86, "hr": 72, "spo2": 95]
-        r.problems = ["htn", "cad", "dm", "insulin", "osa", "cpap", "snoring", "copd"]
+        r.problems = ["htn", "cad", "pci", "dm", "insulin", "osa", "cpap", "snoring", "copd"]
         r.systemNotes = ["cv": "DES to LAD 2023; on aspirin"]
         r.smoking = "former"
         r.allergies = "Penicillin (rash)"
@@ -171,6 +171,7 @@ enum PatientDemo {
         r.noEvents = true
         r.disposition = "PACU"
         r.painPlan = "TAP blocks; acetaminophen; hydromorphone PCA if needed"
+        r.callIf = "SBP under 90 or over 170; SpO₂ under 92%"
         r.todos = "Resume CPAP in PACU; check glucose on arrival"
         r.scores["rcri"] = PatientScore(points: 3, max: 6, label: "Class IV · 3 or more", detail: "15.0% (11.1–20.0)", answers: ["High-risk surgery", "Ischemic heart disease", "Insulin therapy for diabetes"], date: Date())
         return r

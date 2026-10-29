@@ -23,14 +23,14 @@ struct WeightField: View {
 
     var body: some View {
         Group {
-            if let w = patientWeight, !changing, text == PedsCalc.fmt(w) {
-                FromPatientLine(values: [PedsCalc.fmt(w) + " kg"], what: "weight") { changing = true; focus.wrappedValue = true }
+            if let w = patientWeight, !changing, text == NumText.exact(w) {
+                FromPatientLine(values: [NumText.short(w) + " kg"], what: "weight") { changing = true; focus.wrappedValue = true }
             } else {
                 field
             }
         }
         .onAppear {
-            if let w = patientWeight, Self.value(text) == nil { text = PedsCalc.fmt(w) }
+            if let w = patientWeight, Self.value(text) == nil { text = NumText.exact(w) }
         }
     }
 
@@ -98,14 +98,14 @@ struct CompactWeightField: View {
 
     var body: some View {
         Group {
-            if let w = patientWeight, !changing, text == PedsCalc.fmt(w) {
-                FromPatientLine(values: [PedsCalc.fmt(w) + " kg"], what: "weight") { changing = true; focus.wrappedValue = true }
+            if let w = patientWeight, !changing, text == NumText.exact(w) {
+                FromPatientLine(values: [NumText.short(w) + " kg"], what: "weight") { changing = true; focus.wrappedValue = true }
             } else {
                 field
             }
         }
         .onAppear {
-            if let w = patientWeight, WeightField.value(text) == nil { text = PedsCalc.fmt(w) }
+            if let w = patientWeight, WeightField.value(text) == nil { text = NumText.exact(w) }
         }
     }
 

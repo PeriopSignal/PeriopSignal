@@ -51,7 +51,8 @@ enum PatientCatalog {
         PatientSystem(id: "cv", name: "Cardiovascular", icon: "heart", problems: [
             PatientProblem("htn", "Hypertension, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", stopBang: "pressure"),
             PatientProblem("htn-poor", "Hypertension, poorly controlled", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
-            PatientProblem("cad", "Coronary disease or stents, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
+            PatientProblem("cad", "Coronary disease or MI, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
+            PatientProblem("pci", "Coronary stent, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("cad-recent", "MI, ACS or stent within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
             PatientProblem("ischemia", "Ongoing cardiac ischemia", asa: 4, asaExample: "ongoing cardiac ischemia", rcri: "ihd"),
             PatientProblem("cabg", "Prior CABG", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
@@ -68,6 +69,7 @@ enum PatientCatalog {
             PatientProblem("pacemaker", "Pacemaker", asa: 3, asaExample: "implanted pacemaker"),
             PatientProblem("icd", "Implanted defibrillator (ICD)"),
             PatientProblem("pulm-htn", "Pulmonary hypertension"),
+            PatientProblem("pulm-htn-severe", "Severe pulmonary hypertension"),
             PatientProblem("pvd", "Peripheral vascular disease"),
             PatientProblem("chd", "Congenital heart disease"),
         ]),
@@ -189,6 +191,7 @@ enum PatientCatalog {
         PatientField("hb", "Hemoglobin", "g/dL"), PatientField("plt", "Platelets", "×10³/µL"), PatientField("inr", "INR", ""),
         PatientField("k", "Potassium", "mmol/L"), PatientField("na", "Sodium", "mmol/L"), PatientField("cr", "Creatinine", "mg/dL"),
         PatientField("glucose", "Glucose", "mg/dL"), PatientField("a1c", "HbA1c", "%"),
+        PatientField("bnp", "BNP", "pg/mL"), PatientField("ntprobnp", "NT-proBNP", "pg/mL"),
     ]
 
     static let vitals: [PatientField] = [

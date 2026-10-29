@@ -12,13 +12,23 @@ enum PatientSex: String, Codable, CaseIterable, Hashable {
     var noun: String { self == .male ? "man" : "woman" }
 }
 
+/// Surgical timing as the 2024 AHA/ACC perioperative guideline defines it (Table 2).
 enum PatientUrgency: String, Codable, CaseIterable, Hashable {
-    case elective, urgent, emergency
+    case elective, timeSensitive, urgent, emergency
     var label: String {
         switch self {
         case .elective: return "Elective"
+        case .timeSensitive: return "Time-sensitive"
         case .urgent: return "Urgent"
         case .emergency: return "Emergency"
+        }
+    }
+    var detail: String {
+        switch self {
+        case .elective: return "Can be delayed for a complete evaluation and management."
+        case .timeSensitive: return "Can wait up to 3 months for evaluation without harming the outcome."
+        case .urgent: return "Threat to life or limb, with time for some evaluation; typically 2 to 24 h."
+        case .emergency: return "Immediate threat to life or limb, with little or no time for evaluation; typically under 2 h."
         }
     }
 }
@@ -144,6 +154,8 @@ struct PatientRecord: Codable, Equatable {
     var mets: String?
     var dasi: Set<String> = []
     var activeCardiac: Set<String> = []
+    /// Frail by a validated tool (a risk modifier in the stepwise cardiac evaluation).
+    var frail = false
     /// The class the clinician chose (1–6); the suggestion is never stored.
     var asaClass: Int?
     /// The clinician's E; nil follows the urgency.
@@ -161,6 +173,11 @@ struct PatientRecord: Codable, Equatable {
     /// "easy", "difficult", "none".
     var mask: String?
     var maskNote = ""
+    /// Han mask-ventilation grade, 1–4.
+    var maskGrade: Int?
+    /// Supraglottic airway: "easy", "difficult", "none".
+    var sga: String?
+    var sgaNote = ""
     /// "easy", "difficult", "none".
     var intubation: String?
     var intubationNote = ""
@@ -169,6 +186,8 @@ struct PatientRecord: Codable, Equatable {
     var laryngoscopyGrade: String?
     var attempts: Int?
     var tube = ""
+    /// After a difficult airway: "told", "documented", "alert" (ASA 2022 follow-up care).
+    var airwayFollowUp: Set<String> = []
     var lines: [PatientLine] = []
     var regional: [PatientRegional] = []
     var infusions: [PatientInfusion] = []
@@ -183,6 +202,8 @@ struct PatientRecord: Codable, Equatable {
     // Plan
     var disposition: String?
     var painPlan = ""
+    /// Monitoring and when to call.
+    var callIf = ""
     var todos = ""
 
     init() {}
@@ -222,6 +243,7 @@ struct PatientRecord: Codable, Equatable {
         mets = try? c.decodeIfPresent(String.self, forKey: .mets)
         dasi = v(.dasi, [])
         activeCardiac = v(.activeCardiac, [])
+        frail = v(.frail, false)
         asaClass = try? c.decodeIfPresent(Int.self, forKey: .asaClass)
         asaE = try? c.decodeIfPresent(Bool.self, forKey: .asaE)
         scores = v(.scores, [:])
@@ -232,12 +254,16 @@ struct PatientRecord: Codable, Equatable {
         examNotes = v(.examNotes, "")
         mask = try? c.decodeIfPresent(String.self, forKey: .mask)
         maskNote = v(.maskNote, "")
+        maskGrade = try? c.decodeIfPresent(Int.self, forKey: .maskGrade)
+        sga = try? c.decodeIfPresent(String.self, forKey: .sga)
+        sgaNote = v(.sgaNote, "")
         intubation = try? c.decodeIfPresent(String.self, forKey: .intubation)
         intubationNote = v(.intubationNote, "")
         airwayDevice = try? c.decodeIfPresent(String.self, forKey: .airwayDevice)
         laryngoscopyGrade = try? c.decodeIfPresent(String.self, forKey: .laryngoscopyGrade)
         attempts = try? c.decodeIfPresent(Int.self, forKey: .attempts)
         tube = v(.tube, "")
+        airwayFollowUp = v(.airwayFollowUp, [])
         lines = v(.lines, [])
         regional = v(.regional, [])
         infusions = v(.infusions, [])
@@ -249,6 +275,7 @@ struct PatientRecord: Codable, Equatable {
         echo = v(.echo, "")
         disposition = try? c.decodeIfPresent(String.self, forKey: .disposition)
         painPlan = v(.painPlan, "")
+        callIf = v(.callIf, "")
         todos = v(.todos, "")
     }
 
@@ -311,8 +338,8 @@ extension PatientRecord {
     var oneLiner: String {
         var parts: [String] = []
         if !person.isEmpty { parts.append(person) }
-        if let w = weightKg { parts.append(PedsCalc.fmt(w) + " kg") }
-        if let h = heightCm { parts.append(PedsCalc.fmt(h) + " cm") }
+        if let w = weightKg { parts.append(NumText.short(w) + " kg") }
+        if let h = heightCm { parts.append(NumText.short(h) + " cm") }
         return parts.joined(separator: " · ")
     }
 

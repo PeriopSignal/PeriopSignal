@@ -41,22 +41,33 @@ struct PatientEditorView: View {
     private var r: PatientRecord { patient.record }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                switch editor {
-                case .details: details
-                case .history: history
-                case .system(let id): system(id)
-                case .medications: medications
-                case .assessment: assessment
-                case .airway: airway
-                case .intraop: intraop
-                case .plan: plan
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    switch editor {
+                    case .details: details
+                    case .history: history
+                    case .system(let id): system(id)
+                    case .medications: medications
+                    case .assessment: assessment
+                    case .airway: airway
+                    case .intraop: intraop
+                    case .plan: plan
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 6)
+                .padding(.bottom, 40)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 6)
-            .padding(.bottom, 40)
+            .onAppear {
+                #if DEBUG
+                // Screenshot runs: -ps.patient.scroll cardiac | mask scrolls to that group.
+                let a = LaunchSeed.string("ps.patient.scroll")
+                if !a.isEmpty {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { proxy.scrollTo(a, anchor: .top) }
+                }
+                #endif
+            }
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
@@ -156,6 +167,10 @@ struct PatientEditorView: View {
             PatientTextField(label: "Procedure", prompt: "e.g. laparoscopic colectomy", text: bind(\.procedure), focus: $focused)
             PatientChipRow(label: "Urgency") {
                 PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
+            }
+            if let u = r.urgency {
+                line(u.detail + " (2024 AHA/ACC)")
+                    .padding(.horizontal, 14).padding(.bottom, 8)
             }
             PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
             Hairline().padding(.leading, 14)
@@ -265,6 +280,20 @@ struct PatientEditorView: View {
             PatientTextField(label: "Home medications", prompt: "Drug, dose, last taken", text: bind(\.medications), focus: $focused)
             PatientChipRow(label: "Flags") { PatientChips(options: PatientCatalog.medFlags, selection: bind(\.medFlags)) }
         }
+        let notes = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }.compactMap { f in PatientFunctional.medNotes[f.id].map { (f.label, $0) } }
+        if !notes.isEmpty {
+            PatientGroup(title: "Before surgery", note: "2024 AHA/ACC perioperative guideline, with the class of each recommendation.") {
+                ForEach(Array(notes.enumerated()), id: \.offset) { i, n in
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(n.0).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                        Text(n.1).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    if i < notes.count - 1 { Hairline().padding(.leading, 14) }
+                }
+            }
+        }
         if r.medFlags.contains("anticoagulant") || r.medFlags.contains("p2y12") {
             toolButton("Anticoagulant timing for blocks (ASRA)", route: "neuraxial")
         }
@@ -278,11 +307,9 @@ struct PatientEditorView: View {
     @ViewBuilder private var assessment: some View {
         PatientGroup(title: "ASA physical status", note: "The suggestion is the highest class among the ASA's published adult examples that match what is recorded; the class is a clinical judgment, so it counts only once you choose it.") {
             if let s = PatientRules.asaSuggestion(r) {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Suggested: " + s.label).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                    ForEach(Array(s.reasons.enumerated()), id: \.offset) { _, why in
-                        Text("· " + why).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
-                    }
+                    AsaReasonTable(reasons: s.reasons, top: s.level)
                     if r.asaClass != s.level {
                         Button("Use ASA " + PatientRules.roman(s.level)) { patient.update { $0.asaClass = s.level } }
                             .buttonStyle(CapsuleButtonStyle())
@@ -319,7 +346,7 @@ struct PatientEditorView: View {
                         .padding(.vertical, 6)
                     }
                     if let d = PatientFunctional.dasi(r) {
-                        Text("DASI " + PedsCalc.fmt(d.score) + " of 58.2 · about " + String(format: "%.1f", d.mets) + " METs").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg).padding(.top, 6)
+                        Text(PatientFunctional.dasiText(d)).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(d > PatientFunctional.dasiCutoff ? PS.fg : PS.accent).padding(.top, 6)
                         line(PatientFunctional.dasiNote)
                     }
                 }
@@ -328,9 +355,16 @@ struct PatientEditorView: View {
             }
             .tint(PS.fg2)
             .padding(.horizontal, 14).padding(.vertical, 10)
+            Hairline().padding(.leading, 14)
+            toggleRow("Frail", "By a validated tool, such as the Clinical Frailty Scale; assessing frailty is reasonable at 65 or older before elevated-risk surgery (2024 AHA/ACC, class 2a)", bind(\.frail))
         }
         PatientGroup(title: "Cardiac evaluation", note: PatientFunctional.cardiacNote) {
-            PatientChipRow(label: "Active cardiac conditions") { PatientChips(options: PatientFunctional.activeCardiac, selection: bind(\.activeCardiac)) }
+            PatientChipRow(label: "Acute cardiac conditions") { PatientChips(options: PatientFunctional.activeCardiac, selection: bind(\.activeCardiac)) }
+            let mods = PatientFunctional.riskModifiers(r)
+            if !mods.isEmpty {
+                line("Adds risk beyond the RCRI: " + mods.joined(separator: ", ") + ".")
+                    .padding(.horizontal, 14).padding(.bottom, 4)
+            }
             let step = PatientFunctional.cardiacStep(r)
             VStack(alignment: .leading, spacing: 4) {
                 Text(step.title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(step.alert ? PS.accent : PS.fg)
@@ -338,6 +372,7 @@ struct PatientEditorView: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 10)
         }
+        .id("cardiac")
         PatientGroup(title: "Risk scores and checks") {
             let prompts = PatientRules.prompts(r)
             ForEach(Array(prompts.enumerated()), id: \.element.id) { i, p in
@@ -398,8 +433,25 @@ struct PatientEditorView: View {
             PatientTextField(label: "Airway notes", prompt: "Previous intubation notes, plan", text: bind(\.airwayNotes), focus: $focused)
         }
         let predictors = PatientRules.airwayPredictors(r)
+        let mask = PatientAirway.maskRisk(r)
+        if !mask.isEmpty {
+            PatientGroup(title: "Mask ventilation", note: "Langeron O, et al. Anesthesiology 2000 (difficult); Kheterpal S, et al. Anesthesiology 2009 (impossible).") {
+                ForEach(Array(mask.enumerated()), id: \.offset) { i, m in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Image(systemName: m.alert ? "exclamationmark.triangle.fill" : "circle")
+                            .font(PS.sys(size: 12, weight: .semibold))
+                            .foregroundStyle(m.alert ? PS.accent : PS.fg3)
+                        Text(m.text).font(PS.sys(size: 13.5)).foregroundStyle(m.alert ? PS.fg : PS.fg2).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14).padding(.vertical, 9)
+                    if i < mask.count - 1 { Hairline().padding(.leading, 14) }
+                }
+            }
+            .id("mask")
+        }
         if !predictors.isEmpty {
-            line("Recorded predictors: " + predictors.joined(separator: "; ") + ".")
+            line("Recorded predictors: " + predictors.joined(separator: "; ") + ". The ASA's 2022 guideline finds no single sign consistently more predictive than another.")
             toolButton("Open the airway guide", route: "airway")
         }
         PatientGroup(title: "Examination") {
@@ -414,8 +466,24 @@ struct PatientEditorView: View {
             PatientChipRow(label: "Mask ventilation") {
                 PatientChoice(options: [(id: "easy", label: "Easy"), (id: "difficult", label: "Difficult"), (id: "none", label: "Not used")], selection: bind(\.mask))
             }
+            if r.mask != nil && r.mask != "none" {
+                PatientChipRow(label: "Grade (Han)") {
+                    PatientChoice(options: PatientAirway.maskGrades.map { (id: $0.id, label: $0.label) },
+                                  selection: Binding(get: { patient.record.maskGrade.map { String($0) } }, set: { v in patient.update { $0.maskGrade = v.flatMap { Int($0) } } }))
+                }
+                if let g = r.maskGrade, let d = PatientAirway.maskGrades.first(where: { $0.id == String(g) }) {
+                    line("Grade " + d.label + ": " + d.detail.lowercased() + ".")
+                        .padding(.horizontal, 14).padding(.bottom, 6)
+                }
+            }
             if r.mask == "difficult" {
-                PatientTextField(label: "What made it difficult", prompt: "Two hands, oral airway, grade", text: bind(\.maskNote), focus: $focused)
+                PatientTextField(label: "What made it difficult", prompt: "Two hands, oral airway, what worked", text: bind(\.maskNote), focus: $focused)
+            }
+            PatientChipRow(label: "Supraglottic airway") {
+                PatientChoice(options: [(id: "easy", label: "Easy"), (id: "difficult", label: "Difficult"), (id: "none", label: "Not used")], selection: bind(\.sga))
+            }
+            if r.sga == "difficult" {
+                PatientTextField(label: "What made it difficult", prompt: "Device and size, leak, attempts, what worked", text: bind(\.sgaNote), focus: $focused)
             }
             PatientChipRow(label: "Intubation") {
                 PatientChoice(options: [(id: "easy", label: "Easy"), (id: "difficult", label: "Difficult"), (id: "none", label: "Not intubated")], selection: bind(\.intubation))
@@ -434,6 +502,14 @@ struct PatientEditorView: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
             PatientTextField(label: "Tube", prompt: "e.g. 7.5 ETT, 23 cm at the lip", text: bind(\.tube), focus: $focused)
+        }
+        if PatientSummary.difficultAirway(r) {
+            PatientGroup(title: "Difficult-airway follow-up", note: "ASA 2022: tell the patient or a responsible person, document the nature of the difficulty and what worked, and advise registering with an alert service.") {
+                ForEach(Array(PatientSummary.followUp.enumerated()), id: \.element.id) { i, f in
+                    toggleRow(f.label, nil, Binding(get: { patient.record.airwayFollowUp.contains(f.id) }, set: { on in patient.update { if on { $0.airwayFollowUp.insert(f.id) } else { $0.airwayFollowUp.remove(f.id) } } }))
+                    if i < PatientSummary.followUp.count - 1 { Hairline().padding(.leading, 14) }
+                }
+            }
         }
         PatientGroup(title: "Lines") {
             ForEach(r.lines) { l in
@@ -600,6 +676,9 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Pain plan") {
             PatientTextField(label: "Analgesia", prompt: "Blocks, catheters, multimodal, PCA", text: bind(\.painPlan), focus: $focused)
+        }
+        PatientGroup(title: "Monitoring") {
+            PatientTextField(label: "When to call", prompt: "e.g. SBP under 90, SpO₂ under 92%, urine under 0.5 mL/kg/h", text: bind(\.callIf), focus: $focused)
         }
         PatientGroup(title: "To do and concerns") {
             PatientTextField(label: "For the next team", prompt: "Labs to check, antibiotic redosing, CPAP, glucose, drains", text: bind(\.todos), focus: $focused)

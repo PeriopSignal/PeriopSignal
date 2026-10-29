@@ -82,7 +82,7 @@ struct ChamberQuantView: View {
     private var patientValues: (sex: EchoSex?, height: String, weight: String, age: String) {
         let r = myPatient.record
         return (r.sex.map { $0 == .female ? EchoSex.female : EchoSex.male },
-                r.heightCm.map { PedsCalc.fmt($0) } ?? "", r.weightKg.map { PedsCalc.fmt($0) } ?? "",
+                r.heightCm.map { NumText.exact($0) } ?? "", r.weightKg.map { NumText.exact($0) } ?? "",
                 r.ageYears.map { String(Int($0)) } ?? "")
     }
 

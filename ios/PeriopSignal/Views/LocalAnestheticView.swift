@@ -57,7 +57,7 @@ struct LocalAnestheticView: View {
             // Arriving from the pediatric calculator: take that child's weight and age once.
             let passed = handoff.take()
             if weightText.isEmpty, let w = passed.weightKg {
-                weightText = PedsCalc.fmt(w)
+                weightText = NumText.exact(w)
                 pediatric = true
                 if let y = passed.ageYears { years = y }
             }

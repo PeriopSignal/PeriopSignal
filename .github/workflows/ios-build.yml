@@ -195,6 +195,9 @@ jobs:
           shot 64-patient-rcri 12 -ps.tab patient -ps.patient demo -ps.patient.open score:ariscat
           shot 65-patient-local 12 -ps.tab patient -ps.patient demo -ps.patient.open local
           shot 66-more-saved 12 -ps.tab more
+          shot 67-patient-cardiac 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.patient.scroll cardiac
+          shot 68-patient-mask 12 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.patient.scroll mask -ps.forceAppearance light
+          shot 69-patient-meds 12 -ps.tab patient -ps.patient demo -ps.patient.open medications
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

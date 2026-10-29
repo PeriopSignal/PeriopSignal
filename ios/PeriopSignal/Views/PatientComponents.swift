@@ -36,13 +36,14 @@ struct PatientNumberField: View {
             Text(unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 52, alignment: .leading)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
-        .onAppear { text = value.map { PedsCalc.fmt($0) } ?? "" }
+        // NumText.exact, not a rounding format: the text parses back to the same value, so showing it never edits it.
+        .onAppear { text = value.map { NumText.exact($0) } ?? "" }
         .onChange(of: text) { _, t in
             let v = Self.parse(t)
             if v != value { value = v }
         }
         .onChange(of: value) { _, v in
-            if Self.parse(text) != v { text = v.map { PedsCalc.fmt($0) } ?? "" }
+            if Self.parse(text) != v { text = v.map { NumText.exact($0) } ?? "" }
         }
     }
 }
@@ -123,6 +124,50 @@ struct PatientChoice: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
+    }
+}
+
+/// The ASA suggestion as a small table: what is recorded, the ASA example it matches (when that says more), and the
+/// example's class; the rows that set the suggestion are filled.
+struct AsaReasonTable: View {
+    var reasons: [AsaReason]
+    var top: Int
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("RECORDED").frame(maxWidth: .infinity, alignment: .leading)
+                Text("ASA EXAMPLE").frame(alignment: .trailing)
+            }
+            .font(PS.mono(size: 9.5, weight: .semibold))
+            .kerning(0.8)
+            .foregroundStyle(PS.fg3)
+            .padding(.bottom, 4)
+            Hairline()
+            ForEach(Array(reasons.enumerated()), id: \.offset) { i, r in
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(r.finding)
+                            .font(PS.sys(size: 13.5, weight: r.level == top ? .semibold : .regular))
+                            .foregroundStyle(PS.fg)
+                        if let ex = r.example {
+                            Text(ex).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    Text(PatientRules.roman(r.level))
+                        .font(PS.mono(size: 12, weight: .bold))
+                        .foregroundStyle(r.level == top ? PS.accentFg : PS.fg2)
+                        .frame(minWidth: 36)
+                        .padding(.vertical, 3)
+                        .background(r.level == top ? PS.accent : PS.surface2, in: Capsule())
+                        .accessibilityLabel("ASA " + PatientRules.roman(r.level))
+                }
+                .padding(.vertical, 7)
+                if i < reasons.count - 1 { Hairline() }
             }
         }
     }
