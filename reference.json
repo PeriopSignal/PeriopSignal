@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-29",
-  "revision": 1793281706,
+  "revision": 1793282012,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -810,21 +810,21 @@
             ],
             [
               "Unfractionated heparin IV",
-              "Stop the infusion 4–6 h and confirm normal coagulation",
-              "Not recommended during a continuous infusion or cardiopulmonary bypass heparinization; if one must stay, dilute solutions and motor checks",
-              "Intraoperative heparin no sooner than 1 h after needle placement; stop 4–6 h and check coagulation before removal"
+              "Stop the infusion 4–6 h and confirm normal coagulation (aPTT)",
+              "May stay with postoperative heparinization: remove 4–6 h after the last dose once coagulation is normal, with minimal local-anesthetic concentrations and motor checks; not suggested with full anticoagulation for cardiac surgery",
+              "Intraoperative heparin no sooner than 1 h after needle placement; reheparinize no sooner than 1 h after catheter removal"
             ],
             [
               "LMWH, low dose (enoxaparin 40 mg daily or 30 mg twice daily; dalteparin 5,000 IU daily)",
-              "12 h",
+              "12 h; inside 12 h an anti-Xa at or below 0.1 IU/mL is acceptable (new in 2025)",
               "Once-daily regimen: may stay, remove 12 h after the last dose. Twice-daily regimen: remove before the first dose",
-              "First dose 12 h or more after placement (twice-daily regimen: the next day); next dose 4 h after removal. Anti-Xa monitoring not recommended"
+              "First dose 12 h or more after placement (twice-daily regimen: the next day); once-daily regimen: second dose no sooner than 24 h after the first; next dose 4 h after removal. Routine anti-Xa monitoring is not recommended"
             ],
             [
               "LMWH, high dose (enoxaparin 1 mg/kg twice daily or 1.5 mg/kg daily; dalteparin 120 IU/kg twice daily or 200 IU/kg daily; tinzaparin 175 IU/kg daily)",
-              "24 h; halve the last preoperative dose when CrCl is below 50 mL/min",
+              "24 h; halve the last preoperative dose when CrCl is below 50 mL/min; inside 24 h consider an anti-Xa level, particularly over 75 years or with CrCl at or below 30 mL/min",
               "Remove 4 h before the first postoperative dose",
-              "First dose 24 h after placement (48–72 h after high-bleeding-risk surgery) and 4 h after removal"
+              "First dose 24 h after placement (48–72 h after high-bleeding-risk surgery) and 4 h after removal, whichever is later"
             ]
           ]
         },
@@ -2690,11 +2690,13 @@
     "source": "Kopp SL, et al. Regional anesthesia in the patient receiving antithrombotic or thrombolytic therapy: ASRA Pain Medicine evidence-based guidelines (fifth edition). Reg Anesth Pain Med 2025. doi:10.1136/rapm-2024-105766",
     "sourceURL": "https://doi.org/10.1136/rapm-2024-105766",
     "general": [
-      "The same intervals apply to neuraxial blocks and to deep plexus or deep peripheral blocks; for other peripheral blocks weigh the site's compressibility and the consequences of bleeding.",
-      "Review every other hemostasis-altering drug the patient takes: effects add up. With a catheter on LMWH, no concomitant antiplatelet drugs, heparin or oral anticoagulants.",
-      "PT/INR and aPTT do not measure a DOAC; a drug-calibrated level below 30 ng/mL or an anti-Xa at or below 0.1 IU/mL permits a block before the full hold.",
-      "Routine reversal just to permit a block is discouraged. A bloody tap does not mandate cancelling surgery; with LMWH, delay the first postoperative dose to 24 hours.",
-      "Platelet count before a neuraxial technique after more than 4 days of heparin or LMWH."
+      "The same intervals apply to neuraxial blocks and to deep plexus or deep peripheral blocks (stellate, infraclavicular, lumbar plexus, lumbar sympathetic, paravertebral); for other peripheral blocks weigh the site's compressibility, vascularity and the consequences of bleeding.",
+      "Review the chart daily for every other hemostasis-altering drug: effects add up. With a catheter on LMWH, no concomitant antiplatelet drugs, standard heparin, dextran or oral anticoagulants.",
+      "PT/INR and aPTT do not measure a DOAC. For apixaban, rivaroxaban and edoxaban a drug-calibrated level below 30 ng/mL or an anti-Xa at or below 0.1 IU/mL permits a block before the full hold; for dabigatran only a level below 30 ng/mL (diluted thrombin time) does.",
+      "Reversal with idarucizumab, andexanet alfa, PCC or aPCC just to permit a block is advised against in routine patients. A bloody tap does not mandate cancelling surgery: discuss it with the surgeon; with LMWH, delay the first postoperative dose to 24 hours.",
+      "Platelet count before a neuraxial technique after more than 4 days of heparin or LMWH.",
+      "Parturients: the same recommendations apply; for a select high-risk parturient on VTE prophylaxis who needs an urgent intervention, general anesthesia may carry the greater risk and an exception may be appropriate after multidisciplinary discussion.",
+      "Dose each agent as the FDA label directs; the low and high tiers follow the label's indications, not the patient's reason for the drug."
     ],
     "groups": [
       {
@@ -2746,8 +2748,8 @@
                 "holdHours": 6,
                 "restartHours": 1,
                 "holdText": "Stop the infusion 4–6 h and confirm normal coagulation (aPTT)",
-                "catheter": "Not recommended during a continuous infusion or cardiopulmonary bypass heparinization; if one must stay, dilute solutions and motor checks",
-                "restartText": "Intraoperative heparin no sooner than 1 h after needle placement; before removal stop 4–6 h and check coagulation"
+                "catheter": "May stay with postoperative heparinization: remove 4–6 h after the last dose once coagulation is normal, using minimal local-anesthetic concentrations and motor checks. Not suggested with full anticoagulation for cardiac surgery",
+                "restartText": "Intraoperative heparin no sooner than 1 h after needle placement; reheparinize no sooner than 1 h after catheter removal"
               }
             ],
             "notes": [
@@ -2763,8 +2765,9 @@
                 "label": "Low dose: enoxaparin 40 mg daily or 30 mg twice daily; dalteparin 5,000 IU daily",
                 "holdHours": 12,
                 "restartHours": 12,
+                "level": "Inside 12 h, consider an anti-Xa level; at or below 0.1 IU/mL is acceptable before the block (new in 2025)",
                 "catheter": "Once-daily regimen: may stay, remove 12 h after the last dose. Twice-daily regimen: remove before the first dose",
-                "restartText": "First dose 12 h or more after placement (twice-daily regimen: the next day); next dose 4 h after catheter removal",
+                "restartText": "First dose 12 h or more after placement (twice-daily regimen: the next day); once-daily regimen: second dose no sooner than 24 h after the first; next dose 4 h after catheter removal",
                 "removalHours": 12,
                 "afterRemovalHours": 4
               },
@@ -2773,14 +2776,17 @@
                 "label": "High dose: enoxaparin 1 mg/kg twice daily or 1.5 mg/kg daily; dalteparin 120 IU/kg twice daily or 200 IU/kg daily; tinzaparin 175 IU/kg daily",
                 "holdHours": 24,
                 "restartHours": 24,
+                "level": "Inside 24 h, consider an anti-Xa level, particularly over 75 years or with CrCl at or below 30 mL/min; at or below 0.1 IU/mL is acceptable",
                 "catheter": "Remove 4 h before the first postoperative dose",
-                "restartText": "First dose 24 h after placement (48–72 h after high-bleeding-risk surgery) and 4 h after removal",
+                "restartText": "First dose 24 h after placement (48–72 h after high-bleeding-risk surgery) and 4 h after removal, whichever is later",
                 "renalNote": "Halve the last preoperative dose when CrCl is below 50 mL/min",
                 "afterRemovalHours": 4
               }
             ],
             "notes": [
-              "Anti-Xa monitoring is not recommended (not predictive of bleeding); platelet count after more than 4 days."
+              "Routine anti-Xa monitoring is not recommended (it does not predict bleeding), but a level inside the interval may be checked in the elderly, the morbidly obese or with severe renal insufficiency; at or below 0.1 IU/mL counts as no effect.",
+              "Platelet count after more than 4 days.",
+              "With a catheter in place, no antiplatelet drugs, standard heparin or dextran, whatever the LMWH regimen."
             ]
           }
         ]
@@ -2798,7 +2804,7 @@
                 "holdHours": 120,
                 "restartHours": 0,
                 "holdText": "Stop 5 days before and document a normal INR; if a first dose was given more than 24 h earlier, or a second dose, check the INR",
-                "catheter": "May stay on low-dose warfarin with a daily INR and sensory-motor checks; hold or reduce the dose if INR is above 3; remove when INR is below 1.5 (1.5–3: with caution)",
+                "catheter": "May stay on low-dose warfarin with a daily INR and sensory-motor checks; hold or reduce the dose if INR is above 3; remove when INR is below 1.5 (1.5–3: with caution). No recommendation exists for removal at therapeutic anticoagulation",
                 "restartText": "No dosing interval; neurologic checks for 48 h after removal",
                 "inrRule": true
               }
@@ -2813,20 +2819,23 @@
             "tiers": [
               {
                 "id": "high",
-                "label": "High dose: 5 mg twice daily (or the reduced 2.5 mg twice daily for stroke prevention)",
+                "label": "High dose: 5 mg twice daily (10 mg twice daily in the first 7 days of VTE treatment; 2.5 mg twice daily when dose-reduced for stroke prevention)",
                 "holdHours": 72,
                 "restartHours": 24,
                 "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
-                "catheter": "No dosing with a catheter in place"
+                "catheter": "No dosing with a catheter in place. If a dose is given inadvertently, withhold 72 h, or document a level below 30 ng/mL (anti-Xa at or below 0.1 IU/mL), before removing it"
               },
               {
                 "id": "low",
                 "label": "Low dose: 2.5 mg twice daily for VTE prophylaxis",
                 "holdHours": 36,
                 "restartHours": 6,
-                "level": "Level below 30 ng/mL permits an earlier block",
-                "catheter": "No dosing with a catheter in place"
+                "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place. If a dose is given inadvertently, withhold 36 h, or document a level below 30 ng/mL (anti-Xa at or below 0.1 IU/mL), before removing it"
               }
+            ],
+            "notes": [
+              "After a traumatic (bloody) puncture the label delays the next dose 48 h (manufacturer, not graded)."
             ]
           },
           {
@@ -2835,15 +2844,15 @@
             "tiers": [
               {
                 "id": "high",
-                "label": "High dose: 15–20 mg daily",
+                "label": "High dose: 15–20 mg daily (15 mg twice daily in the first 21 days of VTE treatment)",
                 "holdHours": 72,
                 "restartHours": 24,
                 "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
-                "catheter": "No dosing with a catheter in place"
+                "catheter": "No dosing with a catheter in place. If a dose is given inadvertently, withhold 72 h, or document a level below 30 ng/mL (anti-Xa at or below 0.1 IU/mL), before removing it"
               },
               {
                 "id": "low",
-                "label": "Low dose: 10 mg daily",
+                "label": "Low dose: 10 mg daily, or 2.5 mg twice daily with aspirin for CAD or PAD",
                 "holdHours": 24,
                 "restartHours": 6,
                 "renal": [
@@ -2856,9 +2865,12 @@
                     "hours": 30
                   }
                 ],
-                "level": "Level below 30 ng/mL permits an earlier block",
-                "catheter": "No dosing with a catheter in place"
+                "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
+                "catheter": "No dosing with a catheter in place. If a dose is given inadvertently, withhold 24 h (30 h if CrCl is below 30 mL/min), or document a level below 30 ng/mL (anti-Xa at or below 0.1 IU/mL), before removing it"
               }
+            ],
+            "notes": [
+              "After a traumatic (bloody) puncture the label delays the next dose 24 h (manufacturer, not graded)."
             ]
           },
           {
@@ -2871,11 +2883,12 @@
                 "holdHours": 72,
                 "restartHours": 24,
                 "level": "Level below 30 ng/mL or anti-Xa ≤ 0.1 IU/mL permits an earlier block",
-                "catheter": "No dosing with a catheter in place"
+                "catheter": "No dosing with a catheter in place. If a dose is given inadvertently, withhold 72 h, or document a level below 30 ng/mL (anti-Xa at or below 0.1 IU/mL), before removing it"
               }
             ],
             "notes": [
-              "No recommendation for low-dose edoxaban (no FDA indication)."
+              "No recommendation for low-dose edoxaban (no FDA indication).",
+              "No manufacturer delay is stated after a traumatic puncture."
             ]
           },
           {
@@ -2884,7 +2897,7 @@
             "tiers": [
               {
                 "id": "high",
-                "label": "Treatment or stroke-prevention dosing",
+                "label": "Treatment or stroke-prevention dosing: 150 mg twice daily (75 mg twice daily at CrCl 15–30 mL/min)",
                 "holdHours": 72,
                 "restartHours": 24,
                 "renal": [
@@ -2903,11 +2916,11 @@
                   }
                 ],
                 "level": "Level below 30 ng/mL permits an earlier block",
-                "catheter": "No dosing with a catheter in place"
+                "catheter": "No dosing with a catheter in place. If a dose is given inadvertently, withhold 72 h (120 h if CrCl 30–49 mL/min), or document a dabigatran level below 30 ng/mL, before removing it"
               },
               {
                 "id": "low",
-                "label": "VTE-prophylaxis dosing",
+                "label": "VTE-prophylaxis dosing: 110 mg on day 1, then 220 mg daily",
                 "holdHours": 48,
                 "restartHours": 6,
                 "renal": [
@@ -2922,8 +2935,11 @@
                   }
                 ],
                 "level": "Level below 30 ng/mL permits an earlier block",
-                "catheter": "No dosing with a catheter in place"
+                "catheter": "No dosing with a catheter in place. If a dose is given inadvertently, withhold 48 h, or document a dabigatran level below 30 ng/mL, before removing it"
               }
+            ],
+            "notes": [
+              "Dabigatran is measured by the diluted thrombin time (a normal thrombin time excludes it); anti-Xa does not apply. No manufacturer delay is stated after a traumatic puncture."
             ]
           }
         ]
@@ -2970,12 +2986,25 @@
                     "label": "Normal renal function",
                     "hours": 70,
                     "elderlyHours": 105
+                  },
+                  {
+                    "label": "CrCl 30–50 mL/min (no separate interval given: consider a calibrated anti-Xa)",
+                    "hours": 70,
+                    "elderlyHours": 105
+                  },
+                  {
+                    "label": "CrCl below 30 mL/min",
+                    "hours": null,
+                    "text": "No neuraxial or deep block: fondaparinux is contraindicated below 30 mL/min (half-life 72 h)"
                   }
                 ],
                 "level": "A fondaparinux-calibrated anti-Xa ≤ 0.1 IU/mL permits an earlier block",
                 "catheter": "Remove before dosing",
                 "restartText": "First postoperative dose 6 h after catheter removal"
               }
+            ],
+            "notes": [
+              "Contraindicated below 50 kg body weight and at CrCl below 30 mL/min; protamine does not reverse it."
             ]
           },
           {
@@ -2995,7 +3024,7 @@
           },
           {
             "id": "thrombolytic",
-            "name": "Thrombolytics (alteplase, tenecteplase, streptokinase)",
+            "name": "Thrombolytics (alteplase, tenecteplase, streptokinase, urokinase)",
             "tiers": [
               {
                 "id": "any",
@@ -3003,7 +3032,7 @@
                 "holdHours": 48,
                 "restartHours": null,
                 "holdText": "At least 48 h, with normal clotting studies including fibrinogen; ask about any dural puncture, spinal or epidural in the previous 10 days",
-                "catheter": "If given unexpectedly with a catheter in place: neurologic checks about every 2 h for at least 48 h; removal timing guided by fibrinogen",
+                "catheter": "If given unexpectedly with a catheter in place: limit the infusion to solutions that minimize sensory and motor block; neurologic checks about every 2 h for at least 48 h after the last dose and after removal; removal timing guided by fibrinogen",
                 "restartText": "Labeling: no thrombolytics within 10 days of a non-compressible vessel puncture"
               }
             ]
@@ -3041,6 +3070,9 @@
                 "catheter": "May stay 1–2 days provided no loading dose is given",
                 "restartText": "Resume immediately; 6 h after removal if a loading dose is given"
               }
+            ],
+            "notes": [
+              "Patients at high bleeding risk need the longer end of the range: about 90% recover platelet function by day 6–7."
             ]
           },
           {
@@ -3056,6 +3088,9 @@
                 "catheter": "Do not maintain",
                 "restartText": "Resume immediately; 6 h after removal if a loading dose is given"
               }
+            ],
+            "notes": [
+              "Patients at high bleeding risk need the longer end of the range: about 90% recover platelet function by day 9."
             ]
           },
           {
@@ -3110,6 +3145,9 @@
                 "catheter": "If started with a catheter in place: dilute solutions and careful neurologic monitoring",
                 "restartText": "Labeling contraindicates use within 4 weeks of surgery"
               }
+            ],
+            "notes": [
+              "Caution with dual therapy: a residual NSAID or aspirin effect adds to the GP IIb/IIIa effect."
             ]
           },
           {
@@ -3140,6 +3178,9 @@
                 "catheter": "No restriction alone",
                 "restartText": "No restriction"
               }
+            ],
+            "notes": [
+              "Time to normal hemostasis after stopping: garlic 7 days, ginkgo 36 h, ginseng 24 h; stopping them is not deemed necessary, but combination with anticoagulants or heparin may add risk."
             ]
           }
         ]
