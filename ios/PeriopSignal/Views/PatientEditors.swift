@@ -8,7 +8,7 @@ enum PatientEditor: Hashable {
         switch self {
         case .details: return "Patient"
         case .history: return "History"
-        case .system(let id): return PatientCatalog.systems.first { $0.id == id }?.name ?? "System"
+        case .system(let id): return PatientCatalog.allSystems.first { $0.id == id }?.name ?? "System"
         case .medications: return "Medications and Allergies"
         case .assessment: return "Assessment"
         case .airway: return "Airway and Exam"
@@ -21,7 +21,7 @@ enum PatientEditor: Hashable {
         switch self {
         case .details: return "person"
         case .history: return "list.bullet.clipboard"
-        case .system(let id): return PatientCatalog.systems.first { $0.id == id }?.icon ?? "circle"
+        case .system(let id): return PatientCatalog.allSystems.first { $0.id == id }?.icon ?? "circle"
         case .medications: return "pills"
         case .assessment: return "gauge.with.dots.needle.33percent"
         case .airway: return "mouth"
@@ -197,10 +197,11 @@ struct PatientEditorView: View {
             toggleRow("No significant medical history", "Lets the tab suggest ASA I when nothing else is recorded", bind(\.noHistory))
         }
         PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything rare goes under Other conditions.") {
-            ForEach(Array(PatientCatalog.systems.enumerated()), id: \.element.id) { i, s in
+            let systems = PatientCatalog.systems(for: r)
+            ForEach(Array(systems.enumerated()), id: \.element.id) { i, s in
                 let picked = s.problems.filter { r.problems.contains($0.id) }.map(\.label)
                 linkRow(s.name, picked.isEmpty ? "None recorded" : picked.joined(separator: "; "), icon: s.icon, value: .system(s.id))
-                if i < PatientCatalog.systems.count - 1 { Hairline().padding(.leading, 50) }
+                if i < systems.count - 1 { Hairline().padding(.leading, 50) }
             }
         }
         PatientGroup(title: "Other conditions") {
@@ -259,10 +260,10 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private func system(_ id: String) -> some View {
-        if let s = PatientCatalog.systems.first(where: { $0.id == id }) {
-            PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class feed the ASA suggestion; the RCRI, STOP-Bang and other scores open with them ticked.") {
+        if let s = PatientCatalog.allSystems.first(where: { $0.id == id }) {
+            PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-Bang and other scores open with them ticked.") {
                 PatientChipRow(label: nil) {
-                    PatientChips(options: s.problems.map { PatientFlag($0.id, $0.label, $0.asa.map { "ASA " + PatientRules.roman($0) + " example" }) }, selection: bind(\.problems))
+                    PatientChips(options: s.problems.map { p in PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" }) }, selection: bind(\.problems))
                 }
                 PatientTextField(label: "Details", prompt: "Severity, dates, devices, the last echo or stress test", text: note(s.id), focus: $focused)
             }
@@ -305,7 +306,7 @@ struct PatientEditorView: View {
     // MARK: Assessment
 
     @ViewBuilder private var assessment: some View {
-        PatientGroup(title: "ASA physical status", note: "The suggestion is the highest class among the ASA's published adult examples that match what is recorded; the class is a clinical judgment, so it counts only once you choose it.") {
+        PatientGroup(title: "ASA physical status", note: "The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it.") {
             if let s = PatientRules.asaSuggestion(r) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Suggested: " + s.label).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
@@ -319,7 +320,7 @@ struct PatientEditorView: View {
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 Hairline().padding(.leading, 14)
             } else if r.isChild {
-                line("The suggestion uses the ASA's adult examples, so for a child choose the class directly.")
+                line("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
                     .padding(.horizontal, 14).padding(.vertical, 10)
             }
             PatientChipRow(label: "Class") {

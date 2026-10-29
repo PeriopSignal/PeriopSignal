@@ -33,11 +33,47 @@ final class PatientTests: XCTestCase {
         var obese = PatientRecord(); obese.heightCm = 170; obese.weightKg = 120
         XCTAssertEqual(PatientRules.asaSuggestion(obese)?.level, 3, "BMI 41.5 is the ASA III example")
         var child = PatientRecord(); child.ageYears = 6; child.problems = ["copd"]
-        XCTAssertNil(PatientRules.asaSuggestion(child), "the adult examples only")
+        XCTAssertNil(PatientRules.asaSuggestion(child), "COPD is not among the pediatric examples")
+        XCTAssertEqual(PatientRules.asaSuggestion(obese)?.reasons.first?.example, "morbid obesity (BMI ≥40)")
+        var healthyAdult = PatientRecord(); healthyAdult.ageYears = 40; healthyAdult.noHistory = true
+        XCTAssertEqual(PatientRules.asaSuggestion(healthyAdult)?.reasons.first?.example, "healthy, non-smoking, no or minimal alcohol use")
         var e = demo; e.urgency = .emergency; e.asaClass = 3
         XCTAssertEqual(PatientRules.asaText(e), "ASA IIIE")
         e.asaE = false
         XCTAssertEqual(PatientRules.asaText(e), "ASA III", "the clinician's E wins")
+    }
+
+    func testPediatricAsaSuggestion() {
+        var kid = PatientRecord(); kid.ageYears = 8
+        kid.problems = ["asthma"]
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.level, 2, "asthma without exacerbation")
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.reasons.first?.example, "asthma without exacerbation")
+        kid.problems = ["asthma", "p-asthma-exacerbation"]
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.level, 3)
+        kid.problems = ["insulin"]
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.level, 3, "insulin-dependent diabetes")
+        kid.problems = ["p-ecmo", "sepsis"]
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.level, 5)
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.topFindings, ["On ECMO"])
+        kid.problems = []; kid.noHistory = true
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.level, 1)
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.reasons.first?.example, "healthy (no acute or chronic disease), normal BMI percentile for age")
+        kid.smoking = "current"; kid.heightCm = 130; kid.weightKg = 80
+        XCTAssertEqual(PatientRules.asaSuggestion(kid)?.level, 1, "the adult BMI and smoking examples do not apply")
+        var airway = PatientRecord(); airway.ageYears = 4; airway.anesthesiaHistory = ["difficult-airway"]
+        XCTAssertEqual(PatientRules.asaSuggestion(airway)?.level, 3, "difficult airway is a pediatric class III example")
+        var infant = PatientRecord(); infant.ageYears = 0.08
+        XCTAssertEqual(PatientRules.asaSuggestion(infant)?.level, 3, "under 6 weeks")
+        infant.ageYears = 0.5
+        XCTAssertNil(PatientRules.asaSuggestion(infant))
+        var teen = PatientRecord(); teen.ageYears = 17; teen.sex = .female; teen.problems = ["preeclampsia-severe"]
+        XCTAssertEqual(PatientRules.asaSuggestion(teen)?.level, 3, "the obstetric examples apply at any age")
+        XCTAssertEqual(PatientCatalog.systems(for: kid).first?.id, "peds")
+        XCTAssertFalse(PatientCatalog.systems(for: demo).contains { $0.id == "peds" }, "no pediatric list for an adult")
+        for p in PatientCatalog.pediatric.problems {
+            XCTAssertNotNil(p.peds, p.id); XCTAssertNotNil(p.pedsExample, p.id)
+        }
+        XCTAssertEqual(Set(PatientCatalog.allProblems.map(\.id)).count, PatientCatalog.allProblems.count, "problem ids are unique")
     }
 
     func testScorePrefills() {

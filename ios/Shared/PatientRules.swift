@@ -42,10 +42,21 @@ enum PatientRules {
 
     // MARK: ASA
 
-    /// The highest class among the ASA's adult examples that the record matches, with E for an emergency. None for
-    /// a child (the pediatric examples differ) or when nothing is recorded and "no significant history" is not set.
+    /// The class a problem's ASA example gives for this patient: the pediatric example under 18 (or the obstetric one,
+    /// which applies at any age), the adult or obstetric example otherwise.
+    static func asaLevel(_ p: PatientProblem, _ r: PatientRecord) -> Int? {
+        guard r.isChild else { return p.asa }
+        return p.peds ?? (PatientCatalog.system(of: p.id)?.id == "ob" ? p.asa : nil)
+    }
+
+    /// Under 6 weeks old: the ASA's pediatric examples put full-term infants under 6 weeks (and premature infants
+    /// under 60 weeks postconceptual age) in class III.
+    static let sixWeeksInYears = 6.0 * 7 / 365.25
+
+    /// The highest class among the ASA's examples that the record matches (adult and obstetric; pediatric under 18),
+    /// with E for an emergency. None when nothing is recorded and "no significant history" is not set.
     static func asaSuggestion(_ r: PatientRecord) -> AsaSuggestion? {
-        guard !r.isChild else { return nil }
+        let child = r.isChild
         var found: [AsaReason] = []
         /// The example is shown only when it adds to the finding's own words ("COPD" is not repeated).
         func example(_ finding: String, _ ex: String?) -> String? {
@@ -53,16 +64,29 @@ enum PatientRules {
             return ex
         }
         for p in PatientCatalog.allProblems where r.problems.contains(p.id) {
-            if let a = p.asa { found.append(AsaReason(finding: p.label, level: a, example: example(p.label, p.asaExample))) }
+            guard let a = asaLevel(p, r) else { continue }
+            let ex = child && p.peds != nil ? p.pedsExample : p.asaExample
+            found.append(AsaReason(finding: p.label, level: a, example: example(p.label, ex)))
         }
-        if let b = r.bmi {
-            let bmi = "BMI " + String(format: "%.1f", b)
-            if b >= 40 { found.append(AsaReason(finding: bmi, level: 3, example: "morbid obesity (BMI ≥40)")) }
-            else if b > 30 { found.append(AsaReason(finding: bmi, level: 2, example: "obesity (30 < BMI < 40)")) }
+        if child {
+            if let a = r.ageYears, a < sixWeeksInYears, !r.problems.contains("p-infant6wk"), !r.problems.contains("p-premature60") {
+                found.append(AsaReason(finding: "Age under 6 weeks", level: 3, example: "full-term infants <6 weeks of age"))
+            }
+            if r.anesthesiaHistory.contains("difficult-airway") {
+                found.append(AsaReason(finding: "Known difficult airway", level: 3, example: "difficult airway"))
+            }
+        } else {
+            if let b = r.bmi {
+                let bmi = "BMI " + String(format: "%.1f", b)
+                if b >= 40 { found.append(AsaReason(finding: bmi, level: 3, example: "morbid obesity (BMI ≥40)")) }
+                else if b > 30 { found.append(AsaReason(finding: bmi, level: 2, example: "obesity (30 < BMI < 40)")) }
+            }
+            if r.smoking == "current" { found.append(AsaReason(finding: "Current smoker", level: 2, example: nil)) }
         }
-        if r.smoking == "current" { found.append(AsaReason(finding: "Current smoker", level: 2, example: nil)) }
         guard let top = found.map(\.level).max() else {
-            return r.noHistory ? AsaSuggestion(level: 1, reasons: [AsaReason(finding: "No systemic disease recorded", level: 1, example: "a normal healthy patient")], emergency: r.emergency) : nil
+            guard r.noHistory else { return nil }
+            let healthy = child ? "healthy (no acute or chronic disease), normal BMI percentile for age" : "healthy, non-smoking, no or minimal alcohol use"
+            return AsaSuggestion(level: 1, reasons: [AsaReason(finding: "No systemic disease recorded", level: 1, example: healthy)], emergency: r.emergency)
         }
         // Highest class first; the order recorded within a class.
         let reasons = found.enumerated().sorted { $0.element.level != $1.element.level ? $0.element.level > $1.element.level : $0.offset < $1.offset }.map(\.element)

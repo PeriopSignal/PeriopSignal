@@ -2,8 +2,9 @@ import Foundation
 
 // MARK: - The choices My Patient offers: problems by system, medication and anesthesia-history flags, airway signs.
 //
-// `asa` marks a problem the ASA's own examples place in a class (ASA Physical Status Classification System,
-// last amended December 13, 2020); the tab suggests the highest class among them and the clinician confirms.
+// `asa` marks a problem the ASA's own adult or obstetric examples place in a class, and `peds` one its pediatric
+// examples do (ASA Physical Status Classification System, last amended December 13, 2020, which added the pediatric
+// and obstetric examples); the tab suggests the highest class among them and the clinician confirms.
 // `rcri`, `stopBang`, `ariscat` mark the score items a problem answers, so a calculator opens pre-filled.
 
 struct PatientProblem: Hashable, Identifiable {
@@ -13,13 +14,17 @@ struct PatientProblem: Hashable, Identifiable {
     var asa: Int?
     /// The ASA example it matches, quoted in the suggestion's reasons.
     var asaExample: String?
+    /// The class the ASA's pediatric examples give it, for a patient under 18.
+    var peds: Int?
+    var pedsExample: String?
     /// The RCRI item it answers ("ihd", "hf", "cva", "insulin").
     var rcri: String?
     /// The STOP-Bang item it answers ("snoring", "tired", "observed", "pressure").
     var stopBang: String?
 
-    init(_ id: String, _ label: String, asa: Int? = nil, asaExample: String? = nil, rcri: String? = nil, stopBang: String? = nil) {
-        self.id = id; self.label = label; self.asa = asa; self.asaExample = asaExample; self.rcri = rcri; self.stopBang = stopBang
+    init(_ id: String, _ label: String, asa: Int? = nil, asaExample: String? = nil, peds: Int? = nil, pedsExample: String? = nil, rcri: String? = nil, stopBang: String? = nil) {
+        self.id = id; self.label = label; self.asa = asa; self.asaExample = asaExample; self.peds = peds; self.pedsExample = pedsExample
+        self.rcri = rcri; self.stopBang = stopBang
     }
 }
 
@@ -56,8 +61,8 @@ enum PatientCatalog {
             PatientProblem("cad-recent", "MI, ACS or stent within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
             PatientProblem("ischemia", "Ongoing cardiac ischemia", asa: 4, asaExample: "ongoing cardiac ischemia", rcri: "ihd"),
             PatientProblem("cabg", "Prior CABG", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
-            PatientProblem("hf", "Heart failure", rcri: "hf"),
-            PatientProblem("hf-decomp", "Decompensated heart failure", rcri: "hf"),
+            PatientProblem("hf", "Heart failure", peds: 4, pedsExample: "congestive heart failure", rcri: "hf"),
+            PatientProblem("hf-decomp", "Decompensated heart failure", peds: 5, pedsExample: "decompensated congestive heart failure", rcri: "hf"),
             PatientProblem("ef-moderate", "Ejection fraction moderately reduced", asa: 3, asaExample: "moderate reduction of ejection fraction"),
             PatientProblem("ef-severe", "Ejection fraction severely reduced", asa: 4, asaExample: "severe reduction of ejection fraction"),
             PatientProblem("valve-severe", "Severe valve disease", asa: 4, asaExample: "severe valve dysfunction"),
@@ -67,7 +72,7 @@ enum PatientCatalog {
             PatientProblem("af", "Atrial fibrillation or flutter"),
             PatientProblem("arrhythmia", "Other significant arrhythmia"),
             PatientProblem("pacemaker", "Pacemaker", asa: 3, asaExample: "implanted pacemaker"),
-            PatientProblem("icd", "Implanted defibrillator (ICD)"),
+            PatientProblem("icd", "Implanted defibrillator (ICD)", peds: 4, pedsExample: "automatic implantable cardioverter-defibrillator"),
             PatientProblem("pulm-htn", "Pulmonary hypertension"),
             PatientProblem("pulm-htn-severe", "Severe pulmonary hypertension"),
             PatientProblem("pvd", "Peripheral vascular disease"),
@@ -75,9 +80,9 @@ enum PatientCatalog {
         ]),
         PatientSystem(id: "resp", name: "Respiratory", icon: "lungs", problems: [
             PatientProblem("lung-mild", "Mild lung disease", asa: 2, asaExample: "mild lung disease"),
-            PatientProblem("asthma", "Asthma"),
+            PatientProblem("asthma", "Asthma", peds: 2, pedsExample: "asthma without exacerbation"),
             PatientProblem("copd", "COPD", asa: 3, asaExample: "COPD"),
-            PatientProblem("osa", "Obstructive sleep apnea"),
+            PatientProblem("osa", "Obstructive sleep apnea", peds: 2, pedsExample: "mild/moderate OSA"),
             PatientProblem("cpap", "Uses CPAP or BiPAP"),
             PatientProblem("snoring", "Loud snoring", stopBang: "snoring"),
             PatientProblem("tired", "Daytime tiredness or sleepiness", stopBang: "tired"),
@@ -89,9 +94,9 @@ enum PatientCatalog {
         PatientSystem(id: "neuro", name: "Neurologic", icon: "brain.head.profile", problems: [
             PatientProblem("cva", "Stroke or TIA, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva"),
             PatientProblem("cva-recent", "Stroke or TIA within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "cva"),
-            PatientProblem("ich-mass", "Intracranial bleed with mass effect", asa: 5, asaExample: "intracranial bleed with mass effect"),
+            PatientProblem("ich-mass", "Intracranial bleed with mass effect", asa: 5, asaExample: "intracranial bleed with mass effect", peds: 5, pedsExample: "intracranial hemorrhage with mass effect"),
             PatientProblem("raised-icp", "Intracranial mass or raised ICP"),
-            PatientProblem("seizure", "Seizure disorder"),
+            PatientProblem("seizure", "Seizure disorder", peds: 2, pedsExample: "well-controlled epilepsy"),
             PatientProblem("dementia", "Dementia or cognitive impairment"),
             PatientProblem("parkinson", "Parkinson disease"),
             PatientProblem("neuromuscular", "Neuromuscular disease"),
@@ -99,9 +104,9 @@ enum PatientCatalog {
             PatientProblem("chronic-pain", "Chronic pain or opioid tolerance"),
         ]),
         PatientSystem(id: "renal", name: "Renal", icon: "drop", problems: [
-            PatientProblem("ckd", "Chronic kidney disease"),
-            PatientProblem("esrd-dialysis", "ESRD on regularly scheduled dialysis", asa: 3, asaExample: "ESRD undergoing regularly scheduled dialysis"),
-            PatientProblem("aki", "Acute kidney injury, or ESRD not on scheduled dialysis", asa: 4, asaExample: "ARD or ESRD not undergoing regularly scheduled dialysis"),
+            PatientProblem("ckd", "Chronic kidney disease", peds: 3, pedsExample: "renal failure"),
+            PatientProblem("esrd-dialysis", "ESRD on regularly scheduled dialysis", asa: 3, asaExample: "ESRD undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
+            PatientProblem("aki", "Acute kidney injury, or ESRD not on scheduled dialysis", asa: 4, asaExample: "ARD or ESRD not undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
         ]),
         PatientSystem(id: "gi", name: "GI and liver", icon: "cross.case", problems: [
             PatientProblem("gerd", "Reflux or hiatal hernia"),
@@ -111,9 +116,9 @@ enum PatientCatalog {
             PatientProblem("cirrhosis", "Cirrhosis"),
         ]),
         PatientSystem(id: "endo", name: "Endocrine", icon: "flask", problems: [
-            PatientProblem("dm", "Diabetes, well controlled", asa: 2, asaExample: "well-controlled DM/HTN"),
+            PatientProblem("dm", "Diabetes, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", peds: 2, pedsExample: "non-insulin-dependent diabetes mellitus"),
             PatientProblem("dm-poor", "Diabetes, poorly controlled", asa: 3, asaExample: "poorly controlled DM or HTN"),
-            PatientProblem("insulin", "Diabetes treated with insulin", rcri: "insulin"),
+            PatientProblem("insulin", "Diabetes treated with insulin", peds: 3, pedsExample: "insulin-dependent diabetes mellitus", rcri: "insulin"),
             PatientProblem("thyroid", "Thyroid disease"),
             PatientProblem("adrenal", "Adrenal insufficiency or chronic steroids"),
         ]),
@@ -122,13 +127,13 @@ enum PatientCatalog {
             PatientProblem("bleeding", "Bleeding disorder or coagulopathy"),
             PatientProblem("vte", "DVT or PE"),
             PatientProblem("sickle", "Sickle cell disease"),
-            PatientProblem("dic", "DIC", asa: 4, asaExample: "DIC"),
+            PatientProblem("dic", "DIC", asa: 4, asaExample: "DIC", peds: 4, pedsExample: "disseminated intravascular coagulation"),
             PatientProblem("declines-blood", "Declines blood products"),
         ]),
         PatientSystem(id: "acute", name: "Acute illness", icon: "waveform.path.ecg", problems: [
-            PatientProblem("sepsis", "Sepsis", asa: 4, asaExample: "sepsis"),
-            PatientProblem("shock", "Shock", asa: 4, asaExample: "shock"),
-            PatientProblem("massive-trauma", "Massive trauma", asa: 5, asaExample: "massive trauma"),
+            PatientProblem("sepsis", "Sepsis", asa: 4, asaExample: "sepsis", peds: 4, pedsExample: "sepsis"),
+            PatientProblem("shock", "Shock", asa: 4, asaExample: "shock", peds: 4, pedsExample: "shock"),
+            PatientProblem("massive-trauma", "Massive trauma", asa: 5, asaExample: "massive trauma", peds: 5, pedsExample: "massive trauma"),
             PatientProblem("ruptured-aneurysm", "Ruptured abdominal or thoracic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
         ]),
         PatientSystem(id: "ob", name: "Obstetric", icon: "figure.2.and.child.holdinghands", problems: [
@@ -157,9 +162,55 @@ enum PatientCatalog {
         ]),
     ]
 
-    static let allProblems: [PatientProblem] = systems.flatMap(\.problems)
+    /// Problems the ASA's pediatric examples name that the adult lists do not, in the order of the ASA's table
+    /// (class II to V). Shown first for a patient under 18, and not at all for an adult.
+    static let pediatric = PatientSystem(id: "peds", name: "Pediatric", icon: "figure.and.child.holdinghands", problems: [
+        PatientProblem("p-chd-asymptomatic", "Congenital heart disease, asymptomatic", peds: 2, pedsExample: "asymptomatic congenital cardiac disease"),
+        PatientProblem("p-dysrhythmia", "Dysrhythmia, well controlled", peds: 2, pedsExample: "well-controlled dysrhythmias"),
+        PatientProblem("p-bmi", "BMI percentile abnormal for age", peds: 2, pedsExample: "abnormal BMI percentile for age"),
+        PatientProblem("p-onc-remission", "Cancer in remission", peds: 2, pedsExample: "oncologic state in remission"),
+        PatientProblem("p-autism-mild", "Autism with mild limitations", peds: 2, pedsExample: "autism with mild limitations"),
+        PatientProblem("p-infant6wk", "Full-term infant under 6 weeks", peds: 3, pedsExample: "full-term infants <6 weeks of age"),
+        PatientProblem("p-premature60", "Born premature, postconceptual age under 60 weeks", peds: 3, pedsExample: "premature infant PCA <60 weeks"),
+        PatientProblem("p-chd-uncorrected", "Congenital heart defect, uncorrected and stable", peds: 3, pedsExample: "uncorrected stable congenital cardiac abnormality"),
+        PatientProblem("p-asthma-exacerbation", "Asthma with exacerbation", peds: 3, pedsExample: "asthma with exacerbation"),
+        PatientProblem("p-epilepsy-poor", "Epilepsy, poorly controlled", peds: 3, pedsExample: "poorly controlled epilepsy"),
+        PatientProblem("p-morbid-obesity", "Morbid obesity", peds: 3, pedsExample: "morbid obesity"),
+        PatientProblem("p-malnutrition", "Malnutrition", peds: 3, pedsExample: "malnutrition"),
+        PatientProblem("p-osa-severe", "Severe obstructive sleep apnea", peds: 3, pedsExample: "severe OSA"),
+        PatientProblem("p-onc", "Cancer, current", peds: 3, pedsExample: "oncologic state"),
+        PatientProblem("p-muscular-dystrophy", "Muscular dystrophy", peds: 3, pedsExample: "muscular dystrophy"),
+        PatientProblem("p-cf", "Cystic fibrosis", peds: 3, pedsExample: "cystic fibrosis"),
+        PatientProblem("p-transplant", "History of organ transplant", peds: 3, pedsExample: "history of organ transplantation"),
+        PatientProblem("p-cns-malformation", "Brain or spinal cord malformation", peds: 3, pedsExample: "brain/spinal cord malformation"),
+        PatientProblem("p-hydrocephalus", "Symptomatic hydrocephalus", peds: 3, pedsExample: "symptomatic hydrocephalus"),
+        PatientProblem("p-autism-severe", "Autism with severe limitations", peds: 3, pedsExample: "autism with severe limitations"),
+        PatientProblem("p-metabolic", "Metabolic disease", peds: 3, pedsExample: "metabolic disease"),
+        PatientProblem("p-tpn", "Long-term parenteral nutrition", peds: 3, pedsExample: "long term parenteral nutrition"),
+        PatientProblem("p-chd-symptomatic", "Congenital heart defect, symptomatic", peds: 4, pedsExample: "symptomatic congenital cardiac abnormality"),
+        PatientProblem("p-prematurity-active", "Active sequelae of prematurity", peds: 4, pedsExample: "active sequelae of prematurity"),
+        PatientProblem("p-hie", "Acute hypoxic-ischemic encephalopathy", peds: 4, pedsExample: "acute hypoxic-ischemic encephalopathy"),
+        PatientProblem("p-ventilator", "Ventilator dependent", peds: 4, pedsExample: "ventilator dependence"),
+        PatientProblem("p-endocrinopathy", "Endocrinopathy", peds: 4, pedsExample: "endocrinopathy"),
+        PatientProblem("p-severe-trauma", "Severe trauma", peds: 4, pedsExample: "severe trauma"),
+        PatientProblem("p-resp-distress", "Severe respiratory distress", peds: 4, pedsExample: "severe respiratory distress"),
+        PatientProblem("p-onc-advanced", "Cancer, advanced", peds: 4, pedsExample: "advanced oncologic state"),
+        PatientProblem("p-ecmo", "On ECMO", peds: 5, pedsExample: "patient requiring ECMO"),
+        PatientProblem("p-resp-failure", "Respiratory failure or arrest", peds: 5, pedsExample: "respiratory failure or arrest"),
+        PatientProblem("p-malignant-htn", "Malignant hypertension", peds: 5, pedsExample: "malignant hypertension"),
+        PatientProblem("p-hepatic-enceph", "Hepatic encephalopathy", peds: 5, pedsExample: "hepatic encephalopathy"),
+        PatientProblem("p-ischemic-bowel", "Ischemic bowel or multiple organ dysfunction", peds: 5, pedsExample: "ischemic bowel or multiple organ/system dysfunction"),
+    ])
+
+    /// Every system, the pediatric one last, for summaries and look-ups.
+    static let allSystems: [PatientSystem] = systems + [pediatric]
+
+    /// The systems to offer: the pediatric list first for a child, left out for an adult.
+    static func systems(for r: PatientRecord) -> [PatientSystem] { r.isChild ? [pediatric] + systems : systems }
+
+    static let allProblems: [PatientProblem] = allSystems.flatMap(\.problems)
     static func problem(_ id: String) -> PatientProblem? { allProblems.first { $0.id == id } }
-    static func system(of problemId: String) -> PatientSystem? { systems.first { s in s.problems.contains { $0.id == problemId } } }
+    static func system(of problemId: String) -> PatientSystem? { allSystems.first { s in s.problems.contains { $0.id == problemId } } }
 
     static let medFlags: [PatientFlag] = [
         PatientFlag("anticoagulant", "Anticoagulant", "Warfarin, a DOAC or heparin"),
