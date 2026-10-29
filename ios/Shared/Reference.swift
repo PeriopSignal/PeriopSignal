@@ -29,6 +29,7 @@ struct ReferenceBundle: Codable {
     var diastolic: DiastolicData?
     var acls: AclsData?
     var abg: AbgData?
+    var regional: RegionalData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -42,9 +43,172 @@ struct ReferenceBundle: Codable {
         if b.diastolic == nil { b.diastolic = other.diastolic }
         if b.acls == nil { b.acls = other.acls }
         if b.abg == nil { b.abg = other.abg }
+        if b.regional == nil { b.regional = other.regional }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }
+}
+
+// MARK: Regional anesthesia: the body figure, peripheral blocks, the finder's map and the neuraxial guide. RegionalCalc
+// reads them; the website reads the same JSON (src/reference-regional.js, R.regional).
+
+/// A text field that the JSON writes either as one string or as a list of strings.
+struct TextList: Codable, Hashable {
+    var items: [String]
+    init(_ items: [String]) { self.items = items }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if let one = try? c.decode(String.self) { items = [one] } else { items = try c.decode([String].self) }
+    }
+    func encode(to encoder: Encoder) throws { var c = encoder.singleValueContainer(); try c.encode(items) }
+}
+
+struct RegionalData: Codable {
+    var reviewed: String?
+    var figure: RegionalFigure
+    var blockGroups: [RegionalGroup]?
+    var blocks: [RegionalBlock]
+    var map: [String: RegionalMapEntry]?
+    var neuraxial: NeuraxialGuide?
+    var sources: [EchoSource]?
+    var finderNotes: [String]?
+    var blockNotes: [String]?
+}
+
+struct RegionalFigure: Codable, Hashable {
+    /// [width, height] of the drawing's coordinate box.
+    var box: [Double]
+    /// SVG path data (M, C and Z, absolute) of the body outline without the head.
+    var outline: String
+    var head: RegionalEllipse
+    /// "front" / "back" → faint landmark dots and lines.
+    var landmarks: [String: [RegionalLandmark]]
+    var regions: [RegionalRegion]
+}
+
+struct RegionalEllipse: Codable, Hashable { var cx: Double; var cy: Double; var rx: Double; var ry: Double }
+
+struct RegionalLandmark: Codable, Hashable {
+    var kind: String
+    var x: Double?
+    var y: Double?
+    var pts: [[Double]]?
+}
+
+struct RegionalRegion: Codable, Hashable, Identifiable {
+    var id: String
+    var name: String
+    /// "front" / "back" → polygons; a paired region lists the viewer's left polygon first.
+    var views: [String: [[[Double]]]]
+}
+
+struct RegionalGroup: Codable, Hashable, Identifiable { var id: String; var name: String }
+
+struct RegionalBlock: Codable, Hashable, Identifiable {
+    var id: String
+    var name: String
+    var group: String
+    var summary: String?
+    var indications: TextList?
+    var coverage: TextList?
+    var position: TextList?
+    var equipment: TextList?
+    var target: TextList?
+    var volume: TextList?
+    var onset: TextList?
+    var cautions: TextList?
+    var tips: TextList?
+    var url: String?
+    var art: RegionalArt?
+}
+
+struct RegionalArt: Codable, Hashable {
+    var probe: RegionalProbe?
+    var sono: SonoSpec?
+    var caption: String?
+}
+
+struct RegionalProbe: Codable, Hashable {
+    var view: String
+    var x: Double
+    var y: Double
+    var angle: Double?
+    var len: Double?
+}
+
+/// An original ultrasound schematic in a 160 × 100 box.
+struct SonoSpec: Codable, Hashable {
+    /// "linear" (default) or "curved".
+    var kind: String?
+    var items: [SonoItem]
+    var needle: SonoNeedle?
+}
+
+struct SonoItem: Codable, Hashable {
+    /// band, muscle, fascia, bone, pleura, artery, vein, nerve, la, text
+    var t: String
+    var x: Double?
+    var y: Double?
+    var r: Double?
+    var rx: Double?
+    var ry: Double?
+    var h: Double?
+    var x1: Double?
+    var x2: Double?
+    var pts: [[Double]]?
+    var label: String?
+    var anchor: String?
+}
+
+struct SonoNeedle: Codable, Hashable { var from: [Double]; var to: [Double] }
+
+struct RegionalMapEntry: Codable, Hashable {
+    var neuraxial: RegionalNeuraxialOption?
+    var blocks: [RegionalMapBlock]?
+    var note: String?
+}
+
+struct RegionalNeuraxialOption: Codable, Hashable {
+    var technique: String?
+    var level: String?
+    var text: String?
+}
+
+struct RegionalMapBlock: Codable, Hashable {
+    var id: String
+    /// "primary" (default) or "alternative".
+    var role: String?
+    var note: String?
+}
+
+struct NeuraxialGuide: Codable, Hashable {
+    var procedures: [NeuraxialProcedure]
+    var dermatomes: [NeuraxialDermatome]?
+    var tables: [NeuraxialTable]?
+    var sources: [EchoSource]?
+    var notes: [String]?
+}
+
+struct NeuraxialProcedure: Codable, Hashable, Identifiable {
+    var id: String
+    var name: String
+    var level: String?
+    var levelText: String?
+    var technique: TextList?
+    var insertion: TextList?
+    var spinal: TextList?
+    var epidural: TextList?
+    var adjuvants: TextList?
+    var notes: TextList?
+}
+
+struct NeuraxialDermatome: Codable, Hashable { var level: String; var landmark: String? }
+
+struct NeuraxialTable: Codable, Hashable {
+    var title: String
+    var columns: [String]
+    var rows: [[String]]
+    var notes: [String]?
 }
 
 // MARK: ABG: normal ranges, the Henderson–Hasselbalch constants and the compensation rules. AbgCalc reads them;

@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import PeriopSignal
 
 /// The Reference tab's data and arithmetic: reference.json decodes, the scores add up to the
@@ -1116,5 +1117,71 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(x.headline, "Respiratory Alkalosis"); XCTAssertNil(x.second)
         XCTAssertEqual(r(7.3, 30, 14).check?.ok, true)
         XCTAssertEqual(r(7.36, 30, 14).check?.ok, false)
+    }
+
+    // MARK: Regional technique finder (mirrors tools/test_reference_logic.js)
+
+    private func regionalFixture() throws -> RegionalData {
+        let json = """
+        {"figure": {"box": [200, 420], "outline": "M10 10 L190 10 L190 410 L10 410 Z", "head": {"cx": 100, "cy": 30, "rx": 17, "ry": 22}, "landmarks": {},
+          "regions": [{"id": "chest", "name": "Anterior chest and breast", "views": {}}, {"id": "lower-abdomen", "name": "Lower abdomen", "views": {}},
+                      {"id": "hip", "name": "Hip", "views": {}}, {"id": "knee", "name": "Knee", "views": {}}]},
+         "blocks": [{"id": "acb", "name": "Adductor canal", "group": "lower"}, {"id": "ipack", "name": "IPACK", "group": "lower"},
+                    {"id": "peng", "name": "PENG", "group": "lower"}, {"id": "tap", "name": "TAP", "group": "trunk"}],
+         "map": {"knee": {"neuraxial": {"level": "T10", "technique": "spinal"}, "blocks": [{"id": "acb"}, {"id": "ipack"}, {"id": "missing"}]},
+                 "hip": {"neuraxial": {"level": "T10", "technique": "spinal"}, "blocks": [{"id": "peng"}]},
+                 "lower-abdomen": {"neuraxial": {"level": "T6", "technique": "spinal or epidural"}, "blocks": [{"id": "tap", "role": "alternative"}]},
+                 "chest": {"blocks": []}}}
+        """
+        return try JSONDecoder().decode(RegionalData.self, from: Data(json.utf8))
+    }
+
+    func testRegionalRules() throws {
+        let d = try regionalFixture()
+        XCTAssertEqual([RegionalCalc.side(view: "front", index: 0, count: 2), RegionalCalc.side(view: "front", index: 1, count: 2),
+                        RegionalCalc.side(view: "back", index: 0, count: 2), RegionalCalc.side(view: "back", index: 1, count: 2),
+                        RegionalCalc.side(view: "front", index: 0, count: 1)], ["R", "L", "L", "R", "M"])
+        XCTAssertEqual([RegionalCalc.rank("T4"), RegionalCalc.rank("T10"), RegionalCalc.rank("S2–S5"), RegionalCalc.rank("x")], [10, 16, 25, -1])
+        XCTAssertEqual([RegionalCalc.label("Knee", sides: ["R"]), RegionalCalc.label("Hip", sides: ["L", "R"]), RegionalCalc.label("Perineum and anus", sides: ["M"])],
+                       ["Right knee", "Both sides: hip", "Perineum and anus"])
+        let r = RegionalCalc.recommend(["knee:R", "hip:L", "lower-abdomen:M", "knee:R", "nowhere:M"], d)
+        XCTAssertEqual(r.items.map(\.id), ["lower-abdomen", "hip", "knee"], "head to foot, duplicates merged")
+        XCTAssertEqual(r.items.map(\.label), ["Lower abdomen", "Left hip", "Right knee"])
+        XCTAssertEqual(r.items[2].blocks.map(\.id), ["acb", "ipack"], "unknown blocks dropped")
+        XCTAssertEqual(r.items[0].blocks.first?.role, "alternative")
+        XCTAssertEqual(r.top, RegionalCalc.Top(level: "T6", region: "Lower abdomen"))
+        XCTAssertNil(RegionalCalc.recommend(["chest:M"], d).top)
+        XCTAssertEqual(RegionalCalc.recommend(["hip:L", "hip:R"], d).items.first?.sides, ["R", "L"])
+        // the outline parser closes the shape, and a point inside it is inside
+        let p = RegionalCalc.path(svg: "M10 10 C20 10 30 10 40 10 L40 40 L10 40 Z")
+        XCTAssertTrue(p.contains(CGPoint(x: 25, y: 25)))
+        XCTAssertFalse(p.contains(CGPoint(x: 45, y: 25)))
+        XCTAssertEqual(RegionalCalc.y(forLevel: "T10"), 150)
+        XCTAssertNil(RegionalCalc.y(forLevel: "none"))
+    }
+
+    func testRegionalShippedContent() throws {
+        guard let d = try bundled().regional else { return }
+        let blockIds = Set(d.blocks.map(\.id)), regionIds = Set(d.figure.regions.map(\.id)), groups = Set((d.blockGroups ?? []).map(\.id))
+        XCTAssertEqual(blockIds.count, d.blocks.count, "block ids are unique")
+        XCTAssertFalse(RegionalCalc.path(svg: d.figure.outline).isEmpty)
+        for b in d.blocks {
+            XCTAssertTrue(groups.contains(b.group), "\(b.id) is in a listed group")
+            XCTAssertFalse((b.volume?.items ?? []).isEmpty, "\(b.id) has a volume")
+            XCTAssertTrue((b.url ?? "").hasPrefix("https://www.nysora.com/"), "\(b.id) links to NYSORA")
+            if let pr = b.art?.probe { XCTAssertTrue(["front", "back"].contains(pr.view), "\(b.id) probe view") }
+        }
+        for (rid, m) in d.map ?? [:] {
+            XCTAssertTrue(regionIds.contains(rid), "map region \(rid) is on the figure")
+            for b in m.blocks ?? [] { XCTAssertTrue(blockIds.contains(b.id), "\(rid) → \(b.id) is a listed block") }
+            if let lv = m.neuraxial?.level { XCTAssertGreaterThanOrEqual(RegionalCalc.rank(lv), 0, "\(rid) level \(lv)") }
+        }
+        for r in d.figure.regions { XCTAssertNotNil(d.map?[r.id], "\(r.id) has options") }
+        let knee = RegionalCalc.recommend(["knee:R"], d)
+        XCTAssertFalse(knee.items[0].blocks.isEmpty)
+        if let n = d.neuraxial {
+            XCTAssertFalse(n.procedures.isEmpty)
+            for p in n.procedures { XCTAssertGreaterThanOrEqual(RegionalCalc.rank(p.level), 0, "\(p.id) has a sensory level") }
+        }
     }
 }

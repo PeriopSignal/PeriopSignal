@@ -539,3 +539,49 @@
 .a-x svg { width: 14px; height: 14px; }
 .a-j .r-in { max-width: 110px; }
 .a-ended { display: grid; gap: 10px; }
+
+/* ---------- regional: body figure, finder, block cards, ultrasound schematics ---------- */
+.rg-figwrap { display: flex; justify-content: center; padding: 6px 0 2px; }
+.rg-fig { width: 100%; max-width: 250px; height: auto; display: block; user-select: none; -webkit-user-select: none; }
+.rg-fig.live { touch-action: none; cursor: pointer; }
+.rg-fig.small { max-width: 120px; }
+.rg-body { fill: var(--surface-2); }
+.rg-line { fill: none; stroke: var(--fg-3); stroke-width: 1.1; stroke-linejoin: round; pointer-events: none; }
+.rg-r { fill: transparent; stroke: none; transition: fill .12s ease; }
+.rg-fig.live .rg-r:hover { fill: color-mix(in srgb, var(--accent-2) 16%, transparent); }
+.rg-r.on { fill: color-mix(in srgb, var(--accent) 58%, transparent); stroke: color-mix(in srgb, var(--accent) 85%, transparent); stroke-width: 0.6; }
+.rg-fig.live .rg-r.on:hover { fill: color-mix(in srgb, var(--accent) 66%, transparent); }
+.rg-lm { fill: none; stroke: var(--fg-3); stroke-width: 0.7; stroke-dasharray: 2 2; opacity: .8; pointer-events: none; }
+.rg-lmd { fill: var(--fg-3); pointer-events: none; }
+.rg-shade { fill: color-mix(in srgb, var(--accent-2) 42%, transparent); }
+.rg-cover { fill: var(--surface-2); }
+.rg-probe rect { fill: var(--accent); stroke: var(--surface); stroke-width: 1.2; }
+.rg-target { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 2; opacity: .8; }
+.rg-lv { stroke: var(--fg-2); stroke-width: 0.6; stroke-dasharray: 1.5 2; }
+.rg-lvt { font: 600 8px var(--font-mono); fill: var(--fg-2); }
+.rg-side, .rg-view { font: 700 10px var(--font-mono); fill: var(--fg-3); pointer-events: none; }
+.rg-view { font-weight: 500; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
+.rg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rg-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 4px 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--fg); background: color-mix(in srgb, var(--accent) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.rg-chip button { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: var(--fg-2); }
+.rg-chip button svg { width: 12px; height: 12px; }
+.rg-nx { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.rg-nxl { font-size: 16px; font-weight: 700; color: var(--fg); }
+.rg-nxv { font: 600 14px var(--font-mono); color: var(--accent-2); }
+.rg-sub { margin: 8px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-3); }
+.rg-blk .rt small { white-space: normal; }
+.rg-b + .rg-b { border-top: 1px solid var(--line); }
+.rg-bh { display: flex; width: 100%; align-items: center; gap: 10px; padding: 12px 14px; text-align: left; }
+.rg-bh .rt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.rg-bh strong { font-size: 15px; font-weight: 600; color: var(--fg); }
+.rg-bh small { font-size: 12px; color: var(--fg-3); line-height: 1.4; }
+.rg-chev { font: 600 18px var(--font-mono); color: var(--fg-3); width: 18px; text-align: center; }
+.rg-bd { display: grid; gap: 12px; padding: 0 14px 14px; }
+.rg-art { display: grid; grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr); gap: 10px; align-items: center; }
+.rg-artfig { display: flex; justify-content: center; }
+.rg-artsono { display: grid; gap: 4px; min-width: 0; }
+.rg-sono { width: 100%; height: auto; display: block; border-radius: 10px; }
+.rg-st { font: 600 6.5px var(--font-body); fill: #e9edf1; paint-order: stroke; stroke: rgba(0, 0, 0, .65); stroke-width: 1.6px; }
+.rg-st.dim { font-weight: 500; fill: #9aa3ad; font-size: 5.5px; }
+.rg-nxfig { display: flex; justify-content: center; }
+.rg-nxfig .rg-fig { max-width: 190px; }

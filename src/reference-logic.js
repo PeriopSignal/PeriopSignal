@@ -1624,5 +1624,54 @@
     },
   };
 
+  // ---------- Regional technique finder (RegionalCalc.swift; content in reference.json "regional") ----------
+  // The figure's regions carry an id and, for paired regions, a side. A selection is a list of "id:side" keys
+  // (side R or L for paired regions, M for midline ones). Each region maps to its neuraxial options and blocks.
+  const DERM = ['C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12', 'L1', 'L2', 'L3', 'L4', 'L5', 'S1', 'S2', 'S3', 'S4', 'S5'];
+  R.regional = {
+    /** Order of a dermatome, head to foot (C2 = 0); -1 when unknown. "T4–T6" ranks by its first level. */
+    rank(level) { const m = String(level || '').toUpperCase().match(/[CTLS]\d{1,2}/); return m ? DERM.indexOf(m[0]) : -1; },
+    /** Which side a region's nth polygon is: midline M; paired regions are listed viewer's left first, which is
+        the patient's right on the front view and the patient's left on the back. */
+    side(view, index, count) { return count < 2 ? 'M' : (view === 'back') === (index === 0) ? 'L' : 'R'; },
+    /** "Right knee", "Left and right hip", "Perineum and anus". */
+    label(name, sides) {
+      const lower = name.charAt(0).toLowerCase() + name.slice(1);
+      const s = sides.filter((x) => x !== 'M');
+      if (!s.length) return name;
+      if (s.length === 2) return 'Both sides: ' + lower;
+      return (s[0] === 'R' ? 'Right ' : 'Left ') + lower;
+    },
+    /** keys: ["knee:R", "hip:L", …]; d: the "regional" section. Returns { items, top } — one item per region (head to
+        foot) with its neuraxial options and blocks, and `top`, the most cephalad level any selected region needs. */
+    recommend(keys, d) {
+      const order = d.figure.regions.map((r) => r.id), byId = new Map();
+      for (const k of keys) {
+        const [id, side] = String(k).split(':');
+        const reg = d.figure.regions.find((r) => r.id === id);
+        if (!reg) continue;
+        if (!byId.has(id)) byId.set(id, { id, name: reg.name, sides: [] });
+        const it = byId.get(id);
+        if (side && !it.sides.includes(side)) it.sides.push(side);
+      }
+      const items = [...byId.values()].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id)).map((it) => {
+        const m = (d.map || {})[it.id] || {};
+        const blocks = (m.blocks || []).map((b) => {
+          const blk = (d.blocks || []).find((x) => x.id === b.id);
+          return blk ? { id: b.id, name: blk.name, role: b.role || 'primary', note: b.note || null } : null;
+        }).filter(Boolean);
+        it.sides.sort((a, b) => (a === 'R' ? -1 : b === 'R' ? 1 : 0));
+        return { id: it.id, name: it.name, sides: it.sides, label: R.regional.label(it.name, it.sides), neuraxial: m.neuraxial || null, blocks, note: m.note || null };
+      });
+      let top = null;
+      for (const it of items) {
+        const n = it.neuraxial;
+        const lv = n && (n.level || null);
+        if (lv && R.regional.rank(lv) >= 0 && (top === null || R.regional.rank(lv) < R.regional.rank(top.level))) top = { level: lv, region: it.name };
+      }
+      return { items, top };
+    },
+  };
+
   global.PSRef = R;
 })(typeof window !== 'undefined' ? window : globalThis);

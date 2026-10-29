@@ -854,5 +854,29 @@ test('abg: the shipped rules (reference.json)', () => {
   }
 });
 
+// ---------- Regional technique finder ----------
+const RG = {
+  figure: { regions: [{ id: 'chest', name: 'Anterior chest and breast' }, { id: 'lower-abdomen', name: 'Lower abdomen' }, { id: 'hip', name: 'Hip' }, { id: 'knee', name: 'Knee' }] },
+  blocks: [{ id: 'acb', name: 'Adductor canal' }, { id: 'ipack', name: 'IPACK' }, { id: 'peng', name: 'PENG' }, { id: 'tap', name: 'TAP' }],
+  map: {
+    knee: { neuraxial: { level: 'T10', technique: 'spinal' }, blocks: [{ id: 'acb' }, { id: 'ipack' }, { id: 'missing' }] },
+    hip: { neuraxial: { level: 'T10', technique: 'spinal' }, blocks: [{ id: 'peng' }] },
+    'lower-abdomen': { neuraxial: { level: 'T6', technique: 'spinal or epidural' }, blocks: [{ id: 'tap', role: 'alternative' }] },
+    chest: { neuraxial: null, blocks: [] },
+  },
+};
+test('regional: sides, labels, levels and the recommendation', () => {
+  const G = R.regional;
+  eq([G.side('front', 0, 2), G.side('front', 1, 2), G.side('back', 0, 2), G.side('back', 1, 2), G.side('front', 0, 1)], ['R', 'L', 'L', 'R', 'M']);
+  eq([G.rank('T4'), G.rank('T10'), G.rank('S2–S5'), G.rank('x')], [10, 16, 25, -1]);
+  eq([G.label('Knee', ['R']), G.label('Hip', ['L', 'R']), G.label('Perineum and anus', ['M'])], ['Right knee', 'Both sides: hip', 'Perineum and anus']);
+  const r = G.recommend(['knee:R', 'hip:L', 'lower-abdomen:M', 'knee:R', 'nowhere:M'], RG);
+  eq(r.items.map((x) => [x.id, x.label]), [['lower-abdomen', 'Lower abdomen'], ['hip', 'Left hip'], ['knee', 'Right knee']], 'head to foot, duplicates merged');
+  eq(r.items[2].blocks.map((b) => b.id), ['acb', 'ipack'], 'unknown blocks dropped');
+  eq(r.items[0].blocks[0].role, 'alternative');
+  eq(r.top, { level: 'T6', region: 'Lower abdomen' });
+  eq(G.recommend(['chest:M'], RG).top, null);
+});
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

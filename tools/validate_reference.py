@@ -413,6 +413,93 @@ def main(path):
                     v = rules[rid]["slope"] * mid.get("paco2", 40) + rules[rid]["intercept"]
                     need(abs(v - mid.get("hco3", 24)) <= 0.01, f"abg.rules.{rid}: expected HCO3 at PaCO2 {mid.get('paco2')} is {v:.2f}, not {mid.get('hco3')}")
 
+    rg = data.get("regional")
+    if rg is not None:
+        num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+        derm = ["C2", "C3", "C4", "C5", "C6", "C7", "C8"] + [f"T{i}" for i in range(1, 13)] + [f"L{i}" for i in range(1, 6)] + [f"S{i}" for i in range(1, 6)]
+        lvl = lambda v: isinstance(v, str) and bool(re.search(r"[CTLS]\d{1,2}", v.upper())) and re.search(r"[CTLS]\d{1,2}", v.upper()).group(0) in derm
+        texts = lambda v: v is None or (isinstance(v, str) and v.strip()) or (isinstance(v, list) and v and all(isinstance(x, str) and x.strip() for x in v))
+        fig = rg.get("figure") or {}
+        need(isinstance(fig.get("box"), list) and len(fig["box"]) == 2 and all(num(x) and x > 0 for x in fig["box"]), "regional.figure.box must be [width, height]")
+        need(isinstance(fig.get("outline"), str) and re.fullmatch(r"[MLCZ0-9.\- ,]+", fig["outline"] or "") is not None and fig["outline"].startswith("M") and fig["outline"].rstrip().endswith("Z"),
+             "regional.figure.outline must be absolute M/L/C/Z path data, closed")
+        need(all(num((fig.get("head") or {}).get(k)) for k in ("cx", "cy", "rx", "ry")), "regional.figure.head needs cx, cy, rx, ry")
+        for view, lms in (fig.get("landmarks") or {}).items():
+            need(view in ("front", "back"), f"regional.figure.landmarks: unknown view {view}")
+            for lm in lms:
+                need((lm.get("kind") == "dot" and num(lm.get("x")) and num(lm.get("y"))) or (lm.get("kind") == "line" and isinstance(lm.get("pts"), list) and len(lm["pts"]) >= 2),
+                     f"regional.figure.landmarks.{view}: a landmark is a dot (x, y) or a line (pts)")
+        region_ids = []
+        for r_ in fig.get("regions") or []:
+            rid = r_.get("id")
+            region_ids.append(rid)
+            need(isinstance(rid, str) and rid and isinstance(r_.get("name"), str) and r_["name"], "regional.figure.regions: id and name required")
+            views = r_.get("views") or {}
+            need(views and set(views) <= {"front", "back"}, f"regional region {rid}: views are front and/or back")
+            for v, polys in views.items():
+                need(isinstance(polys, list) and 1 <= len(polys) <= 2, f"regional region {rid}.{v}: one polygon (midline) or two (paired)")
+                for poly in polys or []:
+                    need(isinstance(poly, list) and len(poly) >= 3 and all(isinstance(p_, list) and len(p_) == 2 and all(num(c) for c in p_) for p_ in poly), f"regional region {rid}.{v}: polygons are 3+ [x, y] points")
+        need(len(region_ids) == len(set(region_ids)) and region_ids, "regional.figure.regions: ids must be unique")
+        group_ids = [g.get("id") for g in rg.get("blockGroups") or []]
+        need(group_ids and len(group_ids) == len(set(group_ids)), "regional.blockGroups: unique ids required")
+        src_ids = {s_.get("id") for s_ in rg.get("sources") or []}
+        for s_ in rg.get("sources") or []:
+            need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"regional source {s_.get('id')}: citation required")
+            need(s_.get("url") is None or str(s_["url"]).startswith("https://"), f"regional source {s_.get('id')}: url must be https")
+        block_ids = []
+        sono_items = {"band", "muscle", "fascia", "bone", "pleura", "artery", "vein", "nerve", "la", "text"}
+        for b in rg.get("blocks") or []:
+            bid = b.get("id")
+            block_ids.append(bid)
+            need(isinstance(b.get("name"), str) and b["name"], f"regional block {bid}: name required")
+            need(b.get("group") in group_ids, f"regional block {bid}: group must be a listed blockGroup")
+            for k in ("indications", "coverage", "position", "equipment", "target", "volume", "onset", "cautions", "tips"):
+                need(texts(b.get(k)), f"regional block {bid}: {k} must be text or a list of text")
+            need(b.get("volume"), f"regional block {bid}: volume required")
+            need(isinstance(b.get("url"), str) and b["url"].startswith("https://www.nysora.com/"), f"regional block {bid}: url must be a NYSORA page")
+            art = b.get("art")
+            if art:
+                pr = art.get("probe")
+                need(pr is None or (pr.get("view") in ("front", "back") and num(pr.get("x")) and num(pr.get("y"))), f"regional block {bid}: probe needs view, x, y")
+                so = art.get("sono")
+                if so:
+                    need(so.get("kind", "linear") in ("linear", "curved"), f"regional block {bid}: sono kind is linear or curved")
+                    for it in so.get("items") or []:
+                        need(it.get("t") in sono_items, f"regional block {bid}: unknown sono item {it.get('t')}")
+                    nd = so.get("needle")
+                    need(nd is None or (len(nd.get("from") or []) == 2 and len(nd.get("to") or []) == 2), f"regional block {bid}: needle is from/to points")
+        need(len(block_ids) == len(set(block_ids)) and block_ids, "regional.blocks: unique ids required")
+        rmap = rg.get("map") or {}
+        for rid in region_ids:
+            need(rid in rmap, f"regional.map: region {rid} has no entry")
+        for rid, m in rmap.items():
+            need(rid in region_ids, f"regional.map: {rid} is not a figure region")
+            n = m.get("neuraxial")
+            if n:
+                need(isinstance(n.get("technique"), str) and n["technique"], f"regional.map.{rid}: neuraxial technique required")
+                need(n.get("level") is None or lvl(n["level"]), f"regional.map.{rid}: neuraxial level must name a dermatome")
+            for b in m.get("blocks") or []:
+                need(b.get("id") in block_ids, f"regional.map.{rid}: block {b.get('id')} is not listed")
+                need(b.get("role", "primary") in ("primary", "alternative"), f"regional.map.{rid}: role is primary or alternative")
+        nx = rg.get("neuraxial")
+        if nx is not None:
+            pids = [p_.get("id") for p_ in nx.get("procedures") or []]
+            need(pids and len(pids) == len(set(pids)), "regional.neuraxial.procedures: unique ids required")
+            for p_ in nx.get("procedures") or []:
+                need(isinstance(p_.get("name"), str) and p_["name"], f"regional.neuraxial {p_.get('id')}: name required")
+                need(lvl(p_.get("level")), f"regional.neuraxial {p_.get('id')}: level must name a dermatome")
+                for k in ("technique", "insertion", "spinal", "epidural", "adjuvants", "notes"):
+                    need(texts(p_.get(k)), f"regional.neuraxial {p_.get('id')}: {k} must be text or a list of text")
+                need(p_.get("spinal") or p_.get("epidural"), f"regional.neuraxial {p_.get('id')}: needs spinal or epidural dosing")
+            for t in nx.get("tables") or []:
+                cols = t.get("columns") or []
+                need(isinstance(t.get("title"), str) and cols, "regional.neuraxial.tables: title and columns required")
+                for row in t.get("rows") or []:
+                    need(isinstance(row, list) and len(row) == len(cols), f"regional.neuraxial table {t.get('title')}: row width matches columns")
+            for s_ in nx.get("sources") or []:
+                need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"regional.neuraxial source {s_.get('id')}: citation required")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")

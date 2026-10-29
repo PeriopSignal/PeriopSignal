@@ -17,6 +17,9 @@ enum RefRoute: Hashable {
     case diastolic
     case acls
     case abg
+    case regionalFinder
+    case blocks
+    case neuraxialGuide
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -37,6 +40,9 @@ enum RefRoute: Hashable {
         case .diastolic: return "diastolic"
         case .acls: return "acls"
         case .abg: return "abg"
+        case .regionalFinder: return "regional-finder"
+        case .blocks: return "blocks"
+        case .neuraxialGuide: return "neuraxial-guide"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -58,6 +64,9 @@ enum RefRoute: Hashable {
         case "diastolic": self = .diastolic
         case "acls": self = .acls
         case "abg": self = .abg
+        case "regional-finder": self = .regionalFinder
+        case "blocks": self = .blocks
+        case "neuraxial-guide": self = .neuraxialGuide
         case "folder" where parts.count == 2:
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
@@ -124,6 +133,9 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
         ]
         case .regional: return [
+            RefItem(route: .regionalFinder, icon: "figure.stand", title: "Regional Technique Finder", blurb: "Mark the operative area, get neuraxial and block options"),
+            RefItem(route: .blocks, icon: "dot.radiowaves.left.and.right", title: "Peripheral Nerve Blocks", blurb: "Placement, ultrasound view and volumes by block"),
+            RefItem(route: .neuraxialGuide, icon: "figure.flexibility", title: "Neuraxial Guide", blurb: "Level, technique and dose by procedure"),
             RefItem(route: .neuraxial, icon: "drop.triangle", title: "Blocks on Anticoagulants", blurb: "Drug and last dose in, earliest block out"),
             RefItem(route: .local, icon: "syringe", title: "Local Anesthetic Doses", blurb: "One agent or a mixture, with Exparel"),
         ]
@@ -285,6 +297,12 @@ struct ReferenceView: View {
                     AclsView(onOpen: { webLink = WebLink(url: $0) })
                 case .abg:
                     AbgView(onOpen: { webLink = WebLink(url: $0) })
+                case .regionalFinder:
+                    RegionalFinderView(onOpen: { webLink = WebLink(url: $0) }, onOpenBlocks: { path.append(RefRoute.blocks) })
+                case .blocks:
+                    BlocksView(onOpen: { webLink = WebLink(url: $0) })
+                case .neuraxialGuide:
+                    NeuraxialGuideView(onOpen: { webLink = WebLink(url: $0) })
                 case .folder(let f):
                     FolderView(folder: f, path: $path)
                 }
@@ -528,6 +546,9 @@ struct ReferenceSearchResults: View {
         case .diastolic: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "diastolic", "diastology", "dysfunction", "filling pressure", "lap", "e/e", "e/a", "tr velocity", "la strain", "lars", "pulmonary vein", "hfpef", "relaxation", "restrictive"]
         case .acls: return ["acls", "pals", "code", "code blue", "cardiac arrest", "arrest", "cpr", "resuscitation", "defibrillation", "defibrillator", "shock", "vf", "vt", "pea", "asystole", "epinephrine", "adrenaline", "amiodarone", "lidocaine", "bradycardia", "tachycardia", "atropine", "adenosine", "cardioversion", "pacing", "rosc", "post-arrest", "cals", "resternotomy", "cardiac surgery arrest", "anaphylaxis", "allergic reaction", "timer"]
         case .abg: return ["abg", "blood gas", "arterial blood gas", "acid", "base", "acid-base", "acidosis", "alkalosis", "acidemia", "alkalemia", "ph", "paco2", "pco2", "hco3", "bicarbonate", "compensation", "winter", "respiratory acidosis", "metabolic acidosis", "respiratory alkalosis", "metabolic alkalosis", "mixed disorder", "henderson"]
+        case .regionalFinder: return ["regional", "block", "nerve block", "neuraxial", "spinal", "epidural", "incision", "dermatome", "surgery site", "technique", "which block", "analgesia"]
+        case .blocks: return ["regional", "block", "nerve block", "peripheral", "pnb", "nysora", "ultrasound", "interscalene", "supraclavicular", "infraclavicular", "axillary", "suprascapular", "cervical plexus", "femoral", "adductor", "saphenous", "sciatic", "popliteal", "ipack", "pericapsular", "peng", "fascia iliaca", "obturator", "lateral femoral cutaneous", "ankle", "tap", "transversus", "rectus sheath", "quadratus", "erector", "esp", "paravertebral", "pecs", "serratus", "parasternal", "ilioinguinal", "caudal", "wrist", "volume"]
+        case .neuraxialGuide: return ["neuraxial", "spinal", "epidural", "cse", "combined spinal", "intrathecal", "bupivacaine", "chloroprocaine", "ropivacaine", "dermatome", "level", "t4", "t10", "saddle", "cesarean", "c-section", "laparotomy", "appendectomy", "hip", "knee", "hernia", "turp", "anal", "perianal", "hemorrhoid", "labor"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -545,8 +566,11 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg:
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg, .regionalFinder, .neuraxialGuide:
             return wordsMatch(item.route)
+        case .blocks:
+            guard let data = refs.bundle?.regional else { return wordsMatch(item.route) }
+            return wordsMatch(item.route) || data.blocks.contains { $0.name.lowercased().contains(q) }
         }
     }
     private func wordsMatch(_ route: RefRoute) -> Bool {

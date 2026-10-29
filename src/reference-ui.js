@@ -51,6 +51,9 @@
     heartCircle: svg('<circle cx="12" cy="12" r="9"/><path d="M12 16.6s-4.2-2.5-4.2-5.6A2.3 2.3 0 0 1 12 9.7a2.3 2.3 0 0 1 4.2 1.3c0 3.1-4.2 5.6-4.2 5.6z"/>'),
     ruler: svg('<path d="M3.5 16.5L16.5 3.5l4 4-13 13z"/><path d="M7.5 12.5l1.8 1.8M10 10l1.8 1.8M12.5 7.5l1.8 1.8"/>'),
     inflow: svg('<path d="M3 18.5h3l2.2-11 3 11h2l2-6.5 2 6.5H21"/>'),
+    person: svg('<circle cx="12" cy="4.5" r="2.2"/><path d="M8 21l1.2-8.5L7 11.5 8.2 7.5h7.6L17 11.5l-2.2 1L16 21"/><path d="M12 12.5V21"/>', 1.9),
+    probe: svg('<path d="M9 3h6l1 9H8z"/><path d="M8 12h8l-1.2 3.2a1.6 1.6 0 0 1-1.5 1H10.7a1.6 1.6 0 0 1-1.5-1z"/><path d="M12 16v5"/>', 1.9),
+    spine: svg('<rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><rect x="9" y="8" width="6" height="3.6" rx="1.2"/><rect x="9" y="13.5" width="6" height="3.6" rx="1.2"/><path d="M12 19v3M7 4.3h2M15 4.3h2M7 9.8h2M15 9.8h2M7 15.3h2M15 15.3h2"/>', 1.8),
     flask: svg('<path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A2 2 0 0 0 6.3 21.5h11.4a2 2 0 0 0 1.7-3.1L14 9.5V3"/><path d="M7.2 15h9.6"/>', 2),
   };
 
@@ -73,7 +76,7 @@
       note: 'ACLS starts its code clock when it opens. The checklists take the patient’s weight at the top and work out the doses; the weight clears when you leave.' },
     { id: 'preoperative', title: 'Preoperative', icon: 'clipboard', tint: 'var(--accent-2)', items: ['tool-rcri', 'tool-ariscat', 'tool-stopbang', 'tool-fasting'] },
     { id: 'general-anesthesia', title: 'General Anesthesia', icon: 'lungs', tint: 'var(--t-thoracic-fg)', items: ['tool-abg', 'tool-ponv', 'tool-aldrete'] },
-    { id: 'regional', title: 'Regional', icon: 'syringe', tint: 'var(--t-regional-fg)', items: ['tool-neuraxial', 'tool-local'] },
+    { id: 'regional', title: 'Regional', icon: 'syringe', tint: 'var(--t-regional-fg)', items: ['tool-regional-finder', 'tool-blocks', 'tool-neuraxial-guide', 'tool-neuraxial', 'tool-local'] },
     { id: 'cardiothoracic', title: 'Cardiothoracic', icon: 'heart', tint: 'var(--t-cardiacSurgery-fg)', items: ['tool-valves', 'tool-intervention', 'tool-chamber', 'tool-diastolic'] },
     { id: 'medications', title: 'Medications & Hematology', icon: 'ivbag', tint: 'var(--new)', items: ['tool-infusions'] },
     { id: 'pediatrics', title: 'Pediatrics', icon: 'child', tint: 'var(--t-pediatric-fg)', items: ['tool-peds'] },
@@ -91,6 +94,9 @@
     'tool-abg': T('ABG Interpretation', 'Primary disorder, compensation, mixed disorders', 'flask', ['abg', 'blood gas', 'arterial blood gas', 'acid', 'base', 'acid-base', 'acidosis', 'alkalosis', 'acidemia', 'alkalemia', 'ph', 'paco2', 'pco2', 'hco3', 'bicarbonate', 'compensation', 'winter', 'respiratory acidosis', 'metabolic acidosis', 'respiratory alkalosis', 'metabolic alkalosis', 'mixed disorder', 'henderson'], (h) => window.PSAbg ? window.PSAbg.mount(h, ctxFor('tool-abg')) : notReady(h)),
     'tool-ponv': T('PONV', 'Apfel score, how many agents, rescue', 'pills', ['ponv', 'nausea', 'vomiting', 'antiemetic', 'apfel', 'ondansetron', 'dexamethasone', 'droperidol', 'amisulpride', 'aprepitant', 'scopolamine', 'palonosetron', 'granisetron', 'promethazine', 'rescue', 'prophylaxis'], mountPONV),
     'tool-aldrete': T('Modified Aldrete', 'Ready to leave recovery?', 'bed', [], (h) => mountScore(h, 'aldrete'), { score: 'aldrete' }),
+    'tool-regional-finder': T('Regional Technique Finder', 'Mark the incision, get neuraxial and block options', 'person', ['regional', 'block', 'nerve block', 'incision', 'which block', 'technique', 'dermatome', 'surgery', 'analgesia', 'neuraxial', 'spinal', 'epidural', 'peripheral'], (h) => window.PSRegional ? window.PSRegional.mountFinder(h, ctxFor('tool-regional-finder')) : notReady(h)),
+    'tool-blocks': T('Peripheral Nerve Blocks', 'Technique, volume and schematic for each block', 'probe', ['nysora', 'block', 'nerve block', 'peripheral', 'ultrasound', 'interscalene', 'supraclavicular', 'infraclavicular', 'axillary', 'femoral', 'fascia iliaca', 'adductor canal', 'saphenous', 'popliteal', 'sciatic', 'peng', 'ipack', 'ankle', 'tap', 'transversus abdominis', 'rectus sheath', 'quadratus lumborum', 'erector spinae', 'esp', 'ilioinguinal', 'pecs', 'serratus', 'paravertebral', 'intercostal', 'cervical plexus', 'suprascapular', 'wrist'], (h) => window.PSRegional ? window.PSRegional.mountBlocks(h, ctxFor('tool-blocks')) : notReady(h)),
+    'tool-neuraxial-guide': T('Neuraxial Guide', 'Level, technique and dose by procedure', 'spine', ['nysora', 'neuraxial', 'spinal', 'epidural', 'cse', 'combined spinal', 'intrathecal', 'bupivacaine', 'hyperbaric', 'chloroprocaine', 'dermatome', 'level', 't4', 't10', 'saddle', 'cesarean', 'c-section', 'hip', 'knee', 'tuffier', 'test dose', 'loss of resistance'], (h) => window.PSRegional ? window.PSRegional.mountNeuraxial(h, ctxFor('tool-neuraxial-guide')) : notReady(h)),
     'tool-neuraxial': T('Blocks on Anticoagulants', 'Drug and last dose in, earliest block out', 'drop', ['anticoag', 'neuraxial', 'epidural', 'spinal', 'block', 'heparin', 'enoxaparin', 'lmwh', 'warfarin', 'apixaban', 'rivaroxaban', 'edoxaban', 'dabigatran', 'doac', 'fondaparinux', 'clopidogrel', 'prasugrel', 'ticagrelor', 'aspirin', 'thrombolytic', 'asra'], mountNeuraxial),
     'tool-local': T('Local Anesthetic Doses', 'One agent or a mixture, with Exparel', 'syringe', ['local anesthetic', 'local anaesthetic', 'max dose', 'maximum dose', 'exparel', 'liposomal', 'mixture', 'toxicity', 'mg/kg'], mountLocal),
     'tool-valves': T('ASE Valve Severity Grading', 'Echo numbers in, ASE grade out', 'valve', ['cardiothoracic', 'cardiac', 'valve', 'valvular', 'echo', 'tee', 'stenosis', 'regurgitation', 'aortic', 'mitral', 'tricuspid', 'vena contracta', 'eroa', 'pisa', 'gradient', 'ase'], mountValves),
