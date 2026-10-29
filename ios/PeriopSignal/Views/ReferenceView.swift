@@ -56,7 +56,7 @@ enum RefRoute: Hashable {
 
 /// The Reference tab's folders. Each tool lives in one folder.
 enum RefFolder: String, CaseIterable, Identifiable, Hashable {
-    case emergency, preoperative, generalAnesthesia, regional, medications, pediatrics
+    case emergency, preoperative, generalAnesthesia, regional, cardiothoracic, medications, pediatrics
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -64,6 +64,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .preoperative: return "Preoperative"
         case .generalAnesthesia: return "General Anesthesia"
         case .regional: return "Regional"
+        case .cardiothoracic: return "Cardiothoracic"
         case .medications: return "Medications and Hematology"
         case .pediatrics: return "Pediatrics"
         }
@@ -74,6 +75,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .preoperative: return "checklist"
         case .generalAnesthesia: return "lungs"
         case .regional: return "syringe"
+        case .cardiothoracic: return "heart"
         case .medications: return "ivfluid.bag"
         case .pediatrics: return "figure.child"
         }
@@ -84,6 +86,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .preoperative: return PS.accent2
         case .generalAnesthesia: return Topics.info("thoracic").fg
         case .regional: return Topics.info("regional").fg
+        case .cardiothoracic: return Topics.info("cardiacSurgery").fg
         case .medications: return PS.green
         case .pediatrics: return Topics.info("pediatric").fg
         }
@@ -101,8 +104,6 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .score("ariscat"), icon: "lungs", title: "ARISCAT", blurb: "Postoperative pulmonary complications"),
             RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-Bang", blurb: "Sleep apnea screening"),
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
-            RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "Valve Severity", blurb: "Echo numbers in, ASE grade out"),
-            RefItem(route: .intervention, icon: "heart.circle", title: "Valve Intervention", blurb: "Repair or replace? ACC/AHA, prompted"),
         ]
         case .generalAnesthesia: return [
             RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "Apfel score, how many agents, rescue"),
@@ -111,6 +112,10 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .regional: return [
             RefItem(route: .neuraxial, icon: "drop.triangle", title: "Blocks on Anticoagulants", blurb: "Drug and last dose in, earliest block out"),
             RefItem(route: .local, icon: "syringe", title: "Local Anesthetic Doses", blurb: "One agent or a mixture, with Exparel"),
+        ]
+        case .cardiothoracic: return [
+            RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "ASE Valve Severity Grading", blurb: "Echo numbers in, ASE grade out"),
+            RefItem(route: .intervention, icon: "heart.circle", title: "AHA/ACC Valve Intervention", blurb: "Repair or replace? Prompted from the guideline"),
         ]
         case .medications: return [
             RefItem(route: .infusions, icon: "ivfluid.bag", title: "Infusions and Blood", blurb: "Hemodynamic drips, boluses, blood products, factors"),
@@ -490,8 +495,8 @@ struct ReferenceSearchResults: View {
         case .neuraxial: return ["anticoag", "neuraxial", "epidural", "spinal", "block", "heparin", "enoxaparin", "lmwh", "warfarin", "apixaban", "rivaroxaban", "edoxaban", "dabigatran", "doac", "fondaparinux", "clopidogrel", "prasugrel", "ticagrelor", "aspirin", "thrombolytic", "asra"]
         case .fasting: return ["npo", "fasting", "fast", "clear liquid", "breast milk", "formula", "meal", "gum", "aspiration"]
         case .airway: return ["airway", "intubat", "laryngoscop", "cricothyr", "cannot ventilate", "cicv", "awake", "videolaryngoscope", "supraglottic", "lma"]
-        case .valves: return ["valve", "valvular", "echo", "tee", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "vena contracta", "eroa", "pisa", "gradient", "ase"]
-        case .intervention: return ["valve", "valvular", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "tavi", "tavr", "savr", "avr", "teer", "mitraclip", "pmbc", "commissurotomy", "repair", "replacement", "prosthesis", "mechanical", "bioprosthe", "acc", "aha"]
+        case .valves: return ["cardiothoracic", "cardiac", "valve", "valvular", "echo", "tee", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "vena contracta", "eroa", "pisa", "gradient", "ase"]
+        case .intervention: return ["cardiothoracic", "cardiac", "valve", "valvular", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "tavi", "tavr", "savr", "avr", "teer", "mitraclip", "pmbc", "commissurotomy", "repair", "replacement", "prosthesis", "mechanical", "bioprosthe", "acc", "aha"]
         case .ponv: return ["ponv", "nausea", "vomiting", "antiemetic", "apfel", "ondansetron", "dexamethasone", "droperidol", "amisulpride", "aprepitant", "scopolamine", "palonosetron", "granisetron", "promethazine", "rescue", "prophylaxis"]
         case .quickref, .score, .folder: return []
         }

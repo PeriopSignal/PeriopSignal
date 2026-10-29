@@ -163,6 +163,7 @@ jobs:
           shot 32-local-empty 12 -ps.ref local
           shot 33-last-empty 12 -ps.ref quickref:asra-last
           shot 34-general 12 -ps.ref folder:generalAnesthesia
+          shot 35-cardiothoracic 12 -ps.ref folder:cardiothoracic
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

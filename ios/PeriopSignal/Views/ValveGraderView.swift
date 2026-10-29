@@ -36,7 +36,7 @@ struct ValveGraderView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Valve severity")
+        .navigationTitle("ASE Valve Severity Grading")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

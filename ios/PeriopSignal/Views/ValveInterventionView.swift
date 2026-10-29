@@ -27,7 +27,7 @@ struct ValveInterventionView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Valve intervention")
+        .navigationTitle("AHA/ACC Valve Intervention")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

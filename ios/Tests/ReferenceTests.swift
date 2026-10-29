@@ -312,6 +312,11 @@ final class ReferenceTests: XCTestCase {
         XCTAssertNotNil(RefItem.item(forKey: "ponv"))
         XCTAssertEqual(RefItem.folder(of: .neuraxial), .regional)
         XCTAssertEqual(RefItem.folder(of: .local), .regional)
+        XCTAssertEqual(RefItem.folder(of: .valves), .cardiothoracic)
+        XCTAssertEqual(RefItem.folder(of: .intervention), .cardiothoracic)
+        XCTAssertEqual(RefItem.item(for: .valves)?.title, "ASE Valve Severity Grading")
+        XCTAssertEqual(RefItem.item(for: .intervention)?.title, "AHA/ACC Valve Intervention")
+        XCTAssertFalse(RefFolder.preoperative.items.contains { $0.route == .valves || $0.route == .intervention })
     }
 
     func testNewerFileWinsBySameDayStamp() throws {
