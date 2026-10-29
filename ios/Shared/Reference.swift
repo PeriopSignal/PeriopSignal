@@ -75,7 +75,7 @@ struct EchoMeasure: Codable, Hashable, Identifiable {
     var id: String
     var name: String
     var short: String?
-    /// Unit of the reference values (per m² for indexed rows).
+    /// Unit of the reference values (per m² for indexed rows; empty for a ratio).
     var unit: String
     /// Unit of the un-indexed value, for an indexed row typed raw ("mL").
     var rawUnit: String?
@@ -86,11 +86,20 @@ struct EchoMeasure: Codable, Hashable, Identifiable {
     var index: String?
     /// "inclusive": the cutoff value itself is abnormal (≥ 40 mm); otherwise it is the last normal value.
     var edge: String?
+    /// The same per cut, in the order of `cuts` ("inclusive" or "exclusive"); overrides `edge`. ASE 2025
+    /// prints "< 4.1 · ≥ 4.1 to ≤ 4.4 · > 4.4 to ≤ 4.9 · > 4.9": inclusive, then exclusive, exclusive.
+    var edges: [String]?
     /// The grade's word: "dilated", "increased", "reduced"; "abnormal" when absent.
     var word: String?
     var male: EchoRef?
     var female: EchoRef?
     var all: EchoRef?
+    /// BSA-indexed cutoffs for a row typed as an absolute value (RV basal diameter: cm, and cm/m²).
+    var indexed: EchoIndexed?
+    /// Upper limits by age band, moved with BSA (the aortic sinuses).
+    var byAge: EchoByAge?
+    /// The guideline tabulates magnitudes (strain): a negative entry is read as its magnitude.
+    var abs: Bool?
     var source: String?
     /// Table or page in the source ("Lang 2015, Table 2").
     var ref: String?
@@ -102,6 +111,36 @@ struct EchoRef: Codable, Hashable {
     var normal: [Double]?
     /// Cutoffs between grades: three for normal / mild / moderate / severe, one for normal / abnormal.
     var cuts: [Double]
+}
+
+struct EchoIndexed: Codable, Hashable {
+    var unit: String
+    var edge: String?
+    var edges: [String]?
+    var male: EchoRef?
+    var female: EchoRef?
+    var all: EchoRef?
+}
+
+/// Goldstein 2015 Tables 1–2: the upper limit of the aortic sinuses by age band at a reference BSA.
+struct EchoByAge: Codable, Hashable {
+    /// cm added per m² of BSA above the reference, taken off below it (0.5 mm per 0.1 m²).
+    var perM2: Double
+    var male: EchoAgeTable
+    var female: EchoAgeTable
+}
+
+struct EchoAgeTable: Codable, Hashable {
+    var refBsa: Double
+    var rows: [EchoAgeRow]
+}
+
+struct EchoAgeRow: Codable, Hashable {
+    var from: Int
+    /// Last year of the band; nil for the open-ended top band.
+    var to: Int?
+    var uln: Double
+    var mean: Double?
 }
 
 /// The 2025 ASE diastolic document's scope, special populations and notes; the cutoffs and the algorithm

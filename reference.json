@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-29",
-  "revision": 1793274525,
+  "revision": 1793275675,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -4387,6 +4387,1193 @@
       "Where the document's own figures and text differ by an equals sign (E/e′ ≥ 14 or > 14, LARS ≤ or < 18%), the tool follows Figure 3; a value exactly on a cutoff deserves a second look.",
       "When e′ is reduced on one side only, Figure 3 counts it (septal ≤ 6, lateral ≤ 7 or average ≤ 6.5 cm/s); the document does not say how to weigh discordant sites.",
       "Report mitral E, A, E/A, e′, average E/e′ and peak TR velocity, plus whichever supplemental measures decided the reading; if the grade cannot be set, report the filling pressure."
+    ]
+  },
+  "echo": {
+    "reviewed": "2026-10",
+    "bsaFormula": "dubois",
+    "sources": [
+      {
+        "id": "lang2015",
+        "citation": "Lang RM, Badano LP, Mor-Avi V, et al. Recommendations for Cardiac Chamber Quantification by Echocardiography in Adults: An Update from the American Society of Echocardiography and the European Association of Cardiovascular Imaging. J Am Soc Echocardiogr 2015;28:1–39.e14.",
+        "url": "https://www.asecho.org/wp-content/uploads/2025/04/2015_ChamberQuantificationREV.pdf"
+      },
+      {
+        "id": "mukherjee2025",
+        "citation": "Mukherjee M, Rudski LG, Addetia K, et al. Guidelines for the Echocardiographic Assessment of the Right Heart in Adults and Special Considerations in Pulmonary Hypertension: Recommendations from the American Society of Echocardiography. J Am Soc Echocardiogr 2025;38:141–86.",
+        "url": "https://www.asecho.org/wp-content/uploads/2026/08/ASE-Right-Heart-Guidelines-May-2025.pdf"
+      },
+      {
+        "id": "goldstein2015",
+        "citation": "Goldstein SA, Evangelista A, Abbara S, et al. Multimodality Imaging of Diseases of the Thoracic Aorta in Adults: From the American Society of Echocardiography and the European Association of Cardiovascular Imaging. J Am Soc Echocardiogr 2015;28:119–82.",
+        "url": "https://www.asecho.org/wp-content/uploads/2025/04/2015_Thoracic-Aorta.pdf"
+      },
+      {
+        "id": "zoghbi2017",
+        "citation": "Zoghbi WA, Adams D, Bonow RO, et al. Recommendations for Noninvasive Evaluation of Native Valvular Regurgitation. J Am Soc Echocardiogr 2017;30:303–71.",
+        "url": "https://asecho.org/wp-content/uploads/2017/04/2017VavularRegurgitationGuideline.pdf"
+      },
+      {
+        "id": "ase_wftf2018",
+        "citation": "American Society of Echocardiography. The ASE Recommendations for Cardiac Chamber Quantification in Adults: A Quick Reference Guide. 2018.",
+        "url": "https://asecho.org/wp-content/uploads/2018/08/WFTF-Chamber-Quantification-Summary-Doc-Final-July-18.pdf"
+      },
+      {
+        "id": "esc2025",
+        "citation": "Praz F, Borger MA, Lanz J, et al. 2025 ESC/EACTS Guidelines for the management of valvular heart disease. Eur Heart J 2025.",
+        "url": "https://doi.org/10.1093/eurheartj/ehaf194"
+      },
+      {
+        "id": "accaha2020",
+        "citation": "Otto CM, Nishimura RA, Bonow RO, et al. 2020 ACC/AHA Guideline for the Management of Patients With Valvular Heart Disease. Circulation 2021;143:e72–e227.",
+        "url": "https://doi.org/10.1161/CIR.0000000000000923"
+      }
+    ],
+    "groups": [
+      {
+        "id": "lv",
+        "name": "Left ventricle",
+        "short": "LV",
+        "measures": [
+          {
+            "id": "lvef",
+            "name": "LV ejection fraction",
+            "short": "LVEF",
+            "unit": "%",
+            "dir": "low",
+            "word": "reduced",
+            "method": "2D biplane method of disks",
+            "male": {
+              "normal": [
+                52,
+                72
+              ],
+              "cuts": [
+                52,
+                41,
+                30
+              ]
+            },
+            "female": {
+              "normal": [
+                54,
+                74
+              ],
+              "cuts": [
+                54,
+                41,
+                30
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 4",
+            "note": "The 2015 update calls these partitions experience-based and to be read with caution; it gives no abnormally high category."
+          },
+          {
+            "id": "lvidd",
+            "name": "LV end-diastolic diameter",
+            "unit": "mm",
+            "method": "Parasternal long axis, end-diastole, at the mitral leaflet tips",
+            "word": "dilated",
+            "male": {
+              "normal": [
+                42.0,
+                58.4
+              ],
+              "cuts": [
+                58.4
+              ]
+            },
+            "female": {
+              "normal": [
+                37.8,
+                52.2
+              ],
+              "cuts": [
+                52.2
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 2",
+            "dir": "high"
+          },
+          {
+            "id": "lvids",
+            "name": "LV end-systolic diameter",
+            "unit": "mm",
+            "method": "Parasternal long axis, end-systole",
+            "word": "increased",
+            "male": {
+              "normal": [
+                25.0,
+                39.8
+              ],
+              "cuts": [
+                39.8
+              ]
+            },
+            "female": {
+              "normal": [
+                21.6,
+                34.8
+              ],
+              "cuts": [
+                34.8
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 2",
+            "dir": "high"
+          },
+          {
+            "id": "lvedvi",
+            "name": "LV end-diastolic volume index",
+            "unit": "mL/m²",
+            "method": "2D biplane method of disks",
+            "word": "dilated",
+            "male": {
+              "normal": [
+                34,
+                74
+              ],
+              "cuts": [
+                74
+              ]
+            },
+            "female": {
+              "normal": [
+                29,
+                61
+              ],
+              "cuts": [
+                61
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 2",
+            "index": "bsa",
+            "rawUnit": "mL",
+            "dir": "high"
+          },
+          {
+            "id": "lvesvi",
+            "name": "LV end-systolic volume index",
+            "unit": "mL/m²",
+            "method": "2D biplane method of disks",
+            "word": "increased",
+            "male": {
+              "normal": [
+                11,
+                31
+              ],
+              "cuts": [
+                31
+              ]
+            },
+            "female": {
+              "normal": [
+                8,
+                24
+              ],
+              "cuts": [
+                24
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 2",
+            "index": "bsa",
+            "rawUnit": "mL",
+            "dir": "high"
+          },
+          {
+            "id": "ivsd",
+            "name": "Septal wall thickness",
+            "unit": "cm",
+            "method": "Parasternal long axis, end-diastole",
+            "word": "increased",
+            "male": {
+              "normal": [
+                0.6,
+                1.0
+              ],
+              "cuts": [
+                1.0
+              ]
+            },
+            "female": {
+              "normal": [
+                0.6,
+                0.9
+              ],
+              "cuts": [
+                0.9
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 6",
+            "dir": "high"
+          },
+          {
+            "id": "pwd",
+            "name": "Posterior wall thickness",
+            "unit": "cm",
+            "method": "Parasternal long axis, end-diastole",
+            "word": "increased",
+            "male": {
+              "normal": [
+                0.6,
+                1.0
+              ],
+              "cuts": [
+                1.0
+              ]
+            },
+            "female": {
+              "normal": [
+                0.6,
+                0.9
+              ],
+              "cuts": [
+                0.9
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 6",
+            "dir": "high"
+          },
+          {
+            "id": "rwt",
+            "name": "Relative wall thickness",
+            "unit": "",
+            "method": "2 × posterior wall thickness ÷ LV end-diastolic diameter",
+            "word": "increased",
+            "male": {
+              "normal": [
+                0.24,
+                0.42
+              ],
+              "cuts": [
+                0.42
+              ]
+            },
+            "female": {
+              "normal": [
+                0.22,
+                0.42
+              ],
+              "cuts": [
+                0.42
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 6",
+            "note": "Above 0.42 the geometry is concentric: concentric remodelling with a normal LV mass index, concentric hypertrophy with an increased one.",
+            "dir": "high"
+          },
+          {
+            "id": "lvmi",
+            "name": "LV mass index (linear)",
+            "unit": "g/m²",
+            "method": "Linear (cube) formula from end-diastolic septum, diameter and posterior wall",
+            "word": "increased",
+            "male": {
+              "normal": [
+                49,
+                115
+              ],
+              "cuts": [
+                115
+              ]
+            },
+            "female": {
+              "normal": [
+                43,
+                95
+              ],
+              "cuts": [
+                95
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 6",
+            "index": "bsa",
+            "rawUnit": "g",
+            "dir": "high"
+          },
+          {
+            "id": "lvmi2d",
+            "name": "LV mass index (2D)",
+            "unit": "g/m²",
+            "method": "2D method",
+            "word": "increased",
+            "male": {
+              "normal": [
+                50,
+                102
+              ],
+              "cuts": [
+                102
+              ]
+            },
+            "female": {
+              "normal": [
+                44,
+                88
+              ],
+              "cuts": [
+                88
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 6",
+            "index": "bsa",
+            "rawUnit": "g",
+            "dir": "high"
+          }
+        ],
+        "note": "Normal ranges are mean ± 2 SD (Lang 2015). The update gives mild, moderate and severe partitions for LV size, wall thickness and mass only in its online appendix, so those rows read normal or above the normal range; LVEF carries the published partitions."
+      },
+      {
+        "id": "la",
+        "name": "Left atrium",
+        "short": "LA",
+        "measures": [
+          {
+            "id": "lavi",
+            "name": "LA maximum volume index",
+            "short": "LA volume index",
+            "unit": "mL/m²",
+            "rawUnit": "mL",
+            "index": "bsa",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Biplane, end-systole (largest LA volume)",
+            "all": {
+              "normal": [
+                16,
+                34
+              ],
+              "cuts": [
+                34,
+                41,
+                48
+              ]
+            },
+            "source": "lang2015",
+            "ref": "Lang 2015, Table 4",
+            "note": "One set for both sexes: indexing to BSA accounts for the difference."
+          },
+          {
+            "id": "lad",
+            "name": "LA anteroposterior diameter",
+            "short": "LA diameter",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Parasternal long axis, end-systole",
+            "male": {
+              "normal": [
+                3.0,
+                4.0
+              ],
+              "cuts": [
+                4.0
+              ]
+            },
+            "female": {
+              "normal": [
+                2.7,
+                3.8
+              ],
+              "cuts": [
+                3.8
+              ]
+            },
+            "source": "ase_wftf2018",
+            "ref": "ASE quick reference 2018",
+            "note": "The 2015 update keeps the earlier normal values and advises against using the diameter alone; LA volume index is the measure to report."
+          }
+        ]
+      },
+      {
+        "id": "rv",
+        "name": "Right ventricle and tricuspid annulus",
+        "short": "RV",
+        "measures": [
+          {
+            "id": "rvb",
+            "name": "RV basal diameter",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "RV-focused four-chamber view, end-diastole, just below the tricuspid annulus",
+            "all": {
+              "cuts": [
+                4.1,
+                4.4,
+                4.9
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "indexed": {
+              "unit": "cm/m²",
+              "all": {
+                "cuts": [
+                  2.4,
+                  2.6,
+                  2.9
+                ]
+              },
+              "edges": [
+                "inclusive",
+                "exclusive",
+                "exclusive"
+              ]
+            }
+          },
+          {
+            "id": "rvm",
+            "name": "RV mid diameter",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "RV-focused four-chamber view, end-diastole, midway to the apex",
+            "all": {
+              "cuts": [
+                3.5,
+                3.8,
+                4.2
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rvl",
+            "name": "RV length",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "RV-focused four-chamber view, end-diastole, base to apex; depends on probe rotation",
+            "all": {
+              "cuts": [
+                8.2,
+                8.9,
+                9.6
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "ta",
+            "name": "Tricuspid annulus",
+            "unit": "mm",
+            "dir": "high",
+            "word": "dilated",
+            "edge": "inclusive",
+            "method": "End-diastole, four-chamber view",
+            "all": {
+              "cuts": [
+                40
+              ]
+            },
+            "indexed": {
+              "unit": "mm/m²",
+              "all": {
+                "cuts": [
+                  21
+                ]
+              }
+            },
+            "source": "zoghbi2017",
+            "ref": "ASE 2017 regurgitation guideline",
+            "note": "Significant annular dilatation is 40 mm or more, or above 21 mm/m² (ASE 2017; ESC/EACTS 2025 uses the same values). At left-sided valve surgery, tricuspid repair can be considered for mild secondary TR with a dilated annulus (ESC/EACTS 2025, IIb); ACC/AHA 2020 uses an annulus above 4.0 cm for progressive TR (2a)."
+          },
+          {
+            "id": "rvotplax",
+            "name": "RVOT diameter, long axis",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Parasternal long axis, end-diastole",
+            "all": {
+              "cuts": [
+                3.3,
+                3.5,
+                3.9
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rvotprox",
+            "name": "RVOT proximal diameter",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Parasternal short axis at the aortic valve, end-diastole",
+            "all": {
+              "cuts": [
+                3.4,
+                3.8,
+                4.1
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rvotdist",
+            "name": "RVOT distal diameter",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Parasternal short axis, just below the pulmonary valve, end-diastole",
+            "all": {
+              "cuts": [
+                2.9,
+                3.0,
+                3.3
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rvwt",
+            "name": "RV wall thickness",
+            "unit": "cm",
+            "dir": "high",
+            "word": "increased",
+            "method": "Subcostal, end-diastole, free wall without trabeculation or fat",
+            "all": {
+              "cuts": [
+                0.5,
+                0.7,
+                0.9
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rveda",
+            "name": "RV end-diastolic area",
+            "unit": "cm²",
+            "dir": "high",
+            "word": "dilated",
+            "method": "RV-focused four-chamber view, trabeculation in the cavity",
+            "all": {
+              "cuts": [
+                25.0,
+                28.0,
+                32.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "indexed": {
+              "unit": "cm²/m²",
+              "all": {
+                "cuts": [
+                  14.0,
+                  15.0,
+                  17.0
+                ]
+              },
+              "edges": [
+                "inclusive",
+                "exclusive",
+                "exclusive"
+              ]
+            }
+          },
+          {
+            "id": "rvesa",
+            "name": "RV end-systolic area",
+            "unit": "cm²",
+            "dir": "high",
+            "word": "increased",
+            "method": "RV-focused four-chamber view, trabeculation in the cavity",
+            "all": {
+              "cuts": [
+                14.0,
+                16.0,
+                19.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "indexed": {
+              "unit": "cm²/m²",
+              "all": {
+                "cuts": [
+                  8.0,
+                  9.0,
+                  11.0
+                ]
+              },
+              "edges": [
+                "inclusive",
+                "exclusive",
+                "exclusive"
+              ]
+            }
+          },
+          {
+            "id": "rvedv3d",
+            "name": "RV 3D end-diastolic volume",
+            "unit": "mL",
+            "dir": "high",
+            "word": "dilated",
+            "method": "3D full volume",
+            "all": {
+              "cuts": [
+                130.0,
+                150.0,
+                170.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "indexed": {
+              "unit": "mL/m²",
+              "all": {
+                "cuts": [
+                  90.0,
+                  103.0,
+                  115.0
+                ]
+              },
+              "edges": [
+                "inclusive",
+                "exclusive",
+                "exclusive"
+              ]
+            }
+          },
+          {
+            "id": "rvesv3d",
+            "name": "RV 3D end-systolic volume",
+            "unit": "mL",
+            "dir": "high",
+            "word": "increased",
+            "method": "3D full volume",
+            "all": {
+              "cuts": [
+                66.0,
+                77.0,
+                89.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "indexed": {
+              "unit": "mL/m²",
+              "all": {
+                "cuts": [
+                  41.0,
+                  48.0,
+                  55.0
+                ]
+              },
+              "edges": [
+                "inclusive",
+                "exclusive",
+                "exclusive"
+              ]
+            }
+          }
+        ],
+        "note": "ASE 2025 cutoffs, the same for both sexes; rows with an indexed set also grade the value per m² once height and weight are in. 41 mm basal diameter and 5 mm wall thickness, normal in 2015, read as mild here."
+      },
+      {
+        "id": "rvf",
+        "name": "Right ventricular function",
+        "short": "RV function",
+        "measures": [
+          {
+            "id": "tapse",
+            "name": "TAPSE",
+            "unit": "cm",
+            "dir": "low",
+            "word": "reduced",
+            "method": "M-mode at the lateral tricuspid annulus",
+            "all": {
+              "cuts": [
+                1.7,
+                1.3,
+                1.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "inclusive",
+              "inclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "note": "Underestimated after cardiothoracic surgery; fractional area change is the better index then (ASE 2025)."
+          },
+          {
+            "id": "sprime",
+            "name": "Tricuspid annular S′",
+            "unit": "cm/s",
+            "dir": "low",
+            "word": "reduced",
+            "method": "Pulsed tissue Doppler at the lateral tricuspid annulus",
+            "all": {
+              "cuts": [
+                9.5,
+                7.2,
+                5.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "inclusive",
+              "inclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "fac",
+            "name": "RV fractional area change",
+            "unit": "%",
+            "dir": "low",
+            "word": "reduced",
+            "method": "(end-diastolic − end-systolic area) ÷ end-diastolic area",
+            "all": {
+              "cuts": [
+                35.0,
+                29.0,
+                22.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "inclusive",
+              "inclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rvef3d",
+            "name": "RV ejection fraction (3D)",
+            "unit": "%",
+            "dir": "low",
+            "word": "reduced",
+            "method": "3D full volume",
+            "all": {
+              "cuts": [
+                45.0,
+                39.0,
+                32.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "inclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rvfws",
+            "name": "RV free-wall strain",
+            "unit": "%",
+            "dir": "low",
+            "word": "reduced",
+            "method": "Speckle tracking, three free-wall segments; enter the magnitude",
+            "all": {
+              "cuts": [
+                20.0,
+                15.0,
+                11.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "abs": true
+          },
+          {
+            "id": "rvgls",
+            "name": "RV global strain",
+            "unit": "%",
+            "dir": "low",
+            "word": "reduced",
+            "method": "Speckle tracking, six segments including the septum; enter the magnitude",
+            "abs": true,
+            "all": {
+              "cuts": [
+                17.0,
+                13.0,
+                9.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "inclusive",
+              "inclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rimppw",
+            "name": "RV index of myocardial performance (pulsed Doppler)",
+            "unit": "",
+            "dir": "high",
+            "word": "increased",
+            "method": "Tricuspid inflow and RV outflow Doppler",
+            "all": {
+              "cuts": [
+                0.4,
+                0.49,
+                0.57
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "inclusive",
+              "inclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "rimptdi",
+            "name": "RV index of myocardial performance (tissue Doppler)",
+            "unit": "",
+            "dir": "high",
+            "word": "increased",
+            "method": "Tissue Doppler at the lateral tricuspid annulus",
+            "all": {
+              "cuts": [
+                0.55,
+                0.62,
+                0.7
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "inclusive",
+              "inclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          }
+        ],
+        "note": "ASE 2025 cutoffs. Strain is tabulated as magnitude: enter 22 for −22%."
+      },
+      {
+        "id": "ra",
+        "name": "Right atrium",
+        "short": "RA",
+        "measures": [
+          {
+            "id": "ramaj",
+            "name": "RA major dimension",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "RA-focused four-chamber view, end-systole, annulus to the roof",
+            "all": {
+              "cuts": [
+                5.4,
+                5.8,
+                6.3
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "ramin",
+            "name": "RA minor dimension",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "RA-focused four-chamber view, end-systole, free wall to septum",
+            "all": {
+              "cuts": [
+                4.2,
+                4.7,
+                5.1
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "raa",
+            "name": "RA area",
+            "unit": "cm²",
+            "dir": "high",
+            "word": "dilated",
+            "method": "RA-focused four-chamber view, end-systole, without the venae cavae or appendage",
+            "all": {
+              "cuts": [
+                19.0,
+                22.0,
+                24.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1"
+          },
+          {
+            "id": "ravi",
+            "name": "RA volume index (disks)",
+            "unit": "mL/m²",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Single-plane method of disks, end-systole",
+            "all": {
+              "cuts": [
+                30.0,
+                36.0,
+                41.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "index": "bsa",
+            "rawUnit": "mL"
+          },
+          {
+            "id": "ravial",
+            "name": "RA volume index (area-length)",
+            "unit": "mL/m²",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Single-plane area-length, end-systole",
+            "all": {
+              "cuts": [
+                33.0,
+                38.0,
+                44.0
+              ]
+            },
+            "edges": [
+              "inclusive",
+              "exclusive",
+              "exclusive"
+            ],
+            "source": "mukherjee2025",
+            "ref": "ASE 2025, Table 1",
+            "index": "bsa",
+            "rawUnit": "mL"
+          }
+        ],
+        "note": "ASE 2025 cutoffs, the same for both sexes; RA volume can be enlarged in athletes and men even after indexing."
+      },
+      {
+        "id": "ao",
+        "name": "Aortic root",
+        "short": "Aorta",
+        "measures": [
+          {
+            "id": "sov",
+            "name": "Aortic root at the sinuses",
+            "short": "Aortic sinuses",
+            "unit": "cm",
+            "dir": "high",
+            "word": "dilated",
+            "edge": "inclusive",
+            "method": "End-diastole, leading edge to leading edge",
+            "byAge": {
+              "perM2": 0.5,
+              "male": {
+                "refBsa": 2.0,
+                "rows": [
+                  {
+                    "from": 15,
+                    "to": 29,
+                    "uln": 3.7,
+                    "mean": 3.3
+                  },
+                  {
+                    "from": 30,
+                    "to": 39,
+                    "uln": 3.8,
+                    "mean": 3.4
+                  },
+                  {
+                    "from": 40,
+                    "to": 49,
+                    "uln": 3.9,
+                    "mean": 3.5
+                  },
+                  {
+                    "from": 50,
+                    "to": 59,
+                    "uln": 4.0,
+                    "mean": 3.6
+                  },
+                  {
+                    "from": 60,
+                    "to": 69,
+                    "uln": 4.1,
+                    "mean": 3.7
+                  },
+                  {
+                    "from": 70,
+                    "uln": 4.2,
+                    "mean": 3.8
+                  }
+                ]
+              },
+              "female": {
+                "refBsa": 1.7,
+                "rows": [
+                  {
+                    "from": 15,
+                    "to": 29,
+                    "uln": 3.3,
+                    "mean": 2.9
+                  },
+                  {
+                    "from": 30,
+                    "to": 39,
+                    "uln": 3.4,
+                    "mean": 3.0
+                  },
+                  {
+                    "from": 40,
+                    "to": 49,
+                    "uln": 3.6,
+                    "mean": 3.2
+                  },
+                  {
+                    "from": 50,
+                    "to": 59,
+                    "uln": 3.6,
+                    "mean": 3.2
+                  },
+                  {
+                    "from": 60,
+                    "to": 69,
+                    "uln": 3.7,
+                    "mean": 3.3
+                  },
+                  {
+                    "from": 70,
+                    "uln": 3.9,
+                    "mean": 3.4
+                  }
+                ]
+              }
+            },
+            "source": "goldstein2015",
+            "ref": "ASE/EACVI aorta 2015, Tables 1–2",
+            "note": "The upper limit is 2 SD above the predicted mean for age and sex at the reference BSA (men 2.0, women 1.7 m²), moved 0.5 mm for each 0.1 m² of BSA; at or above it the root is dilated (z-score of 2 or more)."
+          }
+        ],
+        "note": "Lang 2015 Table 14 means (± SD), men and women: annulus 2.6 ± 0.3 and 2.3 ± 0.2 cm; sinuses 3.4 ± 0.3 and 3.0 ± 0.3 cm; sinotubular junction 2.9 ± 0.3 and 2.6 ± 0.3 cm; proximal ascending aorta 3.0 ± 0.4 and 2.7 ± 0.4 cm."
+      }
+    ],
+    "ivc": {
+      "group": "ra",
+      "cut": 2.1,
+      "method": "Subcostal view, end-expiration, 0.5–3 cm from the RA junction",
+      "notes": [
+        "Secondary signs of raised RA pressure: RA enlargement, the interatrial septum bowing into the LA throughout the cycle, restrictive RV filling, tricuspid E/e′ above 6, diastolic predominance of hepatic vein flow (systolic filling fraction below 55%).",
+        "An IVC above 2.5 cm without respiratory variation, with spontaneous contrast or colour-flow reflux: 20 mmHg can be considered. A small, collapsed IVC suggests RA pressure below 3 mmHg (hypovolemia).",
+        "On positive-pressure ventilation the collapse cannot be used; an IVC of 2.1 cm or less in an intubated patient identifies RA pressure below 10 mmHg.",
+        "A dilated IVC can be normal in young adults and athletes."
+      ]
+    },
+    "notes": [
+      "All reference values come from transthoracic studies in healthy adults; none of these guidelines gives TEE-specific values, so applying them to intraoperative TEE is an extrapolation.",
+      "Body surface area by DuBois & DuBois; the guidelines do not name a formula.",
+      "The ASE 2025 right-heart guideline replaces the 2010 one; RV and RA cutoffs here follow its current Table 1."
     ]
   }
 }

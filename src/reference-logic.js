@@ -947,17 +947,45 @@
     return 0.007184 * Math.pow(heightCm, 0.725) * Math.pow(weightKg, 0.425);
   };
   R.echo = {
-    /** The reference values that apply to this sex (sex-specific first, then the shared set). */
-    ref(m, sex) { return (sex === 'female' ? m.female : m.male) || m.all || null; },
+    /** A reference value as printed (58.4, 0.42), or a computed one to two decimals below 100 and one above. */
+    fmt(v) {
+      const d = Math.abs(v) < 100 ? 100 : 10;
+      return String(rnd(v * d) / d);
+    },
+    /** The reference values for this sex and patient: the sex-specific set first, then the shared one. An
+        age-table row (the aortic sinuses) builds its upper limit from age, sex and BSA (ctx: { age, bsa }). */
+    ref(m, sex, ctx) {
+      if (m.byAge) {
+        const lim = R.echo.ageLimit(m, sex, ctx);
+        return lim ? { normal: null, cuts: [lim.value] } : null;
+      }
+      return (sex === 'female' ? m.female : m.male) || m.all || null;
+    },
+    /** Goldstein 2015 Tables 1–2: the age band's upper limit at the reference BSA, moved 0.5 mm per 0.1 m². */
+    ageLimit(m, sex, ctx) {
+      const t = m.byAge && m.byAge[sex === 'female' ? 'female' : 'male'];
+      const age = ctx && ctx.age;
+      if (!t || !(age > 0)) return null;
+      const a = Math.floor(age);
+      const row = t.rows.find((r) => a >= r.from && (r.to === undefined || r.to === null || a <= r.to));
+      if (!row) return null;
+      const bsa = ctx.bsa > 0 ? ctx.bsa : null;
+      const value = bsa ? row.uln + (bsa - t.refBsa) * m.byAge.perM2 : row.uln;
+      return { value: rnd(value * 1000) / 1000, base: row.uln, row, refBsa: t.refBsa, adjusted: !!bsa };
+    },
+    /** Whether the cut value itself belongs to the worse grade (per-cut edges, else the row's edge). */
+    inclusive(m, i) { return (m.edges ? m.edges[i] : m.edge) === 'inclusive'; },
     /** -1 outside the normal range on the harmless side, 0 normal, 1–3 mildly/moderately/severely abnormal,
         4 abnormal where the guideline gives a single cutoff. null when no value or no reference. */
-    grade(m, sex, v) {
-      const r = R.echo.ref(m, sex);
+    grade(m, sex, v, ctx) {
+      const r = R.echo.ref(m, sex, ctx);
       if (!r || v === null || v === undefined || !Number.isFinite(v)) return null;
       const cuts = r.cuts || [];
-      const n = m.dir === 'low'
-        ? cuts.filter((c) => (m.edge === 'inclusive' ? v <= c : v < c)).length
-        : cuts.filter((c) => (m.edge === 'inclusive' ? v >= c : v > c)).length;
+      let n = 0;
+      cuts.forEach((c, i) => {
+        const inc = R.echo.inclusive(m, i);
+        if (m.dir === 'low' ? (inc ? v <= c : v < c) : (inc ? v >= c : v > c)) n++;
+      });
       if (n === 0) {
         if (r.normal && m.dir !== 'low' && v < r.normal[0]) return -1;
         if (r.normal && m.dir === 'low' && v > r.normal[1]) return -1;
@@ -978,22 +1006,50 @@
       }
       return '';
     },
-    /** The value to grade: indexed measures take an indexed entry as is, or a raw entry divided by BSA. */
+    /** The cutoffs in words, each grade by the limit on its better side: "Normal < 4.1", "mild ≤ 4.4",
+        "moderate ≤ 4.9", "severe > 4.9"; a single cutoff reads "Normal 42–58.4", "dilated > 58.4". */
+    ranges(m, sex, ctx) {
+      const r = R.echo.ref(m, sex, ctx);
+      if (!r) return [];
+      const f = R.echo.fmt, cuts = r.cuts || [], low = m.dir === 'low', inc = (i) => R.echo.inclusive(m, i);
+      const better = (i) => (low ? (inc(i) ? '> ' : '≥ ') : (inc(i) ? '< ' : '≤ ')) + f(cuts[i]);
+      const worse = (i) => (low ? (inc(i) ? '≤ ' : '< ') : (inc(i) ? '≥ ' : '> ')) + f(cuts[i]);
+      const out = [{ grade: 0, text: 'Normal ' + (r.normal ? f(r.normal[0]) + '–' + f(r.normal[1]) : better(0)) }];
+      if (cuts.length >= 3) {
+        out.push({ grade: 1, text: 'mild ' + better(1) }, { grade: 2, text: 'moderate ' + better(2) }, { grade: 3, text: 'severe ' + worse(2) });
+      } else if (cuts.length) out.push({ grade: 4, text: (m.word || 'abnormal') + ' ' + worse(0) });
+      return out;
+    },
+    /** The row's BSA-indexed cutoffs as a row of their own (direction and words from the parent). */
+    indexed(m) {
+      const x = m.indexed;
+      if (!x) return null;
+      return { id: m.id + '-indexed', name: m.name, dir: m.dir, word: m.word, unit: x.unit, edge: x.edge, edges: x.edges, male: x.male, female: x.female, all: x.all };
+    },
+    /** The value to grade: indexed rows take an indexed entry as is, or a raw entry divided by BSA. Rows marked
+        abs (strain) read a negative entry as its magnitude. */
     value(m, text, raw, bsa) {
-      const v = R.num(text);
+      let v = R.num(text);
+      if (v === null && m.abs) {
+        const neg = parseFloat(String(text === null || text === undefined ? '' : text).trim().replace(',', '.'));
+        if (Number.isFinite(neg) && neg < 0) v = -neg;
+      }
       if (v === null) return null;
       if (m.index === 'bsa' && raw) return bsa ? v / bsa : null;
       return v;
     },
-    /** Band edges for drawing: [{ from, to, grade }] across a padded span around the reference values. */
-    bands(m, sex) {
-      const r = R.echo.ref(m, sex);
+    /** Band edges for drawing: [{ from, to, grade }] across a padded span around the reference values. Without a
+        published normal range the normal band is drawn as wide as the abnormal ones together. */
+    bands(m, sex, ctx) {
+      const r = R.echo.ref(m, sex, ctx);
       if (!r) return [];
       const cuts = (r.cuts || []).slice().sort((a, b) => a - b);
       const lo = r.normal ? r.normal[0] : null, hi = r.normal ? r.normal[1] : null;
       const all = cuts.concat(lo !== null ? [lo] : [], hi !== null ? [hi] : []);
+      if (!all.length) return [];
       const min = Math.min(...all), max = Math.max(...all), pad = (max - min || Math.abs(max) || 1) * 0.25;
-      const start = Math.max(0, min - pad), end = max + pad;
+      const ext = r.normal ? pad : Math.max(pad, max - min);
+      const start = Math.max(0, min - (m.dir === 'low' ? pad : ext)), end = max + (m.dir === 'low' ? ext : pad);
       const out = [];
       if (m.dir === 'low') {
         // ascending cuts: severe below the first, then moderate, mild, normal up to the top of the normal range
@@ -1012,13 +1068,20 @@
       }
       return out.filter((b) => b.to > b.from);
     },
-    /** Right-atrial pressure from IVC diameter (cm) and whether it collapses by more than half with a sniff. */
-    rap(ivcCm, collapses, cut) {
+    /** Right-atrial pressure from IVC diameter (cm): with spontaneous breathing, whether it collapses by 50% or
+        more with a sniff (ASE 2025); on positive-pressure ventilation only a small IVC says anything. */
+    rap(ivcCm, collapses, cut, ventilated) {
       const c = cut || 2.1;
-      if (!(ivcCm > 0) || collapses === null || collapses === undefined) return null;
-      if (ivcCm <= c && collapses) return { value: 3, range: '0–5', label: 'Normal' };
-      if (ivcCm > c && !collapses) return { value: 15, range: '10–20', label: 'High' };
-      return { value: 8, range: '5–10', label: 'Intermediate' };
+      if (!(ivcCm > 0)) return null;
+      if (ventilated) {
+        return ivcCm <= c
+          ? { value: null, range: 'below 10', label: 'Likely below 10 mmHg', detail: `An IVC of ${R.echo.fmt(c)} cm or less in an intubated patient identifies RA pressure below 10 mmHg.` }
+          : { value: null, range: null, label: 'Not estimable', detail: 'On positive-pressure ventilation a larger IVC, and its collapse, do not estimate RA pressure.' };
+      }
+      if (collapses === null || collapses === undefined) return null;
+      if (ivcCm <= c && collapses) return { value: 3, range: '0–5', label: 'Normal', detail: null };
+      if (ivcCm > c && !collapses) return { value: 15, range: '10–20', label: 'Elevated', detail: null };
+      return { value: 8, range: '5–10', label: 'Indeterminate', detail: 'A normal-size IVC that does not collapse, or a dilated one that does: lower to 3 mmHg without secondary signs of raised RA pressure, raise to 15 with them.' };
     },
   };
 

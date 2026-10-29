@@ -179,6 +179,26 @@ def main(path):
         src_ids = {s.get("id") for s in echo.get("sources") or []}
         for s_ in echo.get("sources") or []:
             need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"echo source {s_.get('id')}: citation required")
+            need(s_.get("url") is None or str(s_["url"]).startswith("https://"), f"echo source {s_.get('id')}: url must be https")
+
+        def check_refs(mid, holder, low, label):
+            """Reference sets and edges of a row (or of its indexed cutoffs)."""
+            refs_ = [holder.get(k) for k in ("male", "female", "all") if holder.get(k) is not None]
+            need(refs_, f"echo measure {mid}: {label} needs male/female or all reference values")
+            edges = holder.get("edges")
+            need(holder.get("edge") in (None, "inclusive"), f"echo measure {mid}: {label} edge must be inclusive")
+            need(edges is None or (isinstance(edges, list) and all(e in ("inclusive", "exclusive") for e in edges)), f"echo measure {mid}: {label} edges must be inclusive or exclusive")
+            for r in refs_:
+                cuts = r.get("cuts") or []
+                need(len(cuts) in (1, 3) and all(isinstance(c, (int, float)) for c in cuts), f"echo measure {mid}: {label} cuts must be 1 or 3 numbers")
+                need(cuts == sorted(cuts, reverse=low), f"echo measure {mid}: {label} cuts must run from normal towards severe")
+                need(edges is None or len(edges) == len(cuts), f"echo measure {mid}: {label} needs one edge per cut")
+                n = r.get("normal")
+                if n is not None:
+                    need(isinstance(n, list) and len(n) == 2 and n[0] < n[1], f"echo measure {mid}: {label} normal must be [low, high]")
+                    if n and len(n) == 2 and cuts:
+                        need((n[1] <= cuts[0] + 1e-9) if not low else (n[0] >= cuts[0] - 1e-9), f"echo measure {mid}: {label} first cut must sit at the edge of the normal range")
+
         gids, mids = set(), set()
         for g in echo.get("groups") or []:
             gid = g.get("id", "?")
@@ -188,24 +208,35 @@ def main(path):
             for m in g.get("measures") or []:
                 mid = m.get("id", "?")
                 need(mid not in mids, f"echo measure {mid}: duplicate id"); mids.add(mid)
-                for key in ("name", "unit"):
-                    need(isinstance(m.get(key), str) and m[key].strip(), f"echo measure {mid}: {key} required")
+                need(isinstance(m.get("name"), str) and m["name"].strip(), f"echo measure {mid}: name required")
+                need(isinstance(m.get("unit"), str), f"echo measure {mid}: unit required (empty for a ratio)")
                 need(m.get("dir") in (None, "high", "low"), f"echo measure {mid}: dir must be high or low")
                 need(m.get("index") in (None, "bsa"), f"echo measure {mid}: index must be bsa")
-                need(m.get("edge") in (None, "inclusive"), f"echo measure {mid}: edge must be inclusive")
+                need(m.get("index") != "bsa" or isinstance(m.get("rawUnit"), str), f"echo measure {mid}: an indexed row needs rawUnit")
+                need(m.get("abs") in (None, True), f"echo measure {mid}: abs must be true when present")
                 need(m.get("source") in src_ids, f"echo measure {mid}: source must name an echo source")
-                refs_ = [m.get(k) for k in ("male", "female", "all") if m.get(k) is not None]
-                need(refs_, f"echo measure {mid}: needs male/female or all reference values")
-                for r in refs_:
-                    cuts = r.get("cuts") or []
-                    need(len(cuts) in (1, 3) and all(isinstance(c, (int, float)) for c in cuts), f"echo measure {mid}: cuts must be 1 or 3 numbers")
-                    need(cuts == sorted(cuts, reverse=(m.get("dir") == "low")), f"echo measure {mid}: cuts must run from normal towards severe")
-                    n = r.get("normal")
-                    if n is not None:
-                        need(isinstance(n, list) and len(n) == 2 and n[0] < n[1], f"echo measure {mid}: normal must be [low, high]")
-                        if n and len(n) == 2 and cuts:
-                            edge = cuts[0]
-                            need((n[1] <= edge + 1e-9) if m.get("dir") != "low" else (n[0] >= edge - 1e-9), f"echo measure {mid}: the first cut must sit at the edge of the normal range")
+                low = m.get("dir") == "low"
+                by_age = m.get("byAge")
+                if by_age is not None:
+                    need(isinstance(by_age.get("perM2"), (int, float)), f"echo measure {mid}: byAge.perM2 required")
+                    for sx in ("male", "female"):
+                        t = by_age.get(sx) or {}
+                        need(isinstance(t.get("refBsa"), (int, float)) and t["refBsa"] > 0, f"echo measure {mid}: byAge.{sx}.refBsa required")
+                        rows = t.get("rows") or []
+                        need(rows, f"echo measure {mid}: byAge.{sx}.rows required")
+                        for i, row in enumerate(rows):
+                            need(isinstance(row.get("from"), int) and isinstance(row.get("uln"), (int, float)), f"echo measure {mid}: byAge.{sx} row needs from and uln")
+                            last = i == len(rows) - 1
+                            need((row.get("to") is None) == last, f"echo measure {mid}: byAge.{sx}: only the last band is open-ended")
+                            if i:
+                                need(row["from"] == rows[i - 1]["to"] + 1, f"echo measure {mid}: byAge.{sx} bands must be contiguous")
+                else:
+                    check_refs(mid, m, low, "row")
+                if m.get("indexed") is not None:
+                    x = m["indexed"]
+                    need(isinstance(x.get("unit"), str) and x["unit"].endswith("/m²"), f"echo measure {mid}: indexed.unit must be per m²")
+                    need(m.get("index") is None, f"echo measure {mid}: a row is either indexed or carries indexed cutoffs")
+                    check_refs(mid, x, low, "indexed")
         ivc = echo.get("ivc")
         if ivc is not None:
             need(ivc.get("group") in gids, "echo.ivc.group must name an echo group")

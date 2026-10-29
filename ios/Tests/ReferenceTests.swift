@@ -599,23 +599,96 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(EchoCalc.bands(lv, .male).map(\.grade), [-1, 0, 1, 2, 3])
         XCTAssertEqual(EchoCalc.bsa(heightCm: 175, weightKg: 70, formula: nil) ?? 0, 1.848, accuracy: 0.001)
         XCTAssertEqual(EchoCalc.bsa(heightCm: 175, weightKg: 70, formula: "mosteller") ?? 0, 1.845, accuracy: 0.001)
-        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: true, cut: nil)?.value, 3)
-        XCTAssertEqual(EchoCalc.rap(ivcCm: 2.4, collapses: false, cut: nil)?.value, 15)
-        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: false, cut: nil)?.value, 8)
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: true, cut: nil)?.label, "Normal")
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 2.4, collapses: false, cut: nil)?.label, "Elevated")
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: false, cut: nil)?.label, "Indeterminate")
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: true, cut: nil).flatMap(\.value), 3)
+    }
+
+    func testEchoEdgesRangesIndexedAndAgeTables() {
+        // ASE 2025 RV basal diameter: normal < 4.1, mild ≥ 4.1 to ≤ 4.4, moderate > 4.4 to ≤ 4.9, severe > 4.9
+        var rvb = measure("rvb", word: "dilated", all: EchoRef(normal: nil, cuts: [4.1, 4.4, 4.9]))
+        rvb.edges = ["inclusive", "exclusive", "exclusive"]
+        rvb.indexed = EchoIndexed(unit: "cm/m²", edge: nil, edges: ["inclusive", "exclusive", "exclusive"], male: nil, female: nil, all: EchoRef(normal: nil, cuts: [2.4, 2.6, 2.9]))
+        XCTAssertEqual([4.0, 4.1, 4.4, 4.41, 4.9, 4.91].map { EchoCalc.grade(rvb, .male, $0) }, [0, 1, 1, 2, 2, 3])
+        XCTAssertEqual(EchoCalc.ranges(rvb, .male).map(\.text).joined(separator: " · "), "Normal < 4.1 · mild ≤ 4.4 · moderate ≤ 4.9 · severe > 4.9")
+        let ix = try? XCTUnwrap(EchoCalc.indexed(rvb))
+        XCTAssertEqual(ix?.unit, "cm/m²")
+        XCTAssertEqual(ix.flatMap { EchoCalc.grade($0, .female, 2.4) }, 1)
+        XCTAssertEqual(ix.flatMap { EchoCalc.grade($0, .female, 2.39) }, 0)
+        // TAPSE: normal > 1.7, mild ≤ 1.7 to > 1.3, moderate ≤ 1.3 to > 1.0, severe ≤ 1.0
+        var tapse = measure("tapse", dir: "low", word: "reduced", all: EchoRef(normal: nil, cuts: [1.7, 1.3, 1.0]))
+        tapse.edges = ["inclusive", "inclusive", "inclusive"]
+        XCTAssertEqual([1.8, 1.7, 1.31, 1.3, 1.01, 1.0].map { EchoCalc.grade(tapse, .male, $0) }, [0, 1, 1, 2, 2, 3])
+        XCTAssertEqual(EchoCalc.ranges(tapse, .male).map(\.text).joined(separator: " · "), "Normal > 1.7 · mild > 1.3 · moderate > 1 · severe ≤ 1")
+        let tb = EchoCalc.bands(tapse, .male)
+        XCTAssertEqual(tb.last?.to ?? 0, 2.4, accuracy: 1e-9)
+        XCTAssertEqual(tb.map(\.grade), [3, 2, 1, 0])
+        // 3D RVEF: moderate ≤ 39 to ≥ 32, severe < 32
+        var rvef = measure("rvef", dir: "low", word: "reduced", all: EchoRef(normal: nil, cuts: [45, 39, 32]))
+        rvef.edges = ["inclusive", "inclusive", "exclusive"]
+        XCTAssertEqual([46.0, 45, 39, 32, 31.9].map { EchoCalc.grade(rvef, .male, $0) }, [0, 1, 2, 2, 3])
+        XCTAssertEqual(EchoCalc.ranges(rvef, .male).map(\.text).joined(separator: " · "), "Normal > 45 · mild > 39 · moderate ≥ 32 · severe < 32")
+        let ef = measure("lvef", dir: "low", word: "reduced", male: EchoRef(normal: [52, 72], cuts: [52, 41, 30]))
+        XCTAssertEqual(EchoCalc.ranges(ef, .male).map(\.text).joined(separator: " · "), "Normal 52–72 · mild ≥ 41 · moderate ≥ 30 · severe < 30")
+        let lvidd = measure("lvidd", word: "dilated", male: EchoRef(normal: [42, 58.4], cuts: [58.4]))
+        XCTAssertEqual(EchoCalc.ranges(lvidd, .male).map(\.text).joined(separator: " · "), "Normal 42–58.4 · dilated > 58.4")
+        var ta = measure("ta", edge: "inclusive", word: "dilated", all: EchoRef(normal: nil, cuts: [40]))
+        ta.indexed = EchoIndexed(unit: "mm/m²", edge: nil, edges: nil, male: nil, female: nil, all: EchoRef(normal: nil, cuts: [21]))
+        XCTAssertEqual(EchoCalc.ranges(ta, .male).map(\.text).joined(separator: " · "), "Normal < 40 · dilated ≥ 40")
+        XCTAssertEqual(EchoCalc.indexed(ta).map { EchoCalc.ranges($0, .male).map(\.text).joined(separator: " · ") }, "Normal ≤ 21 · dilated > 21", "the indexed cut keeps its own edge")
+        XCTAssertEqual(EchoCalc.bands(ta, .male).map { [$0.from, $0.to, Double($0.grade)] }, [[30, 40, 0], [40, 50, 4]])
+        // strain is tabulated as magnitude
+        var strain = measure("rvfws", dir: "low", word: "reduced", all: EchoRef(normal: nil, cuts: [20, 15, 11]))
+        strain.abs = true
+        XCTAssertEqual(EchoCalc.value(strain, text: "-22", raw: false, bsa: nil), 22)
+        XCTAssertNil(EchoCalc.value(tapse, text: "-22", raw: false, bsa: nil))
+        // Goldstein 2015 aortic sinuses: men 50–59 4.0 cm at BSA 2.0, ± 0.5 mm per 0.1 m²; z ≥ 2 is dilated
+        var sov = measure("sov", edge: "inclusive", word: "dilated")
+        sov.byAge = EchoByAge(perM2: 0.5,
+                              male: EchoAgeTable(refBsa: 2.0, rows: [EchoAgeRow(from: 15, to: 29, uln: 3.7), EchoAgeRow(from: 50, to: 59, uln: 4.0), EchoAgeRow(from: 70, to: nil, uln: 4.2)]),
+                              female: EchoAgeTable(refBsa: 1.7, rows: [EchoAgeRow(from: 50, to: 59, uln: 3.6)]))
+        XCTAssertEqual(EchoCalc.ageLimit(sov, .male, EchoCalc.Context(age: 55, bsa: 2.2))?.value, 4.1)
+        XCTAssertEqual(EchoCalc.ageLimit(sov, .male, EchoCalc.Context(age: 55, bsa: nil))?.value, 4.0, "no BSA: the reference-BSA limit")
+        XCTAssertEqual(EchoCalc.ageLimit(sov, .female, EchoCalc.Context(age: 59.9, bsa: 1.5))?.value, 3.5)
+        XCTAssertEqual(EchoCalc.ageLimit(sov, .male, EchoCalc.Context(age: 88, bsa: 2.0))?.value, 4.2, "open-ended top band")
+        XCTAssertNil(EchoCalc.ageLimit(sov, .male, EchoCalc.Context(age: 12, bsa: 2.0)), "the adult tables start at 15")
+        XCTAssertEqual([4.05, 4.1].map { EchoCalc.grade(sov, .male, $0, EchoCalc.Context(age: 55, bsa: 2.2)) }, [0, 4])
+        XCTAssertNil(EchoCalc.grade(sov, .male, 4.1), "no age, no grade")
+        // RA pressure on positive-pressure ventilation
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 2.4, collapses: nil, cut: 2.1, ventilated: true)?.label, "Not estimable")
+        XCTAssertEqual(EchoCalc.rap(ivcCm: 1.9, collapses: nil, cut: 2.1, ventilated: true)?.label, "Likely below 10 mmHg")
+        XCTAssertNil(EchoCalc.rap(ivcCm: 1.9, collapses: nil, cut: 2.1, ventilated: false), "spontaneous breathing needs the sniff")
+        XCTAssertEqual([EchoCalc.fmt(58.4), EchoCalc.fmt(3.85000001), EchoCalc.fmt(145.26)], ["58.4", "3.85", "145.3"])
     }
 
     func testEchoBundleDrawsEveryRow() throws {
         guard let echo = try bundled().echo else { return }
         var ids = Set<String>()
+        let ctx = EchoCalc.Context(age: 50, bsa: 1.9)
         for m in echo.groups.flatMap(\.measures) {
             XCTAssertTrue(ids.insert(m.id).inserted, "\(m.id) is unique")
-            for sex in EchoSex.allCases {
-                XCTAssertNotNil(EchoCalc.ref(m, sex), "\(m.id) has \(sex) values")
-                let b = EchoCalc.bands(m, sex)
-                XCTAssertGreaterThanOrEqual(b.count, 2, "\(m.id) draws a strip")
-                for i in b.indices.dropFirst() { XCTAssertEqual(b[i].from, b[i - 1].to, accuracy: 1e-9, "\(m.id) bands are contiguous") }
+            for row in [m, EchoCalc.indexed(m)].compactMap({ $0 }) {
+                for sex in EchoSex.allCases {
+                    XCTAssertNotNil(EchoCalc.ref(row, sex, ctx), "\(m.id) has \(sex) values")
+                    let b = EchoCalc.bands(row, sex, ctx)
+                    XCTAssertGreaterThanOrEqual(b.count, 2, "\(m.id) draws a strip")
+                    for i in b.indices.dropFirst() { XCTAssertEqual(b[i].from, b[i - 1].to, accuracy: 1e-9, "\(m.id) bands are contiguous") }
+                    XCTAssertGreaterThanOrEqual(EchoCalc.ranges(row, sex, ctx).count, 2, "\(m.id) states its ranges")
+                }
             }
         }
+        // spot checks against the printed tables (mirrors tools/test_reference_logic.js)
+        let all = echo.groups.flatMap(\.measures)
+        func m(_ id: String) throws -> EchoMeasure { try XCTUnwrap(all.first { $0.id == id }, id) }
+        XCTAssertEqual(try [4.0, 4.1, 4.4, 4.45, 4.9, 4.95].map { EchoCalc.grade(try m("rvb"), .male, $0) }, [0, 1, 1, 2, 2, 3], "ASE 2025 RV basal diameter")
+        XCTAssertEqual(try [1.75, 1.7, 1.3, 1.0].map { EchoCalc.grade(try m("tapse"), .female, $0) }, [0, 1, 2, 3], "ASE 2025 TAPSE")
+        XCTAssertEqual(try [34.0, 34.5, 41, 48, 48.5].map { EchoCalc.grade(try m("lavi"), .male, $0) }, [0, 1, 1, 2, 3], "Lang 2015 LA volume index")
+        XCTAssertEqual(try [54.0, 53, 41, 40, 29].map { EchoCalc.grade(try m("lvef"), .female, $0) }, [0, 1, 1, 2, 3], "Lang 2015 LVEF, women")
+        XCTAssertEqual(try [39.0, 40].map { EchoCalc.grade(try m("ta"), .male, $0) }, [0, 4], "tricuspid annulus ≥ 40 mm")
+        let taIndexed = try XCTUnwrap(EchoCalc.indexed(try m("ta")))
+        XCTAssertEqual([21.0, 21.5].map { EchoCalc.grade(taIndexed, .male, $0) }, [0, 4], "tricuspid annulus > 21 mm/m²")
+        XCTAssertEqual(EchoCalc.ageLimit(try m("sov"), .female, EchoCalc.Context(age: 45, bsa: 1.7))?.value, 3.6, "Goldstein 2015 women 40–49")
     }
 
     func testAorticAndTricuspidRegurgitation() {

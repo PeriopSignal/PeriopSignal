@@ -11,15 +11,18 @@ struct ChamberQuantView: View {
     @State private var weightText = LaunchSeed.string("ps.echo.weight")
     @State private var group: String? = LaunchSeed.string("ps.echo.group").isEmpty ? nil : LaunchSeed.string("ps.echo.group")
     @State private var values: [String: String] = Self.seededValues()
+    @State private var ageText = LaunchSeed.string("ps.echo.age")
     @State private var raw: Set<String> = []
-    @State private var ivcText = ""
+    @State private var ivcText = LaunchSeed.string("ps.echo.ivc")
     @State private var collapses: Bool?
+    @State private var ventilated = LaunchSeed.bool("ps.echo.vent")
     @FocusState private var focused: Bool
 
     private var data: EchoData? { refs.bundle?.echo }
     private var bsa: Double? { EchoCalc.bsa(heightCm: WeightField.value(heightText), weightKg: WeightField.value(weightText), formula: data?.bsaFormula) }
+    private var ctx: EchoCalc.Context { EchoCalc.Context(age: WeightField.value(ageText), bsa: bsa) }
 
-    /// DEBUG screenshots: -ps.echo.values "lvedd=64,tapse=14".
+    /// DEBUG screenshots: -ps.echo.values "rvb=4.5,ta=42,tapse=1.3" -ps.echo.group rv -ps.echo.age 55 -ps.echo.vent 1.
     private static func seededValues() -> [String: String] {
         var out: [String: String] = [:]
         for pair in LaunchSeed.list("ps.echo.values") {
@@ -89,9 +92,9 @@ struct ChamberQuantView: View {
             }
             Group {
                 if let b = bsa {
-                    Text("Body surface area **\(PedsCalc.fmt(b)) m²** (\(data?.bsaFormula == "mosteller" ? "Mosteller" : "DuBois")). Indexed rows accept the raw value too.")
+                    Text("Body surface area **\(EchoCalc.fmt(b)) m²** (\(data?.bsaFormula == "mosteller" ? "Mosteller" : "DuBois")). Indexed rows accept the raw value too, and rows with indexed cutoffs grade both.")
                 } else {
-                    Text("Height and weight give the body surface area for the indexed rows (volumes, mass, the indexed annulus); they clear when you leave.")
+                    Text("Height and weight give the body surface area for indexed values (volumes, mass, the indexed RV and annulus cutoffs); they clear when you leave.")
                 }
             }
             .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
@@ -117,20 +120,44 @@ struct ChamberQuantView: View {
 
     // MARK: Summary
 
-    private struct Entry: Identifiable { var id: String { m.id }; var m: EchoMeasure; var v: Double; var g: Int }
+    /// A row's value graded, and graded again per m² when the row carries indexed cutoffs and BSA is known.
+    private struct Reading {
+        var v: Double?
+        var g: Int?
+        var ix: EchoMeasure?
+        var iv: Double?
+        var ig: Int?
+        var worst: Int { max(g ?? -1, ig ?? -1) }
+    }
+
+    private func reading(_ m: EchoMeasure) -> Reading {
+        let v = EchoCalc.value(m, text: values[m.id] ?? "", raw: raw.contains(m.id), bsa: bsa)
+        let ix = EchoCalc.indexed(m)
+        var iv: Double?
+        if ix != nil, let v, let b = bsa { iv = v / b }
+        return Reading(v: v, g: EchoCalc.grade(m, sex, v, ctx), ix: ix, iv: iv, ig: ix.flatMap { EchoCalc.grade($0, sex, iv) })
+    }
+
+    private struct Entry: Identifiable { var id: String { m.id }; var m: EchoMeasure; var r: Reading }
 
     private func entries(_ d: EchoData) -> [Entry] {
         d.groups.flatMap(\.measures).compactMap { m in
-            guard let v = EchoCalc.value(m, text: values[m.id] ?? "", raw: raw.contains(m.id), bsa: bsa), let g = EchoCalc.grade(m, sex, v) else { return nil }
-            return Entry(m: m, v: v, g: g)
+            let r = reading(m)
+            return r.g == nil ? nil : Entry(m: m, r: r)
         }
+    }
+
+    private func summaryLabel(_ x: Entry) -> String {
+        var s = EchoCalc.label(x.m, x.r.g ?? 0)
+        if let ig = x.r.ig, let ix = x.r.ix, ig != x.r.g { s += " · indexed " + EchoCalc.label(ix, ig).lowercased() }
+        return s
     }
 
     @ViewBuilder private func summary(_ d: EchoData) -> some View {
         let e = entries(d)
         if !e.isEmpty {
-            let abnormal = e.filter { $0.g > 0 }
-            let worst = abnormal.map(\.g).max()
+            let abnormal = e.filter { $0.r.worst > 0 }
+            let worst = abnormal.map(\.r.worst).max()
             let tone = worst.map { Self.color($0) } ?? PS.green
             VStack(alignment: .leading, spacing: 10) {
                 Eyebrow(text: sex == .female ? "Female reference values" : "Male reference values", color: tone)
@@ -139,13 +166,13 @@ struct ChamberQuantView: View {
                 VStack(alignment: .leading, spacing: 7) {
                     ForEach(e) { x in
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Circle().fill(Self.color(x.g)).frame(width: 8, height: 8)
+                            Circle().fill(Self.color(x.r.worst)).frame(width: 8, height: 8)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(x.m.short ?? x.m.name).font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
-                                Text(EchoCalc.label(x.m, x.g)).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(Self.color(x.g))
+                                Text(summaryLabel(x)).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(Self.color(x.r.worst))
                             }
                             Spacer(minLength: 6)
-                            Text("\(PedsCalc.fmt(x.v)) \(x.m.unit)").font(PS.sys(size: 12.5, design: .monospaced)).foregroundStyle(PS.fg2)
+                            Text(EchoCalc.fmt(x.r.v ?? 0) + (x.m.unit.isEmpty ? "" : " " + x.m.unit)).font(PS.sys(size: 12.5, design: .monospaced)).foregroundStyle(PS.fg2)
                         }
                     }
                 }
@@ -192,6 +219,10 @@ struct ChamberQuantView: View {
         VStack(alignment: .leading, spacing: 8) {
             Eyebrow(text: g.name).padding(.leading, 2)
             VStack(spacing: 0) {
+                if g.measures.contains(where: { $0.byAge != nil }) {
+                    ageRow
+                    Hairline().padding(.leading, 16)
+                }
                 ForEach(Array(g.measures.enumerated()), id: \.element.id) { i, m in
                     row(m)
                     if i < g.measures.count - 1 { Hairline().padding(.leading, 16) }
@@ -204,12 +235,41 @@ struct ChamberQuantView: View {
         }
     }
 
+    private var ageRow: some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Age").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
+                Text("The aortic root limits are set by age and sex, then BSA").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 6)
+            numberField($ageText)
+            Text("years").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 13)
+    }
+
+    private func numberField(_ text: Binding<String>) -> some View {
+        TextField("—", text: text)
+            .keyboardType(.numberPad)
+            .focused($focused)
+            .multilineTextAlignment(.trailing)
+            .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+            .foregroundStyle(PS.fg)
+            .padding(.horizontal, 6).padding(.vertical, 5)
+            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .frame(width: 74)
+    }
+
+    private func rangeLine(_ m: EchoMeasure, _ c: EchoCalc.Context?, unit: String) -> String {
+        EchoCalc.ranges(m, sex, c).map(\.text).joined(separator: " · ") + (unit.isEmpty ? "" : " " + unit)
+    }
+
     private func row(_ m: EchoMeasure) -> some View {
         let isRaw = raw.contains(m.id)
         let text = values[m.id] ?? ""
-        let v = EchoCalc.value(m, text: text, raw: isRaw, bsa: bsa)
-        let g = EchoCalc.grade(m, sex, v)
+        let r = reading(m)
         let unit = m.index == "bsa" && isRaw ? (m.rawUnit ?? m.unit.replacingOccurrences(of: "/m²", with: "")) : m.unit
+        let hasRef = EchoCalc.ref(m, sex, ctx) != nil
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -217,8 +277,9 @@ struct ChamberQuantView: View {
                     if let me = m.method { Text(me).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
                 }
                 Spacer(minLength: 6)
+                // Strain rows take a negative entry, so they get the keyboard with a minus sign.
                 TextField("—", text: Binding(get: { values[m.id] ?? "" }, set: { values[m.id] = $0 }))
-                    .keyboardType(.decimalPad)
+                    .keyboardType(m.abs == true ? .numbersAndPunctuation : .decimalPad)
                     .focused($focused)
                     .multilineTextAlignment(.trailing)
                     .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
@@ -242,50 +303,56 @@ struct ChamberQuantView: View {
                     Text(unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
                 }
             }
-            if EchoCalc.ref(m, sex) != nil {
-                EchoStrip(bands: EchoCalc.bands(m, sex), value: v)
-                Text(Self.rangeText(m, sex) + " " + m.unit + (m.ref.map { " · " + $0 } ?? ""))
+            if hasRef {
+                EchoStrip(bands: EchoCalc.bands(m, sex, ctx), value: r.v)
+                Text(rangeLine(m, ctx, unit: m.unit) + (m.ref.map { " · " + $0 } ?? ""))
                     .font(PS.sys(size: 12)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                if let lim = EchoCalc.ageLimit(m, sex, ctx) {
+                    let band = lim.row.to.map { "\(lim.row.from)–\($0)" } ?? "\(lim.row.from) and over"
+                    Text("\(sex == .female ? "Women" : "Men") \(band): upper limit \(EchoCalc.fmt(lim.base)) cm at BSA \(EchoCalc.fmt(lim.refBsa)) m²" + (lim.adjusted ? ", \(EchoCalc.fmt(lim.value)) cm at this patient's \(EchoCalc.fmt(bsa ?? 0)) m²." : "; add height and weight to adjust it for BSA."))
+                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                }
+            } else if m.byAge != nil {
+                Text((WeightField.value(ageText) ?? 99) < 15 ? "The adult tables start at 15 years." : "Enter the age for the upper limit.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
             } else {
                 Text("No reference value for this sex.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
             }
             if m.index == "bsa" && isRaw && !text.isEmpty && bsa == nil {
                 Text("Enter height and weight to index this value.").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-            } else if let g {
-                Text(EchoCalc.label(m, g) + (m.index == "bsa" && isRaw ? " · \(PedsCalc.fmt(v ?? 0)) \(m.unit)" : ""))
+            } else if let g = r.g {
+                Text(EchoCalc.label(m, g) + (m.index == "bsa" && isRaw ? " · \(EchoCalc.fmt(r.v ?? 0)) \(m.unit)" : ""))
                     .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(Self.color(g))
+            }
+            if let ix = r.ix {
+                if let ig = r.ig, let iv = r.iv {
+                    Text("Indexed \(EchoCalc.fmt(iv)) \(ix.unit): \(EchoCalc.label(ix, ig).lowercased())")
+                        .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(Self.color(ig))
+                }
+                Text("Indexed: " + rangeLine(ix, nil, unit: ix.unit) + (bsa == nil ? " · needs height and weight" : ""))
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             if let n = m.note { Text(n).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
         }
         .padding(.horizontal, 16).padding(.vertical, 13)
     }
 
-    /// "Normal 42–58.4 · mild 58.4–63 · moderate 63–68 · severe > 68".
-    static func rangeText(_ m: EchoMeasure, _ sex: EchoSex) -> String {
-        guard let r = EchoCalc.ref(m, sex) else { return "" }
-        let c = r.cuts.sorted(), f = PedsCalc.fmt
-        let inclusive = m.edge == "inclusive"
-        let normal: (String) -> String = { fallback in
-            if let n = r.normal, n.count == 2 { return "Normal \(f(n[0]))–\(f(n[1]))" }
-            return "Normal " + fallback
-        }
-        if m.isLowWorse {
-            if c.count >= 3 { return normal("≥ \(f(c[2]))") + " · mild \(f(c[1]))–\(f(c[2])) · moderate \(f(c[0]))–\(f(c[1])) · severe < \(f(c[0]))" }
-            guard let c0 = c.first else { return normal("") }
-            return normal((inclusive ? "> " : "≥ ") + f(c0)) + " · \(m.word ?? "abnormal") \(inclusive ? "≤" : "<") \(f(c0))"
-        }
-        if c.count >= 3 { return normal("≤ \(f(c[0]))") + " · mild \(f(c[0]))–\(f(c[1])) · moderate \(f(c[1]))–\(f(c[2])) · severe > \(f(c[2]))" }
-        guard let c0 = c.first else { return normal("") }
-        return normal((inclusive ? "< " : "≤ ") + f(c0)) + " · \(m.word ?? "abnormal") \(inclusive ? "≥" : ">") \(f(c0))"
-    }
-
     // MARK: Right-atrial pressure
 
     private func ivcCard(_ ivc: EchoIVC) -> some View {
-        let rap = EchoCalc.rap(ivcCm: WeightField.value(ivcText), collapses: collapses, cut: ivc.cut)
+        let rap = EchoCalc.rap(ivcCm: WeightField.value(ivcText), collapses: collapses, cut: ivc.cut, ventilated: ventilated)
         return VStack(alignment: .leading, spacing: 8) {
             Eyebrow(text: "Right-atrial pressure from the IVC").padding(.leading, 2)
             VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Breathing").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
+                    Spacer()
+                    Picker("Breathing", selection: $ventilated) {
+                        Text("Spontaneous").tag(false)
+                        Text("Ventilated").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 230)
+                }
                 HStack(alignment: .top, spacing: 10) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("IVC diameter").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
@@ -302,23 +369,30 @@ struct ChamberQuantView: View {
                         .frame(width: 74)
                     Text("cm").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
                 }
-                HStack {
-                    Text("Collapses more than 50% with a sniff").font(PS.sys(size: 13.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                    Spacer()
-                    Picker("Collapse", selection: Binding(get: { collapses.map { $0 ? 1 : 0 } ?? -1 }, set: { collapses = $0 < 0 ? nil : $0 == 1 })) {
-                        Text("Yes").tag(1)
-                        Text("No").tag(0)
+                if !ventilated {
+                    HStack {
+                        Text("Collapses 50% or more with a sniff").font(PS.sys(size: 13.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Picker("Collapse", selection: Binding(get: { collapses.map { $0 ? 1 : 0 } ?? -1 }, set: { collapses = $0 < 0 ? nil : $0 == 1 })) {
+                            Text("Yes").tag(1)
+                            Text("No").tag(0)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 120)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 120)
                 }
                 if let rap {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text("\(rap.value) mmHg").font(PS.serif(size: 28, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text("\(rap.label), \(rap.range)").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg2)
+                    if let v = rap.value {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text("\(v) mmHg").font(PS.serif(size: 28, weight: .semibold)).foregroundStyle(PS.fg)
+                            Text("\(rap.label), \(rap.range ?? "")").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg2)
+                        }
+                    } else {
+                        Text(rap.label).font(PS.serif(size: 24, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                     }
+                    if let d = rap.detail { Text(d).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
                 } else {
-                    Text("Enter the diameter and the collapse.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
+                    Text(ventilated ? "Enter the diameter." : "Enter the diameter and the collapse.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
                 }
                 ForEach(ivc.notes ?? [], id: \.self) { n in
                     Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
@@ -376,7 +450,7 @@ struct EchoStrip: View {
                 .clipShape(Capsule())
                 .offset(y: 4)
                 ForEach(Array(ticks.enumerated()), id: \.offset) { _, t in
-                    Text(PedsCalc.fmt(t))
+                    Text(EchoCalc.fmt(t))
                         .font(PS.mono(size: 9.5, weight: .medium))
                         .foregroundStyle(PS.fg3)
                         .fixedSize()

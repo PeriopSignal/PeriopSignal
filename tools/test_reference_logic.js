@@ -349,20 +349,81 @@ test('echo grading', () => {
   near(R.bsa(175, 70), 1.848, 0.001); near(R.bsa(175, 70, 'mosteller'), 1.845, 0.001);
   eq(R.echo.rap(1.8, true).value, 3); eq(R.echo.rap(2.4, false).value, 15); eq(R.echo.rap(1.8, false).value, 8); eq(R.echo.rap(2.4, true).value, 8);
 });
+test('echo: per-cut edges, ranges, indexed rows, age tables, ventilated RAP', () => {
+  // ASE 2025 RV basal diameter: normal < 4.1, mild ≥ 4.1 to ≤ 4.4, moderate > 4.4 to ≤ 4.9, severe > 4.9
+  const rvb = { dir: 'high', word: 'dilated', all: { cuts: [4.1, 4.4, 4.9] }, edges: ['inclusive', 'exclusive', 'exclusive'],
+    indexed: { unit: 'cm/m²', all: { cuts: [2.4, 2.6, 2.9] }, edges: ['inclusive', 'exclusive', 'exclusive'] } };
+  eq([4.0, 4.1, 4.4, 4.41, 4.9, 4.91].map((v) => R.echo.grade(rvb, 'male', v)), [0, 1, 1, 2, 2, 3]);
+  eq(R.echo.ranges(rvb, 'male').map((x) => x.text).join(' · '), 'Normal < 4.1 · mild ≤ 4.4 · moderate ≤ 4.9 · severe > 4.9');
+  const ix = R.echo.indexed(rvb);
+  eq([ix.unit, R.echo.grade(ix, 'female', 2.4), R.echo.grade(ix, 'female', 2.39)], ['cm/m²', 1, 0]);
+  // TAPSE: normal > 1.7, mild ≤ 1.7 to > 1.3, moderate ≤ 1.3 to > 1.0, severe ≤ 1.0
+  const tapse = { dir: 'low', word: 'reduced', all: { cuts: [1.7, 1.3, 1.0] }, edges: ['inclusive', 'inclusive', 'inclusive'] };
+  eq([1.8, 1.7, 1.31, 1.3, 1.01, 1.0].map((v) => R.echo.grade(tapse, 'male', v)), [0, 1, 1, 2, 2, 3]);
+  eq(R.echo.ranges(tapse, 'male').map((x) => x.text).join(' · '), 'Normal > 1.7 · mild > 1.3 · moderate > 1 · severe ≤ 1');
+  // 3D RVEF: moderate ≤ 39 to ≥ 32, severe < 32
+  const rvef = { dir: 'low', word: 'reduced', all: { cuts: [45, 39, 32] }, edges: ['inclusive', 'inclusive', 'exclusive'] };
+  eq([46, 45, 39, 32, 31.9].map((v) => R.echo.grade(rvef, 'male', v)), [0, 1, 2, 2, 3]);
+  eq(R.echo.ranges(rvef, 'male').map((x) => x.text).join(' · '), 'Normal > 45 · mild > 39 · moderate ≥ 32 · severe < 32');
+  // Lang 2015 LVEF (printed integers): normal 52–72, mild 41–51, moderate 30–40, severe < 30
+  const ef = { dir: 'low', word: 'reduced', male: { normal: [52, 72], cuts: [52, 41, 30] } };
+  eq(R.echo.ranges(ef, 'male').map((x) => x.text).join(' · '), 'Normal 52–72 · mild ≥ 41 · moderate ≥ 30 · severe < 30');
+  const lvidd = { dir: 'high', word: 'dilated', male: { normal: [42, 58.4], cuts: [58.4] } };
+  eq(R.echo.ranges(lvidd, 'male').map((x) => x.text).join(' · '), 'Normal 42–58.4 · dilated > 58.4');
+  const ta = { dir: 'high', edge: 'inclusive', word: 'dilated', all: { cuts: [40] }, indexed: { unit: 'mm/m²', all: { cuts: [21] } } };
+  eq(R.echo.ranges(ta, 'male').map((x) => x.text).join(' · '), 'Normal < 40 · dilated ≥ 40');
+  eq(R.echo.ranges(R.echo.indexed(ta), 'male').map((x) => x.text).join(' · '), 'Normal ≤ 21 · dilated > 21', 'the indexed cut keeps its own edge');
+  eq(R.echo.bands(ta, 'male').map((b) => [b.from, b.to, b.grade]), [[30, 40, 0], [40, 50, 4]]);
+  const bb = R.echo.bands(rvb, 'male');
+  near(bb[0].from, 3.3, 1e-9); eq(bb.map((b) => b.grade), [0, 1, 2, 3]);
+  const tb = R.echo.bands(tapse, 'male');
+  near(tb[tb.length - 1].to, 2.4, 1e-9); eq(tb.map((b) => b.grade), [3, 2, 1, 0]);
+  // strain is tabulated as magnitude
+  eq(R.echo.value({ abs: true }, '-22', false, null), 22);
+  eq(R.echo.value({}, '-22', false, null), null);
+  // Goldstein 2015 aortic sinuses: men 50–59 4.0 cm at BSA 2.0, ± 0.5 mm per 0.1 m²; z ≥ 2 is dilated
+  const sov = { dir: 'high', edge: 'inclusive', word: 'dilated', byAge: { perM2: 0.5,
+    male: { refBsa: 2.0, rows: [{ from: 15, to: 29, uln: 3.7 }, { from: 50, to: 59, uln: 4.0 }, { from: 70, uln: 4.2 }] },
+    female: { refBsa: 1.7, rows: [{ from: 50, to: 59, uln: 3.6 }] } } };
+  eq(R.echo.ageLimit(sov, 'male', { age: 55, bsa: 2.2 }).value, 4.1);
+  eq(R.echo.ageLimit(sov, 'male', { age: 55 }).value, 4.0, 'no BSA: the reference-BSA limit');
+  eq(R.echo.ageLimit(sov, 'female', { age: 59.9, bsa: 1.5 }).value, 3.5);
+  eq(R.echo.ageLimit(sov, 'male', { age: 88, bsa: 2.0 }).value, 4.2, 'open-ended top band');
+  eq(R.echo.ageLimit(sov, 'male', { age: 12, bsa: 2.0 }), null, 'the adult tables start at 15');
+  eq([4.05, 4.1].map((v) => R.echo.grade(sov, 'male', v, { age: 55, bsa: 2.2 })), [0, 4]);
+  eq(R.echo.grade(sov, 'male', 4.1), null, 'no age, no grade');
+  // RA pressure from the IVC
+  eq(R.echo.rap(2.4, null, 2.1, true).label, 'Not estimable');
+  eq(R.echo.rap(1.9, null, 2.1, true).label, 'Likely below 10 mmHg');
+  eq(R.echo.rap(1.9, null, 2.1, false), null, 'spontaneous breathing needs the sniff');
+  eq(R.echo.fmt(58.4), '58.4'); eq(R.echo.fmt(3.85000001), '3.85'); eq(R.echo.fmt(145.26), '145.3');
+});
 test('echo values in reference.json', () => {
   const e = bundle.echo;
   if (!e) return;
   const ids = new Set();
+  const ctx = { age: 50, bsa: 1.9 };
+  const find = (id) => e.groups.flatMap((g) => g.measures).find((m) => m.id === id);
   for (const g of e.groups) for (const m of g.measures) {
     assert.ok(!ids.has(m.id), 'duplicate ' + m.id); ids.add(m.id);
-    for (const sex of ['male', 'female']) {
-      const r = R.echo.ref(m, sex);
+    for (const row of [m, R.echo.indexed(m)].filter(Boolean)) for (const sex of ['male', 'female']) {
+      const r = R.echo.ref(row, sex, ctx);
       assert.ok(r, m.id + ' has values for ' + sex);
-      const b = R.echo.bands(m, sex);
+      const b = R.echo.bands(row, sex, ctx);
       assert.ok(b.length >= 2, m.id + ' draws bands');
       for (let i = 1; i < b.length; i++) assert.ok(Math.abs(b[i].from - b[i - 1].to) < 1e-9, m.id + ' bands are contiguous');
+      assert.ok(R.echo.ranges(row, sex, ctx).length >= 2, m.id + ' states its ranges');
     }
   }
+  // spot checks against the printed tables
+  const gr = (id, sex, v, c) => R.echo.grade(find(id), sex, v, c);
+  eq([4.0, 4.1, 4.4, 4.45, 4.9, 4.95].map((v) => gr('rvb', 'male', v)), [0, 1, 1, 2, 2, 3], 'ASE 2025 RV basal diameter');
+  eq([1.75, 1.7, 1.3, 1.0].map((v) => gr('tapse', 'female', v)), [0, 1, 2, 3], 'ASE 2025 TAPSE');
+  eq([34, 34.5, 41, 48, 48.5].map((v) => gr('lavi', 'male', v)), [0, 1, 1, 2, 3], 'Lang 2015 LA volume index');
+  eq([54, 53, 41, 40, 29].map((v) => gr('lvef', 'female', v)), [0, 1, 1, 2, 3], 'Lang 2015 LVEF, women');
+  eq([39, 40].map((v) => gr('ta', 'male', v)), [0, 4], 'tricuspid annulus ≥ 40 mm');
+  eq([21, 21.5].map((v) => R.echo.grade(R.echo.indexed(find('ta')), 'male', v)), [0, 4], 'tricuspid annulus > 21 mm/m²');
+  eq(R.echo.ageLimit(find('sov'), 'female', { age: 45, bsa: 1.7 }).value, 3.6, 'Goldstein 2015 women 40–49');
 });
 
 // ---------- ASE 2025 diastolic function ----------

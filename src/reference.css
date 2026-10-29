@@ -207,6 +207,7 @@
 .r-age > span, .r-inline .lab { font-size: 13.5px; font-weight: 600; color: var(--fg-2); margin-right: auto; }
 .r-age select, .r-inline select, .r-addsel, .r-latable select, .r-lesion select, .r-bigsel { height: 36px; border-radius: 9px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--fg); font: inherit; font-size: 15px; font-weight: 600; padding: 0 8px; }
 .r-inline .r-seg { flex: 0 1 180px; }
+.r-inline.wide .r-seg { flex: 1 1 auto; max-width: 260px; }
 .r-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .r-field { display: grid; gap: 4px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); }
 
@@ -443,6 +444,7 @@
 .e-range { margin: 0; font-size: 12px; color: var(--fg-2); line-height: 1.45; font-variant-numeric: tabular-nums; }
 .e-range span { color: var(--fg-3); }
 .e-res { margin: 0; font-size: 13.5px; font-weight: 600; }
+.e-res.sub { font-size: 12.5px; }
 .e-sum { display: grid; gap: 6px; }
 .e-sr { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 4px 10px; align-items: baseline; font-size: 13.5px; }
 .e-sr i { width: 8px; height: 8px; border-radius: 50%; }
