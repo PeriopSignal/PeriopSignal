@@ -174,7 +174,7 @@ final class PatientTests: XCTestCase {
         let v = HandoffWriter.text(vent)
         XCTAssertTrue(v.contains("At handoff: intubated, VC 450 × 14, PEEP 8."), v)
         XCTAssertTrue(v.contains("Whole blood 2 units"), v)
-        XCTAssertEqual(PatientCatalog.gradeDetail("2b"), "Only the arytenoids or the very back of the cords visible")
+        XCTAssertEqual(PatientCatalog.gradeDetail("2b"), "Only the arytenoids or the very posterior origin of the cords visible", "Yentis and Lee's wording")
         XCTAssertEqual(PatientCatalog.grades.compactMap { PatientCatalog.gradeDetail($0) }.count, PatientCatalog.grades.count, "every grade has its meaning")
         var alert = demo; alert.medFlags.insert("sglt2")
         XCTAssertTrue(HandoffWriter.text(alert).contains("Medication alerts: SGLT2 inhibitor"))

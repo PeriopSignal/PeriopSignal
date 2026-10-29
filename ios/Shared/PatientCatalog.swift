@@ -273,7 +273,7 @@ enum PatientCatalog {
         switch g {
         case "1": return "Full view of the glottis"
         case "2a": return "Part of the vocal cords visible"
-        case "2b": return "Only the arytenoids or the very back of the cords visible"
+        case "2b": return "Only the arytenoids or the very posterior origin of the cords visible"
         case "3": return "Epiglottis only; the cords are not seen"
         case "4": return "Neither the glottis nor the epiglottis seen"
         default: return nil
