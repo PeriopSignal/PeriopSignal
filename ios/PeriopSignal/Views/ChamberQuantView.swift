@@ -156,12 +156,13 @@ struct ChamberQuantView: View {
     @ViewBuilder private func summary(_ d: EchoData) -> some View {
         let e = entries(d)
         if !e.isEmpty {
-            let abnormal = e.filter { $0.r.worst > 0 }
-            let worst = abnormal.map(\.r.worst).max()
-            let tone = worst.map { Self.color($0) } ?? PS.green
+            // outside = abnormal, or outside the range on the harmless side (an LVEF above 72%)
+            let outside = e.filter { $0.r.worst != 0 }
+            let worst = e.map(\.r.worst).max() ?? 0
+            let tone = worst > 0 ? Self.color(worst) : (outside.isEmpty ? PS.green : Self.color(-1))
             VStack(alignment: .leading, spacing: 10) {
                 Eyebrow(text: sex == .female ? "Female reference values" : "Male reference values", color: tone)
-                Text(abnormal.isEmpty ? (e.count == 1 ? "Within the Normal Range" : "All Entered Values Within the Normal Range") : "\(abnormal.count) of \(e.count) Outside the Normal Range")
+                Text(outside.isEmpty ? (e.count == 1 ? "Within the Normal Range" : "All Entered Values Within the Normal Range") : "\(outside.count) of \(e.count) Outside the Normal Range")
                     .font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                 VStack(alignment: .leading, spacing: 7) {
                     ForEach(e) { x in

@@ -3021,10 +3021,11 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       const worstOf = (x) => Math.max(x.gr, x.ig === null ? -1 : x.ig);
       const toneOf = (gr) => GRADE_COLOR[gr];
       if (entered.length) {
-        const abnormal = entered.filter((e) => worstOf(e.x) > 0);
+        // outside = abnormal, or outside the range on the harmless side (an LVEF above 72%)
+        const outside = entered.filter((e) => worstOf(e.x) !== 0);
         const worst = entered.reduce((a, e) => Math.max(a, worstOf(e.x)), -1);
-        const headline = !abnormal.length ? (entered.length === 1 ? 'Within the normal range' : 'All entered values within the normal range') : `${abnormal.length} of ${entered.length} outside the normal range`;
-        h += resultCard(worst > 0 ? toneOf(worst) : 'var(--new)', `${eyebrow(st.sex === 'female' ? 'Female reference values' : 'Male reference values')}<p class="r-headline big">${esc(headline)}</p>
+        const headline = !outside.length ? (entered.length === 1 ? 'Within the normal range' : 'All entered values within the normal range') : `${outside.length} of ${entered.length} outside the normal range`;
+        h += resultCard(worst > 0 ? toneOf(worst) : (outside.length ? toneOf(-1) : 'var(--new)'), `${eyebrow(st.sex === 'female' ? 'Female reference values' : 'Male reference values')}<p class="r-headline big">${esc(headline)}</p>
           <div class="e-sum">${entered.map(({ m, x }) => {
             const unit = m.unit;
             const lab = E.label(m, x.gr) + (x.ig !== null && x.ig !== x.gr ? ` · indexed ${E.label(x.ix, x.ig).toLowerCase()}` : '');
