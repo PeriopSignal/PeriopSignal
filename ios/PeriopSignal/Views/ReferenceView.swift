@@ -13,6 +13,14 @@ enum RefRoute: Hashable {
     case valves
     case intervention
     case ponv
+    case chamber
+    case diastolic
+    case acls
+    case abg
+    case obEmergency
+    case regionalFinder
+    case blocks
+    case neuraxialGuide
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -29,6 +37,14 @@ enum RefRoute: Hashable {
         case .valves: return "valves"
         case .intervention: return "intervention"
         case .ponv: return "ponv"
+        case .chamber: return "chamber"
+        case .diastolic: return "diastolic"
+        case .acls: return "acls"
+        case .abg: return "abg"
+        case .obEmergency: return "ob"
+        case .regionalFinder: return "regional-finder"
+        case .blocks: return "blocks"
+        case .neuraxialGuide: return "neuraxial-guide"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -46,6 +62,14 @@ enum RefRoute: Hashable {
         case "valves": self = .valves
         case "intervention": self = .intervention
         case "ponv": self = .ponv
+        case "chamber": self = .chamber
+        case "diastolic": self = .diastolic
+        case "acls": self = .acls
+        case "abg": self = .abg
+        case "ob": self = .obEmergency
+        case "regional-finder": self = .regionalFinder
+        case "blocks": self = .blocks
+        case "neuraxial-guide": self = .neuraxialGuide
         case "folder" where parts.count == 2:
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
@@ -65,7 +89,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         case .generalAnesthesia: return "General Anesthesia"
         case .regional: return "Regional"
         case .cardiothoracic: return "Cardiothoracic"
-        case .medications: return "Medications and Hematology"
+        case .medications: return "Medications & Hematology"
         case .pediatrics: return "Pediatrics"
         }
     }
@@ -95,6 +119,8 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
     var items: [RefItem] {
         switch self {
         case .emergency: return [
+            RefItem(route: .acls, icon: "waveform.path.ecg", title: "ACLS", blurb: "Code clock, checklists and doses as it runs"),
+            RefItem(route: .obEmergency, icon: "figure.and.child.holdinghands", title: "OB Emergencies", blurb: "Arrest, hemorrhage and other obstetric crises"),
             RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local Anesthetic Toxicity", blurb: "Checklist with lipid doses for the weight"),
             RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant Hyperthermia", blurb: "Checklist with dantrolene for the weight"),
             RefItem(route: .airway, icon: "wind", title: "Difficult Airway", blurb: "Assessment in, plan and checklists out"),
@@ -106,19 +132,25 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
         ]
         case .generalAnesthesia: return [
+            RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "Apfel score, how many agents, rescue"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
         ]
         case .regional: return [
+            RefItem(route: .regionalFinder, icon: "figure.stand", title: "Regional Technique Finder", blurb: "Mark the operative area, get neuraxial and block options"),
+            RefItem(route: .blocks, icon: "dot.radiowaves.left.and.right", title: "Peripheral Nerve Blocks", blurb: "Placement, ultrasound view and volumes by block"),
+            RefItem(route: .neuraxialGuide, icon: "figure.flexibility", title: "Neuraxial Guide", blurb: "Level, technique and dose by procedure"),
             RefItem(route: .neuraxial, icon: "drop.triangle", title: "Blocks on Anticoagulants", blurb: "Drug and last dose in, earliest block out"),
             RefItem(route: .local, icon: "syringe", title: "Local Anesthetic Doses", blurb: "One agent or a mixture, with Exparel"),
         ]
         case .cardiothoracic: return [
             RefItem(route: .valves, icon: "waveform.path.ecg.rectangle", title: "ASE Valve Severity Grading", blurb: "Echo numbers in, ASE grade out"),
             RefItem(route: .intervention, icon: "heart.circle", title: "AHA/ACC Valve Intervention", blurb: "Repair or replace? Prompted questions"),
+            RefItem(route: .chamber, icon: "ruler", title: "ASE Chamber Quantification", blurb: "Sizes and function against the ASE cutoffs"),
+            RefItem(route: .diastolic, icon: "waveform", title: "ASE Diastolic Function", blurb: "Grade and filling pressure, step by step"),
         ]
         case .medications: return [
-            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Medications and Hematology", blurb: "Drips, single doses, blood products and factors"),
+            RefItem(route: .infusions, icon: "ivfluid.bag", title: "Medications & Hematology", blurb: "Drips, single doses, blood products and factors"),
         ]
         case .pediatrics: return [
             RefItem(route: .peds, icon: "scalemass", title: "Pediatric Doses", blurb: "Doses, tube sizes, fluids and blood volume"),
@@ -194,6 +226,9 @@ struct ReferenceView: View {
                     } else {
                         if !favorites.keys.isEmpty { favoritesSection }
                         folders
+                        Text("A reference aid for licensed clinicians: confirm against the source and your institution's protocols before acting. Not reviewed or cleared by the FDA.")
+                            .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -231,39 +266,7 @@ struct ReferenceView: View {
     }
 
     @ViewBuilder private func destination(_ route: RefRoute) -> some View {
-                switch route {
-                case .quickref(let id):
-                    if let ref = refs.quickref(id) {
-                        QuickRefView(ref: ref, onOpen: { webLink = WebLink(url: $0) })
-                    } else {
-                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
-                    }
-                case .score(let id):
-                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { webLink = WebLink(url: $0) }, onOpenRef: { path.append(RefRoute.quickref($0)) }) }
-                case .peds:
-                    PedsCalculatorView(onOpen: { webLink = WebLink(url: $0) }, onOpenLocal: { w, y in
-                        handoff.pass(weightKg: w, ageYears: y)
-                        path.append(RefRoute.local)
-                    })
-                case .local:
-                    LocalAnestheticView(onOpen: { webLink = WebLink(url: $0) })
-                case .infusions:
-                    InfusionsView(onOpen: { webLink = WebLink(url: $0) })
-                case .neuraxial:
-                    NeuraxialTimingView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("asra-anticoagulation")) })
-                case .fasting:
-                    FastingView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-fasting")) })
-                case .airway:
-                    AirwayGuideView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("asa-difficult-airway")) })
-                case .valves:
-                    ValveGraderView(onOpen: { webLink = WebLink(url: $0) }, onOpenTable: { path.append(RefRoute.quickref("ase-valve-severity")) })
-                case .intervention:
-                    ValveInterventionView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("acc-aha-valve-intervention")) })
-                case .ponv:
-                    PONVView(onOpen: { webLink = WebLink(url: $0) }, onOpenCard: { path.append(RefRoute.quickref("ponv-consensus")) })
-                case .folder(let f):
-                    FolderView(folder: f, path: $path)
-                }
+        RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: $path, handoff: handoff)
     }
 
     /// Opens a route requested from a link or launch argument once its content exists.
@@ -348,7 +351,7 @@ struct FolderView: View {
                 Text("Long-press a tool to add it to your favorites at the top of the tab; the star in each tool's toolbar does the same.")
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
                 if folder == .emergency {
-                    Text("Each emergency checklist takes the patient's weight at the top and works out the doses; the weight clears when you leave.")
+                    Text("ACLS starts its code clock when it opens. The checklists take the patient's weight at the top and work out the doses; the weight clears when you leave.")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
                 }
             }
@@ -500,6 +503,14 @@ struct ReferenceSearchResults: View {
         case .valves: return ["cardiothoracic", "cardiac", "valve", "valvular", "echo", "tee", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "vena contracta", "eroa", "pisa", "gradient", "ase"]
         case .intervention: return ["cardiothoracic", "cardiac", "valve", "valvular", "stenosis", "regurgitation", "aortic", "mitral", "tricuspid", "tavi", "tavr", "savr", "avr", "teer", "mitraclip", "pmbc", "commissurotomy", "repair", "replacement", "prosthesis", "mechanical", "bioprosthe", "acc", "aha"]
         case .ponv: return ["ponv", "nausea", "vomiting", "antiemetic", "apfel", "ondansetron", "dexamethasone", "droperidol", "amisulpride", "aprepitant", "scopolamine", "palonosetron", "granisetron", "promethazine", "rescue", "prophylaxis"]
+        case .chamber: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "chamber", "quantification", "dilated", "dilation", "lvidd", "lvedd", "lvesd", "lv size", "lv mass", "hypertrophy", "wall thickness", "rwt", "ejection fraction", "lvef", "la volume", "lavi", "atrial", "rv", "right ventricle", "tapse", "fac", "basal", "tricuspid annulus", "annulus", "aorta", "aortic root", "sinus", "sinuses of valsalva", "ivc", "ra pressure", "right atrium", "rvot", "strain", "rimp", "tei", "s prime"]
+        case .diastolic: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "diastolic", "diastology", "dysfunction", "filling pressure", "lap", "e/e", "e/a", "tr velocity", "la strain", "lars", "pulmonary vein", "hfpef", "relaxation", "restrictive"]
+        case .acls: return ["acls", "pals", "code", "code blue", "cardiac arrest", "arrest", "cpr", "resuscitation", "defibrillation", "defibrillator", "shock", "vf", "vt", "pea", "asystole", "epinephrine", "adrenaline", "amiodarone", "lidocaine", "bradycardia", "tachycardia", "atropine", "adenosine", "cardioversion", "pacing", "rosc", "post-arrest", "cals", "resternotomy", "cardiac surgery arrest", "anaphylaxis", "allergic reaction", "timer"]
+        case .abg: return ["abg", "blood gas", "arterial blood gas", "acid", "base", "acid-base", "acidosis", "alkalosis", "acidemia", "alkalemia", "ph", "paco2", "pco2", "hco3", "bicarbonate", "compensation", "winter", "respiratory acidosis", "metabolic acidosis", "respiratory alkalosis", "metabolic alkalosis", "mixed disorder", "henderson"]
+        case .obEmergency: return ["ob", "obstetric", "obstetrics", "pregnancy", "pregnant", "maternal", "labor", "labour", "cesarean", "caesarean", "c-section", "postpartum", "hemorrhage", "haemorrhage", "pph", "atony", "oxytocin", "carboprost", "methylergonovine", "misoprostol", "tranexamic", "amniotic fluid embolism", "afe", "eclampsia", "preeclampsia", "magnesium", "perimortem", "resuscitative hysterotomy", "uterine displacement", "high spinal", "total spinal", "stanford"]
+        case .regionalFinder: return ["regional", "block", "nerve block", "neuraxial", "spinal", "epidural", "incision", "dermatome", "surgery site", "technique", "which block", "analgesia"]
+        case .blocks: return ["regional", "block", "nerve block", "peripheral", "pnb", "nysora", "ultrasound", "interscalene", "supraclavicular", "infraclavicular", "axillary", "suprascapular", "cervical plexus", "femoral", "adductor", "saphenous", "sciatic", "popliteal", "ipack", "pericapsular", "peng", "fascia iliaca", "obturator", "lateral femoral cutaneous", "ankle", "tap", "transversus", "rectus sheath", "quadratus", "erector", "esp", "paravertebral", "pecs", "serratus", "parasternal", "ilioinguinal", "caudal", "wrist", "volume"]
+        case .neuraxialGuide: return ["neuraxial", "spinal", "epidural", "cse", "combined spinal", "intrathecal", "bupivacaine", "chloroprocaine", "ropivacaine", "dermatome", "level", "t4", "t10", "saddle", "cesarean", "c-section", "laparotomy", "appendectomy", "hip", "knee", "hernia", "turp", "anal", "perianal", "hemorrhoid", "labor"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -517,8 +528,11 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv:
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg, .regionalFinder, .neuraxialGuide, .obEmergency:
             return wordsMatch(item.route)
+        case .blocks:
+            guard let data = refs.bundle?.regional else { return wordsMatch(item.route) }
+            return wordsMatch(item.route) || data.blocks.contains { $0.name.lowercased().contains(q) }
         }
     }
     private func wordsMatch(_ route: RefRoute) -> Bool {
@@ -618,5 +632,68 @@ struct GuidelineRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// A Reference tool or card for a route: pushed from the Reference tab, and from My Patient for its prompts.
+struct RefDestination: View {
+    @Environment(ReferenceStore.self) private var refs
+    var route: RefRoute
+    var push: (RefRoute) -> Void
+    var openURL: (URL) -> Void
+    /// The Reference tab's path, for folders; nil elsewhere.
+    var path: Binding<NavigationPath>?
+    var handoff: PatientHandoff
+
+    var body: some View {
+                switch route {
+                case .quickref(let id):
+                    if let ref = refs.quickref(id) {
+                        QuickRefView(ref: ref, onOpen: { openURL($0) })
+                    } else {
+                        ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This reference arrives with the next refresh."))
+                    }
+                case .score(let id):
+                    if let def = Scores.byID(id) { ScoreCalculatorView(def: def, onOpen: { openURL($0) }, onOpenRef: { push(RefRoute.quickref($0)) }) }
+                case .peds:
+                    PedsCalculatorView(onOpen: { openURL($0) }, onOpenLocal: { w, y in
+                        handoff.pass(weightKg: w, ageYears: y)
+                        push(RefRoute.local)
+                    })
+                case .local:
+                    LocalAnestheticView(onOpen: { openURL($0) })
+                case .infusions:
+                    InfusionsView(onOpen: { openURL($0) })
+                case .neuraxial:
+                    NeuraxialTimingView(onOpen: { openURL($0) }, onOpenTable: { push(RefRoute.quickref("asra-anticoagulation")) })
+                case .fasting:
+                    FastingView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("asa-fasting")) })
+                case .airway:
+                    AirwayGuideView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("asa-difficult-airway")) })
+                case .valves:
+                    ValveGraderView(onOpen: { openURL($0) }, onOpenTable: { push(RefRoute.quickref("ase-valve-severity")) })
+                case .intervention:
+                    ValveInterventionView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("acc-aha-valve-intervention")) })
+                case .ponv:
+                    PONVView(onOpen: { openURL($0) }, onOpenCard: { push(RefRoute.quickref("ponv-consensus")) })
+                case .chamber:
+                    ChamberQuantView(onOpen: { openURL($0) })
+                case .diastolic:
+                    DiastolicView(onOpen: { openURL($0) })
+                case .acls:
+                    AclsView(onOpen: { openURL($0) })
+                case .abg:
+                    AbgView(onOpen: { openURL($0) })
+                case .obEmergency:
+                    ObEmergencyView(onOpen: { openURL($0) })
+                case .regionalFinder:
+                    RegionalFinderView(onOpen: { openURL($0) }, onOpenBlocks: { push(RefRoute.blocks) })
+                case .blocks:
+                    BlocksView(onOpen: { openURL($0) })
+                case .neuraxialGuide:
+                    NeuraxialGuideView(onOpen: { openURL($0) })
+                case .folder(let f):
+                    if let path { FolderView(folder: f, path: path) }
+                }
     }
 }

@@ -8,6 +8,8 @@ struct RootView: View {
     @Environment(Preferences.self) private var prefs
     @Environment(Router.self) private var router
     @Environment(ReferenceStore.self) private var refs
+    /// The terms version this phone accepted; a new version asks again.
+    @AppStorage("ps.terms.accepted") private var termsAccepted = ""
 
     var body: some View {
         #if DEBUG
@@ -33,6 +35,9 @@ struct RootView: View {
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
             }
+            .fullScreenCover(isPresented: Binding(get: { needsTerms }, set: { _ in })) {
+                TermsGateView { termsAccepted = Terms.version }
+            }
             .task { await launch() }
             .onChange(of: read.ids.count) { _, _ in
                 Task { await ReadStore.updateBadge(unread: read.unread(in: store.posts).count) }
@@ -42,18 +47,26 @@ struct RootView: View {
             }
     }
 
+    /// First launch, or new terms. Screenshot runs (debug builds) skip it unless -ps.terms show.
+    private var needsTerms: Bool {
+        #if DEBUG
+        if LaunchSeed.string("ps.terms") != "show" { return false }
+        #endif
+        return termsAccepted != Terms.version
+    }
+
     private var tabs: some View {
         @Bindable var router = router
         return TabView(selection: $router.selectedTab) {
             FeedView()
                 .tabItem { Label("Feed", systemImage: "waveform.path.ecg") }
                 .tag(Router.Tab.feed)
+            PatientView()
+                .tabItem { Label("My Patient", systemImage: "person.text.rectangle") }
+                .tag(Router.Tab.patient)
             ReferenceView()
                 .tabItem { Label("Reference", systemImage: "books.vertical") }
                 .tag(Router.Tab.reference)
-            SavedView()
-                .tabItem { Label("Saved", systemImage: "bookmark") }
-                .tag(Router.Tab.saved)
             MoreView()
                 .tabItem { Label("More", systemImage: "ellipsis.circle") }
                 .tag(Router.Tab.more)
@@ -70,7 +83,8 @@ struct RootView: View {
         if let id = DebugLaunch.presave, !saved.contains(id) { saved.toggle(id) }
         if let topics = DebugLaunch.topics { prefs.setTopics(Set(topics)) }
         switch DebugLaunch.tab {
-        case "saved": router.selectedTab = .saved
+        case "saved": router.showSaved()
+        case "patient": router.selectedTab = .patient
         case "about", "more": router.selectedTab = .more
         case "guidelines", "reference": router.selectedTab = .reference
         default: break

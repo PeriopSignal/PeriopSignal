@@ -5,6 +5,7 @@ import SwiftUI
 /// Tap a row for the indication, titration, range, maximum, preparation, cautions and source.
 struct InfusionsView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
 
     /// The patient's weight lives only while this list is open.
@@ -34,7 +35,7 @@ struct InfusionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                CompactWeightField(text: $weightText, focus: $focused)
+                CompactWeightField(text: $weightText, focus: $focused, patientWeight: myPatient.weightKg)
                 searchField
                 if groups.isEmpty {
                     Text("Loading the table…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
@@ -59,7 +60,7 @@ struct InfusionsView: View {
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle("Medications and Hematology")
+        .navigationTitle("Medications & Hematology")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {

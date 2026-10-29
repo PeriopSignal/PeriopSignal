@@ -3,11 +3,15 @@ import SwiftUI
 // MARK: - Score calculators (RCRI, ARISCAT, STOP-Bang, Aldrete, Apfel)
 
 struct ScoreCalculatorView: View {
+    @Environment(PatientStore.self) private var myPatient
     var def: ScoreDefinition
     var onOpen: (URL) -> Void
     var onOpenRef: (String) -> Void = { _ in }
     @State private var selection = ScoreSelection()
     @State private var copied = false
+    /// Where the answers came from when the calculator opened: "saved" (My Patient's saved result) or "record".
+    @State private var origin: String?
+    @State private var savedSelection: ScoreSelection?
 
     private var score: Int { def.total(selection) }
     private var band: ScoreBand? { def.band(for: score) }
@@ -16,6 +20,7 @@ struct ScoreCalculatorView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 result
+                if !myPatient.isEmpty { patientBar }
                 items
                 bands
                 if !def.notes.isEmpty {
@@ -36,11 +41,68 @@ struct ScoreCalculatorView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Reset") { withAnimation(.snappy) { selection = ScoreSelection() } }
+                Button("Reset") { withAnimation(.snappy) { selection = ScoreSelection(); origin = nil } }
                     .disabled(selection.isEmpty)
             }
         }
         .sensoryFeedback(.success, trigger: copied)
+        .onAppear(perform: fillFromPatient)
+    }
+
+    // MARK: My Patient
+
+    /// Opens with My Patient's saved answers, or else with what the record already answers.
+    private func fillFromPatient() {
+        guard selection.isEmpty, !myPatient.isEmpty else { return }
+        if let saved = myPatient.record.scores[def.id], saved.on != nil || saved.choices != nil {
+            selection = ScoreSelection(on: Set(saved.on ?? []), choices: saved.choices ?? [:])
+            savedSelection = selection
+            origin = "saved"
+        } else {
+            let s = PatientRules.prefill(def.id, myPatient.record)
+            if !s.isEmpty { selection = s; origin = "record" }
+        }
+    }
+
+    private var isSaved: Bool { savedSelection == selection && myPatient.record.scores[def.id] != nil }
+
+    private func saveToPatient() {
+        let answers = def.items.compactMap { item -> String? in
+            switch item.input {
+            case .toggle: return selection.on.contains(item.id) ? item.label : nil
+            case .choice(let options):
+                let chosen = selection.choices[item.id] ?? options.first?.label ?? ""
+                return item.label + ": " + chosen
+            }
+        }
+        let b = band
+        let entry = PatientScore(points: score, max: def.maxScore, label: b?.label, detail: b?.detail, answers: answers,
+                                 on: Array(selection.on).sorted(), choices: selection.choices, date: Date())
+        myPatient.update { $0.scores[def.id] = entry }
+        savedSelection = selection
+        copied.toggle()
+    }
+
+    private var patientBar: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "person.text.rectangle").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent2)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(isSaved ? "Saved to My Patient" : (origin == "record" ? "Answers filled from My Patient" : "My Patient"))
+                    .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
+                Text(origin == "record" && !isSaved ? "Check each answer before you save it." : (isSaved ? "Change an answer to update it." : "Save this result to the patient's record."))
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 6)
+            if isSaved {
+                Image(systemName: "checkmark.circle.fill").font(PS.sys(size: 18)).foregroundStyle(PS.green)
+            } else {
+                Button(myPatient.record.scores[def.id] == nil ? "Save" : "Update") { saveToPatient() }
+                    .buttonStyle(CapsuleButtonStyle())
+            }
+        }
+        .padding(12)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.accent2.opacity(0.35), lineWidth: 1))
     }
 
     private var result: some View {
@@ -255,6 +317,7 @@ struct SourceLine: View {
 
 struct PedsCalculatorView: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
     /// Opens the local anesthetic calculator with this child's weight and age.
     var onOpenLocal: (Double?, Int?) -> Void = { _, _ in }
@@ -320,7 +383,8 @@ struct PedsCalculatorView: View {
 
     private var inputs: some View {
         VStack(alignment: .leading, spacing: 12) {
-            WeightField(text: $weightText, focus: $weightFocused, prompt: estimate == nil ? "Enter the weight: doses, tube and mask sizes and fluids fill in as you type." : "Enter the weight, or use the estimate for this age below.")
+            WeightField(text: $weightText, focus: $weightFocused, prompt: estimate == nil ? "Enter the weight: doses, tube and mask sizes and fluids fill in as you type." : "Enter the weight, or use the estimate for this age below.",
+                        patientWeight: myPatient.record.isChild ? myPatient.weightKg : nil)
             HStack(spacing: 14) {
                 Text("Age").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
                 Spacer()

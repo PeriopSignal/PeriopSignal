@@ -47,6 +47,8 @@
   --t-liver-fg:#E8BC8E; --t-liver-bg:#362416;
   --t-criticalCare-fg:#ACB4FF; --t-criticalCare-bg:#1D2145;
   --t-general-fg:#BCC6D3; --t-general-bg:#2A333F;
+  --amber: #FFD470;           /* mildly abnormal (echo sizes) */
+  --orange: #FFAE82;          /* moderately abnormal */
   color-scheme: dark;
 }
 :root[data-theme="light"] {
@@ -86,6 +88,8 @@
   --t-liver-fg:#85542A; --t-liver-bg:#F4E8DC;
   --t-criticalCare-fg:#3B4DB0; --t-criticalCare-bg:#E4E7F7;
   --t-general-fg:#4A5667; --t-general-bg:#E7EBF0;
+  --amber: #8F5F00;
+  --orange: #B8430E;
   color-scheme: light;
 }
 
@@ -327,12 +331,82 @@ a { color: var(--accent-2); }
   .headline { font-size: 20px; }
   .post { padding: 18px 18px 16px; }
 }
+/* ---------- question of the day and quiz ---------- */
+.qotd-wrap { max-width: 660px; margin: 0 auto; padding-top: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.today-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13.5px; color: var(--fg-2); min-width: 0; }
+.today-row .tdot { width: 7px; height: 7px; border-radius: 50%; background: var(--fg-3); flex: none; }
+.today-row .tdot.on { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.today-row .tline { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.today-row .pill-btn { flex: none; height: 26px; padding: 0 10px; font-size: 12px; }
+.qotd { display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 13px 14px; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; transition: border-color .15s; }
+.qotd:hover { border-color: var(--line-2); }
+.qotd .qi { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--qc); background: color-mix(in srgb, var(--qc) 14%, transparent); }
+.qotd .qi svg { width: 17px; height: 17px; }
+.qotd .qt { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.qotd .qe { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--qc); }
+.qotd .qq { font-size: 14.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.qotd > svg { flex: none; width: 13px; height: 13px; color: var(--fg-3); margin-top: 11px; }
+.quiz { display: grid; gap: 12px; }
+.quiz-q { margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 600; line-height: 1.35; text-wrap: pretty; }
+.quiz-opts { display: grid; gap: 8px; }
+.quiz-opt { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 11px 12px; text-align: left; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); font-size: 14.5px; line-height: 1.45; }
+.quiz-opt:hover:not(:disabled) { border-color: var(--fg-3); }
+.quiz-opt:disabled { cursor: default; color: inherit; }
+.quiz-opt .ql { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-3); color: var(--fg-2); font-family: var(--font-mono); font-size: 11.5px; }
+.quiz-opt .qx { flex: 1; min-width: 0; }
+.quiz-opt .qm { flex: none; width: 18px; height: 18px; display: grid; }
+.quiz-opt .qm svg { width: 18px; height: 18px; }
+.quiz-opt.right { background: var(--new-soft); border-color: color-mix(in srgb, var(--new) 70%, transparent); font-weight: 600; }
+.quiz-opt.right .ql { background: var(--new); color: var(--bg); }
+.quiz-opt.right .qm { color: var(--new); }
+.quiz-opt.wrong { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.quiz-opt.wrong .ql { background: var(--accent); color: var(--accent-fg); }
+.quiz-opt.wrong .qm { color: var(--accent); }
+.quiz-ex { display: grid; gap: 8px; justify-items: start; padding: 12px; border-radius: 12px; background: var(--surface-2); }
+.quiz-ex strong { font-size: 14px; }
+.quiz-ex p { margin: 0; font-size: 14.5px; line-height: 1.55; }
+.quiz-stats { display: flex; gap: 22px; }
+.quiz-stats div { display: grid; gap: 1px; }
+.quiz-stats b { font-size: 19px; font-variant-numeric: tabular-nums; }
+.quiz-stats span { font-size: 11.5px; color: var(--fg-3); }
+.quiz-from { display: flex; gap: 10px; align-items: flex-start; }
+.quiz-from .avatar { width: 36px; height: 36px; border-radius: 11px; font-size: 10px; }
+.quiz-from p { margin: 0; display: grid; gap: 2px; font-size: 12.5px; color: var(--fg-2); }
+.quiz-from p span { color: var(--fg-3); }
+/* ---------- cite ---------- */
+.cite-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.cite-row .cl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); margin-right: 2px; }
+.cite-row[hidden] { display: none; }
+/* ---------- listen ---------- */
+.btn.icon { width: 34px; padding: 0; justify-content: center; }
+.pill-btn.listen { color: var(--accent); background: var(--accent-soft); }
+.pill-btn.listen:hover { border-color: var(--accent); }
+.pill-btn.listen svg { width: 11px; height: 11px; }
+.player { position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--mast-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); }
+.player-inner { max-width: 660px; margin: 0 auto; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; }
+.pl-play { grid-row: span 2; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-fg); }
+.pl-play svg { width: 18px; height: 18px; }
+.pl-text { min-width: 0; display: grid; gap: 1px; }
+.pl-title { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-sub { font-size: 11.5px; color: var(--fg-3); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-tools { grid-row: span 2; display: flex; gap: 2px; }
+.pl-tools button { height: 34px; min-width: 34px; padding: 0 6px; border-radius: 9px; display: grid; place-items: center; color: var(--fg-2); font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+.pl-tools button:hover { background: var(--surface-2); color: var(--fg); }
+.pl-tools button[hidden] { display: none; }
+.pl-tools svg { width: 17px; height: 17px; }
+.pl-bar { grid-column: 2; height: 4px; border-radius: 2px; background: var(--surface-3); overflow: hidden; cursor: pointer; }
+.pl-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+body.has-player .fab { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+body.has-player .toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
+
 @media (prefers-reduced-motion: reduce) {
   .sheet, .scrim, .toast, .fab, .chip, .post, .btn { transition: none; }
   .skeleton::after, .brand p .live::before { animation: none; }
   .logo svg path, .logo:hover svg path { animation: none; stroke-dashoffset: 0; }
 }
 </style>
+<style data-include="src/reference.css"></style>
 
 <section class="intro">
   <div class="intro-inner">
@@ -350,6 +424,10 @@ a { color: var(--accent-2); }
 </section>
 <header class="masthead">
   <div class="masthead-inner">
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" data-tab="feed" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2.2-6 4.3 12 2.3-6H21"/></svg>Feed</button>
+      <button class="tab" role="tab" data-tab="ref" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 4.5h4v15h-4zM10.5 4.5h4v15h-4z"/><path d="M16.3 5.4l3.8-1 3.4 13.6-3.8 1z"/></svg>Reference</button>
+    </nav>
     <div class="search-row" id="search-row">
       <input type="search" id="q" placeholder="Search headlines, trials, journals" autocomplete="off" aria-label="Search posts">
     </div>
@@ -380,10 +458,12 @@ a { color: var(--accent-2); }
   </div>
 </header>
 
+<div class="qotd-wrap" id="qotd" hidden></div>
 <main class="feed" id="feed" aria-live="polite">
   <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
 </main>
 <div class="sentinel" id="sentinel"></div>
+<main class="ref" id="ref" aria-live="polite" aria-labelledby="ref-title"></main>
 
 <button class="fab" id="fab" aria-label="Back to top">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -400,6 +480,19 @@ a { color: var(--accent-2); }
   </div>
   <div class="sheet-body"><div class="sheet-inner" id="sheet-content"></div></div>
 </section>
+
+<div class="player" id="player" hidden>
+  <div class="player-inner">
+    <button class="pl-play" id="pl-play" aria-label="Pause"></button>
+    <div class="pl-text"><div class="pl-title" id="pl-title"></div><div class="pl-sub" id="pl-sub"></div></div>
+    <div class="pl-tools">
+      <button id="pl-rate" aria-label="Playback speed">1×</button>
+      <button id="pl-next" aria-label="Next post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5l9 7-9 7zM18 5v14"/></svg></button>
+      <button id="pl-close" aria-label="Stop listening"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="pl-bar" id="pl-bar" role="progressbar" aria-label="Position in this post" aria-valuemin="0" aria-valuemax="100"><i id="pl-fill"></i></div>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status"></div>
 
@@ -465,7 +558,14 @@ a { color: var(--accent-2); }
     link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
     sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
-    moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>'
+    moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+    headphones: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3.5" y="14" width="4.5" height="6.5" rx="1.6"/><rect x="16" y="14" width="4.5" height="6.5" rx="1.6"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12.5-7.5z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.2" height="15" rx="1"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1"/></svg>',
+    quote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 7H6a2 2 0 0 0-2 2v3h5v5H4M20 7h-3.5a2 2 0 0 0-2 2v3h5v5h-5"/></svg>',
+    question: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9.2a3 3 0 1 1 4.4 2.7c-.9.5-1.4 1.1-1.4 2.1v.5M12 18h.01"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>'
   };
   const topicStyle = (t) => `style="--t-fg:var(--t-${t}-fg);--t-bg:var(--t-${t}-bg)"`;
   const signal = (n) => `<span class="signal" data-level="${n}" title="${n === 3 ? 'Landmark' : n === 2 ? 'Important' : 'Notable'}" aria-label="Signal ${n} of 3"><i></i><i></i><i></i></span>`;
@@ -554,6 +654,7 @@ a { color: var(--accent-2); }
       <div class="post-foot">
         <div class="topics">${p.topics.map(t => `<span class="tag" ${topicStyle(t)}>${esc(TOPIC_NAME[t] || t)}</span>`).join('')}</div>
         <div class="actions">
+          <button class="btn icon" data-act="listen" aria-label="Listen to this post" title="Listen">${icon.headphones}</button>
           <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">${icon.ext} Paper</a>
           <button class="btn quiet" data-act="open">${icon.read} Deep dive</button>
         </div>
@@ -587,6 +688,7 @@ a { color: var(--accent-2); }
     const art = b.closest('.post'); const p = state.posts.find(x => x.id === art.dataset.id); if (!p) return;
     if (b.dataset.act === 'open') openSheet(p);
     if (b.dataset.act === 'save') toggleSave(p, b);
+    if (b.dataset.act === 'listen') player.play([p]);
   });
   function toggleSave(p, btn) {
     const now = !state.saved.has(p.id);
@@ -631,7 +733,10 @@ a { color: var(--accent-2); }
         <button class="btn" data-sheet="save" aria-pressed="${saved}">${saved ? icon.bookmarkFill + ' Saved' : icon.bookmark + ' Save'}</button>
         <button class="btn" data-sheet="copy">${icon.copy} Copy summary</button>
         <button class="btn" data-sheet="link">${icon.link} Copy link</button>
+        <button class="btn" data-sheet="listen">${icon.headphones} Listen${p.audio && p.audio.seconds ? ' · ' + Math.max(1, Math.round(p.audio.seconds / 60)) + ' min' : ''}</button>
+        <button class="btn" data-sheet="cite" aria-expanded="false" aria-controls="cite-row">${icon.quote} Cite</button>
       </div>
+      <div class="cite-row" id="cite-row" hidden><span class="cl">Copy as</span><button class="btn" data-sheet="cite-ama">AMA</button><button class="btn" data-sheet="cite-bib">BibTeX</button><button class="btn" data-sheet="cite-ris">RIS</button>${postDOI(p) ? '<button class="btn" data-sheet="cite-doi">DOI</button>' : ''}</div>
       <div>
         <p class="section-label">${p.takeHomeBy === 'authors' ? 'Take-home · the authors\u2019 key points' : 'Take-home'}</p>
         <ul class="takehome">${p.takeHome.map(b => `<li>${esc(b)}</li>`).join('')}</ul>
@@ -641,10 +746,11 @@ a { color: var(--accent-2); }
         <div class="deep">${md(p.deepDive)}</div>
       </div>
       ${authorsBlock(p, 'limits')}
+      ${validQuiz(p.quiz) ? `<div><p class="section-label">Test yourself</p>${quizHTML(p)}</div>` : ''}
       <div class="topics">${p.topics.map(t => `<span class="tag" ${topicStyle(t)}>${esc(TOPIC_NAME[t] || t)}</span>`).join('')}</div>
       <p class="note">Overview written by Claude from the paper, abstract and society pages, then checked against the source link. Confirm details against the paper before changing practice. Added to the feed ${esc(fmtDate(p.addedAt, true))}.</p>`;
     showSheet();
-    try { history.replaceState(null, '', '#' + p.id); } catch (e) {}
+    if (!inRefView()) { try { history.replaceState(null, '', '#' + p.id); } catch (e) {} }
   }
   function openAbout() {
     state.current = null;
@@ -670,10 +776,20 @@ a { color: var(--accent-2); }
           <li>The bookmark saves a post on this device; the bookmark button in the top bar shows your saved list.</li>
           <li>Keep scrolling for older posts. Posts added since your last visit are marked <strong>New</strong>.</li>
           <li>The sun/moon button switches between dark and light; your choice is remembered on this device.</li>
+          <li><strong>Listen</strong> plays the recorded overview of a post, or of everything new since your last visit.</li>
+          <li>The <strong>question of the day</strong> sits above the feed; each deep dive with a question has it under <strong>Test yourself</strong>.</li>
+          <li><strong>Cite</strong> in a deep dive copies the reference as AMA, BibTeX, RIS or the DOI.</li>
+        </ul>
+        <p class="section-label">Reference</p>
+        <ul>
+          <li>The <strong>Reference</strong> tab at the top holds the app’s calculators, emergency checklists, guided tools and condensed society references, in seven folders, with one search across them and the feed.</li>
+          <li>Weights, ages, times and measurements you enter stay in the open tool and are cleared when you leave it; nothing about a patient is stored or sent.</li>
+          <li>Star a tool to keep it at the top of Reference on this device.</li>
         </ul>
         <p class="section-label">Status</p>
         <dl class="meta-grid"><dt>Posts</dt><dd>${state.posts.length}</dd><dt>Covers</dt><dd>October 2025 to today</dd><dt>Last update</dt><dd>${esc(fmtDate(newest, true))}</dd></dl>
         <p class="note">Summaries are AI-generated and can contain errors. They are a reading aid, not clinical advice. Always read the source before acting on it.</p>
+        <p class="note">Periop Signal is for licensed clinicians. Its calculators, checklists and summaries condense published guidelines and papers; they can contain errors or fall out of date, do not replace clinical judgment or your institution's protocols, and have not been reviewed or cleared by the FDA. Provided as is, without warranties.</p>
       </div>`;
     showSheet();
   }
@@ -685,14 +801,24 @@ a { color: var(--accent-2); }
   function closeSheet() {
     sheet.classList.remove('show'); scrim.classList.remove('show'); document.body.style.overflow = '';
     setTimeout(() => { sheet.hidden = true; }, 300);
-    if (state.current) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    if (state.current && !inRefView()) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
     state.current = null;
   }
   $('#sheet-close').addEventListener('click', closeSheet);
   scrim.addEventListener('click', closeSheet);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
   sheetContent.addEventListener('click', (e) => {
+    const qb = e.target.closest('[data-quiz]');
+    if (qb) { answerQuiz(qb); return; }
+    const rd = e.target.closest('[data-sheet="read"]');
+    if (rd) { const p = state.posts.find((x) => x.id === rd.dataset.id); if (p) openSheet(p); return; }
     const b = e.target.closest('[data-sheet]'); if (!b || !state.current) return;
+    if (b.dataset.sheet === 'listen') player.play([state.current]);
+    if (b.dataset.sheet === 'cite') { const row = $('#cite-row'); row.hidden = !row.hidden; b.setAttribute('aria-expanded', String(!row.hidden)); }
+    if (b.dataset.sheet === 'cite-ama') copyText(amaCitation(state.current), state.current.citation ? 'AMA citation copied' : 'Web citation copied');
+    if (b.dataset.sheet === 'cite-bib') copyText(bibtex(state.current), 'BibTeX copied');
+    if (b.dataset.sheet === 'cite-ris') copyText(risRecord(state.current), 'RIS record copied: paste it into your reference manager');
+    if (b.dataset.sheet === 'cite-doi') copyText(postDOI(state.current), 'DOI copied');
     if (b.dataset.sheet === 'save') toggleSave(state.current, b);
     if (b.dataset.sheet === 'copy') {
       const p = state.current;
@@ -762,6 +888,318 @@ a { color: var(--accent-2); }
   window.addEventListener('scroll', () => { fab.classList.toggle('show', window.scrollY > 900); }, { passive: true });
   fab.addEventListener('click', () => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
 
+  // ---------- views ----------
+  const inRefView = () => document.body.classList.contains('view-ref');
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const LONG_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const longDate = (d) => LONG_MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  const SITE = 'https://periopsignal.github.io/PeriopSignal/';
+
+  // ---------- question of the day (same pick as the app: one per day, newest 40, weighted by impact) ----------
+  function feedToday() {
+    try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+    catch (e) { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  }
+  function validQuiz(q) { return !!(q && q.question && Array.isArray(q.options) && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length); }
+  function seedIndex(s, n) {
+    if (typeof BigInt === 'function') {
+      const M = (BigInt(1) << BigInt(64)) - BigInt(1), HALF = BigInt(1) << BigInt(63);
+      let h = BigInt(5381);
+      for (const ch of s) h = ((h << BigInt(5)) + h + BigInt(ch.codePointAt(0))) & M;
+      if (h >= HALF) h = (M + BigInt(1)) - h;
+      return Number(h % BigInt(n));
+    }
+    let h = 5381; for (const ch of s) h = ((h << 5) + h + ch.codePointAt(0)) >>> 0;
+    return h % n;
+  }
+  const quiz = {
+    answers: (() => { const a = LS.get('ps.quiz.answers', {}); return a && typeof a === 'object' ? a : {}; })(),
+    record(id, chosen, correct) { this.answers[id] = { chosen, correct, date: feedToday() }; LS.set('ps.quiz.answers', this.answers); },
+    get answered() { return Object.keys(this.answers).length; },
+    get correct() { return Object.values(this.answers).filter((a) => a && a.correct).length; },
+    streak() {
+      const days = new Set(Object.values(this.answers).map((a) => a && a.date));
+      const key = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+      const d = parseDate(feedToday());
+      if (!days.has(key(d))) { d.setDate(d.getDate() - 1); if (!days.has(key(d))) return 0; }
+      let n = 0; while (days.has(key(d))) { n++; d.setDate(d.getDate() - 1); }
+      return n;
+    },
+    today(posts) {
+      const today = feedToday(), saved = LS.get('ps.quiz.today', null);
+      if (saved && saved.date === today) { const p = posts.find((x) => x.id === saved.id && validQuiz(x.quiz)); if (p) return p; }
+      const withQuiz = posts.filter((p) => validQuiz(p.quiz));
+      if (!withQuiz.length) return null;
+      let pool = withQuiz.filter((p) => !this.answers[p.id]);
+      if (!pool.length) pool = withQuiz;
+      const recent = pool.slice().sort((a, b) => (a.addedAt === b.addedAt ? (a.id < b.id ? 1 : a.id > b.id ? -1 : 0) : (a.addedAt < b.addedAt ? 1 : -1))).slice(0, 40);
+      const weighted = [];
+      for (const p of recent) for (let i = 0; i < Math.max(1, p.impact); i++) weighted.push(p);
+      const pick = weighted[seedIndex(today, weighted.length)];
+      LS.set('ps.quiz.today', { date: today, id: pick.id });
+      return pick;
+    },
+  };
+  const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+  function quizHTML(p, opts) {
+    const q = p.quiz, a = quiz.answers[p.id], link = !!(opts && opts.postLink);
+    let h = `<div class="quiz" data-quiz-post="${esc(p.id)}" data-link="${link ? '1' : ''}"><p class="quiz-q">${esc(q.question)}</p><div class="quiz-opts">`;
+    q.options.forEach((o, i) => {
+      const cls = a ? (i === q.answer ? ' right' : (i === a.chosen ? ' wrong' : '')) : '';
+      const mark = a && i === q.answer ? icon.check : (a && i === a.chosen ? icon.x : '');
+      h += `<button class="quiz-opt${cls}" data-quiz="${i}"${a ? ' disabled' : ''}><span class="ql">${LETTERS[i]}</span><span class="qx">${esc(o)}</span>${mark ? `<span class="qm">${mark}</span>` : ''}</button>`;
+    });
+    h += '</div>';
+    if (a) {
+      const right = a.chosen === q.answer;
+      h += `<div class="quiz-ex"><strong style="color:${right ? 'var(--new)' : 'var(--accent)'}">${right ? 'Correct' : 'Not quite: the answer is ' + LETTERS[q.answer]}</strong><p>${esc(q.explanation)}</p>${link ? `<button class="btn primary" data-sheet="read" data-id="${esc(p.id)}">${icon.read} Read the post</button>` : ''}</div>`;
+    }
+    return h + '</div>';
+  }
+  const statsHTML = () => `<div class="quiz-stats" id="quiz-stats"><div><b>${quiz.streak()}</b><span>day streak</span></div><div><b>${quiz.correct}/${quiz.answered}</b><span>correct</span></div></div>`;
+  function answerQuiz(btn) {
+    const box = btn.closest('.quiz'); if (!box) return;
+    const p = state.posts.find((x) => x.id === box.dataset.quizPost);
+    if (!p || quiz.answers[p.id] || !validQuiz(p.quiz)) return;
+    const i = Number(btn.dataset.quiz);
+    quiz.record(p.id, i, i === p.quiz.answer);
+    box.outerHTML = quizHTML(p, { postLink: box.dataset.link === '1' });
+    const st = $('#quiz-stats'); if (st) st.outerHTML = statsHTML();
+    renderToday();
+  }
+  function openQuestion(p) {
+    state.current = null;
+    $('#sheet-kicker').textContent = 'Question of the day';
+    sheetContent.innerHTML = `<h2 id="sheet-title">Question of the Day</h2>
+      <div class="quiz-from"><div class="avatar" ${topicStyle(p.topics[0] || 'general')} aria-hidden="true">${esc(p.jshort)}</div><p>From ${esc(p.journal)} · ${esc(fmtDate(p.date, true))}<span>${esc(p.headline)}</span></p></div>
+      ${quizHTML(p, { postLink: true })}
+      ${statsHTML()}
+      <p class="note">One question each morning, written from that post’s own text. Your answers and streak are kept in this browser.</p>`;
+    showSheet();
+  }
+
+  // ---------- the strip above the feed: what is new, Listen, and the question of the day ----------
+  function listenList() {
+    if (state.newIds.size) return state.posts.filter((p) => state.newIds.has(p.id));
+    const newest = state.posts.reduce((a, p) => (p.addedAt > a ? p.addedAt : a), '0000');
+    return state.posts.filter((p) => p.addedAt === newest);
+  }
+  function minutes(list) {
+    const secs = list.reduce((t, p) => t + (p.audio && p.audio.seconds ? p.audio.seconds : spokenSegments(p).join(' ').split(/\s+/).length / 165 * 60), 0);
+    return Math.max(1, Math.round(secs / 60));
+  }
+  function renderToday() {
+    const el = $('#qotd'); if (!el) return;
+    if (!state.posts.length) { el.hidden = true; return; }
+    const lp = listenList(), n = state.newIds.size;
+    let h = `<div class="today-row"><span class="tdot${n ? ' on' : ''}"></span><span class="tline">${n ? n + ' new since your last visit' : 'Latest edition · ' + esc(fmtDate(lp[0] ? lp[0].addedAt : state.posts[0].addedAt, true))}</span>${lp.length ? `<button class="pill-btn listen" id="btn-listen">${icon.play} Listen · ${minutes(lp)} min</button>` : ''}</div>`;
+    const p = quiz.today(state.posts);
+    if (p) {
+      const a = quiz.answers[p.id];
+      const qc = !a ? 'var(--accent-2)' : (a.correct ? 'var(--new)' : 'var(--accent)');
+      h += `<button class="qotd" id="qotd-open" data-id="${esc(p.id)}" style="--qc:${qc}"><span class="qi">${!a ? icon.question : (a.correct ? icon.check : icon.x)}</span><span class="qt"><span class="qe">${a ? (a.correct ? 'Correct' : 'Missed') + ' · see the explanation' : 'Question of the day · ' + esc(p.jshort)}</span><span class="qq">${esc(p.quiz.question)}</span></span>${icon.chev}</button>`;
+    }
+    el.innerHTML = h;
+    el.hidden = false;
+  }
+  $('#qotd').addEventListener('click', (e) => {
+    if (e.target.closest('#btn-listen')) { player.play(listenList()); return; }
+    const q = e.target.closest('#qotd-open');
+    if (q) { const p = state.posts.find((x) => x.id === q.dataset.id); if (p) openQuestion(p); }
+  });
+
+  // ---------- citations (same formats as the app) ----------
+  function postDOI(p) {
+    if (p.citation && p.citation.doi) return p.citation.doi;
+    const m = /doi\.org\/(10\.\S+)$/i.exec(p.url || '');
+    return m ? m[1] : null;
+  }
+  function fallbackCitation(p) {
+    let t = (p.title || p.headline).trim(); if (!/[.?]$/.test(t)) t += '.';
+    return `${p.journal || 'Periop Signal'}. ${t} Published ${fmtDate(p.date, true)}. Accessed ${longDate(new Date())}. ${p.url}`;
+  }
+  function amaCitation(p) {
+    const c = p.citation; if (!c) return fallbackCitation(p);
+    const au = c.authors || [];
+    let authors = au.length > 6 ? au.slice(0, 3).join(', ') + ', et al' : au.join(', ');
+    if (authors && !authors.endsWith('.')) authors += '.';
+    let title = (c.title || '').trim(); if (!/[.?]$/.test(title)) title += '.';
+    let s = (authors ? authors + ' ' : '') + title;
+    if (c.journal) s += ' ' + c.journal + '.';
+    let ref = c.year ? String(c.year) : '';
+    if (c.volume) { ref += ';' + c.volume; if (c.issue) ref += '(' + c.issue + ')'; }
+    if (c.pages) ref += ':' + c.pages;
+    if (ref) s += ' ' + ref + '.';
+    if (c.doi) s += ' doi:' + c.doi;
+    return s;
+  }
+  function familyGiven(a, sep, trailing) {
+    if (!/^\S+ [A-Z]{1,4}$/.test(a)) return a;
+    const i = a.lastIndexOf(' ');
+    return a.slice(0, i) + ', ' + a.slice(i + 1).split('').join(sep) + (trailing || '');
+  }
+  function risRecord(p) {
+    const c = p.citation, L = [];
+    if (c) {
+      L.push('TY  - JOUR');
+      for (const a of c.authors || []) L.push('AU  - ' + familyGiven(a, ''));
+      L.push('TI  - ' + c.title);
+      if (c.journal) { L.push('T2  - ' + c.journal); L.push('JO  - ' + c.journal); }
+      if (c.year) L.push('PY  - ' + c.year);
+      if (c.volume) L.push('VL  - ' + c.volume);
+      if (c.issue) L.push('IS  - ' + c.issue);
+      if (c.pages) { const parts = c.pages.split('-'); L.push('SP  - ' + parts[0]); if (parts.length > 1) L.push('EP  - ' + parts.slice(1).join('-')); }
+      if (c.doi) L.push('DO  - ' + c.doi);
+    } else {
+      L.push('TY  - ELEC'); L.push('TI  - ' + (p.title || p.headline));
+      if (p.journal) L.push('PB  - ' + p.journal);
+      L.push('PY  - ' + p.date.slice(0, 4)); L.push('DA  - ' + p.date.replace(/-/g, '/'));
+    }
+    L.push('UR  - ' + p.url); L.push('N1  - Periop Signal: ' + SITE + '#' + p.id); L.push('ER  - ');
+    return L.join('\r\n') + '\r\n';
+  }
+  function bibtex(p) {
+    const c = p.citation;
+    const first = ((c && c.authors && c.authors[0]) || p.firstAuthor || 'periopsignal').split(' ')[0];
+    const year = c && c.year ? String(c.year) : p.date.slice(0, 4);
+    const key = (first + year).toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+    const field = (k, v) => (v ? `  ${k} = {${v}}` : null);
+    if (c) {
+      const authors = (c.authors || []).map((a) => familyGiven(a, '. ', '.'));
+      const f = [field('author', authors.join(' and ')), field('title', c.title), field('journal', c.journal), field('year', year), field('volume', c.volume), field('number', c.issue), field('pages', c.pages ? c.pages.replace(/-/g, '--') : null), field('doi', c.doi), field('url', p.url)].filter(Boolean);
+      return `@article{${key},\n${f.join(',\n')}\n}\n`;
+    }
+    const f = [field('title', p.title || p.headline), field('howpublished', p.journal), field('year', year), field('url', p.url), field('note', 'Accessed ' + longDate(new Date()))].filter(Boolean);
+    return `@misc{${key},\n${f.join(',\n')}\n}\n`;
+  }
+
+  // ---------- listen: the recorded overview, or the device's voice where the recording cannot load ----------
+  const KIND_SPOKEN = { 'RCT': 'a randomized trial', 'Guideline': 'a guideline', 'Consensus': 'a consensus statement', 'Meta-analysis': 'a meta-analysis', 'Observational': 'an observational study', 'Registry': 'a registry study', 'FDA/Regulatory': 'a regulatory notice', 'Device': 'device news', 'Safety alert': 'a safety alert', 'Trial update': 'a trial update', 'Conference': 'a conference report' };
+  function spoken(t) {
+    let s = String(t || '').replace(/\*\*|__|`/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+    const swaps = [[/\/kg\/min\b/g, ' per kilogram per minute'], [/\/kg\/h\b/g, ' per kilogram per hour'], [/\/kg\b/g, ' per kilogram'], [/\/min\b/g, ' per minute'], [/\/h\b/g, ' per hour'],
+      [/\bvs\.?\b/g, 'versus'], [/\bmcg\b/g, 'micrograms'], [/\bmL\b/g, 'millilitres'], [/\bmmHg\b/g, 'millimetres of mercury'], [/≥/g, 'at least '], [/≤/g, 'at most '], [/\bCI\b/g, 'confidence interval'], [/\bRCT\b/g, 'randomized trial'], [/\bTEE\b/g, 'T E E']];
+    for (const [re, r] of swaps) s = s.replace(re, r);
+    return s.trim();
+  }
+  function spokenSegments(p) {
+    const out = [spoken(p.headline)];
+    out.push(`From ${p.journal}, ${KIND_SPOKEN[p.kind] || String(p.kind).toLowerCase()}${p.trialName ? ', the ' + p.trialName + ' trial' : ''}, ${fmtDate(p.date, true)}.`);
+    if (p.takeHome && p.takeHome.length) { out.push(p.takeHomeBy === 'authors' ? 'The authors’ key points.' : 'Take-home.'); p.takeHome.forEach((t) => out.push(spoken(t))); }
+    for (const line of String(p.deepDive || '').split('\n')) { const l = line.replace(/^#{1,4}\s+|^[-*•]\s+/, '').trim(); if (l) out.push(spoken(l)); }
+    if (p.authorLimitations && p.authorLimitations.length) { out.push('Limitations stated by the authors.'); p.authorLimitations.forEach((t) => out.push(spoken(t))); }
+    return out.filter(Boolean);
+  }
+  const player = (() => {
+    const box = $('#player'), playBtn = $('#pl-play'), titleEl = $('#pl-title'), subEl = $('#pl-sub'), fill = $('#pl-fill'), bar = $('#pl-bar'), rateBtn = $('#pl-rate'), nextBtn = $('#pl-next');
+    const audio = new Audio(); audio.preload = 'none';
+    const RATES = [1, 1.25, 1.5, 2, 0.75];
+    let queue = [], index = 0, mode = null, playing = false, gen = 0, segs = [], segI = 0;
+    let rate = Number(LS.get('ps.listen.rate', 1)); if (!RATES.includes(rate)) rate = 1;
+    const fmtT = (t) => { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + ':' + pad2(t % 60); };
+    const synth = () => (typeof window.speechSynthesis !== 'undefined' ? window.speechSynthesis : null);
+    function paint() {
+      const p = queue[index]; if (!p) return;
+      titleEl.textContent = p.headline;
+      let sub = p.journal + (queue.length > 1 ? ` · ${index + 1} of ${queue.length}` : '');
+      if (mode === 'audio' && isFinite(audio.duration) && audio.duration > 0) sub += ` · ${fmtT(audio.currentTime)} / ${fmtT(audio.duration)}`;
+      if (mode === 'speech') sub += ' · read by this device';
+      subEl.textContent = sub;
+      playBtn.innerHTML = playing ? icon.pause : icon.play;
+      playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+      rateBtn.textContent = String(rate).replace(/^0\./, '.') + '×';
+      nextBtn.hidden = index >= queue.length - 1;
+      const pct = mode === 'audio' && audio.duration ? (audio.currentTime / audio.duration) * 100 : (mode === 'speech' && segs.length ? (segI / segs.length) * 100 : 0);
+      fill.style.width = pct.toFixed(1) + '%'; bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+      if ('mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({ title: p.headline, artist: 'Periop Signal', album: p.journal, artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
+          navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+        } catch (e) {}
+      }
+    }
+    function stopSpeech() { gen++; const s = synth(); if (s) { try { s.cancel(); } catch (e) {} } }
+    function speak(p) {
+      const s = synth();
+      if (!s || typeof SpeechSynthesisUtterance === 'undefined') { toast('Audio could not play here'); stop(); return; }
+      audio.pause(); mode = 'speech'; segs = spokenSegments(p); segI = 0; playing = true;
+      const my = ++gen;
+      const sayNext = () => {
+        if (my !== gen) return;
+        if (segI >= segs.length) { next(); return; }
+        const u = new SpeechSynthesisUtterance(segs[segI]);
+        u.rate = rate; u.lang = 'en-US';
+        u.onend = () => { if (my !== gen) return; segI++; paint(); sayNext(); };
+        u.onerror = () => { if (my !== gen) return; segI++; sayNext(); };
+        s.speak(u);
+      };
+      sayNext(); paint();
+    }
+    function start() {
+      stopSpeech();
+      const p = queue[index]; if (!p) return stop();
+      box.hidden = false; document.body.classList.add('has-player');
+      if (p.audio && p.audio.url) {
+        mode = 'audio'; audio.src = p.audio.url; audio.playbackRate = rate;
+        playing = true; paint();
+        audio.play().then(() => { playing = true; paint(); }).catch((err) => {
+          if (err && err.name === 'NotAllowedError') { playing = false; paint(); } else speak(p);
+        });
+      } else speak(p);
+    }
+    function next() { if (index < queue.length - 1) { index++; start(); } else stop(); }
+    function stop() {
+      stopSpeech(); audio.pause(); audio.removeAttribute('src'); try { audio.load(); } catch (e) {}
+      queue = []; index = 0; mode = null; playing = false;
+      box.hidden = true; document.body.classList.remove('has-player');
+      if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; } catch (e) {} }
+    }
+    function toggle() {
+      if (mode === 'audio') { if (audio.paused) { audio.play().catch(() => speak(queue[index])); playing = true; } else { audio.pause(); playing = false; } }
+      else if (mode === 'speech') { const s = synth(); if (!s) return; if (playing) { s.pause(); playing = false; } else { s.resume(); playing = true; } }
+      paint();
+    }
+    audio.addEventListener('timeupdate', paint);
+    audio.addEventListener('loadedmetadata', paint);
+    audio.addEventListener('ended', () => { if (mode === 'audio') next(); });
+    audio.addEventListener('error', () => { if (mode === 'audio' && queue[index]) speak(queue[index]); });
+    audio.addEventListener('pause', () => { if (mode === 'audio') { playing = false; paint(); } });
+    audio.addEventListener('play', () => { if (mode === 'audio') { playing = true; paint(); } });
+    playBtn.addEventListener('click', toggle);
+    nextBtn.addEventListener('click', next);
+    $('#pl-close').addEventListener('click', stop);
+    rateBtn.addEventListener('click', () => {
+      rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length]; LS.set('ps.listen.rate', rate);
+      if (mode === 'audio') audio.playbackRate = rate;
+      else if (mode === 'speech' && queue[index]) { const keep = segI; speak(queue[index]); segI = keep; }
+      paint();
+    });
+    bar.addEventListener('click', (e) => {
+      if (mode !== 'audio' || !audio.duration) return;
+      const r = bar.getBoundingClientRect();
+      audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
+    });
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.setActionHandler('play', toggle);
+        navigator.mediaSession.setActionHandler('pause', toggle);
+        navigator.mediaSession.setActionHandler('nexttrack', next);
+        navigator.mediaSession.setActionHandler('seekbackward', () => { if (mode === 'audio') audio.currentTime = Math.max(0, audio.currentTime - 15); });
+        navigator.mediaSession.setActionHandler('seekforward', () => { if (mode === 'audio') audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 15); });
+      } catch (e) {}
+    }
+    return { play(list) { if (!list || !list.length) return; queue = list.slice(); index = 0; start(); } };
+  })();
+
+  // ---------- shared with the reference tab (src/reference-ui.js) ----------
+  const postWatchers = [];
+  window.PSFeed = {
+    esc, LS, toast, copyText, fmtDate, md, topicStyle,
+    posts: () => state.posts,
+    openPost: (p) => openSheet(p),
+    onPosts(cb) { postWatchers.push(cb); if (state.posts.length) cb(state.posts); },
+  };
+
   // ---------- boot ----------
   function boot(data) {
     const posts = (data.posts || []).slice();
@@ -780,7 +1218,8 @@ a { color: var(--accent-2); }
     if (rb) rb.addEventListener('click', () => { state.recent = !state.recent; rb.setAttribute('aria-pressed', String(state.recent)); applyFilters(); });
     $('#tagline').title = 'Last updated ' + fmtDate(newest, true);
     const lm = $('#btn-landmark'); if (lm && !lm.querySelector('.n')) lm.insertAdjacentHTML('beforeend', ` <span class="n">${land}</span>`);
-    renderRail(); applyFilters();
+    renderRail(); applyFilters(); renderToday();
+    postWatchers.forEach((cb) => { try { cb(posts); } catch (e) {} });
     const h = decodeURIComponent((location.hash || '').slice(1));
     if (h) { const p = posts.find(x => x.id === h); if (p) openSheet(p); }
   }
@@ -791,3 +1230,10 @@ a { color: var(--accent-2); }
   });
 })();
 </script>
+<script data-include="src/reference-logic.js"></script>
+<script data-include="src/reference-echo.js"></script>
+<script data-include="src/reference-acls.js"></script>
+<script data-include="src/reference-abg.js"></script>
+<script data-include="src/reference-regional.js"></script>
+<script data-include="src/reference-ob.js"></script>
+<script data-include="src/reference-ui.js"></script>

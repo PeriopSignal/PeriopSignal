@@ -14,10 +14,13 @@ struct PeriopSignalApp: App {
     @State private var router = Router()
     @State private var refs = ReferenceStore()
     @State private var favorites = FavoritesStore()
+    @State private var patient = PatientStore()
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
 
     init() {
-        // Earlier versions kept the last patient weight and age on the device; nothing about a patient is stored now.
+        // Earlier versions kept the last patient weight and age in settings; those keys are removed. My Patient keeps
+        // its one record in a protected file instead (PatientStore), until the user clears it.
         PatientHandoff.purgeStoredPatientValues()
         let prefs = Preferences()
         let postStore = PostStore()
@@ -42,6 +45,7 @@ struct PeriopSignalApp: App {
                 .environment(router)
                 .environment(refs)
                 .environment(favorites)
+                .environment(patient)
                 .preferredColorScheme(appearance.colorScheme)
                 .tint(PS.accent)
                 .onOpenURL { url in router.handle(url) }
@@ -50,7 +54,13 @@ struct PeriopSignalApp: App {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: AppDelegate.openPostNotification)) { note in
                     if let id = note.userInfo?["postID"] as? String { router.open(postID: id) }
-                    else if let tab = note.userInfo?["tab"] as? String, let t = Router.Tab(rawValue: tab == "guidelines" ? "reference" : tab) { router.selectedTab = t }
+                    else if let tab = note.userInfo?["tab"] as? String {
+                        if tab == "saved" { router.showSaved() }
+                        else if let t = Router.Tab(rawValue: tab == "guidelines" ? "reference" : tab) { router.selectedTab = t }
+                    }
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { patient.refresh() }
                 }
         }
     }
@@ -87,8 +97,15 @@ final class Router {
     var showWelcome = false
     /// A calculator or quick reference to open on the Reference tab (links, Spotlight, debug launches).
     var pendingRefRoute: RefRoute?
+    /// Set to open the saved posts, which live under More.
+    var openSaved = false
 
-    enum Tab: String, Hashable { case feed, reference, saved, more }
+    enum Tab: String, Hashable { case feed, patient, reference, more }
+
+    func showSaved() {
+        selectedTab = .more
+        openSaved = true
+    }
 
     func open(postID: String) {
         selectedTab = .feed
@@ -101,7 +118,8 @@ final class Router {
         switch url.host?.lowercased() {
         case "post":
             if let id = parts.first { open(postID: id) }
-        case "saved": selectedTab = .saved
+        case "saved": showSaved()
+        case "patient", "mypatient": selectedTab = .patient
         case "guidelines", "reference": selectedTab = .reference
         case "calculator", "score", "tool":
             // periopsignal://tool/valves, periopsignal://score/rcri, periopsignal://calculator/peds

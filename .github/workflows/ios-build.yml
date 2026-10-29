@@ -166,6 +166,39 @@ jobs:
           shot 33-last-empty 12 -ps.ref quickref:asra-last
           shot 34-general 12 -ps.ref folder:generalAnesthesia
           shot 35-cardiothoracic 12 -ps.ref folder:cardiothoracic
+          shot 38-chamber-rv 12 -ps.ref chamber -ps.echo.group rv -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "rvb=4.5,ta=42"
+          shot 39-chamber-aorta 12 -ps.ref chamber -ps.echo.sex female -ps.echo.group ao -ps.echo.age 55 -ps.echo.height 165 -ps.echo.weight 60 -ps.echo.values "sov=3.6"
+          shot 40-chamber-lv 12 -ps.ref chamber -ps.forceAppearance light -ps.echo.values "lvef=45,lvidd=60"
+          shot 41-diastolic 12 -ps.ref diastolic -ps.dd.values "E=100,A=80,eSeptal=5,eLateral=6,tr=3.1"
+          shot 42-diastolic-mac 12 -ps.ref diastolic -ps.dd.pop mac -ps.dd.values "E=80,A=80,ivrt=70"
+          shot 43-acls 12 -ps.ref acls
+          shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
+          shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals
+          shot 46-acls-tachy 12 -ps.ref acls -ps.acls.mode tachy -ps.forceAppearance light
+          shot 47-acls-anaphylaxis 12 -ps.ref acls -ps.acls.mode anaphylaxis
+          shot 48-abg-metabolic 12 -ps.ref abg -ps.abg.values "ph=7.28,paco2=30,hco3=14"
+          shot 49-abg-respiratory 12 -ps.ref abg -ps.forceAppearance light -ps.abg.values "ph=7.29,paco2=60,hco3=28.5"
+          shot 50-regional-finder 12 -ps.ref regional-finder -ps.rg.sel "knee:R,hip:R,lower-abdomen:M"
+          shot 51-regional-back 12 -ps.ref regional-finder -ps.forceAppearance light -ps.rg.view back -ps.rg.sel "lumbar-spine:M,back-chest:L"
+          shot 52-blocks 12 -ps.ref blocks -ps.blk.group upper -ps.blk.open interscalene
+          shot 53-blocks-lower 12 -ps.ref blocks -ps.forceAppearance light -ps.blk.group lower -ps.blk.open popliteal-sciatic
+          shot 54-neuraxial-guide 12 -ps.ref neuraxial-guide -ps.nx.proc cesarean
+          shot 55-ob-arrest 12 -ps.ref ob -ps.ob.event arrest -ps.la.weight 80
+          shot 56-ob-newborn 12 -ps.ref ob -ps.forceAppearance light -ps.ob.event newborn -ps.ob.newborn 3.2
+          shot 57-ob-hypertension 12 -ps.ref ob -ps.ob.event hypertension
+          shot 58-patient 12 -ps.tab patient -ps.patient demo
+          shot 59-patient-empty 12 -ps.tab patient -ps.forceAppearance light
+          shot 60-patient-assessment 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment
+          shot 61-patient-airway 12 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.forceAppearance light
+          shot 62-patient-intraop 12 -ps.tab patient -ps.patient demo -ps.patient.open intraop
+          shot 63-patient-handoff 12 -ps.tab patient -ps.patient demo -ps.patient.open handoff
+          shot 64-patient-rcri 12 -ps.tab patient -ps.patient demo -ps.patient.open score:ariscat
+          shot 65-patient-local 12 -ps.tab patient -ps.patient demo -ps.patient.open local
+          shot 66-more-saved 12 -ps.tab more
+          shot 67-patient-cardiac 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.patient.scroll cardiac
+          shot 68-patient-mask 12 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.patient.scroll mask -ps.forceAppearance light
+          shot 69-patient-meds 12 -ps.tab patient -ps.patient demo -ps.patient.open medications
+          shot 70-terms 12 -ps.terms show
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
