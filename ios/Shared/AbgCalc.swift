@@ -236,6 +236,7 @@ enum AbgCalc {
             let ra = d.rules[acid ? "respAcidAcute" : "respAlkAcute"] ?? AbgRule(slope: 0, intercept: 0)
             let rc = d.rules[acid ? "respAcidChronic" : "respAlkChronic"] ?? AbgRule(slope: 0, intercept: 0)
             let a = expect(ra, c), ch = expect(rc, c)
+            if let xmax = rc.xmax, c > xmax { cautions.append("The chronic rule was derived up to PaCO₂ \(f1(xmax)) mmHg; read its band with caution above that.") }
             let inA = h >= a.lo && h <= a.hi, inC = h >= ch.lo && h <= ch.hi
             if h < min(a.lo, ch.lo) { second = .metAcid }
             else if h > max(a.hi, ch.hi) { second = .metAlk }

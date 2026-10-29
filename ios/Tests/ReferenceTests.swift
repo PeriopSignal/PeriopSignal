@@ -1049,7 +1049,7 @@ final class ReferenceTests: XCTestCase {
     private static let abgFixture = """
     {"normal":{"ph":[7.35,7.45],"paco2":[35,45],"hco3":[22,26]},"mid":{"ph":7.4,"paco2":40,"hco3":24},
      "check":{"pk":6.1,"solubility":0.0307,"tol":0.03},"plausible":{"ph":[6.8,7.8],"paco2":[10,150],"hco3":[3,60]},
-     "rules":{"metAcid":{"slope":1.5,"intercept":8,"tol":2,"label":"Winter’s formula"},"metAlk":{"slope":0.7,"intercept":23.2,"tol":2},
+     "rules":{"metAcid":{"slope":1.5,"intercept":8,"tol":2,"label":"Winters’ formula"},"metAlk":{"slope":0.7,"intercept":23.2,"tol":2},
       "respAcidAcute":{"slope":0.1,"intercept":20,"tol":2},"respAcidChronic":{"slope":0.35,"intercept":10,"tol":2},
       "respAlkAcute":{"slope":0.2,"intercept":16,"tol":2},"respAlkChronic":{"slope":0.5,"intercept":4,"tol":2}},
      "sources":[]}
@@ -1060,8 +1060,8 @@ final class ReferenceTests: XCTestCase {
         func abg(_ ph: Double?, _ pc: Double?, _ hc: Double?) -> AbgCalc.Reading { AbgCalc.read(ph: ph, paco2: pc, hco3: hc, data: d) }
         var r = abg(7.28, 30, 14)
         XCTAssertEqual(r.headline, "Metabolic Acidosis"); XCTAssertEqual(r.primary, .metAcid); XCTAssertNil(r.second); XCTAssertEqual(r.check?.ok, true)
-        XCTAssertEqual(r.visual?.bands.map { [AbgCalc.f1($0.lo), AbgCalc.f1($0.hi)] }, [["27", "31"]], "Winter’s formula: 1.5 × 14 + 8 ± 2")
-        XCTAssertEqual(r.explanation, "pH 7.28: acidemia. HCO₃ 14 mEq/L (below 22) makes it metabolic. Winter’s formula expects PaCO₂ 27–31 mmHg; 30 sits in it: the respiratory compensation is appropriate.")
+        XCTAssertEqual(r.visual?.bands.map { [AbgCalc.f1($0.lo), AbgCalc.f1($0.hi)] }, [["27", "31"]], "Winters’ formula: 1.5 × 14 + 8 ± 2")
+        XCTAssertEqual(r.explanation, "pH 7.28: acidemia. HCO₃ 14 mEq/L (below 22) makes it metabolic. Winters’ formula expects PaCO₂ 27–31 mmHg; 30 sits in it: the respiratory compensation is appropriate.")
         r = abg(7.19, 40, 15)
         XCTAssertEqual(r.headline, "Metabolic and Respiratory Acidosis"); XCTAssertEqual(r.second, .respAcid)
         r = abg(7.38, 30, 17.5)
@@ -1090,5 +1090,31 @@ final class ReferenceTests: XCTestCase {
         r = abg(7.4, 30, 14)
         XCTAssertEqual(r.check?.ok, false); XCTAssertTrue(r.cautions.contains { $0.contains("do not agree") })
         XCTAssertTrue(AbgCalc.summary(abg(7.28, 30, 14)).hasPrefix("ABG: pH 7.28, PaCO₂ 30 mmHg, HCO₃ 14 mEq/L. Metabolic Acidosis."))
+    }
+
+    /// The coefficients that ship in reference.json (mirrors 'abg: the shipped rules').
+    func testAbgShippedRules() throws {
+        guard let d = try bundled().abg else { return }
+        func r(_ ph: Double, _ pc: Double, _ hc: Double) -> AbgCalc.Reading { AbgCalc.read(ph: ph, paco2: pc, hco3: hc, data: d) }
+        var x = r(7.28, 30, 14)
+        XCTAssertEqual(x.headline, "Metabolic Acidosis")
+        XCTAssertEqual(x.visual.map { AbgCalc.band(AbgCalc.Expect(v: 0, lo: $0.bands[0].lo, hi: $0.bands[0].hi)) }, "27–31")
+        x = r(7.5, 47, 34)
+        XCTAssertEqual(x.headline, "Metabolic Alkalosis")
+        XCTAssertEqual(x.visual.map { AbgCalc.band(AbgCalc.Expect(v: 0, lo: $0.bands[0].lo, hi: $0.bands[0].hi)) }, "42–52")
+        x = r(7.37, 60, 34)
+        XCTAssertEqual(x.headline, "Chronic Respiratory Acidosis")
+        XCTAssertEqual(x.visual?.bands.map { AbgCalc.band(AbgCalc.Expect(v: 0, lo: $0.lo, hi: $0.hi)) }, ["23–29", "32–36"])
+        XCTAssertEqual(x.status, "normal", "a normal pH in compensated chronic hypercapnia is not called mixed")
+        XCTAssertEqual(r(7.27, 60, 27).headline, "Acute Respiratory Acidosis")
+        XCTAssertEqual(r(7.31, 60, 30.5).headline, "Respiratory Acidosis, Partly Compensated")
+        XCTAssertTrue(r(7.2, 80, 32).cautions.contains { $0.contains("derived up to PaCO₂ 70") })
+        x = r(7.47, 30, 21.5)
+        XCTAssertEqual(x.phase, .either); XCTAssertEqual(x.headline, "Respiratory Alkalosis")
+        XCTAssertEqual(r(7.55, 25, 21.5).headline, "Acute Respiratory Alkalosis")
+        x = r(7.44, 30, 20)
+        XCTAssertEqual(x.headline, "Respiratory Alkalosis"); XCTAssertNil(x.second)
+        XCTAssertEqual(r(7.3, 30, 14).check?.ok, true)
+        XCTAssertEqual(r(7.36, 30, 14).check?.ok, false)
     }
 }

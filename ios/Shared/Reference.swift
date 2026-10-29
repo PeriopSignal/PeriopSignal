@@ -92,7 +92,9 @@ struct AbgRule: Codable, Hashable {
     var slope: Double
     var intercept: Double
     var tol: Double?
-    /// Shown before "expects" in the reading ("Winter's formula").
+    /// The highest x the rule was derived for (PaCO2 70 for chronic respiratory acidosis); above it the reading carries a caution.
+    var xmax: Double?
+    /// Shown before "expects" in the reading ("Winters' formula").
     var label: String?
     /// The rule as printed ("PaCO₂ = 1.5 × HCO₃ + 8 ± 2").
     var formula: String?

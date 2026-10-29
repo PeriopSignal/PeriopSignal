@@ -770,7 +770,7 @@ const ABG = {
   normal: { ph: [7.35, 7.45], paco2: [35, 45], hco3: [22, 26] }, mid: { ph: 7.4, paco2: 40, hco3: 24 },
   check: { pk: 6.1, solubility: 0.0307, tol: 0.03 }, plausible: { ph: [6.8, 7.8], paco2: [10, 150], hco3: [3, 60] },
   rules: {
-    metAcid: { slope: 1.5, intercept: 8, tol: 2, label: 'Winter’s formula' }, metAlk: { slope: 0.7, intercept: 23.2, tol: 2 },
+    metAcid: { slope: 1.5, intercept: 8, tol: 2, label: 'Winters’ formula' }, metAlk: { slope: 0.7, intercept: 23.2, tol: 2 },
     respAcidAcute: { slope: 0.1, intercept: 20, tol: 2 }, respAcidChronic: { slope: 0.35, intercept: 10, tol: 2 },
     respAlkAcute: { slope: 0.2, intercept: 16, tol: 2 }, respAlkChronic: { slope: 0.5, intercept: 4, tol: 2 },
   },
@@ -779,10 +779,10 @@ const abg = (ph, paco2, hco3) => R.abg.read({ ph, paco2, hco3 }, ABG);
 test('abg: primary disorder, compensation and mixed disorders', () => {
   let r = abg(7.28, 30, 14);
   eq([r.headline, r.primary, r.second, r.check.ok], ['Metabolic Acidosis', 'metAcid', null, true]);
-  eq(r.visual.bands.map((b) => [R.abg.f1(b.lo), R.abg.f1(b.hi)]), [['27', '31']], 'Winter’s formula: 1.5 × 14 + 8 ± 2');
-  eq(r.explanation, 'pH 7.28: acidemia. HCO₃ 14 mEq/L (below 22) makes it metabolic. Winter’s formula expects PaCO₂ 27–31 mmHg; 30 sits in it: the respiratory compensation is appropriate.');
+  eq(r.visual.bands.map((b) => [R.abg.f1(b.lo), R.abg.f1(b.hi)]), [['27', '31']], 'Winters’ formula: 1.5 × 14 + 8 ± 2');
+  eq(r.explanation, 'pH 7.28: acidemia. HCO₃ 14 mEq/L (below 22) makes it metabolic. Winters’ formula expects PaCO₂ 27–31 mmHg; 30 sits in it: the respiratory compensation is appropriate.');
   r = abg(7.19, 40, 15);
-  eq([r.headline, r.second], ['Metabolic and Respiratory Acidosis', 'respAcid'], 'PaCO₂ above Winter’s band');
+  eq([r.headline, r.second], ['Metabolic and Respiratory Acidosis', 'respAcid'], 'PaCO₂ above Winters’ band');
   r = abg(7.38, 30, 17.5);
   eq([r.status, r.headline], ['normal', 'Metabolic Acidosis and Respiratory Alkalosis'], 'normal pH, mixed');
   r = abg(7.25, 60, 26);
@@ -816,6 +816,42 @@ test('abg: primary disorder, compensation and mixed disorders', () => {
   assert.ok(r.cautions.some((c) => c.includes('do not agree')));
   // copy text
   assert.ok(R.abg.summary(abg(7.28, 30, 14)).startsWith('ABG: pH 7.28, PaCO₂ 30 mmHg, HCO₃ 14 mEq/L. Metabolic Acidosis.'));
+});
+
+test('abg: the shipped rules (reference.json)', () => {
+  const d = bundle.abg;
+  assert.ok(d, 'abg section present');
+  const r = (ph, pc, hc) => R.abg.read({ ph, paco2: pc, hco3: hc }, d);
+  // Winters' formula at HCO3 14: 29 ± 2
+  let x = r(7.28, 30, 14);
+  eq([x.headline, R.abg.band(x.visual.bands[0] && { lo: x.visual.bands[0].lo, hi: x.visual.bands[0].hi })], ['Metabolic Acidosis', '27–31']);
+  // metabolic alkalosis: 40 + 0.7 × 10 = 47 ± 5
+  x = r(7.5, 47, 34);
+  eq([x.headline, R.abg.band(x.visual.bands[0])], ['Metabolic Alkalosis', '42–52']);
+  // chronic respiratory acidosis, 2018 rule: PaCO2 60 → 34 ± 2; acute 26 ± 3
+  x = r(7.37, 60, 34);
+  eq([x.headline, x.visual.bands.map((b) => R.abg.band(b))], ['Chronic Respiratory Acidosis', ['23–29', '32–36']]);
+  eq(x.status, 'normal', 'a normal pH in compensated chronic hypercapnia is not called mixed');
+  x = r(7.27, 60, 27);
+  eq(x.headline, 'Acute Respiratory Acidosis');
+  x = r(7.31, 60, 30.5);
+  eq(x.headline, 'Respiratory Acidosis, Partly Compensated');
+  assert.ok(r(7.2, 80, 32).cautions.some((c) => c.includes('derived up to PaCO₂ 70')), 'above the chronic rule\'s range');
+  // respiratory alkalosis: PaCO2 30 → acute 22 ± 3, chronic 20 ± 3 (bands overlap: either)
+  x = r(7.47, 30, 21.5);
+  eq([x.phase, x.headline], ['either', 'Respiratory Alkalosis']);
+  x = r(7.55, 25, 21.5);
+  eq(x.headline, 'Acute Respiratory Alkalosis');
+  // a normal third-trimester gas reads as a compensated respiratory alkalosis
+  x = r(7.44, 30, 20);
+  eq([x.headline, x.second], ['Respiratory Alkalosis', null]);
+  // agreement within 0.05
+  eq([r(7.3, 30, 14).check.ok, r(7.36, 30, 14).check.ok], [true, false]);
+  // every rule passes through 24/40 except Winters' formula (44 at 24)
+  for (const [k, rule] of Object.entries(d.rules)) {
+    const at = k.startsWith('resp') ? rule.slope * 40 + rule.intercept : rule.slope * 24 + rule.intercept;
+    if (k === 'metAcid') eq(at, 44); else eq(Math.round(at * 1000) / 1000, k.startsWith('resp') ? 24 : 40, k);
+  }
 });
 
 console.log(`${passed} passed, ${failed} failed`);

@@ -401,6 +401,7 @@ def main(path):
             if isinstance(r_, dict):
                 need(isinstance(r_.get("formula"), str) and r_["formula"].strip(), f"abg.rules.{rid}: formula text required")
                 need(r_.get("source") in src_ids, f"abg.rules.{rid}: source must name an abg source")
+                need(r_.get("xmax") is None or (num(r_["xmax"]) and r_["xmax"] > 0), f"abg.rules.{rid}: xmax must be a positive number")
         # every rule must pass through normal at the midpoint (24 mEq/L and 40 mmHg), within its tolerance
         if all(isinstance(rules.get(k), dict) and num(rules[k].get("slope")) and num(rules[k].get("intercept")) for k in rules) and mid:
             for rid in ("metAcid", "metAlk"):

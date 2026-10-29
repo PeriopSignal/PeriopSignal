@@ -1597,6 +1597,7 @@
         const acid = primary === 'respAcid';
         const ra = d.rules[acid ? 'respAcidAcute' : 'respAlkAcute'], rc = d.rules[acid ? 'respAcidChronic' : 'respAlkChronic'];
         const a = A.expect(ra, pc), c = A.expect(rc, pc);
+        if (rc.xmax && pc > rc.xmax) cautions.push(`The chronic rule was derived up to PaCO₂ ${rc.xmax} mmHg; read its band with caution above that.`);
         const inA = hc >= a.lo && hc <= a.hi, inC = hc >= c.lo && hc <= c.hi;
         if (hc < Math.min(a.lo, c.lo)) second = 'metAcid';
         else if (hc > Math.max(a.hi, c.hi)) second = 'metAlk';

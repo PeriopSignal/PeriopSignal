@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-29",
-  "revision": 1793282012,
+  "revision": 1793282237,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -7945,6 +7945,131 @@
       "After cardiac surgery: STS 2017 expert consensus (read from the STS copy; its poster figure could not be read), AHA 2025 Part 10 and ERC 2025. No source prints a defibrillation energy for this setting; the tool shows the general adult dose. Epinephrine policy differs between STS, ERC and AHA, so the tool does not prompt it.",
       "Anaphylaxis: the ANZAAG card values were read from extracted text and should be checked against the rendered cards; terlipressin and methylene blue have no published dose and are not offered.",
       "Not printed in the 2025 sources and so not prompted: a magnesium dose for torsades, a sotalol dose, a pediatric lidocaine maximum or repeat, a pediatric epinephrine interval in bradycardia, endotracheal epinephrine, pacing settings, and an ETCO₂ or diastolic pressure target in any adult recommendation."
+    ]
+  },
+  "abg": {
+    "reviewed": "2026-10",
+    "normal": {
+      "ph": [
+        7.35,
+        7.45
+      ],
+      "paco2": [
+        35,
+        45
+      ],
+      "hco3": [
+        22,
+        26
+      ]
+    },
+    "mid": {
+      "ph": 7.4,
+      "paco2": 40,
+      "hco3": 24
+    },
+    "check": {
+      "pk": 6.1,
+      "solubility": 0.0307,
+      "tol": 0.05
+    },
+    "plausible": {
+      "ph": [
+        6.8,
+        7.8
+      ],
+      "paco2": [
+        10,
+        150
+      ],
+      "hco3": [
+        3,
+        60
+      ]
+    },
+    "rules": {
+      "metAcid": {
+        "name": "Metabolic acidosis",
+        "slope": 1.5,
+        "intercept": 8,
+        "tol": 2,
+        "label": "Winters’ formula",
+        "formula": "PaCO₂ = 1.5 × HCO₃ + 8 ± 2 (Winters’ formula)",
+        "source": "albert1967"
+      },
+      "metAlk": {
+        "name": "Metabolic alkalosis",
+        "slope": 0.7,
+        "intercept": 23.2,
+        "tol": 5,
+        "formula": "PaCO₂ = 40 + 0.7 × (HCO₃ − 24) ± 5",
+        "source": "jasn2010"
+      },
+      "respAcidAcute": {
+        "name": "Acute respiratory acidosis",
+        "slope": 0.1,
+        "intercept": 20.0,
+        "tol": 3,
+        "formula": "HCO₃ = 24 + 0.1 × (PaCO₂ − 40) ± 3: about 1 per 10 mmHg",
+        "source": "jasn2010"
+      },
+      "respAcidChronic": {
+        "name": "Chronic respiratory acidosis",
+        "slope": 0.5,
+        "intercept": 4.0,
+        "tol": 2,
+        "xmax": 70,
+        "formula": "HCO₃ = 24 + 0.5 × (PaCO₂ − 40) ± 2: about 5 per 10 mmHg, derived up to PaCO₂ 70",
+        "source": "gonzalez2018"
+      },
+      "respAlkAcute": {
+        "name": "Acute respiratory alkalosis",
+        "slope": 0.2,
+        "intercept": 16.0,
+        "tol": 3,
+        "formula": "HCO₃ = 24 − 0.2 × (40 − PaCO₂) ± 3: about 2 per 10 mmHg",
+        "source": "jasn2010"
+      },
+      "respAlkChronic": {
+        "name": "Chronic respiratory alkalosis",
+        "slope": 0.4,
+        "intercept": 8.0,
+        "tol": 3,
+        "formula": "HCO₃ = 24 − 0.4 × (40 − PaCO₂) ± 3: about 4 per 10 mmHg",
+        "source": "jasn2010"
+      }
+    },
+    "notes": [
+      "A value inside the expected band is consistent with a simple disorder but does not prove one; a value outside it means a second disorder (Adrogué and Madias 2010).",
+      "Compensation takes time: respiratory responses are acute in 5–10 minutes and chronic after 2–5 days; the response to metabolic acidosis takes 11–24 hours to complete and to metabolic alkalosis 24–36 hours. A gas drawn earlier can look mixed.",
+      "On a ventilator the ventilator sets the PaCO₂, so a respiratory component may be the settings rather than a disorder or compensation.",
+      "Winters’ formula fits best at low bicarbonate; Adrogué and Madias give PaCO₂ = 40 − 1.2 × (24 − HCO₃) ± 5 instead. For chronic respiratory acidosis the tool uses the 2018 prospective rule (0.5 per mmHg, ± 2); the 2010 rule was 0.35 per mmHg, ± 3.",
+      "In stable chronic hypercapnia the pH is often within the normal range, so a normal pH with abnormal PaCO₂ and HCO₃ is read against both bands rather than called mixed outright.",
+      "The blood gas analyzer calculates HCO₃ from pH and PaCO₂, so its own HCO₃ always agrees; a serum total CO₂ reads about 2 mEq/L higher on average. The agreement check catches typing errors and values from different samples.",
+      "Pregnancy: a normal gas (PaCO₂ about 28–32 mmHg, HCO₃ about 20) reads as a compensated respiratory alkalosis, which is the normal state in pregnancy. Infants run a lower PaCO₂ and bicarbonate than adults; these are adult rules.",
+      "Acid–base status only: the anion gap, delta ratio and osmolar gap are not part of this tool."
+    ],
+    "sources": [
+      {
+        "id": "jasn2010",
+        "citation": "Adrogué HJ, Madias NE. Secondary responses to altered acid-base status: the rules of engagement. J Am Soc Nephrol. 2010;21(6):920–923.",
+        "url": "https://jasn.asnjournals.org/content/21/6/920"
+      },
+      {
+        "id": "gonzalez2018",
+        "citation": "González SB, Menga G, Raimondi GA, Tighiouart H, Adrogué HJ, Madias NE. Secondary response to chronic respiratory acidosis in humans: a prospective study. Kidney Int Rep. 2018;3(5):1163–1170.",
+        "url": "https://www.sciencedirect.com/science/article/pii/S2468024918301281"
+      },
+      {
+        "id": "albert1967",
+        "citation": "Albert MS, Dell RB, Winters RW. Quantitative displacement of acid-base equilibrium in metabolic acidosis. Ann Intern Med. 1967;66(2):312–322. (Winters’ formula as printed in Mani and Rutecki, Cleve Clin J Med 2017;84:27–34, and the Merck Manual.)",
+        "url": "https://www.acpjournals.org/doi/10.7326/0003-4819-66-2-312"
+      },
+      {
+        "id": "habib2025",
+        "citation": "Habib T, Nair A, Murphy S, Saeed H, Ishaya N. Mastering blood gas interpretation: a practical guide for primary care providers. S Afr Fam Pract. 2025;67(1):a6058.",
+        "url": "https://www.scielo.org.za/pdf/safp/v67n1/39.pdf"
+      }
     ]
   }
 }
