@@ -45,6 +45,12 @@
     ],
     "answer": 1,
     "explanation": "The statement says PAH-targeted drugs help properly classified PAH but should not be used routinely in pulmonary hypertension from left heart disease, where trials mostly showed no benefit and some agents caused edema or harm; hemodynamic phenotyping comes first. Caveat: this post rests on the HFSA press release, not the full statement."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jcf-2026-hfsa-right-heart-failure-statement.mp3",
+    "seconds": 239,
+    "bytes": 1912173,
+    "voice": "kokoro:af_heart"
    }
   },
   {
