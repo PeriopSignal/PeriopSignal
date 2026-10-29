@@ -1,27 +1,4 @@
-[0;93m2026-10-28 15:20:38.255496153 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-24 post(s) to synthesize with kokoro:af_heart
-  icm-2025-esicm-shock-guideline: 185 s, 1447 KB, 40 s to make
-  lancet-respir-med-2025-prothor-peep-olv: 229 s, 1791 KB, 48 s to make
-  nature-2025-echoprime-echo-foundation-model: 214 s, 1671 KB, 44 s to make
-  jama-2025-top-transfusion-high-cardiac-risk: 217 s, 1691 KB, 45 s to make
-  bja-2025-das-2025-unanticipated-difficult-intubation-guidelines: 207 s, 1615 KB, 66 s to make
-  ehj-2025-aries-hm3-ttr: 201 s, 1571 KB, 42 s to make
-  jtacs-2025-east-txa-guideline: 225 s, 1755 KB, 48 s to make
-  acs-2025-chest-wall-injury-bpg: 216 s, 1687 KB, 45 s to make
-  bja-2025-lidocaine-vs-remifentanil-vats-lung-resection: 230 s, 1794 KB, 74 s to make
-  ats-2025-intermacs-annual-report: 187 s, 1461 KB, 39 s to make
-  jama-2025-andromeda-shock-2: 210 s, 1641 KB, 45 s to make
-  nejm-2025-everdac-deferred-arterial-line: 219 s, 1708 KB, 72 s to make
-  jama-2025-bicaricu-2: 210 s, 1640 KB, 44 s to make
-  nejm-2025-partner3-7yr: 223 s, 1741 KB, 72 s to make
-  tct25-2025-encircle-sapien-m3-tmvr-one-year: 243 s, 1897 KB, 52 s to make
-  aha-2025-cpr-ecc-guidelines: 281 s, 2195 KB, 59 s to make
-  resus-2025-erc-traumatic-cardiac-arrest: 162 s, 1265 KB, 34 s to make
-  jhlt-2025-ishlt-ecls-lung-transplant-consensus-part1: 186 s, 1453 KB, 51 s to make
-  ehj-2025-jpvad-danger-criteria: 207 s, 1615 KB, 43 s to make
-  ejcts-2025-eacts-sts-aats-tmcs-guideline: 200 s, 1565 KB, 42 s to make
-  ejcts-2025-eacts-protected-cardiac-surgery: 217 s, 1692 KB, 45 s to make
-  aln-2025-regional-vs-ga-cesarean-neonatal-meta: 217 s, 1694 KB, 46 s to make
-  aln-2025-chd-children-noncardiac-cardiac-events-registry: 209 s, 1630 KB, 44 s to make
-  ana-2025-glp1-gastric-ultrasound-mayo-magic: 222 s, 1733 KB, 47 s to make
-synthesized 24, failed 0, 60714 characters, 20 min
+[0;93m2026-10-29 09:18:05.233382129 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+1 post(s) to synthesize with kokoro:af_heart
+  jcf-2026-hfsa-right-heart-failure-statement: 239 s, 1867 KB, 111 s to make
+synthesized 1, failed 0, 3170 characters, 2 min
