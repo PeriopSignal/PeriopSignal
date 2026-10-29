@@ -1224,5 +1224,231 @@
     return { lap: 'unknown', headline: 'Enter E/SRIVR or TR', explanation: 'Average E/e′ ' + R.fmt(ee) + ' sits between 7 and 14: E/SRIVR decides (200 cm or less normal), or TR velocity when SRIVR cannot be measured.' };
   };
 
+  // ---------- ACLS code timer (AclsCalc.swift; content in reference.json "acls") ----------
+  // A code is a clock started when the tool opens and a log of what was done, stamped in ms since the start.
+  // Counts, the last time of each action, the CPR cycle, the drug timers and the prompts are all read back
+  // from that log, so removing a mistaken entry corrects everything that depends on it.
+  R.acls = {
+    /** A new code: the clock starts at `now` (ms since the epoch). */
+    session(now, mode, patient) {
+      return { startedAt: now, mode: mode || 'arrest', patient: patient === 'child' ? 'child' : 'adult', weight: null, log: [], path: {} };
+    },
+    /** 75000 → "1:15"; 3725000 → "1:02:05"; negative values keep their sign. */
+    clock(ms) {
+      const neg = ms < 0, s = Math.floor(Math.abs(ms) / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+      const body = h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`;
+      return (neg ? '-' : '') + body;
+    },
+    /** Adds an entry at t (ms since the start) and keeps the log in time order. */
+    add(s, t, id, text, extra) {
+      const e = Object.assign({ t: Math.max(0, t), id, text }, extra || {});
+      s.log.push(e);
+      s.log.sort((a, b) => a.t - b.t);
+      return e;
+    },
+    remove(s, e) { const i = s.log.indexOf(e); if (i >= 0) s.log.splice(i, 1); },
+    count(s, id) { return s.log.filter((e) => e.id === id).length; },
+    last(s, id) {
+      for (let i = s.log.length - 1; i >= 0; i--) if (s.log[i].id === id) return s.log[i].t;
+      return null;
+    },
+    /** The rhythm of the last rhythm check ("shockable", "nonshockable", "rosc"), or null. */
+    rhythm(s, data) {
+      for (let i = s.log.length - 1; i >= 0; i--) {
+        const a = data.actions[s.log[i].id];
+        if (a && a.rhythm) return a.rhythm;
+      }
+      return null;
+    },
+    /** Weight in kg for the child doses, or null. */
+    kg(s) { return s.patient === 'child' && s.weight > 0 ? s.weight : null; },
+    /** The spec for this patient: the child entry falls back to nothing, so an adult dose is never shown for a child. */
+    spec(a, patient) { return a ? (patient === 'child' ? a.child : a.adult) || null : null; },
+    /** The dose for the nth administration (0-based): fixed for adults, per kg with a cap for children. */
+    dose(a, s, n) {
+      let d = R.acls.spec(a, s.patient);
+      if (!d) return null;
+      if (Array.isArray(d.doses)) d = Object.assign({}, d, d.doses[Math.min(n || 0, d.doses.length - 1)]);
+      const kg = R.acls.kg(s), route = d.route ? ' ' + d.route : '';
+      if (d.text && d.dose === undefined && d.perKg === undefined) return { text: d.text, amount: null, unit: d.unit || null };
+      if (d.perKg !== undefined) {
+        const per = `${R.acls.num(d.perKg)} ${d.unit}/kg`;
+        if (!kg) return { text: per + route + (d.max ? ` (max ${R.acls.num(d.max)} ${d.unit})` : ''), amount: null, unit: d.unit, perKg: d.perKg, needsWeight: true };
+        let amount = d.perKg * kg, capped = false, floored = false;
+        if (d.max !== undefined && amount > d.max) { amount = d.max; capped = true; }
+        if (d.min !== undefined && amount < d.min) { amount = d.min; floored = true; }
+        amount = R.acls.round(amount);
+        let text = `${R.acls.num(amount)} ${d.unit}${route}`;
+        const vol = d.conc ? R.acls.round(amount / d.conc.value) : null;
+        if (vol !== null) text += ` · ${R.acls.num(vol)} mL of ${R.acls.num(d.conc.value)} ${d.conc.unit}`;
+        text += capped ? ' (the maximum)' : floored ? ' (the minimum)' : ` (${per})`;
+        return { text, amount, unit: d.unit, volume: vol, capped, floored };
+      }
+      const amount = d.dose;
+      let text = `${R.acls.num(amount)} ${d.unit}${route}`;
+      if (d.conc) text += ` · ${R.acls.num(R.acls.round(amount / d.conc.value))} mL of ${R.acls.num(d.conc.value)} ${d.conc.unit}`;
+      return { text, amount, unit: d.unit };
+    },
+    /** How many doses the spec allows (Infinity when it sets no limit). */
+    maxDoses(a, s) { const d = R.acls.spec(a, s.patient); return d && d.maxDoses ? d.maxDoses : Infinity; },
+    /** Shock energy for the nth shock (0-based): the adult text, or J/kg by shock number for a child. */
+    energy(a, s, n) {
+      const e = R.acls.spec(a, s.patient);
+      if (!e) return null;
+      if (e.perKgSeq) {
+        const seq = e.perKgSeq, per = n < seq.length ? seq[n] : e.thenPerKg, kg = R.acls.kg(s);
+        const upTo = n >= seq.length && e.maxPerKg ? ` (up to ${R.acls.num(e.maxPerKg)} J/kg${e.capText ? ' ' + e.capText : ''})` : '';
+        const atLeast = n >= seq.length && e.thenAtLeast ? '≥ ' : '';
+        if (!kg) return { text: `${atLeast}${R.acls.num(per)} J/kg${upTo}`, joules: null, needsWeight: true };
+        const j = Math.round(per * kg);
+        return { text: `${atLeast}${j} J (${R.acls.num(per)} J/kg)${n >= seq.length && e.maxPerKg ? `, up to ${Math.round(e.maxPerKg * kg)} J` : ''}`, joules: j };
+      }
+      return { text: e.text, joules: e.joules || null };
+    },
+    /** Rounds a dose sensibly: 2 decimals below 1, 1 below 10, whole above. */
+    round(v) {
+      const p = v < 1 ? 100 : v < 10 ? 10 : 1;
+      return rnd(v * p) / p;
+    },
+    num(v) { return String(v); },
+    /** Seconds since the start of the current CPR cycle (the last cycle-resetting entry, else the start). */
+    cycle(s, data, t) {
+      let from = 0;
+      for (let i = s.log.length - 1; i >= 0; i--) {
+        const a = data.actions[s.log[i].id];
+        if (a && a.cycleReset && s.log[i].t <= t) { from = s.log[i].t; break; }
+      }
+      return { from, elapsed: (t - from) / 1000 };
+    },
+    /** Each repeatable action's state: never given, next in n s, due, or overdue (seconds since the last dose). */
+    timer(a, s, id, t) {
+      if (!a || !a.repeat) return null;
+      const last = R.acls.last(s, id);
+      if (last === null) return null;
+      const since = (t - last) / 1000;
+      if (since < a.repeat.min) return { state: 'wait', since, remaining: a.repeat.min - since };
+      if (a.repeat.max !== undefined && since >= a.repeat.max) return { state: 'overdue', since, remaining: 0 };
+      return { state: 'due', since, remaining: 0 };
+    },
+    /** Whether every condition of a prompt holds. */
+    holds(cond, s, data, t) {
+      const c = cond || [];
+      for (const k of c) {
+        if (k.patient && k.patient !== s.patient) return false;
+        if (k.rhythm && R.acls.rhythm(s, data) !== k.rhythm) return false;
+        if (k.done && R.acls.count(s, k.done) === 0) return false;
+        if (k.not && R.acls.count(s, k.not) > 0) return false;
+        if (k.notAny && k.notAny.some((id) => R.acls.count(s, id) > 0)) return false;
+        if (k.count) {
+          const [id, op, n] = k.count, v = R.acls.count(s, id);
+          if (!R.acls.cmp(v, op, n)) return false;
+        }
+        if (k.countSince) {
+          // [id, sinceId, op, n]: how many of id were logged after the last sinceId (all of them when none)
+          const [id, sinceId, op, n] = k.countSince, from = R.acls.last(s, sinceId);
+          const v = s.log.filter((e) => e.id === id && (from === null || e.t > from)).length;
+          if (!R.acls.cmp(v, op, n)) return false;
+        }
+        if (k.since) {
+          const [id, op, sec] = k.since, last = R.acls.last(s, id);
+          if (last === null || !R.acls.cmp((t - last) / 1000, op, sec)) return false;
+        }
+        if (k.elapsed) {
+          const [op, sec] = k.elapsed;
+          if (!R.acls.cmp(t / 1000, op, sec)) return false;
+        }
+        if (k.cycle) {
+          const [op, sec] = k.cycle;
+          if (!R.acls.cmp(R.acls.cycle(s, data, t).elapsed, op, sec)) return false;
+        }
+        if (k.weight === true && !R.acls.kg(s)) return false;
+      }
+      return true;
+    },
+    cmp(v, op, n) {
+      switch (op) {
+        case '>=': return v >= n;
+        case '>': return v > n;
+        case '<=': return v <= n;
+        case '<': return v < n;
+        case '==': return v === n;
+        default: return false;
+      }
+    },
+    /** Fills {dose:id}, {energy:id} and {count:id} in a prompt's text. */
+    fill(text, s, data) {
+      return String(text || '').replace(/\{(dose|energy|count|next):([a-z0-9-]+)\}/g, (_, kind, id) => {
+        const a = data.actions[id];
+        if (!a) return '';
+        const n = R.acls.count(s, id);
+        if (kind === 'dose') { const d = R.acls.dose(a, s, n); return d ? d.text : ''; }
+        if (kind === 'energy') { const e = R.acls.energy(a, s, n); return e ? e.text : ''; }
+        if (kind === 'next') return String(n + 1);
+        return String(n);
+      });
+    },
+    /** The prompts that apply now, in the mode's order: [{ id, level, text, action, alert }]. */
+    prompts(s, data, t) {
+      const mode = data.modes.find((m) => m.id === s.mode);
+      if (!mode) return [];
+      const out = [];
+      for (const p of mode.prompts || []) {
+        if (p.patient && p.patient !== s.patient) continue;
+        if (!R.acls.holds(p.when, s, data, t)) continue;
+        const a = p.action ? data.actions[p.action] : null;
+        if (a && R.acls.count(s, p.action) >= R.acls.maxDoses(a, s)) continue;
+        out.push({ id: p.id, level: p.level || 'info', text: R.acls.fill(p.text, s, data), action: p.action || null, alert: !!p.alert });
+      }
+      return out;
+    },
+    /** Deadlines still open: [{ id, label, remaining (s) }] — negative once passed. */
+    deadlines(s, data, t) {
+      const mode = data.modes.find((m) => m.id === s.mode);
+      return ((mode && mode.deadlines) || []).filter((d) => !(d.until && R.acls.count(s, d.until) > 0)).map((d) => ({ id: d.id, label: d.label, remaining: d.sec - t / 1000 }));
+    },
+    /** The decision path of a tree mode: the node ids chosen so far, the current node, and the patient's tree. */
+    tree(s, data) {
+      const mode = data.modes.find((m) => m.id === s.mode);
+      const tr = mode && mode.tree && (mode.tree[s.patient] || mode.tree.all);
+      if (!tr) return null;
+      const path = (s.path[mode.id + ':' + s.patient] || []).filter((id) => tr.nodes[id]);
+      const cur = path.length ? path[path.length - 1] : tr.start;
+      return { tree: tr, path, node: tr.nodes[cur], nodeId: cur };
+    },
+    choose(s, data, t, nextId, label) {
+      const mode = data.modes.find((m) => m.id === s.mode);
+      const key = mode.id + ':' + s.patient;
+      const tr = R.acls.tree(s, data);
+      s.path[key] = (s.path[key] || []).concat([nextId]);
+      R.acls.add(s, t, null, `${mode.short || mode.name}: ${tr.node.q} ${label}`, { kind: 'choice' });
+    },
+    back(s, data) {
+      const mode = data.modes.find((m) => m.id === s.mode);
+      const key = mode.id + ':' + s.patient;
+      if (s.path[key] && s.path[key].length) s.path[key] = s.path[key].slice(0, -1);
+    },
+    /** The text logged for an action: "Epinephrine 1 mg IV/IO (dose 2)", "Shock 3: 200 J". `joules` is the
+        energy typed for this shock; a child's computed energy is used when none is typed. */
+    entryText(a, s, n, joules) {
+      if (a.kind === 'shock') {
+        const e = R.acls.energy(a, s, n), j = joules > 0 ? joules : e && e.joules ? e.joules : null;
+        return `${a.label} ${n + 1}${j ? ': ' + j + ' J' : ''}`;
+      }
+      if (a.kind === 'drug') {
+        const d = R.acls.dose(a, s, n), sp = R.acls.spec(a, s.patient);
+        const amount = d && d.amount !== null ? ` ${R.acls.num(d.amount)} ${d.unit}${sp && sp.route ? ' ' + sp.route : ''}` : '';
+        return `${a.label}${amount}${n ? ` (dose ${n + 1})` : ''}`;
+      }
+      return a.log || a.label;
+    },
+    /** The log as text for the record: one line per entry with clock time and code time. */
+    logText(s, wall) {
+      const who = s.patient === 'child' ? `child${R.acls.kg(s) ? ', ' + R.acls.num(R.acls.kg(s)) + ' kg' : ''}` : 'adult';
+      const lines = [`Code log (${who}), started ${wall(s.startedAt)}`];
+      for (const e of s.log) lines.push(`${wall(s.startedAt + e.t)}  +${R.acls.clock(e.t)}  ${e.text}`);
+      return lines.join('\n');
+    },
+  };
+
   global.PSRef = R;
 })(typeof window !== 'undefined' ? window : globalThis);

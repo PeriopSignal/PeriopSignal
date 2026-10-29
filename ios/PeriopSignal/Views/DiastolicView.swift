@@ -132,13 +132,16 @@ struct DiastolicView: View {
             }
             if pop.mode == "main" {
                 HStack {
-                    Text("e′ cutoffs").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("e′ cutoffs").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
+                        Text(ageBand.isEmpty ? "Any age" : "Table 6, by age").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                    }
                     Spacer()
                     Picker("e′ cutoffs", selection: $ageBand) {
-                        Text("Figure 3 (any age)").tag("")
-                        Text("Age 20–39 (Table 6)").tag("20-39")
-                        Text("Age 40–65 (Table 6)").tag("40-65")
-                        Text("Age over 65 (Table 6)").tag(">65")
+                        Text("Figure 3").tag("")
+                        Text("Age 20–39").tag("20-39")
+                        Text("Age 40–65").tag("40-65")
+                        Text("Over 65").tag(">65")
                     }
                     .labelsHidden().pickerStyle(.menu).tint(PS.fg)
                 }

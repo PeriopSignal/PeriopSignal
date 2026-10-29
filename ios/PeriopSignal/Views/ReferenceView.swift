@@ -15,6 +15,7 @@ enum RefRoute: Hashable {
     case ponv
     case chamber
     case diastolic
+    case acls
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -33,6 +34,7 @@ enum RefRoute: Hashable {
         case .ponv: return "ponv"
         case .chamber: return "chamber"
         case .diastolic: return "diastolic"
+        case .acls: return "acls"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -52,6 +54,7 @@ enum RefRoute: Hashable {
         case "ponv": self = .ponv
         case "chamber": self = .chamber
         case "diastolic": self = .diastolic
+        case "acls": self = .acls
         case "folder" where parts.count == 2:
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
@@ -101,6 +104,7 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
     var items: [RefItem] {
         switch self {
         case .emergency: return [
+            RefItem(route: .acls, icon: "waveform.path.ecg", title: "ACLS", blurb: "Code clock, checklists and doses as it runs"),
             RefItem(route: .quickref("asra-last"), icon: "cross.vial", title: "Local Anesthetic Toxicity", blurb: "Checklist with lipid doses for the weight"),
             RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant Hyperthermia", blurb: "Checklist with dantrolene for the weight"),
             RefItem(route: .airway, icon: "wind", title: "Difficult Airway", blurb: "Assessment in, plan and checklists out"),
@@ -273,6 +277,8 @@ struct ReferenceView: View {
                     ChamberQuantView(onOpen: { webLink = WebLink(url: $0) })
                 case .diastolic:
                     DiastolicView(onOpen: { webLink = WebLink(url: $0) })
+                case .acls:
+                    AclsView(onOpen: { webLink = WebLink(url: $0) })
                 case .folder(let f):
                     FolderView(folder: f, path: $path)
                 }
@@ -360,7 +366,7 @@ struct FolderView: View {
                 Text("Long-press a tool to add it to your favorites at the top of the tab; the star in each tool's toolbar does the same.")
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
                 if folder == .emergency {
-                    Text("Each emergency checklist takes the patient's weight at the top and works out the doses; the weight clears when you leave.")
+                    Text("ACLS starts its code clock when it opens. The checklists take the patient's weight at the top and work out the doses; the weight clears when you leave.")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
                 }
             }
@@ -514,6 +520,7 @@ struct ReferenceSearchResults: View {
         case .ponv: return ["ponv", "nausea", "vomiting", "antiemetic", "apfel", "ondansetron", "dexamethasone", "droperidol", "amisulpride", "aprepitant", "scopolamine", "palonosetron", "granisetron", "promethazine", "rescue", "prophylaxis"]
         case .chamber: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "chamber", "quantification", "dilated", "dilation", "lvidd", "lvedd", "lvesd", "lv size", "lv mass", "hypertrophy", "wall thickness", "rwt", "ejection fraction", "lvef", "la volume", "lavi", "atrial", "rv", "right ventricle", "tapse", "fac", "basal", "tricuspid annulus", "annulus", "aorta", "aortic root", "sinus", "sinuses of valsalva", "ivc", "ra pressure", "right atrium", "rvot", "strain", "rimp", "tei", "s prime"]
         case .diastolic: return ["cardiothoracic", "cardiac", "echo", "tee", "ase", "diastolic", "diastology", "dysfunction", "filling pressure", "lap", "e/e", "e/a", "tr velocity", "la strain", "lars", "pulmonary vein", "hfpef", "relaxation", "restrictive"]
+        case .acls: return ["acls", "pals", "code", "code blue", "cardiac arrest", "arrest", "cpr", "resuscitation", "defibrillation", "defibrillator", "shock", "vf", "vt", "pea", "asystole", "epinephrine", "adrenaline", "amiodarone", "lidocaine", "bradycardia", "tachycardia", "atropine", "adenosine", "cardioversion", "pacing", "rosc", "post-arrest", "cals", "resternotomy", "cardiac surgery arrest", "anaphylaxis", "allergic reaction", "timer"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -531,7 +538,7 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic:
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls:
             return wordsMatch(item.route)
         }
     }

@@ -260,6 +260,117 @@ def main(path):
         for row in dia.get("exercise") or []:
             need(isinstance(row, list) and len(row) == 2, "diastolic.exercise rows are [label, text]")
 
+    acls = data.get("acls")
+    if acls is not None:
+        num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+        need(num(acls.get("cycleSec")) and acls["cycleSec"] > 0, "acls.cycleSec must be a positive number")
+        src_ids = set()
+        for s_ in acls.get("sources") or []:
+            need(isinstance(s_.get("citation"), str) and s_["citation"].strip(), f"acls source {s_.get('id')}: citation required")
+            need(s_.get("url") is None or str(s_["url"]).startswith("https://"), f"acls source {s_.get('id')}: url must be https")
+            src_ids.add(s_.get("id"))
+        actions = acls.get("actions") or {}
+        mode_ids = [m.get("id") for m in acls.get("modes") or []]
+        need(len(mode_ids) == len(set(mode_ids)), "acls modes: duplicate id")
+
+        def check_spec(aid, who, sp, kind):
+            where = f"acls action {aid} ({who})"
+            if kind == "shock":
+                need(sp.get("text") or sp.get("perKgSeq"), f"{where}: an energy needs text or perKgSeq")
+                if sp.get("perKgSeq") is not None:
+                    need(all(num(v) and v > 0 for v in sp["perKgSeq"]) and num(sp.get("thenPerKg")), f"{where}: perKgSeq and thenPerKg must be positive numbers")
+                    need(sp.get("maxPerKg") is None or (num(sp["maxPerKg"]) and sp["maxPerKg"] >= sp.get("thenPerKg", 0)), f"{where}: maxPerKg must be at least thenPerKg")
+                return
+            entries = [sp] + list(sp.get("doses") or [])
+            for e in entries:
+                for k in ("dose", "perKg", "max", "min"):
+                    need(e.get(k) is None or (num(e[k]) and e[k] > 0), f"{where}: {k} must be a positive number")
+            need(sp.get("dose") is not None or sp.get("perKg") is not None or sp.get("text") or sp.get("doses"), f"{where}: needs dose, perKg, text or doses")
+            for e in entries:
+                if e.get("dose") is not None or e.get("perKg") is not None:
+                    need(isinstance(e.get("unit", sp.get("unit")), str), f"{where}: a numeric dose needs a unit")
+            if sp.get("perKg") is not None and sp.get("max") is not None and sp.get("min") is not None:
+                need(sp["min"] <= sp["max"], f"{where}: min above max")
+            if sp.get("conc") is not None:
+                need(num(sp["conc"].get("value")) and sp["conc"]["value"] > 0 and isinstance(sp["conc"].get("unit"), str), f"{where}: conc needs value and unit")
+            need(sp.get("maxDoses") is None or (isinstance(sp["maxDoses"], int) and sp["maxDoses"] >= 1), f"{where}: maxDoses must be a whole number of 1 or more")
+
+        for aid, a in actions.items():
+            need(isinstance(a.get("label"), str) and a["label"], f"acls action {aid}: label required")
+            kind = a.get("kind")
+            need(kind in ("drug", "shock", "rhythm", "event"), f"acls action {aid}: kind must be drug, shock, rhythm or event")
+            if kind == "rhythm":
+                need(a.get("rhythm") in ("shockable", "nonshockable", "rosc"), f"acls action {aid}: rhythm must be shockable, nonshockable or rosc")
+            if kind in ("drug", "shock"):
+                need(a.get("adult") or a.get("child"), f"acls action {aid}: needs an adult or child spec")
+                for who in ("adult", "child"):
+                    if a.get(who) is not None:
+                        check_spec(aid, who, a[who], kind)
+            rep = a.get("repeat")
+            if rep is not None:
+                need(num(rep.get("min")) and rep["min"] > 0, f"acls action {aid}: repeat.min must be positive")
+                need(rep.get("max") is None or (num(rep["max"]) and rep["max"] > rep["min"]), f"acls action {aid}: repeat.max must exceed min")
+            if a.get("goto") is not None:
+                need(a["goto"] in mode_ids, f"acls action {aid}: goto names no mode")
+            for p_ in a.get("patients") or []:
+                need(p_ in ("adult", "child"), f"acls action {aid}: patients are adult or child")
+
+        placeholder = re.compile(r"\{(dose|energy|count|next):([a-z0-9-]+)\}")
+        ops = (">=", ">", "<=", "<", "==")
+        for m in acls.get("modes") or []:
+            mid = m.get("id", "?")
+            need(isinstance(m.get("name"), str) and m["name"], f"acls mode {mid}: name required")
+            for p_ in m.get("patients") or []:
+                need(p_ in ("adult", "child"), f"acls mode {mid}: patients are adult or child")
+            for sid in m.get("sources") or []:
+                need(sid in src_ids, f"acls mode {mid}: source {sid} is not listed")
+            for g in m.get("groups") or []:
+                need(isinstance(g.get("title"), str) and g["title"], f"acls mode {mid}: group title required")
+                for aid in g.get("actions") or []:
+                    need(aid in actions, f"acls mode {mid}: group names unknown action {aid}")
+            pids = set()
+            for p in m.get("prompts") or []:
+                pid = p.get("id", "?")
+                need(pid not in pids, f"acls mode {mid}: duplicate prompt {pid}"); pids.add(pid)
+                need(isinstance(p.get("text"), str) and p["text"], f"acls prompt {mid}/{pid}: text required")
+                need(p.get("level", "info") in ("now", "soon", "info"), f"acls prompt {mid}/{pid}: level must be now, soon or info")
+                need(p.get("action") is None or p["action"] in actions, f"acls prompt {mid}/{pid}: unknown action")
+                for kind, aid in placeholder.findall(p.get("text") or ""):
+                    need(aid in actions, f"acls prompt {mid}/{pid}: {{{kind}:{aid}}} names no action")
+                for c in p.get("when") or []:
+                    keys = set(c)
+                    need(keys and keys <= {"patient", "rhythm", "done", "not", "notAny", "count", "countSince", "since", "elapsed", "cycle", "weight"}, f"acls prompt {mid}/{pid}: unknown condition {sorted(keys)}")
+                    if "count" in c or "since" in c:
+                        v = c.get("count") or c.get("since")
+                        need(isinstance(v, list) and len(v) == 3 and v[1] in ops and num(v[2]), f"acls prompt {mid}/{pid}: count/since is [id, op, n]")
+                    if "countSince" in c:
+                        v = c["countSince"]
+                        need(isinstance(v, list) and len(v) == 4 and v[2] in ops and num(v[3]), f"acls prompt {mid}/{pid}: countSince is [id, sinceId, op, n]")
+                    for k in ("elapsed", "cycle"):
+                        if k in c:
+                            v = c[k]
+                            need(isinstance(v, list) and len(v) == 2 and v[0] in ops and num(v[1]), f"acls prompt {mid}/{pid}: {k} is [op, seconds]")
+                    if "rhythm" in c:
+                        need(c["rhythm"] in ("shockable", "nonshockable", "rosc"), f"acls prompt {mid}/{pid}: unknown rhythm")
+            for dl in m.get("deadlines") or []:
+                need(num(dl.get("sec")) and dl["sec"] > 0, f"acls mode {mid}: deadline {dl.get('id')} needs sec")
+                need(dl.get("until") is None or dl["until"] in actions, f"acls mode {mid}: deadline {dl.get('id')} until names no action")
+            for who, tr in (m.get("tree") or {}).items():
+                need(who in ("adult", "child", "all"), f"acls mode {mid}: tree key must be adult, child or all")
+                nodes = tr.get("nodes") or {}
+                need(tr.get("start") in nodes, f"acls mode {mid}: tree {who} start names no node")
+                for nid, n in nodes.items():
+                    need(n.get("q") or n.get("text") or n.get("title"), f"acls mode {mid}: node {nid} is empty")
+                    if n.get("q"):
+                        need(n.get("options"), f"acls mode {mid}: question {nid} needs options")
+                    for o in n.get("options") or []:
+                        need(o.get("next") in nodes and o.get("label"), f"acls mode {mid}: node {nid} option leads nowhere")
+                    for aid in n.get("actions") or []:
+                        need(aid in actions, f"acls mode {mid}: node {nid} names unknown action {aid}")
+            for l in m.get("lists") or []:
+                ids = [x.get("id") for x in l.get("items") or []]
+                need(ids and len(ids) == len(set(ids)) and all(isinstance(x.get("label"), str) and x["label"] for x in l["items"]), f"acls mode {mid}: list {l.get('id')} needs unique, labelled items")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")

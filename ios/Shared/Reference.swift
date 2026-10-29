@@ -27,6 +27,7 @@ struct ReferenceBundle: Codable {
     var ponv: PONVData?
     var echo: EchoData?
     var diastolic: DiastolicData?
+    var acls: AclsData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -38,9 +39,243 @@ struct ReferenceBundle: Codable {
         if b.ponv == nil { b.ponv = other.ponv }
         if b.echo == nil { b.echo = other.echo }
         if b.diastolic == nil { b.diastolic = other.diastolic }
+        if b.acls == nil { b.acls = other.acls }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }
+}
+
+// MARK: ACLS code tool: actions (drugs, shocks, rhythm checks, events), modes and their prompts, trees, lists.
+// The rules that read this are in AclsCalc; the website reads the same JSON (src/reference-logic.js, R.acls).
+
+struct AclsData: Codable {
+    var reviewed: String?
+    /// Length of a CPR cycle between rhythm checks, seconds.
+    var cycleSec: Double
+    var sources: [EchoSource]
+    var actions: [String: AclsAction]
+    var modes: [AclsMode]
+    var notes: [String]?
+}
+
+struct AclsAction: Codable, Hashable {
+    var label: String
+    /// "drug", "shock", "rhythm" or "event".
+    var kind: String
+    /// For a rhythm check: "shockable", "nonshockable" or "rosc".
+    var rhythm: String?
+    /// Logging this starts a new CPR cycle (CPR started, a rhythm check).
+    var cycleReset: Bool?
+    /// Text logged for an event or rhythm check (the label when absent).
+    var log: String?
+    var detail: String?
+    var repeats: AclsRepeat?
+    var adult: AclsSpec?
+    var child: AclsSpec?
+    /// Mode to switch to once logged (ROSC → post-ROSC care).
+    var goto: String?
+    /// Only for these patients ("adult", "child"); all when absent.
+    var patients: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case label, kind, rhythm, cycleReset, log, detail, adult, child, goto, patients
+        case repeats = "repeat"
+    }
+}
+
+/// Seconds after the last dose when the next one is due (min) and overdue (max).
+struct AclsRepeat: Codable, Hashable {
+    var min: Double
+    var max: Double?
+}
+
+/// A dose or a shock energy for one kind of patient. Doses: a fixed `dose`, or `perKg` with `max`/`min`, or free
+/// `text`; `doses` lists the 1st, 2nd… dose where they differ; `conc` adds the volume. Energies: `text` for adults,
+/// `perKgSeq` (J/kg for shocks 1, 2…) then `thenPerKg` up to `maxPerKg` for children.
+struct AclsSpec: Codable, Hashable {
+    var dose: Double?
+    var perKg: Double?
+    var unit: String?
+    var route: String?
+    var max: Double?
+    var min: Double?
+    var conc: AclsConc?
+    var text: String?
+    var doses: [AclsSpec]?
+    var maxDoses: Int?
+    var note: String?
+    var joules: Double?
+    var perKgSeq: [Double]?
+    var thenPerKg: Double?
+    var thenAtLeast: Bool?
+    var maxPerKg: Double?
+    var capText: String?
+
+    /// This spec with the fields of `o` laid over it (the nth entry of `doses`).
+    func merged(_ o: AclsSpec) -> AclsSpec {
+        var s = self
+        s.doses = nil
+        if o.dose != nil { s.dose = o.dose; s.perKg = nil; s.text = nil }
+        if o.perKg != nil { s.perKg = o.perKg; s.dose = nil; s.text = nil }
+        if o.text != nil { s.text = o.text; if o.dose == nil { s.dose = nil }; if o.perKg == nil { s.perKg = nil } }
+        if let v = o.unit { s.unit = v }
+        if let v = o.route { s.route = v }
+        if let v = o.max { s.max = v }
+        if let v = o.min { s.min = v }
+        if let v = o.conc { s.conc = v }
+        if let v = o.note { s.note = v }
+        return s
+    }
+}
+
+struct AclsConc: Codable, Hashable {
+    var value: Double
+    var unit: String
+}
+
+struct AclsMode: Codable, Hashable, Identifiable {
+    var id: String
+    var name: String
+    var short: String?
+    var patients: [String]?
+    var patientNote: String?
+    /// Shows the 2-minute CPR cycle and its rhythm-check alert.
+    var cycle: Bool?
+    var cycleText: String?
+    var note: String?
+    var groups: [AclsGroup]?
+    var prompts: [AclsPrompt]?
+    var deadlines: [AclsDeadline]?
+    /// Decision tree by patient: "adult", "child", or "all".
+    var tree: [String: AclsTree]?
+    var lists: [AclsList]?
+    var sources: [String]?
+}
+
+struct AclsGroup: Codable, Hashable {
+    var title: String
+    var actions: [String]
+    var note: String?
+}
+
+struct AclsPrompt: Codable, Hashable {
+    var id: String
+    /// "now" (alerts when `alert`), "soon" or "info".
+    var level: String?
+    /// May hold {dose:id}, {energy:id}, {count:id} and {next:id}.
+    var text: String
+    var action: String?
+    var alert: Bool?
+    var patient: String?
+    var when: [AclsCond]?
+}
+
+/// One condition of a prompt; every condition of a prompt must hold.
+struct AclsCond: Codable, Hashable {
+    var patient: String?
+    var rhythm: String?
+    var done: String?
+    var not: String?
+    var notAny: [String]?
+    var count: AclsCountCond?
+    var countSince: AclsCountSinceCond?
+    var since: AclsCountCond?
+    var elapsed: AclsTimeCond?
+    var cycle: AclsTimeCond?
+    var weight: Bool?
+}
+
+/// [id, op, n]: the number of entries (count) or the seconds since the last one (since).
+struct AclsCountCond: Codable, Hashable {
+    var id: String
+    var op: String
+    var n: Double
+    init(from decoder: Decoder) throws {
+        var c = try decoder.unkeyedContainer()
+        id = try c.decode(String.self); op = try c.decode(String.self); n = try c.decode(Double.self)
+    }
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.unkeyedContainer()
+        try c.encode(id); try c.encode(op); try c.encode(n)
+    }
+    init(id: String, op: String, n: Double) { self.id = id; self.op = op; self.n = n }
+}
+
+/// [id, sinceId, op, n]: entries of id logged after the last sinceId.
+struct AclsCountSinceCond: Codable, Hashable {
+    var id: String
+    var sinceId: String
+    var op: String
+    var n: Double
+    init(from decoder: Decoder) throws {
+        var c = try decoder.unkeyedContainer()
+        id = try c.decode(String.self); sinceId = try c.decode(String.self); op = try c.decode(String.self); n = try c.decode(Double.self)
+    }
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.unkeyedContainer()
+        try c.encode(id); try c.encode(sinceId); try c.encode(op); try c.encode(n)
+    }
+    init(id: String, sinceId: String, op: String, n: Double) { self.id = id; self.sinceId = sinceId; self.op = op; self.n = n }
+}
+
+/// [op, seconds]: time since the start (elapsed) or since the cycle began (cycle).
+struct AclsTimeCond: Codable, Hashable {
+    var op: String
+    var sec: Double
+    init(from decoder: Decoder) throws {
+        var c = try decoder.unkeyedContainer()
+        op = try c.decode(String.self); sec = try c.decode(Double.self)
+    }
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.unkeyedContainer()
+        try c.encode(op); try c.encode(sec)
+    }
+    init(op: String, sec: Double) { self.op = op; self.sec = sec }
+}
+
+/// A countdown from the start of the code until an action is logged (resternotomy within 5 minutes).
+struct AclsDeadline: Codable, Hashable {
+    var id: String
+    var label: String
+    var sec: Double
+    var until: String?
+}
+
+struct AclsTree: Codable, Hashable {
+    var title: String?
+    var start: String
+    var nodes: [String: AclsNode]
+}
+
+struct AclsNode: Codable, Hashable {
+    var q: String?
+    var crumb: String?
+    var title: String?
+    var text: String?
+    var items: [String]?
+    var options: [AclsOption]?
+    var actions: [String]?
+}
+
+struct AclsOption: Codable, Hashable {
+    var label: String
+    var next: String
+}
+
+struct AclsList: Codable, Hashable {
+    var id: String
+    var title: String
+    /// Word logged before an item ("Considered: hypoxia").
+    var verb: String?
+    var patient: String?
+    var note: String?
+    var items: [AclsItem]
+}
+
+struct AclsItem: Codable, Hashable {
+    var id: String
+    var label: String
+    var detail: String?
 }
 
 // MARK: Echo reference values (ASE chamber quantification) and the diastolic algorithm

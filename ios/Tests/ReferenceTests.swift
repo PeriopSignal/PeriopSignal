@@ -779,4 +779,147 @@ final class ReferenceTests: XCTestCase {
         XCTAssertTrue(dd.populations.contains { $0.mode == "transplant" })
         XCTAssertFalse(dd.scope.isEmpty)
     }
+
+    // MARK: ACLS code timer (mirrors tools/test_reference_logic.js)
+
+    private static let aclsFixture = """
+    {"cycleSec": 120, "sources": [],
+     "actions": {
+      "vf": {"label": "VF / pVT", "kind": "rhythm", "rhythm": "shockable", "cycleReset": true, "log": "Rhythm: VF/pVT"},
+      "nonsh": {"label": "Asystole / PEA", "kind": "rhythm", "rhythm": "nonshockable", "cycleReset": true, "log": "Rhythm: asystole/PEA"},
+      "rosc": {"label": "ROSC", "kind": "rhythm", "rhythm": "rosc", "log": "ROSC", "goto": "rosc"},
+      "shock": {"label": "Shock", "kind": "shock", "adult": {"text": "device dose"}, "child": {"perKgSeq": [2, 4], "thenPerKg": 4, "thenAtLeast": true, "maxPerKg": 10}},
+      "epi": {"label": "Epinephrine", "kind": "drug", "adult": {"dose": 1, "unit": "mg", "route": "IV/IO"}, "child": {"perKg": 0.01, "unit": "mg", "max": 1, "route": "IV/IO", "conc": {"value": 0.1, "unit": "mg/mL"}}, "repeat": {"min": 180, "max": 300}},
+      "amio": {"label": "Amiodarone", "kind": "drug", "adult": {"unit": "mg", "route": "IV/IO", "doses": [{"dose": 300}, {"dose": 150}], "maxDoses": 2}, "child": {"perKg": 5, "unit": "mg", "max": 300, "route": "IV/IO", "maxDoses": 3}},
+      "cpr": {"label": "CPR started", "kind": "event", "cycleReset": true, "log": "CPR started"},
+      "reopen": {"label": "Resternotomy", "kind": "event"}
+     },
+     "modes": [
+      {"id": "arrest", "name": "Cardiac arrest", "short": "Arrest", "cycle": true, "prompts": [
+        {"id": "shock-now", "level": "now", "alert": true, "action": "shock", "text": "Shock now: {energy:shock}", "when": [{"rhythm": "shockable"}, {"countSince": ["shock", "vf", "==", 0]}]},
+        {"id": "epi-ns", "level": "now", "alert": true, "action": "epi", "text": "Epi {dose:epi}", "when": [{"rhythm": "nonshockable"}, {"count": ["epi", "==", 0]}]},
+        {"id": "epi-s", "level": "now", "alert": true, "action": "epi", "text": "Epi after shock 2: {dose:epi}", "when": [{"rhythm": "shockable"}, {"count": ["shock", ">=", 2]}, {"count": ["epi", "==", 0]}]},
+        {"id": "epi-due", "level": "now", "alert": true, "action": "epi", "text": "Epi due", "when": [{"count": ["epi", ">=", 1]}, {"since": ["epi", ">=", 180]}]},
+        {"id": "anti", "level": "now", "action": "amio", "text": "Amio {dose:amio}", "when": [{"rhythm": "shockable"}, {"count": ["shock", ">=", 3]}, {"notAny": ["amio"]}]},
+        {"id": "child-only", "patient": "child", "level": "info", "text": "Child note", "when": []}
+      ]},
+      {"id": "cals", "name": "After cardiac surgery", "short": "CALS", "deadlines": [{"id": "reopen", "label": "Resternotomy", "sec": 300, "until": "reopen"}]},
+      {"id": "brady", "name": "Bradycardia", "short": "Brady", "tree": {"adult": {"start": "q", "nodes": {"q": {"q": "Poor perfusion?", "options": [{"label": "Yes", "next": "y"}, {"label": "No", "next": "n"}]}, "y": {"text": "Atropine", "actions": ["epi"]}, "n": {"text": "Observe"}}}}}
+     ]}
+    """
+
+    private func aclsData() throws -> AclsData { try JSONDecoder().decode(AclsData.self, from: Data(Self.aclsFixture.utf8)) }
+
+    func testAclsClockDosesAndEnergies() throws {
+        let d = try aclsData()
+        XCTAssertEqual([0, 75000, 3725000, -5000].map { AclsCalc.clock($0) }, ["0:00", "1:15", "1:02:05", "-0:05"])
+        var s = AclsState(startedAt: 1, mode: "arrest", patient: "adult")
+        s.add(30000, "epi", "Epinephrine 1 mg")
+        s.add(10000, "cpr", "CPR started")
+        XCTAssertEqual(s.log.map(\.action), ["cpr", "epi"], "kept in time order")
+        XCTAssertEqual(AclsCalc.count(s, "epi"), 1)
+        XCTAssertEqual(AclsCalc.last(s, "epi"), 30000)
+        XCTAssertNil(AclsCalc.last(s, "amio"))
+        let epi = try XCTUnwrap(d.actions["epi"]), amio = try XCTUnwrap(d.actions["amio"]), shock = try XCTUnwrap(d.actions["shock"])
+        XCTAssertEqual(AclsCalc.dose(epi, s, 0)?.text, "1 mg IV/IO")
+        XCTAssertEqual(AclsCalc.dose(amio, s, 0)?.text, "300 mg IV/IO")
+        XCTAssertEqual(AclsCalc.dose(amio, s, 1)?.text, "150 mg IV/IO", "second amiodarone dose")
+        XCTAssertEqual(AclsCalc.maxDoses(amio, s), 2)
+        var c = AclsState(startedAt: 0, mode: "arrest", patient: "child")
+        XCTAssertEqual(AclsCalc.dose(epi, c, 0)?.text, "0.01 mg/kg IV/IO (max 1 mg)", "no weight yet")
+        c.weight = 18
+        XCTAssertEqual(AclsCalc.dose(epi, c, 0)?.text, "0.18 mg IV/IO · 1.8 mL of 0.1 mg/mL (0.01 mg/kg)")
+        c.weight = 120
+        XCTAssertEqual(AclsCalc.dose(epi, c, 0)?.text, "1 mg IV/IO · 10 mL of 0.1 mg/mL (the maximum)", "capped at 1 mg")
+        c.weight = 18
+        XCTAssertEqual(AclsCalc.dose(amio, c, 0)?.text, "90 mg IV/IO (5 mg/kg)")
+        XCTAssertEqual([0, 1, 2].map { AclsCalc.energy(shock, c, $0)?.text }, ["36 J (2 J/kg)", "72 J (4 J/kg)", "≥ 72 J (4 J/kg), up to 180 J"])
+        XCTAssertEqual(AclsCalc.entryText(shock, c, 1), "Shock 2: 72 J")
+        XCTAssertEqual(AclsCalc.entryText(shock, s, 0, joules: 200), "Shock 1: 200 J", "the typed energy is logged")
+        XCTAssertEqual(AclsCalc.entryText(epi, c, 1), "Epinephrine 0.18 mg IV/IO (dose 2)")
+        XCTAssertEqual([AclsCalc.round(0.1834), AclsCalc.round(4.56), AclsCalc.round(72.4)], [0.18, 4.6, 72])
+        XCTAssertEqual([AclsCalc.num(0.18), AclsCalc.num(1.8), AclsCalc.num(90), AclsCalc.num(0.01)], ["0.18", "1.8", "90", "0.01"])
+    }
+
+    func testAclsPromptsFollowTheLog() throws {
+        let d = try aclsData()
+        var s = AclsState(startedAt: 0, mode: "arrest", patient: "adult")
+        func ids(_ t: Double) -> [String] { AclsCalc.prompts(s, d, t).map(\.id) }
+        XCTAssertEqual(AclsCalc.cycle(s, d, 90000).elapsed, 90, "the first cycle runs from the start")
+        s.add(20000, "cpr", "CPR started")
+        XCTAssertEqual(AclsCalc.cycle(s, d, 90000).elapsed, 70, "CPR started resets it")
+        s.add(140000, "vf", "Rhythm: VF/pVT")
+        XCTAssertEqual(ids(141000), ["shock-now"])
+        s.add(150000, "shock", "Shock 1")
+        XCTAssertEqual(ids(151000), [], "shock given: nothing due")
+        s.add(260000, "vf", "Rhythm: VF/pVT")
+        s.add(265000, "shock", "Shock 2")
+        XCTAssertEqual(ids(266000), ["epi-s"], "epinephrine after the second shock")
+        s.add(280000, "epi", "Epinephrine 1 mg")
+        let epi = try XCTUnwrap(d.actions["epi"])
+        XCTAssertEqual(AclsCalc.timer(epi, s, "epi", 400000)?.state, "wait")
+        XCTAssertEqual(AclsCalc.timer(epi, s, "epi", 400000)?.remaining ?? 0, 60, accuracy: 1e-9)
+        XCTAssertEqual(ids(460000), ["epi-due"], "due 3 minutes after the last dose")
+        XCTAssertEqual(AclsCalc.timer(epi, s, "epi", 580000)?.state, "overdue")
+        s.add(380000, "vf", "Rhythm: VF/pVT")
+        s.add(385000, "shock", "Shock 3")
+        XCTAssertEqual(ids(390000), ["anti"])
+        XCTAssertEqual(AclsCalc.prompts(s, d, 390000).first?.text, "Amio 300 mg IV/IO")
+        s.add(395000, "amio", "Amiodarone 300 mg")
+        XCTAssertTrue(AclsCalc.prompts(s, d, 396000).isEmpty)
+        if let e = s.log.first(where: { $0.action == "amio" }) { s.remove(e) }
+        XCTAssertEqual(ids(396000), ["anti"], "removing the mistaken amiodarone brings the prompt back")
+        var n = AclsState(startedAt: 0, mode: "arrest", patient: "adult")
+        n.add(5000, "nonsh", "Rhythm: asystole/PEA")
+        XCTAssertEqual(AclsCalc.prompts(n, d, 6000).map { [$0.id, $0.text] }, [["epi-ns", "Epi 1 mg IV/IO"]])
+        XCTAssertEqual(AclsCalc.rhythm(n, d), "nonshockable")
+        let c = AclsState(startedAt: 0, mode: "arrest", patient: "child")
+        XCTAssertEqual(AclsCalc.prompts(c, d, 1000).map(\.id), ["child-only"], "a child prompt shows only for a child")
+    }
+
+    func testAclsDeadlinesTreesAndLog() throws {
+        let d = try aclsData()
+        var s = AclsState(startedAt: 0, mode: "cals", patient: "adult")
+        XCTAssertEqual(AclsCalc.deadlines(s, d, 60000).map { [$0.id, String($0.remaining)] }, [["reopen", "240.0"]])
+        XCTAssertEqual(AclsCalc.deadlines(s, d, 330000).first?.remaining, -30, "negative once passed")
+        s.add(200000, "reopen", "Resternotomy")
+        XCTAssertTrue(AclsCalc.deadlines(s, d, 330000).isEmpty, "done before the deadline: gone")
+        var b = AclsState(startedAt: 0, mode: "brady", patient: "adult")
+        XCTAssertEqual(AclsCalc.tree(b, d)?.nodeId, "q")
+        XCTAssertEqual(AclsCalc.tree(b, d)?.node.q, "Poor perfusion?")
+        AclsCalc.choose(&b, d, 5000, next: "y", label: "Yes")
+        XCTAssertEqual(AclsCalc.tree(b, d)?.nodeId, "y")
+        XCTAssertEqual(AclsCalc.tree(b, d)?.path, ["y"])
+        XCTAssertEqual(b.log.last?.text, "Brady: Poor perfusion? Yes")
+        AclsCalc.back(&b, d)
+        XCTAssertEqual(AclsCalc.tree(b, d)?.nodeId, "q")
+        XCTAssertNil(AclsCalc.tree(AclsState(startedAt: 0, mode: "brady", patient: "child"), d), "no child tree in this example")
+        var l = AclsState(startedAt: 1_793_275_200, mode: "arrest", patient: "child")   // 2026-10-29 12:00:00 UTC
+        l.weight = 18
+        l.add(0, "start", "Code clock started")
+        l.add(75000, "epi", "Epinephrine 0.18 mg IV/IO")
+        let f = DateFormatter()
+        f.timeZone = TimeZone(identifier: "UTC"); f.dateFormat = "HH:mm:ss"; f.locale = Locale(identifier: "en_US_POSIX")
+        let text = AclsCalc.logText(l) { f.string(from: Date(timeIntervalSince1970: $0 / 1000)) }
+        XCTAssertEqual(text, "Code log (child, 18 kg), started 12:00:00\n12:00:00  +0:00  Code clock started\n12:01:15  +1:15  Epinephrine 0.18 mg IV/IO")
+    }
+
+    func testAclsBundle() throws {
+        guard let a = try bundled().acls else { return }
+        XCTAssertGreaterThan(a.cycleSec, 0)
+        let ids = Set(a.modes.map(\.id))
+        XCTAssertEqual(ids.count, a.modes.count, "mode ids are unique")
+        for m in a.modes {
+            for g in m.groups ?? [] { for id in g.actions { XCTAssertNotNil(a.actions[id], "\(m.id) group names \(id)") } }
+            for p in m.prompts ?? [] { if let id = p.action { XCTAssertNotNil(a.actions[id], "\(m.id) prompt \(p.id) names \(id)") } }
+            for (_, tr) in m.tree ?? [:] {
+                XCTAssertNotNil(tr.nodes[tr.start], "\(m.id) tree starts at a node")
+                for (_, n) in tr.nodes {
+                    for o in n.options ?? [] { XCTAssertNotNil(tr.nodes[o.next], "\(m.id) option leads to \(o.next)") }
+                    for id in n.actions ?? [] { XCTAssertNotNil(a.actions[id], "\(m.id) node names \(id)") }
+                }
+            }
+        }
+        for (id, act) in a.actions { if let g = act.goto { XCTAssertTrue(ids.contains(g), "\(id) goes to \(g)") } }
+    }
 }

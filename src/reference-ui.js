@@ -68,8 +68,8 @@
 
   // ---------- catalog: folders and tools ----------
   const FOLDERS = [
-    { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['card-asra-last', 'card-mhaus-mh', 'tool-airway'],
-      note: 'Each emergency checklist takes the patient’s weight at the top and works out the doses; the weight clears when you leave.' },
+    { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['tool-acls', 'card-asra-last', 'card-mhaus-mh', 'tool-airway'],
+      note: 'ACLS starts its code clock when it opens. The checklists take the patient’s weight at the top and work out the doses; the weight clears when you leave.' },
     { id: 'preoperative', title: 'Preoperative', icon: 'clipboard', tint: 'var(--accent-2)', items: ['tool-rcri', 'tool-ariscat', 'tool-stopbang', 'tool-fasting'] },
     { id: 'general-anesthesia', title: 'General Anesthesia', icon: 'lungs', tint: 'var(--t-thoracic-fg)', items: ['tool-ponv', 'tool-aldrete'] },
     { id: 'regional', title: 'Regional', icon: 'syringe', tint: 'var(--t-regional-fg)', items: ['tool-neuraxial', 'tool-local'] },
@@ -79,6 +79,7 @@
   ];
   const T = (title, blurb, icon, keywords, mount, extra) => Object.assign({ title, blurb, icon, keywords: keywords || [], mount }, extra || {});
   const TOOLS = {
+    'tool-acls': T('ACLS', 'Code clock, checklists and doses as it runs', 'heartPulse', ['acls', 'pals', 'code', 'code blue', 'cardiac arrest', 'arrest', 'cpr', 'resuscitation', 'defibrillation', 'defibrillator', 'shock', 'vf', 'vt', 'pea', 'asystole', 'epinephrine', 'adrenaline', 'amiodarone', 'lidocaine', 'bradycardia', 'tachycardia', 'atropine', 'adenosine', 'cardioversion', 'pacing', 'rosc', 'post-arrest', 'cals', 'resternotomy', 'cardiac surgery arrest', 'anaphylaxis', 'allergic reaction', 'timer'], (h) => window.PSAcls ? window.PSAcls.mount(h, ctxFor('tool-acls')) : notReady(h)),
     'card-asra-last': T('Local Anesthetic Toxicity', 'Checklist with lipid doses for the weight', 'vial', ['last', 'lipid', 'toxicity', 'local anesthetic'], (h) => mountQuickref(h, 'asra-last'), { quickref: 'asra-last' }),
     'card-mhaus-mh': T('Malignant Hyperthermia', 'Checklist with dantrolene for the weight', 'thermo', ['mh', 'dantrolene', 'hyperthermia', 'ryanodex'], (h) => mountQuickref(h, 'mhaus-mh'), { quickref: 'mhaus-mh' }),
     'tool-airway': T('Difficult Airway', 'Assessment in, plan and checklists out', 'wind', ['airway', 'intubat', 'laryngoscop', 'cricothyr', 'cannot ventilate', 'cicv', 'awake', 'videolaryngoscope', 'supraglottic', 'lma'], mountAirway),
@@ -250,7 +251,7 @@
   /** Re-render once the bundle arrives (tools that need reference.json). */
   function whenBundle(update) { if (!bundle) loadBundle().then(() => update()); }
   // Context handed to tools that live in other files (the echo tools).
-  function ctxFor(id) { return { R, F, I, esc, view, eyebrow, numIn, seg, switchRow, radioRow, pills, resultCard, caution, footnote, ghostLink, takeList, factTable, refTable, sourceLine, weightField, bundle: () => bundle, loadBundle, toolId: id }; }
+  function ctxFor(id) { return { R, F, I, esc, view, eyebrow, numIn, seg, switchRow, radioRow, pills, resultCard, caution, footnote, ghostLink, takeList, factTable, refTable, sourceLine, weightField, checkRow, bundle: () => bundle, loadBundle, toolId: id }; }
 
   // ---------- quick reference card ----------
   function mountQuickref(host, id) {

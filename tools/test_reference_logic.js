@@ -492,5 +492,115 @@ test('diastolic: presence (Figure 2), MAC (Figure 4) and transplant', () => {
   eq(R.diastolicTransplant({ E: 100, eSeptal: 9, eLateral: 11, tr: 2.5 }).lap, 'normal', 'E/e′ 10, no SRIVR, TR 2.5');
 });
 
+// ---------- ACLS code timer ----------
+const ACLS = {
+  cycleSec: 120,
+  actions: {
+    vf: { label: 'VF / pVT', kind: 'rhythm', rhythm: 'shockable', cycleReset: true, log: 'Rhythm: VF/pVT' },
+    nonsh: { label: 'Asystole / PEA', kind: 'rhythm', rhythm: 'nonshockable', cycleReset: true, log: 'Rhythm: asystole/PEA' },
+    rosc: { label: 'ROSC', kind: 'rhythm', rhythm: 'rosc', log: 'ROSC', goto: 'rosc' },
+    shock: { label: 'Shock', kind: 'shock', adult: { text: 'device dose' }, child: { perKgSeq: [2, 4], thenPerKg: 4, thenAtLeast: true, maxPerKg: 10 } },
+    epi: { label: 'Epinephrine', kind: 'drug', adult: { dose: 1, unit: 'mg', route: 'IV/IO' }, child: { perKg: 0.01, unit: 'mg', max: 1, route: 'IV/IO', conc: { value: 0.1, unit: 'mg/mL' } }, repeat: { min: 180, max: 300 } },
+    amio: { label: 'Amiodarone', kind: 'drug', adult: { unit: 'mg', route: 'IV/IO', doses: [{ dose: 300 }, { dose: 150 }], maxDoses: 2 }, child: { perKg: 5, unit: 'mg', max: 300, route: 'IV/IO', maxDoses: 3 } },
+    cpr: { label: 'CPR started', kind: 'event', cycleReset: true, log: 'CPR started' },
+    reopen: { label: 'Resternotomy', kind: 'event' },
+  },
+  modes: [
+    { id: 'arrest', name: 'Cardiac arrest', short: 'Arrest', cycle: true, prompts: [
+      { id: 'shock-now', level: 'now', alert: true, action: 'shock', text: 'Shock now: {energy:shock}', when: [{ rhythm: 'shockable' }, { countSince: ['shock', 'vf', '==', 0] }] },
+      { id: 'epi-ns', level: 'now', alert: true, action: 'epi', text: 'Epi {dose:epi}', when: [{ rhythm: 'nonshockable' }, { count: ['epi', '==', 0] }] },
+      { id: 'epi-s', level: 'now', alert: true, action: 'epi', text: 'Epi after shock 2: {dose:epi}', when: [{ rhythm: 'shockable' }, { count: ['shock', '>=', 2] }, { count: ['epi', '==', 0] }] },
+      { id: 'epi-due', level: 'now', alert: true, action: 'epi', text: 'Epi due', when: [{ count: ['epi', '>=', 1] }, { since: ['epi', '>=', 180] }] },
+      { id: 'anti', level: 'now', action: 'amio', text: 'Amio {dose:amio}', when: [{ rhythm: 'shockable' }, { count: ['shock', '>=', 3] }, { notAny: ['amio'] }] },
+      { id: 'child-only', patient: 'child', level: 'info', text: 'Child note', when: [] },
+    ] },
+    { id: 'cals', name: 'After cardiac surgery', short: 'CALS', deadlines: [{ id: 'reopen', label: 'Resternotomy', sec: 300, until: 'reopen' }] },
+    { id: 'brady', name: 'Bradycardia', short: 'Brady', tree: { adult: { start: 'q', nodes: { q: { q: 'Poor perfusion?', options: [{ label: 'Yes', next: 'y' }, { label: 'No', next: 'n' }] }, y: { text: 'Atropine', actions: ['epi'] }, n: { text: 'Observe' } } } } },
+  ],
+};
+test('acls: clock, log, counts and doses', () => {
+  const A = R.acls;
+  eq([A.clock(0), A.clock(75000), A.clock(3725000), A.clock(-5000)], ['0:00', '1:15', '1:02:05', '-0:05']);
+  const s = A.session(1000, 'arrest', 'adult');
+  A.add(s, 30000, 'epi', 'Epinephrine 1 mg');
+  A.add(s, 10000, 'cpr', 'CPR started');
+  eq(s.log.map((e) => e.id), ['cpr', 'epi'], 'kept in time order');
+  eq([A.count(s, 'epi'), A.last(s, 'epi'), A.last(s, 'amio')], [1, 30000, null]);
+  eq(A.dose(ACLS.actions.epi, s, 0).text, '1 mg IV/IO');
+  eq(A.dose(ACLS.actions.amio, s, 0).text, '300 mg IV/IO');
+  eq(A.dose(ACLS.actions.amio, s, 1).text, '150 mg IV/IO', 'second amiodarone dose');
+  eq(A.maxDoses(ACLS.actions.amio, s), 2);
+  const c = A.session(0, 'arrest', 'child');
+  eq(A.dose(ACLS.actions.epi, c, 0).text, '0.01 mg/kg IV/IO (max 1 mg)', 'no weight yet');
+  c.weight = 18;
+  eq(A.dose(ACLS.actions.epi, c, 0).text, '0.18 mg IV/IO · 1.8 mL of 0.1 mg/mL (0.01 mg/kg)');
+  c.weight = 120;
+  eq(A.dose(ACLS.actions.epi, c, 0).text, '1 mg IV/IO · 10 mL of 0.1 mg/mL (the maximum)', 'capped at 1 mg');
+  c.weight = 18;
+  eq(A.dose(ACLS.actions.amio, c, 0).text, '90 mg IV/IO (5 mg/kg)');
+  eq([0, 1, 2].map((n) => A.energy(ACLS.actions.shock, c, n).text), ['36 J (2 J/kg)', '72 J (4 J/kg)', '≥ 72 J (4 J/kg), up to 180 J']);
+  eq(A.entryText(ACLS.actions.shock, c, 1), 'Shock 2: 72 J');
+  eq(A.entryText(ACLS.actions.shock, s, 0, 200), 'Shock 1: 200 J', 'the typed energy is logged');
+  eq(A.entryText(ACLS.actions.epi, c, 1), 'Epinephrine 0.18 mg IV/IO (dose 2)');
+  eq(A.round(0.1834), 0.18); eq(A.round(4.56), 4.6); eq(A.round(72.4), 72);
+});
+test('acls: cycle, prompts and timers follow the log', () => {
+  const A = R.acls, s = A.session(0, 'arrest', 'adult'), ids = (t) => A.prompts(s, ACLS, t).map((p) => p.id);
+  eq(A.cycle(s, ACLS, 90000).elapsed, 90, 'the first cycle runs from the start');
+  A.add(s, 20000, 'cpr', 'CPR started');
+  eq(A.cycle(s, ACLS, 90000).elapsed, 70, 'CPR started resets it');
+  A.add(s, 140000, 'vf', 'Rhythm: VF/pVT');
+  eq(ids(141000), ['shock-now']);
+  A.add(s, 150000, 'shock', 'Shock 1');
+  eq(ids(151000), [], 'shock given: nothing due');
+  A.add(s, 260000, 'vf', 'Rhythm: VF/pVT');
+  A.add(s, 265000, 'shock', 'Shock 2');
+  eq(ids(266000), ['epi-s'], 'epinephrine after the second shock');
+  A.add(s, 280000, 'epi', 'Epinephrine 1 mg');
+  eq(A.timer(ACLS.actions.epi, s, 'epi', 400000).state, 'wait');
+  near(A.timer(ACLS.actions.epi, s, 'epi', 400000).remaining, 60, 1e-9);
+  eq(ids(460000), ['epi-due'], 'due 3 minutes after the last dose');
+  eq(A.timer(ACLS.actions.epi, s, 'epi', 580000).state, 'overdue');
+  A.add(s, 380000, 'vf', 'Rhythm: VF/pVT');
+  A.add(s, 385000, 'shock', 'Shock 3');
+  eq(ids(390000), ['anti']);
+  eq(A.prompts(s, ACLS, 390000)[0].text, 'Amio 300 mg IV/IO');
+  A.add(s, 395000, 'amio', 'Amiodarone 300 mg');
+  eq(A.prompts(s, ACLS, 396000).length, 0);
+  // removing the mistaken amiodarone brings the prompt back
+  A.remove(s, s.log.find((e) => e.id === 'amio'));
+  eq(ids(396000), ['anti']);
+  // non-shockable: epinephrine as soon as possible, once
+  const n = A.session(0, 'arrest', 'adult');
+  A.add(n, 5000, 'nonsh', 'Rhythm: asystole/PEA');
+  eq(A.prompts(n, ACLS, 6000).map((p) => [p.id, p.text]), [['epi-ns', 'Epi 1 mg IV/IO']]);
+  eq(A.rhythm(n, ACLS), 'nonshockable');
+  const c = A.session(0, 'arrest', 'child');
+  eq(A.prompts(c, ACLS, 1000).map((p) => p.id), ['child-only'], 'a child prompt shows only for a child');
+});
+test('acls: deadlines, trees and the copied log', () => {
+  const A = R.acls, s = A.session(0, 'cals', 'adult');
+  eq(A.deadlines(s, ACLS, 60000).map((d) => [d.id, d.remaining]), [['reopen', 240]]);
+  eq(A.deadlines(s, ACLS, 330000)[0].remaining, -30, 'negative once passed');
+  A.add(s, 200000, 'reopen', 'Resternotomy');
+  eq(A.deadlines(s, ACLS, 330000), [], 'done before the deadline: gone');
+  const b = A.session(0, 'brady', 'adult');
+  let tr = A.tree(b, ACLS);
+  eq([tr.nodeId, tr.node.q], ['q', 'Poor perfusion?']);
+  A.choose(b, ACLS, 5000, 'y', 'Yes');
+  tr = A.tree(b, ACLS);
+  eq([tr.nodeId, tr.path], ['y', ['y']]);
+  eq(b.log.at(-1).text, 'Brady: Poor perfusion? Yes');
+  A.back(b, ACLS);
+  eq(A.tree(b, ACLS).nodeId, 'q');
+  eq(A.tree(A.session(0, 'brady', 'child'), ACLS), null, 'no child tree in this example');
+  const l = A.session(Date.UTC(2026, 9, 29, 12, 0, 0), 'arrest', 'child');
+  l.weight = 18;
+  A.add(l, 0, 'start', 'Code clock started');
+  A.add(l, 75000, 'epi', 'Epinephrine 0.18 mg IV/IO');
+  const wall = (ms) => new Date(ms).toISOString().slice(11, 19);
+  eq(A.logText(l, wall), 'Code log (child, 18 kg), started 12:00:00\n12:00:00  +0:00  Code clock started\n12:01:15  +1:15  Epinephrine 0.18 mg IV/IO');
+});
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
