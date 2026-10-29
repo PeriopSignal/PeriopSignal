@@ -165,7 +165,7 @@ struct NeuraxialTimingView: View {
             } else if a.hours == 0 {
                 Text("Now").font(PS.serif(size: 34, weight: .semibold)).foregroundStyle(PS.green)
             } else {
-                Text("No interval").font(PS.serif(size: 26, weight: .semibold)).foregroundStyle(PS.fg)
+                Text("No Interval").font(PS.serif(size: 26, weight: .semibold)).foregroundStyle(PS.fg)
             }
             Text(a.rule).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             if let l = tier?.level {

@@ -125,6 +125,12 @@ def main(path):
                     need(isinstance(d.get("unit"), str) and d["unit"], f"infusion {did}: unit required")
                 if d.get("startHigh") is not None:
                     need(isinstance(d["startHigh"], (int, float)) and d["startHigh"] >= (d.get("start") or 0), f"infusion {did}: startHigh >= start")
+                for key in ("role", "threshold", "display"):
+                    if d.get(key) is not None:
+                        need(isinstance(d[key], str) and d[key].strip(), f"infusion {did}: {key} must be non-empty text")
+            if g.get("name") == "Blood Products":
+                for d in g.get("drugs") or []:
+                    need(isinstance(d.get("threshold"), str), f"blood product {d.get('id')}: threshold required (shown on the row)")
 
     nx = data.get("neuraxial")
     if nx is not None:
@@ -146,6 +152,22 @@ def main(path):
                         need(isinstance(r.get("label"), str), f"neuraxial {did}/{t.get('id')}: renal rule label")
                         if r.get("hours") is None:
                             need(isinstance(r.get("text"), str), f"neuraxial {did}/{t.get('id')}: renal rule without hours needs text")
+
+    ponv = data.get("ponv")
+    if ponv is not None:
+        need(isinstance(ponv.get("source"), str) and ponv["source"], "ponv.source required")
+        counts = ponv.get("counts") or []
+        need(counts and all(isinstance(c.get("agents"), int) and c["agents"] > 0 for c in counts), "ponv.counts need agents > 0")
+        covered = sorted(n for c in counts for n in range(c.get("minFactors", 0), c.get("maxFactors", -1) + 1))
+        need(covered == [0, 1, 2, 3, 4], "ponv.counts must cover 0–4 Apfel factors exactly once")
+        seen = set()
+        for a in ponv.get("agents") or []:
+            aid = a.get("id", "?")
+            need(aid not in seen, f"ponv agent {aid}: duplicate id"); seen.add(aid)
+            for key in ("name", "class", "dose"):
+                need(isinstance(a.get(key), str) and a[key].strip(), f"ponv agent {aid}: {key} required")
+        need(any(a.get("rescue") for a in ponv.get("agents") or []), "ponv: at least one rescue agent")
+        need(isinstance(ponv.get("rescueRules"), list) and ponv["rescueRules"], "ponv.rescueRules required")
 
     if problems:
         print("\n".join("- " + p for p in problems))

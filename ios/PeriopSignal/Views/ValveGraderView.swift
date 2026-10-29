@@ -69,7 +69,7 @@ struct ValveGraderView: View {
         }()
         return VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: lesion.name, color: tone)
-            Text(r.headline).font(PS.serif(size: 24, weight: .semibold)).foregroundStyle(input.isEmpty ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
+            Text(r.headline.titleCased).font(PS.serif(size: 24, weight: .semibold)).foregroundStyle(input.isEmpty ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
             Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             if !r.lines.isEmpty {
                 FlowLayout(spacing: 6) {

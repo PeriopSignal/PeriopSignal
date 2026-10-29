@@ -47,7 +47,7 @@ struct ValveInterventionView: View {
             HStack(spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
                     Eyebrow(text: "Lesion")
-                    Text(lesion.name).font(PS.serif(size: 19)).foregroundStyle(PS.fg)
+                    Text(lesion.name.titleCased).font(PS.serif(size: 19)).foregroundStyle(PS.fg)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -74,7 +74,7 @@ struct ValveInterventionView: View {
             } else if let f = r.fallback {
                 Text(f).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(answers.isEmpty ? "Severity and symptoms first" : "Nothing settled yet").font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg3)
+                Text(answers.isEmpty ? "Severity and Symptoms First" : "Nothing Settled Yet").font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg3)
                 Text(answers.isEmpty ? "The recommendations appear as the answers come in; the dots mark the questions that would decide." : "Keep going: the marked questions decide.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             let rest = r.matched.filter { $0.id != top?.id }

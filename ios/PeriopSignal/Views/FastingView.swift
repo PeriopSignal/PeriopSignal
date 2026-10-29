@@ -83,7 +83,7 @@ struct FastingView: View {
                     Text("Clear liquids are fine until \(Self.clock.string(from: e.date.addingTimeInterval(-2 * 3600))).").font(PS.sys(size: 13)).foregroundStyle(PS.fg2)
                 }
             } else {
-                Text("Enter what was taken").font(PS.serif(size: 24, weight: .semibold)).foregroundStyle(PS.fg3)
+                Text("Enter What Was Taken").font(PS.serif(size: 24, weight: .semibold)).foregroundStyle(PS.fg3)
             }
             if !flags.isEmpty {
                 Text("The guideline is written for healthy patients: with \(flags.count == 1 ? "this condition" : "these conditions") its times do not apply as written — plan for delayed emptying.")

@@ -157,6 +157,12 @@ jobs:
           shot 26-valves 12 -ps.ref valves
           shot 27-intervention 12 -ps.ref intervention
           shot 28-favorites 12 -ps.tab reference -ps.favorites.debug "valves,neuraxial,score:rcri"
+          shot 29-regional 12 -ps.ref folder:regional
+          shot 30-ponv 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,opioids" -ps.ponv.agents "ondansetron,dexamethasone"
+          shot 31-blood 12 -ps.ref infusions -ps.la.weight 70 -ps.inf.group "Blood Products"
+          shot 32-local-empty 12 -ps.ref local
+          shot 33-last-empty 12 -ps.ref quickref:asra-last
+          shot 34-general 12 -ps.ref folder:generalAnesthesia
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

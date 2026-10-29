@@ -40,7 +40,7 @@ struct AirwayGuideView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Difficult airway")
+        .navigationTitle("Difficult Airway")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -90,7 +90,7 @@ struct AirwayGuideView: View {
         let (title, tone, steps): (String, Color, [String]) = {
             switch plan {
             case .awake:
-                return ("Awake intubation", PS.accent, [
+                return ("Awake Intubation", PS.accent, [
                     "Explain the plan and the risks; antisialagogue; topicalize well, sedation light enough to keep breathing and cooperation.",
                     "Oxygen throughout — high-flow nasal or a nasal cannula under the mask.",
                     "Choose the device you know best (flexible scope, videolaryngoscope, or both); a second skilled clinician present.",
@@ -98,7 +98,7 @@ struct AirwayGuideView: View {
                     "If the awake attempt fails and the case cannot wait or the patient is unstable: post-induction pathway with the invasive airway prepared.",
                 ])
             case .prepared:
-                return ("Intubate after induction, prepared for failure", PS.accent2, [
+                return ("Intubate After Induction, Prepared for Failure", PS.accent2, [
                     uncooperative ? "Awake technique not feasible: induce with spontaneous ventilation maintained where possible (inhalational in children)." : "No independent predictor of failed rescue: induction is reasonable with rescue devices open.",
                     "Position, preoxygenate, apneic oxygenation; videolaryngoscope, supraglottic airway and flexible scope in the room; bougie and stylet ready.",
                     "Time-out: name the primary and backup airway managers; an observer calls time, attempts and saturation.",
@@ -106,7 +106,7 @@ struct AirwayGuideView: View {
                     "Invasive airway kit opened, not just available.",
                 ])
             case .routine:
-                return ("Routine airway, cart available", PS.green, [
+                return ("Routine Airway, Cart Available", PS.green, [
                     "Standard equipment in the room; the difficult-airway cart immediately available.",
                     "Preoxygenate and keep oxygen flowing; capnography to confirm ventilation.",
                     "Reassess if the first laryngoscopy surprises you — the attempt counter below applies to every patient.",
@@ -119,7 +119,7 @@ struct AirwayGuideView: View {
             if plan == .awake {
                 Text("Difficult intubation is suspected together with " + awakeReasons + ".").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
-            checklist(steps, key: "plan")
+            checklistBlock(steps, key: "plan", title: "Plan Checklist", tint: tone)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -170,12 +170,12 @@ struct AirwayGuideView: View {
                     Text("Mask or supraglottic ventilation adequate after the last attempt").font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                 }
                 .tint(PS.green)
-                checklist([
+                checklistBlock([
                     "Change something before trying again: position, relaxation, blade or device, a bougie, an adjunct — not the same move twice.",
                     "Combine devices when one struggles: videolaryngoscope with a flexible scope, or intubate through the supraglottic airway.",
                     "Provide and test mask ventilation after every attempt; keep oxygen on throughout.",
                     "Each attempt, decide: wake the patient and restore breathing, or carry on? Non-invasive next, or invasive?",
-                ], key: "room")
+                ], key: "room", title: "Before Every Attempt", tint: PS.accent2)
                 if !maskOK {
                     Button {
                         Haptics.light()
@@ -211,15 +211,15 @@ struct AirwayGuideView: View {
 
     private var cicv: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "Cannot intubate, cannot ventilate", color: PS.accent)
-            checklist([
+            Text("Cannot Intubate, Cannot Ventilate").font(PS.serif(size: 20, weight: .semibold)).foregroundStyle(PS.accent)
+            checklistBlock([
                 "Call for help: a second anesthesiologist, a surgeon, the invasive airway kit opened now; start the clock.",
                 "Optimize oxygenation: two-hand mask with an oral and nasal airway, a supraglottic airway (a different size or type), and a final look with the videolaryngoscope only if it does not cost oxygenation.",
                 "Functional obstruction (laryngospasm, light anesthesia)? Deepen and relax. Anatomic? Devices.",
                 "When non-invasive options have failed or are failing: emergency invasive airway without further delay — surgical cricothyrotomy, or needle cricothyrotomy with a pressure-regulated jet device, or large-bore cannula, by the most experienced person present, with an alternative ready if it fails.",
                 "Start ECMO when appropriate and available; rigid bronchoscopy in adults where a team exists.",
                 "Afterwards: document the difficulty, tell the patient, registry or letter and alert bracelet.",
-            ], key: "cicv")
+            ], key: "cicv", title: "Emergency Checklist", tint: PS.accent)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -227,24 +227,21 @@ struct AirwayGuideView: View {
         .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(PS.accent.opacity(0.4), lineWidth: 1))
     }
 
-    private func checklist(_ items: [String], key: String) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+    /// A pilot-style checklist: progress and reset on top, numbered boxes to tick in any order.
+    private func checklistBlock(_ items: [String], key: String, title: String, tint: Color) -> some View {
+        let ids = items.indices.map { "\(key)-\($0)" }
+        let count = ids.filter { done.contains($0) }.count
+        return VStack(alignment: .leading, spacing: 4) {
+            ChecklistProgress(done: count, total: items.count, tint: tint, title: title) {
+                for id in ids { done.remove(id) }
+            }
+            .padding(.bottom, 4)
             ForEach(Array(items.enumerated()), id: \.offset) { i, item in
-                let id = "\(key)-\(i)"
-                let isDone = done.contains(id)
-                Button {
-                    Haptics.light()
-                    withAnimation(.snappy) { if isDone { done.remove(id) } else { done.insert(id) } }
-                } label: {
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Image(systemName: isDone ? "checkmark.circle.fill" : "circle").font(PS.sys(size: 18)).foregroundStyle(isDone ? PS.green : PS.fg3)
-                            .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] + 5 }
-                        Text(item).font(PS.sys(size: 14)).foregroundStyle(isDone ? PS.fg3 : PS.fg).strikethrough(isDone, color: PS.fg3).lineSpacing(1.5).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.vertical, 7)
-                    .contentShape(Rectangle())
+                let id = ids[i]
+                ChecklistItemRow(number: i + 1, text: item, done: done.contains(id), tint: tint, size: 14) {
+                    if done.contains(id) { done.remove(id) } else { done.insert(id) }
                 }
-                .buttonStyle(.plain)
+                if i < items.count - 1 { Hairline().padding(.leading, 38) }
             }
         }
     }

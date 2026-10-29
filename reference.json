@@ -8,7 +8,7 @@
   "quickrefs": [
     {
       "id": "ponv-consensus",
-      "title": "PONV prophylaxis and rescue",
+      "title": "PONV Prophylaxis and Rescue",
       "society": "Consensus guideline (Gan et al.)",
       "short": "PONV consensus",
       "year": 2025,
@@ -39,7 +39,7 @@
       "reviewed": "2026-10-28",
       "sections": [
         {
-          "heading": "Adults: risk and how many interventions",
+          "heading": "Adults: Risk and How Many Interventions",
           "kind": "facts",
           "rows": [
             [
@@ -66,7 +66,7 @@
           "note": "Apfel's predicted incidence by factor count: 10%, 21%, 39%, 61%, 79% (the Apfel calculator applies it)."
         },
         {
-          "heading": "Adult agents, doses and timing",
+          "heading": "Adult Agents, Doses and Timing",
           "kind": "table",
           "columns": [
             "Agent",
@@ -143,7 +143,7 @@
           "note": "Doses and timing as tabulated in the Fourth consensus (Gan TJ, et al. Anesth Analg 2020;131:411–448, Table 4); a dash means the table gave no timing. Metoclopramide is no longer recommended for prophylaxis in the Fifth consensus."
         },
         {
-          "heading": "Rescue when prophylaxis fails",
+          "heading": "Rescue When Prophylaxis Fails",
           "kind": "list",
           "items": [
             "Give an antiemetic from a class that was not used for prophylaxis; repeating the same class within 6 hours adds no benefit.",
@@ -182,7 +182,7 @@
     },
     {
       "id": "acc-aha-valve-intervention",
-      "title": "Valve repair and replacement: when and how (ACC/AHA)",
+      "title": "Valve Repair and Replacement: When and How (ACC/AHA)",
       "society": "American College of Cardiology / American Heart Association",
       "short": "ACC/AHA",
       "year": 2020,
@@ -220,7 +220,7 @@
       "reviewed": "2026-10-28",
       "sections": [
         {
-          "heading": "How to read it",
+          "heading": "How to Read It",
           "kind": "facts",
           "rows": [
             [
@@ -242,7 +242,7 @@
           ]
         },
         {
-          "heading": "Aortic stenosis: when to intervene",
+          "heading": "Aortic Stenosis: When to Intervene",
           "kind": "table",
           "columns": [
             "Situation",
@@ -294,7 +294,7 @@
           "note": "Severe AS here: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg, AVA usually ≤ 1.0 cm²; very severe Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg."
         },
         {
-          "heading": "Aortic stenosis: SAVR or TAVI",
+          "heading": "Aortic Stenosis: SAVR or TAVI",
           "kind": "table",
           "columns": [
             "Situation",
@@ -356,7 +356,7 @@
           "note": "Factors favoring SAVR: bicuspid valve, LVOT calcification, rheumatic disease, very small or large annulus, mechanical valve preferred, aortic dilation, severe primary MR, CAD needing bypass, septal hypertrophy, low coronary ostia or no transfemoral access, at-risk grafts, prior chest irradiation. Favoring TAVI: calcific trileaflet stenosis, AF, porcelain aorta, irreversible severe LV dysfunction, severe lung, liver or kidney disease, frailty likely to improve."
         },
         {
-          "heading": "Aortic regurgitation",
+          "heading": "Aortic Regurgitation",
           "kind": "table",
           "columns": [
             "Situation",
@@ -407,7 +407,7 @@
           ]
         },
         {
-          "heading": "Bicuspid aortic valve: the aorta",
+          "heading": "Bicuspid Aortic Valve: The Aorta",
           "kind": "table",
           "columns": [
             "Situation",
@@ -438,7 +438,7 @@
           ]
         },
         {
-          "heading": "Primary (degenerative) mitral regurgitation",
+          "heading": "Primary (Degenerative) Mitral Regurgitation",
           "kind": "table",
           "columns": [
             "Situation",
@@ -489,7 +489,7 @@
           ]
         },
         {
-          "heading": "Secondary (functional) mitral regurgitation",
+          "heading": "Secondary (Functional) Mitral Regurgitation",
           "kind": "table",
           "columns": [
             "Situation",
@@ -526,7 +526,7 @@
           "note": "Severe secondary MR in this guideline: EROA ≥ 0.40 cm², regurgitant volume ≥ 60 mL, regurgitant fraction ≥ 50%; 2D PISA underestimates crescentic orifices and the volume runs lower in low-flow states."
         },
         {
-          "heading": "Mitral stenosis (rheumatic unless stated)",
+          "heading": "Mitral Stenosis (Rheumatic Unless Stated)",
           "kind": "table",
           "columns": [
             "Situation",
@@ -573,7 +573,7 @@
           "note": "Severe rheumatic MS: planimetered MVA ≤ 1.5 cm² with pressure half-time ≥ 150 ms; the mean gradient is not a severity criterion because it varies with heart rate and flow."
         },
         {
-          "heading": "Tricuspid regurgitation",
+          "heading": "Tricuspid Regurgitation",
           "kind": "table",
           "columns": [
             "Situation",
@@ -615,7 +615,7 @@
           "note": "The 2020 guideline makes no transcatheter tricuspid recommendation; its message is to operate before severe RV dysfunction or end-organ damage."
         },
         {
-          "heading": "Choosing the prosthesis",
+          "heading": "Choosing the Prosthesis",
           "kind": "facts",
           "rows": [
             [
@@ -649,7 +649,7 @@
           ]
         },
         {
-          "heading": "Anticoagulation of prosthetic valves",
+          "heading": "Anticoagulation of Prosthetic Valves",
           "kind": "facts",
           "rows": [
             [
@@ -679,7 +679,7 @@
           ]
         },
         {
-          "heading": "Bridging and reversal around procedures",
+          "heading": "Bridging and Reversal Around Procedures",
           "kind": "facts",
           "rows": [
             [
@@ -705,7 +705,7 @@
           ]
         },
         {
-          "heading": "Endocarditis prophylaxis",
+          "heading": "Endocarditis Prophylaxis",
           "kind": "facts",
           "rows": [
             [
@@ -722,7 +722,7 @@
     },
     {
       "id": "asra-anticoagulation",
-      "title": "Neuraxial and deep blocks with antithrombotic drugs (ASRA)",
+      "title": "Neuraxial and Deep Blocks with Antithrombotic Drugs (ASRA)",
       "society": "ASRA Pain Medicine",
       "short": "ASRA",
       "year": 2025,
@@ -767,7 +767,7 @@
       "reviewed": "2026-10-28",
       "sections": [
         {
-          "heading": "Ground rules",
+          "heading": "Ground Rules",
           "kind": "list",
           "items": [
             "Every interval below applies to neuraxial blocks and to deep plexus or deep peripheral blocks alike; for other peripheral blocks, judge by the site's compressibility, vascularity and the consequences of bleeding.",
@@ -828,7 +828,7 @@
           ]
         },
         {
-          "heading": "Oral anticoagulants",
+          "heading": "Oral Anticoagulants",
           "kind": "table",
           "columns": [
             "Drug",
@@ -888,7 +888,7 @@
           ]
         },
         {
-          "heading": "Parenteral anticoagulants",
+          "heading": "Parenteral Anticoagulants",
           "kind": "table",
           "columns": [
             "Drug",
@@ -924,7 +924,7 @@
           ]
         },
         {
-          "heading": "Antiplatelet drugs",
+          "heading": "Antiplatelet Drugs",
           "kind": "table",
           "columns": [
             "Drug",
@@ -985,7 +985,7 @@
           "note": "Ticlopidine, dipyridamole and betrixaban no longer appear in the fifth edition's open summaries and are left out here; the fourth edition gave 10 days, 24 h (extended-release) and 72 h respectively."
         },
         {
-          "heading": "Special situations",
+          "heading": "Special Situations",
           "kind": "list",
           "items": [
             "Obstetrics: the same intervals apply to parturients; exceptions may be appropriate for a high-risk parturient needing urgent intervention when general anesthesia carries the greater risk; converting LMWH to unfractionated heparin near delivery is worth considering.",
@@ -998,7 +998,7 @@
     },
     {
       "id": "ase-valve-severity",
-      "title": "Valve disease severity by echo (ASE)",
+      "title": "Valve Disease Severity by Echo (ASE)",
       "society": "American Society of Echocardiography",
       "short": "ASE",
       "year": 2017,
@@ -1035,7 +1035,7 @@
       "reviewed": "2026-10-28",
       "sections": [
         {
-          "heading": "Aortic stenosis (EACVI/ASE 2017)",
+          "heading": "Aortic Stenosis (EACVI/ASE 2017)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1078,7 +1078,7 @@
           "note": "Velocity ≥ 4 m/s with a mean gradient ≥ 40 mmHg defines high-gradient AS; below both, low-gradient. A calculated AVA under 1.0 cm² suggests but does not confirm severe AS: a valve producing 40 mmHg at normal flow is nearer 0.8 than 1.0 cm². Average at least 5 beats in irregular rhythm; measure the LVOT at the level of the velocity sample; pressure recovery matters when the ascending aorta is under 30 mm."
         },
         {
-          "heading": "Aortic stenosis: low-gradient states",
+          "heading": "Aortic Stenosis: Low-Gradient States",
           "kind": "facts",
           "rows": [
             [
@@ -1108,7 +1108,7 @@
           ]
         },
         {
-          "heading": "Aortic regurgitation (ASE 2017, Table 11)",
+          "heading": "Aortic Regurgitation (ASE 2017, Table 11)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1199,7 +1199,7 @@
           "note": "Color Doppler at a Nyquist limit of 50–70 cm/s. PHT shortens with rising LV diastolic pressure and may lengthen in chronic adaptation to severe AR. Quantitative parameters subclassify the moderate group."
         },
         {
-          "heading": "Mitral regurgitation (ASE 2017, Table 8)",
+          "heading": "Mitral Regurgitation (ASE 2017, Table 8)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1278,7 +1278,7 @@
           "note": "Nyquist 50–70 cm/s for jets. Inflow and pulmonary-vein signs are influenced by LV diastolic function, AF and LA pressure; the inflow sign is most valid over 50 years. Quantitative parameters subclassify moderate MR (grades II and III); discrepancies among EROA, RVol and RF arise in low- or high-flow states."
         },
         {
-          "heading": "Integrating the MR signs (ASE 2017, Figure 18)",
+          "heading": "Integrating the MR Signs (ASE 2017, Figure 18)",
           "kind": "facts",
           "rows": [
             [
@@ -1309,7 +1309,7 @@
           "note": "Secondary MR: the orifice is crescentic and 2D PISA underestimates it, the EROA is often biphasic, a high E velocity and pulmonary-vein blunting are not specific; 3D vena contracta area can rescue the grade. In the operating room, reduced load or contractility usually underestimates the grade: let the preoperative study guide the decision."
         },
         {
-          "heading": "Mitral stenosis (ASE 2023, rheumatic)",
+          "heading": "Mitral Stenosis (ASE 2023, Rheumatic)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1346,7 +1346,7 @@
           "note": "Planimetry (3D preferred) is the anatomic method; MVA = 220 / pressure half-time; continuity and PISA are reserved for inconclusive cases. Gradients depend on flow and heart rate — report the rhythm and rate and never grade on gradient alone. Pressure half-time misleads with severe AR, immediately after balloon commissurotomy, and with altered LA or LV compliance; trace the mid-diastolic slope of a biphasic E wave. Exercise PA systolic pressure > 60 mmHg marks hemodynamically significant MS."
         },
         {
-          "heading": "Tricuspid regurgitation (ASE 2017, Table 14)",
+          "heading": "Tricuspid Regurgitation (ASE 2017, Table 14)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1431,7 +1431,7 @@
           "note": "Hepatic-vein and inflow signs are nonspecific (RV diastolic function, AF, RA pressure). Annular dilation: end-diastolic diameter ≥ 40 mm or > 21 mm/m² in the apical four-chamber view (ASE 2023). The massive and torrential grades proposed for transcatheter trials are not ASE grades."
         },
         {
-          "heading": "Tricuspid stenosis (ASE 2023)",
+          "heading": "Tricuspid Stenosis (ASE 2023)",
           "kind": "facts",
           "rows": [
             [
@@ -1453,7 +1453,7 @@
           ]
         },
         {
-          "heading": "Pulmonic regurgitation (ASE 2017, Table 16)",
+          "heading": "Pulmonic Regurgitation (ASE 2017, Table 16)",
           "kind": "table",
           "columns": [
             "Parameter",
@@ -1514,7 +1514,7 @@
           "note": "Significant PR is uncommon and usually secondary to pulmonary hypertension or congenital heart disease; combine color, pulsed-wave and CW signs. CMR is the best method to quantify PR and follow RV remodeling."
         },
         {
-          "heading": "How ASE grades, and the traps",
+          "heading": "How ASE Grades, and the Traps",
           "kind": "list",
           "items": [
             "Three grades (mild, moderate, severe; 'trace' when barely detected); integrate every available sign and set aside the outliers rather than averaging them.",
@@ -1528,7 +1528,7 @@
     },
     {
       "id": "asra-last",
-      "title": "Local anesthetic systemic toxicity (LAST)",
+      "title": "Local Anesthetic Systemic Toxicity (LAST)",
       "society": "ASRA Pain Medicine",
       "short": "ASRA",
       "year": 2020,
@@ -1586,7 +1586,7 @@
       ],
       "sections": [
         {
-          "heading": "Recognize it",
+          "heading": "Recognize It",
           "kind": "list",
           "items": [
             "Think of LAST in any patient with altered mental status, neurologic symptoms or cardiovascular instability after a regional anesthetic — the classic prodrome (metallic taste, perioral numbness, tinnitus, agitation) appears in fewer than half, and sedation hides it.",
@@ -1595,7 +1595,7 @@
           ]
         },
         {
-          "heading": "Immediate steps",
+          "heading": "Immediate Steps",
           "kind": "steps",
           "items": [
             "Stop injecting the local anesthetic.",
@@ -1607,7 +1607,7 @@
           ]
         },
         {
-          "heading": "Lipid emulsion 20%",
+          "heading": "Lipid Emulsion 20%",
           "kind": "facts",
           "rows": [
             [
@@ -1633,7 +1633,7 @@
           ]
         },
         {
-          "heading": "ACLS modifications",
+          "heading": "ACLS Modifications",
           "kind": "list",
           "items": [
             "Epinephrine in small boluses of 1 mcg/kg or less.",
@@ -1665,7 +1665,7 @@
     },
     {
       "id": "mhaus-mh",
-      "title": "Malignant hyperthermia",
+      "title": "Malignant Hyperthermia",
       "society": "Malignant Hyperthermia Association of the United States",
       "short": "MHAUS",
       "year": 2026,
@@ -1739,7 +1739,7 @@
       ],
       "sections": [
         {
-          "heading": "Recognize it",
+          "heading": "Recognize It",
           "kind": "list",
           "items": [
             "An unexplained rise in end-tidal CO₂ that outpaces ventilation is usually first; then tachycardia and tachypnea, masseter spasm or generalized rigidity, a mixed respiratory and metabolic acidosis, and rhabdomyolysis with myoglobinuria. Temperature can be a late sign.",
@@ -1748,7 +1748,7 @@
           ]
         },
         {
-          "heading": "First minutes",
+          "heading": "First Minutes",
           "kind": "steps",
           "items": [
             "Tell the surgeon; stop the volatile agent and succinylcholine; finish or abandon the surgery under a non-triggering intravenous anesthetic.",
@@ -1760,7 +1760,7 @@
           ]
         },
         {
-          "heading": "Treat what the muscle releases",
+          "heading": "Treat What the Muscle Releases",
           "kind": "facts",
           "rows": [
             [
@@ -1786,7 +1786,7 @@
           ]
         },
         {
-          "heading": "After the crisis",
+          "heading": "After the Crisis",
           "kind": "facts",
           "rows": [
             [
@@ -1812,7 +1812,7 @@
     },
     {
       "id": "asa-fasting",
-      "title": "Preoperative fasting (ASA)",
+      "title": "Preoperative Fasting (ASA)",
       "society": "American Society of Anesthesiologists",
       "short": "ASA",
       "year": 2023,
@@ -1838,7 +1838,7 @@
       "reviewed": "2026-10-28",
       "sections": [
         {
-          "heading": "Minimum fasting periods (2017, still in force)",
+          "heading": "Minimum Fasting Periods (2017, Still in Force)",
           "kind": "facts",
           "rows": [
             [
@@ -1869,7 +1869,7 @@
           "note": "For healthy patients of all ages having elective procedures under general anesthesia, regional anesthesia or procedural sedation; not for women in labor. Meeting the times does not guarantee an empty stomach."
         },
         {
-          "heading": "The 2023 update",
+          "heading": "The 2023 Update",
           "kind": "facts",
           "rows": [
             [
@@ -1891,7 +1891,7 @@
           ]
         },
         {
-          "heading": "When these times do not apply",
+          "heading": "When These Times Do Not Apply",
           "kind": "text",
           "text": "The guideline is written for healthy patients. Conditions that change gastric emptying or volume call for modified plans: pregnancy, obesity, diabetes, hiatal hernia and uncontrolled reflux, Zenker diverticulum, achalasia or stricture, previous gastric surgery, gastroparesis, opioid use, ileus or bowel obstruction or an acute intra-abdominal process, emergency procedures, enteral tube feeding, and patients with a potentially difficult airway. It does not cover procedures done without anesthesia or under local anesthesia alone."
         }
@@ -1899,7 +1899,7 @@
     },
     {
       "id": "asa-difficult-airway",
-      "title": "Difficult airway: the ASA 2022 algorithm in brief",
+      "title": "Difficult Airway: The ASA 2022 Algorithm in Brief",
       "society": "American Society of Anesthesiologists",
       "short": "ASA",
       "year": 2022,
@@ -1928,7 +1928,7 @@
       "reviewed": "2026-10-28",
       "sections": [
         {
-          "heading": "Before you start: five questions",
+          "heading": "Before You Start: Five Questions",
           "kind": "list",
           "items": [
             "Is laryngoscopy likely to be difficult? Assess several features (mouth opening, upper-lip bite test, Mallampati, thyromental distance, neck mobility) rather than any one; add bedside endoscopy or imaging when they would change the plan.",
@@ -1939,7 +1939,7 @@
           ]
         },
         {
-          "heading": "Choose awake intubation when",
+          "heading": "Choose Awake Intubation When",
           "kind": "text",
           "text": "Difficult intubation is suspected and any one of the following holds: difficult mask or supraglottic ventilation, increased aspiration risk, intolerance of a brief apnea, or an expected difficult emergency invasive airway. When an awake technique is not feasible (an uncooperative patient, a child), intubate after induction with rescue options prepared. If the awake attempt fails and the case cannot wait or the patient is unstable, move to the post-induction pathway and prepare for an invasive airway."
         },
@@ -1953,7 +1953,7 @@
           ]
         },
         {
-          "heading": "After induction, attempt by attempt",
+          "heading": "After Induction, Attempt by Attempt",
           "kind": "steps",
           "items": [
             "Use the technique you know best first; if it struggles, combine devices (videolaryngoscope with a flexible scope, a supraglottic airway as a conduit).",
@@ -1963,7 +1963,7 @@
           ]
         },
         {
-          "heading": "Cannot intubate, cannot ventilate",
+          "heading": "Cannot Intubate, Cannot Ventilate",
           "kind": "steps",
           "items": [
             "Call for help; optimize oxygenation; try face mask, supraglottic airway and intubation as appropriate — treating functional obstruction (laryngospasm, light anesthesia) with drugs and anatomic obstruction with devices.",
@@ -2785,7 +2785,7 @@
         ]
       },
       {
-        "name": "Oral anticoagulants",
+        "name": "Oral Anticoagulants",
         "drugs": [
           {
             "id": "warfarin",
@@ -2928,7 +2928,7 @@
         ]
       },
       {
-        "name": "Parenteral anticoagulants",
+        "name": "Parenteral Anticoagulants",
         "drugs": [
           {
             "id": "fondaparinux",
@@ -3010,7 +3010,7 @@
         ]
       },
       {
-        "name": "Antiplatelet drugs",
+        "name": "Antiplatelet Drugs",
         "drugs": [
           {
             "id": "aspirin",
@@ -3147,10 +3147,10 @@
   },
   "infusions": {
     "reviewed": "2026-10-28",
-    "note": "Label figures are the FDA prescribing information as read on DailyMed; off-label regimens name their trial or guideline. Norepinephrine, epinephrine and phenylephrine lead with the usual operating-room start in mcg/min (the label's figures follow); enter a weight for the per-kilogram equivalent.",
+    "note": "Label figures are the FDA prescribing information as read on DailyMed; off-label regimens name their trial or guideline. Norepinephrine, epinephrine and phenylephrine lead with the usual operating-room start in mcg/min (the label's figures follow); enter a weight for the per-kilogram equivalent. Transfusion thresholds: AABB 2023 (red cells), AABB/ICTMG 2025 (platelets), ASA 2015 and the European trauma guideline 2023 (plasma, cryoprecipitate).",
     "groups": [
       {
-        "name": "Vasopressors",
+        "name": "Hemodynamic Infusions",
         "drugs": [
           {
             "id": "angiotensin2",
@@ -3164,7 +3164,39 @@
             "max": "80 ng/kg/min in the first 3 h; maintenance not above 40 ng/kg/min",
             "preparation": "Dilute in 0.9% saline to 5,000 or 10,000 ng/mL; central line recommended; discard after 24 h",
             "caution": "Thrombosis (13% vs 5% with placebo): give VTE prophylaxis",
-            "source": "Giapreza DailyMed prescribing information, La Jolla, rev 12/2021"
+            "source": "Giapreza DailyMed prescribing information, La Jolla, rev 12/2021",
+            "role": "Vasopressor"
+          },
+          {
+            "id": "clevidipine",
+            "name": "Clevidipine (Cleviprex)",
+            "use": "Hypertension needing a fast, titratable arterial dilator",
+            "form": "perHour",
+            "start": 1,
+            "startHigh": 2,
+            "unit": "mg",
+            "titration": "Double the dose every 90 s at first; as the pressure approaches goal, smaller steps every 5–10 min",
+            "range": "Most patients respond at 4–6 mg/h; most received 16 mg/h or less",
+            "max": "32 mg/h (limited experience); no more than 1,000 mL (about 21 mg/h) per 24 h because of the lipid load",
+            "preparation": "0.5 mg/mL lipid emulsion, 50 and 100 mL vials; do not dilute; use within 12 h of puncturing the stopper",
+            "caution": "Contraindicated with soy or egg allergy, lipid metabolism disorders and severe aortic stenosis; reflex tachycardia; rebound hypertension when stopped; counts toward lipid intake",
+            "source": "Cleviprex DailyMed prescribing information, Chiesi, rev 9/2022 (current 11/2025)",
+            "role": "Vasodilator"
+          },
+          {
+            "id": "dobutamine",
+            "name": "Dobutamine",
+            "use": "Low cardiac output with adequate pressure; stress testing",
+            "form": "perKgPerMin",
+            "start": 2.5,
+            "unit": "mcg",
+            "titration": "To heart rate, ectopy, pressure, urine output and cardiac output when measured",
+            "range": "2.5–15 mcg/kg/min raises cardiac output in most patients",
+            "max": "Up to 40 mcg/kg/min on rare occasions",
+            "preparation": "250 mg/20 mL; 250 mg in 250 mL = 1,000 mcg/mL (250–5,000 mcg/mL used); not in alkaline solutions; 24 h",
+            "caution": "Contraindicated in hypertrophic obstructive cardiomyopathy; fast ventricular response in atrial fibrillation; ectopy; correct hypovolemia first; sulfite",
+            "source": "Dobutamine injection concentrate DailyMed prescribing information, Hospira, rev 11/2020 (current 5/2026)",
+            "role": "Inotrope"
           },
           {
             "id": "dopamine",
@@ -3179,150 +3211,25 @@
             "max": "50 mcg/kg/min",
             "preparation": "200–1,600 mcg/mL in 250–1,000 mL; mL/h = dose × kg × 60 ÷ concentration (mcg/mL)",
             "caution": "Extravasation necrosis (phentolamine 5–10 mg in 10–15 mL saline into the area); arrhythmias; hypotension if stopped abruptly; sulfite",
-            "source": "Dopamine HCl injection DailyMed prescribing information, Hospira, rev 9/2023"
-          },
-          {
-            "id": "ephedrine",
-            "name": "Ephedrine",
-            "use": "Hypotension during anesthesia, with bradycardia",
-            "form": "fixed",
-            "start": 5,
-            "startHigh": 10,
-            "unit": "mg",
-            "titration": "Repeat boluses to the pressure goal; tachyphylaxis with repeated doses",
-            "max": "50 mg total",
-            "bolus": "5–10 mg IV",
-            "preparation": "50 mg/mL vial: 1 mL + 9 mL saline or D5W = 5 mg/mL; the 5 mg/mL prefilled syringe is not diluted",
-            "caution": "Pressor effect with oxytocics; hypertension when given prophylactically; have another pressor ready when it stops working",
-            "source": "Akovaz (ephedrine sulfate) DailyMed prescribing information, Exela, rev 11/2020"
+            "source": "Dopamine HCl injection DailyMed prescribing information, Hospira, rev 9/2023",
+            "role": "Inotrope / vasopressor"
           },
           {
             "id": "epinephrine",
             "name": "Epinephrine",
-            "use": "Hypotension with low cardiac output; pressor at higher rates",
+            "use": "Low cardiac output or hypotension: inotrope at low rates, pressor at higher",
             "form": "perMin",
             "start": 2,
             "startHigh": 4,
             "unit": "mcg",
-            "titration": "Label (septic shock): increments of 0.05–0.2 mcg/kg/min every 10–15 min to the target MAP; wean gradually",
-            "range": "2–4 mcg/min is the usual operating-room start (editor's practice). Label, septic shock: 0.05–2 mcg/kg/min (3.5–140 mcg/min at 70 kg)",
+            "titration": "Label (septic shock): increments of 0.05–0.2 mcg/kg/min every 10–15 min to the target MAP; as an inotrope, titrate to cardiac output and rhythm; wean gradually",
+            "range": "2–4 mcg/min is the usual operating-room start (editor's practice). Cardiogenic shock: 0.01–0.3 mcg/kg/min (Shankar 2022); above that mainly a pressor. Label, septic shock: 0.05–2 mcg/kg/min",
             "max": "2 mcg/kg/min, the top of the labeled range",
             "bolus": "None by vein in the label (anaphylaxis: 0.3–0.5 mg IM, repeated every 5–10 min)",
             "preparation": "Label: 1 mg in 1,000 mL D5W or D5/saline = 1 mcg/mL (not saline alone); more concentrated solutions by institutional protocol",
-            "caution": "Extravasation necrosis; hypertension, pulmonary edema, arrhythmias and ischemia; sulfite",
-            "source": "Adrenalin (epinephrine) 1 mg/mL DailyMed prescribing information, Par, rev 6/2026"
-          },
-          {
-            "id": "hydroxocobalamin",
-            "name": "Hydroxocobalamin (Cyanokit)",
-            "use": "Vasoplegia after bypass (off-label; labeled for cyanide poisoning)",
-            "form": "fixed",
-            "start": 5,
-            "unit": "g",
-            "titration": "A second 5 g may follow, over 15 min to 2 h depending on the response",
-            "range": "5–10 g",
-            "max": "10 g in total",
-            "bolus": "5 g over 15 min",
-            "preparation": "5 g vial + 200 mL 0.9% saline = 25 mg/mL; rock for 60 s, do not shake",
-            "caution": "Hypertension; anaphylaxis; oxalate kidney injury (check renal function for a week); red plasma and urine interfere with colorimetric labs and trip dialysis blood-leak alarms; case series only for vasoplegia",
-            "offLabel": true,
-            "source": "Cyanokit DailyMed prescribing information, BTG, rev 5/2021; Busse LW et al, Crit Care 2020;24:36; Unic-Stojanovic D et al, Interdiscip Cardiovasc Thorac Surg 2025;40(4):ivaf075"
-          },
-          {
-            "id": "methylene-blue",
-            "name": "Methylene blue (ProvayBlue)",
-            "use": "Vasoplegia after bypass (off-label; labeled for methemoglobinemia)",
-            "form": "perKg",
-            "start": 1,
-            "startHigh": 2,
-            "unit": "mg",
-            "titration": "Vasoplegia reports: 1–2 mg/kg over 15–30 min, some followed by 0.25–2 mg/kg/h; label (methemoglobinemia): 1 mg/kg over 5–30 min, repeated once after an hour if needed",
-            "max": "Label: two doses; eGFR 15–59: a single 1 mg/kg. Adverse effects reported above 2 mg/kg",
-            "bolus": "1–2 mg/kg over 15–30 min",
-            "preparation": "5 mg/mL; may be diluted in 50 mL D5W, not saline (solubility)",
-            "caution": "Boxed warning: serotonin syndrome with serotonergic drugs (and opioids such as fentanyl, meperidine, tramadol, methadone); contraindicated in G6PD deficiency (hemolysis); falsely low pulse oximetry and BIS readings; blue-green skin and urine",
-            "offLabel": true,
-            "source": "ProvayBlue DailyMed prescribing information, American Regent, rev 2/2024; Busse LW et al, Crit Care 2020;24:36; Unic-Stojanovic D et al, 2025"
-          },
-          {
-            "id": "norepinephrine",
-            "name": "Norepinephrine (Levophed)",
-            "use": "Hypotension from vasodilation; first-line pressor",
-            "form": "perMin",
-            "start": 4,
-            "startHigh": 8,
-            "unit": "mcg",
-            "titration": "To the target pressure, checking BP every 2 min until there, then every 5 min; taper on stopping",
-            "range": "4–8 mcg/min is the usual operating-room start (editor's practice). Label: initial 8–12 mcg/min in shock, maintenance 2–4 mcg/min (target systolic 80–100, higher if previously hypertensive); reviews: 0.01–0.3 mcg/kg/min, up to 1 mcg/kg/min in shock",
-            "max": "No maximum in the label",
-            "preparation": "Label: 4 mg in 1,000 mL D5W or D5/saline = 4 mcg/mL (not saline alone); more concentrated when fluid-restricted; large vein, not the leg veins of the elderly; light-protected, 24 h",
-            "caution": "Extravasation (phentolamine infiltration); hypotension if stopped abruptly; arrhythmias; sulfite",
-            "source": "Levophed DailyMed prescribing information, Hospira, rev 6/2023; Shankar A et al, Clin Med Insights Cardiol 2022;16; starting range: editor's practice"
-          },
-          {
-            "id": "phenylephrine",
-            "name": "Phenylephrine",
-            "use": "Hypotension during anesthesia, with a normal or fast heart rate",
-            "form": "perMin",
-            "start": 10,
-            "startHigh": 35,
-            "unit": "mcg",
-            "titration": "Infusion to the pressure goal; boluses every 1–2 min as needed",
-            "range": "Bolus 40–100 mcg; infusion 10–35 mcg/min",
-            "max": "Infusion 200 mcg/min; Biorphen label: boluses up to 200 mcg every 1–2 min",
-            "bolus": "40–100 mcg IV",
-            "preparation": "Biorphen 100 mcg/mL ready to use. 10 mg/mL: 1 mL in 99 mL = 100 mcg/mL for boluses; 1 mL in 500 mL = 20 mcg/mL for infusion",
-            "caution": "Reflex bradycardia; worsens angina, heart failure and pulmonary hypertension; peripheral and visceral ischemia; extravasation necrosis; weaker in acidosis and hypovolemia",
-            "source": "Phenylephrine HCl 10 mg/mL DailyMed prescribing information, Fresenius Kabi, rev 8/2022; Biorphen DailyMed prescribing information, Dr. Reddy's, rev 2/2026"
-          },
-          {
-            "id": "vasopressin",
-            "name": "Vasopressin (Vasostrict)",
-            "use": "Vasodilatory shock after cardiotomy or sepsis, added to catecholamines",
-            "form": "fixed",
-            "start": 0.03,
-            "unit": "units/min",
-            "titration": "Up by 0.005 units/min every 10–15 min to the target; after 8 h at target without catecholamines, down by 0.005 units/min every hour",
-            "range": "Post-cardiotomy 0.03–0.1 units/min; septic shock start 0.01, range 0.01–0.07 units/min",
-            "max": "Limited data above 0.1 units/min (post-cardiotomy) or 0.07 (septic)",
-            "preparation": "20 units/mL vial diluted to 0.1 units/mL (1 unit/mL if fluid-restricted) in saline or D5W; premixed 20, 40 or 60 units/100 mL need no dilution; 18 h at room temperature",
-            "caution": "Worsening cardiac function; reversible diabetes insipidus after it stops; not weight-based",
-            "source": "Vasostrict DailyMed prescribing information, Par, rev 2/2023"
-          }
-        ]
-      },
-      {
-        "name": "Vasodilators and antihypertensives",
-        "drugs": [
-          {
-            "id": "clevidipine",
-            "name": "Clevidipine (Cleviprex)",
-            "use": "Hypertension needing a fast, titratable arterial dilator",
-            "form": "perHour",
-            "start": 1,
-            "startHigh": 2,
-            "unit": "mg",
-            "titration": "Double the dose every 90 s at first; as the pressure approaches goal, smaller steps every 5–10 min",
-            "range": "Most patients respond at 4–6 mg/h; most received 16 mg/h or less",
-            "max": "32 mg/h (limited experience); no more than 1,000 mL (about 21 mg/h) per 24 h because of the lipid load",
-            "preparation": "0.5 mg/mL lipid emulsion, 50 and 100 mL vials; do not dilute; use within 12 h of puncturing the stopper",
-            "caution": "Contraindicated with soy or egg allergy, lipid metabolism disorders and severe aortic stenosis; reflex tachycardia; rebound hypertension when stopped; counts toward lipid intake",
-            "source": "Cleviprex DailyMed prescribing information, Chiesi, rev 9/2022 (current 11/2025)"
-          },
-          {
-            "id": "diltiazem",
-            "name": "Diltiazem",
-            "use": "Rate control in atrial fibrillation or flutter, SVT",
-            "form": "perKg",
-            "start": 0.25,
-            "unit": "mg",
-            "titration": "Second bolus 0.35 mg/kg after 15 min if needed; infusion 10 mg/h (may start at 5), up by 5 mg/h",
-            "range": "Infusion 5–15 mg/h, up to 24 h",
-            "max": "15 mg/h",
-            "bolus": "0.25 mg/kg actual weight over 2 min (about 20 mg), then 0.35 mg/kg (about 25 mg)",
-            "preparation": "5 mg/mL; 125 mg in 100 mL = 1 mg/mL; 250 mg in 250 mL = 0.83 mg/mL",
-            "caution": "Contraindicated in sick sinus or second- and third-degree block without a pacemaker, cardiogenic shock, IV β-blockers close in time, pre-excited AF (WPW) and ventricular tachycardia; hypotension; heart failure",
-            "source": "Diltiazem HCl injection DailyMed prescribing information, Hospira, current 5/2026"
+            "caution": "Tachyarrhythmia and ischemia; lactate and glucose rise (β2) even at inotropic doses; hypertension and pulmonary edema; extravasation necrosis; sulfite. Inotropic use after bypass is outside the labeled indication",
+            "source": "Adrenalin (epinephrine) 1 mg/mL DailyMed prescribing information, Par, rev 6/2026; Shankar A et al, Clin Med Insights Cardiol 2022;16:11795468221075064; starting range: editor's practice",
+            "role": "Inotrope / vasopressor"
           },
           {
             "id": "iepo",
@@ -3337,7 +3244,8 @@
             "preparation": "Pharmacy-prepared solution in sterile water run by continuous nebulizer in the inspiratory limb",
             "caution": "Off-label route (no FDA inhaled dosing); half-life 3–5 min, so an interrupted circuit means rebound pulmonary hypertension; some systemic hypotension; dose by ideal body weight; filter changes per protocol",
             "offLabel": true,
-            "source": "Li J et al, J Clin Med 2020;9:464; Benedetto M et al, J Clin Med 2024;13:564; WellSpan Health inhaled epoprostenol protocol"
+            "source": "Li J et al, J Clin Med 2020;9:464; Benedetto M et al, J Clin Med 2024;13:564; WellSpan Health inhaled epoprostenol protocol",
+            "role": "Pulmonary vasodilator"
           },
           {
             "id": "esmolol",
@@ -3353,146 +3261,8 @@
             "bolus": "Immediate control: 1 mg/kg over 30 s, then 150 mcg/kg/min. Gradual control: 500 mcg/kg over 1 min, then 50 mcg/kg/min for 4 min",
             "preparation": "Premixed 10 mg/mL (2,500 mg/250 mL) or 20 mg/mL; 100 mg/10 mL vial; ready to use",
             "caution": "Contraindicated in severe sinus bradycardia, block above first degree, sick sinus, decompensated heart failure, cardiogenic shock, pulmonary hypertension and with IV calcium-channel blockers close in time; hypotension, bronchospasm, hyperkalemia, infusion-site reactions",
-            "source": "Brevibloc DailyMed prescribing information, Baxter, rev 3/2025"
-          },
-          {
-            "id": "hydralazine",
-            "name": "Hydralazine",
-            "use": "Hypertension when a slower, longer arteriolar dilator is wanted",
-            "form": "fixed",
-            "start": 20,
-            "startHigh": 40,
-            "unit": "mg",
-            "titration": "Repeat as necessary; the pressure falls within minutes and bottoms at 10–80 min, so wait before redosing; lower doses with renal damage",
-            "max": "No maximum in the label",
-            "bolus": "20–40 mg IV or IM (the label's dose; many anesthesiologists give smaller increments)",
-            "preparation": "20 mg/mL, 1 mL vial; give at once, do not add to infusion fluids; discard if discolored",
-            "caution": "Contraindicated in coronary artery disease and mitral valvular rheumatic heart disease; reflex tachycardia; worsens cerebral ischemia with raised ICP; lupus-like syndrome with chronic use",
-            "source": "Hydralazine HCl injection DailyMed prescribing information, Fresenius Kabi, rev 10/2025"
-          },
-          {
-            "id": "labetalol",
-            "name": "Labetalol",
-            "use": "Hypertension, especially with tachycardia; pregnancy",
-            "form": "fixed",
-            "start": 20,
-            "unit": "mg",
-            "titration": "40 mg, then 80 mg at 10-min intervals to the target, or an infusion at 2 mg/min",
-            "range": "Usual cumulative dose 50–200 mg",
-            "max": "300 mg in total",
-            "bolus": "20 mg over 2 min, then 40–80 mg every 10 min",
-            "preparation": "5 mg/mL; infusion 200 mg in 160 mL = 1 mg/mL at 2 mL/min; keep the patient supine",
-            "caution": "Contraindicated in asthma, overt heart failure, block above first degree, cardiogenic shock and severe bradycardia; orthostatic hypotension for hours; hepatic injury",
-            "source": "Labetalol HCl injection DailyMed prescribing information, Hospira, rev 11/2022 (current 7/2026)"
-          },
-          {
-            "id": "nicardipine",
-            "name": "Nicardipine (Cardene IV)",
-            "use": "Hypertension; arterial dilator without negative inotropy",
-            "form": "perHour",
-            "start": 5,
-            "unit": "mg",
-            "titration": "Up by 2.5 mg/h every 15 min (every 5 min for a rapid reduction); once at goal after rapid titration, down to 3 mg/h; if hypotension or tachycardia, stop and restart at 3–5 mg/h",
-            "range": "3–15 mg/h",
-            "max": "15 mg/h",
-            "preparation": "Premixed 20 mg/200 mL (0.1 mg/mL: 5 mg/h = 50 mL/h) or 40 mg/200 mL (0.2 mg/mL: 25 mL/h); central line or large peripheral vein, changed every 12 h",
-            "caution": "Worsens angina and heart failure; stronger in hepatic impairment, longer in renal impairment; phlebitis",
-            "source": "Cardene IV premixed DailyMed prescribing information, Baxter, rev 4/2026"
-          },
-          {
-            "id": "ino",
-            "name": "Nitric oxide, inhaled (INOmax)",
-            "use": "Pulmonary hypertension or right ventricular failure in adults (off-label; labeled for neonates)",
-            "form": "fixed",
-            "start": 20,
-            "unit": "ppm",
-            "titration": "Wean in steps, pausing hours at each to watch for hypoxemia; never stop abruptly",
-            "range": "Adult cardiothoracic use 5–40 ppm; the full pulmonary effect is reached by about 10 ppm",
-            "max": "Label: above 20 ppm not recommended; adult trials to 40 ppm",
-            "preparation": "800 or 4,880 ppm cylinders through an approved delivery system with inspired NO₂ and methemoglobin monitoring (MetHb at 4–8 h, then periodically)",
-            "caution": "Rebound pulmonary hypertension on withdrawal; methemoglobinemia; NO₂ airway injury; can worsen pulmonary edema with left ventricular failure",
-            "offLabel": true,
-            "source": "INOmax DailyMed prescribing information, INO Therapeutics, rev 4/2023; Benedetto M et al, J Clin Med 2024;13:564"
-          },
-          {
-            "id": "nitroglycerin",
-            "name": "Nitroglycerin",
-            "use": "Myocardial ischemia, hypertension with high filling pressures; venodilator",
-            "form": "perMin",
-            "start": 5,
-            "unit": "mcg",
-            "titration": "Up by 5 mcg/min every 3–5 min; if no response at 20 mcg/min, steps of 10–20 mcg/min; smaller steps once a response appears",
-            "range": "Wide: some patients need ten to a hundred times the starting dose",
-            "max": "No fixed maximum in the label",
-            "preparation": "Premixed 25, 50 or 100 mg in 250 mL glass (100, 200 or 400 mcg/mL); PVC tubing adsorbs the drug, so use non-adsorptive sets and no adsorptive in-line filters",
-            "caution": "Severe hypotension even at small doses, especially with hypovolemia; paradoxical bradycardia; contraindicated with PDE5 inhibitors and riociguat, tamponade, constrictive or restrictive disease and raised ICP; tolerance; methemoglobinemia at high doses",
-            "source": "Nitroglycerin in 5% dextrose DailyMed prescribing information, Baxter, rev 8/2016 (current 4/2026)"
-          },
-          {
-            "id": "nitroprusside",
-            "name": "Nitroprusside",
-            "use": "Hypertensive emergency, controlled hypotension, acute afterload reduction",
-            "form": "perKgPerMin",
-            "start": 0.3,
-            "unit": "mcg",
-            "titration": "Small steps every few minutes, waiting at least 5 min before each change; only with continuous arterial pressure",
-            "range": "Usual 0.5–10 mcg/kg/min",
-            "max": "10 mcg/kg/min, and never for more than 10 min at that rate; eGFR below 30: average under 3 mcg/kg/min; anuric: 1 mcg/kg/min",
-            "preparation": "50 mg in 250–1,000 mL D5W = 200–50 mcg/mL, wrapped from light, by pump; Nipride RTU 0.5 mg/mL ready to use; discard after 24 h",
-            "caution": "Boxed warnings: must be diluted and infused slowly; precipitous hypotension; cyanide toxicity (dose-related, lethal: watch acid-base and venous oxygen) and thiocyanate in renal impairment; never by direct injection; discolored solution is unusable",
-            "source": "Sodium nitroprusside 50 mg/2 mL DailyMed prescribing information, Mylan, rev 4/2026; Nipride RTU label, Exela, 2017"
-          }
-        ]
-      },
-      {
-        "name": "Inotropes",
-        "drugs": [
-          {
-            "id": "calcium-chloride",
-            "name": "Calcium chloride",
-            "use": "Hypotension coming off bypass (off-label); hypocalcemia",
-            "form": "perKg",
-            "start": 10,
-            "startHigh": 15,
-            "unit": "mg",
-            "titration": "One bolus over several seconds; the ICARUS trial used 15 mg/kg at the start of weaning; some protocols add 1.5 mg/kg/min for 10 min",
-            "range": "5–15 mg/kg of calcium chloride appears safe (low-quality evidence)",
-            "max": "15 mg/kg per bolus in the trial; no established maximum",
-            "bolus": "10–15 mg/kg (0.1–0.15 mL/kg of 10%)",
-            "preparation": "10% calcium chloride = 100 mg/mL (27 mg or 1.4 mmol of elemental calcium per mL); central or large-bore vein",
-            "caution": "Transient rise in cardiac index and pressure; theoretical reperfusion injury (the ICARUS question); calcium gluconate for a peripheral line. During massive transfusion see the hematology entry",
-            "offLabel": true,
-            "source": "Lomivorotov V et al, ICARUS trial rationale and design, Contemp Clin Trials Commun 2021;23:100835"
-          },
-          {
-            "id": "dobutamine",
-            "name": "Dobutamine",
-            "use": "Low cardiac output with adequate pressure; stress testing",
-            "form": "perKgPerMin",
-            "start": 2.5,
-            "unit": "mcg",
-            "titration": "To heart rate, ectopy, pressure, urine output and cardiac output when measured",
-            "range": "2.5–15 mcg/kg/min raises cardiac output in most patients",
-            "max": "Up to 40 mcg/kg/min on rare occasions",
-            "preparation": "250 mg/20 mL; 250 mg in 250 mL = 1,000 mcg/mL (250–5,000 mcg/mL used); not in alkaline solutions; 24 h",
-            "caution": "Contraindicated in hypertrophic obstructive cardiomyopathy; fast ventricular response in atrial fibrillation; ectopy; correct hypovolemia first; sulfite",
-            "source": "Dobutamine injection concentrate DailyMed prescribing information, Hospira, rev 11/2020 (current 5/2026)"
-          },
-          {
-            "id": "epinephrine-low",
-            "name": "Epinephrine, low dose",
-            "use": "Inotropy after bypass or in cardiogenic shock (off-label range)",
-            "form": "perMin",
-            "start": 2,
-            "startHigh": 4,
-            "unit": "mcg",
-            "titration": "Label (septic shock): increments of 0.05–0.2 mcg/kg/min every 10–15 min; inotrope titration follows cardiac output and rhythm",
-            "range": "2–4 mcg/min to start (editor's practice); 0.01–0.3 mcg/kg/min in cardiogenic shock (Shankar 2022); above that it is mainly a pressor",
-            "max": "Label range tops at 2 mcg/kg/min",
-            "preparation": "Label dilution 1 mg in 1,000 mL = 1 mcg/mL; concentrated syringes and infusions by institutional protocol",
-            "caution": "Tachyarrhythmia, ischemia; lactate and glucose rise (β2) even at inotropic doses; extravasation necrosis",
-            "offLabel": true,
-            "source": "Shankar A et al, Clin Med Insights Cardiol 2022;16:11795468221075064; Adrenalin DailyMed prescribing information, Par, rev 6/2026; starting range: editor's practice"
+            "source": "Brevibloc DailyMed prescribing information, Baxter, rev 3/2025",
+            "role": "Beta-blocker"
           },
           {
             "id": "isoproterenol",
@@ -3508,7 +3278,8 @@
             "bolus": "Bronchospasm during anesthesia: 10–20 mcg IV, repeated",
             "preparation": "0.2 mg/mL; 1 mg in 500 mL D5W = 2 mcg/mL; bolus 0.2 mg diluted to 10 mL = 20 mcg/mL",
             "caution": "Contraindicated with tachycardia, ventricular arrhythmias and angina; pure β: vasodilation lowers diastolic pressure; sulfite",
-            "source": "Isoproterenol HCl injection DailyMed prescribing information, Nexus, rev 3/2023 (Amneal label rev 2/2023 agrees)"
+            "source": "Isoproterenol HCl injection DailyMed prescribing information, Nexus, rev 3/2023 (Amneal label rev 2/2023 agrees)",
+            "role": "Chronotrope"
           },
           {
             "id": "levosimendan",
@@ -3524,7 +3295,8 @@
             "preparation": "2.5 mg/mL concentrate: 5 or 10 mL in 500 mL 5% glucose = 0.025 or 0.05 mg/mL (no more concentrated); 24 h",
             "caution": "Not approved in the United States (European SmPC); hypotension and tachycardia; watch ECG, pressure and urine output for 3 days after (5 in renal or hepatic impairment); cardiac-surgery use is off-label even in Europe",
             "offLabel": true,
-            "source": "Simdax 2.5 mg/mL SmPC (English), Swedish Medical Products Agency, revised 18 Aug 2025"
+            "source": "Simdax 2.5 mg/mL SmPC (English), Swedish Medical Products Agency, revised 18 Aug 2025",
+            "role": "Inodilator"
           },
           {
             "id": "milrinone",
@@ -3540,298 +3312,259 @@
             "bolus": "Loading 50 mcg/kg over 10 min (label; frequently omitted or given on bypass to avoid the hypotension)",
             "preparation": "1 mg/mL vials; dilute to 200 mcg/mL in saline or D5W (10 mL + 40 mL); infusions beyond 48 h not studied",
             "caution": "Ventricular arrhythmias; hypotension, more above 0.5 mcg/kg/min; long half-life, longer in renal failure; obstructive valve disease",
-            "source": "Milrinone lactate injection DailyMed prescribing information, Hospira, rev 2/2021 (current 10/2025)"
+            "source": "Milrinone lactate injection DailyMed prescribing information, Hospira, rev 2/2021 (current 10/2025)",
+            "role": "Inodilator"
+          },
+          {
+            "id": "nicardipine",
+            "name": "Nicardipine (Cardene IV)",
+            "use": "Hypertension; arterial dilator without negative inotropy",
+            "form": "perHour",
+            "start": 5,
+            "unit": "mg",
+            "titration": "Up by 2.5 mg/h every 15 min (every 5 min for a rapid reduction); once at goal after rapid titration, down to 3 mg/h; if hypotension or tachycardia, stop and restart at 3–5 mg/h",
+            "range": "3–15 mg/h",
+            "max": "15 mg/h",
+            "preparation": "Premixed 20 mg/200 mL (0.1 mg/mL: 5 mg/h = 50 mL/h) or 40 mg/200 mL (0.2 mg/mL: 25 mL/h); central line or large peripheral vein, changed every 12 h",
+            "caution": "Worsens angina and heart failure; stronger in hepatic impairment, longer in renal impairment; phlebitis",
+            "source": "Cardene IV premixed DailyMed prescribing information, Baxter, rev 4/2026",
+            "role": "Vasodilator"
+          },
+          {
+            "id": "ino",
+            "name": "Nitric oxide, inhaled (INOmax)",
+            "use": "Pulmonary hypertension or right ventricular failure in adults (off-label; labeled for neonates)",
+            "form": "fixed",
+            "start": 20,
+            "unit": "ppm",
+            "titration": "Wean in steps, pausing hours at each to watch for hypoxemia; never stop abruptly",
+            "range": "Adult cardiothoracic use 5–40 ppm; the full pulmonary effect is reached by about 10 ppm",
+            "max": "Label: above 20 ppm not recommended; adult trials to 40 ppm",
+            "preparation": "800 or 4,880 ppm cylinders through an approved delivery system with inspired NO₂ and methemoglobin monitoring (MetHb at 4–8 h, then periodically)",
+            "caution": "Rebound pulmonary hypertension on withdrawal; methemoglobinemia; NO₂ airway injury; can worsen pulmonary edema with left ventricular failure",
+            "offLabel": true,
+            "source": "INOmax DailyMed prescribing information, INO Therapeutics, rev 4/2023; Benedetto M et al, J Clin Med 2024;13:564",
+            "role": "Pulmonary vasodilator"
+          },
+          {
+            "id": "nitroglycerin",
+            "name": "Nitroglycerin",
+            "use": "Myocardial ischemia, hypertension with high filling pressures; venodilator",
+            "form": "perMin",
+            "start": 5,
+            "unit": "mcg",
+            "titration": "Up by 5 mcg/min every 3–5 min; if no response at 20 mcg/min, steps of 10–20 mcg/min; smaller steps once a response appears",
+            "range": "Wide: some patients need ten to a hundred times the starting dose",
+            "max": "No fixed maximum in the label",
+            "preparation": "Premixed 25, 50 or 100 mg in 250 mL glass (100, 200 or 400 mcg/mL); PVC tubing adsorbs the drug, so use non-adsorptive sets and no adsorptive in-line filters",
+            "caution": "Severe hypotension even at small doses, especially with hypovolemia; paradoxical bradycardia; contraindicated with PDE5 inhibitors and riociguat, tamponade, constrictive or restrictive disease and raised ICP; tolerance; methemoglobinemia at high doses",
+            "source": "Nitroglycerin in 5% dextrose DailyMed prescribing information, Baxter, rev 8/2016 (current 4/2026)",
+            "role": "Venodilator"
+          },
+          {
+            "id": "nitroprusside",
+            "name": "Nitroprusside",
+            "use": "Hypertensive emergency, controlled hypotension, acute afterload reduction",
+            "form": "perKgPerMin",
+            "start": 0.3,
+            "unit": "mcg",
+            "titration": "Small steps every few minutes, waiting at least 5 min before each change; only with continuous arterial pressure",
+            "range": "Usual 0.5–10 mcg/kg/min",
+            "max": "10 mcg/kg/min, and never for more than 10 min at that rate; eGFR below 30: average under 3 mcg/kg/min; anuric: 1 mcg/kg/min",
+            "preparation": "50 mg in 250–1,000 mL D5W = 200–50 mcg/mL, wrapped from light, by pump; Nipride RTU 0.5 mg/mL ready to use; discard after 24 h",
+            "caution": "Boxed warnings: must be diluted and infused slowly; precipitous hypotension; cyanide toxicity (dose-related, lethal: watch acid-base and venous oxygen) and thiocyanate in renal impairment; never by direct injection; discolored solution is unusable",
+            "source": "Sodium nitroprusside 50 mg/2 mL DailyMed prescribing information, Mylan, rev 4/2026; Nipride RTU label, Exela, 2017",
+            "role": "Vasodilator"
+          },
+          {
+            "id": "norepinephrine",
+            "name": "Norepinephrine (Levophed)",
+            "use": "Hypotension from vasodilation; first-line pressor",
+            "form": "perMin",
+            "start": 4,
+            "startHigh": 8,
+            "unit": "mcg",
+            "titration": "To the target pressure, checking BP every 2 min until there, then every 5 min; taper on stopping",
+            "range": "4–8 mcg/min is the usual operating-room start (editor's practice). Label: initial 8–12 mcg/min in shock, maintenance 2–4 mcg/min (target systolic 80–100, higher if previously hypertensive); reviews: 0.01–0.3 mcg/kg/min, up to 1 mcg/kg/min in shock",
+            "max": "No maximum in the label",
+            "preparation": "Label: 4 mg in 1,000 mL D5W or D5/saline = 4 mcg/mL (not saline alone); more concentrated when fluid-restricted; large vein, not the leg veins of the elderly; light-protected, 24 h",
+            "caution": "Extravasation (phentolamine infiltration); hypotension if stopped abruptly; arrhythmias; sulfite",
+            "source": "Levophed DailyMed prescribing information, Hospira, rev 6/2023; Shankar A et al, Clin Med Insights Cardiol 2022;16; starting range: editor's practice",
+            "role": "Vasopressor"
+          },
+          {
+            "id": "phenylephrine",
+            "name": "Phenylephrine",
+            "use": "Hypotension during anesthesia, with a normal or fast heart rate",
+            "form": "perMin",
+            "start": 10,
+            "startHigh": 35,
+            "unit": "mcg",
+            "titration": "Infusion to the pressure goal; boluses every 1–2 min as needed",
+            "range": "Bolus 40–100 mcg; infusion 10–35 mcg/min",
+            "max": "Infusion 200 mcg/min; Biorphen label: boluses up to 200 mcg every 1–2 min",
+            "bolus": "40–100 mcg IV",
+            "preparation": "Biorphen 100 mcg/mL ready to use. 10 mg/mL: 1 mL in 99 mL = 100 mcg/mL for boluses; 1 mL in 500 mL = 20 mcg/mL for infusion",
+            "caution": "Reflex bradycardia; worsens angina, heart failure and pulmonary hypertension; peripheral and visceral ischemia; extravasation necrosis; weaker in acidosis and hypovolemia",
+            "source": "Phenylephrine HCl 10 mg/mL DailyMed prescribing information, Fresenius Kabi, rev 8/2022; Biorphen DailyMed prescribing information, Dr. Reddy's, rev 2/2026",
+            "role": "Vasopressor"
+          },
+          {
+            "id": "vasopressin",
+            "name": "Vasopressin (Vasostrict)",
+            "use": "Vasodilatory shock after cardiotomy or sepsis, added to catecholamines",
+            "form": "fixed",
+            "start": 0.03,
+            "unit": "units/min",
+            "titration": "Up by 0.005 units/min every 10–15 min to the target; after 8 h at target without catecholamines, down by 0.005 units/min every hour",
+            "range": "Post-cardiotomy 0.03–0.1 units/min; septic shock start 0.01, range 0.01–0.07 units/min",
+            "max": "Limited data above 0.1 units/min (post-cardiotomy) or 0.07 (septic)",
+            "preparation": "20 units/mL vial diluted to 0.1 units/mL (1 unit/mL if fluid-restricted) in saline or D5W; premixed 20, 40 or 60 units/100 mL need no dilution; 18 h at room temperature",
+            "caution": "Worsening cardiac function; reversible diabetes insipidus after it stops; not weight-based",
+            "source": "Vasostrict DailyMed prescribing information, Par, rev 2/2023",
+            "role": "Vasopressor"
           }
         ]
       },
       {
-        "name": "Hematologic and transfusion",
+        "name": "Single-Dose Medications",
         "drugs": [
           {
-            "id": "aminocaproic",
-            "name": "Aminocaproic acid (Amicar)",
-            "use": "Antifibrinolytic for cardiac surgery (regimens off-label) and fibrinolytic bleeding",
-            "form": "fixed",
-            "start": 4,
-            "startHigh": 5,
-            "unit": "g",
-            "titration": "Label: 4–5 g in 250 mL over the first hour, then 1 g/h for about 8 h or until bleeding is controlled",
-            "range": "Cardiac surgery: 10 g load then 2 g/h on bypass (BART); or 100 mg/kg load, 5 mg/kg in the prime, 30 mg/kg/h (Walley 2017)",
-            "max": "None in the label; rapid undiluted injection is not recommended (hypotension, bradycardia, arrhythmia)",
-            "bolus": "4–5 g over 1 h (label); 10 g (BART)",
-            "preparation": "250 mg/mL; 4–5 g in 250 mL over an hour, then 1 g in 50 mL each hour",
-            "caution": "Antifibrinolytic (EACA or tranexamic acid) reduces blood loss and transfusion in cardiac surgery: STS/SCA/AmSECT/SABM 2021 class I, level A; avoid with DIC or upper urinary tract bleeding",
-            "offLabel": true,
-            "source": "Aminocaproic acid injection USP prescribing information, Pfizer; BART registration ISRCTN15166455; Walley H et al, Glob Cardiol Sci Pract 2017;2017(2):12; Tibi P et al, J Extra Corpor Technol 2021;53:97–124"
-          },
-          {
-            "id": "andexanet",
-            "name": "Andexanet alfa (Andexxa)",
-            "use": "Reversal of rivaroxaban or apixaban with life-threatening bleeding",
-            "form": "fixed",
-            "start": 400,
-            "startHigh": 800,
-            "unit": "mg",
-            "titration": "Low dose: 400 mg at 30 mg/min, then 4 mg/min for up to 120 min (480 mg). High dose: 800 mg at 30 mg/min, then 8 mg/min for up to 120 min (960 mg)",
-            "range": "Low dose: rivaroxaban ≤ 10 mg or apixaban ≤ 5 mg, and any dose taken 8 h or more earlier. High dose: rivaroxaban > 10 mg or apixaban > 5 mg (or unknown dose) within 8 h or at an unknown time",
-            "max": "960 mg; more than one course not evaluated",
-            "preparation": "200 mg vials + 20 mL sterile water = 10 mg/mL (5 vials low dose, 9 high); swirl, do not shake",
-            "caution": "Boxed warning: thromboembolism, ischemic events, cardiac arrest, sudden death. Heparin stops working after it (ACT will not prolong): do not give before heparinization for bypass; use a non-heparin anticoagulant if surgery cannot wait. Not for edoxaban, enoxaparin or betrixaban",
-            "source": "Andexxa DailyMed prescribing information, AstraZeneca, rev 5/2025"
-          },
-          {
-            "id": "antithrombin",
-            "name": "Antithrombin III (Thrombate III)",
-            "use": "Heparin resistance before bypass (off-label); hereditary deficiency",
-            "form": "text",
-            "range": "Heparin resistance: 500–1,000 units, or 75 units/kg; 1 unit/kg raises activity about 1.4%. Label (hereditary deficiency): units = (120 − baseline %) × kg ÷ 1.4, then 60% of that about every 24 h to keep 80–120%",
-            "max": "None stated; infuse over 10–20 min",
-            "preparation": "About 500 units per vial + 10 mL sterile water = 50 units/mL; use within 3 h",
-            "caution": "Heparin resistance is usually an ACT under 480 s after 400–450 units/kg; antithrombin concentrate reduces plasma transfusion for it (STS/SCA/AmSECT/SABM 2021 class I, A) but is not for bleeding (EACTS/EACTA 2017 class III); heparin effect then increases",
-            "offLabel": true,
-            "source": "Thrombate III DailyMed prescribing information, Grifols, rev 7/2025; Beattie GW, Jeffrey RR, Interact Cardiovasc Thorac Surg 2013;18:117–120; Tibi P et al, 2021; Pagano D et al, Eur J Cardiothorac Surg 2018;53:79–111"
-          },
-          {
-            "id": "bivalirudin",
-            "name": "Bivalirudin",
-            "use": "Anticoagulation for bypass or PCI when heparin cannot be used (HIT)",
-            "form": "perKg",
-            "start": 1,
-            "unit": "mg",
-            "titration": "Bypass in HIT (off-label, STS/SCA/AmSECT 2018): 1 mg/kg bolus, 2.5 mg/kg/h, 50 mg in the prime, ACT target 2.5 × baseline. PCI (label): 0.75 mg/kg bolus then 1.75 mg/kg/h for the procedure, ACT at 5 min and a further 0.3 mg/kg if needed; up to 4 h after PCI in STEMI",
-            "range": "Renal: infusion 1 mg/kg/h when CrCl is below 30 mL/min, 0.25 mg/kg/h on hemodialysis; the bolus is not reduced",
-            "bolus": "1 mg/kg (bypass); 0.75 mg/kg (PCI)",
-            "preparation": "250 mg vial + 5 mL sterile water, then diluted to 5 mg/mL",
-            "caution": "No reversal agent (half-life about 25 min, longer in renal failure); blood that stands still clots — keep cardiotomy suction, grafts and the circuit flushed and moving; more bleeding with heparin, warfarin, thrombolytics or GP IIb/IIIa inhibitors; thrombosis with gamma brachytherapy; studied with aspirin",
-            "offLabel": true,
-            "source": "Bivalirudin for injection DailyMed prescribing information, Fresenius Kabi, rev 4/2025; Shore-Lesserson L et al, STS/SCA/AmSECT anticoagulation guideline, J Extra Corpor Technol 2018;50:5–18"
-          },
-          {
-            "id": "calcium-transfusion",
-            "name": "Calcium during massive transfusion",
-            "use": "Citrate hypocalcemia (trauma guideline figure)",
-            "form": "fixed",
-            "start": 1,
-            "unit": "g",
-            "titration": "1 g after the first unit, then 1 g after every four units of blood product, keeping ionized calcium above 1.2 mmol/L (JTS); monitor and correct ionized calcium through any massive transfusion (European trauma guideline, 1C)",
-            "range": "1 g per 4 units",
-            "bolus": "1 g IV or IO",
-            "preparation": "Calcium chloride through a central or large vein; calcium gluconate (3 g ≈ 1 g chloride in elemental calcium) peripherally",
-            "caution": "A military trauma guideline figure, not a label; chloride or gluconate is not specified for the 1 g",
-            "offLabel": true,
-            "source": "Joint Trauma System, Damage Control Resuscitation CPG quick reference, June 2023; Rossaint R et al, Crit Care 2023;27:80 (R31)"
-          },
-          {
-            "id": "cryoprecipitate",
-            "name": "Cryoprecipitate",
-            "use": "Fibrinogen below 1.5–2 g/L with bleeding",
-            "form": "perKg",
-            "start": 0.1,
-            "startHigh": 0.14,
-            "unit": "units",
-            "titration": "Repeat by fibrinogen level or viscoelastic testing",
-            "range": "1 unit per 7–10 kg; trauma: 15–20 single-donor units (about 3–4 g fibrinogen) to start; cardiac surgery: 10 units (about 4 g, FIBRES)",
-            "preparation": "Pooled (5 or 10 units), thawed; each unit at least 150 mg fibrinogen and 80 units factor VIII",
-            "caution": "A 1 unit/7–10 kg dose raises fibrinogen by about 50–75 mg/dL (recovery 50–60%); ABO-compatible preferred",
-            "source": "Circular of Information for the Use of Human Blood and Blood Components (AABB/ARC/ABC/ASBP); Rossaint R et al, Crit Care 2023;27:80 (R29); Callum J et al, FIBRES, JAMA 2019"
-          },
-          {
-            "id": "desmopressin",
-            "name": "Desmopressin (DDAVP)",
-            "use": "Platelet dysfunction (uremia, aspirin, bypass), mild hemophilia A, von Willebrand type 1",
-            "form": "perKg",
-            "start": 0.3,
-            "unit": "mcg",
-            "titration": "Over 15–30 min, 30 min before the procedure; for bleeding repeat after 8–12 h, then daily; tachyphylaxis if more often than every 48 h",
-            "max": "20 mcg per dose",
-            "preparation": "4 mcg/mL; dilute in 50 mL 0.9% saline (10 mL below 10 kg)",
-            "caution": "Boxed warning: hyponatremia (seizures, coma, death); contraindicated with CrCl under 50, hyponatremia, SIADH, heart failure, uncontrolled hypertension, loop diuretics or glucocorticoids; hypotension when given fast; thrombosis in type 2B von Willebrand; cardiac-surgery use off-label (STS/SCA/AmSECT/SABM 2021 class IIb)",
-            "source": "DDAVP injection DailyMed prescribing information, Ferring, rev 7/2022; Tibi P et al, 2021"
-          },
-          {
-            "id": "factor-ix",
-            "name": "Factor IX concentrate (BeneFIX)",
-            "use": "Hemophilia B bleeding or surgery",
-            "form": "text",
-            "range": "Units = kg × desired rise (IU/dL) × 1.3 (12 y and over; 1.4 under 12): recovery about 0.8 IU/dL per IU/kg. Minor bleed target 20–30%, moderate 25–50%, major bleed or surgery 50–100%, every 12–24 h for 7–10 days",
-            "preparation": "Lyophilized kit with its diluent; slow IV push over minutes; continuous infusion not established",
-            "caution": "Inhibitors; anaphylaxis; thromboembolism",
-            "source": "BeneFIX DailyMed prescribing information, Pfizer, rev 11/2022 (current 2/2025)"
-          },
-          {
-            "id": "factor-viia",
-            "name": "Factor VIIa, recombinant (NovoSeven RT)",
-            "use": "Hemophilia with inhibitors; last resort for intractable bleeding after bypass (off-label)",
-            "form": "perKg",
-            "start": 90,
-            "unit": "mcg",
-            "titration": "Label: every 2 h until hemostasis, then every 3–6 h; acquired hemophilia 70–90 mcg/kg; factor VII deficiency 15–30",
-            "range": "Cardiac surgery (off-label, Gill 2009 RCT): 40 or 80 mcg/kg once, fewer reoperations for bleeding (14% and 12% vs 25%) but numerically more deaths and strokes; STS/SCA/AmSECT/SABM 2021: may be considered for intractable non-surgical bleeding (IIb, B-NR)",
-            "max": "None stated",
-            "bolus": "Slow IV over 2–5 min",
-            "preparation": "1, 2, 5 and 8 mg vials with histidine diluent = 1 mg/mL (1,000 mcg/mL); use within 3 h",
-            "caution": "Boxed warning: arterial and venous thrombosis; correct platelets, fibrinogen, temperature, pH and calcium first; antibodies in factor VII deficiency",
-            "offLabel": true,
-            "source": "NovoSeven RT DailyMed prescribing information, Novo Nordisk, rev 7/2020; Gill R et al, Circulation 2009;120:21–27; Tibi P et al, 2021"
-          },
-          {
-            "id": "factor-viii",
-            "name": "Factor VIII concentrate (Advate)",
-            "use": "Hemophilia A bleeding or surgery",
-            "form": "text",
-            "range": "Units = kg × desired rise (IU/dL) × 0.5: 1 IU/kg raises factor VIII about 2 IU/dL. Minor bleed 20–40% (10–20 IU/kg), major bleed or surgery 80–120% (40–60 IU/kg before, then every 8–24 h)",
-            "max": "Infuse at up to 10 mL/min (over 5 min or less)",
-            "preparation": "Lyophilized kit with its diluent",
-            "caution": "Inhibitors; hypersensitivity",
-            "source": "Advate DailyMed prescribing information, Takeda, rev 3/2025"
-          },
-          {
-            "id": "feiba",
-            "name": "FEIBA (anti-inhibitor coagulant complex)",
-            "use": "Hemophilia with inhibitors; bleeding on emicizumab needs care",
-            "form": "perKg",
-            "start": 50,
-            "startHigh": 100,
-            "unit": "units",
-            "titration": "Every 6 h (mucous membrane) to 12 h (joint) by bleed type; prophylaxis 85 units/kg every other day",
-            "max": "100 units/kg per dose, 200 units/kg per day; no faster than 10 units/kg/min",
-            "preparation": "500, 1,000 and 2,500-unit vials with 10, 20 or 50 mL sterile water; use within 3 h, not refrigerated after mixing",
-            "caution": "Boxed warning: thrombotic events, more above 200 units/kg/day and with rFVIIa or emicizumab; contraindicated in DIC and acute thrombosis or infarction",
-            "source": "FEIBA DailyMed prescribing information, Takeda, rev 12/2024 (current 12/2025)"
-          },
-          {
-            "id": "fibrinogen",
-            "name": "Fibrinogen concentrate (RiaSTAP, Fibryga)",
-            "use": "Acquired or congenital hypofibrinogenemia with bleeding",
-            "form": "perKg",
-            "start": 70,
-            "unit": "mg",
-            "titration": "Dose (mg/kg) = (target − measured mg/dL) ÷ 1.7 (RiaSTAP; 1.8 for Fibryga in adults); 70 mg/kg when the level is unknown. Fibryga for acquired deficiency: adults 4 g fixed, 12–17 y 50 mg/kg, under 12 y 70 mg/kg; repeat if fibrinogen ≤ 200 mg/dL or FIBTEM A10 ≤ 10 mm",
-            "range": "1 mg/kg raises fibrinogen about 1.7–1.8 mg/dL. Cardiac surgery: 4 g, repeated as needed in the first 24 h, non-inferior to 10 units cryoprecipitate (FIBRES); trauma: 3–4 g at Clauss ≤ 1.5 g/L",
-            "max": "None stated; infuse at up to 5 mL/min (20 mL/min for Fibryga in acquired deficiency)",
-            "preparation": "1 g + 50 mL sterile water (about 20 mg/mL); 2 g + 100 mL",
-            "caution": "Thrombosis; hypersensitivity; not for dysfibrinogenemia",
-            "source": "RiaSTAP DailyMed prescribing information, CSL Behring, rev 12/2025; Fibryga DailyMed prescribing information, Octapharma, rev 8/2025; Callum J et al, FIBRES, JAMA 2019; Rossaint R et al, Crit Care 2023;27:80"
-          },
-          {
-            "id": "heparin-cpb",
-            "name": "Heparin for cardiopulmonary bypass",
-            "use": "Anticoagulation before cannulation",
-            "form": "perKg",
-            "start": 300,
-            "startHigh": 400,
-            "unit": "units",
-            "titration": "Clotting time before bypass and at intervals (class I); keep the ACT above 480 s on bypass (IIa; above 400 s on some maximal-activation instruments); redose by ACT, or by heparin concentration (IIb)",
-            "range": "Label: at least 150 units/kg, usually 300 (under 60 min) or 400 units/kg (over 60 min); EACTS/EACTA 2017: 300–600 units/kg to an ACT of 300–600 s",
-            "max": "More than 400 units/kg invites heparin rebound",
-            "bolus": "One weight-based bolus, undiluted or in 50–100 mL saline, before cannulation",
-            "preparation": "1,000, 5,000 and 10,000 units/mL vials: fatal concentration errors are on record",
-            "caution": "HIT: bivalirudin is a reasonable alternative (1 mg/kg load, 2.5 mg/kg/h, 50 mg in the prime, to 2.5× baseline ACT, per the 2018 guideline); heparin resistance: see antithrombin",
-            "source": "Heparin sodium injection DailyMed prescribing information, Pfizer, rev 9/2025; Shore-Lesserson L et al, STS/SCA/AmSECT anticoagulation guideline, J Extra Corpor Technol 2018;50:5–18; Pagano D et al, 2018"
-          },
-          {
-            "id": "idarucizumab",
-            "name": "Idarucizumab (Praxbind)",
-            "use": "Reversal of dabigatran for bleeding or emergency surgery",
-            "form": "fixed",
-            "start": 5,
-            "unit": "g",
-            "titration": "A second 5 g may be considered if bleeding recurs with prolonged clotting times or a second emergency procedure is needed",
-            "max": "5 g per course; repeat dosing not established",
-            "bolus": "Two 2.5 g/50 mL vials, back to back, by infusion or syringe",
-            "preparation": "No dilution or mixing; flush with 0.9% saline; use within 6 h of opening",
-            "caution": "Thromboembolism (restart dabigatran after 24 h); clotting times may rise again; sorbitol (hereditary fructose intolerance)",
-            "source": "Praxbind DailyMed prescribing information, Boehringer Ingelheim, rev 11/2023"
-          },
-          {
-            "id": "plasma",
-            "name": "Plasma (FFP, thawed plasma)",
-            "use": "Coagulopathy with bleeding when PT or aPTT exceed 1.5× normal",
+            "id": "calcium-chloride",
+            "name": "Calcium chloride",
+            "use": "Hypotension coming off bypass (off-label); citrate hypocalcemia during massive transfusion",
             "form": "perKg",
             "start": 10,
             "startHigh": 15,
-            "unit": "mL",
-            "titration": "Further plasma by PT/aPTT or viscoelastic testing (1C); not for hypofibrinogenemia on its own (1C)",
-            "range": "Standard dose about 15 mL/kg (Circular); cardiac surgery comparator in FARES-II: 3 units ≤ 60 kg, 4 units > 60 kg; trauma: plasma to red cells at least 1:2",
-            "preparation": "Thawed, ABO-compatible",
-            "caution": "Volume overload (TACO) and TRALI; in cardiac surgery coagulopathy, prothrombin complex concentrate gave hemostasis more often (77.9% vs 60.4%, FARES-II)",
-            "source": "Circular of Information (AABB/ARC/ABC/ASBP); Karkouti K et al, FARES-II, JAMA 2025;333:1781–1792; Rossaint R et al, Crit Care 2023;27:80 (R25, R27)"
-          },
-          {
-            "id": "platelets",
-            "name": "Platelets",
-            "use": "Bleeding with a count under 50 × 10⁹/L (100 with brain injury) or platelet dysfunction",
-            "form": "text",
-            "titration": "Keep above 50 × 10⁹/L while bleeding, above 100 with traumatic brain injury (2C); a high platelet-to-red-cell ratio in massive transfusion (2B)",
-            "range": "One apheresis unit (at least 3 × 10¹¹) ≈ 6 whole-blood-derived units; 4–8 single units or one apheresis pack to start (trauma guideline, 2B); 1 unit per 10 kg in children",
-            "preparation": "Apheresis unit 250–300 mL plasma or additive solution; whole-blood unit 25–50 mL",
-            "caution": "One apheresis unit typically raises an adult count by 30–50 × 10⁹/L (not from the retrieved Circular text); transfusion reactions and TRALI",
-            "source": "Rossaint R et al, Crit Care 2023;27:80 (R30); Circular of Information (AABB/ARC/ABC/ASBP)"
-          },
-          {
-            "id": "protamine",
-            "name": "Protamine",
-            "use": "Reversal of heparin after bypass",
-            "form": "text",
-            "titration": "By ACT (or heparin titration); for heparin rebound an infusion of 25 mg/h for up to 6 h may be considered (IIb)",
-            "range": "1 mg neutralizes about 100 units of heparin; less is needed as time passes (half the dose may do 30 min after heparin). Society ratios: under 2.6 mg per 100 units given (STS/SCA/AmSECT 2018, IIa), or under 1:1 of the initial bolus (EACTS/EACTA 2017, IIa)",
-            "max": "50 mg in any 10 min, by slow IV injection over 10 min",
-            "preparation": "10 mg/mL (50 mg/5 mL, 250 mg/25 mL); may be diluted in D5W or saline; do not store diluted",
-            "caution": "Boxed warning: severe hypotension, cardiovascular collapse, non-cardiogenic pulmonary edema, catastrophic pulmonary vasoconstriction; risk higher with fast or high doses, repeat exposure, NPH insulin, fish allergy, vasectomy, poor LV function and pulmonary hypertension; ratios above 5:1 impair platelets; heparin rebound 30 min to 18 h later",
-            "source": "Protamine sulfate injection DailyMed prescribing information, Fresenius Kabi, rev 11/2024; Shore-Lesserson L et al, 2018; Pagano D et al, 2018"
-          },
-          {
-            "id": "pcc",
-            "name": "Prothrombin complex concentrate, 4-factor (Kcentra)",
-            "use": "Warfarin reversal; coagulopathic bleeding after bypass (off-label)",
-            "form": "perKg",
-            "start": 25,
-            "startHigh": 50,
-            "unit": "units",
-            "titration": "Warfarin reversal by INR: 2 to under 4 → 25 units/kg (max 2,500); 4–6 → 35 (max 3,500); above 6 → 50 (max 5,000), weight capped at 100 kg; give vitamin K with it; no repeat dosing",
-            "range": "Cardiac surgery coagulopathy (FARES-II): 1,500 units if ≤ 60 kg, 2,000 units if > 60 kg, one further dose allowed within 24 h; hemostasis in 77.9% vs 60.4% with plasma",
-            "max": "2,500 / 3,500 / 5,000 units by INR band; infuse at 0.12 mL/kg/min (about 3 units/kg/min), at most 8.4 mL/min",
-            "preparation": "500-unit kit + 20 mL, 1,000-unit kit + 40 mL sterile water (20–31 units/mL); the factor IX units are printed on each vial",
-            "caution": "Boxed warning: arterial and venous thromboembolism; contraindicated in DIC and HIT (contains heparin); STS/SCA/AmSECT/SABM 2021: reasonable before plasma as first line for refractory coagulopathy (IIa, B-NR)",
-            "offLabel": true,
-            "source": "Kcentra DailyMed prescribing information, CSL Behring, rev 5/2023; Karkouti K et al, FARES-II, JAMA 2025;333:1781–1792; Tibi P et al, 2021"
-          },
-          {
-            "id": "tranexamic",
-            "name": "Tranexamic acid",
-            "use": "Antifibrinolytic for cardiac surgery and trauma (regimens off-label)",
-            "form": "perKg",
-            "start": 10,
-            "startHigh": 30,
             "unit": "mg",
-            "titration": "Cardiac surgery: low regimen 10 mg/kg load, 2 mg/kg/h, 1 mg/kg in the prime; high regimen 30 mg/kg, 16 mg/kg/h, 2 mg/kg in the prime (OPTIMAL trial arms). Trauma (CRASH-2): 1 g over 10 min within 3 h, then 1 g over 8 h",
-            "range": "Label (hemophilia, dental extraction): 10 mg/kg before, then 10 mg/kg three to four times daily; renal dosing by creatinine",
-            "max": "Infuse no faster than 100 mg/min (hypotension). Seizures are dose-related: 1% with the high regimen vs 0.4% with the low (OPTIMAL)",
-            "bolus": "10–30 mg/kg (cardiac); 1 g over 10 min (trauma)",
-            "preparation": "100 mg/mL (1 g/10 mL); undiluted or diluted to 10–20 mg/mL; compatible with heparin; never mixed with blood or penicillins",
-            "caution": "Boxed warning: inadvertent intrathecal injection has been fatal, so keep it away from the neuraxial tray; contraindicated in subarachnoid hemorrhage and active intravascular clotting; thromboembolism; visual disturbance",
+            "titration": "Off bypass: one bolus over several seconds (ICARUS used 15 mg/kg at the start of weaning; some protocols add 1.5 mg/kg/min for 10 min). Massive transfusion: 1 g after the first unit, then 1 g after every four units, keeping ionized calcium above 1.2 mmol/L (JTS); monitor and correct ionized calcium (European trauma guideline, 1C)",
+            "range": "5–15 mg/kg of calcium chloride appears safe (low-quality evidence)",
+            "max": "15 mg/kg per bolus in the trial; no established maximum",
+            "bolus": "10–15 mg/kg (0.1–0.15 mL/kg of 10%)",
+            "preparation": "10% calcium chloride = 100 mg/mL (27 mg or 1.4 mmol of elemental calcium per mL); central or large-bore vein",
+            "caution": "Transient rise in cardiac index and pressure; theoretical reperfusion injury (the ICARUS question); calcium gluconate for a peripheral line (3 g ≈ 1 g chloride in elemental calcium)",
             "offLabel": true,
-            "source": "Cyklokapron DailyMed prescribing information, Pfizer, rev 8/2025; Shi J et al, OPTIMAL, JAMA 2022;328:336–347; CRASH-2 collaborators, Lancet 2010;376:23–32"
+            "source": "Lomivorotov V et al, ICARUS trial rationale and design, Contemp Clin Trials Commun 2021;23:100835; Joint Trauma System, Damage Control Resuscitation CPG quick reference, June 2023; Rossaint R et al, Crit Care 2023;27:80 (R31)",
+            "role": "Calcium"
           },
           {
-            "id": "vitamin-k",
-            "name": "Vitamin K (phytonadione)",
-            "use": "Warfarin reversal alongside PCC, when hours are available",
+            "id": "diltiazem",
+            "name": "Diltiazem",
+            "use": "Rate control in atrial fibrillation or flutter, SVT",
+            "form": "perKg",
+            "start": 0.25,
+            "unit": "mg",
+            "titration": "Second bolus 0.35 mg/kg after 15 min if needed; infusion 10 mg/h (may start at 5), up by 5 mg/h",
+            "range": "Infusion 5–15 mg/h, up to 24 h",
+            "max": "15 mg/h",
+            "bolus": "0.25 mg/kg actual weight over 2 min (about 20 mg), then 0.35 mg/kg (about 25 mg)",
+            "preparation": "5 mg/mL; 125 mg in 100 mL = 1 mg/mL; 250 mg in 250 mL = 0.83 mg/mL",
+            "caution": "Contraindicated in sick sinus or second- and third-degree block without a pacemaker, cardiogenic shock, IV β-blockers close in time, pre-excited AF (WPW) and ventricular tachycardia; hypotension; heart failure",
+            "source": "Diltiazem HCl injection DailyMed prescribing information, Hospira, current 5/2026",
+            "role": "Rate control"
+          },
+          {
+            "id": "ephedrine",
+            "name": "Ephedrine",
+            "use": "Hypotension during anesthesia, with bradycardia",
             "form": "fixed",
-            "start": 2.5,
+            "start": 5,
             "startHigh": 10,
             "unit": "mg",
-            "titration": "Up to 25–50 mg as one dose; recheck the INR after 6–8 h and repeat if still prolonged; with PCC for urgent reversal, 5–10 mg IV (European trauma guideline, 1A)",
-            "range": "2.5–25 mg",
-            "max": "50 mg as a single dose; IV no faster than 1 mg/min",
-            "preparation": "10 mg/mL and 1 mg/0.5 mL; dilute only in saline, D5W or D5/saline; give at once, protected from light",
-            "caution": "Boxed warning: fatal anaphylaxis by the IV and IM routes even when diluted and given slowly, so subcutaneous when time allows; aluminum",
-            "source": "Vitamin K1 injectable emulsion prescribing information, Hospira/Pfizer, rev 9–10/2025; Rossaint R et al, Crit Care 2023;27:80 (R33)"
+            "titration": "Repeat boluses to the pressure goal; tachyphylaxis with repeated doses",
+            "max": "50 mg total",
+            "bolus": "5–10 mg IV",
+            "preparation": "50 mg/mL vial: 1 mL + 9 mL saline or D5W = 5 mg/mL; the 5 mg/mL prefilled syringe is not diluted",
+            "caution": "Pressor effect with oxytocics; hypertension when given prophylactically; have another pressor ready when it stops working",
+            "source": "Akovaz (ephedrine sulfate) DailyMed prescribing information, Exela, rev 11/2020",
+            "role": "Vasopressor"
+          },
+          {
+            "id": "hydralazine",
+            "name": "Hydralazine",
+            "use": "Hypertension when a slower, longer arteriolar dilator is wanted",
+            "form": "fixed",
+            "start": 20,
+            "startHigh": 40,
+            "unit": "mg",
+            "titration": "Repeat as necessary; the pressure falls within minutes and bottoms at 10–80 min, so wait before redosing; lower doses with renal damage",
+            "max": "No maximum in the label",
+            "bolus": "20–40 mg IV or IM (the label's dose; many anesthesiologists give smaller increments)",
+            "preparation": "20 mg/mL, 1 mL vial; give at once, do not add to infusion fluids; discard if discolored",
+            "caution": "Contraindicated in coronary artery disease and mitral valvular rheumatic heart disease; reflex tachycardia; worsens cerebral ischemia with raised ICP; lupus-like syndrome with chronic use",
+            "source": "Hydralazine HCl injection DailyMed prescribing information, Fresenius Kabi, rev 10/2025",
+            "role": "Vasodilator"
+          },
+          {
+            "id": "hydroxocobalamin",
+            "name": "Hydroxocobalamin (Cyanokit)",
+            "use": "Vasoplegia after bypass (off-label; labeled for cyanide poisoning)",
+            "form": "fixed",
+            "start": 5,
+            "unit": "g",
+            "titration": "A second 5 g may follow, over 15 min to 2 h depending on the response",
+            "range": "5–10 g",
+            "max": "10 g in total",
+            "bolus": "5 g over 15 min",
+            "preparation": "5 g vial + 200 mL 0.9% saline = 25 mg/mL; rock for 60 s, do not shake",
+            "caution": "Hypertension; anaphylaxis; oxalate kidney injury (check renal function for a week); red plasma and urine interfere with colorimetric labs and trip dialysis blood-leak alarms; case series only for vasoplegia",
+            "offLabel": true,
+            "source": "Cyanokit DailyMed prescribing information, BTG, rev 5/2021; Busse LW et al, Crit Care 2020;24:36; Unic-Stojanovic D et al, Interdiscip Cardiovasc Thorac Surg 2025;40(4):ivaf075",
+            "role": "Vasoplegia rescue"
+          },
+          {
+            "id": "labetalol",
+            "name": "Labetalol",
+            "use": "Hypertension, especially with tachycardia; pregnancy",
+            "form": "fixed",
+            "start": 20,
+            "unit": "mg",
+            "titration": "40 mg, then 80 mg at 10-min intervals to the target, or an infusion at 2 mg/min",
+            "range": "Usual cumulative dose 50–200 mg",
+            "max": "300 mg in total",
+            "bolus": "20 mg over 2 min, then 40–80 mg every 10 min",
+            "preparation": "5 mg/mL; infusion 200 mg in 160 mL = 1 mg/mL at 2 mL/min; keep the patient supine",
+            "caution": "Contraindicated in asthma, overt heart failure, block above first degree, cardiogenic shock and severe bradycardia; orthostatic hypotension for hours; hepatic injury",
+            "source": "Labetalol HCl injection DailyMed prescribing information, Hospira, rev 11/2022 (current 7/2026)",
+            "role": "Alpha/beta-blocker"
+          },
+          {
+            "id": "methylene-blue",
+            "name": "Methylene blue (ProvayBlue)",
+            "use": "Vasoplegia after bypass (off-label; labeled for methemoglobinemia)",
+            "form": "perKg",
+            "start": 1,
+            "startHigh": 2,
+            "unit": "mg",
+            "titration": "Vasoplegia reports: 1–2 mg/kg over 15–30 min, some followed by 0.25–2 mg/kg/h; label (methemoglobinemia): 1 mg/kg over 5–30 min, repeated once after an hour if needed",
+            "max": "Label: two doses; eGFR 15–59: a single 1 mg/kg. Adverse effects reported above 2 mg/kg",
+            "bolus": "1–2 mg/kg over 15–30 min",
+            "preparation": "5 mg/mL; may be diluted in 50 mL D5W, not saline (solubility)",
+            "caution": "Boxed warning: serotonin syndrome with serotonergic drugs (and opioids such as fentanyl, meperidine, tramadol, methadone); contraindicated in G6PD deficiency (hemolysis); falsely low pulse oximetry and BIS readings; blue-green skin and urine",
+            "offLabel": true,
+            "source": "ProvayBlue DailyMed prescribing information, American Regent, rev 2/2024; Busse LW et al, Crit Care 2020;24:36; Unic-Stojanovic D et al, 2025",
+            "role": "Vasoplegia rescue"
+          },
+          {
+            "id": "phenylephrine-bolus",
+            "name": "Phenylephrine (bolus)",
+            "use": "Hypotension during anesthesia, with a normal or fast heart rate",
+            "form": "fixed",
+            "start": 40,
+            "startHigh": 100,
+            "unit": "mcg",
+            "titration": "Repeat every 1–2 min as needed; start an infusion when boluses keep coming",
+            "max": "Biorphen label: boluses up to 200 mcg every 1–2 min; Fresenius label: total bolus dosage not above 200 mcg",
+            "bolus": "40–100 mcg IV",
+            "preparation": "Biorphen 100 mcg/mL ready to use. 10 mg/mL: 1 mL in 99 mL saline or D5W = 100 mcg/mL",
+            "caution": "Reflex bradycardia; worsens angina, heart failure and pulmonary hypertension; weaker in acidosis and hypovolemia",
+            "source": "Phenylephrine HCl 10 mg/mL DailyMed prescribing information, Fresenius Kabi, rev 8/2022; Biorphen DailyMed prescribing information, Dr. Reddy's, rev 2/2026",
+            "role": "Vasopressor"
           }
         ]
       },
       {
-        "name": "Anesthesia and other infusions",
+        "name": "Anesthetic and Other Infusions",
         "drugs": [
           {
             "id": "amiodarone",
@@ -3846,7 +3579,8 @@
             "bolus": "150 mg over 10 min",
             "preparation": "Premixed in dextrose: 150 mg/100 mL (1.5 mg/mL) and 360 mg/200 mL (1.8 mg/mL), no dilution",
             "caution": "Hypotension (slow the infusion; pressors or volume); bradycardia and AV block (slow or stop; pacing available); QTc prolongation and torsades; hepatic and pulmonary injury with continued use",
-            "source": "Nexterone (amiodarone) premixed injection DailyMed prescribing information, Baxter, rev 4/2024; AHA 2020 adult cardiac arrest algorithm"
+            "source": "Nexterone (amiodarone) premixed injection DailyMed prescribing information, Baxter, rev 4/2024; AHA 2020 adult cardiac arrest algorithm",
+            "role": "Antiarrhythmic"
           },
           {
             "id": "dexmedetomidine",
@@ -3862,7 +3596,8 @@
             "bolus": "Load 1 mcg/kg over 10 min (0.5 mcg/kg over 65 or for less invasive procedures); often omitted, and not needed when converting from another sedative",
             "preparation": "Premixed 4 mcg/mL (200 mcg/50 mL, 400 mcg/100 mL)",
             "caution": "Bradycardia and hypotension, some fatal, worse with hypovolemia, diabetes, chronic hypertension and age; transient hypertension during the load (slow it); reduce the dose in the elderly and in hepatic impairment; patients are arousable, which is not failure",
-            "source": "Dexmedetomidine in 0.9% sodium chloride DailyMed prescribing information, Baxter, rev 12/2025"
+            "source": "Dexmedetomidine in 0.9% sodium chloride DailyMed prescribing information, Baxter, rev 12/2025",
+            "role": "Sedative"
           },
           {
             "id": "insulin",
@@ -3872,7 +3607,8 @@
             "range": "By institutional protocol (commonly 1–2 units/h to start, or 0.02–0.05 units/kg/h, adjusted hourly to the glucose); diabetic ketoacidosis 0.1 units/kg/h. Cardiac surgery: an insulin infusion to keep glucose ≤ 180 mg/dL in the operating room and for at least 24 h after (STS 2009, class I)",
             "preparation": "Regular insulin 100 units/mL diluted to 1 unit/mL in 0.9% saline; prime the tubing",
             "caution": "Hypoglycemia: glucose at least hourly on an infusion; potassium falls with insulin; the target is ≤ 180 mg/dL, not tight control (NICE-SUGAR)",
-            "source": "Lazar HL et al, STS practice guideline: blood glucose management during adult cardiac surgery, Ann Thorac Surg 2009;87:663–669; Humulin R prescribing information (IV use under medical supervision); starting rates: institutional practice"
+            "source": "Lazar HL et al, STS practice guideline: blood glucose management during adult cardiac surgery, Ann Thorac Surg 2009;87:663–669; Humulin R prescribing information (IV use under medical supervision); starting rates: institutional practice",
+            "role": "Insulin"
           },
           {
             "id": "ketamine",
@@ -3887,7 +3623,8 @@
             "bolus": "1–2 mg/kg over 60 s; IM 6.5–13 mg/kg",
             "preparation": "10, 50 and 100 mg/mL; the 100 mg/mL must be diluted for IV use; infusion 1 mg/mL (500 mg in 500 mL), used at once",
             "caution": "Transient hypertension, tachycardia and a rise in cardiac index; intracranial pressure rises; emergence reactions in about 12%, fewer with a benzodiazepine and lower doses; respiratory depression with fast injection; abuse potential",
-            "source": "Ketalar DailyMed prescribing information, Par, rev 3/2026; Schwenk ES et al, Reg Anesth Pain Med 2018;43:456–466"
+            "source": "Ketalar DailyMed prescribing information, Par, rev 3/2026; Schwenk ES et al, Reg Anesth Pain Med 2018;43:456–466",
+            "role": "Anesthetic / analgesic"
           },
           {
             "id": "lidocaine-iv",
@@ -3904,7 +3641,8 @@
             "preparation": "Premixed 4 and 8 mg/mL in dextrose for the antiarrhythmic infusion; the analgesic bolus is given with ECG, oximetry and an anesthesiologist present",
             "caution": "Neurological symptoms come first (perioral numbness, tinnitus, confusion), cardiac depression late; bradycardia and heart block; no nerve or fascial plane block within 4 h before or after the infusion, and no epidural or wound-catheter bolus for 4 h after; 20% lipid emulsion at hand; additive with other antiarrhythmics; lower rates in hepatic and severe renal impairment",
             "offLabel": true,
-            "source": "Lidocaine hydrochloride and dextrose injection DailyMed prescribing information, Baxter, rev 2/2026; Foo I et al, international consensus statement on intravenous lidocaine, Anaesthesia 2021;76:238–250"
+            "source": "Lidocaine hydrochloride and dextrose injection DailyMed prescribing information, Baxter, rev 2/2026; Foo I et al, international consensus statement on intravenous lidocaine, Anaesthesia 2021;76:238–250",
+            "role": "Antiarrhythmic / analgesic"
           },
           {
             "id": "propofol",
@@ -3920,7 +3658,8 @@
             "bolus": "Induction 2–2.5 mg/kg (healthy, under 65), 1–1.5 mg/kg (elderly, debilitated, ASA III–IV), 0.5–1.5 mg/kg (cardiac anesthesia), 1–2 mg/kg (neurosurgical), given until induction",
             "preparation": "10 mg/mL emulsion; strict asepsis, one patient per vial, finished within 12 h of opening",
             "caution": "Hypotension, more with hypovolemia and age (about 80% of the adult dose, no fast boluses); infusion syndrome; lipid load and triglycerides on long infusions; pain on injection",
-            "source": "Diprivan DailyMed prescribing information, Fresenius Kabi, rev 1/2025"
+            "source": "Diprivan DailyMed prescribing information, Fresenius Kabi, rev 1/2025",
+            "role": "Anesthetic"
           },
           {
             "id": "remifentanil",
@@ -3936,10 +3675,464 @@
             "bolus": "1 mcg/kg over 30–60 s, optional at induction and as a supplement (0.5 mcg/kg with midazolam for sedation)",
             "preparation": "20, 25, 50 or 250 mcg/mL (25 for sedation)",
             "caution": "Analgesia is gone 5–10 min after stopping: establish other analgesia before the end; chest-wall rigidity with boluses above 1 mcg/kg or fast rates; respiratory depression in the spontaneously breathing (halve the rate); no bolus for postoperative analgesia",
-            "source": "Ultiva DailyMed prescribing information, Mylan, rev 12/2025"
+            "source": "Ultiva DailyMed prescribing information, Mylan, rev 12/2025",
+            "role": "Opioid"
+          }
+        ]
+      },
+      {
+        "name": "Blood Products",
+        "drugs": [
+          {
+            "id": "cryoprecipitate",
+            "name": "Cryoprecipitate",
+            "use": "Hypofibrinogenemia with bleeding",
+            "form": "perKg",
+            "start": 0.1,
+            "startHigh": 0.1429,
+            "unit": "units",
+            "titration": "Repeat by fibrinogen level or viscoelastic testing",
+            "range": "1 unit per 7–10 kg raises fibrinogen by about 50–75 mg/dL; trauma: 15–20 single-donor units (about 3–4 g fibrinogen) to start; cardiac surgery: 10 units (about 4 g, FIBRES). Indications: excessive bleeding with fibrinogen < 80–100 mg/dL (ASA 2015); trauma: ≤ 1.5 g/L (150 mg/dL) or viscoelastic signs of a functional deficit (European 2023)",
+            "preparation": "Pooled (5 or 10 units), thawed; each unit at least 150 mg fibrinogen and 80 units factor VIII",
+            "caution": "Recovery of transfused fibrinogen is 50–60%; ABO-compatible preferred; fibrinogen concentrate is an alternative (see Factor Concentrates)",
+            "source": "ASA Task Force on Perioperative Blood Management, Practice guidelines for perioperative blood management, Anesthesiology 2015;122:241–275; Circular of Information for the Use of Human Blood and Blood Components (AABB/ARC/ABC/ASBP); Rossaint R et al, Crit Care 2023;27:80 (R29); Callum J et al, FIBRES, JAMA 2019",
+            "threshold": "Bleeding with fibrinogen < 80–100 mg/dL · trauma ≤ 150 mg/dL (1.5 g/L)",
+            "display": "1 unit / 7–10 kg"
+          },
+          {
+            "id": "plasma",
+            "name": "Plasma (FFP, thawed plasma)",
+            "use": "Coagulopathy with bleeding; urgent warfarin reversal when PCC is not available",
+            "form": "perKg",
+            "start": 10,
+            "startHigh": 15,
+            "unit": "mL",
+            "titration": "Further plasma by PT/aPTT or viscoelastic testing (1C); not for hypofibrinogenemia on its own (1C)",
+            "range": "Standard dose about 15 mL/kg (Circular); cardiac surgery comparator in FARES-II: 3 units ≤ 60 kg, 4 units > 60 kg; trauma: plasma to red cells at least 1:2. Indications: excessive microvascular bleeding with INR > 2.0 in the absence of heparin (ASA 2015); trauma: PT or aPTT > 1.5× normal (European 2023)",
+            "preparation": "Thawed, ABO-compatible",
+            "caution": "Volume overload (TACO) and TRALI; in cardiac surgery coagulopathy, prothrombin complex concentrate gave hemostasis more often (77.9% vs 60.4%, FARES-II)",
+            "source": "ASA Task Force on Perioperative Blood Management, Practice guidelines for perioperative blood management, Anesthesiology 2015;122:241–275; Circular of Information for the Use of Human Blood and Blood Components (AABB/ARC/ABC/ASBP); Karkouti K et al, FARES-II, JAMA 2025;333:1781–1792; Rossaint R et al, Crit Care 2023;27:80 (R25, R27)",
+            "threshold": "Bleeding with INR > 2.0 (no heparin) · trauma: PT or aPTT > 1.5× normal"
+          },
+          {
+            "id": "platelets",
+            "name": "Platelets",
+            "use": "Thrombocytopenia or platelet dysfunction with bleeding, or before a procedure",
+            "form": "fixed",
+            "titration": "Keep above 50 × 10⁹/L while bleeding, above 100 with traumatic brain injury (European 2023, 2C); a high platelet-to-red-cell ratio in massive transfusion (2B)",
+            "range": "Thresholds (AABB/ICTMG 2025): major non-neuraxial surgery < 50 × 10⁹/L; interventional radiology < 20 (low risk) or < 50 (high risk); lumbar puncture < 20; central line at a compressible site < 10; prophylaxis in hypoproliferative thrombocytopenia < 10; not for cardiac surgery without thrombocytopenia or major bleeding. Bleeding surgical patients: usually indicated below 50, rarely above 100 (ASA 2015)",
+            "preparation": "One apheresis unit (at least 3 × 10¹¹) ≈ 6 whole-blood-derived units; 4–8 single units or one apheresis pack to start in trauma; children 5–10 mL/kg or 1 unit per 10 kg; apheresis unit 250–300 mL",
+            "caution": "Transfusion reactions, bacterial contamination (stored warm) and TRALI; antiplatelet drugs inactivate transfused platelets while still circulating",
+            "source": "Metcalf RA et al, Platelet transfusion: 2025 AABB and ICTMG international clinical practice guidelines, JAMA 2025;334(7), doi:10.1001/jama.2025.7529; ASA Task Force on Perioperative Blood Management, Practice guidelines for perioperative blood management, Anesthesiology 2015;122:241–275; Rossaint R et al, Crit Care 2023;27:80 (R30); Circular of Information for the Use of Human Blood and Blood Components (AABB/ARC/ABC/ASBP)",
+            "start": 1,
+            "unit": "apheresis unit",
+            "threshold": "< 50 × 10⁹/L bleeding or major surgery · < 20 lumbar puncture · < 10 prophylaxis or central line"
+          },
+          {
+            "id": "red-cells",
+            "name": "Red blood cells",
+            "use": "Anemia or blood loss with inadequate oxygen delivery",
+            "form": "fixed",
+            "start": 1,
+            "unit": "unit",
+            "titration": "Adults: one unit at a time, reassessing between units (ASA 2015). Children: 10–15 mL/kg of additive-solution red cells (Circular)",
+            "range": "Restrictive thresholds (AABB 2023): Hb < 7 g/dL for hospitalized adults, including critically ill and hematology-oncology patients; 7.5 g/dL in cardiac surgery; 8 g/dL in orthopedic surgery or preexisting cardiovascular disease. Rarely needed above 10 g/dL; between 6 and 10, decide on bleeding, volume, organ ischemia and reserve (ASA 2015). Children: < 7 g/dL when critically ill; congenital heart disease 7 g/dL (biventricular repair), 9 g/dL (single-ventricle palliation), 7–9 g/dL (uncorrected)",
+            "preparation": "About 300–400 mL per additive-solution unit; one unit raises Hb by about 1 g/dL (hematocrit by 3%) in an average-sized adult",
+            "caution": "Not for volume expansion or anemia a hematinic can correct; massive transfusion: give plasma and platelets in ratio (trauma, at least 1:2 plasma to red cells) and calcium 1 g after the first unit and every four units",
+            "source": "Carson JL et al, Red blood cell transfusion: 2023 AABB international guidelines, JAMA 2023;330:1892–1902; ASA Task Force on Perioperative Blood Management, Practice guidelines for perioperative blood management, Anesthesiology 2015;122:241–275; Circular of Information for the Use of Human Blood and Blood Components (AABB/ARC/ABC/ASBP)",
+            "threshold": "Hb < 7 g/dL · 7.5 cardiac surgery · 8 orthopedic surgery or cardiovascular disease"
+          }
+        ]
+      },
+      {
+        "name": "Factor Concentrates and Hematologic Drugs",
+        "drugs": [
+          {
+            "id": "aminocaproic",
+            "name": "Aminocaproic acid (Amicar)",
+            "use": "Antifibrinolytic for cardiac surgery (regimens off-label) and fibrinolytic bleeding",
+            "form": "fixed",
+            "start": 4,
+            "startHigh": 5,
+            "unit": "g",
+            "titration": "Label: 4–5 g in 250 mL over the first hour, then 1 g/h for about 8 h or until bleeding is controlled",
+            "range": "Cardiac surgery: 10 g load then 2 g/h on bypass (BART); or 100 mg/kg load, 5 mg/kg in the prime, 30 mg/kg/h (Walley 2017)",
+            "max": "None in the label; rapid undiluted injection is not recommended (hypotension, bradycardia, arrhythmia)",
+            "bolus": "4–5 g over 1 h (label); 10 g (BART)",
+            "preparation": "250 mg/mL; 4–5 g in 250 mL over an hour, then 1 g in 50 mL each hour",
+            "caution": "Antifibrinolytic (EACA or tranexamic acid) reduces blood loss and transfusion in cardiac surgery: STS/SCA/AmSECT/SABM 2021 class I, level A; avoid with DIC or upper urinary tract bleeding",
+            "offLabel": true,
+            "source": "Aminocaproic acid injection USP prescribing information, Pfizer; BART registration ISRCTN15166455; Walley H et al, Glob Cardiol Sci Pract 2017;2017(2):12; Tibi P et al, J Extra Corpor Technol 2021;53:97–124",
+            "role": "Antifibrinolytic"
+          },
+          {
+            "id": "andexanet",
+            "name": "Andexanet alfa (Andexxa)",
+            "use": "Reversal of rivaroxaban or apixaban with life-threatening bleeding",
+            "form": "fixed",
+            "start": 400,
+            "startHigh": 800,
+            "unit": "mg",
+            "titration": "Low dose: 400 mg at 30 mg/min, then 4 mg/min for up to 120 min (480 mg). High dose: 800 mg at 30 mg/min, then 8 mg/min for up to 120 min (960 mg)",
+            "range": "Low dose: rivaroxaban ≤ 10 mg or apixaban ≤ 5 mg, and any dose taken 8 h or more earlier. High dose: rivaroxaban > 10 mg or apixaban > 5 mg (or unknown dose) within 8 h or at an unknown time",
+            "max": "960 mg; more than one course not evaluated",
+            "preparation": "200 mg vials + 20 mL sterile water = 10 mg/mL (5 vials low dose, 9 high); swirl, do not shake",
+            "caution": "Boxed warning: thromboembolism, ischemic events, cardiac arrest, sudden death. Heparin stops working after it (ACT will not prolong): do not give before heparinization for bypass; use a non-heparin anticoagulant if surgery cannot wait. Not for edoxaban, enoxaparin or betrixaban",
+            "source": "Andexxa DailyMed prescribing information, AstraZeneca, rev 5/2025",
+            "role": "Reversal"
+          },
+          {
+            "id": "antithrombin",
+            "name": "Antithrombin III (Thrombate III)",
+            "use": "Heparin resistance before bypass (off-label); hereditary deficiency",
+            "form": "text",
+            "range": "Heparin resistance: 500–1,000 units, or 75 units/kg; 1 unit/kg raises activity about 1.4%. Label (hereditary deficiency): units = (120 − baseline %) × kg ÷ 1.4, then 60% of that about every 24 h to keep 80–120%",
+            "max": "None stated; infuse over 10–20 min",
+            "preparation": "About 500 units per vial + 10 mL sterile water = 50 units/mL; use within 3 h",
+            "caution": "Heparin resistance is usually an ACT under 480 s after 400–450 units/kg; antithrombin concentrate reduces plasma transfusion for it (STS/SCA/AmSECT/SABM 2021 class I, A) but is not for bleeding (EACTS/EACTA 2017 class III); heparin effect then increases",
+            "offLabel": true,
+            "source": "Thrombate III DailyMed prescribing information, Grifols, rev 7/2025; Beattie GW, Jeffrey RR, Interact Cardiovasc Thorac Surg 2013;18:117–120; Tibi P et al, 2021; Pagano D et al, Eur J Cardiothorac Surg 2018;53:79–111",
+            "role": "Factor concentrate"
+          },
+          {
+            "id": "bivalirudin",
+            "name": "Bivalirudin",
+            "use": "Anticoagulation for bypass or PCI when heparin cannot be used (HIT)",
+            "form": "perKg",
+            "start": 1,
+            "unit": "mg",
+            "titration": "Bypass in HIT (off-label, STS/SCA/AmSECT 2018): 1 mg/kg bolus, 2.5 mg/kg/h, 50 mg in the prime, ACT target 2.5 × baseline. PCI (label): 0.75 mg/kg bolus then 1.75 mg/kg/h for the procedure, ACT at 5 min and a further 0.3 mg/kg if needed; up to 4 h after PCI in STEMI",
+            "range": "Renal: infusion 1 mg/kg/h when CrCl is below 30 mL/min, 0.25 mg/kg/h on hemodialysis; the bolus is not reduced",
+            "bolus": "1 mg/kg (bypass); 0.75 mg/kg (PCI)",
+            "preparation": "250 mg vial + 5 mL sterile water, then diluted to 5 mg/mL",
+            "caution": "No reversal agent (half-life about 25 min, longer in renal failure); blood that stands still clots — keep cardiotomy suction, grafts and the circuit flushed and moving; more bleeding with heparin, warfarin, thrombolytics or GP IIb/IIIa inhibitors; thrombosis with gamma brachytherapy; studied with aspirin",
+            "offLabel": true,
+            "source": "Bivalirudin for injection DailyMed prescribing information, Fresenius Kabi, rev 4/2025; Shore-Lesserson L et al, STS/SCA/AmSECT anticoagulation guideline, J Extra Corpor Technol 2018;50:5–18",
+            "role": "Anticoagulant"
+          },
+          {
+            "id": "desmopressin",
+            "name": "Desmopressin (DDAVP)",
+            "use": "Platelet dysfunction (uremia, aspirin, bypass), mild hemophilia A, von Willebrand type 1",
+            "form": "perKg",
+            "start": 0.3,
+            "unit": "mcg",
+            "titration": "Over 15–30 min, 30 min before the procedure; for bleeding repeat after 8–12 h, then daily; tachyphylaxis if more often than every 48 h",
+            "max": "20 mcg per dose",
+            "preparation": "4 mcg/mL; dilute in 50 mL 0.9% saline (10 mL below 10 kg)",
+            "caution": "Boxed warning: hyponatremia (seizures, coma, death); contraindicated with CrCl under 50, hyponatremia, SIADH, heart failure, uncontrolled hypertension, loop diuretics or glucocorticoids; hypotension when given fast; thrombosis in type 2B von Willebrand; cardiac-surgery use off-label (STS/SCA/AmSECT/SABM 2021 class IIb)",
+            "source": "DDAVP injection DailyMed prescribing information, Ferring, rev 7/2022; Tibi P et al, 2021",
+            "role": "Hemostatic"
+          },
+          {
+            "id": "factor-ix",
+            "name": "Factor IX concentrate (BeneFIX)",
+            "use": "Hemophilia B bleeding or surgery",
+            "form": "text",
+            "range": "Units = kg × desired rise (IU/dL) × 1.3 (12 y and over; 1.4 under 12): recovery about 0.8 IU/dL per IU/kg. Minor bleed target 20–30%, moderate 25–50%, major bleed or surgery 50–100%, every 12–24 h for 7–10 days",
+            "preparation": "Lyophilized kit with its diluent; slow IV push over minutes; continuous infusion not established",
+            "caution": "Inhibitors; anaphylaxis; thromboembolism",
+            "source": "BeneFIX DailyMed prescribing information, Pfizer, rev 11/2022 (current 2/2025)",
+            "role": "Factor concentrate"
+          },
+          {
+            "id": "factor-viia",
+            "name": "Factor VIIa, recombinant (NovoSeven RT)",
+            "use": "Hemophilia with inhibitors; last resort for intractable bleeding after bypass (off-label)",
+            "form": "perKg",
+            "start": 90,
+            "unit": "mcg",
+            "titration": "Label: every 2 h until hemostasis, then every 3–6 h; acquired hemophilia 70–90 mcg/kg; factor VII deficiency 15–30",
+            "range": "Cardiac surgery (off-label, Gill 2009 RCT): 40 or 80 mcg/kg once, fewer reoperations for bleeding (14% and 12% vs 25%) but numerically more deaths and strokes; STS/SCA/AmSECT/SABM 2021: may be considered for intractable non-surgical bleeding (IIb, B-NR)",
+            "max": "None stated",
+            "bolus": "Slow IV over 2–5 min",
+            "preparation": "1, 2, 5 and 8 mg vials with histidine diluent = 1 mg/mL (1,000 mcg/mL); use within 3 h",
+            "caution": "Boxed warning: arterial and venous thrombosis; correct platelets, fibrinogen, temperature, pH and calcium first; antibodies in factor VII deficiency",
+            "offLabel": true,
+            "source": "NovoSeven RT DailyMed prescribing information, Novo Nordisk, rev 7/2020; Gill R et al, Circulation 2009;120:21–27; Tibi P et al, 2021",
+            "role": "Factor concentrate"
+          },
+          {
+            "id": "factor-viii",
+            "name": "Factor VIII concentrate (Advate)",
+            "use": "Hemophilia A bleeding or surgery",
+            "form": "text",
+            "range": "Units = kg × desired rise (IU/dL) × 0.5: 1 IU/kg raises factor VIII about 2 IU/dL. Minor bleed 20–40% (10–20 IU/kg), major bleed or surgery 80–120% (40–60 IU/kg before, then every 8–24 h)",
+            "max": "Infuse at up to 10 mL/min (over 5 min or less)",
+            "preparation": "Lyophilized kit with its diluent",
+            "caution": "Inhibitors; hypersensitivity",
+            "source": "Advate DailyMed prescribing information, Takeda, rev 3/2025",
+            "role": "Factor concentrate"
+          },
+          {
+            "id": "feiba",
+            "name": "FEIBA (anti-inhibitor coagulant complex)",
+            "use": "Hemophilia with inhibitors; bleeding on emicizumab needs care",
+            "form": "perKg",
+            "start": 50,
+            "startHigh": 100,
+            "unit": "units",
+            "titration": "Every 6 h (mucous membrane) to 12 h (joint) by bleed type; prophylaxis 85 units/kg every other day",
+            "max": "100 units/kg per dose, 200 units/kg per day; no faster than 10 units/kg/min",
+            "preparation": "500, 1,000 and 2,500-unit vials with 10, 20 or 50 mL sterile water; use within 3 h, not refrigerated after mixing",
+            "caution": "Boxed warning: thrombotic events, more above 200 units/kg/day and with rFVIIa or emicizumab; contraindicated in DIC and acute thrombosis or infarction",
+            "source": "FEIBA DailyMed prescribing information, Takeda, rev 12/2024 (current 12/2025)",
+            "role": "Factor concentrate"
+          },
+          {
+            "id": "fibrinogen",
+            "name": "Fibrinogen concentrate (RiaSTAP, Fibryga)",
+            "use": "Acquired or congenital hypofibrinogenemia with bleeding",
+            "form": "perKg",
+            "start": 70,
+            "unit": "mg",
+            "titration": "Dose (mg/kg) = (target − measured mg/dL) ÷ 1.7 (RiaSTAP; 1.8 for Fibryga in adults); 70 mg/kg when the level is unknown. Fibryga for acquired deficiency: adults 4 g fixed, 12–17 y 50 mg/kg, under 12 y 70 mg/kg; repeat if fibrinogen ≤ 200 mg/dL or FIBTEM A10 ≤ 10 mm",
+            "range": "1 mg/kg raises fibrinogen about 1.7–1.8 mg/dL. Cardiac surgery: 4 g, repeated as needed in the first 24 h, non-inferior to 10 units cryoprecipitate (FIBRES); trauma: 3–4 g at Clauss ≤ 1.5 g/L",
+            "max": "None stated; infuse at up to 5 mL/min (20 mL/min for Fibryga in acquired deficiency)",
+            "preparation": "1 g + 50 mL sterile water (about 20 mg/mL); 2 g + 100 mL",
+            "caution": "Thrombosis; hypersensitivity; not for dysfibrinogenemia",
+            "source": "RiaSTAP DailyMed prescribing information, CSL Behring, rev 12/2025; Fibryga DailyMed prescribing information, Octapharma, rev 8/2025; Callum J et al, FIBRES, JAMA 2019; Rossaint R et al, Crit Care 2023;27:80",
+            "role": "Factor concentrate"
+          },
+          {
+            "id": "heparin-cpb",
+            "name": "Heparin for cardiopulmonary bypass",
+            "use": "Anticoagulation before cannulation",
+            "form": "perKg",
+            "start": 300,
+            "startHigh": 400,
+            "unit": "units",
+            "titration": "Clotting time before bypass and at intervals (class I); keep the ACT above 480 s on bypass (IIa; above 400 s on some maximal-activation instruments); redose by ACT, or by heparin concentration (IIb)",
+            "range": "Label: at least 150 units/kg, usually 300 (under 60 min) or 400 units/kg (over 60 min); EACTS/EACTA 2017: 300–600 units/kg to an ACT of 300–600 s",
+            "max": "More than 400 units/kg invites heparin rebound",
+            "bolus": "One weight-based bolus, undiluted or in 50–100 mL saline, before cannulation",
+            "preparation": "1,000, 5,000 and 10,000 units/mL vials: fatal concentration errors are on record",
+            "caution": "HIT: bivalirudin is a reasonable alternative (1 mg/kg load, 2.5 mg/kg/h, 50 mg in the prime, to 2.5× baseline ACT, per the 2018 guideline); heparin resistance: see antithrombin",
+            "source": "Heparin sodium injection DailyMed prescribing information, Pfizer, rev 9/2025; Shore-Lesserson L et al, STS/SCA/AmSECT anticoagulation guideline, J Extra Corpor Technol 2018;50:5–18; Pagano D et al, 2018",
+            "role": "Anticoagulant"
+          },
+          {
+            "id": "idarucizumab",
+            "name": "Idarucizumab (Praxbind)",
+            "use": "Reversal of dabigatran for bleeding or emergency surgery",
+            "form": "fixed",
+            "start": 5,
+            "unit": "g",
+            "titration": "A second 5 g may be considered if bleeding recurs with prolonged clotting times or a second emergency procedure is needed",
+            "max": "5 g per course; repeat dosing not established",
+            "bolus": "Two 2.5 g/50 mL vials, back to back, by infusion or syringe",
+            "preparation": "No dilution or mixing; flush with 0.9% saline; use within 6 h of opening",
+            "caution": "Thromboembolism (restart dabigatran after 24 h); clotting times may rise again; sorbitol (hereditary fructose intolerance)",
+            "source": "Praxbind DailyMed prescribing information, Boehringer Ingelheim, rev 11/2023",
+            "role": "Reversal"
+          },
+          {
+            "id": "protamine",
+            "name": "Protamine",
+            "use": "Reversal of heparin after bypass",
+            "form": "text",
+            "titration": "By ACT (or heparin titration); for heparin rebound an infusion of 25 mg/h for up to 6 h may be considered (IIb)",
+            "range": "1 mg neutralizes about 100 units of heparin; less is needed as time passes (half the dose may do 30 min after heparin). Society ratios: under 2.6 mg per 100 units given (STS/SCA/AmSECT 2018, IIa), or under 1:1 of the initial bolus (EACTS/EACTA 2017, IIa)",
+            "max": "50 mg in any 10 min, by slow IV injection over 10 min",
+            "preparation": "10 mg/mL (50 mg/5 mL, 250 mg/25 mL); may be diluted in D5W or saline; do not store diluted",
+            "caution": "Boxed warning: severe hypotension, cardiovascular collapse, non-cardiogenic pulmonary edema, catastrophic pulmonary vasoconstriction; risk higher with fast or high doses, repeat exposure, NPH insulin, fish allergy, vasectomy, poor LV function and pulmonary hypertension; ratios above 5:1 impair platelets; heparin rebound 30 min to 18 h later",
+            "source": "Protamine sulfate injection DailyMed prescribing information, Fresenius Kabi, rev 11/2024; Shore-Lesserson L et al, 2018; Pagano D et al, 2018",
+            "role": "Reversal"
+          },
+          {
+            "id": "pcc",
+            "name": "Prothrombin complex concentrate, 4-factor (Kcentra)",
+            "use": "Warfarin reversal; coagulopathic bleeding after bypass (off-label)",
+            "form": "perKg",
+            "start": 25,
+            "startHigh": 50,
+            "unit": "units",
+            "titration": "Warfarin reversal by INR: 2 to under 4 → 25 units/kg (max 2,500); 4–6 → 35 (max 3,500); above 6 → 50 (max 5,000), weight capped at 100 kg; give vitamin K with it; no repeat dosing",
+            "range": "Cardiac surgery coagulopathy (FARES-II): 1,500 units if ≤ 60 kg, 2,000 units if > 60 kg, one further dose allowed within 24 h; hemostasis in 77.9% vs 60.4% with plasma",
+            "max": "2,500 / 3,500 / 5,000 units by INR band; infuse at 0.12 mL/kg/min (about 3 units/kg/min), at most 8.4 mL/min",
+            "preparation": "500-unit kit + 20 mL, 1,000-unit kit + 40 mL sterile water (20–31 units/mL); the factor IX units are printed on each vial",
+            "caution": "Boxed warning: arterial and venous thromboembolism; contraindicated in DIC and HIT (contains heparin); STS/SCA/AmSECT/SABM 2021: reasonable before plasma as first line for refractory coagulopathy (IIa, B-NR)",
+            "offLabel": true,
+            "source": "Kcentra DailyMed prescribing information, CSL Behring, rev 5/2023; Karkouti K et al, FARES-II, JAMA 2025;333:1781–1792; Tibi P et al, 2021",
+            "role": "Factor concentrate"
+          },
+          {
+            "id": "tranexamic",
+            "name": "Tranexamic acid",
+            "use": "Antifibrinolytic for cardiac surgery and trauma (regimens off-label)",
+            "form": "perKg",
+            "start": 10,
+            "startHigh": 30,
+            "unit": "mg",
+            "titration": "Cardiac surgery: low regimen 10 mg/kg load, 2 mg/kg/h, 1 mg/kg in the prime; high regimen 30 mg/kg, 16 mg/kg/h, 2 mg/kg in the prime (OPTIMAL trial arms). Trauma (CRASH-2): 1 g over 10 min within 3 h, then 1 g over 8 h",
+            "range": "Label (hemophilia, dental extraction): 10 mg/kg before, then 10 mg/kg three to four times daily; renal dosing by creatinine",
+            "max": "Infuse no faster than 100 mg/min (hypotension). Seizures are dose-related: 1% with the high regimen vs 0.4% with the low (OPTIMAL)",
+            "bolus": "10–30 mg/kg (cardiac); 1 g over 10 min (trauma)",
+            "preparation": "100 mg/mL (1 g/10 mL); undiluted or diluted to 10–20 mg/mL; compatible with heparin; never mixed with blood or penicillins",
+            "caution": "Boxed warning: inadvertent intrathecal injection has been fatal, so keep it away from the neuraxial tray; contraindicated in subarachnoid hemorrhage and active intravascular clotting; thromboembolism; visual disturbance",
+            "offLabel": true,
+            "source": "Cyklokapron DailyMed prescribing information, Pfizer, rev 8/2025; Shi J et al, OPTIMAL, JAMA 2022;328:336–347; CRASH-2 collaborators, Lancet 2010;376:23–32",
+            "role": "Antifibrinolytic"
+          },
+          {
+            "id": "vitamin-k",
+            "name": "Vitamin K (phytonadione)",
+            "use": "Warfarin reversal alongside PCC, when hours are available",
+            "form": "fixed",
+            "start": 2.5,
+            "startHigh": 10,
+            "unit": "mg",
+            "titration": "Up to 25–50 mg as one dose; recheck the INR after 6–8 h and repeat if still prolonged; with PCC for urgent reversal, 5–10 mg IV (European trauma guideline, 1A)",
+            "range": "2.5–25 mg",
+            "max": "50 mg as a single dose; IV no faster than 1 mg/min",
+            "preparation": "10 mg/mL and 1 mg/0.5 mL; dilute only in saline, D5W or D5/saline; give at once, protected from light",
+            "caution": "Boxed warning: fatal anaphylaxis by the IV and IM routes even when diluted and given slowly, so subcutaneous when time allows; aluminum",
+            "source": "Vitamin K1 injectable emulsion prescribing information, Hospira/Pfizer, rev 9–10/2025; Rossaint R et al, Crit Care 2023;27:80 (R33)",
+            "role": "Reversal"
           }
         ]
       }
+    ]
+  },
+  "ponv": {
+    "reviewed": "2026-10-28",
+    "source": "Gan TJ, Jin Z, Ayad S, et al. Fifth Consensus Guidelines for the Management of Postoperative Nausea and Vomiting: Executive Summary. Anesth Analg. 2025. doi:10.1213/ANE.0000000000007816; doses and timing as tabulated in the Fourth consensus (Anesth Analg 2020;131:411–448, Table 4); risk by Apfel CC et al, Anesthesiology 1999;91:693–700",
+    "sourceURL": "https://doi.org/10.1213/ANE.0000000000007816",
+    "counts": [
+      {
+        "minFactors": 0,
+        "maxFactors": 2,
+        "agents": 2,
+        "text": "Two prophylactic interventions for every adult at risk"
+      },
+      {
+        "minFactors": 3,
+        "maxFactors": 4,
+        "agents": 3,
+        "agentsHigh": 4,
+        "text": "Three to four interventions from different classes, plus baseline risk reduction"
+      }
+    ],
+    "riskReduction": [
+      "Propofol TIVA",
+      "Avoid volatile agents and nitrous oxide",
+      "Regional anesthesia",
+      "Opioid minimization",
+      "Adequate hydration",
+      "Sugammadex rather than neostigmine"
+    ],
+    "agents": [
+      {
+        "id": "ondansetron",
+        "name": "Ondansetron",
+        "class": "5-HT₃ antagonist",
+        "dose": "4 mg IV or 8 mg ODT",
+        "timing": "End of surgery",
+        "rescue": true
+      },
+      {
+        "id": "dexamethasone",
+        "name": "Dexamethasone",
+        "class": "Corticosteroid",
+        "dose": "4–8 mg IV",
+        "timing": "At induction"
+      },
+      {
+        "id": "droperidol",
+        "name": "Droperidol",
+        "class": "Dopamine antagonist",
+        "dose": "0.625 mg IV (0.625–1.25 mg)",
+        "timing": "End of surgery",
+        "rescue": true
+      },
+      {
+        "id": "haloperidol",
+        "name": "Haloperidol",
+        "class": "Dopamine antagonist",
+        "dose": "0.5 to < 2 mg IV or IM",
+        "rescue": true
+      },
+      {
+        "id": "aprepitant",
+        "name": "Aprepitant",
+        "class": "NK₁ antagonist",
+        "dose": "40 mg PO; the Fifth consensus adds 32 mg IV",
+        "timing": "At induction",
+        "longActing": true
+      },
+      {
+        "id": "scopolamine",
+        "name": "Scopolamine patch",
+        "class": "Anticholinergic",
+        "dose": "1 patch transdermal",
+        "timing": "Evening before, or 2 h before surgery"
+      },
+      {
+        "id": "amisulpride",
+        "name": "Amisulpride",
+        "class": "Dopamine antagonist",
+        "dose": "5 mg IV (10 mg IV for treatment)",
+        "timing": "At induction",
+        "rescue": true,
+        "rescueDose": "10 mg IV"
+      },
+      {
+        "id": "palonosetron",
+        "name": "Palonosetron",
+        "class": "5-HT₃ antagonist",
+        "dose": "0.075 mg IV",
+        "longActing": true
+      },
+      {
+        "id": "granisetron",
+        "name": "Granisetron",
+        "class": "5-HT₃ antagonist",
+        "dose": "0.35–3 mg IV",
+        "timing": "End of surgery",
+        "rescue": true
+      },
+      {
+        "id": "promethazine",
+        "name": "Promethazine",
+        "class": "Antihistamine",
+        "dose": "6.25 mg IV",
+        "rescue": true
+      },
+      {
+        "id": "dimenhydrinate",
+        "name": "Dimenhydrinate",
+        "class": "Antihistamine",
+        "dose": "1 mg/kg IV",
+        "rescue": true
+      },
+      {
+        "id": "midazolam",
+        "name": "Midazolam",
+        "class": "Benzodiazepine",
+        "dose": "2 mg IV",
+        "timing": "30 min before the end of surgery"
+      },
+      {
+        "id": "gabapentin",
+        "name": "Gabapentin",
+        "class": "Gabapentinoid",
+        "dose": "600–800 mg PO",
+        "timing": "1–2 h before surgery"
+      },
+      {
+        "id": "propofol",
+        "name": "Propofol",
+        "class": "Sedative-hypnotic",
+        "dose": "20–40 mg IV",
+        "rescue": true,
+        "prophylaxis": false
+      }
+    ],
+    "rescueRules": [
+      "Give an antiemetic from a class that was not used for prophylaxis; repeating the same class within 6 hours adds no benefit.",
+      "After 6 hours, a second dose of a 5-HT₃ antagonist or a butyrophenone may be considered when no alternative is available.",
+      "Do not re-dose long-acting agents (aprepitant, fosaprepitant, palonosetron) in the PACU.",
+      "Amisulpride 10 mg IV was more effective than 5 mg for treatment after failed non-dopaminergic prophylaxis; propofol 20–40 mg is effective as treatment."
     ]
   }
 }

@@ -256,20 +256,20 @@ struct SourceLine: View {
 struct PedsCalculatorView: View {
     @Environment(ReferenceStore.self) private var refs
     var onOpen: (URL) -> Void
+    /// Opens the local anesthetic calculator with this child's weight and age.
+    var onOpenLocal: (Double?, Int?) -> Void = { _, _ in }
 
-    @AppStorage("ps.peds.weight") private var weightText = ""
-    @AppStorage("ps.peds.years") private var years = 0
-    @AppStorage("ps.peds.months") private var months = 0
+    // Patient details last only while the calculator is open.
+    @State private var weightText = LaunchSeed.string("ps.peds.weight")
+    @State private var years = LaunchSeed.int("ps.peds.years", default: 0)
+    @State private var months = LaunchSeed.int("ps.peds.months", default: 0)
     @State private var tab = 0
     @State private var hctStart = ""
     @State private var hctMin = ""
     @State private var expanded: String?
     @FocusState private var weightFocused: Bool
 
-    private var weight: Double? {
-        let v = Double(weightText.replacingOccurrences(of: ",", with: "."))
-        return (v ?? 0) > 0 ? v : nil
-    }
+    private var weight: Double? { WeightField.value(weightText) }
     private var estimate: Double? { PedsCalc.estimatedWeight(years: years, months: months) }
     private var ageMonths: Double { Double(years * 12 + months) }
 
@@ -280,7 +280,7 @@ struct PedsCalculatorView: View {
                 Picker("Section", selection: $tab) {
                     Text("Drugs").tag(0)
                     Text("Airway").tag(1)
-                    Text("Fluids & blood").tag(2)
+                    Text("Fluids & Blood").tag(2)
                 }
                 .pickerStyle(.segmented)
                 if let peds = refs.peds {
@@ -289,7 +289,7 @@ struct PedsCalculatorView: View {
                     case 1: airway
                     default: fluids(peds)
                     }
-                    NavigationLink(value: RefRoute.local) {
+                    Button { onOpenLocal(weight, years) } label: {
                         QuietRow(icon: "syringe", tint: PS.accent, eyebrow: "Local anesthetic", text: "Maximum doses for a child of this weight, single agent or mixture", textSize: 14, lines: 2) {
                             Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                         }
@@ -306,7 +306,7 @@ struct PedsCalculatorView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Pediatric")
+        .navigationTitle("Pediatric Doses")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
@@ -320,22 +320,11 @@ struct PedsCalculatorView: View {
 
     private var inputs: some View {
         VStack(alignment: .leading, spacing: 12) {
+            WeightField(text: $weightText, focus: $weightFocused, prompt: estimate == nil ? "Enter the weight: doses, tube and mask sizes and fluids fill in as you type." : "Enter the weight, or use the estimate for this age below.")
             HStack(spacing: 14) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Eyebrow(text: "Weight", size: 10)
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        TextField("0", text: $weightText)
-                            .keyboardType(.decimalPad)
-                            .focused($weightFocused)
-                            .font(PS.serif(size: 30, weight: .semibold))
-                            .foregroundStyle(PS.fg)
-                            .frame(width: 96)
-                        Text("kg").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
-                    }
-                }
+                Text("Age").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
                 Spacer()
                 VStack(alignment: .leading, spacing: 4) {
-                    Eyebrow(text: "Age", size: 10)
                     HStack(spacing: 2) {
                         Picker("Years", selection: $years) {
                             ForEach(0...17, id: \.self) { Text("\($0) y").tag($0) }
@@ -354,8 +343,6 @@ struct PedsCalculatorView: View {
                     weightText = PedsCalc.fmt(e)
                 } label: { Text("Use the APLS estimate for this age: \(PedsCalc.fmt(e)) kg") }
                     .buttonStyle(TextButtonStyle(color: PS.accent, size: 13))
-            } else if weight == nil {
-                Text("Enter the weight; doses and sizes fill in as you type.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
             }
         }
         .padding(16)
@@ -396,13 +383,13 @@ struct PedsCalculatorView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(d.name).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text("\(d.use) · \(d.route)").font(PS.sys(size: 12)).foregroundStyle(PS.fg2).lineLimit(1)
+                        Text("\(d.use) · \(d.route)").font(PS.sys(size: 11)).foregroundStyle(PS.fg3).lineLimit(1)
                     }
                     Spacer(minLength: 6)
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(computed?.text ?? "—")
-                            .font(PS.sys(size: 15, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(computed == nil ? PS.fg3 : PS.fg)
+                        Text(computed?.text ?? "Needs weight")
+                            .font(computed == nil ? PS.sys(size: 12, weight: .semibold) : PS.sys(size: 15, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(computed == nil ? PS.accent.opacity(0.8) : PS.fg)
                             .contentTransition(.numericText())
                         HStack(spacing: 4) {
                             if computed?.capped == true { Text("limit").font(PS.mono(size: 9.5)).foregroundStyle(PS.accent) }
