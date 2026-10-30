@@ -381,7 +381,7 @@ test('regurgitation and stenosis intervention', () => {
   eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', thrombus: 'Yes', calcific: 'No', candidate: 'Yes' }).matched[0].id, 'ms-surg');
   eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'No', mr: 'Yes', thrombus: 'No', calcific: 'No', candidate: 'No' }).matched[0].id, 'ms-highrisk');
   eq(ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'Yes', mr: 'No', thrombus: 'No', calcific: 'No', candidate: 'No' })), [], 'MR ≥ 2+ is not suboptimal anatomy');
-  eq(ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'No', mr: 'Yes', thrombus: 'Yes', calcific: 'No', candidate: 'No' })), [], 'LA thrombus: no PMBC');
+  eq(ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'No', mr: 'Yes', thrombus: 'Yes', calcific: 'No', candidate: 'No' })), ['ms-vka'], 'LA thrombus: anticoagulation, no PMBC');
   eq(vi('ms', Object.assign({ sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'I', pasp: 'Yes' }, pmbcOK)).matched[0].id, 'ms-pasp');
   eq(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes', thrombus: 'No' }).matched[0].id, 'ms-ex');
   eq(vi('ms', Object.assign({ calcific: 'Yes', nyha: 'III–IV', sev: 'Severe (MVA ≤ 1.5 cm²)' }, pmbcOK)).matched[0].id, 'ms-mac');
@@ -395,15 +395,30 @@ test('regurgitation and stenosis intervention', () => {
   const trw = vi('tr', { sev: 'Progressive (moderate)', left: 'No', cause: 'Secondary (annular dilation)', rhf: 'No', prior: 'No' });
   eq(trw.matched.length, 0); assert.ok(trw.fallback);
 });
+test('mitral stenosis: anticoagulation with a VKA', () => {
+  const ms = { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'II', calcific: 'No' };
+  const th = vi('ms', Object.assign({ thrombus: 'Yes' }, ms));
+  eq(th.matched.map((r) => [r.id, r.cls, r.level, r.group]), [['ms-vka', '1', 'C-LD', 'Intervention']], 'LA thrombus → VKA');
+  for (const af of ['New onset', 'Longer standing']) assert.ok(ids(vi('ms', Object.assign({ af }, ms))).includes('ms-vka'), af + ' AF → VKA');
+  assert.ok(ids(vi('ms', Object.assign({ embolic: 'Yes' }, ms))).includes('ms-vka'), 'prior embolism → VKA');
+  const none = vi('ms', Object.assign({ thrombus: 'No', af: 'No', embolic: 'No' }, ms));
+  assert.ok(!ids(none).includes('ms-vka') && !none.needed.includes('af'), 'no thrombus, no AF, no embolism → no VKA');
+  assert.ok(!ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'II', calcific: 'Yes', af: 'Longer standing', thrombus: 'Yes' })).includes('ms-vka'), 'for rheumatic MS');
+  eq(ids(vi('ms', Object.assign({ morph: 'Yes', mr: 'Yes', thrombus: 'No', af: 'Longer standing' }, ms))), ['ms-pmbc', 'ms-vka'], 'the procedure leads');
+  const asx = { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'I', morph: 'Yes', mr: 'Yes', thrombus: 'No' };
+  assert.ok(ids(vi('ms', Object.assign({ af: 'New onset' }, asx))).includes('ms-af'));
+  assert.ok(!ids(vi('ms', Object.assign({ af: 'Longer standing' }, asx))).includes('ms-af'), 'ms-af: new onset of AF only');
+});
 test('mitral stenosis: a left atrial thrombus never leads to PMBC', () => {
   let combos = [{}];
   for (const q of R.viQuestions('ms')) combos = combos.flatMap((c) => q.options.map((o) => Object.assign({}, c, { [q.id]: o })));
-  eq(combos.length, 3072);
+  eq(combos.length, 9216);
   let pmbcSeen = 0;
   for (const a of combos) {
     const m = ids(vi('ms', a)), pmbc = vi('ms', a).matched.filter((x) => /PMBC|balloon/.test(x.recommendation));
     pmbcSeen += pmbc.length ? 1 : 0;
     if (a.thrombus === 'Yes') assert.ok(!pmbc.length, 'thrombus led to ' + pmbc.map((x) => x.id) + ' for ' + JSON.stringify(a));
+    if (a.thrombus === 'Yes' && a.calcific === 'No') assert.ok(m.includes('ms-vka'), 'thrombus without VKA for ' + JSON.stringify(a));
     if (a.mr === 'No') assert.ok(!m.includes('ms-highrisk'), 'MR ≥ 2+ led to ms-highrisk for ' + JSON.stringify(a));
     if (m.includes('ms-highrisk')) eq([a.morph, a.mr, a.thrombus], ['No', 'Yes', 'No'], 'ms-highrisk is for suboptimal anatomy only');
   }

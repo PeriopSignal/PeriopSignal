@@ -200,7 +200,8 @@ enum ValveIntervention {
             .yesNo("thrombus", "Left atrial thrombus on TEE", hint: "TEE should be performed in patients considered for PMBC, to assess left atrial thrombus and the severity of MR (class 1, C-LD)"),
             .yesNo("calcific", "Calcific stenosis from annular calcification (non-rheumatic)"),
             .yesNo("pasp", "PA systolic pressure > 50 mmHg"),
-            .yesNo("af", "New-onset atrial fibrillation"),
+            VIQuestion("af", "Atrial fibrillation", ["No", "New onset", "Longer standing"]),
+            .yesNo("embolic", "Prior embolic event"),
             .yesNo("exercise", "Exercise wedge pressure > 25 mmHg or mean gradient > 15 mmHg"),
             .yesNo("surg", "Other cardiac surgery planned, failed PMBC, or no access to PMBC"),
             .yesNo("candidate", "Surgical candidate at acceptable risk"),
@@ -297,10 +298,12 @@ enum ValveIntervention {
                 [severeMS, .q("nyha", "III–IV"), .yes("surg"), .no("calcific"), .yes("candidate")],
             ]),
             VIRule("ms-pasp", "Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable", "PMBC is reasonable", .twoA, "B-NR", when: [[severeMS, .q("nyha", "I"), .yes("pasp"), .yes("morph"), .yes("mr"), .no("thrombus")]]),
-            VIRule("ms-af", "Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable", "PMBC may be considered", .twoB, "C-LD", when: [[severeMS, .q("nyha", "I"), .yes("af"), .yes("morph"), .yes("mr"), .no("thrombus")]]),
+            VIRule("ms-af", "Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable", "PMBC may be considered", .twoB, "C-LD", when: [[severeMS, .q("nyha", "I"), .q("af", "New onset"), .yes("morph"), .yes("mr"), .no("thrombus")]]),
             VIRule("ms-ex", "Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise", "PMBC may be considered", .twoB, "C-LD", when: [[.q("sev", "Not severe (MVA > 1.5 cm²)"), .q("nyha", "II", "III–IV"), .yes("exercise"), .no("thrombus")]]),
             VIRule("ms-highrisk", "NYHA III–IV with suboptimal anatomy, not a surgical candidate or at high risk", "PMBC may be considered", .twoB, "B-NR", when: [[severeMS, .q("nyha", "III–IV"), .no("morph"), .yes("mr"), .no("thrombus"), .no("candidate"), .no("calcific")]]),
             VIRule("ms-mac", "Calcific (non-rheumatic) severe MS from annular calcification with NYHA III–IV", "Intervention only after discussion of its high procedural risk", .twoB, "C-LD", when: [[.yes("calcific"), .q("nyha", "III–IV"), severeMS]]),
+            // Medical therapy, in the intervention group as for secondary MR; listed last so a procedure leads when both apply.
+            VIRule("ms-vka", "Rheumatic MS with atrial fibrillation, a prior embolic event or LA thrombus", "Anticoagulation with a vitamin K antagonist", .one, "C-LD", when: [[.no("calcific"), .yes("thrombus")], [.no("calcific"), .q("af", "New onset", "Longer standing")], [.no("calcific"), .yes("embolic")]]),
             ]
         case .tr: return [
             VIRule("tr-left", "Severe TR (C, D) at left-sided valve surgery", "Tricuspid surgery", .one, "B-NR", when: [[.q("sev", "Severe"), .yes("left")]]),

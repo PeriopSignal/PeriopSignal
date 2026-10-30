@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793390727,
+  "revision": 1793391039,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -588,6 +588,11 @@
               "Calcific (non-rheumatic) severe MS from mitral annular calcification, NYHA III–IV",
               "Intervention only after discussion of its high procedural risk",
               "2b (C-LD)"
+            ],
+            [
+              "Rheumatic MS with AF, a prior embolic event or LA thrombus",
+              "Anticoagulation with a vitamin K antagonist",
+              "1 (C-LD)"
             ]
           ],
           "note": "Severe rheumatic MS: planimetered MVA ≤ 1.5 cm² with pressure half-time ≥ 150 ms; the mean gradient is not a severity criterion because it varies with heart rate and flow."
