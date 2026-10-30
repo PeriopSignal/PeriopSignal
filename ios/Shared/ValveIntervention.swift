@@ -33,12 +33,12 @@ enum VILesion: String, CaseIterable, Identifiable, Hashable {
     /// What "severe" means for this lesion in the guideline.
     var severityNote: String {
         switch self {
-        case .as_: return "Severe: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg (AVA usually ≤ 1.0 cm²); very severe: Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg. Low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4 m/s, confirmed severe by dobutamine stress or calcium scoring."
-        case .ar: return "Severe: vena contracta > 0.6 cm, regurgitant volume ≥ 60 mL, fraction ≥ 50%, EROA ≥ 0.3 cm², holodiastolic flow reversal."
+        case .as_: return "Severe: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg (AVA usually ≤ 1.0 cm²); very severe: Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg. Low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4 m/s and either LVEF < 50% (D2: dobutamine stress) or a stroke volume index < 35 mL/m² at a systolic pressure < 140 (D3); CT calcium score for both."
+        case .ar: return "Severe: vena contracta > 0.6 cm, regurgitant volume ≥ 60 mL, fraction ≥ 50%, EROA ≥ 0.3 cm², holodiastolic flow reversal in the proximal abdominal aorta; chronic severe AR also needs LV dilation."
         case .mrPrimary: return "Severe: vena contracta ≥ 0.7 cm, regurgitant volume ≥ 60 mL, fraction ≥ 50%, EROA ≥ 0.40 cm²; stages C1 (compensated) and C2 (LVEF ≤ 60% or LVESD ≥ 40 mm) are asymptomatic, D symptomatic."
         case .mrSecondary: return "Severe: EROA ≥ 0.40 cm², regurgitant volume ≥ 60 mL, fraction ≥ 50%; 2D PISA underestimates crescentic orifices and the volume runs lower in low-flow states."
         case .ms: return "Severe rheumatic MS: planimetered MVA ≤ 1.5 cm² with pressure half-time ≥ 150 ms; the mean gradient is not a severity criterion."
-        case .tr: return "Severe: vena contracta ≥ 0.7 cm, EROA ≥ 0.40 cm², hepatic vein systolic flow reversal; progressive (stage B): moderate TR."
+        case .tr: return "Severe: vena contracta ≥ 0.7 cm, EROA ≥ 0.40 cm², regurgitant volume ≥ 45 mL, hepatic vein systolic flow reversal; progressive (stage B): mild or moderate TR, below those thresholds."
         }
     }
 }
@@ -63,7 +63,7 @@ struct VICond: Hashable {
     static func no(_ id: String) -> VICond { VICond(question: id, any: ["No"]) }
 }
 
-/// Class of recommendation, as the guideline prints it; class 3 comes in two kinds (Table 2, e37).
+/// Class of recommendation, as the guideline prints it; class 3 comes in two kinds (Table 2, e79).
 enum VIClass: String, Hashable, Comparable {
     case one = "1", twoA = "2a", twoB = "2b", threeNoBenefit = "3: No Benefit", threeHarm = "3: Harm"
     private var order: Int { switch self { case .one: return 0; case .twoA: return 1; case .twoB: return 2; case .threeNoBenefit: return 3; case .threeHarm: return 4 } }
@@ -128,21 +128,23 @@ enum ValveIntervention {
     static let age = VIQuestion("age", "Age", ["< 50", "50–64", "65–80", "> 80"])
     static let anticoag = VIQuestion.yesNo("anticoag", "Long-term anticoagulation possible and acceptable", hint: "Indications for and risks of a vitamin K antagonist, and the patient's preference")
     static let position = VIQuestion("position", "Valve position", ["Aortic", "Mitral"])
+    /// e110 recs 1 and 2: with a bicuspid valve the aorta has its own thresholds, whatever the valve.
+    static let bicuspidAortaHint = "With a bicuspid valve: above 5.5 cm, replacing the sinuses or ascending aorta is recommended whatever the valve (class 1, B-NR); at 5.0–5.5 cm with a risk factor for dissection it is reasonable at a Comprehensive Valve Center (2a, B-NR)"
 
     static func questions(for lesion: VILesion) -> [VIQuestion] {
         switch lesion {
         case .as_: return [
-            VIQuestion("sev", "Severity on echo", ["Moderate", "Severe", "Very severe", "Low-flow, low-gradient"], hint: "Moderate Vmax 3–3.9 m/s · severe ≥ 4 · very severe ≥ 5 · low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4"),
+            VIQuestion("sev", "Severity on echo", ["Moderate", "Severe", "Very severe", "Low-flow, low-gradient"], hint: "Moderate Vmax 3–3.9 m/s · severe ≥ 4 · very severe ≥ 5 · low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4, and LVEF < 50% (D2) or a stroke volume index < 35 mL/m² at a systolic pressure < 140 (D3)"),
             .yesNo("sx", "Symptoms attributable to the stenosis", hint: "Exertional dyspnea, heart failure, angina, syncope or presyncope; an exercise test settles doubtful cases, but should not be performed in symptomatic severe AS (class 3: Harm, B-NR)"),
             VIQuestion("ef", "LVEF", ["≥ 60%", "50–59%", "< 50%"]),
             .yesNo("surg", "Other cardiac surgery planned"),
-            VIQuestion("risk", "Surgical risk", ["Low", "Intermediate", "High or prohibitive"], hint: "Low: STS < 3%, no frailty, no major organ compromise; high: STS > 8%, ≥ 2 frailty indices or 1–2 uncorrectable organ systems"),
+            VIQuestion("risk", "Surgical risk", ["Low", "Intermediate", "High or prohibitive"], hint: "Table 8: low (all of) STS < 3%, no frailty, no major organ compromise, no procedure-specific impediment; high (any of) STS > 8%, 1 frailty index, 1–2 uncorrectable organ systems or a possible impediment; prohibitive (any of) death or major morbidity > 50% at 30 days, ≥ 2 frailty indices, ≥ 3 organ systems or a severe impediment; intermediate is neither low nor high"),
             age,
             .yesNo("markers", "Abnormal exercise test, BNP > 3× normal, or Vmax rising ≥ 0.3 m/s a year", hint: "Reduced exercise tolerance or a systolic pressure fall ≥ 10 mmHg on exercise testing"),
             .yesNo("effall", "LVEF fallen below 60% on three or more serial studies"),
             .yesNo("tf", "Transfemoral anatomy suitable for TAVI"),
             .yesNo("bicuspid", "Bicuspid valve"),
-            .yesNo("aorta", "Aortic sinuses or ascending aorta ≥ 4.5 cm"),
+            .yesNo("aorta", "Aortic sinuses or ascending aorta ≥ 4.5 cm", hint: bicuspidAortaHint),
             .yesNo("cad", "Complex coronary disease: bifurcation left main and/or multivessel, SYNTAX score > 33", hint: "Significant stenosis: luminal reduction > 70%, FFR < 0.8 or iFR < 0.89"),
             .yesNo("survival", "Expected survival after intervention over 12 months with acceptable quality of life"),
             .yesNo("critical", "Critically ill"),
@@ -158,7 +160,7 @@ enum ValveIntervention {
             VIQuestion("risk", "Surgical risk", ["Low", "Not low"]),
             .yesNo("effall", "LVEF drifting into 55–60% on three or more serial studies"),
             .yesNo("bicuspid", "Bicuspid valve"),
-            .yesNo("aorta", "Aortic sinuses or ascending aorta ≥ 4.5 cm"),
+            .yesNo("aorta", "Aortic sinuses or ascending aorta ≥ 4.5 cm", hint: bicuspidAortaHint),
             .yesNo("candidate", "Surgical candidate"),
             age,
             anticoag,
@@ -207,7 +209,7 @@ enum ValveIntervention {
             .yesNo("candidate", "Surgical candidate at acceptable risk"),
         ]
         case .tr: return [
-            VIQuestion("sev", "Severity on echo", ["Progressive (moderate)", "Severe"]),
+            VIQuestion("sev", "Severity on echo", ["Progressive (moderate)", "Severe"], hint: "Progressive (stage B) covers mild or moderate TR, below the severe thresholds"),
             VIQuestion("cause", "Mechanism", ["Primary (leaflet)", "Secondary (annular dilation)"]),
             .yesNo("left", "Left-sided valve surgery planned"),
             .yesNo("annulus", "Annular dilation (end-diastolic diameter > 4.0 cm) or prior right-sided heart failure"),
@@ -231,8 +233,8 @@ enum ValveIntervention {
             VIRule("as-d1", "Symptomatic severe high-gradient AS (stage D1)", "Aortic valve replacement", .one, "A", when: [[.yes("sx"), severe]]),
             VIRule("as-c2", "Asymptomatic severe AS with LVEF < 50% (C2)", "Aortic valve replacement", .one, "B-NR", when: [[.no("sx"), severe, .q("ef", "< 50%")]]),
             VIRule("as-surg", "Asymptomatic severe AS having other cardiac surgery (C1)", "Aortic valve replacement", .one, "B-NR", when: [[.no("sx"), severe, .yes("surg")]]),
-            VIRule("as-d2", "Symptomatic low-flow, low-gradient AS with LVEF < 50% (D2)", "Aortic valve replacement", .one, "B-NR", when: [[.yes("sx"), .q("sev", "Low-flow, low-gradient"), .q("ef", "< 50%")]], note: "D2 means true severe stenosis on low-dose dobutamine stress echo: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg with AVA ≤ 1.0 cm² at any flow."),
-            VIRule("as-d3", "Symptomatic low-flow, low-gradient AS with LVEF ≥ 50% (D3)", "Aortic valve replacement when the stenosis is the most likely cause of the symptoms", .one, "B-NR", when: [[.yes("sx"), .q("sev", "Low-flow, low-gradient"), .q("ef", "≥ 60%", "50–59%")]], note: "Paradoxical low-flow AS: confirm the small stroke volume by another technique and the severity by calcium scoring before attributing the symptoms to the valve."),
+            VIRule("as-d2", "Symptomatic low-flow, low-gradient AS with LVEF < 50% (D2)", "Aortic valve replacement", .one, "B-NR", when: [[.yes("sx"), .q("sev", "Low-flow, low-gradient"), .q("ef", "< 50%")]], note: "D2 is confirmed when low-dose dobutamine stress echo (up to 20 mcg/kg/min) shows Vmax ≥ 4 m/s with AVA ≤ 1.0 cm² at any flow rate."),
+            VIRule("as-d3", "Symptomatic low-flow, low-gradient AS with LVEF ≥ 50% (D3)", "Aortic valve replacement when the stenosis is the most likely cause of the symptoms", .one, "B-NR", when: [[.yes("sx"), .q("sev", "Low-flow, low-gradient"), .q("ef", "≥ 60%", "50–59%")]], note: "D3: control the blood pressure first and grade at a systolic pressure under 140 mmHg (class 1, B-NR); then AVA ≤ 1.0 cm² (indexed ≤ 0.6 cm²/m²) with a stroke volume index under 35 mL/m², confirmed by another technique, the CT calcium score (2a), and other causes of the symptoms excluded."),
             VIRule("as-2a", "Asymptomatic severe AS, low surgical risk, with an abnormal exercise test, BNP > 3× normal or rapid progression (C1)", "Aortic valve replacement is reasonable", .twoA, "B-NR", when: [[.no("sx"), severe, .q("risk", "Low"), .yes("markers")]]),
             VIRule("as-vs", "Asymptomatic very severe AS (Vmax ≥ 5 m/s), low surgical risk", "Aortic valve replacement is reasonable", .twoA, "B-R", when: [[.no("sx"), .q("sev", "Very severe"), .q("risk", "Low")]]),
             VIRule("as-2b", "Asymptomatic severe AS with LVEF fallen below 60% on three or more serial studies", "Aortic valve replacement may be considered", .twoB, "B-NR", when: [[.no("sx"), severe, .yes("effall")]]),
@@ -272,7 +274,7 @@ enum ValveIntervention {
             VIRule("mr-c1", "Asymptomatic severe MR with LVEF > 60% and LVESD < 40 mm (C1), a durable repair likely", "Mitral repair is reasonable at a Primary or Comprehensive Valve Center", .twoA, "B-NR", when: [[.q("sev", "Severe"), .no("sx"), .q("ef", "> 60%"), .no("lvesd"), .yes("durable")]]),
             VIRule("mr-c1-serial", "C1 with the LV enlarging or LVEF falling on serial studies", "Mitral surgery may be considered", .twoB, "C-LD", when: [[.q("sev", "Severe"), .no("sx"), .q("ef", "> 60%"), .no("lvesd"), .yes("serial")]]),
             VIRule("mr-teer", "Symptomatic severe primary MR, NYHA III–IV, high or prohibitive surgical risk, favorable anatomy, life expectancy at least a year", "Transcatheter edge-to-edge repair is reasonable", .twoA, "B-NR", when: [[.q("sev", "Severe"), .yes("sx"), .q("nyha", "III–IV"), .q("risk", "High or prohibitive"), .yes("anatomy")]]),
-            VIRule("mr-repair", "Surgery for degenerative disease", "Repair rather than replacement whenever a durable repair is possible", .one, "B-NR", group: .procedure, when: [[.q("sev", "Severe"), .no("rheumatic")]]),
+            VIRule("mr-repair", "Surgery for degenerative disease", "Repair rather than replacement whenever a durable repair is possible", .one, "B-NR", group: .procedure, when: [[.q("sev", "Severe"), .no("rheumatic")]], note: "Intraoperative TEE is indicated to establish the anatomic basis of the MR and to guide the repair (class 1, B-NR)."),
             VIRule("mr-posterior", "Pathology limited to less than half of the posterior leaflet", "Replacement should not be done unless repair was attempted at a valve center and failed", .threeHarm, "B-NR", group: .procedure, when: [[.yes("posterior")]]),
             VIRule("mr-rheum", "Symptomatic rheumatic severe primary MR with surgery indicated", "Repair may be considered at a Comprehensive Valve Center by an experienced team, if a durable and successful repair is likely", .twoB, "B-NR", group: .procedure, when: [[.yes("rheumatic"), .q("sev", "Severe"), .yes("sx")]]),
             ]
@@ -299,10 +301,10 @@ enum ValveIntervention {
             ]),
             VIRule("ms-pasp", "Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable", "PMBC is reasonable", .twoA, "B-NR", when: [[severeMS, .q("nyha", "I"), .yes("pasp"), .yes("morph"), .yes("mr"), .no("thrombus"), .no("calcific")]]),
             VIRule("ms-af", "Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable", "PMBC may be considered", .twoB, "C-LD", when: [[severeMS, .q("nyha", "I"), .q("af", "New onset"), .yes("morph"), .yes("mr"), .no("thrombus"), .no("calcific")]]),
-            VIRule("ms-ex", "Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise", "PMBC may be considered", .twoB, "C-LD", when: [[.q("sev", "Not severe (MVA > 1.5 cm²)"), .q("nyha", "II", "III–IV"), .yes("exercise"), .no("thrombus"), .no("calcific")]]),
+            VIRule("ms-ex", "Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise, PMBC-suitable", "PMBC may be considered", .twoB, "C-LD", when: [[.q("sev", "Not severe (MVA > 1.5 cm²)"), .q("nyha", "II", "III–IV"), .yes("exercise"), .yes("morph"), .yes("mr"), .no("thrombus"), .no("calcific")]]),
             VIRule("ms-highrisk", "NYHA III–IV with suboptimal anatomy, not a surgical candidate or at high risk", "PMBC may be considered", .twoB, "B-NR", when: [[severeMS, .q("nyha", "III–IV"), .no("morph"), .yes("mr"), .no("thrombus"), .no("candidate"), .no("calcific")]]),
             VIRule("ms-mac", "Calcific (non-rheumatic) severe MS from annular calcification with NYHA III–IV", "Intervention only after discussion of its high procedural risk", .twoB, "C-LD", when: [[.yes("calcific"), .q("nyha", "III–IV"), severeMS]]),
-            // Medical therapy (e42, §6.2.2 rec 1): its own group, never the headline, and it does not replace the
+            // Medical therapy (e115, §6.2.2 rec 1): its own group, never the headline, and it does not replace the
             // surveillance answer when no intervention criterion is met.
             VIRule("ms-vka", "Rheumatic MS with atrial fibrillation, a prior embolic event or LA thrombus", "Anticoagulation with a vitamin K antagonist", .one, "C-LD", group: .medical, when: [[.no("calcific"), .yes("thrombus")], [.no("calcific"), .q("af", "New onset", "Longer standing")], [.no("calcific"), .yes("embolic")]]),
             ]
@@ -326,14 +328,14 @@ enum ValveIntervention {
         ]
         if position == "Aortic" {
             r += [
-                VIRule("pr-ao-young", "Aortic valve, age under 50, anticoagulation acceptable", "Mechanical prosthesis is reasonable", .twoA, "B-NR", group: .prosthesis, when: [[.q("age", "< 50"), .yes("anticoag")] + also]),
+                VIRule("pr-ao-young", "Aortic valve, age under 50, anticoagulation acceptable", "Mechanical prosthesis is reasonable", .twoA, "B-NR", group: .prosthesis, when: [[.q("age", "< 50"), .yes("anticoag")] + also], note: "In women of childbearing age, bioprosthetic valves are preferred (2a, B-NR), given the maternal and fetal risks of mechanical valves in pregnancy."),
                 VIRule("pr-ao-ross", "Aortic valve, age under 50, a bioprosthesis preferred", "The Ross procedure (pulmonary autograft) may be considered at a Comprehensive Valve Center if the anatomy is appropriate", .twoB, "B-NR", group: .prosthesis, when: [[.q("age", "< 50"), .no("anticoag")] + also]),
                 VIRule("pr-ao-mid", "Aortic valve, age 50–65", "Either prosthesis, individualized", .twoA, "B-NR", group: .prosthesis, when: [[.q("age", "50–64"), .yes("anticoag")] + also]),
                 VIRule("pr-ao-old", "Aortic valve, age over 65", "Bioprosthesis is reasonable", .twoA, "B-NR", group: .prosthesis, when: [[.q("age", "65–80", "> 80")] + also], note: "At age 65 the 50–65 band applies: without a contraindication to anticoagulation, the choice is individualized."),
             ]
         } else {
             r += [
-                VIRule("pr-mi-young", "Mitral valve, age under 65, anticoagulation acceptable, repair not possible", "Mechanical prosthesis is reasonable", .twoA, "B-NR", group: .prosthesis, when: [[.q("age", "< 50", "50–64"), .yes("anticoag")] + also]),
+                VIRule("pr-mi-young", "Mitral valve, age under 65, anticoagulation acceptable, repair not possible", "Mechanical prosthesis is reasonable", .twoA, "B-NR", group: .prosthesis, when: [[.q("age", "< 50", "50–64"), .yes("anticoag")] + also], note: "In women of childbearing age, bioprosthetic valves are preferred (2a, B-NR), given the maternal and fetal risks of mechanical valves in pregnancy."),
                 VIRule("pr-mi-old", "Mitral valve, age 65 or over, repair not possible", "Bioprosthesis is reasonable", .twoA, "B-NR", group: .prosthesis, when: [[.q("age", "65–80", "> 80")] + also]),
             ]
         }
@@ -376,7 +378,10 @@ enum ValveIntervention {
         // only matter once an intervention is indicated.
         all.filter { $0.group == .intervene || $0.group == .medical }.forEach(consider)
         if matched.contains(where: { $0.group == .intervene && !$0.cls.isAgainst }) {
-            all.filter { $0.group == .procedure || $0.group == .prosthesis }.forEach(consider)
+            // TEER is for patients at high or prohibitive surgical risk; the prosthesis choice is for those having the
+            // valve replaced (e126; e139 recs 6 and 7), so it is not offered beside TEER.
+            let teer = matched.contains { $0.id == "mr-teer" }
+            all.filter { $0.group == .procedure || ($0.group == .prosthesis && !teer) }.forEach(consider)
         }
         matched.sort { a, b in
             if a.group != b.group { return VIGroup.allCases.firstIndex(of: a.group)! < VIGroup.allCases.firstIndex(of: b.group)! }
@@ -389,11 +394,18 @@ enum ValveIntervention {
         return VIResult(matched: matched, needed: neededOrdered, fallback: fallback)
     }
 
-    /// What the guideline says when no intervention criterion is met (its surveillance intervals, Table 4).
+    static let asLowFlowSurveillance = "No intervention criterion met yet: low-flow, low-gradient AS is graded before a surveillance interval applies (the Table 5 intervals assume a normal stroke volume). With LVEF under 50%, low-dose dobutamine stress echo (D2); with LVEF 50% or more, control the blood pressure, confirm the low stroke volume and use the CT calcium score (D3)."
+    static let asModerateSymptoms = "No intervention criterion met: moderate AS with symptoms. Look for another cause of the symptoms and for low-flow severe AS (D2 or D3); the Table 5 interval, echo every 1–2 years, is for patients without symptoms."
+    static let msSymptomsSurveillance = "No intervention criterion met for a patient with symptoms: the Table 5 intervals are for patients without them. Reassess the valve, with an exercise study when symptoms and the resting findings disagree, and treat AF with rate control and anticoagulation."
+
+    /// What the guideline says when no intervention criterion is met (its surveillance intervals, Table 5, e81, which
+    /// are for patients without symptoms; for AS, with a normal stroke volume).
     static func surveillance(_ lesion: VILesion, _ answers: [String: String]) -> String {
         let sev = answers["sev"] ?? ""
         switch lesion {
         case .as_:
+            if sev == "Low-flow, low-gradient" { return asLowFlowSurveillance }
+            if sev == "Moderate" && answers["sx"] == "Yes" { return asModerateSymptoms }
             if sev == "Moderate" { return "No intervention criterion met: stage B. Echo every 1–2 years for moderate AS (Vmax 3–3.9 m/s); treat hypertension; reassess with any symptom." }
             return "No intervention criterion met: stage C1. Echo every 6–12 months for severe AS; an exercise test is reasonable to confirm the absence of symptoms; any symptom changes the answer."
         case .ar:
@@ -405,7 +417,8 @@ enum ValveIntervention {
         case .mrSecondary:
             return "No intervention criterion met: optimize heart-failure therapy (and revascularization or resynchronization where indicated) and reassess the regurgitation once the ventricle has responded."
         case .ms:
-            return "No intervention criterion met. Echo every 3–5 years for progressive MS (MVA > 1.5 cm²), every 1–2 years for severe (MVA 1.0–1.5 cm²) and yearly for very severe (MVA < 1.0 cm²); rate control and anticoagulation for AF, and an exercise study when symptoms and the resting findings disagree."
+            if answers["nyha"] == "II" || answers["nyha"] == "III–IV" { return msSymptomsSurveillance }
+            return "No intervention criterion met. Echo every 3–5 years for progressive MS (MVA > 1.5 cm²), every 1–2 years for severe (MVA 1.0–1.5 cm²) and yearly for MVA < 1.0 cm²; rate control and anticoagulation for AF, and an exercise study when symptoms and the resting findings disagree."
         case .tr:
             return "No intervention criterion met. Treat the cause (left-sided disease, pulmonary hypertension, volume overload) with diuretics for right-sided congestion, and operate before severe RV dysfunction or end-organ damage sets in."
         }

@@ -348,7 +348,9 @@ test('prosthesis choice', () => {
   assert.ok(old.note && old.note.includes('At age 65 the 50–65 band applies'));
   // mitral: only when repair is not possible
   const teer = vi('mrPrimary', { sev: 'Severe', sx: 'Yes', nyha: 'III–IV', risk: 'High or prohibitive', anatomy: 'Yes', rheumatic: 'No', age: '50–64', anticoag: 'Yes' });
-  assert.ok(!ids(teer).some((x) => x.startsWith('pr-')) && teer.needed.includes('replace'));
+  assert.ok(!ids(teer).some((x) => x.startsWith('pr-')) && !teer.needed.includes('replace'), 'no prosthesis choice beside TEER (e126)');
+  assert.ok(!ids(vi('mrPrimary', { sev: 'Severe', sx: 'Yes', nyha: 'III–IV', risk: 'High or prohibitive', anatomy: 'Yes', rheumatic: 'No', age: '50–64', anticoag: 'Yes', replace: 'Yes' })).some((x) => x.startsWith('pr-')), 'not even with replacement answered');
+  assert.ok(ids(vi('mrPrimary', { sev: 'Severe', sx: 'Yes', nyha: 'III–IV', risk: 'High or prohibitive', anatomy: 'No', rheumatic: 'No', age: '50–64', anticoag: 'Yes', replace: 'Yes' })).includes('pr-mi-young'), 'high risk without TEER anatomy still gets the prosthesis choice');
   const base = { sev: 'Severe', sx: 'Yes', rheumatic: 'No' };
   assert.ok(!ids(vi('mrPrimary', Object.assign({ age: '50–64', anticoag: 'Yes', replace: 'No' }, base))).some((x) => x.startsWith('pr-')));
   assert.ok(!ids(vi('mrPrimary', Object.assign({ age: '65–80', anticoag: 'No', replace: 'No' }, base))).some((x) => x.startsWith('pr-')));
@@ -389,8 +391,9 @@ test('regurgitation and stenosis intervention', () => {
   eq(ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'Yes', mr: 'No', thrombus: 'No', calcific: 'No', candidate: 'No' })), [], 'MR ≥ 2+ is not suboptimal anatomy');
   eq(ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'No', mr: 'Yes', thrombus: 'Yes', calcific: 'No', candidate: 'No' })), ['ms-vka'], 'LA thrombus: anticoagulation, no PMBC');
   eq(vi('ms', Object.assign({ sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'I', pasp: 'Yes', calcific: 'No' }, pmbcOK)).matched[0].id, 'ms-pasp');
-  eq(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes', thrombus: 'No', calcific: 'No' }).matched[0].id, 'ms-ex');
-  assert.ok(!ids(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes', thrombus: 'No', calcific: 'Yes' })).includes('ms-ex'), 'calcific MS: no PMBC');
+  eq(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes', morph: 'Yes', mr: 'Yes', thrombus: 'No', calcific: 'No' }).matched[0].id, 'ms-ex');
+  assert.ok(!ids(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes', morph: 'No', mr: 'Yes', thrombus: 'No', calcific: 'No' })).includes('ms-ex'), 'ms-ex: favorable morphology (Figure 7, e117)');
+  assert.ok(!ids(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes', morph: 'Yes', mr: 'Yes', thrombus: 'No', calcific: 'Yes' })).includes('ms-ex'), 'calcific MS: no PMBC');
   eq(vi('ms', Object.assign({ calcific: 'Yes', nyha: 'III–IV', sev: 'Severe (MVA ≤ 1.5 cm²)' }, pmbcOK)).matched[0].id, 'ms-mac');
   assert.ok(!ids(vi('ms', { calcific: 'Yes', nyha: 'III–IV', sev: 'Not severe (MVA > 1.5 cm²)', exercise: 'No' })).includes('ms-mac'), 'MAC: severe MS only');
   assert.ok(R.viQuestions('ms').find((q) => q.id === 'thrombus').hint.includes('class 1, C-LD'), 'TEE before PMBC');
@@ -420,6 +423,14 @@ test('mitral stenosis: anticoagulation with a VKA', () => {
   eq(ids(alone), ['ms-vka']); assert.ok(alone.fallback && alone.fallback.startsWith('No intervention criterion met'), 'surveillance stays, VKA listed under it');
   const both = vi('ms', Object.assign({ pasp: 'Yes', af: 'Longer standing' }, asx));
   eq(ids(both), ['ms-pasp', 'ms-vka']); eq(both.matched.find((r) => r.group === 'Intervention').id, 'ms-pasp', 'the 2a procedure leads');
+});
+test('surveillance only where Table 5 applies (asymptomatic; AS with a normal stroke volume)', () => {
+  assert.ok(vi('as', { sev: 'Low-flow, low-gradient', sx: 'No' }).fallback.startsWith('No intervention criterion met yet: low-flow, low-gradient AS is graded'));
+  assert.ok(vi('as', { sev: 'Moderate', sx: 'Yes', surg: 'No' }).fallback.startsWith('No intervention criterion met: moderate AS with symptoms.'));
+  assert.ok(vi('as', { sev: 'Moderate', sx: 'No', surg: 'No' }).fallback.startsWith('No intervention criterion met: stage B.'));
+  assert.ok(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'II', calcific: 'No', morph: 'No' }).fallback.startsWith('No intervention criterion met for a patient with symptoms'));
+  const msAsx = vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'I', calcific: 'No' }).fallback;
+  assert.ok(msAsx.includes('yearly for MVA < 1.0 cm²') && !msAsx.includes('very severe'));
 });
 test('mitral stenosis: a left atrial thrombus never leads to PMBC', () => {
   let combos = [{}];

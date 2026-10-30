@@ -234,7 +234,7 @@
             ],
             [
               "Surgical risk",
-              "Low: STS predicted mortality < 3% for AVR (< 1% for mitral repair), no frailty, no major organ compromise, no procedure-specific impediment. High: STS > 8%, ≥ 2 frailty indices, or 1–2 uncorrectable organ systems. Prohibitive: predicted 1-year death or major morbidity > 50%, ≥ 3 organ systems, or a severe impediment."
+              "Low (all of): STS predicted mortality < 3% for AVR (< 1% for mitral repair), no frailty, no major organ compromise, no procedure-specific impediment. High (any of): STS > 8%, 1 frailty index (moderate to severe), 1–2 uncorrectable organ systems, or a possible procedure-specific impediment. Prohibitive (any of): predicted death or major morbidity > 50% at 30 days, ≥ 2 frailty indices, ≥ 3 organ systems, or a severe impediment (Table 8)."
             ],
             [
               "Heart Valve Team",
@@ -243,6 +243,14 @@
             [
               "Noncardiac surgery",
               "In patients who meet standard indications for intervention (replacement and repair) on the basis of symptoms and disease severity, intervention should be performed before elective noncardiac surgery to reduce perioperative risk if possible, depending on the urgency and risk of the noncardiac procedure (Class 1, C-EO)."
+            ],
+            [
+              "Echo before noncardiac surgery",
+              "With clinically suspected moderate or greater valve stenosis or regurgitation, preoperative echocardiography is recommended (Class 1, C-EO)."
+            ],
+            [
+              "Asymptomatic, no indication",
+              "Elective noncardiac surgery is reasonable (Class 2a) without symptoms and with moderate or greater AS and normal LV systolic function (B-R); rheumatic MS with a PA systolic pressure < 50 mmHg (C-EO); MR with normal LV systolic function and a PA systolic pressure < 50 mmHg (C-LD); or AR with normal LV systolic function (C-LD)."
             ]
           ]
         },
@@ -368,7 +376,7 @@
               "2a (C-LD)"
             ]
           ],
-          "note": "Factors favoring SAVR: bicuspid valve, LVOT calcification, rheumatic disease, very small or large annulus, mechanical valve preferred, aortic dilation, severe primary MR, CAD needing bypass, septal hypertrophy, low coronary ostia or no transfemoral access, at-risk grafts, prior chest irradiation. Favoring TAVI: calcific trileaflet stenosis, AF, porcelain aorta, irreversible severe LV dysfunction, severe lung, liver or kidney disease, frailty likely to improve."
+          "note": "Factors favoring SAVR: bicuspid valve, LVOT calcification, rheumatic disease, small or large annulus, mechanical valve preferred, aortic dilation, severe primary MR, CAD needing bypass, septal hypertrophy, AF, low coronary ostia or no transfemoral access. Favoring TAVI: calcific trileaflet stenosis, porcelain aorta, previous cardiac surgery with at-risk coronary grafts, prior chest irradiation, severe lung, liver or kidney disease, frailty likely to improve. Favoring palliation: irreversible severe LV systolic dysfunction (Table 14)."
         },
         {
           "heading": "Aortic Regurgitation",

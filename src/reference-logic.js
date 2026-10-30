@@ -705,31 +705,33 @@
 
   // ---------- Valve intervention, 2020 ACC/AHA (ValveIntervention.swift) ----------
   R.viLesions = [
-    { id: 'as', name: 'Aortic stenosis', short: 'AS', severity: 'Severe: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg (AVA usually ≤ 1.0 cm²); very severe: Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg. Low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4 m/s, confirmed severe by dobutamine stress or calcium scoring.' },
-    { id: 'ar', name: 'Aortic regurgitation', short: 'AR', severity: 'Severe: vena contracta > 0.6 cm, regurgitant volume ≥ 60 mL, fraction ≥ 50%, EROA ≥ 0.3 cm², holodiastolic flow reversal.' },
+    { id: 'as', name: 'Aortic stenosis', short: 'AS', severity: 'Severe: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg (AVA usually ≤ 1.0 cm²); very severe: Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg. Low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4 m/s and either LVEF < 50% (D2: dobutamine stress) or a stroke volume index < 35 mL/m² at a systolic pressure < 140 (D3); CT calcium score for both.' },
+    { id: 'ar', name: 'Aortic regurgitation', short: 'AR', severity: 'Severe: vena contracta > 0.6 cm, regurgitant volume ≥ 60 mL, fraction ≥ 50%, EROA ≥ 0.3 cm², holodiastolic flow reversal in the proximal abdominal aorta; chronic severe AR also needs LV dilation.' },
     { id: 'mrPrimary', name: 'Primary mitral regurgitation', short: 'Primary MR', severity: 'Severe: vena contracta ≥ 0.7 cm, regurgitant volume ≥ 60 mL, fraction ≥ 50%, EROA ≥ 0.40 cm²; stages C1 (compensated) and C2 (LVEF ≤ 60% or LVESD ≥ 40 mm) are asymptomatic, D symptomatic.' },
     { id: 'mrSecondary', name: 'Secondary mitral regurgitation', short: 'Secondary MR', severity: 'Severe: EROA ≥ 0.40 cm², regurgitant volume ≥ 60 mL, fraction ≥ 50%; 2D PISA underestimates crescentic orifices and the volume runs lower in low-flow states.' },
     { id: 'ms', name: 'Mitral stenosis', short: 'MS', severity: 'Severe rheumatic MS: planimetered MVA ≤ 1.5 cm² with pressure half-time ≥ 150 ms; the mean gradient is not a severity criterion.' },
-    { id: 'tr', name: 'Tricuspid regurgitation', short: 'TR', severity: 'Severe: vena contracta ≥ 0.7 cm, EROA ≥ 0.40 cm², hepatic vein systolic flow reversal; progressive (stage B): moderate TR.' },
+    { id: 'tr', name: 'Tricuspid regurgitation', short: 'TR', severity: 'Severe: vena contracta ≥ 0.7 cm, EROA ≥ 0.40 cm², regurgitant volume ≥ 45 mL, hepatic vein systolic flow reversal; progressive (stage B): mild or moderate TR, below those thresholds.' },
   ];
   const Q = (id, label, options, hint) => ({ id, label, options, hint: hint || null });
   const YN = (id, label, hint) => Q(id, label, ['Yes', 'No'], hint);
   const AGE = Q('age', 'Age', ['< 50', '50–64', '65–80', '> 80']);
+  // e110 recs 1 and 2: with a bicuspid valve the aorta has its own thresholds, whatever the valve.
+  const BICUSPID_AORTA_HINT = 'With a bicuspid valve: above 5.5 cm, replacing the sinuses or ascending aorta is recommended whatever the valve (class 1, B-NR); at 5.0–5.5 cm with a risk factor for dissection it is reasonable at a Comprehensive Valve Center (2a, B-NR)';
   const ANTICOAG = YN('anticoag', 'Long-term anticoagulation possible and acceptable', 'Indications for and risks of a vitamin K antagonist, and the patient\'s preference');
   R.viQuestions = function (lesion) {
     switch (lesion) {
       case 'as': return [
-        Q('sev', 'Severity on echo', ['Moderate', 'Severe', 'Very severe', 'Low-flow, low-gradient'], 'Moderate Vmax 3–3.9 m/s · severe ≥ 4 · very severe ≥ 5 · low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4'),
+        Q('sev', 'Severity on echo', ['Moderate', 'Severe', 'Very severe', 'Low-flow, low-gradient'], 'Moderate Vmax 3–3.9 m/s · severe ≥ 4 · very severe ≥ 5 · low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4, and LVEF < 50% (D2) or a stroke volume index < 35 mL/m² at a systolic pressure < 140 (D3)'),
         YN('sx', 'Symptoms attributable to the stenosis', 'Exertional dyspnea, heart failure, angina, syncope or presyncope; an exercise test settles doubtful cases, but should not be performed in symptomatic severe AS (class 3: Harm, B-NR)'),
         Q('ef', 'LVEF', ['≥ 60%', '50–59%', '< 50%']),
         YN('surg', 'Other cardiac surgery planned'),
-        Q('risk', 'Surgical risk', ['Low', 'Intermediate', 'High or prohibitive'], 'Low: STS < 3%, no frailty, no major organ compromise; high: STS > 8%, ≥ 2 frailty indices or 1–2 uncorrectable organ systems'),
+        Q('risk', 'Surgical risk', ['Low', 'Intermediate', 'High or prohibitive'], 'Table 8: low (all of) STS < 3%, no frailty, no major organ compromise, no procedure-specific impediment; high (any of) STS > 8%, 1 frailty index, 1–2 uncorrectable organ systems or a possible impediment; prohibitive (any of) death or major morbidity > 50% at 30 days, ≥ 2 frailty indices, ≥ 3 organ systems or a severe impediment; intermediate is neither low nor high'),
         AGE,
         YN('markers', 'Abnormal exercise test, BNP > 3× normal, or Vmax rising ≥ 0.3 m/s a year', 'Reduced exercise tolerance or a systolic pressure fall ≥ 10 mmHg on exercise testing'),
         YN('effall', 'LVEF fallen below 60% on three or more serial studies'),
         YN('tf', 'Transfemoral anatomy suitable for TAVI'),
         YN('bicuspid', 'Bicuspid valve'),
-        YN('aorta', 'Aortic sinuses or ascending aorta ≥ 4.5 cm'),
+        YN('aorta', 'Aortic sinuses or ascending aorta ≥ 4.5 cm', BICUSPID_AORTA_HINT),
         YN('cad', 'Complex coronary disease: bifurcation left main and/or multivessel, SYNTAX score > 33', 'Significant stenosis: luminal reduction > 70%, FFR < 0.8 or iFR < 0.89'),
         YN('survival', 'Expected survival after intervention over 12 months with acceptable quality of life'),
         YN('critical', 'Critically ill'),
@@ -745,7 +747,7 @@
         Q('risk', 'Surgical risk', ['Low', 'Not low']),
         YN('effall', 'LVEF drifting into 55–60% on three or more serial studies'),
         YN('bicuspid', 'Bicuspid valve'),
-        YN('aorta', 'Aortic sinuses or ascending aorta ≥ 4.5 cm'),
+        YN('aorta', 'Aortic sinuses or ascending aorta ≥ 4.5 cm', BICUSPID_AORTA_HINT),
         YN('candidate', 'Surgical candidate'),
         AGE,
         ANTICOAG,
@@ -794,7 +796,7 @@
         YN('candidate', 'Surgical candidate at acceptable risk'),
       ];
       case 'tr': return [
-        Q('sev', 'Severity on echo', ['Progressive (moderate)', 'Severe']),
+        Q('sev', 'Severity on echo', ['Progressive (moderate)', 'Severe'], 'Progressive (stage B) covers mild or moderate TR, below the severe thresholds'),
         Q('cause', 'Mechanism', ['Primary (leaflet)', 'Secondary (annular dilation)']),
         YN('left', 'Left-sided valve surgery planned'),
         YN('annulus', 'Annular dilation (end-diastolic diameter > 4.0 cm) or prior right-sided heart failure'),
@@ -811,7 +813,7 @@
   const C = (question, ...values) => ({ question, any: values });
   const yes = (q) => C(q, 'Yes'), no = (q) => C(q, 'No');
   const rule = (id, situation, recommendation, cls, level, when, extra) => Object.assign({ id, group: 'Intervention', situation, recommendation, cls, level, when, note: null }, extra || {});
-  // Class of recommendation as the guideline prints it; class 3 comes in two kinds, with Table 2's phrases (e37).
+  // Class of recommendation as the guideline prints it; class 3 comes in two kinds, with Table 2's phrases (e79).
   const CLASS_WORD = { '1': 'Recommended', '2a': 'Reasonable', '2b': 'May be considered', '3: No Benefit': 'Not recommended', '3: Harm': 'Potentially harmful' };
   const CLASS_ORDER = { '1': 0, '2a': 1, '2b': 2, '3: No Benefit': 3, '3: Harm': 4 };
   const GROUPS = ['Intervention', 'Which procedure', 'Prosthesis', 'Medical therapy'];
@@ -829,13 +831,13 @@
     const r = [rule('pr-bio-any', 'Anticoagulation impossible or unwanted', 'Bioprosthesis at any age', '1', 'C-EO', [[no('anticoag')].concat(also)], P)];
     if (position === 'Aortic') {
       r.push(
-        rule('pr-ao-young', 'Aortic valve, age under 50, anticoagulation acceptable', 'Mechanical prosthesis is reasonable', '2a', 'B-NR', [[C('age', '< 50'), yes('anticoag')].concat(also)], P),
+        rule('pr-ao-young', 'Aortic valve, age under 50, anticoagulation acceptable', 'Mechanical prosthesis is reasonable', '2a', 'B-NR', [[C('age', '< 50'), yes('anticoag')].concat(also)], Object.assign({ note: 'In women of childbearing age, bioprosthetic valves are preferred (2a, B-NR), given the maternal and fetal risks of mechanical valves in pregnancy.' }, P)),
         rule('pr-ao-ross', 'Aortic valve, age under 50, a bioprosthesis preferred', 'The Ross procedure (pulmonary autograft) may be considered at a Comprehensive Valve Center if the anatomy is appropriate', '2b', 'B-NR', [[C('age', '< 50'), no('anticoag')].concat(also)], P),
         rule('pr-ao-mid', 'Aortic valve, age 50–65', 'Either prosthesis, individualized', '2a', 'B-NR', [[C('age', '50–64'), yes('anticoag')].concat(also)], P),
         rule('pr-ao-old', 'Aortic valve, age over 65', 'Bioprosthesis is reasonable', '2a', 'B-NR', [[C('age', '65–80', '> 80')].concat(also)], Object.assign({ note: 'At age 65 the 50–65 band applies: without a contraindication to anticoagulation, the choice is individualized.' }, P)));
     } else {
       r.push(
-        rule('pr-mi-young', 'Mitral valve, age under 65, anticoagulation acceptable, repair not possible', 'Mechanical prosthesis is reasonable', '2a', 'B-NR', [[C('age', '< 50', '50–64'), yes('anticoag')].concat(also)], P),
+        rule('pr-mi-young', 'Mitral valve, age under 65, anticoagulation acceptable, repair not possible', 'Mechanical prosthesis is reasonable', '2a', 'B-NR', [[C('age', '< 50', '50–64'), yes('anticoag')].concat(also)], Object.assign({ note: 'In women of childbearing age, bioprosthetic valves are preferred (2a, B-NR), given the maternal and fetal risks of mechanical valves in pregnancy.' }, P)),
         rule('pr-mi-old', 'Mitral valve, age 65 or over, repair not possible', 'Bioprosthesis is reasonable', '2a', 'B-NR', [[C('age', '65–80', '> 80')].concat(also)], P));
     }
     return r;
@@ -851,8 +853,8 @@
         rule('as-d1', 'Symptomatic severe high-gradient AS (stage D1)', 'Aortic valve replacement', '1', 'A', [[yes('sx'), severe]]),
         rule('as-c2', 'Asymptomatic severe AS with LVEF < 50% (C2)', 'Aortic valve replacement', '1', 'B-NR', [[no('sx'), severe, C('ef', '< 50%')]]),
         rule('as-surg', 'Asymptomatic severe AS having other cardiac surgery (C1)', 'Aortic valve replacement', '1', 'B-NR', [[no('sx'), severe, yes('surg')]]),
-        rule('as-d2', 'Symptomatic low-flow, low-gradient AS with LVEF < 50% (D2)', 'Aortic valve replacement', '1', 'B-NR', [[yes('sx'), C('sev', 'Low-flow, low-gradient'), C('ef', '< 50%')]], { note: 'D2 means true severe stenosis on low-dose dobutamine stress echo: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg with AVA ≤ 1.0 cm² at any flow.' }),
-        rule('as-d3', 'Symptomatic low-flow, low-gradient AS with LVEF ≥ 50% (D3)', 'Aortic valve replacement when the stenosis is the most likely cause of the symptoms', '1', 'B-NR', [[yes('sx'), C('sev', 'Low-flow, low-gradient'), C('ef', '≥ 60%', '50–59%')]], { note: 'Paradoxical low-flow AS: confirm the small stroke volume by another technique and the severity by calcium scoring before attributing the symptoms to the valve.' }),
+        rule('as-d2', 'Symptomatic low-flow, low-gradient AS with LVEF < 50% (D2)', 'Aortic valve replacement', '1', 'B-NR', [[yes('sx'), C('sev', 'Low-flow, low-gradient'), C('ef', '< 50%')]], { note: 'D2 is confirmed when low-dose dobutamine stress echo (up to 20 mcg/kg/min) shows Vmax ≥ 4 m/s with AVA ≤ 1.0 cm² at any flow rate.' }),
+        rule('as-d3', 'Symptomatic low-flow, low-gradient AS with LVEF ≥ 50% (D3)', 'Aortic valve replacement when the stenosis is the most likely cause of the symptoms', '1', 'B-NR', [[yes('sx'), C('sev', 'Low-flow, low-gradient'), C('ef', '≥ 60%', '50–59%')]], { note: 'D3: control the blood pressure first and grade at a systolic pressure under 140 mmHg (class 1, B-NR); then AVA ≤ 1.0 cm² (indexed ≤ 0.6 cm²/m²) with a stroke volume index under 35 mL/m², confirmed by another technique, the CT calcium score (2a), and other causes of the symptoms excluded.' }),
         rule('as-2a', 'Asymptomatic severe AS, low surgical risk, with an abnormal exercise test, BNP > 3× normal or rapid progression (C1)', 'Aortic valve replacement is reasonable', '2a', 'B-NR', [[no('sx'), severe, C('risk', 'Low'), yes('markers')]]),
         rule('as-vs', 'Asymptomatic very severe AS (Vmax ≥ 5 m/s), low surgical risk', 'Aortic valve replacement is reasonable', '2a', 'B-R', [[no('sx'), C('sev', 'Very severe'), C('risk', 'Low')]]),
         rule('as-2b', 'Asymptomatic severe AS with LVEF fallen below 60% on three or more serial studies', 'Aortic valve replacement may be considered', '2b', 'B-NR', [[no('sx'), severe, yes('effall')]]),
@@ -887,7 +889,7 @@
         rule('mr-c1', 'Asymptomatic severe MR with LVEF > 60% and LVESD < 40 mm (C1), a durable repair likely', 'Mitral repair is reasonable at a Primary or Comprehensive Valve Center', '2a', 'B-NR', [[C('sev', 'Severe'), no('sx'), C('ef', '> 60%'), no('lvesd'), yes('durable')]]),
         rule('mr-c1-serial', 'C1 with the LV enlarging or LVEF falling on serial studies', 'Mitral surgery may be considered', '2b', 'C-LD', [[C('sev', 'Severe'), no('sx'), C('ef', '> 60%'), no('lvesd'), yes('serial')]]),
         rule('mr-teer', 'Symptomatic severe primary MR, NYHA III–IV, high or prohibitive surgical risk, favorable anatomy, life expectancy at least a year', 'Transcatheter edge-to-edge repair is reasonable', '2a', 'B-NR', [[C('sev', 'Severe'), yes('sx'), C('nyha', 'III–IV'), C('risk', 'High or prohibitive'), yes('anatomy')]]),
-        rule('mr-repair', 'Surgery for degenerative disease', 'Repair rather than replacement whenever a durable repair is possible', '1', 'B-NR', [[C('sev', 'Severe'), no('rheumatic')]], PROC),
+        rule('mr-repair', 'Surgery for degenerative disease', 'Repair rather than replacement whenever a durable repair is possible', '1', 'B-NR', [[C('sev', 'Severe'), no('rheumatic')]], Object.assign({ note: 'Intraoperative TEE is indicated to establish the anatomic basis of the MR and to guide the repair (class 1, B-NR).' }, PROC)),
         rule('mr-posterior', 'Pathology limited to less than half of the posterior leaflet', 'Replacement should not be done unless repair was attempted at a valve center and failed', '3: Harm', 'B-NR', [[yes('posterior')]], PROC),
         rule('mr-rheum', 'Symptomatic rheumatic severe primary MR with surgery indicated', 'Repair may be considered at a Comprehensive Valve Center by an experienced team, if a durable and successful repair is likely', '2b', 'B-NR', [[yes('rheumatic'), C('sev', 'Severe'), yes('sx')]], PROC),
       ].concat(prosthesisRules('Mitral', [yes('replace')]));
@@ -911,10 +913,10 @@
         ]),
         rule('ms-pasp', 'Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable', 'PMBC is reasonable', '2a', 'B-NR', [[severeMS, C('nyha', 'I'), yes('pasp'), yes('morph'), yes('mr'), no('thrombus'), no('calcific')]]),
         rule('ms-af', 'Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable', 'PMBC may be considered', '2b', 'C-LD', [[severeMS, C('nyha', 'I'), C('af', 'New onset'), yes('morph'), yes('mr'), no('thrombus'), no('calcific')]]),
-        rule('ms-ex', 'Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise', 'PMBC may be considered', '2b', 'C-LD', [[C('sev', 'Not severe (MVA > 1.5 cm²)'), C('nyha', 'II', 'III–IV'), yes('exercise'), no('thrombus'), no('calcific')]]),
+        rule('ms-ex', 'Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise, PMBC-suitable', 'PMBC may be considered', '2b', 'C-LD', [[C('sev', 'Not severe (MVA > 1.5 cm²)'), C('nyha', 'II', 'III–IV'), yes('exercise'), yes('morph'), yes('mr'), no('thrombus'), no('calcific')]]),
         rule('ms-highrisk', 'NYHA III–IV with suboptimal anatomy, not a surgical candidate or at high risk', 'PMBC may be considered', '2b', 'B-NR', [[severeMS, C('nyha', 'III–IV'), no('morph'), yes('mr'), no('thrombus'), no('candidate'), no('calcific')]]),
         rule('ms-mac', 'Calcific (non-rheumatic) severe MS from annular calcification with NYHA III–IV', 'Intervention only after discussion of its high procedural risk', '2b', 'C-LD', [[yes('calcific'), C('nyha', 'III–IV'), severeMS]]),
-        // Medical therapy (e42, §6.2.2 rec 1): its own group, never the headline, and it does not replace the
+        // Medical therapy (e115, §6.2.2 rec 1): its own group, never the headline, and it does not replace the
         // surveillance answer when no intervention criterion is met.
         rule('ms-vka', 'Rheumatic MS with atrial fibrillation, a prior embolic event or LA thrombus', 'Anticoagulation with a vitamin K antagonist', '1', 'C-LD', [[no('calcific'), yes('thrombus')], [no('calcific'), C('af', 'New onset', 'Longer standing')], [no('calcific'), yes('embolic')]], { group: 'Medical therapy' }),
       ];
@@ -953,17 +955,26 @@
     // Intervention rules first, and medical therapy, which stands on its own; the procedure and prosthesis rules only
     // matter once an intervention is indicated.
     all.filter((r) => r.group === 'Intervention' || r.group === 'Medical therapy').forEach(consider);
-    if (matched.some((r) => r.group === 'Intervention' && !R.viAgainst(r.cls))) all.filter((r) => r.group === 'Which procedure' || r.group === 'Prosthesis').forEach(consider);
+    // TEER is for patients at high or prohibitive surgical risk; the prosthesis choice is for those having the valve
+    // replaced (e126; e139 recs 6 and 7), so it is not offered beside TEER.
+    const teer = matched.some((r) => r.id === 'mr-teer');
+    if (matched.some((r) => r.group === 'Intervention' && !R.viAgainst(r.cls))) all.filter((r) => r.group === 'Which procedure' || (r.group === 'Prosthesis' && !teer)).forEach(consider);
     matched.sort((a, b) => (GROUPS.indexOf(a.group) - GROUPS.indexOf(b.group)) || (CLASS_ORDER[a.cls] - CLASS_ORDER[b.cls]));
     const neededOrdered = order.filter((q) => needed.has(q) || neededMedical.has(q));
     // Surveillance when no intervention can match; medical therapy is listed under it.
     const fallback = (!matched.some((r) => r.group !== 'Medical therapy') && !needed.size) ? R.viSurveillance(lesion, answers) : null;
     return { matched, needed: neededOrdered, fallback };
   };
+  // The surveillance intervals (Table 5, e81) are for patients without symptoms; for AS, with a normal stroke volume.
+  const AS_LOW_FLOW_SURVEILLANCE = 'No intervention criterion met yet: low-flow, low-gradient AS is graded before a surveillance interval applies (the Table 5 intervals assume a normal stroke volume). With LVEF under 50%, low-dose dobutamine stress echo (D2); with LVEF 50% or more, control the blood pressure, confirm the low stroke volume and use the CT calcium score (D3).';
+  const AS_MODERATE_SYMPTOMS = 'No intervention criterion met: moderate AS with symptoms. Look for another cause of the symptoms and for low-flow severe AS (D2 or D3); the Table 5 interval, echo every 1–2 years, is for patients without symptoms.';
+  const MS_SYMPTOMS_SURVEILLANCE = 'No intervention criterion met for a patient with symptoms: the Table 5 intervals are for patients without them. Reassess the valve, with an exercise study when symptoms and the resting findings disagree, and treat AF with rate control and anticoagulation.';
   R.viSurveillance = function (lesion, answers) {
     const sev = answers.sev || '';
     switch (lesion) {
       case 'as':
+        if (sev === 'Low-flow, low-gradient') return AS_LOW_FLOW_SURVEILLANCE;
+        if (sev === 'Moderate' && answers.sx === 'Yes') return AS_MODERATE_SYMPTOMS;
         if (sev === 'Moderate') return 'No intervention criterion met: stage B. Echo every 1–2 years for moderate AS (Vmax 3–3.9 m/s); treat hypertension; reassess with any symptom.';
         return 'No intervention criterion met: stage C1. Echo every 6–12 months for severe AS; an exercise test is reasonable to confirm the absence of symptoms; any symptom changes the answer.';
       case 'ar':
@@ -975,7 +986,8 @@
       case 'mrSecondary':
         return 'No intervention criterion met: optimize heart-failure therapy (and revascularization or resynchronization where indicated) and reassess the regurgitation once the ventricle has responded.';
       case 'ms':
-        return 'No intervention criterion met. Echo every 3–5 years for progressive MS (MVA > 1.5 cm²), every 1–2 years for severe (MVA 1.0–1.5 cm²) and yearly for very severe (MVA < 1.0 cm²); rate control and anticoagulation for AF, and an exercise study when symptoms and the resting findings disagree.';
+        if (answers.nyha === 'II' || answers.nyha === 'III–IV') return MS_SYMPTOMS_SURVEILLANCE;
+        return 'No intervention criterion met. Echo every 3–5 years for progressive MS (MVA > 1.5 cm²), every 1–2 years for severe (MVA 1.0–1.5 cm²) and yearly for MVA < 1.0 cm²; rate control and anticoagulation for AF, and an exercise study when symptoms and the resting findings disagree.';
       case 'tr':
         return 'No intervention criterion met. Treat the cause (left-sided disease, pulmonary hypertension, volume overload) with diuretics for right-sided congestion, and operate before severe RV dysfunction or end-organ damage sets in.';
     }
