@@ -55,6 +55,29 @@
     "seconds": 219,
     "bytes": 1754349,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Prone positioning and high-frequency oscillatory ventilation in early paediatric acute respiratory distress syndrome (PROSpect): an international, two-by-two factorial, response-adaptive, phase 3, randomised controlled trial",
+    "authors": [
+     "Curley MAQ",
+     "Kneyber MCJ",
+     "Cheifetz IM",
+     "Kong M",
+     "Mahapatra S",
+     "Schwarz AJ",
+     "Phumeetham S",
+     "Irby K",
+     "Napolitano N",
+     "Dawkins-Henry OS",
+     "Birch EE",
+     "Elliott CF"
+    ],
+    "journal": "The Lancet",
+    "doi": "10.1016/S0140-6736(26)01949-5",
+    "year": 2026,
+    "volume": "408",
+    "issue": "10566",
+    "pages": "1815-1827"
    }
   },
   {
@@ -96,6 +119,26 @@
     "seconds": 217,
     "bytes": 1733037,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Effects of perioperative esketamine infusion on chronic pain after video-assisted thoracoscopic lung resection: a multicentre, randomised, double-blind clinical trial",
+    "authors": [
+     "Wang QY",
+     "Zhang JY",
+     "Gu JQ",
+     "Li B",
+     "Gao YT",
+     "Guo F",
+     "Qi Y",
+     "Li Q",
+     "Luan HF",
+     "Gao J",
+     "Liu H",
+     "Peng K"
+    ],
+    "journal": "British Journal of Anaesthesia",
+    "doi": "10.1016/j.bja.2026.08.039",
+    "year": 2026
    }
   },
   {
@@ -151,6 +194,22 @@
     "seconds": 221,
     "bytes": 1770861,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Videolaryngoscopy versus direct laryngoscopy for nasotracheal intubation in infants undergoing cardiac procedures (NasoVISI): a multicentre, randomised controlled trial",
+    "authors": [
+     "Garcia-Marcinkiewicz AG",
+     "Gottlieb EA",
+     "Twite M",
+     "Zabala LM",
+     "Kuntz MT",
+     "Waberski AT",
+     "Zhang B",
+     "Nicolson SC"
+    ],
+    "journal": "The Lancet Child &amp; Adolescent Health",
+    "doi": "10.1016/S2352-4642(26)00239-7",
+    "year": 2026
    }
   },
   {
