@@ -15,6 +15,7 @@ struct PeriopSignalApp: App {
     @State private var refs = ReferenceStore()
     @State private var favorites = FavoritesStore()
     @State private var patient = PatientStore()
+    @State private var inbox = PatientInbox()
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
 
@@ -22,6 +23,7 @@ struct PeriopSignalApp: App {
         // Earlier versions kept the last patient weight and age in settings; those keys are removed. My Patient keeps
         // its one record in a protected file instead (PatientStore), until the user clears it.
         PatientHandoff.purgeStoredPatientValues()
+        PatientInbox.purgeLeftovers()
         let prefs = Preferences()
         let postStore = PostStore()
         postStore.preferences = prefs
@@ -46,9 +48,18 @@ struct PeriopSignalApp: App {
                 .environment(refs)
                 .environment(favorites)
                 .environment(patient)
+                .environment(inbox)
                 .preferredColorScheme(appearance.colorScheme)
                 .tint(PS.accent)
-                .onOpenURL { url in router.handle(url) }
+                .onOpenURL { url in
+                    // A patient a colleague sent (AirDrop or Messages) opens My Patient, which asks before taking it.
+                    if PatientInbox.handles(url) {
+                        inbox.receive(url)
+                        router.selectedTab = .patient
+                    } else {
+                        router.handle(url)
+                    }
+                }
                 .onContinueUserActivity(CSSearchableItemActionType) { activity in
                     if let id = SpotlightIndexer.postID(from: activity) { router.open(postID: id) }
                 }

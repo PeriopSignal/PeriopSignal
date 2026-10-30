@@ -211,7 +211,7 @@ struct PatientEditorView: View {
         PatientGroup(title: nil) {
             toggleRow("No significant medical history", "Lets the tab suggest ASA I when nothing else is recorded", bind(\.noHistory))
         }
-        PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything rare goes under Other conditions.") {
+        PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything else goes under Other conditions.") {
             let systems = PatientCatalog.systems(for: r)
             ForEach(Array(systems.enumerated()), id: \.element.id) { i, s in
                 let picked = s.problems.filter { r.problems.contains($0.id) }.map(\.label)
@@ -219,8 +219,8 @@ struct PatientEditorView: View {
                 if i < systems.count - 1 { Hairline().padding(.leading, 50) }
             }
         }
-        PatientGroup(title: "Other conditions") {
-            PatientTextField(label: "Rare or uncommon conditions and findings", prompt: "e.g. hereditary angioedema; Ehlers–Danlos", text: bind(\.otherHistory))
+        PatientGroup(title: nil) {
+            PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
             linkRow("Medications and allergies", medsSummary, icon: "pills", value: .medications)
@@ -234,7 +234,7 @@ struct PatientEditorView: View {
             PatientChipRow(label: nil) { PatientChips(options: PatientCatalog.anesthesiaHistory, selection: bind(\.anesthesiaHistory)) }
             PatientTextField(label: "Details", prompt: "Previous anesthetics and what happened", text: bind(\.anesthesiaNotes))
         }
-        PatientGroup(title: "Last intake", note: "For the fasting check: the ASA fasting guidance is under Reference.") {
+        PatientGroup(title: "Last intake", note: "Set time starts at midnight, the usual nothing-by-mouth instruction; change it to what the patient reports. The ASA fasting guidance is under Reference.") {
             intakeRow("Solids", bind(\.lastSolids))
             Hairline().padding(.leading, 14)
             intakeRow("Clear fluids", bind(\.lastClears))
@@ -265,7 +265,7 @@ struct PatientEditorView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Clear the time")
             } else {
-                Button("Set time") { date.wrappedValue = Date() }
+                Button("Set time") { date.wrappedValue = PatientRecord.npoMidnight() }
                     .font(PS.sys(size: 13.5, weight: .semibold))
                     .buttonStyle(.borderless)
                     .tint(PS.accent)

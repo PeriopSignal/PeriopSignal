@@ -5,11 +5,24 @@ import SwiftUI
 /// already filled in. Kept on this phone only until Clear (with Undo); Generate Handoff writes it up as text.
 struct PatientView: View {
     @Environment(PatientStore.self) private var patient
+    @Environment(PatientInbox.self) private var inbox
     @State private var path = NavigationPath()
     @State private var webLink: WebLink?
     @State private var showHandoff = false
     @State private var confirmClear = false
     @State private var handoff = PatientHandoff()
+    @State private var showNote = false
+    /// What Fill from a note just added, for its banner and Undo.
+    @State private var noteResult: NoteResult?
+    /// A patient from a colleague was just opened (true when it replaced another, which Undo brings back).
+    @State private var received: Bool?
+
+    private struct NoteResult {
+        var count: Int
+        var before: PatientRecord
+        /// The record right after adding: Undo is offered only until the next edit.
+        var after: PatientRecord
+    }
 
     private var r: PatientRecord { patient.record }
 
@@ -18,7 +31,11 @@ struct PatientView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
+                        NoIdentifiersBanner()
                         if patient.canUndo { undoBanner }
+                        if let n = noteResult { noteBanner(n) }
+                        if let replaced = received { receivedBanner(replaced) }
+                        noteButton
                         if patient.isEmpty {
                             emptyCard
                         } else {
@@ -31,7 +48,7 @@ struct PatientView: View {
                         intraopCard.id(PatientEditor.intraop)
                         planCard.id(PatientEditor.plan)
                         handoffButton
-                        Text("Kept on this phone only, with no name or record number, until you clear it. Not backed up or sent anywhere.")
+                        Text("Kept on this phone, with no name or record number, until you clear it. Not backed up; it leaves the phone only if you send it.")
                             .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 2)
@@ -42,6 +59,35 @@ struct PatientView: View {
             }
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
+            .sheet(isPresented: $showNote) {
+                PatientNoteSheet { n, before in
+                    withAnimation(.snappy) {
+                        received = nil
+                        noteResult = NoteResult(count: n, before: before, after: patient.record)
+                    }
+                }
+                .environment(patient)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: Binding(get: { inbox.pending != nil }, set: { if !$0 { inbox.pending = nil } })) {
+                if let packet = inbox.pending {
+                    PatientReceiveSheet(packet: packet) { replaced in
+                        withAnimation(.snappy) {
+                            noteResult = nil
+                            received = replaced
+                        }
+                    }
+                    .environment(patient)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                }
+            }
+            .alert("Couldn't open the patient", isPresented: Binding(get: { inbox.problem != nil }, set: { if !$0 { inbox.problem = nil } })) {
+                Button("OK", role: .cancel) { inbox.problem = nil }
+            } message: {
+                Text(inbox.problem ?? "")
+            }
             .navigationTitle("My Patient")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
@@ -74,7 +120,7 @@ struct PatientView: View {
             SafariView(url: link.url).ignoresSafeArea()
         }
         .sheet(isPresented: $showHandoff) {
-            HandoffSheet(full: HandoffWriter.text(r), short: HandoffWriter.shortText(r))
+            HandoffSheet(full: HandoffWriter.text(r), short: HandoffWriter.shortText(r), record: r)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
@@ -84,7 +130,8 @@ struct PatientView: View {
         if let route = RefRoute(key: key) { path.append(route) }
     }
 
-    /// Screenshot runs: -ps.patient.open history | medications | assessment | airway | intraop | plan | handoff | score:rcri.
+    /// Screenshot runs: -ps.patient.open history | medications | assessment | airway | intraop | plan | handoff | note |
+    /// receive | score:rcri.
     private func openForScreenshot() async {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
@@ -100,6 +147,12 @@ struct PatientView: View {
             // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
             showHandoff = true
+        case "note":
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            showNote = true
+        case "receive":
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            inbox.pending = PatientPacket(record: PatientDemo.record)
         default: if let route = RefRoute(key: o) { path.append(route) }
         }
         #endif
@@ -120,6 +173,88 @@ struct PatientView: View {
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
     }
 
+    private var noteButton: some View {
+        Button { showNote = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "square.and.pencil")
+                    .font(PS.sys(size: 16, weight: .semibold))
+                    .foregroundStyle(PS.accent2)
+                    .frame(width: 36, height: 36)
+                    .background(PS.accent2.opacity(0.12), in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Fill from a note").font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text("Type or dictate the history; check what's found before it's added.")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 6)
+                Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func noteBanner(_ n: NoteResult) -> some View {
+        let missing = PatientNote.missing(r)
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: "checkmark.circle.fill").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.green)
+                Text("Added \(n.count) item\(n.count == 1 ? "" : "s") from your note").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 6)
+                if patient.record == n.after {
+                    Button("Undo") {
+                        withAnimation(.snappy) {
+                            patient.update { $0 = n.before }
+                            noteResult = nil
+                        }
+                    }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+                }
+                closeButton { noteResult = nil }
+            }
+            if !missing.isEmpty {
+                Text("Still to fill: " + missing.joined(separator: ", ") + ".")
+                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(12)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
+    }
+
+    private func receivedBanner(_ replaced: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "person.fill.checkmark").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.green)
+            Text("Patient from a colleague: check it against the chart").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 6)
+            if replaced && patient.canUndoReceive {
+                Button("Undo") {
+                    withAnimation(.snappy) {
+                        patient.undoReceive()
+                        received = nil
+                    }
+                }
+                .buttonStyle(CapsuleButtonStyle(prominent: false))
+            }
+            closeButton { received = nil }
+        }
+        .padding(12)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
+    }
+
+    private func closeButton(_ action: @escaping () -> Void) -> some View {
+        Button { withAnimation(.snappy) { action() } } label: {
+            Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Dismiss")
+    }
+
     private var emptyCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "One patient at a time", color: PS.accent)
@@ -127,7 +262,7 @@ struct PatientView: View {
                 .font(PS.serif(size: 22)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
             Text("They fill in the calculators for you, and the rest of the tab builds a short history and physical, the intraoperative course and a handoff.")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            Text("Everything stays on this phone. Don't enter names, record numbers or dates of birth.")
+            Text("Everything stays on this phone unless you send it to a colleague.")
                 .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             NavigationLink(value: PatientEditor.details) {
                 Label("Add patient details", systemImage: "plus")
@@ -340,10 +475,12 @@ struct PatientSectionCard: View {
     }
 }
 
-/// The handoff as text, short or full: read, copy or share the one shown.
+/// The handoff as text, short or full: read, copy or share the one shown. Or send the patient itself to a colleague's
+/// Periop Signal, so they carry on with the case.
 struct HandoffSheet: View {
     var full: String
     var short: String
+    var record: PatientRecord
     /// "full" or "short"; the last one used is kept.
     @AppStorage("ps.handoff.format") private var format = "full"
     @Environment(\.dismiss) private var dismiss
@@ -351,10 +488,38 @@ struct HandoffSheet: View {
 
     private var text: String { format == "short" ? short : full }
 
+    private var sendCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "iphone.radiowaves.left.and.right")
+                    .font(PS.sys(size: 16, weight: .semibold))
+                    .foregroundStyle(PS.accent2)
+                    .frame(width: 36, height: 36)
+                    .background(PS.accent2.opacity(0.12), in: Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Send this patient").font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text("To a colleague's Periop Signal by AirDrop (or hold your iPhones together) or iMessage. It opens in their My Patient so they can carry on with the case.")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            ShareLink(item: PatientTransfer(record: record),
+                      preview: SharePreview("Patient for handoff", image: Image(systemName: "person.text.rectangle"))) {
+                Label("Send Patient", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(BigButtonStyle(prominent: true))
+            Text("In Messages, they tap the file, then Share, then Periop Signal. Send only to the colleague taking over, through channels your institution approves; Messages keeps a copy in the conversation.")
+                .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
+                    sendCard
                     Picker("Handoff", selection: $format) {
                         Text("Short").tag("short")
                         Text("Full").tag("full")

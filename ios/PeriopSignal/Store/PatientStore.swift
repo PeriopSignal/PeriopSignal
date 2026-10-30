@@ -12,6 +12,8 @@ final class PatientStore {
     private(set) var record = PatientRecord()
     /// The record just cleared, for Undo.
     private(set) var cleared: PatientRecord?
+    /// The record a patient from a colleague just replaced, for Undo.
+    private(set) var replaced: PatientRecord?
     /// The file has been read (it cannot be while the phone is locked); edits wait for it so nothing overwrites it.
     private(set) var loaded = false
 
@@ -33,6 +35,7 @@ final class PatientStore {
 
     var isEmpty: Bool { record.isEmpty }
     var canUndo: Bool { cleared != nil && record.isEmpty }
+    var canUndoReceive: Bool { replaced != nil }
 
     /// Change the record; it is written to disk shortly after.
     func update(_ change: (inout PatientRecord) -> Void) {
@@ -43,13 +46,33 @@ final class PatientStore {
         r.updated = Date()
         record = r
         cleared = nil
+        replaced = nil
         scheduleSave()
+    }
+
+    /// Opens a patient a colleague sent in place of the current one, which Undo can bring back until the next edit.
+    func receive(_ incoming: PatientRecord) {
+        if !loaded { reload() }
+        var r = incoming
+        r.updated = Date()
+        replaced = record.isEmpty ? nil : record
+        cleared = nil
+        record = r
+        scheduleSave(immediately: true)
+    }
+
+    func undoReceive() {
+        guard let p = replaced else { return }
+        record = p
+        replaced = nil
+        scheduleSave(immediately: true)
     }
 
     func clear() {
         guard !record.isEmpty else { return }
         saveTask?.cancel()
         cleared = record
+        replaced = nil
         record = PatientRecord()
         dirty = false
         if let url { try? FileManager.default.removeItem(at: url) }
