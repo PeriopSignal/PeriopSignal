@@ -296,10 +296,10 @@ enum ValveFlow {
         return t
     }
 
-    /// A value as typed back into the field when an answer is changed: full precision, no trailing ".0".
     /// A step's value as the user entered it, with the digits that keep it inside its band.
     static func val(_ w: FlowWalk, _ id: String, _ v: Double) -> String { fmtIn(v, w.flow.step(id)?.bands) }
 
+    /// A value as typed back into the field when an answer is changed: full precision, no trailing ".0".
     static func entryText(_ v: Double) -> String {
         var t = String(v)
         if t.hasSuffix(".0") { t.removeLast(2) }
@@ -751,8 +751,13 @@ extension ValveFlow {
                 ? " RV systolic pressure \(val(w, "rvsp", rv)) mmHg minus the valve gradient leaves a PA systolic pressure of about \(fmt(est)) mmHg (2009, p. 20)."
                 : " The valve gradient is higher than the RV systolic pressure entered: recheck both (2009, p. 20)."
         }
-        if let place = where_ { return .done("nonvalvular", ["v": val(w, "vmax", x), "gradient": fmt(gradient), "where": place, "pa": pa]) }
-        return .done(tag, ["gradient": fmt(gradient), "pa": pa])
+        // The gradient's bands are the velocity's through 4v² (3 and 4 m/s are 36 and 64 mmHg), so it reads on the same side.
+        let gBands = (w.flow.step("vmax")?.bands ?? []).map { b in
+            ValveFlowBand(lt: b.lt.map { 4 * $0 * $0 }, le: b.le.map { 4 * $0 * $0 }, gt: b.gt.map { 4 * $0 * $0 }, ge: b.ge.map { 4 * $0 * $0 }, tag: b.tag)
+        }
+        let shownGradient = fmtIn(gradient, gBands)
+        if let place = where_ { return .done("nonvalvular", ["v": val(w, "vmax", x), "gradient": shownGradient, "where": place, "pa": pa]) }
+        return .done(tag, ["gradient": shownGradient, "pa": pa])
     }
 }
 

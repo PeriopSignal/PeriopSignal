@@ -1197,8 +1197,15 @@
           ? ` RV systolic pressure ${val(w, 'rvsp', num(r))} mmHg minus the valve gradient leaves a PA systolic pressure of about ${fmt(est)} mmHg (2009, p. 20).`
           : ' The valve gradient is higher than the RV systolic pressure entered: recheck both (2009, p. 20).';
       }
-      if (where) return done('nonvalvular', { v: val(w, 'vmax', num(v)), gradient: fmt(gradient), where, pa });
-      return done(tg(v), { gradient: fmt(gradient), pa });
+      // The gradient's bands are the velocity's through 4v² (3 and 4 m/s are 36 and 64 mmHg), so it reads on the same side.
+      const gBands = ((F.step(w.flow, 'vmax') || {}).bands || []).map((b) => {
+        const o = { tag: b.tag };
+        for (const k of ['lt', 'le', 'gt', 'ge']) if (b[k] != null) o[k] = 4 * b[k] * b[k];
+        return o;
+      });
+      const shownGradient = F.fmtIn(gradient, gBands);
+      if (where) return done('nonvalvular', { v: val(w, 'vmax', num(v)), gradient: shownGradient, where, pa });
+      return done(tg(v), { gradient: shownGradient, pa });
     };
 
     // Aortic prosthesis with a high velocity or gradient (ASE 2024, Tables 5 and 7)
