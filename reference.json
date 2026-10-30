@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793385255,
+  "revision": 1793387285,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14687,7 +14687,7 @@
             "unit": "mL/m²",
             "ask": "LVOT area × LVOT VTI ÷ BSA. Below 35 is low flow; above 58 is high flow, which can raise the gradient of a non-severe valve (p. 387).",
             "tte": "LVOT diameter in parasternal long axis, zoomed, mid-systole, inner edge to inner edge; LVOT VTI by PW just below the valve in the apical five-chamber view (Table 1).",
-            "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole, inner edge to inner edge; LVOT VTI by PW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, pp. 701, 703).",
+            "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole; in an elliptical LVOT it may be the minor diameter. LVOT VTI by PW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, pp. 701, 703; angles, 2013, pp. 937, 940).",
             "bands": [
               {
                 "lt": 35,
@@ -14738,7 +14738,7 @@
             "unit": "cm²",
             "ask": "LVOT area × LVOT VTI ÷ aortic VTI. The LVOT diameter is the largest source of error: it is squared (p. 381).",
             "tte": "LVOT diameter in parasternal long axis (zoomed, mid-systole, inner edge to inner edge, at the level of the PW sample); LVOT PW in apical five-chamber; aortic VTI from the CW envelope.",
-            "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole; LVOT PW and aortic CW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, p. 703).",
+            "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole; LVOT PW and aortic CW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, p. 703; angles, 2013, pp. 937, 940).",
             "bands": [
               {
                 "gt": 1.5,
@@ -14766,7 +14766,7 @@
             "unit": "",
             "ask": "LVOT velocity ÷ aortic velocity (or the VTI ratio): it leaves the LVOT diameter out, so it helps when that cannot be measured (Level 2, p. 382). Table 3 prints severe as under 0.25 and the text as 0.25 or less; the app takes 0.25 as severe (p. 383).",
             "tte": "LVOT PW in apical five-chamber over the aortic CW peak.",
-            "tee": "LVOT PW and aortic CW from the same deep transgastric or transgastric long-axis view. Under anesthesia it agrees with the awake TTE better than the gradients do (2020 TEE guideline, p. 704).",
+            "tee": "LVOT PW and aortic CW in the deep transgastric five-chamber or transgastric long axis. Under anesthesia the velocity ratio seems to agree with the awake TTE better than velocities and gradients do (2020 TEE guideline, pp. 703–704).",
             "bands": [
               {
                 "gt": 0.5,
@@ -14794,7 +14794,7 @@
             "unit": "cm²",
             "ask": "Trace the smallest orifice at the cusp tips. Planimetry gives the anatomic area, which is larger than the effective area; the update advises TEE if it is used (Level 2, p. 383).",
             "tte": "Parasternal short axis at the cusp tips; calcium often shadows it.",
-            "tee": "ME aortic valve short axis (25–45°), at the cusp tips (2020 TEE guideline, p. 703; 2013, p. 946).",
+            "tee": "ME aortic valve short axis (25–45°), at the cusp tips (2020 TEE guideline, p. 703; 2013, pp. 939, 946).",
             "bands": [
               {
                 "gt": 1.5,
@@ -15079,7 +15079,7 @@
             "kind": "choice",
             "ask": "Specific for severe AR (Table 11; Figure 25).",
             "tte": "Parasternal long and short axis.",
-            "tee": "ME aortic valve short axis (25–45°) and long axis (120–140°) (2020 TEE guideline, p. 703).",
+            "tee": "ME aortic valve short axis (25–45°) and long axis (120–140°) (2020 TEE guideline, Table 4, p. 703; angles, 2013, pp. 937, 939).",
             "options": [
               {
                 "id": "yes",
@@ -15099,7 +15099,7 @@
             "unit": "cm",
             "ask": "The narrowest part of the jet at or just below the valve; it works in eccentric jets, but not with several jets or a bicuspid valve, and a 2 mm error changes the grade (pp. 336–337).",
             "tte": "Parasternal long axis, zoomed.",
-            "tee": "ME aortic valve long axis (120–140°), zoomed (2020 TEE guideline, p. 703).",
+            "tee": "ME aortic valve long axis (120–140°), zoomed (2020 TEE guideline, Table 4, p. 703; angle, 2013, p. 937).",
             "bands": [
               {
                 "lt": 0.3,
@@ -15166,7 +15166,7 @@
             "kind": "choice",
             "ask": "Use the CW only if the whole diastolic signal is recorded (p. 343).",
             "tte": "Apical five-chamber; parasternal for eccentric jets.",
-            "tee": "Deep transgastric five-chamber (0–20°), transgastric two-chamber or long axis (2020 TEE guideline, p. 703).",
+            "tee": "Deep transgastric five-chamber (0–20°), transgastric two-chamber or long axis, with color to align the beam (2020 TEE guideline, p. 703; angle, 2013, p. 940).",
             "options": [
               {
                 "id": "soft",
@@ -15208,7 +15208,7 @@
             "kind": "choice",
             "ask": "A brief early diastolic reversal is normal. Holodiastolic reversal can also come from a stiff aorta in the elderly, a PDA, an arm fistula or a ruptured sinus, and may not be holodiastolic in acute AR (pp. 336, 338).",
             "tte": "Suprasternal, proximal descending aorta (abdominal aorta more specific).",
-            "tee": "Descending aorta short (0–10°) or long axis (90–100°) (2020 TEE guideline, p. 703).",
+            "tee": "Descending aorta short (0–10°) or long axis (90–100°) (2020 TEE guideline, Table 4, p. 703; angles, 2013, p. 940).",
             "options": [
               {
                 "id": "brief",
@@ -15461,7 +15461,7 @@
             "kind": "choice",
             "ask": "A flail leaflet almost always means severe MR (p. 320). Table 8 counts ruptured papillary muscle, severe retraction and a large perforation as severe lesions too.",
             "tte": "Parasternal long axis and apical views; 3D en face when available.",
-            "tee": "ME four-chamber (10–20°), mitral commissural (50–70°), two-chamber (80–100°) and long axis (120–140°); 3D en face (2020 TEE guideline, p. 695).",
+            "tee": "ME four-chamber (10–20°), mitral commissural (50–70°), two-chamber (80–100°) and long axis (120–140°); 3D en face from the left atrium (2020 TEE guideline, pp. 695–696; angles, 2013, pp. 932–937).",
             "options": [
               {
                 "id": "yes",
@@ -15541,7 +15541,7 @@
             "unit": "cm",
             "ask": "The narrowest neck of the jet, zoomed with a narrow color sector, in a view perpendicular to the flow with the convergence, neck and jet in one plane; biplane (apical four- and two-chamber average) severe is above 0.8 cm. Table 8 and the text call under 0.3 cm mild, Figure 18 prints 0.3 or less; the app counts under 0.3 (Table 8; pp. 309, 325, 328).",
             "tte": "Parasternal long axis, zoomed.",
-            "tee": "ME long axis (120–140°), the analogue of the parasternal long axis the guideline prefers (ASE 2017, p. 328), zoomed; 3D multiplanar reconstruction for width and area (2020 TEE guideline, p. 698).",
+            "tee": "ME long axis (120–140°; 2013, p. 937), the analogue of the parasternal long axis the guideline prefers (ASE 2017, p. 328), zoomed; 3D multiplanar reconstruction gives width and area, at the low temporal and spatial resolution of 3D (2020 TEE guideline, pp. 698–699).",
             "bands": [
               {
                 "lt": 0.3,
@@ -15586,7 +15586,7 @@
             "kind": "choice",
             "ask": "Small sample volume 1 cm into the vein. Systolic reversal in more than one vein is specific for severe MR; blunting is not specific, and AF, LV diastolic function and LA pressure all change the pattern (Table 7, p. 326).",
             "tte": "Apical four-chamber, right upper pulmonary vein.",
-            "tee": "ME right pulmonary vein (about 0°) and ME left and right pulmonary veins (90–110°); sample more than one vein (2013 TEE guideline, p. 939; ASE 2017, p. 330).",
+            "tee": "ME right pulmonary vein (about 0°) and ME left and right pulmonary veins (90–110°); sample more than one vein (2013 TEE guideline, p. 939; ASE 2017, p. 330). Systolic reversal in more than one vein is specific, though insensitive, for severe MR (2020 TEE guideline, p. 698).",
             "options": [
               {
                 "id": "reversal",
@@ -15661,7 +15661,7 @@
             "unit": "cm²",
             "ask": "6.28 × r² × aliasing velocity ÷ peak MR velocity. Errors of 10–25% are common, so read it with the other findings (pp. 312, 328).",
             "tte": "Apical four-chamber, zoomed, hemispheric convergence; CW of the jet for the peak velocity.",
-            "tee": "ME four-chamber, mitral commissural, two-chamber or long axis (2020 TEE guideline, p. 699).",
+            "tee": "ME four-chamber, mitral commissural, two-chamber or long axis (2020 TEE guideline, Table 2, p. 699). The flow convergence is rarely a hemisphere, and with several jets neither the vena contracta widths nor the PISA areas are added (p. 698).",
             "bands": [
               {
                 "lt": 0.2,
@@ -15857,7 +15857,7 @@
             "id": "etiology",
             "title": "Rheumatic or calcific?",
             "kind": "choice",
-            "ask": "In calcific (degenerative) MS planimetry is mostly unreliable and the pressure half-time should be avoided; the mean gradient becomes the marker of severity (2009, pp. 12–13, 16). The rheumatic measures are not validated for it (2020 TEE guideline, p. 695).",
+            "ask": "In calcific (degenerative) MS planimetry is mostly unreliable and the pressure half-time should be avoided; the mean gradient becomes the marker of severity (2009, pp. 12–13, 16). Many of the standard rheumatic measures have not been validated for it (2020 TEE guideline, p. 695).",
             "options": [
               {
                 "id": "rheumatic",
@@ -15879,7 +15879,7 @@
             "unit": "cm²",
             "ask": "Mid-diastole, at the leaflet tips: the smallest orifice traced in zoom, opened commissures included; too much gain underestimates it, and 3D guidance finds the true tips (2023, pp. 8, 10; 2009, p. 12).",
             "tte": "Parasternal short axis, scanning from the apex up to the leaflet tips.",
-            "tee": "Transgastric basal short axis (0–20°) with the orthogonal transgastric two-chamber view to find the narrowest orifice, or 3D multiplanar reconstruction (2020 TEE guideline, p. 696).",
+            "tee": "In mid-diastole: transgastric basal short axis (0–20°) with the simultaneous orthogonal transgastric two-chamber view to find the narrowest orifice of the funnel, or 3D multiplanar reconstruction; too much gain underestimates the area, above all with calcified tips (2020 TEE guideline, p. 696; angle, 2013, p. 939).",
             "bands": [
               {
                 "gt": 2.5,
@@ -15908,7 +15908,7 @@
             "unit": "ms",
             "ask": "Trace the mid-diastolic slope when the decay is bimodal; area ≈ 220 ÷ half-time. Not valid within 24 hours of balloon commissurotomy or with moderate or severe AR, and less reliable with significant MR, LV hypertrophy or a stiff LA: tap Cannot obtain then (2023, pp. 8, 20, 23).",
             "tte": "Apical four-chamber, CW aligned with the inflow.",
-            "tee": "ME four-chamber or long axis, CW aligned with the inflow (2020 TEE guideline, Table 2).",
+            "tee": "ME four-chamber or long axis, CW aligned with the inflow (2020 TEE guideline, Table 2, p. 699).",
             "bands": [
               {
                 "lt": 100,
@@ -15966,7 +15966,7 @@
             "unit": "mmHg",
             "ask": "4 × (peak TR velocity)² + RA pressure. It reflects the consequence of MS rather than its severity (2009, p. 14).",
             "tte": "TR jet from the apical four-chamber or RV inflow view.",
-            "tee": "TR jet in the ME four-chamber, RV inflow-outflow or modified bicaval view (2020 TEE guideline, p. 705).",
+            "tee": "TR jet in the ME four-chamber, RV inflow-outflow or modified bicaval view, or the transgastric RV inflow-outflow (2020 TEE guideline, Table 6, p. 705).",
             "bands": [
               {
                 "lt": 30,
@@ -16054,17 +16054,17 @@
           "calcific-1": {
             "grade": 1,
             "headline": "Calcific MS, mild by gradient",
-            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1); many standard rheumatic measures have not been validated for degenerative MS (2020 TEE guideline, p. 695)."
           },
           "calcific-2": {
             "grade": 2,
             "headline": "Calcific MS, moderate by gradient",
-            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1); many standard rheumatic measures have not been validated for degenerative MS (2020 TEE guideline, p. 695)."
           },
           "calcific-3": {
             "grade": 3,
             "headline": "Calcific MS, severe by gradient",
-            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1); many standard rheumatic measures have not been validated for degenerative MS (2020 TEE guideline, p. 695)."
           },
           "calcific-nograd": {
             "headline": "Calcific MS without a gradient",
@@ -16094,7 +16094,7 @@
             "kind": "choice",
             "ask": "Severe valve lesions are specific for severe TR. A dilated annulus is 40 mm or more, or above 21 mm/m², in the four-chamber view (pp. 345, 350; Annuli tab in the chamber tool).",
             "tte": "Apical four-chamber, parasternal RV inflow and short axis.",
-            "tee": "ME four-chamber, RV inflow-outflow (50–70°) and modified bicaval tricuspid view (50–70°); transgastric RV inflow-outflow (2020 TEE guideline, p. 705).",
+            "tee": "ME four-chamber (annulus at end-diastole), RV inflow-outflow (50–70°) and modified bicaval tricuspid view (50–70°); transgastric RV basal short axis and RV inflow (2020 TEE guideline, Table 6, p. 705, and pp. 711–712; angles, 2013, p. 939).",
             "options": [
               {
                 "id": "severe",
@@ -16244,7 +16244,7 @@
             "kind": "choice",
             "ask": "Influenced by RV diastolic function, AF and RA pressure (Table 14).",
             "tte": "Apical four-chamber, PW at the leaflet tips.",
-            "tee": "ME four-chamber or RV inflow-outflow, PW at the leaflet tips (2020 TEE guideline, p. 705).",
+            "tee": "ME four-chamber or RV inflow-outflow, or the transgastric RV inflow-outflow (2020 TEE guideline, Table 6, p. 705); PW at the leaflet tips, as on TTE.",
             "options": [
               {
                 "id": "a",
@@ -16406,7 +16406,7 @@
             "kind": "choice",
             "ask": "Nyquist 50–70 cm/s. A jet under 10 mm long with a narrow origin is insignificant. With normal PA pressure, severe PR can be low-velocity, laminar and brief, and hard to see as a jet (pp. 356, 358–359).",
             "tte": "Parasternal short axis at the great vessels, or subcostal.",
-            "tee": "Upper esophageal aortic arch short axis (70–90°), ME RV inflow-outflow, transgastric RV inflow-outflow (2020 TEE guideline, p. 706).",
+            "tee": "Upper esophageal aortic arch short axis (70–90°), ME RV inflow-outflow, transgastric RV inflow-outflow (2020 TEE guideline, Table 7, p. 706; angle, 2013, p. 941).",
             "options": [
               {
                 "id": "small",
@@ -16638,7 +16638,7 @@
             "kind": "choice",
             "ask": "PW Doppler along the outflow localizes it. Two stenoses in series cannot be told apart, and a late-peaking, dagger-shaped jet is dynamic infundibular obstruction (2009, p. 20).",
             "tte": "Parasternal short axis at the great vessels; subcostal in some adults.",
-            "tee": "Upper esophageal aortic arch short axis (70–90°), ME RV inflow-outflow (50–70°) and transgastric RV inflow-outflow (2020 TEE guideline, p. 706).",
+            "tee": "Upper esophageal aortic arch short axis (70–90°), ME RV inflow-outflow (50–70°) and ascending aorta views, transgastric RV basal and RV inflow-outflow (2020 TEE guideline, Table 7, p. 706; angles, 2013, pp. 939, 941).",
             "options": [
               {
                 "id": "valvular",
@@ -16693,7 +16693,7 @@
             "unit": "mmHg",
             "ask": "From the TR jet plus RA pressure. RV pressure minus the valve gradient estimates the PA systolic pressure; a valve gradient that explains little of the RV pressure points to another stenosis (2009, p. 20).",
             "tte": "TR jet, apical four-chamber or RV inflow.",
-            "tee": "TR jet in the ME four-chamber, RV inflow-outflow or modified bicaval view (2020 TEE guideline, p. 705)."
+            "tee": "TR jet in the ME four-chamber, RV inflow-outflow or modified bicaval view, or the transgastric RV inflow-outflow (2020 TEE guideline, Table 6, p. 705)."
           }
         ],
         "results": {
@@ -17155,7 +17155,7 @@
     ],
     "notes": [
       "Each step can be skipped with Cannot obtain; the flow moves on and ends as soon as the guideline's criteria settle the grade.",
-      "The guidelines' tables are for transthoracic studies in awake patients; none gives TEE-specific cutoffs, and loading conditions under general anesthesia usually make regurgitation read less severe and gradients lower. Which TEE view suits each measurement comes from the 2020 surgical decision-making guideline's tables; the multiplane angles come from the 2013 comprehensive TEE guideline (pp. 932–941)."
+      "The grading tables are for transthoracic studies in awake patients, and none gives TEE-specific grading cutoffs. Under general anesthesia AS velocities and gradients are often lower than on the preoperative TTE (2020, p. 704), and MR, functional MR above all, tends to read less severe (2020, p. 698; ASE 2017, p. 323). The TEE views come from the 2020 surgical decision-making guideline's tables, which list views by imaging goal rather than by measurement, and its text; the multiplane angles come from the 2013 comprehensive TEE guideline (pp. 932–941)."
     ]
   }
 }

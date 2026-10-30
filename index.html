@@ -2709,7 +2709,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       return done('indeterminate', { track });
     }
     F.rules.as = function (w) {
-      if (w.tee) w.caution('Under general anesthesia velocity and gradients often read lower than on the preoperative TTE; the valve area and the velocity ratio agree with it better (2020 TEE guideline, p. 704).');
+      if (w.tee) w.caution('Under general anesthesia velocities and gradients are often lower than on the preoperative TTE, whereas the velocity ratio seems to agree with it better; with reduced flow, the relatively flow-independent valve area and velocity ratio are recommended (2020 TEE guideline, p. 704).');
       const v = w.take('vmax');
       if (v.pending) return ask('vmax');
       const g = w.take('mg');
@@ -2871,7 +2871,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       return { grade: Math.max(l, vol), text };
     };
     F.rules.mr = function (w) {
-      if (w.tee) w.caution('Grading is best done on the awake TTE: under anesthesia lower loading conditions make MR, secondary MR especially, look less severe (2020 TEE guideline, pp. 695, 698; ASE 2017, p. 323). Prefer the preoperative grade, record blood pressure, heart rate and rhythm, and try fluids, inotropes or an afterload challenge before deciding on the intraoperative findings (ASE 2017, p. 324; 2020, p. 698).');
+      if (w.tee) w.caution('Grading is best done on the awake TTE (2020 TEE guideline, p. 695): intraoperative falls in loading or contractility tend to underestimate MR (ASE 2017, p. 323), functional MR above all, while structural pathology is not significantly affected (2020, p. 698). Prefer the preoperative grade and record blood pressure, heart rate and rhythm (ASE 2017, pp. 323–324); optimizing loading conditions can guide the decision (ASE 2017, p. 324), and in functional MR, above all when incidental, try fluids and inotropic and afterload challenges first (2020, p. 698).');
       const t = w.take('type');
       if (t.pending) return ask('type');
       const acute = ch(t) === 'acute', secondary = ch(t) === 'secondary';
@@ -2912,7 +2912,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       });
     };
     F.rules.ar = function (w) {
-      if (w.tee) w.caution('Loading conditions and LV and aortic compliance change the AR signs under anesthesia (2020 TEE guideline, p. 703); record blood pressure and heart rate with the numbers (ASE 2017, p. 318).');
+      if (w.tee) w.caution('Loading conditions, LV function and LV and aortic compliance limit the AR measurements (2020 TEE guideline, Table 4, p. 703), and loading changes under general anesthesia (p. 704); record blood pressure and heart rate with the numbers (ASE 2017, p. 318).');
       const t = w.take('type');
       if (t.pending) return ask('type');
       const acute = ch(t) === 'acute';
@@ -2936,7 +2936,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       });
     };
     F.rules.tr = function (w) {
-      if (w.tee) w.caution('TEE is in general more limited than TTE for the tricuspid valve, from off-angle planes and the distance from the probe (ASE 2017, p. 345); loading conditions and inotropes change the TR (2020 TEE guideline, pp. 700, 705).');
+      if (w.tee) w.caution('TEE is in general more limited than TTE for the tricuspid valve, from off-angle planes and the distance from the probe (ASE 2017, p. 345); loading conditions and inotropes change the TR (2020 TEE guideline, pp. 700, 705), and after bypass it is highly dynamic with RV preload, afterload and contractility (p. 728).');
       if (w.answers.jet === 'eccentric') w.caution('Eccentric, wall-impinging jet: its area underestimates the TR (p. 350).');
       return F.regurgitation(w, {
         criteria: ['valve', 'jet', 'cw', 'vc', 'pisa', 'hv', 'inflow', 'size'],
@@ -2996,7 +2996,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
 
     // Mitral stenosis (ASE 2023 rheumatic heart disease, Table 1; EAE/ASE 2009)
     F.rules.ms = function (w) {
-      if (w.tee) w.caution('Flow and heart rate change under general anesthesia, and the gradient and half-time with them (2020 TEE guideline, p. 696); planimetry does not depend on flow (2009, p. 12). Record the heart rate and rhythm with the numbers.');
+      if (w.tee) w.caution('The gradient and half-time depend on transvalvular flow and heart rate, which may be dynamic under general anesthesia, and on coexistent MR or AR and diastolic dysfunction (2020 TEE guideline, p. 696); planimetry does not depend on flow (2009, p. 12). Record the heart rate and rhythm with the numbers.');
       const e = w.take('etiology');
       if (e.pending) return ask('etiology');
       if (ch(e) === 'calcific') {
@@ -3051,7 +3051,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         return supp.length ? done('supportive-only', { supp: supp.join(' ') }) : done('nodata');
       }
       if ([tg(g), tg(pa)].map(level).includes(3) && area < 3) w.caution('Gradient or PA pressure in the severe range with a non-severe area: high flow, tachycardia, significant MR or another cause of pulmonary hypertension (2023, p. 8).');
-      if (area === 3 && level(tg(g)) === 1) w.caution('Severe by area with a low gradient: low flow, where planimetry is essential (2020 TEE guideline, p. 696).');
+      if (area === 3 && level(tg(g)) === 1) w.caution('Severe by area with a low gradient: consider low-flow, low-gradient MS, where a multiparametric approach, often with planimetry, is essential (2020 TEE guideline, p. 696).');
       return done(['mild', 'moderate', 'severe'][area - 1], { basis });
     };
 
