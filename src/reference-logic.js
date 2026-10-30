@@ -944,7 +944,8 @@
       if (m.ask) { w.tally = tallyText(mild, severe); return ask(m.ask); }
       if (m.none) {
         vars.lean = severe > mild ? 'The signs so far lean toward severe.' : (mild > severe ? 'The signs so far lean toward mild.' : '');
-        return done(assessed < (plan.minAssessed || 0) ? 'indeterminate' : (plan.noQuant || 'indeterminate'), vars);
+        const nq = typeof plan.noQuant === 'function' ? plan.noQuant(mild, severe) : (plan.noQuant || 'indeterminate');
+        return done(assessed < (plan.minAssessed || 0) ? 'indeterminate' : nq, vars);
       }
       vars.quant = m.text;
       if (m.split) return done('discordant', vars);
@@ -952,7 +953,10 @@
       // A specific sign of severe against the lowest grade, or two of mild against the highest, do not agree.
       if ((q === plan.scale && mild >= 2) || (q === 1 && severe >= 1)) return done('discordant', vars);
       if (plan.acute && q === 1) return done('acute-mild', vars);
-      if (plan.scale === 3) return done(['q-mild', 'q-moderate', 'q-severe'][Math.max(0, Math.min(2, q - 1))], vars);
+      if (plan.scale === 3) {
+        if (q === 2 && plan.middle) return plan.middle(w, severe, vars);
+        return done(['q-mild', 'q-moderate', 'q-severe'][Math.max(0, Math.min(2, q - 1))], vars);
+      }
       if (q === 1) return done('grade1', vars);
       if (q === 2) return done('grade2', vars);
       if (q === 3) return plan.gradeThree ? plan.gradeThree(w, severe, vars) : done('grade3', vars);
@@ -1224,6 +1228,7 @@
         got[id] = g;
       }
       const names = (ids, t) => ids.filter((id) => got[id] && tg(got[id]) === t).map((id) => { const s = F.step(w.flow, id); return (s && (s.short || s.title)) || id; });
+      if (!tavr && got.dvi && num(got.dvi) !== null && num(got.dvi) >= 0.30 && num(got.dvi) <= 0.35) w.caution('A DVI of 0.30–0.35 is possible stenosis in Table 5 but normal in Figure 13 (both p. 19); the app follows the table.');
       const depSig = names(depIds, 'severe'), depMid = names(depIds, 'moderate');
       const indepSig = names(indepIds, 'severe'), indepMid = names(indepIds, 'moderate');
       const depKnown = depIds.some((id) => got[id] && tg(got[id])), indepKnown = indepIds.some((id) => got[id] && tg(got[id]));
@@ -1259,6 +1264,100 @@
       // Normal needs one normal measure of each kind: a single parameter is not enough (ASE 2024, p. 17).
       const depNormal = depIds.some((id) => got[id] && tg(got[id]) === 'normal'), indepNormal = indepIds.some((id) => got[id] && tg(got[id]) === 'normal');
       return done(depNormal && indepNormal ? 'normal' : 'insufficient', { counts });
+    };
+
+    // Prosthetic regurgitation: Figures 16 (aortic) and 21 (mitral) of the 2024 guideline. Intermediate values with
+    // too few specific signs read as probably moderate; two or three from one list need quantitation.
+    const prostheticNoQuant = (mild, severe) => (mild >= 2 || severe >= 2 ? 'indeterminate' : 'probable-moderate');
+    const prostheticMiddle = (w, severe, vars) => done(severe >= 3 ? 'q-moderate-severe' : 'q-moderate', vars);
+
+    F.rules.par = function (w) {
+      if (w.tee) w.caution('Use the deep transgastric views too: they find jets the esophageal views miss, and anterior leaks can hide behind the valve. Normalize heart rate and blood pressure before grading: a low diastolic pressure makes the jet look small (2019, pp. 433, 435).');
+      const k = w.take('kind');
+      if (k.pending) return ask('kind');
+      const tavr = ch(k) === 'tavr';
+      const s = w.take('site');
+      if (s.pending) return ask('site');
+      const pvl = s.cannot || ch(s) !== 'central', central = s.cannot || ch(s) !== 'pvl';
+      const st = w.take('structure');
+      if (st.pending) return ask('structure');
+      if (ch(st) === 'rocking') w.caution('Rocking or dehiscence means paravalvular regurgitation; rocking of more than 15° on CT implies it is significant (ASE 2024, Tables 8 and 9, pp. 23, 26).');
+      if (ch(st) === 'leaflets') w.caution('Table 8 lists an abnormal valve with moderate and severe regurgitation (p. 23).');
+      if (tavr) w.caution('After TAVR there are few data for quantitation of an acute leak, and the 60 mL cutoff may be too high; the regurgitant fraction is the better measure (2019, p. 445).');
+      const criteria = ['vc', 'vca'];
+      if (pvl) criteria.push('extent');
+      // Jet width is for central jets of surgical valves; after TAVR it is not used (2019, p. 442).
+      if (central && !tavr) criteria.push('jet');
+      criteria.push('pisa', 'pht', 'aorta');
+      return F.regurgitation(w, {
+        criteria,
+        need: 4,
+        scale: 3,
+        minAssessed: 3,
+        noQuant: prostheticNoQuant,
+        specific: (id, g) => (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        measure: (w2) => F.lesionAndVolume(w2, ['rvol', 'rf', 'eroa'], 'eroa', ['rvol', 'rf'], 3, null, ''),
+        middle: prostheticMiddle,
+      });
+    };
+
+    F.rules.pmr = function (w) {
+      if (w.tee) w.caution('TEE is the test for prosthetic MR: it sees past the prosthesis into the left atrium, and 3D en face shows the location and number of jets (ASE 2024, pp. 25, 29).');
+      const k = w.take('kind');
+      if (k.pending) return ask('kind');
+      if (!w.tee && ch(k) === 'mechanical') w.caution('Mechanical valve on TTE: shadowing and flow masking hide MR from color Doppler. Look for the indirect signs (a high E velocity, mean gradient and DVI with a normal half-time, a low LVOT VTI) and go to TEE (ASE 2024, pp. 25, 28–29).');
+      const s = w.take('site');
+      if (s.pending) return ask('site');
+      if (w.answers.jet === 'eccentric') w.caution('Eccentric, wall-impinging jet: color underestimates it (Figure 21).');
+      return F.regurgitation(w, {
+        criteria: ['structure', 'jet', 'cw', 'vc', 'jets', 'vca', 'pisa', 'inflow', 'pv'],
+        need: 4,
+        scale: 3,
+        minAssessed: 3,
+        noQuant: prostheticNoQuant,
+        specific: (id, g) => {
+          // A vena contracta of 0.7 cm or more and two or more moderate jets are one criterion (Figure 21).
+          if (id === 'jets' && tg(g) === 'severe' && tg(w.take('vc')) === 'severe') return null;
+          return tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null);
+        },
+        measure: (w2) => F.lesionAndVolume(w2, ['eroa', 'rvol', 'rf'], 'eroa', ['rvol', 'rf'], 3, null, ''),
+        middle: prostheticMiddle,
+      });
+    };
+
+    // Mitral prosthesis with a high velocity or gradient (ASE 2024, Tables 11 and 12; no flowchart in the guideline).
+    F.rules.pmv = function (w) {
+      if (w.tee) w.caution('TEE en face shows disk or leaflet motion and the cause of an obstruction, and finds the regurgitation that TTE misses (ASE 2024, p. 25).');
+      const k = w.take('kind');
+      if (k.pending) return ask('kind');
+      if (ch(k) && ch(k) !== 'mechanical') w.caution('Some bioprostheses run slightly above the cutoffs of Table 11; compare with the reference for the model and size (Table 11; Appendix A5 and A6).');
+      const ids = ['vmax', 'mg', 'pht', 'dvi', 'eoa'];
+      const got = {};
+      for (const id of ids) {
+        const g = w.take(id);
+        if (g.pending) return ask(id);
+        if (num(g) !== null && tg(g)) got[id] = g;
+      }
+      const have = ids.filter((id) => got[id]);
+      if (!have.length) return done('nodata');
+      const say = (id) => {
+        const s = F.step(w.flow, id), b = ((s && s.bands) || []).find((x) => F.contains(x, num(got[id])));
+        return `${(s && s.short) || id} ${val(w, id, num(got[id]))}${F.unitSuffix(s && s.unit)}${b && b.label ? ', ' + b.label : ''}`;
+      };
+      const counts = have.map(say).join('; ');
+      const lv = (id) => (got[id] ? tg(got[id]) : null);
+      const pht = lv('pht');
+      const sig = ['mg', 'dvi', 'eoa'].filter((id) => lv(id) === 'severe');
+      if (pht === 'severe' && sig.length) return done('stenosis', { sig: sig.map(say).join('; ') });
+      const abnormal = have.some((id) => lv(id) !== 'normal');
+      // Table 12 (normal half-time): a peak velocity of 1.9 m/s, a DVI of 2.5 or a mean gradient of 5 mmHg or more.
+      const high = [];
+      if (got.vmax && num(got.vmax) >= 1.9) high.push('vmax');
+      if (got.dvi && num(got.dvi) >= 2.5) high.push('dvi');
+      if (got.mg && num(got.mg) >= 5) high.push('mg');
+      if (pht === 'normal' && abnormal && high.length) return done('mr', { high: high.map(say).join('; ') });
+      if (abnormal) return done('possible', { counts, phtnote: pht ? '' : ' Without the half-time, stenosis cannot be told from regurgitation or high flow (Tables 11 and 12).' });
+      return done(have.length >= 2 ? 'normal' : 'insufficient', { counts });
     };
   })();
 

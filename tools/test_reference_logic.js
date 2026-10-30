@@ -1011,6 +1011,7 @@ test('Valve workflows: shared cases', () => {
     if (e.grade !== undefined) eq(p.outcome ? p.outcome.grade : undefined, e.grade, c.name + ' grade');
     if (e.caution !== undefined) assert.ok(p.cautions.some((x) => x.includes(e.caution)), c.name + ' cautions: ' + e.caution);
     if (e.headline !== undefined) assert.ok(p.outcome && p.outcome.headline.includes(e.headline), c.name + ' headline: ' + e.headline);
+    if (e.text !== undefined) assert.ok(p.outcome && p.outcome.text.includes(e.text), c.name + ' text: ' + e.text);
     if (e.pathText !== undefined) assert.ok(p.path.some((r) => r.text.includes(e.pathText)), c.name + ' path text: ' + e.pathText);
     if (e.path !== undefined) eq(p.path.map((r) => r.step.id), e.path, c.name + ' path');
   }

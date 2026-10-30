@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793387713,
+  "revision": 1793388666,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14583,6 +14583,11 @@
         "url": "https://www.asecho.org/wp-content/uploads/2024/01/PIIS0894731723005333.pdf"
       },
       {
+        "id": "zoghbi2019",
+        "citation": "Zoghbi WA, Asch FM, Bruce C, et al. Guidelines for the Evaluation of Valvular Regurgitation After Percutaneous Valve Repair or Replacement: A Report from the American Society of Echocardiography Developed in Collaboration with the Society for Cardiovascular Angiography and Interventions, Japanese Society of Echocardiography, and Society for Cardiovascular Magnetic Resonance. J Am Soc Echocardiogr 2019;32:431–75.",
+        "url": "https://doi.org/10.1016/j.echo.2019.01.003"
+      },
+      {
         "id": "nicoara2020",
         "citation": "Nicoara A, Skubas N, Ad N, et al. Guidelines for the Use of Transesophageal Echocardiography to Assist with Surgical Decision-Making in the Operating Room: A Surgery-Based Approach. J Am Soc Echocardiogr 2020;33:692–734.",
         "url": "https://www.asecho.org/wp-content/uploads/2020/06/TEE-Surgical-Decision-Making_June2020.pdf"
@@ -16733,13 +16738,13 @@
         "id": "pav",
         "group": "prosthetic",
         "name": "Aortic prosthesis: high velocity or gradient",
-        "short": "Aortic prosthesis",
+        "short": "Aortic: gradient",
         "source": "zoghbi2024",
         "also": [
           "nicoara2020"
         ],
         "ref": "ASE 2024, Tables 5 and 7, pp. 17–20",
-        "intro": "Significant stenosis needs at least one flow-dependent sign (velocity, mean gradient) and one flow-independent sign (EOA, DVI); a single parameter is not enough. A high gradient with a normal EOA and DVI points to high flow, mismatch or pressure recovery (ASE 2024, pp. 17–19). Built from Table 5 and the text: the Figure 13 flowchart itself could not be read.",
+        "intro": "Significant stenosis needs at least one flow-dependent sign (velocity, mean gradient) and one flow-independent sign (EOA, DVI); a single parameter is not enough. A high gradient with a normal EOA and DVI points to high flow, mismatch or pressure recovery (ASE 2024, pp. 17–19). Figure 13 takes the same path, jet contour then DVI, but calls a DVI of 0.30 or more normal where Table 5 puts 0.25–0.35 in possible stenosis for surgical valves; the app keeps Table 5's bands, the more cautious (both p. 19).",
         "steps": [
           {
             "id": "kind",
@@ -17081,7 +17086,7 @@
             "headline": "Suggests significant stenosis",
             "text": "At least one flow-dependent ({dep}) and one flow-independent ({indep}) sign in the significant column, as Table 5 requires.",
             "next": [
-              "Image the leaflets or occluder, often by TEE or CT, and fluoroscopy for a mechanical valve, to find the cause: thrombus, pannus or degeneration (ASE 2024, pp. 17–18).",
+              "Find the cause: valvular stenosis, thrombus included, or subvalvular stenosis (Figure 13, p. 19). For mechanical valve motion fluoroscopy and CT do better than TEE; for the cause, CT angiography and TEE (Figure 13; pp. 17–18).",
               "Compare with the baseline postprocedural study (p. 18)."
             ]
           },
@@ -17090,6 +17095,7 @@
             "headline": "Possible stenosis",
             "text": "Signs in the possible-stenosis column without both a flow-dependent and a flow-independent sign of significant stenosis ({counts}).",
             "next": [
+              "Consider a stenosed valve in a small LVOT, an LVOT PW sample in the wrong place, or an underestimated jet velocity (Figure 13, p. 19).",
               "Repeat and compare with the baseline and serial studies (p. 18).",
               "TEE, CT or fluoroscopy for leaflet motion if doubt remains (p. 17)."
             ]
@@ -17148,6 +17154,1034 @@
             "text": "Neither a flow-dependent nor a flow-independent measure could be obtained.",
             "next": [
               "TEE, CT or fluoroscopy for leaflet or occluder motion (ASE 2024, p. 17)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "par",
+        "group": "prosthetic",
+        "name": "Aortic prosthesis: regurgitation",
+        "short": "Aortic: regurgitation",
+        "source": "zoghbi2024",
+        "also": [
+          "zoghbi2019",
+          "nicoara2020",
+          "hahn2013"
+        ],
+        "ref": "ASE 2024, Table 8 and Figure 16, pp. 20–24; after TAVR, ASE 2019, Figure 9, pp. 441–447",
+        "intro": "Figure 16 counts the specific signs of mild and of severe AR after valve replacement: four from one list settle it; two or three, or values in between, go on to the regurgitant volume and fraction. A quantitatively moderate leak with three specific signs of severe is severe; poor images or discordant findings end as indeterminate, for TEE or CMR (ASE 2024, pp. 20, 24). After TAVR the 2019 guideline drops the jet width and relies on the vena contracta and the circumferential extent (2019, pp. 442, 446–447).",
+        "steps": [
+          {
+            "id": "kind",
+            "title": "Which prosthesis?",
+            "kind": "choice",
+            "ask": "After TAVR the regurgitation is usually paravalvular, often eccentric and in several jets, so an integrative approach is essential (2019, pp. 440–442, 447).",
+            "options": [
+              {
+                "id": "surgical",
+                "label": "Surgical valve",
+                "detail": "Mechanical or biological"
+              },
+              {
+                "id": "tavr",
+                "label": "Transcatheter valve (TAVR)"
+              }
+            ]
+          },
+          {
+            "id": "site",
+            "title": "Where is the regurgitation?",
+            "kind": "choice",
+            "ask": "Scan the whole valve from its aortic to its ventricular end. A jet must reach the LV to count; central jets arise at leaflet coaptation, paravalvular ones at the ventricular edge of the stent or sewing ring, and slow flow in the sinuses above the skirt is not regurgitation (2019, p. 442).",
+            "tte": "Parasternal short and long axis, then apical five- and three-chamber: some jets show only in apical views (2019, p. 442).",
+            "tee": "ME aortic valve short axis (25–45°) and long axis (120–140°), and deep transgastric views, which find jets the esophageal views miss; TEE can miss anterior leaks (2019, p. 435; angles, 2013, pp. 937, 939–940).",
+            "options": [
+              {
+                "id": "central",
+                "label": "Central (through the valve)"
+              },
+              {
+                "id": "pvl",
+                "label": "Paravalvular"
+              },
+              {
+                "id": "both",
+                "label": "Both"
+              }
+            ]
+          },
+          {
+            "id": "structure",
+            "title": "Valve structure and motion",
+            "kind": "choice",
+            "ask": "Table 8 lists the valve as usually normal in mild regurgitation and abnormal in moderate and severe; it is not one of Figure 16's specific criteria (ASE 2024, pp. 23–24).",
+            "tte": "Parasternal and apical views, zoomed.",
+            "tee": "ME aortic valve short and long axis; 3D for rocking and dehiscence.",
+            "options": [
+              {
+                "id": "normal",
+                "label": "Looks normal"
+              },
+              {
+                "id": "leaflets",
+                "label": "Abnormal leaflets or occluder",
+                "detail": "Thickened or prolapsing leaflets, an immobile occluder"
+              },
+              {
+                "id": "rocking",
+                "label": "Rocking or dehiscence"
+              }
+            ]
+          },
+          {
+            "id": "vc",
+            "short": "vena contracta",
+            "title": "Vena contracta width",
+            "kind": "number",
+            "unit": "cm",
+            "ask": "At the narrowest part of the jet, at its origin. Several small jets are harder to judge this way; the vena contracta area can add them (ASE 2024, Table 8; 2019, pp. 438, 441).",
+            "tte": "Parasternal long axis, zoomed.",
+            "tee": "ME aortic valve long axis (120–140°), zoomed (angle, 2013, p. 937).",
+            "bands": [
+              {
+                "lt": 0.3,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "gt": 0.6,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "vca",
+            "short": "vena contracta area",
+            "title": "Vena contracta area",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "Planimetry of the vena contracta of the jet or jets in short axis, by 2D or 3D color; jets can be added. Blooming and low 3D frame rates limit it, and small jets are below its resolution (ASE 2024, Table 8; 2019, pp. 438, 442).",
+            "tte": "Parasternal short axis at the ventricular end of the valve.",
+            "tee": "ME aortic valve short axis (25–45°) at the ventricular end of the valve; 3D color for planimetry (2019, p. 434; angle, 2013, p. 939).",
+            "bands": [
+              {
+                "lt": 0.1,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "ge": 0.3,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "extent",
+            "short": "circumferential extent",
+            "title": "Circumferential extent of the paravalvular leak",
+            "kind": "number",
+            "unit": "%",
+            "ask": "The summed lengths of each jet's vena contracta, without the gaps between jets or the stent nodes, over the circumference of the valve's outer edge, in a short-axis plane at the annulus (a lower plane overstates eccentric jets). Never use it alone, only with the vena contracta width or area (ASE 2024, Table 8; 2019, pp. 441–443).",
+            "tte": "Parasternal short axis; a clock face with the tricuspid valve at 9 o'clock records where the jets are (2019, p. 442).",
+            "tee": "ME aortic valve short axis (25–45°) at the annulus (angle, 2013, p. 939).",
+            "bands": [
+              {
+                "lt": 10,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "ge": 30,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "jet",
+            "short": "jet width",
+            "title": "Jet width ÷ LVOT diameter",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Central jets only, at a Nyquist limit of 50–60 cm/s; less accurate in eccentric jets (ASE 2024, Table 8). Not used after TAVR, where jets broaden in the LVOT (2019, p. 442).",
+            "tte": "Parasternal long axis, just below the valve.",
+            "tee": "ME aortic valve long axis (120–140°) (angle, 2013, p. 937).",
+            "bands": [
+              {
+                "le": 25,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "ge": 65,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "pisa",
+            "title": "Flow convergence",
+            "kind": "choice",
+            "ask": "Often shadowed by the prosthesis, and rarely hemispheric (2019, p. 445).",
+            "tte": "Apical five-chamber or parasternal long axis.",
+            "tee": "Deep transgastric five-chamber (0–20°) or ME aortic valve long axis (angles, 2013, pp. 937, 940).",
+            "options": [
+              {
+                "id": "small",
+                "label": "Small or none",
+                "tag": "mild"
+              },
+              {
+                "id": "mid",
+                "label": "Intermediate"
+              },
+              {
+                "id": "large",
+                "label": "Large",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "pht",
+            "short": "pressure half-time",
+            "title": "Pressure half-time",
+            "kind": "number",
+            "unit": "ms",
+            "ask": "From a complete CW signal only. It depends on LV compliance, and LV and aortic stiffness, common in TAVR patients, shorten it (ASE 2024, Table 8; 2019, pp. 444, 446).",
+            "tte": "Apical five-chamber; parasternal for eccentric jets.",
+            "tee": "Deep transgastric five-chamber (0–20°) or transgastric long axis (120–140°), aligned with color (angles, 2013, p. 940).",
+            "bands": [
+              {
+                "gt": 500,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "lt": 200,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "aorta",
+            "title": "Descending aorta flow reversal (PW)",
+            "kind": "choice",
+            "ask": "Compare with the pre-TAVR pattern: some reversal is common with hypertension and stiff aortas. New holodiastolic reversal means at least moderate AR; severe bradycardia can hide it, and reversal in the abdominal aorta is more specific (2019, p. 444; ASE 2024, p. 20).",
+            "tte": "Suprasternal, proximal descending aorta; abdominal aorta from the subcostal window.",
+            "tee": "Descending aorta short (0–10°) or long axis (90–100°) (angles, 2013, p. 940).",
+            "options": [
+              {
+                "id": "brief",
+                "label": "None, or brief and early diastolic",
+                "tag": "mild"
+              },
+              {
+                "id": "mid",
+                "label": "Intermediate"
+              },
+              {
+                "id": "holo",
+                "label": "Prominent holodiastolic reversal",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "rvol",
+            "short": "regurgitant volume",
+            "title": "Regurgitant volume",
+            "kind": "number",
+            "unit": "mL",
+            "ask": "Total LV stroke volume minus the systemic (mitral or pulmonic) stroke volume. After TAVR measure the LVOT at the ventricular end of the stent, outer edge to outer edge, with the PW just apical to it. The 60 mL cutoff may be too high early after TAVR, where the fraction is the better measure, and there are few data for acute leaks (2019, pp. 444–445).",
+            "tte": "Stroke volume method; the pulmonic annulus when the mitral one is calcified (2019, p. 445).",
+            "tee": "Deep transgastric LVOT Doppler; angulation can underestimate it.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 30,
+                "lt": 60,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "30–59"
+              },
+              {
+                "ge": 60,
+                "tag": "severe",
+                "label": "severe; may be lower in low flow"
+              }
+            ]
+          },
+          {
+            "id": "rf",
+            "short": "regurgitant fraction",
+            "title": "Regurgitant fraction",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Regurgitant volume ÷ total stroke volume. Table 8 prints moderate as 30–50 and severe as 50 or more; the app follows Figure 16's 30–49 (ASE 2024, pp. 23–24).",
+            "tte": "Stroke volume method.",
+            "tee": "As for the regurgitant volume.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 30,
+                "lt": 50,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "30–49"
+              },
+              {
+                "ge": 50,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "eroa",
+            "short": "EROA",
+            "title": "EROA",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "Regurgitant volume ÷ AR VTI; rarely used, and PISA is usually not feasible through a prosthesis (2019, pp. 445, 447).",
+            "tte": "Volumetric method.",
+            "tee": "Volumetric method.",
+            "bands": [
+              {
+                "lt": 0.1,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 0.1,
+                "lt": 0.3,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "0.10–0.29"
+              },
+              {
+                "ge": 0.3,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "mild-specific": {
+            "grade": 1,
+            "headline": "Mild prosthetic AR",
+            "text": "{mild} of Figure 16's specific criteria for mild AR and none for severe among those assessed: definitely mild (ASE 2024, p. 24)."
+          },
+          "severe-specific": {
+            "grade": 3,
+            "headline": "Severe prosthetic AR",
+            "text": "{severe} of Figure 16's specific criteria for severe AR, against {mild} for mild among those assessed: definitely severe (ASE 2024, p. 24).",
+            "next": [
+              "Find the mechanism: dehiscence or rocking, leaflet failure, or after TAVR the implant depth, undersizing or calcium, by TEE, CT or CMR (ASE 2024, pp. 21–23; 2019, pp. 442, 448–449)."
+            ]
+          },
+          "q-mild": {
+            "grade": 1,
+            "headline": "Mild prosthetic AR",
+            "text": "Quantitatively mild: {quant} (Figure 16)."
+          },
+          "q-moderate": {
+            "grade": 2,
+            "headline": "Moderate prosthetic AR",
+            "text": "Quantitatively moderate: {quant}; {severe} specific criteria for severe AR, fewer than the three that would make it severe (Figure 16)."
+          },
+          "q-moderate-severe": {
+            "grade": 3,
+            "headline": "Severe prosthetic AR",
+            "text": "Quantitatively moderate ({quant}) with {severe} specific criteria for severe AR: severe (Figure 16).",
+            "next": [
+              "Find the mechanism by TEE, CT or CMR (ASE 2024, pp. 21–23)."
+            ]
+          },
+          "q-severe": {
+            "grade": 3,
+            "headline": "Severe prosthetic AR",
+            "text": "Quantitatively severe: {quant} (Figure 16).",
+            "next": [
+              "Find the mechanism by TEE, CT or CMR (ASE 2024, pp. 21–23)."
+            ]
+          },
+          "discordant": {
+            "headline": "Indeterminate: findings disagree",
+            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) do not agree, or the measurements disagree with each other. Look for image-quality, technical and physiologic explanations (ASE 2024, p. 20).",
+            "next": [
+              "TEE or CMR; CMR measures the regurgitant volume and fraction whatever the number or direction of the jets (ASE 2024, pp. 22, 24).",
+              "In the TAVR suite, aortography and invasive hemodynamics if echo is not diagnostic (2019, p. 449)."
+            ]
+          },
+          "indeterminate": {
+            "headline": "Indeterminate: quantitation needed",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, which do not settle the grade, and no regurgitant volume, fraction or EROA could be obtained (Figure 16). {lean}",
+            "next": [
+              "TEE or CMR (ASE 2024, p. 24).",
+              "In the TAVR suite, aortography and invasive hemodynamics if echo is not diagnostic (2019, p. 449)."
+            ]
+          },
+          "probable-moderate": {
+            "grade": 2,
+            "headline": "Probably moderate prosthetic AR",
+            "text": "Intermediate values, with too few specific signs of mild or severe ({mild} and {severe}): Figure 16 reads this as probably moderate, to be refined by quantitation whenever possible (ASE 2024, p. 24).",
+            "next": [
+              "Regurgitant volume and fraction, or TEE or CMR (Figure 16)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "pmv",
+        "group": "prosthetic",
+        "name": "Mitral prosthesis: high velocity or gradient",
+        "short": "Mitral: gradient",
+        "source": "zoghbi2024",
+        "also": [
+          "hahn2013"
+        ],
+        "ref": "ASE 2024, Tables 7, 11 and 12, pp. 20, 24–28",
+        "intro": "Table 11 sorts each Doppler measure into normal, possible stenosis or suggesting significant stenosis; accuracy is best when most of them agree. The main criteria for significant stenosis are a mean gradient over 10 mmHg at a normal heart rate, a half-time over 200 ms, a DVI over 2.5 and an EOA under 1 cm². Velocity, gradient and DVI also rise with significant regurgitation, and a normal half-time is what points there instead (ASE 2024, pp. 24, 27–28). There is no flowchart for this in the guideline.",
+        "steps": [
+          {
+            "id": "kind",
+            "title": "Which prosthesis?",
+            "kind": "choice",
+            "ask": "Slightly higher values than Table 11's may be normal for some bioprostheses; the reference values by model and size are in Appendix Table A5, and A6 for the SAPIEN 3 in the mitral position (ASE 2024, pp. 24, 27, 58–61).",
+            "options": [
+              {
+                "id": "mechanical",
+                "label": "Mechanical"
+              },
+              {
+                "id": "bio",
+                "label": "Biological (surgical)"
+              },
+              {
+                "id": "transcatheter",
+                "label": "Transcatheter (valve-in-valve, ring or MAC)"
+              }
+            ]
+          },
+          {
+            "id": "vmax",
+            "short": "peak early velocity",
+            "title": "Peak early (E) velocity",
+            "kind": "number",
+            "unit": "m/s",
+            "ask": "CW through the prosthesis. Also raised by high flow, mismatch and significant MR (Tables 11 and 12).",
+            "tte": "Apical four-chamber, CW aligned with the inflow.",
+            "tee": "ME four-chamber (10–20°) or long axis (120–140°), CW aligned with the inflow (angles, 2013, pp. 932, 937).",
+            "bands": [
+              {
+                "lt": 1.9,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 1.9,
+                "lt": 2.5,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "1.9–2.4"
+              },
+              {
+                "ge": 2.5,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "mg",
+            "short": "mean gradient",
+            "title": "Mean gradient",
+            "kind": "number",
+            "unit": "mmHg",
+            "ask": "Report the heart rate with it: the cutoff of 10 mmHg holds at a normal heart rate (ASE 2024, p. 24). Table 11 leaves a gap between 5 and 6; the app counts above 5 as possible stenosis.",
+            "tte": "Apical four-chamber, CW.",
+            "tee": "ME four-chamber or long axis, CW.",
+            "bands": [
+              {
+                "le": 5,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "gt": 5,
+                "le": 10,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "6–10"
+              },
+              {
+                "gt": 10,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "pht",
+            "short": "pressure half-time",
+            "title": "Pressure half-time",
+            "kind": "number",
+            "unit": "ms",
+            "ask": "With a high gradient, a normal half-time points to regurgitation rather than stenosis (Table 12's title, p. 28; Figure 20, p. 29).",
+            "tte": "Apical four-chamber, CW.",
+            "tee": "ME four-chamber or long axis, CW.",
+            "bands": [
+              {
+                "lt": 130,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 130,
+                "le": 200,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "130–200"
+              },
+              {
+                "gt": 200,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "dvi",
+            "short": "DVI",
+            "title": "DVI (VTI prosthesis ÷ VTI LVOT)",
+            "kind": "number",
+            "unit": "",
+            "ask": "The most specific and sensitive Doppler measure of stenosis in one study. It also rises with significant MR (more flow through the valve, less through the LVOT), and errors grow in AF when the beats cannot be matched (ASE 2024, pp. 24, 28).",
+            "tte": "CW through the prosthesis and PW in the LVOT, apical views.",
+            "tee": "CW in ME four-chamber; LVOT PW in the deep transgastric five-chamber (0–20°) (angle, 2013, p. 940).",
+            "bands": [
+              {
+                "lt": 2.2,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 2.2,
+                "le": 2.5,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "2.2–2.5"
+              },
+              {
+                "gt": 2.5,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "eoa",
+            "short": "EOA",
+            "title": "EOA by continuity",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "LVOT stroke volume ÷ VTI through the prosthesis; not valid with significant AR. Significant MR lowers it too, by raising the flow through the valve and lowering the LVOT output (ASE 2024, pp. 24–25).",
+            "tte": "LVOT diameter parasternal, PW and CW apical.",
+            "tee": "LVOT diameter in the ME aortic valve long axis (120–140°); PW deep transgastric (angles, 2013, pp. 937, 940).",
+            "bands": [
+              {
+                "ge": 2.0,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 1.0,
+                "lt": 2.0,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "1–1.9"
+              },
+              {
+                "lt": 1.0,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "normal": {
+            "grade": 1,
+            "headline": "No stenosis by these criteria",
+            "text": "The measures are in Table 11's normal column ({counts}), where accuracy is best when most of them agree (ASE 2024, p. 27)."
+          },
+          "insufficient": {
+            "headline": "Not enough to call it normal",
+            "text": "Only {counts}: Table 11's accuracy rests on most of the measures agreeing (ASE 2024, p. 27).",
+            "next": [
+              "Get the half-time and the DVI or EOA, by TEE if needed (Key Point 3, p. 29)."
+            ]
+          },
+          "stenosis": {
+            "grade": 3,
+            "headline": "Suggests significant stenosis",
+            "text": "A half-time over 200 ms with {sig} in the significant column of Table 11. The main criteria are a mean gradient over 10 mmHg at a normal heart rate, a half-time over 200 ms, a DVI over 2.5 and an EOA under 1 cm² (ASE 2024, pp. 24, 27).",
+            "next": [
+              "TEE en face, 2D and 3D, for disk or leaflet motion, thrombus, pannus or vegetation (ASE 2024, p. 25); CT is more sensitive for pannus (p. 26).",
+              "Fluoroscopy or CT for mechanical disk motion (p. 26)."
+            ]
+          },
+          "mr": {
+            "headline": "High gradient with a normal half-time: look for regurgitation",
+            "text": "{high} with a normal half-time point to significant prosthetic MR rather than stenosis; when the peak velocity and the DVI are both raised, specificity is close to 100% (Table 12, p. 28). High flow and mismatch can do the same.",
+            "next": [
+              "TEE: on TTE the left atrium is masked, above all behind mechanical valves (ASE 2024, pp. 25, 29); then the Mitral: regurgitation workflow.",
+              "Consider a high-flow state or mismatch (Table 12): heart rate, stroke volume, anemia."
+            ]
+          },
+          "possible": {
+            "grade": 2,
+            "headline": "Possible stenosis",
+            "text": "{counts}. Values in the possible-stenosis column call for a closer look at the valve and at increased flow, heart rate or mismatch (Table 11, p. 27).{phtnote}",
+            "next": [
+              "Mismatch (Table 7, p. 20), with normal leaflet motion and an EOA within 1 SD of the reference: indexed EOA 0.91–1.2 cm²/m² moderate and 0.90 or less severe, or 0.76–1.0 and 0.75 or less with a BMI of 30 or more.",
+              "Compare with the baseline postoperative study (ASE 2024, p. 43)."
+            ]
+          },
+          "nodata": {
+            "headline": "Not gradable yet",
+            "text": "No Doppler measure across the prosthesis could be obtained.",
+            "next": [
+              "TEE en face (ASE 2024, p. 25)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "pmr",
+        "group": "prosthetic",
+        "name": "Mitral prosthesis: regurgitation",
+        "short": "Mitral: regurgitation",
+        "source": "zoghbi2024",
+        "also": [
+          "zoghbi2019",
+          "hahn2013"
+        ],
+        "ref": "ASE 2024, Tables 12 and 13 and Figure 21, pp. 25–31",
+        "intro": "Figure 21 counts the specific signs of mild and of severe MR after valve replacement: four from one list settle it; two or three, or values in between, go on to the regurgitant volume, fraction and EROA. A quantitatively moderate leak with three specific signs of severe is severe (ASE 2024, p. 31). On TTE the prosthesis masks the left atrium, mechanical valves above all: color underestimates the jet, and TEE is indicated when significant MR is suspected (pp. 25, 29).",
+        "steps": [
+          {
+            "id": "kind",
+            "title": "Which prosthesis?",
+            "kind": "choice",
+            "ask": "Flow masking is worst with mechanical valves; Table 13's measures are best obtained by TEE (ASE 2024, pp. 25, 30).",
+            "options": [
+              {
+                "id": "mechanical",
+                "label": "Mechanical"
+              },
+              {
+                "id": "bio",
+                "label": "Biological (surgical)"
+              },
+              {
+                "id": "transcatheter",
+                "label": "Transcatheter (valve-in-valve, ring or MAC)"
+              }
+            ]
+          },
+          {
+            "id": "structure",
+            "title": "Dehiscence, incomplete closure or a flail leaflet?",
+            "kind": "choice",
+            "ask": "Valve dehiscence, incomplete occluder closure or a flail bioprosthetic leaflet is specific for severe MR (Figure 21).",
+            "tte": "Apical views show the leaflets better than parasternal ones (ASE 2024, p. 25).",
+            "tee": "ME views at 0°, 90° and 120° and the 3D en face view (ASE 2024, Table 24, p. 41; p. 25).",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Yes",
+                "tag": "severe"
+              },
+              {
+                "id": "no",
+                "label": "No"
+              }
+            ]
+          },
+          {
+            "id": "site",
+            "title": "Where is the regurgitation?",
+            "kind": "choice",
+            "ask": "A mechanical valve's small washing jets are normal (Figure 20, p. 29). 3D en face shows the location and number of paravalvular jets, which guide closure (ASE 2024, pp. 25, 29).",
+            "tte": "Parasternal views, and apical for eccentric or paravalvular jets (ASE 2024, p. 25).",
+            "tee": "ME views and 3D en face with color; record paravalvular jets on a clock face (ASE 2024, p. 29).",
+            "options": [
+              {
+                "id": "central",
+                "label": "Central (through the valve)"
+              },
+              {
+                "id": "pvl",
+                "label": "Paravalvular"
+              },
+              {
+                "id": "both",
+                "label": "Both, or several jets"
+              }
+            ]
+          },
+          {
+            "id": "jet",
+            "title": "Color jet",
+            "kind": "choice",
+            "ask": "Color underestimates MR behind a prosthesis on TTE and in eccentric, wall-impinging jets; Nyquist 50–60 cm/s (Figure 21; Table 13).",
+            "tte": "Parasternal and apical views.",
+            "tee": "ME four-chamber (10–20°), commissural (50–70°), two-chamber (80–100°) and long axis (120–140°) (angles, 2013, pp. 932–937).",
+            "options": [
+              {
+                "id": "small",
+                "label": "Small, narrow central jet",
+                "detail": "Usually under 4 cm² or 20% of the LA",
+                "tag": "mild"
+              },
+              {
+                "id": "large",
+                "label": "Large central jet, over 50% of the LA",
+                "tag": "severe"
+              },
+              {
+                "id": "eccentric",
+                "label": "Eccentric, wall-impinging",
+                "detail": "Its area underestimates the MR"
+              },
+              {
+                "id": "between",
+                "label": "In between"
+              }
+            ]
+          },
+          {
+            "id": "cw",
+            "title": "CW Doppler of the MR jet",
+            "kind": "choice",
+            "ask": "Table 13 also prints a dense, triangular early-peaking contour for severe MR, but it is not one of Figure 21's specific criteria.",
+            "tte": "Apical four-chamber; often masked by the prosthesis.",
+            "tee": "ME four-chamber or long axis.",
+            "options": [
+              {
+                "id": "soft",
+                "label": "Soft or incomplete",
+                "tag": "mild"
+              },
+              {
+                "id": "dense",
+                "label": "Dense"
+              },
+              {
+                "id": "triangular",
+                "label": "Dense and triangular (early peak)"
+              }
+            ]
+          },
+          {
+            "id": "vc",
+            "short": "vena contracta",
+            "title": "Vena contracta width",
+            "kind": "number",
+            "unit": "cm",
+            "ask": "Of the largest jet. Figure 21 prints mild as 0.3 cm or less and Table 13 as under 0.3; the app counts under 0.3 (ASE 2024, pp. 30–31).",
+            "tte": "Parasternal long axis, zoomed.",
+            "tee": "ME long axis (120–140°), zoomed (angle, 2013, p. 937).",
+            "bands": [
+              {
+                "lt": 0.3,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "ge": 0.7,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "jets",
+            "title": "Two or more moderate jets?",
+            "kind": "choice",
+            "ask": "Figure 21 counts a vena contracta of 0.7 cm or two or more moderate jets as one criterion for severe MR.",
+            "tee": "3D en face with color.",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Yes, two or more moderate jets",
+                "tag": "severe"
+              },
+              {
+                "id": "no",
+                "label": "No"
+              }
+            ]
+          },
+          {
+            "id": "vca",
+            "short": "vena contracta area",
+            "title": "Vena contracta area",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "3D color planimetry of one jet, or two added (Figure 21).",
+            "tee": "3D color, multiplanar reconstruction at the vena contracta.",
+            "bands": [
+              {
+                "lt": 0.2,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "ge": 0.4,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "pisa",
+            "title": "Flow convergence (PISA radius)",
+            "kind": "choice",
+            "ask": "At a Nyquist limit of 30–40 cm/s, on the LV side of the prosthesis. An ovoid convergence constrained by the LV wall overestimates (Figure 21).",
+            "tte": "Apical four-chamber, zoomed; often shadowed.",
+            "tee": "ME four-chamber or long axis, baseline shifted toward the jet.",
+            "options": [
+              {
+                "id": "small",
+                "label": "Absent, or radius 0.3 cm or less",
+                "tag": "mild"
+              },
+              {
+                "id": "mid",
+                "label": "Radius between 0.3 and 1.0 cm"
+              },
+              {
+                "id": "large",
+                "label": "Radius 1.0 cm or more",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "inflow",
+            "title": "Mitral inflow",
+            "kind": "choice",
+            "ask": "An A-wave dominant inflow is a specific sign of mild MR (Figure 21).",
+            "tte": "Apical four-chamber, PW.",
+            "tee": "ME four-chamber, PW.",
+            "options": [
+              {
+                "id": "a",
+                "label": "A wave dominant",
+                "tag": "mild"
+              },
+              {
+                "id": "other",
+                "label": "Other"
+              }
+            ]
+          },
+          {
+            "id": "pv",
+            "title": "Pulmonary vein flow",
+            "kind": "choice",
+            "ask": "Systolic reversal is specific but not sensitive for severe MR; atrial fibrillation and a high left atrial pressure also blunt systolic flow (Table 13, p. 30).",
+            "tte": "Apical four-chamber, PW in the right upper vein.",
+            "tee": "ME right pulmonary vein (about 0°) and left and right pulmonary veins (90–110°); sample more than one (angles, 2013, p. 939).",
+            "options": [
+              {
+                "id": "reversal",
+                "label": "Systolic flow reversal",
+                "tag": "severe"
+              },
+              {
+                "id": "blunted",
+                "label": "Systolic blunting"
+              },
+              {
+                "id": "dominant",
+                "label": "Systolic dominance",
+                "tag": "normal"
+              }
+            ]
+          },
+          {
+            "id": "eroa",
+            "short": "EROA",
+            "title": "EROA",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "By PISA, which overestimates an ovoid convergence; less well validated than in native MR (Table 13; Figure 21).",
+            "tte": "Apical four-chamber.",
+            "tee": "ME four-chamber or long axis.",
+            "bands": [
+              {
+                "lt": 0.2,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 0.2,
+                "lt": 0.4,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "0.20–0.39"
+              },
+              {
+                "ge": 0.4,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "rvol",
+            "short": "regurgitant volume",
+            "title": "Regurgitant volume",
+            "kind": "number",
+            "unit": "mL",
+            "ask": "Total LV stroke volume (2D or 3D) minus the LVOT stroke volume; the severe cutoff may be lower in low flow. An LV stroke volume more than 30% above the Doppler systemic one suggests significant MR (Tables 12 and 13).",
+            "tte": "Volumetric method.",
+            "tee": "Volumetric method; transgastric LVOT Doppler.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 30,
+                "lt": 60,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "30–59"
+              },
+              {
+                "ge": 60,
+                "tag": "severe",
+                "label": "severe; may be lower in low flow"
+              }
+            ]
+          },
+          {
+            "id": "rf",
+            "short": "regurgitant fraction",
+            "title": "Regurgitant fraction",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Regurgitant volume ÷ total LV stroke volume (Table 13).",
+            "tte": "Volumetric method.",
+            "tee": "As for the regurgitant volume.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 30,
+                "lt": 50,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "30–49"
+              },
+              {
+                "ge": 50,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "mild-specific": {
+            "grade": 1,
+            "headline": "Mild prosthetic MR",
+            "text": "{mild} of Figure 21's specific criteria for mild MR and none for severe among those assessed: definitely mild (ASE 2024, p. 31)."
+          },
+          "severe-specific": {
+            "grade": 3,
+            "headline": "Severe prosthetic MR",
+            "text": "{severe} of Figure 21's specific criteria for severe MR, against {mild} for mild among those assessed: definitely severe (ASE 2024, p. 31).",
+            "next": [
+              "TEE with 3D en face for the mechanism, the location and the number of jets, which guide repair or closure (ASE 2024, p. 29)."
+            ]
+          },
+          "q-mild": {
+            "grade": 1,
+            "headline": "Mild prosthetic MR",
+            "text": "Quantitatively mild: {quant} (Figure 21)."
+          },
+          "q-moderate": {
+            "grade": 2,
+            "headline": "Moderate prosthetic MR",
+            "text": "Quantitatively moderate: {quant}; {severe} specific criteria for severe MR, fewer than the three that would make it severe (Figure 21)."
+          },
+          "q-moderate-severe": {
+            "grade": 3,
+            "headline": "Severe prosthetic MR",
+            "text": "Quantitatively moderate ({quant}) with {severe} specific criteria for severe MR: severe (Figure 21).",
+            "next": [
+              "TEE with 3D en face for the mechanism (ASE 2024, p. 29)."
+            ]
+          },
+          "q-severe": {
+            "grade": 3,
+            "headline": "Severe prosthetic MR",
+            "text": "Quantitatively severe: {quant} (Figure 21).",
+            "next": [
+              "TEE with 3D en face for the mechanism (ASE 2024, p. 29)."
+            ]
+          },
+          "discordant": {
+            "headline": "Indeterminate: findings disagree",
+            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) do not agree, or the measurements disagree with each other (Figure 21).",
+            "next": [
+              "TEE or CMR; CMR quantifies the regurgitant volume and fraction (ASE 2024, pp. 29, 31)."
+            ]
+          },
+          "indeterminate": {
+            "headline": "Indeterminate: quantitation needed",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, which do not settle the grade, and no EROA, regurgitant volume or fraction could be obtained (Figure 21). {lean}",
+            "next": [
+              "TEE or CMR (Figure 21)."
+            ]
+          },
+          "probable-moderate": {
+            "grade": 2,
+            "headline": "Probably moderate prosthetic MR",
+            "text": "Intermediate values, with too few specific signs of mild or severe ({mild} and {severe}): Figure 21 reads this as probably moderate, to be refined by quantitation whenever possible (ASE 2024, p. 31).",
+            "next": [
+              "EROA, regurgitant volume and fraction, or TEE or CMR (Figure 21)."
             ]
           }
         }

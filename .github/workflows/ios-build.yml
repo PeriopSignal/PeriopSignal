@@ -233,6 +233,8 @@ jobs:
           shot 83-valve-prosthesis 18 -ps.ref valves -ps.valve.flow pav -ps.valve.answers "kind=surgical,vmax=3.5,contour=early,at=70,atet=0.28,mg=25,dvi=0.4,eoa=ok"
           shot 84-valve-ms-pht 18 -ps.ref valves -ps.valve.flow ms -ps.valve.answers "etiology=rheumatic,planimetry=x,pht=148,mg=x,pasp=x"
           diag 84-valve-ms-pht
+          shot 85-valve-par 18 -ps.ref valves -ps.valve.flow par -ps.valve.tee 1 -ps.valve.answers "kind=tavr,site=pvl,structure=normal,vc=0.7,vca=0.35,extent=35,pisa=large"
+          shot 86-valve-pmv 18 -ps.ref valves -ps.valve.flow pmv -ps.valve.answers "kind=mechanical,vmax=2.2,mg=7,pht=100,dvi=2.8,eoa=1.5"
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

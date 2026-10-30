@@ -1,5 +1,5 @@
 {
- "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring, a headline substring, a pathText substring (in the text of a step on the path) and the path of step ids. Cases named Review come from the independent review of October 2026, and those named Re-check from its second pass.",
+ "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring, a headline or text substring of the result, a pathText substring (in the text of a step on the path) and the path of step ids. Cases named Review come from the independent review of October 2026, and those named Re-check from its second pass.",
  "cases": [
   {
    "name": "AS: high gradient with normal flow is severe",
@@ -1810,6 +1810,375 @@
     "result": "probable-moderate",
     "grade": 2,
     "caution": "only with a dense jet"
+   }
+  },
+  {
+   "name": "Prosthetic AR: surgical central leak, four mild signs",
+   "flow": "par",
+   "answers": {
+    "kind": "surgical",
+    "site": "central",
+    "structure": "normal",
+    "vc": 0.2,
+    "vca": 0.05,
+    "jet": 20,
+    "pisa": "small"
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "Prosthetic AR: TAVR paravalvular leak, four severe signs",
+   "flow": "par",
+   "answers": {
+    "kind": "tavr",
+    "site": "pvl",
+    "structure": "normal",
+    "vc": 0.7,
+    "vca": 0.35,
+    "extent": 35,
+    "pisa": "large"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Prosthetic AR: TAVR skips the jet width",
+   "flow": "par",
+   "answers": {
+    "kind": "tavr",
+    "site": "central",
+    "structure": "normal",
+    "vc": 0.4,
+    "vca": 0.2
+   },
+   "expect": {
+    "ask": "pisa"
+   }
+  },
+  {
+   "name": "Prosthetic AR: moderate numbers with three severe signs are severe",
+   "flow": "par",
+   "answers": {
+    "kind": "surgical",
+    "site": "pvl",
+    "structure": "rocking",
+    "vc": 0.7,
+    "vca": 0.32,
+    "extent": 20,
+    "pisa": "large",
+    "pht": 300,
+    "aorta": "mid",
+    "rvol": 45,
+    "rf": 40,
+    "eroa": 0.2
+   },
+   "expect": {
+    "result": "q-moderate-severe",
+    "grade": 3,
+    "caution": "Rocking or dehiscence"
+   }
+  },
+  {
+   "name": "Prosthetic AR: intermediate values without numbers read probably moderate",
+   "flow": "par",
+   "answers": {
+    "kind": "surgical",
+    "site": "central",
+    "structure": "normal",
+    "vc": 0.45,
+    "vca": 0.2,
+    "jet": 40,
+    "pisa": "mid",
+    "pht": 350,
+    "aorta": "mid",
+    "rvol": null,
+    "rf": null,
+    "eroa": null
+   },
+   "expect": {
+    "result": "probable-moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "Prosthetic AR: two mild signs without numbers are indeterminate",
+   "flow": "par",
+   "answers": {
+    "kind": "surgical",
+    "site": "central",
+    "structure": "normal",
+    "vc": 0.25,
+    "vca": 0.05,
+    "jet": 40,
+    "pisa": "mid",
+    "pht": 350,
+    "aorta": "mid",
+    "rvol": null,
+    "rf": null,
+    "eroa": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "Prosthetic AR: severe numbers against two mild signs disagree",
+   "flow": "par",
+   "answers": {
+    "kind": "surgical",
+    "site": "central",
+    "structure": "normal",
+    "vc": 0.25,
+    "vca": 0.05,
+    "jet": 40,
+    "pisa": "mid",
+    "pht": 350,
+    "aorta": "mid",
+    "rvol": 65,
+    "rf": 55,
+    "eroa": 0.35
+   },
+   "expect": {
+    "result": "discordant",
+    "grade": null
+   }
+  },
+  {
+   "name": "Prosthetic MR: a flail leaflet with four mild signs goes on",
+   "flow": "pmr",
+   "answers": {
+    "kind": "bio",
+    "site": "central",
+    "structure": "yes",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "jets": "no",
+    "vca": 0.1
+   },
+   "expect": {
+    "ask": "pisa"
+   }
+  },
+  {
+   "name": "Prosthetic MR: four mild signs and none for severe settle mild",
+   "flow": "pmr",
+   "answers": {
+    "kind": "bio",
+    "site": "central",
+    "structure": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "jets": "no",
+    "vca": 0.1
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "Prosthetic MR: a wide vena contracta and two jets count once",
+   "flow": "pmr",
+   "answers": {
+    "kind": "mechanical",
+    "site": "both",
+    "structure": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.8,
+    "jets": "yes",
+    "vca": 0.45,
+    "pisa": "large",
+    "inflow": "other",
+    "pv": "blunted",
+    "eroa": null,
+    "rvol": null,
+    "rf": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "Prosthetic MR: two moderate jets count when the vena contracta is not wide",
+   "flow": "pmr",
+   "answers": {
+    "kind": "mechanical",
+    "site": "both",
+    "structure": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "jets": "yes",
+    "vca": 0.45,
+    "pisa": "large",
+    "inflow": "other",
+    "pv": "reversal"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Prosthetic MR: moderate numbers with three severe signs are severe",
+   "flow": "pmr",
+   "answers": {
+    "kind": "bio",
+    "site": "pvl",
+    "structure": "yes",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.75,
+    "jets": "no",
+    "vca": 0.3,
+    "pisa": "mid",
+    "inflow": "other",
+    "pv": "reversal",
+    "eroa": 0.3,
+    "rvol": 45,
+    "rf": 40
+   },
+   "expect": {
+    "result": "q-moderate-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Prosthetic MR: a mechanical valve on TTE warns about masking",
+   "flow": "pmr",
+   "answers": {
+    "kind": "mechanical"
+   },
+   "expect": {
+    "ask": "site",
+    "caution": "flow masking"
+   }
+  },
+  {
+   "name": "Mitral prosthesis: normal Doppler",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 1.6,
+    "mg": 3,
+    "pht": 90,
+    "dvi": 1.8,
+    "eoa": 2.4
+   },
+   "expect": {
+    "result": "normal",
+    "grade": 1
+   }
+  },
+  {
+   "name": "Mitral prosthesis: long half-time with a high gradient is stenosis",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 2.6,
+    "mg": 14,
+    "pht": 250,
+    "dvi": 3.0,
+    "eoa": 0.8
+   },
+   "expect": {
+    "result": "stenosis",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Mitral prosthesis: high gradient with a normal half-time points to MR",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 2.2,
+    "mg": 7,
+    "pht": 100,
+    "dvi": 2.8,
+    "eoa": 1.5
+   },
+   "expect": {
+    "result": "mr",
+    "grade": null
+   }
+  },
+  {
+   "name": "Mitral prosthesis: borderline half-time is possible stenosis",
+   "flow": "pmv",
+   "answers": {
+    "kind": "bio",
+    "vmax": 2.0,
+    "mg": 7,
+    "pht": 160,
+    "dvi": 2.3,
+    "eoa": 1.5
+   },
+   "expect": {
+    "result": "possible",
+    "grade": 2,
+    "caution": "Some bioprostheses"
+   }
+  },
+  {
+   "name": "Mitral prosthesis: without the half-time a high gradient stays possible",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 2.6,
+    "mg": 12,
+    "pht": null,
+    "dvi": 2.8,
+    "eoa": 0.9
+   },
+   "expect": {
+    "result": "possible",
+    "grade": 2,
+    "text": "Without the half-time"
+   }
+  },
+  {
+   "name": "Mitral prosthesis: a mean gradient of 5 alone is normal",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 1.7,
+    "mg": 5,
+    "pht": 100,
+    "dvi": 2.0,
+    "eoa": 2.1
+   },
+   "expect": {
+    "result": "normal",
+    "grade": 1
+   }
+  },
+  {
+   "name": "Aortic prosthesis: a surgical DVI of 0.32 notes Figure 13",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 3.2,
+    "contour": "early",
+    "at": 70,
+    "atet": 0.28,
+    "mg": 22,
+    "dvi": 0.32,
+    "eoa": "1sd"
+   },
+   "expect": {
+    "result": "possible",
+    "grade": 2,
+    "caution": "Figure 13"
    }
   }
  ]

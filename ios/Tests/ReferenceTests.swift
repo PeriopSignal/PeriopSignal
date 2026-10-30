@@ -518,6 +518,7 @@ final class ReferenceTests: XCTestCase {
             if e.keys.contains("grade") { XCTAssertEqual(p.outcome?.grade?.rawValue, e["grade"] as? Int, "\(name) grade") }
             if let caution = e["caution"] as? String { XCTAssertTrue(p.cautions.contains { $0.contains(caution) }, "\(name) cautions: \(caution)") }
             if let headline = e["headline"] as? String { XCTAssertTrue(p.outcome?.headline.contains(headline) ?? false, "\(name) headline: \(headline)") }
+            if let text = e["text"] as? String { XCTAssertTrue(p.outcome?.text.contains(text) ?? false, "\(name) text: \(text)") }
             if let text = e["pathText"] as? String { XCTAssertTrue(p.path.contains { $0.text.contains(text) }, "\(name) path text: \(text)") }
             if let path = e["path"] as? [String] { XCTAssertEqual(p.path.map(\.step.id), path, "\(name) path") }
         }
