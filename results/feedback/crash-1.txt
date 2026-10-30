@@ -1,0 +1,221 @@
+Incident Identifier: 7EB1F18B-5C34-4494-9B95-B9B9BD6F0288
+Distributor ID:      com.apple.TestFlight
+Hardware Model:      iPhone12,1
+Process:             PeriopSignal [53843]
+Path:                /private/var/containers/Bundle/Application/FBECF773-EFAA-469D-8AE6-CE637E5978E4/PeriopSignal.app/PeriopSignal
+Identifier:          org.periopsignal.app
+Version:             1.5.1 (15)
+AppStoreTools:       27B47
+AppVariant:          1:iPhone12,1:26
+Beta:                YES
+Code Type:           ARM-64 (Native)
+Role:                Foreground
+Parent Process:      launchd [1]
+Coalition:           org.periopsignal.app [3870]
+
+Date/Time:           2026-10-29 21:10:57.3488 -0400
+Launch Time:         2026-10-29 21:09:27.4812 -0400
+OS Version:          iPhone OS 26.6.1 (23G83)
+Release Type:        User
+Baseband Version:    7.02.01
+Report Version:      104
+
+Exception Type:  EXC_CRASH (SIGABRT)
+Exception Codes: 0x0000000000000000, 0x0000000000000000
+Termination Reason: SIGNAL 6 Abort trap: 6
+Terminating Process: PeriopSignal [53843]
+
+Triggered by Thread:  0
+
+
+Thread 0 name:
+Thread 0 Crashed:
+0   libsystem_kernel.dylib        	0x000000024902f1d0 __pthread_kill + 8 (:-1)
+1   libsystem_pthread.dylib       	0x00000001f93857dc pthread_kill + 268 (:-1)
+2   libsystem_c.dylib             	0x00000001a55c6fcc abort + 148 (:-1)
+3   libswiftCore.dylib            	0x000000019675a88c swift::fatalErrorv(unsigned int, char const*, char*) + 144 (:-1)
+4   libswiftCore.dylib            	0x000000019675a7fc swift::fatalError(unsigned int, char const*, ...) + 32 (:-1)
+5   libswiftCore.dylib            	0x00000001966cf074 swift::runtime::AccessSet::insert(swift::runtime::Access*, void*, void*, swift::ExclusivityFlags) + 572 (:-1)
+6   libswiftCore.dylib            	0x00000001966ced8c swift_beginAccess + 84 (:-1)
+7   PeriopSignal                  	0x0000000100a43d70 AclsStore.state.getter + 20 (@__swiftmacro_12PeriopSignal9AclsStoreC5state18ObservationTrackedfMa_.swift:8)
+8   PeriopSignal                  	0x0000000100a43d70 AclsStore.t.getter + 204 (AclsView.swift:21)
+9   PeriopSignal                  	0x0000000100a4e740 closure #2 in closure #3 in closure #2 in AclsView.clockBar(_:_:_:_:) + 664 (AclsView.swift:184)
+10  SwiftUICore                   	0x00000001a3d66f50 <deduplicated_symbol> + 28
+11  SwiftUICore                   	0x00000001a45a0888 FunctionalLocation.set(_:transaction:) + 28 (:-1)
+12  SwiftUICore                   	0x00000001a40213dc LocationBox.set(_:transaction:) + 296 (:-1)
+13  SwiftUICore                   	0x00000001a45a04f8 protocol witness for Location.set(_:transaction:) in conformance LocationBox<A> + 24 (:-1)
+14  SwiftUICore                   	0x00000001a45a0778 ProjectedLocation.set(_:transaction:) + 588 (:-1)
+15  SwiftUICore                   	0x00000001a40213dc LocationBox.set(_:transaction:) + 296 (:-1)
+16  SwiftUI                       	0x00000001a384b780 specialized Binding.wrappedValue.setter + 12 (:-1)
+17  SwiftUI                       	0x00000001a384b780 closure #2 in ResolvedSegmentedControl.init(selectedIndices:segments:) + 88 (:-1)
+18  SwiftUICore                   	0x00000001a3d66f50 <deduplicated_symbol> + 28
+19  SwiftUICore                   	0x00000001a45a0888 FunctionalLocation.set(_:transaction:) + 28 (:-1)
+20  SwiftUICore                   	0x00000001a40213dc LocationBox.set(_:transaction:) + 296 (:-1)
+21  SwiftUICore                   	0x00000001a4021454 Binding.ScopedLocation.set(_:transaction:) + 48 (:-1)
+22  SwiftUICore                   	0x00000001a40213dc LocationBox.set(_:transaction:) + 296 (:-1)
+23  SwiftUICore                   	0x00000001a4021454 Binding.ScopedLocation.set(_:transaction:) + 48 (:-1)
+24  SwiftUICore                   	0x00000001a40213dc LocationBox.set(_:transaction:) + 296 (:-1)
+25  SwiftUI                       	0x00000001a31362ac specialized Binding.wrappedValue.setter + 12 (:-1)
+26  SwiftUI                       	0x00000001a31362ac SegmentedControlCoordinator.selectionChanged(_:) + 116
+27  SwiftUI                       	0x00000001a3136350 @objc SegmentedControlCoordinator.selectionChanged(_:) + 60 (:-1)
+28  UIKitCore                     	0x000000019fb8deb0 _UIPerformVoidSelector2 + 36 (:-1)
+29  UIKitCore                     	0x000000019fb8deb0 -[UIApplication sendAction:to:from:forEvent:] + 100 (:-1)
+30  UIKitCore                     	0x000000019fcbdf2c -[UIControl sendAction:to:forEvent:] + 108 (:-1)
+31  UIKitCore                     	0x000000019fc357dc -[UIControl _sendActionsForEvents:withEvent:] + 380 (:-1)
+32  UIKitCore                     	0x000000019f721a14 -[_UIAfterCACommitBlock run] + 72 (:-1)
+33  UIKitCore                     	0x000000019f721948 -[_UIAfterCACommitQueue flush] + 160 (:-1)
+34  UIKitCore                     	0x000000019f721860 _runAfterCACommitDeferredBlocks + 260 (:-1)
+35  UIKitCore                     	0x000000019f721e9c _cleanUpAfterCAFlushAndRunDeferredBlocks + 80 (:-1)
+36  UIKitCore                     	0x000000019f6f6604 _UIApplicationFlushCATransaction + 72 (:-1)
+37  UIKitCore                     	0x000000019f6f6524 performCATransactionCommitAction + 308 (:-1)
+38  UIKitCore                     	0x000000019f6f6524 __setupUpdateSequence_block_invoke_2 + 352 (:-1)
+39  UIKitCore                     	0x000000019f70f6d4 _UIUpdateSequenceRunNext + 128 (:-1)
+40  UIKitCore                     	0x000000019f70cc60 schedulerStepScheduledMainSectionContinue + 60 (:-1)
+41  UpdateCycle                   	0x00000002af2d556c UC::DriverCore::continueProcessing() + 84 (:-1)
+42  CoreFoundation                	0x00000001999f51d8 __CFMachPortPerform + 168 (:-1)
+43  CoreFoundation                	0x0000000199a37854 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__ + 60 (:-1)
+44  CoreFoundation                	0x0000000199a3777c __CFRunLoopDoSource1 + 504 (:-1)
+45  CoreFoundation                	0x0000000199a026e4 __CFRunLoopRun + 2168 (:-1)
+46  CoreFoundation                	0x0000000199a0154c _CFRunLoopRunSpecificWithOptions + 532 (:-1)
+47  GraphicsServices              	0x000000023f9b5498 GSEventRunModal + 120 (:-1)
+48  UIKitCore                     	0x000000019f735670 -[UIApplication _run] + 796 (:-1)
+49  UIKitCore                     	0x000000019f6a0158 UIApplicationMain + 332 (:-1)
+50  SwiftUI                       	0x00000001a2a8f570 closure #1 in KitRendererCommon(_:) + 168 (:-1)
+51  SwiftUI                       	0x00000001a2a8c0f4 specialized UnsafeMutablePointer<>.withMemoryRebound<A, B, C>(to:capacity:_:) + 12 (:-1)
+52  SwiftUI                       	0x00000001a2a8c0f4 KitRendererCommon(_:) + 16 (:-1)
+53  SwiftUI                       	0x00000001a2a8c0f4 runApp<A>(_:) + 112 (:-1)
+54  SwiftUI                       	0x00000001a2a8bc48 static App.main() + 172 (:-1)
+55  PeriopSignal                  	0x0000000100c3a7dc static PeriopSignalApp.$main() + 52 (PeriopSignalApp.swift:0)
+56  PeriopSignal                  	0x0000000100c3a7dc main + 64
+57  dyld                          	0x000000019660dc1c start + 6928 (:-1)
+
+Thread 1:
+
+Thread 2 name:
+Thread 2:
+0   libsystem_kernel.dylib        	0x0000000249024cd4 mach_msg2_trap + 8 (:-1)
+1   libsystem_kernel.dylib        	0x000000024902830c mach_msg2_internal + 76 (:-1)
+2   libsystem_kernel.dylib        	0x000000024902822c mach_msg2 + 4 (:-1)
+3   libsystem_kernel.dylib        	0x000000024902822c mach_msg_overwrite + 424 (:-1)
+4   libsystem_kernel.dylib        	0x0000000249028078 mach_msg + 24 (:-1)
+5   CoreFoundation                	0x0000000199a38374 __CFRunLoopServiceMachPort + 160 (:-1)
+6   CoreFoundation                	0x0000000199a02310 __CFRunLoopRun + 1188 (:-1)
+7   CoreFoundation                	0x0000000199a0154c _CFRunLoopRunSpecificWithOptions + 532 (:-1)
+8   Foundation                    	0x0000000196c6ecf0 -[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 212 (:-1)
+9   Foundation                    	0x0000000196c6ebd8 -[NSRunLoop(NSRunLoop) runUntilDate:] + 64 (:-1)
+10  UIKitCore                     	0x000000019f6faeac -[UIEventFetcher threadMain] + 420 (:-1)
+11  Foundation                    	0x0000000196cf2914 __NSThread__start__ + 732 (:-1)
+12  libsystem_pthread.dylib       	0x00000001f9382438 _pthread_start + 136 (:-1)
+13  libsystem_pthread.dylib       	0x00000001f937e8cc thread_start + 8 (:-1)
+
+Thread 3:
+
+Thread 4:
+
+Thread 5 name:
+Thread 5 name:
+Thread 5:
+0   libsystem_kernel.dylib        	0x0000000249024c68 semaphore_timedwait_trap + 8 (:-1)
+1   libdispatch.dylib             	0x00000001d452f7d8 _dispatch_sema4_timedwait + 64 (:-1)
+2   libdispatch.dylib             	0x00000001d44fca68 _dispatch_semaphore_wait_slow + 76 (:-1)
+3   libswiftDispatch.dylib        	0x00000001aa476350 OS_dispatch_semaphore.wait(wallTimeout:) + 24 (:-1)
+4   UIKitCore                     	0x00000001a01cc6a8 closure #1 in InProcessAnimationManager.processPostTicksDelayIfNecessary(time:) + 8 (:-1)
+5   UIKitCore                     	0x00000001a01cc6a8 partial apply for closure #1 in InProcessAnimationManager.processPostTicksDelayIfNecessary(time:) + 32 (:-1)
+6   UIKitCore                     	0x00000001a01c6e14 specialized Do_Not_File_Bugs_When_Blocked<A>(_:) + 36 (:-1)
+7   UIKitCore                     	0x000000019f61f54c InProcessAnimationManager.processPostTicksDelayIfNecessary(time:) + 660 (:-1)
+8   UIKitCore                     	0x000000019f61f0f4 closure #1 in closure #1 in InProcessAnimationManager.performTick(time:cancel:force:eventName:targetTime:entry:exit:) + 304 (:-1)
+9   UIKitCore                     	0x000000019f61f0f4 specialized autoreleasepool<A, B>(invoking:) + 304 (:-1)
+10  UIKitCore                     	0x000000019f61f0f4 closure #1 in InProcessAnimationManager.performTick(time:cancel:force:eventName:targetTime:entry:exit:) + 432 (:-1)
+11  UIKitCore                     	0x000000019f61e80c <deduplicated_symbol> + 28 (:-1)
+12  UIKitCore                     	0x000000019f654634 thunk for @escaping @callee_guaranteed () -> () + 28 (:-1)
+13  libdispatch.dylib             	0x00000001d45141e4 _dispatch_client_callout + 16 (:-1)
+14  libdispatch.dylib             	0x00000001d450a2e0 _dispatch_sync_function_invoke_inline + 32 (:-1)
+15  libdispatch.dylib             	0x00000001d450a2e0 _dispatch_lane_barrier_sync_invoke_and_complete + 56 (:-1)
+16  UIKitCore                     	0x000000019f620a48 InProcessAnimationManager.performTick(time:cancel:force:eventName:targetTime:entry:exit:) + 12 (:-1)
+17  UIKitCore                     	0x000000019f620a48 InProcessAnimationManager.advance(withTime:targetTime:) + 560 (:-1)
+18  UIKitCore                     	0x000000019f61f894 InProcessAnimationManager.displayLinkFire(_:) + 416 (:-1)
+19  UIKitCore                     	0x000000019f6202d0 @objc InProcessAnimationManager.displayLinkFire(_:) + 44 (:-1)
+20  QuartzCore                    	0x000000019a482184 CA::Display::DisplayLinkItem::dispatch_(CA::SignPost::Interval<(CA::SignPost::CAEventCode)835322056>&) + 64 (:-1)
+21  QuartzCore                    	0x000000019a45a06c CA::Display::DisplayLinkItem::dispatch() + 212 (:-1)
+22  QuartzCore                    	0x000000019a45a06c CA::Display::DisplayLink::dispatch_items(unsigned long long, unsigned long long, unsigned long long) + 868 (:-1)
+23  QuartzCore                    	0x000000019a4327f8 display_timer_callback(__CFMachPort*, void*, long, void*) + 580 (:-1)
+24  CoreFoundation                	0x00000001999f51d8 __CFMachPortPerform + 168 (:-1)
+25  CoreFoundation                	0x0000000199a37854 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__ + 60 (:-1)
+26  CoreFoundation                	0x0000000199a3777c __CFRunLoopDoSource1 + 504 (:-1)
+27  CoreFoundation                	0x0000000199a026e4 __CFRunLoopRun + 2168 (:-1)
+28  CoreFoundation                	0x0000000199a0154c _CFRunLoopRunSpecificWithOptions + 532 (:-1)
+29  Foundation                    	0x0000000196c6ecf0 -[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 212 (:-1)
+30  Foundation                    	0x0000000196c732fc -[NSRunLoop(NSRunLoop) run] + 64 (:-1)
+31  UIKitCore                     	0x000000019f9ee17c closure #2 in InProcessAnimationManager.startAdvancing(_:) + 256 (:-1)
+32  UIKitCore                     	0x000000019f6545c4 <deduplicated_symbol> + 36 (:-1)
+33  Foundation                    	0x0000000196cf2914 __NSThread__start__ + 732 (:-1)
+34  libsystem_pthread.dylib       	0x00000001f9382438 _pthread_start + 136 (:-1)
+35  libsystem_pthread.dylib       	0x00000001f937e8cc thread_start + 8 (:-1)
+
+Thread 6:
+
+Thread 7:
+
+Thread 8 name:
+Thread 8:
+0   libsystem_kernel.dylib        	0x0000000249024c50 semaphore_wait_trap + 8 (:-1)
+1   caulk                         	0x00000002b410ac6c caulk::mach::semaphore::wait_or_error() + 8 (:-1)
+2   caulk                         	0x00000002b410ac6c caulk::semaphore::timed_wait(double) + 224 (:-1)
+3   caulk                         	0x00000002b410acb8 caulk::semaphore::wait() + 12 (:-1)
+4   caulk                         	0x00000002b410acb8 caulk::concurrent::details::worker_thread::run() + 32 (:-1)
+5   caulk                         	0x00000002b410ef54 std::__1::__invoke_result_impl<void, void (caulk::concurrent::details::worker_thread::*&)(), caulk::concurrent::details::worker_thread*&>::type std::__1::__invoke[abi:nqe210106]<void (caulk::concur... + 72 (:-1)
+6   caulk                         	0x00000002b410ef54 decltype(auto) std::__1::__apply_tuple_impl[abi:nqe210106]<void (caulk::concurrent::details::worker_thread::*&)(), std::__1::tuple<caulk::concurrent::details::worker_thread*>&, 0ul>(void (caulk::co... + 72 (:-1)
+7   caulk                         	0x00000002b410ef54 decltype(auto) std::__1::apply[abi:nqe210106]<void (caulk::concurrent::details::worker_thread::*&)(), std::__1::tuple<caulk::concurrent::details::worker_thread*>&>(void (caulk::concurrent::details:... + 72 (:-1)
+8   caulk                         	0x00000002b410ef54 void* caulk::thread_proxy<std::__1::tuple<caulk::thread::attributes, void (caulk::concurrent::details::worker_thread::*)(), std::__1::tuple<caulk::concurrent::details::worker_thread*>>>(void*) + 96 (:-1)
+9   libsystem_pthread.dylib       	0x00000001f9382438 _pthread_start + 136 (:-1)
+10  libsystem_pthread.dylib       	0x00000001f937e8cc thread_start + 8 (:-1)
+
+Thread 9 name:
+Thread 9:
+0   libsystem_kernel.dylib        	0x0000000249024c50 semaphore_wait_trap + 8 (:-1)
+1   caulk                         	0x00000002b410ac6c caulk::mach::semaphore::wait_or_error() + 8 (:-1)
+2   caulk                         	0x00000002b410ac6c caulk::semaphore::timed_wait(double) + 224 (:-1)
+3   caulk                         	0x00000002b410acb8 caulk::semaphore::wait() + 12 (:-1)
+4   caulk                         	0x00000002b410acb8 caulk::concurrent::details::worker_thread::run() + 32 (:-1)
+5   caulk                         	0x00000002b410ef54 std::__1::__invoke_result_impl<void, void (caulk::concurrent::details::worker_thread::*&)(), caulk::concurrent::details::worker_thread*&>::type std::__1::__invoke[abi:nqe210106]<void (caulk::concur... + 72 (:-1)
+6   caulk                         	0x00000002b410ef54 decltype(auto) std::__1::__apply_tuple_impl[abi:nqe210106]<void (caulk::concurrent::details::worker_thread::*&)(), std::__1::tuple<caulk::concurrent::details::worker_thread*>&, 0ul>(void (caulk::co... + 72 (:-1)
+7   caulk                         	0x00000002b410ef54 decltype(auto) std::__1::apply[abi:nqe210106]<void (caulk::concurrent::details::worker_thread::*&)(), std::__1::tuple<caulk::concurrent::details::worker_thread*>&>(void (caulk::concurrent::details:... + 72 (:-1)
+8   caulk                         	0x00000002b410ef54 void* caulk::thread_proxy<std::__1::tuple<caulk::thread::attributes, void (caulk::concurrent::details::worker_thread::*)(), std::__1::tuple<caulk::concurrent::details::worker_thread*>>>(void*) + 96 (:-1)
+9   libsystem_pthread.dylib       	0x00000001f9382438 _pthread_start + 136 (:-1)
+10  libsystem_pthread.dylib       	0x00000001f937e8cc thread_start + 8 (:-1)
+
+
+Thread 0 crashed with ARM Thread State (64-bit):
+    x0: 0x0000000000000000   x1: 0x0000000000000000   x2: 0x0000000000000000   x3: 0x0000000000000000
+    x4: 0x0000000000000000   x5: 0x0000000000000000   x6: 0x0000000000000000   x7: 0x0000000000000000
+    x8: 0x60e812959e972af4   x9: 0x60e812979d8e8b34  x10: 0x0000000000000002  x11: 0x00000000fffffffd
+   x12: 0x0000000000000000  x13: 0x0000000000000000  x14: 0x0000000000000000  x15: 0x0000000000000000
+   x16: 0x0000000000000148  x17: 0x000000020319a1c0  x18: 0x0000000000000000  x19: 0x0000000000000006
+   x20: 0x0000000000000103  x21: 0x000000020319a2a0  x22: 0x000000016f3dc5c4  x23: 0x00000001196bfd00
+   x24: 0x0000000119648910  x25: 0x0000000204b71dd0  x26: 0x000000016f3dc840  x27: 0x000000016f3dc840
+   x28: 0x0000000204b71d68   fp: 0x000000016f3dc410   lr: 0x00000001f93857dc
+    sp: 0x000000016f3dc3f0   pc: 0x000000024902f1d0 cpsr: 0x40000000
+   esr: 0x56000080 (Syscall)
+
+
+Binary Images:
+        0x100a20000 -         0x100ed3fff PeriopSignal arm64  <f0931ff3a30038c49489e85a2419e3db> /private/var/containers/Bundle/Application/FBECF773-EFAA-469D-8AE6-CE637E5978E4/PeriopSignal.app/PeriopSignal
+        0x101138000 -         0x101143fff libobjc-trampolines.dylib arm64e  <004ce93cf1423d68b3c330c6efef4d65> /private/preboot/Cryptexes/OS/usr/lib/libobjc-trampolines.dylib
+        0x196609000 -         0x1966ae47f dyld arm64e  <0f8d35b6556f3e348eaa80ab54047dc5> /usr/lib/dyld
+        0x1966ca000 -         0x196c638bf libswiftCore.dylib arm64e  <1539faa731da3c41b14aa9691063824d> /usr/lib/swift/libswiftCore.dylib
+        0x196c64000 -         0x197aedcbf Foundation arm64e  <73841aa3bfdd322d8dc2e5185a14dee1> /System/Library/Frameworks/Foundation.framework/Foundation
+        0x1999d3000 -         0x199f6fa3f CoreFoundation arm64e  <101eb2f1191534a08bc9631d03753b84> /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+        0x19a3bf000 -         0x19a7afebf QuartzCore arm64e  <8f1e0b3fadd63710a790009333597ab4> /System/Library/Frameworks/QuartzCore.framework/QuartzCore
+        0x19f614000 -         0x1a1b5763f UIKitCore arm64e  <0d94422ffe7c302eb8963bc5873c0cfc> /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+        0x1a2a5f000 -         0x1a3cea99f SwiftUI arm64e  <17adc54e93ab3f13b469e3f53181fc4d> /System/Library/Frameworks/SwiftUI.framework/SwiftUI
+        0x1a3d38000 -         0x1a4c347bf SwiftUICore arm64e  <82a21ce44e4338fb9862f0be7b909df1> /System/Library/Frameworks/SwiftUICore.framework/SwiftUICore
+        0x1a5550000 -         0x1a55cf5ff libsystem_c.dylib arm64e  <ff42982180de3a6899cb0b2e707e8d48> /usr/lib/system/libsystem_c.dylib
+        0x1aa475000 -         0x1aa48b6a0 libswiftDispatch.dylib arm64e  <6691cd79ae1d322a9663282e3836c4c8> /usr/lib/swift/libswiftDispatch.dylib
+        0x1d44f9000 -         0x1d453f5ff libdispatch.dylib arm64e  <49c0cd3ea6963b11ba925755f0c3c6e3> /usr/lib/system/libdispatch.dylib
+        0x1f937e000 -         0x1f938a4ef libsystem_pthread.dylib arm64e  <34b44744bc64386eab90eee86b23ac46> /usr/lib/system/libsystem_pthread.dylib
+        0x23f9b4000 -         0x23f9bc7bf GraphicsServices arm64e  <411165e2ee8e380eb2549977273971e3> /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+        0x249024000 -         0x24905fb1f libsystem_kernel.dylib arm64e  <18665b3f6d5133abb9e963062200ec42> /usr/lib/system/libsystem_kernel.dylib
+        0x2af2d4000 -         0x2af2d61bf UpdateCycle arm64e  <26fab8144c8f3a06b45ecba271020dc4> /System/Library/PrivateFrameworks/UpdateCycle.framework/UpdateCycle
+        0x2b4107000 -         0x2b413001f caulk arm64e  <5dd354fba86f37328f36a88736414f79> /System/Library/PrivateFrameworks/caulk.framework/caulk
+
+EOF
