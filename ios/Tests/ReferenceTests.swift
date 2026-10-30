@@ -604,6 +604,22 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(EchoCalc.rap(ivcCm: 2.4, collapses: false, cut: nil)?.label, "Elevated")
         XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: false, cut: nil)?.label, "Indeterminate")
         XCTAssertEqual(EchoCalc.rap(ivcCm: 1.8, collapses: true, cut: nil).flatMap(\.value), 3)
+        // TAPSE/PASP (ASE 2025): healthy 0.5–0.7, uncoupling 0.3–0.4; as R.echo.coupling on the website.
+        let cp = EchoCoupling(group: "rvf", healthy: [0.5, 0.7], uncoupled: [0.3, 0.4])
+        let cases: [(Double, Double, Double, Int?)] = [(2.4, 30, 0.8, 0), (2.4, 40, 0.6, 0), (1.98, 40, 0.5, 0), (1.8, 40, 0.45, nil), (1.6, 40, 0.4, 4), (1.2, 40, 0.3, 4), (1.0, 45, 0.22, 4)]
+        for (t, p, ratio, grade) in cases {
+            let r = EchoCalc.coupling(tapseCm: t, pasp: p, cp)
+            XCTAssertEqual(r?.ratio, ratio, "\(t) cm over \(p) mmHg")
+            XCTAssertEqual(r?.grade, grade, "\(t) cm over \(p) mmHg")
+        }
+        XCTAssertEqual(EchoCalc.coupling(tapseCm: 1.0, pasp: 45, cp)?.label, "Below the uncoupling range")
+        XCTAssertEqual(EchoCalc.coupling(tapseCm: 2.4, pasp: 30, cp)?.label, "Above the usual healthy range")
+        XCTAssertNil(EchoCalc.coupling(tapseCm: nil, pasp: 40, cp))
+        XCTAssertNil(EchoCalc.coupling(tapseCm: 2, pasp: 0, cp))
+        let shipped = (try? bundled())?.echo?.coupling
+        XCTAssertEqual(shipped?.group, "rvf", "the bundled reference.json carries the coupling ranges")
+        XCTAssertEqual(shipped?.healthy, [0.5, 0.7])
+        XCTAssertEqual(shipped?.uncoupled, [0.3, 0.4])
     }
 
     func testEchoEdgesRangesIndexedAndAgeTables() {

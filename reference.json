@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-10-29",
-  "revision": 1793287097,
+  "updated": "2026-10-30",
+  "revision": 1793371712,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -5694,6 +5694,25 @@
         "An IVC above 2.5 cm without respiratory variation, with spontaneous contrast or colour-flow reflux: 20 mmHg can be considered. A small, collapsed IVC suggests RA pressure below 3 mmHg (hypovolemia).",
         "On positive-pressure ventilation the collapse cannot be used. An IVC of 1.2 cm or less in an intubated patient identifies RA pressure below 10 mmHg (ASE 2010); the 2025 update prints 2.1 cm for the same statement, and the tool keeps the stricter value.",
         "A dilated IVC can be normal in young adults and athletes."
+      ]
+    },
+    "coupling": {
+      "group": "rvf",
+      "healthy": [
+        0.5,
+        0.7
+      ],
+      "uncoupled": [
+        0.3,
+        0.4
+      ],
+      "method": "TAPSE in mm divided by PA systolic pressure in mmHg. PASP is the RV systolic pressure, 4 × (peak TR velocity)² + RA pressure, when there is no RVOT obstruction or pulmonary stenosis.",
+      "source": "mukherjee2025",
+      "ref": "ASE 2025, TAPSE",
+      "notes": [
+        "TAPSE/PASP is a noninvasive index of RV–PA coupling: TAPSE for RV systolic function, PASP for afterload. In healthy adults it generally falls between 0.5 and 0.7 mm/mmHg; a ratio of 0.3–0.4 mm/mmHg is associated with RV–PA uncoupling and increased mortality, in precapillary and postcapillary pulmonary hypertension alike (ASE 2025).",
+        "The guideline gives ranges, not one cutoff: a ratio between 0.4 and 0.5 sits between them.",
+        "A weak or truncated TR signal underestimates PASP and so overstates the ratio; an overgained signal overestimates PASP (ASE 2025)."
       ]
     },
     "notes": [

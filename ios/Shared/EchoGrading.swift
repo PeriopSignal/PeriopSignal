@@ -217,6 +217,41 @@ enum EchoCalc {
     }
 }
 
+extension EchoCalc {
+    struct Coupling: Hashable {
+        /// mm/mmHg, at two decimals as shown.
+        var ratio: Double
+        /// 0 not uncoupled, 4 in or below the uncoupling range, nil between the two ranges.
+        var grade: Int?
+        var label: String
+        var detail: String
+    }
+
+    /// TAPSE/PASP, mm/mmHg: the noninvasive index of RV–PA coupling (ASE 2025). Healthy adults generally run
+    /// 0.5–0.7; 0.3–0.4 is associated with uncoupling and increased mortality. TAPSE in cm, PASP in mmHg; the
+    /// ratio is read at two decimals, as shown. The website runs the same rule (R.echo.coupling).
+    static func coupling(tapseCm: Double?, pasp: Double?, _ c: EchoCoupling?) -> Coupling? {
+        guard let t = tapseCm, t > 0, let p = pasp, p > 0 else { return nil }
+        let h = c?.healthy ?? [0.5, 0.7], u = c?.uncoupled ?? [0.3, 0.4]
+        let hLo = h.first ?? 0.5, hHi = h.last ?? 0.7, uLo = u.first ?? 0.3, uHi = u.last ?? 0.4
+        let ratio = (t * 10 / p * 100).rounded() / 100
+        let healthy = fmt(hLo) + "–" + fmt(hHi), unc = fmt(uLo) + "–" + fmt(uHi)
+        if ratio > hHi {
+            return Coupling(ratio: ratio, grade: 0, label: "Above the usual healthy range", detail: "Healthy adults generally run \(healthy) mm/mmHg; a higher ratio does not suggest uncoupling.")
+        }
+        if ratio >= hLo {
+            return Coupling(ratio: ratio, grade: 0, label: "In the healthy range", detail: "Healthy adults generally run \(healthy) mm/mmHg.")
+        }
+        if ratio > uHi {
+            return Coupling(ratio: ratio, grade: nil, label: "Below the healthy range", detail: "Between the healthy range (\(healthy)) and the range associated with uncoupling (\(unc) mm/mmHg).")
+        }
+        if ratio >= uLo {
+            return Coupling(ratio: ratio, grade: 4, label: "In the uncoupling range", detail: "\(unc) mm/mmHg is associated with RV–PA uncoupling and increased mortality.")
+        }
+        return Coupling(ratio: ratio, grade: 4, label: "Below the uncoupling range", detail: "Lower than \(unc) mm/mmHg, the range associated with RV–PA uncoupling and increased mortality.")
+    }
+}
+
 extension EchoMeasure {
     /// Lower is worse (LVEF, TAPSE, FAC); otherwise higher is worse (dimensions, volumes, mass).
     var isLowWorse: Bool { dir == "low" }

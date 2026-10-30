@@ -210,6 +210,7 @@ jobs:
           shot 74-patient-note-compose 12 -ps.tab patient -ps.patient.open note -ps.forceAppearance light
           shot 75-patient-receive 12 -ps.tab patient -ps.patient.open receive
           shot 76-patient-top-light 12 -ps.tab patient -ps.patient demo -ps.forceAppearance light
+          shot 77-chamber-coupling 14 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -1092,6 +1092,20 @@
       if (ivcCm > c && !collapses) return { value: 15, range: '10–20', label: 'Elevated', detail: null };
       return { value: 8, range: '5–10', label: 'Indeterminate', detail: 'A normal-size IVC that does not collapse, or a dilated one that does: lower to 3 mmHg without secondary signs of raised RA pressure, raise to 15 with them.' };
     },
+    /** TAPSE/PASP, mm/mmHg: the noninvasive index of RV–PA coupling (ASE 2025). Healthy adults generally run
+        0.5–0.7; 0.3–0.4 is associated with uncoupling and increased mortality. TAPSE in cm, PASP in mmHg; the
+        ratio is read at two decimals, as shown. */
+    coupling(tapseCm, pasp, c) {
+      if (!(tapseCm > 0) || !(pasp > 0)) return null;
+      const h = (c && c.healthy) || [0.5, 0.7], u = (c && c.uncoupled) || [0.3, 0.4], f = R.echo.fmt;
+      const ratio = Math.round(((tapseCm * 10) / pasp) * 100) / 100;
+      const healthy = `${f(h[0])}–${f(h[1])}`, unc = `${f(u[0])}–${f(u[1])}`;
+      if (ratio > h[1]) return { ratio, grade: 0, label: 'Above the usual healthy range', detail: `Healthy adults generally run ${healthy} mm/mmHg; a higher ratio does not suggest uncoupling.` };
+      if (ratio >= h[0]) return { ratio, grade: 0, label: 'In the healthy range', detail: `Healthy adults generally run ${healthy} mm/mmHg.` };
+      if (ratio > u[1]) return { ratio, grade: null, label: 'Below the healthy range', detail: `Between the healthy range (${healthy}) and the range associated with uncoupling (${unc} mm/mmHg).` };
+      if (ratio >= u[0]) return { ratio, grade: 4, label: 'In the uncoupling range', detail: `${unc} mm/mmHg is associated with RV–PA uncoupling and increased mortality.` };
+      return { ratio, grade: 4, label: 'Below the uncoupling range', detail: `Lower than ${unc} mm/mmHg, the range associated with RV–PA uncoupling and increased mortality.` };
+    },
   };
 
   // ---------- ASE 2025 diastolic function (DiastolicCalc.swift) ----------

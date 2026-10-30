@@ -586,6 +586,19 @@ struct EchoData: Codable {
     var groups: [EchoGroup]
     /// Right-atrial pressure from the IVC, shown under the group named here.
     var ivc: EchoIVC?
+    /// RV–PA coupling (TAPSE/PASP), shown under the group named here.
+    var coupling: EchoCoupling?
+    var notes: [String]?
+}
+
+/// TAPSE/PASP, mm/mmHg (ASE 2025): the range seen in healthy adults and the range associated with uncoupling.
+struct EchoCoupling: Codable, Hashable {
+    var group: String
+    var healthy: [Double]?
+    var uncoupled: [Double]?
+    var method: String?
+    var source: String?
+    var ref: String?
     var notes: [String]?
 }
 

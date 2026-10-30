@@ -10,7 +10,7 @@
   function mountChamber(host, c) {
     const { R, esc, eyebrow, seg, numIn, resultCard, footnote, I } = c;
     const E = R.echo, f = E.fmt;
-    const st = { sex: 'male', height: '', weight: '', age: '', group: null, vals: {}, raw: {}, ivc: '', collapse: null, vent: false };
+    const st = { sex: 'male', height: '', weight: '', age: '', group: null, vals: {}, raw: {}, ivc: '', collapse: null, vent: false, pasp: '' };
     const data = () => (c.bundle() && c.bundle().echo) || null;
     const bsaOf = (d) => R.bsa(R.num(st.height), R.num(st.weight), d && d.bsaFormula);
     const ctxOf = (d) => ({ age: R.num(st.age), bsa: bsaOf(d) });
@@ -113,6 +113,17 @@
           ${rap ? `<p class="r-answer">${rap.value !== null ? `${rap.value} mmHg <span class="e-rap">${esc(rap.label)}, ${esc(rap.range)}</span>` : esc(rap.label)}</p>${rap.detail ? `<p class="r-small">${esc(rap.detail)}</p>` : ''}` : `<p class="r-small">${st.vent ? 'Enter the diameter.' : 'Enter the diameter and the collapse.'}</p>`}
           ${(d.ivc.notes || []).map((n) => `<p class="r-small">${esc(n)}</p>`).join('')}</div></section>`;
       }
+      // RV–PA coupling: TAPSE (from this group) over PA systolic pressure
+      if (d.coupling && cur.id === d.coupling.group) {
+        const cp = E.coupling(R.num(st.vals.tapse), R.num(st.pasp), d.coupling);
+        const tone = cp ? (cp.grade === null ? 'var(--fg-2)' : GRADE_COLOR[cp.grade]) : 'var(--fg-3)';
+        h += `<section class="r-sec">${eyebrow('RV–PA coupling: TAPSE/PASP')}<div class="r-card">
+          <div class="e-top"><label class="e-name" for="ch-pasp"><strong>PA systolic pressure</strong><small>${esc(d.coupling.method || '')}</small></label><span class="e-in">${numIn('ch-pasp', st.pasp, 'pasp', { label: 'PA systolic pressure in mmHg' })}<span class="e-u">mmHg</span></span></div>
+          ${cp ? `<p class="r-answer">${esc(f(cp.ratio))} mm/mmHg <span class="e-rap" style="color:${tone}">${esc(cp.label)}</span></p><p class="r-small">${esc(cp.detail)}</p>`
+            : `<p class="r-small">${R.num(st.vals.tapse) > 0 ? 'Enter the PA systolic pressure.' : 'Enter TAPSE above and the PA systolic pressure.'}</p>`}
+          ${(d.coupling.notes || []).map((n) => `<p class="r-small">${esc(n)}</p>`).join('')}
+          ${d.coupling.ref ? `<p class="r-small">${esc(d.coupling.ref)}</p>` : ''}</div></section>`;
+      }
       h += `<footer class="r-footer">${eyebrow('Sources')}${d.sources.map((s) => `<div class="r-src"><p>${esc(s.citation)}</p>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">Open ${I.ext}</a>` : ''}</div>`).join('')}${(d.notes || []).map((n) => footnote(n)).join('')}${footnote('Reviewed ' + (d.reviewed || '') + '. A reference, not a report: measure the way the guideline describes, and read borderline values with the whole study.')}</footer>`;
       return h + `</div>`;
     }, {
@@ -126,6 +137,7 @@
       ivc(el) { st.ivc = el.value; },
       collapse(el) { st.collapse = el.dataset.v === 'yes'; },
       vent(el) { st.vent = el.dataset.v === 'yes'; },
+      pasp(el) { st.pasp = el.value; },
     });
     if (!data()) c.loadBundle().then(update);
   }

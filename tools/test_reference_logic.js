@@ -347,6 +347,12 @@ test('echo grading', () => {
   eq(R.echo.bands(ef, 'male').map((b) => b.grade), [3, 2, 1, 0, -1]);
   eq(R.echo.bands(lv, 'male').map((b) => b.grade), [-1, 0, 1, 2, 3]);
   near(R.bsa(175, 70), 1.848, 0.001); near(R.bsa(175, 70, 'mosteller'), 1.845, 0.001);
+  const cp = { healthy: [0.5, 0.7], uncoupled: [0.3, 0.4] };
+  eq([[2.4, 30], [2.4, 40], [1.98, 40], [1.8, 40], [1.6, 40], [1.2, 40], [1.0, 45]].map(([t, p]) => [R.echo.coupling(t, p, cp).ratio, R.echo.coupling(t, p, cp).grade]),
+    [[0.8, 0], [0.6, 0], [0.5, 0], [0.45, null], [0.4, 4], [0.3, 4], [0.22, 4]], 'TAPSE/PASP: healthy 0.5–0.7, uncoupling 0.3–0.4 (ASE 2025), read at two decimals');
+  eq(R.echo.coupling(1.0, 45, cp).label, 'Below the uncoupling range');
+  eq(R.echo.coupling(2.4, 30, cp).label, 'Above the usual healthy range');
+  eq(R.echo.coupling(null, 40, cp), null); eq(R.echo.coupling(2, 0, cp), null);
   eq(R.echo.rap(1.8, true).value, 3); eq(R.echo.rap(2.4, false).value, 15); eq(R.echo.rap(1.8, false).value, 8); eq(R.echo.rap(2.4, true).value, 8);
 });
 test('echo: per-cut edges, ranges, indexed rows, age tables, ventilated RAP', () => {
