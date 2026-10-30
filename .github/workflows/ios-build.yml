@@ -224,15 +224,28 @@ jobs:
           grep -E "error:|Test Case|Executed|TEST|failed" build/test.log | tail -200 > ../ci-out/test-summary.log 2>/dev/null || true
           echo "run=${{ github.run_number }} sha=${{ github.sha }} status=${{ job.status }}" > ../ci-out/STATUS
           cd ..
-          git config user.name "periop-signal-ci"
-          git config user.email "ci@periopsignal.invalid"
-          if git fetch origin "$RESULTS_BRANCH" 2>/dev/null; then
-            git checkout -B "$RESULTS_BRANCH" "origin/$RESULTS_BRANCH"
-          else
-            git checkout --orphan "$RESULTS_BRANCH"
-            git rm -rf --cached . >/dev/null 2>&1 || true
+          # A separate worktree for the results branch, so files the build changed or left behind can't block it.
+          publish () {
+            git config user.name "periop-signal-ci" || return 1
+            git config user.email "ci@periopsignal.invalid" || return 1
+            rm -rf ../results-tree
+            git fetch origin "$RESULTS_BRANCH" || return 1
+            git worktree add -f -B "$RESULTS_BRANCH" ../results-tree "origin/$RESULTS_BRANCH" || return 1
+            cd ../results-tree || return 1
+            rm -rf results/build && mkdir -p results/build && cp -R "$GITHUB_WORKSPACE/ci-out/." results/build/ || return 1
+            git add -f results/build || return 1
+            git commit -q -m "Build results for run ${{ github.run_number }}" || true
+            for attempt in 1 2 3; do
+              git push origin "HEAD:$RESULTS_BRANCH" && return 0
+              sleep 5
+              git fetch origin "$RESULTS_BRANCH" && git rebase "origin/$RESULTS_BRANCH" || git rebase --abort || true
+            done
+            return 1
+          }
+          if ! publish > "$GITHUB_WORKSPACE/publish.log" 2>&1; then
+            cat "$GITHUB_WORKSPACE/publish.log"
+            # Logs can't always be downloaded; annotations can, so the reason is visible either way.
+            tail -n 12 "$GITHUB_WORKSPACE/publish.log" | while IFS= read -r line; do echo "::error title=Publish results::${line}"; done
+            exit 1
           fi
-          rm -rf results/build && mkdir -p results/build && cp -R ci-out/. results/build/
-          git add -f results/build
-          git commit -q -m "Build results for run ${{ github.run_number }}" || true
-          git push origin "$RESULTS_BRANCH" || { git fetch origin "$RESULTS_BRANCH" && git rebase "origin/$RESULTS_BRANCH" && git push origin "$RESULTS_BRANCH"; }
+          cat "$GITHUB_WORKSPACE/publish.log"
