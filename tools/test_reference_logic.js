@@ -273,27 +273,91 @@ test('intervention rules refer to real questions', () => {
     }
   }
 });
+test('intervention classes and levels of evidence', () => {
+  const LOE = ['A', 'B-R', 'B-NR', 'C-LD', 'C-EO'];
+  for (const l of R.viLesions.map((x) => x.id)) for (const r of R.viRules(l)) {
+    assert.ok(LOE.includes(r.level), l + ' ' + r.id + ' level ' + r.level);
+    assert.ok(R.viClassWord(r.cls), l + ' ' + r.id + ' class ' + r.cls);
+  }
+  const tavi = R.viRules('ar').find((r) => r.id === 'ar-tavi'), post = R.viRules('mrPrimary').find((r) => r.id === 'mr-posterior');
+  eq([tavi.cls, tavi.level, R.viEvidence(tavi), R.viClassNumber(tavi.cls)], ['3: Harm', 'B-NR', '3: Harm, B-NR', '3']);
+  eq([post.cls, post.level], ['3: Harm', 'B-NR']);
+  eq(R.viClassWord('3: Harm'), 'Potentially harmful'); eq(R.viClassWord('3: No Benefit'), 'Not recommended');
+  eq(R.viEvidence(R.viRules('as').find((r) => r.id === 'as-d1')), 'A');
+  eq(R.viRules('as').find((r) => r.id === 'as-vs').level, 'B-R');
+  const ex = R.viQuestions('as').find((q) => q.id === 'sx').hint;
+  assert.ok(ex.includes('heart failure') && ex.includes('class 3: Harm, B-NR'), 'no exercise testing in symptomatic severe AS');
+});
 test('aortic stenosis intervention', () => {
   eq(vi('as', {}).fallback, null);
   assert.ok(vi('as', {}).needed.length > 0);
   const d1 = vi('as', { sev: 'Severe', sx: 'Yes' }); eq(d1.matched[0].id, 'as-d1'); assert.ok(d1.needed.includes('age'));
   eq(ids(vi('as', { sev: 'Severe', sx: 'Yes', age: '< 50', risk: 'Low', anticoag: 'Yes' })), ['as-d1', 'as-savr-age', 'pr-ao-young']);
-  assert.ok(ids(vi('as', { sev: 'Severe', sx: 'Yes', age: '> 80', risk: 'Low', tf: 'Yes' })).includes('as-tavi-age'));
+  assert.ok(ids(vi('as', { sev: 'Severe', sx: 'Yes', age: '> 80', risk: 'Low', tf: 'Yes', surg: 'No' })).includes('as-tavi-age'));
   assert.ok(ids(vi('as', { sev: 'Severe', sx: 'Yes', age: '50–64', risk: 'High or prohibitive', survival: 'Yes' })).includes('as-tavi-risk'));
   assert.ok(!ids(vi('as', { sev: 'Severe', sx: 'Yes', age: '50–64', risk: 'High or prohibitive', survival: 'Yes' })).includes('as-savr-age'));
   assert.ok(ids(vi('as', { sev: 'Severe', sx: 'Yes', survival: 'No' })).includes('as-pall'));
   eq(vi('as', { sev: 'Severe', sx: 'No', ef: '< 50%' }).matched[0].id, 'as-c2');
   eq(vi('as', { sev: 'Low-flow, low-gradient', sx: 'Yes', ef: '< 50%' }).matched[0].id, 'as-d2');
   eq(vi('as', { sev: 'Low-flow, low-gradient', sx: 'Yes', ef: '≥ 60%' }).matched[0].id, 'as-d3');
-  eq(vi('as', { sev: 'Very severe', sx: 'No', risk: 'Low' }).matched[0].cls, '2a');
+  const vs = vi('as', { sev: 'Very severe', sx: 'No', risk: 'Low' }).matched[0];
+  eq([vs.id, vs.cls, vs.level], ['as-vs', '2a', 'B-R']);
   eq(vi('as', { sev: 'Moderate', surg: 'Yes' }).matched[0].cls, '2b');
   const watch = vi('as', { sev: 'Moderate', sx: 'No', surg: 'No', ef: '≥ 60%', risk: 'Low', markers: 'No', effall: 'No' });
   eq(watch.matched.length, 0); assert.ok(watch.fallback && watch.fallback.includes('1–2 years'));
+});
+test('aortic stenosis: SAVR or TAVI for the patients the guideline names', () => {
+  const sx70 = { sev: 'Severe', sx: 'Yes', age: '65–80', tf: 'Yes', risk: 'Low', surg: 'No' };
+  assert.ok(ids(vi('as', sx70)).includes('as-either'));
+  assert.ok(vi('as', Object.assign({}, sx70, { surg: undefined })).needed.includes('surg'), 'other cardiac surgery decides');
+  assert.ok(!ids(vi('as', Object.assign({}, sx70, { surg: 'Yes' }))).includes('as-either'), 'not when operated for another indication');
+  // asymptomatic: only recommendation 4 (LVEF < 50%, age ≤ 80), 1 B-NR
+  const c2 = vi('as', { sev: 'Severe', sx: 'No', ef: '< 50%', age: '65–80', tf: 'Yes', risk: 'Low', surg: 'No' });
+  assert.ok(!ids(c2).includes('as-either'));
+  const r4 = c2.matched.find((r) => r.id === 'as-c2-either'); eq([r4.cls, r4.level, r4.group], ['1', 'B-NR', 'Which procedure']);
+  const old = ids(vi('as', { sev: 'Severe', sx: 'No', ef: '< 50%', age: '> 80', tf: 'Yes', risk: 'Low', surg: 'No', survival: 'Yes' }));
+  for (const x of ['as-tavi-age', 'as-tavi-risk', 'as-either', 'as-c2-either']) assert.ok(!old.includes(x), 'asymptomatic 84-year-old: no ' + x);
+  const ex = ids(vi('as', { sev: 'Severe', sx: 'No', ef: '≥ 60%', markers: 'Yes', age: '65–80', tf: 'Yes', risk: 'Low', surg: 'No' }));
+  assert.ok(ex.includes('as-savr-2a') && !ex.includes('as-either') && !ex.includes('as-c2-either'), 'a 2a indication: SAVR in preference to TAVI only');
+  assert.ok(!ids(vi('as', { sev: 'Severe', sx: 'No', ef: '< 50%', markers: 'Yes', age: '65–80', tf: 'Yes', risk: 'Low', surg: 'No' })).includes('as-savr-2a'), 'LVEF < 50% is a class 1 indication');
+  const hi = ids(vi('as', { sev: 'Very severe', sx: 'No', ef: '< 50%', risk: 'High or prohibitive', survival: 'Yes', surg: 'No' }));
+  assert.ok(!hi.includes('as-tavi-risk') && !hi.includes('as-savr-2a'), 'asymptomatic at high risk: no TAVI 1 A');
+  assert.ok(!ids(vi('as', { sev: 'Moderate', surg: 'Yes', sx: 'Yes', risk: 'High or prohibitive', survival: 'Yes' })).includes('as-tavi-risk'), 'moderate AS is not severe');
+  // bicuspid valve with an aorta ≥ 4.5 cm (2a B-NR); complex coronary disease (2a C-LD)
+  const bav = vi('as', { sev: 'Severe', sx: 'Yes', bicuspid: 'Yes', aorta: 'Yes', risk: 'Low', cad: 'Yes' });
+  const ao = bav.matched.find((r) => r.id === 'as-aorta'), cabg = bav.matched.find((r) => r.id === 'as-cabg');
+  eq([ao.cls, ao.level, cabg.cls, cabg.level], ['2a', 'B-NR', '2a', 'C-LD']);
+  assert.ok(!ids(vi('as', { sev: 'Severe', sx: 'Yes', bicuspid: 'No', aorta: 'Yes', risk: 'Low' })).includes('as-aorta'));
+  assert.ok(!ids(vi('as', { sev: 'Severe', sx: 'Yes', bicuspid: 'Yes', aorta: 'Yes', risk: 'High or prohibitive' })).includes('as-aorta'), 'with an indication for SAVR');
+  assert.ok(!ids(vi('as', { sev: 'Moderate', surg: 'Yes', cad: 'Yes' })).includes('as-cabg'));
+});
+test('prosthesis choice', () => {
+  const young = vi('as', { sev: 'Severe', sx: 'Yes', age: '< 50', risk: 'Low', anticoag: 'No' });
+  assert.ok(ids(young).includes('pr-bio-any'));
+  const ross = young.matched.find((r) => r.id === 'pr-ao-ross'); eq([ross.cls, ross.level], ['2b', 'B-NR']);
+  assert.ok(!ids(vi('as', { sev: 'Severe', sx: 'Yes', age: '< 50', risk: 'Low', anticoag: 'Yes' })).includes('pr-ao-ross'), 'Ross: a bioprosthesis preferred');
+  assert.ok(!R.viRules('as').find((r) => r.id === 'pr-ao-young').recommendation.includes('Ross'));
+  assert.ok(ids(vi('ar', { sev: 'Severe', sx: 'Yes', age: '< 50', anticoag: 'No' })).includes('pr-ao-ross'));
+  const old = vi('as', { sev: 'Severe', sx: 'Yes', age: '65–80', risk: 'Low', anticoag: 'Yes' }).matched.find((r) => r.id === 'pr-ao-old');
+  assert.ok(old.note && old.note.includes('At age 65 the 50–65 band applies'));
+  // mitral: only when repair is not possible
+  const teer = vi('mrPrimary', { sev: 'Severe', sx: 'Yes', nyha: 'III–IV', risk: 'High or prohibitive', anatomy: 'Yes', rheumatic: 'No', age: '50–64', anticoag: 'Yes' });
+  assert.ok(!ids(teer).some((x) => x.startsWith('pr-')) && teer.needed.includes('replace'));
+  const base = { sev: 'Severe', sx: 'Yes', rheumatic: 'No' };
+  assert.ok(!ids(vi('mrPrimary', Object.assign({ age: '50–64', anticoag: 'Yes', replace: 'No' }, base))).some((x) => x.startsWith('pr-')));
+  assert.ok(!ids(vi('mrPrimary', Object.assign({ age: '65–80', anticoag: 'No', replace: 'No' }, base))).some((x) => x.startsWith('pr-')));
+  assert.ok(ids(vi('mrPrimary', Object.assign({ age: '50–64', anticoag: 'Yes', replace: 'Yes' }, base))).includes('pr-mi-young'));
+  const mo = ids(vi('mrPrimary', Object.assign({ age: '65–80', anticoag: 'No', replace: 'Yes' }, base)));
+  assert.ok(mo.includes('pr-mi-old') && mo.includes('pr-bio-any'));
 });
 test('regurgitation and stenosis intervention', () => {
   eq(vi('ar', { sev: 'Severe', sx: 'Yes' }).matched[0].id, 'ar-d');
   eq(vi('ar', { sev: 'Severe', sx: 'No', ef: '≤ 55%' }).matched[0].id, 'ar-c2');
   eq(vi('ar', { sev: 'Severe', sx: 'No', ef: '> 60%', lvesd: 'Yes' }).matched[0].id, 'ar-c2-dim');
+  eq(vi('ar', { sev: 'Severe', sx: 'No', ef: '56–60%', lvesd: 'Yes' }).matched[0].id, 'ar-c2-dim');
+  eq(R.viQuestions('ar').find((q) => q.id === 'ef').options, ['> 60%', '56–60%', '≤ 55%'], 'an LVEF of 55% has one answer');
+  const arAo = vi('ar', { sev: 'Severe', sx: 'Yes', bicuspid: 'Yes', aorta: 'Yes' }).matched.find((r) => r.id === 'ar-aorta');
+  eq([arAo.cls, arAo.level], ['2a', 'B-NR']);
   eq(vi('ar', { sev: 'Severe', sx: 'No', ef: '> 60%', lvesd: 'No', risk: 'Low', lvedd: 'Yes' }).matched[0].id, 'ar-2b');
   assert.ok(ids(vi('ar', { sev: 'Severe', sx: 'Yes', candidate: 'Yes' })).includes('ar-tavi'));
   assert.ok(!ids(vi('ar', { sev: 'Moderate', sx: 'No', surg: 'No', candidate: 'Yes' })).includes('ar-tavi'));
@@ -303,16 +367,26 @@ test('regurgitation and stenosis intervention', () => {
   const teer = vi('mrPrimary', { sev: 'Severe', sx: 'Yes', nyha: 'III–IV', risk: 'High or prohibitive', anatomy: 'Yes', rheumatic: 'No' });
   eq(ids(teer).slice(0, 2), ['mr-d', 'mr-teer']); assert.ok(ids(teer).includes('mr-repair'));
   assert.ok(ids(vi('mrPrimary', { sev: 'Severe', sx: 'Yes', posterior: 'Yes' })).includes('mr-posterior'));
+  assert.ok(ids(vi('mrPrimary', { sev: 'Severe', sx: 'Yes', rheumatic: 'Yes' })).includes('mr-rheum'));
+  assert.ok(!ids(vi('mrPrimary', { sev: 'Severe', sx: 'No', lvesd: 'Yes', rheumatic: 'Yes' })).includes('mr-rheum'), 'rheumatic repair is for symptomatic patients');
+  assert.ok(R.viRules('mrPrimary').find((r) => r.id === 'mr-rheum').recommendation.includes('if a durable and successful repair is likely'));
   eq(vi('mrSecondary', { sev: 'Severe', hf: 'Yes' }).matched[0].id, 'smr-gdmt');
   const smr = vi('mrSecondary', { sev: 'Severe', hf: 'Yes', gdmt: 'Yes', nyha: 'III–IV', ef: '20–49%', lvesd70: 'Yes', pasp70: 'Yes', anatomy: 'Yes' });
   assert.ok(ids(smr).includes('smr-teer')); assert.ok(ids(smr).includes('smr-surg')); eq(ids(smr)[0], 'smr-gdmt');
   eq(vi('mrSecondary', { sev: 'Severe', hf: 'No', gdmt: 'Yes', nyha: 'III–IV', ef: '≥ 50%', af: 'Yes' }).matched[0].id, 'smr-atrial');
-  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'II', pmbc: 'Yes', calcific: 'No' }).matched[0].id, 'ms-pmbc');
-  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', pmbc: 'No', calcific: 'No', candidate: 'Yes' }).matched[0].id, 'ms-surg');
-  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', pmbc: 'No', calcific: 'No', candidate: 'No' }).matched[0].id, 'ms-highrisk');
-  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'I', pasp: 'Yes', pmbc: 'Yes' }).matched[0].id, 'ms-pasp');
-  eq(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes' }).matched[0].id, 'ms-ex');
-  eq(vi('ms', { calcific: 'Yes', nyha: 'III–IV', sev: 'Severe (MVA ≤ 1.5 cm²)', pmbc: 'Yes' }).matched[0].id, 'ms-mac');
+  const pmbcOK = { morph: 'Yes', mr: 'Yes', thrombus: 'No' };
+  eq(vi('ms', Object.assign({ sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'II', calcific: 'No' }, pmbcOK)).matched[0].id, 'ms-pmbc');
+  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'II' }).needed.slice(0, 3), ['morph', 'mr', 'thrombus']);
+  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'No', calcific: 'No', candidate: 'Yes' }).matched[0].id, 'ms-surg');
+  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', thrombus: 'Yes', calcific: 'No', candidate: 'Yes' }).matched[0].id, 'ms-surg');
+  eq(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'No', mr: 'Yes', thrombus: 'No', calcific: 'No', candidate: 'No' }).matched[0].id, 'ms-highrisk');
+  eq(ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'Yes', mr: 'No', thrombus: 'No', calcific: 'No', candidate: 'No' })), [], 'MR ≥ 2+ is not suboptimal anatomy');
+  eq(ids(vi('ms', { sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'III–IV', morph: 'No', mr: 'Yes', thrombus: 'Yes', calcific: 'No', candidate: 'No' })), [], 'LA thrombus: no PMBC');
+  eq(vi('ms', Object.assign({ sev: 'Severe (MVA ≤ 1.5 cm²)', nyha: 'I', pasp: 'Yes' }, pmbcOK)).matched[0].id, 'ms-pasp');
+  eq(vi('ms', { sev: 'Not severe (MVA > 1.5 cm²)', nyha: 'II', exercise: 'Yes', thrombus: 'No' }).matched[0].id, 'ms-ex');
+  eq(vi('ms', Object.assign({ calcific: 'Yes', nyha: 'III–IV', sev: 'Severe (MVA ≤ 1.5 cm²)' }, pmbcOK)).matched[0].id, 'ms-mac');
+  assert.ok(!ids(vi('ms', { calcific: 'Yes', nyha: 'III–IV', sev: 'Not severe (MVA > 1.5 cm²)', exercise: 'No' })).includes('ms-mac'), 'MAC: severe MS only');
+  assert.ok(R.viQuestions('ms').find((q) => q.id === 'thrombus').hint.includes('class 1, C-LD'), 'TEE before PMBC');
   eq(vi('tr', { sev: 'Severe', left: 'Yes' }).matched[0].id, 'tr-left');
   eq(vi('tr', { sev: 'Progressive (moderate)', left: 'Yes', annulus: 'Yes' }).matched[0].id, 'tr-prog');
   eq(vi('tr', { sev: 'Severe', cause: 'Primary (leaflet)', rhf: 'Yes', left: 'No' }).matched[0].id, 'tr-primary');
@@ -320,6 +394,20 @@ test('regurgitation and stenosis intervention', () => {
   eq(vi('tr', { sev: 'Severe', prior: 'Yes', rhf: 'Yes', severeph: 'No' }).matched[0].id, 'tr-redo');
   const trw = vi('tr', { sev: 'Progressive (moderate)', left: 'No', cause: 'Secondary (annular dilation)', rhf: 'No', prior: 'No' });
   eq(trw.matched.length, 0); assert.ok(trw.fallback);
+});
+test('mitral stenosis: a left atrial thrombus never leads to PMBC', () => {
+  let combos = [{}];
+  for (const q of R.viQuestions('ms')) combos = combos.flatMap((c) => q.options.map((o) => Object.assign({}, c, { [q.id]: o })));
+  eq(combos.length, 3072);
+  let pmbcSeen = 0;
+  for (const a of combos) {
+    const m = ids(vi('ms', a)), pmbc = vi('ms', a).matched.filter((x) => /PMBC|balloon/.test(x.recommendation));
+    pmbcSeen += pmbc.length ? 1 : 0;
+    if (a.thrombus === 'Yes') assert.ok(!pmbc.length, 'thrombus led to ' + pmbc.map((x) => x.id) + ' for ' + JSON.stringify(a));
+    if (a.mr === 'No') assert.ok(!m.includes('ms-highrisk'), 'MR ≥ 2+ led to ms-highrisk for ' + JSON.stringify(a));
+    if (m.includes('ms-highrisk')) eq([a.morph, a.mr, a.thrombus], ['No', 'Yes', 'No'], 'ms-highrisk is for suboptimal anatomy only');
+  }
+  assert.ok(pmbcSeen > 0);
 });
 
 // ---------- fasting ----------
