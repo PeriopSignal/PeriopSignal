@@ -6,6 +6,9 @@ on:
       with_firebase:
         description: "Include Firebase Messaging (needs the FIREBASE_PLIST_B64 secret)"
         default: "false"
+      feedback:
+        description: "Only fetch the TestFlight crash reports (no build)"
+        default: "false"
   push:
     branches: [main]
     paths:
@@ -26,8 +29,35 @@ env:
   RESULTS_BRANCH: ci-results
 
 jobs:
+  feedback:
+    name: TestFlight crash reports
+    if: ${{ github.event.inputs.feedback == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch
+        run: |
+          pip3 install --quiet pyjwt cryptography
+          python3 ios/tools/asc_feedback.py ci-out-feedback || true
+      - name: Publish to the ci-results branch
+        run: |
+          git config user.name "periop-signal-ci"
+          git config user.email "ci@periopsignal.invalid"
+          git fetch origin "$RESULTS_BRANCH"
+          git checkout -B "$RESULTS_BRANCH" "origin/$RESULTS_BRANCH"
+          rm -rf results/feedback && mkdir -p results/feedback && cp -R ci-out-feedback/. results/feedback/
+          git add -f results/feedback
+          git commit -q -m "TestFlight crash reports, run ${{ github.run_number }}" || true
+          git push origin "$RESULTS_BRANCH" || { git fetch origin "$RESULTS_BRANCH" && git rebase "origin/$RESULTS_BRANCH" && git push origin "$RESULTS_BRANCH"; }
+
   build:
     name: Build, test and screenshot in the simulator
+    if: ${{ github.event.inputs.feedback != 'true' }}
     runs-on: macos-15-intel   # Intel pool; the arm64 (macos-15 / macos-latest) pool has been capacity-constrained and jobs were never acquired
     timeout-minutes: 60
     steps:
