@@ -712,7 +712,7 @@ extension ValveFlow {
             area = hf.n
             basis = "pressure half-time (\(fmtIn(hf.y, w.flow.step("pht")?.bands)) ms, area about \(hf.area) cm²)"
             if let b = hf.byArea, b != hf.own {
-                w.caution("The half-time and its area fall in different rows of Table 1: \(words[hf.own - 1]) by the half-time row, \(words[b - 1]) by the area row (220 ÷ half-time). Graded by the worse of the two; planimetry, the mean gradient and PA pressure help at this border (2023, Table 1).")
+                w.caution("The half-time and its area fall in different rows of Table 1: \(words[hf.own - 1]) by the half-time row, \(words[b - 1]) by the area row (220 ÷ half-time; 2023, p. 8). The guideline sets no rule for this; the app grades by the worse of the two. Planimetry is the preferred area method (p. 10), and stress echo helps when the measures are inconsistent (p. 7).")
             }
         } else {
             let a = w.take("alt")
@@ -730,7 +730,7 @@ extension ValveFlow {
             return supp.isEmpty ? .done("nodata") : .done("supportive-only", ["supp": supp.joined(separator: " ")])
         }
         if [g.tag, pa.tag].compactMap(level).contains(3) && ag < 3 {
-            w.caution("Gradient or PA pressure in the severe range with a non-severe area: high flow, tachycardia, significant MR or another cause of pulmonary hypertension (2023, p. 8).")
+            w.caution("Gradient or PA pressure in the severe range with a non-severe area: high output, tachycardia or concurrent MR raise the gradient (2023, p. 8), and a high PA pressure may have another cause.")
         }
         if ag == 3 && level(g.tag) == 1 {
             w.caution("Severe by area with a low gradient: consider low-flow, low-gradient MS, where a multiparametric approach, often with planimetry, is essential (2020 TEE guideline, p. 696).")

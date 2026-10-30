@@ -318,7 +318,7 @@ enum ValveGrading {
             if let v = i.numbers[param.id], let g = param.grade(v) { lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g)) }
         }
         if i.isEmpty { return ValveReading(overall: nil, headline: "Enter the measurements", explanation: "Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.", lines: [], cautions: []) }
-        var cautions = ["Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.", "Pressure half-time misleads with severe AR, right after balloon commissurotomy and with altered LA or LV compliance."]
+        var cautions = ["Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.", "Pressure half-time misleads with moderate or severe AR, right after balloon valvuloplasty and with altered LA or LV compliance."]
         let mva = i.numbers["mva"], pht = i.numbers["pht"]
         let anatomicSevere = (mva.map { $0 <= 1.5 } ?? false) || (pht.map { $0 >= 150 } ?? false)
         if anatomicSevere {
@@ -328,7 +328,7 @@ enum ValveGrading {
         let primary = [mva.map { $0 > 2.5 ? ValveGrade.mild : .moderate }, pht.map { $0 < 100 ? ValveGrade.mild : .moderate }].compactMap { $0 }
         let supportive = [i.numbers["mg"].map { $0 < 5 ? ValveGrade.mild : ($0 < 10 ? .moderate : .severe) }, i.numbers["pasp"].map { $0 < 30 ? ValveGrade.mild : ($0 < 50 ? .moderate : .severe) }].compactMap { $0 }
         if let g = primary.max() {
-            if supportive.contains(.severe) { cautions.insert("Gradient or PA pressure in the severe range with a non-severe area: look for high flow, tachycardia or another cause of pulmonary hypertension.", at: 0) }
+            if supportive.contains(.severe) { cautions.insert("Gradient or PA pressure in the severe range with a non-severe area: look for high output, tachycardia, concurrent MR or another cause of pulmonary hypertension.", at: 0) }
             return ValveReading(overall: g, headline: "\(g.label) (progressive) mitral stenosis", explanation: g == .mild ? "Area over 2.5 cm², half-time under 100 ms." : "Area 1.6–2.5 cm² or half-time 100–149 ms.", lines: lines, cautions: cautions)
         }
         let g = supportive.max() ?? .mild

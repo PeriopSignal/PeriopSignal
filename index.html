@@ -2517,7 +2517,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       if (v !== undefined) { const g = R.valveGrade(p, v); if (g) lines.push({ id: p.id, label: p.label, text: vfmt(v, p.unit) + ' · ' + GRADE[g].toLowerCase(), grade: g }); }
     }
     if (isEmptyInput(i)) return reading(null, 'Enter the measurements', 'Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.', [], []);
-    const cautions = ['Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.', 'Pressure half-time misleads with severe AR, right after balloon commissurotomy and with altered LA or LV compliance.'];
+    const cautions = ['Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.', 'Pressure half-time misleads with moderate or severe AR, right after balloon valvuloplasty and with altered LA or LV compliance.'];
     const mva = i.numbers.mva, pht = i.numbers.pht;
     const anatomicSevere = (mva !== undefined && mva <= 1.5) || (pht !== undefined && pht >= 150);
     if (anatomicSevere) {
@@ -2529,7 +2529,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     const supportive = [mg !== undefined ? (mg < 5 ? 1 : (mg < 10 ? 2 : 3)) : null, pasp !== undefined ? (pasp < 30 ? 1 : (pasp < 50 ? 2 : 3)) : null].filter((x) => x !== null);
     if (primary.length) {
       const g = Math.max(...primary);
-      if (supportive.includes(3)) cautions.unshift('Gradient or PA pressure in the severe range with a non-severe area: look for high flow, tachycardia or another cause of pulmonary hypertension.');
+      if (supportive.includes(3)) cautions.unshift('Gradient or PA pressure in the severe range with a non-severe area: look for high output, tachycardia, concurrent MR or another cause of pulmonary hypertension.');
       return reading(g, GRADE[g] + ' (progressive) mitral stenosis', g === 1 ? 'Area over 2.5 cm², half-time under 100 ms.' : 'Area 1.6–2.5 cm² or half-time 100–149 ms.', lines, cautions);
     }
     const g = supportive.length ? Math.max(...supportive) : 1;
@@ -3039,7 +3039,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       } else if (half) {
         area = half.n;
         basis = `pressure half-time (${F.fmtIn(half.y, (F.step(w.flow, 'pht') || {}).bands)} ms, area about ${half.area} cm²)`;
-        if (half.byArea !== null && half.byArea !== half.own) w.caution(`The half-time and its area fall in different rows of Table 1: ${words[half.own - 1]} by the half-time row, ${words[half.byArea - 1]} by the area row (220 ÷ half-time). Graded by the worse of the two; planimetry, the mean gradient and PA pressure help at this border (2023, Table 1).`);
+        if (half.byArea !== null && half.byArea !== half.own) w.caution(`The half-time and its area fall in different rows of Table 1: ${words[half.own - 1]} by the half-time row, ${words[half.byArea - 1]} by the area row (220 ÷ half-time; 2023, p. 8). The guideline sets no rule for this; the app grades by the worse of the two. Planimetry is the preferred area method (p. 10), and stress echo helps when the measures are inconsistent (p. 7).`);
       } else {
         const a = w.take('alt');
         if (a.pending) return ask('alt');
@@ -3055,7 +3055,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         if (num(pa) !== null) supp.push(`PA systolic pressure ${val(w, 'pasp', num(pa))} mmHg.`);
         return supp.length ? done('supportive-only', { supp: supp.join(' ') }) : done('nodata');
       }
-      if ([tg(g), tg(pa)].map(level).includes(3) && area < 3) w.caution('Gradient or PA pressure in the severe range with a non-severe area: high flow, tachycardia, significant MR or another cause of pulmonary hypertension (2023, p. 8).');
+      if ([tg(g), tg(pa)].map(level).includes(3) && area < 3) w.caution('Gradient or PA pressure in the severe range with a non-severe area: high output, tachycardia or concurrent MR raise the gradient (2023, p. 8), and a high PA pressure may have another cause.');
       if (area === 3 && level(tg(g)) === 1) w.caution('Severe by area with a low gradient: consider low-flow, low-gradient MS, where a multiparametric approach, often with planimetry, is essential (2020 TEE guideline, p. 696).');
       return done(['mild', 'moderate', 'severe'][area - 1], { basis });
     };

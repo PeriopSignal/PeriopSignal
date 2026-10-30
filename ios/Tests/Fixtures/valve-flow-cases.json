@@ -1710,7 +1710,7 @@
    "expect": {
     "result": "severe",
     "grade": 3,
-    "caution": "different rows of Table 1"
+    "caution": "the app grades by the worse of the two"
    }
   },
   {
@@ -1791,6 +1791,22 @@
     "result": "severe",
     "grade": 3,
     "pathText": "149.6 ms · moderate"
+   }
+  },
+  {
+   "name": "MS: a severe gradient with a moderate area names concurrent MR",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": 1.8,
+    "pht": null,
+    "mg": 12,
+    "pasp": null
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2,
+    "caution": "concurrent MR raise the gradient"
    }
   },
   {

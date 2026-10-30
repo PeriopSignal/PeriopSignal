@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793390234,
+  "revision": 1793392557,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14596,6 +14596,16 @@
         "id": "hahn2013",
         "citation": "Hahn RT, Abraham T, Adams MS, et al. Guidelines for Performing a Comprehensive Transesophageal Echocardiographic Examination: Recommendations from the American Society of Echocardiography and the Society of Cardiovascular Anesthesiologists. J Am Soc Echocardiogr 2013;26:921–64.",
         "url": "https://asecho.org/wp-content/uploads/2014/05/2013_Performing-Comprehensive-TEE.pdf"
+      },
+      {
+        "id": "mukherjee2025",
+        "citation": "Mukherjee M, Rudski LG, Addetia K, et al. Guidelines for the Echocardiographic Assessment of the Right Heart in Adults and Special Considerations in Pulmonary Hypertension: Recommendations from the American Society of Echocardiography. J Am Soc Echocardiogr 2025;38:141–86.",
+        "url": "https://www.asecho.org/wp-content/uploads/2026/08/ASE-Right-Heart-Guidelines-May-2025.pdf"
+      },
+      {
+        "id": "asems2009page",
+        "citation": "American Society of Echocardiography. Valve Stenosis (2009), guideline page: “Please use the ASE 2023 RHD guideline and 2020 AHA/ACC document for descriptions and values of the stages of Mitral Stenosis.” Accessed October 2026.",
+        "url": "https://www.asecho.org/guideline/valve-stenosis-2009/"
       }
     ],
     "groups": [
@@ -15853,10 +15863,11 @@
         "source": "ase2023rhd",
         "also": [
           "baumgartner2009",
-          "nicoara2020"
+          "nicoara2020",
+          "asems2009page"
         ],
         "ref": "ASE 2023 rheumatic heart disease, Table 1 (p. 8); EAE/ASE 2009, pp. 11–16",
-        "intro": "The valve area decides the grade: planimetry at the leaflet tips is the reference, and wins when it disagrees with the pressure half-time except with poor windows; mean gradient and PA pressure only support it (2023, pp. 8, 10; 2009, pp. 15–16). ASE now uses the 2023 values for the stages of MS.",
+        "intro": "ASE 2023 grades MS on the valve area, half-time, mean gradient and PA pressure together (p. 7; Table 1, p. 8), and ASE's page for its 2009 guideline now points to these values. When the measures disagree, 2023 suggests stress echo (p. 7) but sets no order, so the app follows 2009: the valve area decides, planimetry at the leaflet tips (the preferred method; 2023, p. 10) wins over the half-time except with poor windows, and mean gradient and PA pressure support it (2009, pp. 15–16).",
         "steps": [
           {
             "id": "etiology",
@@ -15911,7 +15922,7 @@
             "title": "Pressure half-time",
             "kind": "number",
             "unit": "ms",
-            "ask": "Trace the mid-diastolic slope when the decay is bimodal; area ≈ 220 ÷ half-time. Not valid within 24 hours of balloon commissurotomy or with moderate or severe AR, and less reliable with significant MR, LV hypertrophy or a stiff LA: tap Cannot obtain then (2023, pp. 8, 20, 23).",
+            "ask": "Trace the mid-diastolic slope when the decay is bimodal; area ≈ 220 ÷ half-time (2023, p. 8). Within 24 hours of balloon valvuloplasty it is unreliable and not recommended: tap Cannot obtain (pp. 23–24). It may not be reliable with moderate or severe AR (p. 20), and is less reliable with significant MR, LV hypertrophy or LA fibrosis (p. 8): prefer planimetry then.",
             "tte": "Apical four-chamber, CW aligned with the inflow.",
             "tee": "ME four-chamber or long axis, CW aligned with the inflow (2020 TEE guideline, Table 2, p. 699).",
             "bands": [
@@ -16088,16 +16099,17 @@
         "source": "zoghbi2017",
         "also": [
           "nicoara2020",
-          "hahn2013"
+          "hahn2013",
+          "mukherjee2025"
         ],
         "ref": "ASE 2017, Figure 31 and Table 14, pp. 350–353",
-        "intro": "Figure 31 asks whether most of its seven specific criteria for mild or for severe TR are met; the app takes four, a majority. Otherwise TR is probably moderate, and the vena contracta, with EROA and regurgitant volume by PISA when possible, decides; poor images or discordant results end as indeterminate, for TEE or CMR (p. 352). Subclassifying TR into four grades has not been validated (p. 353).",
+        "intro": "Figure 31 asks whether most of its seven specific criteria for mild or for severe TR are met; the app takes four, a majority. Otherwise TR is probably moderate, and the vena contracta, with EROA and regurgitant volume by PISA when possible, decides; poor images or discordant results end as indeterminate, for TEE or CMR (p. 352). Subclassifying TR into four grades has not been validated (p. 353). ASE's 2025 right-heart guideline refers TR grading to this document and adds no massive or torrential grade (ASE 2025, pp. 175–176).",
         "steps": [
           {
             "id": "valve",
             "title": "Valve and annulus",
             "kind": "choice",
-            "ask": "Severe valve lesions are specific for severe TR. A dilated annulus is 40 mm or more, or above 21 mm/m², in the four-chamber view (pp. 345, 350; Annuli tab in the chamber tool).",
+            "ask": "Severe valve lesions are specific for severe TR. A dilated annulus is 40 mm or more, or above 21 mm/m², in the four-chamber view (pp. 345, 350; Annuli tab in the chamber tool). ASE 2025 calls up to 40 mm normal, measured at end-diastole in the RV-focused view, so exactly 40 mm is borderline (p. 176).",
             "tte": "Apical four-chamber, parasternal RV inflow and short axis.",
             "tee": "ME four-chamber (annulus at end-diastole), RV inflow-outflow (50–70°) and modified bicaval tricuspid view (50–70°); transgastric RV basal short axis and RV inflow (2020 TEE guideline, Table 6, p. 705, and pp. 711–712; angles, 2013, p. 939).",
             "options": [
@@ -16152,7 +16164,7 @@
             "id": "cw",
             "title": "CW Doppler of the TR jet",
             "kind": "choice",
-            "ask": "A dense, triangular, early-peaking jet means pressure equalization; it can also appear with milder TR when RA pressure is very high (pp. 349, 352).",
+            "ask": "A dense, triangular, early-peaking jet means pressure equalization; it can also appear with milder TR when RA pressure is very high (pp. 349, 352). With a triangular contour or a V-wave cutoff, the RV systolic pressure from this jet reads low: the Bernoulli equation does not apply (ASE 2025, pp. 164–165).",
             "tte": "Apical four-chamber or RV inflow.",
             "tee": "ME modified bicaval tricuspid view, where a septally directed jet may line up with the beam (2013 TEE guideline, p. 939).",
             "options": [
@@ -16223,7 +16235,7 @@
             "id": "hv",
             "title": "Hepatic vein flow",
             "kind": "choice",
-            "ask": "Systolic reversal is specific once its other causes are accounted for: RA and RV compliance, respiration, preload, pacing with retrograde conduction, heart block, AF and flutter (pp. 349, 352–353).",
+            "ask": "Systolic reversal is specific once its other causes are accounted for: RA and RV compliance, respiration, preload, pacing with retrograde conduction, heart block, AF and flutter (pp. 349, 352–353). A high RA pressure or pseudonormal to restrictive RV filling also brings systolic flow below diastolic (ASE 2025, pp. 160, 169). On the ventilator, average at least five beats spanning a breath (p. 160).",
             "tte": "Subcostal, PW in a hepatic vein.",
             "tee": "Advance the probe toward the transgastric level to bring the IVC and hepatic veins into view (2013 TEE guideline, p. 939); obtainable on TEE (ASE 2017, p. 349).",
             "options": [
@@ -16271,7 +16283,7 @@
             "id": "size",
             "title": "RV and RA size",
             "kind": "choice",
-            "ask": "Chronic severe TR almost always dilates the RV and RA; in acute severe TR they can be normal (pp. 350, 353).",
+            "ask": "Chronic severe TR almost always dilates the RV and RA; in acute severe TR they can be normal (pp. 350, 353). With severe functional TR, TAPSE can overstate RV function, and after cardiac surgery it understates it: confirm with FAC or 3D RV ejection fraction (ASE 2025, pp. 152, 157).",
             "tte": "RV and RA dimensions and volumes (chamber tool).",
             "tee": "ME four-chamber and RV inflow-outflow views.",
             "options": [
