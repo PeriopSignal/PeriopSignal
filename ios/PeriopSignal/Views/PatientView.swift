@@ -74,7 +74,7 @@ struct PatientView: View {
             SafariView(url: link.url).ignoresSafeArea()
         }
         .sheet(isPresented: $showHandoff) {
-            HandoffSheet(text: HandoffWriter.text(r))
+            HandoffSheet(full: HandoffWriter.text(r), short: HandoffWriter.shortText(r))
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
@@ -340,16 +340,26 @@ struct PatientSectionCard: View {
     }
 }
 
-/// The handoff as text: read, copy or share.
+/// The handoff as text, short or full: read, copy or share the one shown.
 struct HandoffSheet: View {
-    var text: String
+    var full: String
+    var short: String
+    /// "full" or "short"; the last one used is kept.
+    @AppStorage("ps.handoff.format") private var format = "full"
     @Environment(\.dismiss) private var dismiss
     @State private var copied = false
+
+    private var text: String { format == "short" ? short : full }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
+                    Picker("Handoff", selection: $format) {
+                        Text("Short").tag("short")
+                        Text("Full").tag("full")
+                    }
+                    .pickerStyle(.segmented)
                     Text(text)
                         .font(PS.sys(size: 14.5))
                         .foregroundStyle(PS.fg)

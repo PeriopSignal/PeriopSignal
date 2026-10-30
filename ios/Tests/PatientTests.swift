@@ -289,6 +289,31 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(HandoffWriter.text(PatientRecord()).components(separatedBy: "\n").first, "ANESTHESIA HANDOFF")
     }
 
+    func testShortHandoff() {
+        let s = HandoffWriter.shortText(demo)
+        let rows = s.components(separatedBy: "\n")
+        XCTAssertEqual(rows.first, "ANESTHESIA HANDOFF (SHORT)")
+        for x in ["67-year-old man", "Laparoscopic sigmoid colectomy", "ASA III", "Allergies: Penicillin (rash)", "Airway: Mask ventilation easy.",
+                  "At handoff: extubated.", "Lines: ", "Drips: Phenylephrine", "Events: No notable events",
+                  "Plan: PACU. Call if SBP under 90 or over 170; SpO₂ under 92%."] {
+            XCTAssertTrue(s.contains(x), "short handoff has \(x)\n\(s)")
+        }
+        for x in ["Elective", "HISTORY", "Hb 12.8", "Crystalloid", "RCRI", "Mallampati", "Medications"] {
+            XCTAssertFalse(s.contains(x), "short handoff leaves out \(x)")
+        }
+        XCTAssertLessThanOrEqual(rows.count, 14, "one screen")
+        var hard = demo; hard.intubation = "difficult"; hard.urgency = .emergency; hard.nkda = true; hard.allergies = ""
+        let h = HandoffWriter.shortText(hard)
+        XCTAssertTrue(h.contains("Intubation DIFFICULT"))
+        XCTAssertTrue(h.contains("Difficult-airway follow-up: Still to do:"), h)
+        XCTAssertTrue(h.contains(" · Emergency · "), "the timing shows when it isn't elective")
+        XCTAssertTrue(h.contains("Allergies: No known drug allergies"))
+        let blank = HandoffWriter.shortText(PatientRecord())
+        XCTAssertEqual(blank.components(separatedBy: "\n").first, "ANESTHESIA HANDOFF (SHORT)")
+        XCTAssertFalse(blank.contains(": \n"))
+        XCTAssertTrue(HandoffWriter.text(demo).hasSuffix(". Check against the chart."), "the full one keeps its footer")
+    }
+
     func testRecordCoding() throws {
         let data = try JSONEncoder().encode(demo)
         let back = try JSONDecoder().decode(PatientRecord.self, from: data)

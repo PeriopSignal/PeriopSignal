@@ -275,8 +275,43 @@ enum HandoffWriter {
         let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" }
         section("Intraoperative", intraop)
         section("Plan", PatientSummary.planLines(r))
-        out.append("")
-        out.append("Prepared with Periop Signal, " + PatientSummary.time(now, now: now.addingTimeInterval(86_400 * 2)) + ". Check against the chart.")
+        out.append(footer(now))
         return out.joined(separator: "\n")
+    }
+
+    /// The short version, one screen: who and what, allergies, the airway, lines and drips, events, and where the
+    /// patient goes with when to call.
+    static func shortText(_ r: PatientRecord, now: Date = Date()) -> String {
+        var out: [String] = ["ANESTHESIA HANDOFF (SHORT)"]
+        if !r.oneLiner.isEmpty { out.append(r.oneLiner) }
+        var proc: [String] = []
+        if !r.procedure.isEmpty { proc.append(r.procedure) }
+        if let u = r.urgency, u != .elective { proc.append(u.label) }
+        let an = PatientSummary.anestheticText(r)
+        if !an.isEmpty { proc.append(an) }
+        if let a = PatientRules.asaText(r) { proc.append(a) }
+        if !proc.isEmpty { out.append(proc.joined(separator: " · ")) }
+
+        func line(_ label: String, _ text: String) {
+            let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !t.isEmpty { out.append(label + ": " + t) }
+        }
+        line("Allergies", r.nkda ? "No known drug allergies" : r.allergies)
+        if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
+        if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
+        line("Lines", r.lines.map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
+        line("Drips", r.infusions.map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
+        line("Events", r.noEvents ? "No notable events" : r.events)
+        var plan: [String] = []
+        if let d = r.disposition { plan.append(d + ".") }
+        let call = r.callIf.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !call.isEmpty { plan.append("Call if " + call + (call.hasSuffix(".") ? "" : ".")) }
+        line("Plan", plan.joined(separator: " "))
+        out.append(footer(now))
+        return out.joined(separator: "\n")
+    }
+
+    private static func footer(_ now: Date) -> String {
+        "\nPrepared with Periop Signal, " + PatientSummary.time(now, now: now.addingTimeInterval(86_400 * 2)) + ". Check against the chart."
     }
 }
