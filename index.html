@@ -785,6 +785,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
 .r-tabs button { flex: none; height: 34px; padding: 0 13px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line-2); color: var(--fg-2); font-size: 13.5px; font-weight: 600; }
 .r-tabs button[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: transparent; }
 @media (min-width: 700px) { .r-tabs { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; } }
+.r-infh { display: flex; justify-content: space-between; gap: 10px; padding: 10px 16px 8px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--fg-3); position: relative; }
+.r-infh::after { content: ""; position: absolute; bottom: 0; left: 16px; right: 0; height: 1px; background: var(--line); }
 .r-inf { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; width: 100%; padding: 12px 16px; text-align: left; position: relative; }
 .r-inf + .r-inf::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--line); }
 .r-inf .it { display: grid; gap: 2px; min-width: 0; }
@@ -5124,7 +5126,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         }
         return r + `</button>`;
       };
-      const section = (g, title) => `<section class="r-sec">${title ? eyebrow(title) : ''}<div class="r-card flush">${g.drugs.map(row).join('')}</div></section>`;
+      // Every dose in these tables is a recommended starting dose; titration, range and maximum are in each drug's details.
+      const section = (g, title) => `<section class="r-sec">${title ? eyebrow(title) : ''}<div class="r-card flush"><div class="r-infh"><span>Drug</span><span>Recommended starting dose</span></div>${g.drugs.map(row).join('')}</div></section>`;
       if (!q) {
         h += `<div class="r-tabs" role="tablist" aria-label="Sections">${tabs.map((t) => `<button type="button" role="tab" data-a="tab" data-v="${esc(t)}" aria-selected="${t === cur}">${esc(t)}</button>`).join('')}</div>`;
         const tg = groups.filter((g) => (g.tab || g.name) === cur);
@@ -5135,7 +5138,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         else h += hits.map((g) => section(g, [g.tab, g.tab === g.name ? null : g.name].filter(Boolean).join(' · '))).join('');
       }
       const rev = bundle.infusions.reviewed;
-      h += `<footer class="r-footer">${footnote('† Off-label use. Starting points from the FDA labels and the cited guidelines' + (rev ? ', reviewed ' + monthYear(rev) : '') + '; norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump’s concentration before programming a rate.')}</footer>`;
+      h += `<footer class="r-footer">${footnote('Doses are recommended starting doses; tap a drug for its titration, range and maximum. † Off-label use. Starting points from the FDA labels and the cited guidelines' + (rev ? ', reviewed ' + monthYear(rev) : '') + '; norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump’s concentration before programming a rate.')}</footer>`;
       return h + `</div>`;
     }, {
       weight(el) { st.weight = el.value; },

@@ -582,7 +582,8 @@
         }
         return r + `</button>`;
       };
-      const section = (g, title) => `<section class="r-sec">${title ? eyebrow(title) : ''}<div class="r-card flush">${g.drugs.map(row).join('')}</div></section>`;
+      // Every dose in these tables is a recommended starting dose; titration, range and maximum are in each drug's details.
+      const section = (g, title) => `<section class="r-sec">${title ? eyebrow(title) : ''}<div class="r-card flush"><div class="r-infh"><span>Drug</span><span>Recommended starting dose</span></div>${g.drugs.map(row).join('')}</div></section>`;
       if (!q) {
         h += `<div class="r-tabs" role="tablist" aria-label="Sections">${tabs.map((t) => `<button type="button" role="tab" data-a="tab" data-v="${esc(t)}" aria-selected="${t === cur}">${esc(t)}</button>`).join('')}</div>`;
         const tg = groups.filter((g) => (g.tab || g.name) === cur);
@@ -593,7 +594,7 @@
         else h += hits.map((g) => section(g, [g.tab, g.tab === g.name ? null : g.name].filter(Boolean).join(' · '))).join('');
       }
       const rev = bundle.infusions.reviewed;
-      h += `<footer class="r-footer">${footnote('† Off-label use. Starting points from the FDA labels and the cited guidelines' + (rev ? ', reviewed ' + monthYear(rev) : '') + '; norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump’s concentration before programming a rate.')}</footer>`;
+      h += `<footer class="r-footer">${footnote('Doses are recommended starting doses; tap a drug for its titration, range and maximum. † Off-label use. Starting points from the FDA labels and the cited guidelines' + (rev ? ', reviewed ' + monthYear(rev) : '') + '; norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump’s concentration before programming a rate.')}</footer>`;
       return h + `</div>`;
     }, {
       weight(el) { st.weight = el.value; },

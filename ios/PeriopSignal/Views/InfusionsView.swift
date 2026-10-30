@@ -122,6 +122,8 @@ struct InfusionsView: View {
         VStack(alignment: .leading, spacing: 7) {
             if let title { Eyebrow(text: title).padding(.leading, 4).padding(.top, 4) }
             VStack(spacing: 0) {
+                columnHeader
+                Hairline().padding(.leading, 16)
                 ForEach(Array(g.drugs.enumerated()), id: \.element.id) { i, d in
                     row(d)
                     if i < g.drugs.count - 1 { Hairline().padding(.leading, 16) }
@@ -129,6 +131,19 @@ struct InfusionsView: View {
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
+    }
+
+    /// Every dose in these tables is a recommended starting dose; the titration, range and maximum are in each
+    /// drug's details.
+    private var columnHeader: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("Drug")
+            Spacer(minLength: 8)
+            Text("Recommended starting dose")
+        }
+        .font(PS.mono(size: 9.5, weight: .semibold)).textCase(.uppercase).kerning(0.5).foregroundStyle(PS.fg3)
+        .padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 8)
+        .accessibilityElement(children: .combine)
     }
 
     private func row(_ d: InfusionDrug) -> some View {
@@ -202,7 +217,7 @@ struct InfusionsView: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
             Hairline().padding(.top, 6)
-            Text("† Off-label use. Starting points from the FDA labels and the cited guidelines\(refs.bundle?.infusions?.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""); norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump's concentration before programming a rate.")
+            Text("Doses are recommended starting doses; tap a drug for its titration, range and maximum. † Off-label use. Starting points from the FDA labels and the cited guidelines\(refs.bundle?.infusions?.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""); norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump's concentration before programming a rate.")
                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
     }
