@@ -126,6 +126,12 @@ jobs:
           LANDMARK=$(echo "$FEED" | python3 -c 'import json,sys; d=json.load(sys.stdin); ps=d["posts"]; print(next((p["id"] for p in ps if p.get("impact")==3 and p.get("glance") and p.get("quiz")), next(p["id"] for p in ps if p.get("impact")==3)))')
           LIMITS=$(echo "$FEED" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(p["id"] for p in d["posts"] if p.get("authorLimitations") and p.get("authorBasis")=="full text"))')
           ONLY="${{ inputs.shots }}"
+          diag () { # name: a stack sample of the app and its recent log, for a screen that does not draw
+            if [ -n "$ONLY" ] && ! echo "$1" | grep -Eq "$ONLY"; then return 0; fi
+            local pid; pid=$(pgrep -f "PeriopSignal.app/PeriopSignal" | head -1)
+            if [ -n "$pid" ]; then sample "$pid" 2 -file "build/shots/$1-sample.txt" >/dev/null 2>&1 || true; else echo "no process" > "build/shots/$1-sample.txt"; fi
+            xcrun simctl spawn "$UDID" log show --last 1m --style compact --predicate 'process == "PeriopSignal"' > "build/shots/$1-log.txt" 2>/dev/null || true
+          }
           shot () { # name, wait, launch args...
             local name="$1"; local wait="$2"; shift 2
             if [ -n "$ONLY" ] && ! echo "$name" | grep -Eq "$ONLY"; then return 0; fi
@@ -212,6 +218,11 @@ jobs:
           shot 75-patient-receive 12 -ps.tab patient -ps.patient.open receive
           shot 76-patient-top-light 12 -ps.tab patient -ps.patient demo -ps.forceAppearance light
           shot 77-chamber-coupling 18 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
+          diag 77-chamber-coupling
+          shot 77a-chamber-rvf 15 -ps.ref chamber -ps.echo.group rvf
+          diag 77a-chamber-rvf
+          shot 77b-chamber-rvf-tapse 15 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5"
+          shot 77c-chamber-noscroll 15 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
