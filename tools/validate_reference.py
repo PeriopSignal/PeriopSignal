@@ -49,7 +49,7 @@ VALVE_FLOW_CONTRACT = {
            "results": ["mild", "moderate", "severe", "nodata", "nonvalvular"]},
     "pav": {"steps": ["kind", "vmax", "contour", "at", "atet", "mg", "dvi", "eoa", "mgchange", "dvichange", "eoachange", "leaflets", "bmi", "ieoa"],
             "options": {"kind": ["tavr"], "eoa": ["ok"], "eoachange": ["ok"], "leaflets": ["normal", "abnormal"], "bmi": ["ge30"]},
-            "results": ["nodata", "significant", "lowflow", "leaflet", "highflow", "ppm-severe", "ppm-moderate", "ppm-none", "possible", "normal", "insufficient"]},
+            "results": ["nodata", "significant", "stenosis-contour", "lowflow", "leaflet", "highflow", "ppm-severe", "ppm-moderate", "ppm-none", "possible", "normal", "insufficient"]},
     "par": {"steps": ["kind", "site", "structure", "vc", "vca", "extent", "jet", "pisa", "pht", "aorta", "rvol", "rf", "eroa"],
             "options": {"kind": ["tavr"], "site": ["central", "pvl"], "structure": ["rocking", "leaflets"]},
             "optionTags": {"pisa": {"small": "mild", "large": "severe"}, "aorta": {"brief": "mild", "holo": "severe"}},
@@ -60,12 +60,12 @@ VALVE_FLOW_CONTRACT = {
             "options": {"kind": ["mechanical"]},
             "tags": {"vmax": ["normal", "moderate", "severe"], "mg": ["normal", "moderate", "severe"], "pht": ["normal", "moderate", "severe"],
                      "dvi": ["normal", "moderate", "severe"], "eoa": ["normal", "moderate", "severe"]},
-            "results": ["normal", "insufficient", "stenosis", "mr", "possible", "nodata"]},
+            "results": ["normal", "insufficient", "stenosis", "significant", "mr", "possible", "nodata"]},
     "pmr": {"steps": ["kind", "site", "structure", "jet", "cw", "vc", "jets", "vca", "pisa", "inflow", "pv", "eroa", "rvol", "rf"],
             "options": {"kind": ["mechanical"], "jet": ["eccentric"]},
             "optionTags": {"structure": {"yes": "severe"}, "jets": {"yes": "severe"}, "pv": {"reversal": "severe"}, "jet": {"small": "mild", "large": "severe"}},
             "tags": {"vc": ["mild", "severe"], "vca": ["mild", "severe"], "eroa": ["mild", "moderate", "severe"], "rvol": ["mild", "moderate", "severe"], "rf": ["mild", "moderate", "severe"]},
-            "results": _REGURG + ["q-mild", "q-moderate", "q-moderate-severe", "q-severe", "probable-moderate"]},
+            "results": _REGURG + ["q-mild", "q-moderate", "q-moderate-severe", "q-severe", "probable-moderate", "tte-masked"]},
 }
 
 

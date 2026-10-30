@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793388666,
+  "revision": 1793390234,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -16744,7 +16744,7 @@
           "nicoara2020"
         ],
         "ref": "ASE 2024, Tables 5 and 7, pp. 17–20",
-        "intro": "Significant stenosis needs at least one flow-dependent sign (velocity, mean gradient) and one flow-independent sign (EOA, DVI); a single parameter is not enough. A high gradient with a normal EOA and DVI points to high flow, mismatch or pressure recovery (ASE 2024, pp. 17–19). Figure 13 takes the same path, jet contour then DVI, but calls a DVI of 0.30 or more normal where Table 5 puts 0.25–0.35 in possible stenosis for surgical valves; the app keeps Table 5's bands, the more cautious (both p. 19).",
+        "intro": "Significant stenosis needs at least one flow-dependent sign (velocity, mean gradient) and one flow-independent sign (EOA, DVI); a single parameter is not enough. A high gradient with a normal EOA and DVI points to high flow, mismatch or pressure recovery (ASE 2024, pp. 17–19). Figure 13 takes the same path, jet contour then DVI. Where it and Table 5 differ the app takes the more cautious: Table 5's DVI bands (Figure 13 calls 0.30 or more normal after an early peak), and Figure 13's call of stenosis for a late-peaking jet with a DVI under 0.25, which Table 5 would leave as possible without a high velocity or gradient (both p. 19).",
         "steps": [
           {
             "id": "kind",
@@ -17088,6 +17088,15 @@
             "next": [
               "Find the cause: valvular stenosis, thrombus included, or subvalvular stenosis (Figure 13, p. 19). For mechanical valve motion fluoroscopy and CT do better than TEE; for the cause, CT angiography and TEE (Figure 13; pp. 17–18).",
               "Compare with the baseline postprocedural study (p. 18)."
+            ]
+          },
+          "stenosis-contour": {
+            "grade": 3,
+            "headline": "Stenosis by Figure 13",
+            "text": "A velocity over 3 m/s with a late-peaking jet and a DVI of {dvi}, under 0.25: Figure 13 reads this as stenosis, although Table 5 also wants the velocity (4 m/s or more) or the mean gradient (35 mmHg or more) in its significant column (both p. 19).",
+            "next": [
+              "Consider valvular stenosis, thrombus included, or subvalvular stenosis; compare the EOA with the reference for the model and size (Figure 13, p. 19).",
+              "For mechanical valve motion fluoroscopy and CT do better than TEE; for the cause, CT angiography and TEE (Figure 13)."
             ]
           },
           "possible": {
@@ -17618,7 +17627,7 @@
             "title": "Mean gradient",
             "kind": "number",
             "unit": "mmHg",
-            "ask": "Report the heart rate with it: the cutoff of 10 mmHg holds at a normal heart rate (ASE 2024, p. 24). Table 11 leaves a gap between 5 and 6; the app counts above 5 as possible stenosis.",
+            "ask": "Report the heart rate with it: the cutoff of 10 mmHg holds at a normal heart rate (ASE 2024, p. 24). Table 11 leaves a gap between 5 and 6; the app counts above 5 as possible stenosis, and 5 itself as normal, although Table 12 lists 5 or more among the signs of MR.",
             "tte": "Apical four-chamber, CW.",
             "tee": "ME four-chamber or long axis, CW.",
             "bands": [
@@ -17759,11 +17768,22 @@
               "Consider a high-flow state or mismatch (Table 12): heart rate, stroke volume, anemia."
             ]
           },
+          "significant": {
+            "grade": 3,
+            "headline": "Significant dysfunction: stenosis or regurgitation",
+            "text": "Most measures are in the significant column ({sig}), but without the half-time a stenosis cannot be told from significant regurgitation, which raises the velocity, gradient and DVI and lowers the EOA too (Tables 11 and 12; p. 24).",
+            "next": [
+              "TEE en face, 2D and 3D, for disk or leaflet motion, thrombus or pannus and for regurgitation (ASE 2024, p. 25).",
+              "Fluoroscopy or CT for mechanical disk motion (p. 26)."
+            ]
+          },
           "possible": {
             "grade": 2,
             "headline": "Possible stenosis",
             "text": "{counts}. Values in the possible-stenosis column call for a closer look at the valve and at increased flow, heart rate or mismatch (Table 11, p. 27).{phtnote}",
             "next": [
+              "A closer look at the valve: TEE en face for disk or leaflet motion and for regurgitation (ASE 2024, p. 25); fluoroscopy or CT for mechanical disk motion (p. 26).",
+              "Note the heart rate and look for a high-flow state (Table 11).",
               "Mismatch (Table 7, p. 20), with normal leaflet motion and an EOA within 1 SD of the reference: indexed EOA 0.91–1.2 cm²/m² moderate and 0.90 or less severe, or 0.76–1.0 and 0.75 or less with a BMI of 30 or more.",
               "Compare with the baseline postoperative study (ASE 2024, p. 43)."
             ]
@@ -17816,7 +17836,7 @@
             "kind": "choice",
             "ask": "Valve dehiscence, incomplete occluder closure or a flail bioprosthetic leaflet is specific for severe MR (Figure 21).",
             "tte": "Apical views show the leaflets better than parasternal ones (ASE 2024, p. 25).",
-            "tee": "ME views at 0°, 90° and 120° and the 3D en face view (ASE 2024, Table 24, p. 41; p. 25).",
+            "tee": "ME views and the 3D en face view (ASE 2024, p. 25); the 3D table gives 0°, 90° and 120° (Table 24, p. 41).",
             "options": [
               {
                 "id": "yes",
@@ -17971,7 +17991,7 @@
             "id": "pisa",
             "title": "Flow convergence (PISA radius)",
             "kind": "choice",
-            "ask": "At a Nyquist limit of 30–40 cm/s, on the LV side of the prosthesis. An ovoid convergence constrained by the LV wall overestimates (Figure 21).",
+            "ask": "At a Nyquist limit of 30–40 cm/s, on the LV side of the prosthesis; an ovoid convergence constrained by the LV wall overestimates (Figure 21). Table 13's footnote uses under 0.4 and 0.9 cm or more at 40 cm/s; the app follows Figure 21.",
             "tte": "Apical four-chamber, zoomed; often shadowed.",
             "tee": "ME four-chamber or long axis, baseline shifted toward the jet.",
             "options": [
@@ -18182,6 +18202,13 @@
             "text": "Intermediate values, with too few specific signs of mild or severe ({mild} and {severe}): Figure 21 reads this as probably moderate, to be refined by quantitation whenever possible (ASE 2024, p. 31).",
             "next": [
               "EROA, regurgitant volume and fraction, or TEE or CMR (Figure 21)."
+            ]
+          },
+          "tte-masked": {
+            "headline": "Reads mild on TTE: masking not excluded",
+            "text": "What TTE can see reads mild ({mild} specific signs of mild, {severe} of severe), but behind a mechanical valve shadowing and flow masking hide MR from color Doppler, so significant MR may be missed (Key Point 4, p. 29; Figure 21).",
+            "next": [
+              "TEE if any indirect sign is present (a high E velocity, mean gradient or DVI with a normal half-time, a low LVOT VTI, a rise in PA pressure) or there is clinical suspicion (Table 12, p. 28; p. 25)."
             ]
           }
         }

@@ -2810,13 +2810,13 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       for (const id of plan.criteria) {
         const g = w.take(id);
         if (g.pending) { w.tally = tallyText(mild, severe); return ask(id); }
-        if (!g.cannot) assessed++;
+        if (!g.cannot && (!plan.assessedIds || plan.assessedIds.includes(id))) assessed++;
         const k = plan.specific(id, g);
         if (k === 1) mild++; else if (k === 3) severe++;
         // Severe settles on a majority; mild only with no specific sign of severe among those assessed (a flail leaflet
         // or a vena contracta of 0.7 cm is specific for severe whatever else is mild: pp. 320, 334, 353).
         if (severe >= plan.need && severe > mild) return done('severe-specific', { severe: String(severe), mild: String(mild) });
-        if (!plan.acute && mild >= plan.need && severe === 0) return done('mild-specific', { mild: String(mild), severe: String(severe) });
+        if (!plan.acute && !plan.mildResult && mild >= plan.need && severe === 0) return done('mild-specific', { mild: String(mild), severe: String(severe) });
       }
       if (mild >= plan.need && severe >= plan.need) w.caution('Specific criteria from both lists in equal measure: the measurements decide.');
       const vars = { mild: String(mild), severe: String(severe) };
@@ -2833,6 +2833,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       // A specific sign of severe against the lowest grade, or two of mild against the highest, do not agree.
       if ((q === plan.scale && mild >= 2) || (q === 1 && severe >= 1)) return done('discordant', vars);
       if (plan.acute && q === 1) return done('acute-mild', vars);
+      if (plan.mildResult && q === 1) return done(plan.mildResult, vars);
       if (plan.scale === 3) {
         if (q === 2 && plan.middle) return plan.middle(w, severe, vars);
         return done(['q-mild', 'q-moderate', 'q-severe'][Math.max(0, Math.min(2, q - 1))], vars);
@@ -2862,7 +2863,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       }
       const text = order.filter((id) => got[id]).map((id) => describe(w, id, got[id].v, got[id].n, scale)).join('; ');
       const vols = volumes.filter((id) => got[id]).map((id) => got[id].n);
-      if (vols.length && Math.max(...vols) - Math.min(...vols) >= 2) w.caution('The regurgitant volume and fraction differ by two grades or more: the fraction depends on the total stroke volume, so low or high flow splits them (Table 8).');
+      if (vols.length && Math.max(...vols) - Math.min(...vols) >= 2) w.caution('The regurgitant volume and fraction differ by two grades or more: the fraction depends on the total stroke volume, so low or high flow splits them (ASE 2017, Table 8).');
       const l = got[lesion] ? got[lesion].n : null, vol = vols.length ? Math.max(...vols) : null;
       if (l === null && vol === null) return { none: true };
       if (vol === null) return { grade: l, text };
@@ -2871,7 +2872,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       if (lead === 'lesion' && l > vol) { w.caution(why); return { grade: l, text }; }
       if (lead === 'volume') { w.caution(why); return { grade: vol, text }; }
       if (Math.abs(l - vol) >= 2) return { split: true, text };
-      w.caution('EROA and the volumes differ by one grade: the higher is taken. Low or high flow can split them (Table 8).');
+      w.caution('EROA and the volumes differ by one grade: the higher is taken. Low or high flow can split them (ASE 2017, Table 8).');
       return { grade: Math.max(l, vol), text };
     };
     F.rules.mr = function (w) {
@@ -3108,7 +3109,11 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         got[id] = g;
       }
       const names = (ids, t) => ids.filter((id) => got[id] && tg(got[id]) === t).map((id) => { const s = F.step(w.flow, id); return (s && (s.short || s.title)) || id; });
-      if (!tavr && got.dvi && num(got.dvi) !== null && num(got.dvi) >= 0.30 && num(got.dvi) <= 0.35) w.caution('A DVI of 0.30–0.35 is possible stenosis in Table 5 but normal in Figure 13 (both p. 19); the app follows the table.');
+      // Figure 13 (p. 19): over 3 m/s, the jet contour (early peak, AT under 100 ms, AT/ET under 0.37, or late) then the DVI.
+      const v13 = num(got.vmax), dvi13 = got.dvi ? num(got.dvi) : null;
+      const late = (got.contour && ch(got.contour) === 'round') || (got.at && num(got.at) !== null && num(got.at) > 100) || (got.atet && num(got.atet) !== null && num(got.atet) > 0.37);
+      const early = (got.contour && ch(got.contour) === 'early') || (got.at && num(got.at) !== null && num(got.at) < 100) || (got.atet && num(got.atet) !== null && num(got.atet) < 0.37);
+      if (!tavr && v13 !== null && v13 > 3 && early && !late && dvi13 !== null && dvi13 >= 0.30 && dvi13 <= 0.35) w.caution('A DVI of 0.30–0.35 is possible stenosis in Table 5 but normal in Figure 13 (both p. 19); the app follows the table.');
       const depSig = names(depIds, 'severe'), depMid = names(depIds, 'moderate');
       const indepSig = names(indepIds, 'severe'), indepMid = names(indepIds, 'moderate');
       const depKnown = depIds.some((id) => got[id] && tg(got[id])), indepKnown = indepIds.some((id) => got[id] && tg(got[id]));
@@ -3116,6 +3121,9 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       const counts = `${tags.filter((t) => t === 'normal').length} normal, ${tags.filter((t) => t === 'moderate').length} possible, ${tags.filter((t) => t === 'severe').length} significant`;
       if (!depKnown && !indepKnown) return done('nodata');
       if (depSig.length && indepSig.length) return done('significant', { dep: depSig.join(', '), indep: indepSig.join(', ') });
+      // Figure 13 calls a late-peaking jet over 3 m/s with a DVI under 0.25 stenosis, where Table 5 also wants the velocity
+      // or gradient in its significant column: the app takes the figure's reading (both p. 19).
+      if (!tavr && v13 !== null && v13 > 3 && late && dvi13 !== null && dvi13 < 0.25) return done('stenosis-contour', { dvi: val(w, 'dvi', dvi13) });
       if (indepSig.length && !depSig.length && !depMid.length) return done('lowflow', { indep: indepSig.join(', '), deptext: depKnown ? 'the velocity and gradient are not high' : 'no velocity or gradient was obtained' });
       const depHigh = depSig.concat(depMid);
       if (depHigh.length && indepKnown && !indepSig.length && !indepMid.length) {
@@ -3189,11 +3197,16 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       const s = w.take('site');
       if (s.pending) return ask('site');
       if (w.answers.jet === 'eccentric') w.caution('Eccentric, wall-impinging jet: color underestimates it (Figure 21).');
+      // Behind a mechanical valve TTE color and CW miss MR (Key Point 4, p. 29; Figure 21 *): no mild reading on TTE.
+      const masked = !w.tee && ch(k) === 'mechanical';
       return F.regurgitation(w, {
         criteria: ['structure', 'jet', 'cw', 'vc', 'jets', 'vca', 'pisa', 'inflow', 'pv'],
         need: 4,
         scale: 3,
-        minAssessed: 3,
+        // Probably moderate needs at least two of the jet's own color or CW measures (Figure 21: poor TTE quality is indeterminate).
+        assessedIds: ['jet', 'cw', 'vc', 'jets', 'vca', 'pisa'],
+        minAssessed: 2,
+        mildResult: masked ? 'tte-masked' : null,
         noQuant: prostheticNoQuant,
         specific: (id, g) => {
           // A vena contracta of 0.7 cm or more and two or more moderate jets are one criterion (Figure 21).
@@ -3228,6 +3241,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       const lv = (id) => (got[id] ? tg(got[id]) : null);
       const pht = lv('pht');
       const sig = ['mg', 'dvi', 'eoa'].filter((id) => lv(id) === 'severe');
+      const sigAll = have.filter((id) => lv(id) === 'severe');
+      const most = sigAll.length * 2 > have.length && have.length >= 3;
       if (pht === 'severe' && sig.length) return done('stenosis', { sig: sig.map(say).join('; ') });
       const abnormal = have.some((id) => lv(id) !== 'normal');
       // Table 12 (normal half-time): a peak velocity of 1.9 m/s, a DVI of 2.5 or a mean gradient of 5 mmHg or more.
@@ -3235,9 +3250,17 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       if (got.vmax && num(got.vmax) >= 1.9) high.push('vmax');
       if (got.dvi && num(got.dvi) >= 2.5) high.push('dvi');
       if (got.mg && num(got.mg) >= 5) high.push('mg');
-      if (pht === 'normal' && abnormal && high.length) return done('mr', { high: high.map(say).join('; ') });
+      if (pht === 'normal' && abnormal && high.length) {
+        if (ch(k) !== 'mechanical') w.caution('Table 12 comes from mechanical valves; for other prostheses its signs are an extrapolation (p. 28).');
+        return done('mr', { high: high.map(say).join('; ') });
+      }
+      // Most measures in the significant column (Table 11 footnote, p. 27) with a half-time that is not normal.
+      if (most && pht === 'moderate') return done('stenosis', { sig: sigAll.map(say).join('; ') });
+      if (most && !pht) return done('significant', { sig: sigAll.map(say).join('; ') });
       if (abnormal) return done('possible', { counts, phtnote: pht ? '' : ' Without the half-time, stenosis cannot be told from regurgitation or high flow (Tables 11 and 12).' });
-      return done(have.length >= 2 ? 'normal' : 'insufficient', { counts });
+      // Normal needs most measures, three at least, one of them the half-time, DVI or EOA (Table 11 footnote, p. 27).
+      const flowFree = ['pht', 'dvi', 'eoa'].some((id) => got[id]);
+      return done(have.length >= 3 && flowFree ? 'normal' : 'insufficient', { counts });
     };
   })();
 

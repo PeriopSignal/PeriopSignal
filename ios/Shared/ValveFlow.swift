@@ -472,6 +472,10 @@ extension ValveFlow {
         var noQuantRule: ((Int, Int) -> String)? = nil
         /// The middle grade on the three-grade scale (prostheses: moderate becomes severe with three severe signs).
         var middle: ((FlowWalk, Int, [String: String]) -> FlowEnd)? = nil
+        /// Only these criteria count toward minAssessed (prosthetic MR: the jet's own color and CW measures); nil: all.
+        var assessedIds: [String]? = nil
+        /// Where a mild reading is not accepted (TTE behind a mechanical mitral valve), the result to end on instead.
+        var mildResult: String? = nil
     }
 
     static func tallyText(_ mild: Int, _ severe: Int) -> String {
@@ -483,7 +487,7 @@ extension ValveFlow {
         for id in plan.criteria {
             let g = w.take(id)
             if g == .pending { w.tally = tallyText(mild, severe); return .ask(id) }
-            if g != .cannot { assessed += 1 }
+            if g != .cannot && (plan.assessedIds?.contains(id) ?? true) { assessed += 1 }
             switch plan.specific(id, g) {
             case 1?: mild += 1
             case 3?: severe += 1
@@ -492,7 +496,7 @@ extension ValveFlow {
             // Severe settles on a majority; mild only with no specific sign of severe among those assessed (a flail leaflet
             // or a vena contracta of 0.7 cm is specific for severe whatever else is mild: pp. 320, 334, 353).
             if severe >= plan.need && severe > mild { return .done("severe-specific", ["severe": "\(severe)", "mild": "\(mild)"]) }
-            if !plan.acute && mild >= plan.need && severe == 0 { return .done("mild-specific", ["mild": "\(mild)", "severe": "\(severe)"]) }
+            if !plan.acute && plan.mildResult == nil && mild >= plan.need && severe == 0 { return .done("mild-specific", ["mild": "\(mild)", "severe": "\(severe)"]) }
         }
         if mild >= plan.need && severe >= plan.need { w.caution("Specific criteria from both lists in equal measure: the measurements decide.") }
         var vars = ["mild": "\(mild)", "severe": "\(severe)"]
@@ -511,6 +515,7 @@ extension ValveFlow {
             // A specific sign of severe against the lowest grade, or two of mild against the highest, do not agree.
             if (q == plan.scale && mild >= 2) || (q == 1 && severe >= 1) { return .done("discordant", vars) }
             if plan.acute && q == 1 { return .done("acute-mild", vars) }
+            if let r = plan.mildResult, q == 1 { return .done(r, vars) }
             if plan.scale == 3 {
                 if q == 2, let middle = plan.middle { return middle(w, severe, vars) }
                 return .done(["q-mild", "q-moderate", "q-severe"][max(0, min(2, q - 1))], vars)
@@ -552,7 +557,7 @@ extension ValveFlow {
         let text = order.compactMap { id in got[id].map { describe(w, id, $0.v, $0.n, scale: scale) } }.joined(separator: "; ")
         let vols = volumes.compactMap { got[$0]?.n }
         if let lo = vols.min(), let hi = vols.max(), hi - lo >= 2 {
-            w.caution("The regurgitant volume and fraction differ by two grades or more: the fraction depends on the total stroke volume, so low or high flow splits them (Table 8).")
+            w.caution("The regurgitant volume and fraction differ by two grades or more: the fraction depends on the total stroke volume, so low or high flow splits them (ASE 2017, Table 8).")
         }
         let l = got[lesion]?.n, vol = vols.max()
         switch (l, vol) {
@@ -564,7 +569,7 @@ extension ValveFlow {
             if lead == "lesion" && x > y { w.caution(why); return .grade(x, text) }
             if lead == "volume" { w.caution(why); return .grade(y, text) }
             if Swift.abs(x - y) >= 2 { return .split(text) }
-            w.caution("EROA and the volumes differ by one grade: the higher is taken. Low or high flow can split them (Table 8).")
+            w.caution("EROA and the volumes differ by one grade: the higher is taken. Low or high flow can split them (ASE 2017, Table 8).")
             return .grade(max(x, y), text)
         }
     }
@@ -791,7 +796,11 @@ extension ValveFlow {
         func names(_ ids: [String], _ tag: String) -> [String] {
             ids.filter { got[$0]?.tag == tag }.map { w.flow.step($0)?.short ?? w.flow.step($0)?.title ?? $0 }
         }
-        if !tavr, let x = got["dvi"]?.number, x >= 0.30, x <= 0.35 {
+        // Figure 13 (p. 19): over 3 m/s, the jet contour (early peak, AT under 100 ms, AT/ET under 0.37, or late) then the DVI.
+        let v13 = got["vmax"]?.number, dvi13 = got["dvi"]?.number
+        let late = got["contour"]?.choice == "round" || (got["at"]?.number ?? 0) > 100 || (got["atet"]?.number ?? 0) > 0.37
+        let early = got["contour"]?.choice == "early" || (got["at"]?.number).map { $0 < 100 } == true || (got["atet"]?.number).map { $0 < 0.37 } == true
+        if !tavr, let v = v13, v > 3, early, !late, let x = dvi13, x >= 0.30, x <= 0.35 {
             w.caution("A DVI of 0.30–0.35 is possible stenosis in Table 5 but normal in Figure 13 (both p. 19); the app follows the table.")
         }
         let depSig = names(depIds, "severe"), depMid = names(depIds, "moderate")
@@ -803,6 +812,9 @@ extension ValveFlow {
         if !depSig.isEmpty && !indepSig.isEmpty {
             return .done("significant", ["dep": depSig.joined(separator: ", "), "indep": indepSig.joined(separator: ", ")])
         }
+        // Figure 13 calls a late-peaking jet over 3 m/s with a DVI under 0.25 stenosis, where Table 5 also wants the velocity
+        // or gradient in its significant column: the app takes the figure's reading (both p. 19).
+        if !tavr, let v = v13, v > 3, late, let x = dvi13, x < 0.25 { return .done("stenosis-contour", ["dvi": val(w, "dvi", x)]) }
         if !indepSig.isEmpty && depSig.isEmpty && depMid.isEmpty {
             return .done("lowflow", ["indep": indepSig.joined(separator: ", "), "deptext": depKnown ? "the velocity and gradient are not high" : "no velocity or gradient was obtained"])
         }
@@ -977,11 +989,13 @@ extension ValveFlow {
         let s = w.take("site")
         if s == .pending { return .ask("site") }
         if w.answers["jet"] == .choice("eccentric") { w.caution("Eccentric, wall-impinging jet: color underestimates it (Figure 21).") }
+        // Behind a mechanical valve TTE color and CW miss MR (Key Point 4, p. 29; Figure 21 *): no mild reading on TTE.
+        let masked = !w.tee && k.choice == "mechanical"
         let plan = RegurgPlan(
             criteria: ["structure", "jet", "cw", "vc", "jets", "vca", "pisa", "inflow", "pv"],
             need: 4,
             scale: 3,
-            minAssessed: 3,
+            minAssessed: 2,
             specific: { id, g in
                 // A vena contracta of 0.7 cm or more and two or more moderate jets are one criterion (Figure 21).
                 if id == "jets" && g.tag == "severe" && w.take("vc").tag == "severe" { return nil }
@@ -992,7 +1006,10 @@ extension ValveFlow {
             },
             gradeThree: nil,
             noQuantRule: prostheticNoQuant,
-            middle: prostheticMiddle
+            middle: prostheticMiddle,
+            // Probably moderate needs at least two of the jet's own color or CW measures (Figure 21: poor TTE quality is indeterminate).
+            assessedIds: ["jet", "cw", "vc", "jets", "vca", "pisa"],
+            mildResult: masked ? "tte-masked" : nil
         )
         return regurgitation(w, plan)
     }
@@ -1026,6 +1043,8 @@ extension ValveFlow {
         func lv(_ id: String) -> String? { got[id]?.tag }
         let pht = lv("pht")
         let sig = ["mg", "dvi", "eoa"].filter { lv($0) == "severe" }
+        let sigAll = have.filter { lv($0) == "severe" }
+        let most = sigAll.count * 2 > have.count && have.count >= 3
         if pht == "severe" && !sig.isEmpty { return .done("stenosis", ["sig": sig.map(say).joined(separator: "; ")]) }
         let abnormal = have.contains { lv($0) != "normal" }
         // Table 12 (normal half-time): a peak velocity of 1.9 m/s, a DVI of 2.5 or a mean gradient of 5 mmHg or more.
@@ -1033,10 +1052,18 @@ extension ValveFlow {
         if let v = got["vmax"]?.number, v >= 1.9 { high.append("vmax") }
         if let v = got["dvi"]?.number, v >= 2.5 { high.append("dvi") }
         if let v = got["mg"]?.number, v >= 5 { high.append("mg") }
-        if pht == "normal" && abnormal && !high.isEmpty { return .done("mr", ["high": high.map(say).joined(separator: "; ")]) }
+        if pht == "normal" && abnormal && !high.isEmpty {
+            if k.choice != "mechanical" { w.caution("Table 12 comes from mechanical valves; for other prostheses its signs are an extrapolation (p. 28).") }
+            return .done("mr", ["high": high.map(say).joined(separator: "; ")])
+        }
+        // Most measures in the significant column (Table 11 footnote, p. 27) with a half-time that is not normal.
+        if most && pht == "moderate" { return .done("stenosis", ["sig": sigAll.map(say).joined(separator: "; ")]) }
+        if most && pht == nil { return .done("significant", ["sig": sigAll.map(say).joined(separator: "; ")]) }
         if abnormal {
             return .done("possible", ["counts": counts, "phtnote": pht == nil ? " Without the half-time, stenosis cannot be told from regurgitation or high flow (Tables 11 and 12)." : ""])
         }
-        return .done(have.count >= 2 ? "normal" : "insufficient", ["counts": counts])
+        // Normal needs most measures, three at least, one of them the half-time, DVI or EOA (Table 11 footnote, p. 27).
+        let flowFree = ["pht", "dvi", "eoa"].contains { got[$0] != nil }
+        return .done(have.count >= 3 && flowFree ? "normal" : "insufficient", ["counts": counts])
     }
 }

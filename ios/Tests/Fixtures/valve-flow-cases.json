@@ -1,5 +1,5 @@
 {
- "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring, a headline or text substring of the result, a pathText substring (in the text of a step on the path) and the path of step ids. Cases named Review come from the independent review of October 2026, and those named Re-check from its second pass.",
+ "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring, a headline or text substring of the result, a pathText substring (in the text of a step on the path) and the path of step ids. Cases named Review come from the independent review of October 2026, those named Re-check from its second pass, and those named Review 4 from its review of the prosthetic workflows.",
  "cases": [
   {
    "name": "AS: high gradient with normal flow is severe",
@@ -2130,7 +2130,7 @@
    }
   },
   {
-   "name": "Mitral prosthesis: without the half-time a high gradient stays possible",
+   "name": "Mitral prosthesis: most measures significant without the half-time",
    "flow": "pmv",
    "answers": {
     "kind": "mechanical",
@@ -2141,9 +2141,8 @@
     "eoa": 0.9
    },
    "expect": {
-    "result": "possible",
-    "grade": 2,
-    "text": "Without the half-time"
+    "result": "significant",
+    "grade": 3
    }
   },
   {
@@ -2179,6 +2178,139 @@
     "result": "possible",
     "grade": 2,
     "caution": "Figure 13"
+   }
+  },
+  {
+   "name": "Review 4 PM1: mitral prosthesis, most measures significant with a half-time of 180 ms",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 2.8,
+    "mg": 15,
+    "pht": 180,
+    "dvi": 3.0,
+    "eoa": 0.8
+   },
+   "expect": {
+    "result": "stenosis",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Review 4 PM1: mitral prosthesis, three of five significant with a half-time of 150 ms",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 2.4,
+    "mg": 12,
+    "pht": 150,
+    "dvi": 2.7,
+    "eoa": 0.9
+   },
+   "expect": {
+    "result": "stenosis",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Review 4 PM2: mechanical mitral prosthesis on TTE never reads mild",
+   "flow": "pmr",
+   "answers": {
+    "kind": "mechanical",
+    "site": "central",
+    "structure": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "jets": "no",
+    "vca": 0.1,
+    "pisa": "small",
+    "inflow": "a",
+    "pv": "dominant",
+    "eroa": 0.15,
+    "rvol": 20,
+    "rf": 20
+   },
+   "expect": {
+    "result": "tte-masked",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review 4 PM2: the same signs on TEE are mild",
+   "flow": "pmr",
+   "answers": {
+    "kind": "mechanical",
+    "site": "central",
+    "structure": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "jets": "no",
+    "vca": 0.1
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   },
+   "tee": true
+  },
+  {
+   "name": "Review 4 PS1: prosthetic MR without the jet's own measures is indeterminate",
+   "flow": "pmr",
+   "answers": {
+    "kind": "bio",
+    "site": "central",
+    "structure": "no",
+    "jet": null,
+    "cw": null,
+    "vc": null,
+    "jets": null,
+    "vca": null,
+    "pisa": null,
+    "inflow": "other",
+    "pv": "blunted",
+    "eroa": null,
+    "rvol": null,
+    "rf": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review 4 PS2: mitral prosthesis, velocity and gradient alone are not enough",
+   "flow": "pmv",
+   "answers": {
+    "kind": "mechanical",
+    "vmax": 1.5,
+    "mg": 3,
+    "pht": null,
+    "dvi": null,
+    "eoa": null
+   },
+   "expect": {
+    "result": "insufficient",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review 4 PS3: aortic prosthesis, late peak with a DVI under 0.25 is stenosis",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 3.5,
+    "contour": "round",
+    "at": 110,
+    "atet": 0.4,
+    "mg": 30,
+    "dvi": 0.22,
+    "eoa": "2sd"
+   },
+   "expect": {
+    "result": "stenosis-contour",
+    "grade": 3
    }
   }
  ]
