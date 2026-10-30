@@ -874,7 +874,7 @@
     view(host, () => {
       const lesion = R.viLesions.find((l) => l.id === st.lesion), qs = R.viQuestions(st.lesion), r = R.viEvaluate(st.lesion, st.answers);
       const top = r.matched.find((x) => x.group === 'Intervention') || null, empty = !Object.keys(st.answers).length;
-      const tone = top ? classColor[top.cls] : (empty ? 'var(--fg-3)' : (r.fallback ? 'var(--new)' : 'var(--accent-2)'));
+      const tone = top ? classColor[R.viClassNumber(top.cls)] : (empty ? 'var(--fg-3)' : (r.fallback ? 'var(--new)' : 'var(--accent-2)'));
       let h = `<div class="r-stack"><div class="r-pickrow"><label class="r-lesion" for="vi-lesion"><span class="r-eyebrow">Lesion</span><select id="vi-lesion" data-a="lesion">${R.viLesions.map((l) => `<option value="${l.id}"${l.id === st.lesion ? ' selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>${empty ? '' : `<button type="button" class="r-iconbtn big" data-a="clear" aria-label="Clear the answers">${I.reset}</button>`}</div>`;
       let inner = eyebrow(top ? `${R.viClassWord(top.cls)} · class ${top.cls}` : (r.fallback ? 'Surveillance' : 'Answer the questions'), tone);
       if (top) inner += `<p class="r-headline big">${esc(top.recommendation)}</p><p class="r-detail">${esc(top.situation)}</p>${top.note ? `<p class="r-note2">${I.info}<span>${esc(top.note)}</span></p>` : ''}`;
@@ -885,7 +885,7 @@
         inner += `<div class="r-recs">`;
         rest.forEach((x, i) => {
           if (i === 0 || rest[i - 1].group !== x.group) inner += eyebrow(x.group);
-          inner += `<div class="rec"><span class="cls" style="color:${classColor[x.cls]}">${x.cls}</span><span class="rt"><span>${esc(x.recommendation)}</span><small>${esc(x.situation)} · ${esc(x.level)}</small>${x.note ? `<small class="nt">${esc(x.note)}</small>` : ''}</span></div>`;
+          inner += `<div class="rec"><span class="cls" style="color:${classColor[R.viClassNumber(x.cls)]}">${esc(R.viClassNumber(x.cls))}</span><span class="rt"><span>${esc(x.recommendation)}</span><small>${esc(x.situation)} · ${esc(R.viEvidence(x))}</small>${x.note ? `<small class="nt">${esc(x.note)}</small>` : ''}</span></div>`;
         });
         inner += `</div>`;
       }
@@ -896,7 +896,7 @@
       h += resultCard(tone, inner);
       const needed = new Set(r.needed);
       h += `<section class="r-sec">${eyebrow('What is known')}<div class="r-card flush">${qs.map((q) => `<div class="r-q"><p class="ql"><i class="${needed.has(q.id) ? 'on' : ''}"></i><span>${esc(q.label)}${q.hint ? `<small>${esc(q.hint)}</small>` : ''}</span></p>${pills('ans', q.id, q.options, st.answers[q.id])}</div>`).join('')}</div>${footnote(lesion.severity)}</section>`;
-      h += `<footer class="r-footer"><div class="r-btns">${ghostLink('#card-acc-aha-valve-intervention', I.table, 'Full tables')}${ghostLink('https://doi.org/10.1161/CIR.0000000000000923', I.doc, 'Guideline', true)}</div>${footnote('2020 ACC/AHA guideline for valvular heart disease (Otto et al, Circulation 2021;143:e72–e227), the current edition; the next is scheduled for 2027. Classes: 1 recommended, 2a reasonable, 2b may be considered, 3 no benefit or harm. Severe valve disease is evaluated by a multidisciplinary Heart Valve Team when intervention is considered (class 1); the full tables carry prosthesis anticoagulation, bridging and endocarditis prophylaxis.')}</footer>`;
+      h += `<footer class="r-footer"><div class="r-btns">${ghostLink('#card-acc-aha-valve-intervention', I.table, 'Full tables')}${ghostLink('https://doi.org/10.1161/CIR.0000000000000923', I.doc, 'Guideline', true)}</div>${footnote('2020 ACC/AHA guideline for valvular heart disease (Otto et al, Circulation 2021;143:e72–e227), the current edition. Classes: 1 recommended, 2a reasonable, 2b may be considered, 3 no benefit or harm. Severe valve disease is evaluated by a multidisciplinary Heart Valve Team when intervention is considered (class 1). In patients who meet standard indications for intervention (replacement and repair) on the basis of symptoms and disease severity, intervention should be performed before elective noncardiac surgery to reduce perioperative risk if possible, depending on the urgency and risk of the noncardiac procedure (class 1, C-EO). The full tables carry prosthesis anticoagulation, bridging and endocarditis prophylaxis.')}</footer>`;
       return h + `</div>`;
     }, {
       lesion(el) { st.lesion = el.value; st.answers = {}; },

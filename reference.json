@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793393582,
+  "revision": 1793399925,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -211,14 +211,14 @@
         "heart valve team",
         "stages"
       ],
-      "summary": "Who gets a valve intervention and which one, by lesion and stage, with the class of recommendation: the 2020 ACC/AHA guideline (still current; the next edition is scheduled for 2027). Echo severity grading itself is in the ASE reference.",
+      "summary": "Who gets a valve intervention and which one, by lesion and stage, with the class of recommendation: the 2020 ACC/AHA guideline (still current). Echo severity grading itself is in the ASE reference.",
       "source": {
         "title": "2020 ACC/AHA Guideline for the Management of Patients With Valvular Heart Disease",
         "citation": "Otto CM, Nishimura RA, Bonow RO, et al. 2020 ACC/AHA Guideline for the Management of Patients With Valvular Heart Disease: A Report of the American College of Cardiology/American Heart Association Joint Committee on Clinical Practice Guidelines. Circulation. 2021;143(5):e72–e227. doi:10.1161/CIR.0000000000000923",
         "url": "https://doi.org/10.1161/CIR.0000000000000923",
         "doi": "10.1161/CIR.0000000000000923"
       },
-      "reviewed": "2026-10-28",
+      "reviewed": "2026-10-30",
       "sections": [
         {
           "heading": "How to Read It",
@@ -234,11 +234,23 @@
             ],
             [
               "Surgical risk",
-              "Low: STS predicted mortality < 3% for AVR (< 1% for mitral repair), no frailty, no major organ compromise, no procedure-specific impediment. High: STS > 8%, ≥ 2 frailty indices, or 1–2 uncorrectable organ systems. Prohibitive: predicted 1-year death or major morbidity > 50%, ≥ 3 organ systems, or a severe impediment."
+              "Low (all of): STS predicted mortality < 3% for AVR (< 1% for mitral repair), no frailty, no major organ compromise, no procedure-specific impediment. High (any of): STS > 8%, 1 frailty index (moderate to severe), 1–2 uncorrectable organ systems, or a possible procedure-specific impediment. Prohibitive (any of): predicted death or major morbidity > 50% at 30 days, ≥ 2 frailty indices, ≥ 3 organ systems, or a severe impediment (Table 8)."
             ],
             [
               "Heart Valve Team",
               "Severe valve disease is evaluated by a multidisciplinary team when intervention is considered (Class 1); TEER, PMBC, the Ross procedure, bicuspid-root surgery and TAVI for bicuspid valves are tied to a Comprehensive Valve Center."
+            ],
+            [
+              "Noncardiac surgery",
+              "In patients who meet standard indications for intervention (replacement and repair) on the basis of symptoms and disease severity, intervention should be performed before elective noncardiac surgery to reduce perioperative risk if possible, depending on the urgency and risk of the noncardiac procedure (Class 1, C-EO)."
+            ],
+            [
+              "Echo before noncardiac surgery",
+              "With clinically suspected moderate or greater valve stenosis or regurgitation, preoperative echocardiography is recommended (Class 1, C-EO)."
+            ],
+            [
+              "Asymptomatic, no indication",
+              "Elective noncardiac surgery is reasonable (Class 2a) without symptoms and with moderate or greater AS and normal LV systolic function (B-R); rheumatic MS with a PA systolic pressure < 50 mmHg (C-EO); MR with normal LV systolic function and a PA systolic pressure < 50 mmHg (C-LD); or AR with normal LV systolic function (C-LD)."
             ]
           ]
         },
@@ -290,6 +302,11 @@
               "Moderate AS (B) having other cardiac surgery",
               "AVR may be considered",
               "2b (C-EO)"
+            ],
+            [
+              "Symptomatic severe AS (D1)",
+              "Exercise testing should not be performed (risk of severe hemodynamic compromise)",
+              "3: Harm (B-NR)"
             ]
           ],
           "note": "Severe AS here: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg, AVA usually ≤ 1.0 cm²; very severe Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg."
@@ -309,12 +326,12 @@
               "1 (A)"
             ],
             [
-              "Age 65–80, no anatomic contraindication to transfemoral TAVI",
+              "Symptomatic, age 65–80, no anatomic contraindication to transfemoral TAVI",
               "SAVR or transfemoral TAVI after shared decision-making (longevity versus valve durability)",
               "1 (A)"
             ],
             [
-              "Age > 80, or life expectancy < 10 years",
+              "Symptomatic, age > 80, or life expectancy < 10 years",
               "Transfemoral TAVI in preference to SAVR",
               "1 (A)"
             ],
@@ -329,12 +346,12 @@
               "1 (B-NR)"
             ],
             [
-              "High or prohibitive surgical risk, any age",
+              "Symptomatic, high or prohibitive surgical risk, any age",
               "TAVI when predicted survival after TAVI is > 12 months with acceptable quality of life",
               "1 (A)"
             ],
             [
-              "Predicted survival < 12 months or minimal expected benefit",
+              "Symptomatic severe AS with predicted survival < 12 months or minimal expected benefit",
               "Palliative care after shared decision-making",
               "1 (C-EO)"
             ],
@@ -344,7 +361,7 @@
               "1 (A)"
             ],
             [
-              "Critically ill",
+              "Critically ill with severe AS",
               "Balloon aortic valvuloplasty may be considered as a bridge",
               "2b (C-EO)"
             ],
@@ -352,9 +369,14 @@
               "Bicuspid valve with symptomatic severe AS",
               "TAVI may be considered as an alternative to SAVR at a Comprehensive Valve Center",
               "2b (B-NR)"
+            ],
+            [
+              "Significant AS with complex CAD (bifurcation left main and/or multivessel, SYNTAX > 33)",
+              "SAVR and CABG, reasonable and preferred over TAVI and PCI",
+              "2a (C-LD)"
             ]
           ],
-          "note": "Factors favoring SAVR: bicuspid valve, LVOT calcification, rheumatic disease, very small or large annulus, mechanical valve preferred, aortic dilation, severe primary MR, CAD needing bypass, septal hypertrophy, low coronary ostia or no transfemoral access, at-risk grafts, prior chest irradiation. Favoring TAVI: calcific trileaflet stenosis, AF, porcelain aorta, irreversible severe LV dysfunction, severe lung, liver or kidney disease, frailty likely to improve."
+          "note": "Factors favoring SAVR: bicuspid valve, LVOT calcification, rheumatic disease, small or large annulus, mechanical valve preferred, aortic dilation, severe primary MR, CAD needing bypass, septal hypertrophy, AF, low coronary ostia or no transfemoral access. Favoring TAVI: calcific trileaflet stenosis, porcelain aorta, previous cardiac surgery with at-risk coronary grafts, prior chest irradiation, severe lung, liver or kidney disease, frailty likely to improve. Favoring palliation: irreversible severe LV systolic dysfunction (Table 14)."
         },
         {
           "heading": "Aortic Regurgitation",
@@ -403,7 +425,7 @@
             [
               "Isolated severe AR, surgical candidate",
               "TAVI should not be performed",
-              "3: Harm"
+              "3: Harm (B-NR)"
             ]
           ]
         },
@@ -480,11 +502,11 @@
             [
               "Pathology limited to less than half of the posterior leaflet",
               "Replacement should not be done unless repair was attempted at a valve center and failed",
-              "3: Harm"
+              "3: Harm (B-NR)"
             ],
             [
-              "Rheumatic severe primary MR, surgery indicated",
-              "Repair may be considered at a Comprehensive Valve Center",
+              "Symptomatic rheumatic severe primary MR, surgery indicated",
+              "Repair may be considered at a Comprehensive Valve Center by an experienced team, if a durable and successful repair is likely",
               "2b (B-NR)"
             ]
           ]
@@ -541,6 +563,11 @@
               "1 (A)"
             ],
             [
+              "Considered for PMBC",
+              "TEE to assess left atrial thrombus and the severity of MR",
+              "1 (C-LD)"
+            ],
+            [
               "NYHA III–IV severe MS not suitable for PMBC, failed PMBC, needing other cardiac surgery, or no access to PMBC",
               "Mitral surgery (repair, commissurotomy or replacement)",
               "1 (B-NR)"
@@ -569,6 +596,11 @@
               "Calcific (non-rheumatic) severe MS from mitral annular calcification, NYHA III–IV",
               "Intervention only after discussion of its high procedural risk",
               "2b (C-LD)"
+            ],
+            [
+              "Rheumatic MS with AF, a prior embolic event or LA thrombus",
+              "Anticoagulation with a vitamin K antagonist",
+              "1 (C-LD)"
             ]
           ],
           "note": "Severe rheumatic MS: planimetered MVA ≤ 1.5 cm² with pressure half-time ≥ 150 ms; the mean gradient is not a severity criterion because it varies with heart rate and flow."
@@ -629,7 +661,7 @@
             ],
             [
               "Aortic, age < 50",
-              "Mechanical reasonable (2a); the Ross procedure may be considered at a Comprehensive Valve Center (2b)"
+              "Mechanical reasonable (2a). If a bioprosthesis is preferred and the anatomy is appropriate, the Ross procedure may be considered at a Comprehensive Valve Center (2b)"
             ],
             [
               "Aortic, age 50–65",
@@ -640,11 +672,11 @@
               "Bioprosthesis reasonable (2a)"
             ],
             [
-              "Mitral, age < 65",
+              "Mitral, age < 65, repair not possible",
               "Mechanical reasonable (2a)"
             ],
             [
-              "Mitral, age ≥ 65",
+              "Mitral, age ≥ 65, repair not possible",
               "Bioprosthesis reasonable (2a)"
             ]
           ]
@@ -5624,7 +5656,7 @@
             },
             "source": "zoghbi2017",
             "ref": "ASE 2017 regurgitation guideline",
-            "note": "Significant annular dilatation is 40 mm or more, or above 21 mm/m² (ASE 2017; ESC/EACTS 2025 uses the same values). At left-sided valve surgery, tricuspid repair can be considered in selected patients with mild secondary TR and a dilated annulus (ESC/EACTS 2025, IIb); ACC/AHA 2020 uses an annulus above 4.0 cm for progressive TR (2a)."
+            "note": "Significant annular dilatation is 40 mm or more, or above 21 mm/m² (ASE 2017; ESC/EACTS 2025 uses the same values). The ASE 2025 right-heart guideline calls up to 40 mm normal, measured at end-diastole in the RV-focused view (p. 176), so exactly 40 mm is borderline. At left-sided valve surgery, tricuspid repair can be considered in selected patients with mild secondary TR and a dilated annulus (ESC/EACTS 2025, IIb); ACC/AHA 2020 uses an annulus above 4.0 cm for progressive TR (2a)."
           }
         ],
         "note": "No society cutoff indexes the mitral annulus to BSA, so it reads against 35 mm (or the leaflet ratio) alone; the tricuspid annulus is also read per m² once height and weight are in."

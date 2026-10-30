@@ -115,6 +115,16 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(PatientFunctional.dasi(r) ?? 0, 28.7, accuracy: 0.001)
         XCTAssertEqual(PatientFunctional.dasiText(34.45), "DASI 34.45 of 58.2 · above 34", "not rounded down to 34")
         XCTAssertEqual(PatientFunctional.dasiText(34), "DASI 34 of 58.2 · 34 or less: poor")
+        XCTAssertFalse(PatientFunctional.dasiItems.contains { $0.label.contains("football") && $0.id == "strenuous-sport" }, "Table 5's strenuous sports (p e362)")
+        // The guideline's wording (p e362, e363), the no-benefit testing limited to whom it covers (p e365–e369) and
+        // §5.1's caveat (p e370).
+        XCTAssertTrue(PatientFunctional.metsNote.contains("a structured assessment such as the DASI is reasonable (class 2a)"))
+        XCTAssertFalse(PatientFunctional.metsNote.contains("preferred"))
+        XCTAssertTrue(PatientFunctional.dasiNote.contains("higher odds of death or MI at 30 days"))
+        XCTAssertTrue(PatientFunctional.cardiacNote.contains("Routine testing has no benefit (class 3: no benefit) in these patients: an ECG when asymptomatic before low-risk surgery; an echo when asymptomatic and clinically stable;"))
+        XCTAssertFalse(PatientFunctional.cardiacNote.contains("low-risk, asymptomatic or stable patients"), "each recommendation for its own patients (review R7)")
+        XCTAssertFalse(PatientFunctional.cardiacNote.contains("Routine testing has no benefit."), "not unqualified")
+        XCTAssertTrue(PatientFunctional.cardiacNote.contains("should not replace clinical judgment"))
 
         XCTAssertEqual(PatientFunctional.riskModifiers(demo), ["prior coronary stent"])
         XCTAssertTrue(PatientFunctional.cardiacStep(demo).title.hasPrefix("Good functional capacity"), "RCRI 3 with 4 METs or more")
@@ -131,14 +141,39 @@ final class PatientTests: XCTestCase {
         XCTAssertFalse(PatientFunctional.cardiacStep(edge).alert, "BNP 92 is not over 92")
         var nt = poor; nt.labs["ntprobnp"] = 300
         XCTAssertTrue(PatientFunctional.cardiacStep(nt).alert, "NT-proBNP 300 or more")
+        // Troponin, abnormal above the assay's 99th percentile (Figure 1, footnote §, p e371).
+        var trop = poor; trop.labs["troponin"] = 20; trop.labs["troponin99"] = 14
+        XCTAssertEqual(PatientFunctional.cardiacStep(trop).title, "Troponin raised")
+        XCTAssertTrue(PatientFunctional.cardiacStep(trop).detail.contains("Troponin 20 (abnormal above the assay's 99th percentile, 14)"))
+        trop.labs["troponin"] = 14
+        XCTAssertEqual(PatientFunctional.cardiacStep(trop).title, "Troponin normal: proceed", "not above the 99th percentile")
+        var noLimit = poor; noLimit.labs["troponin"] = 40
+        XCTAssertTrue(PatientFunctional.cardiacStep(noLimit).title.hasPrefix("Poor or unknown"), "not read without the assay's 99th percentile")
+        XCTAssertTrue(PatientFunctional.cardiacStep(noLimit).detail.hasSuffix("Troponin 40 is not read without its assay's 99th percentile: add the percentile under Labs."))
+        // Review R1: a normal peptide beside a troponin that could not be read does not say proceed.
+        var peptideAndUnread = normal; peptideAndUnread.labs["troponin"] = 40
+        XCTAssertEqual(PatientFunctional.cardiacStep(peptideAndUnread).title, "Natriuretic peptide normal; troponin not read")
+        XCTAssertTrue(PatientFunctional.cardiacStep(peptideAndUnread).alert)
+        XCTAssertTrue(PatientFunctional.cardiacStep(peptideAndUnread).detail.contains("Troponin 40 is not read"))
+        var both = normal; both.labs["troponin"] = 20; both.labs["troponin99"] = 14
+        XCTAssertEqual(PatientFunctional.cardiacStep(both).title, "Troponin raised", "a normal peptide does not hide a raised troponin")
+        both.labs["troponin"] = 10
+        XCTAssertEqual(PatientFunctional.cardiacStep(both).title, "Natriuretic peptide and troponin normal: proceed")
         var low = PatientRecord(); low.ageYears = 60; low.problems = ["htn"]
         XCTAssertTrue(PatientFunctional.cardiacStep(low).title.hasPrefix("Low estimated risk"))
         low.frail = true
         XCTAssertFalse(PatientFunctional.cardiacStep(low).title.hasPrefix("Low"), "frailty adds risk beyond the RCRI")
         var em = demo; em.urgency = .emergency
         XCTAssertTrue(PatientFunctional.cardiacStep(em).title.hasPrefix("Emergency"))
+        XCTAssertEqual(PatientFunctional.cardiacStep(em).detail, "Testing should not delay an emergency operation, which leaves very limited or no time for preoperative evaluation.")
         var active = demo; active.activeCardiac = ["acs"]
         XCTAssertTrue(PatientFunctional.cardiacStep(active).title.hasPrefix("Acute cardiac condition"))
+        XCTAssertTrue(PatientFunctional.cardiacStep(active).detail.hasSuffix("revascularization as appropriate and deferral of elective surgery are recommended (class 1)."), "§6.1.1 with an ACS (p e372)")
+        var ischemic = demo; ischemic.problems.insert("ischemia")
+        XCTAssertTrue(PatientFunctional.cardiacStep(ischemic).title.hasPrefix("Acute cardiac condition"), "ongoing ischemia is managed first")
+        XCTAssertTrue(PatientFunctional.cardiacStep(ischemic).detail.hasPrefix("Ongoing (unstable) cardiac ischemia: ") && PatientFunctional.cardiacStep(ischemic).detail.hasSuffix("(class 1)."))
+        var treated = demo; treated.problems.insert("cad-recent")
+        XCTAssertFalse(PatientFunctional.cardiacStep(treated).title.hasPrefix("Acute"), "a treated MI or ACS within 3 months is not an acute condition")
         var decompensated = demo; decompensated.problems.insert("hf-decomp")
         XCTAssertTrue(PatientFunctional.cardiacStep(decompensated).title.hasPrefix("Acute cardiac condition"), "from the problem list too")
         var urgent = demo; urgent.urgency = .urgent
@@ -175,6 +210,7 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(PatientFunctional.activeCardiac.map(\.label), ["Acute coronary syndrome", "Decompensated heart failure", "Unstable arrhythmia"])
         var acute = demo; acute.activeCardiac = ["arrhythmia"]
         XCTAssertTrue(PatientFunctional.cardiacStep(acute).detail.contains("deferring surgery, noninvasive treatment or palliation"))
+        XCTAssertFalse(PatientFunctional.cardiacStep(acute).detail.contains("revascularization"), "the ACS recommendation only with an ACS")
 
         // The seven risk modifiers.
         var r = PatientRecord(); r.problems = ["chd"]
@@ -212,14 +248,29 @@ final class PatientTests: XCTestCase {
         var noted = demo; noted.cardiacSymptoms = ["chest-pain", "murmur"]
         let lines = PatientSummary.assessmentLines(noted)
         XCTAssertEqual(lines.first { $0.label == "Cardiac symptoms" }?.text, "Chest pain; Murmur")
-        XCTAssertEqual(lines.filter { $0.label == "Cardiac advice" }.count, 4, "3 boxes and the stent advice")
+        XCTAssertEqual(lines.filter { $0.label == "Cardiac advice" }.count, 5, "3 boxes, the stent advice and troponin after surgery")
+
+        // The guideline is for adults (§1.4, p e355): no stepwise evaluation or advice under 18.
+        var child = demo; child.ageYears = 10
+        XCTAssertFalse(PatientSummary.assessmentLines(child).contains { $0.label == "Cardiac evaluation" || $0.label == "Cardiac advice" })
+        XCTAssertTrue(PatientFunctional.cardiacAdultOnly.contains("adults (18 or older)"))
     }
 
     func testConditionAdvice() {
         let advice = PatientFunctional.conditionAdvice(demo)
-        XCTAssertEqual(advice.count, 1, "\(advice)")
+        XCTAssertEqual(advice.count, 2, "\(advice)")
         XCTAssertTrue(advice[0].hasPrefix("Prior stent"))
+        XCTAssertTrue(advice[1].contains("measuring troponin at 24 and 48 hours after surgery") && advice[1].hasSuffix("(class 2b)."), "known coronary disease, RCRI 3")
         XCTAssertTrue(PatientFunctional.cardiacStep(demo).detail.hasSuffix("The condition-specific steps below still apply."))
+
+        // A treated MI or ACS within 3 months (p e372, e393): more risk than chronic coronary disease, the stent rules and
+        // a team decision; not §6.1.1's class 1 revascularization and deferral, which is for an ACS under way.
+        var mi = demo; mi.problems.insert("cad-recent")
+        let miLine = PatientFunctional.conditionAdvice(mi).first { $0.hasPrefix("Recent MI or ACS") } ?? ""
+        XCTAssertTrue(miLine.contains("confers greater perioperative risk than chronic coronary disease"), miLine)
+        XCTAssertTrue(miLine.contains("the stent-timing rules apply"))
+        XCTAssertTrue(miLine.hasSuffix("should decide antiplatelet management and the timing of elective surgery (class 1)."), "§7.5 rec 1")
+        XCTAssertFalse(miLine.contains("revascularization"), "not the recommendation for an ACS under way")
         var recentStent = demo; recentStent.problems.remove("pci"); recentStent.problems.insert("pci-recent")
         XCTAssertTrue(PatientFunctional.conditionAdvice(recentStent).contains { $0.hasPrefix("Stent within 3 months") })
         XCTAssertFalse(PatientFunctional.conditionAdvice(recentStent).contains { $0.hasPrefix("Prior stent") })
@@ -227,15 +278,80 @@ final class PatientTests: XCTestCase {
         XCTAssertTrue(PatientFunctional.conditionAdvice(dyspnea).contains { $0.hasPrefix("New dyspnea or signs of heart failure") && $0.hasSuffix("(class 1).") })
         var stroke = demo; stroke.problems.insert("cva-recent")
         XCTAssertTrue(PatientFunctional.conditionAdvice(stroke).contains { $0.hasPrefix("Stroke or TIA within 3 months") })
-        var bp = demo; bp.vitals["sbp"] = 185
-        XCTAssertTrue(PatientFunctional.conditionAdvice(bp).contains { $0.hasPrefix("Blood pressure 180/110") })
+        // §6.2 rec 2 (class 2b, p e373): a recent SBP ≥180 or DBP ≥110 before the day of surgery, one or more RCRI risk
+        // factors and elective elevated-risk surgery; the demo is elective, RCRI 3, with coronary disease and insulin.
+        let deferral = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.hasPrefix("A recent history of SBP ≥180") } }
+        var bp = demo; bp.problems.insert("htn-180")
+        XCTAssertTrue(PatientFunctional.conditionAdvice(bp).contains { $0 == "A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b)." })
+        XCTAssertEqual(PatientFunctional.rcriRiskFactors(demo), ["ihd", "insulin"], "the surgery itself is not one")
+        let pointer = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.hasPrefix("High blood pressure recorded: ") } }
+        var reading = demo; reading.vitals["sbp"] = 185; reading.vitals["dbp"] = 112
+        XCTAssertFalse(deferral(reading), "a single reading of unknown timing does not count")
+        XCTAssertTrue(pointer(reading), "but it points to the History item (review R6)")
+        var poorlyControlled = demo; poorlyControlled.problems.insert("htn-poor")
+        XCTAssertFalse(deferral(poorlyControlled), "poorly controlled, without the numbers")
+        XCTAssertTrue(pointer(poorlyControlled))
+        XCTAssertFalse(pointer(bp), "the History item recorded: the deferral itself shows")
+        var urgentBP = bp; urgentBP.urgency = .urgent
+        XCTAssertFalse(deferral(urgentBP), "elective surgery only")
+        var timeSensitiveBP = bp; timeSensitiveBP.urgency = .timeSensitive
+        XCTAssertFalse(deferral(timeSensitiveBP), "elective surgery only")
+        var unknownTiming = bp; unknownTiming.urgency = nil
+        XCTAssertTrue(deferral(unknownTiming), "urgency not yet recorded counts as elective (review R6)")
+        var surgeryOnly = PatientRecord(); surgeryOnly.ageYears = 60; surgeryOnly.urgency = .elective; surgeryOnly.problems = ["htn-180"]; surgeryOnly.highRiskSurgery = true
+        XCTAssertFalse(deferral(surgeryOnly), "no RCRI risk factor besides the surgery, RCRI 1")
+        var oneFactor = surgeryOnly; oneFactor.highRiskSurgery = false; oneFactor.problems.insert("insulin")
+        XCTAssertFalse(deferral(oneFactor), "an RCRI risk factor, but RCRI 1: not elevated-risk surgery")
+        oneFactor.highRiskSurgery = true
+        XCTAssertTrue(deferral(oneFactor), "insulin and high-risk surgery, RCRI 2")
         var stented = demo; stented.medFlags.insert("p2y12")
         XCTAssertFalse(PatientFunctional.conditionAdvice(stented).contains { $0.hasPrefix("Prior stent") }, "the P2Y12 note carries the timing")
         var healthy = PatientRecord(); healthy.ageYears = 40
         XCTAssertTrue(PatientFunctional.conditionAdvice(healthy).isEmpty)
+
+        // Statins (§7.1, both class 1, p e390): continue one that is taken; start one in a statin-naive adult who meets
+        // the criteria, shown with atherosclerotic disease and no statin flagged.
+        XCTAssertEqual(PatientFunctional.medNotes["statin"], "Continue through surgery (class 1).")
+        var noStatin = demo; noStatin.medFlags.remove("statin"); noStatin.medications = "metoprolol, aspirin"
+        XCTAssertTrue(PatientFunctional.conditionAdvice(noStatin).contains { $0.hasPrefix("Atherosclerotic disease and no statin recorded: if the patient is not taking one") && $0.hasSuffix("(class 1).") })
+        // Review R2: a statin named under Medications counts, as in a record saved before the Statin flag existed.
+        for named in ["atorvastatin 40 mg", "Zocor 20", "pitavastatin", "on a statin"] {
+            var text = noStatin; text.medications = named
+            XCTAssertFalse(PatientFunctional.conditionAdvice(text).contains { $0.hasPrefix("Atherosclerotic disease") }, named)
+        }
+        var nystatin = noStatin; nystatin.medications = "nystatin swish"
+        XCTAssertTrue(PatientFunctional.takesStatin(nystatin) == false, "nystatin is not a statin")
+        XCTAssertFalse(PatientFunctional.conditionAdvice(demo).contains { $0.hasPrefix("Atherosclerotic disease") }, "a statin is flagged")
+        var noAscvd = PatientRecord(); noAscvd.ageYears = 50; noAscvd.problems = ["htn", "af"]
+        XCTAssertFalse(PatientFunctional.conditionAdvice(noAscvd).contains { $0.hasPrefix("Atherosclerotic disease") }, "no atherosclerotic disease recorded")
+
+        // Troponin 24 and 48 hours after surgery (§9.1 rec 1, class 2b, p e406): known cardiovascular disease, symptoms,
+        // or 65 or older with risk factors, and elevated-risk surgery.
+        XCTAssertTrue(PatientFunctional.troponinSurveillance(demo))
+        var older = PatientRecord(); older.ageYears = 70; older.sex = .male; older.highRiskSurgery = true; older.labs["cr"] = 2.4
+        XCTAssertFalse(PatientFunctional.troponinSurveillance(older), "RCRI 2 at 70, but no risk factor besides the age")
+        older.problems = ["hyperlipidemia"]
+        XCTAssertTrue(PatientFunctional.troponinSurveillance(older), "65 or older with a risk factor")
+        older.ageYears = 60
+        XCTAssertFalse(PatientFunctional.troponinSurveillance(older), "under 65, without known disease or symptoms")
+        older.cardiacSymptoms = ["syncope"]
+        XCTAssertTrue(PatientFunctional.troponinSurveillance(older), "symptoms of cardiovascular disease")
+        var notElevated = PatientRecord(); notElevated.ageYears = 70; notElevated.problems = ["cad", "hyperlipidemia"]
+        XCTAssertFalse(PatientFunctional.troponinSurveillance(notElevated), "known disease, but RCRI 1: not elevated-risk surgery")
+
+        // Antiplatelets and anticoagulants (§7.5, p e393).
         let p2y12 = PatientFunctional.medNotes["p2y12"] ?? ""
         XCTAssertTrue(p2y12.contains("(class 2a)") && p2y12.contains("(class 2b)"), "6 months is 2a, 3 months 2b")
+        XCTAssertTrue(p2y12.hasPrefix("In coronary disease, a multidisciplinary team"), "rec 1, class 1")
+        XCTAssertTrue(p2y12.hasSuffix("continue dual antiplatelet therapy unless the risk of bleeding outweighs the benefit of preventing stent thrombosis (class 1)."), "rec 8")
+        let aspirin = PatientFunctional.medNotes["aspirin"] ?? ""
+        XCTAssertTrue(aspirin.hasPrefix("After PCI, continue aspirin 75–100 mg if possible (class 1)."))
+        XCTAssertTrue(aspirin.contains("Without a prior PCI") && aspirin.hasSuffix("(class 2b)."), "rec 11")
+        XCTAssertFalse(aspirin.contains("routinely starting"), "rec 12 is about starting aspirin; the note is for patients taking it (review R12)")
+        XCTAssertTrue(p2y12.contains("After balloon angioplasty without a stent, elective surgery should wait at least 14 days (class 1). If elective surgery will stop an antiplatelet:"), "rec 2 stands alone (review R12)")
+        XCTAssertTrue((PatientFunctional.medNotes["anticoagulant"] ?? "").hasSuffix("substitute aspirin when feasible until it can be safely restarted (class 1)."), "rec 9")
         XCTAssertTrue((PatientFunctional.medNotes["acei"] ?? "").hasPrefix("In selected patients with controlled blood pressure"))
+        for f in PatientCatalog.medFlags where PatientFunctional.medNotes[f.id] != nil { XCTAssertTrue(PatientFunctional.medNotes[f.id]?.contains("(class") ?? false, f.id) }
     }
 
     func testMaskVentilationPredictors() {

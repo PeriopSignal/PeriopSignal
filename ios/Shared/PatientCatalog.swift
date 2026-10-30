@@ -56,12 +56,15 @@ enum PatientCatalog {
         PatientSystem(id: "cv", name: "Cardiovascular", icon: "heart", problems: [
             PatientProblem("htn", "Hypertension, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", stopBang: "pressure"),
             PatientProblem("htn-poor", "Hypertension, poorly controlled", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
+            // 2024 AHA/ACC §6.2 (p e373): "recent history of poorly controlled hypertension (SBP ≥180 mm Hg or DBP ≥110
+            // mm Hg before the day of surgery)".
+            PatientProblem("htn-180", "Recent SBP ≥ 180 or DBP ≥ 110, before the day of surgery", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
             PatientProblem("hyperlipidemia", "High cholesterol"),
             PatientProblem("cad", "Coronary disease or MI, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("pci", "Coronary stent, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("pci-recent", "Coronary stent within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
             PatientProblem("cad-recent", "MI or ACS within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
-            PatientProblem("ischemia", "Ongoing cardiac ischemia", asa: 4, asaExample: "ongoing cardiac ischemia", rcri: "ihd"),
+            PatientProblem("ischemia", "Ongoing (unstable) cardiac ischemia", asa: 4, asaExample: "ongoing cardiac ischemia", rcri: "ihd"),
             PatientProblem("cabg", "Prior CABG", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("hf", "Heart failure", peds: 4, pedsExample: "congestive heart failure", rcri: "hf"),
             PatientProblem("hf-decomp", "Decompensated heart failure", peds: 5, pedsExample: "decompensated congestive heart failure", rcri: "hf"),
@@ -226,6 +229,7 @@ enum PatientCatalog {
         PatientFlag("sglt2", "SGLT2 inhibitor"),
         PatientFlag("betablocker", "Beta-blocker"),
         PatientFlag("acei", "ACE inhibitor or ARB"),
+        PatientFlag("statin", "Statin"),
         PatientFlag("steroid", "Chronic steroids"),
         PatientFlag("opioid", "Chronic opioids or buprenorphine"),
         PatientFlag("maoi", "MAO inhibitor"),
@@ -253,6 +257,8 @@ enum PatientCatalog {
         PatientField("k", "Potassium", "mmol/L"), PatientField("na", "Sodium", "mmol/L"), PatientField("cr", "Creatinine", "mg/dL"),
         PatientField("glucose", "Glucose", "mg/dL"), PatientField("a1c", "HbA1c", "%"),
         PatientField("bnp", "BNP", "pg/mL"), PatientField("ntprobnp", "NT-proBNP", "pg/mL"),
+        // Abnormal above the assay's 99th percentile (2024 AHA/ACC Figure 1, footnote §, p e371), so both are recorded.
+        PatientField("troponin", "Troponin", "ng/L"), PatientField("troponin99", "Troponin, assay's 99th percentile", "ng/L"),
     ]
 
     static let vitals: [PatientField] = [

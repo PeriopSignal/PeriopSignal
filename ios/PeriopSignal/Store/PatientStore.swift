@@ -176,7 +176,7 @@ enum PatientDemo {
         r.smoking = "former"
         r.allergies = "Penicillin (rash)"
         r.medications = "Metoprolol, lisinopril, atorvastatin, insulin glargine, aspirin"
-        r.medFlags = ["betablocker", "acei", "insulin", "aspirin"]
+        r.medFlags = ["betablocker", "acei", "insulin", "aspirin", "statin"]
         r.anesthesiaHistory = ["ponv"]
         r.labs = ["hb": 12.8, "plt": 210, "k": 4.3, "cr": 1.1, "glucose": 162]
         r.mets = "ge4"

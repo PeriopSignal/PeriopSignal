@@ -103,11 +103,11 @@ struct ValveInterventionView: View {
                                 .padding(.top, i == 0 ? 4 : 10).padding(.bottom, 6)
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(rule.cls.rawValue).font(PS.mono(size: 10.5, weight: .bold)).foregroundStyle(color(rule.cls))
+                            Text(rule.cls.number).font(PS.mono(size: 10.5, weight: .bold)).foregroundStyle(color(rule.cls))
                                 .frame(width: 26, alignment: .leading)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(rule.recommendation).font(PS.sys(size: 13.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                                Text(rule.situation + " · " + rule.level).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                                Text(rule.situation + " · " + rule.evidence).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                                 if let n = rule.note { Text(n).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true).padding(.top, 1) }
                             }
                         }
@@ -148,7 +148,7 @@ struct ValveInterventionView: View {
         case .one: return PS.green
         case .twoA: return PS.accent2
         case .twoB: return PS.fg2
-        case .three: return PS.accent
+        case .threeNoBenefit, .threeHarm: return PS.accent
         }
     }
 
@@ -191,7 +191,7 @@ struct ValveInterventionView: View {
                     Button { onOpen(url) } label: { Label("Guideline ↗", systemImage: "doc.text") }.buttonStyle(GhostButtonStyle())
                 }
             }
-            Text("2020 ACC/AHA guideline for valvular heart disease (Otto et al, Circulation 2021;143:e72–e227), the current edition; the next is scheduled for 2027. Classes: 1 recommended, 2a reasonable, 2b may be considered, 3 no benefit or harm. Severe valve disease is evaluated by a multidisciplinary Heart Valve Team when intervention is considered (class 1); the full tables carry prosthesis anticoagulation, bridging and endocarditis prophylaxis.")
+            Text("2020 ACC/AHA guideline for valvular heart disease (Otto et al, Circulation 2021;143:e72–e227), the current edition. Classes: 1 recommended, 2a reasonable, 2b may be considered, 3 no benefit or harm. Severe valve disease is evaluated by a multidisciplinary Heart Valve Team when intervention is considered (class 1). In patients who meet standard indications for intervention (replacement and repair) on the basis of symptoms and disease severity, intervention should be performed before elective noncardiac surgery to reduce perioperative risk if possible, depending on the urgency and risk of the noncardiac procedure (class 1, C-EO). The full tables carry prosthesis anticoagulation, bridging and endocarditis prophylaxis.")
                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
     }
