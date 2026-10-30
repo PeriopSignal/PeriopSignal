@@ -1469,6 +1469,78 @@
    }
   },
   {
+   "name": "Round five: an area of exactly 1.0 cm² goes on with the work-up (Figure 8)",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.5,
+    "mg": 30,
+    "ava": 1.0
+   },
+   "expect": {
+    "ask": "errors",
+    "caution": "exactly 1.0 cm²"
+   }
+  },
+  {
+   "name": "Round five: an area of exactly 1.0 cm² with normal flow is moderate with the boundary caution",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.5,
+    "mg": 30,
+    "ava": 1.0,
+    "errors": "checked",
+    "svi": 40
+   },
+   "expect": {
+    "result": "normal-flow",
+    "grade": 2,
+    "caution": "The app follows the figure"
+   }
+  },
+  {
+   "name": "Round five: an area of 1.05 cm² with a low gradient is moderate",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.5,
+    "mg": 30,
+    "ava": 1.05
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2,
+    "caution": "An area above 1.0 cm²"
+   }
+  },
+  {
+   "name": "Round five: a stroke volume index of exactly 35 is low flow (Figure 8)",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.5,
+    "mg": 30,
+    "ava": 0.8,
+    "errors": "checked",
+    "svi": 35
+   },
+   "expect": {
+    "ask": "lvef",
+    "caution": "exactly 35 mL/m²"
+   }
+  },
+  {
+   "name": "Round five: planimetry alone at exactly 1.0 cm² reads in the severe range",
+   "flow": "as",
+   "answers": {
+    "vmax": null,
+    "mg": null,
+    "planimetry": 1.0
+   },
+   "expect": {
+    "result": "area-severe",
+    "grade": 3,
+    "caution": "exactly 1.0 cm²"
+   }
+  },
+  {
    "name": "Re-check RC1: MR flail with four mild signs is not settled mild",
    "flow": "mr",
    "answers": {

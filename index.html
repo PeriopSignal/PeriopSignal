@@ -2708,6 +2708,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       if (ch(c) === 'unlikely') return done('calcium-unlikely', { track });
       return done('indeterminate', { track });
     }
+    // Figure 8 (p. 388) goes on at an area of 1.0 cm² or less; Table 3 and the text (pp. 383, 387) call 1.0 moderate.
+    const AS_AREA_BOUNDARY = 'An area of exactly 1.0 cm²: Figure 8 goes on with the work-up at 1.0 or less, while Table 3 and the text call it moderate (pp. 383, 387–388). The app follows the figure.';
     F.rules.as = function (w) {
       if (w.tee) w.caution('Under general anesthesia velocities and gradients are often lower than on the preoperative TTE, whereas the velocity ratio seems to agree with it better; with reduced flow, the relatively flow-independent valve area and velocity ratio are recommended (2020 TEE guideline, p. 704).');
       const v = w.take('vmax');
@@ -2738,13 +2740,14 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         if (p.pending) return ask('planimetry');
         const a = num(p);
         if (a === null) return done('nodata');
-        return done(a < 1 ? 'area-severe' : 'area-other', { area: val(w, 'planimetry', a) });
+        if (a === 1) w.caution(AS_AREA_BOUNDARY);
+        return done(a <= 1 ? 'area-severe' : 'area-other', { area: val(w, 'planimetry', a) });
       }
       w.tally = 'Low-gradient track';
       let small = null, areaTag = null, areaValue = null;
       const a = w.take('ava');
       if (a.pending) return ask('ava');
-      if (num(a) !== null) { small = num(a) < 1; areaTag = tg(a); areaValue = num(a); }
+      if (num(a) !== null) { small = num(a) <= 1; areaTag = tg(a); areaValue = num(a); }
       else {
         const r = w.take('vratio');
         if (r.pending) return ask('vratio');
@@ -2752,13 +2755,14 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         else {
           const p = w.take('planimetry');
           if (p.pending) return ask('planimetry');
-          if (num(p) !== null) { small = num(p) < 1; areaTag = tg(p); areaValue = num(p); }
+          if (num(p) !== null) { small = num(p) <= 1; areaTag = tg(p); areaValue = num(p); }
         }
       }
       if (small === null) return done('noarea');
+      if (areaValue === 1) w.caution(AS_AREA_BOUNDARY);
       if (!small) {
         if ([tg(v), tg(g), areaTag].includes('moderate')) {
-          if (areaTag === 'moderate' && num(a) !== null) w.caution('An area of 1.0 cm² or more with a low gradient indicates moderate AS; in a large LVOT, exclude an overestimated flow and area (p. 387).');
+          if (areaTag === 'moderate' && num(a) !== null) w.caution('An area above 1.0 cm² with a low gradient indicates moderate AS (pp. 387–388); in a large LVOT, exclude an overestimated flow and area (p. 387).');
           return done('moderate');
         }
         if (tg(v) === 'mild') return done('mild');
@@ -2773,7 +2777,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       if (s.pending) return ask('svi');
       const sv = num(s);
       if (sv === null) return done('flow-unknown');
-      if (sv >= 35) return done('normal-flow', { flow: `a stroke volume index of ${val(w, 'svi', sv)} mL/m²` });
+      if (sv === 35) w.caution('A stroke volume index of exactly 35 mL/m²: Figure 8 calls it low flow, the text normal flow (pp. 387–388). The app follows the figure.');
+      if (sv > 35) return done('normal-flow', { flow: `a stroke volume index of ${val(w, 'svi', sv)} mL/m²` });
       w.tally = 'Low flow, low gradient';
       const ef = w.take('lvef');
       if (ef.pending) return ask('lvef');

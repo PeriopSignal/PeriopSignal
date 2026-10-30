@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793392974,
+  "revision": 1793393582,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14700,21 +14700,22 @@
             "title": "Stroke volume index",
             "kind": "number",
             "unit": "mL/m²",
-            "ask": "LVOT area × LVOT VTI ÷ BSA. Below 35 is low flow; above 58 is high flow, which can raise the gradient of a non-severe valve (p. 387).",
+            "ask": "LVOT area × LVOT VTI ÷ BSA. Figure 8 calls 35 or less low flow (the text: under 35); above 58 is high flow, which can raise the gradient of a non-severe valve (pp. 387–388).",
             "tte": "LVOT diameter in parasternal long axis, zoomed, mid-systole, inner edge to inner edge; LVOT VTI by PW just below the valve in the apical five-chamber view (Table 1).",
             "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole; in an elliptical LVOT it may be the minor diameter. LVOT VTI by PW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, pp. 701, 703; angles, 2013, pp. 937, 940).",
             "bands": [
               {
-                "lt": 35,
+                "le": 35,
                 "tag": "low",
-                "label": "low flow"
+                "label": "low flow",
+                "range": "35 or less"
               },
               {
-                "ge": 35,
+                "gt": 35,
                 "le": 58,
                 "tag": "normal",
                 "label": "normal flow",
-                "range": "35–58"
+                "range": "above 35 to 58"
               },
               {
                 "gt": 58,
@@ -14751,7 +14752,7 @@
             "title": "Aortic valve area (continuity)",
             "kind": "number",
             "unit": "cm²",
-            "ask": "LVOT area × LVOT VTI ÷ aortic VTI. The LVOT diameter is the largest source of error: it is squared (p. 381).",
+            "ask": "LVOT area × LVOT VTI ÷ aortic VTI. The LVOT diameter is the largest source of error: it is squared (p. 381). Figure 8 goes on with the work-up at 1.0 cm² or less (p. 388).",
             "tte": "LVOT diameter in parasternal long axis (zoomed, mid-systole, inner edge to inner edge, at the level of the PW sample); LVOT PW in apical five-chamber; aortic VTI from the CW envelope.",
             "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole; LVOT PW and aortic CW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, p. 703; angles, 2013, pp. 937, 940).",
             "bands": [
@@ -14761,16 +14762,17 @@
                 "label": "mild"
               },
               {
-                "ge": 1.0,
+                "gt": 1.0,
                 "le": 1.5,
                 "tag": "moderate",
                 "label": "moderate",
-                "range": "1.0–1.5"
+                "range": "above 1.0 to 1.5"
               },
               {
-                "lt": 1.0,
+                "le": 1.0,
                 "tag": "severe",
-                "label": "severe range"
+                "label": "severe range",
+                "range": "1.0 or less"
               }
             ]
           },
@@ -14817,16 +14819,17 @@
                 "label": "mild"
               },
               {
-                "ge": 1.0,
+                "gt": 1.0,
                 "le": 1.5,
                 "tag": "moderate",
                 "label": "moderate",
-                "range": "1.0–1.5"
+                "range": "above 1.0 to 1.5"
               },
               {
-                "lt": 1.0,
+                "le": 1.0,
                 "tag": "severe",
-                "label": "severe range"
+                "label": "severe range",
+                "range": "1.0 or less"
               }
             ]
           },
@@ -14950,7 +14953,7 @@
           "moderate": {
             "grade": 2,
             "headline": "Moderate AS",
-            "text": "Table 3 prints moderate as 3.0–4.0 m/s, 20–40 mmHg or 1.0–1.5 cm²; at 4.0 m/s and 40 mmHg the app applies the severe column, which starts there (p. 383). With a low gradient, an area of 1.0 cm² or more indicates moderate AS (p. 387)."
+            "text": "Table 3 prints moderate as 3.0–4.0 m/s, 20–40 mmHg or 1.0–1.5 cm²; at 4.0 m/s and 40 mmHg the app applies the severe column, which starts there (p. 383), and at 1.0 cm² Figure 8's split, which goes on with the work-up (p. 388). With a low gradient, an area above 1.0 cm² indicates moderate AS (pp. 387–388)."
           },
           "severe-high": {
             "grade": 3,
@@ -14964,7 +14967,7 @@
           },
           "high-reversible": {
             "headline": "High gradient with reversible high flow",
-            "text": "Anemia, fever, hyperthyroidism or an arteriovenous shunt can raise the gradient of a non-severe valve; even an area of 1.0 cm² or more can come with a high gradient (pp. 383, 387).",
+            "text": "Anemia, fever, hyperthyroidism or an arteriovenous shunt can raise the gradient of a non-severe valve; even an area above 1.0 cm² can come with a high gradient (pp. 383, 387).",
             "next": [
               "Repeat the study once the flow has normalized (p. 387)."
             ]
@@ -14972,7 +14975,7 @@
           "area-severe": {
             "grade": 3,
             "headline": "Severe range by planimetry alone",
-            "text": "Without velocity or gradient, planimetry gave {area} cm², under 1.0 cm². The effective area is smaller than the planimetered anatomic one, so it is under 1.0 cm² too; still a second-line method (Level 2, p. 383).",
+            "text": "Without velocity or gradient, planimetry gave {area} cm², 1.0 cm² or less. The effective area is smaller than the planimetered anatomic one, so it is under 1.0 cm²; still a second-line method (Level 2, p. 383).",
             "next": [
               "Get the CW Doppler from another window or by TEE.",
               "CT calcium score or catheterization when the grade changes management."
@@ -15005,14 +15008,14 @@
           "normal-flow": {
             "grade": 2,
             "headline": "Normal-flow, low-gradient AS: severe very unlikely",
-            "text": "With {flow}, severe AS is very unlikely even with a calculated area under 1.0 cm²; these patients in general have moderate AS (p. 387). The area and gradient cutoffs are inconsistent between 0.8 and 1.0 cm², and a small patient can have a small area (pp. 384, 386).",
+            "text": "With {flow}, severe AS is very unlikely even with a calculated area of 1.0 cm² or less; these patients in general have moderate AS (p. 387). The area and gradient cutoffs are inconsistent between 0.8 and 1.0 cm², and a small patient can have a small area (pp. 384, 386).",
             "next": [
               "Follow and re-evaluate rather than call it severe on the area (p. 386)."
             ]
           },
           "flow-unknown": {
             "headline": "Small area, low gradient: flow unknown",
-            "text": "An area under 1.0 cm² with a low gradient suggests but does not confirm severe AS; the stroke volume index decides the next step (p. 387).",
+            "text": "An area of 1.0 cm² or less with a low gradient suggests but does not confirm severe AS; the stroke volume index decides the next step (p. 387).",
             "next": [
               "Measure the stroke volume another way: 3D LVOT area, CT, CMR or invasive (p. 388)."
             ]
@@ -15037,7 +15040,7 @@
           },
           "dse-next": {
             "headline": "Low-flow, low-gradient AS with reduced EF",
-            "text": "Area under 1.0 cm², mean gradient under 40 mmHg, EF under 50% and SVi under 35 mL/m² (p. 384): the resting study cannot tell true severe from pseudosevere AS.",
+            "text": "Area 1.0 cm² or less, mean gradient under 40 mmHg, EF under 50% and SVi 35 mL/m² or less (p. 384, with Figure 8's split at 1.0 and 35, p. 388): the resting study cannot tell true severe from pseudosevere AS.",
             "next": [
               "Low-dose dobutamine stress echo (p. 384)."
             ]

@@ -319,6 +319,9 @@ enum ValveFlow {
 // MARK: - Aortic stenosis (EACVI/ASE 2017 focused update, pp. 383–388)
 
 extension ValveFlow {
+    /// Figure 8 (p. 388) goes on at an area of 1.0 cm² or less; Table 3 and the text (pp. 383, 387) call 1.0 moderate.
+    static let asAreaBoundary = "An area of exactly 1.0 cm²: Figure 8 goes on with the work-up at 1.0 or less, while Table 3 and the text call it moderate (pp. 383, 387–388). The app follows the figure."
+
     static func aorticStenosis(_ w: FlowWalk) -> FlowEnd {
         if w.tee {
             w.caution("Under general anesthesia velocities and gradients are often lower than on the preoperative TTE, whereas the velocity ratio seems to agree with it better; with reduced flow, the relatively flow-independent valve area and velocity ratio are recommended (2020 TEE guideline, p. 704).")
@@ -356,7 +359,8 @@ extension ValveFlow {
             let p = w.take("planimetry")
             if p == .pending { return .ask("planimetry") }
             guard let a = p.number else { return .done("nodata") }
-            return .done(a < 1 ? "area-severe" : "area-other", ["area": val(w, "planimetry", a)])
+            if a == 1 { w.caution(asAreaBoundary) }
+            return .done(a <= 1 ? "area-severe" : "area-other", ["area": val(w, "planimetry", a)])
         }
         w.tally = "Low-gradient track"
         // The valve area: continuity, else the velocity ratio, else planimetry.
@@ -366,7 +370,7 @@ extension ValveFlow {
         let a = w.take("ava")
         if a == .pending { return .ask("ava") }
         if let x = a.number {
-            small = x < 1; areaTag = a.tag; areaValue = x
+            small = x <= 1; areaTag = a.tag; areaValue = x
         } else {
             let r = w.take("vratio")
             if r == .pending { return .ask("vratio") }
@@ -375,14 +379,15 @@ extension ValveFlow {
             } else {
                 let p = w.take("planimetry")
                 if p == .pending { return .ask("planimetry") }
-                if let x = p.number { small = x < 1; areaTag = p.tag; areaValue = x }
+                if let x = p.number { small = x <= 1; areaTag = p.tag; areaValue = x }
             }
         }
         guard let isSmall = small else { return .done("noarea") }
+        if areaValue == 1 { w.caution(asAreaBoundary) }
         if !isSmall {
             let tags = [v.tag, g.tag, areaTag]
             if tags.contains("moderate") {
-                if areaTag == "moderate" && a.number != nil { w.caution("An area of 1.0 cm² or more with a low gradient indicates moderate AS; in a large LVOT, exclude an overestimated flow and area (p. 387).") }
+                if areaTag == "moderate" && a.number != nil { w.caution("An area above 1.0 cm² with a low gradient indicates moderate AS (pp. 387–388); in a large LVOT, exclude an overestimated flow and area (p. 387).") }
                 return .done("moderate")
             }
             if v.tag == "mild" { return .done("mild") }
@@ -396,7 +401,8 @@ extension ValveFlow {
         let s = w.take("svi")
         if s == .pending { return .ask("svi") }
         guard let sv = s.number else { return .done("flow-unknown") }
-        if sv >= 35 { return .done("normal-flow", ["flow": "a stroke volume index of \(val(w, "svi", sv)) mL/m²"]) }
+        if sv == 35 { w.caution("A stroke volume index of exactly 35 mL/m²: Figure 8 calls it low flow, the text normal flow (pp. 387–388). The app follows the figure.") }
+        if sv > 35 { return .done("normal-flow", ["flow": "a stroke volume index of \(val(w, "svi", sv)) mL/m²"]) }
         w.tally = "Low flow, low gradient"
         let ef = w.take("lvef")
         if ef == .pending { return .ask("lvef") }
