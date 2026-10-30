@@ -235,7 +235,7 @@ struct ValveFlowPanel: View {
                         Haptics.light()
                         withAnimation(.snappy) {
                             answers.removeValue(forKey: r.step.id)
-                            if case .number(let v) = r.answer { entry = ValveFlow.fmt(v) } else { entry = "" }
+                            if case .number(let v) = r.answer { entry = ValveFlow.entryText(v) } else { entry = "" }
                         }
                     } label: {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {

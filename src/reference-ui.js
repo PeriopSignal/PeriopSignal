@@ -856,7 +856,7 @@
       next() { return next(); },
       cannot(el) { st.answers[el.dataset.k] = null; st.entry = ''; },
       opt(el) { st.answers[el.dataset.k] = el.dataset.v; },
-      edit(el) { const k = el.dataset.k, a = st.answers[k]; delete st.answers[k]; st.entry = typeof a === 'number' ? R.fmt(a) : ''; },
+      edit(el) { const k = el.dataset.k, a = st.answers[k]; delete st.answers[k]; st.entry = typeof a === 'number' ? String(a) : ''; },
       restart() { st.answers = {}; st.entry = ''; },
       lesion(el) { st.lesion = el.dataset.v; st.texts = {}; st.signs = new Set(); },
       clear() { st.texts = {}; st.signs = new Set(); },

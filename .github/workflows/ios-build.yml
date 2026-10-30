@@ -222,7 +222,7 @@ jobs:
           shot 79-valve-mr-step 15 -ps.ref valves -ps.valve.flow mr -ps.valve.answers "type=primary,flail=no,jet=between,cw=dense"
           shot 80-valve-as-result 15 -ps.ref valves -ps.valve.flow as -ps.valve.answers "vmax=3.2,mg=25,ava=0.8,errors=checked,svi=28,lvef=35,dse=severe"
           shot 81-valve-tr-tee 15 -ps.ref valves -ps.valve.flow tr -ps.valve.tee 1 -ps.valve.answers "valve=other,jet=between"
-          shot 82-valve-all 12 -ps.ref valves -ps.valve.mode all
+          shot 82-valve-all 16 -ps.ref valves -ps.valve.mode all
           shot 83-valve-prosthesis 15 -ps.ref valves -ps.valve.flow pav -ps.valve.answers "kind=surgical,vmax=3.5,contour=early,at=70,atet=0.28,mg=25,dvi=0.4,eoa=ok"
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done

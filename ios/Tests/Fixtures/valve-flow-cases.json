@@ -1,5 +1,5 @@
 {
- "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring and the path of step ids.",
+ "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring and the path of step ids. Cases named Review come from the independent review of October 2026.",
  "cases": [
   {
    "name": "AS: high gradient with normal flow is severe",
@@ -342,7 +342,7 @@
    }
   },
   {
-   "name": "MR: VC of 0.3 counts for mild (Figure 18)",
+   "name": "MR: VC of 0.3 is not specific for mild (Table 8)",
    "flow": "mr",
    "answers": {
     "type": "primary",
@@ -353,8 +353,7 @@
     "pisa": "small"
    },
    "expect": {
-    "result": "mild-specific",
-    "grade": 1
+    "ask": "pv"
    }
   },
   {
@@ -491,7 +490,7 @@
    }
   },
   {
-   "name": "MR: not holosystolic, the regurgitant volume decides",
+   "name": "MR: not holosystolic, the volumes lead over EROA",
    "flow": "mr",
    "answers": {
     "type": "primary",
@@ -505,12 +504,12 @@
     "size": "other",
     "eroa": 0.45,
     "rvol": 40,
-    "rf": 55
+    "rf": 35
    },
    "expect": {
     "result": "grade2",
     "grade": 2,
-    "caution": "not holosystolic"
+    "caution": "regurgitant volume leads"
    }
   },
   {
@@ -750,10 +749,10 @@
    "flow": "pr",
    "answers": {
     "jet": "broad",
+    "rv": "dilated",
     "ratio": 75,
     "cw": "dense",
-    "pht": 80,
-    "decel": "early"
+    "pht": 80
    },
    "expect": {
     "result": "severe-specific",
@@ -765,14 +764,19 @@
    "flow": "pr",
    "answers": {
     "jet": "small",
+    "rv": "normal",
     "ratio": null,
-    "cw": "soft",
-    "pht": 250,
-    "decel": "slow"
+    "cw": "soft"
    },
    "expect": {
     "result": "mild-specific",
-    "grade": 1
+    "grade": 1,
+    "path": [
+     "jet",
+     "rv",
+     "ratio",
+     "cw"
+    ]
    }
   },
   {
@@ -990,6 +994,7 @@
     "mg": 25,
     "dvi": 0.4,
     "eoa": "ok",
+    "leaflets": "normal",
     "bmi": "lt30",
     "ieoa": 0.6
    },
@@ -1010,6 +1015,7 @@
     "mg": 25,
     "dvi": 0.4,
     "eoa": "ok",
+    "leaflets": "normal",
     "bmi": "ge30",
     "ieoa": 0.6
    },
@@ -1070,6 +1076,395 @@
    "expect": {
     "result": "normal",
     "grade": 1
+   }
+  },
+  {
+   "name": "Review M1: TR, four severe signs against one mild settle severe",
+   "flow": "tr",
+   "answers": {
+    "valve": "severe",
+    "jet": "large",
+    "cw": "faint",
+    "vc": 0.5,
+    "pisa": "large",
+    "hv": "reversal"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Review M1: MR, four severe signs against one mild settle severe",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "yes",
+    "jet": "small",
+    "cw": "dense",
+    "vc": 0.8,
+    "pisa": "large",
+    "pv": "reversal"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Review M1: PR, three severe signs against one mild settle severe",
+   "flow": "pr",
+   "answers": {
+    "jet": "small",
+    "rv": "dilated",
+    "ratio": null,
+    "cw": "dense",
+    "pht": 80,
+    "decel": "early"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Review M2: MR flail with grade I is discordant",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "yes",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.15,
+    "rvol": 25,
+    "rf": 25
+   },
+   "expect": {
+    "result": "discordant",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review M2: TR without coaptation and a small vena contracta is discordant",
+   "flow": "tr",
+   "answers": {
+    "valve": "severe",
+    "jet": "between",
+    "cw": "dense",
+    "pisa": "mid",
+    "hv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "vc": 0.25,
+    "eroa": null,
+    "rvol": null
+   },
+   "expect": {
+    "result": "discordant",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review M3: TR, the vena contracta leads over PISA",
+   "flow": "tr",
+   "answers": {
+    "valve": "other",
+    "jet": "between",
+    "cw": "dense",
+    "pisa": "mid",
+    "hv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "vc": 0.8,
+    "eroa": 0.3,
+    "rvol": 35
+   },
+   "expect": {
+    "result": "q-severe",
+    "grade": 3,
+    "caution": "vena contracta, which leads"
+   }
+  },
+  {
+   "name": "Review M4: secondary MR, EROA leads over the volumes",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.45,
+    "rvol": 40,
+    "rf": 35
+   },
+   "expect": {
+    "result": "grade4",
+    "grade": 3,
+    "caution": "EROA leads"
+   }
+  },
+  {
+   "name": "Review M4: primary MR, EROA and volumes two grades apart",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.45,
+    "rvol": 40,
+    "rf": 35
+   },
+   "expect": {
+    "result": "discordant",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review M4: RF adds no extra vote",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.45,
+    "rvol": 40,
+    "rf": null
+   },
+   "expect": {
+    "result": "grade4",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Review M5: acute MR keeps going after four mild signs",
+   "flow": "mr",
+   "answers": {
+    "type": "acute",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.25,
+    "pisa": "small"
+   },
+   "expect": {
+    "ask": "pv",
+    "path": [
+     "type",
+     "flail",
+     "jet",
+     "cw",
+     "vc",
+     "pisa"
+    ]
+   }
+  },
+  {
+   "name": "Review M5: acute MR is not graded mild",
+   "flow": "mr",
+   "answers": {
+    "type": "acute",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.25,
+    "pisa": "small",
+    "pv": "dominant",
+    "inflow": "a",
+    "size": "normal",
+    "eroa": 0.15,
+    "rvol": 20,
+    "rf": 20
+   },
+   "expect": {
+    "result": "acute-mild",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review M5: acute AR keeps going after four mild signs",
+   "flow": "ar",
+   "answers": {
+    "type": "acute",
+    "flail": "no",
+    "vc": 0.25,
+    "jet": 20,
+    "pisa": "small",
+    "cw": "soft"
+   },
+   "expect": {
+    "ask": "pht"
+   }
+  },
+  {
+   "name": "Review M6: one normal velocity is not enough",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 2.5,
+    "contour": null,
+    "at": null,
+    "atet": null,
+    "mg": null,
+    "dvi": null,
+    "eoa": null
+   },
+   "expect": {
+    "result": "insufficient",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review S5: no mismatch without the EOA against the reference",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 3.5,
+    "contour": "early",
+    "at": 70,
+    "atet": 0.28,
+    "mg": 25,
+    "dvi": 0.4,
+    "eoa": null,
+    "leaflets": "normal"
+   },
+   "expect": {
+    "result": "highflow",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review S5: abnormal leaflets with a high gradient",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 3.5,
+    "contour": "early",
+    "at": 70,
+    "atet": 0.28,
+    "mg": 25,
+    "dvi": 0.4,
+    "eoa": "ok",
+    "leaflets": "abnormal"
+   },
+   "expect": {
+    "result": "leaflet",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review S6: dobutamine inconclusive goes to calcium",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.2,
+    "mg": 25,
+    "ava": 0.8,
+    "errors": "checked",
+    "svi": 28,
+    "lvef": 35,
+    "dse": "inconclusive",
+    "calcium": "likely"
+   },
+   "expect": {
+    "result": "calcium-severe",
+    "grade": 3,
+    "caution": "projected area"
+   }
+  },
+  {
+   "name": "Review S9: a velocity ratio of 0.25 counts as small",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.4,
+    "mg": 30,
+    "ava": null,
+    "vratio": 0.25
+   },
+   "expect": {
+    "ask": "errors"
+   }
+  },
+  {
+   "name": "Review S3: PR with one answer is indeterminate",
+   "flow": "pr",
+   "answers": {
+    "jet": "broad",
+    "rv": null,
+    "ratio": null,
+    "cw": null,
+    "pht": null,
+    "decel": null,
+    "branches": null,
+    "rf": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review S10: PR half-time after a soft jet does not count",
+   "flow": "pr",
+   "answers": {
+    "jet": "broad",
+    "rv": "other",
+    "ratio": null,
+    "cw": "soft",
+    "pht": 80,
+    "decel": "other",
+    "branches": "no",
+    "rf": null
+   },
+   "expect": {
+    "result": "probable-moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "Review N8: PS below the valve is not given a valve grade",
+   "flow": "ps",
+   "answers": {
+    "level": "sub",
+    "vmax": 4.5,
+    "rvsp": null
+   },
+   "expect": {
+    "result": "nonvalvular",
+    "grade": null
+   }
+  },
+  {
+   "name": "Review N9: planimetry alone above 1.0 is not graded",
+   "flow": "as",
+   "answers": {
+    "vmax": null,
+    "mg": null,
+    "planimetry": 1.6
+   },
+   "expect": {
+    "result": "area-other",
+    "grade": null
    }
   }
  ]

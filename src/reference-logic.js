@@ -707,7 +707,7 @@
   /* Each step asks for one measurement or sign; "Cannot obtain" moves on, and the flow ends as soon as the
      guideline's criteria settle the grade. Answers are { stepId: number | optionId | null } (null: cannot obtain).
      The order of the steps and the integration rules are in R.valveFlow.rules, mirrored from ValveFlow.swift;
-     tools/valve_flow_cases.json runs the same cases on both. */
+     ios/Tests/Fixtures/valve-flow-cases.json runs the same cases on both. */
   R.valveFlow = {
     supportedFormat: 1,
     rules: {},
@@ -715,6 +715,13 @@
     step(flow, id) { return (flow.steps || []).find((s) => s.id === id) || null; },
     /** " cm²" after a value; "%" goes on without a space; nothing for a ratio. */
     unitSuffix(u) { return !u ? '' : (u === '%' ? u : ' ' + u); },
+    /** Enough digits to see which side of a cutoff a value falls: 3 decimals under 1, 2 under 10, 1 under 100. */
+    fmt(v) {
+      const a = Math.abs(v), p = a >= 100 ? 0 : (a >= 10 ? 1 : (a >= 1 ? 2 : 3));
+      let t = v.toFixed(p);
+      if (t.includes('.')) t = t.replace(/0+$/, '').replace(/\.$/, '');
+      return t;
+    },
     contains(b, v) {
       if (b.lt != null && !(v < b.lt)) return false;
       if (b.le != null && !(v <= b.le)) return false;
@@ -756,7 +763,7 @@
           const band = (s.bands || []).find((b) => R.valveFlow.contains(b, a)) || null;
           const reading = band ? (band.label || null) : (s.between || null);
           const tag = band ? band.tag : null;
-          w.path.push({ step: s, answer: a, tag, text: R.fmt(a) + R.valveFlow.unitSuffix(s.unit) + (reading ? ' · ' + reading : '') });
+          w.path.push({ step: s, answer: a, tag, text: R.valveFlow.fmt(a) + R.valveFlow.unitSuffix(s.unit) + (reading ? ' · ' + reading : '') });
           return { n: a, tag };
         }
         const o = s.kind === 'number' ? null : (s.options || []).find((x) => x.id === a);
@@ -786,7 +793,7 @@
     const num = (g) => (typeof g.n === 'number' ? g.n : null);
     const ch = (g) => g.c || null;
     const tg = (g) => g.tag || null;
-    const fmt = (v) => R.fmt(v);
+    const fmt = (v) => F.fmt(v);
     const ask = (id) => ({ ask: id });
     const done = (id, vars) => ({ done: id, vars: vars || {} });
     const level = (t) => (t === 'mild' ? 1 : t === 'moderate' ? 2 : t === 'severe' ? 3 : null);
@@ -802,7 +809,7 @@
       return done('indeterminate', { track });
     }
     F.rules.as = function (w) {
-      if (w.tee) w.caution('Under general anesthesia velocity and gradients often read lower than on the awake TTE; the valve area and the velocity ratio agree with it better, and an awake TTE grade is preferred when there is one (2020 TEE guideline, pp. 695, 704).');
+      if (w.tee) w.caution('Under general anesthesia velocity and gradients often read lower than on the preoperative TTE; the valve area and the velocity ratio agree with it better (2020 TEE guideline, p. 704).');
       const v = w.take('vmax');
       if (v.pending) return ask('vmax');
       const g = w.take('mg');
@@ -831,7 +838,7 @@
         if (p.pending) return ask('planimetry');
         const a = num(p);
         if (a === null) return done('nodata');
-        return done(a < 1 ? 'area-severe' : (a <= 1.5 ? 'area-moderate' : 'area-mild'), { area: fmt(a) });
+        return done(a < 1 ? 'area-severe' : 'area-other', { area: fmt(a) });
       }
       w.tally = 'Low-gradient track';
       let small = null, areaTag = null, areaValue = null;
@@ -841,7 +848,7 @@
       else {
         const r = w.take('vratio');
         if (r.pending) return ask('vratio');
-        if (num(r) !== null) { small = num(r) < 0.25; areaTag = tg(r); }
+        if (num(r) !== null) { small = num(r) <= 0.25; areaTag = tg(r); }
         else {
           const p = w.take('planimetry');
           if (p.pending) return ask('planimetry');
@@ -878,7 +885,11 @@
         if (ch(d) === 'pseudo') return done('dse-pseudo');
         if (ch(d) === 'noreserve') {
           w.caution('Without flow reserve, valve calcification (best by CT) may be the primary clue; the update prints its calcium cutoffs for preserved EF (pp. 385, 388).');
-          return asCalcium(w, 'Low-flow, low-gradient AS with reduced EF and no flow reserve');
+          return asCalcium(w, 'Low-flow, low-gradient AS with reduced EF and no flow reserve (calcium cutoffs from the preserved-EF table)');
+        }
+        if (ch(d) === 'inconclusive') {
+          w.caution('Flow reserve without a decisive area or gradient: the projected area at a normal flow rate of 250 mL/s can help (p. 385); the calcium cutoffs are from the preserved-EF table (p. 385).');
+          return asCalcium(w, 'Low-flow, low-gradient AS with reduced EF, dobutamine inconclusive');
         }
         return done('dse-next');
       }
@@ -893,72 +904,67 @@
       return asCalcium(w, 'Paradoxical low-flow, low-gradient AS');
     };
 
-    // Regurgitation (ASE 2017: Figure 18 for MR, Figure 25 for AR)
-    const gTag = (id, g) => { const t = tg(g); if (!t || t[0] !== 'g') return null; const n = parseInt(t.slice(1), 10); return Number.isFinite(n) ? n : null; };
+    // Regurgitation (ASE 2017: Figures 18, 25, 31 and 35). A measure() returns { ask } | { none } | { grade, text } | { split, text }.
     F.regurgitation = function (w, plan) {
-      const need = plan.need || 4, scale = plan.scale || 4, quantGrade = plan.quantGrade || gTag;
-      let mild = 0, severe = 0, obtained = 0;
+      let mild = 0, severe = 0, assessed = 0;
       for (const id of plan.criteria) {
         const g = w.take(id);
         if (g.pending) { w.tally = tallyText(mild, severe); return ask(id); }
-        if (!g.cannot) obtained++;
+        if (!g.cannot) assessed++;
         const k = plan.specific(id, g);
         if (k === 1) mild++; else if (k === 3) severe++;
-        if (severe >= need && mild === 0) return done('severe-specific', { severe: String(severe) });
-        if (mild >= need && severe === 0) return done('mild-specific', { mild: String(mild) });
+        if (severe >= plan.need && severe > mild) return done('severe-specific', { severe: String(severe), mild: String(mild) });
+        if (!plan.acute && mild >= plan.need && mild > severe) return done('mild-specific', { mild: String(mild), severe: String(severe) });
       }
-      if (mild >= need || severe >= need) w.caution('Specific criteria from both lists: the figure settles the grade only when one list dominates, so the measurements decide.');
+      if (mild >= plan.need && severe >= plan.need) w.caution('Specific criteria from both lists in equal measure: the measurements decide.');
       const vars = { mild: String(mild), severe: String(severe) };
-      const grades = [], parts = [];
-      for (const id of plan.quant) {
-        const g = w.take(id);
-        if (g.pending) { w.tally = tallyText(mild, severe); return ask(id); }
-        const n = num(g) === null ? null : quantGrade(id, g);
-        if (n === null) continue;
-        grades.push({ id, grade: n });
-        const s = F.step(w.flow, id);
-        const word = scale === 4 ? 'grade ' + roman(n) : ['mild', 'moderate', 'severe'][Math.max(0, Math.min(2, n - 1))];
-        parts.push(`${(s && (s.short || s.title)) || id} ${fmt(num(g))}${F.unitSuffix(s && s.unit)}, ${word}`);
-      }
-      if (!grades.length) {
+      const m = plan.measure(w);
+      if (m.ask) { w.tally = tallyText(mild, severe); return ask(m.ask); }
+      if (m.none) {
         vars.lean = severe > mild ? 'The signs so far lean toward severe.' : (mild > severe ? 'The signs so far lean toward mild.' : '');
-        return done(obtained === 0 ? 'indeterminate' : (plan.noQuant || 'indeterminate'), vars);
+        return done(assessed < (plan.minAssessed || 0) ? 'indeterminate' : (plan.noQuant || 'indeterminate'), vars);
       }
-      vars.quant = parts.join('; ');
-      const sorted = grades.map((x) => x.grade).sort((x, y) => x - y);
-      let q = sorted[Math.floor(sorted.length / 2)];
-      if (plan.prefer) { const hit = grades.find((x) => x.id === plan.prefer); if (hit) q = hit.grade; }
-      if (sorted[sorted.length - 1] - sorted[0] >= 2) w.caution('The quantitative measures differ by two grades or more: low or high flow can split them; recheck the measurements or quantitate another way (Table 8).');
-      if ((q === scale && mild >= 2) || (q === 1 && severe >= 2)) return done('discordant', vars);
-      if (scale === 3) return done(['q-mild', 'q-moderate', 'q-severe'][Math.max(0, Math.min(2, q - 1))], vars);
+      vars.quant = m.text;
+      if (m.split) return done('discordant', vars);
+      const q = m.grade;
+      // A specific sign of severe against the lowest grade, or two of mild against the highest, do not agree.
+      if ((q === plan.scale && mild >= 2) || (q === 1 && severe >= 1)) return done('discordant', vars);
+      if (plan.acute && q === 1) return done('acute-mild', vars);
+      if (plan.scale === 3) return done(['q-mild', 'q-moderate', 'q-severe'][Math.max(0, Math.min(2, q - 1))], vars);
       if (q === 1) return done('grade1', vars);
       if (q === 2) return done('grade2', vars);
       if (q === 3) return plan.gradeThree ? plan.gradeThree(w, severe, vars) : done('grade3', vars);
       return done('grade4', vars);
     };
-    F.rules.tr = function (w) {
-      if (w.tee) w.caution('TEE is in general more limited than TTE for the tricuspid valve, from off-angle planes and the distance from the probe (ASE 2017, p. 345); loading conditions and inotropes change the TR (2020 TEE guideline, pp. 700, 705).');
-      if (w.answers.jet === 'eccentric') w.caution('Eccentric, wall-impinging jet: its area underestimates the TR (p. 350).');
-      return F.regurgitation(w, {
-        criteria: ['valve', 'jet', 'cw', 'vc', 'pisa', 'hv', 'inflow', 'size'],
-        need: 4,
-        quant: ['vc', 'eroa', 'rvol'],
-        scale: 3,
-        specific: (id, g) => (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
-        quantGrade: (id, g) => (id === 'vc' ? (num(g) === null ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : 2))) : level(tg(g))),
-      });
+    const quantLevel = (t) => { if (t && t[0] === 'g') { const n = parseInt(t.slice(1), 10); if (Number.isFinite(n)) return n; } return level(t); };
+    const describe = (w, id, v, n, scale) => {
+      const s = F.step(w.flow, id);
+      const word = scale === 4 ? 'grade ' + roman(n) : ['mild', 'moderate', 'severe'][Math.max(0, Math.min(2, n - 1))];
+      return `${(s && (s.short || s.title)) || id} ${fmt(v)}${F.unitSuffix(s && s.unit)}, ${word}`;
     };
-    F.rules.pr = function (w) {
-      if (w.tee) w.caution('The pulmonic valve is anterior and hard to image by TEE, and TEE is not a preferred modality when PR needs more than the TTE (ASE 2017, pp. 353, 359); loading conditions change the signs (2020 TEE guideline, p. 706).');
-      return F.regurgitation(w, {
-        criteria: ['jet', 'ratio', 'cw', 'pht', 'decel', 'branches', 'rv'],
-        need: 3,
-        quant: ['rf'],
-        scale: 3,
-        specific: (id, g) => (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
-        quantGrade: (id, g) => level(tg(g)),
-        noQuant: 'probable-moderate',
-      });
+    /* EROA (the lesion) against the volumes (regurgitant volume and fraction as one measure, the higher of the two).
+       Equal or one grade apart: the higher; two or more apart: a disagreement, unless one of them leads. */
+    F.lesionAndVolume = function (w, order, lesion, volumes, scale, lead, why) {
+      const got = {};
+      for (const id of order) {
+        const g = w.take(id);
+        if (g.pending) return { ask: id };
+        const n = num(g) === null ? null : quantLevel(tg(g));
+        if (n !== null) got[id] = { v: num(g), n };
+      }
+      const text = order.filter((id) => got[id]).map((id) => describe(w, id, got[id].v, got[id].n, scale)).join('; ');
+      const vols = volumes.filter((id) => got[id]).map((id) => got[id].n);
+      if (vols.length && Math.max(...vols) - Math.min(...vols) >= 2) w.caution('The regurgitant volume and fraction differ by two grades or more: the fraction depends on the total stroke volume, so low or high flow splits them (Table 8).');
+      const l = got[lesion] ? got[lesion].n : null, vol = vols.length ? Math.max(...vols) : null;
+      if (l === null && vol === null) return { none: true };
+      if (vol === null) return { grade: l, text };
+      if (l === null) return { grade: vol, text };
+      if (l === vol) return { grade: l, text };
+      if (lead === 'lesion') { w.caution(why); return { grade: l, text }; }
+      if (lead === 'volume') { w.caution(why); return { grade: vol, text }; }
+      if (Math.abs(l - vol) >= 2) return { split: true, text };
+      w.caution('EROA and the volumes differ by one grade: the higher is taken. Low or high flow can split them (Table 8).');
+      return { grade: Math.max(l, vol), text };
     };
     F.rules.mr = function (w) {
       if (w.tee) w.caution('Grading is best done on the awake TTE: under anesthesia lower loading conditions make MR, secondary MR especially, look less severe (2020 TEE guideline, pp. 695, 698; ASE 2017, p. 323). Prefer the preoperative grade, record blood pressure, heart rate and rhythm, and try fluids, inotropes or an afterload challenge before deciding on the intraoperative findings (ASE 2017, p. 324; 2020, p. 698).');
@@ -972,9 +978,13 @@
       if (partial) w.caution('MR that is not holosystolic: single-frame EROA and vena contracta overestimate it; the regurgitant volume is the better measure (Figure 18; p. 323).');
       return F.regurgitation(w, {
         criteria: ['flail', 'jet', 'cw', 'vc', 'pisa', 'pv', 'inflow', 'size'],
-        quant: ['eroa', 'rvol', 'rf'],
+        need: 4,
+        scale: 4,
+        acute,
         specific: (id, g) => (acute && id === 'size') ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
-        prefer: partial ? 'rvol' : null,
+        measure: (w2) => F.lesionAndVolume(w2, ['eroa', 'rvol', 'rf'], 'eroa', ['rvol', 'rf'], 4,
+          partial ? 'volume' : (secondary ? 'lesion' : null),
+          partial ? 'Not holosystolic: the regurgitant volume leads, since single-frame EROA overestimates (Figure 18; p. 323).' : 'Secondary MR: EROA leads, since the volumes run lower when the stroke volume is low (p. 334).'),
         gradeThree: (w2, severe, vars) => {
           const v = Object.assign({}, vars);
           if (severe >= 3) { v.why = `${severe} specific criteria for severe MR`; return done('grade3-severe', v); }
@@ -986,17 +996,71 @@
       });
     };
     F.rules.ar = function (w) {
-      if (w.tee) w.caution('Loading conditions and LV and aortic compliance change the AR signs under anesthesia (2020 TEE guideline, p. 703); grade on the awake TTE when there is one (2020, p. 695), and record blood pressure and heart rate with the numbers (ASE 2017, p. 318).');
+      if (w.tee) w.caution('Loading conditions and LV and aortic compliance change the AR signs under anesthesia (2020 TEE guideline, p. 703); record blood pressure and heart rate with the numbers (ASE 2017, p. 318).');
       const t = w.take('type');
       if (t.pending) return ask('type');
       const acute = ch(t) === 'acute';
       if (acute) w.caution('Acute AR: the jet may be brief and of low velocity, the LV is not yet dilated, the mitral valve may close early and the aortic reversal may not be holodiastolic; keep a low threshold for TEE (pp. 336, 345).');
       return F.regurgitation(w, {
         criteria: ['flail', 'vc', 'jet', 'pisa', 'cw', 'pht', 'aorta', 'lv'],
-        quant: ['rvol', 'rf', 'eroa'],
+        need: 4,
+        scale: 4,
+        acute,
         specific: (id, g) => (acute && id === 'lv') ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
-        prefer: null,
+        measure: (w2) => F.lesionAndVolume(w2, ['rvol', 'rf', 'eroa'], 'eroa', ['rvol', 'rf'], 4, null, ''),
         gradeThree: (w2, severe, vars) => done(severe >= 3 ? 'grade3-severe' : 'grade3', vars),
+      });
+    };
+    F.rules.tr = function (w) {
+      if (w.tee) w.caution('TEE is in general more limited than TTE for the tricuspid valve, from off-angle planes and the distance from the probe (ASE 2017, p. 345); loading conditions and inotropes change the TR (2020 TEE guideline, pp. 700, 705).');
+      if (w.answers.jet === 'eccentric') w.caution('Eccentric, wall-impinging jet: its area underestimates the TR (p. 350).');
+      return F.regurgitation(w, {
+        criteria: ['valve', 'jet', 'cw', 'vc', 'pisa', 'hv', 'inflow', 'size'],
+        need: 4,
+        scale: 3,
+        specific: (id, g) => (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        measure: (w2) => {
+          // The vena contracta leads (Figure 31); EROA and volume by PISA come from one radius and count once.
+          const vc = w2.take('vc');
+          const parts = [];
+          let vcGrade = null;
+          if (num(vc) !== null) { vcGrade = tg(vc) === 'mild' ? 1 : (tg(vc) === 'severe' ? 3 : 2); parts.push(describe(w2, 'vc', num(vc), vcGrade, 3)); }
+          const pisa = [];
+          for (const id of ['eroa', 'rvol']) {
+            const g = w2.take(id);
+            if (g.pending) return { ask: id };
+            const n = num(g) === null ? null : level(tg(g));
+            if (n !== null) { pisa.push(n); parts.push(describe(w2, id, num(g), n, 3)); }
+          }
+          const text = parts.join('; ');
+          const p = pisa.length ? Math.max(...pisa) : null;
+          if (vcGrade === null && p === null) return { none: true };
+          if (p === null) return { grade: vcGrade, text };
+          if (vcGrade === null) return { grade: p, text };
+          if (p > vcGrade) { w2.caution('PISA reads higher than the vena contracta: the higher grade is taken (Figure 31).'); return { grade: p, text }; }
+          if (p < vcGrade) w2.caution('PISA reads lower than the vena contracta, which leads: 2D PISA flattens and underestimates TR flow (pp. 350, 352).');
+          return { grade: vcGrade, text };
+        },
+      });
+    };
+    F.rules.pr = function (w) {
+      if (w.tee) w.caution('The pulmonic valve is anterior and hard to image by TEE, and TEE is not a preferred modality when PR needs more than the TTE (ASE 2017, pp. 353, 359); loading conditions change the signs (2020 TEE guideline, p. 706).');
+      const softJet = w.answers.cw === 'soft';
+      return F.regurgitation(w, {
+        criteria: ['jet', 'rv', 'ratio', 'cw', 'pht', 'decel', 'branches'],
+        need: 3,
+        scale: 3,
+        minAssessed: 3,
+        noQuant: 'probable-moderate',
+        // Figure 35's criterion is a dense jet with a half-time under 100 ms.
+        specific: (id, g) => (id === 'pht' && softJet) ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        measure: (w2) => {
+          const g = w2.take('rf');
+          if (g.pending) return { ask: 'rf' };
+          const n = num(g) === null ? null : level(tg(g));
+          if (n === null) return { none: true };
+          return { grade: n, text: describe(w2, 'rf', num(g), n, 3) };
+        },
       });
     };
 
@@ -1011,7 +1075,7 @@
         const p = w.take('pasp');
         if (p.pending) return ask('pasp');
         if (num(g) === null || level(tg(g)) === null) return done('calcific-nograd');
-        return done('calcific-' + level(tg(g)), { mg: fmt(num(g)) });
+        return done('calcific-' + level(tg(g)), { mg: fmt(num(g)), pasp: num(p) !== null ? `, PA systolic pressure ${fmt(num(p))} mmHg` : '' });
       }
       const p = w.take('planimetry');
       if (p.pending) return ask('planimetry');
@@ -1061,6 +1125,7 @@
       if (v.pending) return ask('vmax');
       if (num(v) === null || !tg(v)) return done('nodata');
       const gradient = 4 * num(v) * num(v);
+      const where = ch(l) === 'sub' ? 'below the valve (infundibular)' : (ch(l) === 'supra' ? 'above the valve or in the branches' : null);
       const r = w.take('rvsp');
       if (r.pending) return ask('rvsp');
       let pa = '';
@@ -1070,6 +1135,7 @@
           ? ` RV systolic pressure ${fmt(num(r))} mmHg minus the valve gradient leaves a PA systolic pressure of about ${fmt(est)} mmHg (2009, p. 20).`
           : ' The valve gradient is higher than the RV systolic pressure entered: recheck both (2009, p. 20).';
       }
+      if (where) return done('nonvalvular', { v: fmt(num(v)), gradient: fmt(gradient), where, pa });
       return done(tg(v), { gradient: fmt(gradient), pa });
     };
 
@@ -1096,15 +1162,22 @@
       const counts = `${tags.filter((t) => t === 'normal').length} normal, ${tags.filter((t) => t === 'moderate').length} possible, ${tags.filter((t) => t === 'severe').length} significant`;
       if (!depKnown && !indepKnown) return done('nodata');
       if (depSig.length && indepSig.length) return done('significant', { dep: depSig.join(', '), indep: indepSig.join(', ') });
-      if (indepSig.length && !depSig.length && !depMid.length) return done('lowflow', { indep: indepSig.join(', ') });
+      if (indepSig.length && !depSig.length && !depMid.length) return done('lowflow', { indep: indepSig.join(', '), deptext: depKnown ? 'the velocity and gradient are not high' : 'no velocity or gradient was obtained' });
       const depHigh = depSig.concat(depMid);
       if (depHigh.length && indepKnown && !indepSig.length && !indepMid.length) {
         if (['contour', 'at', 'atet'].some((id) => got[id] && tg(got[id]) === 'severe')) w.caution('A rounded jet or a long acceleration time points to obstruction despite the normal EOA and DVI: recheck the LVOT sample and diameter (Table 5; Figure 13).');
+        const dep = { dep: depHigh.join(', ') };
+        const lf = w.take('leaflets');
+        if (lf.pending) return ask('leaflets');
+        if (ch(lf) === 'abnormal') return done('leaflet', dep);
+        // Mismatch needs a normally functioning valve and an EOA within 1 SD of the reference (Table 7).
+        const eoaOK = tavr ? (got.eoachange && ch(got.eoachange) === 'ok') : (got.eoa && ch(got.eoa) === 'ok');
+        if (ch(lf) !== 'normal' || !eoaOK) return done('highflow', dep);
         const b = w.take('bmi');
         if (b.pending) return ask('bmi');
         const i = w.take('ieoa');
         if (i.pending) return ask('ieoa');
-        if (num(i) === null || !ch(b)) return done('highflow', { dep: depHigh.join(', ') });
+        if (num(i) === null || !ch(b)) return done('highflow', dep);
         const obese = ch(b) === 'ge30', x = num(i);
         if (x <= (obese ? 0.55 : 0.65)) return done('ppm-severe', { ieoa: fmt(x) });
         if (x <= (obese ? 0.70 : 0.85)) return done('ppm-moderate', { ieoa: fmt(x) });
@@ -1112,7 +1185,9 @@
       }
       if (depSig.length && !indepKnown) w.caution('No flow-independent measure (EOA or DVI): Table 5 needs one to call the stenosis significant.');
       if (tags.includes('severe') || tags.includes('moderate')) return done('possible', { counts });
-      return done('normal', { counts });
+      // Normal needs one normal measure of each kind: a single parameter is not enough (ASE 2024, p. 17).
+      const depNormal = depIds.some((id) => got[id] && tg(got[id]) === 'normal'), indepNormal = indepIds.some((id) => got[id] && tg(got[id]) === 'normal');
+      return done(depNormal && indepNormal ? 'normal' : 'insufficient', { counts });
     };
   })();
 

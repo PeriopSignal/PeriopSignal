@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793381358,
+  "revision": 1793384031,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14712,17 +14712,17 @@
             "id": "highflow",
             "title": "Why is the flow high?",
             "kind": "choice",
-            "ask": "A high-flow state can push a non-severe valve's gradient into the severe range (p. 387).",
+            "ask": "A high-flow state can push a non-severe valve's gradient into the severe range (pp. 383, 387).",
             "options": [
               {
                 "id": "reversible",
                 "label": "A reversible cause",
-                "detail": "Anemia, fever, hyperthyroidism, an arteriovenous shunt"
+                "detail": "Anemia, fever, hyperthyroidism, an arteriovenous shunt that can be closed"
               },
               {
                 "id": "fixed",
                 "label": "A lasting cause",
-                "detail": "Hemodynamically significant aortic regurgitation, a dialysis fistula"
+                "detail": "Hemodynamically significant aortic regurgitation, or hemodialysis"
               },
               {
                 "id": "none",
@@ -14764,7 +14764,7 @@
             "title": "Velocity ratio",
             "kind": "number",
             "unit": "",
-            "ask": "LVOT velocity ÷ aortic velocity (or the VTI ratio): it leaves the LVOT diameter out, so it helps when that cannot be measured (Level 2, p. 382).",
+            "ask": "LVOT velocity ÷ aortic velocity (or the VTI ratio): it leaves the LVOT diameter out, so it helps when that cannot be measured (Level 2, p. 382). Table 3 prints severe as under 0.25 and the text as 0.25 or less; the app takes 0.25 as severe (p. 383).",
             "tte": "LVOT PW in apical five-chamber over the aortic CW peak.",
             "tee": "LVOT PW and aortic CW from the same deep transgastric or transgastric long-axis view. Under anesthesia it agrees with the awake TTE better than the gradients do (2020 TEE guideline, p. 704).",
             "bands": [
@@ -14774,14 +14774,14 @@
                 "label": "mild"
               },
               {
-                "ge": 0.25,
+                "gt": 0.25,
                 "le": 0.5,
                 "tag": "moderate",
                 "label": "moderate",
-                "range": "0.25–0.50"
+                "range": "0.26–0.50"
               },
               {
-                "lt": 0.25,
+                "le": 0.25,
                 "tag": "severe",
                 "label": "severe range"
               }
@@ -14871,6 +14871,11 @@
                 "id": "noreserve",
                 "label": "Stroke volume rose by 20% or less",
                 "detail": "No flow (contractile) reserve: the test cannot separate true from pseudosevere"
+              },
+              {
+                "id": "inconclusive",
+                "label": "Stroke volume rose over 20%, but neither pattern above",
+                "detail": "Flow reserve without a decisive area or gradient; the projected area at a normal flow rate can help (p. 385)"
               }
             ]
           },
@@ -14949,26 +14954,18 @@
               "Repeat the study once the flow has normalized (p. 387)."
             ]
           },
-          "area-mild": {
-            "grade": 1,
-            "headline": "Mild by planimetry alone",
-            "text": "Without velocity or gradient, planimetry gave {area} cm². It is the anatomic area, larger than the effective area that predicts outcome, and a second-line method (Level 2, p. 383).",
-            "next": [
-              "Get the CW Doppler from another window or by TEE."
-            ]
-          },
-          "area-moderate": {
-            "grade": 2,
-            "headline": "Moderate by planimetry alone",
-            "text": "Without velocity or gradient, planimetry gave {area} cm². It is the anatomic area, larger than the effective area that predicts outcome, and a second-line method (Level 2, p. 383).",
-            "next": [
-              "Get the CW Doppler from another window or by TEE."
-            ]
-          },
           "area-severe": {
             "grade": 3,
             "headline": "Severe range by planimetry alone",
-            "text": "Without velocity or gradient, planimetry gave {area} cm², under 1.0 cm². It is the anatomic area, larger than the effective area, so a small planimetered area is meaningful; still a second-line method (Level 2, p. 383).",
+            "text": "Without velocity or gradient, planimetry gave {area} cm², under 1.0 cm². The effective area is smaller than the planimetered anatomic one, so it is under 1.0 cm² too; still a second-line method (Level 2, p. 383).",
+            "next": [
+              "Get the CW Doppler from another window or by TEE.",
+              "CT calcium score or catheterization when the grade changes management."
+            ]
+          },
+          "area-other": {
+            "headline": "Planimetry alone: {area} cm²",
+            "text": "Without velocity or gradient the grade rests on an anatomic area, which is larger than the effective area that predicts outcome (p. 383): a planimetered {area} cm² does not exclude a worse grade.",
             "next": [
               "Get the CW Doppler from another window or by TEE.",
               "CT calcium score or catheterization when the grade changes management."
@@ -15122,7 +15119,7 @@
             "title": "Jet width ÷ LVOT width",
             "kind": "number",
             "unit": "%",
-            "ask": "Central jets only, within 1 cm of the valve. Not valid in eccentric or multiple jets: tap Cannot obtain (pp. 336–337).",
+            "ask": "Central jets only, measured in the LVOT within 1 cm of the vena contracta. Not valid in eccentric or multiple jets: tap Cannot obtain (pp. 336–337).",
             "tte": "Parasternal long axis, just below the valve.",
             "tee": "ME aortic valve long axis (120–140°).",
             "bands": [
@@ -15367,12 +15364,12 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild AR",
-            "text": "{mild} of Figure 25's specific criteria for mild AR and none for severe: definitely mild; quantitation is not needed (p. 344)."
+            "text": "{mild} of Figure 25's specific criteria for mild AR, against {severe} for severe among those assessed: definitely mild; quantitation is not needed (p. 344)."
           },
           "severe-specific": {
             "grade": 3,
             "headline": "Severe AR",
-            "text": "{severe} of Figure 25's specific criteria for severe AR and none for mild: definitely severe; you may still quantitate (p. 344)."
+            "text": "{severe} of Figure 25's specific criteria for severe AR, against {mild} for mild among those assessed: definitely severe; you may still quantitate (p. 344)."
           },
           "grade1": {
             "grade": 1,
@@ -15401,16 +15398,23 @@
           },
           "discordant": {
             "headline": "Indeterminate: findings disagree",
-            "text": "The quantitative grade ({quant}) and the specific signs ({mild} for mild, {severe} for severe) point different ways. Rely on the best-quality data and the most accurate measures for the clinical setting (p. 343).",
+            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) do not agree, or the measurements disagree with each other. Rely on the best-quality data and the most accurate measures for the clinical setting (p. 343).",
             "next": [
               "TEE or CMR for quantitation (Figure 25)."
             ]
           },
           "indeterminate": {
             "headline": "Indeterminate: quantitation needed",
-            "text": "Specific signs: {mild} for mild, {severe} for severe, short of the four that settle the grade, and no quantitative measure could be obtained (Figure 25). {lean}",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, which do not settle the grade, and no quantitative measure could be obtained (Figure 25). {lean}",
             "next": [
               "TEE or CMR for quantitation (Figure 25)."
+            ]
+          },
+          "acute-mild": {
+            "headline": "Acute AR: not graded mild",
+            "text": "The findings read mild ({quant}), but acute severe AR can be brief and of low velocity, with an LV that has not dilated (pp. 336, 345).",
+            "next": [
+              "TEE: keep a low threshold in suspected acute AR (p. 345)."
             ]
           }
         }
@@ -15511,7 +15515,7 @@
               {
                 "id": "soft",
                 "label": "Soft or incomplete",
-                "detail": "Faint, partial or parabolic",
+                "detail": "Faint or incomplete envelope",
                 "tag": "mild"
               },
               {
@@ -15535,12 +15539,12 @@
             "title": "Vena contracta width",
             "kind": "number",
             "unit": "cm",
-            "ask": "The narrowest neck of the jet, zoomed with a narrow color sector, in a view perpendicular to the flow with the convergence, neck and jet in one plane. Average the apical four- and two-chamber views for biplane, where severe is above 0.8 cm (Table 8; pp. 309, 325).",
+            "ask": "The narrowest neck of the jet, zoomed with a narrow color sector, in a view perpendicular to the flow with the convergence, neck and jet in one plane; biplane (apical four- and two-chamber average) severe is above 0.8 cm. Table 8 and the text call under 0.3 cm mild, Figure 18 prints 0.3 or less; the app counts under 0.3 (Table 8; pp. 309, 325, 328).",
             "tte": "Parasternal long axis, zoomed.",
-            "tee": "ME four-chamber, mitral commissural, two-chamber or long axis, zoomed; 3D multiplanar reconstruction for width and area (2020 TEE guideline, pp. 698–699).",
+            "tee": "ME long axis (120–140°), the analogue of the parasternal long axis the guideline prefers (ASE 2017, p. 328), zoomed; 3D multiplanar reconstruction for width and area (2020 TEE guideline, p. 698).",
             "bands": [
               {
-                "le": 0.3,
+                "lt": 0.3,
                 "tag": "mild",
                 "label": "specific for mild"
               },
@@ -15693,7 +15697,7 @@
             "unit": "mL",
             "ask": "By PISA (EROA × MR VTI) or by volumes (mitral or LV stroke volume minus LVOT stroke volume). In low flow, severe MR can have a volume under 60 mL (Figure 18).",
             "tte": "PISA in apical four-chamber, or the stroke volume method.",
-            "tee": "PISA in the ME views. LVOT pulsed Doppler is the measurement TEE handles worst: angulation underestimates the forward flow (ASE 2017, p. 331).",
+            "tee": "PISA in the ME views. LVOT pulsed Doppler on TEE is usually hampered by angulation, which underestimates the forward flow (ASE 2017, p. 331).",
             "bands": [
               {
                 "lt": 30,
@@ -15781,12 +15785,12 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild MR",
-            "text": "{mild} of Figure 18's specific criteria for mild MR and none for severe: definitely mild, and no further measurement is needed (p. 333)."
+            "text": "{mild} of Figure 18's specific criteria for mild MR, against {severe} for severe among those assessed: definitely mild, and no further measurement is needed (p. 333)."
           },
           "severe-specific": {
             "grade": 3,
             "headline": "Severe MR",
-            "text": "{severe} of Figure 18's specific criteria for severe MR and none for mild: definitely severe; quantitation would substantiate it (p. 333)."
+            "text": "{severe} of Figure 18's specific criteria for severe MR, against {mild} for mild among those assessed: definitely severe; quantitation would substantiate it (p. 333)."
           },
           "grade1": {
             "grade": 1,
@@ -15815,16 +15819,23 @@
           },
           "discordant": {
             "headline": "Indeterminate: findings disagree",
-            "text": "The quantitative grade ({quant}) and the specific signs ({mild} for mild, {severe} for severe) point different ways. Look for technical or physiologic reasons, rely on the best-quality data, and quantitate further (p. 333).",
+            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) do not agree, or the measurements disagree with each other. Look for technical or physiologic reasons, rely on the best-quality data, and quantitate further (p. 333).",
             "next": [
               "TEE or CMR for quantitation (Figure 18)."
             ]
           },
           "indeterminate": {
             "headline": "Indeterminate: quantitation needed",
-            "text": "Specific signs: {mild} for mild, {severe} for severe, short of the four that settle the grade, and no quantitative measure could be obtained (Figure 18). {lean}",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, which do not settle the grade, and no quantitative measure could be obtained (Figure 18). {lean}",
             "next": [
               "TEE or CMR for quantitation (Figure 18)."
+            ]
+          },
+          "acute-mild": {
+            "headline": "Acute MR: not graded mild",
+            "text": "The findings read mild ({quant}), but acute severe MR can have a small, brief, eccentric low-velocity jet with normal chambers, and Table 8 and Figure 18 apply to chronic MR (p. 323).",
+            "next": [
+              "TEE: keep a low threshold in suspected acute MR (p. 334)."
             ]
           }
         }
@@ -16043,17 +16054,17 @@
           "calcific-1": {
             "grade": 1,
             "headline": "Calcific MS, mild by gradient",
-            "text": "Mean gradient {mg} mmHg. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
           },
           "calcific-2": {
             "grade": 2,
             "headline": "Calcific MS, moderate by gradient",
-            "text": "Mean gradient {mg} mmHg. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
           },
           "calcific-3": {
             "grade": 3,
             "headline": "Calcific MS, severe by gradient",
-            "text": "Mean gradient {mg} mmHg. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+            "text": "Mean gradient {mg} mmHg{pasp}. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
           },
           "calcific-nograd": {
             "headline": "Calcific MS without a gradient",
@@ -16075,7 +16086,7 @@
           "hahn2013"
         ],
         "ref": "ASE 2017, Figure 31 and Table 14, pp. 350–353",
-        "intro": "Figure 31 asks whether most of its seven specific criteria for mild or for severe TR are met; the app takes four, a majority. Otherwise TR is probably moderate, and the vena contracta, with EROA and regurgitant volume by PISA when possible, decides; poor images or discordant results end as indeterminate, for TEE or CMR (p. 352). Grades beyond severe have not been validated (p. 353).",
+        "intro": "Figure 31 asks whether most of its seven specific criteria for mild or for severe TR are met; the app takes four, a majority. Otherwise TR is probably moderate, and the vena contracta, with EROA and regurgitant volume by PISA when possible, decides; poor images or discordant results end as indeterminate, for TEE or CMR (p. 352). Subclassifying TR into four grades has not been validated (p. 353).",
         "steps": [
           {
             "id": "valve",
@@ -16338,38 +16349,38 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild TR",
-            "text": "{mild} of Figure 31's seven specific criteria for mild TR and none for severe; mild TR is common in normal individuals (p. 353)."
+            "text": "{mild} of Figure 31's seven specific criteria for mild TR, against {severe} for severe among those assessed; mild TR is common in normal individuals (p. 353)."
           },
           "severe-specific": {
             "grade": 3,
             "headline": "Severe TR",
-            "text": "{severe} of Figure 31's seven specific criteria for severe TR and none for mild (p. 352)."
+            "text": "{severe} of Figure 31's seven specific criteria for severe TR, against {mild} for mild among those assessed (p. 352)."
           },
           "q-mild": {
             "grade": 1,
             "headline": "Mild TR",
-            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the measurements decide: {quant} (Figure 31)."
+            "text": "Specific signs ({mild} mild, {severe} severe) do not settle it, so the measurements decide: {quant} (Figure 31)."
           },
           "q-moderate": {
             "grade": 2,
             "headline": "Moderate TR",
-            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the measurements decide: {quant} (Figure 31)."
+            "text": "Specific signs ({mild} mild, {severe} severe) do not settle it, so the measurements decide: {quant} (Figure 31)."
           },
           "q-severe": {
             "grade": 3,
             "headline": "Severe TR",
-            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the measurements decide: {quant} (Figure 31)."
+            "text": "Specific signs ({mild} mild, {severe} severe) do not settle it, so the measurements decide: {quant} (Figure 31)."
           },
           "discordant": {
             "headline": "Indeterminate: findings disagree",
-            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) point different ways (Figure 31).",
+            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) do not agree, or the vena contracta and PISA disagree (Figure 31).",
             "next": [
               "TEE or CMR for quantitation (Figure 31)."
             ]
           },
           "indeterminate": {
             "headline": "Indeterminate: vena contracta needed",
-            "text": "Specific signs: {mild} for mild, {severe} for severe, short of a majority, and no vena contracta or PISA value could be obtained (Figure 31). {lean}",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, which do not settle the grade, and no vena contracta or PISA value could be obtained (Figure 31). {lean}",
             "next": [
               "TEE or CMR for quantitation (Figure 31)."
             ]
@@ -16448,7 +16459,7 @@
             "title": "Pressure half-time of the PR jet",
             "kind": "number",
             "unit": "ms",
-            "ask": "Under 100 ms with a dense jet is specific for severe PR in Figure 35, but steep deceleration also comes with a stiff RV or high RV diastolic pressure (pp. 356, 358).",
+            "ask": "Under 100 ms with a dense jet is specific for severe PR in Figure 35, so it does not count after a soft jet; steep deceleration also comes with a stiff RV or high RV diastolic pressure (pp. 356, 358).",
             "tte": "Parasternal short axis, CW.",
             "tee": "Upper esophageal aortic arch short axis, CW.",
             "bands": [
@@ -16561,27 +16572,27 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild PR",
-            "text": "{mild} of Figure 35's four specific criteria for mild PR and none for severe; mild PR is common in normal individuals (p. 359)."
+            "text": "{mild} of Figure 35's four specific criteria for mild PR, against {severe} for severe among those assessed; mild PR is common in normal individuals (p. 359)."
           },
           "severe-specific": {
             "grade": 3,
             "headline": "Severe PR",
-            "text": "{severe} of Figure 35's five specific criteria for severe PR and none for mild (p. 359)."
+            "text": "{severe} of Figure 35's five specific criteria for severe PR, against {mild} for mild among those assessed (p. 359)."
           },
           "q-mild": {
             "grade": 1,
             "headline": "Mild PR",
-            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the regurgitant fraction decides: {quant} (Figure 35)."
+            "text": "Specific signs ({mild} mild, {severe} severe) do not settle it, so the regurgitant fraction decides: {quant} (Figure 35)."
           },
           "q-moderate": {
             "grade": 2,
             "headline": "Moderate PR",
-            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the regurgitant fraction decides: {quant} (Figure 35)."
+            "text": "Specific signs ({mild} mild, {severe} severe) do not settle it, so the regurgitant fraction decides: {quant} (Figure 35)."
           },
           "q-severe": {
             "grade": 3,
             "headline": "Severe PR",
-            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the regurgitant fraction decides: {quant} (Figure 35)."
+            "text": "Specific signs ({mild} mild, {severe} severe) do not settle it, so the regurgitant fraction decides: {quant} (Figure 35)."
           },
           "discordant": {
             "headline": "Indeterminate: findings disagree",
@@ -16592,7 +16603,7 @@
           },
           "indeterminate": {
             "headline": "Indeterminate",
-            "text": "None of Figure 35's criteria could be assessed and no regurgitant fraction was obtained. {lean}",
+            "text": "Too few of Figure 35's criteria could be assessed ({mild} for mild, {severe} for severe) and no regurgitant fraction was obtained. {lean}",
             "next": [
               "CMR for quantitation (Figure 35)."
             ]
@@ -16600,7 +16611,7 @@
           "probable-moderate": {
             "grade": 2,
             "headline": "Probably moderate PR",
-            "text": "Specific signs: {mild} for mild, {severe} for severe, short of a majority, and no regurgitant fraction: Figure 35 calls this probably moderate. {lean}",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, which do not settle the grade, and no regurgitant fraction: Figure 35 calls this probably moderate. {lean}",
             "next": [
               "CMR for quantitation when significant PR is suspected (Figure 35)."
             ]
@@ -16707,6 +16718,13 @@
             "next": [
               "Try the subcostal window, or on TEE the upper esophageal aortic arch short axis (2013 TEE guideline, p. 942).",
               "CMR or catheterization when the grade matters."
+            ]
+          },
+          "nonvalvular": {
+            "headline": "Obstruction not at the valve",
+            "text": "Peak velocity {v} m/s (peak gradient {gradient} mmHg) across an obstruction {where}: Table 11 grades valvular stenosis, and the ASE cutoffs assume no sub- or supravalvular obstruction (2009, p. 20; 2023, p. 20).{pa}",
+            "next": [
+              "Locate each level with PW Doppler along the outflow (2009, p. 20); CMR or catheterization when the levels cannot be separated."
             ]
           }
         }
@@ -17006,6 +17024,26 @@
             ]
           },
           {
+            "id": "leaflets",
+            "title": "Leaflet or occluder motion",
+            "kind": "choice",
+            "ask": "Mismatch means a normally functioning valve: leaflets or occluder that look and open normally, with an EOA within 1 SD of the reference (Table 7). TEE, CT or fluoroscopy show them best (p. 17).",
+            "tte": "Parasternal and apical views, zoomed; off-axis views for an occluder.",
+            "tee": "ME aortic valve short and long axis; transgastric views for leaflet motion (ASE 2024, p. 17).",
+            "options": [
+              {
+                "id": "normal",
+                "label": "Open normally",
+                "tag": "normal"
+              },
+              {
+                "id": "abnormal",
+                "label": "Restricted, thickened, or with a mass",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
             "id": "bmi",
             "title": "Body mass index",
             "kind": "choice",
@@ -17058,16 +17096,31 @@
           },
           "highflow": {
             "headline": "High gradient, normal EOA and DVI",
-            "text": "A flow-dependent sign is high ({dep}) but the flow-independent ones are normal: look for high flow, sub- or supravalvular obstruction, pressure recovery (small bileaflet valves, aorta under 3 cm) or a mismatch (ASE 2024, pp. 9, 18).",
+            "text": "A flow-dependent sign is high ({dep}) but the flow-independent ones are normal: look for high flow, sub- or supravalvular obstruction, pressure recovery (small bileaflet valves, aorta under 3 cm) or a mismatch (ASE 2024, pp. 9, 18). Mismatch is not established without normal leaflet motion, an EOA within 1 SD of the reference and the indexed EOA (Table 7).",
             "next": [
               "Check the stroke volume and the LVOT velocity.",
-              "Mismatch: the indexed EOA against Table 7."
+              "Leaflet motion by TEE, CT or fluoroscopy (p. 17)."
+            ]
+          },
+          "leaflet": {
+            "headline": "High gradient with abnormal leaflet motion",
+            "text": "A high gradient ({dep}) with restricted or thickened leaflets, or a mass, points to obstruction by thrombus, pannus or degeneration even with a normal EOA or DVI; mismatch requires a normally functioning valve (Table 7; pp. 17–18).",
+            "next": [
+              "TEE, CT or fluoroscopy to find the cause (ASE 2024, pp. 17–18)."
+            ]
+          },
+          "insufficient": {
+            "headline": "Not enough to call it normal",
+            "text": "Normal needs at least one normal flow-dependent measure (velocity, mean gradient) and one normal flow-independent measure (EOA, DVI): diagnosis should not rest on a single parameter (ASE 2024, p. 17). Here: {counts}.",
+            "next": [
+              "Get the missing measure, by TEE if needed.",
+              "Low output can hide a high gradient (p. 18)."
             ]
           },
           "lowflow": {
             "grade": 2,
             "headline": "Possible stenosis hidden by low flow",
-            "text": "A flow-independent sign is abnormal ({indep}) without a high velocity or gradient: with poor LV function or high systemic pressure, high gradients may be absent despite significant stenosis (ASE 2024, p. 18).",
+            "text": "A flow-independent sign is abnormal ({indep}) while {deptext}: with poor LV function or high systemic pressure, high gradients may be absent despite significant stenosis (ASE 2024, p. 18).",
             "next": [
               "Image leaflet or occluder motion by TEE, CT or fluoroscopy (p. 17).",
               "Stress echo when symptoms and resting data disagree (p. 11)."
@@ -17102,7 +17155,7 @@
     ],
     "notes": [
       "Each step can be skipped with Cannot obtain; the flow moves on and ends as soon as the guideline's criteria settle the grade.",
-      "The guidelines' tables are for transthoracic studies in awake patients; none gives TEE-specific cutoffs, and loading conditions under general anesthesia usually make regurgitation read less severe and gradients lower. The TEE views come from the 2013 comprehensive TEE and the 2020 surgical decision-making guidelines."
+      "The guidelines' tables are for transthoracic studies in awake patients; none gives TEE-specific cutoffs, and loading conditions under general anesthesia usually make regurgitation read less severe and gradients lower. Which TEE view suits each measurement comes from the 2020 surgical decision-making guideline's tables; the multiplane angles come from the 2013 comprehensive TEE guideline (pp. 932–941)."
     ]
   }
 }

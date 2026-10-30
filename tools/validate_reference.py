@@ -11,6 +11,43 @@ DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 UNITS = {"mg", "mcg", "g", "mL", "mEq", "J", "units", "mmol"}
 
 
+# Ids the valve-workflow rules name (ios/Shared/ValveFlow.swift, R.valveFlow in src/reference-logic.js).
+_REGURG = ["severe-specific", "mild-specific", "indeterminate", "discordant"]
+VALVE_FLOW_CONTRACT = {
+    "as": {"steps": ["vmax", "mg", "svi", "highflow", "ava", "vratio", "planimetry", "errors", "lvef", "dse", "confirm", "calcium"],
+           "options": {"highflow": ["reversible", "fixed"], "dse": ["severe", "pseudo", "noreserve", "inconclusive"], "confirm": ["normal"], "calcium": ["likely", "unlikely"]},
+           "tags": {"svi": ["high"], "vmax": ["normal", "mild", "moderate"]},
+           "results": ["severe-high", "high-reversible", "severe-fixed-flow", "area-severe", "area-other", "nodata", "noarea", "moderate", "mild", "sclerosis",
+                       "flow-unknown", "normal-flow", "ef-unknown", "dse-severe", "dse-pseudo", "dse-next", "calcium-severe", "calcium-unlikely", "indeterminate"]},
+    "mr": {"steps": ["type", "flail", "jet", "cw", "vc", "pisa", "pv", "inflow", "size", "eroa", "rvol", "rf", "ellipse"],
+           "options": {"type": ["acute", "secondary"], "jet": ["eccentric"], "cw": ["partial"], "ellipse": ["yes"]},
+           "tags": {"eroa": ["g1", "g2", "g3", "g4"], "rvol": ["g1", "g2", "g3", "g4"], "rf": ["g1", "g2", "g3", "g4"]},
+           "results": _REGURG + ["acute-mild", "grade1", "grade2", "grade3", "grade3-severe", "grade4"]},
+    "ar": {"steps": ["type", "flail", "vc", "jet", "pisa", "cw", "pht", "aorta", "lv", "rvol", "rf", "eroa"],
+           "options": {"type": ["acute"]},
+           "tags": {"eroa": ["g1", "g2", "g3", "g4"], "rvol": ["g1", "g2", "g3", "g4"], "rf": ["g1", "g2", "g3", "g4"]},
+           "results": _REGURG + ["acute-mild", "grade1", "grade2", "grade3", "grade3-severe", "grade4"]},
+    "tr": {"steps": ["valve", "jet", "cw", "vc", "pisa", "hv", "inflow", "size", "eroa", "rvol"],
+           "options": {"jet": ["eccentric"]},
+           "tags": {"vc": ["mild", "severe"], "eroa": ["mild", "moderate", "severe"], "rvol": ["mild", "moderate", "severe"]},
+           "results": _REGURG + ["q-mild", "q-moderate", "q-severe"]},
+    "pr": {"steps": ["jet", "rv", "ratio", "cw", "pht", "decel", "branches", "rf"],
+           "options": {"cw": ["soft"]},
+           "tags": {"rf": ["mild", "moderate", "severe"]},
+           "results": _REGURG + ["probable-moderate", "q-mild", "q-moderate", "q-severe"]},
+    "ms": {"steps": ["etiology", "planimetry", "pht", "mg", "pasp", "alt"],
+           "options": {"etiology": ["calcific"]},
+           "results": ["calcific-1", "calcific-2", "calcific-3", "calcific-nograd", "mild", "moderate", "severe", "supportive-only", "nodata"]},
+    "ps": {"steps": ["level", "vmax", "rvsp"],
+           "options": {"level": ["sub", "supra", "serial"]},
+           "tags": {"vmax": ["mild", "moderate", "severe"]},
+           "results": ["mild", "moderate", "severe", "nodata", "nonvalvular"]},
+    "pav": {"steps": ["kind", "vmax", "contour", "at", "atet", "mg", "dvi", "eoa", "mgchange", "dvichange", "eoachange", "leaflets", "bmi", "ieoa"],
+            "options": {"kind": ["tavr"], "eoa": ["ok"], "eoachange": ["ok"], "leaflets": ["normal", "abnormal"], "bmi": ["ge30"]},
+            "results": ["nodata", "significant", "lowflow", "leaflet", "highflow", "ppm-severe", "ppm-moderate", "ppm-none", "possible", "normal", "insufficient"]},
+}
+
+
 def main(path):
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
@@ -583,8 +620,35 @@ def main(path):
                 for b in st.get("bands") or []:
                     bounds = [b.get(k) for k in ("lt", "le", "gt", "ge") if b.get(k) is not None]
                     need(bounds and all(isinstance(x, (int, float)) for x in bounds) and isinstance(b.get("tag"), str), f"valve flow {fid}/{sid}: each band needs a tag and a numeric bound")
+            # bands of one step must not overlap
+            for st in f.get("steps") or []:
+                bs = st.get("bands") or []
+                def inside(b, v):
+                    return all([b.get("lt") is None or v < b["lt"], b.get("le") is None or v <= b["le"], b.get("gt") is None or v > b["gt"], b.get("ge") is None or v >= b["ge"]])
+                edges = sorted({x for b in bs for x in (b.get("lt"), b.get("le"), b.get("gt"), b.get("ge")) if isinstance(x, (int, float))})
+                probes = [x + d for x in edges for d in (-1e-6, 0, 1e-6)]
+                for v in probes:
+                    need(sum(1 for b in bs if inside(b, v)) <= 1, f"valve flow {fid}/{st.get('id')}: bands overlap at {v:g}")
             res = f.get("results") or {}
             need(bool(res), f"valve flow {fid}: results required")
+            # The rules in ios/Shared/ValveFlow.swift and src/reference-logic.js (R.valveFlow) name these ids: content that
+            # renames one would silently turn a branch off, so they must exist.
+            contract = VALVE_FLOW_CONTRACT.get(fid)
+            need(contract is not None, f"valve flow {fid}: no rules in the apps for this flow")
+            if contract:
+                steps_by_id = {st.get("id"): st for st in f.get("steps") or []}
+                for sid in contract["steps"]:
+                    need(sid in steps_by_id, f"valve flow {fid}: the rules ask for step {sid}")
+                for sid, opts in contract.get("options", {}).items():
+                    have = {o.get("id") for o in (steps_by_id.get(sid) or {}).get("options") or []}
+                    for o in opts:
+                        need(o in have, f"valve flow {fid}/{sid}: the rules use option {o}")
+                for sid, tags in contract.get("tags", {}).items():
+                    have = {b.get("tag") for b in (steps_by_id.get(sid) or {}).get("bands") or []}
+                    for t in tags:
+                        need(t in have, f"valve flow {fid}/{sid}: the rules use band tag {t}")
+                for rid in contract["results"]:
+                    need(rid in res, f"valve flow {fid}: the rules end on result {rid}")
             for rid, r in res.items():
                 need(isinstance(r.get("headline"), str) and r["headline"] and isinstance(r.get("text"), str) and r["text"], f"valve flow {fid}/{rid}: headline and text required")
                 need(r.get("grade") in (None, 1, 2, 3), f"valve flow {fid}/{rid}: grade must be 1, 2 or 3")
