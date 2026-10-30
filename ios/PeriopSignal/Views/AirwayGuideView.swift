@@ -26,7 +26,7 @@ struct AirwayGuideView: View {
     }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 assessment
                 planCard

@@ -14,7 +14,7 @@ struct ValveInterventionView: View {
     private var questions: [VIQuestion] { ValveIntervention.questions(for: lesion) }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 picker
                 resultCard

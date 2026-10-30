@@ -10,7 +10,6 @@ struct AbgView: View {
 
     @State private var values: [String: String] = Self.seededValues()
     @State private var copied = false
-    @FocusState private var focused: Bool
 
     private var data: AbgData? { refs.bundle?.abg }
 
@@ -35,7 +34,7 @@ struct AbgView: View {
     ]
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 if let d = data {
                     let r = AbgCalc.read(ph: num("ph"), paco2: num("paco2"), hco3: num("hco3"), data: d)
@@ -59,7 +58,7 @@ struct AbgView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
         .sensoryFeedback(.success, trigger: copied)
@@ -107,14 +106,16 @@ struct AbgView: View {
                         }
                         Spacer(minLength: 6)
                         Circle().fill(flag == true ? PS.accent : (flag == false ? PS.green : Color.clear)).frame(width: 8, height: 8)
-                        TextField(placeholder, text: Binding(get: { values[fld.id] ?? "" }, set: { values[fld.id] = $0 }))
-                            .keyboardType(.decimalPad)
-                            .focused($focused)
-                            .multilineTextAlignment(.trailing)
-                            .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(PS.fg)
-                            .padding(.horizontal, 6).padding(.vertical, 5)
-                            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        FocusBox { f in
+                            TextField(placeholder, text: Binding(get: { values[fld.id] ?? "" }, set: { values[fld.id] = $0 }))
+                                .keyboardType(.decimalPad)
+                                .focused(f)
+                                .multilineTextAlignment(.trailing)
+                                .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(PS.fg)
+                                .padding(.horizontal, 6).padding(.vertical, 5)
+                                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
                             .frame(width: 84)
                             .accessibilityLabel(fld.label + (fld.unit.isEmpty ? "" : " in " + fld.unit))
                         Text(fld.unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)

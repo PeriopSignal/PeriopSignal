@@ -949,6 +949,29 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(text, "Code log (child, 18 kg), started 12:00:00\n12:00:00  +0:00  Code clock started\n12:01:15  +1:15  Epinephrine 0.18 mg IV/IO")
     }
 
+    /// The Adult/Child switch and the mode tabs log through the store. Build 15 read the code time inside
+    /// `state?.add(...)`, a simultaneous access to `state` that stopped the app on the first tap.
+    func testAclsStoreSwitchesWithoutOverlappingAccess() throws {
+        let store = AclsStore()
+        store.start()
+        store.setPatient("child")
+        XCTAssertEqual(store.state?.patient, "child")
+        XCTAssertEqual(store.state?.log.last?.text, "Patient: child")
+        store.setPatient("child")
+        XCTAssertEqual(store.state?.log.count, 2, "the same choice again logs nothing")
+        store.switchMode(to: "brady", name: "Bradycardia")
+        XCTAssertEqual(store.state?.mode, "brady")
+        XCTAssertEqual(store.state?.log.last?.text, "Switched to Bradycardia")
+        store.state = nil
+        store.setPatient("adult")
+        store.switchMode(to: "arrest", name: "Cardiac arrest")
+        XCTAssertNil(store.state, "nothing to change once the code has ended")
+        // Absurd entries read as no value rather than stopping the app.
+        XCTAssertEqual(AclsCalc.clock(.infinity), "—")
+        XCTAssertNil(AclsCalc.whole(1e20))
+        XCTAssertEqual(AclsCalc.whole(71.6), 72)
+    }
+
     func testAclsBundle() throws {
         guard let a = try bundled().acls else { return }
         XCTAssertGreaterThan(a.cycleSec, 0)

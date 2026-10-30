@@ -348,7 +348,7 @@ struct RegionalFinderView: View {
     private var data: RegionalData? { refs.bundle?.regional }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 if let d = data {
                     let rec = RegionalCalc.recommend(Array(selected), d)
@@ -507,7 +507,7 @@ struct BlocksView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView {
+            ToolScroll {
                 VStack(alignment: .leading, spacing: 16) {
                     if let d = data {
                         let groups = d.blockGroups ?? []
@@ -607,7 +607,7 @@ struct NeuraxialGuideView: View {
     private var data: RegionalData? { refs.bundle?.regional }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 if let d = data, let n = d.neuraxial {
                     let p = n.procedures.first(where: { $0.id == proc }) ?? n.procedures.first

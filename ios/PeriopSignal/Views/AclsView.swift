@@ -34,6 +34,27 @@ import AudioToolbox
         confirmEnd = false
         now = Date()
     }
+
+    // Changes go through a copy of the state, with the code time read first: reading `t` (which reads `state`)
+    // inside `state?.add(...)` is a simultaneous access to `state`, which stops the app (build 15's crash).
+
+    /// Adult or child, logged.
+    func setPatient(_ v: String) {
+        guard var s = state, s.patient != v else { return }
+        let at = t
+        s.patient = v
+        s.add(at, nil, "Patient: \(v)")
+        state = s
+    }
+
+    /// Another mode (arrest, bradycardia, …), logged.
+    func switchMode(to id: String, name: String) {
+        guard var s = state, s.mode != id else { return }
+        let at = t
+        s.mode = id
+        s.add(at, nil, "Switched to \(name)")
+        state = s
+    }
 }
 
 private extension String { var nilIfEmpty: String? { isEmpty ? nil : self } }
@@ -78,7 +99,7 @@ struct AclsView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
         .onAppear {
@@ -118,7 +139,7 @@ struct AclsView: View {
     private func content(_ d: AclsData, _ s: AclsState) -> some View {
         let t = store.t
         let m = AclsCalc.mode(s, d) ?? d.modes[0]
-        return ScrollView {
+        return ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 if store.confirmEnd { confirmCard(s) }
                 if s.patient == "child" {
@@ -178,11 +199,7 @@ struct AclsView: View {
                 .frame(height: 6)
             }
             HStack(spacing: 12) {
-                Picker("Patient", selection: Binding(get: { s.patient }, set: { v in
-                    guard store.state?.patient != v else { return }
-                    store.state?.patient = v
-                    store.state?.add(store.t, nil, "Patient: \(v)")
-                })) {
+                Picker("Patient", selection: Binding(get: { s.patient }, set: { v in store.setPatient(v) })) {
                     Text("Adult").tag("adult")
                     Text("Child").tag("child")
                 }
@@ -246,10 +263,7 @@ struct AclsView: View {
                     Button {
                         guard !on else { return }
                         Haptics.light()
-                        withAnimation(.snappy) {
-                            store.state?.mode = x.id
-                            store.state?.add(store.t, nil, "Switched to \(x.name)")
-                        }
+                        withAnimation(.snappy) { store.switchMode(to: x.id, name: x.name) }
                     } label: {
                         Text(x.short ?? x.name)
                             .font(PS.sys(size: 13.5, weight: .semibold))
@@ -351,13 +365,15 @@ struct AclsView: View {
                     HStack {
                         Text("Energy used for the next shock").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
                         Spacer()
-                        TextField(e?.joules.map { String($0) } ?? "J", text: $store.joules)
-                            .keyboardType(.numberPad)
-                            .focused($focused)
-                            .multilineTextAlignment(.trailing)
-                            .font(PS.sys(size: 16, weight: .semibold, design: .monospaced))
-                            .padding(.horizontal, 8).padding(.vertical, 6)
-                            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        FocusBox { f in
+                            TextField(e?.joules.map { String($0) } ?? "J", text: $store.joules)
+                                .keyboardType(.numberPad)
+                                .focused(f)
+                                .multilineTextAlignment(.trailing)
+                                .font(PS.sys(size: 16, weight: .semibold, design: .monospaced))
+                                .padding(.horizontal, 8).padding(.vertical, 6)
+                                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
                             .frame(width: 84)
                         Text("J").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                     }

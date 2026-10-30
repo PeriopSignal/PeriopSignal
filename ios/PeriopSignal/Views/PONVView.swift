@@ -16,7 +16,7 @@ struct PONVView: View {
     private var band: ScoreBand? { def.band(for: factors) }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 22) {
                 riskCard
                 if let data {

@@ -2,14 +2,15 @@ import SwiftUI
 
 // MARK: - Pieces the My Patient screens share
 
-/// A number bound to the record, typed freely: the text is kept while typing and parsed into the value.
+/// A number bound to the record, typed freely: the text is kept while typing and parsed into the value. The field
+/// has its own focus, and a tap anywhere on the row starts typing.
 struct PatientNumberField: View {
     var label: String
     var unit: String
     @Binding var value: Double?
     var hint: String? = nil
-    var focus: FocusState<Bool>.Binding
     @State private var text = ""
+    @FocusState private var focused: Bool
 
     private static func parse(_ s: String) -> Double? {
         let v = Double(s.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "."))
@@ -26,7 +27,7 @@ struct PatientNumberField: View {
             Spacer(minLength: 6)
             TextField("—", text: $text)
                 .keyboardType(.decimalPad)
-                .focused(focus)
+                .focused($focused)
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
                 .foregroundStyle(PS.fg)
@@ -36,6 +37,8 @@ struct PatientNumberField: View {
             Text(unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 52, alignment: .leading)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture { focused = true }
         // NumText.exact, not a rounding format: the text parses back to the same value, so showing it never edits it.
         .onAppear { text = value.map { NumText.exact($0) } ?? "" }
         .onChange(of: text) { _, t in
@@ -48,25 +51,27 @@ struct PatientNumberField: View {
     }
 }
 
-/// Free text bound to the record.
+/// Free text bound to the record; a tap on the label or anywhere in the box starts typing.
 struct PatientTextField: View {
     var label: String
     var prompt: String
     @Binding var text: String
-    var focus: FocusState<Bool>.Binding
+    @FocusState private var focused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
             TextField(prompt, text: $text, axis: .vertical)
                 .lineLimit(1...8)
-                .focused(focus)
+                .focused($focused)
                 .font(PS.sys(size: 15))
                 .foregroundStyle(PS.fg)
                 .padding(10)
                 .background(PS.surface2, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture { focused = true }
     }
 }
 
