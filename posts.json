@@ -49,6 +49,12 @@
     ],
     "answer": 2,
     "explanation": "Proning increased airway plugging or obstruction (rate ratio 4.83) and stage 2 or worse pressure injuries (6% vs 1%) without adding ventilator-free days (17.9 vs 17.4) or changing day-28 mortality. Haemodynamic instability was the excess harm with HFOV. The trial stopped early at 424 of 600 planned patients."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-2026-prospect-prone-hfov-pards.mp3",
+    "seconds": 219,
+    "bytes": 1754349,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -84,6 +90,12 @@
     "n": "914 adults having VATS lung resection randomized; 873 analyzed",
     "outcome": "Chronic pain at 3 months (NRS 1 or more on coughing at the surgical site)",
     "result": "14.7% vs 21.2%; adjusted OR 0.62 (95% CI 0.43-0.90)"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/bja-2026-esketamine-chronic-pain-vats.mp3",
+    "seconds": 217,
+    "bytes": 1733037,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -133,6 +145,12 @@
     ],
     "answer": 1,
     "explanation": "Complications were similar: 13% vs 12% on the first attempt and 14% in both groups across all attempts, with no cardiac arrests or deaths. The 8.2% figure is the adjusted risk difference in first-attempt success (83% vs 75%), not a fall in complications. These were elective cases at experienced centres, with difficult airways excluded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-child-2026-nasovisi-videolaryngoscopy-nasotracheal-infants.mp3",
+    "seconds": 221,
+    "bytes": 1770861,
+    "voice": "kokoro:af_heart"
    }
   },
   {
