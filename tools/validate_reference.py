@@ -239,6 +239,15 @@ def main(path):
                     need(isinstance(x.get("unit"), str) and x["unit"].endswith("/m²"), f"echo measure {mid}: indexed.unit must be per m²")
                     need(m.get("index") is None, f"echo measure {mid}: a row is either indexed or carries indexed cutoffs")
                     check_refs(mid, x, low, "indexed")
+        coupling = echo.get("coupling")
+        if coupling is not None:
+            need(coupling.get("group") in gids, "echo.coupling.group must name an echo group")
+            need(coupling.get("source") in src_ids, "echo.coupling.source must name an echo source")
+            for k in ("healthy", "uncoupled"):
+                r = coupling.get(k)
+                need(isinstance(r, list) and len(r) == 2 and all(isinstance(x, (int, float)) for x in r) and 0 < r[0] < r[1] < 2,
+                     f"echo.coupling.{k} must be [low, high] in mm/mmHg")
+            need((coupling.get("uncoupled") or [0, 0])[1] < (coupling.get("healthy") or [0, 0])[0], "echo.coupling: the uncoupled range must sit below the healthy one")
         ivc = echo.get("ivc")
         if ivc is not None:
             need(ivc.get("group") in gids, "echo.ivc.group must name an echo group")

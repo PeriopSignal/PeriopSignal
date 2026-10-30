@@ -3,7 +3,7 @@ import Foundation
 /// The terms a user accepts on first launch, and the privacy notes, as plain text the app shows.
 /// Changing the terms means a new `version`: everyone is asked to accept again.
 enum Terms {
-    static let version = "2026-10-29"
+    static let version = "2026-10-30"
 
     /// The first-launch screen's points (title, body).
     static let points: [(icon: String, title: String, body: String)] = [
@@ -14,7 +14,7 @@ enum Terms {
         ("building.columns", "Not reviewed by the FDA",
          "The app has not been reviewed or cleared by the U.S. Food and Drug Administration or any other regulator."),
         ("lock.iphone", "Patient details stay on this phone",
-         "My Patient keeps what you enter on this iPhone only. Don't enter names, record numbers, dates of birth or other identifiers."),
+         "My Patient keeps what you enter on this iPhone unless you send it to a colleague yourself. Don't enter names, record numbers, dates of birth or other identifiers."),
     ]
 
     static let acceptLabel = "I'm a licensed clinician and I agree"
@@ -32,7 +32,7 @@ enum Terms {
         ("AI answers",
          "Ask answers questions with Apple Intelligence on the phone when it is available, otherwise with Anthropic's Claude through the Periop Signal proxy. AI answers can be wrong: check them against the sources they cite."),
         ("Patient information",
-         "My Patient stores what you enter only on this iPhone, in a protected file that cannot be read while the phone is locked, is excluded from iCloud and computer backups, and is never sent anywhere; Clear removes it. Don't enter names, record numbers, dates of birth or other identifiers. You are responsible for following HIPAA and your institution's policies, including where you share a handoff."),
+         "My Patient stores what you enter on this iPhone, in a protected file that cannot be read while the phone is locked and is excluded from iCloud and computer backups; Clear removes it. It leaves the phone only when you send it yourself: a handoff shared as text, or a patient sent to a colleague's Periop Signal by AirDrop or Messages, which goes directly between the phones and not through Periop Signal. Messages keeps a copy in that conversation until you delete it. Don't enter names, record numbers, dates of birth or other identifiers. You are responsible for following HIPAA and your institution's policies, including where you share a handoff or send a patient."),
         ("No warranty",
          "The app and its content are provided as is, without warranties of any kind. To the extent the law allows, the author is not liable for any loss or harm arising from its use."),
         ("Links",
@@ -48,6 +48,6 @@ enum Terms {
         ("Saved posts and progress", "Saved posts, read status and quiz progress sync through your own iCloud account (Apple's key-value storage); the author cannot see them."),
         ("Alerts", "If you turn alerts on, Google's Firebase Cloud Messaging holds a device token and the topics you follow, used only to send the morning alert."),
         ("Ask", "When a question is answered by Claude, the question and the reference material shown with it are sent through the Periop Signal proxy to Anthropic; nothing else."),
-        ("My Patient", "Nothing entered in My Patient leaves the phone."),
+        ("My Patient", "Nothing entered in My Patient leaves the phone unless you share a handoff or send the patient to a colleague, which goes by AirDrop or Messages directly between the phones. Fill from a note reads the note on the phone and doesn't keep it; dictating it uses iOS keyboard dictation, under Apple's privacy terms."),
     ]
 }

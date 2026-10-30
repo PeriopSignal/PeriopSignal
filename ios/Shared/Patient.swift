@@ -145,7 +145,8 @@ struct PatientRecord: Codable, Equatable {
     var anesthesiaNotes = ""
     var lastSolids: Date?
     var lastClears: Date?
-    /// "hb", "plt", "inr", "k", "na", "cr", "glucose", "a1c".
+    /// "hb", "plt", "inr", "k", "na", "cr", "glucose", "a1c", "bnp", "ntprobnp", "troponin", "troponin99" (the assay's
+    /// 99th percentile).
     var labs: [String: Double] = [:]
     var labNotes = ""
 

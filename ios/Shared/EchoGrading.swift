@@ -4,7 +4,8 @@ import Foundation
 //
 // Reference values for chamber size and function (reference.json "echo"): Lang 2015 (ASE/EACVI chamber
 // quantification) for the LV and LA, the ASE 2025 right-heart guideline for the RV and RA, ASE 2017 for the
-// tricuspid annulus and the ASE/EACVI 2015 aorta guideline for the aortic sinuses. A measurement is graded
+// tricuspid annulus, EACVI 2013 for the mitral annulus and the ASE/EACVI 2015 aorta guideline for the aortic
+// sinuses. A measurement is graded
 // against its cutoffs: where the guideline publishes partitions it reads normal, mildly, moderately or
 // severely abnormal; where it gives one cutoff it reads normal or abnormal. The website runs the same rules
 // (src/reference-logic.js, R.echo) and the unit tests mirror each other.
@@ -214,6 +215,41 @@ enum EchoCalc {
         if d <= c && collapses { return RAP(value: 3, range: "0–5", label: "Normal", detail: nil) }
         if d > c && !collapses { return RAP(value: 15, range: "10–20", label: "Elevated", detail: nil) }
         return RAP(value: 8, range: "5–10", label: "Indeterminate", detail: "A normal-size IVC that does not collapse, or a dilated one that does: lower to 3 mmHg without secondary signs of raised RA pressure, raise to 15 with them.")
+    }
+}
+
+extension EchoCalc {
+    struct Coupling: Hashable {
+        /// mm/mmHg, at two decimals as shown.
+        var ratio: Double
+        /// 0 not uncoupled, 4 in or below the uncoupling range, nil between the two ranges.
+        var grade: Int?
+        var label: String
+        var detail: String
+    }
+
+    /// TAPSE/PASP, mm/mmHg: the noninvasive index of RV–PA coupling (ASE 2025). Healthy adults generally run
+    /// 0.5–0.7; 0.3–0.4 is associated with uncoupling and increased mortality. TAPSE in cm, PASP in mmHg; the
+    /// ratio is read at two decimals, as shown. The website runs the same rule (R.echo.coupling).
+    static func coupling(tapseCm: Double?, pasp: Double?, _ c: EchoCoupling?) -> Coupling? {
+        guard let t = tapseCm, t > 0, let p = pasp, p > 0 else { return nil }
+        let h = c?.healthy ?? [0.5, 0.7], u = c?.uncoupled ?? [0.3, 0.4]
+        let hLo = h.first ?? 0.5, hHi = h.last ?? 0.7, uLo = u.first ?? 0.3, uHi = u.last ?? 0.4
+        let ratio = (t * 10 / p * 100).rounded() / 100
+        let healthy = fmt(hLo) + "–" + fmt(hHi), unc = fmt(uLo) + "–" + fmt(uHi)
+        if ratio > hHi {
+            return Coupling(ratio: ratio, grade: 0, label: "Above the usual healthy range", detail: "Healthy adults generally run \(healthy) mm/mmHg; a higher ratio does not suggest uncoupling.")
+        }
+        if ratio >= hLo {
+            return Coupling(ratio: ratio, grade: 0, label: "In the healthy range", detail: "Healthy adults generally run \(healthy) mm/mmHg.")
+        }
+        if ratio > uHi {
+            return Coupling(ratio: ratio, grade: nil, label: "Below the healthy range", detail: "Between the healthy range (\(healthy)) and the range associated with uncoupling (\(unc) mm/mmHg).")
+        }
+        if ratio >= uLo {
+            return Coupling(ratio: ratio, grade: 4, label: "In the uncoupling range", detail: "\(unc) mm/mmHg is associated with RV–PA uncoupling and increased mortality.")
+        }
+        return Coupling(ratio: ratio, grade: 4, label: "Below the uncoupling range", detail: "Lower than \(unc) mm/mmHg, the range associated with RV–PA uncoupling and increased mortality.")
     }
 }
 

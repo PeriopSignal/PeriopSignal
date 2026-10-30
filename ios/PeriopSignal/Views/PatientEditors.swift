@@ -211,7 +211,7 @@ struct PatientEditorView: View {
         PatientGroup(title: nil) {
             toggleRow("No significant medical history", "Lets the tab suggest ASA I when nothing else is recorded", bind(\.noHistory))
         }
-        PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything rare goes under Other conditions.") {
+        PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything else goes under Other conditions.") {
             let systems = PatientCatalog.systems(for: r)
             ForEach(Array(systems.enumerated()), id: \.element.id) { i, s in
                 let picked = s.problems.filter { r.problems.contains($0.id) }.map(\.label)
@@ -219,8 +219,8 @@ struct PatientEditorView: View {
                 if i < systems.count - 1 { Hairline().padding(.leading, 50) }
             }
         }
-        PatientGroup(title: "Other conditions") {
-            PatientTextField(label: "Rare or uncommon conditions and findings", prompt: "e.g. hereditary angioedema; Ehlers–Danlos", text: bind(\.otherHistory))
+        PatientGroup(title: nil) {
+            PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
             linkRow("Medications and allergies", medsSummary, icon: "pills", value: .medications)
@@ -234,7 +234,7 @@ struct PatientEditorView: View {
             PatientChipRow(label: nil) { PatientChips(options: PatientCatalog.anesthesiaHistory, selection: bind(\.anesthesiaHistory)) }
             PatientTextField(label: "Details", prompt: "Previous anesthetics and what happened", text: bind(\.anesthesiaNotes))
         }
-        PatientGroup(title: "Last intake", note: "For the fasting check: the ASA fasting guidance is under Reference.") {
+        PatientGroup(title: "Last intake", note: "Set time starts at midnight, the usual nothing-by-mouth instruction; change it to what the patient reports. The ASA fasting guidance is under Reference.") {
             intakeRow("Solids", bind(\.lastSolids))
             Hairline().padding(.leading, 14)
             intakeRow("Clear fluids", bind(\.lastClears))
@@ -265,7 +265,7 @@ struct PatientEditorView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Clear the time")
             } else {
-                Button("Set time") { date.wrappedValue = Date() }
+                Button("Set time") { date.wrappedValue = PatientRecord.npoMidnight() }
                     .font(PS.sys(size: 13.5, weight: .semibold))
                     .buttonStyle(.borderless)
                     .tint(PS.accent)
@@ -374,29 +374,33 @@ struct PatientEditorView: View {
             Hairline().padding(.leading, 14)
             toggleRow("Frail", "By a validated tool, such as the Clinical Frailty Scale; assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a)", bind(\.frail))
         }
-        PatientGroup(title: "Cardiac evaluation", note: PatientFunctional.cardiacNote) {
+        // The guideline is for adults (2024 AHA/ACC §1.4, p e355): under 18 the symptoms and acute conditions are still
+        // recorded, without the stepwise evaluation or its advice, as in the H&P (PatientSummary).
+        PatientGroup(title: "Cardiac evaluation", note: r.isAdult ? PatientFunctional.cardiacNote : PatientFunctional.cardiacAdultOnly) {
             PatientChipRow(label: "Cardiac symptoms or signs") { PatientChips(options: PatientFunctional.cardiacSymptomFlags, selection: bind(\.cardiacSymptoms)) }
             PatientChipRow(label: "Acute cardiac conditions") { PatientChips(options: PatientFunctional.activeCardiac, selection: bind(\.activeCardiac)) }
-            let mods = PatientFunctional.riskModifiers(r)
-            if !mods.isEmpty {
-                line("Adds risk beyond the RCRI: " + mods.joined(separator: ", ") + ".")
-                    .padding(.horizontal, 14).padding(.bottom, 4)
-            }
-            let step = PatientFunctional.cardiacStep(r)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(step.title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(step.alert ? PS.accent : PS.fg)
-                Text(step.detail).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.horizontal, 14).padding(.vertical, 10)
-            let branch = PatientFunctional.branchAdvice(r)
-            if !branch.isEmpty {
-                Hairline().padding(.leading, 14)
-                adviceList("For this risk", branch, tint: PS.fg3)
-            }
-            let advice = PatientFunctional.conditionAdvice(r)
-            if !advice.isEmpty {
-                Hairline().padding(.leading, 14)
-                adviceList("By condition", advice, tint: PS.accent)
+            if r.isAdult {
+                let mods = PatientFunctional.riskModifiers(r)
+                if !mods.isEmpty {
+                    line("Adds risk beyond the RCRI: " + mods.joined(separator: ", ") + ".")
+                        .padding(.horizontal, 14).padding(.bottom, 4)
+                }
+                let step = PatientFunctional.cardiacStep(r)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(step.title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(step.alert ? PS.accent : PS.fg)
+                    Text(step.detail).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                let branch = PatientFunctional.branchAdvice(r)
+                if !branch.isEmpty {
+                    Hairline().padding(.leading, 14)
+                    adviceList("For this risk", branch, tint: PS.fg3)
+                }
+                let advice = PatientFunctional.conditionAdvice(r)
+                if !advice.isEmpty {
+                    Hairline().padding(.leading, 14)
+                    adviceList("By condition", advice, tint: PS.accent)
+                }
             }
         }
         .id("cardiac")

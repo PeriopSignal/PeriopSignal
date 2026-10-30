@@ -18,12 +18,14 @@ struct ChamberQuantView: View {
     @State private var ivcText = LaunchSeed.string("ps.echo.ivc")
     @State private var collapses: Bool?
     @State private var ventilated = LaunchSeed.bool("ps.echo.vent")
+    @State private var paspText = LaunchSeed.string("ps.echo.pasp")
 
     private var data: EchoData? { refs.bundle?.echo }
     private var bsa: Double? { EchoCalc.bsa(heightCm: WeightField.value(heightText), weightKg: WeightField.value(weightText), formula: data?.bsaFormula) }
     private var ctx: EchoCalc.Context { EchoCalc.Context(age: WeightField.value(ageText), bsa: bsa) }
 
-    /// DEBUG screenshots: -ps.echo.values "rvb=4.5,ta=42,tapse=1.3" -ps.echo.group rv -ps.echo.age 55 -ps.echo.vent 1.
+    /// DEBUG screenshots: -ps.echo.values "rvb=4.5,ta=42,tapse=1.3" -ps.echo.group rv -ps.echo.age 55 -ps.echo.vent 1
+    /// -ps.echo.pasp 45.
     private static func seededValues() -> [String: String] {
         var out: [String: String] = [:]
         for pair in LaunchSeed.list("ps.echo.values") {
@@ -45,21 +47,33 @@ struct ChamberQuantView: View {
 
     var body: some View {
         ToolScroll {
-            VStack(alignment: .leading, spacing: 18) {
-                patient
-                if let d = data {
-                    summary(d)
-                    groupTabs(d)
-                    if let g = currentGroup(d) { groupCard(g) }
-                    if let ivc = d.ivc, ivc.group == currentGroup(d)?.id { ivcCard(ivc) }
-                    footer(d)
-                } else {
-                    Text("Loading the reference values…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
+            ScrollViewReader { proxy in
+                VStack(alignment: .leading, spacing: 18) {
+                    patient
+                    if let d = data {
+                        summary(d)
+                        groupTabs(d)
+                        if let g = currentGroup(d) { groupCard(g) }
+                        if let ivc = d.ivc, ivc.group == currentGroup(d)?.id { ivcCard(ivc) }
+                        if let cp = d.coupling, cp.group == currentGroup(d)?.id { couplingCard(cp).id("coupling") }
+                        footer(d)
+                    } else {
+                        Text("Loading the reference values…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 6)
+                .padding(.bottom, 30)
+                .onAppear {
+                    #if DEBUG
+                    // Screenshot runs: -ps.echo.scroll coupling scrolls to that card.
+                    let a = LaunchSeed.string("ps.echo.scroll")
+                    if !a.isEmpty {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { proxy.scrollTo(a, anchor: .top) }
+                    }
+                    #endif
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 6)
-            .padding(.bottom, 30)
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
@@ -448,6 +462,54 @@ struct ChamberQuantView: View {
                 ForEach(ivc.notes ?? [], id: \.self) { n in
                     Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        }
+    }
+
+    // MARK: RV–PA coupling
+
+    private func couplingCard(_ c: EchoCoupling) -> some View {
+        let tapse = WeightField.value(values["tapse"] ?? "")
+        let r = EchoCalc.coupling(tapseCm: tapse, pasp: WeightField.value(paspText), c)
+        return VStack(alignment: .leading, spacing: 8) {
+            Eyebrow(text: "RV–PA coupling: TAPSE/PASP").padding(.leading, 2)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("PA systolic pressure").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
+                        Text(c.method ?? "").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 6)
+                    FocusBox { f in
+                        TextField("—", text: $paspText)
+                            .keyboardType(.decimalPad)
+                            .focused(f)
+                            .multilineTextAlignment(.trailing)
+                            .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                            .padding(.horizontal, 6).padding(.vertical, 5)
+                            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    .frame(width: 74)
+                    Text("mmHg").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
+                }
+                if let r {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(EchoCalc.fmt(r.ratio) + " mm/mmHg").font(PS.serif(size: 28, weight: .semibold)).foregroundStyle(PS.fg)
+                        Text(r.label).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(r.grade.map { Self.color($0) } ?? PS.fg2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Text(r.detail).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text((tapse ?? 0) > 0 ? "Enter the PA systolic pressure." : "Enter TAPSE above and the PA systolic pressure.")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
+                }
+                ForEach(c.notes ?? [], id: \.self) { n in
+                    Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                }
+                if let ref = c.ref { Text(ref).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(PS.fg3) }
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
