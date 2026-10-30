@@ -431,6 +431,10 @@ test('echo values in reference.json', () => {
   eq([54, 53, 41, 40, 29].map((v) => gr('lvef', 'female', v)), [0, 1, 1, 2, 3], 'Lang 2015 LVEF, women');
   eq([39, 40].map((v) => gr('ta', 'male', v)), [0, 4], 'tricuspid annulus ≥ 40 mm');
   eq([21, 21.5].map((v) => R.echo.grade(R.echo.indexed(find('ta')), 'male', v)), [0, 4], 'tricuspid annulus > 21 mm/m²');
+  eq([35, 35.5].map((v) => gr('ma', 'female', v)), [0, 4], 'mitral annulus > 35 mm (EACVI 2013)');
+  eq([1.3, 1.35].map((v) => gr('maratio', 'male', v)), [0, 4], 'annulus to anterior leaflet > 1.3');
+  eq(R.echo.indexed(find('ma')), null, 'no society cutoff indexes the mitral annulus');
+  eq(e.groups.find((g) => g.id === 'annuli').measures.map((m) => m.id), ['ma', 'maratio', 'ta'], 'both annuli on one tab');
   eq(R.echo.ageLimit(find('sov'), 'female', { age: 45, bsa: 1.7 }).value, 3.6, 'Goldstein 2015 women 40–49');
   // Lang 2015 Supplemental Table 3: mild, moderate and severe for LV size, wall thickness and mass
   eq([58.4, 58.5, 63, 64, 68, 69].map((v) => gr('lvidd', 'male', v)), [0, 1, 1, 2, 2, 3], 'LV end-diastolic diameter, men (mm)');

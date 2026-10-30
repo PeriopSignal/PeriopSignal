@@ -178,7 +178,7 @@ jobs:
           shot 33-last-empty 12 -ps.ref quickref:asra-last
           shot 34-general 12 -ps.ref folder:generalAnesthesia
           shot 35-cardiothoracic 12 -ps.ref folder:cardiothoracic
-          shot 38-chamber-rv 12 -ps.ref chamber -ps.echo.group rv -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "rvb=4.5,ta=42"
+          shot 38-chamber-rv 12 -ps.ref chamber -ps.echo.group rv -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "rvb=4.5,rvm=3.9"
           shot 39-chamber-aorta 12 -ps.ref chamber -ps.echo.sex female -ps.echo.group ao -ps.echo.age 55 -ps.echo.height 165 -ps.echo.weight 60 -ps.echo.values "sov=3.6"
           shot 40-chamber-lv 12 -ps.ref chamber -ps.forceAppearance light -ps.echo.values "lvef=45,lvidd=60"
           shot 41-diastolic 12 -ps.ref diastolic -ps.dd.values "E=100,A=80,eSeptal=5,eLateral=6,tr=3.1"
@@ -218,11 +218,7 @@ jobs:
           shot 75-patient-receive 12 -ps.tab patient -ps.patient.open receive
           shot 76-patient-top-light 12 -ps.tab patient -ps.patient demo -ps.forceAppearance light
           shot 77-chamber-coupling 18 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
-          diag 77-chamber-coupling
-          shot 77a-chamber-rvf 15 -ps.ref chamber -ps.echo.group rvf
-          diag 77a-chamber-rvf
-          shot 77b-chamber-rvf-tapse 15 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5"
-          shot 77c-chamber-noscroll 15 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45
+          shot 78-chamber-annuli 15 -ps.ref chamber -ps.echo.group annuli -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "ma=38,maratio=1.4,ta=42"
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

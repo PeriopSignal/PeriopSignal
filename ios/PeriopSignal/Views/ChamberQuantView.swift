@@ -496,7 +496,7 @@ struct ChamberQuantView: View {
                     Text("mmHg").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
                 }
                 if let r {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(EchoCalc.fmt(r.ratio) + " mm/mmHg").font(PS.serif(size: 28, weight: .semibold)).foregroundStyle(PS.fg)
                         Text(r.label).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(r.grade.map { Self.color($0) } ?? PS.fg2)
                             .fixedSize(horizontal: false, vertical: true)

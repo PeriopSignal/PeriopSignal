@@ -707,6 +707,10 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(try [39.0, 40].map { EchoCalc.grade(try m("ta"), .male, $0) }, [0, 4], "tricuspid annulus ≥ 40 mm")
         let taIndexed = try XCTUnwrap(EchoCalc.indexed(try m("ta")))
         XCTAssertEqual([21.0, 21.5].map { EchoCalc.grade(taIndexed, .male, $0) }, [0, 4], "tricuspid annulus > 21 mm/m²")
+        XCTAssertEqual(try [35.0, 35.5].map { EchoCalc.grade(try m("ma"), .female, $0) }, [0, 4], "mitral annulus > 35 mm (EACVI 2013)")
+        XCTAssertEqual(try [1.3, 1.35].map { EchoCalc.grade(try m("maratio"), .male, $0) }, [0, 4], "annulus to anterior leaflet > 1.3")
+        XCTAssertNil(EchoCalc.indexed(try m("ma")), "no society cutoff indexes the mitral annulus")
+        XCTAssertEqual(echo.groups.first { $0.id == "annuli" }?.measures.map(\.id), ["ma", "maratio", "ta"], "both annuli on one tab")
         XCTAssertEqual(EchoCalc.ageLimit(try m("sov"), .female, EchoCalc.Context(age: 45, bsa: 1.7))?.value, 3.6, "Goldstein 2015 women 40–49")
         // Lang 2015 Supplemental Table 3: mild, moderate and severe for LV size, wall thickness and mass
         XCTAssertEqual(try [58.4, 58.5, 63, 64, 68, 69].map { EchoCalc.grade(try m("lvidd"), .male, $0) }, [0, 1, 1, 2, 2, 3], "LV end-diastolic diameter, men (mm)")

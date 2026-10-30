@@ -4,7 +4,8 @@ import Foundation
 //
 // Reference values for chamber size and function (reference.json "echo"): Lang 2015 (ASE/EACVI chamber
 // quantification) for the LV and LA, the ASE 2025 right-heart guideline for the RV and RA, ASE 2017 for the
-// tricuspid annulus and the ASE/EACVI 2015 aorta guideline for the aortic sinuses. A measurement is graded
+// tricuspid annulus, EACVI 2013 for the mitral annulus and the ASE/EACVI 2015 aorta guideline for the aortic
+// sinuses. A measurement is graded
 // against its cutoffs: where the guideline publishes partitions it reads normal, mildly, moderately or
 // severely abnormal; where it gives one cutoff it reads normal or abnormal. The website runs the same rules
 // (src/reference-logic.js, R.echo) and the unit tests mirror each other.

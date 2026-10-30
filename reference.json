@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793371712,
+  "revision": 1793377656,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -4487,6 +4487,16 @@
         "id": "accaha2020",
         "citation": "Otto CM, Nishimura RA, Bonow RO, et al. 2020 ACC/AHA Guideline for the Management of Patients With Valvular Heart Disease. Circulation 2021;143:e72–e227.",
         "url": "https://doi.org/10.1161/CIR.0000000000000923"
+      },
+      {
+        "id": "lancellotti2013",
+        "citation": "Lancellotti P, Tribouilloy C, Hagendorff A, et al. Recommendations for the echocardiographic assessment of native valvular regurgitation: an executive summary from the European Association of Cardiovascular Imaging. Eur Heart J Cardiovasc Imaging 2013;14:611–44.",
+        "url": "https://www.escardio.org/static_file/Escardio/Subspecialty/EACVI/position-papers/eacvi-recommendations-valvular-regurgitation-summary.pdf"
+      },
+      {
+        "id": "dwivedi2014",
+        "citation": "Dwivedi G, Mahadevan G, Jimenez D, Frenneaux M, Steeds RP. Reference values for mitral and tricuspid annular dimensions using two-dimensional echocardiography. Echo Res Pract 2014;1:43–50.",
+        "url": "https://doi.org/10.1530/ERP-14-0050"
       }
     ],
     "groups": [
@@ -4889,7 +4899,7 @@
       },
       {
         "id": "rv",
-        "name": "Right ventricle, tricuspid annulus and pulmonary artery",
+        "name": "Right ventricle and pulmonary artery",
         "short": "RV",
         "measures": [
           {
@@ -4972,31 +4982,6 @@
             ],
             "source": "mukherjee2025",
             "ref": "ASE 2025, Table 1"
-          },
-          {
-            "id": "ta",
-            "name": "Tricuspid annulus",
-            "unit": "mm",
-            "dir": "high",
-            "word": "dilated",
-            "edge": "inclusive",
-            "method": "End-diastole, four-chamber view",
-            "all": {
-              "cuts": [
-                40
-              ]
-            },
-            "indexed": {
-              "unit": "mm/m²",
-              "all": {
-                "cuts": [
-                  21
-                ]
-              }
-            },
-            "source": "zoghbi2017",
-            "ref": "ASE 2017 regurgitation guideline",
-            "note": "Significant annular dilatation is 40 mm or more, or above 21 mm/m² (ASE 2017; ESC/EACTS 2025 uses the same values). At left-sided valve surgery, tricuspid repair can be considered in selected patients with mild secondary TR and a dilated annulus (ESC/EACTS 2025, IIb); ACC/AHA 2020 uses an annulus above 4.0 cm for progressive TR (2a)."
           },
           {
             "id": "rvotplax",
@@ -5580,6 +5565,71 @@
         "note": "ASE 2025 cutoffs, the same for both sexes; RA volume can be enlarged in athletes and men even after indexing."
       },
       {
+        "id": "annuli",
+        "name": "Mitral and tricuspid annuli",
+        "short": "Annuli",
+        "measures": [
+          {
+            "id": "ma",
+            "name": "Mitral annulus",
+            "unit": "mm",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Parasternal long axis, end-diastole, anteroposterior diameter",
+            "all": {
+              "cuts": [
+                35
+              ]
+            },
+            "source": "lancellotti2013",
+            "ref": "EACVI 2013, p. 626",
+            "note": "Dilated above 35 mm, or with an annulus to anterior-leaflet ratio above 1.3 in diastole (EACVI 2013). Neither ASE nor EACVI indexes the mitral annulus to BSA. The 35 mm limit came from end-diastolic TEE in 49 anaesthetised patients before mitral surgery; in healthy adults over 60 the parasternal end-diastolic diameter ran 27–45 mm in men and 25–38 mm in women, or 14–23 and 14–21 mm/m² (5th–95th percentiles, Dwivedi 2014). Above 50 mm predicts an unsuccessful repair of primary MR; in secondary ischaemic MR, 37 mm or more with a systolic tenting area of 1.6 cm² or more and severe MR carries up to a 50% chance of recurrence after repair (EACVI 2013, p. 629)."
+          },
+          {
+            "id": "maratio",
+            "name": "Mitral annulus to anterior leaflet ratio",
+            "short": "Annulus/leaflet ratio",
+            "unit": "",
+            "dir": "high",
+            "word": "dilated",
+            "method": "Parasternal long axis, diastole: annulus diameter ÷ anterior leaflet length",
+            "all": {
+              "cuts": [
+                1.3
+              ]
+            },
+            "source": "lancellotti2013",
+            "ref": "EACVI 2013, p. 626"
+          },
+          {
+            "id": "ta",
+            "name": "Tricuspid annulus",
+            "unit": "mm",
+            "dir": "high",
+            "word": "dilated",
+            "edge": "inclusive",
+            "method": "End-diastole, four-chamber view",
+            "all": {
+              "cuts": [
+                40
+              ]
+            },
+            "indexed": {
+              "unit": "mm/m²",
+              "all": {
+                "cuts": [
+                  21
+                ]
+              }
+            },
+            "source": "zoghbi2017",
+            "ref": "ASE 2017 regurgitation guideline",
+            "note": "Significant annular dilatation is 40 mm or more, or above 21 mm/m² (ASE 2017; ESC/EACTS 2025 uses the same values). At left-sided valve surgery, tricuspid repair can be considered in selected patients with mild secondary TR and a dilated annulus (ESC/EACTS 2025, IIb); ACC/AHA 2020 uses an annulus above 4.0 cm for progressive TR (2a)."
+          }
+        ],
+        "note": "No society cutoff indexes the mitral annulus to BSA, so it reads against 35 mm (or the leaflet ratio) alone; the tricuspid annulus is also read per m² once height and weight are in."
+      },
+      {
         "id": "ao",
         "name": "Aortic root",
         "short": "Aorta",
@@ -5706,7 +5756,7 @@
         0.3,
         0.4
       ],
-      "method": "TAPSE in mm divided by PA systolic pressure in mmHg. PASP is the RV systolic pressure, 4 × (peak TR velocity)² + RA pressure, when there is no RVOT obstruction or pulmonary stenosis.",
+      "method": "4 × (peak TR velocity)² + RA pressure, when there is no RVOT obstruction or pulmonary stenosis. The ratio is TAPSE in mm over PASP in mmHg.",
       "source": "mukherjee2025",
       "ref": "ASE 2025, TAPSE",
       "notes": [
@@ -5716,7 +5766,7 @@
       ]
     },
     "notes": [
-      "Normal ranges come from transthoracic studies in healthy adults; severity partitions, the tricuspid annulus threshold and the IVC scheme are consensus or literature based. None of these guidelines gives TEE-specific values, so applying them to intraoperative TEE is an extrapolation.",
+      "Normal ranges come from transthoracic studies in healthy adults; severity partitions, the annulus thresholds and the IVC scheme are consensus or literature based. None of these guidelines gives TEE-specific values, so applying them to intraoperative TEE is an extrapolation.",
       "The source tables print whole numbers or one decimal, so a value between two printed ranges (an LVEF of 51–52% in men, an LA volume index of 34–35 mL/m², a septum of 1.05 cm in men) is read as the worse grade.",
       "Body surface area by DuBois & DuBois; the guidelines do not name a formula.",
       "The ASE 2025 right-heart guideline replaces the 2010 one; RV and RA cutoffs here follow Table 1 of its corrected May 2025 file, which differs from the March 2025 publisher PDF in a few cells (TAPSE, S′ and RA volume grades)."
