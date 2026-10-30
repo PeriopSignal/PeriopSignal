@@ -2125,7 +2125,8 @@
    },
    "expect": {
     "result": "mr",
-    "grade": null
+    "grade": null,
+    "text": "rather than stenosis (Table 12, p. 28): peak early velocity 2.2 m/s"
    }
   },
   {

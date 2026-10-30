@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793392903,
+  "revision": 1793392974,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -17775,7 +17775,7 @@
           },
           "mr": {
             "headline": "High gradient with a normal half-time: look for regurgitation",
-            "text": "{high} with a normal half-time point to significant prosthetic MR rather than stenosis; when the peak velocity and the DVI are both raised, specificity is close to 100% (Table 12, p. 28). High flow and mismatch can do the same.",
+            "text": "With a normal half-time, these point to significant prosthetic MR rather than stenosis (Table 12, p. 28): {high}. When the peak velocity and the DVI are both raised, specificity is close to 100%. High flow and mismatch can do the same.",
             "next": [
               "TEE: on TTE the left atrium is masked, above all behind mechanical valves (ASE 2024, pp. 25, 29); then the Mitral: regurgitation workflow.",
               "Consider a high-flow state or mismatch (Table 12): heart rate, stroke volume, anemia."
