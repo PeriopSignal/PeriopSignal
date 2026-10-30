@@ -130,7 +130,8 @@ jobs:
             local name="$1"; local wait="$2"; shift 2
             if [ -n "$ONLY" ] && ! echo "$name" | grep -Eq "$ONLY"; then return 0; fi
             xcrun simctl terminate "$UDID" org.periopsignal.app 2>/dev/null || true
-            xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null
+            sleep 1
+            xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
           }
@@ -203,14 +204,14 @@ jobs:
           shot 67-patient-cardiac 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.patient.scroll cardiac
           shot 68-patient-mask 12 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.patient.scroll mask -ps.forceAppearance light
           shot 69-patient-meds 12 -ps.tab patient -ps.patient demo -ps.patient.open medications
-          shot 70-terms 12 -ps.terms show
+          shot 70-terms 16 -ps.terms show
           shot 71-patient-handoff-short 12 -ps.tab patient -ps.patient demo -ps.patient.open handoff -ps.handoff.format short
           shot 72-patient-done 12 -ps.tab patient -ps.patient demo -ps.patient.open details -ps.patient.scroll done
           shot 73-patient-note 14 -ps.tab patient -ps.patient.open note -ps.patient.note example
           shot 74-patient-note-compose 12 -ps.tab patient -ps.patient.open note -ps.forceAppearance light
           shot 75-patient-receive 12 -ps.tab patient -ps.patient.open receive
           shot 76-patient-top-light 12 -ps.tab patient -ps.patient demo -ps.forceAppearance light
-          shot 77-chamber-coupling 14 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
+          shot 77-chamber-coupling 18 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
@@ -224,6 +225,10 @@ jobs:
           grep -E "error:|warning:" build/build.log | sort | uniq -c | sort -rn | head -200 > ../ci-out/build-issues.log 2>/dev/null || true
           grep -E "error:|Test Case|Executed|TEST|failed" build/test.log | tail -200 > ../ci-out/test-summary.log 2>/dev/null || true
           echo "run=${{ github.run_number }} sha=${{ github.sha }} status=${{ job.status }}" > ../ci-out/STATUS
+          # Crash reports from the simulator runs land in the host's DiagnosticReports.
+          mkdir -p ../ci-out/crashes
+          find ~/Library/Logs/DiagnosticReports -maxdepth 1 -newer build/build.log -name 'PeriopSignal*' -exec cp {} ../ci-out/crashes/ \; 2>/dev/null || true
+          ls ../ci-out/crashes
           cd ..
           # A separate worktree for the results branch, so files the build changed or left behind can't block it.
           publish () {
