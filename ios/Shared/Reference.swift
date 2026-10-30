@@ -177,6 +177,8 @@ struct RegionalBlock: Codable, Hashable, Identifiable {
     var cautions: TextList?
     var tips: TextList?
     var url: String?
+    /// What the link opens when it is not NYSORA's technique page (e.g. "StatPearls chapter").
+    var linkLabel: String?
     var art: RegionalArt?
 }
 

@@ -588,7 +588,7 @@ struct BlocksView: View {
                 factRows(present([("Indications", b.indications), ("Coverage", b.coverage), ("Position", b.position), ("Probe and needle", b.equipment),
                                   ("Technique", b.target), ("Volume and dose", b.volume), ("Onset and duration", b.onset), ("Cautions", b.cautions), ("Tips", b.tips)]))
                 if let u = b.url, let url = URL(string: u) {
-                    Button { onOpen(url) } label: { Text("NYSORA technique page ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                    Button { onOpen(url) } label: { Text((b.linkLabel ?? "NYSORA technique page") + " ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
                 }
             }
         }

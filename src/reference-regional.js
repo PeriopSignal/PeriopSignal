@@ -206,7 +206,7 @@
             h += `</div>`;
           }
           h += `<div class="r-facts">${fields.filter(([k]) => b[k] && text(b[k]).length).map(([k, label]) => `<div class="fr"><span class="fl">${esc(label)}</span><span class="fv">${text(b[k]).map((t) => `<span class="rg-li">${esc(t)}</span>`).join('')}</span></div>`).join('')}</div>`;
-          if (b.url) h += `<div class="r-btns">${c.ghostLink(b.url, I.ext, 'NYSORA technique page', true)}</div>`;
+          if (b.url) h += `<div class="r-btns">${c.ghostLink(b.url, I.ext, b.linkLabel || 'NYSORA technique page', true)}</div>`;
           h += `</div>`;
         }
         h += `</div>`;

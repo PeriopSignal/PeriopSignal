@@ -219,6 +219,7 @@ jobs:
           shot 76-patient-top-light 12 -ps.tab patient -ps.patient demo -ps.forceAppearance light
           shot 77-chamber-coupling 18 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
           shot 78-chamber-annuli 15 -ps.ref chamber -ps.echo.group annuli -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "ma=38,maratio=1.4,ta=42"
+          shot 87-blocks-pifb 15 -ps.ref blocks -ps.blk.group chest -ps.blk.open pifb
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

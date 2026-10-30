@@ -12150,6 +12150,127 @@
         }
       },
       {
+        "id": "pifb",
+        "name": "Pecto-intercostal fascial plane block (PIFB)",
+        "group": "chest",
+        "summary": "Parasternal block for the sternum and anterior chest wall: median sternotomy, anterior minithoracotomy, sternal fractures.",
+        "indications": [
+          "Median sternotomy and anterior minimally invasive thoracotomy, in adult and pediatric cardiac surgery",
+          "Sternal and anterior rib fractures; subcutaneous ICD placement; breast surgery, for which it was first described",
+          "Chronic post-sternotomy pain (one case report)"
+        ],
+        "coverage": [
+          "The sternum and parasternal chest wall: anterior cutaneous branches of the 2nd–6th intercostal nerves (T2–T6), one side per injection",
+          "Both sides for a sternotomy"
+        ],
+        "position": "Supine",
+        "equipment": "High-frequency linear probe. Short-bevel 18–22-gauge needle, 50–100 mm, with extension tubing; a 20–30 mL syringe for each side",
+        "target": "Probe 2–3 cm lateral to the sternal border, oriented cranio-caudally over the 3rd and 4th ribs: subcutaneous tissue, pectoralis major, the intercostal muscles and the pleura from superficial to deep. Needle in plane, just above and superficial to the 3rd rib, toward the 3rd–4th intercostal space, into the plane between pectoralis major and the external intercostal muscle (membrane); then the other side",
+        "volume": [
+          "10–15 mL per side, after a 1–2 mL saline test dose, in small aliquots with aspiration",
+          "Bupivacaine 0.25–0.5%, within 2.5 mg/kg in total"
+        ],
+        "onset": "One randomized pilot trial: first opioid request at about 600 minutes, against 240 after the transversus thoracis plane block, with similar pain scores and morphine use at 24 hours",
+        "cautions": [
+          "Pneumothorax is rare with real-time ultrasound, and chest tubes are usually planned in open cardiac surgery; weigh poor lung function or a previous lung resection",
+          "The internal mammary artery runs deeper, beneath the internal intercostal muscle: keep the intercostal layers between needle and artery (Doppler helps), above all when the artery will be harvested",
+          "Both sides add up: check the total local anesthetic dose (Local Anesthetic Doses)"
+        ],
+        "tips": [
+          "Inject at the midpoint of the sternotomy incision",
+          "If the spread does not reach several levels, inject at more than one intercostal space",
+          "Shallower than the transversus thoracis plane block and away from the internal mammary plane, so it is the parasternal block to choose when the artery is harvested"
+        ],
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK603717/",
+        "linkLabel": "StatPearls chapter",
+        "art": {
+          "probe": {
+            "view": "front",
+            "x": 91,
+            "y": 94,
+            "angle": 90,
+            "len": 14
+          },
+          "sono": {
+            "items": [
+              {
+                "t": "band",
+                "y": 0,
+                "h": 6
+              },
+              {
+                "t": "muscle",
+                "x": 80,
+                "y": 17,
+                "rx": 92,
+                "ry": 9,
+                "label": "Pectoralis major"
+              },
+              {
+                "t": "bone",
+                "x1": 0,
+                "x2": 34,
+                "y": 40,
+                "label": "3rd rib"
+              },
+              {
+                "t": "bone",
+                "x1": 126,
+                "x2": 160,
+                "y": 40,
+                "label": "4th rib"
+              },
+              {
+                "t": "muscle",
+                "x": 80,
+                "y": 40,
+                "rx": 46,
+                "ry": 7,
+                "label": "Intercostals"
+              },
+              {
+                "t": "artery",
+                "x": 80,
+                "y": 55,
+                "r": 2.5
+              },
+              {
+                "t": "text",
+                "x": 86,
+                "y": 57,
+                "label": "IMA",
+                "anchor": "start"
+              },
+              {
+                "t": "pleura",
+                "x1": 34,
+                "x2": 126,
+                "y": 66,
+                "label": "Pleura"
+              },
+              {
+                "t": "la",
+                "x": 74,
+                "y": 29,
+                "rx": 32,
+                "ry": 2.5
+              }
+            ],
+            "needle": {
+              "from": [
+                2,
+                6
+              ],
+              "to": [
+                66,
+                29
+              ]
+            }
+          },
+          "caption": "Parasagittal view 2–3 cm beside the sternum over the 3rd and 4th ribs: local anesthetic between pectoralis major and the intercostal muscles; the internal mammary artery lies deeper."
+        }
+      },
+      {
         "id": "paravertebral",
         "name": "Thoracic paravertebral block",
         "group": "chest",
@@ -12625,6 +12746,10 @@
           {
             "id": "pecs",
             "note": "Breast surgery; PECS II for mastectomy and axillary work"
+          },
+          {
+            "id": "pifb",
+            "note": "Sternotomy, sternal fractures and the anterior chest wall; both sides for a sternotomy"
           },
           {
             "id": "paravertebral",
@@ -13434,6 +13559,11 @@
         "id": "nysora-epidural",
         "citation": "NYSORA. Epidural Anesthesia and Analgesia; Spinal Anesthesia (chapters): the levels each operation needs.",
         "url": "https://nysora.com/regional-anesthesia/topics/abdomen/epidural-anesthesia-analgesia/"
+      },
+      {
+        "id": "statpearls-pifb",
+        "citation": "Zhu A, Malgieri C, Hayward G. Pecto-Intercostal Fascial Plane Block. StatPearls [Internet]. Treasure Island (FL): StatPearls Publishing; updated May 5, 2024. NCBI Bookshelf NBK603717.",
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK603717/"
       }
     ],
     "finderNotes": [
@@ -13444,7 +13574,8 @@
       "Volumes are NYSORA's; where its ultrasound page and an older chapter differ, both are shown. NYSORA's free pages print no maximum doses: check the total against the Local Anesthetic Doses tool, above all with bilateral or combined blocks.",
       "Drugs, onset and duration come mostly from NYSORA's older landmark and nerve-stimulator chapters; most ultrasound pages give volumes without a drug.",
       "PENG, IPACK, ESP, suprascapular and intercostal blocks have no free NYSORA technique page; their entries are short for that reason.",
-      "Figures and ultrasound views are Periop Signal's own schematics, drawn from NYSORA's descriptions; the NYSORA page has the real images."
+      "Figures and ultrasound views are Periop Signal's own schematics, drawn from NYSORA's descriptions; the NYSORA page has the real images.",
+      "The pecto-intercostal fascial plane block follows the StatPearls chapter (2024), which has no NYSORA counterpart; its schematic is drawn from that chapter's description."
     ]
   },
   "obEmergency": {

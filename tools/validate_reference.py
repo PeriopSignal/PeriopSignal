@@ -471,7 +471,10 @@ def main(path):
             for k in ("indications", "coverage", "position", "equipment", "target", "volume", "onset", "cautions", "tips"):
                 need(texts(b.get(k)), f"regional block {bid}: {k} must be text or a list of text")
             need(b.get("volume"), f"regional block {bid}: volume required")
-            need(isinstance(b.get("url"), str) and re.match(r"^https://(www\.)?nysora\.com/", b["url"]) is not None, f"regional block {bid}: url must be a NYSORA page")
+            # NYSORA's page by default; another source (a StatPearls chapter on NCBI Bookshelf) names itself in linkLabel.
+            nysora = isinstance(b.get("url"), str) and re.match(r"^https://(www\.)?nysora\.com/", b["url"]) is not None
+            bookshelf = isinstance(b.get("url"), str) and re.match(r"^https://www\.ncbi\.nlm\.nih\.gov/books/NBK\d+/$", b["url"]) is not None
+            need(nysora or (bookshelf and isinstance(b.get("linkLabel"), str) and b["linkLabel"].strip()), f"regional block {bid}: url must be a NYSORA page, or an NCBI Bookshelf chapter with a linkLabel")
             art = b.get("art")
             if art:
                 pr = art.get("probe")
