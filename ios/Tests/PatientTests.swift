@@ -121,7 +121,8 @@ final class PatientTests: XCTestCase {
         XCTAssertTrue(PatientFunctional.metsNote.contains("a structured assessment such as the DASI is reasonable (class 2a)"))
         XCTAssertFalse(PatientFunctional.metsNote.contains("preferred"))
         XCTAssertTrue(PatientFunctional.dasiNote.contains("higher odds of death or MI at 30 days"))
-        XCTAssertTrue(PatientFunctional.cardiacNote.contains("have no benefit in low-risk, asymptomatic or stable patients (class 3: no benefit)"))
+        XCTAssertTrue(PatientFunctional.cardiacNote.contains("Routine testing has no benefit (class 3: no benefit) in these patients: an ECG when asymptomatic before low-risk surgery; an echo when asymptomatic and clinically stable;"))
+        XCTAssertFalse(PatientFunctional.cardiacNote.contains("low-risk, asymptomatic or stable patients"), "each recommendation for its own patients (review R7)")
         XCTAssertFalse(PatientFunctional.cardiacNote.contains("Routine testing has no benefit."), "not unqualified")
         XCTAssertTrue(PatientFunctional.cardiacNote.contains("should not replace clinical judgment"))
 
@@ -148,6 +149,12 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(PatientFunctional.cardiacStep(trop).title, "Troponin normal: proceed", "not above the 99th percentile")
         var noLimit = poor; noLimit.labs["troponin"] = 40
         XCTAssertTrue(PatientFunctional.cardiacStep(noLimit).title.hasPrefix("Poor or unknown"), "not read without the assay's 99th percentile")
+        XCTAssertTrue(PatientFunctional.cardiacStep(noLimit).detail.hasSuffix("Troponin 40 is not read without its assay's 99th percentile: add the percentile under Labs."))
+        // Review R1: a normal peptide beside a troponin that could not be read does not say proceed.
+        var peptideAndUnread = normal; peptideAndUnread.labs["troponin"] = 40
+        XCTAssertEqual(PatientFunctional.cardiacStep(peptideAndUnread).title, "Natriuretic peptide normal; troponin not read")
+        XCTAssertTrue(PatientFunctional.cardiacStep(peptideAndUnread).alert)
+        XCTAssertTrue(PatientFunctional.cardiacStep(peptideAndUnread).detail.contains("Troponin 40 is not read"))
         var both = normal; both.labs["troponin"] = 20; both.labs["troponin99"] = 14
         XCTAssertEqual(PatientFunctional.cardiacStep(both).title, "Troponin raised", "a normal peptide does not hide a raised troponin")
         both.labs["troponin"] = 10
@@ -164,7 +171,7 @@ final class PatientTests: XCTestCase {
         XCTAssertTrue(PatientFunctional.cardiacStep(active).detail.hasSuffix("revascularization as appropriate and deferral of elective surgery are recommended (class 1)."), "§6.1.1 with an ACS (p e372)")
         var ischemic = demo; ischemic.problems.insert("ischemia")
         XCTAssertTrue(PatientFunctional.cardiacStep(ischemic).title.hasPrefix("Acute cardiac condition"), "ongoing ischemia is managed first")
-        XCTAssertTrue(PatientFunctional.cardiacStep(ischemic).detail.hasPrefix("Ongoing cardiac ischemia: ") && PatientFunctional.cardiacStep(ischemic).detail.hasSuffix("(class 1)."))
+        XCTAssertTrue(PatientFunctional.cardiacStep(ischemic).detail.hasPrefix("Ongoing (unstable) cardiac ischemia: ") && PatientFunctional.cardiacStep(ischemic).detail.hasSuffix("(class 1)."))
         var treated = demo; treated.problems.insert("cad-recent")
         XCTAssertFalse(PatientFunctional.cardiacStep(treated).title.hasPrefix("Acute"), "a treated MI or ACS within 3 months is not an acute condition")
         var decompensated = demo; decompensated.problems.insert("hf-decomp")
@@ -277,14 +284,20 @@ final class PatientTests: XCTestCase {
         var bp = demo; bp.problems.insert("htn-180")
         XCTAssertTrue(PatientFunctional.conditionAdvice(bp).contains { $0 == "A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b)." })
         XCTAssertEqual(PatientFunctional.rcriRiskFactors(demo), ["ihd", "insulin"], "the surgery itself is not one")
+        let pointer = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.hasPrefix("High blood pressure recorded: ") } }
         var reading = demo; reading.vitals["sbp"] = 185; reading.vitals["dbp"] = 112
         XCTAssertFalse(deferral(reading), "a single reading of unknown timing does not count")
+        XCTAssertTrue(pointer(reading), "but it points to the History item (review R6)")
         var poorlyControlled = demo; poorlyControlled.problems.insert("htn-poor")
         XCTAssertFalse(deferral(poorlyControlled), "poorly controlled, without the numbers")
+        XCTAssertTrue(pointer(poorlyControlled))
+        XCTAssertFalse(pointer(bp), "the History item recorded: the deferral itself shows")
         var urgentBP = bp; urgentBP.urgency = .urgent
         XCTAssertFalse(deferral(urgentBP), "elective surgery only")
+        var timeSensitiveBP = bp; timeSensitiveBP.urgency = .timeSensitive
+        XCTAssertFalse(deferral(timeSensitiveBP), "elective surgery only")
         var unknownTiming = bp; unknownTiming.urgency = nil
-        XCTAssertFalse(deferral(unknownTiming), "elective surgery only")
+        XCTAssertTrue(deferral(unknownTiming), "urgency not yet recorded counts as elective (review R6)")
         var surgeryOnly = PatientRecord(); surgeryOnly.ageYears = 60; surgeryOnly.urgency = .elective; surgeryOnly.problems = ["htn-180"]; surgeryOnly.highRiskSurgery = true
         XCTAssertFalse(deferral(surgeryOnly), "no RCRI risk factor besides the surgery, RCRI 1")
         var oneFactor = surgeryOnly; oneFactor.highRiskSurgery = false; oneFactor.problems.insert("insulin")
@@ -299,8 +312,15 @@ final class PatientTests: XCTestCase {
         // Statins (§7.1, both class 1, p e390): continue one that is taken; start one in a statin-naive adult who meets
         // the criteria, shown with atherosclerotic disease and no statin flagged.
         XCTAssertEqual(PatientFunctional.medNotes["statin"], "Continue through surgery (class 1).")
-        var noStatin = demo; noStatin.medFlags.remove("statin")
-        XCTAssertTrue(PatientFunctional.conditionAdvice(noStatin).contains { $0.hasPrefix("Atherosclerotic disease, no statin recorded") && $0.hasSuffix("(class 1).") })
+        var noStatin = demo; noStatin.medFlags.remove("statin"); noStatin.medications = "metoprolol, aspirin"
+        XCTAssertTrue(PatientFunctional.conditionAdvice(noStatin).contains { $0.hasPrefix("Atherosclerotic disease and no statin recorded: if the patient is not taking one") && $0.hasSuffix("(class 1).") })
+        // Review R2: a statin named under Medications counts, as in a record saved before the Statin flag existed.
+        for named in ["atorvastatin 40 mg", "Zocor 20", "pitavastatin", "on a statin"] {
+            var text = noStatin; text.medications = named
+            XCTAssertFalse(PatientFunctional.conditionAdvice(text).contains { $0.hasPrefix("Atherosclerotic disease") }, named)
+        }
+        var nystatin = noStatin; nystatin.medications = "nystatin swish"
+        XCTAssertTrue(PatientFunctional.takesStatin(nystatin) == false, "nystatin is not a statin")
         XCTAssertFalse(PatientFunctional.conditionAdvice(demo).contains { $0.hasPrefix("Atherosclerotic disease") }, "a statin is flagged")
         var noAscvd = PatientRecord(); noAscvd.ageYears = 50; noAscvd.problems = ["htn", "af"]
         XCTAssertFalse(PatientFunctional.conditionAdvice(noAscvd).contains { $0.hasPrefix("Atherosclerotic disease") }, "no atherosclerotic disease recorded")

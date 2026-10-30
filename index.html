@@ -2584,7 +2584,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   const Q = (id, label, options, hint) => ({ id, label, options, hint: hint || null });
   const YN = (id, label, hint) => Q(id, label, ['Yes', 'No'], hint);
   const AGE = Q('age', 'Age', ['< 50', '50–64', '65–80', '> 80']);
-  const ANTICOAG = YN('anticoag', 'Long-term anticoagulation possible and acceptable', 'Indications for and risks of a vitamin K antagonist, and the patient’s preference');
+  const ANTICOAG = YN('anticoag', 'Long-term anticoagulation possible and acceptable', 'Indications for and risks of a vitamin K antagonist, and the patient\'s preference');
   R.viQuestions = function (lesion) {
     switch (lesion) {
       case 'as': return [
@@ -2683,7 +2683,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   // Class of recommendation as the guideline prints it; class 3 comes in two kinds, with Table 2's phrases (e37).
   const CLASS_WORD = { '1': 'Recommended', '2a': 'Reasonable', '2b': 'May be considered', '3: No Benefit': 'Not recommended', '3: Harm': 'Potentially harmful' };
   const CLASS_ORDER = { '1': 0, '2a': 1, '2b': 2, '3: No Benefit': 3, '3: Harm': 4 };
-  const GROUPS = ['Intervention', 'Which procedure', 'Prosthesis'];
+  const GROUPS = ['Intervention', 'Which procedure', 'Prosthesis', 'Medical therapy'];
   R.viClassWord = (c) => CLASS_WORD[c];
   /** Class 3, either kind: a recommendation against. */
   R.viAgainst = (c) => c === '3: No Benefit' || c === '3: Harm';
@@ -2731,13 +2731,13 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         rule('as-c2-either', 'Asymptomatic severe AS with LVEF < 50%, age 65–80, no anatomic contraindication to transfemoral TAVI: the same choice as when symptomatic', 'Surgical AVR or transfemoral TAVI after shared decision-making (longevity against valve durability)', '1', 'B-NR', [[no('sx'), severe, C('ef', '< 50%'), no('surg'), C('age', '65–80'), yes('tf'), operable]], PROC),
         rule('as-tavi-age', 'Symptomatic severe AS, age over 80, or life expectancy under 10 years', 'Transfemoral TAVI in preference to surgery', '1', 'A', [[yes('sx'), anySevere, no('surg'), C('age', '> 80'), yes('tf'), operable]], PROC),
         rule('as-tavi-risk', 'Symptomatic severe AS, high or prohibitive surgical risk, with predicted survival after TAVI over 12 months', 'TAVI', '1', 'A', [[yes('sx'), anySevere, C('risk', 'High or prohibitive'), yes('survival')]], PROC),
-        rule('as-pall', 'Predicted survival under 12 months, or minimal expected benefit', 'Palliative care after shared decision-making', '1', 'C-EO', [[no('survival')]], PROC),
+        rule('as-pall', 'Symptomatic severe AS with predicted survival under 12 months, or minimal expected benefit', 'Palliative care after shared decision-making', '1', 'C-EO', [[yes('sx'), anySevere, no('survival')]], PROC),
         rule('as-savr-anat', 'Anatomy unsuitable for transfemoral TAVI and a bioprosthesis preferred', 'Surgical AVR', '1', 'A', [[no('tf'), operable]], PROC),
         rule('as-savr-2a', 'Asymptomatic AS operated for a 2a indication (exercise test, very severe stenosis, rapid progression, BNP)', 'Surgical AVR in preference to TAVI', '1', 'B-NR', [[no('sx'), yes('markers'), C('risk', 'Low'), C('ef', '≥ 60%', '50–59%'), no('surg')], [no('sx'), C('sev', 'Very severe'), C('risk', 'Low'), C('ef', '≥ 60%', '50–59%'), no('surg')]], PROC),
-        rule('as-bav', 'Bicuspid valve with symptomatic severe AS', 'TAVI may be considered as an alternative to surgery at a Comprehensive Valve Center', '2b', 'B-NR', [[yes('bicuspid'), yes('sx')]], Object.assign({ note: 'A bicuspid valve otherwise favors surgery, as do LVOT calcification, a very small or large annulus, aortic dilation, severe primary MR and coronary disease needing bypass.' }, PROC)),
+        rule('as-bav', 'Bicuspid valve with symptomatic severe AS', 'TAVI may be considered as an alternative to surgery at a Comprehensive Valve Center', '2b', 'B-NR', [[yes('bicuspid'), yes('sx'), anySevere]], Object.assign({ note: 'A bicuspid valve otherwise favors surgery, as do LVOT calcification, a very small or large annulus, aortic dilation, severe primary MR and coronary disease needing bypass.' }, PROC)),
         rule('as-aorta', 'Bicuspid valve with an indication for surgical AVR and aortic sinuses or ascending aorta ≥ 4.5 cm', 'Replacement of the aortic sinuses and/or ascending aorta is reasonable at a Comprehensive Valve Center', '2a', 'B-NR', [[yes('bicuspid'), yes('aorta'), operable]], PROC),
-        rule('as-cabg', 'Severe AS with complex coronary disease (bifurcation left main and/or multivessel, SYNTAX score > 33)', 'Surgical AVR and CABG are reasonable and preferred over TAVI and PCI', '2a', 'C-LD', [[anySevere, yes('cad')]], PROC),
-        rule('as-bav-crit', 'Critically ill', 'Balloon aortic valvuloplasty may be considered as a bridge to AVR', '2b', 'C-EO', [[yes('critical')]], PROC),
+        rule('as-cabg', 'Severe AS with complex coronary disease (bifurcation left main and/or multivessel, SYNTAX score > 33)', 'Surgical AVR and CABG are reasonable and preferred over TAVI and PCI', '2a', 'C-LD', [[anySevere, yes('cad'), operable]], PROC),
+        rule('as-bav-crit', 'Critically ill with severe AS', 'Balloon aortic valvuloplasty may be considered as a bridge to AVR', '2b', 'C-EO', [[yes('critical'), anySevere]], PROC),
       ].concat(prosthesisRules('Aortic', [operable]));
       case 'ar': return [
         rule('ar-d', 'Symptomatic severe AR (D)', 'Aortic valve surgery, regardless of LV function', '1', 'B-NR', [[C('sev', 'Severe'), yes('sx')]]),
@@ -2778,13 +2778,14 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
           [severeMS, C('nyha', 'III–IV'), yes('thrombus'), no('calcific'), yes('candidate')],
           [severeMS, C('nyha', 'III–IV'), yes('surg'), no('calcific'), yes('candidate')],
         ]),
-        rule('ms-pasp', 'Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable', 'PMBC is reasonable', '2a', 'B-NR', [[severeMS, C('nyha', 'I'), yes('pasp'), yes('morph'), yes('mr'), no('thrombus')]]),
-        rule('ms-af', 'Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable', 'PMBC may be considered', '2b', 'C-LD', [[severeMS, C('nyha', 'I'), C('af', 'New onset'), yes('morph'), yes('mr'), no('thrombus')]]),
-        rule('ms-ex', 'Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise', 'PMBC may be considered', '2b', 'C-LD', [[C('sev', 'Not severe (MVA > 1.5 cm²)'), C('nyha', 'II', 'III–IV'), yes('exercise'), no('thrombus')]]),
+        rule('ms-pasp', 'Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable', 'PMBC is reasonable', '2a', 'B-NR', [[severeMS, C('nyha', 'I'), yes('pasp'), yes('morph'), yes('mr'), no('thrombus'), no('calcific')]]),
+        rule('ms-af', 'Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable', 'PMBC may be considered', '2b', 'C-LD', [[severeMS, C('nyha', 'I'), C('af', 'New onset'), yes('morph'), yes('mr'), no('thrombus'), no('calcific')]]),
+        rule('ms-ex', 'Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise', 'PMBC may be considered', '2b', 'C-LD', [[C('sev', 'Not severe (MVA > 1.5 cm²)'), C('nyha', 'II', 'III–IV'), yes('exercise'), no('thrombus'), no('calcific')]]),
         rule('ms-highrisk', 'NYHA III–IV with suboptimal anatomy, not a surgical candidate or at high risk', 'PMBC may be considered', '2b', 'B-NR', [[severeMS, C('nyha', 'III–IV'), no('morph'), yes('mr'), no('thrombus'), no('candidate'), no('calcific')]]),
         rule('ms-mac', 'Calcific (non-rheumatic) severe MS from annular calcification with NYHA III–IV', 'Intervention only after discussion of its high procedural risk', '2b', 'C-LD', [[yes('calcific'), C('nyha', 'III–IV'), severeMS]]),
-        // Medical therapy, in the intervention group as for secondary MR; listed last so a procedure leads when both apply.
-        rule('ms-vka', 'Rheumatic MS with atrial fibrillation, a prior embolic event or LA thrombus', 'Anticoagulation with a vitamin K antagonist', '1', 'C-LD', [[no('calcific'), yes('thrombus')], [no('calcific'), C('af', 'New onset', 'Longer standing')], [no('calcific'), yes('embolic')]]),
+        // Medical therapy (e42, §6.2.2 rec 1): its own group, never the headline, and it does not replace the
+        // surveillance answer when no intervention criterion is met.
+        rule('ms-vka', 'Rheumatic MS with atrial fibrillation, a prior embolic event or LA thrombus', 'Anticoagulation with a vitamin K antagonist', '1', 'C-LD', [[no('calcific'), yes('thrombus')], [no('calcific'), C('af', 'New onset', 'Longer standing')], [no('calcific'), yes('embolic')]], { group: 'Medical therapy' }),
       ];
       case 'tr': return [
         rule('tr-left', 'Severe TR (C, D) at left-sided valve surgery', 'Tricuspid surgery', '1', 'B-NR', [[C('sev', 'Severe'), yes('left')]]),
@@ -2815,13 +2816,17 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   };
   R.viEvaluate = function (lesion, answers) {
     const all = R.viRules(lesion), order = R.viQuestions(lesion).map((q) => q.id);
-    const matched = [], needed = new Set();
-    const consider = (r) => { const s = R.viState(r, answers); if (s === 'match') matched.push(r); else if (s !== 'contradicted') s.pending.forEach((q) => needed.add(q)); };
-    all.filter((r) => r.group === 'Intervention').forEach(consider);
-    if (matched.some((r) => !R.viAgainst(r.cls))) all.filter((r) => r.group !== 'Intervention').forEach(consider);
+    // needed: questions that could still add an intervention, procedure or prosthesis; neededMedical: medical therapy only.
+    const matched = [], needed = new Set(), neededMedical = new Set();
+    const consider = (r) => { const s = R.viState(r, answers); if (s === 'match') matched.push(r); else if (s !== 'contradicted') s.pending.forEach((q) => (r.group === 'Medical therapy' ? neededMedical : needed).add(q)); };
+    // Intervention rules first, and medical therapy, which stands on its own; the procedure and prosthesis rules only
+    // matter once an intervention is indicated.
+    all.filter((r) => r.group === 'Intervention' || r.group === 'Medical therapy').forEach(consider);
+    if (matched.some((r) => r.group === 'Intervention' && !R.viAgainst(r.cls))) all.filter((r) => r.group === 'Which procedure' || r.group === 'Prosthesis').forEach(consider);
     matched.sort((a, b) => (GROUPS.indexOf(a.group) - GROUPS.indexOf(b.group)) || (CLASS_ORDER[a.cls] - CLASS_ORDER[b.cls]));
-    const neededOrdered = order.filter((q) => needed.has(q));
-    const fallback = (!matched.length && !neededOrdered.length) ? R.viSurveillance(lesion, answers) : null;
+    const neededOrdered = order.filter((q) => needed.has(q) || neededMedical.has(q));
+    // Surveillance when no intervention can match; medical therapy is listed under it.
+    const fallback = (!matched.some((r) => r.group !== 'Medical therapy') && !needed.size) ? R.viSurveillance(lesion, answers) : null;
     return { matched, needed: neededOrdered, fallback };
   };
   R.viSurveillance = function (lesion, answers) {

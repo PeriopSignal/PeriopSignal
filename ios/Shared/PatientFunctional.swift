@@ -101,10 +101,12 @@ enum PatientFunctional {
         PatientFlag("hf-signs", "Signs of heart failure"),
     ]
 
-    /// Figure 1's order (p e371). The no-benefit testing recommendations, each class 3: no benefit, are for low-risk,
-    /// asymptomatic or stable patients: ECG §4.1 rec 4 (B-NR, p e365), LV function §4.2.1 rec 3 (B-NR, p e366), stress
-    /// testing §4.3 rec 2 (B-R, p e367), CCTA §4.5 rec 2 (B-NR, p e369). The caveat is §5.1's (p e370).
-    static let cardiacNote = "Follows the 2024 AHA/ACC stepwise approach for adults (Figure 1): cardiovascular risk factors, disease or symptoms; urgency; acute cardiac conditions; the risk estimate and the conditions that add risk; functional capacity; whether more testing would change care; then natriuretic peptides or troponin. Routine ECG, echo, stress testing and CT coronary angiography have no benefit in low-risk, asymptomatic or stable patients (class 3: no benefit); test only when the result would change management. Care guided by this algorithm has not been prospectively studied or validated, so it should not replace clinical judgment and individualized care."
+    /// Figure 1's order (p e371). The no-benefit testing recommendations, each class 3: no benefit, each for its own
+    /// patients: ECG, asymptomatic patients having low-risk surgery (§4.1 rec 4, B-NR, p e365); LV function,
+    /// asymptomatic and clinically stable patients (§4.2.1 rec 3, B-NR, p e366); stress testing and CCTA, low risk,
+    /// adequate functional capacity with stable symptoms, or low-risk surgery (§4.3 rec 2, B-R, p e367; §4.5 rec 2,
+    /// B-NR, p e369). The caveat is §5.1's (p e370).
+    static let cardiacNote = "Follows the 2024 AHA/ACC stepwise approach for adults (Figure 1): cardiovascular risk factors, disease or symptoms; urgency; acute cardiac conditions; the risk estimate and the conditions that add risk; functional capacity; whether more testing would change care; then natriuretic peptides or troponin. Routine testing has no benefit (class 3: no benefit) in these patients: an ECG when asymptomatic before low-risk surgery; an echo when asymptomatic and clinically stable; stress testing or CT coronary angiography at low risk, with adequate functional capacity and stable symptoms, or before low-risk surgery. Test only when the result would change management. Care guided by this algorithm has not been prospectively studied or validated, so it should not replace clinical judgment and individualized care."
 
     /// The guideline covers adults, 18 or older (§1.4, p e355).
     static let cardiacAdultOnly = "The 2024 AHA/ACC stepwise evaluation is for adults (18 or older), so it is not shown under 18."
@@ -114,7 +116,7 @@ enum PatientFunctional {
     static func acuteConditions(_ r: PatientRecord) -> [String] {
         var out = activeCardiac.filter { r.activeCardiac.contains($0.id) }.map(\.label)
         if r.has("hf-decomp"), !out.contains("Decompensated heart failure") { out.append("Decompensated heart failure") }
-        if r.has("ischemia") { out.append("Ongoing cardiac ischemia") }
+        if r.has("ischemia") { out.append("Ongoing (unstable) cardiac ischemia") }
         return out
     }
 
@@ -173,6 +175,20 @@ enum PatientFunctional {
     /// Atherosclerotic disease recorded (coronary, cerebrovascular, peripheral): the ASCVD history among §7.1's
     /// criteria for starting a statin (p e390).
     static let ascvdProblems: Set<String> = ["cad", "cad-recent", "pci", "pci-recent", "cabg", "ischemia", "cva", "cva-recent", "pvd"]
+
+    /// Statins by generic and brand name (the note reader uses the same list): one named under Medications counts as
+    /// taken, so that a record saved before the Statin flag existed does not read as statin-naive.
+    static let statinNames = [
+        "atorvastatin", "lipitor", "rosuvastatin", "crestor", "simvastatin", "zocor", "pravastatin", "pravachol",
+        "lovastatin", "mevacor", "altoprev", "fluvastatin", "lescol", "pitavastatin", "livalo", "zypitamag", "vytorin",
+        "caduet", "statin",
+    ]
+
+    static func takesStatin(_ r: PatientRecord) -> Bool {
+        if r.medFlags.contains("statin") { return true }
+        let text = r.medications.lowercased()
+        return statinNames.contains { text.range(of: "\\b" + $0 + "\\b", options: .regularExpression) != nil }
+    }
 
     /// The risk factors that are the age itself (from riskFactors).
     private static let ageRiskFactors: Set<String> = ["woman over 65", "man over 55", "over 55"]
@@ -246,9 +262,13 @@ enum PatientFunctional {
         }
         // §6.2, rec 2 (class 2b, C-LD, p e373): elective elevated-risk surgery, one or more RCRI components (footnote ‡)
         // and a recent history of SBP 180 or more or DBP 110 or more before the day of surgery. A reading of unknown
-        // timing (the vital signs) does not count, nor does "poorly controlled" without the numbers.
-        if r.has("htn-180"), r.urgency == .elective, elevated(r), !rcriRiskFactors(r).isEmpty {
+        // timing (the vital signs) does not count, nor does "poorly controlled" without the numbers: those get a pointer
+        // to the History item. Urgency not yet recorded counts as elective here, as elsewhere in the evaluation.
+        let mayDefer = (r.urgency == nil || r.urgency == .elective) && elevated(r) && !rcriRiskFactors(r).isEmpty
+        if r.has("htn-180"), mayDefer {
             out.append("A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b).")
+        } else if mayDefer, r.has("htn-poor") || (r.vitals["sbp"] ?? 0) >= 180 || (r.vitals["dbp"] ?? 0) >= 110 {
+            out.append("High blood pressure recorded: if SBP was 180 or more or DBP 110 or more recently, before the day of surgery, add it under History, where deferring elective elevated-risk surgery may be considered (class 2b).")
         }
         let hf = r.has("hf") || r.has("ef-moderate") || r.has("ef-severe")
         if hf {
@@ -257,10 +277,10 @@ enum PatientFunctional {
             out.append("New dyspnea or signs of heart failure: assessing LV function before surgery is recommended (class 1).")
         }
         // §7.1, rec 2 (class 1, B-R, p e390): statin-naive adults who meet the criteria by ASCVD history or 10-year risk.
-        // Shown with atherosclerotic disease recorded and no statin flagged (10-year risk is not worked out here); a
-        // statin flagged has its own note (rec 1).
-        if !r.medFlags.contains("statin"), !r.problems.isDisjoint(with: ascvdProblems) {
-            out.append("Atherosclerotic disease, no statin recorded: in a statin-naive adult who meets the criteria for one, starting a statin around surgery, with the intention of long-term use, is recommended (class 1).")
+        // Shown with atherosclerotic disease recorded and no statin flagged or named under Medications (10-year risk is
+        // not worked out here); a statin taken has its own note (rec 1).
+        if !takesStatin(r), !r.problems.isDisjoint(with: ascvdProblems) {
+            out.append("Atherosclerotic disease and no statin recorded: if the patient is not taking one, starting a statin around surgery, with the intention of long-term use, is recommended (class 1).")
         }
         // §9.1, rec 1 (class 2b, B-NR, p e406), for the patients troponinSurveillance names.
         if troponinSurveillance(r) {
@@ -287,6 +307,12 @@ enum PatientFunctional {
             out.append(Biomarker(peptide: false, text: "Troponin " + NumText.short(v) + " (abnormal above the assay's 99th percentile, " + NumText.short(p99) + ")", raised: v > p99))
         }
         return out
+    }
+
+    /// A troponin recorded without its assay's 99th percentile, which the figure needs to read it (footnote §).
+    private static func unreadTroponin(_ r: PatientRecord) -> String? {
+        guard let v = r.labs["troponin"], r.labs["troponin99"] == nil else { return nil }
+        return "Troponin " + NumText.short(v) + " is not read without its assay's 99th percentile: add the percentile under Labs."
     }
 
     /// Abnormal by the figure's thresholds; nil until a result it can read is recorded.
@@ -352,13 +378,17 @@ enum PatientFunctional {
         // Figure 1's testing question and biomarker box (p e371); who the biomarkers are for, §3.4 (p e364).
         let markers = biomarkers(r)
         let markerText = markers.map { $0.text }.joined(separator: "; ")
+        let unread = unreadTroponin(r).map { " " + $0 } ?? ""
         switch biomarkerRaised(r) {
+        case .some(false) where !unread.isEmpty:
+            // A normal peptide does not clear a troponin that could not be read.
+            return CardiacStep(title: biomarkerName(markers) + " normal; troponin not read", detail: why + "; " + fc + ". " + markerText + "." + unread, alert: true)
         case .some(false):
             return CardiacStep(title: biomarkerName(markers) + " normal: proceed", detail: why + "; " + fc + ". " + markerText + ".", alert: false)
         case .some(true):
-            return CardiacStep(title: biomarkerName(markers.filter { $0.raised }) + " raised", detail: why + "; " + fc + ". " + markerText + ". Discuss with the team the risks and benefits of more cardiac evaluation. If it is pursued, consider an echo, and stress testing or CT coronary angiography (class 2b); with low-risk findings, proceed. With high-risk findings (left main or multivessel disease), or without more evaluation: consider deferring surgery, noninvasive or invasive treatment, or palliation, or proceed; postoperative troponin surveillance may be considered (class 2b).", alert: true)
+            return CardiacStep(title: biomarkerName(markers.filter { $0.raised }) + " raised", detail: why + "; " + fc + ". " + markerText + "." + unread + " Discuss with the team the risks and benefits of more cardiac evaluation. If it is pursued, consider an echo, and stress testing or CT coronary angiography (class 2b); with low-risk findings, proceed. With high-risk findings (left main or multivessel disease), or without more evaluation: consider deferring surgery, noninvasive or invasive treatment, or palliation, or proceed; postoperative troponin surveillance may be considered (class 2b).", alert: true)
         case .none:
-            return CardiacStep(title: "Poor or unknown functional capacity", detail: why + "; " + fc + ". If more testing would not change management, proceed, or consider deferring surgery, noninvasive treatment or palliation. If it would: before elevated-risk surgery, BNP or NT-proBNP is reasonable (class 2a) with known cardiovascular disease, age 65 or older, or 45 or older with symptoms; troponin may be considered (class 2b). Abnormal: BNP over 92 or NT-proBNP 300 or more (ng/L), troponin above the assay's 99th percentile. Add a result under Labs (a troponin with its assay's 99th percentile).", alert: true)
+            return CardiacStep(title: "Poor or unknown functional capacity", detail: why + "; " + fc + ". If more testing would not change management, proceed, or consider deferring surgery, noninvasive treatment or palliation. If it would: before elevated-risk surgery, BNP or NT-proBNP is reasonable (class 2a) with known cardiovascular disease, age 65 or older, or 45 or older with symptoms; troponin may be considered (class 2b). Abnormal: BNP over 92 or NT-proBNP 300 or more (ng/L), troponin above the assay's 99th percentile. Add a result under Labs (a troponin with its assay's 99th percentile)." + unread, alert: true)
         }
     }
 
@@ -370,12 +400,12 @@ enum PatientFunctional {
         "sglt2": "Hold 3 to 4 days before surgery when feasible (class 1): canagliflozin, dapagliflozin and empagliflozin 3 days or more, ertugliflozin 4 days or more.",
         "betablocker": "Continue through surgery (class 1). Without an immediate need, don't start one on the day of surgery (class 3: harm); a new one is best started more than 7 days before (class 2b).",
         "acei": "In selected patients with controlled blood pressure taking it for hypertension, omitting it 24 h before elevated-risk surgery may limit hypotension (class 2b); for heart failure with reduced EF, continuing is reasonable (class 2a).",
-        // §7.5 (p e393): after PCI, rec 7 (class 1, B-R); without a prior PCI, recs 11 (class 2b, B-R) and 12 (class 3:
-        // no benefit, B-R).
-        "aspirin": "After PCI, continue aspirin 75–100 mg if possible (class 1). Without a prior PCI, before elective surgery: in chronic coronary disease, continuing it may be reasonable in selected patients when the risk of cardiac events outweighs the risk of bleeding (class 2b); in coronary disease, routinely starting it before noncarotid surgery is not beneficial (class 3: no benefit).",
+        // §7.5 (p e393): after PCI, rec 7 (class 1, B-R); without a prior PCI, rec 11 (class 2b, B-R). The note is for
+        // patients taking aspirin, so rec 12 (routinely starting it, class 3: no benefit) is not shown here.
+        "aspirin": "After PCI, continue aspirin 75–100 mg if possible (class 1). Without a prior PCI, before elective surgery in chronic coronary disease, continuing it may be reasonable in selected patients when the risk of cardiac events outweighs the risk of bleeding (class 2b).",
         // §7.5 (p e393): the team decision, rec 1 (class 1, B-NR); timing, recs 2–6; time-sensitive surgery soon after
         // a stent, rec 8 (class 1, B-NR).
-        "p2y12": "In coronary disease, a multidisciplinary team, with shared decision-making, should decide antiplatelet management and the timing of elective surgery (class 1). If elective surgery will stop an antiplatelet: wait at least 14 days after balloon angioplasty (class 1), 12 months after a drug-eluting stent for ACS (class 1) and 6 months after one for stable disease (class 2a); 3 months may be considered when surgery is time-sensitive (class 2b). Within 30 days of any stent it is potentially harmful (class 3: harm). For time-sensitive surgery within 30 days of a bare-metal stent or 3 months of a drug-eluting stent, continue dual antiplatelet therapy unless the risk of bleeding outweighs the benefit of preventing stent thrombosis (class 1).",
+        "p2y12": "In coronary disease, a multidisciplinary team, with shared decision-making, should decide antiplatelet management and the timing of elective surgery (class 1). After balloon angioplasty without a stent, elective surgery should wait at least 14 days (class 1). If elective surgery will stop an antiplatelet: wait 12 months after a drug-eluting stent for ACS (class 1) and 6 months after one for stable disease (class 2a); 3 months may be considered when surgery is time-sensitive (class 2b). Within 30 days of any stent it is potentially harmful (class 3: harm). For time-sensitive surgery within 30 days of a bare-metal stent or 3 months of a drug-eluting stent, continue dual antiplatelet therapy unless the risk of bleeding outweighs the benefit of preventing stent thrombosis (class 1).",
         // §7.6 (p e396); after PCI, §7.5 rec 9 (class 1, B-NR, p e393).
         "anticoagulant": "Plan a time-based interruption with the team (class 1). Routine bridging is not recommended (class 3: harm); on a VKA at high thrombotic risk, heparin bridging can be effective (class 2a). After a prior PCI, if an oral anticoagulant taken alone must stop, substitute aspirin when feasible until it can be safely restarted (class 1).",
         // §7.1, rec 1 (class 1, B-NR, p e390).

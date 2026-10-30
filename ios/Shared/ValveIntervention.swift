@@ -90,7 +90,7 @@ enum VIClass: String, Hashable, Comparable {
 }
 
 enum VIGroup: String, Hashable, CaseIterable {
-    case intervene = "Intervention", procedure = "Which procedure", prosthesis = "Prosthesis"
+    case intervene = "Intervention", procedure = "Which procedure", prosthesis = "Prosthesis", medical = "Medical therapy"
 }
 
 struct VIRule: Identifiable, Hashable {
@@ -243,13 +243,13 @@ enum ValveIntervention {
             VIRule("as-c2-either", "Asymptomatic severe AS with LVEF < 50%, age 65–80, no anatomic contraindication to transfemoral TAVI: the same choice as when symptomatic", "Surgical AVR or transfemoral TAVI after shared decision-making (longevity against valve durability)", .one, "B-NR", group: .procedure, when: [[.no("sx"), severe, .q("ef", "< 50%"), .no("surg"), .q("age", "65–80"), .yes("tf"), operable]]),
             VIRule("as-tavi-age", "Symptomatic severe AS, age over 80, or life expectancy under 10 years", "Transfemoral TAVI in preference to surgery", .one, "A", group: .procedure, when: [[.yes("sx"), anySevere, .no("surg"), .q("age", "> 80"), .yes("tf"), operable]]),
             VIRule("as-tavi-risk", "Symptomatic severe AS, high or prohibitive surgical risk, with predicted survival after TAVI over 12 months", "TAVI", .one, "A", group: .procedure, when: [[.yes("sx"), anySevere, .q("risk", "High or prohibitive"), .yes("survival")]]),
-            VIRule("as-pall", "Predicted survival under 12 months, or minimal expected benefit", "Palliative care after shared decision-making", .one, "C-EO", group: .procedure, when: [[.no("survival")]]),
+            VIRule("as-pall", "Symptomatic severe AS with predicted survival under 12 months, or minimal expected benefit", "Palliative care after shared decision-making", .one, "C-EO", group: .procedure, when: [[.yes("sx"), anySevere, .no("survival")]]),
             VIRule("as-savr-anat", "Anatomy unsuitable for transfemoral TAVI and a bioprosthesis preferred", "Surgical AVR", .one, "A", group: .procedure, when: [[.no("tf"), operable]]),
             VIRule("as-savr-2a", "Asymptomatic AS operated for a 2a indication (exercise test, very severe stenosis, rapid progression, BNP)", "Surgical AVR in preference to TAVI", .one, "B-NR", group: .procedure, when: [[.no("sx"), .yes("markers"), .q("risk", "Low"), .q("ef", "≥ 60%", "50–59%"), .no("surg")], [.no("sx"), .q("sev", "Very severe"), .q("risk", "Low"), .q("ef", "≥ 60%", "50–59%"), .no("surg")]]),
-            VIRule("as-bav", "Bicuspid valve with symptomatic severe AS", "TAVI may be considered as an alternative to surgery at a Comprehensive Valve Center", .twoB, "B-NR", group: .procedure, when: [[.yes("bicuspid"), .yes("sx")]], note: "A bicuspid valve otherwise favors surgery, as do LVOT calcification, a very small or large annulus, aortic dilation, severe primary MR and coronary disease needing bypass."),
+            VIRule("as-bav", "Bicuspid valve with symptomatic severe AS", "TAVI may be considered as an alternative to surgery at a Comprehensive Valve Center", .twoB, "B-NR", group: .procedure, when: [[.yes("bicuspid"), .yes("sx"), anySevere]], note: "A bicuspid valve otherwise favors surgery, as do LVOT calcification, a very small or large annulus, aortic dilation, severe primary MR and coronary disease needing bypass."),
             VIRule("as-aorta", "Bicuspid valve with an indication for surgical AVR and aortic sinuses or ascending aorta ≥ 4.5 cm", "Replacement of the aortic sinuses and/or ascending aorta is reasonable at a Comprehensive Valve Center", .twoA, "B-NR", group: .procedure, when: [[.yes("bicuspid"), .yes("aorta"), operable]]),
-            VIRule("as-cabg", "Severe AS with complex coronary disease (bifurcation left main and/or multivessel, SYNTAX score > 33)", "Surgical AVR and CABG are reasonable and preferred over TAVI and PCI", .twoA, "C-LD", group: .procedure, when: [[anySevere, .yes("cad")]]),
-            VIRule("as-bav-crit", "Critically ill", "Balloon aortic valvuloplasty may be considered as a bridge to AVR", .twoB, "C-EO", group: .procedure, when: [[.yes("critical")]]),
+            VIRule("as-cabg", "Severe AS with complex coronary disease (bifurcation left main and/or multivessel, SYNTAX score > 33)", "Surgical AVR and CABG are reasonable and preferred over TAVI and PCI", .twoA, "C-LD", group: .procedure, when: [[anySevere, .yes("cad"), operable]]),
+            VIRule("as-bav-crit", "Critically ill with severe AS", "Balloon aortic valvuloplasty may be considered as a bridge to AVR", .twoB, "C-EO", group: .procedure, when: [[.yes("critical"), anySevere]]),
             ]
             return base + prosthesisRules(position: "Aortic", also: [operable])
         case .ar:
@@ -297,13 +297,14 @@ enum ValveIntervention {
                 [severeMS, .q("nyha", "III–IV"), .yes("thrombus"), .no("calcific"), .yes("candidate")],
                 [severeMS, .q("nyha", "III–IV"), .yes("surg"), .no("calcific"), .yes("candidate")],
             ]),
-            VIRule("ms-pasp", "Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable", "PMBC is reasonable", .twoA, "B-NR", when: [[severeMS, .q("nyha", "I"), .yes("pasp"), .yes("morph"), .yes("mr"), .no("thrombus")]]),
-            VIRule("ms-af", "Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable", "PMBC may be considered", .twoB, "C-LD", when: [[severeMS, .q("nyha", "I"), .q("af", "New onset"), .yes("morph"), .yes("mr"), .no("thrombus")]]),
-            VIRule("ms-ex", "Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise", "PMBC may be considered", .twoB, "C-LD", when: [[.q("sev", "Not severe (MVA > 1.5 cm²)"), .q("nyha", "II", "III–IV"), .yes("exercise"), .no("thrombus")]]),
+            VIRule("ms-pasp", "Asymptomatic severe MS with PA systolic pressure > 50 mmHg, PMBC-suitable", "PMBC is reasonable", .twoA, "B-NR", when: [[severeMS, .q("nyha", "I"), .yes("pasp"), .yes("morph"), .yes("mr"), .no("thrombus"), .no("calcific")]]),
+            VIRule("ms-af", "Asymptomatic severe MS with new-onset atrial fibrillation, PMBC-suitable", "PMBC may be considered", .twoB, "C-LD", when: [[severeMS, .q("nyha", "I"), .q("af", "New onset"), .yes("morph"), .yes("mr"), .no("thrombus"), .no("calcific")]]),
+            VIRule("ms-ex", "Symptomatic with MVA > 1.5 cm² but a wedge pressure > 25 mmHg or mean gradient > 15 mmHg on exercise", "PMBC may be considered", .twoB, "C-LD", when: [[.q("sev", "Not severe (MVA > 1.5 cm²)"), .q("nyha", "II", "III–IV"), .yes("exercise"), .no("thrombus"), .no("calcific")]]),
             VIRule("ms-highrisk", "NYHA III–IV with suboptimal anatomy, not a surgical candidate or at high risk", "PMBC may be considered", .twoB, "B-NR", when: [[severeMS, .q("nyha", "III–IV"), .no("morph"), .yes("mr"), .no("thrombus"), .no("candidate"), .no("calcific")]]),
             VIRule("ms-mac", "Calcific (non-rheumatic) severe MS from annular calcification with NYHA III–IV", "Intervention only after discussion of its high procedural risk", .twoB, "C-LD", when: [[.yes("calcific"), .q("nyha", "III–IV"), severeMS]]),
-            // Medical therapy, in the intervention group as for secondary MR; listed last so a procedure leads when both apply.
-            VIRule("ms-vka", "Rheumatic MS with atrial fibrillation, a prior embolic event or LA thrombus", "Anticoagulation with a vitamin K antagonist", .one, "C-LD", when: [[.no("calcific"), .yes("thrombus")], [.no("calcific"), .q("af", "New onset", "Longer standing")], [.no("calcific"), .yes("embolic")]]),
+            // Medical therapy (e42, §6.2.2 rec 1): its own group, never the headline, and it does not replace the
+            // surveillance answer when no intervention criterion is met.
+            VIRule("ms-vka", "Rheumatic MS with atrial fibrillation, a prior embolic event or LA thrombus", "Anticoagulation with a vitamin K antagonist", .one, "C-LD", group: .medical, when: [[.no("calcific"), .yes("thrombus")], [.no("calcific"), .q("af", "New onset", "Longer standing")], [.no("calcific"), .yes("embolic")]]),
             ]
         case .tr: return [
             VIRule("tr-left", "Severe TR (C, D) at left-sided valve surgery", "Tricuspid surgery", .one, "B-NR", when: [[.q("sev", "Severe"), .yes("left")]]),
@@ -362,33 +363,29 @@ enum ValveIntervention {
         let all = rules(for: lesion)
         let order = questions(for: lesion).map(\.id)
         var matched: [VIRule] = []
-        var needed: Set<String> = []
-        // Intervention rules first; the procedure and prosthesis rules only matter once something is indicated.
-        let intervene = all.filter { $0.group == .intervene }
-        for r in intervene {
+        var needed: Set<String> = []          // questions that could still add an intervention, procedure or prosthesis
+        var neededMedical: Set<String> = []   // questions that could still add medical therapy only
+        func consider(_ r: VIRule) {
             switch state(of: r, answers: answers) {
             case .match: matched.append(r)
-            case .pending(let q): needed.formUnion(q)
+            case .pending(let q): if r.group == .medical { neededMedical.formUnion(q) } else { needed.formUnion(q) }
             case .contradicted: break
             }
         }
-        let indicated = matched.contains { !$0.cls.isAgainst }
-        if indicated {
-            for r in all where r.group != .intervene {
-                switch state(of: r, answers: answers) {
-                case .match: matched.append(r)
-                case .pending(let q): needed.formUnion(q)
-                case .contradicted: break
-                }
-            }
+        // Intervention rules first, and medical therapy, which stands on its own; the procedure and prosthesis rules
+        // only matter once an intervention is indicated.
+        all.filter { $0.group == .intervene || $0.group == .medical }.forEach(consider)
+        if matched.contains(where: { $0.group == .intervene && !$0.cls.isAgainst }) {
+            all.filter { $0.group == .procedure || $0.group == .prosthesis }.forEach(consider)
         }
         matched.sort { a, b in
             if a.group != b.group { return VIGroup.allCases.firstIndex(of: a.group)! < VIGroup.allCases.firstIndex(of: b.group)! }
             return a.cls < b.cls
         }
-        let neededOrdered = order.filter { needed.contains($0) }
+        let neededOrdered = order.filter { needed.contains($0) || neededMedical.contains($0) }
         var fallback: String?
-        if matched.isEmpty && neededOrdered.isEmpty { fallback = surveillance(lesion, answers) }
+        // Surveillance when no intervention can match; medical therapy is listed under it.
+        if !matched.contains(where: { $0.group != .medical }) && needed.isEmpty { fallback = surveillance(lesion, answers) }
         return VIResult(matched: matched, needed: neededOrdered, fallback: fallback)
     }
 

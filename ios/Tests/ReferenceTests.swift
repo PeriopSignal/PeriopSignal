@@ -594,6 +594,12 @@ final class ReferenceTests: XCTestCase {
         XCTAssertFalse(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "bicuspid": "No", "aorta": "Yes", "risk": "Low"])).contains("as-aorta"))
         XCTAssertFalse(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "bicuspid": "Yes", "aorta": "Yes", "risk": "High or prohibitive"])).contains("as-aorta"), "with an indication for SAVR")
         XCTAssertFalse(ids(vi(.as_, ["sev": "Moderate", "surg": "Yes", "cad": "Yes"])).contains("as-cabg"))
+        // Review R4 and R15: surgical and AS-specific procedure rules keep the guideline's conditions.
+        XCTAssertFalse(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "risk": "High or prohibitive", "survival": "Yes", "cad": "Yes"])).contains("as-cabg"), "not at high or prohibitive risk")
+        XCTAssertFalse(ids(vi(.as_, ["sev": "Severe", "sx": "No", "ef": "< 50%", "survival": "No"])).contains("as-pall"), "palliative care: symptomatic severe AS")
+        XCTAssertFalse(ids(vi(.as_, ["sev": "Moderate", "surg": "Yes", "sx": "Yes", "bicuspid": "Yes"])).contains("as-bav"), "bicuspid TAVI: severe AS")
+        XCTAssertFalse(ids(vi(.as_, ["sev": "Moderate", "surg": "Yes", "critical": "Yes"])).contains("as-bav-crit"), "balloon valvuloplasty: severe AS")
+        XCTAssertTrue(ids(vi(.as_, ["sev": "Severe", "sx": "Yes", "critical": "Yes"])).contains("as-bav-crit"))
     }
 
     func testProsthesisChoice() {
@@ -658,8 +664,9 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "III–IV", "morph": "No", "mr": "Yes", "thrombus": "No", "calcific": "No", "candidate": "No"]).matched.first?.id, "ms-highrisk")
         XCTAssertEqual(ids(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "III–IV", "morph": "Yes", "mr": "No", "thrombus": "No", "calcific": "No", "candidate": "No"])), [], "MR ≥ 2+ is not suboptimal anatomy")
         XCTAssertEqual(ids(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "III–IV", "morph": "No", "mr": "Yes", "thrombus": "Yes", "calcific": "No", "candidate": "No"])), ["ms-vka"], "LA thrombus: anticoagulation, no PMBC")
-        XCTAssertEqual(vi(.ms, with(["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "I", "pasp": "Yes"], pmbcOK)).matched.first?.id, "ms-pasp")
-        XCTAssertEqual(vi(.ms, ["sev": "Not severe (MVA > 1.5 cm²)", "nyha": "II", "exercise": "Yes", "thrombus": "No"]).matched.first?.id, "ms-ex")
+        XCTAssertEqual(vi(.ms, with(["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "I", "pasp": "Yes", "calcific": "No"], pmbcOK)).matched.first?.id, "ms-pasp")
+        XCTAssertEqual(vi(.ms, ["sev": "Not severe (MVA > 1.5 cm²)", "nyha": "II", "exercise": "Yes", "thrombus": "No", "calcific": "No"]).matched.first?.id, "ms-ex")
+        XCTAssertFalse(ids(vi(.ms, ["sev": "Not severe (MVA > 1.5 cm²)", "nyha": "II", "exercise": "Yes", "thrombus": "No", "calcific": "Yes"])).contains("ms-ex"), "calcific MS: no PMBC")
         XCTAssertEqual(vi(.ms, with(["calcific": "Yes", "nyha": "III–IV", "sev": "Severe (MVA ≤ 1.5 cm²)"], pmbcOK)).matched.first?.id, "ms-mac", "calcific stenosis is not a PMBC case")
         XCTAssertFalse(ids(vi(.ms, ["calcific": "Yes", "nyha": "III–IV", "sev": "Not severe (MVA > 1.5 cm²)", "exercise": "No"])).contains("ms-mac"), "MAC: severe MS only")
         XCTAssertTrue(ValveIntervention.questions(for: .ms).first(where: { $0.id == "thrombus" })?.hint?.contains("class 1, C-LD") ?? false, "TEE before PMBC")
@@ -680,16 +687,23 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(ids(th), ["ms-vka"], "LA thrombus → VKA")
         XCTAssertEqual(th.matched.first?.cls, .one)
         XCTAssertEqual(th.matched.first?.level, "C-LD")
-        XCTAssertEqual(th.matched.first?.group, .intervene)
+        XCTAssertEqual(th.matched.first?.group, .medical)
         for af in ["New onset", "Longer standing"] { XCTAssertTrue(ids(vi(.ms, with(ms, ["af": af]))).contains("ms-vka"), "\(af) AF → VKA") }
         XCTAssertTrue(ids(vi(.ms, with(ms, ["embolic": "Yes"]))).contains("ms-vka"), "prior embolism → VKA")
         let none = vi(.ms, with(ms, ["thrombus": "No", "af": "No", "embolic": "No"]))
         XCTAssertTrue(!ids(none).contains("ms-vka") && !none.needed.contains("af"), "no thrombus, no AF, no embolism → no VKA")
         XCTAssertFalse(ids(vi(.ms, ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "II", "calcific": "Yes", "af": "Longer standing", "thrombus": "Yes"])).contains("ms-vka"), "for rheumatic MS")
         XCTAssertEqual(ids(vi(.ms, with(ms, ["morph": "Yes", "mr": "Yes", "thrombus": "No", "af": "Longer standing"]))), ["ms-pmbc", "ms-vka"], "the procedure leads")
-        let asx = ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "I", "morph": "Yes", "mr": "Yes", "thrombus": "No"]
+        let asx = ["sev": "Severe (MVA ≤ 1.5 cm²)", "nyha": "I", "morph": "Yes", "mr": "Yes", "thrombus": "No", "calcific": "No"]
         XCTAssertTrue(ids(vi(.ms, with(asx, ["af": "New onset"]))).contains("ms-af"))
         XCTAssertFalse(ids(vi(.ms, with(asx, ["af": "Longer standing"]))).contains("ms-af"), "ms-af: new onset of AF only")
+        // Review R5: medical therapy never heads the result and does not replace the surveillance answer.
+        let alone = vi(.ms, ["sev": "Not severe (MVA > 1.5 cm²)", "nyha": "I", "calcific": "No", "af": "Longer standing"])
+        XCTAssertEqual(ids(alone), ["ms-vka"])
+        XCTAssertTrue(alone.fallback?.hasPrefix("No intervention criterion met") ?? false, "surveillance stays, VKA listed under it")
+        let both = vi(.ms, with(asx, ["pasp": "Yes", "af": "Longer standing"]))
+        XCTAssertEqual(ids(both), ["ms-pasp", "ms-vka"])
+        XCTAssertEqual(both.matched.first(where: { $0.group == .intervene })?.id, "ms-pasp", "the 2a procedure leads")
     }
 
     func testLeftAtrialThrombusNeverLeadsToPMBC() {
@@ -708,6 +722,7 @@ final class ReferenceTests: XCTestCase {
             if a["thrombus"] == "Yes" && a["calcific"] == "No" { XCTAssertTrue(m.contains("ms-vka"), "thrombus without VKA for \(a)") }
             if a["mr"] == "No" { XCTAssertFalse(m.contains("ms-highrisk"), "MR ≥ 2+ led to ms-highrisk for \(a)") }
             if m.contains("ms-highrisk") { XCTAssertEqual([a["morph"], a["mr"], a["thrombus"]], ["No", "Yes", "No"], "ms-highrisk is for suboptimal anatomy only") }
+            if a["calcific"] == "Yes" { XCTAssertTrue(pmbc.isEmpty, "calcific MS led to \(pmbc.map(\.id)) for \(a)") }
         }
         XCTAssertGreaterThan(pmbcSeen, 0)
     }
