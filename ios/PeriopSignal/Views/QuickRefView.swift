@@ -25,7 +25,7 @@ struct QuickRefView: View {
     private var tint: Color { ref.isEmergency ? PS.accent : Topics.info(ref.topic ?? "general").fg }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 22) {
                 header
                 if let doses = ref.weightDoses, !doses.isEmpty { weightCard(doses) }
@@ -50,7 +50,7 @@ struct QuickRefView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {

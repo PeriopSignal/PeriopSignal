@@ -200,6 +200,7 @@ jobs:
           shot 69-patient-meds 12 -ps.tab patient -ps.patient demo -ps.patient.open medications
           shot 70-terms 12 -ps.terms show
           shot 71-patient-handoff-short 12 -ps.tab patient -ps.patient demo -ps.patient.open handoff -ps.handoff.format short
+          shot 72-patient-done 12 -ps.tab patient -ps.patient demo -ps.patient.open details -ps.patient.scroll done
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

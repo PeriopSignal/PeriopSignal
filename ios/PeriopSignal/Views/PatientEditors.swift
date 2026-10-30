@@ -36,7 +36,6 @@ struct PatientEditorView: View {
     @Environment(ReferenceStore.self) private var refs
     var editor: PatientEditor
     var onOpenRoute: (String) -> Void
-    @FocusState private var focused: Bool
 
     private var r: PatientRecord { patient.record }
 
@@ -54,6 +53,7 @@ struct PatientEditorView: View {
                     case .intraop: intraop
                     case .plan: plan
                     }
+                    DoneFooter().padding(.top, 4).id("done")
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 6)
@@ -77,7 +77,7 @@ struct PatientEditorView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
     }
@@ -160,13 +160,13 @@ struct PatientEditorView: View {
 
     @ViewBuilder private var details: some View {
         PatientGroup(title: "Patient", note: "Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules.") {
-            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), focus: $focused)
+            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
             Hairline().padding(.leading, 14)
-            PatientNumberField(label: "Height", unit: "cm", value: bind(\.heightCm), focus: $focused)
+            PatientNumberField(label: "Height", unit: "cm", value: bind(\.heightCm))
             Hairline().padding(.leading, 14)
-            PatientNumberField(label: "Weight", unit: "kg", value: bind(\.weightKg), focus: $focused)
+            PatientNumberField(label: "Weight", unit: "kg", value: bind(\.weightKg))
             let size = PatientSummary.bodyLine(r)
             if r.bmi != nil {
                 Text(size).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)
@@ -179,7 +179,7 @@ struct PatientEditorView: View {
             line("BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian.")
         }
         PatientGroup(title: "Procedure") {
-            PatientTextField(label: "Procedure", prompt: "e.g. laparoscopic colectomy", text: bind(\.procedure), focus: $focused)
+            PatientTextField(label: "Procedure", prompt: "e.g. laparoscopic colectomy", text: bind(\.procedure))
             PatientChipRow(label: "Urgency") {
                 PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
             }
@@ -199,7 +199,7 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Vital signs") {
             ForEach(Array(PatientCatalog.vitals.enumerated()), id: \.element.id) { i, v in
-                PatientNumberField(label: v.label, unit: v.unit, value: entry(\.vitals, v.id), focus: $focused)
+                PatientNumberField(label: v.label, unit: v.unit, value: entry(\.vitals, v.id))
                 if i < PatientCatalog.vitals.count - 1 { Hairline().padding(.leading, 14) }
             }
         }
@@ -220,7 +220,7 @@ struct PatientEditorView: View {
             }
         }
         PatientGroup(title: "Other conditions") {
-            PatientTextField(label: "Rare or uncommon conditions and findings", prompt: "e.g. hereditary angioedema; Ehlers–Danlos", text: bind(\.otherHistory), focus: $focused)
+            PatientTextField(label: "Rare or uncommon conditions and findings", prompt: "e.g. hereditary angioedema; Ehlers–Danlos", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
             linkRow("Medications and allergies", medsSummary, icon: "pills", value: .medications)
@@ -232,7 +232,7 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Anesthesia history") {
             PatientChipRow(label: nil) { PatientChips(options: PatientCatalog.anesthesiaHistory, selection: bind(\.anesthesiaHistory)) }
-            PatientTextField(label: "Details", prompt: "Previous anesthetics and what happened", text: bind(\.anesthesiaNotes), focus: $focused)
+            PatientTextField(label: "Details", prompt: "Previous anesthetics and what happened", text: bind(\.anesthesiaNotes))
         }
         PatientGroup(title: "Last intake", note: "For the fasting check: the ASA fasting guidance is under Reference.") {
             intakeRow("Solids", bind(\.lastSolids))
@@ -241,10 +241,10 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Labs") {
             ForEach(Array(PatientCatalog.labs.enumerated()), id: \.element.id) { i, l in
-                PatientNumberField(label: l.label, unit: l.unit, value: entry(\.labs, l.id), focus: $focused)
+                PatientNumberField(label: l.label, unit: l.unit, value: entry(\.labs, l.id))
                 if i < PatientCatalog.labs.count - 1 { Hairline().padding(.leading, 14) }
             }
-            PatientTextField(label: "Other results", prompt: "ECG, echo, imaging, other labs", text: bind(\.labNotes), focus: $focused)
+            PatientTextField(label: "Other results", prompt: "ECG, echo, imaging, other labs", text: bind(\.labNotes))
         }
     }
 
@@ -280,7 +280,7 @@ struct PatientEditorView: View {
                 PatientChipRow(label: nil) {
                     PatientChips(options: s.problems.map { p in PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" }) }, selection: bind(\.problems))
                 }
-                PatientTextField(label: "Details", prompt: "Severity, dates, devices, the last echo or stress test", text: note(s.id), focus: $focused)
+                PatientTextField(label: "Details", prompt: "Severity, dates, devices, the last echo or stress test", text: note(s.id))
             }
         }
     }
@@ -289,11 +289,11 @@ struct PatientEditorView: View {
         PatientGroup(title: "Allergies") {
             toggleRow("No known drug allergies", nil, bind(\.nkda))
             if !r.nkda {
-                PatientTextField(label: "Allergies and reactions", prompt: "e.g. penicillin (rash); latex", text: bind(\.allergies), focus: $focused)
+                PatientTextField(label: "Allergies and reactions", prompt: "e.g. penicillin (rash); latex", text: bind(\.allergies))
             }
         }
         PatientGroup(title: "Medications") {
-            PatientTextField(label: "Home medications", prompt: "Drug, dose, last taken", text: bind(\.medications), focus: $focused)
+            PatientTextField(label: "Home medications", prompt: "Drug, dose, last taken", text: bind(\.medications))
             PatientChipRow(label: "Flags") { PatientChips(options: PatientCatalog.medFlags, selection: bind(\.medFlags)) }
         }
         let notes = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }.compactMap { f in PatientFunctional.medNotes[f.id].map { (f.label, $0) } }
@@ -456,8 +456,8 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Difficult-airway signs") {
             PatientChipRow(label: nil) { PatientChips(options: PatientAirway.signs, selection: bind(\.airwaySigns)) }
-            PatientTextField(label: "Teeth", prompt: "Loose, capped, dentures", text: bind(\.dentition), focus: $focused)
-            PatientTextField(label: "Airway notes", prompt: "Previous intubation notes, plan", text: bind(\.airwayNotes), focus: $focused)
+            PatientTextField(label: "Teeth", prompt: "Loose, capped, dentures", text: bind(\.dentition))
+            PatientTextField(label: "Airway notes", prompt: "Previous intubation notes, plan", text: bind(\.airwayNotes))
         }
         let predictors = PatientRules.airwayPredictors(r)
         let mask = PatientAirway.maskRisk(r)
@@ -482,7 +482,7 @@ struct PatientEditorView: View {
             toolButton("Open the airway guide", route: "airway")
         }
         PatientGroup(title: "Examination") {
-            PatientTextField(label: "Heart, lungs and other findings", prompt: "e.g. regular rhythm, no murmur; clear lungs", text: bind(\.examNotes), focus: $focused)
+            PatientTextField(label: "Heart, lungs and other findings", prompt: "e.g. regular rhythm, no murmur; clear lungs", text: bind(\.examNotes))
         }
     }
 
@@ -504,19 +504,19 @@ struct PatientEditorView: View {
                 }
             }
             if r.mask == "difficult" {
-                PatientTextField(label: "What made it difficult", prompt: "Two hands, oral airway, what worked", text: bind(\.maskNote), focus: $focused)
+                PatientTextField(label: "What made it difficult", prompt: "Two hands, oral airway, what worked", text: bind(\.maskNote))
             }
             PatientChipRow(label: "Supraglottic airway") {
                 PatientChoice(options: [(id: "easy", label: "Easy"), (id: "difficult", label: "Difficult"), (id: "none", label: "Not used")], selection: bind(\.sga))
             }
             if r.sga == "difficult" {
-                PatientTextField(label: "What made it difficult", prompt: "Device and size, leak, attempts, what worked", text: bind(\.sgaNote), focus: $focused)
+                PatientTextField(label: "What made it difficult", prompt: "Device and size, leak, attempts, what worked", text: bind(\.sgaNote))
             }
             PatientChipRow(label: "Intubation") {
                 PatientChoice(options: [(id: "easy", label: "Easy"), (id: "difficult", label: "Difficult"), (id: "none", label: "Not intubated")], selection: bind(\.intubation))
             }
             if r.intubation == "difficult" {
-                PatientTextField(label: "What made it difficult", prompt: "View, adjuncts, what worked", text: bind(\.intubationNote), focus: $focused)
+                PatientTextField(label: "What made it difficult", prompt: "View, adjuncts, what worked", text: bind(\.intubationNote))
             }
             PatientChipRow(label: "Device") {
                 PatientChoice(options: PatientCatalog.devices.map { (id: $0, label: $0) }, selection: bind(\.airwayDevice))
@@ -532,12 +532,12 @@ struct PatientEditorView: View {
                 Text("Attempts: " + (r.attempts.map { String($0) } ?? "not recorded")).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
-            PatientTextField(label: "Tube", prompt: "e.g. 7.5 ETT, 23 cm at the lip", text: bind(\.tube), focus: $focused)
+            PatientTextField(label: "Tube", prompt: "e.g. 7.5 ETT, 23 cm at the lip", text: bind(\.tube))
             PatientChipRow(label: "At handoff") {
                 PatientChoice(options: PatientCatalog.airwayAtEnd, selection: bind(\.airwayAtEnd))
             }
             if r.airwayAtEnd == "intubated" {
-                PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: bind(\.ventilation), focus: $focused)
+                PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: bind(\.ventilation))
             }
         }
         if PatientSummary.difficultAirway(r) {
@@ -577,18 +577,18 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Fluids and blood") {
             ForEach(Array(PatientCatalog.fluids.enumerated()), id: \.element.id) { i, fl in
-                PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id), focus: $focused)
+                PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id))
                 if i < PatientCatalog.fluids.count - 1 { Hairline().padding(.leading, 14) }
             }
-            PatientTextField(label: "Factor concentrates and other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors), focus: $focused)
+            PatientTextField(label: "Factor concentrates and other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors))
         }
         PatientGroup(title: "Medications and interventions") {
-            PatientTextField(label: "Notable medications and interventions", prompt: "Antibiotic and time, steroids, TXA, reversal, positioning", text: bind(\.medsGiven), focus: $focused)
+            PatientTextField(label: "Notable medications and interventions", prompt: "Antibiotic and time, steroids, TXA, reversal, positioning", text: bind(\.medsGiven))
         }
         PatientGroup(title: "Events") {
             toggleRow("No notable events", nil, bind(\.noEvents))
             if !r.noEvents {
-                PatientTextField(label: "What happened", prompt: "Hypotension, arrhythmia, bronchospasm, bleeding…", text: bind(\.events), focus: $focused)
+                PatientTextField(label: "What happened", prompt: "Hypotension, arrhythmia, bronchospasm, bleeding…", text: bind(\.events))
             }
         }
         PatientGroup(title: "Echo findings") {
@@ -606,7 +606,7 @@ struct PatientEditorView: View {
                     }
                 }
             }
-            PatientTextField(label: "Summary", prompt: "LV and RV function, valves, effusion, new wall-motion changes", text: bind(\.echo), focus: $focused)
+            PatientTextField(label: "Summary", prompt: "LV and RV function, valves, effusion, new wall-motion changes", text: bind(\.echo))
         }
     }
 
@@ -630,13 +630,17 @@ struct PatientEditorView: View {
                     .accessibilityLabel("Remove this line")
             }
             HStack(spacing: 8) {
-                TextField("Size", text: Binding(get: { idx.map { patient.record.lines[$0].size } ?? "" }, set: { v in if let i = idx { patient.update { $0.lines[i].size = v } } }))
-                    .focused($focused)
-                    .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .frame(width: 90)
-                TextField("Site", text: Binding(get: { idx.map { patient.record.lines[$0].site } ?? "" }, set: { v in if let i = idx { patient.update { $0.lines[i].site = v } } }))
-                    .focused($focused)
-                    .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                FocusBox { f in
+                    TextField("Size", text: Binding(get: { idx.map { patient.record.lines[$0].size } ?? "" }, set: { v in if let i = idx { patient.update { $0.lines[i].size = v } } }))
+                        .focused(f)
+                        .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .frame(width: 90)
+                FocusBox { f in
+                    TextField("Site", text: Binding(get: { idx.map { patient.record.lines[$0].site } ?? "" }, set: { v in if let i = idx { patient.update { $0.lines[i].site = v } } }))
+                        .focused(f)
+                        .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
             }
             .font(PS.sys(size: 14))
         }
@@ -665,10 +669,12 @@ struct PatientEditorView: View {
             }
             PatientChoice(options: [(id: "Left", label: "Left"), (id: "Right", label: "Right"), (id: "Bilateral", label: "Bilateral"), (id: "Midline", label: "Midline")],
                           selection: Binding(get: { idx.flatMap { i in patient.record.regional[i].side.isEmpty ? nil : patient.record.regional[i].side } }, set: { v in if let i = idx { patient.update { $0.regional[i].side = v ?? "" } } }))
-            TextField("Drug, concentration and volume", text: Binding(get: { idx.map { patient.record.regional[$0].drug } ?? "" }, set: { v in if let i = idx { patient.update { $0.regional[i].drug = v } } }), axis: .vertical)
-                .focused($focused)
-                .font(PS.sys(size: 14))
-                .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            FocusBox { f in
+                TextField("Drug, concentration and volume", text: Binding(get: { idx.map { patient.record.regional[$0].drug } ?? "" }, set: { v in if let i = idx { patient.update { $0.regional[i].drug = v } } }), axis: .vertical)
+                    .focused(f)
+                    .font(PS.sys(size: 14))
+                    .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
             Toggle("Catheter left in", isOn: Binding(get: { idx.map { patient.record.regional[$0].catheter } ?? false }, set: { v in if let i = idx { patient.update { $0.regional[i].catheter = v } } }))
                 .font(PS.sys(size: 14)).tint(PS.accent)
         }
@@ -695,10 +701,12 @@ struct PatientEditorView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove this infusion")
             }
-            TextField("Rate", text: Binding(get: { idx.map { patient.record.infusions[$0].rate } ?? "" }, set: { v in if let i = idx { patient.update { $0.infusions[i].rate = v } } }))
-                .focused($focused)
-                .font(PS.sys(size: 14))
-                .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            FocusBox { f in
+                TextField("Rate", text: Binding(get: { idx.map { patient.record.infusions[$0].rate } ?? "" }, set: { v in if let i = idx { patient.update { $0.infusions[i].rate = v } } }))
+                    .focused(f)
+                    .font(PS.sys(size: 14))
+                    .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
     }
@@ -712,13 +720,13 @@ struct PatientEditorView: View {
             }
         }
         PatientGroup(title: "Pain plan") {
-            PatientTextField(label: "Analgesia", prompt: "Blocks, catheters, multimodal, PCA", text: bind(\.painPlan), focus: $focused)
+            PatientTextField(label: "Analgesia", prompt: "Blocks, catheters, multimodal, PCA", text: bind(\.painPlan))
         }
         PatientGroup(title: "Monitoring") {
-            PatientTextField(label: "When to call", prompt: "e.g. SBP under 90, SpO₂ under 92%, urine under 0.5 mL/kg/h", text: bind(\.callIf), focus: $focused)
+            PatientTextField(label: "When to call", prompt: "e.g. SBP under 90, SpO₂ under 92%, urine under 0.5 mL/kg/h", text: bind(\.callIf))
         }
         PatientGroup(title: "To do and concerns") {
-            PatientTextField(label: "For the next team", prompt: "Labs to check, antibiotic redosing, CPAP, glucose, drains", text: bind(\.todos), focus: $focused)
+            PatientTextField(label: "For the next team", prompt: "Labs to check, antibiotic redosing, CPAP, glucose, drains", text: bind(\.todos))
         }
     }
 }

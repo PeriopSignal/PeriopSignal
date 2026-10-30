@@ -14,7 +14,6 @@ struct DiastolicView: View {
     @State private var values: [String: String] = Self.seededValues()
     @State private var showMore = LaunchSeed.bool("ps.dd.more")
     @State private var copied = false
-    @FocusState private var focused: Bool
 
     private var data: DiastolicData? { refs.bundle?.diastolic }
 
@@ -73,7 +72,7 @@ struct DiastolicView: View {
     ]
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 if let d = data {
                     scopeCard(d)
@@ -102,7 +101,7 @@ struct DiastolicView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
         .sensoryFeedback(.success, trigger: copied)
@@ -348,14 +347,16 @@ struct DiastolicView: View {
                         Spacer(minLength: 6)
                         let flag = flags[fld.id] ?? nil
                         Circle().fill(flag == true ? PS.accent : (flag == false ? PS.green : Color.clear)).frame(width: 8, height: 8)
-                        TextField("—", text: Binding(get: { values[fld.id] ?? "" }, set: { values[fld.id] = $0 }))
-                            .keyboardType(Self.signed.contains(fld.id) ? .numbersAndPunctuation : .decimalPad)
-                            .focused($focused)
-                            .multilineTextAlignment(.trailing)
-                            .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(PS.fg)
-                            .padding(.horizontal, 6).padding(.vertical, 5)
-                            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        FocusBox { f in
+                            TextField("—", text: Binding(get: { values[fld.id] ?? "" }, set: { values[fld.id] = $0 }))
+                                .keyboardType(Self.signed.contains(fld.id) ? .numbersAndPunctuation : .decimalPad)
+                                .focused(f)
+                                .multilineTextAlignment(.trailing)
+                                .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(PS.fg)
+                                .padding(.horizontal, 6).padding(.vertical, 5)
+                                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
                             .frame(width: 78)
                         Text(fld.unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
                     }

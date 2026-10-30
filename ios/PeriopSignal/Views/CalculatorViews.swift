@@ -17,7 +17,7 @@ struct ScoreCalculatorView: View {
     private var band: ScoreBand? { def.band(for: score) }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 22) {
                 result
                 if !myPatient.isEmpty { patientBar }
@@ -337,7 +337,7 @@ struct PedsCalculatorView: View {
     private var ageMonths: Double { Double(years * 12 + months) }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 20) {
                 inputs
                 Picker("Section", selection: $tab) {
@@ -374,7 +374,7 @@ struct PedsCalculatorView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { weightFocused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
     }
@@ -533,17 +533,19 @@ struct PedsCalculatorView: View {
     }
 
     private func hctField(_ label: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Eyebrow(text: label, size: 9.5)
-            TextField("—", text: text)
-                .keyboardType(.decimalPad)
-                .focused($weightFocused)
-                .font(PS.sys(size: 18, weight: .semibold, design: .monospaced))
-                .foregroundStyle(PS.fg)
+        FocusBox { f in
+            VStack(alignment: .leading, spacing: 4) {
+                Eyebrow(text: label, size: 9.5)
+                TextField("—", text: text)
+                    .keyboardType(.decimalPad)
+                    .focused(f)
+                    .font(PS.sys(size: 18, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(PS.fg)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private func footer(_ peds: PedsData) -> some View {

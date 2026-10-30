@@ -8,7 +8,6 @@ struct ValveGraderView: View {
     @State private var lesion: ValveLesion = .as_
     @State private var texts: [String: String] = [:]
     @State private var signs: Set<String> = []
-    @FocusState private var focused: Bool
 
     private var input: ValveInput {
         var i = ValveInput()
@@ -22,7 +21,7 @@ struct ValveGraderView: View {
     private var params: [ValveParam] { ValveGrading.params(for: lesion) }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 picker
                 result
@@ -41,7 +40,7 @@ struct ValveGraderView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
     }
@@ -134,14 +133,16 @@ struct ValveGraderView: View {
                             }
                             Spacer(minLength: 6)
                             if let g = grade { Circle().fill(color(g)).frame(width: 8, height: 8) }
-                            TextField("—", text: Binding(get: { texts[p.id] ?? "" }, set: { texts[p.id] = $0 }))
-                                .keyboardType(.decimalPad)
-                                .focused($focused)
-                                .multilineTextAlignment(.trailing)
-                                .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(PS.fg)
-                                .padding(.horizontal, 6).padding(.vertical, 5)
-                                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            FocusBox { f in
+                                TextField("—", text: Binding(get: { texts[p.id] ?? "" }, set: { texts[p.id] = $0 }))
+                                    .keyboardType(.decimalPad)
+                                    .focused(f)
+                                    .multilineTextAlignment(.trailing)
+                                    .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(PS.fg)
+                                    .padding(.horizontal, 6).padding(.vertical, 5)
+                                    .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            }
                                 .frame(width: 78)
                             Text(p.unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
                         }

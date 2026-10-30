@@ -16,14 +16,13 @@ struct ObEmergencyView: View {
     /// Ticked steps: event → section → items.
     @State private var done: [String: [Int: Set<Int>]] = [:]
     @State private var clocks: [String: Date] = [:]
-    @FocusState private var focused: Bool
 
     private var data: ObEmergencyData? { refs.bundle?.obEmergency }
     private let tint = PS.accent
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView {
+            ToolScroll {
                 VStack(alignment: .leading, spacing: 20) {
                     if let d = data, let ev = d.events.first(where: { $0.id == eventId }) ?? d.events.first {
                         tabs(d, ev).id("top")
@@ -60,7 +59,7 @@ struct ObEmergencyView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
     }
@@ -160,10 +159,12 @@ struct ObEmergencyView: View {
         let weight = tooHigh ? nil : entered
         return VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: wf?.eyebrow ?? "Doses for this patient", color: tint)
-            WeightField(text: Binding(get: { weights[key] ?? "" }, set: { weights[key] = $0 }), focus: $focused,
-                        prompt: wf?.prompt ?? "Enter the weight: the doses below are per kilogram until you do.",
-                        title: wf?.title ?? "Patient Weight",
-                        patientWeight: key.isEmpty && myPatient.sex == .female ? myPatient.weightKg : nil)
+            FocusBox { f in
+                WeightField(text: Binding(get: { weights[key] ?? "" }, set: { weights[key] = $0 }), focus: f,
+                            prompt: wf?.prompt ?? "Enter the weight: the doses below are per kilogram until you do.",
+                            title: wf?.title ?? "Patient Weight",
+                            patientWeight: key.isEmpty && myPatient.sex == .female ? myPatient.weightKg : nil)
+            }
             if tooHigh {
                 Label(wf?.maxText ?? "Check the weight.", systemImage: "exclamationmark.triangle.fill")
                     .font(PS.sys(size: 13, weight: .semibold))

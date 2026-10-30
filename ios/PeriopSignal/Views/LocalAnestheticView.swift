@@ -31,7 +31,7 @@ struct LocalAnestheticView: View {
     }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 patient
                 table
@@ -50,7 +50,7 @@ struct LocalAnestheticView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
         .onAppear {
@@ -218,14 +218,16 @@ struct LocalAnestheticView: View {
                     }
                 }
                 .frame(width: 58, alignment: .leading)
-                TextField("0", text: Binding(get: { volumes[entry.id] ?? "" }, set: { volumes[entry.id] = $0 }))
-                    .keyboardType(.decimalPad)
-                    .focused($focused)
-                    .multilineTextAlignment(.trailing)
-                    .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(PS.fg)
-                    .padding(.horizontal, 6).padding(.vertical, 5)
-                    .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                FocusBox { f in
+                    TextField("0", text: Binding(get: { volumes[entry.id] ?? "" }, set: { volumes[entry.id] = $0 }))
+                        .keyboardType(.decimalPad)
+                        .focused(f)
+                        .multilineTextAlignment(.trailing)
+                        .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(PS.fg)
+                        .padding(.horizontal, 6).padding(.vertical, 5)
+                        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
                     .frame(width: 62)
                 Text(r.map { PedsCalc.fmt($0.mg) } ?? "0")
                     .font(PS.sys(size: 15, weight: .semibold, design: .monospaced))

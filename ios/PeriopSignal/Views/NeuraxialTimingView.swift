@@ -26,7 +26,7 @@ struct NeuraxialTimingView: View {
     }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 drugStep
                 if let d = drug {

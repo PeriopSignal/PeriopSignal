@@ -33,7 +33,7 @@ struct InfusionsView: View {
     }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 14) {
                 CompactWeightField(text: $weightText, focus: $focused, patientWeight: myPatient.weightKg)
                 searchField
@@ -65,26 +65,28 @@ struct InfusionsView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
     }
 
     private var searchField: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
-            TextField("Find a drug", text: $query)
-                .focused($focused)
-                .font(PS.sys(size: 15))
-                .foregroundStyle(PS.fg)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-            if !query.isEmpty {
-                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(PS.fg3) }.buttonStyle(.plain)
+        FocusBox { f in
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
+                TextField("Find a drug", text: $query)
+                    .focused(f)
+                    .font(PS.sys(size: 15))
+                    .foregroundStyle(PS.fg)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                if !query.isEmpty {
+                    Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(PS.fg3) }.buttonStyle(.plain)
+                }
             }
+            .padding(.horizontal, 12).padding(.vertical, 9)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .padding(.horizontal, 12).padding(.vertical, 9)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var tabBar: some View {

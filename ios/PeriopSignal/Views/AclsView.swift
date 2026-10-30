@@ -78,7 +78,7 @@ struct AclsView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
         .onAppear {
@@ -118,7 +118,7 @@ struct AclsView: View {
     private func content(_ d: AclsData, _ s: AclsState) -> some View {
         let t = store.t
         let m = AclsCalc.mode(s, d) ?? d.modes[0]
-        return ScrollView {
+        return ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 if store.confirmEnd { confirmCard(s) }
                 if s.patient == "child" {
@@ -351,13 +351,15 @@ struct AclsView: View {
                     HStack {
                         Text("Energy used for the next shock").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
                         Spacer()
-                        TextField(e?.joules.map { String($0) } ?? "J", text: $store.joules)
-                            .keyboardType(.numberPad)
-                            .focused($focused)
-                            .multilineTextAlignment(.trailing)
-                            .font(PS.sys(size: 16, weight: .semibold, design: .monospaced))
-                            .padding(.horizontal, 8).padding(.vertical, 6)
-                            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        FocusBox { f in
+                            TextField(e?.joules.map { String($0) } ?? "J", text: $store.joules)
+                                .keyboardType(.numberPad)
+                                .focused(f)
+                                .multilineTextAlignment(.trailing)
+                                .font(PS.sys(size: 16, weight: .semibold, design: .monospaced))
+                                .padding(.horizontal, 8).padding(.vertical, 6)
+                                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
                             .frame(width: 84)
                         Text("J").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                     }

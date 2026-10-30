@@ -300,3 +300,61 @@ struct RoleTag: View {
             .fixedSize()
     }
 }
+
+// MARK: - Text entry and leaving a page
+
+/// The keyboard's Done: ends editing wherever the cursor is.
+enum Keyboard {
+    @MainActor static func dismiss() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+/// A text box with its own focus, so a tap goes to this field and no other (one focus shared by several fields can
+/// send the cursor elsewhere), and that takes the tap anywhere in its box or row, not only on the line of text.
+struct FocusBox<Content: View>: View {
+    @FocusState private var focused: Bool
+    private let content: (FocusState<Bool>.Binding) -> Content
+
+    init(@ViewBuilder _ content: @escaping (FocusState<Bool>.Binding) -> Content) { self.content = content }
+
+    var body: some View {
+        content($focused)
+            .contentShape(Rectangle())
+            .onTapGesture { focused = true }
+    }
+}
+
+/// Done at the end of a page: goes back like the back button (what was entered is kept).
+struct DoneFooter: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            dismiss()
+        } label: {
+            Label("Done", systemImage: "checkmark").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(BigButtonStyle(prominent: false))
+        .accessibilityHint("Goes back to the previous screen")
+    }
+}
+
+/// A tool page's scroll view: the page, then Done.
+struct ToolScroll<Content: View>: View {
+    private let content: Content
+
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                content
+                DoneFooter()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 28)
+            }
+        }
+    }
+}

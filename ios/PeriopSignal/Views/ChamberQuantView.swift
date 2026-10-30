@@ -18,7 +18,6 @@ struct ChamberQuantView: View {
     @State private var ivcText = LaunchSeed.string("ps.echo.ivc")
     @State private var collapses: Bool?
     @State private var ventilated = LaunchSeed.bool("ps.echo.vent")
-    @FocusState private var focused: Bool
 
     private var data: EchoData? { refs.bundle?.echo }
     private var bsa: Double? { EchoCalc.bsa(heightCm: WeightField.value(heightText), weightKg: WeightField.value(weightText), formula: data?.bsaFormula) }
@@ -45,7 +44,7 @@ struct ChamberQuantView: View {
     }
 
     var body: some View {
-        ScrollView {
+        ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 patient
                 if let d = data {
@@ -71,7 +70,7 @@ struct ChamberQuantView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Done") { focused = false }
+                Button("Done") { Keyboard.dismiss() }
             }
         }
     }
@@ -148,17 +147,19 @@ struct ChamberQuantView: View {
     }
 
     private func field(_ label: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Eyebrow(text: label, size: 9.5)
-            TextField("—", text: text)
-                .keyboardType(.decimalPad)
-                .focused($focused)
-                .font(PS.sys(size: 18, weight: .semibold, design: .monospaced))
-                .foregroundStyle(PS.fg)
+        FocusBox { f in
+            VStack(alignment: .leading, spacing: 4) {
+                Eyebrow(text: label, size: 9.5)
+                TextField("—", text: text)
+                    .keyboardType(.decimalPad)
+                    .focused(f)
+                    .font(PS.sys(size: 18, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(PS.fg)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     // MARK: Summary
@@ -293,14 +294,16 @@ struct ChamberQuantView: View {
     }
 
     private func numberField(_ text: Binding<String>) -> some View {
-        TextField("—", text: text)
-            .keyboardType(.numberPad)
-            .focused($focused)
-            .multilineTextAlignment(.trailing)
-            .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
-            .foregroundStyle(PS.fg)
-            .padding(.horizontal, 6).padding(.vertical, 5)
-            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        FocusBox { f in
+            TextField("—", text: text)
+                .keyboardType(.numberPad)
+                .focused(f)
+                .multilineTextAlignment(.trailing)
+                .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                .foregroundStyle(PS.fg)
+                .padding(.horizontal, 6).padding(.vertical, 5)
+                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
             .frame(width: 74)
     }
 
@@ -322,14 +325,16 @@ struct ChamberQuantView: View {
                 }
                 Spacer(minLength: 6)
                 // Strain rows take a negative entry, so they get the keyboard with a minus sign.
-                TextField("—", text: Binding(get: { values[m.id] ?? "" }, set: { values[m.id] = $0 }))
-                    .keyboardType(m.abs == true ? .numbersAndPunctuation : .decimalPad)
-                    .focused($focused)
-                    .multilineTextAlignment(.trailing)
-                    .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(PS.fg)
-                    .padding(.horizontal, 6).padding(.vertical, 5)
-                    .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                FocusBox { f in
+                    TextField("—", text: Binding(get: { values[m.id] ?? "" }, set: { values[m.id] = $0 }))
+                        .keyboardType(m.abs == true ? .numbersAndPunctuation : .decimalPad)
+                        .focused(f)
+                        .multilineTextAlignment(.trailing)
+                        .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(PS.fg)
+                        .padding(.horizontal, 6).padding(.vertical, 5)
+                        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
                     .frame(width: 74)
                 if m.index == "bsa" {
                     Button {
@@ -403,13 +408,15 @@ struct ChamberQuantView: View {
                         Text(ivc.method ?? "Subcostal, just proximal to the hepatic veins").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 6)
-                    TextField("—", text: $ivcText)
-                        .keyboardType(.decimalPad)
-                        .focused($focused)
-                        .multilineTextAlignment(.trailing)
-                        .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
-                        .padding(.horizontal, 6).padding(.vertical, 5)
-                        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    FocusBox { f in
+                        TextField("—", text: $ivcText)
+                            .keyboardType(.decimalPad)
+                            .focused(f)
+                            .multilineTextAlignment(.trailing)
+                            .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                            .padding(.horizontal, 6).padding(.vertical, 5)
+                            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
                         .frame(width: 74)
                     Text("cm").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 46, alignment: .leading)
                 }
