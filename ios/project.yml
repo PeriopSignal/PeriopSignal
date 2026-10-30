@@ -67,6 +67,8 @@ targets:
         excludes: ["Fixtures/**"]
       - path: Tests/Fixtures/posts-sample.json
         buildPhase: resources
+      - path: Tests/Fixtures/valve-flow-cases.json
+        buildPhase: resources
       - path: ../reference.json
         buildPhase: resources
     dependencies:

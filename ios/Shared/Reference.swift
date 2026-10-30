@@ -31,6 +31,7 @@ struct ReferenceBundle: Codable {
     var abg: AbgData?
     var regional: RegionalData?
     var obEmergency: ObEmergencyData?
+    var valveFlows: ValveFlowData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -46,6 +47,8 @@ struct ReferenceBundle: Codable {
         if b.abg == nil { b.abg = other.abg }
         if b.regional == nil { b.regional = other.regional }
         if b.obEmergency == nil { b.obEmergency = other.obEmergency }
+        // Workflow content in a format this build does not read falls back to the bundled copy.
+        if !(b.valveFlows?.isSupported ?? false), other.valveFlows?.isSupported == true { b.valveFlows = other.valveFlows }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }

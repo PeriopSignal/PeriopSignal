@@ -703,6 +703,74 @@
     }
   };
 
+  // ---------- Valve severity, one step at a time (ValveFlow.swift; content in reference.json "valveFlows") ----------
+  /* Each step asks for one measurement or sign; "Cannot obtain" moves on, and the flow ends as soon as the
+     guideline's criteria settle the grade. Answers are { stepId: number | optionId | null } (null: cannot obtain).
+     The order of the steps and the integration rules are in R.valveFlow.rules, mirrored from ValveFlow.swift;
+     tools/valve_flow_cases.json runs the same cases on both. */
+  R.valveFlow = {
+    supportedFormat: 1,
+    rules: {},
+    usable(data) { return data && data.format === R.valveFlow.supportedFormat ? (data.flows || []).filter((f) => R.valveFlow.rules[f.id]) : []; },
+    step(flow, id) { return (flow.steps || []).find((s) => s.id === id) || null; },
+    contains(b, v) {
+      if (b.lt != null && !(v < b.lt)) return false;
+      if (b.le != null && !(v <= b.le)) return false;
+      if (b.gt != null && !(v > b.gt)) return false;
+      if (b.ge != null && !(v >= b.ge)) return false;
+      return true;
+    },
+    rangeText(b) {
+      if (b.range) return b.range;
+      const lo = b.gt != null ? '> ' + R.fmt(b.gt) : (b.ge != null ? '≥ ' + R.fmt(b.ge) : null);
+      const hi = b.lt != null ? '< ' + R.fmt(b.lt) : (b.le != null ? '≤ ' + R.fmt(b.le) : null);
+      return [lo, hi].filter(Boolean).join(' and ');
+    },
+    /** The bands as one line: "< 0.3 specific for mild · ≥ 0.7 specific for severe". */
+    bandText(s) {
+      if (!s.bands || !s.bands.length) return null;
+      return s.bands.map((b) => [R.valveFlow.rangeText(b), b.label].filter(Boolean).join(' ')).join(' · ');
+    },
+    walk(flow, answers, opts) {
+      const w = { flow, answers: answers || {}, tee: !!(opts && opts.tee), path: [], cautions: [], tally: null };
+      /** The answer to a step, recorded on the path: { pending } | { cannot } | { n, tag } | { c, tag }. A step the
+          content lacks reads as not obtainable, and an answer of the wrong kind (a stale option) as not answered. */
+      w.take = (id) => {
+        const s = R.valveFlow.step(flow, id);
+        if (!s) return { cannot: true };
+        if (!Object.prototype.hasOwnProperty.call(w.answers, id) || w.answers[id] === undefined) return { pending: true };
+        const a = w.answers[id];
+        if (a === null) { w.path.push({ step: s, answer: null, tag: null, text: 'Cannot obtain' }); return { cannot: true }; }
+        if (typeof a === 'number') {
+          if (s.kind !== 'number' || !Number.isFinite(a)) return { pending: true };
+          const band = (s.bands || []).find((b) => R.valveFlow.contains(b, a)) || null;
+          const reading = band ? (band.label || null) : (s.between || null);
+          const tag = band ? band.tag : null;
+          w.path.push({ step: s, answer: a, tag, text: R.fmt(a) + (s.unit ? ' ' + s.unit : '') + (reading ? ' · ' + reading : '') });
+          return { n: a, tag };
+        }
+        const o = s.kind === 'number' ? null : (s.options || []).find((x) => x.id === a);
+        if (!o) return { pending: true };
+        w.path.push({ step: s, answer: a, tag: o.tag || null, text: o.label });
+        return { c: a, tag: o.tag || null };
+      };
+      w.caution = (t) => { if (!w.cautions.includes(t)) w.cautions.push(t); };
+      return w;
+    },
+    /** { path, current, outcome, tally, cautions } for a flow and its answers. */
+    progress(flow, answers, opts) {
+      const rule = R.valveFlow.rules[flow.id];
+      if (!rule) return { path: [], current: null, outcome: null, tally: null, cautions: [] };
+      const w = R.valveFlow.walk(flow, answers, opts);
+      const end = rule(w);
+      if (end.ask) return { path: w.path, current: R.valveFlow.step(flow, end.ask), outcome: null, tally: w.tally, cautions: w.cautions };
+      const def = (flow.results || {})[end.done] || { headline: 'No reading', text: 'This version of the content has no text for the result ' + end.done + '.' };
+      let text = def.text;
+      for (const [k, v] of Object.entries(end.vars || {})) text = text.split('{' + k + '}').join(String(v));
+      return { path: w.path, current: null, outcome: { id: end.done, grade: def.grade || null, headline: def.headline, text, next: def.next || [], cautions: w.cautions }, tally: null, cautions: w.cautions };
+    },
+  };
+
   // ---------- Valve intervention, 2020 ACC/AHA (ValveIntervention.swift) ----------
   R.viLesions = [
     { id: 'as', name: 'Aortic stenosis', short: 'AS', severity: 'Severe: Vmax ≥ 4 m/s or mean gradient ≥ 40 mmHg (AVA usually ≤ 1.0 cm²); very severe: Vmax ≥ 5 m/s or mean gradient ≥ 60 mmHg. Low-flow, low-gradient: AVA ≤ 1.0 cm² with Vmax < 4 m/s, confirmed severe by dobutamine stress or calcium scoring.' },

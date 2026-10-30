@@ -602,3 +602,14 @@
 .ob-manual { display: grid; gap: 6px; margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
 .rg-li { display: block; }
 .rg-li + .rg-li { margin-top: 7px; }
+
+/* valve workflows */
+.r-flowhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+.r-tally { font-size: 11.5px; color: var(--fg-3); text-align: right; }
+.r-view { margin: 0; display: flex; gap: 6px; align-items: baseline; font-size: 13px; color: var(--fg-2); line-height: 1.45; }
+.r-view b { font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; color: var(--accent-2); flex: none; }
+.r-entry { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.r-entry .r-in { flex: 1; min-width: 0; font-size: 18px; text-align: left; height: 42px; }
+.r-entry .mu { font-size: 13px; color: var(--fg-3); flex: none; }
+.r-opt .dot, .r-pathrow .dot { flex: none; width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; }
+.r-pathrow .sg { color: var(--fg-3); }

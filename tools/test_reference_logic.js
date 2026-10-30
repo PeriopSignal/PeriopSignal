@@ -996,5 +996,58 @@ test('OB emergencies: shipped checklists, clock and doses', () => {
   assert.ok(d.manual && /^https:\/\//.test(d.manual.url), 'the Stanford manual is linked');
 });
 
+// ---------- valve workflows (mirrors ios/Tests/ReferenceTests.swift; the cases are shared) ----------
+test('Valve workflows: shared cases', () => {
+  const d = bundle.valveFlows;
+  assert.ok(d && d.format === R.valveFlow.supportedFormat, 'reference.json carries the workflows in this format');
+  const cases = JSON.parse(fs.readFileSync(path.join(ROOT, 'ios/Tests/Fixtures/valve-flow-cases.json'), 'utf8')).cases;
+  assert.ok(cases.length >= 10, 'enough cases');
+  for (const c of cases) {
+    const flow = d.flows.find((f) => f.id === c.flow);
+    assert.ok(flow, c.name + ': flow ' + c.flow);
+    const p = R.valveFlow.progress(flow, c.answers || {}, { tee: !!c.tee }), e = c.expect;
+    if (e.ask !== undefined) { eq(p.current && p.current.id, e.ask, c.name + ' asks'); eq(p.outcome, null, c.name + ' has not ended'); }
+    if (e.result !== undefined) eq(p.outcome && p.outcome.id, e.result, c.name + ' ends on');
+    if (e.grade !== undefined) eq(p.outcome ? p.outcome.grade : undefined, e.grade, c.name + ' grade');
+    if (e.caution !== undefined) assert.ok(p.cautions.some((x) => x.includes(e.caution)), c.name + ' cautions: ' + e.caution);
+    if (e.path !== undefined) eq(p.path.map((r) => r.step.id), e.path, c.name + ' path');
+  }
+});
+
+test('Valve workflows: every flow ends, whatever the answers', () => {
+  const d = bundle.valveFlows;
+  const flows = R.valveFlow.usable(d);
+  eq(flows.length, d.flows.length, 'every flow in the content has rules');
+  let seed = 7;
+  const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  for (const flow of flows) {
+    const ids = new Set(flow.steps.map((s) => s.id));
+    eq(ids.size, flow.steps.length, flow.id + ' step ids are unique');
+    for (const [rid, r] of Object.entries(flow.results)) {
+      assert.ok(r.headline && r.text, flow.id + '/' + rid + ' has words');
+      assert.ok(r.grade === undefined || [1, 2, 3].includes(r.grade), flow.id + '/' + rid + ' grade');
+    }
+    for (let trial = 0; trial < 60; trial++) {
+      const answers = {};
+      let p = null;
+      for (let n = 0; n < 40; n++) {
+        p = R.valveFlow.progress(flow, answers, { tee: trial % 2 === 1 });
+        if (!p.current) break;
+        const s = p.current;
+        const mode = trial === 0 ? 'cannot' : (rand() < 0.15 ? 'cannot' : 'answer');
+        if (mode === 'cannot') answers[s.id] = null;
+        else if (s.kind === 'number') {
+          const cuts = (s.bands || []).flatMap((b) => [b.lt, b.le, b.gt, b.ge]).filter((x) => x != null);
+          const base = cuts.length ? cuts[Math.floor(rand() * cuts.length)] : 1;
+          answers[s.id] = Math.max(0.01, base * (0.5 + rand()));
+        } else answers[s.id] = s.options[Math.floor(rand() * s.options.length)].id;
+      }
+      assert.ok(p && p.outcome, flow.id + ' ends (trial ' + trial + ')');
+      assert.ok(flow.results[p.outcome.id], flow.id + ' ends on a result it has words for: ' + p.outcome.id);
+      assert.ok(!/\{[a-z]+\}/i.test(p.outcome.text), flow.id + '/' + p.outcome.id + ' fills its placeholders');
+    }
+  }
+});
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

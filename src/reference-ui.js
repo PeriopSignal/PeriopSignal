@@ -763,15 +763,66 @@
   }
 
   // ---------- ASE valve severity ----------
+  /* Two modes: Step by step (the guideline sequences in reference.json "valveFlows", rules in R.valveFlow) and All
+     parameters (every measurement at once, R.valveRead). */
   function mountValves(host) {
-    const st = { lesion: 'as', texts: {}, signs: new Set() };
-    view(host, () => {
+    const st = { mode: 'steps', lesion: 'as', texts: {}, signs: new Set(), flow: null, answers: {}, tee: false, entry: '' };
+    try {
+      const m = localStorage.getItem('ps.valveMode');
+      if (m === 'all' || m === 'steps') st.mode = m;
+      st.tee = localStorage.getItem('ps.valveTee') === '1';
+    } catch (e) { /* storage unavailable: defaults */ }
+    const save = () => { try { localStorage.setItem('ps.valveMode', st.mode); localStorage.setItem('ps.valveTee', st.tee ? '1' : '0'); } catch (e) { /* ignore */ } };
+    const tagColor = (t) => t === 'severe' ? 'var(--accent)' : (t === 'moderate' || t === 'intermediate') ? 'var(--accent-2)' : (t === 'mild' || t === 'normal') ? 'var(--new)' : 'var(--fg-3)';
+    const tagWord = (t) => t === 'severe' ? 'Severe' : t === 'moderate' ? 'Moderate' : t === 'mild' ? 'Mild' : '';
+
+    function flowHTML() {
+      const data = bundle && bundle.valveFlows;
+      const flows = R.valveFlow.usable(data);
+      if (!flows.length) return loading('the workflows');
+      const flow = flows.find((f) => f.id === st.flow) || flows[0];
+      const p = R.valveFlow.progress(flow, st.answers, { tee: st.tee });
+      const groups = [];
+      for (const f of flows) {
+        let g = groups.find((x) => x.id === f.group);
+        if (!g) groups.push(g = { id: f.group, name: ((data.groups || []).find((x) => x.id === f.group) || {}).name || f.group, flows: [] });
+        g.flows.push(f);
+      }
+      let h = `<section class="r-sec">${groups.map((g) => `${eyebrow(g.name)}<div class="r-tabs" role="tablist" aria-label="${esc(g.name)}">${g.flows.map((f) => `<button type="button" role="tab" data-a="flow" data-v="${esc(f.id)}" aria-selected="${f.id === flow.id}" aria-label="${esc(f.name)}">${esc(f.short)}</button>`).join('')}</div>`).join('')}${seg('tee', [['0', 'TTE'], ['1', 'Intraoperative TEE']], st.tee ? '1' : '0', 'Study')}</section>`;
+      if (p.outcome) {
+        const o = p.outcome, tone = o.grade ? GRADE_COLOR[o.grade] : 'var(--accent-2)';
+        h += resultCard(tone, `${eyebrow(flow.name, tone)}<p class="r-headline big">${esc(R.titleCase(o.headline))}</p><p class="r-detail">${esc(o.text)}</p>${o.next.map((n) => `<p class="r-next">${I.chevR}<span>${esc(n)}</span></p>`).join('')}${o.cautions.map(caution).join('')}<div class="r-btns"><button type="button" class="r-ghost sm" data-a="restart">${I.reset}Start over</button></div>`);
+      }
+      if (p.current) {
+        const s = p.current, view = st.tee ? s.tee : s.tte, bands = R.valveFlow.bandText(s);
+        let inner = `<div class="r-flowhead">${eyebrow(flow.short + ' · step ' + (p.path.length + 1), 'var(--accent-2)')}${p.tally ? `<span class="r-tally">${esc(p.tally)}</span>` : ''}</div><p class="r-headline big">${esc(s.title)}</p>`;
+        if (s.ask) inner += `<p class="r-detail">${esc(s.ask)}</p>`;
+        if (view) inner += `<p class="r-view"><b>${st.tee ? 'TEE' : 'TTE'}</b><span>${esc(view)}</span></p>`;
+        if (bands) inner += `<p class="r-foot">${esc(bands)}</p>`;
+        if (s.kind === 'number') {
+          const ok = R.num(st.entry) !== null;
+          inner += `<div class="r-entry"><input class="r-in wide" id="vf-entry" data-a="entry" type="text" inputmode="decimal" autocomplete="off" placeholder="Value" value="${esc(st.entry)}" aria-label="${esc(s.title)}">${s.unit ? `<span class="mu">${esc(s.unit)}</span>` : ''}<button type="button" class="r-ghost" data-a="next"${ok ? '' : ' disabled'}>Next</button></div>`;
+        } else {
+          inner += `<div class="r-card flush">${(s.options || []).map((o) => `<button type="button" class="r-sign r-opt" data-a="opt" data-k="${esc(s.id)}" data-v="${esc(o.id)}"><span class="dot" style="background:${tagColor(o.tag)}" aria-hidden="true"></span><span class="st"><span>${esc(o.label)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}</span>${tagWord(o.tag) ? `<span class="sg" style="color:${tagColor(o.tag)}">${tagWord(o.tag)}</span>` : ''}</button>`).join('')}</div>`;
+        }
+        inner += `<div class="r-btns"><button type="button" class="r-ghost sm" data-a="cannot" data-k="${esc(s.id)}">Cannot obtain</button></div>`;
+        h += `<section class="r-card">${inner}</section>`;
+      }
+      if (p.path.length) {
+        h += `<section class="r-sec"><div class="r-flowhead">${eyebrow('Your answers')}${p.outcome ? '' : `<button type="button" class="r-link" data-a="restart">${I.reset} Start over</button>`}</div><div class="r-card flush">${p.path.map((r) => `<button type="button" class="r-sign r-pathrow" data-a="edit" data-k="${esc(r.step.id)}" aria-label="Change: ${esc(r.step.title)}"><span class="dot" style="background:${r.answer === null ? 'var(--line-2)' : tagColor(r.tag)}" aria-hidden="true"></span><span class="st"><span>${esc(r.step.title)}</span><small>${esc(r.text)}</small></span><span class="sg">Change</span></button>`).join('')}</div></section>`;
+      }
+      const src = (data.sources || []).find((x) => x.id === flow.source);
+      h += `<footer class="r-footer">${flow.intro ? `<p class="r-detail">${esc(flow.intro)}</p>` : ''}${(flow.notes || []).map(footnote).join('')}${src ? sourceLine({ citation: (flow.ref ? flow.ref + '. ' : '') + src.citation, url: src.url }) : ''}<div class="r-btns">${ghostLink('#card-ase-valve-severity', I.table, 'Grading tables')}</div></footer>`;
+      return h;
+    }
+
+    function allHTML() {
       const lesion = R.valveLesions.find((l) => l.id === st.lesion), params = R.valveParams(st.lesion);
       const numbers = {}; for (const [k, v] of Object.entries(st.texts)) { const n = R.num(v); if (n !== null) numbers[k] = n; }
       const input = { numbers, signs: st.signs }, empty = !Object.keys(numbers).length && !st.signs.size;
       const r = R.valveRead(st.lesion, input);
       const tone = r.overall ? GRADE_COLOR[r.overall] : (empty ? 'var(--fg-3)' : 'var(--accent-2)');
-      let h = `<div class="r-stack"><div class="r-pickrow">${seg('lesion', R.valveLesions.map((l) => [l.id, l.short]), st.lesion, 'Lesion')}${empty ? '' : `<button type="button" class="r-iconbtn" data-a="clear" aria-label="Clear the measurements">${I.reset}</button>`}</div>`;
+      let h = `<div class="r-pickrow">${seg('lesion', R.valveLesions.map((l) => [l.id, l.short]), st.lesion, 'Lesion')}${empty ? '' : `<button type="button" class="r-iconbtn" data-a="clear" aria-label="Clear the measurements">${I.reset}</button>`}</div>`;
       h += resultCard(tone, `${eyebrow(lesion.name, tone)}<p class="r-headline big${empty ? ' muted' : ''}">${esc(R.titleCase(r.headline))}</p><p class="r-detail">${esc(r.explanation)}</p>
         ${r.lines.length ? `<div class="r-chips">${r.lines.map((l) => `<span>${l.grade ? `<i style="background:${GRADE_COLOR[l.grade]}"></i>` : ''}${esc(l.label)}: ${esc(l.text)}</span>`).join('')}</div>` : ''}
         ${r.cautions.map(caution).join('')}`);
@@ -785,13 +836,35 @@
         return `<button type="button" class="r-sign" role="checkbox" aria-checked="${on}" data-a="sign" data-k="${p.id}"><span class="box" aria-hidden="true">${on ? I.check : ''}</span><span class="st"><span>${esc(p.label)}</span>${p.hint ? `<small>${esc(p.hint)}</small>` : ''}</span>${p.grade !== 2 ? `<span class="sg" style="color:${GRADE_COLOR[p.grade]}">${R.gradeLabel(p.grade)}</span>` : ''}</button>`;
       }).join('')}</div></section>`;
       h += `<footer class="r-footer"><div class="r-btns">${ghostLink('#card-ase-valve-severity', I.table, 'Grading tables')}${ghostLink('https://www.asecho.org/guideline/native-valvular-regurgitation-by-echo', I.doc, 'ASE', true)}</div>${footnote('Source: ' + lesion.source + '. The reading integrates the signs the way the documents describe and sets aside what you leave blank; it is a second pair of eyes on the numbers, not a report. Loading conditions in the operating room usually under-read regurgitation.')}</footer>`;
-      return h + `</div>`;
-    }, {
+      return h;
+    }
+
+    const next = () => {
+      const data = bundle && bundle.valveFlows, flows = R.valveFlow.usable(data);
+      const flow = flows.find((f) => f.id === st.flow) || flows[0];
+      if (!flow) return false;
+      const p = R.valveFlow.progress(flow, st.answers, { tee: st.tee }), v = R.num(st.entry);
+      if (!p.current || v === null) return false;
+      st.answers[p.current.id] = v; st.entry = '';
+      return true;
+    };
+    const update = view(host, () => `<div class="r-stack">${seg('mode', [['steps', 'Step by step'], ['all', 'All parameters']], st.mode, 'Mode')}${st.mode === 'steps' ? flowHTML() : allHTML()}</div>`, {
+      mode(el) { st.mode = el.dataset.v; save(); },
+      tee(el) { st.tee = el.dataset.v === '1'; save(); },
+      flow(el) { st.flow = el.dataset.v; st.answers = {}; st.entry = ''; },
+      entry(el) { st.entry = el.value; },
+      next() { return next(); },
+      cannot(el) { st.answers[el.dataset.k] = null; st.entry = ''; },
+      opt(el) { st.answers[el.dataset.k] = el.dataset.v; },
+      edit(el) { const k = el.dataset.k, a = st.answers[k]; delete st.answers[k]; st.entry = typeof a === 'number' ? R.fmt(a) : ''; },
+      restart() { st.answers = {}; st.entry = ''; },
       lesion(el) { st.lesion = el.dataset.v; st.texts = {}; st.signs = new Set(); },
       clear() { st.texts = {}; st.signs = new Set(); },
       num(el) { st.texts[el.dataset.k] = el.value; },
       sign(el) { const k = el.dataset.k; if (st.signs.has(k)) st.signs.delete(k); else st.signs.add(k); },
     });
+    host.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target && e.target.id === 'vf-entry') { e.preventDefault(); if (next()) update(); } });
+    whenBundle(update);
   }
 
   // ---------- AHA/ACC valve intervention ----------

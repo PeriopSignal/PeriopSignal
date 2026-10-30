@@ -5,6 +5,7 @@ struct ValveGraderView: View {
     var onOpen: (URL) -> Void
     var onOpenTable: () -> Void
 
+    @AppStorage("valveGrader.mode") private var mode = LaunchSeed.string("ps.valve.mode") == "all" ? "all" : "steps"
     @State private var lesion: ValveLesion = .as_
     @State private var texts: [String: String] = [:]
     @State private var signs: Set<String> = []
@@ -23,11 +24,21 @@ struct ValveGraderView: View {
     var body: some View {
         ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
-                picker
-                result
-                numbers
-                if params.contains(where: \.isSign) { signsCard }
-                footer
+                Picker("Mode", selection: $mode) {
+                    Text("Step by step").tag("steps")
+                    Text("All parameters").tag("all")
+                }
+                .pickerStyle(.segmented)
+                if mode == "steps" {
+                    ValveFlowPanel(onOpen: onOpen)
+                    tablesButton
+                } else {
+                    picker
+                    result
+                    numbers
+                    if params.contains(where: \.isSign) { signsCard }
+                    footer
+                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 6)
@@ -184,6 +195,13 @@ struct ValveGraderView: View {
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        }
+    }
+
+    private var tablesButton: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Hairline()
+            Button(action: onOpenTable) { Label("Grading tables", systemImage: "tablecells") }.buttonStyle(GhostButtonStyle())
         }
     }
 

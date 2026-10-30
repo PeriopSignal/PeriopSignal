@@ -490,6 +490,70 @@ final class ReferenceTests: XCTestCase {
         XCTAssertTrue(valve(.ms, ["mva": 2.0, "mg": 12]).cautions.first?.contains("severe range") ?? false, "a severe-range gradient with a moderate area is flagged")
     }
 
+    // MARK: Valve workflows (the cases are shared with tools/test_reference_logic.js)
+
+    func testValveFlowCases() throws {
+        let data = try XCTUnwrap(try bundled().valveFlows, "reference.json carries the valve workflows")
+        XCTAssertTrue(data.isSupported)
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "valve-flow-cases", withExtension: "json"), "the cases are bundled with the tests")
+        let root = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        let cases = try XCTUnwrap(root["cases"] as? [[String: Any]])
+        XCTAssertGreaterThanOrEqual(cases.count, 10)
+        for c in cases {
+            let name = c["name"] as? String ?? "?"
+            let flow = try XCTUnwrap(data.flows.first { $0.id == c["flow"] as? String }, name)
+            var answers: [String: FlowAnswer] = [:]
+            for (k, v) in (c["answers"] as? [String: Any]) ?? [:] {
+                if v is NSNull { answers[k] = .cannot }
+                else if let s = v as? String { answers[k] = .choice(s) }
+                else if let n = v as? NSNumber { answers[k] = .number(n.doubleValue) }
+            }
+            let p = ValveFlow.progress(flow, answers, tee: c["tee"] as? Bool ?? false)
+            let e = try XCTUnwrap(c["expect"] as? [String: Any], name)
+            if e.keys.contains("ask") {
+                XCTAssertEqual(p.current?.id, e["ask"] as? String, "\(name) asks")
+                XCTAssertNil(p.outcome, "\(name) has not ended")
+            }
+            if e.keys.contains("result") { XCTAssertEqual(p.outcome?.id, e["result"] as? String, "\(name) ends on") }
+            if e.keys.contains("grade") { XCTAssertEqual(p.outcome?.grade?.rawValue, e["grade"] as? Int, "\(name) grade") }
+            if let caution = e["caution"] as? String { XCTAssertTrue(p.cautions.contains { $0.contains(caution) }, "\(name) cautions: \(caution)") }
+            if let path = e["path"] as? [String] { XCTAssertEqual(p.path.map(\.step.id), path, "\(name) path") }
+        }
+    }
+
+    func testEveryValveFlowEnds() throws {
+        let data = try XCTUnwrap(try bundled().valveFlows)
+        XCTAssertEqual(data.usable.count, data.flows.count, "every flow in the content has rules")
+        var seed: UInt64 = 7
+        func rand() -> Double { seed = (seed &* 16807) % 2147483647; return Double(seed - 1) / 2147483646 }
+        for flow in data.usable {
+            XCTAssertEqual(Set(flow.steps.map(\.id)).count, flow.steps.count, "\(flow.id) step ids are unique")
+            for (rid, r) in flow.results {
+                XCTAssertFalse(r.headline.isEmpty || r.text.isEmpty, "\(flow.id)/\(rid) has words")
+                if let g = r.grade { XCTAssertTrue((1...3).contains(g), "\(flow.id)/\(rid) grade") }
+            }
+            for trial in 0..<60 {
+                var answers: [String: FlowAnswer] = [:]
+                var p = ValveFlow.progress(flow, answers, tee: trial % 2 == 1)
+                for _ in 0..<40 {
+                    p = ValveFlow.progress(flow, answers, tee: trial % 2 == 1)
+                    guard let s = p.current else { break }
+                    if trial == 0 || rand() < 0.15 { answers[s.id] = .cannot }
+                    else if s.isNumber {
+                        let cuts = (s.bands ?? []).flatMap { [$0.lt, $0.le, $0.gt, $0.ge].compactMap { $0 } }
+                        let base = cuts.isEmpty ? 1 : cuts[Int(rand() * Double(cuts.count))]
+                        answers[s.id] = .number(max(0.01, base * (0.5 + rand())))
+                    } else if let o = s.options, !o.isEmpty {
+                        answers[s.id] = .choice(o[Int(rand() * Double(o.count))].id)
+                    }
+                }
+                let o = try XCTUnwrap(p.outcome, "\(flow.id) ends (trial \(trial))")
+                XCTAssertNotNil(flow.results[o.id], "\(flow.id) ends on a result it has words for: \(o.id)")
+                XCTAssertNil(o.text.range(of: #"\{[A-Za-z]+\}"#, options: .regularExpression), "\(flow.id)/\(o.id) fills its placeholders")
+            }
+        }
+    }
+
     // MARK: Valve intervention (ACC/AHA 2020)
 
     private func vi(_ lesion: VILesion, _ answers: [String: String]) -> VIResult { ValveIntervention.evaluate(lesion, answers: answers) }
