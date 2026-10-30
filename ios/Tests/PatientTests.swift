@@ -280,7 +280,7 @@ final class PatientTests: XCTestCase {
         XCTAssertTrue(PatientFunctional.conditionAdvice(stroke).contains { $0.hasPrefix("Stroke or TIA within 3 months") })
         // §6.2 rec 2 (class 2b, p e373): a recent SBP ≥180 or DBP ≥110 before the day of surgery, one or more RCRI risk
         // factors and elective elevated-risk surgery; the demo is elective, RCRI 3, with coronary disease and insulin.
-        let deferral = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.contains("deferring elective elevated-risk surgery") } }
+        let deferral = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.hasPrefix("A recent history of SBP ≥180") } }
         var bp = demo; bp.problems.insert("htn-180")
         XCTAssertTrue(PatientFunctional.conditionAdvice(bp).contains { $0 == "A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b)." })
         XCTAssertEqual(PatientFunctional.rcriRiskFactors(demo), ["ihd", "insulin"], "the surgery itself is not one")
@@ -346,7 +346,9 @@ final class PatientTests: XCTestCase {
         XCTAssertTrue(p2y12.hasSuffix("continue dual antiplatelet therapy unless the risk of bleeding outweighs the benefit of preventing stent thrombosis (class 1)."), "rec 8")
         let aspirin = PatientFunctional.medNotes["aspirin"] ?? ""
         XCTAssertTrue(aspirin.hasPrefix("After PCI, continue aspirin 75–100 mg if possible (class 1)."))
-        XCTAssertTrue(aspirin.contains("Without a prior PCI") && aspirin.contains("(class 2b)") && aspirin.hasSuffix("(class 3: no benefit)."), "recs 11 and 12")
+        XCTAssertTrue(aspirin.contains("Without a prior PCI") && aspirin.hasSuffix("(class 2b)."), "rec 11")
+        XCTAssertFalse(aspirin.contains("routinely starting"), "rec 12 is about starting aspirin; the note is for patients taking it (review R12)")
+        XCTAssertTrue(p2y12.contains("After balloon angioplasty without a stent, elective surgery should wait at least 14 days (class 1). If elective surgery will stop an antiplatelet:"), "rec 2 stands alone (review R12)")
         XCTAssertTrue((PatientFunctional.medNotes["anticoagulant"] ?? "").hasSuffix("substitute aspirin when feasible until it can be safely restarted (class 1)."), "rec 9")
         XCTAssertTrue((PatientFunctional.medNotes["acei"] ?? "").hasPrefix("In selected patients with controlled blood pressure"))
         for f in PatientCatalog.medFlags where PatientFunctional.medNotes[f.id] != nil { XCTAssertTrue(PatientFunctional.medNotes[f.id]?.contains("(class") ?? false, f.id) }
