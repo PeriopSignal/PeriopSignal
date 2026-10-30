@@ -81,6 +81,7 @@ struct AclsDeadlineNow: Hashable, Identifiable {
 enum AclsCalc {
     /// 75000 → "1:15"; 3725000 → "1:02:05"; negative values keep their sign.
     static func clock(_ ms: Double) -> String {
+        guard ms.isFinite else { return "—" }
         let neg = ms < 0
         let s = Int((Swift.abs(ms) / 1000).rounded(.down))
         let h = s / 3600, m = (s % 3600) / 60, sec = s % 60
@@ -96,6 +97,9 @@ enum AclsCalc {
         if s.hasSuffix(".") { s.removeLast() }
         return s
     }
+
+    /// A whole number for display, or nil for a value no whole number can hold (an absurd entry must not crash).
+    static func whole(_ v: Double) -> Int? { v.isFinite && Swift.abs(v) < 1e9 ? Int(v.rounded()) : nil }
 
     /// Rounds a dose sensibly: 2 decimals below 1, 1 below 10, whole above.
     static func round(_ v: Double) -> Double {
@@ -168,14 +172,15 @@ enum AclsCalc {
                 return AclsEnergy(text: "\(atLeast)\(num(per)) J/kg\(upTo)", joules: nil, needsWeight: true)
             }
             // maxJ: the adult ceiling ("or the adult dose, whichever is lower"), so a large child never reads above it
-            let raw = Int((per * w).rounded())
+            guard let raw = whole(per * w) else { return AclsEnergy(text: "Check the weight", joules: nil, needsWeight: true) }
             if let cap = e.maxJ, raw > Int(cap) {
                 return AclsEnergy(text: "\(Int(cap)) J, the adult dose (\(num(per)) J/kg would be \(raw) J)", joules: Int(cap))
             }
             var upTo = ""
             if later, let mpk = e.maxPerKg {
-                let up = Int((mpk * w).rounded())
-                if let cap = e.maxJ, up > Int(cap) { upTo = ", up to \(Int(cap)) J (the adult dose)" } else { upTo = ", up to \(up) J" }
+                if let up = whole(mpk * w) {
+                    if let cap = e.maxJ, up > Int(cap) { upTo = ", up to \(Int(cap)) J (the adult dose)" } else { upTo = ", up to \(up) J" }
+                }
             }
             return AclsEnergy(text: "\(atLeast)\(raw) J (\(num(per)) J/kg)\(upTo)", joules: raw)
         }
@@ -309,7 +314,8 @@ enum AclsCalc {
     static func entryText(_ a: AclsAction, _ s: AclsState, _ n: Int, joules: Double? = nil) -> String {
         switch a.kind {
         case "shock":
-            let j: Int? = (joules ?? 0) > 0 ? Int(joules!) : energy(a, s, n)?.joules
+            let typed = joules.flatMap { $0 > 0 ? whole($0.rounded(.towardZero)) : nil }
+            let j: Int? = typed ?? energy(a, s, n)?.joules
             return "\(a.label) \(n + 1)" + (j.map { ": \($0) J" } ?? "")
         case "drug":
             let ds = dose(a, s, n), sp = spec(a, s.patient)
