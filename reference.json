@@ -12181,8 +12181,10 @@
           "If the spread does not reach several levels, inject at more than one intercostal space",
           "Shallower than the transversus thoracis plane block and away from the internal mammary plane, so it is the parasternal block to choose when the artery is harvested"
         ],
-        "url": "https://www.ncbi.nlm.nih.gov/books/NBK603717/",
-        "linkLabel": "StatPearls chapter",
+        "source": {
+          "label": "StatPearls chapter",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK603717/"
+        },
         "art": {
           "probe": {
             "view": "front",

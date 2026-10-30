@@ -471,10 +471,15 @@ def main(path):
             for k in ("indications", "coverage", "position", "equipment", "target", "volume", "onset", "cautions", "tips"):
                 need(texts(b.get(k)), f"regional block {bid}: {k} must be text or a list of text")
             need(b.get("volume"), f"regional block {bid}: volume required")
-            # NYSORA's page by default; another source (a StatPearls chapter on NCBI Bookshelf) names itself in linkLabel.
-            nysora = isinstance(b.get("url"), str) and re.match(r"^https://(www\.)?nysora\.com/", b["url"]) is not None
-            bookshelf = isinstance(b.get("url"), str) and re.match(r"^https://www\.ncbi\.nlm\.nih\.gov/books/NBK\d+/$", b["url"]) is not None
-            need(nysora or (bookshelf and isinstance(b.get("linkLabel"), str) and b["linkLabel"].strip()), f"regional block {bid}: url must be a NYSORA page, or an NCBI Bookshelf chapter with a linkLabel")
+            # NYSORA's page in url; a block from another source (a StatPearls chapter on NCBI Bookshelf) has no url but a
+            # labelled "source" link, which app versions before 1.5.4 ignore rather than call NYSORA's.
+            src = b.get("source")
+            if src is not None:
+                need(b.get("url") is None, f"regional block {bid}: source replaces url")
+                need(isinstance(src.get("label"), str) and src["label"].strip(), f"regional block {bid}: source.label required")
+                need(isinstance(src.get("url"), str) and re.match(r"^https://www\.ncbi\.nlm\.nih\.gov/books/NBK\d+/$", src["url"]) is not None, f"regional block {bid}: source.url must be an NCBI Bookshelf chapter")
+            else:
+                need(isinstance(b.get("url"), str) and re.match(r"^https://(www\.)?nysora\.com/", b["url"]) is not None, f"regional block {bid}: url must be a NYSORA page")
             art = b.get("art")
             if art:
                 pr = art.get("probe")

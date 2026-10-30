@@ -1096,10 +1096,10 @@ test('regional content: the shipped figure, map, blocks and guide', () => {
   eq(G.recommend(['shoulder:R', 'chest:M'], d).top, null, 'no lumbar-type level above the waist');
   eq(G.recommend(['perineum:M'], d).items[0].neuraxial.level, 'S2–S5');
   for (const p of d.neuraxial.procedures) assert.ok(G.rank(p.level) >= 0, p.id + ' level');
-  for (const b of d.blocks) assert.ok(/^https:\/\/(www\.)?nysora\.com\//.test(b.url) || (/^https:\/\/www\.ncbi\.nlm\.nih\.gov\/books\/NBK\d+\/$/.test(b.url) && b.linkLabel), b.id + ' links to NYSORA, or to a labeled NCBI Bookshelf chapter');
+  for (const b of d.blocks) assert.ok(/^https:\/\/(www\.)?nysora\.com\//.test(b.url) || (!b.url && b.source && b.source.label && /^https:\/\/www\.ncbi\.nlm\.nih\.gov\/books\/NBK\d+\/$/.test(b.source.url)), b.id + ' links to NYSORA, or has a labeled NCBI Bookshelf source instead');
   // The pecto-intercostal fascial plane block: StatPearls (NBK603717), in the chest group and the chest finder.
   const pifb = d.blocks.find((b) => b.id === 'pifb');
-  assert.ok(pifb && pifb.group === 'chest' && pifb.linkLabel === 'StatPearls chapter' && pifb.url.endsWith('/NBK603717/'));
+  assert.ok(pifb && pifb.group === 'chest' && !pifb.url && pifb.source.label === 'StatPearls chapter' && pifb.source.url.endsWith('/NBK603717/'));
   assert.ok(d.map.chest.blocks.some((b) => b.id === 'pifb'), 'the chest finder offers the PIFB');
 });
 

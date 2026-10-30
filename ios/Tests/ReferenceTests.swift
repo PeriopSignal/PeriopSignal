@@ -1435,7 +1435,7 @@ final class ReferenceTests: XCTestCase {
         for b in d.blocks {
             XCTAssertTrue(groups.contains(b.group), "\(b.id) is in a listed group")
             XCTAssertFalse((b.volume?.items ?? []).isEmpty, "\(b.id) has a volume")
-            XCTAssertTrue(["https://www.nysora.com/", "https://nysora.com/"].contains { (b.url ?? "").hasPrefix($0) } || ((b.url ?? "").hasPrefix("https://www.ncbi.nlm.nih.gov/books/NBK") && b.linkLabel != nil), "\(b.id) links to NYSORA, or to a labeled NCBI Bookshelf chapter")
+            XCTAssertTrue(["https://www.nysora.com/", "https://nysora.com/"].contains { (b.url ?? "").hasPrefix($0) } || (b.url == nil && (b.source?.url ?? "").hasPrefix("https://www.ncbi.nlm.nih.gov/books/NBK")), "\(b.id) links to NYSORA, or has a labeled NCBI Bookshelf source instead")
             if let pr = b.art?.probe { XCTAssertTrue(["front", "back"].contains(pr.view), "\(b.id) probe view") }
         }
         for (rid, m) in d.map ?? [:] {
