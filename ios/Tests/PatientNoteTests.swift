@@ -117,6 +117,7 @@ final class PatientNoteTests: XCTestCase {
         XCTAssertEqual(change(c, "meds"), .medications("metoprolol lisinopril and Ozempic last dose Sunday"))
         XCTAssertNotNil(change(c, "flag:glp1"))
         XCTAssertNotNil(c.findings.first { $0.id == "vital:spo2" }?.note, "on oxygen, not room air")
+        XCTAssertEqual(change(read("Takes atorvastatin 40 mg."), "flag:statin"), .medFlag("statin"), "a statin sets its flag")
         let d = read("70-year-old man for hip replacement history of high blood pressure diabetes sleep apnea uses cpap no chest pain can climb two flights of stairs allergic to penicillin last ate at 8 pm")
         XCTAssertEqual(change(d, "allergies:penicillin"), .allergies("penicillin"))
         XCTAssertEqual(change(d, "procedure"), .procedure("hip replacement"))
