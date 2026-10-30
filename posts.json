@@ -1,7 +1,140 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-29T09:15:05+00:00",
+ "generatedAt": "2026-10-30T08:39:55+00:00",
  "posts": [
+  {
+   "id": "lancet-2026-prospect-prone-hfov-pards",
+   "date": "2026-10-30",
+   "dateApprox": true,
+   "addedAt": "2026-10-30",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "RCT",
+   "topics": [
+    "pediatric",
+    "criticalCare"
+   ],
+   "headline": "PROSpect: neither prone positioning nor HFOV added ventilator-free days in early moderate-to-severe pediatric ARDS",
+   "summary": "In 75 PICUs in 18 countries, 424 children with early moderate-to-severe PARDS were randomised in a two-by-two factorial design to prone or supine positioning and to HFOV or conventional ventilation. The trial stopped early for futility, and ventilator-free days to day 28 did not differ for either comparison.",
+   "takeHome": [
+    "Ventilator-free days did not differ: prone 17.9 vs supine 17.4 days; HFOV 17.3 vs conventional ventilation 18.0 days",
+    "Proning brought more airway plugging (rate ratio 4.83) and pressure injuries (6% vs 1%); HFOV more haemodynamic instability (rate ratio 1.84)",
+    "The authors found no evidence for prone positioning or HFOV as first-line strategies and do not recommend their routine use"
+   ],
+   "authorLimitations": [
+    "The trial stopped early for futility and slow enrolment after 424 of 600 planned patients",
+    "Masking was not possible given the nature of the interventions"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Prone positioning and high-frequency oscillatory ventilation (HFOV) are the rescue moves most PICUs reach for when a ventilated child's oxygenation worsens, yet practice varies because the pediatric data were inconclusive. Adult evidence pulls in opposite directions: proning cut mortality in severe ARDS (PROSEVA), while HFOV did not help (OSCILLATE, OSCAR).\n\n**What they did.** This NHLBI-funded two-by-two factorial, response-adaptive trial in 75 PICUs across 18 countries enrolled patients aged 2 weeks to 20 years who had been intubated for less than 96 h before meeting moderate-to-severe PARDS criteria. Each was randomised to supine or prone and to conventional ventilation or HFOV. The primary outcome was ventilator-free days to day 28.\n\n**What they found.**\n- Enrolment stopped at 424 of 600 planned patients, for futility and slow recruitment; 168 were allocated to the HFOV arms.\n- Ventilator-free days: prone 17.9 vs supine 17.4 (location shift 0.0, 95% CI -0.8 to 1.0); HFOV 17.3 vs conventional 18.0 (-0.3, -1.5 to 0.5).\n- 10% had died by day 28, with no group differences.\n- Proning brought more airway plugging (rate ratio 4.83) and stage 2 or worse pressure injuries (6% vs 1%); HFOV more haemodynamic instability (rate ratio 1.84).\n\n**Caveats.** Unmasked and stopped early, but both confidence intervals exclude the 2-day gain the investigators registered as clinically meaningful.\n\n**For the anesthesiologist.** We are often called to help prone a hypoxaemic child or move them to the oscillator. PROSpect says neither belongs as a routine first-line step in early moderate-to-severe PARDS; lung-protective conventional ventilation stays the base. If a child is proned, secure the tube and plan suctioning, since airway plugging rose almost five-fold. The registration excluded cyanotic heart disease and cardiomyopathy, so the trial does not speak to the post-bypass cardiac child.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)01949-5",
+   "impact": 3,
+   "trialName": "PROSpect",
+   "firstAuthor": "Curley",
+   "title": "Prone positioning and high-frequency oscillatory ventilation in early paediatric acute respiratory distress syndrome (PROSpect): an international, two-by-two factorial, response-adaptive, phase 3, randomised controlled trial",
+   "glance": {
+    "design": "Two-by-two factorial, response-adaptive RCT, 75 PICUs in 18 countries; stopped early",
+    "n": "424 children aged 2 weeks to 20 years with early moderate-to-severe PARDS",
+    "outcome": "Ventilator-free days through day 28",
+    "result": "No difference: prone 17.9 vs supine 17.4 days; HFOV 17.3 vs conventional 18.0 days"
+   },
+   "quiz": {
+    "question": "In PROSpect, what did prone positioning do compared with supine positioning in children with early moderate-to-severe PARDS?",
+    "options": [
+     "Added about 2 ventilator-free days through day 28",
+     "Lowered all-cause mortality at day 28",
+     "Increased airway plugging or obstruction",
+     "Increased haemodynamic instability"
+    ],
+    "answer": 2,
+    "explanation": "Proning increased airway plugging or obstruction (rate ratio 4.83) and stage 2 or worse pressure injuries (6% vs 1%) without adding ventilator-free days (17.9 vs 17.4) or changing day-28 mortality. Haemodynamic instability was the excess harm with HFOV. The trial stopped early at 424 of 600 planned patients."
+   }
+  },
+  {
+   "id": "bja-2026-esketamine-chronic-pain-vats",
+   "date": "2026-10-28",
+   "dateApprox": false,
+   "addedAt": "2026-10-30",
+   "journal": "BJA",
+   "jshort": "BJA",
+   "kind": "RCT",
+   "topics": [
+    "thoracic",
+    "regional"
+   ],
+   "headline": "Perioperative esketamine cut 3-month chronic pain after VATS lung resection, 14.7% vs 21.2%, in a 914-patient trial",
+   "summary": "In a double-blind multicentre trial in China, 914 adults having video-assisted thoracoscopic lung resection received esketamine (0.1 mg/kg at induction, 0.1 mg/kg/h during surgery, then 0.015 mg/kg/h for 48 h) or saline. The primary outcome was chronic pain at 3 months.",
+   "takeHome": [
+    "Chronic pain at 3 months (NRS 1 or more on coughing): 14.7% with esketamine vs 21.2% with saline; adjusted OR 0.62 (95% CI 0.43-0.90)",
+    "A post hoc threshold of NRS 3 or more on coughing also favoured esketamine (adjusted OR 0.39, 95% CI 0.19-0.84)",
+    "Esketamine lowered pain at rest and on coughing over 48 h and reduced supplemental analgesic use, without increasing adverse effects"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Persistent pain after lung resection remains common even with thoracoscopic surgery, and few preventive strategies have been tested in large blinded trials. This one tested a simple infusion in a thoracic population large enough to look at chronic pain as the primary outcome.\n\n**What they did.** Adults having VATS lung resection were randomised 1:1 to esketamine or saline: a 0.1 mg/kg bolus at induction, 0.1 mg/kg/h during surgery and 0.015 mg/kg/h for 48 h afterwards. The primary outcome was chronic pain at 3 months, defined as persistent pain in the surgical region scoring 1 or more on the numeric rating scale during coughing. The trial was registered with the Chinese Clinical Trial Registry (ChiCTR2000040012).\n\n**What they found.**\n- 873 of 914 randomised patients were analysed; median age 55, 63% female.\n- 3-month chronic pain: 14.7% vs 21.2% (adjusted OR 0.62, 95% CI 0.43-0.90).\n- With a post hoc cut-off of NRS 3 or more on coughing: adjusted OR 0.39 (0.19-0.84).\n- Lower pain scores at rest and on coughing for 48 h and less supplemental analgesia through 48 h and 3 months, with no increase in adverse effects.\n\n**Caveats.** The primary definition counts any pain on coughing, the moderate-pain analysis was post hoc, and the abstract reports outcomes only to 3 months. Intravenous esketamine is not marketed in the United States, so racemic ketamine would be the nearest substitute, and it was not what this trial tested.\n\n**For the anesthesiologist.** For VATS lung resection, a low-dose esketamine infusion that continues for 48 h after surgery is a reasonable addition to multimodal analgesia where the drug is available. Note that the regimen ran into the postoperative period; an induction bolus alone is not what was studied.",
+   "url": "https://doi.org/10.1016/j.bja.2026.08.039",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Wang",
+   "title": "Effects of perioperative esketamine infusion on chronic pain after video-assisted thoracoscopic lung resection: a multicentre, randomised, double-blind clinical trial",
+   "glance": {
+    "design": "Multicentre double-blind RCT in China, esketamine vs saline (1:1)",
+    "n": "914 adults having VATS lung resection randomized; 873 analyzed",
+    "outcome": "Chronic pain at 3 months (NRS 1 or more on coughing at the surgical site)",
+    "result": "14.7% vs 21.2%; adjusted OR 0.62 (95% CI 0.43-0.90)"
+   }
+  },
+  {
+   "id": "lancet-child-2026-nasovisi-videolaryngoscopy-nasotracheal-infants",
+   "date": "2026-10-27",
+   "dateApprox": false,
+   "addedAt": "2026-10-30",
+   "journal": "Lancet Child & Adolescent Health",
+   "jshort": "LCAH",
+   "kind": "RCT",
+   "topics": [
+    "pedsCardiac",
+    "pediatric"
+   ],
+   "headline": "NasoVISI: videolaryngoscopy beat direct laryngoscopy for infant nasotracheal intubation, 83% vs 75% first-pass success",
+   "summary": "Eight US pediatric cardiac centres randomised 684 infants aged 365 days or younger, without anticipated difficult airways, who needed nasotracheal intubation for elective cardiothoracic surgery or catheterisation, to videolaryngoscopy or direct laryngoscopy. The primary outcome was first-attempt success.",
+   "takeHome": [
+    "First-attempt success was 83% with videolaryngoscopy vs 75% with direct laryngoscopy; adjusted risk difference 8.2% (95% CI 2.0-14.3)",
+    "Complications were similar: 13% vs 12% on the first attempt and 14% in both groups across all attempts; no cardiac arrests or deaths",
+    "The authors say the result adds to growing evidence favouring videolaryngoscopy as the first-line technique for tracheal intubation in infants"
+   ],
+   "authorLimitations": [
+    "Whether the benefit extends to infants with difficult airways remains an open question for further research",
+    "Whether it holds at non-specialist centres or in urgent settings is also unknown"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Many pediatric cardiac centres intubate infants through the nose because a nasal tube is easier to secure for postoperative ventilation. Videolaryngoscopy already improves first-attempt success for oral intubation in infants, but its value for nasotracheal intubation, where the tube is steered from the nose, often with Magill forceps, had not been tested. NasoVISI, funded by the APSF and the Children's Hospital of Philadelphia, asked that question where nasal tubes are routine.\n\n**What they did.** Eight US pediatric cardiac centres randomised infants aged 365 days or younger, without anticipated difficult airways, who needed nasotracheal intubation for elective cardiothoracic surgery or cardiac catheterisation, to a videolaryngoscope or standard direct laryngoscopy. First-attempt success was the primary outcome, analysed with models that accounted for clustering by intubating clinician.\n\n**What they found.**\n- 673 of 684 randomised infants were analysed; median age 14 weeks, mean weight 4.8 kg.\n- First-attempt success: 83% vs 75% (adjusted risk difference 8.2%, 95% CI 2.0-14.3).\n- First-attempt complications 13% vs 12%; any complication across attempts 14% in each group; no cardiac arrest or death.\n\n**Caveats.** These were elective cases at experienced cardiac centres. The registration excluded infants under 2 kg or under 36 weeks' gestation and any infant with a known or predicted difficult airway, and the authors list difficult airways, non-specialist centres and urgent settings as open questions.\n\n**For the anesthesiologist.** For an infant coming to the cardiac room with a planned nasal tube, starting with the videolaryngoscope gives about one extra first-pass success for every 12 infants intubated. Complications did not fall, so the gain is in first-pass success rather than proven safety. For the very small, the premature and the anticipated difficult airway, the trial offers no answer yet.",
+   "url": "https://doi.org/10.1016/S2352-4642(26)00239-7",
+   "impact": 2,
+   "trialName": "NasoVISI",
+   "firstAuthor": "Garcia-Marcinkiewicz",
+   "title": "Videolaryngoscopy versus direct laryngoscopy for nasotracheal intubation in infants undergoing cardiac procedures (NasoVISI): a multicentre, randomised controlled trial",
+   "glance": {
+    "design": "Multicentre RCT, 8 US pediatric cardiac centres, videolaryngoscopy vs direct laryngoscopy",
+    "n": "673 infants aged 365 days or younger needing nasotracheal intubation (684 randomized)",
+    "outcome": "First-attempt nasotracheal intubation success",
+    "result": "83% vs 75%; adjusted risk difference 8.2% (95% CI 2.0-14.3)"
+   },
+   "quiz": {
+    "question": "In NasoVISI, how did complications compare between videolaryngoscopy and direct laryngoscopy for nasotracheal intubation in infants having cardiac procedures?",
+    "options": [
+     "Fewer first-attempt complications with videolaryngoscopy, an 8.2% absolute reduction",
+     "Similar rates: 13% vs 12% on the first attempt and 14% in each group overall",
+     "More complications with videolaryngoscopy, including two cardiac arrests",
+     "Not reported, because the trial measured only first-attempt success"
+    ],
+    "answer": 1,
+    "explanation": "Complications were similar: 13% vs 12% on the first attempt and 14% in both groups across all attempts, with no cardiac arrests or deaths. The 8.2% figure is the adjusted risk difference in first-attempt success (83% vs 75%), not a fall in complications. These were elective cases at experienced centres, with difficult airways excluded."
+   }
+  },
   {
    "id": "jcf-2026-hfsa-right-heart-failure-statement",
    "date": "2026-10-27",
