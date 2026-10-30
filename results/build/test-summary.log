@@ -1,192 +1,192 @@
-2026-10-30 15:29:24.810883+0000 PeriopSignal[15344:50189] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-10-30 15:29:24.901327+0000 PeriopSignal[15344:50189] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-10-30 15:29:26.688276+0000 PeriopSignal[15344:50185] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-10-30 15:29:26.754530+0000 PeriopSignal[15344:50187] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-30 15:56:20.737334+0000 PeriopSignal[19486:62493] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-30 15:56:21.044210+0000 PeriopSignal[19486:62492] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-30 15:56:21.567299+0000 PeriopSignal[19486:62324] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-10-30 15:56:21.671567+0000 PeriopSignal[19486:62324] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
 Test Case '-[PeriopSignalTests.FeedDecodingTests testAMACitationTruncatesLongAuthorLists]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testAMACitationTruncatesLongAuthorLists]' passed (0.010 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testAMACitationTruncatesLongAuthorLists]' passed (0.023 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testAudioDecoding]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testAudioDecoding]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testAudioDecoding]' passed (0.009 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testBrokenQuizIsDropped]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testBrokenQuizIsDropped]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testBrokenQuizIsDropped]' passed (0.012 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testDateDisplay]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesGlanceQuizCitation]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesGlanceQuizCitation]' passed (0.133 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesGlanceQuizCitation]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testDecodesSampleFeed]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testFallbackCitationForNonDOI]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testFallbackCitationForNonDOI]' passed (0.007 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testFallbackCitationForNonDOI]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' started.
 Test Case '-[PeriopSignalTests.FeedDecodingTests testMarkdownBlocks]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testOptionalFieldsDefault]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testOptionalFieldsDefault]' passed (0.008 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testOptionalFieldsDefault]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testRelatedPostsPreferSameTrialAndTopics]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testRelatedPostsPreferSameTrialAndTopics]' passed (0.851 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testRelatedPostsPreferSameTrialAndTopics]' passed (0.391 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testSocietyDetection]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testSocietyDetection]' passed (0.040 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testSocietyDetection]' passed (0.018 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testSpokenTextStripsMarkdownAndExpandsAbbreviations]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testSpokenTextStripsMarkdownAndExpandsAbbreviations]' passed (0.026 seconds).
+Test Case '-[PeriopSignalTests.FeedDecodingTests testSpokenTextStripsMarkdownAndExpandsAbbreviations]' passed (0.011 seconds).
 Test Case '-[PeriopSignalTests.FeedDecodingTests testTodaysQuestionIsStableForTheDay]' started.
-Test Case '-[PeriopSignalTests.FeedDecodingTests testTodaysQuestionIsStableForTheDay]' passed (0.047 seconds).
-	 Executed 13 tests, with 0 failures (0 unexpected) in 1.147 (1.171) seconds
+Test Case '-[PeriopSignalTests.FeedDecodingTests testTodaysQuestionIsStableForTheDay]' passed (0.036 seconds).
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.530 (0.555) seconds
 Test Case '-[PeriopSignalTests.PatientNoteTests testClauses]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testClauses]' passed (0.007 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testClauses]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testExample]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testExample]' passed (0.081 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testExample]' passed (0.064 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testIdentifierWarning]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testIdentifierWarning]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testIdentifierWarning]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testIntakeTimes]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testIntakeTimes]' passed (0.008 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testIntakeTimes]' passed (0.010 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testMedicinesAndAllergies]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testMedicinesAndAllergies]' passed (0.043 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testMedicinesAndAllergies]' passed (0.039 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testNegationFamilyAndHistory]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testNegationFamilyAndHistory]' passed (0.449 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testNegationFamilyAndHistory]' passed (0.025 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testPatientPacketRoundTrip]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testPatientPacketRoundTrip]' passed (0.168 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testPatientPacketRoundTrip]' passed (0.300 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testPatientSizeAndUnits]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testPatientSizeAndUnits]' passed (0.015 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testPatientSizeAndUnits]' passed (0.021 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testPatternsCompile]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testPatternsCompile]' passed (0.011 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testPatternsCompile]' passed (0.009 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testProcedureTimingAndAnesthetic]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testProcedureTimingAndAnesthetic]' passed (0.026 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testProcedureTimingAndAnesthetic]' passed (0.023 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testStatusAndApply]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testStatusAndApply]' passed (1.263 seconds).
+Test Case '-[PeriopSignalTests.PatientNoteTests testStatusAndApply]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.PatientNoteTests testStoreReceiveAndUndo]' started.
-Test Case '-[PeriopSignalTests.PatientNoteTests testStoreReceiveAndUndo]' passed (0.004 seconds).
-	 Executed 12 tests, with 0 failures (0 unexpected) in 2.078 (2.218) seconds
+Test Case '-[PeriopSignalTests.PatientNoteTests testStoreReceiveAndUndo]' passed (1.375 seconds).
+	 Executed 12 tests, with 0 failures (0 unexpected) in 1.878 (3.732) seconds
 Test Case '-[PeriopSignalTests.PatientTests testAsaSuggestion]' started.
-Test Case '-[PeriopSignalTests.PatientTests testAsaSuggestion]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testAsaSuggestion]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testBodySize]' started.
-Test Case '-[PeriopSignalTests.PatientTests testBodySize]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testBodySize]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testConditionAdvice]' started.
-Test Case '-[PeriopSignalTests.PatientTests testConditionAdvice]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testConditionAdvice]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testDasiAndCardiacStep]' started.
-Test Case '-[PeriopSignalTests.PatientTests testDasiAndCardiacStep]' passed (0.009 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testDasiAndCardiacStep]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testFigureOne]' started.
-Test Case '-[PeriopSignalTests.PatientTests testFigureOne]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testFigureOne]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testHandoffText]' started.
-Test Case '-[PeriopSignalTests.PatientTests testHandoffText]' passed (0.016 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testHandoffText]' passed (0.012 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testMaskVentilationPredictors]' started.
 Test Case '-[PeriopSignalTests.PatientTests testMaskVentilationPredictors]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testNumbersShowAsTyped]' started.
-Test Case '-[PeriopSignalTests.PatientTests testNumbersShowAsTyped]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testNumbersShowAsTyped]' passed (0.002 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testPediatricAsaSuggestion]' started.
-Test Case '-[PeriopSignalTests.PatientTests testPediatricAsaSuggestion]' passed (0.010 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testPediatricAsaSuggestion]' passed (0.376 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testPrompts]' started.
-Test Case '-[PeriopSignalTests.PatientTests testPrompts]' passed (0.019 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testPrompts]' passed (0.011 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testRecordCoding]' started.
-Test Case '-[PeriopSignalTests.PatientTests testRecordCoding]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testRecordCoding]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testScorePrefills]' started.
-Test Case '-[PeriopSignalTests.PatientTests testScorePrefills]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testScorePrefills]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testShortHandoff]' started.
 Test Case '-[PeriopSignalTests.PatientTests testShortHandoff]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testStoreClearAndUndo]' started.
-Test Case '-[PeriopSignalTests.PatientTests testStoreClearAndUndo]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.PatientTests testStoreClearAndUndo]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.PatientTests testTermsText]' started.
-Test Case '-[PeriopSignalTests.PatientTests testTermsText]' passed (0.003 seconds).
-	 Executed 15 tests, with 0 failures (0 unexpected) in 0.107 (1.208) seconds
+Test Case '-[PeriopSignalTests.PatientTests testTermsText]' passed (0.002 seconds).
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.444 (0.464) seconds
 Test Case '-[PeriopSignalTests.PushTopicsTests testDesiredTopics]' started.
-Test Case '-[PeriopSignalTests.PushTopicsTests testDesiredTopics]' passed (0.003 seconds).
-	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Case '-[PeriopSignalTests.PushTopicsTests testDesiredTopics]' passed (0.002 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
 Test Case '-[PeriopSignalTests.ReferenceTests testAbgReadings]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAbgReadings]' passed (0.008 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAbgReadings]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAbgShippedRules]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAbgShippedRules]' passed (0.367 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAbgShippedRules]' passed (0.032 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAclsBundle]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAclsBundle]' passed (0.323 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAclsBundle]' passed (0.120 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAclsClockDosesAndEnergies]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAclsClockDosesAndEnergies]' passed (0.026 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAclsClockDosesAndEnergies]' passed (0.009 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAclsContentWalk]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAclsContentWalk]' passed (0.070 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAclsContentWalk]' passed (0.142 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAclsDeadlinesTreesAndLog]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAclsDeadlinesTreesAndLog]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAclsDeadlinesTreesAndLog]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAclsPromptsFollowTheLog]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAclsPromptsFollowTheLog]' passed (0.293 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAclsPromptsFollowTheLog]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAclsStoreSwitchesWithoutOverlappingAccess]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAclsStoreSwitchesWithoutOverlappingAccess]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAclsStoreSwitchesWithoutOverlappingAccess]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAirwaySizes]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAirwaySizes]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAirwaySizes]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAldreteDefaultsToTenAndDischargeThreshold]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAldreteDefaultsToTenAndDischargeThreshold]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAldreteDefaultsToTenAndDischargeThreshold]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAorticAndTricuspidRegurgitation]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAorticAndTricuspidRegurgitation]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAorticAndTricuspidRegurgitation]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAorticStenosisIntervention]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAorticStenosisIntervention]' passed (0.012 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAorticStenosisIntervention]' passed (0.008 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testAorticStenosisPathways]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testAorticStenosisPathways]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testAorticStenosisPathways]' passed (0.008 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testARISCAT]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testARISCAT]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testARISCAT]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicBundle]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicBundle]' passed (0.050 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicBundle]' passed (0.034 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicFigure3]' started.
 Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicFigure3]' passed (0.008 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicPresenceMACAndTransplant]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicPresenceMACAndTransplant]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testDiastolicPresenceMACAndTransplant]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testDosesAndRounding]' started.
 Test Case '-[PeriopSignalTests.ReferenceTests testDosesAndRounding]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testEchoBundleDrawsEveryRow]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testEchoBundleDrawsEveryRow]' passed (0.075 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testEchoBundleDrawsEveryRow]' passed (0.059 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testEchoEdgesRangesIndexedAndAgeTables]' started.
 Test Case '-[PeriopSignalTests.ReferenceTests testEchoEdgesRangesIndexedAndAgeTables]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testEchoGrading]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testEchoGrading]' passed (0.050 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testEchoGrading]' passed (0.039 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testEmergencyReferencesSortFirst]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testEmergencyReferencesSortFirst]' passed (0.118 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testEmergencyReferencesSortFirst]' passed (0.029 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testEveryBandRangeIsCovered]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testEveryBandRangeIsCovered]' passed (0.165 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testEveryBandRangeIsCovered]' passed (0.027 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testExparelRules]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testExparelRules]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testExparelRules]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testFavoritesMigrateMergedTools]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testFavoritesMigrateMergedTools]' passed (0.015 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testFavoritesMigrateMergedTools]' passed (0.011 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testFluidsAndBlood]' started.
 Test Case '-[PeriopSignalTests.ReferenceTests testFluidsAndBlood]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testInfusionBundleIsComplete]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testInfusionBundleIsComplete]' passed (0.053 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testInfusionBundleIsComplete]' passed (0.034 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testInfusionLines]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testInfusionLines]' passed (0.566 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testInfusionLines]' passed (0.002 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testInfusionTabsAsReviewed]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testInfusionTabsAsReviewed]' passed (0.036 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testInfusionTabsAsReviewed]' passed (0.028 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testInterventionRulesReferToRealQuestions]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testInterventionRulesReferToRealQuestions]' passed (0.021 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testInterventionRulesReferToRealQuestions]' passed (0.017 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testLocalAnestheticMaxima]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testLocalAnestheticMaxima]' passed (0.002 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testLocalAnestheticMaxima]' passed (0.001 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testMitralRegurgitationIntegration]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testMitralRegurgitationIntegration]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testMitralRegurgitationIntegration]' passed (0.002 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testMitralStenosis]' started.
 Test Case '-[PeriopSignalTests.ReferenceTests testMitralStenosis]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testMixtureAddsFractions]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testMixtureAddsFractions]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testMixtureAddsFractions]' passed (0.002 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testNeuraxialBundleRulesAreComplete]' started.
 Test Case '-[PeriopSignalTests.ReferenceTests testNeuraxialBundleRulesAreComplete]' passed (0.034 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testNeuraxialTiming]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testNeuraxialTiming]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testNeuraxialTiming]' passed (0.002 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testNewerFileWinsBySameDayStamp]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testNewerFileWinsBySameDayStamp]' passed (0.063 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testNewerFileWinsBySameDayStamp]' passed (0.024 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testObEmergencyShippedContent]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testObEmergencyShippedContent]' passed (0.035 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testObEmergencyShippedContent]' passed (0.036 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testOlderServerFileDoesNotHideNewSections]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testOlderServerFileDoesNotHideNewSections]' passed (0.327 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testOlderServerFileDoesNotHideNewSections]' passed (0.108 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testPONVPlan]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testPONVPlan]' passed (0.253 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testPONVPlan]' passed (0.057 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testRCRI]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testRCRI]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testRCRI]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testReferenceBundleDecodes]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testReferenceBundleDecodes]' passed (0.056 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testReferenceBundleDecodes]' passed (0.051 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testRegionalRules]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testRegionalRules]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testRegionalRules]' passed (0.009 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testRegionalShippedContent]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testRegionalShippedContent]' passed (0.234 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testRegionalShippedContent]' passed (0.091 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testRegurgitationAndStenosisIntervention]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testRegurgitationAndStenosisIntervention]' passed (2.028 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testRegurgitationAndStenosisIntervention]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testSTOPBangAndApfelCount]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testSTOPBangAndApfelCount]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testSTOPBangAndApfelCount]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testTitleCase]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testTitleCase]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testTitleCase]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testValveParamBands]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testValveParamBands]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.ReferenceTests testValveParamBands]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.ReferenceTests testWeightEstimates]' started.
-Test Case '-[PeriopSignalTests.ReferenceTests testWeightEstimates]' passed (0.003 seconds).
-	 Executed 49 tests, with 0 failures (0 unexpected) in 5.381 (6.488) seconds
-	 Executed 90 tests, with 0 failures (0 unexpected) in 8.715 (14.424) seconds
-	 Executed 90 tests, with 0 failures (0 unexpected) in 8.715 (14.429) seconds
+Test Case '-[PeriopSignalTests.ReferenceTests testWeightEstimates]' passed (0.004 seconds).
+	 Executed 49 tests, with 0 failures (0 unexpected) in 1.105 (2.803) seconds
+	 Executed 90 tests, with 0 failures (0 unexpected) in 3.959 (7.563) seconds
+	 Executed 90 tests, with 0 failures (0 unexpected) in 3.959 (7.569) seconds
 ** TEST SUCCEEDED **
