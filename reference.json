@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793387285,
+  "revision": 1793387713,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14764,7 +14764,7 @@
             "title": "Velocity ratio",
             "kind": "number",
             "unit": "",
-            "ask": "LVOT velocity ÷ aortic velocity (or the VTI ratio): it leaves the LVOT diameter out, so it helps when that cannot be measured (Level 2, p. 382). Table 3 prints severe as under 0.25 and the text as 0.25 or less; the app takes 0.25 as severe (p. 383).",
+            "ask": "LVOT velocity ÷ aortic velocity (or the VTI ratio): it leaves the LVOT diameter out, so it helps when that cannot be measured (Level 2, p. 382). Table 3 and the grading text print severe as under 0.25, the velocity-ratio paragraph as 0.25 or less (both p. 383); the app takes 0.25 as severe.",
             "tte": "LVOT PW in apical five-chamber over the aortic CW peak.",
             "tee": "LVOT PW and aortic CW in the deep transgastric five-chamber or transgastric long axis. Under anesthesia the velocity ratio seems to agree with the awake TTE better than velocities and gradients do (2020 TEE guideline, pp. 703–704).",
             "bands": [
@@ -14870,12 +14870,12 @@
               {
                 "id": "noreserve",
                 "label": "Stroke volume rose by 20% or less",
-                "detail": "No flow (contractile) reserve: the test cannot separate true from pseudosevere"
+                "detail": "No flow (contractile) reserve: the test may not be able to separate true from pseudosevere AS (p. 388)"
               },
               {
                 "id": "inconclusive",
                 "label": "Stroke volume rose over 20%, but neither pattern above",
-                "detail": "Flow reserve without a decisive area or gradient; the projected area at a normal flow rate can help (p. 385)"
+                "detail": "Flow reserve without a decisive area or gradient. The projected area at a normal flow rate has been proposed (p. 385) but is not recommended for clinical use (Table 2, p. 377)"
               }
             ]
           },
@@ -14935,12 +14935,12 @@
           "moderate": {
             "grade": 2,
             "headline": "Moderate AS",
-            "text": "Velocity 3.0–3.9 m/s, mean gradient 20–39 mmHg or area 1.0–1.5 cm² are moderate; with a low gradient, an area of 1.0 cm² or more indicates moderate AS (Table 3; p. 387)."
+            "text": "Table 3 prints moderate as 3.0–4.0 m/s, 20–40 mmHg or 1.0–1.5 cm²; at 4.0 m/s and 40 mmHg the app applies the severe column, which starts there (p. 383). With a low gradient, an area of 1.0 cm² or more indicates moderate AS (p. 387)."
           },
           "severe-high": {
             "grade": 3,
             "headline": "Severe AS, high gradient",
-            "text": "Peak velocity ≥ 4 m/s or mean gradient ≥ 40 mmHg: a high gradient indicates severe AS and needs no further confirmation once a high-flow state is excluded (p. 387). {flow}"
+            "text": "Peak velocity ≥ 4 m/s or mean gradient ≥ 40 mmHg (high gradient, p. 386; the stepwise text names both, p. 387): a high gradient generally indicates severe AS and needs no further evaluation to confirm it once a high-flow state is excluded (p. 387). {flow}"
           },
           "severe-fixed-flow": {
             "grade": 3,
@@ -14949,7 +14949,7 @@
           },
           "high-reversible": {
             "headline": "High gradient with reversible high flow",
-            "text": "Anemia, fever, hyperthyroidism or an arteriovenous shunt can raise the gradient of a non-severe valve; even an area of 1.0 cm² or more can come with a high gradient (p. 387).",
+            "text": "Anemia, fever, hyperthyroidism or an arteriovenous shunt can raise the gradient of a non-severe valve; even an area of 1.0 cm² or more can come with a high gradient (pp. 383, 387).",
             "next": [
               "Repeat the study once the flow has normalized (p. 387)."
             ]
@@ -15039,7 +15039,7 @@
           },
           "indeterminate": {
             "headline": "Indeterminate: weigh the other criteria",
-            "text": "{track}: without a decisive test the grade rests on the Table 5 criteria (p. 385): symptoms without another explanation, age over 70, LVH, reduced longitudinal function, mean gradient 30–40 mmHg measured while normotensive, area 0.8 cm² or less, low flow confirmed by another method, and the CT calcium score."
+            "text": "{track}: without a decisive test the grade rests on the Table 5 criteria (p. 385): typical symptoms without another explanation, a physical examination consistent with severe AS, age over 70, LVH (allowing for hypertension), reduced longitudinal function without another explanation, mean gradient 30–40 mmHg measured while normotensive, area 0.8 cm² or less, low flow confirmed by another method, and the CT calcium score."
           }
         }
       },

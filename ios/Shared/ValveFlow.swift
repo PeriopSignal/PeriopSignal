@@ -329,7 +329,7 @@ extension ValveFlow {
         if vHigh || gHigh {
             w.tally = "High-gradient track"
             if v.number != nil, g.number != nil, vHigh != gHigh {
-                w.caution("Velocity and mean gradient fall on different sides of the severe cutoff: the stepwise text calls high-gradient AS when both reach it, the basic criteria when either does (pp. 383, 387). Recheck the CW envelope and the beam alignment.")
+                w.caution("Velocity and mean gradient fall on different sides of the severe cutoff: the stepwise text calls it high gradient when both reach it (p. 387), the new classification when either does (p. 386), and either alone suggests severe AS (p. 383). Recheck the CW envelope and the beam alignment.")
             }
             let s = w.take("svi")
             if s == .pending { return .ask("svi") }
@@ -343,7 +343,7 @@ extension ValveFlow {
                 case "reversible"?: return .done("high-reversible")
                 case "fixed"?: return .done("severe-fixed-flow")
                 default:
-                    w.caution("Stroke volume index above 58 mL/m² without a cause: an overestimated LVOT diameter inflates both the flow and the area (p. 387).")
+                    w.caution("Stroke volume index above 58 mL/m² without a cause: in a large LVOT, exclude an overestimated flow and therefore area (p. 387); in a dilated LVOT a central PW sample can overstate the average velocity (p. 382).")
                     return .done("severe-high", ["flow": "The high stroke volume index (\(val(w, "svi", sv)) mL/m²) is unexplained; see the caution."])
                 }
             }
@@ -389,7 +389,7 @@ extension ValveFlow {
         }
         let e = w.take("errors")
         if e == .pending { return .ask("errors") }
-        if e == .cannot { w.caution("Measurement errors were not excluded: an LVOT diameter cut short by calcium, or a PW sample in the wrong place, makes a falsely small area (pp. 381, 387).") }
+        if e == .cannot { w.caution("Measurement errors were not excluded: an LVOT diameter cut short by calcium, or a PW sample in the wrong place, makes a falsely small area (pp. 381–382, 387).") }
         let s = w.take("svi")
         if s == .pending { return .ask("svi") }
         guard let sv = s.number else { return .done("flow-unknown") }
@@ -408,7 +408,7 @@ extension ValveFlow {
                 w.caution("Without flow reserve, valve calcification (best by CT) may be the primary clue; the update prints its calcium cutoffs for preserved EF (pp. 385, 388).")
                 return asCalcium(w, track: "Low-flow, low-gradient AS with reduced EF and no flow reserve (calcium cutoffs from the preserved-EF table)")
             case "inconclusive"?:
-                w.caution("Flow reserve without a decisive area or gradient: the projected area at a normal flow rate of 250 mL/s can help (p. 385); the calcium cutoffs are from the preserved-EF table (p. 385).")
+                w.caution("Flow reserve without a decisive area or gradient: the projected area at a normal flow rate of 250 mL/s has been proposed (p. 385) but is not recommended for clinical use (Table 2, p. 377); the calcium cutoffs are from the preserved-EF table (p. 385).")
                 return asCalcium(w, track: "Low-flow, low-gradient AS with reduced EF, dobutamine inconclusive")
             default: return .done("dse-next")
             }

@@ -140,6 +140,12 @@ jobs:
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            # Nothing drawn yet (an all-black frame is about 16 KB): record why, then try once more.
+            if [ "$(stat -f%z "build/shots/$name.png" 2>/dev/null || echo 0)" -lt 30000 ]; then
+              diag "$name"
+              sleep 12
+              xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            fi
           }
           shot 01-feed 14
           shot 02-deepdive 12 -ps.openPost "$LANDMARK"
@@ -221,10 +227,12 @@ jobs:
           shot 78-chamber-annuli 15 -ps.ref chamber -ps.echo.group annuli -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "ma=38,maratio=1.4,ta=42"
           shot 79-valve-mr-step 18 -ps.ref valves -ps.valve.flow mr -ps.valve.answers "type=primary,flail=no,jet=between,cw=dense"
           shot 80-valve-as-result 18 -ps.ref valves -ps.valve.flow as -ps.valve.answers "vmax=3.2,mg=25,ava=0.8,errors=checked,svi=28,lvef=35,dse=severe"
+          diag 80-valve-as-result
           shot 81-valve-tr-tee 18 -ps.ref valves -ps.valve.flow tr -ps.valve.tee 1 -ps.valve.answers "valve=other,jet=between"
           shot 82-valve-all 18 -ps.ref valves -ps.valve.mode all
           shot 83-valve-prosthesis 18 -ps.ref valves -ps.valve.flow pav -ps.valve.answers "kind=surgical,vmax=3.5,contour=early,at=70,atet=0.28,mg=25,dvi=0.4,eoa=ok"
           shot 84-valve-ms-pht 18 -ps.ref valves -ps.valve.flow ms -ps.valve.answers "etiology=rheumatic,planimetry=x,pht=148,mg=x,pasp=x"
+          diag 84-valve-ms-pht
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
