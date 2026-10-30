@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793377656,
+  "revision": 1793381358,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14551,6 +14551,2558 @@
     "notes": [
       "Values are as printed by the sources named on each card; where sources disagree, the card says so. Several US documents (ACOG PB 183, CO 767, PB 222) could not be read, so their values come from ACOG District II, ACOG 2023 algorithms, CMQCC and hospital tools that carry them.",
       "Checked item by item against the primary sources on 29 October 2026 (208 items); the AHA 2015 algorithm figure could not be read."
+    ]
+  },
+  "valveFlows": {
+    "format": 1,
+    "reviewed": "2026-10",
+    "sources": [
+      {
+        "id": "baumgartner2017",
+        "citation": "Baumgartner H, Hung J, Bermejo J, et al. Recommendations on the Echocardiographic Assessment of Aortic Valve Stenosis: A Focused Update from the European Association of Cardiovascular Imaging and the American Society of Echocardiography. J Am Soc Echocardiogr 2017;30:372–92.",
+        "url": "https://asecho.org/wp-content/uploads/2017/04/2017ValveStenosisGuideline.pdf"
+      },
+      {
+        "id": "zoghbi2017",
+        "citation": "Zoghbi WA, Adams D, Bonow RO, et al. Recommendations for Noninvasive Evaluation of Native Valvular Regurgitation: A Report from the American Society of Echocardiography Developed in Collaboration with the Society for Cardiovascular Magnetic Resonance. J Am Soc Echocardiogr 2017;30:303–71.",
+        "url": "https://asecho.org/wp-content/uploads/2017/04/2017VavularRegurgitationGuideline.pdf"
+      },
+      {
+        "id": "ase2023rhd",
+        "citation": "Pandian NG, Kim JK, Arias-Godinez JA, et al. Recommendations for the Use of Echocardiography in the Evaluation of Rheumatic Heart Disease: A Report from the American Society of Echocardiography. J Am Soc Echocardiogr 2023;36:3–28.",
+        "url": "https://www.asecho.org/wp-content/uploads/2023/01/PIIS0894731722005211.pdf"
+      },
+      {
+        "id": "baumgartner2009",
+        "citation": "Baumgartner H, Hung J, Bermejo J, et al. Echocardiographic Assessment of Valve Stenosis: EAE/ASE Recommendations for Clinical Practice. J Am Soc Echocardiogr 2009;22:1–23.",
+        "url": "https://www.asecho.org/wp-content/uploads/2025/04/2009_Echo-Assessment-of-Valve-Stenosis_note_added.pdf"
+      },
+      {
+        "id": "zoghbi2024",
+        "citation": "Zoghbi WA, Jone PN, Chamsi-Pasha MA, et al. Guidelines for the Evaluation of Prosthetic Valve Function With Cardiovascular Imaging: A Report From the American Society of Echocardiography Developed in Collaboration With the Society for Cardiovascular Magnetic Resonance and the Society of Cardiovascular Computed Tomography. J Am Soc Echocardiogr 2024;37:2–63.",
+        "url": "https://www.asecho.org/wp-content/uploads/2024/01/PIIS0894731723005333.pdf"
+      },
+      {
+        "id": "nicoara2020",
+        "citation": "Nicoara A, Skubas N, Ad N, et al. Guidelines for the Use of Transesophageal Echocardiography to Assist with Surgical Decision-Making in the Operating Room: A Surgery-Based Approach. J Am Soc Echocardiogr 2020;33:692–734.",
+        "url": "https://www.asecho.org/wp-content/uploads/2020/06/TEE-Surgical-Decision-Making_June2020.pdf"
+      },
+      {
+        "id": "hahn2013",
+        "citation": "Hahn RT, Abraham T, Adams MS, et al. Guidelines for Performing a Comprehensive Transesophageal Echocardiographic Examination: Recommendations from the American Society of Echocardiography and the Society of Cardiovascular Anesthesiologists. J Am Soc Echocardiogr 2013;26:921–64.",
+        "url": "https://asecho.org/wp-content/uploads/2014/05/2013_Performing-Comprehensive-TEE.pdf"
+      }
+    ],
+    "groups": [
+      {
+        "id": "native",
+        "name": "Native valves"
+      },
+      {
+        "id": "prosthetic",
+        "name": "Prosthetic valves"
+      }
+    ],
+    "flows": [
+      {
+        "id": "as",
+        "group": "native",
+        "name": "Aortic stenosis",
+        "short": "AS",
+        "source": "baumgartner2017",
+        "also": [
+          "nicoara2020",
+          "hahn2013"
+        ],
+        "ref": "EACVI/ASE 2017, Table 3 and the stepwise approach, pp. 383–388",
+        "intro": "Velocity and mean gradient come first: they put the valve on the high- or the low-gradient track. A high gradient only needs high flow excluded; a low gradient goes on to the valve area, a check for measurement errors, the stroke volume index and the ejection fraction (pp. 387–388).",
+        "steps": [
+          {
+            "id": "vmax",
+            "title": "Peak aortic jet velocity",
+            "kind": "number",
+            "unit": "m/s",
+            "ask": "CW Doppler from every window that may give the highest velocity, without angle correction; the peak is the outer edge of the dense signal. Average 3 or more beats in sinus rhythm and at least 5 when the rhythm is irregular (pp. 375–378).",
+            "tte": "Apical five- or three-chamber, right parasternal and suprasternal; report the window that gave the highest velocity.",
+            "tee": "Deep transgastric five-chamber (0–20°, anteflexed) or transgastric long axis (120–140°); the transgastric two-chamber also aligns. Misalignment underestimates, and TTE from several windows may do better (2020 TEE guideline, p. 703; 2013, pp. 940, 945).",
+            "bands": [
+              {
+                "le": 2.5,
+                "tag": "normal",
+                "label": "aortic sclerosis range"
+              },
+              {
+                "gt": 2.5,
+                "lt": 3.0,
+                "tag": "mild",
+                "label": "mild",
+                "range": "2.6–2.9"
+              },
+              {
+                "ge": 3.0,
+                "lt": 4.0,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "3.0–3.9"
+              },
+              {
+                "ge": 4.0,
+                "tag": "severe",
+                "label": "severe, high gradient"
+              }
+            ]
+          },
+          {
+            "id": "mg",
+            "title": "Mean gradient",
+            "kind": "number",
+            "unit": "mmHg",
+            "ask": "Traced from the same CW envelope; it cannot be worked out from the mean velocity (pp. 376–378).",
+            "tte": "The CW recording that gave the peak velocity.",
+            "tee": "The CW recording that gave the peak velocity (deep transgastric five-chamber or transgastric long axis).",
+            "bands": [
+              {
+                "lt": 20,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 20,
+                "lt": 40,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "20–39"
+              },
+              {
+                "ge": 40,
+                "tag": "severe",
+                "label": "severe, high gradient"
+              }
+            ]
+          },
+          {
+            "id": "svi",
+            "title": "Stroke volume index",
+            "kind": "number",
+            "unit": "mL/m²",
+            "ask": "LVOT area × LVOT VTI ÷ BSA. Below 35 is low flow; above 58 is high flow, which can raise the gradient of a non-severe valve (p. 387).",
+            "tte": "LVOT diameter in parasternal long axis, zoomed, mid-systole, inner edge to inner edge; LVOT VTI by PW just below the valve in the apical five-chamber view (Table 1).",
+            "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole, inner edge to inner edge; LVOT VTI by PW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, pp. 701, 703).",
+            "bands": [
+              {
+                "lt": 35,
+                "tag": "low",
+                "label": "low flow"
+              },
+              {
+                "ge": 35,
+                "le": 58,
+                "tag": "normal",
+                "label": "normal flow",
+                "range": "35–58"
+              },
+              {
+                "gt": 58,
+                "tag": "high",
+                "label": "high flow"
+              }
+            ]
+          },
+          {
+            "id": "highflow",
+            "title": "Why is the flow high?",
+            "kind": "choice",
+            "ask": "A high-flow state can push a non-severe valve's gradient into the severe range (p. 387).",
+            "options": [
+              {
+                "id": "reversible",
+                "label": "A reversible cause",
+                "detail": "Anemia, fever, hyperthyroidism, an arteriovenous shunt"
+              },
+              {
+                "id": "fixed",
+                "label": "A lasting cause",
+                "detail": "Hemodynamically significant aortic regurgitation, a dialysis fistula"
+              },
+              {
+                "id": "none",
+                "label": "No cause found",
+                "detail": "Recheck the LVOT diameter and VTI"
+              }
+            ]
+          },
+          {
+            "id": "ava",
+            "title": "Aortic valve area (continuity)",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "LVOT area × LVOT VTI ÷ aortic VTI. The LVOT diameter is the largest source of error: it is squared (p. 381).",
+            "tte": "LVOT diameter in parasternal long axis (zoomed, mid-systole, inner edge to inner edge, at the level of the PW sample); LVOT PW in apical five-chamber; aortic VTI from the CW envelope.",
+            "tee": "LVOT diameter in the ME aortic valve long axis (120–140°), early to mid-systole; LVOT PW and aortic CW in the deep transgastric five-chamber or transgastric long axis (2020 TEE guideline, p. 703).",
+            "bands": [
+              {
+                "gt": 1.5,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 1.0,
+                "le": 1.5,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "1.0–1.5"
+              },
+              {
+                "lt": 1.0,
+                "tag": "severe",
+                "label": "severe range"
+              }
+            ]
+          },
+          {
+            "id": "vratio",
+            "title": "Velocity ratio",
+            "kind": "number",
+            "unit": "",
+            "ask": "LVOT velocity ÷ aortic velocity (or the VTI ratio): it leaves the LVOT diameter out, so it helps when that cannot be measured (Level 2, p. 382).",
+            "tte": "LVOT PW in apical five-chamber over the aortic CW peak.",
+            "tee": "LVOT PW and aortic CW from the same deep transgastric or transgastric long-axis view. Under anesthesia it agrees with the awake TTE better than the gradients do (2020 TEE guideline, p. 704).",
+            "bands": [
+              {
+                "gt": 0.5,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 0.25,
+                "le": 0.5,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "0.25–0.50"
+              },
+              {
+                "lt": 0.25,
+                "tag": "severe",
+                "label": "severe range"
+              }
+            ]
+          },
+          {
+            "id": "planimetry",
+            "title": "Valve area by planimetry",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "Trace the smallest orifice at the cusp tips. Planimetry gives the anatomic area, which is larger than the effective area; the update advises TEE if it is used (Level 2, p. 383).",
+            "tte": "Parasternal short axis at the cusp tips; calcium often shadows it.",
+            "tee": "ME aortic valve short axis (25–45°), at the cusp tips (2020 TEE guideline, p. 703; 2013, p. 946).",
+            "bands": [
+              {
+                "gt": 1.5,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 1.0,
+                "le": 1.5,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "1.0–1.5"
+              },
+              {
+                "lt": 1.0,
+                "tag": "severe",
+                "label": "severe range"
+              }
+            ]
+          },
+          {
+            "id": "errors",
+            "title": "Rule out measurement errors",
+            "kind": "choice",
+            "ask": "A small area with a low gradient is often a measurement problem: review the original images and tracings before going further (pp. 383, 387).",
+            "options": [
+              {
+                "id": "checked",
+                "label": "Rechecked, no error found",
+                "detail": "LVOT diameter zoomed in mid-systole and not cut short by calcium; LVOT PW laminar, at the same level; peak velocity from several windows"
+              }
+            ]
+          },
+          {
+            "id": "lvef",
+            "title": "LV ejection fraction",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Low flow with a low gradient splits by ejection fraction: below 50% the next test is dobutamine stress echo; at 50% or more it is paradoxical low-flow, low-gradient AS (pp. 387–388).",
+            "tte": "Biplane method of disks.",
+            "tee": "Biplane method of disks in the ME four- and two-chamber views.",
+            "bands": [
+              {
+                "lt": 50,
+                "tag": "low",
+                "label": "reduced"
+              },
+              {
+                "ge": 50,
+                "tag": "normal",
+                "label": "preserved"
+              }
+            ]
+          },
+          {
+            "id": "dse",
+            "title": "Low-dose dobutamine stress echo",
+            "kind": "choice",
+            "ask": "From 2.5 or 5 µg/kg/min, up every 3–5 minutes to 10–20 µg/kg/min under medical supervision; stop at a positive result, a heart rate 10–20 bpm over baseline or above 100, symptoms, falling blood pressure or arrhythmia. Keep the baseline LVOT diameter at every stage (p. 384).",
+            "options": [
+              {
+                "id": "severe",
+                "label": "Velocity reached 4 m/s or mean gradient over 30–40 mmHg, area still 1.0 cm² or less",
+                "tag": "severe",
+                "detail": "At any flow rate"
+              },
+              {
+                "id": "pseudo",
+                "label": "The area rose above 1.0 cm²",
+                "tag": "moderate",
+                "detail": "Pseudosevere: moderate AS with another cause of LV dysfunction"
+              },
+              {
+                "id": "noreserve",
+                "label": "Stroke volume rose by 20% or less",
+                "detail": "No flow (contractile) reserve: the test cannot separate true from pseudosevere"
+              }
+            ]
+          },
+          {
+            "id": "confirm",
+            "title": "Is the low flow confirmed?",
+            "kind": "choice",
+            "ask": "LVOT flow tends to underestimate the real flow in these ventricles; confirm it before going further (p. 388, Table 5).",
+            "options": [
+              {
+                "id": "low",
+                "label": "Low flow confirmed by another method",
+                "detail": "LVOT area by 3D TEE or CT, CMR, or invasive data"
+              },
+              {
+                "id": "normal",
+                "label": "Flow is normal by the other method",
+                "detail": "Then it is normal-flow, low-gradient AS"
+              }
+            ]
+          },
+          {
+            "id": "calcium",
+            "title": "CT aortic valve calcium score",
+            "kind": "choice",
+            "ask": "Agatston units on non-contrast CT; the cutoffs differ by sex (Table 5, p. 385).",
+            "options": [
+              {
+                "id": "likely",
+                "label": "Severe likely: men ≥ 2000, women ≥ 1200",
+                "detail": "Very likely from 3000 in men and 1600 in women",
+                "tag": "severe"
+              },
+              {
+                "id": "between",
+                "label": "In between: men 1600–1999, women 800–1199",
+                "tag": "intermediate"
+              },
+              {
+                "id": "unlikely",
+                "label": "Severe unlikely: men < 1600, women < 800",
+                "tag": "mild"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "sclerosis": {
+            "headline": "Aortic sclerosis",
+            "text": "Peak velocity 2.5 m/s or less and nothing else in the stenosis range: thickening without hemodynamic consequence (Table 3, p. 383)."
+          },
+          "mild": {
+            "grade": 1,
+            "headline": "Mild AS",
+            "text": "Velocity 2.6–2.9 m/s, mean gradient under 20 mmHg and area over 1.5 cm² are mild (Table 3, p. 383)."
+          },
+          "moderate": {
+            "grade": 2,
+            "headline": "Moderate AS",
+            "text": "Velocity 3.0–3.9 m/s, mean gradient 20–39 mmHg or area 1.0–1.5 cm² are moderate; with a low gradient, an area of 1.0 cm² or more indicates moderate AS (Table 3; p. 387)."
+          },
+          "severe-high": {
+            "grade": 3,
+            "headline": "Severe AS, high gradient",
+            "text": "Peak velocity ≥ 4 m/s or mean gradient ≥ 40 mmHg: a high gradient indicates severe AS and needs no further confirmation once a high-flow state is excluded (p. 387). {flow}"
+          },
+          "severe-fixed-flow": {
+            "grade": 3,
+            "headline": "Severe AS, high gradient with lasting high flow",
+            "text": "The high flow of significant aortic regurgitation or a dialysis fistula cannot be changed, and the high gradient still indicates severe pressure overload from the valve (p. 387)."
+          },
+          "high-reversible": {
+            "headline": "High gradient with reversible high flow",
+            "text": "Anemia, fever, hyperthyroidism or an arteriovenous shunt can raise the gradient of a non-severe valve; even an area of 1.0 cm² or more can come with a high gradient (p. 387).",
+            "next": [
+              "Repeat the study once the flow has normalized (p. 387)."
+            ]
+          },
+          "area-mild": {
+            "grade": 1,
+            "headline": "Mild by planimetry alone",
+            "text": "Without velocity or gradient, planimetry gave {area} cm². It is the anatomic area, larger than the effective area that predicts outcome, and a second-line method (Level 2, p. 383).",
+            "next": [
+              "Get the CW Doppler from another window or by TEE."
+            ]
+          },
+          "area-moderate": {
+            "grade": 2,
+            "headline": "Moderate by planimetry alone",
+            "text": "Without velocity or gradient, planimetry gave {area} cm². It is the anatomic area, larger than the effective area that predicts outcome, and a second-line method (Level 2, p. 383).",
+            "next": [
+              "Get the CW Doppler from another window or by TEE."
+            ]
+          },
+          "area-severe": {
+            "grade": 3,
+            "headline": "Severe range by planimetry alone",
+            "text": "Without velocity or gradient, planimetry gave {area} cm², under 1.0 cm². It is the anatomic area, larger than the effective area, so a small planimetered area is meaningful; still a second-line method (Level 2, p. 383).",
+            "next": [
+              "Get the CW Doppler from another window or by TEE.",
+              "CT calcium score or catheterization when the grade changes management."
+            ]
+          },
+          "nodata": {
+            "headline": "Not gradable yet",
+            "text": "Neither velocity, gradient nor a valve area could be obtained.",
+            "next": [
+              "Other windows, with a dedicated CW probe (p. 375).",
+              "TEE for planimetry and the LVOT; CT or catheterization when the grade matters."
+            ]
+          },
+          "noarea": {
+            "headline": "Low gradient, no valve area",
+            "text": "The gradient is below the severe range, which leaves the valve area to decide (p. 387), and none could be obtained.",
+            "next": [
+              "TEE planimetry or a 3D LVOT area.",
+              "CT calcium score if severe AS is still suspected."
+            ]
+          },
+          "normal-flow": {
+            "grade": 2,
+            "headline": "Normal-flow, low-gradient AS: severe very unlikely",
+            "text": "With {flow}, severe AS is very unlikely even with a calculated area under 1.0 cm²; these patients in general have moderate AS (p. 387). The area and gradient cutoffs are inconsistent between 0.8 and 1.0 cm², and a small patient can have a small area (pp. 384, 386).",
+            "next": [
+              "Follow and re-evaluate rather than call it severe on the area (p. 386)."
+            ]
+          },
+          "flow-unknown": {
+            "headline": "Small area, low gradient: flow unknown",
+            "text": "An area under 1.0 cm² with a low gradient suggests but does not confirm severe AS; the stroke volume index decides the next step (p. 387).",
+            "next": [
+              "Measure the stroke volume another way: 3D LVOT area, CT, CMR or invasive (p. 388)."
+            ]
+          },
+          "ef-unknown": {
+            "headline": "Low-flow, low-gradient AS: EF needed",
+            "text": "Low flow, a low gradient and a small area: the ejection fraction chooses the next test (p. 387).",
+            "next": [
+              "Below 50%: low-dose dobutamine stress echo.",
+              "50% or more: confirm the low flow, then the CT calcium score."
+            ]
+          },
+          "dse-severe": {
+            "grade": 3,
+            "headline": "True severe AS (low flow, low gradient, reduced EF)",
+            "text": "On dobutamine the velocity reached 4 m/s or the mean gradient exceeded 30–40 mmHg while the area stayed at 1.0 cm² or less (p. 385)."
+          },
+          "dse-pseudo": {
+            "grade": 2,
+            "headline": "Pseudosevere AS",
+            "text": "A final area above 1.0 cm² suggests the stenosis is not severe: moderate AS with another cause of LV dysfunction (pp. 384–385)."
+          },
+          "dse-next": {
+            "headline": "Low-flow, low-gradient AS with reduced EF",
+            "text": "Area under 1.0 cm², mean gradient under 40 mmHg, EF under 50% and SVi under 35 mL/m² (p. 384): the resting study cannot tell true severe from pseudosevere AS.",
+            "next": [
+              "Low-dose dobutamine stress echo (p. 384)."
+            ]
+          },
+          "calcium-severe": {
+            "grade": 3,
+            "headline": "Severe AS likely",
+            "text": "{track}: the CT calcium score is in the range where severe AS is likely (men ≥ 2000, women ≥ 1200 AU; Table 5, p. 385)."
+          },
+          "calcium-unlikely": {
+            "grade": 2,
+            "headline": "Severe AS unlikely",
+            "text": "{track}: the CT calcium score is below the severe range (men < 1600, women < 800 AU; Table 5, p. 385)."
+          },
+          "indeterminate": {
+            "headline": "Indeterminate: weigh the other criteria",
+            "text": "{track}: without a decisive test the grade rests on the Table 5 criteria (p. 385): symptoms without another explanation, age over 70, LVH, reduced longitudinal function, mean gradient 30–40 mmHg measured while normotensive, area 0.8 cm² or less, low flow confirmed by another method, and the CT calcium score."
+          }
+        }
+      },
+      {
+        "id": "ar",
+        "group": "native",
+        "name": "Aortic regurgitation",
+        "short": "AR",
+        "source": "zoghbi2017",
+        "also": [
+          "nicoara2020",
+          "hahn2013"
+        ],
+        "ref": "ASE 2017, Figure 25 and Table 11, pp. 340–344",
+        "intro": "Figure 25 counts the specific signs of mild and of severe AR: four from one list settle it. Two or three, or values in between, go on to the quantitative grades I–IV; poor images or discordant results end as indeterminate, for TEE or CMR (p. 344). Table 11 and Figure 25 are for chronic AR.",
+        "steps": [
+          {
+            "id": "type",
+            "title": "Chronic or acute AR?",
+            "kind": "choice",
+            "ask": "Acute severe AR may be brief, of low velocity, with a normal-sized LV and premature mitral closure; keep a low threshold for TEE (pp. 336, 345).",
+            "options": [
+              {
+                "id": "chronic",
+                "label": "Chronic"
+              },
+              {
+                "id": "acute",
+                "label": "Acute",
+                "detail": "Endocarditis, dissection, trauma"
+              }
+            ]
+          },
+          {
+            "id": "flail",
+            "title": "Flail cusp or wide coaptation defect?",
+            "kind": "choice",
+            "ask": "Specific for severe AR (Table 11; Figure 25).",
+            "tte": "Parasternal long and short axis.",
+            "tee": "ME aortic valve short axis (25–45°) and long axis (120–140°) (2020 TEE guideline, p. 703).",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Yes",
+                "tag": "severe"
+              },
+              {
+                "id": "no",
+                "label": "No"
+              }
+            ]
+          },
+          {
+            "id": "vc",
+            "title": "Vena contracta width",
+            "kind": "number",
+            "unit": "cm",
+            "ask": "The narrowest part of the jet at or just below the valve; it works in eccentric jets, but not with several jets or a bicuspid valve, and a 2 mm error changes the grade (pp. 336–337).",
+            "tte": "Parasternal long axis, zoomed.",
+            "tee": "ME aortic valve long axis (120–140°), zoomed (2020 TEE guideline, p. 703).",
+            "bands": [
+              {
+                "lt": 0.3,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "gt": 0.6,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "jet",
+            "title": "Jet width ÷ LVOT width",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Central jets only, within 1 cm of the valve. Not valid in eccentric or multiple jets: tap Cannot obtain (pp. 336–337).",
+            "tte": "Parasternal long axis, just below the valve.",
+            "tee": "ME aortic valve long axis (120–140°).",
+            "bands": [
+              {
+                "lt": 25,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "ge": 65,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "pisa",
+            "title": "Flow convergence",
+            "kind": "choice",
+            "ask": "Shift the baseline toward the jet. It is often in the far field and shadowed by calcium; a right parasternal window may help (p. 336).",
+            "tte": "Apical five-chamber or parasternal long axis.",
+            "tee": "ME aortic valve long axis; deep transgastric five-chamber.",
+            "options": [
+              {
+                "id": "small",
+                "label": "None or very small",
+                "tag": "mild"
+              },
+              {
+                "id": "mid",
+                "label": "Intermediate"
+              },
+              {
+                "id": "large",
+                "label": "Large",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "cw",
+            "title": "CW density of the AR jet",
+            "kind": "choice",
+            "ask": "Use the CW only if the whole diastolic signal is recorded (p. 343).",
+            "tte": "Apical five-chamber; parasternal for eccentric jets.",
+            "tee": "Deep transgastric five-chamber (0–20°), transgastric two-chamber or long axis (2020 TEE guideline, p. 703).",
+            "options": [
+              {
+                "id": "soft",
+                "label": "Faint or incomplete",
+                "tag": "mild"
+              },
+              {
+                "id": "dense",
+                "label": "Dense",
+                "detail": "Does not separate moderate from severe"
+              }
+            ]
+          },
+          {
+            "id": "pht",
+            "title": "Pressure half-time",
+            "kind": "number",
+            "unit": "ms",
+            "ask": "From the complete CW signal. A higher LV diastolic pressure shortens it, chronic adaptation lengthens it, and vasodilation changes it independently of the AR (pp. 339–340).",
+            "tte": "Apical five-chamber; parasternal for eccentric jets.",
+            "tee": "Deep transgastric five-chamber, transgastric two-chamber or long axis.",
+            "bands": [
+              {
+                "gt": 500,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "lt": 200,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "aorta",
+            "title": "Descending aorta flow reversal (PW)",
+            "kind": "choice",
+            "ask": "A brief early diastolic reversal is normal. Holodiastolic reversal can also come from a stiff aorta in the elderly, a PDA, an arm fistula or a ruptured sinus, and may not be holodiastolic in acute AR (pp. 336, 338).",
+            "tte": "Suprasternal, proximal descending aorta (abdominal aorta more specific).",
+            "tee": "Descending aorta short (0–10°) or long axis (90–100°) (2020 TEE guideline, p. 703).",
+            "options": [
+              {
+                "id": "brief",
+                "label": "Brief, early diastolic",
+                "detail": "Normal; not one of Figure 25's criteria",
+                "tag": "normal"
+              },
+              {
+                "id": "mid",
+                "label": "Intermediate"
+              },
+              {
+                "id": "holo",
+                "label": "Prominent holodiastolic reversal",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "lv",
+            "title": "LV size",
+            "kind": "choice",
+            "ask": "Chronic severe AR almost always dilates the LV; it is specific when function is normal and no other volume load (athlete, anemia) explains it. In acute AR the LV has not had time to dilate (Table 11; p. 345).",
+            "tte": "LV dimensions and volumes (chamber tool).",
+            "tee": "Transgastric mid short axis and ME views.",
+            "options": [
+              {
+                "id": "normal",
+                "label": "Normal",
+                "tag": "mild"
+              },
+              {
+                "id": "enlarged",
+                "label": "Enlarged with normal function",
+                "tag": "severe"
+              },
+              {
+                "id": "other",
+                "label": "Enlarged with reduced function, or another cause"
+              }
+            ]
+          },
+          {
+            "id": "rvol",
+            "short": "regurgitant volume",
+            "title": "Regurgitant volume",
+            "kind": "number",
+            "unit": "mL",
+            "ask": "LVOT stroke volume minus mitral (or pulmonic) stroke volume, or by PISA; not valid with significant MR unless the pulmonic site is used (Table 10).",
+            "tte": "Stroke volume method.",
+            "tee": "Deep transgastric LVOT Doppler; angulation can underestimate it.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "g1",
+                "label": "grade I"
+              },
+              {
+                "ge": 30,
+                "lt": 45,
+                "tag": "g2",
+                "label": "grade II",
+                "range": "30–44"
+              },
+              {
+                "ge": 45,
+                "lt": 60,
+                "tag": "g3",
+                "label": "grade III",
+                "range": "45–59"
+              },
+              {
+                "ge": 60,
+                "tag": "g4",
+                "label": "grade IV"
+              }
+            ]
+          },
+          {
+            "id": "rf",
+            "short": "regurgitant fraction",
+            "title": "Regurgitant fraction",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Regurgitant volume ÷ LVOT stroke volume.",
+            "tte": "Stroke volume method.",
+            "tee": "As for the regurgitant volume.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "g1",
+                "label": "grade I"
+              },
+              {
+                "ge": 30,
+                "lt": 40,
+                "tag": "g2",
+                "label": "grade II",
+                "range": "30–39"
+              },
+              {
+                "ge": 40,
+                "lt": 50,
+                "tag": "g3",
+                "label": "grade III",
+                "range": "40–49"
+              },
+              {
+                "ge": 50,
+                "tag": "g4",
+                "label": "grade IV"
+              }
+            ]
+          },
+          {
+            "id": "eroa",
+            "short": "EROA",
+            "title": "EROA",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "By PISA (used less often than in MR) or regurgitant volume ÷ AR VTI (p. 336).",
+            "tte": "Apical five-chamber or parasternal, hemispheric convergence.",
+            "tee": "ME aortic valve long axis; deep transgastric five-chamber for the CW.",
+            "bands": [
+              {
+                "lt": 0.1,
+                "tag": "g1",
+                "label": "grade I"
+              },
+              {
+                "ge": 0.1,
+                "lt": 0.2,
+                "tag": "g2",
+                "label": "grade II",
+                "range": "0.10–0.19"
+              },
+              {
+                "ge": 0.2,
+                "lt": 0.3,
+                "tag": "g3",
+                "label": "grade III",
+                "range": "0.20–0.29"
+              },
+              {
+                "ge": 0.3,
+                "tag": "g4",
+                "label": "grade IV"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "mild-specific": {
+            "grade": 1,
+            "headline": "Mild AR",
+            "text": "{mild} of Figure 25's specific criteria for mild AR and none for severe: definitely mild; quantitation is not needed (p. 344)."
+          },
+          "severe-specific": {
+            "grade": 3,
+            "headline": "Severe AR",
+            "text": "{severe} of Figure 25's specific criteria for severe AR and none for mild: definitely severe; you may still quantitate (p. 344)."
+          },
+          "grade1": {
+            "grade": 1,
+            "headline": "Mild AR (grade I)",
+            "text": "Quantitative grade I: {quant} (Figure 25)."
+          },
+          "grade2": {
+            "grade": 2,
+            "headline": "Moderate AR (grade II)",
+            "text": "Quantitative grade II: {quant} (Figure 25)."
+          },
+          "grade3": {
+            "grade": 2,
+            "headline": "Moderate AR (grade III)",
+            "text": "Quantitative grade III: {quant}. Grade III reads as severe only with three specific criteria for severe AR ({severe} here) (Figure 25)."
+          },
+          "grade3-severe": {
+            "grade": 3,
+            "headline": "Severe AR (grade III)",
+            "text": "Quantitative grade III ({quant}) with {severe} specific criteria for severe AR: severe AR (Figure 25)."
+          },
+          "grade4": {
+            "grade": 3,
+            "headline": "Severe AR (grade IV)",
+            "text": "Quantitative grade IV: {quant} (Figure 25)."
+          },
+          "discordant": {
+            "headline": "Indeterminate: findings disagree",
+            "text": "The quantitative grade ({quant}) and the specific signs ({mild} for mild, {severe} for severe) point different ways. Rely on the best-quality data and the most accurate measures for the clinical setting (p. 343).",
+            "next": [
+              "TEE or CMR for quantitation (Figure 25)."
+            ]
+          },
+          "indeterminate": {
+            "headline": "Indeterminate: quantitation needed",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, short of the four that settle the grade, and no quantitative measure could be obtained (Figure 25). {lean}",
+            "next": [
+              "TEE or CMR for quantitation (Figure 25)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "mr",
+        "group": "native",
+        "name": "Mitral regurgitation",
+        "short": "MR",
+        "source": "zoghbi2017",
+        "also": [
+          "nicoara2020",
+          "hahn2013"
+        ],
+        "ref": "ASE 2017, Figure 18 and Table 8, pp. 332–334",
+        "intro": "Figure 18 first counts the specific signs of mild and of severe MR: four from one list settle it. Two or three, or values in between, go on to the quantitative grades I–IV from EROA, regurgitant volume and fraction; poor images or discordant results end as indeterminate, for TEE or CMR (p. 333). Table 8 and Figure 18 are for chronic MR (p. 323).",
+        "steps": [
+          {
+            "id": "type",
+            "title": "What kind of MR?",
+            "kind": "choice",
+            "ask": "Secondary MR is harder to grade: the orifice is often elliptical, so 2D PISA underestimates it, and the volumes run lower (p. 334).",
+            "options": [
+              {
+                "id": "primary",
+                "label": "Primary",
+                "detail": "Leaflet or chordal disease: prolapse, flail, perforation, rheumatic"
+              },
+              {
+                "id": "secondary",
+                "label": "Secondary (functional)",
+                "detail": "LV or atrial remodeling with structurally normal leaflets"
+              },
+              {
+                "id": "acute",
+                "label": "Acute",
+                "detail": "Papillary muscle rupture, chordal rupture, endocarditis"
+              }
+            ]
+          },
+          {
+            "id": "flail",
+            "title": "Flail leaflet?",
+            "kind": "choice",
+            "ask": "A flail leaflet almost always means severe MR (p. 320). Table 8 counts ruptured papillary muscle, severe retraction and a large perforation as severe lesions too.",
+            "tte": "Parasternal long axis and apical views; 3D en face when available.",
+            "tee": "ME four-chamber (10–20°), mitral commissural (50–70°), two-chamber (80–100°) and long axis (120–140°); 3D en face (2020 TEE guideline, p. 695).",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Yes: flail leaflet or ruptured papillary muscle",
+                "tag": "severe"
+              },
+              {
+                "id": "no",
+                "label": "No"
+              }
+            ]
+          },
+          {
+            "id": "jet",
+            "title": "Color jet",
+            "kind": "choice",
+            "ask": "Nyquist 50–70 cm/s. Jet area is good for excluding MR but not for grading it, and an eccentric jet hugging a wall looks smaller than it is (pp. 308, 324).",
+            "tte": "Apical views; the largest jet, alone or as a share of the LA area in the same view.",
+            "tee": "ME four-chamber, mitral commissural, two-chamber and long axis. Jets look slightly larger on TEE (ASE 2017, pp. 308, 330).",
+            "options": [
+              {
+                "id": "small",
+                "label": "Small, narrow, central",
+                "detail": "Often brief",
+                "tag": "mild"
+              },
+              {
+                "id": "large",
+                "label": "Large central jet, more than 50% of the LA area",
+                "tag": "severe"
+              },
+              {
+                "id": "eccentric",
+                "label": "Eccentric, wall-impinging",
+                "detail": "Its size underestimates the MR; quantitation is advised"
+              },
+              {
+                "id": "between",
+                "label": "In between"
+              }
+            ]
+          },
+          {
+            "id": "cw",
+            "title": "CW Doppler of the MR jet",
+            "kind": "choice",
+            "ask": "Density and timing. EROA by PISA assumes holosystolic MR; single-frame EROA and vena contracta overestimate MR that is not holosystolic (Figure 18).",
+            "tte": "Apical four-chamber, beam aligned with the jet.",
+            "tee": "ME four-chamber or long axis, aligned with the jet.",
+            "options": [
+              {
+                "id": "soft",
+                "label": "Soft or incomplete",
+                "detail": "Faint, partial or parabolic",
+                "tag": "mild"
+              },
+              {
+                "id": "dense",
+                "label": "Dense, holosystolic"
+              },
+              {
+                "id": "triangular",
+                "label": "Dense and triangular (early peak)",
+                "detail": "Supports severe; not one of Figure 18's specific criteria"
+              },
+              {
+                "id": "partial",
+                "label": "Late or early systolic only",
+                "detail": "Not holosystolic: prolapse, bundle branch block, dyssynchrony"
+              }
+            ]
+          },
+          {
+            "id": "vc",
+            "title": "Vena contracta width",
+            "kind": "number",
+            "unit": "cm",
+            "ask": "The narrowest neck of the jet, zoomed with a narrow color sector, in a view perpendicular to the flow with the convergence, neck and jet in one plane. Average the apical four- and two-chamber views for biplane, where severe is above 0.8 cm (Table 8; pp. 309, 325).",
+            "tte": "Parasternal long axis, zoomed.",
+            "tee": "ME four-chamber, mitral commissural, two-chamber or long axis, zoomed; 3D multiplanar reconstruction for width and area (2020 TEE guideline, pp. 698–699).",
+            "bands": [
+              {
+                "le": 0.3,
+                "tag": "mild",
+                "label": "specific for mild"
+              },
+              {
+                "ge": 0.7,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ],
+            "between": "intermediate"
+          },
+          {
+            "id": "pisa",
+            "title": "Flow convergence (PISA radius)",
+            "kind": "choice",
+            "ask": "Shift the color baseline toward the jet to an aliasing velocity of 30–40 cm/s: down on TTE, up on TEE (Figure 18; p. 312).",
+            "tte": "Apical four-chamber, zoomed on the flow convergence.",
+            "tee": "ME four-chamber, mitral commissural, two-chamber or long axis, zoomed; baseline shifted up (ASE 2017, p. 312).",
+            "options": [
+              {
+                "id": "small",
+                "label": "Absent, or radius 0.3 cm or less",
+                "tag": "mild"
+              },
+              {
+                "id": "mid",
+                "label": "Radius between 0.3 and 1.0 cm"
+              },
+              {
+                "id": "large",
+                "label": "Radius 1.0 cm or more",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "pv",
+            "title": "Pulmonary vein flow",
+            "kind": "choice",
+            "ask": "Small sample volume 1 cm into the vein. Systolic reversal in more than one vein is specific for severe MR; blunting is not specific, and AF, LV diastolic function and LA pressure all change the pattern (Table 7, p. 326).",
+            "tte": "Apical four-chamber, right upper pulmonary vein.",
+            "tee": "ME right pulmonary vein (about 0°) and ME left and right pulmonary veins (90–110°); sample more than one vein (2013 TEE guideline, p. 939; ASE 2017, p. 330).",
+            "options": [
+              {
+                "id": "reversal",
+                "label": "Systolic flow reversal",
+                "tag": "severe"
+              },
+              {
+                "id": "blunted",
+                "label": "Systolic blunting or minimal systolic flow"
+              },
+              {
+                "id": "dominant",
+                "label": "Systolic dominance",
+                "detail": "May be blunted in LV dysfunction or AF",
+                "tag": "normal"
+              }
+            ]
+          },
+          {
+            "id": "inflow",
+            "title": "Mitral inflow (PW at the leaflet tips)",
+            "kind": "choice",
+            "ask": "An A-wave dominant pattern virtually excludes severe MR; a high E is supportive only, and is not specific in secondary MR, AF or mitral stenosis. Most valid over age 50 (Table 7; Table 8).",
+            "tte": "Apical four-chamber, PW at the leaflet tips.",
+            "tee": "ME four-chamber, PW at the leaflet tips.",
+            "options": [
+              {
+                "id": "a",
+                "label": "A-wave dominant",
+                "tag": "mild"
+              },
+              {
+                "id": "e",
+                "label": "E-wave dominant, E above 1.2 m/s",
+                "detail": "Supports severe; not a specific criterion"
+              },
+              {
+                "id": "other",
+                "label": "Neither"
+              }
+            ]
+          },
+          {
+            "id": "size",
+            "title": "LV and LA size",
+            "kind": "choice",
+            "ask": "Chronic severe MR almost always dilates the LV and LA; this pertains mostly to primary MR. Sizes can be in the normal range in acute severe MR, a small body or a small LV before the MR (Table 8; p. 334).",
+            "tte": "Volumes indexed to BSA (chamber tool).",
+            "tee": "ME four- and two-chamber views.",
+            "options": [
+              {
+                "id": "normal",
+                "label": "LV and LA both normal",
+                "tag": "mild"
+              },
+              {
+                "id": "enlarged",
+                "label": "LV enlarged with normal function",
+                "tag": "severe"
+              },
+              {
+                "id": "other",
+                "label": "Enlarged with reduced function, or mixed"
+              }
+            ]
+          },
+          {
+            "id": "eroa",
+            "short": "EROA",
+            "title": "EROA by 2D PISA",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "6.28 × r² × aliasing velocity ÷ peak MR velocity. Errors of 10–25% are common, so read it with the other findings (pp. 312, 328).",
+            "tte": "Apical four-chamber, zoomed, hemispheric convergence; CW of the jet for the peak velocity.",
+            "tee": "ME four-chamber, mitral commissural, two-chamber or long axis (2020 TEE guideline, p. 699).",
+            "bands": [
+              {
+                "lt": 0.2,
+                "tag": "g1",
+                "label": "grade I"
+              },
+              {
+                "ge": 0.2,
+                "lt": 0.3,
+                "tag": "g2",
+                "label": "grade II",
+                "range": "0.20–0.29"
+              },
+              {
+                "ge": 0.3,
+                "lt": 0.4,
+                "tag": "g3",
+                "label": "grade III",
+                "range": "0.30–0.39"
+              },
+              {
+                "ge": 0.4,
+                "tag": "g4",
+                "label": "grade IV"
+              }
+            ]
+          },
+          {
+            "id": "rvol",
+            "short": "regurgitant volume",
+            "title": "Regurgitant volume",
+            "kind": "number",
+            "unit": "mL",
+            "ask": "By PISA (EROA × MR VTI) or by volumes (mitral or LV stroke volume minus LVOT stroke volume). In low flow, severe MR can have a volume under 60 mL (Figure 18).",
+            "tte": "PISA in apical four-chamber, or the stroke volume method.",
+            "tee": "PISA in the ME views. LVOT pulsed Doppler is the measurement TEE handles worst: angulation underestimates the forward flow (ASE 2017, p. 331).",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "g1",
+                "label": "grade I"
+              },
+              {
+                "ge": 30,
+                "lt": 45,
+                "tag": "g2",
+                "label": "grade II",
+                "range": "30–44"
+              },
+              {
+                "ge": 45,
+                "lt": 60,
+                "tag": "g3",
+                "label": "grade III",
+                "range": "45–59"
+              },
+              {
+                "ge": 60,
+                "tag": "g4",
+                "label": "grade IV"
+              }
+            ]
+          },
+          {
+            "id": "rf",
+            "short": "regurgitant fraction",
+            "title": "Regurgitant fraction",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Regurgitant volume ÷ total stroke volume across the mitral valve.",
+            "tte": "Stroke volume method or PISA with an LVOT stroke volume.",
+            "tee": "As for the regurgitant volume.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "g1",
+                "label": "grade I"
+              },
+              {
+                "ge": 30,
+                "lt": 40,
+                "tag": "g2",
+                "label": "grade II",
+                "range": "30–39"
+              },
+              {
+                "ge": 40,
+                "lt": 50,
+                "tag": "g3",
+                "label": "grade III",
+                "range": "40–49"
+              },
+              {
+                "ge": 50,
+                "tag": "g4",
+                "label": "grade IV"
+              }
+            ]
+          },
+          {
+            "id": "ellipse",
+            "title": "Elliptical regurgitant orifice?",
+            "kind": "choice",
+            "ask": "In secondary MR the orifice is often crescentic, and 2D PISA underestimates it: grade III values can then be severe (Figure 18; p. 334).",
+            "tte": "Apical two-chamber (commissural) or 3D en face.",
+            "tee": "Mitral commissural view (50–70°) or 3D en face.",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Yes, elongated along the coaptation line",
+                "tag": "severe"
+              },
+              {
+                "id": "no",
+                "label": "No"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "mild-specific": {
+            "grade": 1,
+            "headline": "Mild MR",
+            "text": "{mild} of Figure 18's specific criteria for mild MR and none for severe: definitely mild, and no further measurement is needed (p. 333)."
+          },
+          "severe-specific": {
+            "grade": 3,
+            "headline": "Severe MR",
+            "text": "{severe} of Figure 18's specific criteria for severe MR and none for mild: definitely severe; quantitation would substantiate it (p. 333)."
+          },
+          "grade1": {
+            "grade": 1,
+            "headline": "Mild MR (grade I)",
+            "text": "Quantitative grade I: {quant} (Figure 18)."
+          },
+          "grade2": {
+            "grade": 2,
+            "headline": "Moderate MR (grade II)",
+            "text": "Quantitative grade II: {quant} (Figure 18)."
+          },
+          "grade3": {
+            "grade": 2,
+            "headline": "Moderate MR (grade III)",
+            "text": "Quantitative grade III: {quant}. Grade III reads as severe only with three specific criteria for severe MR or an elliptical orifice ({severe} specific severe criteria here) (Figure 18)."
+          },
+          "grade3-severe": {
+            "grade": 3,
+            "headline": "Severe MR (grade III)",
+            "text": "Quantitative grade III ({quant}) with {why}: severe MR (Figure 18)."
+          },
+          "grade4": {
+            "grade": 3,
+            "headline": "Severe MR (grade IV)",
+            "text": "Quantitative grade IV: {quant} (Figure 18)."
+          },
+          "discordant": {
+            "headline": "Indeterminate: findings disagree",
+            "text": "The quantitative grade ({quant}) and the specific signs ({mild} for mild, {severe} for severe) point different ways. Look for technical or physiologic reasons, rely on the best-quality data, and quantitate further (p. 333).",
+            "next": [
+              "TEE or CMR for quantitation (Figure 18)."
+            ]
+          },
+          "indeterminate": {
+            "headline": "Indeterminate: quantitation needed",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, short of the four that settle the grade, and no quantitative measure could be obtained (Figure 18). {lean}",
+            "next": [
+              "TEE or CMR for quantitation (Figure 18)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "ms",
+        "group": "native",
+        "name": "Mitral stenosis",
+        "short": "MS",
+        "source": "ase2023rhd",
+        "also": [
+          "baumgartner2009",
+          "nicoara2020"
+        ],
+        "ref": "ASE 2023 rheumatic heart disease, Table 1 (p. 8); EAE/ASE 2009, pp. 11–16",
+        "intro": "The valve area decides the grade: planimetry at the leaflet tips is the reference, and wins when it disagrees with the pressure half-time except with poor windows; mean gradient and PA pressure only support it (2023, pp. 8, 10; 2009, pp. 15–16). ASE now uses the 2023 values for the stages of MS.",
+        "steps": [
+          {
+            "id": "etiology",
+            "title": "Rheumatic or calcific?",
+            "kind": "choice",
+            "ask": "In calcific (degenerative) MS planimetry is mostly unreliable and the pressure half-time should be avoided; the mean gradient becomes the marker of severity (2009, pp. 12–13, 16). The rheumatic measures are not validated for it (2020 TEE guideline, p. 695).",
+            "options": [
+              {
+                "id": "rheumatic",
+                "label": "Rheumatic",
+                "detail": "Commissural fusion, doming, thickened leaflet tips"
+              },
+              {
+                "id": "calcific",
+                "label": "Calcific (degenerative)",
+                "detail": "Annular calcification reaching into the leaflet bases"
+              }
+            ]
+          },
+          {
+            "id": "planimetry",
+            "short": "planimetry",
+            "title": "Valve area by planimetry",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "Mid-diastole, at the leaflet tips: the smallest orifice traced in zoom, opened commissures included; too much gain underestimates it, and 3D guidance finds the true tips (2023, pp. 8, 10; 2009, p. 12).",
+            "tte": "Parasternal short axis, scanning from the apex up to the leaflet tips.",
+            "tee": "Transgastric basal short axis (0–20°) with the orthogonal transgastric two-chamber view to find the narrowest orifice, or 3D multiplanar reconstruction (2020 TEE guideline, p. 696).",
+            "bands": [
+              {
+                "gt": 2.5,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "gt": 1.5,
+                "le": 2.5,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "1.6–2.5"
+              },
+              {
+                "le": 1.5,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "pht",
+            "short": "pressure half-time",
+            "title": "Pressure half-time",
+            "kind": "number",
+            "unit": "ms",
+            "ask": "Trace the mid-diastolic slope when the decay is bimodal; area ≈ 220 ÷ half-time. Not valid within 24 hours of balloon commissurotomy or with moderate or severe AR, and less reliable with significant MR, LV hypertrophy or a stiff LA: tap Cannot obtain then (2023, pp. 8, 20, 23).",
+            "tte": "Apical four-chamber, CW aligned with the inflow.",
+            "tee": "ME four-chamber or long axis, CW aligned with the inflow (2020 TEE guideline, Table 2).",
+            "bands": [
+              {
+                "lt": 100,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 100,
+                "lt": 150,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "100–149"
+              },
+              {
+                "ge": 150,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "mg",
+            "short": "mean gradient",
+            "title": "Mean gradient",
+            "kind": "number",
+            "unit": "mmHg",
+            "ask": "CW through the orifice. The cutoffs hold at 60–80 bpm: note the rate and rhythm, and in AF average at least 5 beats, avoiding the shortest and longest cycles (2023, pp. 8–9).",
+            "tte": "Apical four-chamber, CW aligned with the inflow.",
+            "tee": "ME four-chamber or long axis, CW aligned with the inflow.",
+            "bands": [
+              {
+                "lt": 5,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 5,
+                "lt": 10,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "5–9"
+              },
+              {
+                "ge": 10,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "pasp",
+            "short": "PA systolic pressure",
+            "title": "PA systolic pressure",
+            "kind": "number",
+            "unit": "mmHg",
+            "ask": "4 × (peak TR velocity)² + RA pressure. It reflects the consequence of MS rather than its severity (2009, p. 14).",
+            "tte": "TR jet from the apical four-chamber or RV inflow view.",
+            "tee": "TR jet in the ME four-chamber, RV inflow-outflow or modified bicaval view (2020 TEE guideline, p. 705).",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 30,
+                "lt": 50,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "30–49"
+              },
+              {
+                "ge": 50,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "alt",
+            "short": "continuity or PISA area",
+            "title": "Valve area by continuity or PISA",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "Second-line, for when the standard measures are inconclusive. The continuity equation is not valid in AF or with significant MR or AR; PISA needs an angle correction in the funnel-shaped rheumatic valve (2023, pp. 8–9; 2009, pp. 14–15).",
+            "tte": "Continuity: LVOT stroke volume ÷ mitral VTI. PISA: apical four-chamber, zoomed.",
+            "tee": "ME four-chamber or long axis for PISA; deep transgastric five-chamber for the LVOT.",
+            "bands": [
+              {
+                "gt": 2.5,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "gt": 1.5,
+                "le": 2.5,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "1.6–2.5"
+              },
+              {
+                "le": 1.5,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "mild": {
+            "grade": 1,
+            "headline": "Mild (progressive) MS",
+            "text": "By the {basis}: valve area over 2.5 cm² or half-time under 100 ms (2023, Table 1)."
+          },
+          "moderate": {
+            "grade": 2,
+            "headline": "Moderate (progressive) MS",
+            "text": "By the {basis}: valve area 1.6–2.5 cm² or half-time 100–149 ms (2023, Table 1). Mean gradient and PA pressure only support the grade (2009, p. 16).",
+            "next": [
+              "Symptoms out of proportion: stress echo. A mean gradient above 15 mmHg with exercise, or 18 mmHg or more with dobutamine, is hemodynamically significant (2023, pp. 9–10)."
+            ]
+          },
+          "severe": {
+            "grade": 3,
+            "headline": "Severe MS",
+            "text": "By the {basis}: valve area 1.5 cm² or less or half-time 150 ms or more (2023, Table 1); a mean gradient of 10 mmHg or more at 60–80 bpm and a PA systolic pressure of 50 mmHg or more support it."
+          },
+          "supportive-only": {
+            "headline": "Supportive signs only",
+            "text": "No valve area by planimetry, half-time or a second-line method. {supp} Mean gradient and PA pressure are supportive signs that cannot stand in for the valve area (2009, p. 16).",
+            "next": [
+              "TEE planimetry: transgastric basal short axis or 3D (2020 TEE guideline, p. 696).",
+              "Catheterization only when echo is inconclusive or discordant with the clinical picture (2009, p. 15)."
+            ]
+          },
+          "nodata": {
+            "headline": "Not gradable yet",
+            "text": "Neither a valve area nor a gradient could be obtained.",
+            "next": [
+              "TEE planimetry (2020 TEE guideline, p. 696)."
+            ]
+          },
+          "calcific-1": {
+            "grade": 1,
+            "headline": "Calcific MS, mild by gradient",
+            "text": "Mean gradient {mg} mmHg. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+          },
+          "calcific-2": {
+            "grade": 2,
+            "headline": "Calcific MS, moderate by gradient",
+            "text": "Mean gradient {mg} mmHg. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+          },
+          "calcific-3": {
+            "grade": 3,
+            "headline": "Calcific MS, severe by gradient",
+            "text": "Mean gradient {mg} mmHg. In calcific MS the mean gradient can be the marker of severity, given the limits of planimetry and the half-time (2009, p. 16); its cutoffs are the rheumatic ones (2023, Table 1), not validated for calcific MS (2020 TEE guideline, p. 695)."
+          },
+          "calcific-nograd": {
+            "headline": "Calcific MS without a gradient",
+            "text": "In calcific MS the mean gradient is the usable marker of severity (2009, p. 16), and it could not be obtained.",
+            "next": [
+              "3D planimetry may still help; CT or catheterization when the grade matters."
+            ]
+          }
+        }
+      },
+      {
+        "id": "tr",
+        "group": "native",
+        "name": "Tricuspid regurgitation",
+        "short": "TR",
+        "source": "zoghbi2017",
+        "also": [
+          "nicoara2020",
+          "hahn2013"
+        ],
+        "ref": "ASE 2017, Figure 31 and Table 14, pp. 350–353",
+        "intro": "Figure 31 asks whether most of its seven specific criteria for mild or for severe TR are met; the app takes four, a majority. Otherwise TR is probably moderate, and the vena contracta, with EROA and regurgitant volume by PISA when possible, decides; poor images or discordant results end as indeterminate, for TEE or CMR (p. 352). Grades beyond severe have not been validated (p. 353).",
+        "steps": [
+          {
+            "id": "valve",
+            "title": "Valve and annulus",
+            "kind": "choice",
+            "ask": "Severe valve lesions are specific for severe TR. A dilated annulus is 40 mm or more, or above 21 mm/m², in the four-chamber view (pp. 345, 350; Annuli tab in the chamber tool).",
+            "tte": "Apical four-chamber, parasternal RV inflow and short axis.",
+            "tee": "ME four-chamber, RV inflow-outflow (50–70°) and modified bicaval tricuspid view (50–70°); transgastric RV inflow-outflow (2020 TEE guideline, p. 705).",
+            "options": [
+              {
+                "id": "severe",
+                "label": "Dilated annulus with no coaptation, or a flail leaflet",
+                "detail": "Also severe retraction or a large perforation",
+                "tag": "severe"
+              },
+              {
+                "id": "normal",
+                "label": "Normal or mildly abnormal leaflets",
+                "detail": "Not one of Figure 31's criteria",
+                "tag": "normal"
+              },
+              {
+                "id": "other",
+                "label": "Moderately abnormal"
+              }
+            ]
+          },
+          {
+            "id": "jet",
+            "title": "Color jet",
+            "kind": "choice",
+            "ask": "Nyquist 50–70 cm/s. A jet area above 10 cm² is consistent with severe TR; eccentric wall-impinging jets look smaller, and wide-open TR may show little aliasing or no distinct jet at all (p. 350).",
+            "tte": "Apical four-chamber, RV inflow or subcostal views.",
+            "tee": "ME four-chamber, RV inflow-outflow and modified bicaval tricuspid views; jets look slightly larger on TEE (ASE 2017, p. 308).",
+            "options": [
+              {
+                "id": "small",
+                "label": "Thin, small, central",
+                "tag": "mild"
+              },
+              {
+                "id": "large",
+                "label": "Large central jet, more than 50% of the RA",
+                "tag": "severe"
+              },
+              {
+                "id": "eccentric",
+                "label": "Eccentric, wall-impinging",
+                "detail": "Its size underestimates the TR"
+              },
+              {
+                "id": "between",
+                "label": "In between"
+              }
+            ]
+          },
+          {
+            "id": "cw",
+            "title": "CW Doppler of the TR jet",
+            "kind": "choice",
+            "ask": "A dense, triangular, early-peaking jet means pressure equalization; it can also appear with milder TR when RA pressure is very high (pp. 349, 352).",
+            "tte": "Apical four-chamber or RV inflow.",
+            "tee": "ME modified bicaval tricuspid view, where a septally directed jet may line up with the beam (2013 TEE guideline, p. 939).",
+            "options": [
+              {
+                "id": "faint",
+                "label": "Incomplete or faint",
+                "tag": "mild"
+              },
+              {
+                "id": "dense",
+                "label": "Dense, parabolic"
+              },
+              {
+                "id": "triangular",
+                "label": "Dense and triangular, or a sine-wave pattern",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "vc",
+            "short": "vena contracta",
+            "title": "Vena contracta width",
+            "kind": "number",
+            "unit": "cm",
+            "ask": "Zoomed, with the convergence zone in view; problematic with several jets. If the specific signs do not settle the grade, this is the measurement that does (pp. 348, 352).",
+            "tte": "Apical four-chamber or RV inflow, zoomed.",
+            "tee": "ME four-chamber, RV inflow-outflow or modified bicaval tricuspid view, zoomed (2020 TEE guideline, p. 705).",
+            "bands": [
+              {
+                "lt": 0.3,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 0.7,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ],
+            "between": "moderate"
+          },
+          {
+            "id": "pisa",
+            "title": "PISA radius",
+            "kind": "choice",
+            "ask": "At an aliasing velocity of 30–40 cm/s, baseline shifted toward the jet. The low TR velocity flattens the convergence (p. 350; Figure 31).",
+            "tte": "Apical four-chamber, zoomed.",
+            "tee": "ME four-chamber or RV inflow-outflow view, zoomed.",
+            "options": [
+              {
+                "id": "small",
+                "label": "Under 0.4 cm, or none",
+                "tag": "mild"
+              },
+              {
+                "id": "mid",
+                "label": "0.4–0.9 cm"
+              },
+              {
+                "id": "large",
+                "label": "Over 0.9 cm",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "hv",
+            "title": "Hepatic vein flow",
+            "kind": "choice",
+            "ask": "Systolic reversal is specific once its other causes are accounted for: RA and RV compliance, respiration, preload, pacing with retrograde conduction, heart block, AF and flutter (pp. 349, 352–353).",
+            "tte": "Subcostal, PW in a hepatic vein.",
+            "tee": "Advance the probe toward the transgastric level to bring the IVC and hepatic veins into view (2013 TEE guideline, p. 939); obtainable on TEE (ASE 2017, p. 349).",
+            "options": [
+              {
+                "id": "dominant",
+                "label": "Systolic dominant",
+                "tag": "mild"
+              },
+              {
+                "id": "blunted",
+                "label": "Systolic blunting"
+              },
+              {
+                "id": "reversal",
+                "label": "Systolic flow reversal",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "inflow",
+            "title": "Tricuspid inflow (PW)",
+            "kind": "choice",
+            "ask": "Influenced by RV diastolic function, AF and RA pressure (Table 14).",
+            "tte": "Apical four-chamber, PW at the leaflet tips.",
+            "tee": "ME four-chamber or RV inflow-outflow, PW at the leaflet tips (2020 TEE guideline, p. 705).",
+            "options": [
+              {
+                "id": "a",
+                "label": "A-wave dominant",
+                "tag": "mild"
+              },
+              {
+                "id": "e",
+                "label": "E-wave above 1.0 m/s",
+                "detail": "Supports severe; not one of Figure 31's criteria"
+              },
+              {
+                "id": "other",
+                "label": "Neither"
+              }
+            ]
+          },
+          {
+            "id": "size",
+            "title": "RV and RA size",
+            "kind": "choice",
+            "ask": "Chronic severe TR almost always dilates the RV and RA; in acute severe TR they can be normal (pp. 350, 353).",
+            "tte": "RV and RA dimensions and volumes (chamber tool).",
+            "tee": "ME four-chamber and RV inflow-outflow views.",
+            "options": [
+              {
+                "id": "normal",
+                "label": "RV and RA normal",
+                "tag": "mild"
+              },
+              {
+                "id": "dilated",
+                "label": "Dilated RV with preserved function",
+                "tag": "severe"
+              },
+              {
+                "id": "other",
+                "label": "Dilated with reduced function, or mixed"
+              }
+            ]
+          },
+          {
+            "id": "eroa",
+            "short": "EROA",
+            "title": "EROA by PISA",
+            "kind": "number",
+            "unit": "cm²",
+            "ask": "Optional: experience with TR quantitation is much less than with MR and AR, and 2D PISA underestimates the noncircular orifice (pp. 352–353).",
+            "tte": "Apical four-chamber, zoomed; CW of the TR jet.",
+            "tee": "ME four-chamber or RV inflow-outflow, zoomed.",
+            "bands": [
+              {
+                "lt": 0.2,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 0.2,
+                "lt": 0.4,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "0.20–0.39"
+              },
+              {
+                "ge": 0.4,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "rvol",
+            "short": "regurgitant volume",
+            "title": "Regurgitant volume by PISA",
+            "kind": "number",
+            "unit": "mL",
+            "ask": "Optional. For the same EROA, the severe threshold in TR (45 mL) is lower than in MR (p. 352).",
+            "tte": "EROA × TR VTI.",
+            "tee": "EROA × TR VTI.",
+            "bands": [
+              {
+                "lt": 30,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 30,
+                "lt": 45,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "30–44"
+              },
+              {
+                "ge": 45,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "mild-specific": {
+            "grade": 1,
+            "headline": "Mild TR",
+            "text": "{mild} of Figure 31's seven specific criteria for mild TR and none for severe; mild TR is common in normal individuals (p. 353)."
+          },
+          "severe-specific": {
+            "grade": 3,
+            "headline": "Severe TR",
+            "text": "{severe} of Figure 31's seven specific criteria for severe TR and none for mild (p. 352)."
+          },
+          "q-mild": {
+            "grade": 1,
+            "headline": "Mild TR",
+            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the measurements decide: {quant} (Figure 31)."
+          },
+          "q-moderate": {
+            "grade": 2,
+            "headline": "Moderate TR",
+            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the measurements decide: {quant} (Figure 31)."
+          },
+          "q-severe": {
+            "grade": 3,
+            "headline": "Severe TR",
+            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the measurements decide: {quant} (Figure 31)."
+          },
+          "discordant": {
+            "headline": "Indeterminate: findings disagree",
+            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) point different ways (Figure 31).",
+            "next": [
+              "TEE or CMR for quantitation (Figure 31)."
+            ]
+          },
+          "indeterminate": {
+            "headline": "Indeterminate: vena contracta needed",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, short of a majority, and no vena contracta or PISA value could be obtained (Figure 31). {lean}",
+            "next": [
+              "TEE or CMR for quantitation (Figure 31)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "pr",
+        "group": "native",
+        "name": "Pulmonic regurgitation",
+        "short": "PR",
+        "source": "zoghbi2017",
+        "also": [
+          "nicoara2020",
+          "hahn2013"
+        ],
+        "ref": "ASE 2017, Figure 35 and Table 16, pp. 356–359",
+        "intro": "Figure 35 asks whether most specific criteria point to mild (four) or severe (five) PR; the app takes three, a majority of either list. Otherwise PR is probably moderate, and the regurgitant fraction refines it when it can be measured; CMR is the next test when it cannot (p. 359).",
+        "steps": [
+          {
+            "id": "jet",
+            "title": "Color jet",
+            "kind": "choice",
+            "ask": "Nyquist 50–70 cm/s. A jet under 10 mm long with a narrow origin is insignificant. With normal PA pressure, severe PR can be low-velocity, laminar and brief, and hard to see as a jet (pp. 356, 358–359).",
+            "tte": "Parasternal short axis at the great vessels, or subcostal.",
+            "tee": "Upper esophageal aortic arch short axis (70–90°), ME RV inflow-outflow, transgastric RV inflow-outflow (2020 TEE guideline, p. 706).",
+            "options": [
+              {
+                "id": "small",
+                "label": "Small jet with a narrow width",
+                "tag": "mild"
+              },
+              {
+                "id": "broad",
+                "label": "Broad origin"
+              }
+            ]
+          },
+          {
+            "id": "ratio",
+            "title": "Jet width ÷ pulmonary annulus",
+            "kind": "number",
+            "unit": "%",
+            "ask": "Just below the valve in diastole. It underestimates eccentric jets and overestimates central ones (Table 15; Figure 35).",
+            "tte": "Parasternal short axis.",
+            "tee": "Upper esophageal aortic arch short axis or ME RV inflow-outflow.",
+            "bands": [
+              {
+                "ge": 70,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ]
+          },
+          {
+            "id": "cw",
+            "title": "CW density of the PR jet",
+            "kind": "choice",
+            "ask": "Central jets can look denser than eccentric jets of higher severity (Table 15).",
+            "tte": "Parasternal short axis or subcostal.",
+            "tee": "Upper esophageal aortic arch short axis, where the valve lines up with the beam (2013 TEE guideline, p. 942).",
+            "options": [
+              {
+                "id": "soft",
+                "label": "Soft or faint",
+                "tag": "mild"
+              },
+              {
+                "id": "dense",
+                "label": "Dense"
+              }
+            ]
+          },
+          {
+            "id": "pht",
+            "title": "Pressure half-time of the PR jet",
+            "kind": "number",
+            "unit": "ms",
+            "ask": "Under 100 ms with a dense jet is specific for severe PR in Figure 35, but steep deceleration also comes with a stiff RV or high RV diastolic pressure (pp. 356, 358).",
+            "tte": "Parasternal short axis, CW.",
+            "tee": "Upper esophageal aortic arch short axis, CW.",
+            "bands": [
+              {
+                "lt": 100,
+                "tag": "severe",
+                "label": "specific for severe"
+              }
+            ]
+          },
+          {
+            "id": "decel",
+            "title": "Shape of the PR signal",
+            "kind": "choice",
+            "ask": "Duration and deceleration through diastole (Figure 35).",
+            "tte": "Parasternal short axis, CW.",
+            "tee": "Upper esophageal aortic arch short axis, CW.",
+            "options": [
+              {
+                "id": "slow",
+                "label": "Slow deceleration, flow through diastole",
+                "tag": "mild"
+              },
+              {
+                "id": "early",
+                "label": "Flow ends before end-diastole",
+                "detail": "Early termination",
+                "tag": "severe"
+              },
+              {
+                "id": "other",
+                "label": "Neither"
+              }
+            ]
+          },
+          {
+            "id": "branches",
+            "title": "Diastolic flow reversal in the branch PAs",
+            "kind": "choice",
+            "ask": "PW in both branches: about 87% sensitive and specific for severe PR, against 39% specificity in the main PA; a brief reversal is normal (pp. 354, 356).",
+            "tte": "Parasternal short axis at the bifurcation.",
+            "tee": "Upper esophageal aortic arch short axis or ME ascending aorta short axis.",
+            "options": [
+              {
+                "id": "yes",
+                "label": "Prominent reversal",
+                "tag": "severe"
+              },
+              {
+                "id": "no",
+                "label": "Absent or brief"
+              }
+            ]
+          },
+          {
+            "id": "rv",
+            "title": "RV size",
+            "kind": "choice",
+            "ask": "Chronic severe PR almost always dilates the RV, but dilation alone is not specific; in PR from pulmonary hypertension RV size and function vary (pp. 355, 359).",
+            "tte": "RV dimensions and volumes (chamber tool).",
+            "tee": "ME four-chamber and RV inflow-outflow views.",
+            "options": [
+              {
+                "id": "normal",
+                "label": "Normal",
+                "tag": "mild"
+              },
+              {
+                "id": "dilated",
+                "label": "Dilated with normal function",
+                "tag": "severe"
+              },
+              {
+                "id": "other",
+                "label": "Dilated with reduced function, or another cause"
+              }
+            ]
+          },
+          {
+            "id": "rf",
+            "short": "regurgitant fraction",
+            "title": "Regurgitant fraction",
+            "kind": "number",
+            "unit": "%",
+            "ask": "(RVOT stroke volume − LVOT stroke volume) ÷ RVOT stroke volume. The RVOT is the hardest site to measure, and the cutoffs come mostly from CMR (Tables 15–16).",
+            "tte": "RVOT diameter and PW in parasternal short axis; LVOT in parasternal long axis and apical five-chamber.",
+            "tee": "RVOT in the ME RV inflow-outflow view; LVOT in the ME aortic valve long axis and deep transgastric views.",
+            "bands": [
+              {
+                "lt": 20,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 20,
+                "le": 40,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "20–40"
+              },
+              {
+                "gt": 40,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          }
+        ],
+        "results": {
+          "mild-specific": {
+            "grade": 1,
+            "headline": "Mild PR",
+            "text": "{mild} of Figure 35's four specific criteria for mild PR and none for severe; mild PR is common in normal individuals (p. 359)."
+          },
+          "severe-specific": {
+            "grade": 3,
+            "headline": "Severe PR",
+            "text": "{severe} of Figure 35's five specific criteria for severe PR and none for mild (p. 359)."
+          },
+          "q-mild": {
+            "grade": 1,
+            "headline": "Mild PR",
+            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the regurgitant fraction decides: {quant} (Figure 35)."
+          },
+          "q-moderate": {
+            "grade": 2,
+            "headline": "Moderate PR",
+            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the regurgitant fraction decides: {quant} (Figure 35)."
+          },
+          "q-severe": {
+            "grade": 3,
+            "headline": "Severe PR",
+            "text": "Specific signs short of a majority ({mild} mild, {severe} severe), so the regurgitant fraction decides: {quant} (Figure 35)."
+          },
+          "discordant": {
+            "headline": "Indeterminate: findings disagree",
+            "text": "The regurgitant fraction ({quant}) and the specific signs ({mild} for mild, {severe} for severe) point different ways (Figure 35).",
+            "next": [
+              "CMR for quantitation (Figure 35)."
+            ]
+          },
+          "indeterminate": {
+            "headline": "Indeterminate",
+            "text": "None of Figure 35's criteria could be assessed and no regurgitant fraction was obtained. {lean}",
+            "next": [
+              "CMR for quantitation (Figure 35)."
+            ]
+          },
+          "probable-moderate": {
+            "grade": 2,
+            "headline": "Probably moderate PR",
+            "text": "Specific signs: {mild} for mild, {severe} for severe, short of a majority, and no regurgitant fraction: Figure 35 calls this probably moderate. {lean}",
+            "next": [
+              "CMR for quantitation when significant PR is suspected (Figure 35)."
+            ]
+          }
+        }
+      },
+      {
+        "id": "ps",
+        "group": "native",
+        "name": "Pulmonic stenosis",
+        "short": "PS",
+        "source": "baumgartner2009",
+        "also": [
+          "ase2023rhd",
+          "nicoara2020",
+          "hahn2013"
+        ],
+        "ref": "EAE/ASE 2009, Table 11 and pp. 19–20",
+        "intro": "Pulmonic stenosis is graded by the peak velocity (peak gradient) across the valve: its area cannot be planimetered, and the continuity and PISA methods are not validated here (2009, p. 20).",
+        "steps": [
+          {
+            "id": "level",
+            "title": "Where is the obstruction?",
+            "kind": "choice",
+            "ask": "PW Doppler along the outflow localizes it. Two stenoses in series cannot be told apart, and a late-peaking, dagger-shaped jet is dynamic infundibular obstruction (2009, p. 20).",
+            "tte": "Parasternal short axis at the great vessels; subcostal in some adults.",
+            "tee": "Upper esophageal aortic arch short axis (70–90°), ME RV inflow-outflow (50–70°) and transgastric RV inflow-outflow (2020 TEE guideline, p. 706).",
+            "options": [
+              {
+                "id": "valvular",
+                "label": "At the valve"
+              },
+              {
+                "id": "sub",
+                "label": "Below the valve (infundibular)"
+              },
+              {
+                "id": "supra",
+                "label": "Above the valve or in the branches"
+              },
+              {
+                "id": "serial",
+                "label": "At more than one level"
+              }
+            ]
+          },
+          {
+            "id": "vmax",
+            "title": "Peak velocity across the valve",
+            "kind": "number",
+            "unit": "m/s",
+            "ask": "CW aligned with the flow under color guidance, the highest from several views; peak gradient = 4 × velocity². The proximal velocity can be ignored when under 1 m/s (2009, pp. 19–20).",
+            "tte": "Parasternal short axis; subcostal, or a modified apical five-chamber angled to the RVOT.",
+            "tee": "Upper esophageal aortic arch short axis, where the valve and main PA line up with the beam; ME RV inflow-outflow; transgastric RV inflow-outflow with the probe advanced (2013 TEE guideline, pp. 940, 942).",
+            "bands": [
+              {
+                "lt": 3,
+                "tag": "mild",
+                "label": "mild"
+              },
+              {
+                "ge": 3,
+                "le": 4,
+                "tag": "moderate",
+                "label": "moderate",
+                "range": "3–4"
+              },
+              {
+                "gt": 4,
+                "tag": "severe",
+                "label": "severe"
+              }
+            ]
+          },
+          {
+            "id": "rvsp",
+            "title": "RV systolic pressure",
+            "kind": "number",
+            "unit": "mmHg",
+            "ask": "From the TR jet plus RA pressure. RV pressure minus the valve gradient estimates the PA systolic pressure; a valve gradient that explains little of the RV pressure points to another stenosis (2009, p. 20).",
+            "tte": "TR jet, apical four-chamber or RV inflow.",
+            "tee": "TR jet in the ME four-chamber, RV inflow-outflow or modified bicaval view (2020 TEE guideline, p. 705)."
+          }
+        ],
+        "results": {
+          "mild": {
+            "grade": 1,
+            "headline": "Mild pulmonic stenosis",
+            "text": "Peak velocity under 3 m/s, peak gradient under 36 mmHg ({gradient} mmHg here) (2009, Table 11).{pa}"
+          },
+          "moderate": {
+            "grade": 2,
+            "headline": "Moderate pulmonic stenosis",
+            "text": "Peak velocity 3–4 m/s, peak gradient 36–64 mmHg ({gradient} mmHg here) (2009, Table 11).{pa}"
+          },
+          "severe": {
+            "grade": 3,
+            "headline": "Severe pulmonic stenosis",
+            "text": "Peak velocity above 4 m/s, peak gradient above 64 mmHg ({gradient} mmHg here) (2009, Table 11). For rheumatic PS, ASE 2023 adds a mean gradient above 35 mmHg (p. 20).{pa}"
+          },
+          "nodata": {
+            "headline": "Not gradable yet",
+            "text": "No peak velocity across the valve could be recorded.",
+            "next": [
+              "Try the subcostal window, or on TEE the upper esophageal aortic arch short axis (2013 TEE guideline, p. 942).",
+              "CMR or catheterization when the grade matters."
+            ]
+          }
+        }
+      },
+      {
+        "id": "pav",
+        "group": "prosthetic",
+        "name": "Aortic prosthesis: high velocity or gradient",
+        "short": "Aortic prosthesis",
+        "source": "zoghbi2024",
+        "also": [
+          "nicoara2020"
+        ],
+        "ref": "ASE 2024, Tables 5 and 7, pp. 17–20",
+        "intro": "Significant stenosis needs at least one flow-dependent sign (velocity, mean gradient) and one flow-independent sign (EOA, DVI); a single parameter is not enough. A high gradient with a normal EOA and DVI points to high flow, mismatch or pressure recovery (ASE 2024, pp. 17–19). Built from Table 5 and the text: the Figure 13 flowchart itself could not be read.",
+        "steps": [
+          {
+            "id": "kind",
+            "title": "Which prosthesis?",
+            "kind": "choice",
+            "ask": "Surgical valves are judged against reference values for the model and size; transcatheter valves against their own baseline study (ASE 2024, Table 5).",
+            "options": [
+              {
+                "id": "surgical",
+                "label": "Surgical (mechanical or bioprosthetic)"
+              },
+              {
+                "id": "tavr",
+                "label": "Transcatheter, or valve-in-valve"
+              }
+            ]
+          },
+          {
+            "id": "vmax",
+            "short": "peak velocity",
+            "title": "Peak velocity across the prosthesis",
+            "kind": "number",
+            "unit": "m/s",
+            "ask": "CW from every window; valid with a normal stroke volume (50–90 mL). With an LVOT velocity above 1.5 m/s use the expanded Bernoulli equation (ASE 2024, pp. 7, 17; Table 5).",
+            "tte": "Apical five-chamber, right parasternal and suprasternal.",
+            "tee": "Deep transgastric five-chamber or transgastric long axis; Doppler angulation from the transgastric approach may not be optimal (ASE 2024, p. 17).",
+            "bands": [
+              {
+                "lt": 3,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 3,
+                "lt": 4,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "3–3.9"
+              },
+              {
+                "ge": 4,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "contour",
+            "title": "Jet contour",
+            "kind": "choice",
+            "ask": "Contour and acceleration time depend on LV function and heart rate (Table 5).",
+            "tte": "The CW recording of the prosthetic jet.",
+            "tee": "The CW recording of the prosthetic jet.",
+            "options": [
+              {
+                "id": "early",
+                "label": "Triangular, early peaking",
+                "tag": "normal"
+              },
+              {
+                "id": "mid",
+                "label": "Triangular to intermediate",
+                "tag": "moderate"
+              },
+              {
+                "id": "round",
+                "label": "Rounded, symmetric",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "at",
+            "short": "acceleration time",
+            "title": "Acceleration time",
+            "kind": "number",
+            "unit": "ms",
+            "ask": "From the onset of flow to the peak velocity (Table 5).",
+            "tte": "The CW recording of the prosthetic jet.",
+            "tee": "The CW recording of the prosthetic jet.",
+            "bands": [
+              {
+                "lt": 80,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 80,
+                "le": 100,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "80–100"
+              },
+              {
+                "gt": 100,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "atet",
+            "short": "AT/ET",
+            "title": "Acceleration time ÷ ejection time",
+            "kind": "number",
+            "unit": "",
+            "ask": "Acceleration time over LV ejection time (Table 5).",
+            "tte": "The CW recording of the prosthetic jet.",
+            "tee": "The CW recording of the prosthetic jet.",
+            "bands": [
+              {
+                "lt": 0.32,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 0.32,
+                "le": 0.37,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "0.32–0.37"
+              },
+              {
+                "gt": 0.37,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "mg",
+            "short": "mean gradient",
+            "title": "Mean gradient",
+            "kind": "number",
+            "unit": "mmHg",
+            "ask": "Flow-dependent (Table 5, surgical valves).",
+            "tte": "The CW recording of the prosthetic jet.",
+            "tee": "The CW recording of the prosthetic jet.",
+            "bands": [
+              {
+                "lt": 20,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 20,
+                "lt": 35,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "20–34"
+              },
+              {
+                "ge": 35,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "dvi",
+            "short": "DVI",
+            "title": "Doppler velocity index",
+            "kind": "number",
+            "unit": "",
+            "ask": "LVOT VTI ÷ prosthetic VTI, flow-independent. A PW sample too close to the valve raises it; too far toward the apex lowers it (Table 5; Figure 13).",
+            "tte": "LVOT PW just below the sewing ring in the apical five-chamber view.",
+            "tee": "LVOT PW and prosthetic CW in the deep transgastric five-chamber or transgastric long axis.",
+            "bands": [
+              {
+                "gt": 0.35,
+                "tag": "normal",
+                "label": "normal"
+              },
+              {
+                "ge": 0.25,
+                "le": 0.35,
+                "tag": "moderate",
+                "label": "possible stenosis",
+                "range": "0.25–0.35"
+              },
+              {
+                "lt": 0.25,
+                "tag": "severe",
+                "label": "suggests significant stenosis"
+              }
+            ]
+          },
+          {
+            "id": "eoa",
+            "title": "EOA against the reference for the model and size",
+            "kind": "choice",
+            "ask": "Continuity EOA with the largest LVOT diameter measured just below the valve, never the label size; compare with the published reference EOA for this model and size (ASE 2024, pp. 7–9; Table 5).",
+            "tte": "LVOT diameter in parasternal long axis; LVOT PW in the apical five-chamber view.",
+            "tee": "LVOT diameter in the ME aortic valve long axis; Doppler from the deep transgastric views.",
+            "options": [
+              {
+                "id": "ok",
+                "label": "Within 1 SD of the reference",
+                "tag": "normal"
+              },
+              {
+                "id": "1sd",
+                "label": "1 SD smaller than the reference",
+                "tag": "moderate"
+              },
+              {
+                "id": "2sd",
+                "label": "2 SDs smaller than the reference",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "mgchange",
+            "title": "Mean gradient: change from baseline",
+            "kind": "choice",
+            "ask": "Against the baseline TTE taken under stable hemodynamics after the procedure (Table 5, transcatheter).",
+            "tte": "The CW recording of the prosthetic jet.",
+            "tee": "The CW recording of the prosthetic jet.",
+            "options": [
+              {
+                "id": "ok",
+                "label": "Changed less than 10 mmHg",
+                "tag": "normal"
+              },
+              {
+                "id": "mid",
+                "label": "Rose 10–19 mmHg",
+                "tag": "moderate"
+              },
+              {
+                "id": "big",
+                "label": "Rose 20 mmHg or more",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "dvichange",
+            "title": "DVI: change from baseline",
+            "kind": "choice",
+            "ask": "Against the baseline postprocedural TTE (Table 5, transcatheter).",
+            "options": [
+              {
+                "id": "ok",
+                "label": "Changed less than 0.1 or 20%",
+                "tag": "normal"
+              },
+              {
+                "id": "mid",
+                "label": "Fell 0.1–0.19 or 20–39%",
+                "tag": "moderate"
+              },
+              {
+                "id": "big",
+                "label": "Fell 0.2 or more, or 40% or more",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "eoachange",
+            "title": "EOA: change from baseline",
+            "kind": "choice",
+            "ask": "Measured immediately proximal to the stent to avoid in-stent flow acceleration (ASE 2024, p. 18; Table 5).",
+            "options": [
+              {
+                "id": "ok",
+                "label": "Changed less than 0.3 cm² or 25%",
+                "tag": "normal"
+              },
+              {
+                "id": "mid",
+                "label": "Fell 0.3–0.59 cm² or 25–49%",
+                "tag": "moderate"
+              },
+              {
+                "id": "big",
+                "label": "Fell 0.6 cm² or more, or 50% or more",
+                "tag": "severe"
+              }
+            ]
+          },
+          {
+            "id": "bmi",
+            "title": "Body mass index",
+            "kind": "choice",
+            "ask": "Mismatch thresholds are lower in obesity, where the indexed EOA overstates it (ASE 2024, p. 10; Table 7).",
+            "options": [
+              {
+                "id": "lt30",
+                "label": "Under 30 kg/m²"
+              },
+              {
+                "id": "ge30",
+                "label": "30 kg/m² or more"
+              }
+            ]
+          },
+          {
+            "id": "ieoa",
+            "short": "indexed EOA",
+            "title": "Indexed EOA",
+            "kind": "number",
+            "unit": "cm²/m²",
+            "ask": "Continuity EOA ÷ BSA. Mismatch applies only when the leaflets look and move normally and the EOA is within 1 SD of the reference (Table 7).",
+            "tte": "As for the EOA.",
+            "tee": "As for the EOA."
+          }
+        ],
+        "results": {
+          "normal": {
+            "grade": 1,
+            "headline": "No stenosis by these criteria",
+            "text": "The measures are in the normal column of Table 5 ({counts})."
+          },
+          "significant": {
+            "grade": 3,
+            "headline": "Suggests significant stenosis",
+            "text": "At least one flow-dependent ({dep}) and one flow-independent ({indep}) sign in the significant column, as Table 5 requires.",
+            "next": [
+              "Image the leaflets or occluder, often by TEE or CT, and fluoroscopy for a mechanical valve, to find the cause: thrombus, pannus or degeneration (ASE 2024, pp. 17–18).",
+              "Compare with the baseline postprocedural study (p. 18)."
+            ]
+          },
+          "possible": {
+            "grade": 2,
+            "headline": "Possible stenosis",
+            "text": "Signs in the possible-stenosis column without both a flow-dependent and a flow-independent sign of significant stenosis ({counts}).",
+            "next": [
+              "Repeat and compare with the baseline and serial studies (p. 18).",
+              "TEE, CT or fluoroscopy for leaflet motion if doubt remains (p. 17)."
+            ]
+          },
+          "highflow": {
+            "headline": "High gradient, normal EOA and DVI",
+            "text": "A flow-dependent sign is high ({dep}) but the flow-independent ones are normal: look for high flow, sub- or supravalvular obstruction, pressure recovery (small bileaflet valves, aorta under 3 cm) or a mismatch (ASE 2024, pp. 9, 18).",
+            "next": [
+              "Check the stroke volume and the LVOT velocity.",
+              "Mismatch: the indexed EOA against Table 7."
+            ]
+          },
+          "lowflow": {
+            "grade": 2,
+            "headline": "Possible stenosis hidden by low flow",
+            "text": "A flow-independent sign is abnormal ({indep}) without a high velocity or gradient: with poor LV function or high systemic pressure, high gradients may be absent despite significant stenosis (ASE 2024, p. 18).",
+            "next": [
+              "Image leaflet or occluder motion by TEE, CT or fluoroscopy (p. 17).",
+              "Stress echo when symptoms and resting data disagree (p. 11)."
+            ]
+          },
+          "ppm-none": {
+            "headline": "No prosthesis–patient mismatch",
+            "text": "Indexed EOA {ieoa} cm²/m² is above the mismatch range for this BMI (Table 7); the high gradient is not explained by mismatch.",
+            "next": [
+              "Look for high flow, sub- or supravalvular obstruction, or pressure recovery (pp. 9, 18)."
+            ]
+          },
+          "ppm-moderate": {
+            "grade": 2,
+            "headline": "Moderate prosthesis–patient mismatch",
+            "text": "Indexed EOA {ieoa} cm²/m²: moderate mismatch for this BMI (Table 7), with a normally functioning valve."
+          },
+          "ppm-severe": {
+            "grade": 3,
+            "headline": "Severe prosthesis–patient mismatch",
+            "text": "Indexed EOA {ieoa} cm²/m²: severe mismatch for this BMI (Table 7), with a normally functioning valve."
+          },
+          "nodata": {
+            "headline": "Not gradable yet",
+            "text": "Neither a flow-dependent nor a flow-independent measure could be obtained.",
+            "next": [
+              "TEE, CT or fluoroscopy for leaflet or occluder motion (ASE 2024, p. 17)."
+            ]
+          }
+        }
+      }
+    ],
+    "notes": [
+      "Each step can be skipped with Cannot obtain; the flow moves on and ends as soon as the guideline's criteria settle the grade.",
+      "The guidelines' tables are for transthoracic studies in awake patients; none gives TEE-specific cutoffs, and loading conditions under general anesthesia usually make regurgitation read less severe and gradients lower. The TEE views come from the 2013 comprehensive TEE and the 2020 surgical decision-making guidelines."
     ]
   }
 }

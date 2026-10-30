@@ -293,9 +293,9 @@ struct ValveFlowPanel: View {
     /// The dot beside an option or an answer: severe coral, moderate blue, mild green, anything else grey.
     static func tint(_ tag: String?) -> Color {
         switch tag {
-        case "severe"?: return PS.accent
-        case "moderate"?, "intermediate"?: return PS.accent2
-        case "mild"?, "normal"?: return PS.green
+        case "severe"?, "g4"?: return PS.accent
+        case "moderate"?, "intermediate"?, "g2"?, "g3"?: return PS.accent2
+        case "mild"?, "normal"?, "g1"?: return PS.green
         default: return PS.fg3
         }
     }

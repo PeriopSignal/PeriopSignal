@@ -552,6 +552,43 @@ def main(path):
                 need(wd.get("max") is None or (num(wd["max"]) and wd["max"] > 0), f"ob event {eid}: weight dose max must be positive")
                 need(wd.get("aboveKg") is None or (num(wd["aboveKg"]) and isinstance(wd.get("aboveText"), str)), f"ob event {eid}: aboveKg needs aboveText")
 
+    vf = data.get("valveFlows")
+    if vf is not None:
+        need(vf.get("format") == 1, "valveFlows.format must be 1 (the apps read format 1; a new format needs app support first)")
+        vsrc = {x.get("id") for x in vf.get("sources") or []}
+        for x in vf.get("sources") or []:
+            need(isinstance(x.get("citation"), str) and x["citation"].strip(), f"valveFlows source {x.get('id')}: citation required")
+            need(x.get("url") is None or str(x["url"]).startswith("https://"), f"valveFlows source {x.get('id')}: url must be https")
+        groups = {g.get("id") for g in vf.get("groups") or []}
+        fids = set()
+        for f in vf.get("flows") or []:
+            fid = f.get("id")
+            need(fid not in fids, f"valve flow {fid}: duplicate id"); fids.add(fid)
+            for k in ("name", "short", "source"):
+                need(isinstance(f.get(k), str) and f[k], f"valve flow {fid}: {k} required")
+            need(f.get("group") in groups, f"valve flow {fid}: group must name a valveFlows group")
+            for sid in [f.get("source")] + list(f.get("also") or []):
+                need(sid in vsrc, f"valve flow {fid}: source {sid} must name a valveFlows source")
+            sids = set()
+            for st in f.get("steps") or []:
+                sid = st.get("id")
+                need(sid not in sids, f"valve flow {fid}: duplicate step {sid}"); sids.add(sid)
+                need(isinstance(st.get("title"), str) and st["title"], f"valve flow {fid}/{sid}: title required")
+                need(st.get("kind") in ("number", "choice"), f"valve flow {fid}/{sid}: kind must be number or choice")
+                if st.get("kind") == "choice":
+                    opts = st.get("options") or []
+                    need(len(opts) >= 1, f"valve flow {fid}/{sid}: a choice needs options")
+                    oids = [o.get("id") for o in opts]
+                    need(len(set(oids)) == len(oids) and all(isinstance(o.get("label"), str) and o["label"] for o in opts), f"valve flow {fid}/{sid}: options need unique ids and labels")
+                for b in st.get("bands") or []:
+                    bounds = [b.get(k) for k in ("lt", "le", "gt", "ge") if b.get(k) is not None]
+                    need(bounds and all(isinstance(x, (int, float)) for x in bounds) and isinstance(b.get("tag"), str), f"valve flow {fid}/{sid}: each band needs a tag and a numeric bound")
+            res = f.get("results") or {}
+            need(bool(res), f"valve flow {fid}: results required")
+            for rid, r in res.items():
+                need(isinstance(r.get("headline"), str) and r["headline"] and isinstance(r.get("text"), str) and r["text"], f"valve flow {fid}/{rid}: headline and text required")
+                need(r.get("grade") in (None, 1, 2, 3), f"valve flow {fid}/{rid}: grade must be 1, 2 or 3")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")

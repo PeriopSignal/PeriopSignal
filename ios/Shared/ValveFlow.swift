@@ -39,6 +39,8 @@ struct ValveFlowDef: Codable, Hashable, Identifiable {
     var short: String
     var intro: String?
     var source: String
+    /// Further documents the steps cite (the TEE views).
+    var also: [String]?
     var ref: String?
     var steps: [ValveFlowStep]
     var results: [String: ValveFlowResultDef]
@@ -50,6 +52,8 @@ struct ValveFlowDef: Codable, Hashable, Identifiable {
 struct ValveFlowStep: Codable, Hashable, Identifiable {
     var id: String
     var title: String
+    /// A short name for result sentences ("EROA"); the title when absent.
+    var short: String?
     /// "number" or "choice".
     var kind: String
     var unit: String?
@@ -174,6 +178,8 @@ final class FlowWalk {
     private(set) var path: [FlowRecord] = []
     var cautions: [String] = []
     var tally: String?
+    /// Steps already taken: a rule may consult a step twice (TR's vena contracta) without listing it twice.
+    private var taken: [String: Got] = [:]
 
     init(_ flow: ValveFlowDef, _ answers: [String: FlowAnswer], tee: Bool = false) {
         self.flow = flow
@@ -184,6 +190,13 @@ final class FlowWalk {
     /// The answer to a step, recorded on the path. A step the content lacks reads as not obtainable, and an
     /// answer of the wrong kind (a stale option) as not answered.
     func take(_ id: String) -> Got {
+        if let g = taken[id] { return g }
+        let g = record(id)
+        if g != .pending { taken[id] = g }
+        return g
+    }
+
+    private func record(_ id: String) -> Got {
         guard let s = flow.step(id) else { return .cannot }
         guard let a = answers[id] else { return .pending }
         switch a {
@@ -194,7 +207,7 @@ final class FlowWalk {
             guard s.isNumber, v.isFinite else { return .pending }
             let band = s.bands?.first { $0.contains(v) }
             let reading = band?.label ?? s.between
-            let text = ValveFlow.fmt(v) + (s.unit.map { $0.isEmpty ? "" : " " + $0 } ?? "") + (reading.map { " · " + $0 } ?? "")
+            let text = ValveFlow.fmt(v) + ValveFlow.unitSuffix(s.unit) + (reading.map { " · " + $0 } ?? "")
             path.append(FlowRecord(step: s, answer: a, tag: band?.tag, text: text))
             return .number(v, tag: band?.tag)
         case .choice(let c):
@@ -217,7 +230,16 @@ enum ValveFlow {
     typealias Rule = (FlowWalk) -> FlowEnd
 
     /// The rules for each flow id; content for a flow without rules is not offered.
-    static let rules: [String: Rule] = [:]
+    static let rules: [String: Rule] = [
+        "as": aorticStenosis,
+        "mr": mitralRegurgitation,
+        "ar": aorticRegurgitation,
+        "tr": tricuspidRegurgitation,
+        "pr": pulmonicRegurgitation,
+        "ms": mitralStenosis,
+        "ps": pulmonicStenosis,
+        "pav": aorticProsthesis,
+    ]
 
     static func progress(_ flow: ValveFlowDef, _ answers: [String: FlowAnswer], tee: Bool = false) -> FlowProgress {
         let w = FlowWalk(flow, answers, tee: tee)
@@ -237,4 +259,459 @@ enum ValveFlow {
     }
 
     static func fmt(_ v: Double) -> String { PedsCalc.fmt(v) }
+
+    /// " cm²" after a value; "%" goes on without a space; nothing for a ratio.
+    static func unitSuffix(_ u: String?) -> String {
+        guard let u, !u.isEmpty else { return "" }
+        return u == "%" ? u : " " + u
+    }
+}
+
+// MARK: - Aortic stenosis (EACVI/ASE 2017 focused update, pp. 383–388)
+
+extension ValveFlow {
+    static func aorticStenosis(_ w: FlowWalk) -> FlowEnd {
+        if w.tee {
+            w.caution("Under general anesthesia velocity and gradients often read lower than on the awake TTE; the valve area and the velocity ratio agree with it better, and an awake TTE grade is preferred when there is one (2020 TEE guideline, pp. 695, 704).")
+        }
+        let v = w.take("vmax")
+        if v == .pending { return .ask("vmax") }
+        let g = w.take("mg")
+        if g == .pending { return .ask("mg") }
+        let vHigh = (v.number ?? 0) >= 4, gHigh = (g.number ?? 0) >= 40
+        if let x = v.number, x > 5.5 { w.caution("A peak velocity above 5.5 m/s carries a worse prognosis (p. 389).") }
+        if vHigh || gHigh {
+            w.tally = "High-gradient track"
+            if v.number != nil, g.number != nil, vHigh != gHigh {
+                w.caution("Velocity and mean gradient fall on different sides of the severe cutoff: the stepwise text calls high-gradient AS when both reach it, the basic criteria when either does (pp. 383, 387). Recheck the CW envelope and the beam alignment.")
+            }
+            let s = w.take("svi")
+            if s == .pending { return .ask("svi") }
+            guard let sv = s.number else {
+                return .done("severe-high", ["flow": "Flow was not checked: high flow (SVi above 58 mL/m²) can push a non-severe valve into this range."])
+            }
+            if s.tag == "high" {
+                let c = w.take("highflow")
+                if c == .pending { return .ask("highflow") }
+                switch c.choice {
+                case "reversible"?: return .done("high-reversible")
+                case "fixed"?: return .done("severe-fixed-flow")
+                default:
+                    w.caution("Stroke volume index above 58 mL/m² without a cause: an overestimated LVOT diameter inflates both the flow and the area (p. 387).")
+                    return .done("severe-high", ["flow": "The high stroke volume index (\(fmt(sv)) mL/m²) is unexplained; see the caution."])
+                }
+            }
+            return .done("severe-high", ["flow": "Stroke volume index \(fmt(sv)) mL/m²: no high-flow state."])
+        }
+        if v == .cannot && g == .cannot {
+            let p = w.take("planimetry")
+            if p == .pending { return .ask("planimetry") }
+            guard let a = p.number else { return .done("nodata") }
+            return .done(a < 1 ? "area-severe" : (a <= 1.5 ? "area-moderate" : "area-mild"), ["area": fmt(a)])
+        }
+        w.tally = "Low-gradient track"
+        // The valve area: continuity, else the velocity ratio, else planimetry.
+        var small: Bool?
+        var areaTag: String?
+        var areaValue: Double?
+        let a = w.take("ava")
+        if a == .pending { return .ask("ava") }
+        if let x = a.number {
+            small = x < 1; areaTag = a.tag; areaValue = x
+        } else {
+            let r = w.take("vratio")
+            if r == .pending { return .ask("vratio") }
+            if let x = r.number {
+                small = x < 0.25; areaTag = r.tag
+            } else {
+                let p = w.take("planimetry")
+                if p == .pending { return .ask("planimetry") }
+                if let x = p.number { small = x < 1; areaTag = p.tag; areaValue = x }
+            }
+        }
+        guard let isSmall = small else { return .done("noarea") }
+        if !isSmall {
+            let tags = [v.tag, g.tag, areaTag]
+            if tags.contains("moderate") {
+                if areaTag == "moderate" && a.number != nil { w.caution("An area of 1.0 cm² or more with a low gradient indicates moderate AS; in a large LVOT, exclude an overestimated flow and area (p. 387).") }
+                return .done("moderate")
+            }
+            if v.tag == "mild" { return .done("mild") }
+            if v.tag == "normal" { return .done("sclerosis") }
+            w.caution("Without the peak velocity, mild AS cannot be told from aortic sclerosis (Table 3).")
+            return .done("mild")
+        }
+        let e = w.take("errors")
+        if e == .pending { return .ask("errors") }
+        if e == .cannot { w.caution("Measurement errors were not excluded: an LVOT diameter cut short by calcium, or a PW sample in the wrong place, makes a falsely small area (pp. 381, 387).") }
+        let s = w.take("svi")
+        if s == .pending { return .ask("svi") }
+        guard let sv = s.number else { return .done("flow-unknown") }
+        if sv >= 35 { return .done("normal-flow", ["flow": "a stroke volume index of \(fmt(sv)) mL/m²"]) }
+        w.tally = "Low flow, low gradient"
+        let ef = w.take("lvef")
+        if ef == .pending { return .ask("lvef") }
+        guard let efv = ef.number else { return .done("ef-unknown") }
+        if efv < 50 {
+            let d = w.take("dse")
+            if d == .pending { return .ask("dse") }
+            switch d.choice {
+            case "severe"?: return .done("dse-severe")
+            case "pseudo"?: return .done("dse-pseudo")
+            case "noreserve"?:
+                w.caution("Without flow reserve, valve calcification (best by CT) may be the primary clue; the update prints its calcium cutoffs for preserved EF (pp. 385, 388).")
+                return asCalcium(w, track: "Low-flow, low-gradient AS with reduced EF and no flow reserve")
+            default: return .done("dse-next")
+            }
+        }
+        let c = w.take("confirm")
+        if c == .pending { return .ask("confirm") }
+        if c.choice == "normal" { return .done("normal-flow", ["flow": "normal flow by another method"]) }
+        if c == .cannot { w.caution("Low flow not confirmed by another method: LVOT flow tends to underestimate the real flow in these ventricles (p. 388).") }
+        var present: [String] = []
+        if let m = g.number, m >= 30 { present.append("mean gradient 30–40 mmHg") }
+        if let x = areaValue, x <= 0.8 { present.append("area 0.8 cm² or less") }
+        if !present.isEmpty { w.caution("Table 5 criteria in these answers: " + present.joined(separator: " and ") + "; the gradient counts when measured while normotensive (p. 385).") }
+        return asCalcium(w, track: "Paradoxical low-flow, low-gradient AS")
+    }
+
+    private static func asCalcium(_ w: FlowWalk, track: String) -> FlowEnd {
+        let c = w.take("calcium")
+        if c == .pending { return .ask("calcium") }
+        switch c.choice {
+        case "likely"?: return .done("calcium-severe", ["track": track])
+        case "unlikely"?: return .done("calcium-unlikely", ["track": track])
+        default: return .done("indeterminate", ["track": track])
+        }
+    }
+}
+
+// MARK: - Regurgitation (ASE 2017: Figure 18 for MR, Figure 25 for AR)
+
+extension ValveFlow {
+    /// One lesion's integration figure: the specific-criteria steps, then the quantitative ones.
+    struct RegurgPlan {
+        var criteria: [String]
+        /// Specific criteria from one list that settle the grade: four for MR, AR and TR, three for PR.
+        var need = 4
+        var quant: [String]
+        /// 4: grades I–IV (MR, AR); 3: mild, moderate, severe (TR, PR).
+        var scale = 4
+        /// 1 when an answer is a specific criterion for mild, 3 for severe; nil when it does not count.
+        var specific: (String, FlowWalk.Got) -> Int?
+        /// A quantitative answer's grade; by default its band tag ("g3").
+        var quantGrade: (String, FlowWalk.Got) -> Int? = { _, g in g.tag.flatMap { $0.hasPrefix("g") ? Int($0.dropFirst()) : nil } }
+        /// The quantitative step to trust over the others when present (regurgitant volume in non-holosystolic MR).
+        var prefer: String?
+        /// The result when no quantitative measure was obtained.
+        var noQuant = "indeterminate"
+        /// Grade III on the four-grade scale: severe only with three specific severe criteria (or, for MR, an elliptical orifice).
+        var gradeThree: ((FlowWalk, Int, [String: String]) -> FlowEnd)?
+    }
+
+    static func tallyText(_ mild: Int, _ severe: Int) -> String {
+        "Specific for mild: \(mild) · for severe: \(severe)"
+    }
+
+    static func regurgitation(_ w: FlowWalk, _ plan: RegurgPlan) -> FlowEnd {
+        var mild = 0, severe = 0, obtained = 0
+        for id in plan.criteria {
+            let g = w.take(id)
+            if g == .pending { w.tally = tallyText(mild, severe); return .ask(id) }
+            if g != .cannot { obtained += 1 }
+            switch plan.specific(id, g) {
+            case 1?: mild += 1
+            case 3?: severe += 1
+            default: break
+            }
+            if severe >= plan.need && mild == 0 { return .done("severe-specific", ["severe": "\(severe)"]) }
+            if mild >= plan.need && severe == 0 { return .done("mild-specific", ["mild": "\(mild)"]) }
+        }
+        if mild >= plan.need || severe >= plan.need { w.caution("Specific criteria from both lists: the figure settles the grade only when one list dominates, so the measurements decide.") }
+        var vars = ["mild": "\(mild)", "severe": "\(severe)"]
+        var grades: [(id: String, grade: Int)] = []
+        var parts: [String] = []
+        for id in plan.quant {
+            let g = w.take(id)
+            if g == .pending { w.tally = tallyText(mild, severe); return .ask(id) }
+            guard let v = g.number, let n = plan.quantGrade(id, g) else { continue }
+            grades.append((id, n))
+            let s = w.flow.step(id)
+            let unit = unitSuffix(s?.unit)
+            let word = plan.scale == 4 ? "grade \(roman(n))" : ["mild", "moderate", "severe"][max(0, min(2, n - 1))]
+            parts.append("\(s?.short ?? s?.title ?? id) \(fmt(v))\(unit), \(word)")
+        }
+        guard !grades.isEmpty else {
+            vars["lean"] = severe > mild ? "The signs so far lean toward severe." : (mild > severe ? "The signs so far lean toward mild." : "")
+            return .done(obtained == 0 ? "indeterminate" : plan.noQuant, vars)
+        }
+        vars["quant"] = parts.joined(separator: "; ")
+        let sorted = grades.map(\.grade).sorted()
+        var q = sorted[sorted.count / 2]
+        if let p = plan.prefer, let hit = grades.first(where: { $0.id == p }) { q = hit.grade }
+        if let lo = sorted.first, let hi = sorted.last, hi - lo >= 2 {
+            w.caution("The quantitative measures differ by two grades or more: low or high flow can split them; recheck the measurements or quantitate another way (Table 8).")
+        }
+        if (q == plan.scale && mild >= 2) || (q == 1 && severe >= 2) { return .done("discordant", vars) }
+        if plan.scale == 3 { return .done(["q-mild", "q-moderate", "q-severe"][max(0, min(2, q - 1))], vars) }
+        switch q {
+        case 1: return .done("grade1", vars)
+        case 2: return .done("grade2", vars)
+        case 3: return plan.gradeThree?(w, severe, vars) ?? .done("grade3", vars)
+        default: return .done("grade4", vars)
+        }
+    }
+
+    static func roman(_ n: Int) -> String { ["I", "II", "III", "IV"][max(0, min(3, n - 1))] }
+
+    static func mitralRegurgitation(_ w: FlowWalk) -> FlowEnd {
+        if w.tee {
+            w.caution("Grading is best done on the awake TTE: under anesthesia lower loading conditions make MR, secondary MR especially, look less severe (2020 TEE guideline, pp. 695, 698; ASE 2017, p. 323). Prefer the preoperative grade, record blood pressure, heart rate and rhythm, and try fluids, inotropes or an afterload challenge before deciding on the intraoperative findings (ASE 2017, p. 324; 2020, p. 698).")
+        }
+        let t = w.take("type")
+        if t == .pending { return .ask("type") }
+        let acute = t.choice == "acute", secondary = t.choice == "secondary"
+        if acute { w.caution("Acute MR: Figure 18 and Table 8 are for chronic MR. Acute severe MR can have a small, brief, eccentric low-velocity jet with normal chamber sizes; pulmonary vein systolic reversal is usually present; keep a low threshold for TEE (pp. 323, 334).") }
+        if secondary { w.caution("Secondary MR: 2D PISA underestimates an elliptical orifice, an EROA of 0.30 cm² or more may still be severe, and the volumes run lower when the stroke volume is low (p. 334).") }
+        if w.answers["jet"] == .choice("eccentric") { w.caution("Eccentric, wall-impinging jet: its color area underestimates the MR; quantitation is advised (Figure 18).") }
+        let partial = w.answers["cw"] == .choice("partial")
+        if partial { w.caution("MR that is not holosystolic: single-frame EROA and vena contracta overestimate it; the regurgitant volume is the better measure (Figure 18; p. 323).") }
+        let plan = RegurgPlan(
+            criteria: ["flail", "jet", "cw", "vc", "pisa", "pv", "inflow", "size"],
+            quant: ["eroa", "rvol", "rf"],
+            specific: { id, g in
+                if acute && id == "size" { return nil }
+                return g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : nil)
+            },
+            prefer: partial ? "rvol" : nil,
+            gradeThree: { w, severe, vars in
+                var v = vars
+                if severe >= 3 { v["why"] = "\(severe) specific criteria for severe MR"; return .done("grade3-severe", v) }
+                let e = w.take("ellipse")
+                if e == .pending { return .ask("ellipse") }
+                if e.choice == "yes" { v["why"] = "an elliptical regurgitant orifice"; return .done("grade3-severe", v) }
+                return .done("grade3", v)
+            }
+        )
+        return regurgitation(w, plan)
+    }
+
+    static func aorticRegurgitation(_ w: FlowWalk) -> FlowEnd {
+        if w.tee {
+            w.caution("Loading conditions and LV and aortic compliance change the AR signs under anesthesia (2020 TEE guideline, p. 703); grade on the awake TTE when there is one (2020, p. 695), and record blood pressure and heart rate with the numbers (ASE 2017, p. 318).")
+        }
+        let t = w.take("type")
+        if t == .pending { return .ask("type") }
+        let acute = t.choice == "acute"
+        if acute { w.caution("Acute AR: the jet may be brief and of low velocity, the LV is not yet dilated, the mitral valve may close early and the aortic reversal may not be holodiastolic; keep a low threshold for TEE (pp. 336, 345).") }
+        let plan = RegurgPlan(
+            criteria: ["flail", "vc", "jet", "pisa", "cw", "pht", "aorta", "lv"],
+            quant: ["rvol", "rf", "eroa"],
+            specific: { id, g in
+                if acute && id == "lv" { return nil }
+                return g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : nil)
+            },
+            gradeThree: { _, severe, vars in
+                if severe >= 3 { return .done("grade3-severe", vars) }
+                return .done("grade3", vars)
+            }
+        )
+        return regurgitation(w, plan)
+    }
+}
+
+// MARK: - Mitral stenosis (ASE 2023 rheumatic heart disease, Table 1; EAE/ASE 2009)
+
+extension ValveFlow {
+    /// 1 mild, 2 moderate, 3 severe for a band or option tag.
+    static func level(_ tag: String?) -> Int? {
+        switch tag {
+        case "mild"?: return 1
+        case "moderate"?: return 2
+        case "severe"?: return 3
+        default: return nil
+        }
+    }
+
+    static func mitralStenosis(_ w: FlowWalk) -> FlowEnd {
+        if w.tee {
+            w.caution("Flow and heart rate change under general anesthesia, and the gradient and half-time with them (2020 TEE guideline, p. 696); planimetry does not depend on flow (2009, p. 12). Record the heart rate and rhythm with the numbers.")
+        }
+        let e = w.take("etiology")
+        if e == .pending { return .ask("etiology") }
+        if e.choice == "calcific" {
+            let g = w.take("mg")
+            if g == .pending { return .ask("mg") }
+            let p = w.take("pasp")
+            if p == .pending { return .ask("pasp") }
+            guard let m = g.number, let n = level(g.tag) else { return .done("calcific-nograd") }
+            return .done("calcific-\(n)", ["mg": fmt(m)])
+        }
+        let p = w.take("planimetry")
+        if p == .pending { return .ask("planimetry") }
+        let h = w.take("pht")
+        if h == .pending { return .ask("pht") }
+        let g = w.take("mg")
+        if g == .pending { return .ask("mg") }
+        let pa = w.take("pasp")
+        if pa == .pending { return .ask("pasp") }
+        var area: Int?
+        var basis = ""
+        if let x = p.number, let n = level(p.tag) {
+            area = n
+            basis = "planimetered area (\(fmt(x)) cm²)"
+            if let y = h.number, let hn = level(h.tag), hn != n {
+                w.caution("Planimetry and the half-time disagree (half-time area about \(fmt(220 / y)) cm²): planimetry is the reference, except with poor acoustic windows (2009, p. 15).")
+            }
+        } else if let y = h.number, let n = level(h.tag) {
+            area = n
+            basis = "pressure half-time (\(fmt(y)) ms, area about \(fmt(220 / y)) cm²)"
+        } else {
+            let a = w.take("alt")
+            if a == .pending { return .ask("alt") }
+            if let x = a.number, let n = level(a.tag) {
+                area = n
+                basis = "continuity or PISA area (\(fmt(x)) cm²)"
+                w.caution("Graded on a second-line area: the continuity equation and PISA are for inconclusive data and carry more error (2023, p. 9).")
+            }
+        }
+        guard let ag = area else {
+            var supp: [String] = []
+            if let m = g.number { supp.append("Mean gradient \(fmt(m)) mmHg.") }
+            if let s = pa.number { supp.append("PA systolic pressure \(fmt(s)) mmHg.") }
+            return supp.isEmpty ? .done("nodata") : .done("supportive-only", ["supp": supp.joined(separator: " ")])
+        }
+        if [g.tag, pa.tag].compactMap(level).contains(3) && ag < 3 {
+            w.caution("Gradient or PA pressure in the severe range with a non-severe area: high flow, tachycardia, significant MR or another cause of pulmonary hypertension (2023, p. 8).")
+        }
+        if ag == 3 && level(g.tag) == 1 {
+            w.caution("Severe by area with a low gradient: low flow, where planimetry is essential (2020 TEE guideline, p. 696).")
+        }
+        return .done(["mild", "moderate", "severe"][ag - 1], ["basis": basis])
+    }
+}
+
+// MARK: - Pulmonic stenosis (EAE/ASE 2009, Table 11)
+
+extension ValveFlow {
+    static func pulmonicStenosis(_ w: FlowWalk) -> FlowEnd {
+        if w.tee { w.caution("Loading conditions and Doppler misalignment change the gradient (2020 TEE guideline, p. 706).") }
+        let l = w.take("level")
+        if l == .pending { return .ask("level") }
+        switch l.choice {
+        case "sub"?: w.caution("Infundibular obstruction is often dynamic, with a late-peaking, dagger-shaped jet; the grading table is for valvular stenosis (2009, p. 20).")
+        case "supra"?: w.caution("Supra- or subvalvular obstruction: the valve cutoffs assume there is none (2023, p. 20).")
+        case "serial"?: w.caution("Stenoses in series: their contributions cannot be separated, and pressure recovery can make the Doppler gradient higher than the net pressure drop (2009, p. 20).")
+        default: break
+        }
+        let v = w.take("vmax")
+        if v == .pending { return .ask("vmax") }
+        guard let x = v.number, let tag = v.tag else { return .done("nodata") }
+        let gradient = 4 * x * x
+        let r = w.take("rvsp")
+        if r == .pending { return .ask("rvsp") }
+        var pa = ""
+        if let rv = r.number {
+            let est = rv - gradient
+            pa = est > 0
+                ? " RV systolic pressure \(fmt(rv)) mmHg minus the valve gradient leaves a PA systolic pressure of about \(fmt(est)) mmHg (2009, p. 20)."
+                : " The valve gradient is higher than the RV systolic pressure entered: recheck both (2009, p. 20)."
+        }
+        return .done(tag, ["gradient": fmt(gradient), "pa": pa])
+    }
+}
+
+// MARK: - Aortic prosthesis with a high velocity or gradient (ASE 2024, Tables 5 and 7)
+
+extension ValveFlow {
+    static func aorticProsthesis(_ w: FlowWalk) -> FlowEnd {
+        if w.tee { w.caution("On TEE the anterior root can be shadowed, and transgastric Doppler angulation may not be optimal: the gradient can read low (ASE 2024, p. 17).") }
+        let k = w.take("kind")
+        if k == .pending { return .ask("kind") }
+        let tavr = k.choice == "tavr"
+        let depIds = tavr ? ["vmax", "mgchange"] : ["vmax", "mg"]
+        let indepIds = tavr ? ["dvichange", "eoachange"] : ["dvi", "eoa"]
+        let order = ["vmax", "contour", "at", "atet"] + (tavr ? ["mgchange", "dvichange", "eoachange"] : ["mg", "dvi", "eoa"])
+        var got: [String: FlowWalk.Got] = [:]
+        for id in order {
+            let g = w.take(id)
+            if g == .pending { return .ask(id) }
+            got[id] = g
+        }
+        func names(_ ids: [String], _ tag: String) -> [String] {
+            ids.filter { got[$0]?.tag == tag }.map { w.flow.step($0)?.short ?? w.flow.step($0)?.title ?? $0 }
+        }
+        let depSig = names(depIds, "severe"), depMid = names(depIds, "moderate")
+        let indepSig = names(indepIds, "severe"), indepMid = names(indepIds, "moderate")
+        let depKnown = depIds.contains { got[$0]?.tag != nil }, indepKnown = indepIds.contains { got[$0]?.tag != nil }
+        let tags = order.compactMap { got[$0]?.tag }
+        let counts = "\(tags.filter { $0 == "normal" }.count) normal, \(tags.filter { $0 == "moderate" }.count) possible, \(tags.filter { $0 == "severe" }.count) significant"
+        guard depKnown || indepKnown else { return .done("nodata") }
+        if !depSig.isEmpty && !indepSig.isEmpty {
+            return .done("significant", ["dep": depSig.joined(separator: ", "), "indep": indepSig.joined(separator: ", ")])
+        }
+        if !indepSig.isEmpty && depSig.isEmpty && depMid.isEmpty {
+            return .done("lowflow", ["indep": indepSig.joined(separator: ", ")])
+        }
+        let depHigh = depSig + depMid
+        if !depHigh.isEmpty && indepKnown && indepSig.isEmpty && indepMid.isEmpty {
+            if ["contour", "at", "atet"].contains(where: { got[$0]?.tag == "severe" }) {
+                w.caution("A rounded jet or a long acceleration time points to obstruction despite the normal EOA and DVI: recheck the LVOT sample and diameter (Table 5; Figure 13).")
+            }
+            let b = w.take("bmi")
+            if b == .pending { return .ask("bmi") }
+            let i = w.take("ieoa")
+            if i == .pending { return .ask("ieoa") }
+            guard let x = i.number, b.choice != nil else { return .done("highflow", ["dep": depHigh.joined(separator: ", ")]) }
+            let obese = b.choice == "ge30"
+            let severeCut = obese ? 0.55 : 0.65, moderateCut = obese ? 0.70 : 0.85
+            if x <= severeCut { return .done("ppm-severe", ["ieoa": fmt(x)]) }
+            if x <= moderateCut { return .done("ppm-moderate", ["ieoa": fmt(x)]) }
+            return .done("ppm-none", ["ieoa": fmt(x)])
+        }
+        if !depSig.isEmpty && !indepKnown {
+            w.caution("No flow-independent measure (EOA or DVI): Table 5 needs one to call the stenosis significant.")
+        }
+        if tags.contains("severe") || tags.contains("moderate") { return .done("possible", ["counts": counts]) }
+        return .done("normal", ["counts": counts])
+    }
+}
+
+// MARK: - Tricuspid and pulmonic regurgitation (ASE 2017, Figures 31 and 35)
+
+extension ValveFlow {
+    static func tricuspidRegurgitation(_ w: FlowWalk) -> FlowEnd {
+        if w.tee {
+            w.caution("TEE is in general more limited than TTE for the tricuspid valve, from off-angle planes and the distance from the probe (ASE 2017, p. 345); loading conditions and inotropes change the TR (2020 TEE guideline, pp. 700, 705).")
+        }
+        if w.answers["jet"] == .choice("eccentric") { w.caution("Eccentric, wall-impinging jet: its area underestimates the TR (p. 350).") }
+        let plan = RegurgPlan(
+            criteria: ["valve", "jet", "cw", "vc", "pisa", "hv", "inflow", "size"],
+            need: 4,
+            quant: ["vc", "eroa", "rvol"],
+            scale: 3,
+            specific: { _, g in g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : nil) },
+            quantGrade: { id, g in
+                if id == "vc" { return g.number == nil ? nil : (g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : 2)) }
+                return level(g.tag)
+            }
+        )
+        return regurgitation(w, plan)
+    }
+
+    static func pulmonicRegurgitation(_ w: FlowWalk) -> FlowEnd {
+        if w.tee {
+            w.caution("The pulmonic valve is anterior and hard to image by TEE, and TEE is not a preferred modality when PR needs more than the TTE (ASE 2017, pp. 353, 359); loading conditions change the signs (2020 TEE guideline, p. 706).")
+        }
+        let plan = RegurgPlan(
+            criteria: ["jet", "ratio", "cw", "pht", "decel", "branches", "rv"],
+            need: 3,
+            quant: ["rf"],
+            scale: 3,
+            specific: { _, g in g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : nil) },
+            quantGrade: { _, g in level(g.tag) },
+            noQuant: "probable-moderate"
+        )
+        return regurgitation(w, plan)
+    }
 }

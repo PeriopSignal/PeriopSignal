@@ -1,0 +1,1076 @@
+{
+ "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring and the path of step ids.",
+ "cases": [
+  {
+   "name": "AS: high gradient with normal flow is severe",
+   "flow": "as",
+   "answers": {
+    "vmax": 4.5,
+    "mg": 50,
+    "svi": 40
+   },
+   "expect": {
+    "result": "severe-high",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AS: high gradient with reversible high flow",
+   "flow": "as",
+   "answers": {
+    "vmax": 4.3,
+    "mg": 44,
+    "svi": 62,
+    "highflow": "reversible"
+   },
+   "expect": {
+    "result": "high-reversible",
+    "grade": null
+   }
+  },
+  {
+   "name": "AS: high gradient with the lasting high flow of AR",
+   "flow": "as",
+   "answers": {
+    "vmax": 4.3,
+    "mg": 44,
+    "svi": 62,
+    "highflow": "fixed"
+   },
+   "expect": {
+    "result": "severe-fixed-flow",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AS: high gradient with flow unknown",
+   "flow": "as",
+   "answers": {
+    "vmax": 4.1,
+    "mg": null,
+    "svi": null
+   },
+   "expect": {
+    "result": "severe-high",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AS: velocity high, gradient not: discordance caution",
+   "flow": "as",
+   "answers": {
+    "vmax": 4.1,
+    "mg": 36,
+    "svi": 45
+   },
+   "expect": {
+    "result": "severe-high",
+    "grade": 3,
+    "caution": "different sides"
+   }
+  },
+  {
+   "name": "AS: moderate on a low gradient",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.4,
+    "mg": 28,
+    "ava": 1.2
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2,
+    "caution": "large LVOT"
+   }
+  },
+  {
+   "name": "AS: mild",
+   "flow": "as",
+   "answers": {
+    "vmax": 2.8,
+    "mg": 14,
+    "ava": 1.7
+   },
+   "expect": {
+    "result": "mild",
+    "grade": 1
+   }
+  },
+  {
+   "name": "AS: aortic sclerosis",
+   "flow": "as",
+   "answers": {
+    "vmax": 2.2,
+    "mg": 6,
+    "ava": 2.6
+   },
+   "expect": {
+    "result": "sclerosis",
+    "grade": null
+   }
+  },
+  {
+   "name": "AS: small area with normal flow",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.6,
+    "mg": 32,
+    "ava": 0.9,
+    "errors": "checked",
+    "svi": 40
+   },
+   "expect": {
+    "result": "normal-flow",
+    "grade": 2
+   }
+  },
+  {
+   "name": "AS: small area asks for the error check next",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.6,
+    "mg": 32,
+    "ava": 0.9
+   },
+   "expect": {
+    "ask": "errors"
+   }
+  },
+  {
+   "name": "AS: velocity ratio stands in for the area",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.6,
+    "mg": 32,
+    "ava": null,
+    "vratio": 0.22
+   },
+   "expect": {
+    "ask": "errors",
+    "path": [
+     "vmax",
+     "mg",
+     "ava",
+     "vratio"
+    ]
+   }
+  },
+  {
+   "name": "AS: low flow, reduced EF, true severe on dobutamine",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.2,
+    "mg": 25,
+    "ava": 0.8,
+    "errors": "checked",
+    "svi": 28,
+    "lvef": 35,
+    "dse": "severe"
+   },
+   "expect": {
+    "result": "dse-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AS: low flow, reduced EF, pseudosevere",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.2,
+    "mg": 25,
+    "ava": 0.8,
+    "errors": "checked",
+    "svi": 28,
+    "lvef": 35,
+    "dse": "pseudo"
+   },
+   "expect": {
+    "result": "dse-pseudo",
+    "grade": 2
+   }
+  },
+  {
+   "name": "AS: no flow reserve, calcium likely",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.2,
+    "mg": 25,
+    "ava": 0.8,
+    "errors": "checked",
+    "svi": 28,
+    "lvef": 35,
+    "dse": "noreserve",
+    "calcium": "likely"
+   },
+   "expect": {
+    "result": "calcium-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AS: dobutamine not done",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.2,
+    "mg": 25,
+    "ava": 0.8,
+    "errors": "checked",
+    "svi": 28,
+    "lvef": 35,
+    "dse": null
+   },
+   "expect": {
+    "result": "dse-next",
+    "grade": null
+   }
+  },
+  {
+   "name": "AS: paradoxical low flow, calcium unlikely",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.5,
+    "mg": 32,
+    "ava": 0.75,
+    "errors": "checked",
+    "svi": 30,
+    "lvef": 60,
+    "confirm": "low",
+    "calcium": "unlikely"
+   },
+   "expect": {
+    "result": "calcium-unlikely",
+    "grade": 2,
+    "caution": "Table 5 criteria"
+   }
+  },
+  {
+   "name": "AS: paradoxical low flow, normal by another method",
+   "flow": "as",
+   "answers": {
+    "vmax": 3.5,
+    "mg": 32,
+    "ava": 0.85,
+    "errors": "checked",
+    "svi": 30,
+    "lvef": 60,
+    "confirm": "normal"
+   },
+   "expect": {
+    "result": "normal-flow",
+    "grade": 2
+   }
+  },
+  {
+   "name": "AS: no Doppler, planimetry severe",
+   "flow": "as",
+   "answers": {
+    "vmax": null,
+    "mg": null,
+    "planimetry": 0.8
+   },
+   "expect": {
+    "result": "area-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AS: nothing obtained",
+   "flow": "as",
+   "answers": {
+    "vmax": null,
+    "mg": null,
+    "planimetry": null
+   },
+   "expect": {
+    "result": "nodata",
+    "grade": null
+   }
+  },
+  {
+   "name": "AS: TEE adds the anesthesia caution",
+   "flow": "as",
+   "answers": {
+    "vmax": 4.2,
+    "mg": 45,
+    "svi": 40
+   },
+   "expect": {
+    "result": "severe-high",
+    "grade": 3,
+    "caution": "Under general anesthesia"
+   },
+   "tee": true
+  },
+  {
+   "name": "MR: four specific severe criteria",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "yes",
+    "jet": "large",
+    "cw": "dense",
+    "vc": 0.8,
+    "pisa": "large"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3,
+    "path": [
+     "type",
+     "flail",
+     "jet",
+     "cw",
+     "vc",
+     "pisa"
+    ]
+   }
+  },
+  {
+   "name": "MR: four specific mild criteria",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "pisa": "small"
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "MR: VC of 0.3 counts for mild (Figure 18)",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.3,
+    "pisa": "small"
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "MR: grade IV",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.45,
+    "rvol": 70,
+    "rf": 55
+   },
+   "expect": {
+    "result": "grade4",
+    "grade": 3
+   }
+  },
+  {
+   "name": "MR: grade III with three severe criteria",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "yes",
+    "jet": "large",
+    "cw": "dense",
+    "vc": 0.75,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "e",
+    "size": "other",
+    "eroa": 0.35,
+    "rvol": 50,
+    "rf": 45
+   },
+   "expect": {
+    "result": "grade3-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "MR: grade III asks about the orifice",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.33,
+    "rvol": 48,
+    "rf": 42
+   },
+   "expect": {
+    "ask": "ellipse"
+   }
+  },
+  {
+   "name": "MR: grade III with an elliptical orifice",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.33,
+    "rvol": 48,
+    "rf": 42,
+    "ellipse": "yes"
+   },
+   "expect": {
+    "result": "grade3-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "MR: grade III without it",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.33,
+    "rvol": 48,
+    "rf": 42,
+    "ellipse": "no"
+   },
+   "expect": {
+    "result": "grade3",
+    "grade": 2
+   }
+  },
+  {
+   "name": "MR: grade IV with two mild signs is discordant",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.45,
+    "rvol": 65,
+    "rf": 55
+   },
+   "expect": {
+    "result": "discordant",
+    "grade": null
+   }
+  },
+  {
+   "name": "MR: not holosystolic, the regurgitant volume decides",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "partial",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.45,
+    "rvol": 40,
+    "rf": 55
+   },
+   "expect": {
+    "result": "grade2",
+    "grade": 2,
+    "caution": "not holosystolic"
+   }
+  },
+  {
+   "name": "MR: acute, normal chambers do not count for mild",
+   "flow": "mr",
+   "answers": {
+    "type": "acute",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "normal",
+    "eroa": null,
+    "rvol": null,
+    "rf": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "MR: TEE adds the loading caution",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary"
+   },
+   "expect": {
+    "ask": "flail",
+    "caution": "awake TTE"
+   },
+   "tee": true
+  },
+  {
+   "name": "AR: four specific severe criteria",
+   "flow": "ar",
+   "answers": {
+    "type": "chronic",
+    "flail": "yes",
+    "vc": 0.7,
+    "jet": 70,
+    "pisa": "large"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AR: four specific mild criteria",
+   "flow": "ar",
+   "answers": {
+    "type": "chronic",
+    "flail": "no",
+    "vc": 0.2,
+    "jet": 20,
+    "pisa": "small",
+    "cw": "soft"
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "AR: grade III without three severe criteria",
+   "flow": "ar",
+   "answers": {
+    "type": "chronic",
+    "flail": "no",
+    "vc": 0.5,
+    "jet": 50,
+    "pisa": "mid",
+    "cw": "dense",
+    "pht": 300,
+    "aorta": "mid",
+    "lv": "other",
+    "rvol": 50,
+    "rf": 45,
+    "eroa": 0.25
+   },
+   "expect": {
+    "result": "grade3",
+    "grade": 2
+   }
+  },
+  {
+   "name": "AR: grade III with three severe criteria",
+   "flow": "ar",
+   "answers": {
+    "type": "chronic",
+    "flail": "yes",
+    "vc": 0.65,
+    "jet": 50,
+    "pisa": "mid",
+    "cw": "dense",
+    "pht": 180,
+    "aorta": "mid",
+    "lv": "other",
+    "rvol": 50,
+    "rf": 45,
+    "eroa": 0.25
+   },
+   "expect": {
+    "result": "grade3-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "AR: brief descending reversal is not a mild criterion",
+   "flow": "ar",
+   "answers": {
+    "type": "chronic",
+    "flail": "no",
+    "vc": 0.2,
+    "jet": 20,
+    "pisa": "mid",
+    "cw": "dense",
+    "pht": 400,
+    "aorta": "brief",
+    "lv": "other",
+    "rvol": null,
+    "rf": null,
+    "eroa": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "TR: four specific severe criteria",
+   "flow": "tr",
+   "answers": {
+    "valve": "severe",
+    "jet": "large",
+    "cw": "triangular",
+    "vc": 0.8
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "TR: four specific mild criteria",
+   "flow": "tr",
+   "answers": {
+    "valve": "normal",
+    "jet": "small",
+    "cw": "faint",
+    "vc": 0.2,
+    "pisa": "small"
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "TR: intermediate, the vena contracta decides",
+   "flow": "tr",
+   "answers": {
+    "valve": "other",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "hv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": null,
+    "rvol": null
+   },
+   "expect": {
+    "result": "q-moderate",
+    "grade": 2,
+    "path": [
+     "valve",
+     "jet",
+     "cw",
+     "vc",
+     "pisa",
+     "hv",
+     "inflow",
+     "size",
+     "eroa",
+     "rvol"
+    ]
+   }
+  },
+  {
+   "name": "TR: no vena contracta, PISA decides",
+   "flow": "tr",
+   "answers": {
+    "valve": "other",
+    "jet": "between",
+    "cw": "dense",
+    "vc": null,
+    "pisa": "mid",
+    "hv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.45,
+    "rvol": 50
+   },
+   "expect": {
+    "result": "q-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "TR: nothing quantitative",
+   "flow": "tr",
+   "answers": {
+    "valve": "other",
+    "jet": "between",
+    "cw": "dense",
+    "vc": null,
+    "pisa": "mid",
+    "hv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": null,
+    "rvol": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "PR: three specific severe criteria",
+   "flow": "pr",
+   "answers": {
+    "jet": "broad",
+    "ratio": 75,
+    "cw": "dense",
+    "pht": 80,
+    "decel": "early"
+   },
+   "expect": {
+    "result": "severe-specific",
+    "grade": 3
+   }
+  },
+  {
+   "name": "PR: three specific mild criteria",
+   "flow": "pr",
+   "answers": {
+    "jet": "small",
+    "ratio": null,
+    "cw": "soft",
+    "pht": 250,
+    "decel": "slow"
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "PR: intermediate with a fraction",
+   "flow": "pr",
+   "answers": {
+    "jet": "broad",
+    "ratio": 50,
+    "cw": "dense",
+    "pht": 150,
+    "decel": "other",
+    "branches": "no",
+    "rv": "other",
+    "rf": 30
+   },
+   "expect": {
+    "result": "q-moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "PR: intermediate without a fraction",
+   "flow": "pr",
+   "answers": {
+    "jet": "broad",
+    "ratio": 50,
+    "cw": "dense",
+    "pht": 150,
+    "decel": "other",
+    "branches": "no",
+    "rv": "other",
+    "rf": null
+   },
+   "expect": {
+    "result": "probable-moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "PR: nothing obtained",
+   "flow": "pr",
+   "answers": {
+    "jet": null,
+    "ratio": null,
+    "cw": null,
+    "pht": null,
+    "decel": null,
+    "branches": null,
+    "rv": null,
+    "rf": null
+   },
+   "expect": {
+    "result": "indeterminate",
+    "grade": null
+   }
+  },
+  {
+   "name": "MS: severe by planimetry",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": 1.2,
+    "pht": 180,
+    "mg": 12,
+    "pasp": 55
+   },
+   "expect": {
+    "result": "severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "MS: planimetry wins over the half-time",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": 1.8,
+    "pht": 160,
+    "mg": 7,
+    "pasp": 40
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2,
+    "caution": "planimetry is the reference"
+   }
+  },
+  {
+   "name": "MS: half-time when planimetry fails",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": null,
+    "pht": 120,
+    "mg": 7,
+    "pasp": 40
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "MS: second-line area",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": null,
+    "pht": null,
+    "mg": 7,
+    "pasp": 40,
+    "alt": 1.4
+   },
+   "expect": {
+    "result": "severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "MS: supportive signs only",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": null,
+    "pht": null,
+    "mg": 8,
+    "pasp": 40,
+    "alt": null
+   },
+   "expect": {
+    "result": "supportive-only",
+    "grade": null
+   }
+  },
+  {
+   "name": "MS: calcific, graded by the gradient",
+   "flow": "ms",
+   "answers": {
+    "etiology": "calcific",
+    "mg": 11,
+    "pasp": 40
+   },
+   "expect": {
+    "result": "calcific-3",
+    "grade": 3
+   }
+  },
+  {
+   "name": "PS: severe",
+   "flow": "ps",
+   "answers": {
+    "level": "valvular",
+    "vmax": 4.5,
+    "rvsp": null
+   },
+   "expect": {
+    "result": "severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "PS: moderate with an RV pressure",
+   "flow": "ps",
+   "answers": {
+    "level": "valvular",
+    "vmax": 3.5,
+    "rvsp": 70
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "PS: four meters per second is moderate",
+   "flow": "ps",
+   "answers": {
+    "level": "serial",
+    "vmax": 4,
+    "rvsp": null
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2,
+    "caution": "in series"
+   }
+  },
+  {
+   "name": "Aortic prosthesis: significant stenosis",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 4.2,
+    "contour": "round",
+    "at": 120,
+    "atet": 0.4,
+    "mg": 40,
+    "dvi": 0.2,
+    "eoa": "2sd"
+   },
+   "expect": {
+    "result": "significant",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Aortic prosthesis: high gradient from severe mismatch",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 3.5,
+    "contour": "early",
+    "at": 70,
+    "atet": 0.28,
+    "mg": 25,
+    "dvi": 0.4,
+    "eoa": "ok",
+    "bmi": "lt30",
+    "ieoa": 0.6
+   },
+   "expect": {
+    "result": "ppm-severe",
+    "grade": 3
+   }
+  },
+  {
+   "name": "Aortic prosthesis: mismatch thresholds are lower in obesity",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 3.5,
+    "contour": "early",
+    "at": 70,
+    "atet": 0.28,
+    "mg": 25,
+    "dvi": 0.4,
+    "eoa": "ok",
+    "bmi": "ge30",
+    "ieoa": 0.6
+   },
+   "expect": {
+    "result": "ppm-moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "Aortic prosthesis: stenosis hidden by low flow",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 2.5,
+    "contour": "mid",
+    "at": 90,
+    "atet": 0.33,
+    "mg": 15,
+    "dvi": 0.22,
+    "eoa": null
+   },
+   "expect": {
+    "result": "lowflow",
+    "grade": 2
+   }
+  },
+  {
+   "name": "Aortic prosthesis: transcatheter, possible stenosis",
+   "flow": "pav",
+   "answers": {
+    "kind": "tavr",
+    "vmax": 3.2,
+    "contour": "mid",
+    "at": 90,
+    "atet": 0.34,
+    "mgchange": "mid",
+    "dvichange": "mid",
+    "eoachange": "ok"
+   },
+   "expect": {
+    "result": "possible",
+    "grade": 2
+   }
+  },
+  {
+   "name": "Aortic prosthesis: normal",
+   "flow": "pav",
+   "answers": {
+    "kind": "surgical",
+    "vmax": 2.4,
+    "contour": "early",
+    "at": 60,
+    "atet": 0.25,
+    "mg": 12,
+    "dvi": 0.45,
+    "eoa": "ok"
+   },
+   "expect": {
+    "result": "normal",
+    "grade": 1
+   }
+  }
+ ]
+}

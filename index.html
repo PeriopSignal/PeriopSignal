@@ -1042,6 +1042,17 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
 .ob-manual { display: grid; gap: 6px; margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
 .rg-li { display: block; }
 .rg-li + .rg-li { margin-top: 7px; }
+
+/* valve workflows */
+.r-flowhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+.r-tally { font-size: 11.5px; color: var(--fg-3); text-align: right; }
+.r-view { margin: 0; display: flex; gap: 6px; align-items: baseline; font-size: 13px; color: var(--fg-2); line-height: 1.45; }
+.r-view b { font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; color: var(--accent-2); flex: none; }
+.r-entry { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.r-entry .r-in { flex: 1; min-width: 0; font-size: 18px; text-align: left; height: 42px; }
+.r-entry .mu { font-size: 13px; color: var(--fg-3); flex: none; }
+.r-opt .dot, .r-pathrow .dot { flex: none; width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; }
+.r-pathrow .sg { color: var(--fg-3); }
 </style>
 
 <section class="intro">
@@ -2571,6 +2582,418 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       default: return readRegurg(lesion, input);
     }
   };
+
+  // ---------- Valve severity, one step at a time (ValveFlow.swift; content in reference.json "valveFlows") ----------
+  /* Each step asks for one measurement or sign; "Cannot obtain" moves on, and the flow ends as soon as the
+     guideline's criteria settle the grade. Answers are { stepId: number | optionId | null } (null: cannot obtain).
+     The order of the steps and the integration rules are in R.valveFlow.rules, mirrored from ValveFlow.swift;
+     tools/valve_flow_cases.json runs the same cases on both. */
+  R.valveFlow = {
+    supportedFormat: 1,
+    rules: {},
+    usable(data) { return data && data.format === R.valveFlow.supportedFormat ? (data.flows || []).filter((f) => R.valveFlow.rules[f.id]) : []; },
+    step(flow, id) { return (flow.steps || []).find((s) => s.id === id) || null; },
+    /** " cm²" after a value; "%" goes on without a space; nothing for a ratio. */
+    unitSuffix(u) { return !u ? '' : (u === '%' ? u : ' ' + u); },
+    contains(b, v) {
+      if (b.lt != null && !(v < b.lt)) return false;
+      if (b.le != null && !(v <= b.le)) return false;
+      if (b.gt != null && !(v > b.gt)) return false;
+      if (b.ge != null && !(v >= b.ge)) return false;
+      return true;
+    },
+    rangeText(b) {
+      if (b.range) return b.range;
+      const lo = b.gt != null ? '> ' + R.fmt(b.gt) : (b.ge != null ? '≥ ' + R.fmt(b.ge) : null);
+      const hi = b.lt != null ? '< ' + R.fmt(b.lt) : (b.le != null ? '≤ ' + R.fmt(b.le) : null);
+      return [lo, hi].filter(Boolean).join(' and ');
+    },
+    /** The bands as one line: "< 0.3 specific for mild · ≥ 0.7 specific for severe". */
+    bandText(s) {
+      if (!s.bands || !s.bands.length) return null;
+      return s.bands.map((b) => [R.valveFlow.rangeText(b), b.label].filter(Boolean).join(' ')).join(' · ');
+    },
+    walk(flow, answers, opts) {
+      const w = { flow, answers: answers || {}, tee: !!(opts && opts.tee), path: [], cautions: [], tally: null };
+      /** The answer to a step, recorded on the path: { pending } | { cannot } | { n, tag } | { c, tag }. A step the
+          content lacks reads as not obtainable, and an answer of the wrong kind (a stale option) as not answered. */
+      const taken = {};
+      /* A rule may consult a step twice (TR's vena contracta) without listing it twice. */
+      w.take = (id) => {
+        if (taken[id]) return taken[id];
+        const g = w.record(id);
+        if (!g.pending) taken[id] = g;
+        return g;
+      };
+      w.record = (id) => {
+        const s = R.valveFlow.step(flow, id);
+        if (!s) return { cannot: true };
+        if (!Object.prototype.hasOwnProperty.call(w.answers, id) || w.answers[id] === undefined) return { pending: true };
+        const a = w.answers[id];
+        if (a === null) { w.path.push({ step: s, answer: null, tag: null, text: 'Cannot obtain' }); return { cannot: true }; }
+        if (typeof a === 'number') {
+          if (s.kind !== 'number' || !Number.isFinite(a)) return { pending: true };
+          const band = (s.bands || []).find((b) => R.valveFlow.contains(b, a)) || null;
+          const reading = band ? (band.label || null) : (s.between || null);
+          const tag = band ? band.tag : null;
+          w.path.push({ step: s, answer: a, tag, text: R.fmt(a) + R.valveFlow.unitSuffix(s.unit) + (reading ? ' · ' + reading : '') });
+          return { n: a, tag };
+        }
+        const o = s.kind === 'number' ? null : (s.options || []).find((x) => x.id === a);
+        if (!o) return { pending: true };
+        w.path.push({ step: s, answer: a, tag: o.tag || null, text: o.label });
+        return { c: a, tag: o.tag || null };
+      };
+      w.caution = (t) => { if (!w.cautions.includes(t)) w.cautions.push(t); };
+      return w;
+    },
+    /** { path, current, outcome, tally, cautions } for a flow and its answers. */
+    progress(flow, answers, opts) {
+      const rule = R.valveFlow.rules[flow.id];
+      if (!rule) return { path: [], current: null, outcome: null, tally: null, cautions: [] };
+      const w = R.valveFlow.walk(flow, answers, opts);
+      const end = rule(w);
+      if (end.ask) return { path: w.path, current: R.valveFlow.step(flow, end.ask), outcome: null, tally: w.tally, cautions: w.cautions };
+      const def = (flow.results || {})[end.done] || { headline: 'No reading', text: 'This version of the content has no text for the result ' + end.done + '.' };
+      let text = def.text;
+      for (const [k, v] of Object.entries(end.vars || {})) text = text.split('{' + k + '}').join(String(v));
+      return { path: w.path, current: null, outcome: { id: end.done, grade: def.grade || null, headline: def.headline, text, next: def.next || [], cautions: w.cautions }, tally: null, cautions: w.cautions };
+    },
+  };
+
+  (function () {
+    const F = R.valveFlow;
+    const num = (g) => (typeof g.n === 'number' ? g.n : null);
+    const ch = (g) => g.c || null;
+    const tg = (g) => g.tag || null;
+    const fmt = (v) => R.fmt(v);
+    const ask = (id) => ({ ask: id });
+    const done = (id, vars) => ({ done: id, vars: vars || {} });
+    const level = (t) => (t === 'mild' ? 1 : t === 'moderate' ? 2 : t === 'severe' ? 3 : null);
+    const roman = (n) => ['I', 'II', 'III', 'IV'][Math.max(0, Math.min(3, n - 1))];
+    const tallyText = (mild, severe) => `Specific for mild: ${mild} · for severe: ${severe}`;
+
+    // Aortic stenosis (EACVI/ASE 2017 focused update, pp. 383–388)
+    function asCalcium(w, track) {
+      const c = w.take('calcium');
+      if (c.pending) return ask('calcium');
+      if (ch(c) === 'likely') return done('calcium-severe', { track });
+      if (ch(c) === 'unlikely') return done('calcium-unlikely', { track });
+      return done('indeterminate', { track });
+    }
+    F.rules.as = function (w) {
+      if (w.tee) w.caution('Under general anesthesia velocity and gradients often read lower than on the awake TTE; the valve area and the velocity ratio agree with it better, and an awake TTE grade is preferred when there is one (2020 TEE guideline, pp. 695, 704).');
+      const v = w.take('vmax');
+      if (v.pending) return ask('vmax');
+      const g = w.take('mg');
+      if (g.pending) return ask('mg');
+      const vHigh = (num(v) || 0) >= 4, gHigh = (num(g) || 0) >= 40;
+      if (num(v) !== null && num(v) > 5.5) w.caution('A peak velocity above 5.5 m/s carries a worse prognosis (p. 389).');
+      if (vHigh || gHigh) {
+        w.tally = 'High-gradient track';
+        if (num(v) !== null && num(g) !== null && vHigh !== gHigh) w.caution('Velocity and mean gradient fall on different sides of the severe cutoff: the stepwise text calls high-gradient AS when both reach it, the basic criteria when either does (pp. 383, 387). Recheck the CW envelope and the beam alignment.');
+        const s = w.take('svi');
+        if (s.pending) return ask('svi');
+        const sv = num(s);
+        if (sv === null) return done('severe-high', { flow: 'Flow was not checked: high flow (SVi above 58 mL/m²) can push a non-severe valve into this range.' });
+        if (tg(s) === 'high') {
+          const c = w.take('highflow');
+          if (c.pending) return ask('highflow');
+          if (ch(c) === 'reversible') return done('high-reversible');
+          if (ch(c) === 'fixed') return done('severe-fixed-flow');
+          w.caution('Stroke volume index above 58 mL/m² without a cause: an overestimated LVOT diameter inflates both the flow and the area (p. 387).');
+          return done('severe-high', { flow: `The high stroke volume index (${fmt(sv)} mL/m²) is unexplained; see the caution.` });
+        }
+        return done('severe-high', { flow: `Stroke volume index ${fmt(sv)} mL/m²: no high-flow state.` });
+      }
+      if (v.cannot && g.cannot) {
+        const p = w.take('planimetry');
+        if (p.pending) return ask('planimetry');
+        const a = num(p);
+        if (a === null) return done('nodata');
+        return done(a < 1 ? 'area-severe' : (a <= 1.5 ? 'area-moderate' : 'area-mild'), { area: fmt(a) });
+      }
+      w.tally = 'Low-gradient track';
+      let small = null, areaTag = null, areaValue = null;
+      const a = w.take('ava');
+      if (a.pending) return ask('ava');
+      if (num(a) !== null) { small = num(a) < 1; areaTag = tg(a); areaValue = num(a); }
+      else {
+        const r = w.take('vratio');
+        if (r.pending) return ask('vratio');
+        if (num(r) !== null) { small = num(r) < 0.25; areaTag = tg(r); }
+        else {
+          const p = w.take('planimetry');
+          if (p.pending) return ask('planimetry');
+          if (num(p) !== null) { small = num(p) < 1; areaTag = tg(p); areaValue = num(p); }
+        }
+      }
+      if (small === null) return done('noarea');
+      if (!small) {
+        if ([tg(v), tg(g), areaTag].includes('moderate')) {
+          if (areaTag === 'moderate' && num(a) !== null) w.caution('An area of 1.0 cm² or more with a low gradient indicates moderate AS; in a large LVOT, exclude an overestimated flow and area (p. 387).');
+          return done('moderate');
+        }
+        if (tg(v) === 'mild') return done('mild');
+        if (tg(v) === 'normal') return done('sclerosis');
+        w.caution('Without the peak velocity, mild AS cannot be told from aortic sclerosis (Table 3).');
+        return done('mild');
+      }
+      const e = w.take('errors');
+      if (e.pending) return ask('errors');
+      if (e.cannot) w.caution('Measurement errors were not excluded: an LVOT diameter cut short by calcium, or a PW sample in the wrong place, makes a falsely small area (pp. 381, 387).');
+      const s = w.take('svi');
+      if (s.pending) return ask('svi');
+      const sv = num(s);
+      if (sv === null) return done('flow-unknown');
+      if (sv >= 35) return done('normal-flow', { flow: `a stroke volume index of ${fmt(sv)} mL/m²` });
+      w.tally = 'Low flow, low gradient';
+      const ef = w.take('lvef');
+      if (ef.pending) return ask('lvef');
+      if (num(ef) === null) return done('ef-unknown');
+      if (num(ef) < 50) {
+        const d = w.take('dse');
+        if (d.pending) return ask('dse');
+        if (ch(d) === 'severe') return done('dse-severe');
+        if (ch(d) === 'pseudo') return done('dse-pseudo');
+        if (ch(d) === 'noreserve') {
+          w.caution('Without flow reserve, valve calcification (best by CT) may be the primary clue; the update prints its calcium cutoffs for preserved EF (pp. 385, 388).');
+          return asCalcium(w, 'Low-flow, low-gradient AS with reduced EF and no flow reserve');
+        }
+        return done('dse-next');
+      }
+      const c = w.take('confirm');
+      if (c.pending) return ask('confirm');
+      if (ch(c) === 'normal') return done('normal-flow', { flow: 'normal flow by another method' });
+      if (c.cannot) w.caution('Low flow not confirmed by another method: LVOT flow tends to underestimate the real flow in these ventricles (p. 388).');
+      const present = [];
+      if (num(g) !== null && num(g) >= 30) present.push('mean gradient 30–40 mmHg');
+      if (areaValue !== null && areaValue <= 0.8) present.push('area 0.8 cm² or less');
+      if (present.length) w.caution('Table 5 criteria in these answers: ' + present.join(' and ') + '; the gradient counts when measured while normotensive (p. 385).');
+      return asCalcium(w, 'Paradoxical low-flow, low-gradient AS');
+    };
+
+    // Regurgitation (ASE 2017: Figure 18 for MR, Figure 25 for AR)
+    const gTag = (id, g) => { const t = tg(g); if (!t || t[0] !== 'g') return null; const n = parseInt(t.slice(1), 10); return Number.isFinite(n) ? n : null; };
+    F.regurgitation = function (w, plan) {
+      const need = plan.need || 4, scale = plan.scale || 4, quantGrade = plan.quantGrade || gTag;
+      let mild = 0, severe = 0, obtained = 0;
+      for (const id of plan.criteria) {
+        const g = w.take(id);
+        if (g.pending) { w.tally = tallyText(mild, severe); return ask(id); }
+        if (!g.cannot) obtained++;
+        const k = plan.specific(id, g);
+        if (k === 1) mild++; else if (k === 3) severe++;
+        if (severe >= need && mild === 0) return done('severe-specific', { severe: String(severe) });
+        if (mild >= need && severe === 0) return done('mild-specific', { mild: String(mild) });
+      }
+      if (mild >= need || severe >= need) w.caution('Specific criteria from both lists: the figure settles the grade only when one list dominates, so the measurements decide.');
+      const vars = { mild: String(mild), severe: String(severe) };
+      const grades = [], parts = [];
+      for (const id of plan.quant) {
+        const g = w.take(id);
+        if (g.pending) { w.tally = tallyText(mild, severe); return ask(id); }
+        const n = num(g) === null ? null : quantGrade(id, g);
+        if (n === null) continue;
+        grades.push({ id, grade: n });
+        const s = F.step(w.flow, id);
+        const word = scale === 4 ? 'grade ' + roman(n) : ['mild', 'moderate', 'severe'][Math.max(0, Math.min(2, n - 1))];
+        parts.push(`${(s && (s.short || s.title)) || id} ${fmt(num(g))}${F.unitSuffix(s && s.unit)}, ${word}`);
+      }
+      if (!grades.length) {
+        vars.lean = severe > mild ? 'The signs so far lean toward severe.' : (mild > severe ? 'The signs so far lean toward mild.' : '');
+        return done(obtained === 0 ? 'indeterminate' : (plan.noQuant || 'indeterminate'), vars);
+      }
+      vars.quant = parts.join('; ');
+      const sorted = grades.map((x) => x.grade).sort((x, y) => x - y);
+      let q = sorted[Math.floor(sorted.length / 2)];
+      if (plan.prefer) { const hit = grades.find((x) => x.id === plan.prefer); if (hit) q = hit.grade; }
+      if (sorted[sorted.length - 1] - sorted[0] >= 2) w.caution('The quantitative measures differ by two grades or more: low or high flow can split them; recheck the measurements or quantitate another way (Table 8).');
+      if ((q === scale && mild >= 2) || (q === 1 && severe >= 2)) return done('discordant', vars);
+      if (scale === 3) return done(['q-mild', 'q-moderate', 'q-severe'][Math.max(0, Math.min(2, q - 1))], vars);
+      if (q === 1) return done('grade1', vars);
+      if (q === 2) return done('grade2', vars);
+      if (q === 3) return plan.gradeThree ? plan.gradeThree(w, severe, vars) : done('grade3', vars);
+      return done('grade4', vars);
+    };
+    F.rules.tr = function (w) {
+      if (w.tee) w.caution('TEE is in general more limited than TTE for the tricuspid valve, from off-angle planes and the distance from the probe (ASE 2017, p. 345); loading conditions and inotropes change the TR (2020 TEE guideline, pp. 700, 705).');
+      if (w.answers.jet === 'eccentric') w.caution('Eccentric, wall-impinging jet: its area underestimates the TR (p. 350).');
+      return F.regurgitation(w, {
+        criteria: ['valve', 'jet', 'cw', 'vc', 'pisa', 'hv', 'inflow', 'size'],
+        need: 4,
+        quant: ['vc', 'eroa', 'rvol'],
+        scale: 3,
+        specific: (id, g) => (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        quantGrade: (id, g) => (id === 'vc' ? (num(g) === null ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : 2))) : gTag(id, g)),
+      });
+    };
+    F.rules.pr = function (w) {
+      if (w.tee) w.caution('The pulmonic valve is anterior and hard to image by TEE, and TEE is not a preferred modality when PR needs more than the TTE (ASE 2017, pp. 353, 359); loading conditions change the signs (2020 TEE guideline, p. 706).');
+      return F.regurgitation(w, {
+        criteria: ['jet', 'ratio', 'cw', 'pht', 'decel', 'branches', 'rv'],
+        need: 3,
+        quant: ['rf'],
+        scale: 3,
+        specific: (id, g) => (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        noQuant: 'probable-moderate',
+      });
+    };
+    F.rules.mr = function (w) {
+      if (w.tee) w.caution('Grading is best done on the awake TTE: under anesthesia lower loading conditions make MR, secondary MR especially, look less severe (2020 TEE guideline, pp. 695, 698; ASE 2017, p. 323). Prefer the preoperative grade, record blood pressure, heart rate and rhythm, and try fluids, inotropes or an afterload challenge before deciding on the intraoperative findings (ASE 2017, p. 324; 2020, p. 698).');
+      const t = w.take('type');
+      if (t.pending) return ask('type');
+      const acute = ch(t) === 'acute', secondary = ch(t) === 'secondary';
+      if (acute) w.caution('Acute MR: Figure 18 and Table 8 are for chronic MR. Acute severe MR can have a small, brief, eccentric low-velocity jet with normal chamber sizes; pulmonary vein systolic reversal is usually present; keep a low threshold for TEE (pp. 323, 334).');
+      if (secondary) w.caution('Secondary MR: 2D PISA underestimates an elliptical orifice, an EROA of 0.30 cm² or more may still be severe, and the volumes run lower when the stroke volume is low (p. 334).');
+      if (w.answers.jet === 'eccentric') w.caution('Eccentric, wall-impinging jet: its color area underestimates the MR; quantitation is advised (Figure 18).');
+      const partial = w.answers.cw === 'partial';
+      if (partial) w.caution('MR that is not holosystolic: single-frame EROA and vena contracta overestimate it; the regurgitant volume is the better measure (Figure 18; p. 323).');
+      return F.regurgitation(w, {
+        criteria: ['flail', 'jet', 'cw', 'vc', 'pisa', 'pv', 'inflow', 'size'],
+        quant: ['eroa', 'rvol', 'rf'],
+        specific: (id, g) => (acute && id === 'size') ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        prefer: partial ? 'rvol' : null,
+        gradeThree: (w2, severe, vars) => {
+          const v = Object.assign({}, vars);
+          if (severe >= 3) { v.why = `${severe} specific criteria for severe MR`; return done('grade3-severe', v); }
+          const e = w2.take('ellipse');
+          if (e.pending) return ask('ellipse');
+          if (ch(e) === 'yes') { v.why = 'an elliptical regurgitant orifice'; return done('grade3-severe', v); }
+          return done('grade3', v);
+        },
+      });
+    };
+    F.rules.ar = function (w) {
+      if (w.tee) w.caution('Loading conditions and LV and aortic compliance change the AR signs under anesthesia (2020 TEE guideline, p. 703); grade on the awake TTE when there is one (2020, p. 695), and record blood pressure and heart rate with the numbers (ASE 2017, p. 318).');
+      const t = w.take('type');
+      if (t.pending) return ask('type');
+      const acute = ch(t) === 'acute';
+      if (acute) w.caution('Acute AR: the jet may be brief and of low velocity, the LV is not yet dilated, the mitral valve may close early and the aortic reversal may not be holodiastolic; keep a low threshold for TEE (pp. 336, 345).');
+      return F.regurgitation(w, {
+        criteria: ['flail', 'vc', 'jet', 'pisa', 'cw', 'pht', 'aorta', 'lv'],
+        quant: ['rvol', 'rf', 'eroa'],
+        specific: (id, g) => (acute && id === 'lv') ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        prefer: null,
+        gradeThree: (w2, severe, vars) => done(severe >= 3 ? 'grade3-severe' : 'grade3', vars),
+      });
+    };
+
+    // Mitral stenosis (ASE 2023 rheumatic heart disease, Table 1; EAE/ASE 2009)
+    F.rules.ms = function (w) {
+      if (w.tee) w.caution('Flow and heart rate change under general anesthesia, and the gradient and half-time with them (2020 TEE guideline, p. 696); planimetry does not depend on flow (2009, p. 12). Record the heart rate and rhythm with the numbers.');
+      const e = w.take('etiology');
+      if (e.pending) return ask('etiology');
+      if (ch(e) === 'calcific') {
+        const g = w.take('mg');
+        if (g.pending) return ask('mg');
+        const p = w.take('pasp');
+        if (p.pending) return ask('pasp');
+        if (num(g) === null || level(tg(g)) === null) return done('calcific-nograd');
+        return done('calcific-' + level(tg(g)), { mg: fmt(num(g)) });
+      }
+      const p = w.take('planimetry');
+      if (p.pending) return ask('planimetry');
+      const h = w.take('pht');
+      if (h.pending) return ask('pht');
+      const g = w.take('mg');
+      if (g.pending) return ask('mg');
+      const pa = w.take('pasp');
+      if (pa.pending) return ask('pasp');
+      let area = null, basis = '';
+      if (num(p) !== null && level(tg(p)) !== null) {
+        area = level(tg(p));
+        basis = `planimetered area (${fmt(num(p))} cm²)`;
+        if (num(h) !== null && level(tg(h)) !== null && level(tg(h)) !== area) w.caution(`Planimetry and the half-time disagree (half-time area about ${fmt(220 / num(h))} cm²): planimetry is the reference, except with poor acoustic windows (2009, p. 15).`);
+      } else if (num(h) !== null && level(tg(h)) !== null) {
+        area = level(tg(h));
+        basis = `pressure half-time (${fmt(num(h))} ms, area about ${fmt(220 / num(h))} cm²)`;
+      } else {
+        const a = w.take('alt');
+        if (a.pending) return ask('alt');
+        if (num(a) !== null && level(tg(a)) !== null) {
+          area = level(tg(a));
+          basis = `continuity or PISA area (${fmt(num(a))} cm²)`;
+          w.caution('Graded on a second-line area: the continuity equation and PISA are for inconclusive data and carry more error (2023, p. 9).');
+        }
+      }
+      if (area === null) {
+        const supp = [];
+        if (num(g) !== null) supp.push(`Mean gradient ${fmt(num(g))} mmHg.`);
+        if (num(pa) !== null) supp.push(`PA systolic pressure ${fmt(num(pa))} mmHg.`);
+        return supp.length ? done('supportive-only', { supp: supp.join(' ') }) : done('nodata');
+      }
+      if ([tg(g), tg(pa)].map(level).includes(3) && area < 3) w.caution('Gradient or PA pressure in the severe range with a non-severe area: high flow, tachycardia, significant MR or another cause of pulmonary hypertension (2023, p. 8).');
+      if (area === 3 && level(tg(g)) === 1) w.caution('Severe by area with a low gradient: low flow, where planimetry is essential (2020 TEE guideline, p. 696).');
+      return done(['mild', 'moderate', 'severe'][area - 1], { basis });
+    };
+
+    // Pulmonic stenosis (EAE/ASE 2009, Table 11)
+    F.rules.ps = function (w) {
+      if (w.tee) w.caution('Loading conditions and Doppler misalignment change the gradient (2020 TEE guideline, p. 706).');
+      const l = w.take('level');
+      if (l.pending) return ask('level');
+      if (ch(l) === 'sub') w.caution('Infundibular obstruction is often dynamic, with a late-peaking, dagger-shaped jet; the grading table is for valvular stenosis (2009, p. 20).');
+      else if (ch(l) === 'supra') w.caution('Supra- or subvalvular obstruction: the valve cutoffs assume there is none (2023, p. 20).');
+      else if (ch(l) === 'serial') w.caution('Stenoses in series: their contributions cannot be separated, and pressure recovery can make the Doppler gradient higher than the net pressure drop (2009, p. 20).');
+      const v = w.take('vmax');
+      if (v.pending) return ask('vmax');
+      if (num(v) === null || !tg(v)) return done('nodata');
+      const gradient = 4 * num(v) * num(v);
+      const r = w.take('rvsp');
+      if (r.pending) return ask('rvsp');
+      let pa = '';
+      if (num(r) !== null) {
+        const est = num(r) - gradient;
+        pa = est > 0
+          ? ` RV systolic pressure ${fmt(num(r))} mmHg minus the valve gradient leaves a PA systolic pressure of about ${fmt(est)} mmHg (2009, p. 20).`
+          : ' The valve gradient is higher than the RV systolic pressure entered: recheck both (2009, p. 20).';
+      }
+      return done(tg(v), { gradient: fmt(gradient), pa });
+    };
+
+    // Aortic prosthesis with a high velocity or gradient (ASE 2024, Tables 5 and 7)
+    F.rules.pav = function (w) {
+      if (w.tee) w.caution('On TEE the anterior root can be shadowed, and transgastric Doppler angulation may not be optimal: the gradient can read low (ASE 2024, p. 17).');
+      const k = w.take('kind');
+      if (k.pending) return ask('kind');
+      const tavr = ch(k) === 'tavr';
+      const depIds = tavr ? ['vmax', 'mgchange'] : ['vmax', 'mg'];
+      const indepIds = tavr ? ['dvichange', 'eoachange'] : ['dvi', 'eoa'];
+      const order = ['vmax', 'contour', 'at', 'atet'].concat(tavr ? ['mgchange', 'dvichange', 'eoachange'] : ['mg', 'dvi', 'eoa']);
+      const got = {};
+      for (const id of order) {
+        const g = w.take(id);
+        if (g.pending) return ask(id);
+        got[id] = g;
+      }
+      const names = (ids, t) => ids.filter((id) => got[id] && tg(got[id]) === t).map((id) => { const s = F.step(w.flow, id); return (s && (s.short || s.title)) || id; });
+      const depSig = names(depIds, 'severe'), depMid = names(depIds, 'moderate');
+      const indepSig = names(indepIds, 'severe'), indepMid = names(indepIds, 'moderate');
+      const depKnown = depIds.some((id) => got[id] && tg(got[id])), indepKnown = indepIds.some((id) => got[id] && tg(got[id]));
+      const tags = order.map((id) => got[id] && tg(got[id])).filter(Boolean);
+      const counts = `${tags.filter((t) => t === 'normal').length} normal, ${tags.filter((t) => t === 'moderate').length} possible, ${tags.filter((t) => t === 'severe').length} significant`;
+      if (!depKnown && !indepKnown) return done('nodata');
+      if (depSig.length && indepSig.length) return done('significant', { dep: depSig.join(', '), indep: indepSig.join(', ') });
+      if (indepSig.length && !depSig.length && !depMid.length) return done('lowflow', { indep: indepSig.join(', ') });
+      const depHigh = depSig.concat(depMid);
+      if (depHigh.length && indepKnown && !indepSig.length && !indepMid.length) {
+        if (['contour', 'at', 'atet'].some((id) => got[id] && tg(got[id]) === 'severe')) w.caution('A rounded jet or a long acceleration time points to obstruction despite the normal EOA and DVI: recheck the LVOT sample and diameter (Table 5; Figure 13).');
+        const b = w.take('bmi');
+        if (b.pending) return ask('bmi');
+        const i = w.take('ieoa');
+        if (i.pending) return ask('ieoa');
+        if (num(i) === null || !ch(b)) return done('highflow', { dep: depHigh.join(', ') });
+        const obese = ch(b) === 'ge30', x = num(i);
+        if (x <= (obese ? 0.55 : 0.65)) return done('ppm-severe', { ieoa: fmt(x) });
+        if (x <= (obese ? 0.70 : 0.85)) return done('ppm-moderate', { ieoa: fmt(x) });
+        return done('ppm-none', { ieoa: fmt(x) });
+      }
+      if (depSig.length && !indepKnown) w.caution('No flow-independent measure (EOA or DVI): Table 5 needs one to call the stenosis significant.');
+      if (tags.includes('severe') || tags.includes('moderate')) return done('possible', { counts });
+      return done('normal', { counts });
+    };
+  })();
 
   // ---------- Valve intervention, 2020 ACC/AHA (ValveIntervention.swift) ----------
   R.viLesions = [
@@ -5258,15 +5681,66 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   }
 
   // ---------- ASE valve severity ----------
+  /* Two modes: Step by step (the guideline sequences in reference.json "valveFlows", rules in R.valveFlow) and All
+     parameters (every measurement at once, R.valveRead). */
   function mountValves(host) {
-    const st = { lesion: 'as', texts: {}, signs: new Set() };
-    view(host, () => {
+    const st = { mode: 'steps', lesion: 'as', texts: {}, signs: new Set(), flow: null, answers: {}, tee: false, entry: '' };
+    try {
+      const m = localStorage.getItem('ps.valveMode');
+      if (m === 'all' || m === 'steps') st.mode = m;
+      st.tee = localStorage.getItem('ps.valveTee') === '1';
+    } catch (e) { /* storage unavailable: defaults */ }
+    const save = () => { try { localStorage.setItem('ps.valveMode', st.mode); localStorage.setItem('ps.valveTee', st.tee ? '1' : '0'); } catch (e) { /* ignore */ } };
+    const tagColor = (t) => t === 'severe' ? 'var(--accent)' : (t === 'moderate' || t === 'intermediate') ? 'var(--accent-2)' : (t === 'mild' || t === 'normal') ? 'var(--new)' : 'var(--fg-3)';
+    const tagWord = (t) => t === 'severe' ? 'Severe' : t === 'moderate' ? 'Moderate' : t === 'mild' ? 'Mild' : '';
+
+    function flowHTML() {
+      const data = bundle && bundle.valveFlows;
+      const flows = R.valveFlow.usable(data);
+      if (!flows.length) return loading('the workflows');
+      const flow = flows.find((f) => f.id === st.flow) || flows[0];
+      const p = R.valveFlow.progress(flow, st.answers, { tee: st.tee });
+      const groups = [];
+      for (const f of flows) {
+        let g = groups.find((x) => x.id === f.group);
+        if (!g) groups.push(g = { id: f.group, name: ((data.groups || []).find((x) => x.id === f.group) || {}).name || f.group, flows: [] });
+        g.flows.push(f);
+      }
+      let h = `<section class="r-sec">${groups.map((g) => `${eyebrow(g.name)}<div class="r-tabs" role="tablist" aria-label="${esc(g.name)}">${g.flows.map((f) => `<button type="button" role="tab" data-a="flow" data-v="${esc(f.id)}" aria-selected="${f.id === flow.id}" aria-label="${esc(f.name)}">${esc(f.short)}</button>`).join('')}</div>`).join('')}${seg('tee', [['0', 'TTE'], ['1', 'Intraoperative TEE']], st.tee ? '1' : '0', 'Study')}</section>`;
+      if (p.outcome) {
+        const o = p.outcome, tone = o.grade ? GRADE_COLOR[o.grade] : 'var(--accent-2)';
+        h += resultCard(tone, `${eyebrow(flow.name, tone)}<p class="r-headline big">${esc(R.titleCase(o.headline))}</p><p class="r-detail">${esc(o.text)}</p>${o.next.map((n) => `<p class="r-next">${I.chevR}<span>${esc(n)}</span></p>`).join('')}${o.cautions.map(caution).join('')}<div class="r-btns"><button type="button" class="r-ghost sm" data-a="restart">${I.reset}Start over</button></div>`);
+      }
+      if (p.current) {
+        const s = p.current, view = st.tee ? s.tee : s.tte, bands = R.valveFlow.bandText(s);
+        let inner = `<div class="r-flowhead">${eyebrow(flow.short + ' · step ' + (p.path.length + 1), 'var(--accent-2)')}${p.tally ? `<span class="r-tally">${esc(p.tally)}</span>` : ''}</div><p class="r-headline big">${esc(s.title)}</p>`;
+        if (s.ask) inner += `<p class="r-detail">${esc(s.ask)}</p>`;
+        if (view) inner += `<p class="r-view"><b>${st.tee ? 'TEE' : 'TTE'}</b><span>${esc(view)}</span></p>`;
+        if (bands) inner += `<p class="r-foot">${esc(bands)}</p>`;
+        if (s.kind === 'number') {
+          const ok = R.num(st.entry) !== null;
+          inner += `<div class="r-entry"><input class="r-in wide" id="vf-entry" data-a="entry" type="text" inputmode="decimal" autocomplete="off" placeholder="Value" value="${esc(st.entry)}" aria-label="${esc(s.title)}">${s.unit ? `<span class="mu">${esc(s.unit)}</span>` : ''}<button type="button" class="r-ghost" data-a="next"${ok ? '' : ' disabled'}>Next</button></div>`;
+        } else {
+          inner += `<div class="r-card flush">${(s.options || []).map((o) => `<button type="button" class="r-sign r-opt" data-a="opt" data-k="${esc(s.id)}" data-v="${esc(o.id)}"><span class="dot" style="background:${tagColor(o.tag)}" aria-hidden="true"></span><span class="st"><span>${esc(o.label)}</span>${o.detail ? `<small>${esc(o.detail)}</small>` : ''}</span>${tagWord(o.tag) ? `<span class="sg" style="color:${tagColor(o.tag)}">${tagWord(o.tag)}</span>` : ''}</button>`).join('')}</div>`;
+        }
+        inner += `<div class="r-btns"><button type="button" class="r-ghost sm" data-a="cannot" data-k="${esc(s.id)}">Cannot obtain</button></div>`;
+        h += `<section class="r-card">${inner}</section>`;
+      }
+      if (p.path.length) {
+        h += `<section class="r-sec"><div class="r-flowhead">${eyebrow('Your answers')}${p.outcome ? '' : `<button type="button" class="r-link" data-a="restart">${I.reset} Start over</button>`}</div><div class="r-card flush">${p.path.map((r) => `<button type="button" class="r-sign r-pathrow" data-a="edit" data-k="${esc(r.step.id)}" aria-label="Change: ${esc(r.step.title)}"><span class="dot" style="background:${r.answer === null ? 'var(--line-2)' : tagColor(r.tag)}" aria-hidden="true"></span><span class="st"><span>${esc(r.step.title)}</span><small>${esc(r.text)}</small></span><span class="sg">Change</span></button>`).join('')}</div></section>`;
+      }
+      const src = (data.sources || []).find((x) => x.id === flow.source);
+      h += `<footer class="r-footer">${flow.intro ? `<p class="r-detail">${esc(flow.intro)}</p>` : ''}${(flow.notes || []).map(footnote).join('')}${src ? sourceLine({ citation: (flow.ref ? flow.ref + '. ' : '') + src.citation, url: src.url }) : ''}<div class="r-btns">${ghostLink('#card-ase-valve-severity', I.table, 'Grading tables')}</div></footer>`;
+      return h;
+    }
+
+    function allHTML() {
       const lesion = R.valveLesions.find((l) => l.id === st.lesion), params = R.valveParams(st.lesion);
       const numbers = {}; for (const [k, v] of Object.entries(st.texts)) { const n = R.num(v); if (n !== null) numbers[k] = n; }
       const input = { numbers, signs: st.signs }, empty = !Object.keys(numbers).length && !st.signs.size;
       const r = R.valveRead(st.lesion, input);
       const tone = r.overall ? GRADE_COLOR[r.overall] : (empty ? 'var(--fg-3)' : 'var(--accent-2)');
-      let h = `<div class="r-stack"><div class="r-pickrow">${seg('lesion', R.valveLesions.map((l) => [l.id, l.short]), st.lesion, 'Lesion')}${empty ? '' : `<button type="button" class="r-iconbtn" data-a="clear" aria-label="Clear the measurements">${I.reset}</button>`}</div>`;
+      let h = `<div class="r-pickrow">${seg('lesion', R.valveLesions.map((l) => [l.id, l.short]), st.lesion, 'Lesion')}${empty ? '' : `<button type="button" class="r-iconbtn" data-a="clear" aria-label="Clear the measurements">${I.reset}</button>`}</div>`;
       h += resultCard(tone, `${eyebrow(lesion.name, tone)}<p class="r-headline big${empty ? ' muted' : ''}">${esc(R.titleCase(r.headline))}</p><p class="r-detail">${esc(r.explanation)}</p>
         ${r.lines.length ? `<div class="r-chips">${r.lines.map((l) => `<span>${l.grade ? `<i style="background:${GRADE_COLOR[l.grade]}"></i>` : ''}${esc(l.label)}: ${esc(l.text)}</span>`).join('')}</div>` : ''}
         ${r.cautions.map(caution).join('')}`);
@@ -5280,13 +5754,35 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         return `<button type="button" class="r-sign" role="checkbox" aria-checked="${on}" data-a="sign" data-k="${p.id}"><span class="box" aria-hidden="true">${on ? I.check : ''}</span><span class="st"><span>${esc(p.label)}</span>${p.hint ? `<small>${esc(p.hint)}</small>` : ''}</span>${p.grade !== 2 ? `<span class="sg" style="color:${GRADE_COLOR[p.grade]}">${R.gradeLabel(p.grade)}</span>` : ''}</button>`;
       }).join('')}</div></section>`;
       h += `<footer class="r-footer"><div class="r-btns">${ghostLink('#card-ase-valve-severity', I.table, 'Grading tables')}${ghostLink('https://www.asecho.org/guideline/native-valvular-regurgitation-by-echo', I.doc, 'ASE', true)}</div>${footnote('Source: ' + lesion.source + '. The reading integrates the signs the way the documents describe and sets aside what you leave blank; it is a second pair of eyes on the numbers, not a report. Loading conditions in the operating room usually under-read regurgitation.')}</footer>`;
-      return h + `</div>`;
-    }, {
+      return h;
+    }
+
+    const next = () => {
+      const data = bundle && bundle.valveFlows, flows = R.valveFlow.usable(data);
+      const flow = flows.find((f) => f.id === st.flow) || flows[0];
+      if (!flow) return false;
+      const p = R.valveFlow.progress(flow, st.answers, { tee: st.tee }), v = R.num(st.entry);
+      if (!p.current || v === null) return false;
+      st.answers[p.current.id] = v; st.entry = '';
+      return true;
+    };
+    const update = view(host, () => `<div class="r-stack">${seg('mode', [['steps', 'Step by step'], ['all', 'All parameters']], st.mode, 'Mode')}${st.mode === 'steps' ? flowHTML() : allHTML()}</div>`, {
+      mode(el) { st.mode = el.dataset.v; save(); },
+      tee(el) { st.tee = el.dataset.v === '1'; save(); },
+      flow(el) { st.flow = el.dataset.v; st.answers = {}; st.entry = ''; },
+      entry(el) { st.entry = el.value; },
+      next() { return next(); },
+      cannot(el) { st.answers[el.dataset.k] = null; st.entry = ''; },
+      opt(el) { st.answers[el.dataset.k] = el.dataset.v; },
+      edit(el) { const k = el.dataset.k, a = st.answers[k]; delete st.answers[k]; st.entry = typeof a === 'number' ? R.fmt(a) : ''; },
+      restart() { st.answers = {}; st.entry = ''; },
       lesion(el) { st.lesion = el.dataset.v; st.texts = {}; st.signs = new Set(); },
       clear() { st.texts = {}; st.signs = new Set(); },
       num(el) { st.texts[el.dataset.k] = el.value; },
       sign(el) { const k = el.dataset.k; if (st.signs.has(k)) st.signs.delete(k); else st.signs.add(k); },
     });
+    host.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target && e.target.id === 'vf-entry') { e.preventDefault(); if (next()) update(); } });
+    whenBundle(update);
   }
 
   // ---------- AHA/ACC valve intervention ----------

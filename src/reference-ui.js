@@ -773,7 +773,7 @@
       st.tee = localStorage.getItem('ps.valveTee') === '1';
     } catch (e) { /* storage unavailable: defaults */ }
     const save = () => { try { localStorage.setItem('ps.valveMode', st.mode); localStorage.setItem('ps.valveTee', st.tee ? '1' : '0'); } catch (e) { /* ignore */ } };
-    const tagColor = (t) => t === 'severe' ? 'var(--accent)' : (t === 'moderate' || t === 'intermediate') ? 'var(--accent-2)' : (t === 'mild' || t === 'normal') ? 'var(--new)' : 'var(--fg-3)';
+    const tagColor = (t) => (t === 'severe' || t === 'g4') ? 'var(--accent)' : (t === 'moderate' || t === 'intermediate' || t === 'g2' || t === 'g3') ? 'var(--accent-2)' : (t === 'mild' || t === 'normal' || t === 'g1') ? 'var(--new)' : 'var(--fg-3)';
     const tagWord = (t) => t === 'severe' ? 'Severe' : t === 'moderate' ? 'Moderate' : t === 'mild' ? 'Mild' : '';
 
     function flowHTML() {
