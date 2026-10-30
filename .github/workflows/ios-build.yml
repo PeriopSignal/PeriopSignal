@@ -140,6 +140,12 @@ jobs:
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            # Nothing drawn yet (an all-black frame is about 16 KB): record why, then try once more.
+            if [ "$(stat -f%z "build/shots/$name.png" 2>/dev/null || echo 0)" -lt 30000 ]; then
+              diag "$name"
+              sleep 12
+              xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            fi
           }
           shot 01-feed 14
           shot 02-deepdive 12 -ps.openPost "$LANDMARK"
