@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793392557,
+  "revision": 1793392903,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14639,7 +14639,7 @@
             "unit": "m/s",
             "ask": "CW Doppler from every window that may give the highest velocity, without angle correction; the peak is the outer edge of the dense signal. Average 3 or more beats in sinus rhythm and at least 5 when the rhythm is irregular (pp. 375–378).",
             "tte": "Apical five- or three-chamber, right parasternal and suprasternal; report the window that gave the highest velocity.",
-            "tee": "Deep transgastric five-chamber (0–20°, anteflexed) or transgastric long axis (120–140°); the transgastric two-chamber also aligns. Misalignment underestimates, and TTE from several windows may do better (2020 TEE guideline, p. 703; 2013, pp. 940, 945).",
+            "tee": "Deep transgastric five-chamber (0–20°, anteflexed) or transgastric long axis (120–140°) (2013, p. 940); the 2020 TEE guideline also lists the transgastric two-chamber (Table 4, p. 703). Velocities may still read lower than on TTE, which can interrogate from several windows (2013, pp. 945–946).",
             "bands": [
               {
                 "le": 2.5,
@@ -14809,7 +14809,7 @@
             "unit": "cm²",
             "ask": "Trace the smallest orifice at the cusp tips. Planimetry gives the anatomic area, which is larger than the effective area; the update advises TEE if it is used (Level 2, p. 383).",
             "tte": "Parasternal short axis at the cusp tips; calcium often shadows it.",
-            "tee": "ME aortic valve short axis (25–45°), at the cusp tips (2020 TEE guideline, p. 703; 2013, pp. 939, 946).",
+            "tee": "ME aortic valve short axis (25–45°), magnified, at the cusp tips (p. 383; 2020 TEE guideline, p. 703; 2013, pp. 939, 946); or 3D with the cropping plane parallel to the orifice (2013, p. 949).",
             "bands": [
               {
                 "gt": 1.5,
@@ -15476,7 +15476,7 @@
             "kind": "choice",
             "ask": "A flail leaflet almost always means severe MR (p. 320). Table 8 counts ruptured papillary muscle, severe retraction and a large perforation as severe lesions too.",
             "tte": "Parasternal long axis and apical views; 3D en face when available.",
-            "tee": "ME four-chamber (10–20°), mitral commissural (50–70°), two-chamber (80–100°) and long axis (120–140°); 3D en face from the left atrium (2020 TEE guideline, pp. 695–696; angles, 2013, pp. 932–937).",
+            "tee": "ME four-chamber (0–10°), mitral commissural (50–70°), two-chamber (80–100°) and long axis (120–140°); 3D en face from the left atrium (2020 TEE guideline, pp. 695–696; angles, 2013, pp. 933–937).",
             "options": [
               {
                 "id": "yes",
@@ -15601,7 +15601,7 @@
             "kind": "choice",
             "ask": "Small sample volume 1 cm into the vein. Systolic reversal in more than one vein is specific for severe MR; blunting is not specific, and AF, LV diastolic function and LA pressure all change the pattern (Table 7, p. 326).",
             "tte": "Apical four-chamber, right upper pulmonary vein.",
-            "tee": "ME right pulmonary vein (about 0°) and ME left and right pulmonary veins (90–110°); sample more than one vein (2013 TEE guideline, p. 939; ASE 2017, p. 330). Systolic reversal in more than one vein is specific, though insensitive, for severe MR (2020 TEE guideline, p. 698).",
+            "tee": "ME right pulmonary vein (about 0°) and ME left and right pulmonary veins (90–110°); sample more than one vein (2013 TEE guideline, pp. 939, 954; ASE 2017, p. 330). Systolic reversal in more than one vein is specific, though insensitive, for severe MR (2020 TEE guideline, p. 698).",
             "options": [
               {
                 "id": "reversal",
@@ -16644,7 +16644,8 @@
         "also": [
           "ase2023rhd",
           "nicoara2020",
-          "hahn2013"
+          "hahn2013",
+          "mukherjee2025"
         ],
         "ref": "EAE/ASE 2009, Table 11 and pp. 19–20",
         "intro": "Pulmonic stenosis is graded by the peak velocity (peak gradient) across the valve: its area cannot be planimetered, and the continuity and PISA methods are not validated here (2009, p. 20).",
@@ -16682,7 +16683,7 @@
             "unit": "m/s",
             "ask": "CW aligned with the flow under color guidance, the highest from several views; peak gradient = 4 × velocity². The proximal velocity can be ignored when under 1 m/s (2009, pp. 19–20).",
             "tte": "Parasternal short axis; subcostal, or a modified apical five-chamber angled to the RVOT.",
-            "tee": "Upper esophageal aortic arch short axis, where the valve and main PA line up with the beam; ME RV inflow-outflow; transgastric RV inflow-outflow with the probe advanced (2013 TEE guideline, pp. 940, 942).",
+            "tee": "Upper esophageal aortic arch short axis, where the valve and main PA line up with the beam; ME RV inflow-outflow; transgastric RV inflow-outflow with the probe advanced (2013 TEE guideline, pp. 939–940, 942, 949–950).",
             "bands": [
               {
                 "lt": 3,
@@ -16733,7 +16734,7 @@
             "headline": "Not gradable yet",
             "text": "No peak velocity across the valve could be recorded.",
             "next": [
-              "Try the subcostal window, or on TEE the upper esophageal aortic arch short axis (2013 TEE guideline, p. 942).",
+              "Try the subcostal window (ASE 2025, p. 177), or on TEE the upper esophageal aortic arch short axis (2013 TEE guideline, p. 942).",
               "CMR or catheterization when the grade matters."
             ]
           },
@@ -17612,7 +17613,7 @@
             "unit": "m/s",
             "ask": "CW through the prosthesis. Also raised by high flow, mismatch and significant MR (Tables 11 and 12).",
             "tte": "Apical four-chamber, CW aligned with the inflow.",
-            "tee": "ME four-chamber (10–20°) or long axis (120–140°), CW aligned with the inflow (angles, 2013, pp. 932, 937).",
+            "tee": "ME four-chamber (0–10°) or long axis (120–140°), CW aligned with the inflow (angles, 2013, pp. 934, 937).",
             "bands": [
               {
                 "lt": 1.9,
@@ -17889,7 +17890,7 @@
             "kind": "choice",
             "ask": "Color underestimates MR behind a prosthesis on TTE and in eccentric, wall-impinging jets; Nyquist 50–60 cm/s (Figure 21; Table 13).",
             "tte": "Parasternal and apical views.",
-            "tee": "ME four-chamber (10–20°), commissural (50–70°), two-chamber (80–100°) and long axis (120–140°) (angles, 2013, pp. 932–937).",
+            "tee": "ME four-chamber (0–10°), commissural (50–70°), two-chamber (80–100°) and long axis (120–140°) (angles, 2013, pp. 933–937).",
             "options": [
               {
                 "id": "small",
