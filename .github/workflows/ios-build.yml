@@ -219,11 +219,12 @@ jobs:
           shot 76-patient-top-light 12 -ps.tab patient -ps.patient demo -ps.forceAppearance light
           shot 77-chamber-coupling 18 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
           shot 78-chamber-annuli 15 -ps.ref chamber -ps.echo.group annuli -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "ma=38,maratio=1.4,ta=42"
-          shot 79-valve-mr-step 15 -ps.ref valves -ps.valve.flow mr -ps.valve.answers "type=primary,flail=no,jet=between,cw=dense"
-          shot 80-valve-as-result 15 -ps.ref valves -ps.valve.flow as -ps.valve.answers "vmax=3.2,mg=25,ava=0.8,errors=checked,svi=28,lvef=35,dse=severe"
-          shot 81-valve-tr-tee 15 -ps.ref valves -ps.valve.flow tr -ps.valve.tee 1 -ps.valve.answers "valve=other,jet=between"
-          shot 82-valve-all 16 -ps.ref valves -ps.valve.mode all
-          shot 83-valve-prosthesis 15 -ps.ref valves -ps.valve.flow pav -ps.valve.answers "kind=surgical,vmax=3.5,contour=early,at=70,atet=0.28,mg=25,dvi=0.4,eoa=ok"
+          shot 79-valve-mr-step 18 -ps.ref valves -ps.valve.flow mr -ps.valve.answers "type=primary,flail=no,jet=between,cw=dense"
+          shot 80-valve-as-result 18 -ps.ref valves -ps.valve.flow as -ps.valve.answers "vmax=3.2,mg=25,ava=0.8,errors=checked,svi=28,lvef=35,dse=severe"
+          shot 81-valve-tr-tee 18 -ps.ref valves -ps.valve.flow tr -ps.valve.tee 1 -ps.valve.answers "valve=other,jet=between"
+          shot 82-valve-all 18 -ps.ref valves -ps.valve.mode all
+          shot 83-valve-prosthesis 18 -ps.ref valves -ps.valve.flow pav -ps.valve.answers "kind=surgical,vmax=3.5,contour=early,at=70,atet=0.28,mg=25,dvi=0.4,eoa=ok"
+          shot 84-valve-ms-pht 18 -ps.ref valves -ps.valve.flow ms -ps.valve.answers "etiology=rheumatic,planimetry=x,pht=148,mg=x,pasp=x"
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

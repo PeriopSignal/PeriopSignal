@@ -1,5 +1,5 @@
 {
- "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring and the path of step ids. Cases named Review come from the independent review of October 2026.",
+ "about": "Valve workflow cases run by both ios/Tests/ReferenceTests.swift (testValveFlowCases) and tools/test_reference_logic.js. answers: a number, an option id, or null for Cannot obtain. expect: ask (the step waiting) or result and grade (1 mild, 2 moderate, 3 severe, null none), optionally a caution substring, a headline substring, a pathText substring (in the text of a step on the path) and the path of step ids. Cases named Review come from the independent review of October 2026, and those named Re-check from its second pass.",
  "cases": [
   {
    "name": "AS: high gradient with normal flow is severe",
@@ -1210,7 +1210,7 @@
    "expect": {
     "result": "grade4",
     "grade": 3,
-    "caution": "EROA leads"
+    "caution": "EROA reads higher"
    }
   },
   {
@@ -1464,7 +1464,352 @@
    },
    "expect": {
     "result": "area-other",
+    "grade": null,
+    "headline": "Planimetry alone: 1.6 cm²"
+   }
+  },
+  {
+   "name": "Re-check RC1: MR flail with four mild signs is not settled mild",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "yes",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "pisa": "small"
+   },
+   "expect": {
+    "ask": "pv"
+   }
+  },
+  {
+   "name": "Re-check RC1: MR flail with four mild signs and grade I is discordant",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "yes",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "pisa": "small",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.15,
+    "rvol": 20,
+    "rf": 20
+   },
+   "expect": {
+    "result": "discordant",
     "grade": null
+   }
+  },
+  {
+   "name": "Re-check RC1: MR vena contracta 0.8 cm with mild signs goes on to quantitation",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.8,
+    "pisa": "small",
+    "pv": "dominant",
+    "inflow": "a",
+    "size": "normal"
+   },
+   "expect": {
+    "ask": "eroa"
+   }
+  },
+  {
+   "name": "Re-check RC1: four mild signs and none for severe still settle mild MR",
+   "flow": "mr",
+   "answers": {
+    "type": "primary",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.2,
+    "pisa": "small"
+   },
+   "expect": {
+    "result": "mild-specific",
+    "grade": 1
+   }
+  },
+  {
+   "name": "Re-check RC1: TR without coaptation and four mild signs is not settled mild",
+   "flow": "tr",
+   "answers": {
+    "valve": "severe",
+    "jet": "small",
+    "cw": "faint",
+    "vc": 0.25,
+    "pisa": "small"
+   },
+   "expect": {
+    "ask": "hv"
+   }
+  },
+  {
+   "name": "Re-check RC1: AR flail with four mild signs is not settled mild",
+   "flow": "ar",
+   "answers": {
+    "type": "chronic",
+    "flail": "yes",
+    "vc": 0.25,
+    "jet": 20,
+    "pisa": "small",
+    "cw": "soft"
+   },
+   "expect": {
+    "ask": "pht"
+   }
+  },
+  {
+   "name": "Re-check RC1: PR dense jet with a short half-time and three mild signs is not settled mild",
+   "flow": "pr",
+   "answers": {
+    "jet": "small",
+    "rv": "normal",
+    "ratio": null,
+    "cw": "dense",
+    "pht": 80,
+    "decel": "slow"
+   },
+   "expect": {
+    "ask": "branches"
+   }
+  },
+  {
+   "name": "Re-check RC2: secondary MR, volumes three grades above EROA disagree",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.15,
+    "rvol": 65,
+    "rf": 55
+   },
+   "expect": {
+    "result": "discordant",
+    "grade": null,
+    "caution": "3D vena contracta area"
+   }
+  },
+  {
+   "name": "Re-check RC2: secondary MR, volumes two grades above EROA disagree",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.25,
+    "rvol": 65,
+    "rf": 55
+   },
+   "expect": {
+    "result": "discordant",
+    "grade": null
+   }
+  },
+  {
+   "name": "Re-check RC2: secondary MR, volumes one grade above EROA take the higher",
+   "flow": "mr",
+   "answers": {
+    "type": "secondary",
+    "flail": "no",
+    "jet": "between",
+    "cw": "dense",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "blunted",
+    "inflow": "other",
+    "size": "other",
+    "eroa": 0.35,
+    "rvol": 65,
+    "rf": 55
+   },
+   "expect": {
+    "result": "grade4",
+    "grade": 3,
+    "caution": "differ by one grade"
+   }
+  },
+  {
+   "name": "Re-check RC4: acute MR with a small jet, soft CW and grade IV numbers is severe",
+   "flow": "mr",
+   "answers": {
+    "type": "acute",
+    "flail": "no",
+    "jet": "small",
+    "cw": "soft",
+    "vc": 0.5,
+    "pisa": "mid",
+    "pv": "reversal",
+    "inflow": "other",
+    "size": "normal",
+    "eroa": 0.45,
+    "rvol": 65,
+    "rf": 55
+   },
+   "expect": {
+    "result": "grade4",
+    "grade": 3,
+    "caution": "not counted as a sign of mild MR"
+   }
+  },
+  {
+   "name": "Re-check RC4: acute AR with a narrow jet, faint CW and grade IV numbers is severe",
+   "flow": "ar",
+   "answers": {
+    "type": "acute",
+    "flail": "no",
+    "vc": 0.5,
+    "jet": 20,
+    "pisa": "mid",
+    "cw": "soft",
+    "pht": 150,
+    "aorta": "holo",
+    "lv": "normal",
+    "rvol": 65,
+    "rf": 55,
+    "eroa": 0.35
+   },
+   "expect": {
+    "result": "grade4",
+    "grade": 3,
+    "caution": "not counted as a sign of mild AR"
+   }
+  },
+  {
+   "name": "Re-check RC5: MS half-time of 148 ms is severe by its area",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": null,
+    "pht": 148,
+    "mg": null,
+    "pasp": null
+   },
+   "expect": {
+    "result": "severe",
+    "grade": 3,
+    "caution": "different rows of Table 1"
+   }
+  },
+  {
+   "name": "Re-check RC5: MS half-time of 95 ms is moderate by its area",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": null,
+    "pht": 95,
+    "mg": null,
+    "pasp": null
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2,
+    "caution": "different rows of Table 1"
+   }
+  },
+  {
+   "name": "Re-check RC5: MS half-time of 120 ms is moderate both ways",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": null,
+    "pht": 120,
+    "mg": null,
+    "pasp": null
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2
+   }
+  },
+  {
+   "name": "Re-check RC5: planimetry wins over a half-time that is severe by its area",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": 1.7,
+    "pht": 148,
+    "mg": null,
+    "pasp": null
+   },
+   "expect": {
+    "result": "moderate",
+    "grade": 2,
+    "caution": "Planimetry and the half-time disagree"
+   }
+  },
+  {
+   "name": "Re-check RN1: AR half-time of 199.6 ms keeps its decimal",
+   "flow": "ar",
+   "answers": {
+    "type": "chronic",
+    "flail": "no",
+    "vc": 0.5,
+    "jet": 40,
+    "pisa": "mid",
+    "cw": "dense",
+    "pht": 199.6
+   },
+   "expect": {
+    "ask": "aorta",
+    "pathText": "199.6 ms · specific for severe"
+   }
+  },
+  {
+   "name": "Re-check RN1: MS half-time of 149.6 ms keeps its decimal",
+   "flow": "ms",
+   "answers": {
+    "etiology": "rheumatic",
+    "planimetry": null,
+    "pht": 149.6,
+    "mg": null,
+    "pasp": null
+   },
+   "expect": {
+    "result": "severe",
+    "grade": 3,
+    "pathText": "149.6 ms · moderate"
+   }
+  },
+  {
+   "name": "Re-check RN5: PR half-time without the jet density does not count",
+   "flow": "pr",
+   "answers": {
+    "jet": "broad",
+    "rv": "other",
+    "ratio": null,
+    "cw": null,
+    "pht": 80,
+    "decel": "other",
+    "branches": "no",
+    "rf": null
+   },
+   "expect": {
+    "result": "probable-moderate",
+    "grade": 2,
+    "caution": "only with a dense jet"
    }
   }
  ]

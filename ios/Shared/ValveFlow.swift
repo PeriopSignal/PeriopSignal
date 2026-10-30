@@ -207,7 +207,7 @@ final class FlowWalk {
             guard s.isNumber, v.isFinite else { return .pending }
             let band = s.bands?.first { $0.contains(v) }
             let reading: String? = band != nil ? band?.label : s.between
-            let text = ValveFlow.fmt(v) + ValveFlow.unitSuffix(s.unit) + (reading.map { " · " + $0 } ?? "")
+            let text = ValveFlow.fmtIn(v, s.bands) + ValveFlow.unitSuffix(s.unit) + (reading.map { " · " + $0 } ?? "")
             path.append(FlowRecord(step: s, answer: a, tag: band?.tag, text: text))
             return .number(v, tag: band?.tag)
         case .choice(let c):
@@ -251,18 +251,28 @@ enum ValveFlow {
             return FlowProgress(path: w.path, current: flow.step(id), outcome: nil, tally: w.tally, cautions: w.cautions)
         case .done(let id, let vars):
             let def = flow.results[id] ?? ValveFlowResultDef(grade: nil, headline: "No reading", text: "This version of the content has no text for the result \(id).", next: nil)
-            var text = def.text
-            for (k, v) in vars { text = text.replacingOccurrences(of: "{\(k)}", with: v) }
-            let outcome = FlowOutcome(id: id, grade: def.grade.flatMap(ValveGrade.init(rawValue:)), headline: def.headline, text: text, next: def.next ?? [], cautions: w.cautions)
+            func fill(_ s: String) -> String {
+                var t = s
+                for (k, v) in vars { t = t.replacingOccurrences(of: "{\(k)}", with: v) }
+                return t
+            }
+            let outcome = FlowOutcome(id: id, grade: def.grade.flatMap(ValveGrade.init(rawValue:)), headline: fill(def.headline), text: fill(def.text), next: def.next ?? [], cautions: w.cautions)
             return FlowProgress(path: w.path, current: nil, outcome: outcome, tally: nil, cautions: w.cautions)
         }
     }
 
-    /// Enough digits to see which side of a cutoff a value falls: 3 decimals under 1, 2 under 10, 1 under 100.
-    static func fmt(_ v: Double) -> String {
+    /// 3 decimals under 1, 2 under 10, 1 under 100, none from 100.
+    static func places(_ v: Double) -> Int {
         let a = Swift.abs(v)
-        let places = a >= 100 ? 0 : (a >= 10 ? 1 : (a >= 1 ? 2 : 3))
-        var t = String(format: "%.\(places)f", v)
+        return a >= 100 ? 0 : (a >= 10 ? 1 : (a >= 1 ? 2 : 3))
+    }
+
+    /// v to p decimals, halves rounded away from zero and trailing zeros dropped: the same digits as
+    /// R.valveFlow.fixed on the web (printf alone would round exact halves to even).
+    static func fixed(_ v: Double, _ p: Int) -> String {
+        let f = pow(10, Double(p))
+        let r = (Swift.abs(v) * f).rounded(.toNearestOrAwayFromZero) / f
+        var t = String(format: "%.\(p)f", r == 0 ? 0 : (v < 0 ? -r : r))
         if t.contains(".") {
             while t.hasSuffix("0") { t.removeLast() }
             if t.hasSuffix(".") { t.removeLast() }
@@ -270,7 +280,26 @@ enum ValveFlow {
         return t
     }
 
+    static func fmt(_ v: Double) -> String { fixed(v, places(v)) }
+
+    /// fmt, with more decimals when the rounded value would read in another band than the value (199.6 ms is not "200").
+    static func fmtIn(_ v: Double, _ bands: [ValveFlowBand]?) -> String {
+        var p = places(v)
+        var t = fixed(v, p)
+        guard let bands, !bands.isEmpty else { return t }
+        func bandOf(_ x: Double) -> Int? { bands.firstIndex { $0.contains(x) } }
+        let want = bandOf(v)
+        while bandOf(Double(t) ?? v) != want && p < 6 {
+            p += 1
+            t = fixed(v, p)
+        }
+        return t
+    }
+
     /// A value as typed back into the field when an answer is changed: full precision, no trailing ".0".
+    /// A step's value as the user entered it, with the digits that keep it inside its band.
+    static func val(_ w: FlowWalk, _ id: String, _ v: Double) -> String { fmtIn(v, w.flow.step(id)?.bands) }
+
     static func entryText(_ v: Double) -> String {
         var t = String(v)
         if t.hasSuffix(".0") { t.removeLast(2) }
@@ -315,16 +344,16 @@ extension ValveFlow {
                 case "fixed"?: return .done("severe-fixed-flow")
                 default:
                     w.caution("Stroke volume index above 58 mL/m² without a cause: an overestimated LVOT diameter inflates both the flow and the area (p. 387).")
-                    return .done("severe-high", ["flow": "The high stroke volume index (\(fmt(sv)) mL/m²) is unexplained; see the caution."])
+                    return .done("severe-high", ["flow": "The high stroke volume index (\(val(w, "svi", sv)) mL/m²) is unexplained; see the caution."])
                 }
             }
-            return .done("severe-high", ["flow": "Stroke volume index \(fmt(sv)) mL/m²: no high-flow state."])
+            return .done("severe-high", ["flow": "Stroke volume index \(val(w, "svi", sv)) mL/m²: no high-flow state."])
         }
         if v == .cannot && g == .cannot {
             let p = w.take("planimetry")
             if p == .pending { return .ask("planimetry") }
             guard let a = p.number else { return .done("nodata") }
-            return .done(a < 1 ? "area-severe" : "area-other", ["area": fmt(a)])
+            return .done(a < 1 ? "area-severe" : "area-other", ["area": val(w, "planimetry", a)])
         }
         w.tally = "Low-gradient track"
         // The valve area: continuity, else the velocity ratio, else planimetry.
@@ -364,7 +393,7 @@ extension ValveFlow {
         let s = w.take("svi")
         if s == .pending { return .ask("svi") }
         guard let sv = s.number else { return .done("flow-unknown") }
-        if sv >= 35 { return .done("normal-flow", ["flow": "a stroke volume index of \(fmt(sv)) mL/m²"]) }
+        if sv >= 35 { return .done("normal-flow", ["flow": "a stroke volume index of \(val(w, "svi", sv)) mL/m²"]) }
         w.tally = "Low flow, low gradient"
         let ef = w.take("lvef")
         if ef == .pending { return .ask("lvef") }
@@ -453,8 +482,10 @@ extension ValveFlow {
             case 3?: severe += 1
             default: break
             }
+            // Severe settles on a majority; mild only with no specific sign of severe among those assessed (a flail leaflet
+            // or a vena contracta of 0.7 cm is specific for severe whatever else is mild: pp. 320, 334, 353).
             if severe >= plan.need && severe > mild { return .done("severe-specific", ["severe": "\(severe)", "mild": "\(mild)"]) }
-            if !plan.acute && mild >= plan.need && mild > severe { return .done("mild-specific", ["mild": "\(mild)", "severe": "\(severe)"]) }
+            if !plan.acute && mild >= plan.need && severe == 0 { return .done("mild-specific", ["mild": "\(mild)", "severe": "\(severe)"]) }
         }
         if mild >= plan.need && severe >= plan.need { w.caution("Specific criteria from both lists in equal measure: the measurements decide.") }
         var vars = ["mild": "\(mild)", "severe": "\(severe)"]
@@ -494,11 +525,13 @@ extension ValveFlow {
     static func describe(_ w: FlowWalk, _ id: String, _ v: Double, _ n: Int, scale: Int) -> String {
         let s = w.flow.step(id)
         let word = scale == 4 ? "grade \(roman(n))" : ["mild", "moderate", "severe"][max(0, min(2, n - 1))]
-        return "\(s?.short ?? s?.title ?? id) \(fmt(v))\(unitSuffix(s?.unit)), \(word)"
+        return "\(s?.short ?? s?.title ?? id) \(fmtIn(v, s?.bands))\(unitSuffix(s?.unit)), \(word)"
     }
 
     /// EROA (the lesion) against the volumes (regurgitant volume and fraction as one measure, the higher of the two).
-    /// Equal or one grade apart: the higher; two or more apart: a disagreement, unless one of them leads.
+    /// Equal or one grade apart: the higher; two or more apart: a disagreement. lead "volume": the volumes decide (MR
+    /// that is not holosystolic); lead "lesion": EROA decides when it reads higher (secondary MR, where the volumes run
+    /// low), and otherwise the usual rule applies.
     static func lesionAndVolume(_ w: FlowWalk, order: [String], lesion: String, volumes: [String], scale: Int, lead: String?, why: String) -> Measure {
         var got: [String: (v: Double, n: Int)] = [:]
         for id in order {
@@ -518,7 +551,7 @@ extension ValveFlow {
         case let (nil, y?): return .grade(y, text)
         case let (x?, y?):
             if x == y { return .grade(x, text) }
-            if lead == "lesion" { w.caution(why); return .grade(x, text) }
+            if lead == "lesion" && x > y { w.caution(why); return .grade(x, text) }
             if lead == "volume" { w.caution(why); return .grade(y, text) }
             if Swift.abs(x - y) >= 2 { return .split(text) }
             w.caution("EROA and the volumes differ by one grade: the higher is taken. Low or high flow can split them (Table 8).")
@@ -545,12 +578,21 @@ extension ValveFlow {
             acute: acute,
             specific: { id, g in
                 if acute && id == "size" { return nil }
+                // Color and CW under-read acute MR: their signs of mild do not count against severe (p. 323).
+                if acute && (id == "jet" || id == "cw") && g.tag == "mild" {
+                    w.caution("Acute MR: a small color jet or a soft CW signal is not counted as a sign of mild MR, since color Doppler often will not show a large jet in acute severe MR (p. 323).")
+                    return nil
+                }
                 return g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : nil)
             },
             measure: { w in
-                lesionAndVolume(w, order: ["eroa", "rvol", "rf"], lesion: "eroa", volumes: ["rvol", "rf"], scale: 4,
-                                lead: partial ? "volume" : (secondary ? "lesion" : nil),
-                                why: partial ? "Not holosystolic: the regurgitant volume leads, since single-frame EROA overestimates (Figure 18; p. 323)." : "Secondary MR: EROA leads, since the volumes run lower when the stroke volume is low (p. 334).")
+                let m = lesionAndVolume(w, order: ["eroa", "rvol", "rf"], lesion: "eroa", volumes: ["rvol", "rf"], scale: 4,
+                                        lead: partial ? "volume" : (secondary ? "lesion" : nil),
+                                        why: partial ? "Not holosystolic: the regurgitant volume leads, since single-frame EROA overestimates (Figure 18; p. 323)." : "Secondary MR: EROA reads higher than the volumes and is taken, since the volumes run lower when the stroke volume is low (p. 334).")
+                if secondary && !partial, case .split = m {
+                    w.caution("Secondary MR: 2D PISA underestimates an elliptical orifice; 3D vena contracta area can identify severe MR where PISA underestimates the EROA (Table 7, p. 326).")
+                }
+                return m
             },
             gradeThree: { w, severe, vars in
                 var v = vars
@@ -579,6 +621,11 @@ extension ValveFlow {
             acute: acute,
             specific: { id, g in
                 if acute && id == "lv" { return nil }
+                // The jet and its CW signal under-read acute AR: their signs of mild do not count against severe (pp. 336, 345).
+                if acute && (id == "jet" || id == "cw") && g.tag == "mild" {
+                    w.caution("Acute AR: a narrow jet or a faint CW signal is not counted as a sign of mild AR, since the jet may be brief and of low velocity (pp. 336, 345).")
+                    return nil
+                }
                 return g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : nil)
             },
             measure: { w in
@@ -618,7 +665,7 @@ extension ValveFlow {
             let p = w.take("pasp")
             if p == .pending { return .ask("pasp") }
             guard let m = g.number, let n = level(g.tag) else { return .done("calcific-nograd") }
-            return .done("calcific-\(n)", ["mg": fmt(m), "pasp": p.number.map { ", PA systolic pressure \(fmt($0)) mmHg" } ?? ""])
+            return .done("calcific-\(n)", ["mg": val(w, "mg", m), "pasp": p.number.map { ", PA systolic pressure \(val(w, "pasp", $0)) mmHg" } ?? ""])
         }
         let p = w.take("planimetry")
         if p == .pending { return .ask("planimetry") }
@@ -628,30 +675,43 @@ extension ValveFlow {
         if g == .pending { return .ask("mg") }
         let pa = w.take("pasp")
         if pa == .pending { return .ask("pasp") }
+        // The half-time read both ways: its own row of Table 1, and the row of its area (220 ÷ half-time). The two rows
+        // do not line up (147–149 ms gives 1.5 cm² or less; 88–99 ms gives 2.2–2.5 cm²), so the worse of the two counts.
+        let areaBands = w.flow.step("planimetry")?.bands ?? []
+        var half: (y: Double, own: Int, byArea: Int?, n: Int, area: String)?
+        if let y = h.number, let own = level(h.tag) {
+            let derived = 220 / y
+            let byArea = areaBands.first { $0.contains(derived) }.flatMap { level($0.tag) }
+            half = (y, own, byArea, max(own, byArea ?? 0), fmtIn(derived, areaBands))
+        }
+        let words = ["mild", "moderate", "severe"]
         var area: Int?
         var basis = ""
         if let x = p.number, let n = level(p.tag) {
             area = n
-            basis = "planimetered area (\(fmt(x)) cm²)"
-            if let y = h.number, let hn = level(h.tag), hn != n {
-                w.caution("Planimetry and the half-time disagree (half-time area about \(fmt(220 / y)) cm²): planimetry is the reference, except with poor acoustic windows (2009, p. 15).")
+            basis = "planimetered area (\(fmtIn(x, areaBands)) cm²)"
+            if let hf = half, hf.n != n {
+                w.caution("Planimetry and the half-time disagree (half-time area about \(hf.area) cm²): planimetry is the reference, except with poor acoustic windows (2009, p. 15).")
             }
-        } else if let y = h.number, let n = level(h.tag) {
-            area = n
-            basis = "pressure half-time (\(fmt(y)) ms, area about \(fmt(220 / y)) cm²)"
+        } else if let hf = half {
+            area = hf.n
+            basis = "pressure half-time (\(fmtIn(hf.y, w.flow.step("pht")?.bands)) ms, area about \(hf.area) cm²)"
+            if let b = hf.byArea, b != hf.own {
+                w.caution("The half-time and its area fall in different rows of Table 1: \(words[hf.own - 1]) by the half-time row, \(words[b - 1]) by the area row (220 ÷ half-time). Graded by the worse of the two; planimetry, the mean gradient and PA pressure help at this border (2023, Table 1).")
+            }
         } else {
             let a = w.take("alt")
             if a == .pending { return .ask("alt") }
             if let x = a.number, let n = level(a.tag) {
                 area = n
-                basis = "continuity or PISA area (\(fmt(x)) cm²)"
+                basis = "continuity or PISA area (\(val(w, "alt", x)) cm²)"
                 w.caution("Graded on a second-line area: the continuity equation and PISA are for inconclusive data and carry more error (2023, p. 9).")
             }
         }
         guard let ag = area else {
             var supp: [String] = []
-            if let m = g.number { supp.append("Mean gradient \(fmt(m)) mmHg.") }
-            if let s = pa.number { supp.append("PA systolic pressure \(fmt(s)) mmHg.") }
+            if let m = g.number { supp.append("Mean gradient \(val(w, "mg", m)) mmHg.") }
+            if let s = pa.number { supp.append("PA systolic pressure \(val(w, "pasp", s)) mmHg.") }
             return supp.isEmpty ? .done("nodata") : .done("supportive-only", ["supp": supp.joined(separator: " ")])
         }
         if [g.tag, pa.tag].compactMap(level).contains(3) && ag < 3 {
@@ -688,10 +748,10 @@ extension ValveFlow {
         if let rv = r.number {
             let est = rv - gradient
             pa = est > 0
-                ? " RV systolic pressure \(fmt(rv)) mmHg minus the valve gradient leaves a PA systolic pressure of about \(fmt(est)) mmHg (2009, p. 20)."
+                ? " RV systolic pressure \(val(w, "rvsp", rv)) mmHg minus the valve gradient leaves a PA systolic pressure of about \(fmt(est)) mmHg (2009, p. 20)."
                 : " The valve gradient is higher than the RV systolic pressure entered: recheck both (2009, p. 20)."
         }
-        if let place = where_ { return .done("nonvalvular", ["v": fmt(x), "gradient": fmt(gradient), "where": place, "pa": pa]) }
+        if let place = where_ { return .done("nonvalvular", ["v": val(w, "vmax", x), "gradient": fmt(gradient), "where": place, "pa": pa]) }
         return .done(tag, ["gradient": fmt(gradient), "pa": pa])
     }
 }
@@ -747,9 +807,10 @@ extension ValveFlow {
             guard let x = i.number, b.choice != nil else { return .done("highflow", dep) }
             let obese = b.choice == "ge30"
             let severeCut = obese ? 0.55 : 0.65, moderateCut = obese ? 0.70 : 0.85
-            if x <= severeCut { return .done("ppm-severe", ["ieoa": fmt(x)]) }
-            if x <= moderateCut { return .done("ppm-moderate", ["ieoa": fmt(x)]) }
-            return .done("ppm-none", ["ieoa": fmt(x)])
+            let shown = fmtIn(x, [ValveFlowBand(le: severeCut, tag: "severe"), ValveFlowBand(le: moderateCut, gt: severeCut, tag: "moderate"), ValveFlowBand(gt: moderateCut, tag: "none")])
+            if x <= severeCut { return .done("ppm-severe", ["ieoa": shown]) }
+            if x <= moderateCut { return .done("ppm-moderate", ["ieoa": shown]) }
+            return .done("ppm-none", ["ieoa": shown])
         }
         if !depSig.isEmpty && !indepKnown {
             w.caution("No flow-independent measure (EOA or DVI): Table 5 needs one to call the stenosis significant.")
@@ -812,7 +873,7 @@ extension ValveFlow {
         if w.tee {
             w.caution("The pulmonic valve is anterior and hard to image by TEE, and TEE is not a preferred modality when PR needs more than the TTE (ASE 2017, pp. 353, 359); loading conditions change the signs (2020 TEE guideline, p. 706).")
         }
-        let softJet = w.answers["cw"] == .choice("soft")
+        let denseJet = w.answers["cw"] == .choice("dense")
         let plan = RegurgPlan(
             criteria: ["jet", "rv", "ratio", "cw", "pht", "decel", "branches"],
             need: 3,
@@ -821,7 +882,10 @@ extension ValveFlow {
             noQuant: "probable-moderate",
             specific: { id, g in
                 // Figure 35's criterion is a dense jet with a half-time under 100 ms.
-                if id == "pht" && softJet { return nil }
+                if id == "pht" && !denseJet {
+                    if g.tag == "severe" { w.caution("A half-time under 100 ms counts only with a dense jet (Figure 35): here the jet was soft or its density was not obtained.") }
+                    return nil
+                }
                 return g.tag == "mild" ? 1 : (g.tag == "severe" ? 3 : nil)
             },
             measure: { w in

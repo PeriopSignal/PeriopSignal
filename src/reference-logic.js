@@ -715,11 +715,25 @@
     step(flow, id) { return (flow.steps || []).find((s) => s.id === id) || null; },
     /** " cm²" after a value; "%" goes on without a space; nothing for a ratio. */
     unitSuffix(u) { return !u ? '' : (u === '%' ? u : ' ' + u); },
-    /** Enough digits to see which side of a cutoff a value falls: 3 decimals under 1, 2 under 10, 1 under 100. */
-    fmt(v) {
-      const a = Math.abs(v), p = a >= 100 ? 0 : (a >= 10 ? 1 : (a >= 1 ? 2 : 3));
-      let t = v.toFixed(p);
+    /** 3 decimals under 1, 2 under 10, 1 under 100, none from 100. */
+    places(v) { const a = Math.abs(v); return a >= 100 ? 0 : (a >= 10 ? 1 : (a >= 1 ? 2 : 3)); },
+    /** v to p decimals, halves rounded away from zero and trailing zeros dropped: the same digits as ValveFlow.fixed. */
+    fixed(v, p) {
+      const f = Math.pow(10, p);
+      const r = Math.round(Math.abs(v) * f) / f;
+      let t = (r === 0 ? 0 : (v < 0 ? -r : r)).toFixed(p);
       if (t.includes('.')) t = t.replace(/0+$/, '').replace(/\.$/, '');
+      return t;
+    },
+    fmt(v) { return R.valveFlow.fixed(v, R.valveFlow.places(v)); },
+    /** fmt, with more decimals when the rounded value would read in another band than the value (199.6 ms is not "200"). */
+    fmtIn(v, bands) {
+      const F = R.valveFlow;
+      let p = F.places(v), t = F.fixed(v, p);
+      if (!bands || !bands.length) return t;
+      const bandOf = (x) => bands.findIndex((b) => F.contains(b, x));
+      const want = bandOf(v);
+      while (bandOf(Number(t)) !== want && p < 6) { p++; t = F.fixed(v, p); }
       return t;
     },
     contains(b, v) {
@@ -731,8 +745,9 @@
     },
     rangeText(b) {
       if (b.range) return b.range;
-      const lo = b.gt != null ? '> ' + R.fmt(b.gt) : (b.ge != null ? '≥ ' + R.fmt(b.ge) : null);
-      const hi = b.lt != null ? '< ' + R.fmt(b.lt) : (b.le != null ? '≤ ' + R.fmt(b.le) : null);
+      const f = R.valveFlow.fmt;
+      const lo = b.gt != null ? '> ' + f(b.gt) : (b.ge != null ? '≥ ' + f(b.ge) : null);
+      const hi = b.lt != null ? '< ' + f(b.lt) : (b.le != null ? '≤ ' + f(b.le) : null);
       return [lo, hi].filter(Boolean).join(' and ');
     },
     /** The bands as one line: "< 0.3 specific for mild · ≥ 0.7 specific for severe". */
@@ -763,7 +778,7 @@
           const band = (s.bands || []).find((b) => R.valveFlow.contains(b, a)) || null;
           const reading = band ? (band.label || null) : (s.between || null);
           const tag = band ? band.tag : null;
-          w.path.push({ step: s, answer: a, tag, text: R.valveFlow.fmt(a) + R.valveFlow.unitSuffix(s.unit) + (reading ? ' · ' + reading : '') });
+          w.path.push({ step: s, answer: a, tag, text: R.valveFlow.fmtIn(a, s.bands) + R.valveFlow.unitSuffix(s.unit) + (reading ? ' · ' + reading : '') });
           return { n: a, tag };
         }
         const o = s.kind === 'number' ? null : (s.options || []).find((x) => x.id === a);
@@ -782,9 +797,12 @@
       const end = rule(w);
       if (end.ask) return { path: w.path, current: R.valveFlow.step(flow, end.ask), outcome: null, tally: w.tally, cautions: w.cautions };
       const def = (flow.results || {})[end.done] || { headline: 'No reading', text: 'This version of the content has no text for the result ' + end.done + '.' };
-      let text = def.text;
-      for (const [k, v] of Object.entries(end.vars || {})) text = text.split('{' + k + '}').join(String(v));
-      return { path: w.path, current: null, outcome: { id: end.done, grade: def.grade || null, headline: def.headline, text, next: def.next || [], cautions: w.cautions }, tally: null, cautions: w.cautions };
+      const fill = (s) => {
+        let t = s;
+        for (const [k, v] of Object.entries(end.vars || {})) t = t.split('{' + k + '}').join(String(v));
+        return t;
+      };
+      return { path: w.path, current: null, outcome: { id: end.done, grade: def.grade || null, headline: fill(def.headline), text: fill(def.text), next: def.next || [], cautions: w.cautions }, tally: null, cautions: w.cautions };
     },
   };
 
@@ -794,6 +812,8 @@
     const ch = (g) => g.c || null;
     const tg = (g) => g.tag || null;
     const fmt = (v) => F.fmt(v);
+    /** A step's value as the user entered it, with the digits that keep it inside its band. */
+    const val = (w, id, v) => F.fmtIn(v, (F.step(w.flow, id) || {}).bands);
     const ask = (id) => ({ ask: id });
     const done = (id, vars) => ({ done: id, vars: vars || {} });
     const level = (t) => (t === 'mild' ? 1 : t === 'moderate' ? 2 : t === 'severe' ? 3 : null);
@@ -829,16 +849,16 @@
           if (ch(c) === 'reversible') return done('high-reversible');
           if (ch(c) === 'fixed') return done('severe-fixed-flow');
           w.caution('Stroke volume index above 58 mL/m² without a cause: an overestimated LVOT diameter inflates both the flow and the area (p. 387).');
-          return done('severe-high', { flow: `The high stroke volume index (${fmt(sv)} mL/m²) is unexplained; see the caution.` });
+          return done('severe-high', { flow: `The high stroke volume index (${val(w, 'svi', sv)} mL/m²) is unexplained; see the caution.` });
         }
-        return done('severe-high', { flow: `Stroke volume index ${fmt(sv)} mL/m²: no high-flow state.` });
+        return done('severe-high', { flow: `Stroke volume index ${val(w, 'svi', sv)} mL/m²: no high-flow state.` });
       }
       if (v.cannot && g.cannot) {
         const p = w.take('planimetry');
         if (p.pending) return ask('planimetry');
         const a = num(p);
         if (a === null) return done('nodata');
-        return done(a < 1 ? 'area-severe' : 'area-other', { area: fmt(a) });
+        return done(a < 1 ? 'area-severe' : 'area-other', { area: val(w, 'planimetry', a) });
       }
       w.tally = 'Low-gradient track';
       let small = null, areaTag = null, areaValue = null;
@@ -873,7 +893,7 @@
       if (s.pending) return ask('svi');
       const sv = num(s);
       if (sv === null) return done('flow-unknown');
-      if (sv >= 35) return done('normal-flow', { flow: `a stroke volume index of ${fmt(sv)} mL/m²` });
+      if (sv >= 35) return done('normal-flow', { flow: `a stroke volume index of ${val(w, 'svi', sv)} mL/m²` });
       w.tally = 'Low flow, low gradient';
       const ef = w.take('lvef');
       if (ef.pending) return ask('lvef');
@@ -913,8 +933,10 @@
         if (!g.cannot) assessed++;
         const k = plan.specific(id, g);
         if (k === 1) mild++; else if (k === 3) severe++;
+        // Severe settles on a majority; mild only with no specific sign of severe among those assessed (a flail leaflet
+        // or a vena contracta of 0.7 cm is specific for severe whatever else is mild: pp. 320, 334, 353).
         if (severe >= plan.need && severe > mild) return done('severe-specific', { severe: String(severe), mild: String(mild) });
-        if (!plan.acute && mild >= plan.need && mild > severe) return done('mild-specific', { mild: String(mild), severe: String(severe) });
+        if (!plan.acute && mild >= plan.need && severe === 0) return done('mild-specific', { mild: String(mild), severe: String(severe) });
       }
       if (mild >= plan.need && severe >= plan.need) w.caution('Specific criteria from both lists in equal measure: the measurements decide.');
       const vars = { mild: String(mild), severe: String(severe) };
@@ -940,10 +962,12 @@
     const describe = (w, id, v, n, scale) => {
       const s = F.step(w.flow, id);
       const word = scale === 4 ? 'grade ' + roman(n) : ['mild', 'moderate', 'severe'][Math.max(0, Math.min(2, n - 1))];
-      return `${(s && (s.short || s.title)) || id} ${fmt(v)}${F.unitSuffix(s && s.unit)}, ${word}`;
+      return `${(s && (s.short || s.title)) || id} ${F.fmtIn(v, s && s.bands)}${F.unitSuffix(s && s.unit)}, ${word}`;
     };
     /* EROA (the lesion) against the volumes (regurgitant volume and fraction as one measure, the higher of the two).
-       Equal or one grade apart: the higher; two or more apart: a disagreement, unless one of them leads. */
+       Equal or one grade apart: the higher; two or more apart: a disagreement. lead 'volume': the volumes decide
+       (MR that is not holosystolic); lead 'lesion': EROA decides when it reads higher (secondary MR, where the
+       volumes run low), and otherwise the usual rule applies. */
     F.lesionAndVolume = function (w, order, lesion, volumes, scale, lead, why) {
       const got = {};
       for (const id of order) {
@@ -960,7 +984,7 @@
       if (vol === null) return { grade: l, text };
       if (l === null) return { grade: vol, text };
       if (l === vol) return { grade: l, text };
-      if (lead === 'lesion') { w.caution(why); return { grade: l, text }; }
+      if (lead === 'lesion' && l > vol) { w.caution(why); return { grade: l, text }; }
       if (lead === 'volume') { w.caution(why); return { grade: vol, text }; }
       if (Math.abs(l - vol) >= 2) return { split: true, text };
       w.caution('EROA and the volumes differ by one grade: the higher is taken. Low or high flow can split them (Table 8).');
@@ -981,10 +1005,22 @@
         need: 4,
         scale: 4,
         acute,
-        specific: (id, g) => (acute && id === 'size') ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
-        measure: (w2) => F.lesionAndVolume(w2, ['eroa', 'rvol', 'rf'], 'eroa', ['rvol', 'rf'], 4,
-          partial ? 'volume' : (secondary ? 'lesion' : null),
-          partial ? 'Not holosystolic: the regurgitant volume leads, since single-frame EROA overestimates (Figure 18; p. 323).' : 'Secondary MR: EROA leads, since the volumes run lower when the stroke volume is low (p. 334).'),
+        specific: (id, g) => {
+          if (acute && id === 'size') return null;
+          // Color and CW under-read acute MR: their signs of mild do not count against severe (p. 323).
+          if (acute && (id === 'jet' || id === 'cw') && tg(g) === 'mild') {
+            w.caution('Acute MR: a small color jet or a soft CW signal is not counted as a sign of mild MR, since color Doppler often will not show a large jet in acute severe MR (p. 323).');
+            return null;
+          }
+          return tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null);
+        },
+        measure: (w2) => {
+          const m = F.lesionAndVolume(w2, ['eroa', 'rvol', 'rf'], 'eroa', ['rvol', 'rf'], 4,
+            partial ? 'volume' : (secondary ? 'lesion' : null),
+            partial ? 'Not holosystolic: the regurgitant volume leads, since single-frame EROA overestimates (Figure 18; p. 323).' : 'Secondary MR: EROA reads higher than the volumes and is taken, since the volumes run lower when the stroke volume is low (p. 334).');
+          if (secondary && !partial && m.split) w2.caution('Secondary MR: 2D PISA underestimates an elliptical orifice; 3D vena contracta area can identify severe MR where PISA underestimates the EROA (Table 7, p. 326).');
+          return m;
+        },
         gradeThree: (w2, severe, vars) => {
           const v = Object.assign({}, vars);
           if (severe >= 3) { v.why = `${severe} specific criteria for severe MR`; return done('grade3-severe', v); }
@@ -1006,7 +1042,15 @@
         need: 4,
         scale: 4,
         acute,
-        specific: (id, g) => (acute && id === 'lv') ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        specific: (id, g) => {
+          if (acute && id === 'lv') return null;
+          // The jet and its CW signal under-read acute AR: their signs of mild do not count against severe (pp. 336, 345).
+          if (acute && (id === 'jet' || id === 'cw') && tg(g) === 'mild') {
+            w.caution('Acute AR: a narrow jet or a faint CW signal is not counted as a sign of mild AR, since the jet may be brief and of low velocity (pp. 336, 345).');
+            return null;
+          }
+          return tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null);
+        },
         measure: (w2) => F.lesionAndVolume(w2, ['rvol', 'rf', 'eroa'], 'eroa', ['rvol', 'rf'], 4, null, ''),
         gradeThree: (w2, severe, vars) => done(severe >= 3 ? 'grade3-severe' : 'grade3', vars),
       });
@@ -1045,15 +1089,21 @@
     };
     F.rules.pr = function (w) {
       if (w.tee) w.caution('The pulmonic valve is anterior and hard to image by TEE, and TEE is not a preferred modality when PR needs more than the TTE (ASE 2017, pp. 353, 359); loading conditions change the signs (2020 TEE guideline, p. 706).');
-      const softJet = w.answers.cw === 'soft';
+      const denseJet = w.answers.cw === 'dense';
       return F.regurgitation(w, {
         criteria: ['jet', 'rv', 'ratio', 'cw', 'pht', 'decel', 'branches'],
         need: 3,
         scale: 3,
         minAssessed: 3,
         noQuant: 'probable-moderate',
-        // Figure 35's criterion is a dense jet with a half-time under 100 ms.
-        specific: (id, g) => (id === 'pht' && softJet) ? null : (tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null)),
+        specific: (id, g) => {
+          // Figure 35's criterion is a dense jet with a half-time under 100 ms.
+          if (id === 'pht' && !denseJet) {
+            if (tg(g) === 'severe') w.caution('A half-time under 100 ms counts only with a dense jet (Figure 35): here the jet was soft or its density was not obtained.');
+            return null;
+          }
+          return tg(g) === 'mild' ? 1 : (tg(g) === 'severe' ? 3 : null);
+        },
         measure: (w2) => {
           const g = w2.take('rf');
           if (g.pending) return { ask: 'rf' };
@@ -1075,7 +1125,7 @@
         const p = w.take('pasp');
         if (p.pending) return ask('pasp');
         if (num(g) === null || level(tg(g)) === null) return done('calcific-nograd');
-        return done('calcific-' + level(tg(g)), { mg: fmt(num(g)), pasp: num(p) !== null ? `, PA systolic pressure ${fmt(num(p))} mmHg` : '' });
+        return done('calcific-' + level(tg(g)), { mg: val(w, 'mg', num(g)), pasp: num(p) !== null ? `, PA systolic pressure ${val(w, 'pasp', num(p))} mmHg` : '' });
       }
       const p = w.take('planimetry');
       if (p.pending) return ask('planimetry');
@@ -1085,27 +1135,39 @@
       if (g.pending) return ask('mg');
       const pa = w.take('pasp');
       if (pa.pending) return ask('pasp');
+      // The half-time read both ways: its own row of Table 1, and the row of its area (220 ÷ half-time). The two rows
+      // do not line up (147–149 ms gives 1.5 cm² or less; 88–99 ms gives 2.2–2.5 cm²), so the worse of the two counts.
+      const areaBands = (F.step(w.flow, 'planimetry') || {}).bands || [];
+      const half = (() => {
+        if (num(h) === null || level(tg(h)) === null) return null;
+        const y = num(h), derived = 220 / y, own = level(tg(h));
+        const db = areaBands.find((b) => F.contains(b, derived));
+        const byArea = db ? level(db.tag) : null;
+        return { y, own, byArea, n: Math.max(own, byArea || 0), area: F.fmtIn(derived, areaBands) };
+      })();
+      const words = ['mild', 'moderate', 'severe'];
       let area = null, basis = '';
       if (num(p) !== null && level(tg(p)) !== null) {
         area = level(tg(p));
-        basis = `planimetered area (${fmt(num(p))} cm²)`;
-        if (num(h) !== null && level(tg(h)) !== null && level(tg(h)) !== area) w.caution(`Planimetry and the half-time disagree (half-time area about ${fmt(220 / num(h))} cm²): planimetry is the reference, except with poor acoustic windows (2009, p. 15).`);
-      } else if (num(h) !== null && level(tg(h)) !== null) {
-        area = level(tg(h));
-        basis = `pressure half-time (${fmt(num(h))} ms, area about ${fmt(220 / num(h))} cm²)`;
+        basis = `planimetered area (${F.fmtIn(num(p), areaBands)} cm²)`;
+        if (half && half.n !== area) w.caution(`Planimetry and the half-time disagree (half-time area about ${half.area} cm²): planimetry is the reference, except with poor acoustic windows (2009, p. 15).`);
+      } else if (half) {
+        area = half.n;
+        basis = `pressure half-time (${F.fmtIn(half.y, (F.step(w.flow, 'pht') || {}).bands)} ms, area about ${half.area} cm²)`;
+        if (half.byArea !== null && half.byArea !== half.own) w.caution(`The half-time and its area fall in different rows of Table 1: ${words[half.own - 1]} by the half-time row, ${words[half.byArea - 1]} by the area row (220 ÷ half-time). Graded by the worse of the two; planimetry, the mean gradient and PA pressure help at this border (2023, Table 1).`);
       } else {
         const a = w.take('alt');
         if (a.pending) return ask('alt');
         if (num(a) !== null && level(tg(a)) !== null) {
           area = level(tg(a));
-          basis = `continuity or PISA area (${fmt(num(a))} cm²)`;
+          basis = `continuity or PISA area (${val(w, 'alt', num(a))} cm²)`;
           w.caution('Graded on a second-line area: the continuity equation and PISA are for inconclusive data and carry more error (2023, p. 9).');
         }
       }
       if (area === null) {
         const supp = [];
-        if (num(g) !== null) supp.push(`Mean gradient ${fmt(num(g))} mmHg.`);
-        if (num(pa) !== null) supp.push(`PA systolic pressure ${fmt(num(pa))} mmHg.`);
+        if (num(g) !== null) supp.push(`Mean gradient ${val(w, 'mg', num(g))} mmHg.`);
+        if (num(pa) !== null) supp.push(`PA systolic pressure ${val(w, 'pasp', num(pa))} mmHg.`);
         return supp.length ? done('supportive-only', { supp: supp.join(' ') }) : done('nodata');
       }
       if ([tg(g), tg(pa)].map(level).includes(3) && area < 3) w.caution('Gradient or PA pressure in the severe range with a non-severe area: high flow, tachycardia, significant MR or another cause of pulmonary hypertension (2023, p. 8).');
@@ -1132,10 +1194,10 @@
       if (num(r) !== null) {
         const est = num(r) - gradient;
         pa = est > 0
-          ? ` RV systolic pressure ${fmt(num(r))} mmHg minus the valve gradient leaves a PA systolic pressure of about ${fmt(est)} mmHg (2009, p. 20).`
+          ? ` RV systolic pressure ${val(w, 'rvsp', num(r))} mmHg minus the valve gradient leaves a PA systolic pressure of about ${fmt(est)} mmHg (2009, p. 20).`
           : ' The valve gradient is higher than the RV systolic pressure entered: recheck both (2009, p. 20).';
       }
-      if (where) return done('nonvalvular', { v: fmt(num(v)), gradient: fmt(gradient), where, pa });
+      if (where) return done('nonvalvular', { v: val(w, 'vmax', num(v)), gradient: fmt(gradient), where, pa });
       return done(tg(v), { gradient: fmt(gradient), pa });
     };
 
@@ -1179,9 +1241,11 @@
         if (i.pending) return ask('ieoa');
         if (num(i) === null || !ch(b)) return done('highflow', dep);
         const obese = ch(b) === 'ge30', x = num(i);
-        if (x <= (obese ? 0.55 : 0.65)) return done('ppm-severe', { ieoa: fmt(x) });
-        if (x <= (obese ? 0.70 : 0.85)) return done('ppm-moderate', { ieoa: fmt(x) });
-        return done('ppm-none', { ieoa: fmt(x) });
+        const sev = obese ? 0.55 : 0.65, mod = obese ? 0.70 : 0.85;
+        const ieoa = F.fmtIn(x, [{ le: sev }, { gt: sev, le: mod }, { gt: mod }]);
+        if (x <= sev) return done('ppm-severe', { ieoa });
+        if (x <= mod) return done('ppm-moderate', { ieoa });
+        return done('ppm-none', { ieoa });
       }
       if (depSig.length && !indepKnown) w.caution('No flow-independent measure (EOA or DVI): Table 5 needs one to call the stenosis significant.');
       if (tags.includes('severe') || tags.includes('moderate')) return done('possible', { counts });

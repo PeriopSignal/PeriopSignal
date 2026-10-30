@@ -517,6 +517,8 @@ final class ReferenceTests: XCTestCase {
             if e.keys.contains("result") { XCTAssertEqual(p.outcome?.id, e["result"] as? String, "\(name) ends on") }
             if e.keys.contains("grade") { XCTAssertEqual(p.outcome?.grade?.rawValue, e["grade"] as? Int, "\(name) grade") }
             if let caution = e["caution"] as? String { XCTAssertTrue(p.cautions.contains { $0.contains(caution) }, "\(name) cautions: \(caution)") }
+            if let headline = e["headline"] as? String { XCTAssertTrue(p.outcome?.headline.contains(headline) ?? false, "\(name) headline: \(headline)") }
+            if let text = e["pathText"] as? String { XCTAssertTrue(p.path.contains { $0.text.contains(text) }, "\(name) path text: \(text)") }
             if let path = e["path"] as? [String] { XCTAssertEqual(p.path.map(\.step.id), path, "\(name) path") }
         }
     }
@@ -550,8 +552,29 @@ final class ReferenceTests: XCTestCase {
                 let o = try XCTUnwrap(p.outcome, "\(flow.id) ends (trial \(trial))")
                 XCTAssertNotNil(flow.results[o.id], "\(flow.id) ends on a result it has words for: \(o.id)")
                 XCTAssertNil(o.text.range(of: #"\{[A-Za-z]+\}"#, options: .regularExpression), "\(flow.id)/\(o.id) fills its placeholders")
+                XCTAssertNil(o.headline.range(of: #"\{[A-Za-z]+\}"#, options: .regularExpression), "\(flow.id)/\(o.id) fills its headline placeholders")
             }
         }
+    }
+
+    /// The same digits as R.valveFlow on the web (tools/test_reference_logic.js has the same checks).
+    func testValveFlowNumbersKeepTheirSideOfACutoff() {
+        XCTAssertEqual(ValveFlow.fmt(100.5), "101")
+        XCTAssertEqual(ValveFlow.fmt(1.125), "1.13")
+        XCTAssertEqual(ValveFlow.fmt(0.0625), "0.063")
+        XCTAssertEqual(ValveFlow.fmt(2.5), "2.5")
+        XCTAssertEqual(ValveFlow.fmt(0), "0")
+        XCTAssertEqual(ValveFlow.fmt(-0.0001), "0")
+        XCTAssertEqual(ValveFlow.fmt(40.04), "40")
+        let lt200 = [ValveFlowBand(gt: 500, tag: "mild"), ValveFlowBand(lt: 200, tag: "severe")]
+        XCTAssertEqual(ValveFlow.fmtIn(199.6, lt200), "199.6")
+        XCTAssertEqual(ValveFlow.fmtIn(199.96, lt200), "199.96")
+        XCTAssertEqual(ValveFlow.fmtIn(200, lt200), "200")
+        XCTAssertEqual(ValveFlow.fmtIn(39.96, [ValveFlowBand(lt: 40, tag: "g2"), ValveFlowBand(ge: 40, tag: "g3")]), "39.96")
+        XCTAssertEqual(ValveFlow.fmtIn(0.2996, [ValveFlowBand(lt: 0.3, tag: "mild"), ValveFlowBand(ge: 0.7, tag: "severe")]), "0.2996")
+        XCTAssertEqual(ValveFlow.fmtIn(0.31, [ValveFlowBand(lt: 0.3, tag: "mild")]), "0.31")
+        let area = [ValveFlowBand(gt: 2.5, tag: "mild"), ValveFlowBand(le: 2.5, gt: 1.5, tag: "moderate"), ValveFlowBand(le: 1.5, tag: "severe")]
+        XCTAssertEqual(ValveFlow.fmtIn(1.50068, area), "1.501")
     }
 
     // MARK: Valve intervention (ACC/AHA 2020)

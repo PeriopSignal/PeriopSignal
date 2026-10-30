@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-30",
-  "revision": 1793384031,
+  "revision": 1793385255,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -15364,7 +15364,7 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild AR",
-            "text": "{mild} of Figure 25's specific criteria for mild AR, against {severe} for severe among those assessed: definitely mild; quantitation is not needed (p. 344)."
+            "text": "{mild} of Figure 25's specific criteria for mild AR and none for severe among those assessed: definitely mild; quantitation is not needed (p. 344)."
           },
           "severe-specific": {
             "grade": 3,
@@ -15785,7 +15785,7 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild MR",
-            "text": "{mild} of Figure 18's specific criteria for mild MR, against {severe} for severe among those assessed: definitely mild, and no further measurement is needed (p. 333)."
+            "text": "{mild} of Figure 18's specific criteria for mild MR and none for severe among those assessed: definitely mild, and no further measurement is needed (p. 333)."
           },
           "severe-specific": {
             "grade": 3,
@@ -16349,7 +16349,7 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild TR",
-            "text": "{mild} of Figure 31's seven specific criteria for mild TR, against {severe} for severe among those assessed; mild TR is common in normal individuals (p. 353)."
+            "text": "{mild} of Figure 31's seven specific criteria for mild TR and none for severe among those assessed; mild TR is common in normal individuals (p. 353)."
           },
           "severe-specific": {
             "grade": 3,
@@ -16373,7 +16373,7 @@
           },
           "discordant": {
             "headline": "Indeterminate: findings disagree",
-            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) do not agree, or the vena contracta and PISA disagree (Figure 31).",
+            "text": "The measurements ({quant}) and the specific signs ({mild} for mild, {severe} for severe) do not agree (Figure 31).",
             "next": [
               "TEE or CMR for quantitation (Figure 31)."
             ]
@@ -16572,7 +16572,7 @@
           "mild-specific": {
             "grade": 1,
             "headline": "Mild PR",
-            "text": "{mild} of Figure 35's four specific criteria for mild PR, against {severe} for severe among those assessed; mild PR is common in normal individuals (p. 359)."
+            "text": "{mild} of Figure 35's four specific criteria for mild PR and none for severe among those assessed; mild PR is common in normal individuals (p. 359)."
           },
           "severe-specific": {
             "grade": 3,

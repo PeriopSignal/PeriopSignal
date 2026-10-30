@@ -1010,6 +1010,8 @@ test('Valve workflows: shared cases', () => {
     if (e.result !== undefined) eq(p.outcome && p.outcome.id, e.result, c.name + ' ends on');
     if (e.grade !== undefined) eq(p.outcome ? p.outcome.grade : undefined, e.grade, c.name + ' grade');
     if (e.caution !== undefined) assert.ok(p.cautions.some((x) => x.includes(e.caution)), c.name + ' cautions: ' + e.caution);
+    if (e.headline !== undefined) assert.ok(p.outcome && p.outcome.headline.includes(e.headline), c.name + ' headline: ' + e.headline);
+    if (e.pathText !== undefined) assert.ok(p.path.some((r) => r.text.includes(e.pathText)), c.name + ' path text: ' + e.pathText);
     if (e.path !== undefined) eq(p.path.map((r) => r.step.id), e.path, c.name + ' path');
   }
 });
@@ -1045,8 +1047,29 @@ test('Valve workflows: every flow ends, whatever the answers', () => {
       assert.ok(p && p.outcome, flow.id + ' ends (trial ' + trial + ')');
       assert.ok(flow.results[p.outcome.id], flow.id + ' ends on a result it has words for: ' + p.outcome.id);
       assert.ok(!/\{[a-z]+\}/i.test(p.outcome.text), flow.id + '/' + p.outcome.id + ' fills its placeholders');
+      assert.ok(!/\{[a-z]+\}/i.test(p.outcome.headline), flow.id + '/' + p.outcome.id + ' fills its headline placeholders');
     }
   }
+});
+
+test('Valve workflows: numbers keep their side of a cutoff, with the same digits as the app', () => {
+  const F = R.valveFlow;
+  // Halves round away from zero on both platforms (printf on iOS would round 100.5 to even).
+  eq(F.fmt(100.5), '101', '100.5');
+  eq(F.fmt(1.125), '1.13', '1.125');
+  eq(F.fmt(0.0625), '0.063', '0.0625');
+  eq(F.fmt(2.5), '2.5', '2.5');
+  eq(F.fmt(0), '0', 'zero');
+  eq(F.fmt(-0.0001), '0', 'a negative that rounds to zero');
+  eq(F.fmt(40.04), '40', '40.04');
+  const lt200 = [{ gt: 500, tag: 'mild' }, { lt: 200, tag: 'severe' }];
+  eq(F.fmtIn(199.6, lt200), '199.6', '199.6 below a cutoff of 200');
+  eq(F.fmtIn(199.96, lt200), '199.96', '199.96 below a cutoff of 200');
+  eq(F.fmtIn(200, lt200), '200', 'the cutoff itself');
+  eq(F.fmtIn(39.96, [{ lt: 40, tag: 'g2' }, { ge: 40, tag: 'g3' }]), '39.96', '39.96 below 40');
+  eq(F.fmtIn(0.2996, [{ lt: 0.3, tag: 'mild' }, { ge: 0.7, tag: 'severe' }]), '0.2996', '0.2996 below 0.3');
+  eq(F.fmtIn(0.31, [{ lt: 0.3, tag: 'mild' }]), '0.31', 'no band either way');
+  eq(F.fmtIn(1.50068, [{ gt: 2.5, tag: 'mild' }, { gt: 1.5, le: 2.5, tag: 'moderate' }, { le: 1.5, tag: 'severe' }]), '1.501', 'an area just above 1.5');
 });
 
 console.log(`${passed} passed, ${failed} failed`);

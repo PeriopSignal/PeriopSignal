@@ -21,22 +21,27 @@ VALVE_FLOW_CONTRACT = {
                        "flow-unknown", "normal-flow", "ef-unknown", "dse-severe", "dse-pseudo", "dse-next", "calcium-severe", "calcium-unlikely", "indeterminate"]},
     "mr": {"steps": ["type", "flail", "jet", "cw", "vc", "pisa", "pv", "inflow", "size", "eroa", "rvol", "rf", "ellipse"],
            "options": {"type": ["acute", "secondary"], "jet": ["eccentric"], "cw": ["partial"], "ellipse": ["yes"]},
-           "tags": {"eroa": ["g1", "g2", "g3", "g4"], "rvol": ["g1", "g2", "g3", "g4"], "rf": ["g1", "g2", "g3", "g4"]},
+           "optionTags": {"flail": {"yes": "severe"}, "pv": {"reversal": "severe"}},
+           "tags": {"vc": ["mild", "severe"], "eroa": ["g1", "g2", "g3", "g4"], "rvol": ["g1", "g2", "g3", "g4"], "rf": ["g1", "g2", "g3", "g4"]},
            "results": _REGURG + ["acute-mild", "grade1", "grade2", "grade3", "grade3-severe", "grade4"]},
     "ar": {"steps": ["type", "flail", "vc", "jet", "pisa", "cw", "pht", "aorta", "lv", "rvol", "rf", "eroa"],
            "options": {"type": ["acute"]},
-           "tags": {"eroa": ["g1", "g2", "g3", "g4"], "rvol": ["g1", "g2", "g3", "g4"], "rf": ["g1", "g2", "g3", "g4"]},
+           "optionTags": {"flail": {"yes": "severe"}, "aorta": {"holo": "severe"}},
+           "tags": {"vc": ["mild", "severe"], "pht": ["mild", "severe"], "eroa": ["g1", "g2", "g3", "g4"], "rvol": ["g1", "g2", "g3", "g4"], "rf": ["g1", "g2", "g3", "g4"]},
            "results": _REGURG + ["acute-mild", "grade1", "grade2", "grade3", "grade3-severe", "grade4"]},
     "tr": {"steps": ["valve", "jet", "cw", "vc", "pisa", "hv", "inflow", "size", "eroa", "rvol"],
            "options": {"jet": ["eccentric"]},
+           "optionTags": {"valve": {"severe": "severe"}, "hv": {"reversal": "severe"}},
            "tags": {"vc": ["mild", "severe"], "eroa": ["mild", "moderate", "severe"], "rvol": ["mild", "moderate", "severe"]},
            "results": _REGURG + ["q-mild", "q-moderate", "q-severe"]},
     "pr": {"steps": ["jet", "rv", "ratio", "cw", "pht", "decel", "branches", "rf"],
-           "options": {"cw": ["soft"]},
-           "tags": {"rf": ["mild", "moderate", "severe"]},
+           "options": {"cw": ["soft", "dense"]},
+           "optionTags": {"branches": {"yes": "severe"}},
+           "tags": {"pht": ["severe"], "rf": ["mild", "moderate", "severe"]},
            "results": _REGURG + ["probable-moderate", "q-mild", "q-moderate", "q-severe"]},
     "ms": {"steps": ["etiology", "planimetry", "pht", "mg", "pasp", "alt"],
            "options": {"etiology": ["calcific"]},
+           "tags": {"planimetry": ["mild", "moderate", "severe"], "pht": ["mild", "moderate", "severe"]},
            "results": ["calcific-1", "calcific-2", "calcific-3", "calcific-nograd", "mild", "moderate", "severe", "supportive-only", "nodata"]},
     "ps": {"steps": ["level", "vmax", "rvsp"],
            "options": {"level": ["sub", "supra", "serial"]},
@@ -643,6 +648,11 @@ def main(path):
                     have = {o.get("id") for o in (steps_by_id.get(sid) or {}).get("options") or []}
                     for o in opts:
                         need(o in have, f"valve flow {fid}/{sid}: the rules use option {o}")
+                # The signs the rules count by their tag: content that drops a tag would silently stop counting it.
+                for sid, want in contract.get("optionTags", {}).items():
+                    have = {o.get("id"): o.get("tag") for o in (steps_by_id.get(sid) or {}).get("options") or []}
+                    for o, t in want.items():
+                        need(have.get(o) == t, f"valve flow {fid}/{sid}: the rules count option {o} as {t}")
                 for sid, tags in contract.get("tags", {}).items():
                     have = {b.get("tag") for b in (steps_by_id.get(sid) or {}).get("bands") or []}
                     for t in tags:
@@ -651,6 +661,9 @@ def main(path):
                     need(rid in res, f"valve flow {fid}: the rules end on result {rid}")
             for rid, r in res.items():
                 need(isinstance(r.get("headline"), str) and r["headline"] and isinstance(r.get("text"), str) and r["text"], f"valve flow {fid}/{rid}: headline and text required")
+                # The rules fill the placeholders they know from the text; a headline may only reuse those.
+                extra = set(re.findall(r"\{([A-Za-z]+)\}", r.get("headline") or "")) - set(re.findall(r"\{([A-Za-z]+)\}", r.get("text") or ""))
+                need(not extra, f"valve flow {fid}/{rid}: headline placeholders {sorted(extra)} are not in its text")
                 need(r.get("grade") in (None, 1, 2, 3), f"valve flow {fid}/{rid}: grade must be 1, 2 or 3")
 
     if problems:
