@@ -176,8 +176,16 @@ struct RegionalBlock: Codable, Hashable, Identifiable {
     var onset: TextList?
     var cautions: TextList?
     var tips: TextList?
+    /// NYSORA's technique page.
     var url: String?
+    /// A block from another source links here instead, under its own label (e.g. "StatPearls chapter").
+    var source: RegionalLink?
     var art: RegionalArt?
+}
+
+struct RegionalLink: Codable, Hashable {
+    var label: String
+    var url: String
 }
 
 struct RegionalArt: Codable, Hashable {
