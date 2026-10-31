@@ -163,7 +163,7 @@ enum PatientCatalog {
             PatientProblem("cspine-unstable", "Unstable cervical spine"),
             PatientProblem("scoliosis", "Scoliosis"),
         ]),
-        PatientSystem(id: "social", name: "Substance use", icon: "wineglass", problems: [
+        PatientSystem(id: "social", name: "Smoking & Substances", icon: "wineglass", problems: [
             PatientProblem("alcohol-social", "Social alcohol use", asa: 2, asaExample: "social alcohol drinker"),
             PatientProblem("alcohol-abuse", "Alcohol dependence or abuse", asa: 3, asaExample: "alcohol dependence or abuse"),
             PatientProblem("substance", "Opioid or stimulant use"),

@@ -198,6 +198,21 @@ enum PatientDemo {
         r.callIf = "SBP under 90 or over 170; SpO₂ under 92%"
         r.todos = "Resume CPAP in PACU; check glucose on arrival"
         r.scores["rcri"] = PatientScore(points: 3, max: 6, label: "Class IV · 3 or more", detail: "15.0% (11.1–20.0)", answers: ["High-risk surgery", "Ischemic heart disease", "Insulin therapy for diabetes"], date: Date())
+        r.surgeries = [PatientSurgery(name: "Total knee arthroplasty", side: "right", date: PatientMonthYear(month: 3, year: 2019)),
+                       PatientSurgery(name: "Laparoscopic cholecystectomy", date: PatientMonthYear(year: 2015))]
+        r.cardiacSymptomsAnswer = false
+        r.activeCardiacAnswer = false
+        r.ecg = ["Normal sinus rhythm", "Q waves (old infarct)"]
+        var echo = PatientEcho()
+        echo.study = "TTE"; echo.date = PatientMonthYear(month: 6, year: 2026)
+        echo.lv = .mild; echo.lvef = 50; echo.rv = .normal
+        echo.mitral = EchoValve(regurgitation: .mild); echo.aortaIntact = true
+        r.echoFindings = echo
+        var lhc = PatientLHC()
+        lhc.dominance = "right"; lhc.stenosis = ["lad": 90, "rca": 40]; lhc.notes = "DES to proximal LAD"; lhc.date = PatientMonthYear(month: 5, year: 2023)
+        r.lhc = lhc
+        r.currentAirway = "natural"
+        r.oxygen = PatientOxygen(device: "ra")
         return r
     }
 }

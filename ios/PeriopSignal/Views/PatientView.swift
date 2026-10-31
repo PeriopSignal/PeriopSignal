@@ -1,17 +1,48 @@
 import SwiftUI
 
-/// My Patient: a short history and physical, the assessment, the airway, the intraoperative course and the plan for
-/// one patient, read top to bottom like a preanesthetic note. Each card opens its editor; the tools it prompts open
-/// already filled in. Kept on this phone only until Clear (with Undo); Generate Handoff writes it up as text.
+/// My Patient's three tabs: Preoperative, Intraoperative, and Summary & Handoff.
+enum PatientTab: String, CaseIterable, Identifiable {
+    case preop, intraop, summary
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .preop: return "Preoperative"
+        case .intraop: return "Intraoperative"
+        case .summary: return "Summary & Handoff"
+        }
+    }
+    var short: String {
+        switch self {
+        case .preop: return "Preop"
+        case .intraop: return "Intraop"
+        case .summary: return "Handoff"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .preop: return "list.bullet.clipboard"
+        case .intraop: return "waveform.path.ecg.rectangle"
+        case .summary: return "arrow.left.arrow.right.square"
+        }
+    }
+}
+
+/// My Patient: one patient, in three tabs. Preoperative is the history and physical (procedure, demographics,
+/// history, assessment, airway); Intraoperative is the anesthetic in parts; Summary & Handoff carries the plan and
+/// the handoff, written as you go, to share or send. Each card opens its editor; the tools it prompts open already
+/// filled in. Kept on this phone only until Clear (with Undo).
 struct PatientView: View {
     @Environment(PatientStore.self) private var patient
     @Environment(PatientInbox.self) private var inbox
     @State private var path = NavigationPath()
     @State private var webLink: WebLink?
-    @State private var showHandoff = false
     @State private var confirmClear = false
     @State private var handoff = PatientHandoff()
     @State private var showNote = false
+    /// The last tab used (screenshot runs pass -ps.patient.tab, which UserDefaults reads first).
+    @AppStorage("ps.patient.tab") private var tabID = PatientTab.preop.rawValue
+    /// A tab opened for a screenshot, without changing the one remembered.
+    @State private var tabOverride: PatientTab?
     /// What Fill from a note just added, for its banner and Undo.
     @State private var noteResult: NoteResult?
     /// A patient from a colleague was just opened (true when it replaced another, which Undo brings back).
@@ -25,6 +56,7 @@ struct PatientView: View {
     }
 
     private var r: PatientRecord { patient.record }
+    private var tab: PatientTab { tabOverride ?? PatientTab(rawValue: tabID) ?? .preop }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -32,22 +64,15 @@ struct PatientView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         NoIdentifiersBanner()
+                        tabBar
                         if patient.canUndo { undoBanner }
                         if let n = noteResult { noteBanner(n) }
                         if let replaced = received { receivedBanner(replaced) }
-                        noteButton
-                        if patient.isEmpty {
-                            emptyCard
-                        } else {
-                            summaryCard
-                            jumpBar(proxy)
+                        switch tab {
+                        case .preop: preop(proxy)
+                        case .intraop: intraop(proxy)
+                        case .summary: summary
                         }
-                        historyCard.id(PatientEditor.history)
-                        assessmentCard.id(PatientEditor.assessment)
-                        airwayCard.id(PatientEditor.airway)
-                        intraopCard.id(PatientEditor.intraop)
-                        planCard.id(PatientEditor.plan)
-                        handoffButton
                         EvidenceNote("Kept on this phone, with no name or record number, until you clear it. Not backed up; it leaves the phone only if you send it.", title: "Kept on this phone")
                             .padding(.horizontal, 2)
                     }
@@ -117,43 +142,126 @@ struct PatientView: View {
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
         }
-        .sheet(isPresented: $showHandoff) {
-            HandoffSheet(full: HandoffWriter.text(r), short: HandoffWriter.shortText(r), record: r)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-        }
     }
 
     private func open(_ key: String) {
         if let route = RefRoute(key: key) { path.append(route) }
     }
 
-    /// Screenshot runs: -ps.patient.open history | medications | assessment | airway | intraop | plan | handoff | note |
-    /// receive | score:rcri.
+    /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
+    /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
+    /// intraop:<part> | a reference route such as score:rcri.
     private func openForScreenshot() async {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         switch o {
         case "details": path.append(PatientEditor.details)
+        case "procedure": path.append(PatientEditor.procedure)
+        case "demographics": path.append(PatientEditor.demographics)
         case "history": path.append(PatientEditor.history)
         case "medications": path.append(PatientEditor.medications)
         case "assessment": path.append(PatientEditor.assessment)
         case "airway": path.append(PatientEditor.airway)
         case "intraop": path.append(PatientEditor.intraop)
         case "plan": path.append(PatientEditor.plan)
-        case "handoff":
-            // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
-            try? await Task.sleep(nanoseconds: 800_000_000)
-            showHandoff = true
+        case "handoff": tabOverride = .summary
         case "note":
+            // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
             showNote = true
         case "receive":
             try? await Task.sleep(nanoseconds: 800_000_000)
             inbox.pending = PatientPacket(record: PatientDemo.record)
-        default: if let route = RefRoute(key: o) { path.append(route) }
+        default:
+            if o.hasPrefix("workup:") { path.append(PatientEditor.workup(String(o.dropFirst(7)))) }
+            else if o.hasPrefix("intraop:") { path.append(PatientEditor.intraopPart(String(o.dropFirst(8)))) }
+            else if let route = RefRoute(key: o) { path.append(route) }
         }
         #endif
+    }
+
+    // MARK: Tabs
+
+    private var tabBar: some View {
+        HStack(spacing: 4) {
+            ForEach(PatientTab.allCases) { t in
+                let on = t == tab
+                Button {
+                    Haptics.light()
+                    withAnimation(.snappy) { tabOverride = nil; tabID = t.rawValue }
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: t.icon).font(PS.sys(size: 15, weight: .semibold))
+                        Text(t.title).font(PS.sys(size: 12.5, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                    }
+                    .foregroundStyle(on ? PS.accentFg : PS.fg2)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(on ? PS.accent : Color.clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(t.title)
+                .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
+        .padding(4)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    @ViewBuilder private func preop(_ proxy: ScrollViewProxy) -> some View {
+        noteButton
+        if patient.isEmpty { emptyCard }
+        jumpBar(proxy, [PatientEditor.procedure, .demographics, .history, .assessment, .airway])
+        PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
+            .id(PatientEditor.procedure)
+        PatientSectionCard(editor: .demographics, lines: PatientSummary.demographicsLines(r), empty: "Age, sex, height, weight and preprocedure vital signs.")
+            .id(PatientEditor.demographics)
+        PatientSectionCard(editor: .history, lines: PatientSummary.historyLines(r), empty: "Problems by system, surgical history, medications, allergies, anesthetic complications, NPO and labs.")
+            .id(PatientEditor.history)
+        PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity, the cardiac evaluation and the risk scores.")
+            .id(PatientEditor.assessment)
+        airwayCard.id(PatientEditor.airway)
+    }
+
+    @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
+        noteButton
+        let echoUp = PatientRules.echoFirst(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty
+        let parts = PatientEditor.intraopParts.filter { $0.id != "echo" || echoUp }
+        jumpBar(proxy, parts.map { PatientEditor.intraopPart($0.id) })
+        ForEach(parts, id: \.id) { part in
+            PatientSectionCard(editor: .intraopPart(part.id), lines: PatientSummary.intraopPartLines(r, part.id), empty: Self.intraopEmpty[part.id] ?? "")
+                .id(PatientEditor.intraopPart(part.id))
+        }
+        if !echoUp {
+            NavigationLink(value: PatientEditor.intraopPart("echo")) {
+                Label("Add echo findings", systemImage: "plus.circle")
+            }
+            .buttonStyle(GhostButtonStyle())
+        }
+    }
+
+    private static let intraopEmpty: [String: String] = [
+        "airway": "Mask, supraglottic airway, intubation, the view and the tube.",
+        "lines": "Peripheral, arterial and central lines.",
+        "regional": "Blocks and neuraxial techniques, drugs and catheters.",
+        "infusions": "Drips running and their rates.",
+        "fluids": "Crystalloid, colloid, blood products, cell saver, blood loss and urine.",
+        "meds": "Antibiotic and time, steroids, TXA, reversal, positioning.",
+        "events": "What happened, and whether the patient leaves intubated or extubated.",
+        "echo": "LV and RV function, valves, aorta, other findings.",
+    ]
+
+    @ViewBuilder private var summary: some View {
+        PatientSectionCard(editor: .plan, lines: PatientSummary.planLines(r), empty: "Disposition, pain plan and what the next team should do.")
+            .id(PatientEditor.plan)
+        if patient.isEmpty {
+            Text("The handoff writes itself here as you fill in the other tabs.")
+                .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 2)
+        } else {
+            HandoffPanel(record: r)
+        }
     }
 
     // MARK: Top
@@ -181,7 +289,7 @@ struct PatientView: View {
                     .background(PS.accent2.opacity(0.12), in: Circle())
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Fill from a note").font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text("Type or dictate the history; check what's found before it's added.")
+                    Text("Type or dictate; check what's found before it's added.")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 6)
@@ -256,66 +364,26 @@ struct PatientView: View {
     private var emptyCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "One patient at a time", color: PS.accent)
-            Text("Start with the patient's age, sex, height and weight.")
+            Text("Start with the procedure and the patient's age, sex, height and weight.")
                 .font(PS.serif(size: 22)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-            Text("They fill in the calculators for you, and the rest of the tab builds a short history and physical, the intraoperative course and a handoff.")
+            Text("They fill in the calculators for you; the tabs build a short history and physical, the intraoperative record and a handoff.")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            Text("Everything stays on this phone unless you send it to a colleague.")
-                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            NavigationLink(value: PatientEditor.details) {
-                Label("Add patient details", systemImage: "plus")
+            HStack(spacing: 10) {
+                NavigationLink(value: PatientEditor.procedure) { Label("Procedure", systemImage: "plus") }
+                    .buttonStyle(CapsuleButtonStyle())
+                NavigationLink(value: PatientEditor.demographics) { Label("Demographics", systemImage: "plus") }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
-            .buttonStyle(CapsuleButtonStyle())
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 
-    private var summaryCard: some View {
-        NavigationLink(value: PatientEditor.details) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline) {
-                    Eyebrow(text: r.urgency?.label ?? "Patient", color: r.emergency ? PS.accent : PS.fg3)
-                    Spacer()
-                    Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                }
-                Text(r.person.isEmpty ? "Patient" : r.person)
-                    .font(PS.serif(size: 26)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                if !r.procedure.isEmpty {
-                    Text(r.procedure).font(PS.sys(size: 15, weight: .medium)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
-                }
-                let sizeLine = PatientSummary.bodyLine(r)
-                if !sizeLine.isEmpty { Text(sizeLine).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
-                WrapLayout(spacing: 6) {
-                    if let asa = PatientRules.asaText(r) { badge(asa, PS.accent) }
-                    else if let s = PatientRules.asaSuggestion(r) { badge("Suggested " + s.label, PS.fg3) }
-                    if let m = PatientSummary.metsText(r) { badge(m, r.mets == "lt4" ? PS.accent : PS.green) }
-                    if !r.anesthetic.isEmpty { badge(PatientSummary.anestheticText(r), PS.accent2) }
-                    if r.nkda { badge("NKDA", PS.green) } else if !r.allergies.isEmpty { badge("Allergies", PS.accent) }
-                }
-                if let v = PatientSummary.vitalsLine(r) { Text(v).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3) }
-            }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func badge(_ text: String, _ color: Color) -> some View {
-        Text(text)
-            .font(PS.sys(size: 12, weight: .semibold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 9).padding(.vertical, 4)
-            .background(color.opacity(0.12), in: Capsule())
-    }
-
-    private func jumpBar(_ proxy: ScrollViewProxy) -> some View {
+    private func jumpBar(_ proxy: ScrollViewProxy, _ editors: [PatientEditor]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach([PatientEditor.history, .assessment, .airway, .intraop, .plan], id: \.self) { e in
+                ForEach(editors, id: \.self) { e in
                     Button { withAnimation(.snappy) { proxy.scrollTo(e, anchor: .top) } } label: {
                         Text(e.title)
                             .font(PS.sys(size: 13.5, weight: .semibold))
@@ -327,18 +395,10 @@ struct PatientView: View {
                 }
             }
         }
+        .scrollClipDisabled()
     }
 
     // MARK: Section cards
-
-    private var historyCard: some View {
-        PatientSectionCard(editor: .history, lines: PatientSummary.historyLines(r), empty: "Problems by system, medications, allergies, anesthesia history, NPO and labs.")
-    }
-
-    /// The risk scores and checks are listed in the Assessment editor (and the Reference tab), not here.
-    private var assessmentCard: some View {
-        PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity and the risk scores.")
-    }
 
     private var airwayCard: some View {
         NavigationLink(value: PatientEditor.airway) {
@@ -347,12 +407,12 @@ struct PatientView: View {
                     sectionHeader(.airway)
                     let lines = PatientSummary.airwayLines(r)
                     if lines.isEmpty {
-                        Text("Mallampati, difficult-airway signs, teeth and the examination.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                        Text("Current airway and oxygen, Mallampati, difficult-airway signs and teeth.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     } else {
                         ForEach(Array(lines.enumerated()), id: \.offset) { _, l in summaryLine(l) }
                     }
                 }
-                if let m = r.mallampati {
+                if let m = r.mallampati, !r.arrivesWithAirway {
                     VStack(spacing: 4) {
                         MallampatiDrawing(mclass: m).frame(width: 64, height: 64)
                         Text(PatientRules.roman(m)).font(PS.mono(size: 11, weight: .bold)).foregroundStyle(PS.fg2)
@@ -365,14 +425,6 @@ struct PatientView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-
-    private var intraopCard: some View {
-        PatientSectionCard(editor: .intraop, lines: PatientSummary.intraopLines(r), empty: "Airway course, lines, blocks, infusions, fluids and blood, events and echo.")
-    }
-
-    private var planCard: some View {
-        PatientSectionCard(editor: .plan, lines: PatientSummary.planLines(r), empty: "Disposition, pain plan and what the next team should do.")
     }
 
     private func sectionHeader(_ e: PatientEditor) -> some View {
@@ -389,22 +441,6 @@ struct PatientView: View {
             if let k = l.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(l.alert ? PS.accent : PS.fg3) }
             Text(l.text).font(PS.sys(size: 14)).foregroundStyle(l.alert ? PS.accent : PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
-    }
-
-    private var handoffButton: some View {
-        Button { showHandoff = true } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "arrow.left.arrow.right.square").font(PS.sys(size: 17, weight: .semibold))
-                Text("Generate Handoff").font(PS.sys(size: 16, weight: .semibold))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 15)
-            .foregroundStyle(PS.accentFg)
-            .background(patient.isEmpty ? PS.fg3 : PS.accent, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .disabled(patient.isEmpty)
-        .padding(.top, 4)
     }
 }
 
@@ -443,18 +479,60 @@ struct PatientSectionCard: View {
     }
 }
 
-/// The handoff as text, short or full: read, copy or share the one shown. Or send the patient itself to a colleague's
-/// Periop Signal, so they carry on with the case.
-struct HandoffSheet: View {
-    var full: String
-    var short: String
+/// The handoff as it stands, short or full, written from the record as you go: read it, copy it, share it, or send
+/// the patient itself to a colleague's Periop Signal so they carry on with the case.
+struct HandoffPanel: View {
     var record: PatientRecord
     /// "full" or "short"; the last one used is kept.
     @AppStorage("ps.handoff.format") private var format = "full"
-    @Environment(\.dismiss) private var dismiss
     @State private var copied = false
 
-    private var text: String { format == "short" ? short : full }
+    private var text: String { format == "short" ? HandoffWriter.shortText(record) : HandoffWriter.text(record) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Eyebrow(text: "Handoff, as it stands")
+                Spacer()
+                Picker("Handoff", selection: $format) {
+                    Text("Short").tag("short")
+                    Text("Full").tag("full")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 150)
+            }
+            Text(text)
+                .font(PS.sys(size: 14.5))
+                .foregroundStyle(PS.fg)
+                .lineSpacing(3)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            HStack(spacing: 10) {
+                ShareLink(item: text) { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
+                    .buttonStyle(BigButtonStyle(prominent: true))
+                Button { UIPasteboard.general.string = text; copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
+                    .buttonStyle(BigButtonStyle(prominent: false))
+            }
+            EvidenceNote("Share only through channels your institution approves for patient information.", title: "Approved channels only")
+            sendCard
+            VStack(alignment: .leading, spacing: 8) {
+                Eyebrow(text: "Handing over")
+                ForEach(Array(HandoffWriter.steps.enumerated()), id: \.offset) { i, step in
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Text("\(i + 1)").font(PS.mono(size: 12, weight: .bold)).foregroundStyle(PS.accent).frame(width: 16, alignment: .leading)
+                        Text(step).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                EvidenceNote("From the HATRICC handoff protocol (Lane-Fall MB, et al. Implement Sci 2021). In a PACU, anesthesia often reports alone.")
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        }
+        .sensoryFeedback(.success, trigger: copied)
+    }
 
     private var sendCard: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -466,68 +544,19 @@ struct HandoffSheet: View {
                     .background(PS.accent2.opacity(0.12), in: Circle())
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Send this patient").font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text("To a colleague's Periop Signal by AirDrop (or hold your iPhones together) or iMessage. It opens in their My Patient so they can carry on with the case.")
+                    Text("To a colleague's Periop Signal by AirDrop or iMessage; it opens in their My Patient so they can carry on with the case.")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
                 }
             }
             ShareLink(item: PatientTransfer(record: record),
                       preview: SharePreview("Patient for handoff", image: Image(systemName: "person.text.rectangle"))) {
-                Label("Send Patient", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                Label("Send Patient", systemImage: "iphone.and.arrow.forward").frame(maxWidth: .infinity)
             }
-            .buttonStyle(BigButtonStyle(prominent: true))
+            .buttonStyle(BigButtonStyle(prominent: false))
             EvidenceNote("In Messages, they tap the file, then Share, then Periop Signal. Send only to the colleague taking over, through channels your institution approves; Messages keeps a copy in the conversation.", title: "How it works")
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    sendCard
-                    Picker("Handoff", selection: $format) {
-                        Text("Short").tag("short")
-                        Text("Full").tag("full")
-                    }
-                    .pickerStyle(.segmented)
-                    Text(text)
-                        .font(PS.sys(size: 14.5))
-                        .foregroundStyle(PS.fg)
-                        .lineSpacing(3)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-                    EvidenceNote("Share only through channels your institution approves for patient information.", title: "Approved channels only")
-                    VStack(alignment: .leading, spacing: 8) {
-                        Eyebrow(text: "Handing over")
-                        ForEach(Array(HandoffWriter.steps.enumerated()), id: \.offset) { i, step in
-                            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                                Text("\(i + 1)").font(PS.mono(size: 12, weight: .bold)).foregroundStyle(PS.accent).frame(width: 16, alignment: .leading)
-                                Text(step).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                        EvidenceNote("From the HATRICC handoff protocol (Lane-Fall MB, et al. Implement Sci 2021). In a PACU, anesthesia often reports alone.")
-                    }
-                    .padding(16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-                }
-                .padding(20)
-            }
-            .background(FeedBackground())
-            .navigationTitle("Handoff")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("Done") { dismiss() } }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { UIPasteboard.general.string = text; copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc") }
-                    ShareLink(item: text) { Label("Share", systemImage: "square.and.arrow.up") }
-                }
-            }
-            .sensoryFeedback(.success, trigger: copied)
-        }
     }
 }

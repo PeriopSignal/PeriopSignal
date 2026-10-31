@@ -230,6 +230,16 @@ jobs:
           shot 90-rcri-evidence 12 -ps.ref score:rcri -ps.evidence.open 1
           shot 91-patient-assessment-evidence 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1
           shot 92-infusions-evidence 12 -ps.ref infusions -ps.la.weight 70 -ps.evidence.open 1
+          shot 93-patient-intraop-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab intraop
+          shot 94-patient-summary-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab summary
+          shot 95-patient-procedure 12 -ps.tab patient -ps.patient demo -ps.patient.open procedure
+          shot 96-patient-demographics 12 -ps.tab patient -ps.patient demo -ps.patient.open demographics
+          shot 97-patient-history 12 -ps.tab patient -ps.patient demo -ps.patient.open history
+          shot 98-patient-echo 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
+          shot 99-patient-lhc 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc
+          shot 100-patient-surgeries 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries
+          shot 101-patient-events 12 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events
+          shot 102-patient-preop-light 12 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

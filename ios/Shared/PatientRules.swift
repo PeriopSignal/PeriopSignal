@@ -286,3 +286,19 @@ enum PatientAirway {
         ("4", "4", "Unable to ventilate by mask"),
     ]
 }
+
+// MARK: - Echo up front
+
+extension PatientRules {
+    /// Liver or lung transplant, cardiac surgery and major aortic surgery show the echo findings up front; for any other
+    /// case they wait behind "Add echo findings".
+    static let echoFirstWords = ["cabg", "valve", "avr", "mvr", "tvr", "tavr", "tavi", "teer", "mitraclip", "lvad", "vad", "heart transplant",
+                                 "liver transplant", "lung transplant", "olt", "oht", "blt", "slt", "cardiac", "sternotomy", "coronary",
+                                 "ecmo", "mitral", "tricuspid", "myectomy", "maze", "ross", "aortic", "aorta", "aaa", "evar", "tevar",
+                                 "fevar", "thromboendarterectomy", "asd", "vsd", "pericardiectomy"]
+
+    static func echoFirst(_ r: PatientRecord) -> Bool {
+        let p = " " + r.procedure.lowercased() + " "
+        return echoFirstWords.contains { w in p.range(of: "\\b" + NSRegularExpression.escapedPattern(for: w) + "\\b", options: .regularExpression) != nil }
+    }
+}

@@ -149,6 +149,15 @@ struct PatientRecord: Codable, Equatable {
     /// 99th percentile).
     var labs: [String: Double] = [:]
     var labNotes = ""
+    /// Past surgical history (PatientWorkup), in the order entered.
+    var surgeries: [PatientSurgery] = []
+    /// Infusions running before the case, with their rates (Medications & Allergies).
+    var homeInfusions: [PatientInfusion] = []
+    /// Child-Turcotte-Pugh and MELD inputs beyond the labs. Ascites: "none", "slight", "moderate"; encephalopathy:
+    /// "none", "grade12", "grade34"; dialysis twice or more in the past week (or CVVHD for 24 h).
+    var ascites: String?
+    var encephalopathy: String?
+    var dialysis = false
 
     // Assessment
     /// "ge4", "lt4", "unknown".
@@ -157,6 +166,18 @@ struct PatientRecord: Codable, Equatable {
     var activeCardiac: Set<String> = []
     /// Active cardiac symptoms and signs (PatientFunctional.cardiacSymptomFlags).
     var cardiacSymptoms: Set<String> = []
+    /// The single-line answers that open the symptom and acute-condition chips: nil not asked, false No, true Yes.
+    var cardiacSymptomsAnswer: Bool?
+    var activeCardiacAnswer: Bool?
+    /// Previous cardiac or thoracic operations added in the cardiac evaluation (the surgical history's own
+    /// intrathoracic operations are listed with them).
+    var intrathoracic: [PatientSurgery] = []
+    /// ECG findings from the typeable list, and anything else.
+    var ecg: [String] = []
+    var ecgNotes = ""
+    var echoFindings = PatientEcho()
+    var lhc = PatientLHC()
+    var rhc = PatientRHC()
     /// Frail by a validated tool (a risk modifier in the stepwise cardiac evaluation).
     var frail = false
     /// The class the clinician chose (1–6); the suggestion is never stored.
@@ -171,6 +192,17 @@ struct PatientRecord: Codable, Equatable {
     var dentition = ""
     var airwayNotes = ""
     var examNotes = ""
+    /// The airway the patient arrives with: "natural", "ett" or "trach"; with an ETT or a tracheostomy the airway
+    /// examination and the intraoperative airway course are not asked.
+    var currentAirway: String?
+    var ettSize = ""
+    /// "23 cm at the lip".
+    var ettDepth = ""
+    /// "Shiley 8 cuffed".
+    var trachType = ""
+    /// Ventilator settings (intubated or on a tracheostomy) or oxygen (breathing on their own) on arrival.
+    var vent = PatientVent()
+    var oxygen = PatientOxygen()
 
     // Intraoperative
     /// "easy", "difficult", "none".
@@ -204,6 +236,8 @@ struct PatientRecord: Codable, Equatable {
     var medsGiven = ""
     var noEvents = false
     var events = ""
+    /// Intraoperative echo: the structured findings, and anything else as text.
+    var intraopEcho = PatientEcho()
     var echo = ""
 
     // Plan
@@ -247,10 +281,23 @@ struct PatientRecord: Codable, Equatable {
         lastClears = try? c.decodeIfPresent(Date.self, forKey: .lastClears)
         labs = v(.labs, [:])
         labNotes = v(.labNotes, "")
+        surgeries = v(.surgeries, [])
+        homeInfusions = v(.homeInfusions, [])
+        ascites = try? c.decodeIfPresent(String.self, forKey: .ascites)
+        encephalopathy = try? c.decodeIfPresent(String.self, forKey: .encephalopathy)
+        dialysis = v(.dialysis, false)
         mets = try? c.decodeIfPresent(String.self, forKey: .mets)
         dasi = v(.dasi, [])
         activeCardiac = v(.activeCardiac, [])
         cardiacSymptoms = v(.cardiacSymptoms, [])
+        cardiacSymptomsAnswer = try? c.decodeIfPresent(Bool.self, forKey: .cardiacSymptomsAnswer)
+        activeCardiacAnswer = try? c.decodeIfPresent(Bool.self, forKey: .activeCardiacAnswer)
+        intrathoracic = v(.intrathoracic, [])
+        ecg = v(.ecg, [])
+        ecgNotes = v(.ecgNotes, "")
+        echoFindings = v(.echoFindings, PatientEcho())
+        lhc = v(.lhc, PatientLHC())
+        rhc = v(.rhc, PatientRHC())
         frail = v(.frail, false)
         asaClass = try? c.decodeIfPresent(Int.self, forKey: .asaClass)
         asaE = try? c.decodeIfPresent(Bool.self, forKey: .asaE)
@@ -260,6 +307,12 @@ struct PatientRecord: Codable, Equatable {
         dentition = v(.dentition, "")
         airwayNotes = v(.airwayNotes, "")
         examNotes = v(.examNotes, "")
+        currentAirway = try? c.decodeIfPresent(String.self, forKey: .currentAirway)
+        ettSize = v(.ettSize, "")
+        ettDepth = v(.ettDepth, "")
+        trachType = v(.trachType, "")
+        vent = v(.vent, PatientVent())
+        oxygen = v(.oxygen, PatientOxygen())
         mask = try? c.decodeIfPresent(String.self, forKey: .mask)
         maskNote = v(.maskNote, "")
         maskGrade = try? c.decodeIfPresent(Int.self, forKey: .maskGrade)
@@ -282,6 +335,7 @@ struct PatientRecord: Codable, Equatable {
         medsGiven = v(.medsGiven, "")
         noEvents = v(.noEvents, false)
         events = v(.events, "")
+        intraopEcho = v(.intraopEcho, PatientEcho())
         echo = v(.echo, "")
         disposition = try? c.decodeIfPresent(String.self, forKey: .disposition)
         painPlan = v(.painPlan, "")
@@ -354,4 +408,20 @@ extension PatientRecord {
     }
 
     func has(_ problem: String) -> Bool { problems.contains(problem) }
+
+    /// Arrives with an ETT or a tracheostomy: no airway examination or intraoperative airway course to record.
+    var arrivesWithAirway: Bool { currentAirway == "ett" || currentAirway == "trach" }
+    /// Cardiac or thoracic operations from the surgical history and those added in the cardiac evaluation.
+    var allIntrathoracic: [PatientSurgery] { surgeries.filter(\.intrathoracic) + intrathoracic }
+    var hasCardiacSymptoms: Bool { cardiacSymptomsAnswer == true || !cardiacSymptoms.isEmpty }
+    var hasActiveCardiac: Bool { activeCardiacAnswer == true || !activeCardiac.isEmpty }
+    /// "7.5 ETT at 23 cm at the lip", "Tracheostomy (Shiley 8 cuffed)", "Own airway".
+    var currentAirwayText: String? {
+        switch currentAirway {
+        case "ett": return ["ETT" + (ettSize.isEmpty ? "" : " " + ettSize), ettDepth.isEmpty ? nil : "at " + ettDepth].compactMap { $0 }.joined(separator: " ")
+        case "trach": return "Tracheostomy" + (trachType.isEmpty ? "" : " (" + trachType + ")")
+        case "natural": return "Own airway"
+        default: return nil
+        }
+    }
 }
