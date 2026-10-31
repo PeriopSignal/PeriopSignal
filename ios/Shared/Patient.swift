@@ -117,7 +117,10 @@ struct PatientRecord: Codable, Equatable {
     var sex: PatientSex?
     var heightCm: Double?
     var weightKg: Double?
+    /// The planned procedures joined with " + " for the summary, handoff and rules; kept in step with `procedures`.
     var procedure = ""
+    /// The planned procedures as items (1.6). Empty in older saves, where only `procedure` holds the text.
+    var procedures: [PlannedProcedure] = []
     var urgency: PatientUrgency?
     /// "ga", "mac", "neuraxial", "regional".
     var anesthetic: Set<String> = []
@@ -267,6 +270,7 @@ struct PatientRecord: Codable, Equatable {
         heightCm = try? c.decodeIfPresent(Double.self, forKey: .heightCm)
         weightKg = try? c.decodeIfPresent(Double.self, forKey: .weightKg)
         procedure = v(.procedure, "")
+        procedures = v(.procedures, [])
         urgency = try? c.decodeIfPresent(PatientUrgency.self, forKey: .urgency)
         anesthetic = v(.anesthetic, [])
         highRiskSurgery = v(.highRiskSurgery, false)

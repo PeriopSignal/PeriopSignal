@@ -360,6 +360,12 @@ enum ProcedureCatalog {
     /// Parse and add up in one step.
     static func risk(_ text: String) -> ProcedureRisk { risk(parse(text)) }
 
+    /// The risk inputs for procedures picked from the list, each with its side.
+    static func risk(_ picked: [(procedure: Procedure, side: String?)]) -> ProcedureRisk {
+        let none = "".startIndex..<"".endIndex
+        return risk(picked.map { ProcedureMatch(procedure: $0.procedure, side: $0.side, range: none, text: $0.procedure.name) })
+    }
+
     // MARK: Text
 
     /// The name with its first letter lowered for "Left total knee arthroplasty", unless it starts with an

@@ -64,13 +64,15 @@ enum PatientSummary {
         var out: [Line] = []
         let what = r.procedure.trimmingCharacters(in: .whitespacesAndNewlines)
         if !what.isEmpty { out.append(Line(nil, what)) }
+        let noSide = r.procedures.filter(\.needsSide).map(\.title)
+        if !noSide.isEmpty { out.append(Line("Side not set", noSide.joined(separator: ", "), alert: true)) }
         var how: [String] = []
         if let u = r.urgency { how.append(u.label) }
         let an = anestheticText(r)
         if !an.isEmpty { how.append(an) }
         if !how.isEmpty { out.append(Line(nil, how.joined(separator: " · "), alert: r.emergency)) }
         var risk: [String] = []
-        if r.highRiskSurgery { risk.append("High-risk surgery (RCRI)") }
+        if r.highRiskSurgery && !PatientRules.cardiacSurgery(r) { risk.append("High-risk surgery (RCRI)") }
         if let i = r.incision { risk.append(i + " incision") }
         if let d = r.duration { risk.append(d) }
         if !risk.isEmpty { out.append(Line("Risk-score inputs", risk.joined(separator: " · "))) }

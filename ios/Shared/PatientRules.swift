@@ -304,12 +304,17 @@ extension PatientRules {
                                "oht", "cardiac", "sternotomy", "coronary", "myectomy", "maze", "ross", "asd", "vsd", "pericardiectomy",
                                "aortic root", "bentall", "arch replacement", "cardiopulmonary bypass"]
 
-    static func cardiacSurgery(_ r: PatientRecord) -> Bool { matches(r.procedure, cardiacWords) }
+    /// The procedure list's flag for any recognized procedure, or a keyword in the text (typed procedures).
+    static func cardiacSurgery(_ r: PatientRecord) -> Bool {
+        r.recognizedProcedures.contains(where: \.cardiac) || matches(r.procedure, cardiacWords)
+    }
 
     private static func matches(_ text: String, _ words: [String]) -> Bool {
         let p = " " + text.lowercased() + " "
         return words.contains { w in p.range(of: "\\b" + NSRegularExpression.escapedPattern(for: w) + "\\b", options: .regularExpression) != nil }
     }
 
-    static func echoFirst(_ r: PatientRecord) -> Bool { matches(r.procedure, echoFirstWords) }
+    static func echoFirst(_ r: PatientRecord) -> Bool {
+        r.recognizedProcedures.contains(where: \.echoFirst) || matches(r.procedure, echoFirstWords)
+    }
 }

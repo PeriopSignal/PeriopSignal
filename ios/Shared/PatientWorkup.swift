@@ -40,6 +40,145 @@ struct PatientMonthYear: Codable, Hashable {
     }
 }
 
+/// One planned procedure: from the procedure list (with its side when it has one) or typed, plus any details
+/// ("×3", "possible open conversion").
+struct PlannedProcedure: Codable, Hashable, Identifiable {
+    var id = UUID()
+    /// The procedure list's id; nil when typed.
+    var catalogID: String?
+    var name = ""
+    /// "left", "right", "bilateral".
+    var side: String?
+    var detail = ""
+
+    init(catalogID: String? = nil, name: String = "", side: String? = nil, detail: String = "") {
+        self.catalogID = catalogID; self.name = name; self.side = side; self.detail = detail
+    }
+
+    init(_ p: Procedure, side: String? = nil, detail: String = "") {
+        catalogID = p.id; name = p.name; self.side = p.lateral ? side : nil; self.detail = detail
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = (try? c.decodeIfPresent(UUID.self, forKey: .id)) ?? UUID()
+        catalogID = try? c.decodeIfPresent(String.self, forKey: .catalogID)
+        name = (try? c.decodeIfPresent(String.self, forKey: .name)) ?? ""
+        side = try? c.decodeIfPresent(String.self, forKey: .side)
+        detail = (try? c.decodeIfPresent(String.self, forKey: .detail)) ?? ""
+    }
+
+    var catalog: Procedure? { catalogID.flatMap { ProcedureCatalog.byID($0) } }
+    /// The procedure has a side and none was picked.
+    var needsSide: Bool { catalog?.needsSide(side) ?? false }
+
+    /// "Left total knee arthroplasty", without the details.
+    var title: String {
+        if let p = catalog { return p.displayName(side: side) }
+        guard let side, !side.isEmpty else { return name }
+        return side.capitalized + " " + name.lowercasedFirst
+    }
+
+    /// "Coronary artery bypass grafting ×3".
+    var text: String {
+        let d = detail.trimmingCharacters(in: .whitespaces)
+        return d.isEmpty ? title : title + " " + d
+    }
+
+    /// The planned procedures read from free text ("CABG x3 + AVR", "lap chole, possible open", "L TKA"). Words
+    /// between procedures become the details of the one before ("×3", "possible open"); a procedure the patient is
+    /// on or has had ("on VA ECMO", "s/p CABG") is kept as words, not planned. Words before the first procedure
+    /// become a typed procedure of their own, and text the list does not know at all stays as typed.
+    static func parse(_ text: String) -> [PlannedProcedure] {
+        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return [] }
+        let matches = ProcedureCatalog.parse(t)
+            .filter { $0.range.upperBound <= t.endIndex }
+            .sorted { $0.range.lowerBound < $1.range.lowerBound }
+        var items: [PlannedProcedure] = []
+        var lead: [String] = []
+        var cursor = t.startIndex
+        func attach(_ ws: [String]) {
+            guard !ws.isEmpty else { return }
+            if items.isEmpty { lead += ws; return }
+            let d = items[items.count - 1].detail
+            items[items.count - 1].detail = ((d.isEmpty ? [] : [d]) + ws).joined(separator: " ")
+        }
+        for m in matches where m.range.lowerBound >= cursor {
+            let gap = words(t[cursor..<m.range.lowerBound])
+            if let last = gap.last?.lowercased(), contextWords.contains(last) {
+                attach(gap + [String(t[m.range])])
+            } else {
+                attach(gap)
+                items.append(PlannedProcedure(m.procedure, side: m.side))
+            }
+            cursor = m.range.upperBound
+        }
+        attach(words(t[cursor...]))
+        if items.isEmpty { return [PlannedProcedure(name: t)] }
+        let typed = lead.joined(separator: " ")
+        if typed.filter(\.isLetter).count >= 3 { items.insert(PlannedProcedure(name: typed), at: 0) }
+        return items
+    }
+
+    /// A procedure after one of these is one the patient is on or has had.
+    private static let contextWords: Set<String> = ["on", "s/p", "sp", "post", "h/o", "hx", "after", "prior", "previous"]
+    /// Joining words and the urgency (recorded on its own) are dropped.
+    private static let fillerWords: Set<String> = ["and", "with", "w/", "w", "plus", "then", "&", "+", "/", "-",
+        "emergency", "emergent", "urgent", "elective", "stat", "planned", "scheduled", "for"]
+
+    /// The words of a gap, without joining words, with a count written "×3".
+    private static func words(_ s: Substring) -> [String] {
+        let trim = CharacterSet(charactersIn: ",;:+&()").union(.whitespaces)
+        var out: [String] = []
+        for raw in s.split(whereSeparator: { $0 == " " || $0 == "\n" || $0 == "\t" }) {
+            let w = String(raw).trimmingCharacters(in: trim)
+            guard !w.isEmpty, !fillerWords.contains(w.lowercased()) else { continue }
+            if let n = count(w) { out.append("×" + n) } else { out.append(w) }
+        }
+        // A "×" written apart from its number ("× 3").
+        var merged: [String] = []
+        for w in out {
+            if let prev = merged.last, prev == "×" || prev == "x", w.allSatisfy(\.isNumber) { merged[merged.count - 1] = "×" + w } else { merged.append(w) }
+        }
+        return merged
+    }
+
+    /// "x3", "X3", "×3" → "3".
+    private static func count(_ w: String) -> String? {
+        guard let f = w.first, f == "x" || f == "X" || f == "×" else { return nil }
+        let n = w.dropFirst()
+        return !n.isEmpty && n.allSatisfy(\.isNumber) ? String(n) : nil
+    }
+}
+
+extension PatientRecord {
+    /// Replaces the planned procedures, keeps `procedure` (the joined text) in step and, when the recognized
+    /// procedures or their sides change, fills the risk-score inputs from them. Typed procedures add nothing.
+    mutating func setProcedures(_ list: [PlannedProcedure], fillAnesthetic: Bool = true) {
+        func key(_ l: [PlannedProcedure]) -> [String] { l.compactMap { p in p.catalogID.map { $0 + "|" + (p.side ?? "") } } }
+        let changed = key(procedures) != key(list) || procedures.isEmpty
+        procedures = list
+        procedure = list.map(\.text).filter { !$0.isEmpty }.joined(separator: " + ")
+        // Typing a detail or a typed procedure's name keeps any input the clinician changed.
+        let picked = list.compactMap { p in p.catalog.map { (procedure: $0, side: p.side) } }
+        guard changed, !picked.isEmpty else { return }
+        let risk = ProcedureCatalog.risk(picked)
+        if fillAnesthetic {
+            risk.apply(to: &self)
+        } else {
+            highRiskSurgery = risk.highRisk
+            incision = risk.incision
+            duration = risk.duration
+        }
+    }
+
+    /// The planned procedures the list recognizes: from the items, or read from the text in an older save.
+    var recognizedProcedures: [Procedure] {
+        procedures.isEmpty ? ProcedureCatalog.parse(procedure).map(\.procedure) : procedures.compactMap(\.catalog)
+    }
+}
+
 /// One past operation: from the procedure list or typed, with the side and the month and year.
 struct PatientSurgery: Codable, Hashable, Identifiable {
     var id = UUID()

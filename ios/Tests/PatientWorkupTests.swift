@@ -132,6 +132,7 @@ final class PatientWorkupTests: XCTestCase {
     /// Cardiac surgery hides the RCRI (derived for noncardiac surgery).
     func testCardiacSurgeryHidesRCRI() {
         var r = PatientDemo.record
+        r.procedures = []
         XCTAssertTrue(PatientRules.prompts(r).contains { $0.id == "rcri" })
         for p in ["CABG ×3", "Aortic valve replacement", "TAVR", "Redo sternotomy, MVR", "Bentall"] {
             r.procedure = p
@@ -229,5 +230,95 @@ final class PatientWorkupTests: XCTestCase {
         full.rhc.co = 4.2; full.currentAirway = "ett"; full.vent.peep = 5
         let round = try JSONDecoder().decode(PatientRecord.self, from: JSONEncoder().encode(full))
         XCTAssertEqual(round, full, "every new field survives a save")
+    }
+
+    // MARK: Planned procedures
+
+    func testPlannedProceduresFromText() {
+        let ecmo = PlannedProcedure.parse("Emergency CABG ×3 on VA ECMO")
+        XCTAssertEqual(ecmo.map(\.catalogID), ["cabg"], "on VA ECMO is the patient's state, not a planned cannulation")
+        XCTAssertEqual(ecmo.first?.text, "Coronary artery bypass grafting ×3 on VA ECMO")
+
+        let two = PlannedProcedure.parse("CABGx3 + AVR")
+        XCTAssertEqual(two.map(\.catalogID), ["cabg", "avr"])
+        XCTAssertEqual(two.first?.detail, "×3")
+
+        let knee = PlannedProcedure.parse("L TKA")
+        XCTAssertEqual(knee.first?.catalogID, "tka")
+        XCTAssertEqual(knee.first?.title, "Left total knee arthroplasty")
+        XCTAssertFalse(knee.first?.needsSide ?? true)
+
+        let hernia = PlannedProcedure.parse("inguinal hernia repair")
+        XCTAssertTrue(hernia.first?.needsSide ?? false, "a sided procedure with no side asks for it")
+
+        XCTAssertTrue(PlannedProcedure.parse("").isEmpty)
+        XCTAssertEqual(PlannedProcedure.parse("zzqx plication").first?.name, "zzqx plication", "unknown text stays as typed")
+    }
+
+    func testPlannedProceduresFillRiskInputs() {
+        var r = PatientRecord()
+        r.setProcedures(PlannedProcedure.parse("lap chole"))
+        XCTAssertEqual(r.procedure, "Laparoscopic cholecystectomy")
+        XCTAssertTrue(r.highRiskSurgery)
+        XCTAssertEqual(r.incision, "Upper abdominal")
+        XCTAssertTrue(r.anesthetic.contains("ga"))
+
+        // A clinician's change survives typing a detail, but not a change of procedure.
+        r.duration = "> 3 h"
+        var list = r.procedures
+        list[0].detail = "with cholangiogram"
+        r.setProcedures(list)
+        XCTAssertEqual(r.duration, "> 3 h")
+        XCTAssertEqual(r.procedure, "Laparoscopic cholecystectomy with cholangiogram")
+        r.setProcedures(list + PlannedProcedure.parse("L TKA"))
+        XCTAssertEqual(r.procedure, "Laparoscopic cholecystectomy with cholangiogram + Left total knee arthroplasty")
+        XCTAssertNotEqual(r.duration, nil)
+
+        // Typed procedures leave the inputs alone.
+        var t = PatientRecord()
+        t.incision = "Peripheral"
+        t.setProcedures([PlannedProcedure(name: "zzqx plication")])
+        XCTAssertEqual(t.incision, "Peripheral")
+        XCTAssertEqual(t.procedure, "zzqx plication")
+    }
+
+    func testPlannedProceduresDriveRules() {
+        var r = PatientRecord()
+        r.setProcedures(PlannedProcedure.parse("AVR"))
+        XCTAssertTrue(PatientRules.cardiacSurgery(r))
+        XCTAssertTrue(PatientRules.echoFirst(r))
+        XCTAssertFalse(PatientRules.prompts(r).contains { $0.id == "rcri" })
+        XCTAssertFalse(PatientSummary.procedureLines(r).contains { $0.text.contains("RCRI") })
+
+        var h = PatientRecord()
+        h.setProcedures(PlannedProcedure.parse("inguinal hernia repair"))
+        XCTAssertFalse(PatientRules.cardiacSurgery(h))
+        XCTAssertTrue(PatientSummary.procedureLines(h).contains { $0.label == "Side not set" && $0.alert })
+
+        // A note's procedure becomes items and fills the inputs, but leaves the anesthetic to the note.
+        var n = PatientRecord()
+        n.anesthetic = ["mac"]
+        PatientNote.apply([.procedure("lap chole")], to: &n)
+        XCTAssertEqual(n.procedures.first?.catalogID, "lap-chole")
+        XCTAssertTrue(n.highRiskSurgery)
+        XCTAssertEqual(n.anesthetic, ["mac"])
+    }
+
+    func testPlannedProcedureOldSave() throws {
+        let json = #"{"procedure":"Right TKA","anesthetic":[]}"#
+        let r = try JSONDecoder().decode(PatientRecord.self, from: Data(json.utf8))
+        XCTAssertTrue(r.procedures.isEmpty)
+        XCTAssertEqual(r.recognizedProcedures.map(\.id), ["tka"], "older text is still read for the rules")
+        let item = try JSONDecoder().decode(PlannedProcedure.self, from: Data(#"{"name":"x"}"#.utf8))
+        XCTAssertEqual(item.detail, "")
+    }
+
+    func testSurgeryPickedFromList() {
+        var s = PatientSurgery(name: "cabg")
+        let p = try! XCTUnwrap(ProcedureCatalog.byID("cabg"))
+        s.procedureID = p.id; s.name = p.name
+        if p.cardiac || p.incision == "Intrathoracic" { s.intrathoracic = true }
+        XCTAssertTrue(s.intrathoracic)
+        XCTAssertEqual(s.text, "Coronary artery bypass grafting")
     }
 }

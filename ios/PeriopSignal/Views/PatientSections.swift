@@ -8,8 +8,17 @@ extension PatientEditorView {
     // MARK: Procedure and demographics
 
     @ViewBuilder var procedureEditor: some View {
-        PatientGroup(title: "Procedure") {
-            PatientTextField(label: "Procedure", prompt: "e.g. laparoscopic colectomy", text: bind(\.procedure))
+        let recognized = r.procedures.contains { $0.catalogID != nil }
+        let noSide = r.procedures.filter(\.needsSide)
+        PatientGroup(title: "Planned procedures", note: noSide.isEmpty ? nil : "Pick the side for " + noSide.map { ProcedureCatalog.lowerFirst($0.title) }.joined(separator: ", ") + ".") {
+            ForEach(r.procedures) { p in
+                PlannedProcedureRow(item: plannedBinding(p.id)) { patient.update { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
+                Hairline().padding(.leading, 14)
+            }
+            ProcedureSearchField { items in patient.update { $0.setProcedures($0.procedures + items) } }
+        }
+        .onAppear(perform: readOldProcedureText)
+        PatientGroup(title: "Urgency & anesthetic") {
             PatientChipRow(label: "Urgency") {
                 PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
             }
@@ -19,7 +28,7 @@ extension PatientEditorView {
             }
             PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
         }
-        PatientGroup(title: "Risk-score inputs", note: PatientRules.cardiacSurgery(r) ? "Cardiac surgery: the RCRI is not shown, as it was derived for noncardiac surgery (Lee 1999)." : nil) {
+        PatientGroup(title: "Risk-score inputs", note: riskInputsNote(recognized: recognized)) {
             if !PatientRules.cardiacSurgery(r) {
                 toggleRow("High-risk surgery", "Intraperitoneal, intrathoracic or suprainguinal vascular (RCRI)", bind(\.highRiskSurgery))
             }
@@ -30,6 +39,32 @@ extension PatientEditorView {
                 PatientChoice(options: [(id: "≤ 2 h", label: "2 h or less"), (id: "> 2–3 h", label: "Over 2 to 3 h"), (id: "> 3 h", label: "Over 3 h")], selection: bind(\.duration))
             }
         }
+    }
+
+    private func riskInputsNote(recognized: Bool) -> String? {
+        var parts: [String] = []
+        if recognized {
+            parts.append("Filled in from the planned procedures; change any that do not fit this case. Several procedures: high risk if any is, the most serious incision, and the longest duration (one step longer when two or more each take over 2 h).")
+        }
+        if PatientRules.cardiacSurgery(r) {
+            parts.append("Cardiac surgery: the RCRI is not shown, as it was derived for noncardiac surgery (Lee 1999).")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " ")
+    }
+
+    /// A record saved before 1.6 has the procedure as text only: read it into items once, leaving the text and the
+    /// risk-score inputs as they were until the list is changed.
+    private func readOldProcedureText() {
+        guard r.procedures.isEmpty, !r.procedure.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        patient.update { $0.procedures = PlannedProcedure.parse($0.procedure) }
+    }
+
+    func plannedBinding(_ id: UUID) -> Binding<PlannedProcedure> {
+        Binding(get: { patient.record.procedures.first { $0.id == id } ?? PlannedProcedure() },
+                set: { v in patient.update { r in
+                    var list = r.procedures
+                    if let i = list.firstIndex(where: { $0.id == id }) { list[i] = v; r.setProcedures(list) }
+                } })
     }
 
     @ViewBuilder var demographicsEditor: some View {
@@ -404,6 +439,11 @@ struct SurgeryRow: View {
                     .accessibilityLabel("Delete this operation")
             }
             .padding(.horizontal, 14).padding(.top, 10)
+            .onChange(of: surgery.name) { _, name in
+                // Typing over a picked procedure makes it a typed one.
+                if let id = surgery.procedureID, ProcedureCatalog.byID(id)?.name != name { surgery.procedureID = nil }
+            }
+            SurgerySuggestions(surgery: $surgery)
             PatientChipRow(label: nil) {
                 PatientChoice(options: [(id: "left", label: "Left"), (id: "right", label: "Right"), (id: "bilateral", label: "Bilateral")], selection: $surgery.side)
             }

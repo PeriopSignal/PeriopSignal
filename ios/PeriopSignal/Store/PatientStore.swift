@@ -168,7 +168,7 @@ enum PatientDemo {
     static var record: PatientRecord {
         var r = PatientRecord()
         r.ageYears = 67; r.sex = .male; r.heightCm = 178; r.weightKg = 96
-        r.procedure = "Laparoscopic sigmoid colectomy"
+        r.setProcedures(PlannedProcedure.parse("Laparoscopic sigmoid colectomy"))
         r.urgency = .elective
         r.anesthetic = ["ga", "regional"]
         r.highRiskSurgery = true
@@ -223,7 +223,7 @@ enum PatientDemo {
     static var cardiac: PatientRecord {
         var r = PatientRecord()
         r.ageYears = 58; r.sex = .male; r.heightCm = 180; r.weightKg = 88
-        r.procedure = "Emergency CABG ×3 on VA ECMO"
+        r.setProcedures(PlannedProcedure.parse("Emergency CABG ×3 on VA ECMO"))
         r.urgency = .emergency
         r.anesthetic = ["ga"]
         r.problems = ["htn", "cad", "hf"]

@@ -1132,7 +1132,8 @@ enum PatientNote {
         case .procedure(let p):
             let o = r.procedure.trimmingCharacters(in: .whitespacesAndNewlines)
             if o.isEmpty { return .new }
-            return o.caseInsensitiveCompare(p) == .orderedSame ? .recorded : .replaces(o)
+            let read = PlannedProcedure.parse(p).map(\.text).joined(separator: " + ")
+            return o.caseInsensitiveCompare(p) == .orderedSame || o.caseInsensitiveCompare(read) == .orderedSame ? .recorded : .replaces(o)
         case .urgency(let u):
             guard let o = r.urgency else { return .new }
             return o == u ? .recorded : .replaces(o.label.lowercased())
@@ -1209,7 +1210,10 @@ enum PatientNote {
             case .sex(let s): r.sex = s
             case .height(let v): r.heightCm = v
             case .weight(let v): r.weightKg = v
-            case .procedure(let p): r.procedure = p
+            case .procedure(let p):
+                // The note's own anesthetic findings decide the plan; the procedure list fills the risk-score inputs.
+                r.setProcedures(PlannedProcedure.parse(p), fillAnesthetic: false)
+                if r.procedures.allSatisfy({ $0.catalogID == nil }) { r.procedure = p }
             case .urgency(let u): r.urgency = u
             case .anesthetic(let a): r.anesthetic.insert(a)
             case .asa(let n, let e):
