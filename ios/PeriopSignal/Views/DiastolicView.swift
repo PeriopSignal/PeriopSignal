@@ -234,7 +234,7 @@ struct DiastolicView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: pop.name + ": also look for").padding(.leading, 2)
                 TakeHomeList(items: ind, size: 13.5)
-                ForEach(pop.notes ?? [], id: \.self) { n in note(n) }
+                ForEach(pop.notes ?? [], id: \.self) { n in EvidenceNote(n).padding(.horizontal, 2) }
             }
         }
         let p = r.primaries
@@ -283,7 +283,7 @@ struct DiastolicView: View {
             ? [Field(id: "E", label: "Mitral E velocity", unit: "cm/s"), Field(id: "A", label: "Mitral A velocity", unit: "cm/s"), Field(id: "ivrt", label: "IVRT", unit: "ms", hint: "Decides when E/A is 0.8–1.8")]
             : [Field(id: "E", label: "Mitral E velocity", unit: "cm/s"), Field(id: "eSeptal", label: "Septal e′", unit: "cm/s"), Field(id: "eLateral", label: "Lateral e′", unit: "cm/s"), Field(id: "esr", label: "E/SRIVR", unit: "cm", hint: "Decides when average E/e′ is 7–14"), Field(id: "tr", label: "Peak TR velocity", unit: "m/s", hint: "When SRIVR cannot be measured")]
         fieldsCard("Measurements", fields, flags: [:])
-        ForEach(pop.notes ?? [], id: \.self) { n in note(n) }
+        ForEach(pop.notes ?? [], id: \.self) { n in EvidenceNote(n).padding(.horizontal, 2) }
     }
 
     // MARK: Populations outside the algorithm
@@ -302,7 +302,7 @@ struct DiastolicView: View {
                 TakeHomeList(items: ind, size: 13.5)
             }
         }
-        ForEach(pop.notes ?? [], id: \.self) { n in note(n) }
+        ForEach(pop.notes ?? [], id: \.self) { n in EvidenceNote(n).padding(.horizontal, 2) }
     }
 
     // MARK: Pieces
@@ -371,13 +371,15 @@ struct DiastolicView: View {
     private func footer(_ d: DiastolicData) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Hairline()
-            Eyebrow(text: "Source")
-            Text(d.source.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            if let u = d.source.url, let url = URL(string: u) {
-                Button { onOpen(url) } label: { Text("Open the guideline ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
-            }
-            ForEach([d.supersedes, d.validation].compactMap { $0 } + (d.notes ?? []), id: \.self) { n in
-                Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                Eyebrow(text: "Source")
+                Text(d.source.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                if let u = d.source.url, let url = URL(string: u) {
+                    Button { onOpen(url) } label: { Text("Open the guideline ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                }
+                ForEach([d.supersedes, d.validation].compactMap { $0 } + (d.notes ?? []), id: \.self) { n in
+                    Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }

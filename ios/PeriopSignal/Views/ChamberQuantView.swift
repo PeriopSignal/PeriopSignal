@@ -288,9 +288,7 @@ struct ChamberQuantView: View {
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            if let n = g.note {
-                Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
-            }
+            if let n = g.note { EvidenceNote(n).padding(.horizontal, 2) }
         }
     }
 
@@ -522,20 +520,22 @@ struct ChamberQuantView: View {
     private func footer(_ d: EchoData) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Hairline()
-            Eyebrow(text: "Sources")
-            ForEach(d.sources) { s in
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                    if let u = s.url, let url = URL(string: u) {
-                        Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13))
+            EvidenceDisclosure {
+                Eyebrow(text: "Sources")
+                ForEach(d.sources) { s in
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                        if let u = s.url, let url = URL(string: u) {
+                            Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13))
+                        }
                     }
                 }
+                ForEach(d.notes ?? [], id: \.self) { n in
+                    Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
+                Text("Reviewed \(d.reviewed.map { PSDate.monthYear($0) } ?? ""). A reference, not a report: measure the way the guideline describes, and read borderline values with the whole study.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             }
-            ForEach(d.notes ?? [], id: \.self) { n in
-                Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            }
-            Text("Reviewed \(d.reviewed.map { PSDate.monthYear($0) } ?? ""). A reference, not a report: measure the way the guideline describes, and read borderline values with the whole study.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

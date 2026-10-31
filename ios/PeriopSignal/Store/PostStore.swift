@@ -20,6 +20,10 @@ final class PostStore {
     var selectedTopics: Set<String> = Set(UserDefaults.standard.stringArray(forKey: "ps.topics") ?? []) {
         didSet { UserDefaults.standard.set(Array(selectedTopics), forKey: "ps.topics") }
     }
+    /// Topics struck through on the bar: their posts never show, whatever else is selected. Kept until tapped again.
+    var hiddenTopics: Set<String> = Set(UserDefaults.standard.stringArray(forKey: "ps.hiddenTopics") ?? []) {
+        didSet { UserDefaults.standard.set(Array(hiddenTopics), forKey: "ps.hiddenTopics") }
+    }
     var landmarkOnly = false
     var recentOnly = false
     var query = ""
@@ -29,11 +33,31 @@ final class PostStore {
     private let lastSeenKey = "ps.lastSeenAddedAt"
 
     var forYouActive: Bool { (preferences?.forYou ?? false) && !(preferences?.myTopics.isEmpty ?? true) }
-    var hasFilters: Bool { !selectedTopics.isEmpty || landmarkOnly || recentOnly || !query.isEmpty || forYouActive }
+    /// Something narrows the feed to a choice (topics, This week, Landmark, a search, For you).
+    var hasSelections: Bool { !selectedTopics.isEmpty || landmarkOnly || recentOnly || !query.isEmpty || forYouActive }
+    /// Any filter, hidden topics included.
+    var hasFilters: Bool { hasSelections || !hiddenTopics.isEmpty }
 
+    /// All: clears the choices but keeps the hidden topics, which the reader set to keep out of the feed.
     func clearFilters() {
         selectedTopics = []; landmarkOnly = false; recentOnly = false; query = ""
         preferences?.forYou = false
+    }
+
+    enum TopicState { case off, selected, hidden }
+
+    func topicState(_ id: String) -> TopicState {
+        if hiddenTopics.contains(id) { return .hidden }
+        return selectedTopics.contains(id) ? .selected : .off
+    }
+
+    /// A topic chip cycles: first tap selects it, the second hides it (struck through), the third clears it.
+    func cycleTopic(_ id: String) {
+        switch topicState(id) {
+        case .off: selectedTopics.insert(id)
+        case .selected: selectedTopics.remove(id); hiddenTopics.insert(id)
+        case .hidden: hiddenTopics.remove(id)
+        }
     }
 
     // MARK: Loading
@@ -132,6 +156,7 @@ final class PostStore {
             if recentOnly && p.date < cutoff { return false }
             if !mine.isEmpty && mine.isDisjoint(with: p.topics) { return false }
             if !selectedTopics.isEmpty && selectedTopics.isDisjoint(with: p.topics) { return false }
+            if !hiddenTopics.isEmpty && !hiddenTopics.isDisjoint(with: p.topics) { return false }
             if !q.isEmpty && !p.searchText.contains(q) { return false }
             return true
         }
@@ -181,7 +206,7 @@ final class PostStore {
                 return (a.posts.count, b.society) > (b.posts.count, a.society)
             }
         let regulatory = posts.filter(\.isRegulatory)
-        if !regulatory.isEmpty { out.append((society: "FDA and safety notices", posts: regulatory)) }
+        if !regulatory.isEmpty { out.append((society: "FDA & safety notices", posts: regulatory)) }
         return out
     }
 

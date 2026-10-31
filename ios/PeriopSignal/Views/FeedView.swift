@@ -121,14 +121,15 @@ struct FeedView: View {
     }
 
     private var monthEyebrow: String {
-        if store.hasFilters { return "Results" }
+        if store.hasSelections { return "Results" }
         guard let first = store.filtered.first else { return "" }
         return PSDate.monthTitle(first.monthKey)
     }
 
     private var countText: String {
         let n = store.filtered.count
-        if store.hasFilters { return "\(n) of \(store.posts.count) posts" }
+        let hidden = store.hiddenTopics.count
+        if store.hasFilters { return "\(n) of \(store.posts.count) posts" + (hidden > 0 ? " · \(hidden) hidden" : "") }
         return "\(store.posts.count) posts · \(store.landmarkCount) landmark"
     }
 
@@ -256,15 +257,17 @@ struct FilterBar: View {
         @Bindable var prefs = prefs
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                FilterChip(title: "All", isOn: !store.hasFilters, fg: PS.accent) { store.clearFilters() }
+                FilterChip(title: "All", isOn: !store.hasSelections, fg: PS.accent) { store.clearFilters() }
                 if !prefs.myTopics.isEmpty {
                     FilterChip(title: "For you", isOn: prefs.forYou, fg: PS.accent) { prefs.forYou.toggle() }
                 }
                 FilterChip(title: "This week", isOn: store.recentOnly, fg: PS.accent) { store.recentOnly.toggle() }
                 FilterChip(title: "Landmark", isOn: store.landmarkOnly, fg: PS.accent) { store.landmarkOnly.toggle() }
+                // Tap once to show only that topic, again to hide it (struck through), a third time to clear it.
                 ForEach(Topics.all) { t in
-                    FilterChip(title: t.name, isOn: store.selectedTopics.contains(t.id), fg: PS.accent, dot: t.fg) {
-                        if store.selectedTopics.contains(t.id) { store.selectedTopics.remove(t.id) } else { store.selectedTopics.insert(t.id) }
+                    let state = store.topicState(t.id)
+                    FilterChip(title: t.name, isOn: state == .selected, fg: PS.accent, dot: t.fg, struck: state == .hidden) {
+                        withAnimation(.snappy) { store.cycleTopic(t.id) }
                     }
                 }
             }
@@ -281,6 +284,8 @@ struct FilterChip: View {
     var isOn: Bool
     var fg: Color
     var dot: Color? = nil
+    /// Hidden from the feed: struck through and dimmed.
+    var struck = false
     var action: () -> Void
     var body: some View {
         Button {
@@ -288,17 +293,25 @@ struct FilterChip: View {
             action()
         } label: {
             HStack(spacing: 7) {
-                if let dot { Circle().fill(isOn ? PS.accentFg.opacity(0.8) : dot).frame(width: 7, height: 7) }
-                Text(title)
+                if let dot {
+                    if struck {
+                        Image(systemName: "eye.slash").font(PS.sys(size: 9.5, weight: .bold)).foregroundStyle(PS.fg3)
+                    } else {
+                        Circle().fill(isOn ? PS.accentFg.opacity(0.8) : dot).frame(width: 7, height: 7)
+                    }
+                }
+                Text(title).strikethrough(struck, color: PS.fg3)
             }
             .font(PS.sys(size: 12.5, weight: .semibold))
             .padding(.horizontal, 13).padding(.vertical, 7)
-            .background(isOn ? fg : Color.clear, in: Capsule())
-            .overlay(Capsule().stroke(isOn ? .clear : PS.line2, lineWidth: 1))
-            .foregroundStyle(isOn ? PS.accentFg : PS.fg2)
+            .background(isOn ? fg : (struck ? PS.surface2.opacity(0.6) : Color.clear), in: Capsule())
+            .overlay(Capsule().stroke(isOn ? .clear : PS.line2, style: StrokeStyle(lineWidth: 1, dash: struck ? [3, 2.5] : [])))
+            .foregroundStyle(isOn ? PS.accentFg : (struck ? PS.fg3 : PS.fg2))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
+        .accessibilityValue(struck ? "Hidden from the feed" : "")
+        .accessibilityHint(dot == nil ? "" : (isOn ? "Tap again to hide this topic" : struck ? "Tap to show this topic again" : "Tap to show only this topic"))
     }
 }
 

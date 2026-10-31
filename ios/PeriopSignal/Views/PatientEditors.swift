@@ -9,9 +9,9 @@ enum PatientEditor: Hashable {
         case .details: return "Patient"
         case .history: return "History"
         case .system(let id): return PatientCatalog.allSystems.first { $0.id == id }?.name ?? "System"
-        case .medications: return "Medications and Allergies"
+        case .medications: return "Medications & Allergies"
         case .assessment: return "Assessment"
-        case .airway: return "Airway and Exam"
+        case .airway: return "Airway & Exam"
         case .intraop: return "Intraop"
         case .plan: return "Plan"
         }
@@ -159,7 +159,8 @@ struct PatientEditorView: View {
     // MARK: Patient
 
     @ViewBuilder private var details: some View {
-        PatientGroup(title: "Patient", note: "Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules.") {
+        NoIdentifiersBanner()
+        PatientGroup(title: "Patient") {
             PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
@@ -176,7 +177,7 @@ struct PatientEditorView: View {
             }
         }
         if r.bmi != nil {
-            line("BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian.")
+            EvidenceNote("BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian.")
         }
         PatientGroup(title: "Procedure") {
             PatientTextField(label: "Procedure", prompt: "e.g. laparoscopic colectomy", text: bind(\.procedure))
@@ -184,7 +185,7 @@ struct PatientEditorView: View {
                 PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
             }
             if let u = r.urgency {
-                line(u.detail + " (2024 AHA/ACC)")
+                EvidenceNote(u.detail + " (2024 AHA/ACC)")
                     .padding(.horizontal, 14).padding(.bottom, 8)
             }
             PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
@@ -223,7 +224,7 @@ struct PatientEditorView: View {
             PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
-            linkRow("Medications and allergies", medsSummary, icon: "pills", value: .medications)
+            linkRow("Medications & allergies", medsSummary, icon: "pills", value: .medications)
         }
         PatientGroup(title: "Smoking") {
             PatientChipRow(label: nil) {
@@ -276,7 +277,7 @@ struct PatientEditorView: View {
 
     @ViewBuilder private func system(_ id: String) -> some View {
         if let s = PatientCatalog.allSystems.first(where: { $0.id == id }) {
-            PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-Bang and other scores open with them ticked.") {
+            PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-BANG and other scores open with them ticked.") {
                 PatientChipRow(label: nil) {
                     PatientChips(options: s.problems.map { p in PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" }) }, selection: bind(\.problems))
                 }
@@ -289,7 +290,7 @@ struct PatientEditorView: View {
         PatientGroup(title: "Allergies") {
             toggleRow("No known drug allergies", nil, bind(\.nkda))
             if !r.nkda {
-                PatientTextField(label: "Allergies and reactions", prompt: "e.g. penicillin (rash); latex", text: bind(\.allergies))
+                PatientTextField(label: "Allergies & reactions", prompt: "e.g. penicillin (rash); latex", text: bind(\.allergies))
             }
         }
         PatientGroup(title: "Medications") {
@@ -335,7 +336,7 @@ struct PatientEditorView: View {
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 Hairline().padding(.leading, 14)
             } else if r.isChild {
-                line("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
+                EvidenceNote("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
                     .padding(.horizontal, 14).padding(.vertical, 10)
             }
             PatientChipRow(label: "Class") {
@@ -344,7 +345,7 @@ struct PatientEditorView: View {
             }
             toggleRow("Emergency (E)", "Delay would significantly increase the threat to life or body part", Binding(get: { patient.record.asaE ?? patient.record.emergency }, set: { v in patient.update { $0.asaE = v } }))
             if let c = r.asaClass {
-                line(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))
+                EvidenceNote(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))
                     .padding(.horizontal, 14).padding(.bottom, 10)
             }
         }
@@ -363,7 +364,7 @@ struct PatientEditorView: View {
                     }
                     if let d = PatientFunctional.dasi(r) {
                         Text(PatientFunctional.dasiText(d)).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(d > PatientFunctional.dasiCutoff ? PS.fg : PS.accent).padding(.top, 6)
-                        line(PatientFunctional.dasiNote)
+                        EvidenceNote(PatientFunctional.dasiNote)
                     }
                 }
             } label: {
@@ -372,7 +373,9 @@ struct PatientEditorView: View {
             .tint(PS.fg2)
             .padding(.horizontal, 14).padding(.vertical, 10)
             Hairline().padding(.leading, 14)
-            toggleRow("Frail", "By a validated tool, such as the Clinical Frailty Scale; assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a)", bind(\.frail))
+            toggleRow("Frail", "By a validated tool", bind(\.frail))
+            EvidenceNote("Use a validated tool, such as the Clinical Frailty Scale. Assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a).")
+                .padding(.horizontal, 14).padding(.bottom, 8)
         }
         // The guideline is for adults (2024 AHA/ACC §1.4, p e355): under 18 the symptoms and acute conditions are still
         // recorded, without the stepwise evaluation or its advice, as in the H&P (PatientSummary).
@@ -404,7 +407,7 @@ struct PatientEditorView: View {
             }
         }
         .id("cardiac")
-        PatientGroup(title: "Risk scores and checks") {
+        PatientGroup(title: "Risk scores & checks") {
             let prompts = PatientRules.prompts(r)
             ForEach(Array(prompts.enumerated()), id: \.element.id) { i, p in
                 Button { onOpenRoute(p.route) } label: {
@@ -482,11 +485,12 @@ struct PatientEditorView: View {
             .id("mask")
         }
         if !predictors.isEmpty {
-            line("Recorded predictors: " + predictors.joined(separator: "; ") + ". The ASA's 2022 guideline finds no single sign consistently more predictive than another.")
+            line("Recorded predictors: " + predictors.joined(separator: "; ") + ".")
+            EvidenceNote("The ASA's 2022 guideline finds no single sign consistently more predictive than another.")
             toolButton("Open the airway guide", route: "airway")
         }
         PatientGroup(title: "Examination") {
-            PatientTextField(label: "Heart, lungs and other findings", prompt: "e.g. regular rhythm, no murmur; clear lungs", text: bind(\.examNotes))
+            PatientTextField(label: "Heart, lungs & other findings", prompt: "e.g. regular rhythm, no murmur; clear lungs", text: bind(\.examNotes))
         }
     }
 
@@ -503,7 +507,7 @@ struct PatientEditorView: View {
                                   selection: Binding(get: { patient.record.maskGrade.map { String($0) } }, set: { v in patient.update { $0.maskGrade = v.flatMap { Int($0) } } }))
                 }
                 if let g = r.maskGrade, let d = PatientAirway.maskGrades.first(where: { $0.id == String(g) }) {
-                    line("Grade " + d.label + ": " + d.detail.lowercased() + ".")
+                    EvidenceNote("Grade " + d.label + ": " + d.detail.lowercased() + ".")
                         .padding(.horizontal, 14).padding(.bottom, 6)
                 }
             }
@@ -529,7 +533,7 @@ struct PatientEditorView: View {
                 PatientChoice(options: PatientCatalog.grades.map { (id: $0, label: $0) }, selection: bind(\.laryngoscopyGrade))
             }
             if let g = r.laryngoscopyGrade, let d = PatientCatalog.gradeDetail(g) {
-                line("Grade " + g + ": " + d.lowercased() + (g == "3" || g == "4" ? " (difficult laryngoscopy)." : "."))
+                EvidenceNote("Grade " + g + ": " + d.lowercased() + (g == "3" || g == "4" ? " (difficult laryngoscopy)." : "."))
                     .padding(.horizontal, 14).padding(.bottom, 6)
             }
             Stepper(value: Binding(get: { patient.record.attempts ?? 0 }, set: { v in patient.update { $0.attempts = v > 0 ? v : nil } }), in: 0...9) {
@@ -561,7 +565,7 @@ struct PatientEditorView: View {
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
         }
-        PatientGroup(title: "Regional and neuraxial") {
+        PatientGroup(title: "Regional & neuraxial") {
             ForEach(r.regional) { b in
                 blockEditor(b)
                 Hairline().padding(.leading, 14)
@@ -579,15 +583,15 @@ struct PatientEditorView: View {
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
         }
-        PatientGroup(title: "Fluids and blood") {
+        PatientGroup(title: "Fluids & blood") {
             ForEach(Array(PatientCatalog.fluids.enumerated()), id: \.element.id) { i, fl in
                 PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id))
                 if i < PatientCatalog.fluids.count - 1 { Hairline().padding(.leading, 14) }
             }
-            PatientTextField(label: "Factor concentrates and other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors))
+            PatientTextField(label: "Factor concentrates & other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors))
         }
-        PatientGroup(title: "Medications and interventions") {
-            PatientTextField(label: "Notable medications and interventions", prompt: "Antibiotic and time, steroids, TXA, reversal, positioning", text: bind(\.medsGiven))
+        PatientGroup(title: "Medications & interventions") {
+            PatientTextField(label: "Notable medications & interventions", prompt: "Antibiotic and time, steroids, TXA, reversal, positioning", text: bind(\.medsGiven))
         }
         PatientGroup(title: "Events") {
             toggleRow("No notable events", nil, bind(\.noEvents))
@@ -729,7 +733,7 @@ struct PatientEditorView: View {
         PatientGroup(title: "Monitoring") {
             PatientTextField(label: "When to call", prompt: "e.g. SBP under 90, SpO₂ under 92%, urine under 0.5 mL/kg/h", text: bind(\.callIf))
         }
-        PatientGroup(title: "To do and concerns") {
+        PatientGroup(title: "To do & concerns") {
             PatientTextField(label: "For the next team", prompt: "Labs to check, antibiotic redosing, CPAP, glucose, drains", text: bind(\.todos))
         }
     }

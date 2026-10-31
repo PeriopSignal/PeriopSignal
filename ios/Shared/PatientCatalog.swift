@@ -19,7 +19,7 @@ struct PatientProblem: Hashable, Identifiable {
     var pedsExample: String?
     /// The RCRI item it answers ("ihd", "hf", "cva", "insulin").
     var rcri: String?
-    /// The STOP-Bang item it answers ("snoring", "tired", "observed", "pressure").
+    /// The STOP-BANG item it answers ("snoring", "tired", "observed", "pressure").
     var stopBang: String?
 
     init(_ id: String, _ label: String, asa: Int? = nil, asaExample: String? = nil, peds: Int? = nil, pedsExample: String? = nil, rcri: String? = nil, stopBang: String? = nil) {
@@ -116,7 +116,7 @@ enum PatientCatalog {
             PatientProblem("esrd-dialysis", "ESRD on regularly scheduled dialysis", asa: 3, asaExample: "ESRD undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
             PatientProblem("aki", "Acute kidney injury, or ESRD not on scheduled dialysis", asa: 4, asaExample: "ARD or ESRD not undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
         ]),
-        PatientSystem(id: "gi", name: "GI and liver", icon: "cross.case", problems: [
+        PatientSystem(id: "gi", name: "GI & liver", icon: "cross.case", problems: [
             PatientProblem("gerd", "Reflux or hiatal hernia"),
             PatientProblem("full-stomach", "Full stomach or bowel obstruction"),
             PatientProblem("gastroparesis", "Gastroparesis"),

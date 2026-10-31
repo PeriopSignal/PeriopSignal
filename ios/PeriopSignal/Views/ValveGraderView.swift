@@ -196,8 +196,10 @@ struct ValveGraderView: View {
                     Button { onOpen(url) } label: { Label("ASE ↗", systemImage: "doc.text") }.buttonStyle(GhostButtonStyle())
                 }
             }
-            Text("Source: \(lesion.source). The reading integrates the signs the way the documents describe and sets aside what you leave blank; it is a second pair of eyes on the numbers, not a report. Loading conditions in the operating room usually under-read regurgitation.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                Text("Source: \(lesion.source). The reading integrates the signs the way the documents describe and sets aside what you leave blank; it is a second pair of eyes on the numbers, not a report. Loading conditions in the operating room usually under-read regurgitation.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

@@ -142,22 +142,24 @@ struct QuickRefView: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 10) {
             Hairline()
-            Eyebrow(text: "Source")
-            Text(ref.source.citation ?? ref.source.title)
-                .font(PS.sys(size: 13))
-                .foregroundStyle(PS.fg2)
-                .lineSpacing(1.5)
-                .fixedSize(horizontal: false, vertical: true)
-            if let url = URL(string: ref.source.url) {
-                Button { onOpen(url) } label: { Text("Open the source document ↗") }
-                    .buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+            EvidenceDisclosure {
+                Eyebrow(text: "Source")
+                Text(ref.source.citation ?? ref.source.title)
+                    .font(PS.sys(size: 13))
+                    .foregroundStyle(PS.fg2)
+                    .lineSpacing(1.5)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let url = URL(string: ref.source.url) {
+                    Button { onOpen(url) } label: { Text("Open the source document ↗") }
+                        .buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                }
+                Text("Condensed by Periop Signal\(ref.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""). A quick reference, not the guideline: confirm against the source document and your own judgement before acting on it.")
+                    .font(PS.sys(size: 12))
+                    .foregroundStyle(PS.fg3)
+                    .lineSpacing(1.5)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
             }
-            Text("Condensed by Periop Signal\(ref.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""). A quick reference, not the guideline: confirm against the source document and your own judgement before acting on it.")
-                .font(PS.sys(size: 12))
-                .foregroundStyle(PS.fg3)
-                .lineSpacing(1.5)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 4)
         }
     }
 }

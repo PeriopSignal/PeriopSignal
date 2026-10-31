@@ -142,7 +142,7 @@ enum PatientNote {
     /// The review groups, in the order My Patient's editors ask for them.
     enum Part {
         static let patient = "Patient", procedure = "Procedure", vitals = "Vital signs", history = "History",
-                   meds = "Medications and allergies", anesthesia = "Anesthesia history", intake = "Last intake",
+                   meds = "Medications & allergies", anesthesia = "Anesthesia history", intake = "Last intake",
                    labs = "Labs", assessment = "Assessment", airway = "Airway"
     }
 

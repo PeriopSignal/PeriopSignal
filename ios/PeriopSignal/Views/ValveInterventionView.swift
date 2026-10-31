@@ -91,7 +91,7 @@ struct ValveInterventionView: View {
             } else if let f = r.fallback {
                 Text(f).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(answers.isEmpty ? "Severity and Symptoms First" : "Nothing Settled Yet").font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg3)
+                Text(answers.isEmpty ? "Severity & Symptoms First" : "Nothing Settled Yet").font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg3)
                 Text(answers.isEmpty ? "The recommendations appear as the answers come in; the dots mark the questions that would decide." : "Keep going: the marked questions decide.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             let rest = r.matched.filter { $0.id != top?.id }
@@ -178,7 +178,7 @@ struct ValveInterventionView: View {
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            Text(lesion.severityNote).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
+            EvidenceNote(lesion.severityNote).padding(.horizontal, 2)
         }
     }
 
@@ -191,8 +191,10 @@ struct ValveInterventionView: View {
                     Button { onOpen(url) } label: { Label("Guideline ↗", systemImage: "doc.text") }.buttonStyle(GhostButtonStyle())
                 }
             }
-            Text("2020 ACC/AHA guideline for valvular heart disease (Otto et al, Circulation 2021;143:e72–e227), the current edition. Classes: 1 recommended, 2a reasonable, 2b may be considered, 3 no benefit or harm. Severe valve disease is evaluated by a multidisciplinary Heart Valve Team when intervention is considered (class 1). In patients who meet standard indications for intervention (replacement and repair) on the basis of symptoms and disease severity, intervention should be performed before elective noncardiac surgery to reduce perioperative risk if possible, depending on the urgency and risk of the noncardiac procedure (class 1, C-EO). The full tables carry prosthesis anticoagulation, bridging and endocarditis prophylaxis.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                Text("2020 ACC/AHA guideline for valvular heart disease (Otto et al, Circulation 2021;143:e72–e227), the current edition. Classes: 1 recommended, 2a reasonable, 2b may be considered, 3 no benefit or harm. Severe valve disease is evaluated by a multidisciplinary Heart Valve Team when intervention is considered (class 1). In patients who meet standard indications for intervention (replacement and repair) on the basis of symptoms and disease severity, intervention should be performed before elective noncardiac surgery to reduce perioperative risk if possible, depending on the urgency and risk of the noncardiac procedure (class 1, C-EO). The full tables carry prosthesis anticoagulation, bridging and endocarditis prophylaxis.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

@@ -207,30 +207,32 @@ struct ObEmergencyView: View {
         let srcs = (ev.sources ?? []).compactMap { id in d.sources?.first { $0.id == id } }
         return VStack(alignment: .leading, spacing: 10) {
             Hairline()
-            Eyebrow(text: srcs.count > 1 ? "Sources" : "Source")
-            ForEach(srcs) { s in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                    if let u = s.url, let url = URL(string: u) {
-                        Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+            EvidenceDisclosure {
+                Eyebrow(text: srcs.count > 1 ? "Sources" : "Source")
+                ForEach(srcs) { s in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                        if let u = s.url, let url = URL(string: u) {
+                            Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                        }
                     }
                 }
-            }
-            if let m = d.manual {
-                VStack(alignment: .leading, spacing: 4) {
-                    Eyebrow(text: m.title)
-                    if let n = m.note { Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
-                    if let u = m.url, let url = URL(string: u) {
-                        Button { onOpen(url) } label: { Text("Open the manual ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                if let m = d.manual {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Eyebrow(text: m.title)
+                        if let n = m.note { Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+                        if let u = m.url, let url = URL(string: u) {
+                            Button { onOpen(url) } label: { Text("Open the manual ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                        }
                     }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
+                ForEach(d.notes ?? [], id: \.self) { n in
+                    Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
+                Text("Condensed by Periop Signal\(d.reviewed.map { ", reviewed " + $0 } ?? ""). A checklist to prompt, not a protocol: follow your institution’s obstetric emergency plan and confirm doses against the sources.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             }
-            ForEach(d.notes ?? [], id: \.self) { n in
-                Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            }
-            Text("Condensed by Periop Signal\(d.reviewed.map { ", reviewed " + $0 } ?? ""). A checklist to prompt, not a protocol: follow your institution’s obstetric emergency plan and confirm doses against the sources.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

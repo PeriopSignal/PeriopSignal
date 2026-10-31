@@ -175,7 +175,7 @@ enum AbgCalc {
         }
 
         if status == "normal" && !pcHi && !pcLo && !hcLo && !hcHi {
-            steps.append(Step(id: "primary", label: "PaCO₂ and HCO₃", tone: .ok, text: "\(f1(c)) mmHg and \(f1(h)) mEq/L · both normal"))
+            steps.append(Step(id: "primary", label: "PaCO₂ & HCO₃", tone: .ok, text: "\(f1(c)) mmHg and \(f1(h)) mEq/L · both normal"))
             return out("Normal Acid–Base Status", "pH, PaCO₂ and HCO₃ are all in the normal range. A metabolic acidosis and alkalosis that cancel out can still hide behind a normal gas.")
         }
         // Which process moves pH the way it went (toward the side of 7.40 it sits on)

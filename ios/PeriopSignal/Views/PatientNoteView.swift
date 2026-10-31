@@ -1,29 +1,38 @@
 import SwiftUI
 
 /// "No patient identifiers": at the top of My Patient and of Fill from a note.
+/// One thin line, "No patient identifiers ⓘ", that opens to the full warning.
 struct NoIdentifiersBanner: View {
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "exclamationmark.shield.fill")
-                .font(PS.sys(size: 16, weight: .semibold))
-                .foregroundStyle(PS.accent)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("No patient identifiers")
-                    .font(PS.sys(size: 14, weight: .bold))
-                    .foregroundStyle(PS.fg)
-                Text("Don't enter names, record numbers, dates of birth or other identifiers.")
-                    .font(PS.sys(size: 12.5))
-                    .foregroundStyle(PS.fg2)
-                    .lineSpacing(1.5)
-                    .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 6) {
+            Button {
+                Haptics.light()
+                withAnimation(.snappy) { open.toggle() }
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "exclamationmark.shield.fill").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.accent)
+                    Text("No patient identifiers").font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg)
+                    Image(systemName: open ? "info.circle.fill" : "info.circle").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
             }
-            Spacer(minLength: 0)
+            .buttonStyle(.plain)
+            .accessibilityValue(open ? "Warning shown" : "")
+            .accessibilityHint(open ? "Hides the warning" : "Shows the full warning")
+            if open {
+                Text("Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules.")
+                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+            }
         }
-        .padding(12)
+        .padding(.horizontal, 12).padding(.vertical, 7)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.accent.opacity(0.35), lineWidth: 1))
-        .accessibilityElement(children: .combine)
+        .background(PS.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(PS.accent.opacity(0.28), lineWidth: 1))
     }
 }
 
@@ -365,8 +374,7 @@ struct PatientReceiveSheet: View {
                     .buttonStyle(BigButtonStyle(prominent: true))
                     Button { dismiss() } label: { Text("Discard").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: false))
-                    Text("Check it against the chart. It stays on this phone like any patient you enter, until you clear it; the file you received has been deleted.")
-                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                    EvidenceNote("Check it against the chart. It stays on this phone like any patient you enter, until you clear it; the file you received has been deleted.", title: "Check it against the chart")
                         .padding(.horizontal, 2)
                 }
                 .padding(20)

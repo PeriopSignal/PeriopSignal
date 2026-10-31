@@ -48,9 +48,7 @@ struct PatientView: View {
                         intraopCard.id(PatientEditor.intraop)
                         planCard.id(PatientEditor.plan)
                         handoffButton
-                        Text("Kept on this phone, with no name or record number, until you clear it. Not backed up; it leaves the phone only if you send it.")
-                            .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5)
-                            .fixedSize(horizontal: false, vertical: true)
+                        EvidenceNote("Kept on this phone, with no name or record number, until you clear it. Not backed up; it leaves the phone only if you send it.", title: "Kept on this phone")
                             .padding(.horizontal, 2)
                     }
                     .padding(.horizontal, 20)
@@ -337,39 +335,9 @@ struct PatientView: View {
         PatientSectionCard(editor: .history, lines: PatientSummary.historyLines(r), empty: "Problems by system, medications, allergies, anesthesia history, NPO and labs.")
     }
 
+    /// The risk scores and checks are listed in the Assessment editor (and the Reference tab), not here.
     private var assessmentCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity and the risk scores.")
-            let prompts = PatientRules.prompts(r)
-            if !prompts.isEmpty && !patient.isEmpty {
-                VStack(spacing: 0) {
-                    ForEach(Array(prompts.enumerated()), id: \.element.id) { i, p in
-                        Button { open(p.route) } label: { promptRow(p) }
-                            .buttonStyle(.plain)
-                        if i < prompts.count - 1 { Hairline().padding(.leading, 44) }
-                    }
-                }
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            }
-        }
-    }
-
-    private func promptRow(_ p: PatientPrompt) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: p.done == nil ? "circle.dashed" : "checkmark.circle.fill")
-                .font(PS.sys(size: 17, weight: .semibold))
-                .foregroundStyle(p.done == nil ? PS.accent : PS.green)
-                .frame(width: 22)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(p.done ?? p.title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                Text(p.done == nil ? p.why : p.title).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 6)
-            Text(p.done == nil ? "Open" : "Review").font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.accent)
-            Image(systemName: "chevron.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
-        }
-        .padding(.horizontal, 14).padding(.vertical, 11)
-        .contentShape(Rectangle())
+        PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity and the risk scores.")
     }
 
     private var airwayCard: some View {
@@ -507,8 +475,7 @@ struct HandoffSheet: View {
                 Label("Send Patient", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
             }
             .buttonStyle(BigButtonStyle(prominent: true))
-            Text("In Messages, they tap the file, then Share, then Periop Signal. Send only to the colleague taking over, through channels your institution approves; Messages keeps a copy in the conversation.")
-                .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceNote("In Messages, they tap the file, then Share, then Periop Signal. Send only to the colleague taking over, through channels your institution approves; Messages keeps a copy in the conversation.", title: "How it works")
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -533,8 +500,7 @@ struct HandoffSheet: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
                         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-                    Text("Share only through channels your institution approves for patient information.")
-                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    EvidenceNote("Share only through channels your institution approves for patient information.", title: "Approved channels only")
                     VStack(alignment: .leading, spacing: 8) {
                         Eyebrow(text: "Handing over")
                         ForEach(Array(HandoffWriter.steps.enumerated()), id: \.offset) { i, step in
@@ -543,8 +509,7 @@ struct HandoffSheet: View {
                                 Text(step).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                        Text("From the HATRICC handoff protocol (Lane-Fall MB, et al. Implement Sci 2021). In a PACU, anesthesia often reports alone.")
-                            .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                        EvidenceNote("From the HATRICC handoff protocol (Lane-Fall MB, et al. Implement Sci 2021). In a PACU, anesthesia often reports alone.")
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)

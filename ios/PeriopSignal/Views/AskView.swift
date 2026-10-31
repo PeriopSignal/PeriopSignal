@@ -132,9 +132,7 @@ struct AskView: View {
             Hairline()
             Text(provenance)
                 .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
-            Text("An AI answer for orientation, written from the material above and general knowledge. It can be wrong: check doses, thresholds and recommendations against the source documents before acting on them.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5)
-                .fixedSize(horizontal: false, vertical: true)
+            EvidenceNote("An AI answer for orientation, written from the material above and general knowledge. It can be wrong: check doses, thresholds and recommendations against the source documents before acting on them.", title: "AI answer: it can be wrong")
         }
     }
 

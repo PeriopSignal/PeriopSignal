@@ -158,7 +158,7 @@ final class PatientTests: XCTestCase {
         var both = normal; both.labs["troponin"] = 20; both.labs["troponin99"] = 14
         XCTAssertEqual(PatientFunctional.cardiacStep(both).title, "Troponin raised", "a normal peptide does not hide a raised troponin")
         both.labs["troponin"] = 10
-        XCTAssertEqual(PatientFunctional.cardiacStep(both).title, "Natriuretic peptide and troponin normal: proceed")
+        XCTAssertEqual(PatientFunctional.cardiacStep(both).title, "Natriuretic peptide & troponin normal: proceed")
         var low = PatientRecord(); low.ageYears = 60; low.problems = ["htn"]
         XCTAssertTrue(PatientFunctional.cardiacStep(low).title.hasPrefix("Low estimated risk"))
         low.frail = true

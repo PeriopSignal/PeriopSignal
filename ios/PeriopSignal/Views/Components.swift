@@ -161,6 +161,55 @@ struct Hairline: View {
     var body: some View { Rectangle().fill(PS.line).frame(height: 1) }
 }
 
+// MARK: - Explanation & Evidence
+
+/// Explanations, sources and caveats sit behind one small "Explanation & Evidence ⓘ" line that opens in place, so a
+/// screen shows its numbers and choices first. CI screenshots: -ps.evidence.open 1 opens them all.
+struct EvidenceDisclosure<Content: View>: View {
+    var title = "Explanation & Evidence"
+    @ViewBuilder var content: () -> Content
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button {
+                Haptics.light()
+                withAnimation(.snappy) { open.toggle() }
+            } label: {
+                HStack(spacing: 5) {
+                    Text(title)
+                    Image(systemName: open ? "info.circle.fill" : "info.circle")
+                }
+                .font(PS.sys(size: 12, weight: .semibold))
+                .foregroundStyle(open ? PS.fg2 : PS.fg3)
+                .padding(.vertical, 5)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(open ? "Shown" : "Hidden")
+            .accessibilityHint(open ? "Hides the explanation" : "Shows the explanation and sources")
+            if open {
+                VStack(alignment: .leading, spacing: 8) { content() }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// One paragraph of explanation behind "Explanation & Evidence ⓘ".
+struct EvidenceNote: View {
+    var text: String
+    var title = "Explanation & Evidence"
+    init(_ text: String, title: String = "Explanation & Evidence") { self.text = text; self.title = title }
+    var body: some View {
+        EvidenceDisclosure(title: title) {
+            Text(text).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 /// One ECG cycle repeated across the width; the brand's hairline. `progress` draws it in.
 struct ECGLine: Shape {
     var progress: CGFloat = 1

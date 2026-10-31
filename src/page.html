@@ -190,6 +190,10 @@ a { color: var(--accent-2); }
 .chip[aria-pressed="true"] .n { color: inherit; opacity: .8; }
 .chip.all[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
 .chip.all[aria-pressed="true"] .n { color: inherit; }
+.chip[data-hidden="1"] { border-style: dashed; color: var(--fg-3); background: transparent; }
+.chip[data-hidden="1"] .nm { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.chip[data-hidden="1"] .n { opacity: .6; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .sub-row { display: flex; align-items: center; gap: 8px; padding-block: 0 10px; font-size: 12.5px; color: var(--fg-3); flex-wrap: wrap; }
 .sub-row .count[hidden] { display: none !important; }
 @media (max-width: 479px) { .sub-row .count { flex: 1 1 100%; order: -1; } .sub-row .tools { margin-right: auto; } }
@@ -419,7 +423,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       <div class="logo" aria-hidden="true"><svg viewBox="0 0 72 60"><path d="M6.00 16.50h3.50c0.80 -1.7 2.20 -1.7 3.00 0h2.50l1.00 1.3 l1.50 -9.8 l1.50 11.6 l1.00 -3.1h2.50c1.20 -3.4 3.40 -3.4 4.60 0h9.00M36.00 16.50h3.50c0.80 -1.7 2.20 -1.7 3.00 0h2.50l1.00 1.3 l1.50 -9.8 l1.50 11.6 l1.00 -3.1h2.50c1.20 -3.4 3.40 -3.4 4.60 0h9.00" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.00 36.00c1.20 0 2.60 -9.5 4.60 -9.5c1.40 0 2.20 4.8 3.80 5.6c0.50 -0.9 1.30 -0.9 1.90 -0.2c3.50 2.4 11.00 4.1 19.70 4.1M36.00 36.00c1.20 0 2.60 -9.5 4.60 -9.5c1.40 0 2.20 4.8 3.80 5.6c0.50 -0.9 1.30 -0.9 1.90 -0.2c3.50 2.4 11.00 4.1 19.70 4.1" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.00 51.00c1.80 -4.4 4.20 -4.4 6.00 0c1.20 -1.8 2.40 -1.8 3.60 0h2.40c2.00 -3.2 4.40 -3.2 6.40 0h11.60M36.00 51.00c1.80 -4.4 4.20 -4.4 6.00 0c1.20 -1.8 2.40 -1.8 3.60 0h2.40c2.00 -3.2 4.40 -3.2 6.40 0h11.60" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     </div>
     <p class="tagline-row"><strong>The practice-changing papers</strong> in anesthesiology and critical care, from 60 journals every morning.</p>
-    <div class="hint" id="hint" hidden><span>New here? Tap a topic to filter, a headline for the deep dive, and the bookmark to save a post for later.</span><button id="hint-close">Got it</button></div>
+    <div class="hint" id="hint" hidden><span>New here? Tap a topic to filter (tap it again to hide it), a headline for the deep dive, and the bookmark to save a post for later.</span><button id="hint-close">Got it</button></div>
   </div>
 </section>
 <header class="masthead">
@@ -515,6 +519,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   const state = {
     posts: [], filtered: [], shown: 0,
     topics: new Set(LS.get('ps.topics', [])),
+    hidden: new Set(LS.get('ps.hiddenTopics', [])),
     landmark: false, savedOnly: false, recent: false, q: '',
     saved: new Set(LS.get('ps.saved', [])),
     lastVisit: LS.get('ps.lastVisit', null), newIds: new Set(), current: null
@@ -575,6 +580,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     const q = state.q.trim().toLowerCase();
     state.filtered = state.posts.filter(p => {
       if (state.topics.size && !p.topics.some(t => state.topics.has(t))) return false;
+      if (state.hidden.size && p.topics.some(t => state.hidden.has(t))) return false;
       if (state.landmark && p.impact < 3) return false;
       if (state.savedOnly && !state.saved.has(p.id)) return false;
       if (state.recent && p.date < state.weekAgo) return false;
@@ -588,6 +594,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     const n = state.filtered.length, total = state.posts.length;
     const parts = [];
     if (state.topics.size) parts.push([...state.topics].map(t => TOPIC_NAME[t]).join(', '));
+    if (state.hidden.size) parts.push('hiding ' + [...state.hidden].map(t => TOPIC_NAME[t]).join(', '));
     if (state.landmark) parts.push('landmark');
     if (state.savedOnly) parts.push('saved');
     if (state.recent) parts.push('published this week');
@@ -603,7 +610,8 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     state.topics.clear(); state.landmark = false; state.savedOnly = false; state.recent = false; state.q = ''; $('#q').value = '';
     $('#btn-landmark').setAttribute('aria-pressed', 'false'); $('#btn-saved').setAttribute('aria-pressed', 'false');
     const rb = $('#btn-recent'); if (rb) rb.setAttribute('aria-pressed', 'false');
-    LS.set('ps.topics', []); renderRail(); applyFilters();
+    state.hidden.clear();
+    LS.set('ps.topics', []); LS.set('ps.hiddenTopics', []); renderRail(); applyFilters();
   }
 
   // ---------- rail ----------
@@ -612,7 +620,9 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     const all = state.topics.size === 0;
     let html = `<button class="chip all" data-topic="" aria-pressed="${all}">All <span class="n">${state.posts.length}</span></button>`;
     for (const [t, name] of TOPICS) {
-      html += `<button class="chip" data-topic="${t}" aria-pressed="${state.topics.has(t)}" ${topicStyle(t)}>${esc(name)} <span class="n">${counts[t] || 0}</span></button>`;
+      const hid = state.hidden.has(t);
+      const tip = state.topics.has(t) ? 'Tap again to hide this topic' : hid ? 'Hidden: tap to show it again' : 'Tap to show only this topic';
+      html += `<button class="chip" data-topic="${t}" aria-pressed="${state.topics.has(t)}"${hid ? ' data-hidden="1"' : ''} title="${tip}" ${topicStyle(t)}><span class="nm">${esc(name)}</span>${hid ? '<span class="sr"> (hidden)</span>' : ''} <span class="n">${counts[t] || 0}</span></button>`;
     }
     rail.innerHTML = html;
     requestAnimationFrame(railState);
@@ -631,8 +641,13 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
   rail.addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
     const t = b.dataset.topic;
-    if (!t) state.topics.clear(); else if (state.topics.has(t)) state.topics.delete(t); else state.topics.add(t);
-    LS.set('ps.topics', [...state.topics]); renderRail(); applyFilters();
+    // A topic cycles: first tap shows only it, the second hides it (struck through), the third clears it.
+    // All clears the chosen topics and keeps the hidden ones.
+    if (!t) state.topics.clear();
+    else if (state.topics.has(t)) { state.topics.delete(t); state.hidden.add(t); }
+    else if (state.hidden.has(t)) state.hidden.delete(t);
+    else state.topics.add(t);
+    LS.set('ps.topics', [...state.topics]); LS.set('ps.hiddenTopics', [...state.hidden]); renderRail(); applyFilters();
   });
 
   // ---------- cards ----------
@@ -772,7 +787,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
         <p class="section-label">Using the feed</p>
         <ul>
           <li>Tap a headline or <strong>Deep dive</strong> for the full overview.</li>
-          <li>Tap topic chips to filter; several can be active at once. <strong>Landmark only</strong> narrows to practice-changing items.</li>
+          <li>Tap topic chips to filter; several can be active at once. Tap a chosen topic again to hide it from the feed (struck through), and a third time to clear it. <strong>Landmark only</strong> narrows to practice-changing items.</li>
           <li>The bookmark saves a post on this device; the bookmark button in the top bar shows your saved list.</li>
           <li>Keep scrolling for older posts. Posts added since your last visit are marked <strong>New</strong>.</li>
           <li>The sun/moon button switches between dark and light; your choice is remembered on this device.</li>

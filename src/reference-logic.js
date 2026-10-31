@@ -71,15 +71,21 @@
       return PREFIXES.has(prev) ? p : capPart(p, false);
     }).join('-');
   }
+  /** Headline case, with "&" for a joining "and" ("Doses, Timing, and Rescue" → "Doses, Timing & Rescue"). */
   R.titleCase = function (s) {
     const words = String(s).split(' ');
+    const out = [];
     let start = true;
-    return words.map((w, i) => {
-      const out = capWord(w, start || i === words.length - 1);
+    words.forEach((w, i) => {
+      if (w === 'and' && i > 0 && i < words.length - 1) {
+        if (out.length && out[out.length - 1].endsWith(',')) out[out.length - 1] = out[out.length - 1].slice(0, -1);
+        out.push('&'); start = false; return;
+      }
+      out.push(capWord(w, start || i === words.length - 1));
       const t = w.trim();
       start = t.endsWith(':') || t.endsWith('—') || t === '—' || t === '–';
-      return out;
-    }).join(' ');
+    });
+    return out.join(' ');
   };
 
   // ---------- Scores (Scores.swift) ----------
@@ -136,7 +142,7 @@
       keywords: ['pulmonary complications', 'ppc', 'respiratory risk', 'canet'],
     },
     {
-      id: 'stopbang', name: 'STOP-Bang', short: 'STOP-Bang', blurb: 'Screening for obstructive sleep apnea',
+      id: 'stopbang', name: 'STOP-BANG', short: 'STOP-BANG', blurb: 'Screening for obstructive sleep apnea',
       items: [
         toggle('snoring', 'Snoring', 'Loud enough to be heard through a closed door, or a bed partner elbows you'),
         toggle('tired', 'Tired', 'Often tired, fatigued or sleepy during the day'),
@@ -1629,7 +1635,7 @@
         return Object.assign({ state: 'read', status, primary: null, second: null, phase: null, disorders: [], steps, cautions, visual: null, values: { ph, paco2: pc, hco3: hc }, derived, check }, o);
       };
       if (status === 'normal' && !pcHi && !pcLo && !hcLo && !hcHi) {
-        steps.push({ id: 'primary', label: 'PaCO₂ and HCO₃', tone: 'ok', text: `${A.f1(pc)} mmHg and ${A.f1(hc)} mEq/L · both normal` });
+        steps.push({ id: 'primary', label: 'PaCO₂ & HCO₃', tone: 'ok', text: `${A.f1(pc)} mmHg and ${A.f1(hc)} mEq/L · both normal` });
         return out({ headline: 'Normal Acid–Base Status', explanation: 'pH, PaCO₂ and HCO₃ are all in the normal range. A metabolic acidosis and alkalosis that cancel out can still hide behind a normal gas.' });
       }
       // Which process moves pH the way it went (toward the side of 7.40 it sits on)
