@@ -140,12 +140,16 @@ jobs:
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
-            # Nothing drawn yet (an all-black frame is about 16 KB): record why, then try once more.
-            if [ "$(stat -f%z "build/shots/$name.png" 2>/dev/null || echo 0)" -lt 30000 ]; then
-              diag "$name"
-              sleep 12
-              xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
-            fi
+            # Nothing drawn yet (a blank frame): record why, then try twice more. A blank frame shrinks to a tiny file
+            # once scaled down, whatever the screen's resolution.
+            blank () { sips -Z 300 "build/shots/$name.png" --out /tmp/ps-check.png >/dev/null 2>&1; [ "$(stat -f%z /tmp/ps-check.png 2>/dev/null || echo 0)" -lt 7000 ]; }
+            for retry in 1 2; do
+              if blank; then
+                [ "$retry" = 1 ] && diag "$name"
+                sleep 12
+                xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+              fi
+            done
           }
           shot 01-feed 14
           shot 02-deepdive 12 -ps.openPost "$LANDMARK"
@@ -205,15 +209,15 @@ jobs:
           shot 57-ob-hypertension 12 -ps.ref ob -ps.ob.event hypertension
           shot 58-patient 12 -ps.tab patient -ps.patient demo
           shot 59-patient-empty 12 -ps.tab patient -ps.forceAppearance light
-          shot 60-patient-assessment 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment
-          shot 61-patient-airway 12 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.forceAppearance light
-          shot 62-patient-intraop 12 -ps.tab patient -ps.patient demo -ps.patient.open intraop
+          shot 60-patient-assessment 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment
+          shot 61-patient-airway 18 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.forceAppearance light
+          shot 62-patient-intraop 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop
           shot 63-patient-handoff 12 -ps.tab patient -ps.patient demo -ps.patient.open handoff
           shot 64-patient-rcri 12 -ps.tab patient -ps.patient demo -ps.patient.open score:ariscat
           shot 65-patient-local 12 -ps.tab patient -ps.patient demo -ps.patient.open local
           shot 66-more-saved 12 -ps.tab more
-          shot 67-patient-cardiac 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.patient.scroll cardiac
-          shot 68-patient-mask 12 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.patient.scroll mask -ps.forceAppearance light
+          shot 67-patient-cardiac 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.patient.scroll cardiac
+          shot 68-patient-mask 18 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.patient.scroll mask -ps.forceAppearance light
           shot 69-patient-meds 12 -ps.tab patient -ps.patient demo -ps.patient.open medications
           shot 70-terms 16 -ps.terms show
           shot 71-patient-handoff-short 12 -ps.tab patient -ps.patient demo -ps.patient.open handoff -ps.handoff.format short
@@ -228,7 +232,7 @@ jobs:
           shot 88-feed-chips 14 -ps.topics '(regional)' -ps.hiddenTopics '(cardiac,ob)'
           shot 89-apfel 12 -ps.ref score:apfel
           shot 90-rcri-evidence 12 -ps.ref score:rcri -ps.evidence.open 1
-          shot 91-patient-assessment-evidence 12 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1
+          shot 91-patient-assessment-evidence 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1
           shot 92-infusions-evidence 12 -ps.ref infusions -ps.la.weight 70 -ps.evidence.open 1
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
