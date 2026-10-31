@@ -83,7 +83,7 @@ struct PatientEditorView: View {
                     case .plan: plan
                     case .intraopPart(let id): intraopPart(id)
                     case .workup(let id): workup(id)
-                    case .devices(let p): PatientDevicesEditor(phase: p == "intraop" ? .intraop : .preop)
+                    case .devices(let p): PatientDevicesEditor(phase: p == "intraop" ? .intraop : .preop, supportOnly: p == "support")
                     }
                     DoneFooter().padding(.top, 4).id("done")
                 }

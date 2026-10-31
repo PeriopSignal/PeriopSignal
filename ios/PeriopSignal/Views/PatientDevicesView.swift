@@ -209,6 +209,8 @@ struct PatientDevicesEditor: View {
     @Environment(PatientStore.self) private var patient
     @Environment(ReferenceStore.self) private var refs
     var phase: PatientDiagramModel.Phase
+    /// Mechanical support only: its add buttons and every setting on the page, without the lines.
+    var supportOnly = false
 
     @State private var editing = false
     @State private var typed = ""
@@ -257,9 +259,15 @@ struct PatientDevicesEditor: View {
                     Button("Cancel", role: .cancel) {}
                 }
             }
-            shorthand
-            typeButtons
-            list
+            if supportOnly {
+                supportButtons
+                supportSettings
+                shorthand
+            } else {
+                shorthand
+                typeButtons
+                list
+            }
         }
         .sheet(item: Binding(get: { editingID.map { IDBox(id: $0) } }, set: { editingID = $0?.id })) { box in
             DeviceDetailSheet(deviceID: box.id)
@@ -341,9 +349,112 @@ struct PatientDevicesEditor: View {
         .scrollClipDisabled()
     }
 
-    private func addKind(_ k: DeviceKind) {
+    private func addKind(_ k: DeviceKind, open: Bool = true) {
         let site = PatientDevices.defaultSite(for: k).flatMap { def in DeviceSite.find(def.site, side: DeviceSite.isPaired(def.site) ? "right" : nil) }
-        add([PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, placedIntraop: placedIntraop)], open: true)
+        add([PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, placedIntraop: placedIntraop)], open: open)
+    }
+
+    // MARK: Mechanical support
+
+    private var support: [PatientDevice] { r.devices.filter { PatientDevice.supportKinds.contains($0.kind) && !$0.removed } }
+    private var cannulas: [PatientDevice] { support.filter(\.kind.isECMO) }
+
+    private var supportButtons: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                if cannulas.isEmpty {
+                    Button { addECMO("VA") } label: { Label("VA ECMO", systemImage: "plus") }
+                        .buttonStyle(CapsuleButtonStyle(prominent: false))
+                    Button { addECMO("VV") } label: { Label("VV ECMO", systemImage: "plus") }
+                        .buttonStyle(CapsuleButtonStyle(prominent: false))
+                }
+                ForEach([DeviceKind.iabp, .impella, .lvad], id: \.self) { k in
+                    Button { addKind(k, open: false) } label: { Label(k.label, systemImage: "plus") }
+                        .buttonStyle(CapsuleButtonStyle(prominent: false))
+                }
+                Menu {
+                    Button("ECMO drainage cannula") { addKind(.ecmoDrainage, open: true) }
+                    Button("ECMO return cannula") { addKind(.ecmoReturn, open: true) }
+                } label: { Label("Cannula", systemImage: "ellipsis.circle") }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+            }
+        }
+        .scrollClipDisabled()
+    }
+
+    /// A drainage cannula in the right femoral vein and a return cannula in the left femoral artery (VA) or right IJ
+    /// (VV), with no sizes: the clinician adds them and moves the cannulas if they sit elsewhere.
+    private func addECMO(_ mode: String) {
+        func cannula(_ k: DeviceKind, _ base: String, _ side: String) -> PatientDevice {
+            let site = DeviceSite.find(base, side: side)
+            var d = PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, placedIntraop: placedIntraop)
+            if k == .ecmoDrainage { d.setValue(mode, for: "mode") }
+            return d
+        }
+        add([cannula(.ecmoDrainage, "femoral-vein", "right"),
+             mode == "VA" ? cannula(.ecmoReturn, "femoral-artery", "left") : cannula(.ecmoReturn, "ij", "right")], open: false)
+    }
+
+    @ViewBuilder private var supportSettings: some View {
+        if support.isEmpty {
+            Text("No mechanical support recorded. Add it above or type it below (\u{201C}VA ECMO 25F RFV / 17F LFA flow 4 sweep 3\u{201D}, \u{201C}IABP 1:1\u{201D}).")
+                .font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
+                .padding(.horizontal, 4)
+        }
+        if let first = cannulas.first {
+            let system = PatientDevices.ecmoSystem(r.devices)
+            PatientGroup(title: system?.configuration.title ?? "ECMO", note: "Circuit settings are kept once for the circuit.") {
+                ForEach(first.kind.fields.filter { circuitKeys.contains($0.id) }) { f in
+                    DeviceFieldRow(field: f, value: circuitBinding(f.id))
+                    Hairline().padding(.leading, 14)
+                }
+                ForEach(cannulas) { c in deviceRow(c) }
+            }
+        }
+        ForEach(support.filter { !$0.kind.isECMO }) { d in
+            PatientGroup(title: d.kind.name) {
+                ForEach(d.kind.fields) { f in
+                    DeviceFieldRow(field: f, value: valueBinding(d.id, f.id))
+                    Hairline().padding(.leading, 14)
+                }
+                deviceRow(d, caption: "Site and placement")
+            }
+        }
+    }
+
+    private let circuitKeys: Set<String> = ["mode", "flow", "sweep", "fdo2", "issues"]
+
+    /// A circuit setting: read across the cannulas as the summary reads it, written to the first drainage cannula
+    /// (or the first cannula) and cleared from the others so they never disagree.
+    private func circuitBinding(_ key: String) -> Binding<String> {
+        Binding(get: { PatientDevices.ecmoSystem(patient.record.devices)?.settings[key] ?? "" },
+                set: { v in patient.update { r in
+                    let ids = r.devices.indices.filter { r.devices[$0].kind.isECMO && !r.devices[$0].removed }
+                    guard let target = ids.first(where: { r.devices[$0].kind == .ecmoDrainage }) ?? ids.first else { return }
+                    for i in ids { r.devices[i].setValue(i == target ? v : "", for: key) }
+                } })
+    }
+
+    private func valueBinding(_ id: UUID, _ key: String) -> Binding<String> {
+        Binding(get: { patient.record.devices.first { $0.id == id }?.value(key) ?? "" },
+                set: { v in patient.update { r in if let i = r.devices.firstIndex(where: { $0.id == id }) { r.devices[i].setValue(v, for: key) } } })
+    }
+
+    private func deviceRow(_ d: PatientDevice, caption: String? = nil) -> some View {
+        Button { editingID = d.id } label: {
+            HStack(spacing: 10) {
+                Circle().fill(PatientDiagramModel.color(d.colorRole)).frame(width: 9, height: 9)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(d.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    if let caption { Text(caption).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3) }
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
+            }
+            .padding(.horizontal, 14).padding(.vertical, 9)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: List
