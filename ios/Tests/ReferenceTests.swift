@@ -263,7 +263,7 @@ final class ReferenceTests: XCTestCase {
         for g in inf.groups where !tabs.contains(g.tab ?? g.name) { tabs.append(g.tab ?? g.name) }
         XCTAssertEqual(tabs, ["Hemodynamic", "Single-Dose", "Anesthetic", "Blood Products", "Hematologic"])
         XCTAssertEqual(inf.groups.filter { $0.tab == "Hemodynamic" }.map(\.name), ["Vasopressors", "Inotropes", "Vasodilators & Antihypertensives", "Pulmonary Vasodilators"])
-        XCTAssertEqual(inf.groups.filter { $0.tab == "Hematologic" }.map(\.name), ["Factor Concentrates", "Antifibrinolytics and Hemostatics", "Anticoagulants", "Reversal Agents"])
+        XCTAssertEqual(inf.groups.filter { $0.tab == "Hematologic" }.map(\.name), ["Factor Concentrates", "Antifibrinolytics & Hemostatics", "Anticoagulants", "Reversal Agents"])
         let all = inf.groups.flatMap(\.drugs)
         XCTAssertEqual(all.filter { $0.name.hasPrefix("Epinephrine") }.count, 1, "one epinephrine row")
         let blood = try XCTUnwrap(inf.groups.first { $0.name == "Blood Products" })
