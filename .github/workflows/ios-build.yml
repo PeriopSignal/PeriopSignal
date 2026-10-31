@@ -140,6 +140,12 @@ jobs:
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            # The app is gone (it crashed): keep the newest crash report for this shot.
+            if ! pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null; then
+              crash=$(ls -t ~/Library/Logs/DiagnosticReports/PeriopSignal*.ips 2>/dev/null | head -1)
+              if [ -n "$crash" ]; then cp "$crash" "build/shots/$name-crash.ips"; else echo "app not running, no crash report" > "build/shots/$name-crash.txt"; fi
+              xcrun simctl spawn "$UDID" log show --last 1m --style compact --predicate 'process == "PeriopSignal"' > "build/shots/$name-log.txt" 2>/dev/null || true
+            fi
             # Nothing drawn yet (an all-black frame is about 16 KB): record why, then try once more.
             if [ "$(stat -f%z "build/shots/$name.png" 2>/dev/null || echo 0)" -lt 30000 ]; then
               diag "$name"

@@ -292,7 +292,7 @@ enum PatientSummary {
     /// The lines for one part of the intraoperative record (PatientEditor.intraopParts).
     static func intraopPartLines(_ r: PatientRecord, _ part: String) -> [Line] {
         if part == "airway" && r.arrivesWithAirway {
-            var out = [Line("Airway", (r.currentAirwayText ?? "Secured") + " on arrival")]
+            var out = [Line(nil, (r.currentAirwayText ?? "Secured") + " on arrival")]
             if let end = r.airwayAtEnd { out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : end))) }
             return out
         }
@@ -301,7 +301,10 @@ enum PatientSummary {
             "fluids": ["In", "Out", "Factor concentrates & other products"], "meds": ["Medications & interventions"],
             "events": ["Events"], "echo": ["Echo", "Echo notes"],
         ]
+        // The card's own title names the part, so a line labelled the same way drops its label.
+        let titles: Set<String> = ["Airway", "Lines", "Regional", "Infusions", "Medications & interventions", "Events", "Echo"]
         var out = intraopLines(r).filter { l in l.label.map { labels[part]?.contains($0) ?? false } ?? false }
+            .map { l in titles.contains(l.label ?? "") ? Line(nil, l.text, alert: l.alert, marks: l.marks) : l }
         if part == "events", let end = r.airwayAtEnd, r.arrivesWithAirway || r.intubation != nil {
             out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label ?? end))))
         }
