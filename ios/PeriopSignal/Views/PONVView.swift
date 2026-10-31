@@ -250,12 +250,3 @@ struct PONVView: View {
         }
     }
 }
-
-private extension String {
-    var lowercasedFirst: String {
-        guard let f = first else { return self }
-        // Keep acronyms ("PACU") and units as written.
-        if dropFirst().first?.isUppercase == true { return self }
-        return f.lowercased() + dropFirst()
-    }
-}

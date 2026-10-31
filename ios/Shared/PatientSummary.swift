@@ -8,7 +8,9 @@ enum PatientSummary {
         var text: String
         /// Needs attention (allergies, a difficult airway, an event).
         var alert = false
-        init(_ label: String?, _ text: String, alert: Bool = false) { self.label = label; self.text = text; self.alert = alert }
+        /// Parts of the text to show in bold red: abnormal values and scores ("K 5.9", "MELD 3.0 24").
+        var marks: [String] = []
+        init(_ label: String?, _ text: String, alert: Bool = false, marks: [String] = []) { self.label = label; self.text = text; self.alert = alert; self.marks = marks }
     }
 
     /// Typed values as typed (to two decimals): "Hb 12.8", "Creatinine 1.15".

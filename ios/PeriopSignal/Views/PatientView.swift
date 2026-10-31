@@ -436,12 +436,7 @@ struct PatientView: View {
         }
     }
 
-    private func summaryLine(_ l: PatientSummary.Line) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            if let k = l.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(l.alert ? PS.accent : PS.fg3) }
-            Text(l.text).font(PS.sys(size: 14)).foregroundStyle(l.alert ? PS.accent : PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-        }
-    }
+    private func summaryLine(_ l: PatientSummary.Line) -> some View { PatientLineText(line: l) }
 }
 
 /// A section of the note: its header, then its lines (or what it holds, while empty). Opens the section's editor.
@@ -462,12 +457,7 @@ struct PatientSectionCard: View {
                 if lines.isEmpty {
                     Text(empty).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
-                        VStack(alignment: .leading, spacing: 1) {
-                            if let k = l.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(l.alert ? PS.accent : PS.fg3) }
-                            Text(l.text).font(PS.sys(size: 14)).foregroundStyle(l.alert ? PS.accent : PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
+                    ForEach(Array(lines.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
                 }
             }
             .padding(16)
@@ -558,5 +548,31 @@ struct HandoffPanel: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+    }
+}
+
+/// One summary line: its label, then the text, alerts in red and abnormal values and scores in bold red.
+struct PatientLineText: View {
+    var line: PatientSummary.Line
+
+    private var styled: AttributedString {
+        var a = AttributedString(line.text)
+        for m in line.marks where !m.isEmpty {
+            var from = a.startIndex
+            while let r = a[from...].range(of: m) {
+                a[r].foregroundColor = PS.red
+                a[r].font = PS.sys(size: 14, weight: .bold)
+                from = r.upperBound
+            }
+        }
+        return a
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            if let k = line.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(line.alert ? PS.accent : PS.fg3) }
+            Text(styled).font(PS.sys(size: 14, weight: line.alert ? .semibold : .regular)).foregroundStyle(line.alert ? PS.accent : PS.fg)
+                .lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
