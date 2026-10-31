@@ -129,6 +129,21 @@ final class PatientWorkupTests: XCTestCase {
         }
     }
 
+    /// Cardiac surgery hides the RCRI (derived for noncardiac surgery).
+    func testCardiacSurgeryHidesRCRI() {
+        var r = PatientDemo.record
+        XCTAssertTrue(PatientRules.prompts(r).contains { $0.id == "rcri" })
+        for p in ["CABG ×3", "Aortic valve replacement", "TAVR", "Redo sternotomy, MVR", "Bentall"] {
+            r.procedure = p
+            XCTAssertTrue(PatientRules.cardiacSurgery(r), p)
+            XCTAssertFalse(PatientRules.prompts(r).contains { $0.id == "rcri" }, p)
+        }
+        for p in ["Laparoscopic sigmoid colectomy", "Carotid endarterectomy", "Liver transplant"] {
+            r.procedure = p
+            XCTAssertFalse(PatientRules.cardiacSurgery(r), p)
+        }
+    }
+
     /// The ASE valve and chamber tools write their grades into the echo findings.
     func testEchoFromTools() {
         var e = PatientEcho()

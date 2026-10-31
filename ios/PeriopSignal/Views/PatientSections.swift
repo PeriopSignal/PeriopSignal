@@ -19,8 +19,10 @@ extension PatientEditorView {
             }
             PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
         }
-        PatientGroup(title: "Risk-score inputs") {
-            toggleRow("High-risk surgery", "Intraperitoneal, intrathoracic or suprainguinal vascular (RCRI)", bind(\.highRiskSurgery))
+        PatientGroup(title: "Risk-score inputs", note: PatientRules.cardiacSurgery(r) ? "Cardiac surgery: the RCRI is not shown, as it was derived for noncardiac surgery (Lee 1999)." : nil) {
+            if !PatientRules.cardiacSurgery(r) {
+                toggleRow("High-risk surgery", "Intraperitoneal, intrathoracic or suprainguinal vascular (RCRI)", bind(\.highRiskSurgery))
+            }
             PatientChipRow(label: "Incision (ARISCAT)") {
                 PatientChoice(options: [(id: "Peripheral", label: "Peripheral"), (id: "Upper abdominal", label: "Upper abdominal"), (id: "Intrathoracic", label: "Intrathoracic")], selection: bind(\.incision))
             }

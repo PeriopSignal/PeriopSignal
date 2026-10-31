@@ -153,7 +153,8 @@ enum PatientRules {
             out.append(PatientPrompt(id: id, title: Scores.byID(id)?.name ?? id, why: why, route: "score:" + id, done: r.scores[id].map { scoreLine(id, $0) }))
         }
         if r.isAdult {
-            score("rcri", "Cardiac risk before noncardiac surgery")
+            // The RCRI was derived and validated for noncardiac surgery only.
+            if !cardiacSurgery(r) { score("rcri", "Cardiac risk before noncardiac surgery") }
             score("ariscat", "Postoperative pulmonary complications")
             score("stopbang", "Obstructive sleep apnea screen")
             if r.anesthetic.isEmpty || r.anesthetic.contains("ga") { score("apfel", "Nausea and vomiting risk, with the prophylaxis plan") }
@@ -297,8 +298,18 @@ extension PatientRules {
                                  "ecmo", "mitral", "tricuspid", "myectomy", "maze", "ross", "aortic", "aorta", "aaa", "evar", "tevar",
                                  "fevar", "thromboendarterectomy", "asd", "vsd", "pericardiectomy"]
 
-    static func echoFirst(_ r: PatientRecord) -> Bool {
-        let p = " " + r.procedure.lowercased() + " "
-        return echoFirstWords.contains { w in p.range(of: "\\b" + NSRegularExpression.escapedPattern(for: w) + "\\b", options: .regularExpression) != nil }
+    /// Cardiac surgery or a transcatheter heart procedure, where the RCRI does not apply (it was derived for
+    /// noncardiac surgery; Lee 1999).
+    static let cardiacWords = ["cabg", "opcab", "valve", "avr", "mvr", "tvr", "tavr", "tavi", "teer", "mitraclip", "lvad", "heart transplant",
+                               "oht", "cardiac", "sternotomy", "coronary", "myectomy", "maze", "ross", "asd", "vsd", "pericardiectomy",
+                               "aortic root", "bentall", "arch replacement", "cardiopulmonary bypass"]
+
+    static func cardiacSurgery(_ r: PatientRecord) -> Bool { matches(r.procedure, cardiacWords) }
+
+    private static func matches(_ text: String, _ words: [String]) -> Bool {
+        let p = " " + text.lowercased() + " "
+        return words.contains { w in p.range(of: "\\b" + NSRegularExpression.escapedPattern(for: w) + "\\b", options: .regularExpression) != nil }
     }
+
+    static func echoFirst(_ r: PatientRecord) -> Bool { matches(r.procedure, echoFirstWords) }
 }
