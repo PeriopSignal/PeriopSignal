@@ -372,9 +372,9 @@ enum PatientNote {
         (NoteRx(#"\bchronic opioids?\b|\bopioid[- ]tolerant\b|\b(?:on|takes|taking) (?:chronic |daily )?opioids\b"#), "opioid"),
     ]
 
-    /// A medicine running as an infusion, with its rate when given ("norepinephrine infusion at 0.05 mcg/kg/min"; "levo
-    /// gtt" reads as one).
-    static let infusionRx = NoteRx(#"\b(nitroglycerin|nitroprusside|epinephrine|norepinephrine|phenylephrine|vasopressin|dobutamine|dopamine|milrinone|isoproterenol|nicardipine|clevidipine|esmolol|diltiazem|amiodarone|lidocaine|heparin|bivalirudin|argatroban|insulin|propofol|dexmedetomidine|ketamine|fentanyl|remifentanil|sufentanil|hydromorphone|morphine|midazolam|cisatracurium|rocuronium|vecuronium|labetalol|magnesium|oxytocin|epoprostenol|treprostinil|furosemide|bumetanide|octreotide|pantoprazole|angiotensin ii|methylene blue|levosimendan|eptifibatide|tirofiban|alteplase|naloxone|sodium bicarbonate|bicarbonate)\s+(?:infusion|drip|gtt)s?\b(?:\s*(?:at|@|of|running at|=|:)?\s*(\d+(?:\.\d+)?)(?:\s*((?:mcg|mg|units?|u|ng|g|ml|meq|mmol)(?:\s*/\s*kg)?(?:\s*/\s*(?:min|minute|hr|hour|h))?)\b)?)?"#)
+    /// A medicine running as an infusion, with its rate when given: "norepinephrine infusion at 0.05 mcg/kg/min" ("levo
+    /// gtt" reads as one), or a medicine with a rate per minute or hour ("propofol 30 mcg/kg/min"; not a fentanyl patch).
+    static let infusionRx = NoteRx(#"\b(nitroglycerin|nitroprusside|epinephrine|norepinephrine|phenylephrine|vasopressin|dobutamine|dopamine|milrinone|isoproterenol|nicardipine|clevidipine|esmolol|diltiazem|amiodarone|lidocaine|heparin|bivalirudin|argatroban|insulin|propofol|dexmedetomidine|ketamine|fentanyl|remifentanil|sufentanil|hydromorphone|morphine|midazolam|cisatracurium|rocuronium|vecuronium|labetalol|magnesium|oxytocin|epoprostenol|treprostinil|furosemide|bumetanide|octreotide|pantoprazole|angiotensin ii|methylene blue|levosimendan|eptifibatide|tirofiban|alteplase|naloxone|sodium bicarbonate|bicarbonate)\s+(?:(?:infusion|drip|gtt)s?\b(?:\s*(?:at|@|of|running at|=|:)?\s*(\d+(?:\.\d+)?)(?:\s*((?:mcg|mg|units?|u|ng|g|ml|meq|mmol)(?:\s*/\s*kg)?(?:\s*/\s*(?:min|minute|hr|hour|h))?)\b)?)?|(?:at\s+|@\s*)?(\d+(?:\.\d+)?)\s*((?:mcg|mg|units?|u|ng|g|ml|meq|mmol)(?:\s*/\s*kg)?\s*/\s*(?:min|minute|hr|hour|h))\b(?!\s*patch))"#)
     /// An infusion that has been stopped ("weaned off the norepinephrine infusion").
     static let offCue = NoteRx(#"\b(?:off|weaned|stopped|discontinued|held|d/c'?d|dc'?d)\b[^.;,]{0,20}$"#)
 
@@ -438,7 +438,7 @@ enum PatientNote {
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
-        out += drugClasses.map(\.0) + [infusionRx, offCue]
+        out += drugClasses.map { $0.0 } + [infusionRx, offCue]
         out += [smokeNeverRx, smokeFormerRx, smokeCurrentRx, medsHeaderRx, aspirinDoseRx, allergyCue, nkdaRx, allergyRx, allergyAfterRx, allergySkipRx, allergyCut, noneRx]
         out += [bpRx, hrRx, spo2Rx, onOxygenRx, rrRx, tempRx, efRx]
         out += labRules.map { $0.rx }
@@ -856,8 +856,8 @@ enum PatientNote {
                 h.seen(m.range)
                 continue
             }
-            var rate = m.text(2, in: c) ?? ""
-            if let unit = m.text(3, in: c) { rate += " " + unit.replacingOccurrences(of: " ", with: "") }
+            var rate = m.text([2, 4], in: c) ?? ""
+            if let unit = m.text([3, 5], in: c) { rate += " " + unit.replacingOccurrences(of: " ", with: "") }
             let text = drug + " infusion" + (rate.isEmpty ? "" : " " + rate)
             h.add(PatientNoteFinding(id: "infusion:" + drug, section: Part.meds, label: "Infusion: " + drug + (rate.isEmpty ? "" : " at " + rate),
                                      change: .medications(text)), at: m.range)

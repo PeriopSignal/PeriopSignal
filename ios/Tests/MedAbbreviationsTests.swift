@@ -125,6 +125,8 @@ final class MedAbbreviationsTests: XCTestCase {
         XCTAssertNil(change(r, "meds"), "the infusion is not listed again as a medicine")
         XCTAssertEqual(r.other, "")
         XCTAssertEqual(change(read("epi gtt at 0.05"), "infusion:epinephrine"), .medications("epinephrine infusion 0.05"))
+        XCTAssertEqual(change(read("On vaso 0.04 u/min"), "infusion:vasopressin"), .medications("vasopressin infusion 0.04 u/min"), "a rate per minute")
+        XCTAssertNil(change(read("Fentanyl 25 mcg/hr patch"), "infusion:fentanyl"))
         XCTAssertEqual(change(read("on a heparin drip"), "flag:anticoagulant"), .medFlag("anticoagulant"))
         XCTAssertNil(change(read("weaned off the levo gtt"), "infusion:norepinephrine"), "an infusion that was stopped")
         XCTAssertEqual(MedAbbreviations.lookup("gtt")?.meanings.first?.text, "infusion")

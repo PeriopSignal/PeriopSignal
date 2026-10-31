@@ -371,9 +371,11 @@ enum MedAbbreviations {
         while s > 0, r.location - s < 60, !ends(s - 1) { s -= 1 }
         var e = r.location + r.length
         while e < ns.length, e - (r.location + r.length) < 60, !ends(e) { e += 1 }
-        let before = ns.substring(with: ns.rangeOfComposedCharacterSequences(for: NSRange(location: s, length: r.location - s)))
-        let after = ns.substring(with: ns.rangeOfComposedCharacterSequences(for: NSRange(location: r.location + r.length, length: e - r.location - r.length)))
-        return (before, after)
+        func text(_ range: NSRange) -> String {
+            guard range.length > 0, range.location >= 0, range.location + range.length <= ns.length else { return "" }
+            return ns.substring(with: ns.rangeOfComposedCharacterSequences(for: range))
+        }
+        return (text(NSRange(location: s, length: r.location - s)), text(NSRange(location: r.location + r.length, length: e - r.location - r.length)))
     }
 
     /// Mostly capitals: an all-caps note, where only short tokens are taken for abbreviations.
@@ -399,8 +401,8 @@ enum MedAbbreviations {
     static var allPatterns: [NoteRx] {
         var out = [matcher, tokenRx, titleBefore]
         for e in all {
-            out += e.hints.flatMap(\.context.patterns)
-            out += e.skip.flatMap(\.patterns)
+            out += e.hints.flatMap { $0.context.patterns }
+            out += e.skip.flatMap { $0.patterns }
         }
         return out
     }
