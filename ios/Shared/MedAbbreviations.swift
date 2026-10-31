@@ -318,10 +318,17 @@ enum MedAbbreviations {
         while s > 0, s < r.location, word(s - 1), word(s) { s += 1 }
         while e < ns.length, e > r.location + r.length, word(e - 1), word(e) { e -= 1 }
         let safe = ns.rangeOfComposedCharacterSequences(for: NSRange(location: s, length: e - s))
-        var t = ns.substring(with: safe).replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression).trimmingCharacters(in: .whitespaces)
-        if safe.location > 0 { t = "…" + t }
-        if safe.location + safe.length < ns.length { t += "…" }
-        return t
+        var t = ns.substring(with: safe).replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        let cut = CharacterSet(charactersIn: " ,;:")
+        if safe.location > 0 {
+            while let c = t.unicodeScalars.first, cut.contains(c) { t.removeFirst() }
+            t = "…" + t
+        }
+        if safe.location + safe.length < ns.length {
+            while let c = t.unicodeScalars.last, cut.contains(c) { t.removeLast() }
+            t += "…"
+        }
+        return t.trimmingCharacters(in: .whitespaces)
     }
 
     static func slug(_ s: String) -> String {
