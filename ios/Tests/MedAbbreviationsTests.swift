@@ -120,12 +120,19 @@ final class MedAbbreviationsTests: XCTestCase {
 
     func testInfusions() {
         let r = read("Nitro gtt at 0.5 mcg/kg/min")
-        XCTAssertEqual(change(r, "infusion:nitroglycerin"), .medications("nitroglycerin infusion 0.5 mcg/kg/min"))
+        XCTAssertEqual(change(r, "infusion:nitroglycerin"), .infusion("nitroglycerin", "0.5 mcg/kg/min"))
         XCTAssertEqual(r.findings.first { $0.id == "infusion:nitroglycerin" }?.label, "Infusion: nitroglycerin at 0.5 mcg/kg/min")
         XCTAssertNil(change(r, "meds"), "the infusion is not listed again as a medicine")
+        var rec = PatientRecord()
+        PatientNote.apply([.infusion("nitroglycerin", "0.5 mcg/kg/min")], to: &rec)
+        XCTAssertEqual(rec.homeInfusions.map(\.drug), ["Nitroglycerin"])
+        XCTAssertEqual(rec.homeInfusions.first?.rate, "0.5 mcg/kg/min")
+        func finding(_ c: PatientNoteChange) -> PatientNoteFinding { PatientNoteFinding(id: "infusion:nitroglycerin", section: "Medications", label: "", change: c) }
+        XCTAssertEqual(PatientNote.status(finding(.infusion("nitroglycerin", "0.5 mcg/kg/min")), in: rec), .recorded)
+        XCTAssertEqual(PatientNote.status(finding(.infusion("nitroglycerin", "1 mcg/kg/min")), in: rec), .replaces("0.5 mcg/kg/min"))
         XCTAssertEqual(r.other, "")
-        XCTAssertEqual(change(read("epi gtt at 0.05"), "infusion:epinephrine"), .medications("epinephrine infusion 0.05"))
-        XCTAssertEqual(change(read("On vaso 0.04 u/min"), "infusion:vasopressin"), .medications("vasopressin infusion 0.04 u/min"), "a rate per minute")
+        XCTAssertEqual(change(read("epi gtt at 0.05"), "infusion:epinephrine"), .infusion("epinephrine", "0.05"))
+        XCTAssertEqual(change(read("On vaso 0.04 u/min"), "infusion:vasopressin"), .infusion("vasopressin", "0.04 u/min"), "a rate per minute")
         XCTAssertNil(change(read("Fentanyl 25 mcg/hr patch"), "infusion:fentanyl"))
         XCTAssertEqual(change(read("on a heparin drip"), "flag:anticoagulant"), .medFlag("anticoagulant"))
         XCTAssertNil(change(read("weaned off the levo gtt"), "infusion:norepinephrine"), "an infusion that was stopped")

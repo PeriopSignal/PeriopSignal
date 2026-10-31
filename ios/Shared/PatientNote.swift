@@ -18,6 +18,8 @@ enum PatientNoteChange: Hashable {
     case procedure(String), urgency(PatientUrgency), anesthetic(String), asa(Int, Bool)
     case problem(String), noHistory, smoking(String)
     case medFlag(String), medications(String)
+    /// A running infusion: the drug and its rate as written ("0.1 mcg/kg/min", or "" when none was given).
+    case infusion(String, String)
     case nkda, allergies(String)
     case anesthesiaHistory(String), anesthesiaNotes(String)
     case vital(String, Double), lab(String, Double)
@@ -847,7 +849,7 @@ enum PatientNote {
         }
     }
 
-    /// Infusions running: added to the medications as "norepinephrine infusion 0.05 mcg/kg/min".
+    /// Infusions running: added to Current infusions with their rate ("Norepinephrine", "0.05 mcg/kg/min").
     private static func readInfusions(_ c: String, _ h: inout Hits) {
         for m in infusionRx.all(c) {
             h.infusions.append(m.range)
@@ -858,9 +860,8 @@ enum PatientNote {
             }
             var rate = m.text([2, 4], in: c) ?? ""
             if let unit = m.text([3, 5], in: c) { rate += " " + unit.replacingOccurrences(of: " ", with: "") }
-            let text = drug + " infusion" + (rate.isEmpty ? "" : " " + rate)
             h.add(PatientNoteFinding(id: "infusion:" + drug, section: Part.meds, label: "Infusion: " + drug + (rate.isEmpty ? "" : " at " + rate),
-                                     change: .medications(text)), at: m.range)
+                                     change: .infusion(drug, rate)), at: m.range)
         }
     }
 
@@ -1157,6 +1158,10 @@ enum PatientNote {
             return r.medFlags.contains(f) ? .recorded : .new
         case .medications(let m):
             return mentions(r.medications, m) ? .recorded : .new
+        case .infusion(let drug, let rate):
+            guard let o = r.homeInfusions.first(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) else { return .new }
+            if rate.isEmpty || o.rate.caseInsensitiveCompare(rate) == .orderedSame { return .recorded }
+            return o.rate.isEmpty ? .new : .replaces(o.rate)
         case .nkda:
             if r.nkda { return .recorded }
             let a = r.allergies.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1229,6 +1234,12 @@ enum PatientNote {
             case .smoking(let s): r.smoking = s
             case .medFlag(let f): r.medFlags.insert(f)
             case .medications(let m): r.medications = joined(r.medications, m)
+            case .infusion(let drug, let rate):
+                if let i = r.homeInfusions.firstIndex(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) {
+                    if !rate.isEmpty { r.homeInfusions[i].rate = rate }
+                } else {
+                    r.homeInfusions.append(PatientInfusion(drug: drug.prefix(1).uppercased() + drug.dropFirst(), rate: rate))
+                }
             case .nkda:
                 if r.allergies.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { r.nkda = true }
             case .allergies(let a):
