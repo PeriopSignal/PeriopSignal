@@ -143,7 +143,7 @@ struct NeuraxialTimingView: View {
                 .datePickerStyle(.compact)
                 .tint(PS.accent)
             if let t = tier, t.inrRule == true {
-                Text("Warfarin counts in days: the block needs a normal INR on the day, whatever the calendar says.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                EvidenceNote("Warfarin counts in days: the block needs a normal INR on the day, whatever the calendar says.", title: "Warfarin: a normal INR on the day")
             }
         }
     }
@@ -239,8 +239,10 @@ struct NeuraxialTimingView: View {
                     Button { onOpen(url) } label: { Label("Guideline ↗", systemImage: "doc.text") }.buttonStyle(GhostButtonStyle())
                 }
             }
-            Text("ASRA Pain Medicine, fifth edition (2025)\(data?.reviewed.map { "; reviewed \(PSDate.monthYear($0))" } ?? ""). The interval is the guideline's minimum for a patient on this drug alone; combinations, kidney function and age push it out, and a bloody tap or a catheter changes the plan — the guideline and your judgement decide.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                Text("ASRA Pain Medicine, fifth edition (2025)\(data?.reviewed.map { "; reviewed \(PSDate.monthYear($0))" } ?? ""). The interval is the guideline's minimum for a patient on this drug alone; combinations, kidney function and age push it out, and a bloody tap or a catheter changes the plan — the guideline and your judgement decide.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 

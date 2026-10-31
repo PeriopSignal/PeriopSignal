@@ -91,7 +91,7 @@ struct ScoreDefinition: Identifiable, Hashable {
 
     func band(for score: Int) -> ScoreBand? { bands.first { $0.range.contains(score) } }
 
-    /// Count of positive answers (STOP-Bang style scores are read as counts, not weighted points).
+    /// Count of positive answers (STOP-BANG style scores are read as counts, not weighted points).
     func count(_ selection: ScoreSelection) -> Int { total(selection) }
 
     var searchText: String { ([name, short, blurb] + keywords + items.map(\.label)).joined(separator: " ").lowercased() }
@@ -163,9 +163,9 @@ enum Scores {
                 "External validation (PERISCOPE, 2014) found higher observed rates in the low and intermediate classes than predicted."],
         keywords: ["pulmonary complications", "ppc", "respiratory risk", "canet"])
 
-    /// STOP-Bang. Chung F et al. Anesthesiology 2008;108:812-21; Chest 2016;149:631-8.
+    /// STOP-BANG. Chung F et al. Anesthesiology 2008;108:812-21; Chest 2016;149:631-8.
     static let stopBang = ScoreDefinition(
-        id: "stopbang", name: "STOP-Bang", short: "STOP-Bang",
+        id: "stopbang", name: "STOP-BANG", short: "STOP-BANG",
         blurb: "Screening for obstructive sleep apnea",
         icon: "zzz",
         items: [

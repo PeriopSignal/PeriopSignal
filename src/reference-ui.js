@@ -75,8 +75,8 @@
   const FOLDERS = [
     { id: 'emergency', title: 'Emergency', icon: 'bolt', tint: 'var(--accent)', items: ['tool-acls', 'tool-ob', 'card-asra-last', 'card-mhaus-mh', 'tool-airway'],
       note: 'ACLS starts its code clock when it opens. The checklists take the patient’s weight at the top and work out the doses; the weight clears when you leave.' },
-    { id: 'preoperative', title: 'Preoperative', icon: 'clipboard', tint: 'var(--accent-2)', items: ['tool-rcri', 'tool-ariscat', 'tool-stopbang', 'tool-fasting'] },
-    { id: 'general-anesthesia', title: 'General Anesthesia', icon: 'lungs', tint: 'var(--t-thoracic-fg)', items: ['tool-abg', 'tool-ponv', 'tool-aldrete'] },
+    // Preoperative and general anesthesia calculators in one list, from the preoperative visit to recovery.
+    { id: 'preoperative', title: 'Preoperative & General', icon: 'clipboard', tint: 'var(--accent-2)', items: ['tool-rcri', 'tool-ariscat', 'tool-stopbang', 'tool-apfel', 'tool-fasting', 'tool-ponv', 'tool-abg', 'tool-aldrete'] },
     { id: 'regional', title: 'Regional', icon: 'syringe', tint: 'var(--t-regional-fg)', items: ['tool-regional-finder', 'tool-blocks', 'tool-neuraxial-guide', 'tool-neuraxial', 'tool-local'] },
     { id: 'cardiothoracic', title: 'Cardiothoracic', icon: 'heart', tint: 'var(--t-cardiacSurgery-fg)', items: ['tool-valves', 'tool-intervention', 'tool-chamber', 'tool-diastolic'] },
     { id: 'medications', title: 'Medications & Hematology', icon: 'ivbag', tint: 'var(--new)', items: ['tool-infusions'] },
@@ -91,7 +91,8 @@
     'tool-airway': T('Difficult Airway', 'Assessment in, plan and checklists out', 'wind', ['airway', 'intubat', 'laryngoscop', 'cricothyr', 'cannot ventilate', 'cicv', 'awake', 'videolaryngoscope', 'supraglottic', 'lma'], mountAirway),
     'tool-rcri': T('RCRI', 'Cardiac risk for non-cardiac surgery', 'heartPulse', [], (h) => mountScore(h, 'rcri'), { score: 'rcri' }),
     'tool-ariscat': T('ARISCAT', 'Postoperative pulmonary complications', 'lungs', [], (h) => mountScore(h, 'ariscat'), { score: 'ariscat' }),
-    'tool-stopbang': T('STOP-Bang', 'Sleep apnea screening', 'zzz', [], (h) => mountScore(h, 'stopbang'), { score: 'stopbang' }),
+    'tool-stopbang': T('STOP-BANG', 'Sleep apnea screening', 'zzz', [], (h) => mountScore(h, 'stopbang'), { score: 'stopbang' }),
+    'tool-apfel': T('Apfel PONV Score', 'Adult risk of nausea and vomiting after surgery', 'pills', ['apfel', 'ponv risk', 'ponv score', 'nausea risk'], (h) => mountScore(h, 'apfel'), { score: 'apfel' }),
     'tool-fasting': T('Fasting', 'Last intake in, earliest start out', 'cup', ['npo', 'fasting', 'fast', 'clear liquid', 'breast milk', 'formula', 'meal', 'gum', 'aspiration'], mountFasting),
     'tool-abg': T('ABG Interpretation', 'Primary disorder, compensation, mixed disorders', 'flask', ['abg', 'blood gas', 'arterial blood gas', 'acid', 'base', 'acid-base', 'acidosis', 'alkalosis', 'acidemia', 'alkalemia', 'ph', 'paco2', 'pco2', 'hco3', 'bicarbonate', 'compensation', 'winter', 'respiratory acidosis', 'metabolic acidosis', 'respiratory alkalosis', 'metabolic alkalosis', 'mixed disorder', 'henderson'], (h) => window.PSAbg ? window.PSAbg.mount(h, ctxFor('tool-abg')) : notReady(h)),
     'tool-ponv': T('PONV', 'Apfel score, how many agents, rescue', 'pills', ['ponv', 'nausea', 'vomiting', 'antiemetic', 'apfel', 'ondansetron', 'dexamethasone', 'droperidol', 'amisulpride', 'aprepitant', 'scopolamine', 'palonosetron', 'granisetron', 'promethazine', 'rescue', 'prophylaxis'], mountPONV),
@@ -326,15 +327,13 @@
       let h = `<div class="r-stack">`;
       h += resultCard(tone, `<div class="r-rowtop">${eyebrow(def.name)}${empty ? '' : `<button type="button" class="r-link" data-a="reset">${I.reset} Reset</button>`}</div>
         <div class="r-big"><span class="n">${score}</span><span class="of">of ${max}</span><button type="button" class="r-ghost sm" data-a="copy">${I.copy}Copy</button></div>
-        ${band ? `<div class="r-band"><span class="dot" style="background:${tone}"></span><strong>${esc(band.label)}</strong></div><p class="r-detail">${esc(band.detail)}</p>` : ''}
-        <p class="r-small">${esc(def.readout)}</p>`);
+        ${band ? `<div class="r-band"><span class="dot" style="background:${tone}"></span><strong>${esc(band.label)}</strong></div><p class="r-detail">${esc(band.detail)}</p>` : ''}`);
       h += `<section class="r-card flush">${def.items.map((it) => scoreItem(it, sel)).join('')}</section>`;
       h += `<section class="r-sec">${eyebrow('Interpretation')}<div class="r-card flush">${def.bands.map((b) => {
         const on = score >= b.lo && score <= b.hi;
         return `<div class="r-bandrow${on ? ' on' : ''}"><span class="dot" style="background:${TONE[b.tone]}"></span><span class="bt"><span>${esc(b.label)}</span><small>${esc(b.detail)}</small></span>${on ? `<span class="here">${I.chevL}</span>` : ''}</div>`;
       }).join('')}</div></section>`;
-      if (def.notes.length) h += `<section class="r-sec">${eyebrow('Notes')}${takeList(def.notes)}</section>`;
-      h += `<footer class="r-footer">${eyebrow('Sources')}${sourceLine(def.source)}${def.rateSource ? sourceLine(def.rateSource) : ''}${footnote('A calculator, not a consultation: the score informs, your assessment decides.')}</footer>`;
+      h += `<footer class="r-footer"><p class="r-small">${esc(def.readout)}</p>${def.notes.length ? eyebrow('Notes') + takeList(def.notes) : ''}${eyebrow('Sources')}${sourceLine(def.source)}${def.rateSource ? sourceLine(def.rateSource) : ''}${footnote('A calculator, not a consultation: the score informs, your assessment decides.')}</footer>`;
       return h + `</div>`;
     }, {
       tog(el) { const k = el.dataset.k; if (sel.on.has(k)) sel.on.delete(k); else sel.on.add(k); },
@@ -671,7 +670,7 @@
       } else inner += `<p class="r-answer muted">Enter What Was Taken</p>`;
       if (st.flags.size) inner += `<p class="r-detail" style="color:var(--accent)">The guideline is written for healthy patients: with ${st.flags.size === 1 ? 'this condition' : 'these conditions'} its times do not apply as written. Plan for delayed emptying.</p>`;
       let h = `<div class="r-stack">${resultCard(tone, inner)}`;
-      h += `<section class="r-sec">${eyebrow('What was taken, and when')}<div class="r-card flush">${R.fasting.intakes.map((i) => {
+      h += `<section class="r-sec">${eyebrow('What was taken & when')}<div class="r-card flush">${R.fasting.intakes.map((i) => {
         const on = st.taken[i.id] !== undefined;
         return `<div class="r-intake"><button type="button" class="r-intakebtn" role="checkbox" aria-checked="${on}" data-a="take" data-k="${i.id}"><span class="box" aria-hidden="true">${on ? I.check : ''}</span><span class="tt"><span>${esc(i.label)}</span>${i.detail ? `<small>${esc(i.detail)}</small>` : ''}</span><span class="hrs">${i.hours === 0 ? '—' : esc(R.fmtHours(i.hours))}</span></button>${on ? `<input class="r-when" id="fast-${i.id}" type="datetime-local" data-a="time" data-k="${i.id}" value="${toLocalInput(st.taken[i.id])}" max="${toLocalInput(Date.now())}" aria-label="When: ${esc(i.label)}">` : ''}</div>`;
       }).join('')}</div></section>`;
@@ -807,7 +806,7 @@
       let inner = eyebrow(top ? `${R.viClassWord(top.cls)} · class ${top.cls}` : (r.fallback ? 'Surveillance' : 'Answer the questions'), tone);
       if (top) inner += `<p class="r-headline big">${esc(top.recommendation)}</p><p class="r-detail">${esc(top.situation)}</p>${top.note ? `<p class="r-note2">${I.info}<span>${esc(top.note)}</span></p>` : ''}`;
       else if (r.fallback) inner += `<p class="r-lede">${esc(r.fallback)}</p>`;
-      else inner += `<p class="r-headline big muted">${empty ? 'Severity and Symptoms First' : 'Nothing Settled Yet'}</p><p class="r-detail">${empty ? 'The recommendations appear as the answers come in; the dots mark the questions that would decide.' : 'Keep going: the marked questions decide.'}</p>`;
+      else inner += `<p class="r-headline big muted">${empty ? 'Severity & Symptoms First' : 'Nothing Settled Yet'}</p><p class="r-detail">${empty ? 'The recommendations appear as the answers come in; the dots mark the questions that would decide.' : 'Keep going: the marked questions decide.'}</p>`;
       const rest = r.matched.filter((x) => !top || x.id !== top.id);
       if (rest.length) {
         inner += `<div class="r-recs">`;
@@ -853,7 +852,7 @@
     const posts = F.posts().filter((p) => (p.headline + ' ' + p.summary + ' ' + p.trialName + ' ' + p.journal + ' ' + p.kind + ' ' + p.takeHome.join(' ')).toLowerCase().includes(s));
     if (!tools.length && !refs.length && !posts.length) return `<div class="r-empty"><strong>Nothing matches “${esc(q)}”</strong><span>Try a drug, a score, a society or a procedure.</span></div>`;
     let h = '';
-    if (tools.length) h += `<section class="r-sec">${eyebrow('Calculators and guides')}<div class="r-tiles">${tools.map((id) => tile(id)).join('')}</div></section>`;
+    if (tools.length) h += `<section class="r-sec">${eyebrow('Calculators & guides')}<div class="r-tiles">${tools.map((id) => tile(id)).join('')}</div></section>`;
     if (refs.length) h += `<section class="r-sec">${eyebrow('Quick references')}<div class="r-card flush">${refs.map((r) => `<a class="r-rowlink" href="#card-${esc(r.id)}"><span class="rt"><strong>${esc(R.titleCase(r.title))}</strong><small>${r.emergency ? '<em>Emergency</em>' : `<i style="background:var(--t-${esc(r.topic || 'general')}-fg)"></i>`}${esc(r.short || r.society)}${r.year ? ' · ' + r.year : ''}</small></span>${I.chevR}</a>`).join('')}</div></section>`;
     if (posts.length) h += `<section class="r-sec"><div class="r-sechead">${eyebrow('In the feed')}<span class="r-count">${posts.length}</span></div><div class="r-card flush">${posts.slice(0, 25).map((p) => `<button type="button" class="r-rowlink" data-post="${esc(p.id)}"><span class="rt"><strong>${esc(p.headline)}</strong><small><i style="background:var(--t-${esc(p.topics[0] || 'general')}-fg)"></i>${esc(p.journal)} · ${esc(p.kind)} · ${esc(F.fmtDate(p.date, true))}${p.impact === 3 ? ' <em>Landmark</em>' : ''}</small></span>${I.chevR}</button>`).join('')}</div></section>`;
     return h;
@@ -896,6 +895,25 @@
   // ---------- router and page chrome ----------
   const refEl = $('#ref');
   let current = null, cleanup = null, navStack = [], lastRef = 'reference';
+
+  // Explanation & Evidence: each tool's sources and notes sit behind one small disclosure, as in the app; the
+  // footer's buttons stay in view. Footers are re-rendered as inputs change, so the open state is kept per tool.
+  const evOpen = new Set();
+  function wrapEvidence() {
+    refEl.querySelectorAll('footer.r-footer:not([data-ev])').forEach((f) => {
+      f.dataset.ev = '1';
+      const keep = f.querySelector(':scope > .r-btns');
+      const d = document.createElement('details');
+      d.className = 'r-ev';
+      const key = current || '';
+      d.open = evOpen.has(key);
+      d.innerHTML = '<summary>Explanation &amp; Evidence <span class="r-ev-i" aria-hidden="true">ⓘ</span></summary>';
+      [...f.childNodes].forEach((n) => { if (n !== keep) d.appendChild(n); });
+      f.appendChild(d);
+      d.addEventListener('toggle', () => { if (d.open) evOpen.add(key); else evOpen.delete(key); });
+    });
+  }
+  if (refEl) new MutationObserver(wrapEvidence).observe(refEl, { childList: true, subtree: true });
   const scrollMem = {};
   function go(hash) { if (location.hash.slice(1) === hash) route(); else location.hash = hash; }
   function parentOf(h) {
@@ -922,7 +940,9 @@
   }
   let feedScroll = 0;
   function route() {
-    const h = decodeURIComponent((location.hash || '').slice(1));
+    let h = decodeURIComponent((location.hash || '').slice(1));
+    // General Anesthesia joined Preoperative ("Preoperative & General"); old links land there.
+    if (h === 'folder-general-anesthesia') { history.replaceState(null, '', '#folder-preoperative'); h = 'folder-preoperative'; }
     if (!isRefRoute(h)) {
       if (current !== null) {
         if (cleanup) { cleanup(); cleanup = null; }

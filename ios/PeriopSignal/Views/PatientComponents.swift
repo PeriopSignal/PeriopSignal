@@ -191,9 +191,7 @@ struct PatientGroup<Content: View>: View {
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            if let note {
-                Text(note).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
-            }
+            if let note { EvidenceNote(note).padding(.horizontal, 2) }
         }
     }
 }

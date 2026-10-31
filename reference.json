@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-10-30",
-  "revision": 1793402763,
+  "updated": "2026-10-31",
+  "revision": 1793481925,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -9,7 +9,7 @@
   "quickrefs": [
     {
       "id": "ponv-consensus",
-      "title": "PONV Prophylaxis and Rescue",
+      "title": "PONV Prophylaxis & Rescue",
       "society": "Consensus guideline (Gan et al.)",
       "short": "PONV consensus",
       "year": 2025,
@@ -40,7 +40,7 @@
       "reviewed": "2026-10-28",
       "sections": [
         {
-          "heading": "Adults: Risk and How Many Interventions",
+          "heading": "Adults: Risk & How Many Interventions",
           "kind": "facts",
           "rows": [
             [
@@ -67,7 +67,7 @@
           "note": "Apfel's predicted incidence by factor count: 10%, 21%, 39%, 61%, 79% (the Apfel calculator applies it)."
         },
         {
-          "heading": "Adult Agents, Doses and Timing",
+          "heading": "Adult Agents, Doses & Timing",
           "kind": "table",
           "columns": [
             "Agent",
@@ -183,7 +183,7 @@
     },
     {
       "id": "acc-aha-valve-intervention",
-      "title": "Valve Repair and Replacement: When and How (ACC/AHA)",
+      "title": "Valve Repair & Replacement: When & How (ACC/AHA)",
       "society": "American College of Cardiology / American Heart Association",
       "short": "ACC/AHA",
       "year": 2020,
@@ -712,7 +712,7 @@
           ]
         },
         {
-          "heading": "Bridging and Reversal Around Procedures",
+          "heading": "Bridging & Reversal Around Procedures",
           "kind": "facts",
           "rows": [
             [
@@ -755,7 +755,7 @@
     },
     {
       "id": "asra-anticoagulation",
-      "title": "Neuraxial and Deep Blocks with Antithrombotic Drugs (ASRA)",
+      "title": "Neuraxial & Deep Blocks with Antithrombotic Drugs (ASRA)",
       "society": "ASRA Pain Medicine",
       "short": "ASRA",
       "year": 2025,
@@ -1547,7 +1547,7 @@
           "note": "Significant PR is uncommon and usually secondary to pulmonary hypertension or congenital heart disease; combine color, pulsed-wave and CW signs. CMR is the best method to quantify PR and follow RV remodeling."
         },
         {
-          "heading": "How ASE Grades, and the Traps",
+          "heading": "How ASE Grades & the Traps",
           "kind": "list",
           "items": [
             "Three grades (mild, moderate, severe; 'trace' when barely detected); integrate every available sign and set aside the outliers rather than averaging them.",
@@ -3399,7 +3399,7 @@
         "tab": "Hemodynamic"
       },
       {
-        "name": "Vasodilators and Antihypertensives",
+        "name": "Vasodilators & Antihypertensives",
         "drugs": [
           {
             "id": "clevidipine",
@@ -3659,7 +3659,7 @@
         "tab": "Single-Dose"
       },
       {
-        "name": "Anesthetic and Other Infusions",
+        "name": "Anesthetic & Other Infusions",
         "drugs": [
           {
             "id": "amiodarone",
@@ -3952,7 +3952,7 @@
         "tab": "Hematologic"
       },
       {
-        "name": "Antifibrinolytics and Hemostatics",
+        "name": "Antifibrinolytics & Hemostatics",
         "drugs": [
           {
             "id": "aminocaproic",
@@ -4931,7 +4931,7 @@
       },
       {
         "id": "rv",
-        "name": "Right ventricle and pulmonary artery",
+        "name": "Right ventricle & pulmonary artery",
         "short": "RV",
         "measures": [
           {
@@ -5598,7 +5598,7 @@
       },
       {
         "id": "annuli",
-        "name": "Mitral and tricuspid annuli",
+        "name": "Mitral & tricuspid annuli",
         "short": "Annuli",
         "measures": [
           {
@@ -6960,7 +6960,7 @@
             "note": "Epinephrine policy differs: STS 2017 gives no epinephrine or vasopressin during the arrest unless an experienced clinician directs it; ERC 2025 gives 50–100 mcg; AHA 2025 says nothing specific for this setting (its default is 1 mg every 3–5 minutes). Follow local policy and log what was given."
           },
           {
-            "title": "Airway and lines",
+            "title": "Airway & lines",
             "actions": [
               "ventbag",
               "infusions",
@@ -7319,7 +7319,7 @@
                 ]
               },
               "support": {
-                "title": "Assessment and support",
+                "title": "Assessment & support",
                 "crumb": "Support",
                 "items": [
                   "Maintain a patent airway and give oxygen",
@@ -7386,7 +7386,7 @@
                 ]
               },
               "support": {
-                "title": "Assessment and support",
+                "title": "Assessment & support",
                 "crumb": "Support",
                 "items": [
                   "Maintain a patent airway and give oxygen",
@@ -7972,7 +7972,7 @@
             "note": "IV boluses from a 1 mg in 10 mL (100 mcg/mL) syringe for adults, 1 mg in 50 mL (20 mcg/mL) for children (ANZAAG). Repeat every 2 minutes if the response is inadequate. Grade IV uses the arrest syringe (0.1 mg/mL = 100 mcg/mL), five times as strong as the child bolus syringe."
           },
           {
-            "title": "Fluids and refractory shock",
+            "title": "Fluids & refractory shock",
             "actions": [
               "ana-fluid",
               "ana-norepi",
@@ -8826,7 +8826,7 @@
         },
         {
           "id": "forearm",
-          "name": "Elbow and forearm",
+          "name": "Elbow & forearm",
           "views": {
             "front": [
               [
@@ -8908,7 +8908,7 @@
         },
         {
           "id": "hand",
-          "name": "Wrist and hand",
+          "name": "Wrist & hand",
           "views": {
             "front": [
               [
@@ -8990,7 +8990,7 @@
         },
         {
           "id": "chest",
-          "name": "Anterior chest and breast",
+          "name": "Anterior chest & breast",
           "views": {
             "front": [
               [
@@ -9024,7 +9024,7 @@
         },
         {
           "id": "back-chest",
-          "name": "Posterior and lateral chest wall",
+          "name": "Posterior & lateral chest wall",
           "views": {
             "back": [
               [
@@ -9240,7 +9240,7 @@
         },
         {
           "id": "perineum",
-          "name": "Perineum and anus",
+          "name": "Perineum & anus",
           "views": {
             "front": [
               [
@@ -9630,7 +9630,7 @@
         },
         {
           "id": "foot",
-          "name": "Ankle and foot",
+          "name": "Ankle & foot",
           "views": {
             "front": [
               [
@@ -9723,7 +9723,7 @@
       },
       {
         "id": "trunk",
-        "name": "Trunk and abdominal wall"
+        "name": "Trunk & abdominal wall"
       },
       {
         "id": "chest",
@@ -11913,7 +11913,7 @@
       },
       {
         "id": "pecs",
-        "name": "PECS I and II blocks",
+        "name": "PECS I & II blocks",
         "group": "chest",
         "summary": "Breast surgery: pectoral muscles (PECS I), adding the lateral chest wall and axilla (PECS II).",
         "indications": [
@@ -12535,7 +12535,7 @@
       },
       {
         "id": "epidural",
-        "name": "Epidural anesthesia and analgesia",
+        "name": "Epidural anesthesia & analgesia",
         "group": "neuraxial",
         "summary": "Insertion by the incision's center; test dose; labor and cesarean dosing.",
         "indications": [
@@ -13072,7 +13072,7 @@
         },
         {
           "id": "anal",
-          "name": "Anal and perineal surgery",
+          "name": "Anal & perineal surgery",
           "level": "S2–S5",
           "levelText": "S2 to S5: a saddle block (spinal Table 5).",
           "technique": [
@@ -13091,7 +13091,7 @@
         },
         {
           "id": "turp",
-          "name": "TURP and cystoscopy",
+          "name": "TURP & cystoscopy",
           "level": "T10",
           "levelText": "TURP: T10 (spinal Table 5). The epidural chapter gives T9 for TURP and cystoscopy.",
           "technique": [
@@ -13204,7 +13204,7 @@
         },
         {
           "id": "foot",
-          "name": "Foot and ankle surgery",
+          "name": "Foot & ankle surgery",
           "level": "T12",
           "levelText": "Epidural Table 2: T12 for distal tibia, ankle and foot; spinal Table 5 prints L2. With a thigh tourniquet NYSORA gives T8 for knee procedures and amputations.",
           "technique": [
@@ -13772,7 +13772,7 @@
             "note": "Methylergonovine repeat interval is from its label; the other values are from the SMI 2015 checklist, CMQCC, the Indiana uterotonic chart and FIGO/ICM."
           },
           {
-            "heading": "Calcium and Blood",
+            "heading": "Calcium & Blood",
             "kind": "facts",
             "rows": [
               [
@@ -13820,7 +13820,7 @@
       },
       {
         "id": "hypertension",
-        "title": "Severe Hypertension and Eclampsia",
+        "title": "Severe Hypertension & Eclampsia",
         "short": "Hypertension",
         "summary": "Treat a confirmed severe-range pressure within 30–60 minutes; magnesium for seizures; protect the airway.",
         "weightDoses": [
@@ -13894,7 +13894,7 @@
             "note": "24-hour maximums: hydralazine 25 mg IV (SMI 2019, Texas 2025); labetalol 300 mg IV (SMI 2020, Texas 2025) or 220 mg (SMI 2019). Hold labetalol if the pulse is under 60 (SMI 2020; Texas 2025: under 70). Swallow nifedipine whole, never sublingual (SMI 2019)."
           },
           {
-            "heading": "Magnesium and Seizures",
+            "heading": "Magnesium & Seizures",
             "kind": "facts",
             "rows": [
               [
@@ -14256,7 +14256,7 @@
       },
       {
         "id": "sepsis",
-        "title": "Maternal Sepsis and Septic Shock",
+        "title": "Maternal Sepsis & Septic Shock",
         "short": "Sepsis",
         "summary": "Cultures and antibiotics within an hour, 1–2 L of balanced crystalloid, norepinephrine for shock, and source control.",
         "sections": [

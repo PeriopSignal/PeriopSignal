@@ -33,8 +33,9 @@ final class FavoritesStore {
         persist()
     }
 
-    /// Tools that were merged into another keep their place in the list under the new key.
-    static let renamed: [String: String] = ["score:apfel": "ponv", "quickref:ponv-consensus": "ponv"]
+    /// Tools that were merged into another keep their place in the list under the new key. (The Apfel score, once
+    /// folded into PONV, is a calculator of its own again under Preoperative & General.)
+    static let renamed: [String: String] = ["quickref:ponv-consensus": "ponv"]
 
     static func migrate(_ list: [String]) -> [String] {
         var out: [String] = []

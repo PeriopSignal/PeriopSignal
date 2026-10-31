@@ -217,7 +217,7 @@ enum PatientAirway {
         PatientFlag("palate", "High-arched or very narrow palate"),
         PatientFlag("mandible", "Stiff mandibular space", "Indurated, nonresilient or occupied by a mass"),
         PatientFlag("thick-neck", "Short or thick neck"),
-        PatientFlag("neck40", "Neck circumference over 40 cm", "The STOP-Bang item"),
+        PatientFlag("neck40", "Neck circumference over 40 cm", "The STOP-BANG item"),
         PatientFlag("beard", "Beard"),
         PatientFlag("edentulous", "No teeth"),
         PatientFlag("radiation", "Neck radiation changes"),

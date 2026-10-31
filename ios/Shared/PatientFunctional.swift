@@ -324,7 +324,7 @@ enum PatientFunctional {
     /// "Natriuretic peptide", "Troponin" or both, for the step's title.
     private static func biomarkerName(_ b: [Biomarker]) -> String {
         let peptide = b.contains { $0.peptide }, troponin = b.contains { !$0.peptide }
-        return peptide && troponin ? "Natriuretic peptide and troponin" : (troponin ? "Troponin" : "Natriuretic peptide")
+        return peptide && troponin ? "Natriuretic peptide & troponin" : (troponin ? "Troponin" : "Natriuretic peptide")
     }
 
     /// Where the patient sits in the stepwise approach, from what is recorded.

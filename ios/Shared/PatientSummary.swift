@@ -209,9 +209,9 @@ enum PatientSummary {
         let inf = r.infusions.map(\.text).filter { !$0.isEmpty }
         if !inf.isEmpty { out.append(Line("Infusions", inf.joined(separator: "; "))) }
         if let i = PatientRules.fluidLine(r, ids: ["crystalloid", "colloid", "prbc", "wholeBlood", "plasma", "platelets", "cryo", "cellSaver"]) { out.append(Line("In", i)) }
-        if !r.factors.isEmpty { out.append(Line("Factor concentrates and other products", r.factors)) }
+        if !r.factors.isEmpty { out.append(Line("Factor concentrates & other products", r.factors)) }
         if let o = PatientRules.fluidLine(r, ids: ["ebl", "uop"]) { out.append(Line("Out", o)) }
-        if !r.medsGiven.isEmpty { out.append(Line("Medications and interventions", r.medsGiven)) }
+        if !r.medsGiven.isEmpty { out.append(Line("Medications & interventions", r.medsGiven)) }
         if r.noEvents { out.append(Line("Events", "No notable events")) }
         else if !r.events.isEmpty { out.append(Line("Events", r.events, alert: true)) }
         if !r.echo.isEmpty { out.append(Line("Echo", r.echo)) }
@@ -223,7 +223,7 @@ enum PatientSummary {
         if let d = r.disposition { out.append(Line("Disposition", d)) }
         if !r.painPlan.isEmpty { out.append(Line("Pain plan", r.painPlan)) }
         if !r.callIf.isEmpty { out.append(Line("Call if", r.callIf)) }
-        if !r.todos.isEmpty { out.append(Line("To do and concerns", r.todos)) }
+        if !r.todos.isEmpty { out.append(Line("To do & concerns", r.todos)) }
         return out
     }
 }

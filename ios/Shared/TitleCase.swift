@@ -5,12 +5,20 @@ extension String {
     /// capital except short connecting words in the middle; acronyms, units and anything already
     /// capitalized stay as written ("Blocks on anticoagulants" → "Blocks on Anticoagulants",
     /// "Doses in mg/kg" stays, "pH" stays, "Low-gradient" → "Low-Gradient", "Non-cardiac" stays).
+    /// Titles use "&" for a joining "and" ("Risk and Timing" → "Risk & Timing"; "Doses, Timing, and Rescue" →
+    /// "Doses, Timing & Rescue").
     var titleCased: String {
         let words = self.split(separator: " ", omittingEmptySubsequences: false).map(String.init)
         var out: [String] = []
         var startOfClause = true
         for (i, word) in words.enumerated() {
             let isLast = i == words.count - 1
+            if word == "and" && i > 0 && !isLast {
+                if let prev = out.last, prev.hasSuffix(",") { out[out.count - 1] = String(prev.dropLast()) }
+                out.append("&")
+                startOfClause = false
+                continue
+            }
             out.append(TitleCase.capitalize(word, force: startOfClause || isLast))
             let trimmed = word.trimmingCharacters(in: .whitespaces)
             startOfClause = trimmed.hasSuffix(":") || trimmed.hasSuffix("—") || trimmed == "—" || trimmed == "–"

@@ -169,7 +169,7 @@ struct Post: Codable, Identifiable, Hashable {
                 return name
             }
         }
-        if isRegulatory { return "FDA and safety notices" }
+        if isRegulatory { return "FDA & safety notices" }
         return "Other societies"
     }
 

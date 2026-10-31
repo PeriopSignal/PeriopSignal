@@ -262,8 +262,8 @@ final class ReferenceTests: XCTestCase {
         var tabs: [String] = []
         for g in inf.groups where !tabs.contains(g.tab ?? g.name) { tabs.append(g.tab ?? g.name) }
         XCTAssertEqual(tabs, ["Hemodynamic", "Single-Dose", "Anesthetic", "Blood Products", "Hematologic"])
-        XCTAssertEqual(inf.groups.filter { $0.tab == "Hemodynamic" }.map(\.name), ["Vasopressors", "Inotropes", "Vasodilators and Antihypertensives", "Pulmonary Vasodilators"])
-        XCTAssertEqual(inf.groups.filter { $0.tab == "Hematologic" }.map(\.name), ["Factor Concentrates", "Antifibrinolytics and Hemostatics", "Anticoagulants", "Reversal Agents"])
+        XCTAssertEqual(inf.groups.filter { $0.tab == "Hemodynamic" }.map(\.name), ["Vasopressors", "Inotropes", "Vasodilators & Antihypertensives", "Pulmonary Vasodilators"])
+        XCTAssertEqual(inf.groups.filter { $0.tab == "Hematologic" }.map(\.name), ["Factor Concentrates", "Antifibrinolytics & Hemostatics", "Anticoagulants", "Reversal Agents"])
         let all = inf.groups.flatMap(\.drugs)
         XCTAssertEqual(all.filter { $0.name.hasPrefix("Epinephrine") }.count, 1, "one epinephrine row")
         let blood = try XCTUnwrap(inf.groups.first { $0.name == "Blood Products" })
@@ -288,7 +288,7 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual("Cardiac risk for non-cardiac surgery".titleCased, "Cardiac Risk for Non-cardiac Surgery")
         XCTAssertEqual("Doses in mg/kg".titleCased, "Doses in mg/kg")
         XCTAssertEqual("5-HT₃ antagonist".titleCased, "5-HT₃ Antagonist")
-        XCTAssertEqual("STOP-Bang and the ASA".titleCased, "STOP-Bang and the ASA")
+        XCTAssertEqual("STOP-BANG and the ASA".titleCased, "STOP-BANG & the ASA")
         XCTAssertEqual("a plan for the airway".titleCased, "A Plan for the Airway")
         XCTAssertEqual("Severe, high-gradient AS".titleCased, "Severe, High-Gradient AS")
         XCTAssertEqual("Local Anesthetic Systemic Toxicity (LAST)".titleCased, "Local Anesthetic Systemic Toxicity (LAST)", "already Title Case stays")
@@ -316,7 +316,7 @@ final class ReferenceTests: XCTestCase {
     }
 
     @MainActor func testFavoritesMigrateMergedTools() {
-        XCTAssertEqual(FavoritesStore.migrate(["score:rcri", "score:apfel", "quickref:ponv-consensus", "valves"]), ["score:rcri", "ponv", "valves"])
+        XCTAssertEqual(FavoritesStore.migrate(["score:rcri", "score:apfel", "quickref:ponv-consensus", "valves"]), ["score:rcri", "score:apfel", "ponv", "valves"])
         XCTAssertEqual(RefRoute(key: "ponv"), .ponv)
         XCTAssertNotNil(RefItem.item(forKey: "ponv"))
         XCTAssertEqual(RefItem.folder(of: .neuraxial), .regional)
@@ -326,6 +326,11 @@ final class ReferenceTests: XCTestCase {
         XCTAssertEqual(RefItem.item(for: .valves)?.title, "ASE Valve Severity Grading")
         XCTAssertEqual(RefItem.item(for: .intervention)?.title, "AHA/ACC Valve Intervention")
         XCTAssertFalse(RefFolder.preoperative.items.contains { $0.route == .valves || $0.route == .intervention })
+        // Preoperative & General: the preoperative and general anesthesia calculators together, with the Apfel score.
+        XCTAssertEqual(RefFolder.preoperative.title, "Preoperative & General")
+        XCTAssertEqual(RefFolder.preoperative.items.map(\.route), [.score("rcri"), .score("ariscat"), .score("stopbang"), .score("apfel"), .fasting, .ponv, .abg, .score("aldrete")])
+        XCTAssertEqual(RefRoute(key: "folder:generalAnesthesia"), .folder(.preoperative), "old links land in the merged folder")
+        XCTAssertEqual(RefItem.folder(of: .abg), .preoperative)
         XCTAssertEqual(RefFolder.medications.route, .infusions, "a one-tool folder opens the tool")
         XCTAssertEqual(RefFolder.pediatrics.route, .peds)
         XCTAssertEqual(RefFolder.cardiothoracic.route, .folder(.cardiothoracic))

@@ -275,17 +275,19 @@ private struct SourcesFooter: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Hairline()
-            Eyebrow(text: sources.count > 1 ? "Sources" : "Source")
-            ForEach(sources) { s in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                    if let u = s.url, let url = URL(string: u) {
-                        Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+            EvidenceDisclosure {
+                Eyebrow(text: sources.count > 1 ? "Sources" : "Source")
+                ForEach(sources) { s in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                        if let u = s.url, let url = URL(string: u) {
+                            Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                        }
                     }
                 }
-            }
-            ForEach(notes, id: \.self) { n in
-                Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                ForEach(notes, id: \.self) { n in
+                    Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
@@ -585,8 +587,8 @@ struct BlocksView: View {
                         }
                     }
                 }
-                factRows(present([("Indications", b.indications), ("Coverage", b.coverage), ("Position", b.position), ("Probe and needle", b.equipment),
-                                  ("Technique", b.target), ("Volume and dose", b.volume), ("Onset and duration", b.onset), ("Cautions", b.cautions), ("Tips", b.tips)]))
+                factRows(present([("Indications", b.indications), ("Coverage", b.coverage), ("Position", b.position), ("Probe & needle", b.equipment),
+                                  ("Technique", b.target), ("Volume & dose", b.volume), ("Onset & duration", b.onset), ("Cautions", b.cautions), ("Tips", b.tips)]))
                 if let s = b.source, let url = URL(string: s.url) {
                     Button { onOpen(url) } label: { Text(s.label + " ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
                 } else if let u = b.url, let url = URL(string: u) {

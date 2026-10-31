@@ -176,8 +176,8 @@
     const data = () => (c.bundle() && c.bundle().regional) || null;
     const st = { group: null, open: null };
     const fields = [
-      ['indications', 'Indications'], ['coverage', 'Coverage'], ['position', 'Position'], ['equipment', 'Probe and needle'],
-      ['target', 'Technique'], ['volume', 'Volume and dose'], ['onset', 'Onset and duration'], ['cautions', 'Cautions'], ['tips', 'Tips'],
+      ['indications', 'Indications'], ['coverage', 'Coverage'], ['position', 'Position'], ['equipment', 'Probe & needle'],
+      ['target', 'Technique'], ['volume', 'Volume & dose'], ['onset', 'Onset & duration'], ['cautions', 'Cautions'], ['tips', 'Tips'],
     ];
     const text = (v) => (Array.isArray(v) ? v : [v]).filter(Boolean);
     const update = c.view(host, () => {

@@ -44,7 +44,7 @@ test('ARISCAT', () => {
   eq(R.scoreBand(d, 26).tone, 'moderate');
   eq(R.scoreBand(d, 25).tone, 'low');
 });
-test('STOP-Bang and Apfel', () => {
+test('STOP-BANG and Apfel', () => {
   eq(R.scoreMax(R.score('stopbang')), 8);
   eq(R.scoreTotal(R.score('stopbang'), sel(['snoring', 'tired', 'pressure', 'age', 'gender'])), 5);
   eq(R.scoreBand(R.score('stopbang'), 5).tone, 'high');
@@ -164,7 +164,7 @@ test('title case', () => {
   eq(R.titleCase('Cardiac risk for non-cardiac surgery'), 'Cardiac Risk for Non-cardiac Surgery');
   eq(R.titleCase('Doses in mg/kg'), 'Doses in mg/kg');
   eq(R.titleCase('5-HT₃ antagonist'), '5-HT₃ Antagonist');
-  eq(R.titleCase('STOP-Bang and the ASA'), 'STOP-Bang and the ASA');
+  eq(R.titleCase('STOP-BANG and the ASA'), 'STOP-BANG & the ASA');
   eq(R.titleCase('a plan for the airway'), 'A Plan for the Airway');
   eq(R.titleCase('Severe, high-gradient AS'), 'Severe, High-Gradient AS');
   eq(R.titleCase('Local Anesthetic Systemic Toxicity (LAST)'), 'Local Anesthetic Systemic Toxicity (LAST)');
@@ -1091,7 +1091,7 @@ test('regional content: the shipped figure, map, blocks and guide', () => {
   eq(r.items[0].blocks.map((x) => x.id), ['adductor-canal', 'ipack', 'femoral']);
   eq(r.items[0].neuraxial.level, 'T10');
   r = G.recommend(['foot:L', 'knee:R', 'lower-abdomen:M'], d);
-  eq(r.items.map((x) => x.label), ['Lower abdomen', 'Right knee', 'Left ankle and foot']);
+  eq(r.items.map((x) => x.label), ['Lower abdomen', 'Right knee', 'Left ankle & foot']);
   eq(r.top, { level: 'T6', region: 'Lower abdomen' }, 'the highest level wins');
   eq(G.recommend(['shoulder:R', 'chest:M'], d).top, null, 'no lumbar-type level above the waist');
   eq(G.recommend(['perineum:M'], d).items[0].neuraxial.level, 'S2–S5');

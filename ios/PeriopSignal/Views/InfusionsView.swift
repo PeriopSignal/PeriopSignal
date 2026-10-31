@@ -217,8 +217,10 @@ struct InfusionsView: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
             Hairline().padding(.top, 6)
-            Text("Doses are recommended starting doses; tap a drug for its titration, range and maximum. † Off-label use. Starting points from the FDA labels and the cited guidelines\(refs.bundle?.infusions?.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""); norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump's concentration before programming a rate.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                Text("Doses are recommended starting doses; tap a drug for its titration, range and maximum. † Off-label use. Starting points from the FDA labels and the cited guidelines\(refs.bundle?.infusions?.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""); norepinephrine, epinephrine and phenylephrine show the usual operating-room start. Titrate to the patient and check your pump's concentration before programming a rate.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

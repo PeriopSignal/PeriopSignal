@@ -44,8 +44,8 @@ enum Terms {
     /// What leaves the phone, and where it goes.
     static let privacy: [(title: String, body: String)] = [
         ("No account, ads or tracking", "There is no sign-in, no advertising and no analytics."),
-        ("Feed and audio", "Posts, the reference content and recordings are downloaded from the Periop Signal website and its GitHub repository."),
-        ("Saved posts and progress", "Saved posts, read status and quiz progress sync through your own iCloud account (Apple's key-value storage); the author cannot see them."),
+        ("Feed & audio", "Posts, the reference content and recordings are downloaded from the Periop Signal website and its GitHub repository."),
+        ("Saved posts & progress", "Saved posts, read status and quiz progress sync through your own iCloud account (Apple's key-value storage); the author cannot see them."),
         ("Alerts", "If you turn alerts on, Google's Firebase Cloud Messaging holds a device token and the topics you follow, used only to send the morning alert."),
         ("Ask", "When a question is answered by Claude, the question and the reference material shown with it are sent through the Periop Signal proxy to Anthropic; nothing else."),
         ("My Patient", "Nothing entered in My Patient leaves the phone unless you share a handoff or send the patient to a colleague, which goes by AirDrop or Messages directly between the phones. Fill from a note reads the note on the phone and doesn't keep it; dictating it uses iOS keyboard dictation, under Apple's privacy terms."),

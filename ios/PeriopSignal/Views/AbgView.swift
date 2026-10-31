@@ -207,17 +207,19 @@ struct AbgView: View {
     private func footer(_ d: AbgData) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Hairline()
-            Eyebrow(text: d.sources.count > 1 ? "Sources" : "Source")
-            ForEach(d.sources) { s in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                    if let u = s.url, let url = URL(string: u) {
-                        Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+            EvidenceDisclosure {
+                Eyebrow(text: d.sources.count > 1 ? "Sources" : "Source")
+                ForEach(d.sources) { s in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                        if let u = s.url, let url = URL(string: u) {
+                            Button { onOpen(url) } label: { Text("Open ↗") }.buttonStyle(TextButtonStyle(color: PS.accent, size: 13.5))
+                        }
                     }
                 }
-            }
-            ForEach((d.notes ?? []) + ["Reviewed \(d.reviewed ?? ""). Interpret the gas with the history, the anion gap and the electrolytes; the rules give a range, not a diagnosis."], id: \.self) { n in
-                Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                ForEach((d.notes ?? []) + ["Reviewed \(d.reviewed ?? ""). Interpret the gas with the history, the anion gap and the electrolytes; the rules give a range, not a diagnosis."], id: \.self) { n in
+                    Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }

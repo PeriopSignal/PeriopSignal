@@ -102,7 +102,7 @@ struct FastingView: View {
 
     private var intakeCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Eyebrow(text: "What was taken, and when").padding(.leading, 2)
+            Eyebrow(text: "What was taken & when").padding(.leading, 2)
             VStack(spacing: 0) {
                 ForEach(Array(Self.intakes.enumerated()), id: \.element.id) { i, intake in
                     let on = taken[intake.id] != nil
@@ -171,8 +171,10 @@ struct FastingView: View {
                     Button { onOpen(url) } label: { Label("Guideline ↗", systemImage: "doc.text") }.buttonStyle(GhostButtonStyle())
                 }
             }
-            Text("ASA practice guidelines for preoperative fasting (2017, updated 2023): minimum times for healthy patients of all ages having elective procedures under general anesthesia, regional anesthesia or procedural sedation; not for labor. Meeting the times does not guarantee an empty stomach. Children's clear liquids: as close to 2 h before as possible.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                Text("ASA practice guidelines for preoperative fasting (2017, updated 2023): minimum times for healthy patients of all ages having elective procedures under general anesthesia, regional anesthesia or procedural sedation; not for labor. Meeting the times does not guarantee an empty stomach. Children's clear liquids: as close to 2 h before as possible.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 

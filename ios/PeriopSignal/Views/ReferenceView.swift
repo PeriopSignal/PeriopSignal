@@ -71,6 +71,8 @@ enum RefRoute: Hashable {
         case "blocks": self = .blocks
         case "neuraxial-guide": self = .neuraxialGuide
         case "folder" where parts.count == 2:
+            // General Anesthesia joined Preoperative ("Preoperative & General"); old favorites and links land there.
+            if parts[1] == "generalAnesthesia" { self = .folder(.preoperative); return }
             guard let f = RefFolder(rawValue: parts[1]) else { return nil }
             self = .folder(f)
         default: return nil
@@ -80,13 +82,12 @@ enum RefRoute: Hashable {
 
 /// The Reference tab's folders. Each tool lives in one folder.
 enum RefFolder: String, CaseIterable, Identifiable, Hashable {
-    case emergency, preoperative, generalAnesthesia, regional, cardiothoracic, medications, pediatrics
+    case emergency, preoperative, regional, cardiothoracic, medications, pediatrics
     var id: String { rawValue }
     var title: String {
         switch self {
         case .emergency: return "Emergency"
-        case .preoperative: return "Preoperative"
-        case .generalAnesthesia: return "General Anesthesia"
+        case .preoperative: return "Preoperative & General"
         case .regional: return "Regional"
         case .cardiothoracic: return "Cardiothoracic"
         case .medications: return "Medications & Hematology"
@@ -97,7 +98,6 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .emergency: return "bolt.heart"
         case .preoperative: return "checklist"
-        case .generalAnesthesia: return "lungs"
         case .regional: return "syringe"
         case .cardiothoracic: return "heart"
         case .medications: return "ivfluid.bag"
@@ -108,7 +108,6 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .emergency: return PS.accent
         case .preoperative: return PS.accent2
-        case .generalAnesthesia: return Topics.info("thoracic").fg
         case .regional: return Topics.info("regional").fg
         case .cardiothoracic: return Topics.info("cardiacSurgery").fg
         case .medications: return PS.green
@@ -125,15 +124,15 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .quickref("mhaus-mh"), icon: "thermometer.high", title: "Malignant Hyperthermia", blurb: "Checklist with dantrolene for the weight"),
             RefItem(route: .airway, icon: "wind", title: "Difficult Airway", blurb: "Assessment in, plan and checklists out"),
         ]
+        // Preoperative and general anesthesia calculators in one list, from the preoperative visit to recovery.
         case .preoperative: return [
             RefItem(route: .score("rcri"), icon: "heart.text.square", title: "RCRI", blurb: "Cardiac risk for non-cardiac surgery"),
             RefItem(route: .score("ariscat"), icon: "lungs", title: "ARISCAT", blurb: "Postoperative pulmonary complications"),
-            RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-Bang", blurb: "Sleep apnea screening"),
+            RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-BANG", blurb: "Sleep apnea screening"),
+            RefItem(route: .score("apfel"), icon: "list.number", title: "Apfel PONV Score", blurb: "Adult risk of nausea and vomiting after surgery"),
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
-        ]
-        case .generalAnesthesia: return [
-            RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "Apfel score, how many agents, rescue"),
+            RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
         ]
         case .regional: return [
@@ -320,12 +319,8 @@ struct ReferenceView: View {
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            HStack(alignment: .firstTextBaseline) {
-                Text("Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. Confirm against the source before acting.")
-                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.horizontal, 2)
+            EvidenceNote("Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. Confirm against the source before acting.")
+                .padding(.horizontal, 2)
             if let updated = refs.bundle?.updated { Eyebrow(text: "Content reviewed \(PSDate.monthYear(updated))", size: 10).padding(.leading, 2) }
         }
     }
@@ -348,12 +343,8 @@ struct FolderView: View {
                             Button { favorites.toggle(item.route.key) } label: { Label(on ? "Remove from favorites" : "Add to favorites", systemImage: on ? "star.slash" : "star") }
                         }
                 }
-                Text("Long-press a tool to add it to your favorites at the top of the tab; the star in each tool's toolbar does the same.")
-                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
-                if folder == .emergency {
-                    Text("ACLS starts its code clock when it opens. The checklists take the patient's weight at the top and work out the doses; the weight clears when you leave.")
-                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
-                }
+                EvidenceNote("Long-press a tool to add it to your favorites at the top of the tab; the star in each tool's toolbar does the same." + (folder == .emergency ? " ACLS starts its code clock when it opens. The checklists take the patient's weight at the top and work out the doses; the weight clears when you leave." : ""), title: folder == .emergency ? "How these work" : "Favorites")
+                    .padding(.horizontal, 2)
             }
             .padding(.horizontal, 20)
             .padding(.top, 6)
@@ -556,7 +547,7 @@ struct ReferenceSearchResults: View {
         } else {
             if !tools.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
-                    Eyebrow(text: "Calculators and guides").padding(.leading, 2)
+                    Eyebrow(text: "Calculators & guides").padding(.leading, 2)
                     TileGrid(items: tools) { item in
                         CalculatorTile(icon: item.icon, title: item.title, blurb: item.blurb) { path.append(item.route) }
                     }

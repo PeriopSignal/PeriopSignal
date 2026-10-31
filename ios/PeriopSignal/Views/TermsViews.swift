@@ -76,7 +76,7 @@ struct TermsView: View {
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Terms and Privacy")
+        .navigationTitle("Terms & Privacy")
         .navigationBarTitleDisplayMode(.inline)
     }
 

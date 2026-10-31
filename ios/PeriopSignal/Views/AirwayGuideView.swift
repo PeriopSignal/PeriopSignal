@@ -255,8 +255,10 @@ struct AirwayGuideView: View {
                     Button { onOpen(url) } label: { Label("Guideline ↗", systemImage: "doc.text") }.buttonStyle(GhostButtonStyle())
                 }
             }
-            Text("A guide through the 2022 ASA practice guideline's decision points, in Periop Signal's words; the ASA infographics are the algorithm. Children: awake intubation is uncommon, inhalational induction with spontaneous breathing is usual, and the attempt limit is the primary manager's attempts plus one by the backup.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                Text("A guide through the 2022 ASA practice guideline's decision points, in Periop Signal's words; the ASA infographics are the algorithm. Children: awake intubation is uncommon, inhalational induction with spontaneous breathing is usual, and the attempt limit is the primary manager's attempts plus one by the backup.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

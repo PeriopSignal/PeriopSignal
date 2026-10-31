@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Score calculators (RCRI, ARISCAT, STOP-Bang, Aldrete, Apfel)
+// MARK: - Score calculators (RCRI, ARISCAT, STOP-BANG, Aldrete, Apfel)
 
 struct ScoreCalculatorView: View {
     @Environment(PatientStore.self) private var myPatient
@@ -23,12 +23,6 @@ struct ScoreCalculatorView: View {
                 if !myPatient.isEmpty { patientBar }
                 items
                 bands
-                if !def.notes.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Eyebrow(text: "Notes")
-                        TakeHomeList(items: def.notes, size: 13.5)
-                    }
-                }
                 sources
             }
             .padding(.horizontal, 20)
@@ -142,11 +136,6 @@ struct ScoreCalculatorView: View {
                     .buttonStyle(GhostButtonStyle())
                     .padding(.top, 2)
             }
-            Text(def.readout)
-                .font(PS.sys(size: 12.5))
-                .foregroundStyle(PS.fg3)
-                .lineSpacing(1.5)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -198,11 +187,20 @@ struct ScoreCalculatorView: View {
     private var sources: some View {
         VStack(alignment: .leading, spacing: 8) {
             Hairline()
-            Eyebrow(text: "Sources")
-            SourceLine(source: def.source, onOpen: onOpen)
-            if let r = def.rateSource { SourceLine(source: r, onOpen: onOpen) }
-            Text("A calculator, not a consultation: the score informs, your assessment decides.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).padding(.top, 2)
+            EvidenceDisclosure {
+                Text(def.readout)
+                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5)
+                    .fixedSize(horizontal: false, vertical: true)
+                if !def.notes.isEmpty {
+                    Eyebrow(text: "Notes").padding(.top, 2)
+                    TakeHomeList(items: def.notes, size: 13.5)
+                }
+                Eyebrow(text: "Sources").padding(.top, 2)
+                SourceLine(source: def.source, onOpen: onOpen)
+                if let r = def.rateSource { SourceLine(source: r, onOpen: onOpen) }
+                Text("A calculator, not a consultation: the score informs, your assessment decides.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).padding(.top, 2)
+            }
         }
     }
 
@@ -496,8 +494,7 @@ struct PedsCalculatorView: View {
         return VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: ageMonths < 1 ? "Set the age for tube sizes" : "For \(years) y \(months) mo").padding(.leading, 2)
             FactTable(rows: rows)
-            Text("Uncuffed: age/4 + 4 (Cole); cuffed: age/4 + 3.5 (Khine), from 2 years; fixed sizes below that. Oral depth: age/2 + 12 cm from 2 years, 3 × tube ID before; nasal: age/2 + 15 cm. Laryngeal mask sizes follow the manufacturers' weight bands. Have the half-size above and below ready; confirm with a leak test and the chest radiograph when indicated.")
-                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceNote("Uncuffed: age/4 + 4 (Cole); cuffed: age/4 + 3.5 (Khine), from 2 years; fixed sizes below that. Oral depth: age/2 + 12 cm from 2 years, 3 × tube ID before; nasal: age/2 + 15 cm. Laryngeal mask sizes follow the manufacturers' weight bands. Have the half-size above and below ready; confirm with a leak test and the chest radiograph when indicated.")
         }
     }
 
@@ -523,8 +520,7 @@ struct PedsCalculatorView: View {
                 hctField("Starting Hct %", text: $hctStart)
                 hctField("Lowest acceptable Hct %", text: $hctMin)
             }
-            Text("Maintenance by Holliday–Segar (4 mL/kg/h for the first 10 kg, 2 for the next 10, 1 beyond). Blood volume uses the age band in the table. Allowable blood loss = EBV × (Hct₀ − Hct_min) ÷ Hct₀; a guide for planning, not a transfusion trigger.")
-                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceNote("Maintenance by Holliday–Segar (4 mL/kg/h for the first 10 kg, 2 for the next 10, 1 beyond). Blood volume uses the age band in the table. Allowable blood loss = EBV × (Hct₀ − Hct_min) ÷ Hct₀; a guide for planning, not a transfusion trigger.")
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Blood volume by age").padding(.leading, 2)
                 FactTable(rows: peds.bloodVolume.map { [$0.group, "\(PedsCalc.range($0.mlPerKgLow, $0.mlPerKgHigh)) mL/kg"] })
@@ -551,11 +547,13 @@ struct PedsCalculatorView: View {
     private func footer(_ peds: PedsData) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Hairline()
-            if let n = peds.note {
-                Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            EvidenceDisclosure {
+                if let n = peds.note {
+                    Text(n).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
+                Text("Doses are starting points from the sources shown on each line\(peds.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""). Check the concentration in your hand and your institution's references before giving a drug.")
+                    .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             }
-            Text("Doses are starting points from the sources shown on each line\(peds.reviewed.map { ", reviewed \(PSDate.monthYear($0))" } ?? ""). Check the concentration in your hand and your institution's references before giving a drug.")
-                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

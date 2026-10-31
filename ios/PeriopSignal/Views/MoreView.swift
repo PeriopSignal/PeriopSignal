@@ -307,7 +307,7 @@ struct MoreView: View {
                 .font(PS.sys(size: 13.5))
                 .foregroundStyle(PS.fg2)
                 .lineSpacing(2)
-            Button { path.append(MoreRoute.terms) } label: { Label("Terms and privacy", systemImage: "doc.text") }
+            Button { path.append(MoreRoute.terms) } label: { Label("Terms & privacy", systemImage: "doc.text") }
                 .font(PS.sys(size: 14, weight: .semibold))
                 .buttonStyle(.borderless)
                 .tint(PS.accent)

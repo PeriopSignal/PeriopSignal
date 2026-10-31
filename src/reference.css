@@ -103,6 +103,11 @@
 .r-text { margin: 0; font-size: 15px; line-height: 1.6; }
 .r-note { margin: 0; font-size: 12.5px; font-style: italic; color: var(--fg-3); line-height: 1.5; }
 .r-foot { margin: 0; font-size: 12.5px; color: var(--fg-3); line-height: 1.55; }
+.r-ev > summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 5px; width: fit-content; font-size: 12.5px; font-weight: 600; color: var(--fg-3); padding-block: 2px; }
+.r-ev > summary::-webkit-details-marker { display: none; }
+.r-ev > summary:hover, .r-ev[open] > summary { color: var(--fg-2); }
+.r-ev-i { font-size: 13px; }
+.r-ev[open] { display: grid; gap: 10px; }
 .r-footer { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
 .r-cite { margin: 0; font-size: 13px; color: var(--fg-2); line-height: 1.5; }
 .r-src { display: grid; gap: 2px; }
