@@ -175,6 +175,7 @@ struct PatientView: View {
         default:
             if o.hasPrefix("workup:") { path.append(PatientEditor.workup(String(o.dropFirst(7)))) }
             else if o.hasPrefix("intraop:") { path.append(PatientEditor.intraopPart(String(o.dropFirst(8)))) }
+            else if o.hasPrefix("devices:") { path.append(PatientEditor.devices(String(o.dropFirst(8)))) }
             else if let route = RefRoute(key: o) { path.append(route) }
         }
         #endif
