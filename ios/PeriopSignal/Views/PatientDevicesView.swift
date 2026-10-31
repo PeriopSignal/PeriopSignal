@@ -20,7 +20,7 @@ enum PatientDiagramModel {
     static let pa = CGPoint(x: 107, y: 90)
     static let descendingAorta = CGPoint(x: 103, y: 92)
     static let lv = CGPoint(x: 109, y: 106)
-    static let cart = CGPoint(x: 214, y: 322)
+    static let cart = CGPoint(x: 208, y: 330)
 
     static func color(_ role: DeviceColorRole) -> Color {
         switch role {
@@ -111,7 +111,7 @@ enum PatientDiagramModel {
                 item.width = 2
             case .ecmoDrainage, .ecmoReturn:
                 ecmo = true
-                item.course = [CGPoint(x: a.x, y: max(a.y, 300) + 6), CGPoint(x: cart.x - 22, y: cart.y + (d.kind == .ecmoDrainage ? -4 : 4))]
+                item.course = [CGPoint(x: a.x, y: max(a.y, 300) + 6), CGPoint(x: cart.x - 27, y: cart.y + (d.kind == .ecmoDrainage ? -4 : 4))]
                 item.width = 2.8
                 // The intravascular part: a drainage cannula's tip in the right atrium, a femoral arterial return in the iliac.
                 let tip: CGPoint? = d.kind == .ecmoDrainage ? ra : (region == "neck" ? ra : (region == "chest" ? CGPoint(x: 103, y: 88) : nil))
@@ -161,8 +161,15 @@ enum PatientDiagramModel {
         if ecmo, let sys = PatientDevices.ecmoSystem(devices) {
             let flow = sys.settings["flow"].map { $0 + " L/min" } ?? ""
             let sweep = sys.settings["sweep"].map { "sweep " + $0 } ?? ""
-            cartInfo = DiagramCart(at: cart, title: sys.configuration == .unknown ? "ECMO" : sys.configuration.name + " ECMO",
-                                   detail: [flow, sweep].filter { !$0.isEmpty }.joined(separator: " · "))
+            let title: String
+            switch sys.configuration {
+            case .vv: title = "VV ECMO"
+            case .vaPeripheral: title = "VA ECMO"
+            case .vaCentral: title = "Central VA"
+            case .vav: title = "VAV ECMO"
+            case .unknown: title = "ECMO"
+            }
+            cartInfo = DiagramCart(at: cart, title: title, detail: [flow, sweep].filter { !$0.isEmpty }.joined(separator: " · "))
         }
         return (out, cartInfo)
     }

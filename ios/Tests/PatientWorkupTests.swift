@@ -181,7 +181,7 @@ final class PatientWorkupTests: XCTestCase {
         XCTAssertTrue(r.mechanicalSupport.contains { $0.kind.isECMO })
         let m = PatientDiagramModel.items(r, phase: .preop)
         XCTAssertTrue(m.items.contains { $0.id == "airway-ett" }, "arrived intubated")
-        XCTAssertEqual(m.cart?.title, "VA peripheral ECMO")
+        XCTAssertEqual(m.cart?.title, "VA ECMO")
         XCTAssertTrue(m.items.contains { $0.label.hasPrefix("PAC") })
         XCTAssertTrue(m.items.contains { $0.label.hasPrefix("IABP") })
         var extubated = r; extubated.airwayAtEnd = "extubated"

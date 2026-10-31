@@ -159,11 +159,13 @@ struct PatientDiagramCanvas: View {
 
         // The ECMO cart and its tubing first, so the cannula markers sit on top.
         if let c = cart {
-            let r = CGRect(x: (c.at.x - 22) * k, y: (c.at.y - 13) * k, width: 44 * k, height: 26 * k)
+            let r = CGRect(x: (c.at.x - 27) * k, y: (c.at.y - 12) * k, width: 54 * k, height: 24 * k)
             ctx.fill(Path(roundedRect: r, cornerRadius: 4 * k), with: .color(PS.surface))
             ctx.stroke(Path(roundedRect: r, cornerRadius: 4 * k), with: .color(PS.fg2), lineWidth: 1)
-            ctx.draw(Text(c.title).font(.system(size: max(7, 6.5 * k), weight: .bold)).foregroundColor(PS.fg), at: CGPoint(x: c.at.x * k, y: (c.at.y - 4.5) * k))
-            ctx.draw(Text(c.detail).font(.system(size: max(6, 5.2 * k), weight: .medium)).foregroundColor(PS.fg2), at: CGPoint(x: c.at.x * k, y: (c.at.y + 5) * k))
+            ctx.draw(Text(c.title).font(.system(size: max(6.5, 6 * k), weight: .bold)).foregroundColor(PS.fg), at: CGPoint(x: c.at.x * k, y: (c.at.y - 4) * k))
+            if !c.detail.isEmpty {
+                ctx.draw(Text(c.detail).font(.system(size: max(5.5, 4.6 * k), weight: .medium)).foregroundColor(PS.fg2), at: CGPoint(x: c.at.x * k, y: (c.at.y + 5) * k))
+            }
         }
 
         for item in items {
