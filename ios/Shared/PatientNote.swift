@@ -7,6 +7,11 @@ import Foundation
 // ("denies chest pain", "no history of stroke"), family history ("father had an MI") and past events ("history of
 // ACS") are not read as the patient's current problems. What nothing was read from is offered for Other conditions
 // or, from a surgical or anesthetic history, for the anesthesia-history details.
+//
+// Abbreviations (MedAbbreviations) are read too. An ambiguous one ("RA") and one the user saved are read as their
+// meaning (the user's choice, else the one the context picks); the others are read as written by the rules below and,
+// where no rule read them, through their meaning ("AVr" as aortic valve repair). Ambiguous and unknown abbreviations are
+// listed for the user to choose or explain.
 
 enum PatientNoteChange: Hashable {
     case age(Double), sex(PatientSex), height(Double), weight(Double)
@@ -61,6 +66,10 @@ struct PatientNoteReading: Hashable {
     var previous: String
     /// What looked like an identifier: "a record number", "a date", "a name", "a phone number".
     var identifiers: [String]
+    /// Ambiguous abbreviations, with the meaning read (the user's choice, else the context's or the usual one).
+    var ambiguous: [AmbiguousAbbreviation] = []
+    /// Letters that look like abbreviations but are in neither the built-in list nor the user's.
+    var unknown: [UnknownAbbreviation] = []
 
     var isEmpty: Bool { findings.isEmpty && other.isEmpty && previous.isEmpty }
 }
@@ -128,10 +137,15 @@ private struct Rule {
 /// so the rest can be offered as leftovers.
 private struct Hits {
     var findings: [PatientNoteFinding] = []
+    /// Where each finding was read, in step with `findings`.
+    var at: [NSRange] = []
     var ranges: [NSRange] = []
+    /// Infusions read ("heparin infusion"): their medicine names do not go into the medication list as well.
+    var infusions: [NSRange] = []
 
     mutating func add(_ f: PatientNoteFinding, at r: NSRange) {
         findings.append(f)
+        at.append(r)
         ranges.append(r)
     }
 
@@ -149,8 +163,9 @@ enum PatientNote {
     static let sections = [Part.patient, Part.procedure, Part.vitals, Part.history, Part.meds, Part.anesthesia, Part.intake,
                            Part.labs, Part.assessment, Part.airway]
 
-    /// A made-up note for "Try an example" and the screenshots (no identifiers).
-    static let example = "68 yo M presenting for elective laparoscopic right hemicolectomy under general anesthesia. PMH: HTN, T2DM on insulin, OSA on CPAP, CAD s/p DES to LAD 2021, hereditary angioedema. Denies chest pain or SOB. Climbs 2 flights of stairs without stopping. Meds: metoprolol, lisinopril, glargine, aspirin, clopidogrel. Allergies: penicillin (rash). Former smoker. Ht 178 cm, Wt 96 kg. BP 148/86, HR 72, SpO2 95%. Hb 12.8, Cr 1.1, K 4.3. Mallampati 3, thick neck. NPO after midnight. PSH: appendectomy 2010 under GA, uneventful."
+    /// A made-up note for "Try an example" and the screenshots (no identifiers). "RA" is ambiguous (room air here) and
+    /// "POEC" is a local abbreviation the list does not know, so the example shows both.
+    static let example = "68 yo M presenting for elective laparoscopic right hemicolectomy under general anesthesia. PMH: HTN, T2DM on insulin, OSA on CPAP, CAD s/p DES to LAD 2021, hereditary angioedema. Denies chest pain or SOB. Climbs 2 flights of stairs without stopping. Meds: metoprolol, lisinopril, glargine, aspirin, clopidogrel. Allergies: penicillin (rash). Former smoker. Ht 178 cm, Wt 96 kg. BP 148/86, HR 72, SpO2 95% on RA. Hb 12.8, Cr 1.1, K 4.3 (POEC labs). Mallampati 3, thick neck. NPO after midnight. PSH: appendectomy 2010 under GA, uneventful."
 
     // MARK: Rules
 
@@ -343,13 +358,33 @@ enum PatientNote {
         return NoteRx("\\b(" + names.joined(separator: "|") + ")\\b")
     }()
 
+    /// Drug classes, as written or as an abbreviation reads ("BB" as beta-blocker), and the flag each sets.
+    private static let drugClasses: [(NoteRx, String)] = [
+        (NoteRx(#"\bbeta[- ]?blockers?\b|β[- ]?blockers?"#), "betablocker"),
+        (NoteRx(#"\bace[- ]?inhibitors?\b|angiotensin[- ]converting enzyme inhibitors?|angiotensin (?:ii )?receptor blockers?|angiotensin receptor-neprilysin"#), "acei"),
+        (NoteRx(#"\b(?:direct|novel) oral anticoagulants?|\bvitamin k antagonists?|low-molecular-weight heparin|unfractionated heparin|subcutaneous heparin|\b(?:oral )?anticoagulants?\b|\banticoagulat(?:ion|ed)\b"#), "anticoagulant"),
+        (NoteRx(#"\bp2y12 (?:inhibitors?|antagonists?)|\bdual antiplatelet"#), "p2y12"),
+        (NoteRx(#"\bdual antiplatelet"#), "aspirin"),
+        (NoteRx(#"\bsglt-?2 inhibitors?"#), "sglt2"),
+        (NoteRx(#"\bglp-?1 (?:receptor )?agonists?"#), "glp1"),
+        (NoteRx(#"\bmao inhibitors?|monoamine oxidase inhibitors?"#), "maoi"),
+        (NoteRx(#"\b(?:on|takes|taking) (?:chronic |daily |long[- ]term )?(?:steroids|corticosteroids)\b|\bchronic (?:steroids|corticosteroids)\b"#), "steroid"),
+        (NoteRx(#"\bchronic opioids?\b|\bopioid[- ]tolerant\b|\b(?:on|takes|taking) (?:chronic |daily )?opioids\b"#), "opioid"),
+    ]
+
+    /// A medicine running as an infusion, with its rate when given: "norepinephrine infusion at 0.05 mcg/kg/min" ("levo
+    /// gtt" reads as one), or a medicine with a rate per minute or hour ("propofol 30 mcg/kg/min"; not a fentanyl patch).
+    static let infusionRx = NoteRx(#"\b(nitroglycerin|nitroprusside|epinephrine|norepinephrine|phenylephrine|vasopressin|dobutamine|dopamine|milrinone|isoproterenol|nicardipine|clevidipine|esmolol|diltiazem|amiodarone|lidocaine|heparin|bivalirudin|argatroban|insulin|propofol|dexmedetomidine|ketamine|fentanyl|remifentanil|sufentanil|hydromorphone|morphine|midazolam|cisatracurium|rocuronium|vecuronium|labetalol|magnesium|oxytocin|epoprostenol|treprostinil|furosemide|bumetanide|octreotide|pantoprazole|angiotensin ii|methylene blue|levosimendan|eptifibatide|tirofiban|alteplase|naloxone|sodium bicarbonate|bicarbonate)\s+(?:(?:infusion|drip|gtt)s?\b(?:\s*(?:at|@|of|running at|=|:)?\s*(\d+(?:\.\d+)?)(?:\s*((?:mcg|mg|units?|u|ng|g|ml|meq|mmol)(?:\s*/\s*kg)?(?:\s*/\s*(?:min|minute|hr|hour|h))?)\b)?)?|(?:at\s+|@\s*)?(\d+(?:\.\d+)?)\s*((?:mcg|mg|units?|u|ng|g|ml|meq|mmol)(?:\s*/\s*kg)?\s*/\s*(?:min|minute|hr|hour|h))\b(?!\s*patch))"#)
+    /// An infusion that has been stopped ("weaned off the norepinephrine infusion").
+    static let offCue = NoteRx(#"\b(?:off|weaned|stopped|discontinued|held|d/c'?d|dc'?d)\b[^.;,]{0,20}$"#)
+
     // MARK: Context
 
-    private static let negCue = NoteRx(#"\b(?:no|not|denies|denied|deny|negative for|neg for|without|never|free of|nor|r/o|rule out|ruled out|absent)\b"#)
+    private static let negCue = NoteRx(#"\b(?:no|not|denies|denied|deny|negative for|neg for|without|never|free of|nor|r/o|rule out|ruled out|absent|w/o)\b"#)
     private static let negEnd = NoteRx(#"\b(?:but|however|although|though|except|apart from|aside from|positive for|significant for|notable for|reports|endorses|complains of|c/o|presents|admits|has|have|can|could|uses|takes|walks|climbs|lives|works)\b|[;:]|(?:,|\band\b)\s*(?:had|is|was|with|on|also)\b"#)
     private static let famCue = NoteRx(#"\b(?:family history|fhx|(?-i:FH)|mother|father|brother|sister|siblings?|parents?|grandmother|grandfather|grandparents?|aunt|uncle)\b"#)
     private static let famEnd = NoteRx(#"\b(?:patient|pt|he|she|they|himself|herself|personally|but|however|otherwise|whereas|own)\b|;|,\s*(?:has|have|had|is|was|also)\b"#)
-    private static let pastBefore = NoteRx(#"\b(?:recent|recently|prior|previous|previously|history of|hx of|h/o|s/p|old|remote|resolved)\b[^.;]{0,20}$"#)
+    private static let pastBefore = NoteRx(#"\b(?:recent|recently|prior|previous|previously|history of|hx of|h/o|s/p|status post|old|remote|resolved)\b[^.;]{0,20}$"#)
     private static let pastAfter = NoteRx(#"^[^.;]{0,15}\b(?:in (?:19|20)\d\d|\d+ (?:years?|yrs?|months?) ago|last year)\b"#)
     /// A sentence about past surgery or anesthetics: its leftovers go to the anesthesia-history details, and a
     /// technique it names is not read as the planned one.
@@ -403,6 +438,7 @@ enum PatientNote {
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
+        out += drugClasses.map { $0.0 } + [infusionRx, offCue]
         out += [smokeNeverRx, smokeFormerRx, smokeCurrentRx, medsHeaderRx, aspirinDoseRx, allergyCue, nkdaRx, allergyRx, allergyAfterRx, allergySkipRx, allergyCut, noneRx]
         out += [bpRx, hrRx, spo2Rx, onOxygenRx, rrRx, tempRx, efRx]
         out += labRules.map { $0.rx }
@@ -438,13 +474,17 @@ enum PatientNote {
         return out
     }
 
-    /// What the note says, as findings to confirm. `now` places "midnight" and clock times.
-    static func read(_ text: String, now: Date = Date()) -> PatientNoteReading {
+    /// What the note says, as findings to confirm. `now` places "midnight" and clock times; `abbreviations` holds the
+    /// user's own [abbreviation: meaning] and `choices` the meanings chosen for ambiguous ones (by
+    /// AmbiguousAbbreviation.id, MedAbbreviations.asWritten to leave one as written).
+    static func read(_ text: String, now: Date = Date(), abbreviations user: [String: String] = [:], choices: [String: String] = [:]) -> PatientNoteReading {
         var found: [String: PatientNoteFinding] = [:]
         var order: [String] = []
         var other: [String] = []
         var previous: [String] = []
         var names: [String] = []
+        var ambiguous: [AmbiguousAbbreviation] = []
+        var unknown: [UnknownAbbreviation] = []
         func put(_ f: PatientNoteFinding) {
             guard found[f.id] == nil else { return }
             found[f.id] = f
@@ -452,20 +492,55 @@ enum PatientNote {
         }
         func has(_ id: String) -> Bool { found[id] != nil }
 
-        for c in clauses(text) {
+        for written in clauses(text) {
+            let abbreviations = MedAbbreviations.scan(written, user: user, choices: choices)
+            for a in MedAbbreviations.ambiguous(abbreviations, in: written) where !ambiguous.contains(where: { $0.id == a.id }) { ambiguous.append(a) }
+            for u in MedAbbreviations.unknown(in: written, besides: abbreviations, user: user) where !unknown.contains(where: { $0.token == u.token }) {
+                unknown.append(u)
+            }
+            // Ambiguous abbreviations and the user's own are read as their meaning; the rest as written.
+            let meant = MedAbbreviations.expand(written, abbreviations.compactMap { a -> AbbreviationReplacement? in
+                guard a.isAmbiguous || a.source == .user, let meaning = a.meaning else { return nil }
+                return AbbreviationReplacement(range: a.range, text: meaning.reading)
+            })
+            let c = meant.text
             var h = Hits()
             readRules(c, &h)
             readPatient(c, &h)
             readProcedure(c, &h)
+            readInfusions(c, &h)
             readMeds(c, &h, names: &names)
             readAllergies(c, &h)
             readNumbers(c, &h)
             readAssessment(c, now: now, &h)
+            // The others, where no rule read them as written, are read through their meaning.
+            var plain: [AbbreviationReplacement] = []
+            var unread: [AbbreviationReplacement] = []
+            for a in abbreviations where !a.isAmbiguous && a.source == .builtIn {
+                guard let meaning = a.meaning else { continue }
+                let r = meant.target(a.range)
+                plain.append(AbbreviationReplacement(range: r, text: meaning.text))
+                if a.reads && !h.ranges.contains(where: { NSIntersectionRange($0, r).length > 0 }) {
+                    unread.append(AbbreviationReplacement(range: r, text: meaning.reading))
+                }
+            }
+            if !unread.isEmpty { readMeanings(c, unread, &h, names: &names) }
+            // A finding from an ambiguous abbreviation's usual meaning, which neither the context nor the user picked.
+            for i in h.findings.indices where h.findings[i].note == nil {
+                guard let a = abbreviations.first(where: { a in
+                    a.isAmbiguous && !a.fromContext && a.meaning != nil && choices[a.choiceKey ?? ""] == nil
+                        && NSIntersectionRange(meant.target(a.range), h.at[i]).length > 0
+                }), let meaning = a.meaning else { continue }
+                h.findings[i].note = "Read “" + a.token + "” as " + meaning.text + "; change it under Abbreviations if not."
+            }
             for f in h.findings { put(f) }
-            let pastClause = pastCare.first(c) != nil
+            // Leftovers keep what was written; their meanings sort them ("AVr 2020" is a past operation).
+            let full = MedAbbreviations.expand(c, plain)
+            let pastClause = pastCare.first(c) != nil || pastCare.first(full.text) != nil
             let pieces = planClause.first(c) != nil ? [] : leftovers(c, h.ranges, keepNegatives: pastClause)
-            for piece in pieces {
-                if pastClause || surgicalPiece.first(piece) != nil {
+            for (piece, range) in pieces {
+                let expanded = (full.text as NSString).substring(with: full.target(range))
+                if pastClause || surgicalPiece.first(piece) != nil || surgicalPiece.first(expanded) != nil {
                     if !previous.contains(where: { $0.caseInsensitiveCompare(piece) == .orderedSame }) { previous.append(piece) }
                 } else if !other.contains(where: { $0.caseInsensitiveCompare(piece) == .orderedSame }) {
                     other.append(piece)
@@ -514,7 +589,23 @@ enum PatientNote {
             return ra != rb ? ra < rb : a < b
         }.map { kept[$0] }
         return PatientNoteReading(findings: findings, other: other.joined(separator: "; "), previous: previous.joined(separator: "; "),
-                                  identifiers: identifiers(text))
+                                  identifiers: identifiers(text), ambiguous: ambiguous, unknown: unknown)
+    }
+
+    /// Reads abbreviations no rule read as written through their meanings; what comes from a meaning is placed back on
+    /// the abbreviation.
+    private static func readMeanings(_ c: String, _ items: [AbbreviationReplacement], _ h: inout Hits, names: inout [String]) {
+        let y = MedAbbreviations.expand(c, items)
+        var h2 = Hits()
+        readRules(y.text, &h2)
+        readInfusions(y.text, &h2)
+        readMeds(y.text, &h2, names: &names, header: false)
+        readAllergies(y.text, &h2)
+        for (f, r) in zip(h2.findings, h2.at) where y.touches(r) && !h.findings.contains(where: { $0.id == f.id }) {
+            h.add(f, at: y.source(r))
+        }
+        for r in h2.ranges where y.touches(r) { h.seen(y.source(r)) }
+        h.infusions += h2.infusions.map { y.source($0) }
     }
 
     private static let problemLabels: [String: String] = Dictionary(PatientCatalog.allProblems.map { ($0.id, $0.label) }, uniquingKeysWith: { a, _ in a })
@@ -716,7 +807,7 @@ enum PatientNote {
                                                    "reported", "documented", "listed", "she", "he", "they", "states", "that", "mild", "possible",
                                                    "history", "of", "hx", "and", "also"]
 
-    private static func readMeds(_ c: String, _ h: inout Hits, names: inout [String]) {
+    private static func readMeds(_ c: String, _ h: inout Hits, names: inout [String], header: Bool = true) {
         if let m = smokeNeverRx.first(c) {
             h.add(PatientNoteFinding(id: "smoking", section: Part.history, label: "Smoking: never", change: .smoking("never")), at: m.range)
         } else if let m = smokeFormerRx.first(c) {
@@ -727,7 +818,7 @@ enum PatientNote {
 
         // Medicine names in an allergy sentence are allergies, not medicines.
         let allergySentence = allergyCue.first(c) != nil
-        if !allergySentence, let m = medsHeaderRx.first(c), let raw = m.text([1, 2], in: c) {
+        if header, !allergySentence, let m = medsHeaderRx.first(c), let raw = m.text([1, 2], in: c) {
             let list = raw.trimmingCharacters(in: CharacterSet(charactersIn: " ,.:;"))
             if !list.isEmpty {
                 h.add(PatientNoteFinding(id: "meds", section: Part.meds, label: "Medication list: " + list, change: .medications(list)), at: m.range)
@@ -737,15 +828,39 @@ enum PatientNote {
             h.seen(m.range)
             guard !allergySentence, let raw = m.text(1, in: c) else { continue }
             let key = raw.lowercased().replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
-            if !names.contains(key) { names.append(key) }
+            // A medicine running as an infusion is listed as the infusion.
+            let infused = h.infusions.contains { NSIntersectionRange($0, m.range).length > 0 }
+            if !infused && !names.contains(key) { names.append(key) }
             guard let flag = drugs[key], !flag.isEmpty, !negated(c, at: m.range.location),
                   let f = PatientCatalog.medFlags.first(where: { $0.id == flag }) else { continue }
+            h.add(PatientNoteFinding(id: "flag:" + flag, section: Part.meds, label: "Takes: " + f.label.lowercased(), change: .medFlag(flag)), at: m.range)
+        }
+        // Drug classes ("on a beta-blocker"; "DOAC" read as direct oral anticoagulant).
+        for (rx, flag) in drugClasses where !allergySentence {
+            guard let m = rx.first(c), !negated(c, at: m.range.location), let f = PatientCatalog.medFlags.first(where: { $0.id == flag }) else { continue }
             h.add(PatientNoteFinding(id: "flag:" + flag, section: Part.meds, label: "Takes: " + f.label.lowercased(), change: .medFlag(flag)), at: m.range)
         }
         // "ASA 81" is aspirin; "ASA III" is the physical status.
         if !allergySentence, let m = aspirinDoseRx.first(c) {
             if !names.contains("aspirin") { names.append("aspirin") }
             h.add(PatientNoteFinding(id: "flag:aspirin", section: Part.meds, label: "Takes: aspirin", change: .medFlag("aspirin")), at: m.range)
+        }
+    }
+
+    /// Infusions running: added to the medications as "norepinephrine infusion 0.05 mcg/kg/min".
+    private static func readInfusions(_ c: String, _ h: inout Hits) {
+        for m in infusionRx.all(c) {
+            h.infusions.append(m.range)
+            let before = (c as NSString).substring(to: m.range.location)
+            guard let drug = m.text(1, in: c)?.lowercased(), !negated(c, at: m.range.location), offCue.first(before) == nil else {
+                h.seen(m.range)
+                continue
+            }
+            var rate = m.text([2, 4], in: c) ?? ""
+            if let unit = m.text([3, 5], in: c) { rate += " " + unit.replacingOccurrences(of: " ", with: "") }
+            let text = drug + " infusion" + (rate.isEmpty ? "" : " " + rate)
+            h.add(PatientNoteFinding(id: "infusion:" + drug, section: Part.meds, label: "Infusion: " + drug + (rate.isEmpty ? "" : " at " + rate),
+                                     change: .medications(text)), at: m.range)
         }
     }
 
@@ -943,7 +1058,7 @@ enum PatientNote {
     // MARK: Leftovers
 
     static let pieceBreak = NoteRx(#"\s*(?:,|\+|&|\band\b|\bwith\b|\bbut\b|\bplus\b|\balso\b)\s*"#)
-    static let headerLead = NoteRx(#"^\s*(?:(?:pmhx?|pshx?|hpi|hx|history|past (?:medical|surgical) history|surgical history|medical history|ros|social history|sh|fhx?|family history|exam|pe|plan|assessment|a/p|other|significant for|notable for|known|history of|hx of|h/o)\b\s*[:\-–]?\s*)+"#)
+    static let headerLead = NoteRx(#"^\s*(?:(?:pmhx?|pshx?|hpi|hx|history|past (?:medical|surgical) history|surgical history|medical history|ros|social history|sh|fhx?|family history|physical exam|exam|pe|plan|assessment|a/p|other|significant for|notable for|known|history of|hx of|h/o)\b\s*[:\-–]?\s*)+"#)
     static let negLead = NoteRx(#"^\s*(?:no|not|denies|denied|negative(?: for)?|without|never|nil|none)\b"#)
     private static let fillers: Set<String> = [
         "pt", "patient", "presents", "presenting", "presented", "here", "today", "who", "has", "have", "had", "is", "a", "an", "the", "for",
@@ -959,7 +1074,7 @@ enum PatientNote {
 
     /// The parts of a sentence nothing was read from: split at commas and joining words, headings dropped, negatives
     /// and filler left out.
-    private static func leftovers(_ c: String, _ used: [NSRange], keepNegatives: Bool = false) -> [String] {
+    private static func leftovers(_ c: String, _ used: [NSRange], keepNegatives: Bool = false) -> [(text: String, range: NSRange)] {
         let ns = c as NSString
         var pieces: [NSRange] = []
         var start = 0
@@ -968,7 +1083,7 @@ enum PatientNote {
             start = cut.range.location + cut.range.length
         }
         if start < ns.length { pieces.append(NSRange(location: start, length: ns.length - start)) }
-        var out: [String] = []
+        var out: [(text: String, range: NSRange)] = []
         for p in pieces where !used.contains(where: { NSIntersectionRange($0, p).length > 0 }) {
             var t = ns.substring(with: p)
             if let head = headerLead.first(t) { t = (t as NSString).substring(from: head.range.location + head.range.length) }
@@ -976,7 +1091,7 @@ enum PatientNote {
             if !keepNegatives && negLead.first(t) != nil { continue }
             let words = t.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber && $0 != "/" }).map(String.init)
             guard words.contains(where: { $0.count >= 3 && !fillers.contains($0) && $0.contains(where: { $0.isLetter }) }) else { continue }
-            out.append(t)
+            out.append((t, p))
         }
         return out
     }
