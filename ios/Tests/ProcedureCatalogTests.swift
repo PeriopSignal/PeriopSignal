@@ -77,6 +77,8 @@ final class ProcedureCatalogTests: XCTestCase {
         XCTAssertEqual(ids("c section"), ["cesarean"])
         XCTAssertEqual(ids("C-Section"), ["cesarean"])
         XCTAssertEqual(ids("caesarean section"), ["cesarean"], "British spelling")
+        XCTAssertEqual(ProcedureCatalog.search("caesarean section").first?.id, "cesarean")
+        XCTAssertEqual(ProcedureCatalog.search("laparoscopic chole").first?.id, "lap-chole")
         XCTAssertEqual(ids("PE tube"), ["myringotomy-tubes"])
         XCTAssertEqual(ids("BMTs"), ["myringotomy-tubes"])
         XCTAssertEqual(ids("T & A"), ["tonsillectomy-adenoidectomy"])

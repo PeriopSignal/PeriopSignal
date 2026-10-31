@@ -155,7 +155,10 @@ enum ProcedureCatalog {
         let qOrig = q.map(\.original)
         let qRaw = q.map(\.raw).filter { !stopWords.contains($0) }
         var best: [Int: (score: Int, pos: Int, name: Bool)] = [:]
-        for ph in phrases {
+        // Only procedures whose words contain every typed word can match at all.
+        let words = q.filter { !stopWords.contains($0.raw) }
+        let candidates = all.indices.filter { i in words.allSatisfy { haystacks[i].contains($0.raw) || haystacks[i].contains($0.key) } }
+        for ph in candidates.flatMap({ phrasesByProc[$0] }).map({ phrases[$0] }) {
             var score = 0
             var pos = 0
             if let ex = ph.exact {
@@ -403,6 +406,17 @@ enum ProcedureCatalog {
         }
         return out
     }()
+
+    fileprivate static let phrasesByProc: [[Int]] = {
+        var out = [[Int]](repeating: [], count: all.count)
+        for (i, p) in phrases.enumerated() { out[p.proc].append(i) }
+        return out
+    }()
+
+    /// Each procedure's words in one string, to rule a procedure out of a search quickly.
+    private static let haystacks: [String] = phrasesByProc.map { list in
+        list.flatMap { phrases[$0].raw + phrases[$0].key }.joined(separator: " ")
+    }
 
     fileprivate static let firstToken: [String: [Int]] = {
         var d: [String: [Int]] = [:]
