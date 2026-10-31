@@ -1,7 +1,80 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-30T08:39:55+00:00",
+ "generatedAt": "2026-10-31T09:12:31+00:00",
  "posts": [
+  {
+   "id": "hepatology-2026-global-aclf-consensus-definitions",
+   "date": "2026-10-30",
+   "dateApprox": false,
+   "addedAt": "2026-10-31",
+   "journal": "Hepatology",
+   "jshort": "Hep",
+   "kind": "Consensus",
+   "topics": [
+    "liver",
+    "criticalCare"
+   ],
+   "headline": "Global ACLF definition: liver failure (bilirubin ≥5 mg/dL, INR ≥1.5) plus dysfunction or failure of another organ",
+   "summary": "AASLD, EASL, APASL, ALEH and SOLDA used a Delphi process to merge the competing regional definitions of acute-on-chronic liver failure into one framework for diagnosis, grading, intensive care, transplant decisions and trial design. It appeared on the same day in Hepatology, Journal of Hepatology, Annals of Hepatology and Hepatology International.",
+   "takeHome": [
+    "ACLF requires liver failure (bilirubin ≥5 mg/dL and INR ≥1.5) plus at least one extrahepatic organ dysfunction or failure, in advanced chronic liver disease",
+    "Grades: 1, one extrahepatic organ dysfunction; 2, one organ failure; 3, two or more. Type B follows prior decompensation; type A does not",
+    "Organ failure: KDIGO AKI stage 2-3 or new RRT, West Haven grade 3-4 encephalopathy, vasopressors (not for HRS-AKI alone), or ventilation or PaO2/FiO2 ≤225"
+   ],
+   "authorLimitations": [
+    "Immune dysregulation and gut failure are named as candidate organ failures that still need a definition"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** ACLF has meant different things in different places: Europe used the EASL-CLIF criteria, North America NACSELD and Asia APASL, so ICU triage, transplant prioritisation and trial results did not carry across borders. For anyone anaesthetising or ventilating a decompensated cirrhotic, the label should now mean the same thing everywhere.\n\n**What they did.** Each of the five continental liver societies nominated chairs, members and young investigators. Statements needed more than 70% agreement in a Delphi process, with a second round after an open session before the EASL 2026 congress.\n\n**What it says.**\n- Population: advanced chronic liver disease (fibrosis F3 or higher), not only cirrhosis; noninvasive tests alone should not establish it.\n- Liver failure (bilirubin ≥5 mg/dL and INR ≥1.5) is required.\n- Organ failures: KDIGO AKI stage 2-3 or starting kidney replacement therapy; West Haven grade 3-4 encephalopathy or ventilation for it; any vasopressor except for HRS-AKI alone; ventilation, PaO2/FiO2 ≤225, or SpO2/FiO2 ≤244 when no blood gas is available.\n- Dysfunction (grade 1), for example KDIGO stage 1 AKI or grade 2 encephalopathy; circulatory or respiratory dysfunction counts only in a monitored high-dependency or intensive care setting.\n- Transplant: offer it only when expected 1-year survival is above 75% to 80%. Listing should not be a trial's primary endpoint; survival with or without transplant between day 30 and month 6 could serve as a major one.\n\n**Caveats.** We could read the abstract, the EASL release and HCPLive's report, not the full document, so the thresholds are as reported there.\n\n**For the anesthesiologist.** Respiratory, circulatory and kidney failure are defined largely by the support we start. Intubating, starting a vasopressor or starting RRT can move a patient up a grade, and grade feeds transplant and prognosis decisions, so record why each support was started.",
+   "url": "https://doi.org/10.1097/HEP.0000000000001891",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "",
+   "title": "Acute-on-chronic liver failure: A global multisociety consensus on definitions",
+   "quiz": {
+    "question": "A patient with previously decompensated cirrhosis has bilirubin 7 mg/dL, INR 1.8 and KDIGO stage 1 AKI, with no other organ involvement. How does the new global consensus classify this?",
+    "options": [
+     "Type A ACLF, grade 1",
+     "Type A ACLF, grade 2",
+     "Type B ACLF, grade 2",
+     "Type B ACLF, grade 1"
+    ],
+    "answer": 3,
+    "explanation": "Liver failure (bilirubin ≥5 mg/dL and INR ≥1.5) plus one extrahepatic organ dysfunction, such as KDIGO stage 1 AKI, is grade 1, and prior decompensation makes it type B. Grade 2 needs an organ failure, such as AKI stage 2-3. Thresholds are as reported in news and society coverage, not read from the full document."
+   }
+  },
+  {
+   "id": "fda-2026-hemosil-acustar-hit-igg-class-i-recall",
+   "date": "2026-10-30",
+   "dateApprox": false,
+   "addedAt": "2026-10-31",
+   "journal": "FDA",
+   "jshort": "FDA",
+   "kind": "Safety alert",
+   "topics": [
+    "cardiacSurgery",
+    "mcs",
+    "criticalCare"
+   ],
+   "headline": "FDA Class I recall: four HemosIL AcuStar HIT-IgG assay lots read 20-35% low and can report HIT antibodies as negative",
+   "summary": "Werfen (Instrumentation Laboratory) is removing four lots of its automated chemiluminescent PF4-heparin IgG antibody assay because of a negative bias that routine calibration and quality control may not catch. FDA posted the notice on October 30 and called it the most serious type of recall.",
+   "takeHome": [
+    "Lots B38062, B38063, B40005 and B40006 show a 20-35% negative bias, so results can fall below the 1.00 U/mL cut-off",
+    "Routine calibration and QC may not detect the bias; a false-negative result may delay recognition of HIT while heparin continues",
+    "Destroy affected stock and line up another HIT antibody test, as a supply interruption is expected; no serious injuries or deaths reported"
+   ],
+   "authorLimitations": [
+    "The root cause of the bias is not yet known; Werfen's investigation is ongoing"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** Cardiac surgery and ECMO patients are heavily exposed to heparin, and a negative PF4-heparin antibody immunoassay is often what lets a team keep heparin running or plan bypass with it. This recall covers lots of an automated assay that can read falsely negative.\n\n**What happened.** Customers reported invalid calibration curves; one complaint showed a 47% negative mean bias with patient samples, and Werfen's investigation confirmed a 20-35% negative bias in four lots (part numbers 0009800127 and 0009802028; lots B38062 and B38063 expire 1 November 2026, B40005 and B40006 on 16 January 2027). The bias may slip past routine calibration and QC and push results below the 1.00 U/mL cut-off, so they are reported as HIT IgG antibody negative. FDA posted the notice on 30 October 2026 and classed it as the most serious type of recall. Health Canada had already recalled lot B38062 on 29 September.\n\n**What labs are told.** Check stock, destroy the affected lots and record it on Werfen's tracking form, and arrange a replacement HIT antibody test because a supply interruption is expected. FDA leaves patient-level decisions to the laboratory and the treating clinician.\n\n**Caveats.** As of September 3, Werfen had reported no serious injuries or deaths. The root cause is unknown. One sentence of the FDA notice says 'false positive negative', but the mechanism it describes, a low reading, produces false negatives.\n\n**For the anesthesiologist.** Ask your lab whether it ran these lots and whether it is switching platforms. If a patient you still suspect of HIT had a negative result from them, do not let that result alone clear heparin for bypass or ECMO; ask the lab about repeat testing on another assay.",
+   "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/platelet-factor-4-pf4-radioimmunoassay-recall-instrumentation-laboratories-removes-hemosil-acustar",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": ""
+  },
   {
    "id": "lancet-2026-prospect-prone-hfov-pards",
    "date": "2026-10-30",
