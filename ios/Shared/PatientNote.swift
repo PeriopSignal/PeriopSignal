@@ -12,6 +12,10 @@ import Foundation
 // meaning (the user's choice, else the one the context picks); the others are read as written by the rules below and,
 // where no rule read them, through their meaning ("AVr" as aortic valve repair). Ambiguous and unknown abbreviations are
 // listed for the user to choose or explain.
+//
+// What the patient arrives with goes to the 1.6 fields: the current airway (own airway, ETT with its size and depth,
+// tracheostomy), the ventilator's settings, oxygen (room air means their own airway), and lines and mechanical support,
+// each phrase read by PatientDevices.parse. A device the record already has (same kind and site) is not added twice.
 
 enum PatientNoteChange: Hashable {
     case age(Double), sex(PatientSex), height(Double), weight(Double)
@@ -26,6 +30,16 @@ enum PatientNoteChange: Hashable {
     case lastSolids(Date), lastClears(Date)
     case mets(String), frail, symptom(String), acute(String)
     case mallampati(Int), airwaySign(String), dentition(String)
+    /// The airway on arrival: "natural", "ett" or "trach"; then the ETT's size or the tracheostomy's type, and the ETT's
+    /// depth ("23 cm at the lip"), "" when not given.
+    case currentAirway(String, String, String)
+    /// Ventilator settings on arrival; only the settings given are set.
+    case vent(PatientVent)
+    /// Oxygen on arrival, breathing on their own (PatientOxygen.devices): "ra" room air, "nc", "hfnc", "niv", ...
+    case oxygen(PatientOxygen)
+    /// Lines or mechanical support on arrival, from one phrase of the note (PatientDevices.parse); a device the record
+    /// already has (same kind and site) is not added again.
+    case devices([PatientDevice])
     case otherHistory(String)
 }
 
@@ -144,6 +158,8 @@ private struct Hits {
     var ranges: [NSRange] = []
     /// Infusions read ("heparin infusion"): their medicine names do not go into the medication list as well.
     var infusions: [NSRange] = []
+    /// Lines and devices read: their numbers (an ECMO circuit's FdO₂) are not the ventilator's.
+    var deviceRanges: [NSRange] = []
 
     mutating func add(_ f: PatientNoteFinding, at r: NSRange) {
         findings.append(f)
@@ -159,11 +175,12 @@ enum PatientNote {
     enum Part {
         static let patient = "Patient", procedure = "Procedure", vitals = "Vital signs", history = "History",
                    meds = "Medications & allergies", anesthesia = "Anesthesia history", intake = "Last intake",
-                   labs = "Labs", assessment = "Assessment", airway = "Airway"
+                   labs = "Labs", assessment = "Assessment", airway = "Airway", devices = "Lines & devices",
+                   support = "Mechanical support"
     }
 
     static let sections = [Part.patient, Part.procedure, Part.vitals, Part.history, Part.meds, Part.anesthesia, Part.intake,
-                           Part.labs, Part.assessment, Part.airway]
+                           Part.labs, Part.assessment, Part.airway, Part.devices, Part.support]
 
     /// A made-up note for "Try an example" and the screenshots (no identifiers). "RA" is ambiguous (room air here) and
     /// "POEC" is a local abbreviation the list does not know, so the example shows both.
@@ -441,6 +458,11 @@ enum PatientNote {
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
+        out += [devicePlannedBefore, devicePlannedAfter, ivRoute, supportCue]
+        out += [deviceCue, tubeCue, deviceSettingCue, ecmoPart, countRx, tubeSkip, tubeGone, intubatedRx, intubatedPast, ventCue, vtRx,
+                ventRateRx, peepRx, psRx, fio2Rx, roomAirRx, ncRx, hfncRx, nrbRx, venturiRx, faceMaskRx, nivRx, trachCollarRx, onLitersRx,
+                flowRx, percentRx, homeRx, currentRx, breathingPast, satBefore]
+        out += ventModes.map { $0.0 }
         out += [smokeNeverRx, smokeFormerRx, smokeCurrentRx, medsHeaderRx, aspirinDoseRx, allergyCue, nkdaRx, allergyRx, allergyAfterRx, allergySkipRx, allergyCut, noneRx]
         out += [bpRx, hrRx, spo2Rx, onOxygenRx, rrRx, tempRx, efRx]
         out += labRules.map { $0.rx }
@@ -488,7 +510,11 @@ enum PatientNote {
         var ambiguous: [AmbiguousAbbreviation] = []
         var unknown: [UnknownAbbreviation] = []
         func put(_ f: PatientNoteFinding) {
-            guard found[f.id] == nil else { return }
+            if let old = found[f.id] {
+                // The airway, ventilator and oxygen can be told over several sentences: put together.
+                if let merged = combined(old, f) { found[f.id] = merged }
+                return
+            }
             found[f.id] = f
             if !order.contains(f.id) { order.append(f.id) }
         }
@@ -515,6 +541,10 @@ enum PatientNote {
             readAllergies(c, &h)
             readNumbers(c, &h)
             readAssessment(c, now: now, &h)
+            if planClause.first(c) == nil {
+                readTubesAndDevices(written, abbreviations, meant, &h)
+                readBreathing(c, &h)
+            }
             // The others, where no rule read them as written, are read through their meaning.
             var plain: [AbbreviationReplacement] = []
             var unread: [AbbreviationReplacement] = []
@@ -556,6 +586,18 @@ enum PatientNote {
         }
         if has("problem:cpap"), !has("problem:osa"), let l = problemLabels["osa"] {
             put(PatientNoteFinding(id: "problem:osa", section: Part.history, label: l, change: .problem("osa"), note: "From the CPAP or BiPAP."))
+        }
+        // A ventilator means a tube; oxygen means the patient's own airway (a trach collar, a tracheostomy).
+        if !has("airway") {
+            if has("vent") {
+                put(airwayFinding("ett", "", "", note: "From the ventilator settings; choose Tracheostomy in Airway if it is one."))
+            } else if case .oxygen(let o)? = found["oxygen"]?.change {
+                if o.device == "trachCollar" {
+                    put(airwayFinding("trach", "", "", note: "From the trach collar."))
+                } else {
+                    put(airwayFinding("natural", "", "", note: o.device == "ra" ? "On room air." : "Breathing on their own with oxygen."))
+                }
+            }
         }
         // The more specific item replaces the general one.
         for (general, specific) in supersededBy where has("problem:" + general) && specific.contains(where: { has("problem:" + $0) }) {
@@ -1114,6 +1156,413 @@ enum PatientNote {
         return out
     }
 
+    // MARK: Airway, breathing, lines and devices
+
+    /// A line or device the diagram knows (PatientDevices.parse reads the phrase): "PIV x2 18G", "R radial A-line",
+    /// "RIJ TLC", "PAC/Swan", "Cordis", "HD catheter", "IABP 1:1", "Impella CP P8", "HM3 LVAD", "VA ECMO".
+    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline)\b|(?-i:\bIO\b)"#)
+    /// An ETT or a tracheostomy.
+    static let tubeCue = NoteRx(#"\b(?:ett|et tube|endotracheal tube|dlt|double[- ]lumen tube|trach(?:eostomy)?|trach'?d)\b"#)
+    /// Mechanical support, whose settings and cannulas may follow a comma.
+    static let supportCue = NoteRx(#"\b(?:ecmo|ecls|iabp|balloon pump|impella|lvad|hm ?3|hm ?ii|heartmate|hvad)\b"#)
+    static let deviceSettingCue = NoteRx(#"\b(?:flow|sweep|fdo2|rpm|speed|pi|power|aug(?:mentation)?|position)\b|\b\d:\d\b|\bp-?\d\b|\d\s*(?:l/min|lpm)\b"#)
+    static let ecmoPart = NoteRx(#"\b(?:drainage|return|inflow|outflow)\b|\b\d+(?:\.\d)?\s*fr?\b"#)
+    /// "x2", "×2", "2 PIVs".
+    static let countRx = NoteRx(#"(?<![a-z0-9])[x×]\s?([2-6])\b|\b([2-6])\s+(?:large[- ]bore\s+)?(?:pivs|ivs)\b"#)
+    /// A tube or tracheostomy planned or in the past, not there on arrival ("for tracheostomy", "prior ETT").
+    static let tubeSkip = NoteRx(#"\b(?:for|undergo(?:ing)?|scheduled|booked|consent(?:ed)?|planned|plan|presenting|candidate|will|prior|previous|previously|history of|h/o|was|were)\b(?:\s+[a-z/]+){0,3}\s*$"#)
+    /// A line still to be placed ("will place an A-line", "A-line pre-induction").
+    static let devicePlannedBefore = NoteRx(#"\b(?:will|plan(?:ned)?|to place|placing|prior to|consider|possible|may need|needs?)\b[^.;,]{0,25}$"#)
+    static let devicePlannedAfter = NoteRx(#"^[^.;,]{0,25}\b(?:pre-?induction|post-?induction|after induction|before induction|to be placed|planned)\b"#)
+    /// "IV fluids", "IV antibiotics": the route, not a line.
+    static let ivRoute = NoteRx(#"\bivs?\s+(?:fluids?|abx|antibiotics?|push|pushes|meds?|medications?|contrast|iron|hydration|bolus|access|drip|infusion|ns|lr|steroids?|dexamethasone|tylenol|acetaminophen|morphine|dilaudid)\b"#)
+    static let tubeGone = NoteRx(#"^\s*(?:was\s+|is\s+)?(?:removed|decannulated|pulled|out|discontinued)\b"#)
+    /// Intubated or on the ventilator now, with no tube named.
+    static let intubatedRx = NoteRx(#"\b(?:intubated|on (?:the )?vent(?:ilator)?|mechanically ventilated|vented)\b"#)
+    static let intubatedPast = NoteRx(#"\b(?:was|were|previously|prior|history of|h/o|s/p|after|until|briefly)\b[^.;,]{0,20}$"#)
+    static let ventCue = NoteRx(#"\b(?:on (?:the )?vent(?:ilator)?|mechanically ventilated|vent(?:ilator)? settings|prvc|simv|aprv|psv|assist[- ]control|peep)\b|\bvent\s*:|\ba/?c\s*/\s*(?:vc|pc|prvc)\b"#)
+    /// Ventilator modes, the more specific first ("AC/PRVC" is PRVC).
+    static let ventModes: [(NoteRx, String)] = [
+        (NoteRx(#"\baprv\b"#), "APRV"), (NoteRx(#"\bprvc\b"#), "PRVC"), (NoteRx(#"\bsimv\b"#), "SIMV"),
+        (NoteRx(#"\ba/?c\s*/?\s*pc\b|\bpressure control\b|(?-i:\bPC\b)"#), "AC/PC"),
+        (NoteRx(#"\ba/?c\s*/?\s*vc\b|\bvolume control\b|\bassist[- ]control\b|(?-i:\b(?:VC|AC|A/C)\b)"#), "AC/VC"),
+        (NoteRx(#"\bpsv\b|\bpressure support ventilation\b"#), "PSV"),
+    ]
+    static let vtRx = NoteRx(#"\b(?:vt|tv|tidal volume)\s*(?:of|:|=)?\s*(\d{3,4})\b|\b(\d{3,4})\s*(?:ml\s*)?[x×]\s*(\d{1,2})\b"#)
+    static let ventRateRx = NoteRx(#"(?<!heart )(?<!resp )(?<!respiratory )\b(?:set rate|vent rate|rate)\s*(?:of|:|=)?\s*(\d{1,2})\b"#)
+    static let peepRx = NoteRx(#"\bpeep\s*(?:of|:|=)?\s*(\d{1,2}(?:\.\d)?)\b"#)
+    static let psRx = NoteRx(#"\b(?:ps|pressure support)\s*(?:of|:|=)?\s*(\d{1,2})(?:\s*/\s*(\d{1,2}))?\b"#)
+    static let fio2Rx = NoteRx(#"\bfio2\s*(?:of|:|=)?\s*(0?\.\d{1,2}|1\.0|\d{2,3})\b\s*%?|\b(\d{2,3})\s*%\s*fio2\b"#)
+    static let roomAirRx = NoteRx(#"\broom air\b"#)
+    static let ncRx = NoteRx(#"(?<!high.flow )\b(?:nc|nasal cannula|nasal prongs)\b"#)
+    static let hfncRx = NoteRx(#"\b(?:hfnc|hfno|high[- ]flow(?: nasal(?: cannula)?| oxygen| o2)?|optiflow|airvo)\b"#)
+    static let nrbRx = NoteRx(#"\b(?:nrb|non-?rebreather(?: mask)?)\b"#)
+    static let venturiRx = NoteRx(#"\b(?:venturi|venti)(?: mask)?\b"#)
+    static let faceMaskRx = NoteRx(#"\b(?:simple|face|facial|oxygen|o2) mask\b|\bfacemask\b"#)
+    static let nivRx = NoteRx(#"\b(?:bi-?pap|c-?pap|niv|nippv|non-?invasive (?:positive pressure )?ventilation)\b"#)
+    static let trachCollarRx = NoteRx(#"\btrach(?:eostomy)? (?:collar|mask)\b|\bt-?piece\b"#)
+    static let onLitersRx = NoteRx(#"\bon\s+(\d{1,2}(?:\.\d)?)\s*(?:l|lpm|l/min|liters?)\b(?!\s*/\s*kg)(?:\s*(?:of\s+)?(?:o2|oxygen))?"#)
+    static let flowRx = NoteRx(#"\b(\d{1,2}(?:\.\d)?)\s*(?:l|lpm|l/min|liters?)\b(?!\s*/\s*kg)"#)
+    static let percentRx = NoteRx(#"\b(\d{2,3})\s*%"#)
+    /// CPAP or BiPAP at home for sleep apnea, not the support on arrival.
+    static let homeRx = NoteRx(#"\b(?:home|at home|nightly|at night|qhs|osa|sleep|apn(?:o)?ea|uses|compliant|machine|wears)\b"#)
+    /// CPAP or BiPAP running now: with a saturation, its pressures or an FiO₂.
+    static let currentRx = NoteRx(#"\b(?:sats?|spo2|saturating|satting|currently|now|requiring|on arrival|placed on|started on|escalated to|weaned to)\b|\d{1,2}\s*/\s*\d{1,2}|fio2"#)
+    static let breathingPast = NoteRx(#"\b(?:was|were|previously|prior|weaned off|off|discontinued|stopped|history of|h/o|s/p|home)\b[^.;,]{0,20}$"#)
+    static let satBefore = NoteRx(#"\b(?:spo2|spo₂|sats?|sao2|saturating|satting|saturation|pulse ox)\s*(?:of|is|was|:|=)?\s*$"#)
+    private static let devicePieceCut = NoteRx(#"\s*(?:[,;+]|\band\b|\bplus\b)\s*"#)
+
+    /// Tubes, lines and devices in a sentence as written: the parser reads "PAC" and "ETT" as written, and their
+    /// ambiguous readings say whether they are devices here ("PACs" on an ECG are beats). Each phrase is one finding.
+    private static func readTubesAndDevices(_ written: String, _ abbreviations: [AbbreviationMatch], _ meant: AbbreviationExpansion, _ h: inout Hits) {
+        let ns = written as NSString
+        let blocked = abbreviations.filter { a in
+            guard a.isAmbiguous, let m = a.meaning else { return false }
+            return (a.key == "ETT" && m.id != "ett-tube") || (a.key == "PAC" && m.id != "pac-catheter")
+        }.map(\.range)
+        func free(_ m: NSTextCheckingResult, in piece: NSRange) -> Bool {
+            let r = NSRange(location: piece.location + m.range.location, length: m.range.length)
+            return !blocked.contains { NSIntersectionRange($0, r).length > 0 }
+        }
+        for piece in devicePieces(written) {
+            let text = ns.substring(with: piece)
+            let tube = tubeCue.all(text).first { free($0, in: piece) }
+            let device = deviceCue.all(text).first { free($0, in: piece) }
+            guard let cue = tube ?? device else { continue }
+            let at = piece.location + cue.range.location
+            let target = meant.target(piece)
+            if negated(written, at: at) {
+                h.seen(target)
+                continue
+            }
+            let before = ns.substring(to: at)
+            let after = ns.substring(from: at + cue.range.length)
+            if tube != nil {
+                guard tubeSkip.first(before) == nil, tubeGone.first(after) == nil else {
+                    h.seen(target)
+                    continue
+                }
+                guard let p = PatientDevices.parse(deviceWords(text)), p.kind == .ett || p.kind == .trach else { continue }
+                if p.kind == .ett {
+                    var size = p.size
+                    if let v = Double(size), !(2...10).contains(v) { size = "" }
+                    var depth = ""
+                    if let d = p.settings["depth"], let v = Double(d), (8...35).contains(v) {
+                        depth = d + " cm" + (p.settings["depthAt"].map { " at the " + $0 } ?? "")
+                    }
+                    h.add(airwayFinding("ett", size, depth), at: target)
+                } else {
+                    h.add(airwayFinding("trach", [p.size, p.detail].filter { !$0.isEmpty }.joined(separator: " "), ""), at: target)
+                }
+                continue
+            }
+            guard devicePlannedBefore.first(before) == nil, devicePlannedAfter.first(after) == nil, ivRoute.first(text) == nil else {
+                h.seen(target)
+                continue
+            }
+            var words = text
+            var count = 1
+            if let m = countRx.first(text), let n = m.text([1, 2], in: text).flatMap({ Int($0) }) {
+                count = n
+                let cut = m.range(at: 1).location != NSNotFound ? m.range : m.range(at: 2)
+                words = (text as NSString).replacingCharacters(in: cut, with: " ")
+            }
+            guard let p = PatientDevices.parse(deviceWords(words)), p.confidence >= 0.35, p.kind != .other,
+                  PatientDevice.lineKinds.contains(p.kind) || PatientDevice.supportKinds.contains(p.kind) else { continue }
+            // A peripheral IV only with a gauge, a site, a count or the word PIV ("1 L IV" is a volume).
+            if p.kind == .piv, !p.size.isEmpty, !["14", "16", "18", "20", "22", "24"].contains(p.size) { continue }
+            if p.kind == .piv, p.size.isEmpty, (p.site ?? "").isEmpty, count < 2,
+               text.range(of: #"\bpivs?\b"#, options: [.regularExpression, .caseInsensitive]) == nil { continue }
+            var ds = p.devices(placedIntraop: false)
+            if count > 1, p.companions.isEmpty { ds = (0..<count).map { _ in p.device(placedIntraop: false) } }
+            let labels = PatientDevices.labels(ds)
+            var label = labels.joined(separator: "; ")
+            if count > 1, Set(labels).count == 1, let one = labels.first { label = one + " ×\(count)" }
+            let support = ds.contains { PatientDevice.supportKinds.contains($0.kind) }
+            h.add(PatientNoteFinding(id: "device:" + label.lowercased(), section: support ? Part.support : Part.devices, label: label,
+                                     change: .devices(ds)), at: target)
+            h.deviceRanges.append(target)
+        }
+    }
+
+    /// A sentence in pieces at commas, semicolons and "and"; a pump's or circuit's settings and cannulas after a comma
+    /// stay with it ("VV ECMO 25 Fr RFV drainage, 21 Fr RIJ return, flow 4.5 L/min").
+    private static func devicePieces(_ c: String) -> [NSRange] {
+        let ns = c as NSString
+        var raw: [NSRange] = []
+        var start = 0
+        for cut in devicePieceCut.all(c) {
+            if cut.range.location > start { raw.append(NSRange(location: start, length: cut.range.location - start)) }
+            start = cut.range.location + cut.range.length
+        }
+        if start < ns.length { raw.append(NSRange(location: start, length: ns.length - start)) }
+        var out: [NSRange] = []
+        for r in raw {
+            let t = ns.substring(with: r)
+            if let last = out.last, deviceCue.first(t) == nil, tubeCue.first(t) == nil {
+                let prev = ns.substring(with: last)
+                let ecmo = prev.range(of: #"\b(?:ecmo|ecls)\b"#, options: [.regularExpression, .caseInsensitive]) != nil
+                if supportCue.first(prev) != nil, deviceSettingCue.first(t) != nil || (ecmo && ecmoPart.first(t) != nil) {
+                    out[out.count - 1] = NSUnionRange(last, r)
+                    continue
+                }
+            }
+            out.append(r)
+        }
+        return out
+    }
+
+    /// The words of a phrase the device parser reads; the rest ("pt has", "placed yesterday") would only lower its
+    /// confidence and end up in the device's detail.
+    private static func deviceWords(_ text: String) -> String {
+        var out: [String] = []
+        for raw in text.split(whereSeparator: { $0.isWhitespace }) {
+            let w = raw.trimmingCharacters(in: CharacterSet(charactersIn: ".,;:()[]\"'"))
+            if !w.isEmpty, isDeviceWord(w) { out.append(w) }
+        }
+        return out.joined(separator: " ")
+    }
+
+    private static func isDeviceWord(_ w: String) -> Bool {
+        let low = w.lowercased()
+        if deviceVocabulary.contains(low) { return true }
+        if low.contains("/") {
+            let parts = low.split(separator: "/").map(String.init)
+            return !parts.isEmpty && parts.allSatisfy { isDeviceWord($0) }
+        }
+        let patterns = [#"^\d+(?:\.\d+)?(?:g|ga|f|fr|cm|mm|%|rpm|w|lpm|l/min|mmhg)?$"#, #"^\d:\d$"#, #"^p-?\d$"#,
+                        #"^[rl](?:ij|ijv|sc|scv|ej|fv|fa|ac|fem|rad|dp|ax|brach)$"#]
+        return patterns.contains { low.range(of: $0, options: .regularExpression) != nil }
+    }
+
+    private static let deviceVocabulary: Set<String> = [
+        "piv", "pivs", "pivc", "iv", "ivs", "peripheral", "midline", "aline", "a-line", "art", "arterial", "line", "lines", "cath", "catheter",
+        "catheters", "cvc", "cvl", "central", "venous", "tlc", "triple", "quad", "lumen", "mac", "introducer", "intro", "cordis", "sheath",
+        "trialysis", "hd", "dialysis", "quinton", "vascath", "vas-cath", "mahurkar", "swan", "swan-ganz", "swanganz", "ganz", "pac", "pa",
+        "pulmonary", "artery", "picc", "io", "ezio", "ez-io", "intraosseous", "iabp", "balloon", "pump", "impella", "cp", "rp", "ecp", "flex",
+        "lvad", "vad", "hm3", "hmiii", "hm2", "hmii", "hvad", "heartmate", "hm", "ecmo", "ecls", "cannula", "cannulas", "cannulae", "vv", "va",
+        "vav", "v-v", "v-a", "drainage", "return", "inflow", "outflow", "avalon", "crescent", "flow", "sweep", "fdo2", "pi", "power", "speed",
+        "rpm", "aug", "augmentation", "timing", "position", "depth", "ett", "et", "tube", "dlt", "double", "trach", "tracheostomy", "shiley",
+        "portex", "bivona", "cuffed", "uncuffed", "fenestrated", "ij", "ijv", "internal", "jugular", "ej", "external", "sc", "subclavian",
+        "subclav", "fv", "fem", "femoral", "rad", "radial", "brach", "brachial", "ax", "axillary", "dp", "dorsalis", "pedis", "tib", "tibial",
+        "hum", "humeral", "ac", "antecubital", "fa", "forearm", "hand", "wrist", "upper", "arm", "foot", "saphenous", "r", "l", "rt", "lt",
+        "right", "left", "bilat", "b/l", "bilateral", "rue", "lue", "rle", "lle", "ue", "le", "g", "ga", "gauge", "f", "fr", "french", "cm",
+        "mm", "lpm", "w", "mmhg", "%", "via", "at", "@", "teeth", "lip", "lips", "gums", "nare", "oral", "nasal", "stoma", "heart", "apex",
+        "aorta", "atrium", "1:1", "1:2", "1:3", "/",
+    ]
+
+    /// Intubated or ventilated with no tube named, the ventilator's settings, and oxygen (on the reading text: "RA" is
+    /// already "room air" where the context says so).
+    private static func readBreathing(_ c: String, _ h: inout Hits) {
+        let ns = c as NSString
+        let devices = h.deviceRanges
+        func free(_ r: NSRange) -> Bool { !devices.contains { NSIntersectionRange($0, r).length > 0 } }
+        func current(_ m: NSTextCheckingResult) -> Bool {
+            !negated(c, at: m.range.location) && breathingPast.first(ns.substring(to: m.range.location)) == nil && free(m.range)
+        }
+        if let m = intubatedRx.first(c), current(m), intubatedPast.first(ns.substring(to: m.range.location)) == nil, !past(c, m) {
+            if h.findings.contains(where: { $0.id == "airway" }) { h.seen(m.range) } else { h.add(airwayFinding("ett", "", ""), at: m.range) }
+        }
+        let tubeHere = h.findings.contains { f in
+            if case .currentAirway(let id, _, _) = f.change { return id == "ett" || id == "trach" }
+            return false
+        }
+        let ventHere = ventCue.first(c) != nil || tubeHere
+
+        // FiO₂: the ventilator's, or a high-flow, Venturi, CPAP or trach collar's.
+        var fio2: Double?
+        var fio2At: NSRange?
+        if let m = fio2Rx.all(c).first(where: { free($0.range) }), var f = number(m, [1, 2], c) {
+            if f <= 1 { f *= 100 }
+            if (21...100).contains(f) { fio2 = (f * 10).rounded() / 10; fio2At = m.range }
+        }
+
+        // Oxygen, breathing on their own.
+        var oxygen: PatientOxygen?
+        var oxygenAt = NSRange(location: 0, length: 0)
+        let devicesInOrder: [(NoteRx, String)] = [(trachCollarRx, "trachCollar"), (hfncRx, "hfnc"), (nrbRx, "nrb"), (venturiRx, "venturi"),
+                                                  (faceMaskRx, "mask"), (ncRx, "nc"), (nivRx, "niv")]
+        for (rx, id) in devicesInOrder {
+            guard let m = rx.all(c).first(where: { current($0) }) else { continue }
+            if id == "niv", ventHere || homeRx.first(c) != nil || currentRx.first(c) == nil { continue }
+            oxygen = PatientOxygen(device: id)
+            oxygenAt = m.range
+            break
+        }
+        if oxygen == nil, !ventHere, let m = onLitersRx.first(c), current(m), let f = number(m, [1], c), (0.25...15).contains(f) {
+            oxygen = PatientOxygen(device: "nc", flow: f)
+            oxygenAt = m.range
+        }
+        if oxygen == nil, !ventHere, let m = roomAirRx.first(c), current(m) {
+            oxygen = PatientOxygen(device: "ra")
+            oxygenAt = m.range
+        }
+        var fio2Taken = false
+        if var o = oxygen, let d = o.device {
+            let piece = pieceRange(around: oxygenAt, in: c)
+            let text = ns.substring(with: piece)
+            let at = oxygenAt.location - piece.location
+            if PatientOxygen.flowDevices.contains(d), o.flow == nil {
+                let flows = flowRx.all(text).filter { m in number(m, [1], text).map { flowFits(d, $0) } ?? false }
+                if let m = flows.min(by: { Swift.abs($0.range.location - at) < Swift.abs($1.range.location - at) }) {
+                    o.flow = number(m, [1], text)
+                    h.seen(NSRange(location: piece.location + m.range.location, length: m.range.length))
+                }
+            }
+            if PatientOxygen.fio2Devices.contains(d) {
+                if let f = fio2, let r = fio2At, !ventHere {
+                    o.fio2 = f
+                    fio2Taken = true
+                    h.seen(r)
+                } else {
+                    for m in percentRx.all(text) where satBefore.first((text as NSString).substring(to: m.range.location)) == nil {
+                        guard let f = number(m, [1], text), (21...100).contains(f) else { continue }
+                        o.fio2 = f
+                        h.seen(NSRange(location: piece.location + m.range.location, length: m.range.length))
+                        break
+                    }
+                }
+            }
+            h.add(oxygenFinding(o), at: oxygenAt)
+        }
+
+        // The ventilator.
+        guard ventHere else { return }
+        var v = PatientVent()
+        var first: NSRange?
+        func note(_ r: NSRange) {
+            h.seen(r)
+            if first == nil || r.location < first!.location { first = r }
+        }
+        for (rx, mode) in ventModes {
+            if let m = rx.all(c).first(where: { free($0.range) }) {
+                v.mode = mode
+                note(m.range)
+                break
+            }
+        }
+        if let m = vtRx.first(c), free(m.range) {
+            if let a = number(m, [1, 2], c), (150...1500).contains(a) { v.vt = a; note(m.range) }
+            if let r = number(m, [3], c), (4...60).contains(r) { v.rr = r }
+        }
+        if v.rr == nil, let m = ventRateRx.first(c), free(m.range), let r = number(m, [1], c), (4...60).contains(r) {
+            v.rr = r
+            note(m.range)
+        }
+        if let m = peepRx.first(c), let p = number(m, [1], c), p <= 30 {
+            v.peep = p
+            note(m.range)
+        }
+        if let m = psRx.first(c), free(m.range), let p = number(m, [1], c), p <= 40 {
+            v.ps = p
+            if v.peep == nil, let e = number(m, [2], c), e <= 30 { v.peep = e }
+            note(m.range)
+        }
+        if let f = fio2, let r = fio2At, !fio2Taken {
+            v.fio2 = f
+            note(r)
+        }
+        if !v.isEmpty, let r = first { h.add(ventFinding(v), at: r) }
+    }
+
+    /// The comma- or semicolon-separated part of a sentence around a range.
+    private static func pieceRange(around r: NSRange, in c: String) -> NSRange {
+        let ns = c as NSString
+        var start = r.location
+        var end = r.location + r.length
+        while start > 0, ns.character(at: start - 1) != 44, ns.character(at: start - 1) != 59 { start -= 1 }
+        while end < ns.length, ns.character(at: end) != 44, ns.character(at: end) != 59 { end += 1 }
+        return NSRange(location: start, length: end - start)
+    }
+
+    /// A flow that fits the device (L/min).
+    private static func flowFits(_ device: String, _ f: Double) -> Bool {
+        switch device {
+        case "nc": return (0.25...15).contains(f)
+        case "mask": return (4...15).contains(f)
+        case "nrb": return (8...25).contains(f)
+        case "hfnc": return (5...80).contains(f)
+        default: return (1...30).contains(f)
+        }
+    }
+
+    private static func airwayFinding(_ id: String, _ detail: String, _ depth: String, note: String? = nil) -> PatientNoteFinding {
+        PatientNoteFinding(id: "airway", section: Part.airway, label: airwayLabel(id, detail, depth), change: .currentAirway(id, detail, depth), note: note)
+    }
+
+    /// "Current airway: intubated (ETT 7.5 at 23 cm at the lip)", "Current airway: tracheostomy (8 Shiley)".
+    private static func airwayLabel(_ id: String, _ detail: String, _ depth: String) -> String {
+        switch id {
+        case "ett":
+            let tube = ["ETT" + (detail.isEmpty ? "" : " " + detail), depth.isEmpty ? nil : "at " + depth].compactMap { $0 }.joined(separator: " ")
+            return "Current airway: intubated" + (detail.isEmpty && depth.isEmpty ? "" : " (" + tube + ")")
+        case "trach":
+            return "Current airway: tracheostomy" + (detail.isEmpty ? "" : " (" + detail + ")")
+        default:
+            return "Current airway: own airway"
+        }
+    }
+
+    private static func ventFinding(_ v: PatientVent) -> PatientNoteFinding {
+        PatientNoteFinding(id: "vent", section: Part.airway, label: "Ventilator: " + v.text, change: .vent(v))
+    }
+
+    private static func oxygenFinding(_ o: PatientOxygen) -> PatientNoteFinding {
+        PatientNoteFinding(id: "oxygen", section: Part.airway, label: "Oxygen: " + o.text, change: .oxygen(o))
+    }
+
+    /// The same item from two sentences put together; nil keeps the first as it is.
+    private static func combined(_ a: PatientNoteFinding, _ b: PatientNoteFinding) -> PatientNoteFinding? {
+        switch (a.change, b.change) {
+        case (.vent(let x), .vent(let y)):
+            return ventFinding(mergedVent(y, x))
+        case (.oxygen(let x), .oxygen(let y)):
+            guard x.device == y.device else { return nil }
+            return oxygenFinding(PatientOxygen(device: x.device, flow: x.flow ?? y.flow, fio2: x.fio2 ?? y.fio2))
+        case (.currentAirway(let i, let d, let p), .currentAirway(let j, let e, let q)):
+            if i == j { return airwayFinding(i, d.isEmpty ? e : d, p.isEmpty ? q : p, note: a.note) }
+            // A bare "intubated" or "on the vent" gives way to a tracheostomy named.
+            if i == "ett", d.isEmpty, p.isEmpty, j == "trach" { return b }
+            return nil
+        default:
+            return nil
+        }
+    }
+
+    /// The record's settings with the note's laid over them.
+    private static func mergedVent(_ a: PatientVent, _ b: PatientVent) -> PatientVent {
+        var v = a
+        if !b.mode.isEmpty { v.mode = b.mode }
+        if let x = b.vt { v.vt = x }
+        if let x = b.rr { v.rr = x }
+        if let x = b.peep { v.peep = x }
+        if let x = b.fio2 { v.fio2 = x }
+        if let x = b.ps { v.ps = x }
+        return v
+    }
+
+    /// Another device replaces the oxygen; the same device keeps what the note does not give.
+    private static func mergedOxygen(_ a: PatientOxygen, _ b: PatientOxygen) -> PatientOxygen {
+        guard a.device == b.device else { return b }
+        return PatientOxygen(device: b.device, flow: b.flow ?? a.flow, fio2: b.fio2 ?? a.fio2)
+    }
+
+    /// Both given and different.
+    private static func differs(_ a: Double?, _ b: Double?) -> Bool {
+        guard let a, let b else { return false }
+        return Swift.abs(a - b) >= 0.05
+    }
+
+    /// The devices not in the record yet: one already there with the same kind and site counts once.
+    private static func newDevices(_ ds: [PatientDevice], in r: PatientRecord) -> [PatientDevice] {
+        var have = r.currentDevices()
+        var out: [PatientDevice] = []
+        for d in ds {
+            if let i = have.firstIndex(where: { $0.kind == d.kind && $0.site == d.site }) { have.remove(at: i) } else { out.append(d) }
+        }
+        return out
+    }
+
     // MARK: Status and adding
 
     static func status(_ f: PatientNoteFinding, in r: PatientRecord) -> PatientNoteStatus {
@@ -1201,6 +1650,36 @@ enum PatientNote {
             return r.airwaySigns.contains(s) ? .recorded : .new
         case .dentition(let t):
             return mentions(r.dentition, t) ? .recorded : .new
+        case .currentAirway(let id, let detail, let depth):
+            guard let o = r.currentAirway else { return .new }
+            let old = o == "natural" ? "own airway" : (r.currentAirwayText ?? o)
+            if o != id { return .replaces(old) }
+            switch id {
+            case "ett":
+                let sizeSame = detail.isEmpty || r.ettSize == detail
+                let depthSame = depth.isEmpty || r.ettDepth.caseInsensitiveCompare(depth) == .orderedSame
+                if sizeSame && depthSame { return .recorded }
+                return (sizeSame || r.ettSize.isEmpty) && (depthSame || r.ettDepth.isEmpty) ? .new : .replaces(old)
+            case "trach":
+                if detail.isEmpty || r.trachType.caseInsensitiveCompare(detail) == .orderedSame { return .recorded }
+                return r.trachType.isEmpty ? .new : .replaces(old)
+            default:
+                return .recorded
+            }
+        case .vent(let v):
+            let merged = mergedVent(r.vent, v)
+            if merged == r.vent { return .recorded }
+            let clash = (!v.mode.isEmpty && !r.vent.mode.isEmpty && v.mode != r.vent.mode) || differs(v.vt, r.vent.vt) || differs(v.rr, r.vent.rr)
+                || differs(v.peep, r.vent.peep) || differs(v.fio2, r.vent.fio2) || differs(v.ps, r.vent.ps)
+            return clash ? .replaces(r.vent.text) : .new
+        case .oxygen(let o):
+            if r.oxygen.isEmpty { return .new }
+            if r.oxygen.device == o.device && !differs(o.flow, r.oxygen.flow) && !differs(o.fio2, r.oxygen.fio2) {
+                return mergedOxygen(r.oxygen, o) == r.oxygen ? .recorded : .new
+            }
+            return .replaces(r.oxygen.text)
+        case .devices(let ds):
+            return newDevices(ds, in: r).isEmpty ? .recorded : .new
         case .otherHistory(let t):
             return mentions(r.otherHistory, t) ? .recorded : .new
         }
@@ -1258,6 +1737,19 @@ enum PatientNote {
             case .mallampati(let n): r.mallampati = n
             case .airwaySign(let s): r.airwaySigns.insert(s)
             case .dentition(let t): r.dentition = joined(r.dentition, t)
+            case .currentAirway(let id, let detail, let depth):
+                r.currentAirway = id
+                if id == "ett" {
+                    if !detail.isEmpty { r.ettSize = detail }
+                    if !depth.isEmpty { r.ettDepth = depth }
+                } else if id == "trach", !detail.isEmpty {
+                    r.trachType = detail
+                }
+            case .vent(let v): r.vent = mergedVent(r.vent, v)
+            case .oxygen(let o): r.oxygen = mergedOxygen(r.oxygen, o)
+            case .devices(let ds):
+                let add = newDevices(ds, in: r)
+                r.devices += add
             case .otherHistory(let t): r.otherHistory = joined(r.otherHistory, t)
             }
         }
