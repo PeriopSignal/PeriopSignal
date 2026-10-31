@@ -48,6 +48,19 @@
     "seconds": 222,
     "bytes": 1773357,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Acute-on-chronic liver failure: A global multisociety consensus on definitions",
+    "authors": [
+     "American Association for the Study of Liver Diseases (AASLD)",
+     "European Association for the Study of the Liver (EASL)",
+     "Asia-Pacific Association for the Study of the Liver (APASL)",
+     "Latin American Association for the Study of the Liver (ALEH)",
+     "Society on Liver Disease in Africa (SOLDA)"
+    ],
+    "journal": "Hepatology",
+    "doi": "10.1097/HEP.0000000000001891",
+    "year": 2026
    }
   },
   {
