@@ -236,6 +236,13 @@ enum PatientDemo {
         echo.study = "TEE"; echo.lv = .severe; echo.lvef = 15; echo.rv = .moderate
         echo.mitral = EchoValve(regurgitation: .moderate)
         r.echoFindings = echo
+        var rhc = PatientRHC()
+        rhc.ra = 16; rhc.pasp = 48; rhc.padp = 24; rhc.pcwp = 26; rhc.co = 3.1
+        r.rhc = rhc
+        r.labs = ["hb": 9.1, "plt": 96, "inr": 1.8, "fibrinogen": 180, "na": 131, "k": 4.9, "cr": 1.9, "bun": 38,
+                  "albumin": 2.9, "tbili": 2.4, "troponin": 4200, "troponin99": 14, "glucose": 188]
+        r.labSections = ["cardiac", "liver"]
+        r.dialysis = false
         return r
     }
 }
