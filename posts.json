@@ -42,6 +42,12 @@
     ],
     "answer": 3,
     "explanation": "Liver failure (bilirubin ≥5 mg/dL and INR ≥1.5) plus one extrahepatic organ dysfunction, such as KDIGO stage 1 AKI, is grade 1, and prior decompensation makes it type B. Grade 2 needs an organ failure, such as AKI stage 2-3. Thresholds are as reported in news and society coverage, not read from the full document."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/hepatology-2026-global-aclf-consensus-definitions.mp3",
+    "seconds": 222,
+    "bytes": 1773357,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -73,7 +79,13 @@
    "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/platelet-factor-4-pf4-radioimmunoassay-recall-instrumentation-laboratories-removes-hemosil-acustar",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": ""
+   "firstAuthor": "",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-hemosil-acustar-hit-igg-class-i-recall.mp3",
+    "seconds": 204,
+    "bytes": 1631277,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "lancet-2026-prospect-prone-hfov-pards",
