@@ -520,3 +520,36 @@ struct YesNoPills: View {
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
+
+/// "Save to My Patient": writes an ASE tool's grade into the patient's preoperative or intraoperative echo findings.
+struct PatientEchoSaveBar: View {
+    @Environment(PatientStore.self) private var myPatient
+    var label: String
+    var isSaved: (PatientEcho) -> Bool
+    var save: (inout PatientEcho) -> Void
+
+    var body: some View {
+        let pre = isSaved(myPatient.record.echoFindings)
+        let intra = isSaved(myPatient.record.intraopEcho)
+        HStack(spacing: 10) {
+            Image(systemName: pre || intra ? "checkmark.circle.fill" : "person.text.rectangle")
+                .font(PS.sys(size: 15, weight: .semibold))
+                .foregroundStyle(pre || intra ? PS.green : PS.accent2)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(pre || intra ? "In My Patient's " + (pre ? "preoperative" : "intraoperative") + " echo" : "Save to My Patient")
+                    .font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                Text(label).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineLimit(2)
+            }
+            Spacer(minLength: 6)
+            Menu {
+                Button("Preoperative echo") { Haptics.light(); myPatient.update { save(&$0.echoFindings) } }
+                Button("Intraoperative echo") { Haptics.light(); myPatient.update { save(&$0.intraopEcho) } }
+            } label: {
+                Text(pre || intra ? "Update" : "Save").font(PS.sys(size: 13.5, weight: .semibold))
+            }
+            .buttonStyle(CapsuleButtonStyle(prominent: !(pre || intra)))
+        }
+        .padding(12)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+}

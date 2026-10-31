@@ -334,3 +334,51 @@ enum PatientECG {
         "Nonspecific ST-T changes", "Low voltage", "Right axis deviation", "Left axis deviation",
     ]
 }
+
+// MARK: - From the ASE tools
+
+extension EchoGrade {
+    init(_ g: ValveGrade) {
+        switch g {
+        case .mild: self = .mild
+        case .moderate: self = .moderate
+        case .severe: self = .severe
+        }
+    }
+
+    /// The chamber tool's grade (EchoCalc.grade): -1 and 0 normal, 1–3 mild to severe; nil for "abnormal" with one
+    /// cutoff, which names no severity.
+    init?(chamber g: Int) {
+        switch g {
+        case -1, 0: self = .normal
+        case 1: self = .mild
+        case 2: self = .moderate
+        case 3: self = .severe
+        default: return nil
+        }
+    }
+}
+
+extension PatientEcho {
+    /// A grade from the ASE valve severity tool, written into the matching valve.
+    mutating func apply(_ lesion: ValveLesion, _ grade: ValveGrade) {
+        let g = EchoGrade(grade)
+        switch lesion {
+        case .as_: aortic.stenosis = g
+        case .ar: aortic.regurgitation = g
+        case .mr: mitral.regurgitation = g
+        case .ms: mitral.stenosis = g
+        case .tr: tricuspid.regurgitation = g
+        }
+    }
+
+    func grade(for lesion: ValveLesion) -> EchoGrade? {
+        switch lesion {
+        case .as_: return aortic.stenosis
+        case .ar: return aortic.regurgitation
+        case .mr: return mitral.regurgitation
+        case .ms: return mitral.stenosis
+        case .tr: return tricuspid.regurgitation
+        }
+    }
+}

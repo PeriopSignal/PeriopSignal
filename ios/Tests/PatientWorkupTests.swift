@@ -129,6 +129,24 @@ final class PatientWorkupTests: XCTestCase {
         }
     }
 
+    /// The ASE valve and chamber tools write their grades into the echo findings.
+    func testEchoFromTools() {
+        var e = PatientEcho()
+        e.apply(.as_, .severe)
+        e.apply(.mr, .moderate)
+        e.apply(.tr, .mild)
+        XCTAssertEqual(e.aortic.stenosis, .severe)
+        XCTAssertEqual(e.mitral.regurgitation, .moderate)
+        XCTAssertEqual(e.tricuspid.regurgitation, .mild)
+        XCTAssertEqual(e.grade(for: .as_), .severe)
+        XCTAssertNil(e.grade(for: .ms))
+        XCTAssertEqual(e.phrases, ["Moderate MR", "Mild TR", "Severe AS"])
+        XCTAssertEqual(EchoGrade(chamber: 0), .normal)
+        XCTAssertEqual(EchoGrade(chamber: -1), .normal, "outside the range on the harmless side is normal function")
+        XCTAssertEqual(EchoGrade(chamber: 2), .moderate)
+        XCTAssertNil(EchoGrade(chamber: 4), "a single cutoff names no severity")
+    }
+
     /// A patient saved before 1.6 opens with the new fields empty.
     func testOldSaveDecodes() throws {
         let json = #"{"version":1,"ageYears":70,"procedure":"TKA","problems":["htn"],"smoking":"former"}"#
