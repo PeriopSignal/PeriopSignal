@@ -51,7 +51,15 @@ struct PatientNoteSheet: View {
     @State private var previous = ""
     @State private var addOther = true
     @State private var addPrevious = true
+    /// Meanings chosen for ambiguous abbreviations, by AmbiguousAbbreviation.id.
+    @State private var choices: [String: String] = [:]
+    /// The user's own abbreviations, on this phone only.
+    @State private var abbreviations = AbbreviationStore()
+    /// The unknown abbreviation being explained, and the meaning typed so far.
+    @State private var adding: String?
+    @State private var draft = ""
     @FocusState private var editing: Bool
+    @FocusState private var meaningFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -101,7 +109,7 @@ struct PatientNoteSheet: View {
         .padding(10)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         VStack(alignment: .leading, spacing: 6) {
-            hint("text.alignleft", "Write it the way you'd chart it: age and sex, procedure, history, medications, allergies, vitals, airway and fasting.")
+            hint("text.alignleft", "Write it the way you'd chart it, abbreviations and all: age and sex, procedure, history, medications, allergies, vitals, airway and fasting.")
             hint("mic", "To dictate, tap the microphone on the keyboard.")
             hint("lock", "Read on this phone; the note itself isn't kept. You check every item before it's added.")
         }
@@ -117,6 +125,7 @@ struct PatientNoteSheet: View {
                 .buttonStyle(CapsuleButtonStyle(prominent: false))
             Spacer()
         }
+        if !abbreviations.isEmpty { SavedAbbreviationsList(store: abbreviations) }
     }
 
     private func hint(_ icon: String, _ s: String) -> some View {
@@ -140,6 +149,7 @@ struct PatientNoteSheet: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         if !reading.identifiers.isEmpty { identifierWarning(reading.identifiers) }
+        if !reading.ambiguous.isEmpty || !reading.unknown.isEmpty { abbreviationGroup(reading) }
         ForEach(PatientNote.sections, id: \.self) { s in
             let items = reading.findings.filter { $0.section == s }
             if !items.isEmpty {
@@ -185,6 +195,135 @@ struct PatientNoteSheet: View {
             Label("Edit the note", systemImage: "pencil").frame(maxWidth: .infinity)
         }
         .buttonStyle(BigButtonStyle(prominent: false))
+        if !abbreviations.isEmpty { SavedAbbreviationsList(store: abbreviations) { reread() } }
+    }
+
+    // MARK: Abbreviations
+
+    /// Ambiguous abbreviations with the meaning read (a menu to change it), and unknown ones to explain.
+    private func abbreviationGroup(_ reading: PatientNoteReading) -> some View {
+        PatientGroup(title: "Abbreviations", note: "An abbreviation with more than one meaning is read as the meaning shown: the one its context points to, or the usual one. Choose another and the note is read again. A meaning you add is kept on this phone only and used for every note.") {
+            ForEach(Array(reading.ambiguous.enumerated()), id: \.element.id) { i, a in
+                ambiguousRow(a)
+                if i < reading.ambiguous.count - 1 || !reading.unknown.isEmpty { Hairline().padding(.leading, 14) }
+            }
+            ForEach(Array(reading.unknown.enumerated()), id: \.element.id) { i, u in
+                unknownRow(u)
+                if i < reading.unknown.count - 1 { Hairline().padding(.leading, 14) }
+            }
+        }
+    }
+
+    private func ambiguousRow(_ a: AmbiguousAbbreviation) -> some View {
+        let how = choices[a.id] != nil ? "Your choice" : (a.fromContext ? "From the context" : "Usual meaning")
+        return HStack(alignment: .top, spacing: 12) {
+            AbbreviationBadge(text: a.abbreviation)
+            VStack(alignment: .leading, spacing: 3) {
+                Menu {
+                    ForEach(a.options) { o in
+                        Button { choose(a, o.id) } label: {
+                            if o.id == a.chosenID { Label(o.text, systemImage: "checkmark") } else { Text(o.text) }
+                        }
+                    }
+                    Divider()
+                    Button { choose(a, MedAbbreviations.asWritten) } label: {
+                        if a.chosenID == MedAbbreviations.asWritten {
+                            Label("Leave “\(a.abbreviation)” as written", systemImage: "checkmark")
+                        } else {
+                            Text("Leave “\(a.abbreviation)” as written")
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 5) {
+                        Text(a.chosen?.text ?? "Left as written")
+                            .font(PS.sys(size: 14.5, weight: .medium))
+                            .foregroundStyle(PS.fg)
+                            .multilineTextAlignment(.leading)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(PS.sys(size: 10.5, weight: .semibold))
+                            .foregroundStyle(PS.accent2)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .accessibilityLabel(a.abbreviation + ": " + (a.chosen?.text ?? "left as written"))
+                .accessibilityHint("Choose what it means here")
+                Text(how + " · " + a.context)
+                    .font(PS.sys(size: 12))
+                    .foregroundStyle(PS.fg3)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+
+    private func unknownRow(_ u: UnknownAbbreviation) -> some View {
+        let open = adding == u.token
+        return VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .top, spacing: 12) {
+                AbbreviationBadge(text: u.token)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Not in the list").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg2)
+                    Text(u.context).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 6)
+                if !open {
+                    Button("Add meaning") {
+                        Haptics.light()
+                        draft = ""
+                        withAnimation(.snappy) { adding = u.token }
+                        meaningFocused = true
+                    }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+                    .accessibilityLabel("Add a meaning for " + u.token)
+                }
+            }
+            if open {
+                HStack(spacing: 8) {
+                    TextField("What \(u.token) means", text: $draft)
+                        .focused($meaningFocused)
+                        .textInputAutocapitalization(.never)
+                        .submitLabel(.done)
+                        .onSubmit { saveMeaning(u.token) }
+                        .font(PS.sys(size: 15))
+                        .foregroundStyle(PS.fg)
+                        .padding(.horizontal, 10).padding(.vertical, 8)
+                        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    Button("Save") { saveMeaning(u.token) }
+                        .buttonStyle(CapsuleButtonStyle(prominent: true))
+                        .disabled(blank(draft))
+                        .opacity(blank(draft) ? 0.5 : 1)
+                    Button {
+                        withAnimation(.snappy) { adding = nil }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill").font(PS.sys(size: 20)).foregroundStyle(PS.fg3)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Cancel")
+                }
+                .transition(.opacity)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+
+    private func choose(_ a: AmbiguousAbbreviation, _ id: String) {
+        Haptics.light()
+        choices[a.id] = id
+        reread()
+    }
+
+    private func saveMeaning(_ token: String) {
+        guard !blank(draft) else { return }
+        abbreviations.save(token, meaning: draft)
+        Haptics.success()
+        draft = ""
+        meaningFocused = false
+        adding = nil
+        reread()
     }
 
     private func identifierWarning(_ kinds: [String]) -> some View {
@@ -283,7 +422,8 @@ struct PatientNoteSheet: View {
 
     private func read() {
         Keyboard.dismiss()
-        let result = PatientNote.read(text)
+        adding = nil
+        let result = PatientNote.read(text, abbreviations: abbreviations.items, choices: choices)
         let r = patient.record
         chosen = Set(result.findings.filter { PatientNote.status($0, in: r).onByDefault }.map(\.id))
         other = result.other
@@ -291,6 +431,25 @@ struct PatientNoteSheet: View {
         let flagged = !result.identifiers.isEmpty
         addOther = !result.other.isEmpty && !flagged
         addPrevious = !result.previous.isEmpty && !flagged
+        withAnimation(.snappy) { reading = result }
+    }
+
+    /// Reads the note again after an abbreviation's meaning changed, keeping what the user ticked, unticked or edited.
+    private func reread() {
+        guard let old = reading else { return }
+        let result = PatientNote.read(text, abbreviations: abbreviations.items, choices: choices)
+        let r = patient.record
+        let before = Set(old.findings.map(\.id))
+        chosen = Set(result.findings.filter { before.contains($0.id) ? chosen.contains($0.id) : PatientNote.status($0, in: r).onByDefault }.map(\.id))
+        let flagged = !result.identifiers.isEmpty
+        if other == old.other {
+            if old.other.isEmpty { addOther = !result.other.isEmpty && !flagged }
+            other = result.other
+        }
+        if previous == old.previous {
+            if old.previous.isEmpty { addPrevious = !result.previous.isEmpty && !flagged }
+            previous = result.previous
+        }
         withAnimation(.snappy) { reading = result }
     }
 
@@ -394,5 +553,88 @@ struct PatientReceiveSheet: View {
         Haptics.success()
         onOpened(replacing)
         dismiss()
+    }
+}
+
+/// An abbreviation as a small monospaced tag.
+struct AbbreviationBadge: View {
+    var text: String
+
+    var body: some View {
+        Text(text)
+            .font(PS.mono(size: 12.5, weight: .bold))
+            .foregroundStyle(PS.fg)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .padding(.horizontal, 7).padding(.vertical, 3)
+            .frame(minWidth: 48)
+            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).stroke(PS.line2, lineWidth: 1))
+    }
+}
+
+/// "Your abbreviations": the meanings the user added, kept on this phone only, each with a delete button.
+struct SavedAbbreviationsList: View {
+    var store: AbbreviationStore
+    /// After a deletion (the note is read again).
+    var onChange: () -> Void = {}
+    @State private var open = false
+
+    var body: some View {
+        let list = store.sorted
+        VStack(alignment: .leading, spacing: 6) {
+            Button {
+                Haptics.light()
+                withAnimation(.snappy) { open.toggle() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "character.book.closed").font(PS.sys(size: 11.5, weight: .semibold))
+                    Text("Your abbreviations")
+                    Text("\(list.count)").font(PS.mono(size: 11, weight: .bold))
+                    Image(systemName: open ? "chevron.up" : "chevron.down").font(PS.sys(size: 9.5, weight: .bold))
+                }
+                .font(PS.sys(size: 12.5, weight: .semibold))
+                .foregroundStyle(open ? PS.fg2 : PS.fg3)
+                .padding(.vertical, 5)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(open ? "Shown" : "Hidden")
+            if open {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(list.enumerated()), id: \.element.id) { i, item in
+                        HStack(alignment: .center, spacing: 12) {
+                            AbbreviationBadge(text: item.abbreviation)
+                            Text(item.meaning)
+                                .font(PS.sys(size: 14))
+                                .foregroundStyle(PS.fg)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 6)
+                            Button {
+                                Haptics.light()
+                                withAnimation(.snappy) { store.remove(item.abbreviation) }
+                                onChange()
+                            } label: {
+                                Image(systemName: "trash").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.accent)
+                                    .frame(width: 32, height: 32)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Delete " + item.abbreviation)
+                        }
+                        .padding(.leading, 14).padding(.trailing, 8).padding(.vertical, 6)
+                        if i < list.count - 1 { Hairline().padding(.leading, 14) }
+                    }
+                    Text("Kept on this phone only; used whenever a note is read.")
+                        .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                        .padding(.horizontal, 14).padding(.top, 4).padding(.bottom, 10)
+                }
+                .padding(.top, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
