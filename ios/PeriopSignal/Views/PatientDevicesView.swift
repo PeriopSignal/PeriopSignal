@@ -69,12 +69,19 @@ enum PatientDiagramModel {
             }
         }()
         if ettNow {
-            let label = r.currentAirway == "ett" ? "ETT" + (r.ettSize.isEmpty ? "" : " " + r.ettSize) + (r.ettDepth.isEmpty ? "" : " @" + (r.ettDepth.split(separator: " ").first.map(String.init) ?? r.ettDepth)) : (r.tube.isEmpty ? "ETT" : r.tube.split(separator: ",").first.map(String.init) ?? "ETT")
+            var label = "ETT"
+            if r.currentAirway == "ett" {
+                if !r.ettSize.isEmpty { label += " " + r.ettSize }
+                let depth: String = r.ettDepth.split(separator: " ").first.map(String.init) ?? ""
+                if !depth.isEmpty { label += " @" + depth }
+            } else if let first = r.tube.split(separator: ",").first {
+                label = String(first)
+            }
             out.append(DiagramItem(id: "airway-ett", anchor: CGPoint(x: 100, y: 42), course: [CGPoint(x: 100, y: 53), CGPoint(x: 100, y: 74)],
                                    color: DiagramColor.airway, width: 2.2, marker: .dot, label: label, labelLeft: false, movable: false))
         } else if r.currentAirway == "trach" {
             out.append(DiagramItem(id: "airway-trach", anchor: CGPoint(x: 100, y: 62), course: [CGPoint(x: 100, y: 74)],
-                                   color: DiagramColor.airway, width: 2.2, marker: .stoma, label: "Trach" + (r.trachType.isEmpty ? "" : " " + r.trachType.split(separator: " ").prefix(2).joined(separator: " ")), labelLeft: false, movable: false))
+                                   color: DiagramColor.airway, width: 2.2, marker: .stoma, label: trachLabel(r), labelLeft: false, movable: false))
         }
 
         // Lines and devices.
@@ -158,6 +165,11 @@ enum PatientDiagramModel {
                                    detail: [flow, sweep].filter { !$0.isEmpty }.joined(separator: " · "))
         }
         return (out, cartInfo)
+    }
+
+    private static func trachLabel(_ r: PatientRecord) -> String {
+        let words: [Substring] = Array(r.trachType.split(separator: " ").prefix(2))
+        return words.isEmpty ? "Trach" : "Trach " + words.joined(separator: " ")
     }
 
     /// "TAP", "Interscalene", "ESP": the block's name without the word "block".
@@ -374,9 +386,17 @@ struct PatientDevicesEditor: View {
                 case .trach:
                     r.currentAirway = "trach"; r.trachType = [d.size, d.detail].filter { !$0.isEmpty }.joined(separator: " ")
                 case .epidural, .spinal, .block, .perineuralCatheter:
-                    let side = d.side.map { $0 == "left" ? "Left" : "Right" } ?? ""
-                    r.regional.append(PatientRegional(technique: d.kind == .block || d.kind == .perineuralCatheter ? (d.siteInfo?.name.capitalizedFirstLetter ?? d.kind.name) + " block" : d.kind.name + (d.settings["level"].map { " " + $0 } ?? ""),
-                                                      side: side, drug: "", catheter: d.kind == .epidural || d.kind == .perineuralCatheter))
+                    let side: String = d.side == "left" ? "Left" : (d.side == "right" ? "Right" : "")
+                    let isBlock = d.kind == .block || d.kind == .perineuralCatheter
+                    var technique: String = d.kind.name
+                    if isBlock {
+                        let site: String = d.siteInfo?.name.capitalizedFirstLetter ?? d.kind.name
+                        technique = site + " block"
+                    } else if let level = d.settings["level"] {
+                        technique += " " + level
+                    }
+                    let catheter = d.kind == .epidural || d.kind == .perineuralCatheter
+                    r.regional.append(PatientRegional(technique: technique, side: side, drug: "", catheter: catheter))
                 default:
                     r.devices.append(d)
                     added.append(d.id)
