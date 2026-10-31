@@ -146,41 +146,51 @@ enum ProcedureCatalog {
     // MARK: Search
 
     /// Ranked: an exact abbreviation or name, then a match at the start of a name or synonym, then a word inside
-    /// one starting with what was typed, then a word containing it; ties go to the earlier word, then to catalog
-    /// order (the common procedures of each specialty come first).
+    /// one starting with what was typed; ties go to the earlier word, then to catalog order (the common procedures of
+    /// each specialty come first). Only when nothing matches that way, a word containing what was typed.
     static func search(_ query: String, limit: Int = 12) -> [Procedure] {
         let q = tokenize(query)
         guard !q.isEmpty, limit > 0 else { return [] }
         let qKey = q.map(\.key)
         let qOrig = q.map(\.original)
-        let qRaw = q.map(\.raw).filter { !stopWords.contains($0) }
-        var best: [Int: (score: Int, pos: Int, name: Bool)] = [:]
-        // Only procedures whose words contain every typed word can match at all.
         let words = q.filter { !stopWords.contains($0.raw) }
-        let candidates = all.indices.filter { i in words.allSatisfy { haystacks[i].contains($0.raw) || haystacks[i].contains($0.key) } }
-        for ph in candidates.flatMap({ phrasesByProc[$0] }).map({ phrases[$0] }) {
-            var score = 0
-            var pos = 0
-            if let ex = ph.exact {
-                if ex == qOrig { score = 1000 }
-            } else if ph.key == qKey {
-                score = 900
-            } else if !qRaw.isEmpty, startsWith(qRaw, ph.raw) {
-                // A whole word ("hip replacement") before a longer one that starts the same ("HIPEC").
-                score = ph.raw[qRaw.count - 1] == qRaw[qRaw.count - 1] ? 750 : 700
-            } else if !qRaw.isEmpty, let p = wordPosition(qRaw, ph.raw, prefix: true) {
-                score = qRaw.allSatisfy { ph.raw.contains($0) } ? 550 : 500
-                pos = p
-            } else if !qRaw.isEmpty, let p = wordPosition(qRaw, ph.raw, prefix: false) {
-                score = 200; pos = p
-            }
-            guard score > 0 else { continue }
+        let qRaw = words.map(\.raw)
+        // Only procedures with a word starting with each typed word (as typed or by its alias) can match by prefix.
+        var candidates: Set<Int>?
+        for w in words {
+            let hit = Set(prefixIndex[w.raw] ?? []).union(prefixIndex[w.key] ?? [])
+            candidates = candidates.map { $0.intersection(hit) } ?? hit
+        }
+        let procs = candidates.map { $0.sorted() } ?? Array(all.indices)
+
+        var best: [Int: (score: Int, pos: Int, name: Bool)] = [:]
+        func keep(_ ph: ProcPhrase, _ score: Int, _ pos: Int) {
             if let b = best[ph.proc] {
                 if score > b.score || (score == b.score && (pos < b.pos || (pos == b.pos && ph.isName && !b.name))) {
                     best[ph.proc] = (score, pos, ph.isName)
                 }
             } else {
                 best[ph.proc] = (score, pos, ph.isName)
+            }
+        }
+        for i in procs {
+            for pi in phrasesByProc[i] {
+                let ph = phrases[pi]
+                if let ex = ph.exact {
+                    if ex == qOrig { keep(ph, 1000, 0) }
+                } else if ph.key == qKey {
+                    keep(ph, 900, 0)
+                } else if !qRaw.isEmpty, startsWith(qRaw, ph.raw) {
+                    // A whole word ("hip replacement") before a longer one that starts the same ("HIPEC").
+                    keep(ph, ph.raw[qRaw.count - 1] == qRaw[qRaw.count - 1] ? 750 : 700, 0)
+                } else if !qRaw.isEmpty, let p = wordPosition(qRaw, ph.raw, prefix: true) {
+                    keep(ph, qRaw.allSatisfy { ph.raw.contains($0) } ? 550 : 500, p)
+                }
+            }
+        }
+        if best.isEmpty && !qRaw.isEmpty {
+            for ph in phrases where ph.exact == nil {
+                if let p = wordPosition(qRaw, ph.raw, prefix: false) { keep(ph, 200, p) }
             }
         }
         let ranked = best.sorted { a, b in
@@ -413,10 +423,22 @@ enum ProcedureCatalog {
         return out
     }()
 
-    /// Each procedure's words in one string, to rule a procedure out of a search quickly.
-    private static let haystacks: [String] = phrasesByProc.map { list in
-        list.flatMap { phrases[$0].raw + phrases[$0].key }.joined(separator: " ")
-    }
+    /// Every beginning of every word (as typed and by its alias) → the procedures with such a word, sorted.
+    private static let prefixIndex: [String: [Int]] = {
+        var byWord: [String: Set<Int>] = [:]
+        for p in phrases {
+            for w in p.raw + p.key { byWord[w, default: []].insert(p.proc) }
+        }
+        var byPrefix: [String: Set<Int>] = [:]
+        for (w, procs) in byWord {
+            var prefix = ""
+            for c in w {
+                prefix.append(c)
+                byPrefix[prefix, default: []].formUnion(procs)
+            }
+        }
+        return byPrefix.mapValues { $0.sorted() }
+    }()
 
     fileprivate static let firstToken: [String: [Int]] = {
         var d: [String: [Int]] = [:]
