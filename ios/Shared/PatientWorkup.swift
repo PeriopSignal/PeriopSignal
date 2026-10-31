@@ -382,3 +382,10 @@ extension PatientEcho {
         }
     }
 }
+
+// MARK: - Device groups
+
+extension PatientDevice {
+    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .other]
+    static let supportKinds: Set<DeviceKind> = [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella]
+}

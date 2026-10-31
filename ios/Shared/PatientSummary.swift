@@ -272,7 +272,8 @@ enum PatientSummary {
         var out: [Line] = []
         if let a = airwayCourse(r) { out.append(a) }
         if let fu = followUpLine(r) { out.append(fu) }
-        let lines = r.lines.map(\.text).filter { !$0.isEmpty }
+        let placed = PatientDevices.labels(r.devices.filter { $0.placedIntraop && PatientDevice.lineKinds.contains($0.kind) })
+        let lines = placed + r.lines.map(\.text).filter { !$0.isEmpty }
         if !lines.isEmpty { out.append(Line("Lines", lines.joined(separator: "; "))) }
         let blocks = r.regional.map(\.text).filter { !$0.isEmpty }
         if !blocks.isEmpty { out.append(Line("Regional", blocks.joined(separator: "; "))) }
@@ -309,6 +310,17 @@ enum PatientSummary {
             out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label ?? end))))
         }
         return out
+    }
+
+    /// Lines and devices present on arrival (the preoperative picture).
+    static func arrivalDeviceLines(_ r: PatientRecord) -> [Line] {
+        let lines = PatientDevices.labels(r.currentDevices(arrivalOnly: true).filter { PatientDevice.lineKinds.contains($0.kind) })
+        return lines.isEmpty ? [] : [Line(nil, lines.joined(separator: "; "))]
+    }
+
+    /// IABP, Impella, LVAD and ECMO with their settings, each on its own line.
+    static func supportLines(_ r: PatientRecord) -> [Line] {
+        PatientDevices.labels(r.mechanicalSupport).map { Line(nil, $0, alert: true) }
     }
 
     static func planLines(_ r: PatientRecord) -> [Line] {
@@ -365,7 +377,11 @@ enum HandoffWriter {
         if let c = PatientSummary.airwayCourse(r) { airway.append(PatientSummary.Line("Course", c.text, alert: c.alert)) }
         if let fu = PatientSummary.followUpLine(r) { airway.append(fu) }
         section("Airway", airway)
-        let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" }
+        // Every line and device in place now, on arrival or placed in the room, with the mechanical support.
+        let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
+        let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
+        section("Lines & devices", lines + support)
+        let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" && $0.label != "Lines" }
         section("Intraoperative", intraop)
         section("Plan", PatientSummary.planLines(r))
         out.append(footer(now))
@@ -397,7 +413,8 @@ enum HandoffWriter {
             line("Airway", t)
         } else if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
         if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
-        line("Lines", r.lines.map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
+        line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
+        line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
         line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
         line("Events", r.noEvents ? "No notable events" : r.events)
         var plan: [String] = []

@@ -162,6 +162,42 @@ final class PatientWorkupTests: XCTestCase {
         XCTAssertNil(EchoGrade(chamber: 4), "a single cutoff names no severity")
     }
 
+    /// Lines saved before 1.6 move into the devices on the diagram.
+    func testOldLinesBecomeDevices() throws {
+        let json = #"{"version":1,"lines":[{"kind":"Peripheral IV","site":"left forearm","size":"18 G"},{"kind":"Arterial line","site":"right radial","size":"20 G"}]}"#
+        let r = try JSONDecoder().decode(PatientRecord.self, from: Data(json.utf8))
+        XCTAssertTrue(r.lines.isEmpty)
+        XCTAssertEqual(r.devices.map(\.kind), [.piv, .arterial])
+        XCTAssertTrue(r.devices.allSatisfy(\.placedIntraop), "old lines were the intraoperative ones")
+        XCTAssertEqual(r.devices.first?.site, "forearm-left")
+        let again = try JSONDecoder().decode(PatientRecord.self, from: JSONEncoder().encode(r))
+        XCTAssertEqual(again.devices.count, 2, "no second migration once devices are saved")
+    }
+
+    /// The cardiac demo: an ETT, lines, a PA catheter, VA ECMO to its cart and an IABP, all drawn and handed off.
+    func testDiagramAndHandoffForDevices() {
+        let r = PatientDemo.cardiac
+        XCTAssertTrue(r.mechanicalSupport.contains { $0.kind == .iabp })
+        XCTAssertTrue(r.mechanicalSupport.contains { $0.kind.isECMO })
+        let m = PatientDiagramModel.items(r, phase: .preop)
+        XCTAssertTrue(m.items.contains { $0.id == "airway-ett" }, "arrived intubated")
+        XCTAssertEqual(m.cart?.title, "VA peripheral ECMO")
+        XCTAssertTrue(m.items.contains { $0.label.hasPrefix("PAC") })
+        XCTAssertTrue(m.items.contains { $0.label.hasPrefix("IABP") })
+        var extubated = r; extubated.airwayAtEnd = "extubated"
+        XCTAssertFalse(PatientDiagramModel.items(extubated, phase: .all).items.contains { $0.id == "airway-ett" }, "extubated takes the ETT off the diagram")
+        XCTAssertTrue(PatientDiagramModel.items(extubated, phase: .preop).items.contains { $0.id == "airway-ett" }, "the arrival picture keeps it")
+        let support = PatientSummary.supportLines(r).map(\.text)
+        XCTAssertTrue(support.contains { $0.contains("VA ECMO") }, support.joined(separator: " | "))
+        let full = HandoffWriter.text(r)
+        XCTAssertTrue(full.contains("LINES & DEVICES"), full)
+        XCTAssertTrue(full.contains("IABP"), full)
+        XCTAssertTrue(HandoffWriter.shortText(r).contains("Support: "), HandoffWriter.shortText(r))
+        let demo = PatientDemo.record
+        XCTAssertTrue(PatientSummary.intraopPartLines(demo, "lines").first?.text.contains("PIV 18 G") ?? false, PatientSummary.intraopPartLines(demo, "lines").map(\.text).joined())
+        XCTAssertTrue(PatientSummary.arrivalDeviceLines(demo).isEmpty, "the demo's lines went in during the case")
+    }
+
     /// A patient saved before 1.6 opens with the new fields empty.
     func testOldSaveDecodes() throws {
         let json = #"{"version":1,"ageYears":70,"procedure":"TKA","problems":["htn"],"smoking":"former"}"#

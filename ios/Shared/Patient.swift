@@ -227,7 +227,12 @@ struct PatientRecord: Codable, Equatable {
     var ventilation = ""
     /// After a difficult airway: "told", "documented", "alert" (ASA 2022 follow-up care).
     var airwayFollowUp: Set<String> = []
+    /// Lines as entered before 1.6; a saved patient's are moved into `devices` when it opens.
     var lines: [PatientLine] = []
+    /// Lines and devices on the patient diagram (PatientDevices): peripheral, arterial and central lines, PA catheter,
+    /// ECMO cannulas, LVAD, IABP, Impella. The airway lives in currentAirway and the intraoperative course; blocks and
+    /// neuraxial techniques in `regional`.
+    var devices: [PatientDevice] = []
     var regional: [PatientRegional] = []
     var infusions: [PatientInfusion] = []
     /// Units: "prbc", "wholeBlood", "plasma", "platelets", "cryo"; mL: "cellSaver", "crystalloid", "colloid", "ebl", "uop".
@@ -328,6 +333,11 @@ struct PatientRecord: Codable, Equatable {
         ventilation = v(.ventilation, "")
         airwayFollowUp = v(.airwayFollowUp, [])
         lines = v(.lines, [])
+        devices = v(.devices, [])
+        if !c.contains(.devices) && !lines.isEmpty {
+            devices = lines.map { l in var d = PatientDevice(line: l); d.placedIntraop = true; return d }
+            lines = []
+        }
         regional = v(.regional, [])
         infusions = v(.infusions, [])
         fluids = v(.fluids, [:])
@@ -415,6 +425,10 @@ extension PatientRecord {
     var allIntrathoracic: [PatientSurgery] { surgeries.filter(\.intrathoracic) + intrathoracic }
     var hasCardiacSymptoms: Bool { cardiacSymptomsAnswer == true || !cardiacSymptoms.isEmpty }
     var hasActiveCardiac: Bool { activeCardiacAnswer == true || !activeCardiac.isEmpty }
+    /// Devices in place now (not removed); on arrival only, for the preoperative picture.
+    func currentDevices(arrivalOnly: Bool = false) -> [PatientDevice] { devices.filter { !$0.removed && (!arrivalOnly || !$0.placedIntraop) } }
+    /// IABP, Impella, LVAD and ECMO cannulas in place.
+    var mechanicalSupport: [PatientDevice] { currentDevices().filter { PatientDevice.supportKinds.contains($0.kind) } }
     /// "7.5 ETT at 23 cm at the lip", "Tracheostomy (Shiley 8 cuffed)", "Own airway".
     var currentAirwayText: String? {
         switch currentAirway {

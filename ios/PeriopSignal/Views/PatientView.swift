@@ -212,7 +212,7 @@ struct PatientView: View {
     @ViewBuilder private func preop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         if patient.isEmpty { emptyCard }
-        jumpBar(proxy, [PatientEditor.procedure, .demographics, .history, .assessment, .airway])
+        jumpBar(proxy, [PatientEditor.procedure, .demographics, .history, .assessment, .airway, .devices("preop"), .devices("support")])
         PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
             .id(PatientEditor.procedure)
         PatientSectionCard(editor: .demographics, lines: PatientSummary.demographicsLines(r), empty: "Age, sex, height, weight and preprocedure vital signs.")
@@ -222,6 +222,30 @@ struct PatientView: View {
         PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity, the cardiac evaluation and the risk scores.")
             .id(PatientEditor.assessment)
         airwayCard.id(PatientEditor.airway)
+        devicesCard.id(PatientEditor.devices("preop"))
+        PatientSectionCard(editor: .devices("support"), lines: PatientSummary.supportLines(r), empty: "IABP, Impella, LVAD or ECMO, with their settings.")
+            .id(PatientEditor.devices("support"))
+    }
+
+    /// Lines and devices on arrival, drawn on the patient.
+    private var devicesCard: some View {
+        NavigationLink(value: PatientEditor.devices("preop")) {
+            VStack(alignment: .leading, spacing: 9) {
+                sectionHeader(.devices("preop"))
+                let lines = PatientSummary.arrivalDeviceLines(r)
+                if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty {
+                    Text("Tap to draw the lines, airway and devices the patient arrives with.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                } else {
+                    PatientDiagramCard(record: r, phase: .preop, height: 260)
+                    ForEach(Array(lines.enumerated()), id: \.offset) { _, l in summaryLine(l) }
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
@@ -261,6 +285,13 @@ struct PatientView: View {
                 .padding(.horizontal, 2)
         } else {
             HandoffPanel(record: r)
+            VStack(alignment: .leading, spacing: 8) {
+                Eyebrow(text: "Lines & devices now")
+                PatientDiagramCard(record: r, phase: .all, height: 380)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
     }
 
@@ -472,7 +503,9 @@ struct PatientSectionCard: View {
 /// The handoff as it stands, short or full, written from the record as you go: read it, copy it, share it, or send
 /// the patient itself to a colleague's Periop Signal so they carry on with the case.
 struct HandoffPanel: View {
+    @Environment(ReferenceStore.self) private var refs
     var record: PatientRecord
+    @State private var sharing: [Any]?
     /// "full" or "short"; the last one used is kept.
     @AppStorage("ps.handoff.format") private var format = "full"
     @State private var copied = false
@@ -500,7 +533,7 @@ struct HandoffPanel: View {
                 .padding(16)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
             HStack(spacing: 10) {
-                ShareLink(item: text) { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
+                Button { sharing = [text] + (diagramImage().map { [$0] } ?? []) } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
                     .buttonStyle(BigButtonStyle(prominent: true))
                 Button { UIPasteboard.general.string = text; copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
                     .buttonStyle(BigButtonStyle(prominent: false))
@@ -522,6 +555,24 @@ struct HandoffPanel: View {
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
         .sensoryFeedback(.success, trigger: copied)
+        .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
+            ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
+        }
+    }
+
+    /// The diagram as a picture for the end of the shared handoff, when anything is drawn on it.
+    @MainActor private func diagramImage() -> UIImage? {
+        guard let fig = refs.bundle?.regional?.figure else { return nil }
+        let m = PatientDiagramModel.items(record, phase: .all)
+        guard !m.items.isEmpty else { return nil }
+        let view = PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart)
+            .frame(width: 360, height: 560)
+            .padding(12)
+            .background(Color.white)
+            .environment(\.colorScheme, .light)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 3
+        return renderer.uiImage
     }
 
     private var sendCard: some View {

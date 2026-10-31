@@ -7,6 +7,8 @@ enum PatientEditor: Hashable {
     case intraopPart(String)
     /// The cardiac evaluation's tests: "ecg", "echo" (preoperative), "lhc", "rhc"; and the surgical history.
     case workup(String)
+    /// The lines and devices on the diagram: "preop" (on arrival), "support" (mechanical support), "intraop".
+    case devices(String)
 
     var title: String {
         switch self {
@@ -22,6 +24,7 @@ enum PatientEditor: Hashable {
         case .plan: return "Plan"
         case .intraopPart(let id): return PatientEditor.intraopParts.first { $0.id == id }?.title ?? "Intraop"
         case .workup(let id): return PatientEditor.workups.first { $0.id == id }?.title ?? "Workup"
+        case .devices(let p): return p == "support" ? "Mechanical Support" : "Lines & Devices"
         }
     }
 
@@ -39,6 +42,7 @@ enum PatientEditor: Hashable {
         case .plan: return "arrow.right.circle"
         case .intraopPart(let id): return PatientEditor.intraopParts.first { $0.id == id }?.icon ?? "waveform.path.ecg.rectangle"
         case .workup(let id): return PatientEditor.workups.first { $0.id == id }?.icon ?? "waveform.path.ecg"
+        case .devices(let p): return p == "support" ? "heart.circle" : "figure.stand"
         }
     }
 
@@ -79,6 +83,7 @@ struct PatientEditorView: View {
                     case .plan: plan
                     case .intraopPart(let id): intraopPart(id)
                     case .workup(let id): workup(id)
+                    case .devices(let p): PatientDevicesEditor(phase: p == "intraop" ? .intraop : .preop)
                     }
                     DoneFooter().padding(.top, 4).id("done")
                 }
@@ -643,6 +648,12 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopLines: some View {
+        PatientDevicesEditor(phase: .intraop)
+        if !r.lines.isEmpty { legacyLines }
+    }
+
+    /// Lines entered before the diagram (normally moved into devices when the patient opens).
+    @ViewBuilder private var legacyLines: some View {
         PatientGroup(title: "Lines") {
             ForEach(r.lines) { l in
                 lineEditor(l)

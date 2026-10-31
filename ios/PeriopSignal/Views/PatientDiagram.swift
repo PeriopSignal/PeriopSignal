@@ -27,6 +27,8 @@ struct DiagramItem: Identifiable, Hashable {
     var movable = true
     /// Something on the course to draw as a pump or balloon, at this point.
     var pumpAt: CGPoint?
+    /// Moves the label down, for several items at one site.
+    var labelDY: CGFloat = 0
 
     static func == (a: DiagramItem, b: DiagramItem) -> Bool {
         a.id == b.id && a.anchor == b.anchor && a.course == b.course && a.label == b.label && a.marker == b.marker && a.pumpAt == b.pumpAt
@@ -200,8 +202,10 @@ struct PatientDiagramCanvas: View {
                 break
             }
             let font = Font.system(size: max(7, 5.6 * k), weight: .semibold)
-            let lp = CGPoint(x: c.x + (item.labelLeft ? -5 : 5) * k, y: c.y)
-            ctx.draw(Text(item.label).font(font).foregroundColor(item.color), at: lp, anchor: item.labelLeft ? .trailing : .leading)
+            if !item.label.isEmpty {
+                let lp = CGPoint(x: c.x + (item.labelLeft ? -5 : 5) * k, y: c.y + item.labelDY * k)
+                ctx.draw(Text(item.label).font(font).foregroundColor(item.color), at: lp, anchor: item.labelLeft ? .trailing : .leading)
+            }
         }
     }
 }
