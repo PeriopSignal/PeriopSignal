@@ -87,6 +87,27 @@ enum PatientSummary {
         return out
     }
 
+    /// "Hb 9.8 L · Plt 98 L · INR 1.6 H · …", the abnormal values marked for bold red, with the other results after.
+    static func labsLine(_ r: PatientRecord) -> Line? {
+        let sum = PatientLabs.summary(r)
+        let note = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !sum.isEmpty || !note.isEmpty else { return nil }
+        let text = ([sum.line].filter { !$0.isEmpty } + (note.isEmpty ? [] : [note])).joined(separator: " · ")
+        return Line("Labs", text, marks: sum.abnormal.map(\.compact))
+    }
+
+    /// "MELD 3.0 18 · MELD-Na 17 · Child-Pugh B (8)", when the liver section has what it needs.
+    static func liverLine(_ r: PatientRecord) -> Line? {
+        guard r.labSections.contains("liver") || r.ascites != nil || r.encephalopathy != nil else { return nil }
+        let res = PatientLabs.liver(LiverInput(record: r, dialysis: r.dialysis, ascites: r.ascites, encephalopathy: r.encephalopathy))
+        var parts: [String] = []
+        var marks: [String] = []
+        if let m = res.meld3 { let t = "MELD 3.0 \(m)"; parts.append(t); if m >= 15 { marks.append(t) } }
+        if let m = res.meldNa { let t = "MELD-Na \(m)"; parts.append(t); if m >= 15 { marks.append(t) } }
+        if let c = res.childPughClass, let p = res.childPugh { let t = "Child-Pugh \(c.rawValue) (\(p))"; parts.append(t); if c != .a { marks.append(t) } }
+        return parts.isEmpty ? nil : Line("Liver", parts.joined(separator: " · "), alert: !marks.isEmpty, marks: marks)
+    }
+
     static func smokingText(_ s: String) -> String { s == "current" ? "Current smoker" : (s == "former" ? "Former smoker" : "Never smoked") }
 
     /// "Known difficult airway; PONV or motion sickness; …", flagged when it matters for this anesthetic.
@@ -150,9 +171,8 @@ enum PatientSummary {
         if let d = r.lastSolids { npo.append("solids " + time(d, now: now)) }
         if let d = r.lastClears { npo.append("clear fluids " + time(d, now: now)) }
         if !npo.isEmpty { out.append(Line("Last intake", npo.joined(separator: " · "))) }
-        let labs = PatientCatalog.labs.compactMap { l -> String? in r.labs[l.id].map { (l.id == "hb" ? "Hb" : (l.id == "plt" ? "Plt" : (l.id == "a1c" ? "HbA1c" : l.label))) + " " + f($0) } }
-        let labNote = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !labs.isEmpty || !labNote.isEmpty { out.append(Line("Labs", (labs + (labNote.isEmpty ? [] : [labNote])).joined(separator: " · "))) }
+        if let l = labsLine(r) { out.append(l) }
+        if let m = liverLine(r) { out.append(m) }
         return out
     }
 

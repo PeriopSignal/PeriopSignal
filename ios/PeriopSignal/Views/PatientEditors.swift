@@ -267,12 +267,13 @@ struct PatientEditorView: View {
             Hairline().padding(.leading, 14)
             intakeRow("Clear fluids", bind(\.lastClears))
         }
-        PatientGroup(title: "Labs") {
-            ForEach(Array(PatientCatalog.labs.enumerated()), id: \.element.id) { i, l in
-                PatientNumberField(label: l.label, unit: l.unit, value: entry(\.labs, l.id))
-                if i < PatientCatalog.labs.count - 1 { Hairline().padding(.leading, 14) }
+        PatientGroup(title: nil) {
+            let labs = PatientSummary.labsLine(r)
+            linkRow("Labs", labs?.text ?? "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", icon: labs == nil ? "plus.circle" : "testtube.2", value: .workup("labs"))
+            if let liver = PatientSummary.liverLine(r) {
+                Hairline().padding(.leading, 50)
+                linkRow("Liver (MELD & CTP)", liver.text, icon: "cross.case", value: .workup("labs"))
             }
-            PatientTextField(label: "Other results", prompt: "ECG, echo, imaging, other labs", text: bind(\.labNotes))
         }
     }
 

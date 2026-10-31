@@ -71,6 +71,7 @@ extension PatientEditorView {
         case "lhc": lhcEditor
         case "rhc": rhcEditor
         case "anesthetic": anestheticEditor
+        case "labs": labsEditor
         default: EmptyView()
         }
     }
@@ -153,6 +154,7 @@ extension PatientEditorView {
             PatientNumberField(label: "Cardiac output", unit: "L/min", value: bind(\.rhc.co))
             MonthYearField(label: "Date", value: bind(\.rhc.date))
         }
+        rhcResults
     }
 
     @ViewBuilder private var anestheticEditor: some View {

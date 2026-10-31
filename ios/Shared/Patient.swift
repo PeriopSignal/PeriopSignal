@@ -153,11 +153,13 @@ struct PatientRecord: Codable, Equatable {
     var surgeries: [PatientSurgery] = []
     /// Infusions running before the case, with their rates (Medications & Allergies).
     var homeInfusions: [PatientInfusion] = []
-    /// Child-Turcotte-Pugh and MELD inputs beyond the labs. Ascites: "none", "slight", "moderate"; encephalopathy:
-    /// "none", "grade12", "grade34"; dialysis twice or more in the past week (or CVVHD for 24 h).
-    var ascites: String?
-    var encephalopathy: String?
+    /// Child-Turcotte-Pugh and MELD inputs beyond the labs (PatientLabs): ascites, encephalopathy, and dialysis twice
+    /// or more in the past week (or CVVHD for 24 h).
+    var ascites: LiverAscites?
+    var encephalopathy: LiverEncephalopathy?
     var dialysis = false
+    /// The lab sections opened with their ⊕ (cardiac, liver, thyroid), kept open while the patient is.
+    var labSections: Set<String> = []
 
     // Assessment
     /// "ge4", "lt4", "unknown".
@@ -288,9 +290,10 @@ struct PatientRecord: Codable, Equatable {
         labNotes = v(.labNotes, "")
         surgeries = v(.surgeries, [])
         homeInfusions = v(.homeInfusions, [])
-        ascites = try? c.decodeIfPresent(String.self, forKey: .ascites)
-        encephalopathy = try? c.decodeIfPresent(String.self, forKey: .encephalopathy)
+        ascites = try? c.decodeIfPresent(LiverAscites.self, forKey: .ascites)
+        encephalopathy = try? c.decodeIfPresent(LiverEncephalopathy.self, forKey: .encephalopathy)
         dialysis = v(.dialysis, false)
+        labSections = v(.labSections, [])
         mets = try? c.decodeIfPresent(String.self, forKey: .mets)
         dasi = v(.dasi, [])
         activeCardiac = v(.activeCardiac, [])

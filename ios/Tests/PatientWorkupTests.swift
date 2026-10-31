@@ -198,6 +198,23 @@ final class PatientWorkupTests: XCTestCase {
         XCTAssertTrue(PatientSummary.arrivalDeviceLines(demo).isEmpty, "the demo's lines went in during the case")
     }
 
+    /// Labs: abnormal values marked for bold red, and the liver line once its section is open.
+    func testLabsAndLiverLines() {
+        var r = PatientRecord()
+        r.sex = .male
+        r.labs = ["hb": 9.8, "plt": 210, "k": 5.9, "cr": 1.9, "tbili": 4.2, "inr": 1.2, "na": 127, "albumin": 2.6]
+        let l = PatientSummary.labsLine(r)
+        XCTAssertNotNil(l)
+        XCTAssertTrue(l?.marks.contains("Hb 9.8 L") ?? false, l?.marks.joined(separator: ", ") ?? "")
+        XCTAssertTrue(l?.marks.contains("K 5.9 H") ?? false, l?.marks.joined(separator: ", ") ?? "")
+        XCTAssertFalse(l?.marks.contains { $0.hasPrefix("Plt") } ?? true, "a normal value is not marked")
+        XCTAssertNil(PatientSummary.liverLine(r), "the liver line waits for its section")
+        r.labSections = ["liver"]; r.ascites = .slight; r.encephalopathy = .absent
+        let liver = PatientSummary.liverLine(r)
+        XCTAssertTrue(liver?.text.contains("MELD-Na 27") ?? false, liver?.text ?? "nil")
+        XCTAssertTrue(liver?.text.contains("Child-Pugh") ?? false, liver?.text ?? "nil")
+    }
+
     /// A patient saved before 1.6 opens with the new fields empty.
     func testOldSaveDecodes() throws {
         let json = #"{"version":1,"ageYears":70,"procedure":"TKA","problems":["htn"],"smoking":"former"}"#
