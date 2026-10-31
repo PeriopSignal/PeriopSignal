@@ -163,7 +163,7 @@ extension PatientRecord {
         // Typing a detail or a typed procedure's name keeps any input the clinician changed.
         let picked = list.compactMap { p in p.catalog.map { (procedure: $0, side: p.side) } }
         guard changed, !picked.isEmpty else { return }
-        let risk = ProcedureCatalog.risk(picked)
+        let risk = ProcedureCatalog.risk(picked: picked)
         if fillAnesthetic {
             risk.apply(to: &self)
         } else {

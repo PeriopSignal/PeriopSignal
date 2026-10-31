@@ -361,7 +361,7 @@ enum ProcedureCatalog {
     static func risk(_ text: String) -> ProcedureRisk { risk(parse(text)) }
 
     /// The risk inputs for procedures picked from the list, each with its side.
-    static func risk(_ picked: [(procedure: Procedure, side: String?)]) -> ProcedureRisk {
+    static func risk(picked: [(procedure: Procedure, side: String?)]) -> ProcedureRisk {
         let none = "".startIndex..<"".endIndex
         return risk(picked.map { ProcedureMatch(procedure: $0.procedure, side: $0.side, range: none, text: $0.procedure.name) })
     }
