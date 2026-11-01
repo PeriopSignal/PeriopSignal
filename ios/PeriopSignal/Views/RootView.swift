@@ -39,6 +39,11 @@ struct RootView: View {
                 TermsGateView { termsAccepted = Terms.version }
             }
             .task { await launch() }
+            #if DEBUG
+            // TEMPORARY trace for shot 161 (to be reverted).
+            .onChange(of: router.selectedTab) { _, t in NSLog("QATRACE root tab -> %@", "\(t)") }
+            .onChange(of: prefs.textScale) { _, s in NSLog("QATRACE root textScale -> %f", s) }
+            #endif
             .onChange(of: read.ids.count) { _, _ in
                 Task { await ReadStore.updateBadge(unread: read.unread(in: store.posts).count) }
             }

@@ -22,6 +22,14 @@ struct QuickAddBar: View {
     @State private var added: Added?
     @State private var sheet: SheetSeed?
     @FocusState private var focused: Bool
+    #if DEBUG
+    // TEMPORARY trace for shot 161 (to be reverted).
+    @State private var traceID = String(UUID().uuidString.prefix(4))
+    private func trace(_ s: String) {
+        let r = reading.map { "\($0.findings.count)f empty=\($0.isEmpty)" } ?? "nil"
+        NSLog("QATRACE %@ %@ | text=%ld reading=%@ added=%@", traceID, s, text.count, r, added == nil ? "no" : "yes")
+    }
+    #endif
 
     /// What was just filed, for the snackbar and its Undo: the record before and right after (the store's step), in
     /// which case.
@@ -49,6 +57,9 @@ struct QuickAddBar: View {
     private var addable: [QuickAddChip] { chips.filter { $0.canAdd && !dropped.contains($0.id) } }
 
     var body: some View {
+        #if DEBUG
+        let _ = trace("body")
+        #endif
         VStack(alignment: .leading, spacing: 8) {
             field
             if let added {
@@ -58,8 +69,14 @@ struct QuickAddBar: View {
             }
         }
         .task(id: ReadKey(text: text, choices: choices, tab: tab)) {
+            #if DEBUG
+            trace("task start key.text=\(text.count)")
+            #endif
             // Read about a quarter second after the typing stops.
             try? await Task.sleep(nanoseconds: 250_000_000)
+            #if DEBUG
+            trace("task woke cancelled=\(Task.isCancelled)")
+            #endif
             guard !Task.isCancelled else { return }
             recompute()
         }
@@ -85,7 +102,16 @@ struct QuickAddBar: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .onAppear { seedForScreenshot() }
+        .onAppear {
+            #if DEBUG
+            trace("appear")
+            #endif
+            seedForScreenshot()
+        }
+        #if DEBUG
+        .onDisappear { trace("disappear") }
+        .onChange(of: reading == nil) { _, v in trace("reading became nil=\(v)") }
+        #endif
     }
 
     // MARK: The field
@@ -304,12 +330,22 @@ struct QuickAddBar: View {
     private func recompute() {
         let t = trimmed
         guard !t.isEmpty else {
+            #if DEBUG
+            trace("recompute EMPTY TEXT -> nil; stack: " + Thread.callStackSymbols.prefix(8).joined(separator: " <- "))
+            #endif
             reading = nil
             readText = ""
             dropped = []
             return
         }
+        #if DEBUG
+        let t0 = Date()
+        trace("recompute start t=\(t.count) recordAge=\(patient.record.ageYears ?? -1)")
+        #endif
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
+        #if DEBUG
+        trace(String(format: "recompute end %.0f ms -> %ld findings empty=%@", Date().timeIntervalSince(t0) * 1000, q.findings.count, q.isEmpty ? "YES" : "no"))
+        #endif
         withAnimation(.snappy) {
             reading = q
             readText = t
@@ -317,6 +353,9 @@ struct QuickAddBar: View {
     }
 
     private func handle(_ old: String, _ new: String) {
+        #if DEBUG
+        trace("text changed \(old.count) -> \(new.count)")
+        #endif
         if !new.isEmpty, added != nil { withAnimation(.snappy) { added = nil } }
         // A paste of more than a line goes to the full review, where it can be read in parts.
         if new.count - old.count > 1, QuickAdd.isLong(new) {
@@ -366,6 +405,9 @@ struct QuickAddBar: View {
     }
 
     private func clear() {
+        #if DEBUG
+        trace("CLEAR; stack: " + Thread.callStackSymbols.prefix(8).joined(separator: " <- "))
+        #endif
         text = ""
         reading = nil
         readText = ""
@@ -390,8 +432,10 @@ struct QuickAddBar: View {
     private func seedForScreenshot() {
         #if DEBUG
         let t = LaunchSeed.string("ps.quickadd")
+        trace("seed? t=\(t.count) textEmpty=\(text.isEmpty)")
         guard !t.isEmpty, text.isEmpty, added == nil else { return }
         text = t
+        trace("seed set text")
         recompute()
         if LaunchSeed.bool("ps.quickadd.add") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { add() }
