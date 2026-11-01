@@ -3,7 +3,8 @@ import SwiftUI
 /// The editors behind My Patient's cards.
 enum PatientEditor: Hashable {
     case details, procedure, demographics, history, system(String), medications, assessment, airway, intraop, plan
-    /// One part of the intraoperative record: "airway", "lines", "regional", "infusions", "fluids", "meds", "events", "echo".
+    /// One part of the intraoperative record: "airway", "lines", "regional", "infusions", "fluids", "labs", "meds", "events",
+    /// "echo", "considerations".
     case intraopPart(String)
     /// The cardiac evaluation's tests: "ecg", "echo" (preoperative), "lhc", "rhc"; and the surgical history.
     case workup(String)
@@ -48,8 +49,9 @@ enum PatientEditor: Hashable {
 
     static let intraopParts: [(id: String, title: String, icon: String)] = [
         ("airway", "Airway", "mouth"), ("lines", "Lines", "syringe"), ("regional", "Regional & Neuraxial", "figure.flexibility"),
-        ("infusions", "Infusions", "ivfluid.bag"), ("fluids", "Fluids & Blood", "drop"), ("meds", "Medications & Interventions", "pills"),
-        ("events", "Events", "exclamationmark.triangle"), ("echo", "Echo Findings", "waveform.path.ecg.rectangle"),
+        ("infusions", "Infusions", "ivfluid.bag"), ("fluids", "Fluids & Blood", "drop"), ("labs", "Labs", "testtube.2"),
+        ("meds", "Medications & Interventions", "pills"), ("events", "Events", "exclamationmark.triangle"),
+        ("echo", "Echo Findings", "waveform.path.ecg.rectangle"), ("considerations", "Major Considerations", "exclamationmark.bubble"),
     ]
     static let workups: [(id: String, title: String, icon: String)] = [
         ("surgeries", "Past Surgical History", "scissors"), ("ecg", "ECG", "waveform.path.ecg"), ("echo", "Echo Findings", "heart.text.square"),
@@ -385,6 +387,7 @@ struct PatientEditorView: View {
                     .padding(.horizontal, 14).padding(.bottom, 10)
             }
         }
+        PatientCodeStatusGroup()
         PatientGroup(title: "Functional capacity", note: PatientFunctional.metsNote) {
             PatientChipRow(label: nil) {
                 PatientChoice(options: [(id: "ge4", label: "4 METs or more"), (id: "lt4", label: "Under 4 METs"), (id: "unknown", label: "Unknown")], selection: bind(\.mets))
@@ -573,6 +576,8 @@ struct PatientEditorView: View {
         case "meds": intraopMeds
         case "events": intraopEvents
         case "echo": intraopEcho
+        case "labs": IntraopLabsEditor()
+        case "considerations": IntraopConsiderationsEditor()
         default: EmptyView()
         }
     }
@@ -697,10 +702,13 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopFluids: some View {
-        PatientGroup(title: "Fluids & blood") {
-            ForEach(Array(PatientCatalog.fluids.enumerated()), id: \.element.id) { i, fl in
+        // Blood products have their own + and − (PatientIntraopExtras); the rest are typed.
+        BloodProductsGroup()
+        let typed = PatientCatalog.fluids.filter { !BloodProducts.ids.contains($0.id) }
+        PatientGroup(title: "Fluids & output") {
+            ForEach(Array(typed.enumerated()), id: \.element.id) { i, fl in
                 PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id))
-                if i < PatientCatalog.fluids.count - 1 { Hairline().padding(.leading, 14) }
+                if i < typed.count - 1 { Hairline().padding(.leading, 14) }
             }
             PatientTextField(label: "Factor concentrates & other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors))
         }

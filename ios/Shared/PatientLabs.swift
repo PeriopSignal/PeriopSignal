@@ -535,7 +535,8 @@ enum PatientLabs {
                 range: LabRange(2.3, 4.2), decimals: 1, plausible: 0.5...50),
     ]
 
-    private static let byKey: [String: LabTest] = Dictionary(uniqueKeysWithValues: catalog.map { ($0.key, $0) })
+    /// The catalog and the intraoperative tests (IntraopLabs.added), which the preoperative screens do not list.
+    private static let byKey: [String: LabTest] = Dictionary(uniqueKeysWithValues: (catalog + IntraopLabs.added).map { ($0.key, $0) })
 
     static func test(_ key: String) -> LabTest? { byKey[key] }
 

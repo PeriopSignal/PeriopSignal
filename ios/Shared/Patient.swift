@@ -249,6 +249,17 @@ struct PatientRecord: Codable, Equatable {
     /// Intraoperative echo: the structured findings, and anything else as text.
     var intraopEcho = PatientEcho()
     var echo = ""
+    /// Intraoperative lab sets (PatientIntraopExtras); the handoff shows the most recent.
+    var intraopLabs: [IntraopLabSet] = []
+    /// Major intraoperative considerations (IntraopConsiderations.flags) and anything else, for the handoff.
+    var considerations: Set<String> = []
+    var considerationsNote = ""
+    /// Code status and its perioperative plan (PatientCodeStatus, after the ASA's DNR guidelines).
+    var codeStatus: CodeStatus?
+    var codeStatusLimits = ""
+    var codeStatusPlan: CodeStatusPlan?
+    var codeStatusPlanNote = ""
+    var polst = false
 
     // Plan
     var disposition: String?
@@ -354,6 +365,14 @@ struct PatientRecord: Codable, Equatable {
         events = v(.events, "")
         intraopEcho = v(.intraopEcho, PatientEcho())
         echo = v(.echo, "")
+        intraopLabs = v(.intraopLabs, [])
+        considerations = v(.considerations, [])
+        considerationsNote = v(.considerationsNote, "")
+        codeStatus = try? c.decodeIfPresent(CodeStatus.self, forKey: .codeStatus)
+        codeStatusLimits = v(.codeStatusLimits, "")
+        codeStatusPlan = try? c.decodeIfPresent(CodeStatusPlan.self, forKey: .codeStatusPlan)
+        codeStatusPlanNote = v(.codeStatusPlanNote, "")
+        polst = v(.polst, false)
         disposition = try? c.decodeIfPresent(String.self, forKey: .disposition)
         painPlan = v(.painPlan, "")
         callIf = v(.callIf, "")

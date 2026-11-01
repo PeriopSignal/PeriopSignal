@@ -1,0 +1,300 @@
+import SwiftUI
+
+// MARK: - Intraoperative extras: lab sets, blood products with + and −, major considerations; and code status
+//
+// The record's fields, ranges, lines and sources are in Shared/PatientIntraopExtras.swift and
+// Shared/PatientCodeStatus.swift.
+
+private extension PatientStore {
+    func binding<T>(_ kp: WritableKeyPath<PatientRecord, T>) -> Binding<T> {
+        Binding(get: { self.record[keyPath: kp] }, set: { v in self.update { $0[keyPath: kp] = v } })
+    }
+}
+
+// MARK: Labs
+
+/// The intraoperative lab sets: the newest open, the earlier ones folded under their summary.
+struct IntraopLabsEditor: View {
+    @Environment(PatientStore.self) private var patient
+
+    private var r: PatientRecord { patient.record }
+
+    /// Newest first; a set just added (empty) comes first too.
+    private var sets: [IntraopLabSet] {
+        r.intraopLabs.enumerated()
+            .sorted { ($0.element.time ?? .distantPast, $0.offset) > ($1.element.time ?? .distantPast, $1.offset) }
+            .map(\.element)
+    }
+
+    var body: some View {
+        Button {
+            withAnimation(.snappy) { patient.update { $0.intraopLabs.append(IntraopLabSet(time: Date())) } }
+        } label: {
+            Label(r.intraopLabs.isEmpty ? "Add a lab set" : "Add a new set", systemImage: "plus.circle")
+        }
+        .buttonStyle(GhostButtonStyle())
+        if r.intraopLabs.isEmpty {
+            Text("Blood gas and coagulation as they come back, each set with its time; the intraoperative card and the handoff show the most recent, abnormal values in bold red.")
+                .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+        }
+        ForEach(Array(sets.enumerated()), id: \.element.id) { i, s in
+            if i == 0 {
+                setEditor(s)
+            } else {
+                DisclosureGroup {
+                    VStack(alignment: .leading, spacing: 16) { setEditor(s) }.padding(.top, 8)
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Earlier set" + (s.time.map { ", " + PatientSummary.time($0) } ?? "")).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
+                        if let l = IntraopLabs.line(s, sex: r.sex) { PatientLineText(line: PatientSummary.Line(nil, l.text, marks: l.marks)) }
+                    }
+                }
+                .tint(PS.fg2)
+                .padding(14)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            }
+        }
+        EvidenceNote(IntraopLabs.sources)
+    }
+
+    private func index(_ id: UUID) -> Int? { patient.record.intraopLabs.firstIndex { $0.id == id } }
+
+    private func value(_ id: UUID, _ key: String) -> Binding<Double?> {
+        Binding(get: { index(id).flatMap { patient.record.intraopLabs[$0].values[key] } },
+                set: { v in if let i = index(id) { patient.update { $0.intraopLabs[i].values[key] = v } } })
+    }
+
+    private func text(_ id: UUID, _ kp: WritableKeyPath<IntraopLabSet, String>) -> Binding<String> {
+        Binding(get: { index(id).map { patient.record.intraopLabs[$0][keyPath: kp] } ?? "" },
+                set: { v in if let i = index(id) { patient.update { $0.intraopLabs[i][keyPath: kp] = v } } })
+    }
+
+    @ViewBuilder private func setEditor(_ s: IntraopLabSet) -> some View {
+        PatientGroup(title: "Drawn at") {
+            HStack(spacing: 10) {
+                DatePicker("Time drawn", selection: Binding(get: { index(s.id).flatMap { patient.record.intraopLabs[$0].time } ?? Date() },
+                                                            set: { v in if let i = index(s.id) { patient.update { $0.intraopLabs[i].time = v } } }),
+                           displayedComponents: [.date, .hourAndMinute])
+                    .labelsHidden()
+                Spacer()
+                Button(role: .destructive) {
+                    withAnimation(.snappy) { if let i = index(s.id) { patient.update { _ = $0.intraopLabs.remove(at: i) } } }
+                } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Remove this lab set")
+            }
+            .padding(.horizontal, 14).padding(.vertical, 8)
+        }
+        PatientGroup(title: "Blood gas") { rows(s.id, IntraopLabs.abg) }
+        PatientGroup(title: "Coagulation") { rows(s.id, IntraopLabs.coag) }
+        PatientGroup(title: "Viscoelastic & other") {
+            PatientTextField(label: "ROTEM or TEG", prompt: "e.g. EXTEM CT 85 s, A10 38 mm; FIBTEM A10 7 mm", text: text(s.id, \.viscoelastic))
+            PatientTextField(label: "Other results", prompt: "e.g. Mg 1.6, SvO₂ 64%, anti-Xa", text: text(s.id, \.other))
+        }
+    }
+
+    @ViewBuilder private func rows(_ id: UUID, _ keys: [String]) -> some View {
+        let tests = IntraopLabs.tests(keys)
+        ForEach(Array(tests.enumerated()), id: \.element.id) { i, t in
+            if t.key == "be" {
+                // The number pad has no minus sign: ± turns an excess into a deficit.
+                HStack(spacing: 0) {
+                    LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key))
+                    Button {
+                        let b = value(id, t.key)
+                        if let v = b.wrappedValue { b.wrappedValue = -v }
+                    } label: {
+                        Text("±").font(PS.sys(size: 16, weight: .bold)).foregroundStyle(PS.accent).frame(width: 30, height: 30)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 8)
+                    .accessibilityLabel("Change the sign of the base excess")
+                }
+            } else {
+                LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key))
+            }
+            if i < tests.count - 1 { Hairline().padding(.leading, 14) }
+        }
+    }
+}
+
+// MARK: Blood products
+
+/// PRBC, FFP, platelets, cryoprecipitate and whole blood in units, and cell saver in mL, each with − and +.
+struct BloodProductsGroup: View {
+    @Environment(PatientStore.self) private var patient
+
+    private func amount(_ id: String) -> Binding<Double?> {
+        Binding(get: { patient.record.fluids[id] }, set: { v in patient.update { $0.fluids[id] = (v ?? 0) > 0 ? v : nil } })
+    }
+
+    var body: some View {
+        PatientGroup(title: "Blood products", note: "Running totals for the case: tap + as each unit goes up, or type the number. Cell saver is the volume returned to the patient. The totals go to the intraoperative card and both handoffs.") {
+            ForEach(Array(BloodProducts.units.enumerated()), id: \.element.id) { _, u in
+                BloodStepperRow(label: u.label, unit: "units", step: 1, limit: 199, quick: u.id == "cryo" ? 5 : nil, value: amount(u.id))
+                Hairline().padding(.leading, 14)
+            }
+            BloodStepperRow(label: "Cell saver returned", unit: "mL", step: BloodProducts.cellSaverStep, limit: 20000, value: amount(BloodProducts.cellSaver))
+        }
+    }
+}
+
+/// One product: − and + around the number, which can also be typed.
+struct BloodStepperRow: View {
+    var label: String
+    var unit: String
+    var step: Double
+    var limit: Double
+    /// A second + for a usual pool ("+5" cryoprecipitate).
+    var quick: Double? = nil
+    @Binding var value: Double?
+    @State private var text = ""
+    @FocusState private var focused: Bool
+
+    private var v: Double { value ?? 0 }
+
+    private func set(_ n: Double) {
+        Haptics.light()
+        value = n > 0 ? min(n, limit) : nil
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).lineLimit(2).minimumScaleFactor(0.85)
+            Spacer(minLength: 4)
+            if let q = quick {
+                Button { set(v + q) } label: {
+                    Text("+" + NumText.short(q)).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.accent)
+                        .padding(.horizontal, 8).padding(.vertical, 5)
+                        .background(PS.accent.opacity(0.12), in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Add \(NumText.short(q)) \(unit) of \(label)")
+            }
+            Button { set(v - step) } label: {
+                Image(systemName: "minus").font(PS.sys(size: 14, weight: .bold)).frame(width: 34, height: 34)
+                    .foregroundStyle(v > 0 ? PS.fg : PS.fg3)
+                    .background(PS.surface2, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .disabled(v <= 0)
+            .accessibilityLabel("Remove \(NumText.short(step)) \(unit) of \(label)")
+            TextField("0", text: $text)
+                .focused($focused)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
+                .foregroundStyle(v > 0 ? PS.fg : PS.fg3)
+                .frame(width: unit == "mL" ? 64 : 40)
+                .accessibilityLabel(label + ", " + unit)
+            Button { set(v + step) } label: {
+                Image(systemName: "plus").font(PS.sys(size: 14, weight: .bold)).frame(width: 34, height: 34)
+                    .foregroundStyle(PS.accentFg)
+                    .background(PS.accent, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add \(NumText.short(step)) \(unit) of \(label)")
+            Text(unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 30, alignment: .leading)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 8)
+        .onAppear { text = value.map { NumText.short($0) } ?? "" }
+        .onChange(of: text) { _, t in
+            let n = Double(t.trimmingCharacters(in: .whitespaces))
+            let next: Double? = (n ?? 0) > 0 ? min(n ?? 0, limit) : nil
+            if next != value { value = next }
+        }
+        .onChange(of: value) { _, n in
+            let shown: Double? = Double(text.trimmingCharacters(in: .whitespaces)).flatMap { $0 > 0 ? $0 : nil }
+            if shown != n { text = n.map { NumText.short($0) } ?? "" }
+        }
+    }
+}
+
+// MARK: Major considerations
+
+struct IntraopConsiderationsEditor: View {
+    @Environment(PatientStore.self) private var patient
+
+    var body: some View {
+        let r = patient.record
+        PatientGroup(title: "Major intraoperative considerations", note: "What the next team most needs to know. These go near the top of both handoffs, under Key considerations.") {
+            PatientChipRow(label: nil) { PatientChips(options: IntraopConsiderations.flags, selection: patient.binding(\.considerations), tint: PS.accent) }
+            let suggested = IntraopConsiderations.suggested(r)
+            if !suggested.isEmpty {
+                Button {
+                    patient.update { rec in for f in suggested { rec.considerations.insert(f.id) } }
+                } label: {
+                    Label("Add " + suggested.map { $0.label.lowercased() }.joined(separator: ", ") + " (recorded in the airway)", systemImage: "plus.circle")
+                        .font(PS.sys(size: 13.5, weight: .semibold)).multilineTextAlignment(.leading)
+                }
+                .buttonStyle(.borderless).tint(PS.accent)
+                .padding(.horizontal, 14).padding(.bottom, 6)
+            }
+            PatientTextField(label: "Details", prompt: "e.g. grade 4 view, awake fiberoptic; ongoing coagulopathy; new RWMA on TEE; prone 5 h", text: patient.binding(\.considerationsNote))
+        }
+    }
+}
+
+// MARK: Code status
+
+/// Code status with the perioperative plan for it, after the ASA's required reconsideration of DNR orders.
+struct PatientCodeStatusGroup: View {
+    @Environment(PatientStore.self) private var patient
+
+    var body: some View {
+        let r = patient.record
+        PatientGroup(title: "Code status", note: PatientCodeStatus.note) {
+            PatientChipRow(label: nil) {
+                PatientChoice(options: CodeStatus.allCases.map { (id: $0.rawValue, label: $0.label) },
+                              selection: Binding(get: { patient.record.codeStatus?.rawValue }, set: { v in patient.update { $0.codeStatus = v.flatMap { CodeStatus(rawValue: $0) } } }),
+                              tint: PS.accent)
+            }
+            if r.codeStatus == .limited {
+                PatientTextField(label: "Limits", prompt: "e.g. no chest compressions or defibrillation; vasopressors acceptable", text: patient.binding(\.codeStatusLimits))
+            }
+            Toggle(isOn: patient.binding(\.polst)) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("POLST on file").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    Text("Portable medical orders (POLST, MOLST)").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                }
+            }
+            .tint(PS.accent)
+            .padding(.horizontal, 14).padding(.vertical, 9)
+            if r.codeStatus?.limits == true {
+                Hairline().padding(.leading, 14)
+                PatientChipRow(label: "For the procedure") {
+                    PatientChoice(options: CodeStatusPlan.allCases.map { (id: $0.rawValue, label: $0.label) },
+                                  selection: Binding(get: { patient.record.codeStatusPlan?.rawValue }, set: { v in patient.update { $0.codeStatusPlan = v.flatMap { CodeStatusPlan(rawValue: $0) } } }),
+                                  tint: PS.accent2)
+                }
+                if let p = r.codeStatusPlan {
+                    Text(p.detail).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 14).padding(.bottom, 4)
+                } else {
+                    Text("Not yet discussed: review the orders with the patient or surrogate before the anesthetic.")
+                        .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.red).fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 14).padding(.bottom, 4)
+                }
+                PatientTextField(label: r.codeStatusPlan == .suspended ? "When the original orders resume" : "What is and is not acceptable, and when the orders resume",
+                                 prompt: "e.g. accepts intubation and vasopressors; no compressions; resumes on leaving the PACU", text: patient.binding(\.codeStatusPlanNote))
+            }
+        }
+        .id("codestatus")
+    }
+}
+
+// MARK: Handoff
+
+/// The handoff text with its abnormal values in bold red (HandoffWriter.marks).
+func handoffStyled(_ text: String, marks: [String]) -> AttributedString {
+    var a = AttributedString(text)
+    for m in marks where !m.isEmpty {
+        var from = a.startIndex
+        while let r = a[from...].range(of: m) {
+            a[r].foregroundColor = PS.red
+            a[r].font = PS.sys(size: 14.5, weight: .bold)
+            from = r.upperBound
+        }
+    }
+    return a
+}

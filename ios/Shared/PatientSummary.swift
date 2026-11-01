@@ -190,6 +190,7 @@ enum PatientSummary {
         } else if let s = PatientRules.asaSuggestion(r) {
             out.append(Line("ASA physical status", "Suggested " + s.label + ", not yet chosen: " + s.topFindings.joined(separator: "; ")))
         }
+        if let c = PatientCodeStatus.line(r) { out.append(c) }
         let d = PatientFunctional.dasi(r)
         let fc = [metsText(r), d.map { PatientFunctional.dasiText($0) }].compactMap { $0 }
         if !fc.isEmpty {
@@ -303,9 +304,11 @@ enum PatientSummary {
         if !blocks.isEmpty { out.append(Line("Regional", blocks.joined(separator: "; "))) }
         let inf = r.infusions.map(\.text).filter { !$0.isEmpty }
         if !inf.isEmpty { out.append(Line("Infusions", inf.joined(separator: "; "))) }
-        if let i = PatientRules.fluidLine(r, ids: ["crystalloid", "colloid", "prbc", "wholeBlood", "plasma", "platelets", "cryo", "cellSaver"]) { out.append(Line("In", i)) }
+        if let i = PatientRules.fluidLine(r, ids: ["crystalloid", "colloid"]) { out.append(Line("In", i)) }
+        if let b = BloodProducts.line(r) { out.append(b) }
         if !r.factors.isEmpty { out.append(Line("Factor concentrates & other products", r.factors)) }
         if let o = PatientRules.fluidLine(r, ids: ["ebl", "uop"]) { out.append(Line("Out", o)) }
+        if let l = IntraopLabs.lastLine(r) { out.append(l) }
         if !r.medsGiven.isEmpty { out.append(Line("Medications & interventions", r.medsGiven)) }
         if r.noEvents { out.append(Line("Events", "No notable events")) }
         else if !r.events.isEmpty { out.append(Line("Events", r.events, alert: true)) }
@@ -316,6 +319,7 @@ enum PatientSummary {
 
     /// The lines for one part of the intraoperative record (PatientEditor.intraopParts).
     static func intraopPartLines(_ r: PatientRecord, _ part: String) -> [Line] {
+        if part == "considerations" { return IntraopConsiderations.text(r).map { [Line(nil, $0, alert: true)] } ?? [] }
         if part == "airway" && r.arrivesWithAirway {
             var out = [Line(nil, (r.currentAirwayText ?? "Secured") + " on arrival")]
             if let end = r.airwayAtEnd { out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : end))) }
@@ -323,7 +327,7 @@ enum PatientSummary {
         }
         let labels: [String: Set<String>] = [
             "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines"], "regional": ["Regional"], "infusions": ["Infusions"],
-            "fluids": ["In", "Out", "Factor concentrates & other products"], "meds": ["Medications & interventions"],
+            "fluids": ["In", "Blood products", "Out", "Factor concentrates & other products"], "labs": ["Last labs"], "meds": ["Medications & interventions"],
             "events": ["Events"], "echo": ["Echo", "Echo notes"],
         ]
         // The card's own title names the part, so a line labelled the same way drops its label.
@@ -383,6 +387,7 @@ enum HandoffWriter {
         if let a = PatientRules.asaText(r) { proc.append(a) }
         if !proc.isEmpty { head.append(proc.joined(separator: " · ")) }
         if let v = PatientSummary.vitalsLine(r) { head.append("Baseline: " + v) }
+        if let c = PatientCodeStatus.text(r) { head.append("Code status: " + c) }
         out.append(contentsOf: head)
 
         func section(_ title: String, _ lines: [PatientSummary.Line]) {
@@ -391,8 +396,9 @@ enum HandoffWriter {
             out.append(title.uppercased())
             for l in lines { out.append((l.label.map { $0 + ": " } ?? "") + l.text) }
         }
+        section("Key considerations", IntraopConsiderations.text(r).map { [PatientSummary.Line(nil, $0)] } ?? [])
         section("History", PatientSummary.historyLines(r, now: now))
-        var assess = PatientSummary.assessmentLines(r).filter { $0.label != "Cardiac evaluation" && $0.label != "Cardiac advice" }
+        var assess = PatientSummary.assessmentLines(r).filter { $0.label != "Cardiac evaluation" && $0.label != "Cardiac advice" && $0.label != "Code status" }
         for (id, sc) in r.scores.sorted(by: { $0.key < $1.key }) {
             assess.append(PatientSummary.Line(Scores.byID(id)?.name ?? id, PatientRules.scoreLine(id, sc) + (sc.detail.map { " (" + $0 + ")" } ?? "")))
         }
@@ -429,6 +435,8 @@ enum HandoffWriter {
             let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !t.isEmpty { out.append(label + ": " + t) }
         }
+        line("Code status", PatientCodeStatus.text(r) ?? "")
+        line("Key considerations", IntraopConsiderations.text(r) ?? "")
         line("Allergies", r.nkda ? "No known drug allergies" : r.allergies)
         if r.arrivesWithAirway, let a = r.currentAirwayText {
             var t = a + " on arrival"
@@ -440,6 +448,8 @@ enum HandoffWriter {
         line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
         line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
+        line("Blood products", BloodProducts.text(r))
+        line("Last labs", IntraopLabs.lastLine(r, now: now, abnormalOnly: true)?.text ?? "")
         line("Events", r.noEvents ? "No notable events" : r.events)
         var plan: [String] = []
         if let d = r.disposition { plan.append(d + ".") }
