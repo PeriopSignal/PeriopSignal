@@ -1,0 +1,12 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-01 12:35:53.946 Df PeriopSignal[22989:150e3] [com.apple.CFNetwork:Default] Connection 1: cleaning up
+2026-11-01 12:35:53.951 Df PeriopSignal[22989:150e3] [com.apple.network:connection] [C1 AB1E2BF1-A203-4CE3-B35A-2856DC05987D Hostname#185f1292:443 quic-connection, url: https://periopsignal.github.io/PeriopSignal/posts.json, definite, attribution: developer] cancel
+2026-11-01 12:35:53.953 Df PeriopSignal[22989:150e3] [com.apple.network:connection] [C1 AB1E2BF1-A203-4CE3-B35A-2856DC05987D Hostname#185f1292:443 quic-connection, url: https://periopsignal.github.io/PeriopSignal/posts.json, definite, attribution: developer] cancelled
+	[C1.1.1.1 879688DF-7C00-43B1-B17A-E1A587C6351D 192.168.64.2:51894<->IPv4#a08bbcfe:443]
+	Connected Path: satisfied (Path is satisfied), interface: en0
+	Privacy Stance: Not Eligible
+	Duration: 240.865s, DNS @0.590s took 0.006s, TCP @0.603s took 0.010s, TLS 1.3 took 0.086s
+	bytes in/out: 391668/1980, packets in/out: 44/7, rtt: 0.008s, retransmitted bytes: 0, out-of-order bytes: 0
+	ecn packets sent/acked/marked/lost: 0/0/0/0
+2026-11-01 12:35:53.959 Df PeriopSignal[22989:150e3] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state cancelled
+2026-11-01 12:35:53.960 Df PeriopSignal[22989:150e3] [com.apple.CFNetwork:Default] Connection 1: done
