@@ -39,16 +39,15 @@ struct NoIdentifiersBanner: View {
 }
 
 /// "No patient identifiers" as a small grey shield in the navigation bar of My Patient's pages: a tap opens the same
-/// warning as the banner. Grey, so red stays for abnormal values and alerts.
+/// warning as the banner (noIdentifiersAlert, attached to the page itself rather than inside the toolbar item, where a
+/// presentation can hold up the page's own sheets). Grey, so red stays for abnormal values and alerts.
 struct NoIdentifiersShield: View {
-    @State private var open = false
-    /// Screenshot runs: the popover has appeared.
-    @State private var shown = false
+    @Binding var isPresented: Bool
 
     var body: some View {
         Button {
             Haptics.light()
-            open = true
+            isPresented = true
         } label: {
             Image(systemName: "checkmark.shield")
                 .font(PS.sys(size: 15, weight: .medium))
@@ -59,34 +58,25 @@ struct NoIdentifiersShield: View {
         .buttonStyle(.plain)
         .accessibilityLabel("No patient identifiers")
         .accessibilityHint("Shows what not to enter")
-        .popover(isPresented: $open, arrowEdge: .top) {
-            VStack(alignment: .leading, spacing: 8) {
-                Label("No patient identifiers", systemImage: "checkmark.shield")
-                    .font(PS.sys(size: 15, weight: .semibold))
-                    .foregroundStyle(PS.fg)
-                Text(NoIdentifiersBanner.warning)
-                    .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineSpacing(1.5)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(16)
-            .frame(width: 300, alignment: .leading)
-            .presentationCompactAdaptation(.popover)
-            .onAppear { shown = true }
+    }
+}
+
+extension View {
+    /// The shield's explanation: the banner's words, in an alert from the page.
+    func noIdentifiersAlert(isPresented: Binding<Bool>) -> some View {
+        alert("No patient identifiers", isPresented: isPresented) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(NoIdentifiersBanner.warning)
         }
+        #if DEBUG
+        // Screenshot runs: -ps.patient.shield 1 opens it once the page has settled.
         .task {
-            #if DEBUG
-            // Screenshot runs: -ps.patient.shield 1 opens it, and asks again if a request made while the tab was still
-            // settling did not appear.
             guard LaunchSeed.bool("ps.patient.shield") else { return }
-            for _ in 0..<3 {
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
-                if shown || Task.isCancelled { return }
-                open = false
-                try? await Task.sleep(nanoseconds: 300_000_000)
-                open = true
-            }
-            #endif
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            isPresented.wrappedValue = true
         }
+        #endif
     }
 }
 

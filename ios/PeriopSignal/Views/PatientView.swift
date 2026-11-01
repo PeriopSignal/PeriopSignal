@@ -49,6 +49,8 @@ struct PatientView: View {
     @State private var received: Bool?
     /// The jump bar has scrolled under the top of the tab, so its pinned copy shows.
     @State private var jumpPinned = false
+    /// The grey shield's "No patient identifiers" explanation is open.
+    @State private var showIdentifiers = false
     /// Where the jump bar and its pinned copy are, read as the tab scrolls (not observed, so scrolling redraws nothing).
     @State private var jumpGeometry = PatientJumpGeometry()
 
@@ -86,6 +88,7 @@ struct PatientView: View {
                     .padding(.bottom, 32)
                 }
                 .overlay(alignment: .top) { pinnedJumpBar(proxy) }
+                .noIdentifiersAlert(isPresented: $showIdentifiers)
                 .onAppear {
                     #if DEBUG
                     // Screenshot runs: -ps.patient.jump handoff | assessment | history | airway | intraop:<part> scrolls
@@ -142,7 +145,7 @@ struct PatientView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if !patient.isEmpty { NoIdentifiersShield() }
+                    if !patient.isEmpty { NoIdentifiersShield(isPresented: $showIdentifiers) }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     PatientUndoButton()
@@ -499,28 +502,35 @@ struct PatientView: View {
     }
 
     /// The jump bar again, pinned at the top of the tab on the app's background material, once the tab's own has
-    /// scrolled under it: any section is one tap away from anywhere on the tab.
+    /// scrolled under it: any section is one tap away from anywhere on the tab. At rest only a point at the top is
+    /// there, to measure where the chips pin; the bar and its material exist only while pinned.
     @ViewBuilder private func pinnedJumpBar(_ proxy: ScrollViewProxy) -> some View {
         if let editors = jumpEditors {
-            jumpBar(proxy, editors)
-                .background(GeometryReader { g in
-                    Color.clear
-                        .onAppear { jumpGeometry.pinY = g.frame(in: .global).minY; updateJumpPin() }
-                        .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.pinY = y; updateJumpPin() }
-                })
-                .padding(.horizontal, 20)
-                .padding(.vertical, 8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background {
-                    Rectangle().fill(.ultraThinMaterial)
-                        .overlay(PS.bg.opacity(0.55))
-                        .overlay(alignment: .bottom) { Hairline() }
-                        .ignoresSafeArea(edges: [.horizontal, .top])
+            ZStack(alignment: .top) {
+                Color.clear
+                    .frame(height: 1)
+                    .padding(.top, 8)
+                    .background(GeometryReader { g in
+                        Color.clear
+                            .onAppear { jumpGeometry.pinY = g.frame(in: .global).minY + 8; updateJumpPin() }
+                            .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.pinY = y + 8; updateJumpPin() }
+                    })
+                    .allowsHitTesting(false)
+                if jumpPinned {
+                    jumpBar(proxy, editors)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background {
+                            Rectangle().fill(.ultraThinMaterial)
+                                .overlay(PS.bg.opacity(0.55))
+                                .overlay(alignment: .bottom) { Hairline() }
+                                .ignoresSafeArea(edges: [.horizontal, .top])
+                        }
+                        .transition(.opacity)
                 }
-                .opacity(jumpPinned ? 1 : 0)
-                .allowsHitTesting(jumpPinned)
-                .accessibilityHidden(!jumpPinned)
-                .animation(.easeOut(duration: 0.12), value: jumpPinned)
+            }
+            .animation(.easeOut(duration: 0.12), value: jumpPinned)
         }
     }
 

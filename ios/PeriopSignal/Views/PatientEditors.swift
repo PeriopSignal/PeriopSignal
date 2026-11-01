@@ -70,6 +70,8 @@ struct PatientEditorView: View {
     @State var wobbling = false
     /// The number field typing, by its id in `numberOrder`: Previous and Next on the keyboard move it.
     @FocusState private var numberFocus: String?
+    /// The grey shield's "No patient identifiers" explanation is open.
+    @State private var showIdentifiers = false
 
     var r: PatientRecord { patient.record }
 
@@ -118,6 +120,11 @@ struct PatientEditorView: View {
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(editor.title)
         .navigationBarTitleDisplayMode(.inline)
+        .alert("No patient identifiers", isPresented: $showIdentifiers) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(NoIdentifiersBanner.warning)
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 // In a run of number fields (labs, vitals): Previous and Next, in screen order, keep the number pad up.
@@ -140,7 +147,7 @@ struct PatientEditorView: View {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 PatientUndoButton()
                 // Where the age and the like are typed: the grey "No patient identifiers" shield.
-                if editor == .details || editor == .demographics { NoIdentifiersShield() }
+                if editor == .details || editor == .demographics { NoIdentifiersShield(isPresented: $showIdentifiers) }
                 if wobbling {
                     Button("Done") { Haptics.light(); withAnimation(.snappy) { wobbling = false } }
                         .fontWeight(.semibold)
