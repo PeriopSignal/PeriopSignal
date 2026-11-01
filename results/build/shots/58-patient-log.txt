@@ -1,0 +1,2 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-01 12:02:52.613 A  PeriopSignal[22469:113ff] (CoreFoundation) Loading Preferences From User Session CFPrefsD
