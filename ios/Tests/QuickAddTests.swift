@@ -276,6 +276,77 @@ final class QuickAddTests: XCTestCase {
         XCTAssertTrue(ofFour.skipped.contains { $0.hasPrefix("3 of 4 PRBC") }, "\(ofFour.skipped)")
     }
 
+    /// Blood files directly only with a count, units and "given" wording around it; any other word asks.
+    func testBloodFilesOnlyOnTheWhitelist() {
+        for line in ["2 PRBC to be given", "2 PRBC to be transfused", "4 FFP thawing", "4 PRBC typed and crossed", "2 FFP returned",
+                     "4 PRBC in OR", "2 PRBC sent up", "give 2 PRBC for Hb < 7", "2 PRBC for Hb 6.8", "2 PRBC?"] {
+            let q = read(line, .intraop)
+            XCTAssertTrue(applied(q).fluids.isEmpty, line + " → \(applied(q).fluids)")
+            XCTAssertEqual(q.ambiguous.filter { $0.id.hasPrefix(QuickAdd.bloodQuestion) }.count, 1, line + ": asked")
+        }
+        XCTAssertEqual(setValues(read("2 PRBC for Hb 6.8", .intraop))["hb"], 6.8, "the hemoglobin is still read")
+        let given = [QuickAdd.bloodQuestion + "plasma": QuickAdd.bloodGiven]
+        XCTAssertEqual(applied(read("4 FFP thawing", .intraop, choices: given)).fluids["plasma"], 4, "filed once answered given")
+        let direct: [(String, String, Double)] = [("2 PRBC", "prbc", 2), ("PRBC x2", "prbc", 2), ("+2 FFP", "plasma", 2), ("cryo 10", "cryo", 10),
+                                                  ("plt 1", "platelets", 1), ("cell saver 450", "cellSaver", 450), ("2 PRBC given as planned", "prbc", 2),
+                                                  ("2 PRBC were given", "prbc", 2), ("PRBC 3u so far", "prbc", 3),
+                                                  ("cell saver 350 mL returned", "cellSaver", 350)]
+        for (line, key, n) in direct {
+            let q = read(line, .intraop)
+            XCTAssertEqual(applied(q).fluids[key], n, line)
+            XCTAssertTrue(q.ambiguous.filter { $0.id.hasPrefix(QuickAdd.bloodQuestion) }.isEmpty, line + ": not asked")
+        }
+        XCTAssertEqual(QuickAdd.chips(read("PRBC 3/4 hanging", .intraop), record: PatientRecord()).first?.value, "PRBC +1 (unit 3 of 4)")
+    }
+
+    /// Marks in brackets or after the value count; with two values, exactly one marked current is filed, else asked.
+    func testLabMarksInBracketsAndExactlyOneCurrent() {
+        XCTAssertEqual(change(read("Cr 1.1 (baseline), now 1.6"), "lab:cr"), .lab("cr", 1.6))
+        XCTAssertEqual(change(read("K 3.1 on admit, now 4.2"), "lab:k"), .lab("k", 4.2))
+        XCTAssertEqual(change(read("Cr 1.1 last month, now 1.6"), "lab:cr"), .lab("cr", 1.6))
+        XCTAssertNil(change(read("Cr 1.1 (old)"), "lab:cr"), "an earlier value only")
+        let neither = read("Cr 1.1 at baseline, then 1.6 after fluids")
+        XCTAssertNil(change(neither, "lab:cr"), "none marked current: asked")
+        XCTAssertNotNil(neither.ambiguous.first { $0.id == PatientNote.labQuestionPrefix + "cr" })
+        XCTAssertEqual(PatientNote.read("Cr 1.1 (baseline), now 1.6", now: now).findings.first { $0.id == "lab:cr" }?.change, .lab("cr", 1.6))
+        XCTAssertEqual(PatientNote.read("Cr 1.1 last month, now 1.6", now: now).findings.first { $0.id == "lab:cr" }?.change, .lab("cr", 1.6))
+        let sentences = PatientNote.read("Preop Hb 12.1. Hb 8.2 after EBL 1500.", now: now)
+        XCTAssertNil(sentences.findings.first { $0.id == "lab:hb" }, "neither marked current: asked")
+        XCTAssertNotNil(sentences.ambiguous.first { $0.id == PatientNote.labQuestionPrefix + "hb" })
+    }
+
+    /// A laryngoscope right after a grade makes it the view; a grade only a mask phrase points to, with a laryngoscope
+    /// later in the piece and no other grade, is asked.
+    func testGradeNextToALaryngoscopeIsTheView() {
+        let next = applied(read("easy mask gr 3 DL, bougie, 7.5 ETT", .intraop))
+        XCTAssertNil(next.maskGrade)
+        XCTAssertEqual(next.laryngoscopyGrade, "3")
+        XCTAssertEqual(next.mask, "easy")
+        let line = "easy mask (grade 3) DL, bougie"
+        let unclear = read(line, .intraop)
+        XCTAssertNotNil(unclear.ambiguous.first { $0.id == QuickAdd.gradeKindQuestion })
+        XCTAssertNil(applied(unclear).maskGrade, "nothing until chosen")
+        XCTAssertNil(applied(unclear).laryngoscopyGrade)
+        XCTAssertEqual(applied(read(line, .intraop, choices: [QuickAdd.gradeKindQuestion: QuickAdd.gradeKindMask])).maskGrade, 3)
+        XCTAssertEqual(applied(read(line, .intraop, choices: [QuickAdd.gradeKindQuestion: QuickAdd.gradeKindView])).laryngoscopyGrade, "3")
+    }
+
+    /// A header with a dash, an em dash or nothing before a capitalized name; never "Patient is a 68M".
+    func testIdentifierHeaderVariants() {
+        for text in ["Patient - Jane Doe\n68F for lap chole", "Patient Jane Doe\n68F for lap chole", "Pt — jane doe\n68F for lap chole"] {
+            let n = PatientNote.read(text, now: now)
+            XCTAssertTrue(n.identifiers.contains("a name"), text)
+            XCTAssertFalse(n.other.contains("Jane") || n.other.contains("jane") || n.other.contains("Doe") || n.other.contains("doe"), n.other)
+        }
+        XCTAssertFalse(PatientNote.identifiers("Patient is a 68M for lap chole").contains("a name"))
+        XCTAssertFalse(PatientNote.identifiers("Pt: 68M HTN").contains("a name"))
+        XCTAssertFalse(PatientNote.identifiers("patient-controlled analgesia after surgery").contains("a name"))
+        let q = read("Pt - Jane Doe, 68F for lap chole")
+        XCTAssertTrue(q.identifiers.contains("a name"))
+        XCTAssertFalse(q.findings.map(\.label).joined().contains("Jane"))
+        XCTAssertNotNil(change(q, "procedure"), "the rest is still read")
+    }
+
     /// Two values of a test: the one marked current, else asked ("Cr: 0.9 or 1.6?"), filed only once chosen.
     func testTwoValuesOfALabAreAskedUnlessOneIsCurrent() {
         XCTAssertEqual(change(read("Cr 0.9 to 1.6"), "lab:cr"), .lab("cr", 1.6), "the last word: current")

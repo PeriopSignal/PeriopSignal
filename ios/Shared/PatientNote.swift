@@ -482,7 +482,7 @@ enum PatientNote {
         out += [smokeNeverRx, smokeFormerRx, smokeCurrentRx, medsHeaderRx, aspirinDoseRx, allergyCue, nkdaRx, allergyRx, allergyAfterRx, allergySkipRx, allergyCut, noneRx]
         out += [bpRx, hrRx, spo2Rx, onOxygenRx, rrRx, tempRx, efRx, venousSatBefore, venousSatAfter, roomAirAfter, roomAirWords, labTrend, labTrendStop,
                 labEarlier, labNow, notAge, hemolyzedRx, devicePresent, deviceListPlanned, planWord, labEnd, labEarlierAfter, labCurrentBefore,
-                labPreop, labGoal]
+                labPreop, labGoal, labCurrentAfter]
         out += labRules.map { $0.rx }
         out += [npoMidnightRx, lastAteRx, lastDrankRx, metsUnknownRx, metsPoorRx, metsGoodRx, metsNumberRx, frailRx, mallampatiRx, dentitionRx]
         out += [pieceBreak, headerLead, negLead]
@@ -534,16 +534,16 @@ enum PatientNote {
         var labConflicts: [String: [Double]] = [:]
         func put(_ f: PatientNoteFinding, _ flag: (current: Bool, earlier: Bool)? = nil) {
             if let old = found[f.id] {
-                // Two values of a test in different sentences: the one marked current, else the one not marked earlier,
-                // else asked ("Preop Hb 12.1. Now Hb 8.2": 8.2).
+                // Two values of a test in different sentences: the one marked current, if exactly one is; otherwise
+                // asked ("Preop Hb 12.1. Now Hb 8.2": 8.2; "Preop Hb 12.1. Hb 8.2": asked).
                 if f.id.hasPrefix("lab:"), case .lab(_, let a) = old.change, case .lab(_, let b) = f.change, a != b {
                     let o = labFlags[f.id] ?? (current: false, earlier: false)
                     let n = flag ?? (current: false, earlier: false)
-                    if (n.current && !o.current) || (o.earlier && !n.earlier) {
+                    if n.current && !o.current {
                         found[f.id] = f
                         labFlags[f.id] = n
                         labConflicts[f.id] = nil
-                    } else if !((o.current && !n.current) || (n.earlier && !o.earlier)) {
+                    } else if !(o.current && !n.current) {
                         var values = labConflicts[f.id] ?? [a]
                         if !values.contains(b) { values.append(b) }
                         labConflicts[f.id] = values
@@ -1079,20 +1079,23 @@ enum PatientNote {
     static let efRx = NoteRx(#"\b(?:ef|lvef|ejection fraction)\s*(?:of|is|was|:|=|~|<|>|≤|≥)?\s*(\d{1,2})\s*(?:-|–|to)?\s*(\d{1,2})?\s*%"#)
     private static let value = #"(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)"#
     /// A trend's next value ("→ 1.6", "-> 7.8", "then 7.1", "now 1.6"), and what after it makes it a dose or blood.
-    static let labTrend = NoteRx(#"^\s*(?:-+>|→|⟶|➝|=>|\bto\b|\bthen\b)\s*(\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d)"#)
-    /// After a value: only punctuation or the end, so it is the last word.
-    static let labEnd = NoteRx(#"^\s*(?:[,;.)]|$)"#)
-    /// An earlier value marked after it ("Cr 1.1 at baseline", "K 3.1 on admission").
-    static let labEarlierAfter = NoteRx(#"^\s*(?:at|on|from)?\s*(?:baseline|admission|prior|previously|earlier|before|pre-?op(?:eratively)?)\b"#)
+    static let labTrend = NoteRx(#"^[\s,)\]]*(?:-+>|→|⟶|➝|=>|\bto\b|\bthen\b)\s*(\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d)"#)
+    /// After a value: only punctuation or the end, so it is the last word. Brackets never hide a mark.
+    static let labEnd = NoteRx(#"^[\s)\]]*(?:[,;.]|$)"#)
+    /// The words that mark a value earlier ("baseline", "on admit", "last month", "old") or current ("now"), after it,
+    /// in brackets or not: "Cr 1.1 (baseline), now 1.6", "K 3.1 on admit", "Cr 1.1 last month".
+    static let earlierWords = #"(?:baseline|admission|admit|prior|previous(?:ly)?|earlier|before|old|yesterday|last\s+(?:month|week|year|visit|admission)|pre-?op(?:eratively)?)"#
+    static let labEarlierAfter = NoteRx(#"^[\s(\[]*(?:(?:at|on|from|in)\s+)?"# + earlierWords + #"\b[\s)\]]*"#)
+    static let labCurrentAfter = NoteRx(#"^[\s(\[]*(?:now|current(?:ly)?|latest|today|new|repeat)\b(?![\s:]*[-−]?\d)[\s)\]]*"#)
     /// Marked current right before the test's name ("Now Hb 8.2"), or preoperative ("Preop Hb 12.1").
-    static let labCurrentBefore = NoteRx(#"\b(?:now|current(?:ly)?|latest|today|repeat|new)\s*:?\s*$"#)
-    static let labPreop = NoteRx(#"\b(?:pre-?op(?:erative)?|preoperative)\s*:?\s*$"#)
+    static let labCurrentBefore = NoteRx(#"\b(?:now|current(?:ly)?|latest|today|repeat|new)[\s:()\[\]]*$"#)
+    static let labPreop = NoteRx(#"\b(?:pre-?op(?:erative)?|preoperative)[\s:()\[\]]*$"#)
     /// A goal or a threshold, not a value ("goal Hb 8 to 10", "transfuse for Hb 7").
     static let labGoal = NoteRx(#"\b(?:goal|target|keep|maintain|threshold|trigger|transfuse\s+(?:for|if|to|at|when))\b[^,;]*$"#)
     static let labTrendStop = NoteRx(#"^\s*(?:[x×]\s?\d|runs?\b|amps?\b|ampules?\b|vials?\b|units?\b|u\b|mg\b|mcg\b|g\b|gm\b|meq\b|ml\b|cc\b|iv\b|im\b|po\b|prbcs?\b|rbcs?\b|ffp\b|plasma\b|plts?\b|platelets?\b|cryo\w*|whole blood|packed|bags?\b|doses?\b|tabs?\b)"#)
     /// Marked as earlier right before the test's name, and the current value that follows.
-    static let labEarlier = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|outside|osh|historical)\s*:?\s*$"#)
-    static let labNow = NoteRx(#"^[\s,;]*(?:now|currently|current|today|repeat|latest|new)\s*:?\s*(\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d)"#)
+    static let labEarlier = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|outside|osh|historical|(?<!year )(?<!years )(?<!yr )(?<!-)old|yesterday(?:'s)?|last\s+(?:month|week|year)(?:'s)?)[\s:()\[\]]*$"#)
+    static let labNow = NoteRx(#"^[\s,;()\[\]]*(?:now|currently|current|today|repeat|latest|new)\b[\s:()\[\]]*(\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d)"#)
     static let hemolyzedRx = NoteRx(#"\bh(?:a)?emoly[sz](?:ed|is)\b"#)
     private static let labRules: [(id: String, rx: NoteRx, min: Double, max: Double)] = [
         ("hb", NoteRx(#"\b(?:hb|hgb|hemoglobin|haemoglobin)\s*(?:of|is|was|:|=)?\s*(\d{1,2}(?:\.\d)?)\b"#), 3, 25),
@@ -1146,51 +1149,55 @@ enum PatientNote {
                     continue
                 }
                 var r = m.range
-                var strong = labEarlier.first(before) != nil
-                var earlier = strong || labPreop.first(before) != nil
+                let strong = labEarlier.first(before) != nil
                 var rest = cut(c, m.range.location + m.range.length)
-                if let e = labEarlierAfter.first(rest) {
-                    // "at baseline", "on admission": never current; "preop" after it, as before it.
-                    let word = (rest as NSString).substring(with: e.range).lowercased()
-                    if !word.contains("preop") && !word.contains("pre-op") { strong = true }
-                    earlier = true
-                    r.length += e.range.length
-                    rest = cut(rest, e.range.length)
-                }
-                values.append((first, labCurrentBefore.first(before) != nil, earlier, strong))
+                values.append((first, labCurrentBefore.first(before) != nil, strong || labPreop.first(before) != nil, strong))
                 while true {
+                    // Marks after the last value: "(baseline)", "on admit", "last month" (earlier); "now" (current).
+                    let last = values.count - 1
+                    if let e = labEarlierAfter.first(rest) {
+                        let word = (rest as NSString).substring(with: e.range).lowercased()
+                        values[last].earlier = true
+                        if !word.contains("preop") && !word.contains("pre-op") { values[last].strong = true }
+                        r.length += e.range.length
+                        rest = cut(rest, e.range.length)
+                    }
+                    if let n = labCurrentAfter.first(rest) {
+                        values[last].current = true
+                        r.length += n.range.length
+                        rest = cut(rest, n.range.length)
+                    }
+                    let step: NSTextCheckingResult
                     if let t = labNow.first(rest), let v = number(t, [1], rest) {
                         values.append((v, true, false, false))
+                        step = t
                     } else if let t = labTrend.first(rest), let v = number(t, [1], rest) {
                         let after = cut(rest, t.range.location + t.range.length)
                         // Never a dose or blood after it ("then 2 PRBC", "then 4 runs").
                         if labTrendStop.first(after) != nil { break }
                         values.append((v, labEnd.first(after) != nil, false, false))
+                        step = t
                     } else {
                         break
                     }
-                    let t = (labNow.first(rest) ?? labTrend.first(rest))!
-                    r.length += t.range.length
-                    rest = cut(rest, t.range.length)
+                    r.length += step.range.length
+                    rest = cut(rest, step.range.length)
                 }
                 ranges.append(r)
             }
             guard let at = ranges.first else { continue }
             func seenAll() { for r in ranges { h.seen(r) } }
-            // The current value: the last marked current, else the only one not marked earlier; two or more unmarked
-            // values are asked ("Cr: 0.9 or 1.6?").
-            let open = values.filter { !$0.earlier }
+            // One value: filed, unless marked earlier ("baseline Cr 1.1"; "preop Hb 12.1" is filed as earlier, for
+            // another sentence's newer value to replace). Two or more: the one marked current, if exactly one is;
+            // otherwise asked ("Cr: 1.1 or 1.6?").
             var distinct: [Double] = []
-            for x in open where !distinct.contains(x.v) { distinct.append(x.v) }
+            for x in values where !distinct.contains(x.v) { distinct.append(x.v) }
+            var current: [Double] = []
+            for x in values where x.current && !x.earlier && !current.contains(x.v) { current.append(x.v) }
             var v: Double
             var flag = (current: false, earlier: false)
-            if let now = open.last(where: { $0.current }) {
-                v = now.v
-                flag.current = true
-            } else if distinct.isEmpty {
-                // Only earlier values: "baseline Cr 1.1" alone is not the current one; "preop Hb 12.1" is, unless
-                // another sentence gives a newer one.
-                guard let weak = values.last(where: { !$0.strong }) else {
+            if values.allSatisfy({ $0.earlier }) {
+                guard let weak = values.last(where: { !$0.strong }), distinct.count == 1 || values.allSatisfy({ !$0.strong }) else {
                     seenAll()
                     continue
                 }
@@ -1198,6 +1205,10 @@ enum PatientNote {
                 flag.earlier = true
             } else if distinct.count == 1 {
                 v = distinct[0]
+                flag.current = !current.isEmpty
+            } else if current.count == 1 {
+                v = current[0]
+                flag.current = true
             } else {
                 let asked = labChoice(l.id, distinct, choices)
                 h.questions.append(asked.question)
@@ -1206,6 +1217,7 @@ enum PatientNote {
                     continue
                 }
                 v = chosen
+                flag.current = true
             }
             if l.id == "plt" && v >= 2000 { v /= 1000 }
             guard v >= l.min, v <= l.max, PatientCatalog.labs.contains(where: { $0.id == l.id }) else {
@@ -1388,6 +1400,8 @@ enum PatientNote {
 
     // MARK: Identifiers
 
+    /// Words after "Patient" or "Pt" that begin a sentence about the patient, not a name.
+    static let headerStop = #"(?:is|was|has|had|a|an|the|with|presents?|presented|presenting|and|who|will|did|does|not|no|in|on|for|to|of|here|being|now|states?|stated|reports?|reported|denies|denied|underwent|tolerated|agrees|agreed)"#
     static let identifierRules: [(String, NoteRx)] = [
         ("a record number", NoteRx(#"\b(?:mrn|medical record|record (?:no|number|#)|patient id|acct|account (?:no|number)|nhs (?:no|number)|ssn|social security)\b|\b\d{7,}\b"#)),
         ("a date", NoteRx(#"\b(?:dob|d\.o\.b|date of birth|born on)\b|\b\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}\b"#)),
@@ -1398,9 +1412,12 @@ enum PatientNote {
         ("a date", NoteRx(#"\b\d{1,2}(?:st|nd|rd|th)?\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?,?\s+(?:19|20)\d{2}\b|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?,?\s+(?:19|20)\d{2}\b"#)),
         ("a name", NoteRx(#"\b(?:Mr|Mrs|Ms|Miss|Mx)\.?\s+[A-Z][A-Za-z'’-]*[a-z][A-Za-z'’-]*"#, caseSensitive: true)),
         ("a name", NoteRx(#"\b(?:name is|named|patient name|pt name)\b|\bname\s*:"#)),
-        // After a header ("Patient:", "Pt:", "Name:"), the words that follow, in any case or order ("Doe, Jane", "jane
-        // doe"), up to a number or the end of the line: "Name: Jane Doe, 68F for lap chole" still reads the rest.
-        ("a name", NoteRx(#"\b(?:patient|pt|name|patient name|pt name)\s*:[ \t]*[A-Za-z][A-Za-z'’.-]*(?:,?[ \t]+[A-Za-z][A-Za-z'’.-]*){0,3}"#)),
+        // After a header ("Patient:", "Pt -", "Name —", or "Patient" alone before a capitalized word), the words that
+        // follow, in any case or order ("Doe, Jane", "jane doe"), up to a number or the end of the line; never when the
+        // next word is a stop word or a number ("Patient is a 68M", "Pt: 68M"). Past a comma only a capitalized name that
+        // ends the line ("Doe, Jane"): "Name: Jane Doe, 68F for lap chole" and "pt name John Smith, K 5.4" still read the
+        // rest. A hyphen needs a space beside it ("patient-controlled" is no header).
+        ("a name", NoteRx(#"\b(?:patient|pt|name|patient name|pt name)(?:\s*(?::|\s[-–—]+|[–—]+|-+\s)[ \t]*(?!"# + headerStop + #"\b)[A-Za-z]|[ \t]+(?!"# + headerStop + #"\b)(?-i:[A-Z][a-z]))[A-Za-z'’.-]*(?:[ \t]+[A-Za-z][A-Za-z'’.-]*){0,3}(?:,[ \t]*(?-i:[A-Z][a-z])[A-Za-z'’.-]*(?:[ \t]+(?-i:[A-Z][a-z])[A-Za-z'’.-]*)?(?=[ \t]*(?:$|[\n.;])))?"#)),
         ("a phone number", NoteRx(#"\b\d{3}[-. )]\s?\d{3}[-. ]\d{4}\b"#)),
     ]
 
