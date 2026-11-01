@@ -1,15 +1,26 @@
 import Foundation
 import Observation
 
-/// My Patient's record: one patient at a time, kept on this device only until the user clears it.
+/// My Patient's cases, one per room (PatientCases), each kept on this device only until it is cleared or ended.
+/// `record` and `update` are the current case's.
 ///
 /// The file sits in Application Support with complete file protection (unreadable while the phone is locked) and is
-/// excluded from iCloud and computer backups; nothing is sent anywhere. Clear removes the file and keeps the cleared
-/// record in memory, so Undo can bring it back until the next edit or until the app quits.
+/// excluded from iCloud and computer backups; nothing is sent anywhere. Clear empties the current case and keeps the
+/// cleared record in memory, so Undo can bring it back until the next edit, a change of case or until the app quits;
+/// the file is removed once nothing is left in it. Ending a case keeps a summary in the archive (PatientArchive).
 @MainActor
 @Observable
 final class PatientStore {
-    private(set) var record = PatientRecord()
+    /// Every case, and which one is current.
+    private(set) var book = PatientCaseBook()
+    /// The current case's record.
+    private(set) var record: PatientRecord {
+        get { book.currentRecord }
+        set { book.currentRecord = newValue }
+    }
+    /// Ended cases' summaries, and the saved rooms (hospital data), in their own protected files beside this one.
+    let archive: PatientArchive
+    let rooms: PatientRoomDirectory
     /// The record just cleared, for Undo.
     private(set) var cleared: PatientRecord?
     /// The record a patient from a colleague just replaced, for Undo.
@@ -24,12 +35,16 @@ final class PatientStore {
     init(url: URL? = PatientStore.defaultURL()) {
         self.url = url
         #if DEBUG
-        if let demo = PatientStore.debugSeed() {
-            record = demo
+        if let demo = PatientStore.debugCases() {
+            archive = PatientArchive(url: nil, entries: demo.archived)
+            rooms = PatientRoomDirectory(url: nil, rooms: demo.rooms)
+            book = demo.book
             loaded = true
             return
         }
         #endif
+        archive = PatientArchive(url: PatientStore.fileURL("archive.json", near: url))
+        rooms = PatientRoomDirectory(url: PatientStore.fileURL("rooms.json", near: url))
         reload()
     }
 
@@ -74,8 +89,8 @@ final class PatientStore {
         cleared = record
         replaced = nil
         record = PatientRecord()
-        dirty = false
-        if let url { try? FileManager.default.removeItem(at: url) }
+        dirty = true
+        write()
     }
 
     func undoClear() {
@@ -85,10 +100,24 @@ final class PatientStore {
         scheduleSave(immediately: true)
     }
 
-    /// Reads the file if it has not been read yet (call when the app becomes active), and writes pending edits.
+    /// Changes the cases (add, switch, room, end); written to disk shortly after. A change of case ends Undo.
+    func updateBook(immediately: Bool = false, _ change: (inout PatientCaseBook) -> Void) {
+        if !loaded { reload() }
+        var b = book
+        change(&b)
+        guard b != book else { return }
+        if b.currentID != book.currentID { cleared = nil; replaced = nil }
+        book = b
+        scheduleSave(immediately: immediately)
+    }
+
+    /// Reads the file if it has not been read yet (call when the app becomes active), writes pending edits, and
+    /// deletes archived summaries past their retention period.
     func refresh() {
         if !loaded { reload() }
         if dirty { scheduleSave(immediately: true) }
+        archive.prune()
+        rooms.refresh()
     }
 
     // MARK: Values the tools use
@@ -104,7 +133,7 @@ final class PatientStore {
         guard let url else { loaded = true; return }
         if !FileManager.default.fileExists(atPath: url.path) { loaded = true; return }
         guard let data = try? Data(contentsOf: url) else { return }   // locked: try again when active
-        if let r = try? JSONDecoder().decode(PatientRecord.self, from: data) { record = r }
+        if let b = PatientCaseBook.decode(data) { book = b }   // a 1.6 record becomes the first case
         loaded = true
     }
 
@@ -120,12 +149,12 @@ final class PatientStore {
 
     private func write() {
         guard let url else { dirty = false; return }
-        if record.isEmpty {
+        if book.isEmpty {
             try? FileManager.default.removeItem(at: url)
             dirty = false
             return
         }
-        guard let data = try? JSONEncoder().encode(record) else { return }
+        guard let data = try? book.encoded() else { return }
         do {
             try data.write(to: url, options: [.atomic, .completeFileProtection])
             var values = URLResourceValues()
@@ -157,6 +186,7 @@ final class PatientStore {
         switch LaunchSeed.string("ps.patient") {
         case "demo": return PatientDemo.record
         case "demo-cardiac": return PatientDemo.cardiac
+        case "demo-dnr": return PatientDemo.dnr
         default: return nil
         }
     }
@@ -216,7 +246,28 @@ enum PatientDemo {
         r.lhc = lhc
         r.currentAirway = "natural"
         r.oxygen = PatientOxygen(device: "ra")
+        // Intraoperative labs with the pneumoperitoneum, the considerations for the handoff and the code status.
+        r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["ph": 7.33, "paco2": 47, "pao2": 212, "hco3a": 24, "be": -1.5,
+                                                                              "lactate": 1.1, "hb": 11.6, "k": 4.1, "na": 139, "ica": 1.14, "glucose": 192])]
+        r.considerations = ["positioning"]
+        r.considerationsNote = "Steep Trendelenburg with arms tucked for 3 h; pressure points padded, eyes taped"
+        r.codeStatus = .full
         return r
+    }
+
+    /// The demo patient with DNR/DNI orders modified for the procedure, for the code-status screenshots.
+    static var dnr: PatientRecord {
+        var r = record
+        r.codeStatus = .dnrDni
+        r.polst = true
+        r.codeStatusPlan = .modified
+        r.codeStatusPlanNote = "Accepts intubation and vasopressors for the procedure; no chest compressions or defibrillation. Original orders resume on leaving the PACU"
+        return r
+    }
+
+    /// Today at this time on the device's clock.
+    static func today(_ hour: Int, _ minute: Int) -> Date? {
+        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date())
     }
 
     /// A made-up cardiac ICU patient on support, for the diagram screenshots.
@@ -243,6 +294,24 @@ enum PatientDemo {
                   "albumin": 2.9, "tbili": 2.4, "troponin": 4200, "troponin99": 14, "glucose": 188]
         r.labSections = ["cardiac", "liver"]
         r.dialysis = false
+        // The TEE screen: an earlier fundoplication (relative, from the surgical history), dysphagia answered on the
+        // checklist, and the platelets and INR offered to confirm.
+        r.surgeries = [PatientSurgery(name: "Laparoscopic Nissen fundoplication", procedureID: "nissen", date: PatientMonthYear(year: 2018))]
+        r.teeScreen.set("dysphagia", true)
+        r.teeScreen.set("stricture", false)
+        r.fluids = ["crystalloid": 1500, "prbc": 4, "plasma": 4, "platelets": 2, "cryo": 10, "cellSaver": 750, "ebl": 2200, "uop": 400]
+        r.factors = "PCC 1500 units"
+        r.intraopLabs = [
+            IntraopLabSet(time: PatientDemo.today(9, 15), values: ["ph": 7.35, "paco2": 40, "pao2": 245, "hco3a": 22, "be": -3, "lactate": 2.6,
+                                                                  "hb": 9.4, "k": 4.6, "na": 134, "ica": 1.12, "glucose": 176, "act": 132]),
+            IntraopLabSet(time: PatientDemo.today(13, 20), values: ["ph": 7.29, "paco2": 41, "pao2": 168, "hco3a": 19, "be": -6.5, "lactate": 4.2,
+                                                                   "hb": 7.9, "k": 5.4, "na": 133, "ica": 1.02, "glucose": 214,
+                                                                   "inr": 1.9, "ptt": 52, "fibrinogen": 142, "plt": 74, "act": 128],
+                          viscoelastic: "EXTEM CT 92 s, A10 34 mm; FIBTEM A10 6 mm"),
+        ]
+        r.considerations = ["pressors", "tee", "surgical"]
+        r.considerationsNote = "Epinephrine and norepinephrine rising after bypass; severe LV dysfunction on TEE; diffuse coagulopathy, chest may stay open"
+        r.codeStatus = .full
         return r
     }
 }

@@ -181,10 +181,10 @@ final class PatientNoteAirwayTests: XCTestCase {
         XCTAssertEqual(PatientNote.status(f, in: removed), .new, "a line taken out does not count")
     }
 
-    func testCodeStatusIsOnlyRecognized() {
+    func testCodeStatusIsRecognized() {
         XCTAssertEqual(MedAbbreviations.lookup("DNR")?.meanings.first?.text, "do not resuscitate")
         let r = read("DNR/DNI")
         XCTAssertTrue(r.unknown.isEmpty)
-        XCTAssertTrue(r.findings.isEmpty, "no field holds the code status yet")
+        XCTAssertEqual(r.findings.map(\.id), ["codeStatus"], "the code status field holds it (PatientNoteCodeStatusTests)")
     }
 }

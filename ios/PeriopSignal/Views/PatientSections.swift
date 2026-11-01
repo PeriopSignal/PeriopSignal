@@ -13,8 +13,10 @@ extension PatientEditorView {
         PatientGroup(title: "Planned procedures", note: noSide.isEmpty ? nil : "Pick the side for " + noSide.map { ProcedureCatalog.lowerFirst($0.title) }.joined(separator: ", ") + ".") {
             ForEach(r.procedures) { p in
                 PlannedProcedureRow(item: plannedBinding(p.id)) { patient.update { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
+                    .wobbleDelete($wobbling, label: p.title) { patient.update { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
                 Hairline().padding(.leading, 14)
             }
+            WobbleDoneBar(editing: $wobbling)
             ProcedureSearchField { items in patient.update { $0.setProcedures($0.procedures + items) } }
         }
         .onAppear(perform: readOldProcedureText)
@@ -107,6 +109,7 @@ extension PatientEditorView {
         case "rhc": rhcEditor
         case "anesthetic": anestheticEditor
         case "labs": labsEditor
+        case "tee": teeScreenEditor
         default: EmptyView()
         }
     }
@@ -115,7 +118,9 @@ extension PatientEditorView {
         PatientGroup(title: "Past surgical history", note: "Cardiac and thoracic operations also appear under Previous intrathoracic surgery in the cardiac evaluation.") {
             ForEach(r.surgeries) { s in
                 SurgeryRow(surgery: surgeryBinding(\.surgeries, s.id)) { patient.update { $0.surgeries.removeAll { $0.id == s.id } } }
+                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update { $0.surgeries.removeAll { $0.id == s.id } } }
             }
+            WobbleDoneBar(editing: $wobbling)
             addButton(r.surgeries.isEmpty ? "Add an operation" : "Add another operation") { patient.update { $0.surgeries.append(PatientSurgery()) } }
         }
     }
@@ -134,7 +139,9 @@ extension PatientEditorView {
         PatientGroup(title: "Previous intrathoracic surgery", note: "A previous sternotomy or thoracotomy matters for re-entry, adhesions, bleeding and lung isolation.") {
             ForEach(r.intrathoracic) { s in
                 SurgeryRow(surgery: surgeryBinding(\.intrathoracic, s.id), intrathoracicToggle: false) { patient.update { $0.intrathoracic.removeAll { $0.id == s.id } } }
+                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update { $0.intrathoracic.removeAll { $0.id == s.id } } }
             }
+            WobbleDoneBar(editing: $wobbling)
             addButton(r.intrathoracic.isEmpty ? "Add an operation" : "Add another operation") { patient.update { $0.intrathoracic.append(PatientSurgery(intrathoracic: true)) } }
         }
     }
@@ -151,7 +158,7 @@ extension PatientEditorView {
             }
             ECGQuickRow(ecg: bind(\.ecg))
             PatientTypeahead(label: "Add a finding", prompt: "Type: afib, LBBB, paced, Q waves…", options: PatientECG.findings.filter { !r.ecg.contains($0) }) { pick in
-                patient.update { if !$0.ecg.contains(pick) { $0.ecg.append(pick) } }
+                patient.update { $0.ecg = PatientECG.adding(pick, to: $0.ecg) }
             }
             PatientTextField(label: "Other", prompt: "Rate, axis, intervals, comparison", text: bind(\.ecgNotes))
         }
@@ -259,8 +266,10 @@ extension PatientEditorView {
         PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
             ForEach(r.homeInfusions) { inf in
                 InfusionRow(infusion: infusionBinding(\.homeInfusions, inf.id)) { patient.update { $0.homeInfusions.removeAll { $0.id == inf.id } } }
+                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update { $0.homeInfusions.removeAll { $0.id == inf.id } } }
                 Hairline().padding(.leading, 14)
             }
+            WobbleDoneBar(editing: $wobbling)
             addButton("Add an infusion") { patient.update { $0.homeInfusions.append(PatientInfusion()) } }
         }
     }
@@ -623,7 +632,7 @@ struct ECGQuickRow: View {
                 Haptics.light()
                 withAnimation(.snappy) {
                     if on { ecg.removeAll { $0 == PatientECG.nsr } }
-                    else { ecg.removeAll { PatientECG.rhythms.contains($0) }; ecg.insert(PatientECG.nsr, at: 0) }
+                    else { ecg = PatientECG.adding(PatientECG.nsr, to: ecg) }
                 }
             } label: {
                 Label("NSR", systemImage: on ? "checkmark" : "plus")

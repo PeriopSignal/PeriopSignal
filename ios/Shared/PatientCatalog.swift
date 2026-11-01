@@ -122,6 +122,8 @@ enum PatientCatalog {
             PatientProblem("gastroparesis", "Gastroparesis"),
             PatientProblem("hepatitis-active", "Active hepatitis", asa: 3, asaExample: "active hepatitis"),
             PatientProblem("cirrhosis", "Cirrhosis"),
+            // A relative contraindication to a TEE probe (Hahn RT, et al. J Am Soc Echocardiogr 2013, Table 6).
+            PatientProblem("varices", "Esophageal varices"),
         ]),
         PatientSystem(id: "endo", name: "Endocrine", icon: "flask", problems: [
             PatientProblem("dm", "Diabetes, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", peds: 2, pedsExample: "non-insulin-dependent diabetes mellitus"),

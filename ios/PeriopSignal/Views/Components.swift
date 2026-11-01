@@ -520,3 +520,25 @@ private extension URL {
         return comps.url ?? self
     }
 }
+
+/// A title and its choice buttons on one line when they fit, saving a row; the choices wrap under the title when
+/// they don't (long titles, many choices, large text sizes).
+struct InlineChoices<Title: View, Choices: View>: View {
+    var spacing: CGFloat = 8
+    @ViewBuilder var title: () -> Title
+    @ViewBuilder var choices: () -> Choices
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: 10) {
+                title().fixedSize()
+                Spacer(minLength: 8)
+                choices().fixedSize()
+            }
+            VStack(alignment: .leading, spacing: spacing) {
+                title()
+                choices()
+            }
+        }
+    }
+}

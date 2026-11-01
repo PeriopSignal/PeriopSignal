@@ -3,7 +3,8 @@ import SwiftUI
 /// The editors behind My Patient's cards.
 enum PatientEditor: Hashable {
     case details, procedure, demographics, history, system(String), medications, assessment, airway, intraop, plan
-    /// One part of the intraoperative record: "airway", "lines", "regional", "infusions", "fluids", "meds", "events", "echo".
+    /// One part of the intraoperative record: "airway", "lines", "regional", "infusions", "fluids", "labs", "meds", "events",
+    /// "echo", "considerations".
     case intraopPart(String)
     /// The cardiac evaluation's tests: "ecg", "echo" (preoperative), "lhc", "rhc"; and the surgical history.
     case workup(String)
@@ -48,13 +49,15 @@ enum PatientEditor: Hashable {
 
     static let intraopParts: [(id: String, title: String, icon: String)] = [
         ("airway", "Airway", "mouth"), ("lines", "Lines", "syringe"), ("regional", "Regional & Neuraxial", "figure.flexibility"),
-        ("infusions", "Infusions", "ivfluid.bag"), ("fluids", "Fluids & Blood", "drop"), ("meds", "Medications & Interventions", "pills"),
-        ("events", "Events", "exclamationmark.triangle"), ("echo", "Echo Findings", "waveform.path.ecg.rectangle"),
+        ("infusions", "Infusions", "ivfluid.bag"), ("fluids", "Fluids & Blood", "drop"), ("labs", "Labs", "testtube.2"),
+        ("meds", "Medications & Interventions", "pills"), ("events", "Events", "exclamationmark.triangle"),
+        ("echo", "Echo Findings", "waveform.path.ecg.rectangle"), ("considerations", "Major Considerations", "exclamationmark.bubble"),
     ]
     static let workups: [(id: String, title: String, icon: String)] = [
         ("surgeries", "Past Surgical History", "scissors"), ("ecg", "ECG", "waveform.path.ecg"), ("echo", "Echo Findings", "heart.text.square"),
         ("lhc", "Left Heart Catheterization", "heart"), ("rhc", "Right Heart Catheterization", "heart.circle"), ("intrathoracic", "Previous Intrathoracic Surgery", "lungs"),
         ("anesthetic", "Anesthetic Complications", "exclamationmark.shield"), ("labs", "Labs", "testtube.2"),
+        ("tee", "TEE Screen", "exclamationmark.triangle"),
     ]
 }
 
@@ -63,6 +66,8 @@ struct PatientEditorView: View {
     @Environment(ReferenceStore.self) var refs
     var editor: PatientEditor
     var onOpenRoute: (String) -> Void
+    /// Home Screen–style editing of this page's lists (procedures, operations, infusions): long-press to wobble.
+    @State var wobbling = false
 
     var r: PatientRecord { patient.record }
 
@@ -110,6 +115,12 @@ struct PatientEditorView: View {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("Done") { Keyboard.dismiss() }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                if wobbling {
+                    Button("Done") { Haptics.light(); withAnimation(.snappy) { wobbling = false } }
+                        .fontWeight(.semibold)
+                }
             }
         }
     }
@@ -385,6 +396,7 @@ struct PatientEditorView: View {
                     .padding(.horizontal, 14).padding(.bottom, 10)
             }
         }
+        PatientCodeStatusGroup()
         PatientGroup(title: "Functional capacity", note: PatientFunctional.metsNote) {
             PatientChipRow(label: nil) {
                 PatientChoice(options: [(id: "ge4", label: "4 METs or more"), (id: "lt4", label: "Under 4 METs"), (id: "unknown", label: "Unknown")], selection: bind(\.mets))
@@ -427,6 +439,8 @@ struct PatientEditorView: View {
             Hairline().padding(.leading, 50)
             linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
             Hairline().padding(.leading, 50)
+            teeLinkRow
+            Hairline().padding(.leading, 50)
             linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
             Hairline().padding(.leading, 50)
             linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
@@ -457,7 +471,7 @@ struct PatientEditorView: View {
         }
         .id("cardiac")
         PatientGroup(title: "Risk scores & checks") {
-            let prompts = PatientRules.prompts(r)
+            let prompts = PatientRules.prompts(r) + PatientTEE.prompts(r)
             ForEach(Array(prompts.enumerated()), id: \.element.id) { i, p in
                 Button { onOpenRoute(p.route) } label: {
                     HStack(spacing: 12) {
@@ -573,6 +587,8 @@ struct PatientEditorView: View {
         case "meds": intraopMeds
         case "events": intraopEvents
         case "echo": intraopEcho
+        case "labs": IntraopLabsEditor()
+        case "considerations": IntraopConsiderationsEditor()
         default: EmptyView()
         }
     }
@@ -688,8 +704,10 @@ struct PatientEditorView: View {
         PatientGroup(title: "Infusions") {
             ForEach(r.infusions) { inf in
                 infusionEditor(inf)
+                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update { $0.infusions.removeAll { $0.id == inf.id } } }
                 Hairline().padding(.leading, 14)
             }
+            WobbleDoneBar(editing: $wobbling)
             Button { patient.update { $0.infusions.append(PatientInfusion()) } } label: { Label("Add infusion", systemImage: "plus.circle") }
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
@@ -697,10 +715,13 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopFluids: some View {
-        PatientGroup(title: "Fluids & blood") {
-            ForEach(Array(PatientCatalog.fluids.enumerated()), id: \.element.id) { i, fl in
+        // Blood products have their own + and − (PatientIntraopExtras); the rest are typed.
+        BloodProductsGroup()
+        let typed = PatientCatalog.fluids.filter { !BloodProducts.ids.contains($0.id) }
+        PatientGroup(title: "Fluids & output") {
+            ForEach(Array(typed.enumerated()), id: \.element.id) { i, fl in
                 PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id))
-                if i < PatientCatalog.fluids.count - 1 { Hairline().padding(.leading, 14) }
+                if i < typed.count - 1 { Hairline().padding(.leading, 14) }
             }
             PatientTextField(label: "Factor concentrates & other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors))
         }
@@ -742,6 +763,8 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopEcho: some View {
+        // The probe's safety first: one tap to the TEE screen from where the TEE is recorded.
+        PatientGroup(title: nil) { teeLinkRow }
         EchoFindingsEditor(echo: bind(\.intraopEcho))
         PatientGroup(title: "Echo summary") {
             PatientChipRow(label: "Add a finding") {

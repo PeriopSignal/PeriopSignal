@@ -201,10 +201,19 @@ struct PatientChipRow<Content: View>: View {
     var label: String?
     @ViewBuilder var content: () -> Content
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let label { Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2) }
-            content()
+        Group {
+            if let label {
+                // On the title's line when the choices fit there.
+                InlineChoices {
+                    Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+                } choices: {
+                    content()
+                }
+            } else {
+                content()
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14).padding(.vertical, 10)
     }
 }
@@ -271,5 +280,76 @@ struct MallampatiDrawing: View {
         }
         .aspectRatio(1, contentMode: .fit)
         .accessibilityLabel("Mallampati class \(PatientRules.roman(mclass)): \(PatientAirway.mallampati(mclass))")
+    }
+}
+
+// MARK: - Wobble to delete (like editing the Home Screen)
+
+/// Long-press an item to make the whole list wobble; each item shows a red minus badge, and a tap on it deletes the
+/// item. Done (or the editor's own Done) stops the wobble. The binding is shared by the items of one list, so they
+/// wobble together.
+struct WobbleDelete: ViewModifier {
+    @Binding var editing: Bool
+    var label: String
+    /// Degrees each way: small for wide rows, larger for chips and markers.
+    var angle: Double = 0.9
+    var onDelete: () -> Void
+    @State private var phase = false
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .topLeading) {
+                if editing {
+                    Button {
+                        Haptics.light()
+                        withAnimation(.snappy) { onDelete() }
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.system(size: 22, weight: .bold))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, PS.red)
+                            .frame(width: 36, height: 36)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .offset(x: -8, y: -8)
+                    .transition(.scale.combined(with: .opacity))
+                    .accessibilityLabel("Delete \(label)")
+                }
+            }
+            .rotationEffect(.degrees(editing ? (phase ? angle : -angle) : 0))
+            .animation(editing ? .easeInOut(duration: 0.12).repeatForever(autoreverses: true) : .snappy, value: phase)
+            .onChange(of: editing) { _, on in phase = on }
+            .onAppear { if editing { phase = true } }
+            .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                guard !editing else { return }
+                Haptics.light()
+                withAnimation(.snappy) { editing = true }
+            })
+            .accessibilityAction(named: "Delete") { onDelete() }
+    }
+}
+
+extension View {
+    /// Home Screen–style editing: long-press to wobble, tap the minus badge to delete.
+    func wobbleDelete(_ editing: Binding<Bool>, label: String, angle: Double = 0.9, onDelete: @escaping () -> Void) -> some View {
+        modifier(WobbleDelete(editing: editing, label: label, angle: angle, onDelete: onDelete))
+    }
+}
+
+/// The bar shown while a list wobbles: what to do, and Done.
+struct WobbleDoneBar: View {
+    @Binding var editing: Bool
+    var body: some View {
+        if editing {
+            HStack {
+                Text("Tap − to delete").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
+                Spacer()
+                Button("Done") { Haptics.light(); withAnimation(.snappy) { editing = false } }
+                    .buttonStyle(CapsuleButtonStyle())
+            }
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .transition(.opacity)
+        }
     }
 }

@@ -158,20 +158,17 @@ struct ValveInterventionView: View {
             Eyebrow(text: "What is known").padding(.leading, 2)
             VStack(spacing: 0) {
                 ForEach(Array(questions.enumerated()), id: \.element.id) { i, q in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Circle().fill(needed.contains(q.id) ? PS.accent2 : Color.clear).frame(width: 6, height: 6)
-                                .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] + 3 }
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(q.label).font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                                if let h = q.hint { Text(h).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
-                            }
+                    // The options on the question's line when they fit, otherwise under it.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .center, spacing: 8) {
+                            questionLabel(q, needed: needed).fixedSize()
+                            Spacer(minLength: 8)
+                            options(q).fixedSize()
                         }
-                        OptionRow(options: q.options, selected: answers[q.id]) { choice in
-                            Haptics.light()
-                            withAnimation(.snappy) { answers[q.id] = answers[q.id] == choice ? nil : choice }
+                        VStack(alignment: .leading, spacing: 8) {
+                            questionLabel(q, needed: needed)
+                            options(q).padding(.leading, 14)
                         }
-                        .padding(.leading, 14)
                     }
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     if i < questions.count - 1 { Hairline().padding(.leading, 14) }
@@ -200,6 +197,26 @@ struct ValveInterventionView: View {
 }
 
 /// One question's answers as a row of pills (wrapping when they do not fit); tap again to clear.
+extension ValveInterventionView {
+    func questionLabel(_ q: VIQuestion, needed: Set<String>) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Circle().fill(needed.contains(q.id) ? PS.accent2 : Color.clear).frame(width: 6, height: 6)
+                .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] + 3 }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(q.label).font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                if let h = q.hint { Text(h).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+            }
+        }
+    }
+
+    func options(_ q: VIQuestion) -> some View {
+        OptionRow(options: q.options, selected: answers[q.id]) { choice in
+            Haptics.light()
+            withAnimation(.snappy) { answers[q.id] = answers[q.id] == choice ? nil : choice }
+        }
+    }
+}
+
 struct OptionRow: View {
     var options: [String]
     var selected: String?

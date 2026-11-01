@@ -178,7 +178,67 @@ enum PatientDiagramModel {
             }
             cartInfo = DiagramCart(at: cart, title: title, detail: [flow, sweep].filter { !$0.isEmpty }.joined(separator: " · "))
         }
+        fanOut(&out)
+        layoutLabels(&out, cart: cartInfo?.at)
         return (out, cartInfo)
+    }
+
+    // MARK: Layout: lines side by side, labels in columns
+
+    /// The points inside the chest that several lines run to (the SVC, IVC, heart chambers, PA and aorta).
+    private static let hubs: [CGPoint] = [svc, ivc, ra, rv, pa, descendingAorta, lv]
+
+    /// Lines that run to the same vessels are spread side by side, 2.6 figure units apart, so each stays visible
+    /// instead of drawing over the others; the insertion points stay where they are.
+    static func fanOut(_ items: inout [DiagramItem]) {
+        func isHub(_ p: CGPoint) -> Bool { hubs.contains { abs($0.x - p.x) < 0.5 && abs($0.y - p.y) < 0.5 } }
+        let central = items.indices.filter { i in items[i].course.contains(where: isHub) }
+        guard central.count > 1 else { return }
+        // Stable order: from the patient's right to left by insertion point, then by id.
+        let order = central.sorted { (items[$0].anchor.x, items[$0].id) < (items[$1].anchor.x, items[$1].id) }
+        let n = CGFloat(order.count)
+        for (slot, i) in order.enumerated() {
+            let dx = (CGFloat(slot) - (n - 1) / 2) * 2.6
+            items[i].course = items[i].course.map { isHub($0) ? CGPoint(x: $0.x + dx, y: $0.y) : $0 }
+            if let pump = items[i].pumpAt { items[i].pumpAt = CGPoint(x: pump.x + dx, y: pump.y) }
+        }
+    }
+
+    /// Every label goes in a column beside the figure on its side, at the height of its insertion point, then the
+    /// labels in each column are pushed apart so none overlap (and kept clear of the ECMO cart); a leader line joins
+    /// each label to its line.
+    static func layoutLabels(_ items: inout [DiagramItem], cart: CGPoint?) {
+        let gap: CGFloat = 8.5
+        let top: CGFloat = 6, bottom: CGFloat = 414
+        for left in [true, false] {
+            let idx = items.indices.filter { !items[$0].label.isEmpty && items[$0].labelLeft == left }
+                .sorted { (items[$0].anchor.y, items[$0].anchor.x) < (items[$1].anchor.y, items[$1].anchor.x) }
+            guard !idx.isEmpty else { continue }
+            // The cart blocks part of the right column.
+            let blocked: ClosedRange<CGFloat>? = (!left && cart != nil) ? (cart!.y - 17)...(cart!.y + 17) : nil
+            var ys: [CGFloat] = []
+            for i in idx {
+                var y = max(items[i].anchor.y, (ys.last.map { $0 + gap }) ?? top)
+                if let b = blocked, b.contains(y) { y = b.upperBound + gap / 2 }
+                ys.append(y)
+            }
+            // Pull back up from the bottom if the column ran past the figure.
+            if var last = ys.last, last > bottom {
+                last = bottom
+                ys[ys.count - 1] = last
+                for j in stride(from: ys.count - 2, through: 0, by: -1) {
+                    var y = min(ys[j], ys[j + 1] - gap)
+                    if let b = blocked, b.contains(y) { y = b.lowerBound - gap / 2 }
+                    ys[j] = max(top, y)
+                }
+            }
+            for (j, i) in idx.enumerated() {
+                items[i].labelAt = CGPoint(x: left ? -2 : 202, y: ys[j])
+                items[i].labelDY = 0
+                // Short enough for the column.
+                if items[i].label.count > 15 { items[i].label = String(items[i].label.prefix(14)) + "…" }
+            }
+        }
     }
 
     private static func trachLabel(_ r: PatientRecord) -> String {
@@ -245,7 +305,7 @@ struct PatientDevicesEditor: View {
                 let m = PatientDiagramModel.items(r, phase: phase == .preop ? .preop : .all)
                 VStack(spacing: 6) {
                     HStack(spacing: 8) {
-                        Text(editing ? "Drag to move · × to delete" : "Tap to add · hold an item to drag it, or let go for Delete")
+                        Text(editing ? "Drag to move · tap × or − to delete" : "Tap to add · hold an item to drag it, or let go for Delete")
                             .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: 4)
@@ -496,7 +556,7 @@ struct PatientDevicesEditor: View {
     }
 
     private func deviceRow(_ d: PatientDevice, caption: String? = nil) -> some View {
-        Button { editingID = d.id } label: {
+        Button { if !editing { editingID = d.id } } label: {
             HStack(spacing: 10) {
                 Circle().fill(PatientDiagramModel.color(d.colorRole)).frame(width: 9, height: 9)
                 VStack(alignment: .leading, spacing: 1) {
@@ -510,6 +570,7 @@ struct PatientDevicesEditor: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .wobbleDelete($editing, label: d.label) { delete(d.id.uuidString) }
     }
 
     // MARK: List
@@ -518,7 +579,7 @@ struct PatientDevicesEditor: View {
         if !shown.isEmpty || !r.regional.isEmpty || r.currentAirwayText != nil {
             PatientGroup(title: phase == .preop ? "On arrival" : "Lines & devices") {
                 ForEach(shown) { d in
-                    Button { editingID = d.id } label: {
+                    Button { if !editing { editingID = d.id } } label: {
                         HStack(spacing: 10) {
                             Circle().fill(PatientDiagramModel.color(d.colorRole)).frame(width: 9, height: 9)
                             VStack(alignment: .leading, spacing: 1) {
@@ -533,10 +594,7 @@ struct PatientDevicesEditor: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .contextMenu {
-                        Button { editingID = d.id } label: { Label("Details", systemImage: "slider.horizontal.3") }
-                        Button(role: .destructive) { delete(d.id.uuidString) } label: { Label("Delete", systemImage: "trash") }
-                    }
+                    .wobbleDelete($editing, label: d.label) { delete(d.id.uuidString) }
                     Hairline().padding(.leading, 33)
                 }
                 if !r.regional.isEmpty {
@@ -700,32 +758,66 @@ struct DeviceFieldRow: View {
     @Binding var value: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(field.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
-                Spacer()
-                TextField(field.unit.isEmpty ? "—" : field.unit, text: $value)
-                    .keyboardType(field.numeric ? .decimalPad : .default)
-                    .multilineTextAlignment(.trailing)
-                    .font(PS.sys(size: 15, design: field.numeric ? .monospaced : .default))
-                    .frame(maxWidth: 170)
-                if field.numeric && !field.unit.isEmpty {
-                    Text(field.unit).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+        Group {
+            if field.choices.isEmpty {
+                HStack {
+                    title
+                    Spacer()
+                    entry(maxWidth: 170)
                 }
-            }
-            if !field.choices.isEmpty {
-                WrapLayout(spacing: 6) {
-                    ForEach(field.choices, id: \.self) { c in
-                        Button(c) { value = c }
-                            .font(PS.sys(size: 12.5, weight: .semibold))
-                            .foregroundStyle(value == c ? PS.accentFg : PS.fg2)
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(value == c ? PS.accent : PS.surface2, in: Capsule())
-                            .buttonStyle(.plain)
+            } else {
+                // The choices on the title's line when they fit (with a small box for another value); otherwise
+                // under it.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) {
+                        title.fixedSize()
+                        Spacer(minLength: 6)
+                        HStack(spacing: 6) { chips }.fixedSize()
+                        // A box for another value: always for numbers, and for text only when it holds one.
+                        if field.numeric || (!value.isEmpty && !field.choices.contains(value)) {
+                            entry(maxWidth: 58).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            title
+                            Spacer()
+                            entry(maxWidth: 170)
+                        }
+                        WrapLayout(spacing: 6) { chips }
                     }
                 }
             }
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
+    }
+
+    private var title: some View {
+        Text(field.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+    }
+
+    @ViewBuilder private func entry(maxWidth: CGFloat) -> some View {
+        HStack(spacing: 4) {
+            TextField(field.unit.isEmpty ? "—" : field.unit, text: $value)
+                .keyboardType(field.numeric ? .decimalPad : .default)
+                .multilineTextAlignment(.trailing)
+                .font(PS.sys(size: 15, design: field.numeric ? .monospaced : .default))
+                .frame(width: maxWidth < 100 ? maxWidth : nil)
+                .frame(maxWidth: maxWidth)
+            if field.numeric && !field.unit.isEmpty {
+                Text(field.unit).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+            }
+        }
+    }
+
+    @ViewBuilder private var chips: some View {
+        ForEach(field.choices, id: \.self) { c in
+            Button(c) { value = value == c ? "" : c }
+                .font(PS.sys(size: 12.5, weight: .semibold))
+                .foregroundStyle(value == c ? PS.accentFg : PS.fg2)
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(value == c ? PS.accent : PS.surface2, in: Capsule())
+                .buttonStyle(.plain)
+        }
     }
 }
