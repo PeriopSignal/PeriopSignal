@@ -52,19 +52,27 @@ struct PatientRoomsBar: View {
 
     // MARK: Cases
 
+    /// The cases, then Add another case: written out beside a single case, a + kept in view once there are more.
     private var caseStrip: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(patient.cases) { c in caseTab(c).id(c.id) }
-                    addButton
+        let single = patient.cases.count == 1
+        return HStack(spacing: 8) {
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(patient.cases) { c in caseTab(c).id(c.id) }
+                        if single { addButton(wide: true) }
+                    }
+                    .padding(1)
                 }
-                .padding(.vertical, 1)
+                .onAppear {
+                    let id = current.id
+                    DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
+                }
+                .onChange(of: patient.currentCase.id) { _, id in
+                    withAnimation(.snappy) { proxy.scrollTo(id, anchor: .center) }
+                }
             }
-            .scrollClipDisabled()
-            .onChange(of: patient.currentCase.id) { _, id in
-                withAnimation(.snappy) { proxy.scrollTo(id, anchor: .center) }
-            }
+            if !single { addButton(wide: false) }
         }
     }
 
@@ -87,7 +95,7 @@ struct PatientRoomsBar: View {
                     .foregroundStyle(PS.fg3)
             }
             .lineLimit(1)
-            .frame(minWidth: 58, maxWidth: 148, alignment: .leading)
+            .frame(minWidth: 58, maxWidth: 120, alignment: .leading)
             .padding(.horizontal, 11).padding(.vertical, 7)
             .background(on ? PS.accent2.opacity(0.16) : PS.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(on ? PS.accent2 : Color.clear, lineWidth: 1.5))
@@ -98,7 +106,7 @@ struct PatientRoomsBar: View {
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 
-    private var addButton: some View {
+    private func addButton(wide: Bool) -> some View {
         Button {
             Haptics.light()
             withAnimation(.snappy) {
@@ -107,17 +115,24 @@ struct PatientRoomsBar: View {
             }
             editingRoom = true
         } label: {
-            Label("Add another case", systemImage: "plus")
-                .font(PS.sys(size: 13.5, weight: .semibold))
-                .foregroundStyle(PS.accent2)
-                .lineLimit(1)
-                .padding(.horizontal, 12).padding(.vertical, 14)
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
-                .contentShape(Rectangle())
+            Group {
+                if wide {
+                    Label("Add another case", systemImage: "plus").padding(.horizontal, 12)
+                } else {
+                    Image(systemName: "plus").frame(width: 42)
+                }
+            }
+            .font(PS.sys(size: 13.5, weight: .semibold))
+            .foregroundStyle(PS.accent2)
+            .lineLimit(1)
+            .padding(.vertical, 14)
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!patient.canAddCase)
         .opacity(patient.canAddCase ? 1 : 0.4)
+        .accessibilityLabel("Add another case")
     }
 
     // MARK: The current room
@@ -223,8 +238,9 @@ struct PatientRoomsBar: View {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
-        // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
-        try? await Task.sleep(nanoseconds: 800_000_000)
+        // A sheet asked for before the tab is on screen can be dropped, so wait until it has settled.
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        guard !Task.isCancelled else { return }
         switch o {
         case "room": editingRoom = true
         case "archive": showArchive = true
