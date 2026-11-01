@@ -768,14 +768,14 @@ struct PatientJumpID: Hashable {
 }
 
 extension View {
-    /// A card the jump bar scrolls to. The scroll target is a marker laid out a pinned bar's height above the card
-    /// (an alignment guide, so the card's own layout is unchanged), so the card lands just under the pinned jump bar
-    /// rather than behind it.
+    /// A card the jump bar scrolls to. The scroll target is a marker laid out above the card (an alignment guide, so
+    /// the card's own layout is unchanged): scrolling aligns it with the top of the safe area, under the navigation
+    /// bar, so 110 pt clears the inline title and the pinned jump bar and the card lands just under them.
     func jumpTarget(_ editor: PatientEditor) -> some View {
         background(alignment: .top) {
             Color.clear
                 .frame(height: 1)
-                .alignmentGuide(.top) { d in d[.top] + 56 }
+                .alignmentGuide(.top) { d in d[.top] + 110 }
                 .id(PatientJumpID(editor))
         }
     }

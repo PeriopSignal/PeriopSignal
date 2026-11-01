@@ -243,9 +243,9 @@ jobs:
           shot 93-patient-intraop-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab intraop
           shot 94-patient-summary-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab summary
           shot 95-patient-procedure 12 -ps.tab patient -ps.patient demo -ps.patient.open procedure
-          shot 96-patient-demographics 12 -ps.tab patient -ps.patient demo -ps.patient.open demographics
+          shot 96-patient-demographics 16 -ps.tab patient -ps.patient demo -ps.patient.open demographics
           shot 97-patient-history 12 -ps.tab patient -ps.patient demo -ps.patient.open history
-          shot 98-patient-echo 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
+          shot 98-patient-echo 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
           shot 99-patient-lhc 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc
           shot 100-patient-surgeries 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries
           shot 101-patient-events 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events
