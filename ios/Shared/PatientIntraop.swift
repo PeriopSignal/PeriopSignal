@@ -99,11 +99,12 @@ enum IntraopLabs {
     static func line(_ s: IntraopLabSet, sex: PatientSex?, now: Date = Date(), abnormalOnly: Bool = false) -> PatientSummary.Line? {
         let vals = values(s, sex: sex)
         // Values with no range to judge them by (base excess, ACT) are listed rather than counted as unflagged.
-        let flagged = vals.filter { $0.flag.isAbnormal || !$0.rated }
-        var parts = (abnormalOnly ? flagged : vals).map(\.compact)
-        if abnormalOnly && vals.count > flagged.count {
-            let n = vals.count - flagged.count
-            parts.append(flagged.isEmpty ? "\(n) value\(n == 1 ? "" : "s"), none flagged" : "\(n) more not flagged")
+        let flagged = vals.filter { $0.flag.isAbnormal }
+        let listed = vals.filter { $0.flag.isAbnormal || !$0.rated }
+        var parts = (abnormalOnly ? listed : vals).map(\.compact)
+        if abnormalOnly && vals.count > listed.count {
+            let n = vals.count - listed.count
+            parts.append(listed.isEmpty ? "\(n) value\(n == 1 ? "" : "s"), none flagged" : "\(n) more not flagged")
         }
         let ve = s.viscoelastic.trimmingCharacters(in: .whitespacesAndNewlines)
         if !ve.isEmpty { parts.append("ROTEM/TEG: " + ve) }
