@@ -295,6 +295,16 @@ jobs:
           shot 177-patient-labs-keyboard 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:labs -ps.patient.focus main.k
           shot 178-patient-undo-tab 14 -ps.tab patient -ps.patient demo -ps.patient.edit exam
           shot 179-patient-shield 16 -ps.tab patient -ps.patient demo -ps.patient.shield 1
+          shot 190-x-room-base 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.forceAppearance light
+          shot 191-x-room-nopin 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.forceAppearance light -ps.debug.nopin 1
+          shot 192-x-room-noshield 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.forceAppearance light -ps.debug.noshield 1
+          shot 193-x-room-neither 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.forceAppearance light -ps.debug.nopin 1 -ps.debug.noshield 1
+          shot 194-x-room-tick 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.forceAppearance light -ps.debug.tick 1
+          shot 195-x-receive-base 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.forceAppearance light
+          shot 196-x-receive-neither 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.forceAppearance light -ps.debug.nopin 1 -ps.debug.noshield 1
+          shot 197-x-room-dark 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.forceAppearance dark
+          shot 198-x-endcase-base 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open end-case -ps.forceAppearance light
+          shot 199-x-receive-tick 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive -ps.forceAppearance light -ps.debug.tick 1
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
