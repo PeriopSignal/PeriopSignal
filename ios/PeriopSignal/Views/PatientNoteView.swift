@@ -41,6 +41,8 @@ struct NoIdentifiersBanner: View {
 struct PatientNoteSheet: View {
     @Environment(PatientStore.self) private var patient
     @Environment(\.dismiss) private var dismiss
+    /// Text to read on open (a long paste into the quick-add bar).
+    var initialText = ""
     /// After adding: how many items, and the record as it was (for Undo).
     var onAdded: (Int, PatientRecord) -> Void
 
@@ -84,7 +86,15 @@ struct PatientNoteSheet: View {
                 }
             }
         }
-        .task { seedForScreenshot() }
+        .task {
+            seedForScreenshot()
+            // A long paste into the quick-add bar arrives here, read at once.
+            let seed = initialText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !seed.isEmpty, text.isEmpty, reading == nil {
+                text = initialText
+                if QuickAdd.isLong(seed) { read() }
+            }
+        }
     }
 
     // MARK: Writing the note

@@ -43,6 +43,15 @@ enum PatientNoteChange: Hashable {
     case otherHistory(String)
     /// Code status, a POLST on file and the perioperative plan (PatientCodeStatus); nil where the note did not say.
     case codeStatus(CodeStatus?, polst: Bool, plan: CodeStatusPlan?)
+    // From the quick-add bar's Intraoperative tab (QuickAdd):
+    /// Intraoperative lab values: they join the set with the same id, or start it.
+    case intraopLabs(IntraopLabSet)
+    /// Blood products given, added to the case's total (BloodProducts' keys in PatientRecord.fluids; units, cell saver in mL).
+    case blood(String, Double)
+    /// An infusion running during the case (PatientRecord.infusions), as `infusion` is one running before it.
+    case intraopInfusion(String, String)
+    /// One field of the intraoperative airway course, by QuickAdd.airwayFields' name, and its value.
+    case intraopAirway(String, String)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -1155,7 +1164,7 @@ enum PatientNote {
 
     // MARK: Identifiers
 
-    private static let identifierRules: [(String, NoteRx)] = [
+    static let identifierRules: [(String, NoteRx)] = [
         ("a record number", NoteRx(#"\b(?:mrn|medical record|record (?:no|number|#)|patient id|acct|account (?:no|number)|nhs (?:no|number)|ssn|social security)\b|\b\d{7,}\b"#)),
         ("a date", NoteRx(#"\b(?:dob|d\.o\.b|date of birth|born on)\b|\b\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}\b"#)),
         ("a name", NoteRx(#"\b(?:Mr|Mrs|Ms|Miss|Mx)\.?\s+[A-Z][a-z]+"#, caseSensitive: true)),
@@ -1700,6 +1709,22 @@ enum PatientNote {
             return mentions(r.otherHistory, t) ? .recorded : .new
         case .codeStatus(let s, let polst, let plan):
             return PatientCodeStatus.status(s, polst: polst, plan: plan, in: r)
+        case .intraopLabs(let set):
+            guard let o = r.intraopLabs.first(where: { $0.id == set.id }) else { return .new }
+            let changed = set.values.keys.sorted().filter { k in o.values[k].map { !same($0, set.values[k] ?? $0) } ?? false }
+            if !changed.isEmpty {
+                return .replaces(changed.compactMap { k in o.values[k].map { (PatientLabs.test(k)?.short ?? k) + " " + NumText.short($0) } }.joined(separator: ", "))
+            }
+            return set.values.keys.allSatisfy { o.values[$0] != nil } ? .recorded : .new
+        case .blood:
+            return .new
+        case .intraopInfusion(let drug, let rate):
+            guard let o = r.infusions.first(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) else { return .new }
+            if rate.isEmpty || o.rate.caseInsensitiveCompare(rate) == .orderedSame { return .recorded }
+            return o.rate.isEmpty ? .new : .replaces(o.rate)
+        case .intraopAirway(let key, let value):
+            guard let o = r.intraopAirway(key) else { return .new }
+            return o.caseInsensitiveCompare(value) == .orderedSame ? .recorded : .replaces(o)
         }
     }
 
@@ -1770,6 +1795,20 @@ enum PatientNote {
                 r.devices += add
             case .otherHistory(let t): r.otherHistory = joined(r.otherHistory, t)
             case .codeStatus(let s, let polst, let plan): PatientCodeStatus.apply(s, polst: polst, plan: plan, to: &r)
+            case .intraopLabs(let set):
+                if let i = r.intraopLabs.firstIndex(where: { $0.id == set.id }) {
+                    for (k, v) in set.values { r.intraopLabs[i].values[k] = v }
+                } else {
+                    r.intraopLabs.append(set)
+                }
+            case .blood(let k, let n): r.fluids[k] = (r.fluids[k] ?? 0) + n
+            case .intraopInfusion(let drug, let rate):
+                if let i = r.infusions.firstIndex(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) {
+                    if !rate.isEmpty { r.infusions[i].rate = rate }
+                } else {
+                    r.infusions.append(PatientInfusion(drug: drug.prefix(1).uppercased() + drug.dropFirst(), rate: rate))
+                }
+            case .intraopAirway(let key, let value): r.setIntraopAirway(key, value)
             }
         }
     }
