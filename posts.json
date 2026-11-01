@@ -47,6 +47,12 @@
     ],
     "answer": 0,
     "explanation": "Heart failure rehospitalization fell from 21.3% to 3.7% (HR 0.16), driving the composite (8.3% vs 24.8%). Bleeding went the other way: major or life-threatening bleeding was more common after TAVR. Caveat: an open-label trial of one valve in one country, with 1-year follow-up only."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circ-2026-season-ar-tavr-pure-ar.mp3",
+    "seconds": 191,
+    "bytes": 1530093,
+    "voice": "kokoro:af_heart"
    }
   },
   {
