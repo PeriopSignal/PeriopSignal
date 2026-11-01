@@ -76,7 +76,7 @@ struct PatientDiagramCanvas: View {
     var onHold: ((String) -> Void)? = nil
 
     /// Figure units of margin on each side for labels and the cart.
-    static let margin: CGFloat = 38
+    static let margin: CGFloat = 48
     @State private var drag: (id: String, by: CGSize)?
     @State private var wiggle = false
     /// The item being held: it lifts (larger, ringed) until let go.

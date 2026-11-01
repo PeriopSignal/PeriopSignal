@@ -235,6 +235,8 @@ enum PatientDiagramModel {
             for (j, i) in idx.enumerated() {
                 items[i].labelAt = CGPoint(x: left ? -2 : 202, y: ys[j])
                 items[i].labelDY = 0
+                // Short enough for the column.
+                if items[i].label.count > 15 { items[i].label = String(items[i].label.prefix(14)) + "…" }
             }
         }
     }
@@ -771,7 +773,10 @@ struct DeviceFieldRow: View {
                         title.fixedSize()
                         Spacer(minLength: 6)
                         HStack(spacing: 6) { chips }.fixedSize()
-                        entry(maxWidth: 58).fixedSize(horizontal: false, vertical: true)
+                        // A box for another value: always for numbers, and for text only when it holds one.
+                        if field.numeric || (!value.isEmpty && !field.choices.contains(value)) {
+                            entry(maxWidth: 58).fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {

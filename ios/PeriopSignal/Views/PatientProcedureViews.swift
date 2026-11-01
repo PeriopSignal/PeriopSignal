@@ -31,7 +31,7 @@ struct PlannedProcedureRow: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove \(item.title)")
             }
-            if item.catalog?.lateral == true {
+            if item.catalog?.lateral == true || (item.catalogID == nil && item.side != nil) {
                 if item.needsSide {
                     Label("Which side?", systemImage: "exclamationmark.circle.fill")
                         .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.red)

@@ -241,11 +241,17 @@ struct PatientSurgery: Codable, Hashable, Identifiable {
         procedures = items ?? PatientSurgery.migrated(name: name, procedureID: procedureID, side: side)
     }
 
-    /// A save from before 1.7: its one name becomes one procedure.
+    /// A save from before 1.7: its one name becomes one procedure, linked to the procedure list when the name is that
+    /// procedure's own name ("Total knee arthroplasty"), keeping its side; any other wording stays as typed.
     private static func migrated(name: String, procedureID: String?, side: String?) -> [PlannedProcedure] {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !n.isEmpty else { return [] }
-        return [PlannedProcedure(catalogID: procedureID.flatMap { ProcedureCatalog.byID($0) == nil ? nil : $0 }, name: n, side: side)]
+        if let id = procedureID, ProcedureCatalog.byID(id) != nil { return [PlannedProcedure(catalogID: id, name: n, side: side)] }
+        let read = PlannedProcedure.parse(n)
+        if read.count == 1, let p = read[0].catalog, read[0].detail.isEmpty, p.name.caseInsensitiveCompare(n) == .orderedSame {
+            return [PlannedProcedure(p, side: side ?? read[0].side)]
+        }
+        return [PlannedProcedure(name: n, side: side)]
     }
 
     /// Replaces the procedures, keeps the older fields in step, and marks the operation cardiac or thoracic when a
