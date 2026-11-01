@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Quick add: one line at the top of the Preoperative and Intraoperative tabs, typed or pasted the way you'd present
 /// the patient ("68M for lap chole, HTN DM2 on insulin, K 5.4"). As you type, chips show what was read and where each
-/// piece goes; tap one to leave it out. Return or Add files the rest (QuickAdd, then PatientNote.apply), and Undo puts
-/// the record back exactly as it was. A long paste opens the full note review instead, and the pencil opens it for
+/// piece goes; tap one to leave it out. Return or Add files the rest (QuickAdd, then PatientNote.apply) as one Undo
+/// step in the store's history, and the snackbar's Undo steps back exactly that, the record as it was. A long paste opens the full note review instead, and the pencil opens it for
 /// dictation. Read on this phone by fixed rules; the line itself is not kept.
 struct QuickAddBar: View {
     @Environment(PatientStore.self) private var patient
@@ -23,7 +23,8 @@ struct QuickAddBar: View {
     @State private var sheet: SheetSeed?
     @FocusState private var focused: Bool
 
-    /// What was just filed, for the snackbar and its Undo: the record before and right after, in which case.
+    /// What was just filed, for the snackbar and its Undo: the record before and right after (the store's step), in
+    /// which case.
     private struct Added: Equatable {
         var count: Int
         var before: PatientRecord
@@ -339,7 +340,8 @@ struct QuickAddBar: View {
         let q = QuickAdd.read(t, record: before, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
         let chosen = QuickAdd.chips(q, record: before, dropped: dropped).filter { seen.contains($0.id) && $0.canAdd && !dropped.contains($0.id) }
         guard !chosen.isEmpty else { return Haptics.light() }
-        patient.update { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
+        // One discrete step in the store's Undo history, whatever was typed just before.
+        patient.update(discrete: true) { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
         Haptics.success()
         withAnimation(.snappy) {
             added = Added(count: chosen.count, before: before, after: patient.record, caseID: patient.currentCase.id)
@@ -347,13 +349,15 @@ struct QuickAddBar: View {
         }
     }
 
-    /// Undo only while nothing else has changed the record, and in the same case.
-    private func canUndo(_ a: Added) -> Bool { patient.currentCase.id == a.caseID && patient.record == a.after }
+    /// Undo only while the add is still the latest step of the case on screen (nothing changed since).
+    private func canUndo(_ a: Added) -> Bool {
+        patient.currentCase.id == a.caseID && patient.isLatestStep(before: a.before, after: a.after)
+    }
 
+    /// The store's Undo: the record exactly as it was before the add, its time stamp included.
     private func undo(_ a: Added) {
         guard canUndo(a) else { return }
-        // The record exactly as it was, its time stamp included (update would stamp it again).
-        patient.updateBook(immediately: true) { $0.currentRecord = a.before }
+        patient.undo()
         Haptics.light()
         withAnimation(.snappy) { added = nil }
     }

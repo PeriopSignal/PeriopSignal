@@ -254,7 +254,7 @@ struct PatientEditorView: View {
 
     @ViewBuilder private var details: some View {
         PatientGroup(title: "Patient") {
-            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), chain: chain("age"))
+            PatientNumberField(label: "Age", unit: PatientRecord.ageFieldUnit(r.ageYears), value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
             Hairline().padding(.leading, 14)

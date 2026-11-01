@@ -441,6 +441,8 @@ extension PatientRecord {
 
     /// "62", or "90 or older" for 90 and over.
     static func ageText(_ years: Double) -> String { years >= oldestAge ? "90 or older" : NumText.short(years) }
+    /// The age field's unit: "90 or older" reads as the number and this.
+    static func ageFieldUnit(_ years: Double?) -> String { (years ?? 0) >= oldestAge ? "or older" : "years" }
 
     /// "62-year-old man", "4-year-old girl", "Woman, 90 or older", "Woman", "": the opening of the one-liner.
     var person: String {

@@ -597,20 +597,23 @@ final class QuickAddTests: XCTestCase {
         XCTAssertTrue(QuickAdd.changes(again).isEmpty)
     }
 
-    func testUndoRestoresTheRecordExactly() {
-        var book = PatientCaseBook()
-        var rec = PatientRecord()
-        rec.labs["k"] = 4.0
-        rec.updated = Date(timeIntervalSince1970: 1000)
-        book.currentRecord = rec
-        let before = book.currentRecord
-        var after = before
-        PatientNote.apply(QuickAdd.changes(QuickAdd.chips(read("K 5.4, 2 PRBC", .preop, record: before), record: before)), to: &after)
-        after.updated = Date(timeIntervalSince1970: 2000)
-        book.currentRecord = after
-        XCTAssertEqual(book.currentRecord.labs["k"], 5.4)
-        book.currentRecord = before
-        XCTAssertEqual(book.currentRecord, before, "the snapshot, its time stamp included")
+    /// The bar's Add is one discrete step in the store's Undo history, and its Undo (the store's) brings the record back
+    /// exactly, its time stamp included.
+    @MainActor func testUndoRestoresTheRecordExactly() {
+        let store = PatientStore(url: nil)
+        store.update(discrete: true, now: Date(timeIntervalSince1970: 1000)) { $0.labs["k"] = 4.0 }
+        // Typing just before the add does not join its step.
+        store.update(now: Date(timeIntervalSince1970: 1000.1)) { $0.labNotes = "Mg 1.6" }
+        let before = store.record
+        let chosen = QuickAdd.chips(read("K 5.4, 2 PRBC", .preop, record: before), record: before)
+        store.update(discrete: true, now: Date(timeIntervalSince1970: 1000.3)) { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
+        let after = store.record
+        XCTAssertEqual(after.labs["k"], 5.4)
+        XCTAssertTrue(store.isLatestStep(before: before, after: after), "the snackbar offers Undo")
+        store.undo()
+        XCTAssertEqual(store.record, before, "the record exactly as it was, its time stamp included")
+        XCTAssertFalse(store.isLatestStep(before: before, after: after), "and the snackbar's Undo goes")
+        XCTAssertEqual(store.record.labNotes, "Mg 1.6", "one step: what came before the add stays")
     }
 
     func testAgesOverEightyNineAreNinetyOrOlder() throws {

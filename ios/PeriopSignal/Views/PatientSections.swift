@@ -71,7 +71,7 @@ extension PatientEditorView {
 
     @ViewBuilder var demographicsEditor: some View {
         PatientGroup(title: "Demographics") {
-            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), chain: chain("age"))
+            PatientNumberField(label: "Age", unit: PatientRecord.ageFieldUnit(r.ageYears), value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
             Hairline().padding(.leading, 14)
@@ -509,6 +509,13 @@ struct EchoFindingsEditor: View {
     @Binding var echo: PatientEcho
     var showsStudy = false
     @Environment(PatientStore.self) private var store: PatientStore?
+    @Environment(ReferenceStore.self) private var refs: ReferenceStore?
+
+    /// An EF below normal by the echo tools' ASE grading: Echo normal then leaves the LV as it is.
+    private var keepsLV: Bool {
+        let lvef = refs?.bundle?.echo?.groups.flatMap(\.measures).first { $0.id == "lvef" }
+        return PatientEcho.efBelowNormal(echo.lvef, measure: lvef, sex: store?.record.sex)
+    }
 
     private func grade(_ b: Binding<EchoGrade?>, normalLabel: String = "Normal") -> some View {
         PatientChoice(options: EchoGrade.allCases.map { (id: $0.rawValue, label: $0 == .normal ? normalLabel : $0.label) },
@@ -536,9 +543,10 @@ struct EchoFindingsEditor: View {
             }
         }
         PatientGroup(title: nil) {
-            PatientPresetRow(title: "Echo normal", caption: PatientEcho.normalCaption, applied: echo.isNormalPreset) {
+            let keep = keepsLV
+            PatientPresetRow(title: "Echo normal", caption: echo.normalCaption(keepingLV: keep), applied: echo.isNormalPreset(keepingLV: keep)) {
                 var e = echo
-                e.applyNormal()
+                e.applyNormal(keepingLV: keep)
                 store?.markDiscrete()
                 echo = e
             }

@@ -2,7 +2,8 @@ import XCTest
 @testable import PeriopSignal
 
 /// My Patient 1.8, phase 1: Undo on every tab and editor (PatientUndoHistory in PatientStore); Exam normal, Echo
-/// normal and "not assessed" in the full handoff; number fields in the order Previous and Next walk.
+/// normal (leaving a low-EF LV alone) and "not assessed" in the full handoff; number fields in the order Previous and
+/// Next walk; the age field's 90 or older.
 final class PatientPhase1Tests: XCTestCase {
     private let t0 = Date(timeIntervalSince1970: 1_800_000_000)
 
@@ -86,14 +87,31 @@ final class PatientPhase1Tests: XCTestCase {
         XCTAssertTrue(store.canUndo)
 
         store.addCase(room: "OR 3")
+        let second = store.currentCase.id
         XCTAssertFalse(store.canUndo, "a new case has nothing to undo, and never the other case's steps")
         store.update(discrete: true) { $0.ageYears = 71 }
         store.undo()
         XCTAssertNil(store.ageYears, "Undo changes only the current case")
+        XCTAssertFalse(store.canUndo)
+
+        // Each case keeps its own steps across a switch.
         store.selectCase(first)
         XCTAssertEqual(store.ageYears, 50)
         XCTAssertEqual(store.weightKg, 80, "the first case is as it was left")
-        XCTAssertFalse(store.canUndo, "switching cases ends Undo for the case left")
+        XCTAssertTrue(store.canUndo, "switching back, the first case can still step back")
+        store.undo()
+        XCTAssertNil(store.weightKg)
+        XCTAssertEqual(store.ageYears, 50)
+        store.selectCase(second)
+        XCTAssertFalse(store.canUndo, "the second case's own history, already stepped back")
+        XCTAssertNil(store.ageYears)
+        store.update(discrete: true) { $0.ageYears = 72 }
+        store.selectCase(first)
+        store.selectCase(second)
+        store.undo()
+        XCTAssertNil(store.ageYears, "a step survives a round trip to the other case")
+        store.selectCase(first)
+        XCTAssertEqual(store.ageYears, 50, "and Undo there never touched the first case")
 
         // Ending a case drops its steps; the next patient in the room starts with none.
         store.update(discrete: true) { $0.heightCm = 180 }
@@ -106,12 +124,27 @@ final class PatientPhase1Tests: XCTestCase {
         // Ending another case leaves the current case's steps alone.
         let current = store.currentCase.id
         store.update(discrete: true) { $0.ageYears = 33 }
-        let other = store.cases.first { $0.id != current }!.id
-        store.endCase(other, keepSummary: false)
+        store.endCase(second, keepSummary: false)
         XCTAssertEqual(store.currentCase.id, current)
         XCTAssertTrue(store.canUndo)
         store.undo()
         XCTAssertNil(store.ageYears)
+    }
+
+    @MainActor func testLatestStepIsWhatTheBannersCheck() {
+        let store = PatientStore(url: nil)
+        store.update(discrete: true) { $0.ageYears = 40 }
+        let before = store.record
+        store.update(discrete: true) { $0.allergies = "Latex" }
+        let after = store.record
+        XCTAssertTrue(store.isLatestStep(before: before, after: after))
+        store.update { $0.weightKg = 70 }
+        XCTAssertFalse(store.isLatestStep(before: before, after: after), "something changed since")
+        store.undo()
+        XCTAssertTrue(store.isLatestStep(before: before, after: after), "stepped back to it, it is the latest again")
+        store.undo()
+        XCTAssertEqual(store.record, before, "exactly, its time stamp included")
+        XCTAssertFalse(store.isLatestStep(before: before, after: after))
     }
 
     @MainActor func testUndoKeepsFiftySteps() {
@@ -316,5 +349,65 @@ final class PatientPhase1Tests: XCTestCase {
         XCTAssertTrue(order.contains("iop.be"), "base excess keeps its place, beside its ± button")
         XCTAssertEqual(order.last, "iop.act")
         XCTAssertEqual(Set(order).count, order.count, "every field once")
+    }
+    // MARK: Echo normal with a low EF, and the age field
+
+    private func lvefMeasure() throws -> EchoMeasure {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "reference", withExtension: "json"), "reference.json is bundled with the tests")
+        let bundle = try ReferenceLoader.decode(try Data(contentsOf: url))
+        return try XCTUnwrap(bundle.echo?.groups.flatMap(\.measures).first { $0.id == "lvef" })
+    }
+
+    func testEchoNormalLeavesALowEFLeftVentricleAlone() throws {
+        let m = try lvefMeasure()
+        // The echo tools' ASE grading (Lang 2015): normal from 52% for a man, from 54% for a woman.
+        XCTAssertTrue(PatientEcho.efBelowNormal(35, measure: m, sex: .male))
+        XCTAssertTrue(PatientEcho.efBelowNormal(51, measure: m, sex: .male))
+        XCTAssertFalse(PatientEcho.efBelowNormal(52, measure: m, sex: .male))
+        XCTAssertTrue(PatientEcho.efBelowNormal(53, measure: m, sex: .female))
+        XCTAssertFalse(PatientEcho.efBelowNormal(53, measure: m, sex: nil), "sex not recorded: below both ranges only")
+        XCTAssertTrue(PatientEcho.efBelowNormal(50, measure: m, sex: nil))
+        XCTAssertFalse(PatientEcho.efBelowNormal(75, measure: m, sex: .female), "above the range is not reduced")
+        XCTAssertFalse(PatientEcho.efBelowNormal(nil, measure: m, sex: .male), "no EF typed")
+        // The same limits without the reference data.
+        for (ef, sex) in [(35.0, PatientSex.male), (51, .male), (52, .male), (53, .female), (54, .female), (53, PatientSex?.none)] as [(Double, PatientSex?)] {
+            XCTAssertEqual(PatientEcho.efBelowNormal(ef, measure: nil, sex: sex), PatientEcho.efBelowNormal(ef, measure: m, sex: sex), "\(ef) \(String(describing: sex))")
+        }
+
+        var e = PatientEcho()
+        e.lvef = 35
+        e.lv = .moderate
+        e.mitral.regurgitation = .moderate
+        let keep = PatientEcho.efBelowNormal(e.lvef, measure: m, sex: .male)
+        XCTAssertTrue(keep)
+        XCTAssertTrue(e.normalCaption(keepingLV: keep).hasPrefix("EF 35% recorded: LV left as is."), e.normalCaption(keepingLV: keep))
+        e.applyNormal(keepingLV: keep)
+        XCTAssertEqual(e.lv, .moderate, "LV function left as it is")
+        XCTAssertEqual(e.lvef, 35, "and the EF")
+        XCTAssertEqual(e.rv, .normal)
+        XCTAssertEqual(e.mitral.regurgitation, .normal)
+        XCTAssertEqual(e.aortic.stenosis, .normal)
+        XCTAssertTrue(e.isNormalPreset(keepingLV: true))
+        XCTAssertFalse(e.isNormalPreset, "not the whole preset: the LV is not normal")
+        XCTAssertEqual(e.summary, "LV EF 35%, moderately reduced; RV function normal; No significant valve disease")
+
+        // A normal EF: the whole preset, and the usual caption.
+        var n = PatientEcho()
+        n.lvef = 60
+        XCTAssertFalse(PatientEcho.efBelowNormal(n.lvef, measure: m, sex: .female))
+        XCTAssertEqual(n.normalCaption(keepingLV: false), PatientEcho.normalCaption)
+        n.applyNormal(keepingLV: false)
+        XCTAssertEqual(n.lv, .normal)
+        XCTAssertTrue(n.isNormalPreset)
+    }
+
+    func testAgeFieldReadsNinetyOrOlder() {
+        XCTAssertEqual(PatientRecord.ageFieldUnit(90), "or older")
+        XCTAssertEqual(PatientRecord.ageFieldUnit(89), "years")
+        XCTAssertEqual(PatientRecord.ageFieldUnit(nil), "years")
+        var r = PatientRecord()
+        r.ageYears = 97
+        XCTAssertEqual(r.ageYears, 90)
+        XCTAssertEqual(PatientRecord.ageFieldUnit(r.ageYears), "or older", "the field shows 90 or older")
     }
 }

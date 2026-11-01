@@ -396,10 +396,11 @@ struct PatientView: View {
                 Image(systemName: "checkmark.circle.fill").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.green)
                 Text("Added \(n.count) item\(n.count == 1 ? "" : "s") from your note").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
                 Spacer(minLength: 6)
-                if patient.record == n.after {
+                // The note's add is one step in the store's Undo history: offered while it is still the latest.
+                if patient.isLatestStep(before: n.before, after: n.after) {
                     Button("Undo") {
                         withAnimation(.snappy) {
-                            patient.update { $0 = n.before }
+                            patient.undo()
                             noteResult = nil
                         }
                     }

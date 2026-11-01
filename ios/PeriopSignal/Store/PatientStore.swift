@@ -11,8 +11,8 @@ import Observation
 ///
 /// Every change to the current case is also a step that `undo()` steps back through, on any tab or editor
 /// (PatientUndoHistory): in memory only, per case, up to 50 steps, a burst of typing as one step and a discrete action
-/// (`update(discrete: true)`, or `markDiscrete()` just before a binding is written) as its own. A change of case drops
-/// the steps of the case left.
+/// (`update(discrete: true)`, or `markDiscrete()` just before a binding is written) as its own. Each case keeps its own
+/// steps until the app quits; ending a case drops them.
 @MainActor
 @Observable
 final class PatientStore {
@@ -103,6 +103,12 @@ final class PatientStore {
         scheduleSave(immediately: true)
     }
 
+    /// The last step of the current case is the change from `before` to `after`, and nothing has changed since: what
+    /// the quick-add and note banners check before offering their Undo.
+    func isLatestStep(before: PatientRecord, after: PatientRecord) -> Bool {
+        record == after && history.top(book.currentID) == before
+    }
+
     private func syncUndo() {
         let can = history.canUndo(book.currentID)
         if can != canUndo { canUndo = can }
@@ -151,8 +157,8 @@ final class PatientStore {
         scheduleSave(immediately: true)
     }
 
-    /// Changes the cases (add, switch, room, end); written to disk shortly after. A change of case ends Undo: the
-    /// steps of the case left, and of any case removed, are dropped.
+    /// Changes the cases (add, switch, room, end); written to disk shortly after. A change of case ends the Clear and
+    /// Receive banners; each case keeps its own Undo steps, and those of a case ended or removed are dropped.
     func updateBook(immediately: Bool = false, _ change: (inout PatientCaseBook) -> Void) {
         if !loaded { reload() }
         var b = book
@@ -161,8 +167,6 @@ final class PatientStore {
         if b.currentID != book.currentID {
             cleared = nil
             replaced = nil
-            history.clear(book.currentID)
-            history.clear(b.currentID)
         }
         history.keep(only: Set(b.cases.map(\.id)))
         book = b

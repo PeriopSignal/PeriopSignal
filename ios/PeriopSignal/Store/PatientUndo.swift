@@ -6,8 +6,9 @@ import Foundation
 // can step back through them on any tab or editor. The steps are kept per case, in memory only (never written to
 // disk, gone when the app quits), at most `limit` of them. Typing makes many small changes: those less than `burst`
 // seconds apart join one step. A discrete action (an add, a delete, a chip, toggle or stepper tap) is always a step of
-// its own, and the next change after it starts a new one. Switching to another case or ending one drops that case's
-// steps, so an Undo can never land in a different patient.
+// its own, and the next change after it starts a new one. Each case keeps its own steps, so switching rooms and back
+// still lets you step back in each, and an Undo only ever changes the case on screen. Ending a case (End case or Next
+// Patient) drops its steps.
 
 struct PatientUndoHistory {
     /// Steps kept per case; the oldest go first.
@@ -56,13 +57,13 @@ struct PatientUndoHistory {
         return last
     }
 
-    /// Drops case `id`'s steps (it was switched away from or ended).
+    /// Drops case `id`'s steps.
     mutating func clear(_ id: UUID) {
         steps[id] = nil
         if open?.caseID == id { open = nil }
     }
 
-    /// Drops the steps of every case not in `ids` (cases that were removed).
+    /// Drops the steps of every case not in `ids` (cases that were ended or removed).
     mutating func keep(only ids: Set<UUID>) {
         steps = steps.filter { ids.contains($0.key) }
         if let o = open, !ids.contains(o.caseID) { open = nil }
