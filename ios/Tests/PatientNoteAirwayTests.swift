@@ -91,7 +91,14 @@ final class PatientNoteAirwayTests: XCTestCase {
 
         XCTAssertEqual(oxygen(read("HFNC 40 L/60%")), PatientOxygen(device: "hfnc", flow: 40, fio2: 60))
         XCTAssertEqual(oxygen(read("On NRB at 15 L")), PatientOxygen(device: "nrb", flow: 15))
-        XCTAssertEqual(oxygen(read("On BiPAP 12/5, FiO2 50%")), PatientOxygen(device: "niv", fio2: 50))
+        let niv = read("On BiPAP 12/5, FiO2 50%")
+        XCTAssertEqual(oxygen(niv), PatientOxygen(device: "niv", fio2: 50))
+        XCTAssertNil(finding(niv, "problem:cpap"), "BiPAP running now is not home therapy")
+        XCTAssertNil(finding(niv, "problem:osa"), "nor a reason to infer sleep apnea")
+        let both = read("OSA on CPAP at home. Now on BiPAP 14/6, FiO2 40%.")
+        XCTAssertNotNil(finding(both, "problem:osa"))
+        XCTAssertNotNil(finding(both, "problem:cpap"))
+        XCTAssertNotNil(finding(read("OSA on CPAP"), "problem:osa"))
         XCTAssertNil(oxygen(read("OSA on CPAP")), "CPAP for sleep apnea is not the oxygen on arrival")
         XCTAssertNil(oxygen(read("Uses BiPAP at night")))
 

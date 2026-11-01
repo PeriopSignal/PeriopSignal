@@ -584,7 +584,14 @@ enum PatientNote {
         if has("flag:insulin"), !has("problem:insulin"), !has("problem:gdm-complex"), let l = problemLabels["insulin"] {
             put(PatientNoteFinding(id: "problem:insulin", section: Part.history, label: l, change: .problem("insulin"), note: "From the insulin in the medications."))
         }
-        if has("problem:cpap"), !has("problem:osa"), let l = problemLabels["osa"] {
+        // CPAP or BiPAP running now (respiratory failure) is the oxygen support, not home therapy for sleep apnea.
+        var acuteNIV = false
+        if case .oxygen(let o)? = found["oxygen"]?.change, o.device == "niv" { acuteNIV = true }
+        if acuteNIV, !has("problem:osa") {
+            found["problem:cpap"] = nil
+            order.removeAll { $0 == "problem:cpap" }
+        }
+        if has("problem:cpap"), !has("problem:osa"), !acuteNIV, let l = problemLabels["osa"] {
             put(PatientNoteFinding(id: "problem:osa", section: Part.history, label: l, change: .problem("osa"), note: "From the CPAP or BiPAP."))
         }
         // A ventilator means a tube; oxygen means the patient's own airway (a trach collar, a tracheostomy).
