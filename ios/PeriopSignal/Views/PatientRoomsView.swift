@@ -12,12 +12,16 @@ struct PatientRoomsBar: View {
     @State private var confirmEnd = false
     /// The room (or "Case 2") just ended, for the banner.
     @State private var ended: String?
-    /// Screenshot runs: the sheet asked for has appeared.
-    @State private var shotShown = false
+    /// Screenshot runs: the sheet asked for has appeared (a reference, so the launch task reads it as it is now).
+    @State private var shot = ShotFlag()
 
     private struct ArchiveSheet: Identifiable {
         let id = UUID()
         var opensFirst = false
+    }
+
+    private final class ShotFlag {
+        var shown = false
     }
 
     private var current: PatientCase { patient.currentCase }
@@ -36,12 +40,12 @@ struct PatientRoomsBar: View {
                 .environment(patient)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .onAppear { shotShown = true }
+                .onAppear { shot.shown = true }
         }
         .sheet(item: $archiveSheet) { s in
             PatientArchiveView(archive: patient.archive, opensFirst: s.opensFirst)
                 .presentationDragIndicator(.visible)
-                .onAppear { shotShown = true }
+                .onAppear { shot.shown = true }
         }
         .confirmationDialog("End \(current.label)?", isPresented: $confirmEnd, titleVisibility: .visible) {
             if current.record.isEmpty {
@@ -247,16 +251,17 @@ struct PatientRoomsBar: View {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
-        // A presentation asked for before the tab has settled can be dropped, so ask again until it shows (a dialog
-        // can't say when it has, so it is asked twice).
-        for attempt in 0..<(o == "end-case" ? 2 : 4) {
-            try? await Task.sleep(nanoseconds: attempt == 0 ? 1_500_000_000 : 1_200_000_000)
-            guard !Task.isCancelled, !shotShown else { return }
+        // A presentation asked for before the tab has settled can be dropped, so ask again until a sheet shows (a
+        // dialog can't say when it has, so it is asked twice). Each retry lets the last request settle first.
+        for attempt in 0..<(o == "end-case" ? 2 : 3) {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            guard !Task.isCancelled, !shot.shown else { return }
             if attempt > 0 {
                 editingRoom = false
                 archiveSheet = nil
                 confirmEnd = false
-                try? await Task.sleep(nanoseconds: 400_000_000)
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard !Task.isCancelled, !shot.shown else { return }
             }
             switch o {
             case "room": editingRoom = true
