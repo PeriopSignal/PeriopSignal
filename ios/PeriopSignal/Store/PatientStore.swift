@@ -1,15 +1,26 @@
 import Foundation
 import Observation
 
-/// My Patient's record: one patient at a time, kept on this device only until the user clears it.
+/// My Patient's cases, one per room (PatientCases), each kept on this device only until it is cleared or ended.
+/// `record` and `update` are the current case's.
 ///
 /// The file sits in Application Support with complete file protection (unreadable while the phone is locked) and is
-/// excluded from iCloud and computer backups; nothing is sent anywhere. Clear removes the file and keeps the cleared
-/// record in memory, so Undo can bring it back until the next edit or until the app quits.
+/// excluded from iCloud and computer backups; nothing is sent anywhere. Clear empties the current case and keeps the
+/// cleared record in memory, so Undo can bring it back until the next edit, a change of case or until the app quits;
+/// the file is removed once nothing is left in it. Ending a case keeps a summary in the archive (PatientArchive).
 @MainActor
 @Observable
 final class PatientStore {
-    private(set) var record = PatientRecord()
+    /// Every case, and which one is current.
+    private(set) var book = PatientCaseBook()
+    /// The current case's record.
+    private(set) var record: PatientRecord {
+        get { book.currentRecord }
+        set { book.currentRecord = newValue }
+    }
+    /// Ended cases' summaries, and the saved rooms (hospital data), in their own protected files beside this one.
+    let archive: PatientArchive
+    let rooms: PatientRoomDirectory
     /// The record just cleared, for Undo.
     private(set) var cleared: PatientRecord?
     /// The record a patient from a colleague just replaced, for Undo.
@@ -24,12 +35,16 @@ final class PatientStore {
     init(url: URL? = PatientStore.defaultURL()) {
         self.url = url
         #if DEBUG
-        if let demo = PatientStore.debugSeed() {
-            record = demo
+        if let demo = PatientStore.debugCases() {
+            archive = PatientArchive(url: nil, entries: demo.archived)
+            rooms = PatientRoomDirectory(url: nil, rooms: demo.rooms)
+            book = demo.book
             loaded = true
             return
         }
         #endif
+        archive = PatientArchive(url: PatientStore.fileURL("archive.json", near: url))
+        rooms = PatientRoomDirectory(url: PatientStore.fileURL("rooms.json", near: url))
         reload()
     }
 
@@ -74,8 +89,8 @@ final class PatientStore {
         cleared = record
         replaced = nil
         record = PatientRecord()
-        dirty = false
-        if let url { try? FileManager.default.removeItem(at: url) }
+        dirty = true
+        write()
     }
 
     func undoClear() {
@@ -85,10 +100,24 @@ final class PatientStore {
         scheduleSave(immediately: true)
     }
 
-    /// Reads the file if it has not been read yet (call when the app becomes active), and writes pending edits.
+    /// Changes the cases (add, switch, room, end); written to disk shortly after. A change of case ends Undo.
+    func updateBook(immediately: Bool = false, _ change: (inout PatientCaseBook) -> Void) {
+        if !loaded { reload() }
+        var b = book
+        change(&b)
+        guard b != book else { return }
+        if b.currentID != book.currentID { cleared = nil; replaced = nil }
+        book = b
+        scheduleSave(immediately: immediately)
+    }
+
+    /// Reads the file if it has not been read yet (call when the app becomes active), writes pending edits, and
+    /// deletes archived summaries past their retention period.
     func refresh() {
         if !loaded { reload() }
         if dirty { scheduleSave(immediately: true) }
+        archive.prune()
+        rooms.refresh()
     }
 
     // MARK: Values the tools use
@@ -104,7 +133,7 @@ final class PatientStore {
         guard let url else { loaded = true; return }
         if !FileManager.default.fileExists(atPath: url.path) { loaded = true; return }
         guard let data = try? Data(contentsOf: url) else { return }   // locked: try again when active
-        if let r = try? JSONDecoder().decode(PatientRecord.self, from: data) { record = r }
+        if let b = PatientCaseBook.decode(data) { book = b }   // a 1.6 record becomes the first case
         loaded = true
     }
 
@@ -120,12 +149,12 @@ final class PatientStore {
 
     private func write() {
         guard let url else { dirty = false; return }
-        if record.isEmpty {
+        if book.isEmpty {
             try? FileManager.default.removeItem(at: url)
             dirty = false
             return
         }
-        guard let data = try? JSONEncoder().encode(record) else { return }
+        guard let data = try? book.encoded() else { return }
         do {
             try data.write(to: url, options: [.atomic, .completeFileProtection])
             var values = URLResourceValues()

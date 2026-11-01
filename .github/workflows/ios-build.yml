@@ -276,6 +276,15 @@ jobs:
           shot 122-cardiac-tee-light 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light
           shot 123-cardiac-assessment-tee 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open assessment -ps.patient.scroll cardiac
           shot 140-patient-ecg 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg
+          shot 130-rooms 12 -ps.tab patient -ps.patient demo-rooms
+          shot 131-rooms-cvor-light 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.forceAppearance light
+          shot 132-rooms-ep-no-phone 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3
+          shot 133-rooms-room 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room
+          shot 134-rooms-end-case 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open end-case
+          shot 135-rooms-archive 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive
+          shot 136-rooms-archive-entry 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive-entry -ps.forceAppearance light
+          shot 137-rooms-handoff 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.patient.tab summary
+          shot 138-rooms-receive 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
