@@ -630,7 +630,8 @@ final class QuickAddTests: XCTestCase {
         let saved = try JSONDecoder().decode(PatientRecord.self, from: Data(#"{"ageYears": 95, "sex": "female"}"#.utf8))
         XCTAssertEqual(saved.ageYears, 90, "a record saved with 95 opens as 90")
         XCTAssertEqual(saved.person, "Woman, 90 or older")
-        XCTAssertTrue(PatientSummary.text(saved, now: now).contains("Woman, 90 or older"), "the handoff")
+        XCTAssertTrue(HandoffWriter.text(saved, now: now).contains("Woman, 90 or older"), "the handoff")
+        XCTAssertTrue(HandoffWriter.shortText(saved, now: now).contains("Woman, 90 or older"), "the short handoff")
         var applied = PatientRecord()
         PatientNote.apply([.age(92)], to: &applied)
         XCTAssertEqual(applied.ageYears, 90)
@@ -645,8 +646,8 @@ final class QuickAddTests: XCTestCase {
         }
         XCTAssertEqual(PatientRules.prefill("ariscat", ninetyTwo).choices["age"], "> 80")
         XCTAssertEqual(PatientFunctional.riskFactors(ninetyTwo), PatientFunctional.riskFactors(ninety))
-        XCTAssertEqual(PatientRules.langeron(ninetyTwo), PatientRules.langeron(ninety))
-        XCTAssertEqual(PatientRules.kheterpal(ninetyTwo), PatientRules.kheterpal(ninety))
+        XCTAssertEqual(PatientAirway.langeron(ninetyTwo), PatientAirway.langeron(ninety))
+        XCTAssertEqual(PatientAirway.kheterpal(ninetyTwo), PatientAirway.kheterpal(ninety))
     }
 
     func testLongTextGoesToTheFullNote() {
