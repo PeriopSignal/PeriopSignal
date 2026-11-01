@@ -29,7 +29,15 @@ enum CodeStatus: String, Codable, CaseIterable, Hashable {
     }
 
     /// Limits resuscitation, so the perioperative plan is asked.
-    var limits: Bool { self == .dnr || self == .dni || self == .dnrDni || self == .limited }
+    var limits: Bool { resuscitationOrder || self == .limited }
+
+    /// DNR, DNI or both.
+    var resuscitationOrder: Bool {
+        switch self {
+        case .dnr, .dni, .dnrDni: return true
+        default: return false
+        }
+    }
 }
 
 /// What happens to the orders during the anesthetic, after the required reconsideration.
@@ -169,7 +177,7 @@ enum PatientCodeStatus {
             if x.limits && y == .full { status = x; plan = plan ?? .suspended }
             else if y.limits && x == .full { status = y; plan = plan ?? .suspended }
             // "DNR/DNI." then "DNR suspended for the OR": the fuller order stands.
-            else if [x, y].allSatisfy({ $0 == .dnr || $0 == .dni || $0 == .dnrDni }) { status = .dnrDni }
+            else if x.resuscitationOrder && y.resuscitationOrder { status = .dnrDni }
             else { return nil }
         }
         return finding(status, polst: p || p2, plan: plan)
@@ -181,8 +189,10 @@ enum PatientCodeStatus {
         let p = s.limits ? plan : nil
         if let o = r.codeStatus, o != s { return .replaces(o == .notDiscussed ? "not discussed" : o.label) }
         if r.codeStatus == s, let p, let op = r.codeStatusPlan, op != p { return .replaces(op.label.lowercased()) }
-        let same = r.codeStatus == s && (!polst || r.polst) && (p == nil || r.codeStatusPlan == p)
-        return same ? .recorded : .new
+        guard r.codeStatus == s else { return .new }
+        if polst && !r.polst { return .new }
+        if let p, r.codeStatusPlan != p { return .new }
+        return .recorded
     }
 
     static func apply(_ s: CodeStatus?, polst: Bool, plan: CodeStatusPlan?, to r: inout PatientRecord) {

@@ -77,10 +77,18 @@ enum IntraopLabs {
     }
 
     /// The sets with anything in them, newest first: by time, and by order among sets without one (or the same time).
-    static func ordered(_ sets: [IntraopLabSet]) -> [IntraopLabSet] {
-        sets.enumerated().filter { !$0.element.isEmpty }
-            .sorted { ($0.element.time ?? .distantPast, $0.offset) > ($1.element.time ?? .distantPast, $1.offset) }
-            .map(\.element)
+    static func ordered(_ sets: [IntraopLabSet]) -> [IntraopLabSet] { newestFirst(sets).filter { !$0.isEmpty } }
+
+    /// Every set, newest first (a set just added, still empty, included).
+    static func newestFirst(_ sets: [IntraopLabSet]) -> [IntraopLabSet] {
+        let indexed = Array(sets.enumerated())
+        let sorted = indexed.sorted { a, b in
+            let ta: Date = a.element.time ?? Date.distantPast
+            let tb: Date = b.element.time ?? Date.distantPast
+            if ta != tb { return ta > tb }
+            return a.offset > b.offset
+        }
+        return sorted.map { $0.element }
     }
 
     static func latest(_ r: PatientRecord) -> IntraopLabSet? { ordered(r.intraopLabs).first }

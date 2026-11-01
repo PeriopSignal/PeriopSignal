@@ -20,11 +20,7 @@ struct IntraopLabsEditor: View {
     private var r: PatientRecord { patient.record }
 
     /// Newest first; a set just added (empty) comes first too.
-    private var sets: [IntraopLabSet] {
-        r.intraopLabs.enumerated()
-            .sorted { ($0.element.time ?? .distantPast, $0.offset) > ($1.element.time ?? .distantPast, $1.offset) }
-            .map(\.element)
-    }
+    private var sets: [IntraopLabSet] { IntraopLabs.newestFirst(r.intraopLabs) }
 
     var body: some View {
         Button {
