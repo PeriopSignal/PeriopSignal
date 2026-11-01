@@ -36,7 +36,6 @@ final class PatientRoomsUI {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
             shown = false
-            PatientTrace.hit("try")
             switch o {
             case "room": editingRoom = true
             case "archive": archive = Archive()
@@ -67,7 +66,6 @@ struct PatientRoomsBar: View {
 
     var body: some View {
         @Bindable var ui = PatientRoomsUI.shared
-        PatientTrace.hit("rb")
         return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 chipStrip
@@ -81,7 +79,7 @@ struct PatientRoomsBar: View {
                 .environment(patient)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .onAppear { ui.shown = true; PatientTrace.hit("roomShown") }
+                .onAppear { ui.shown = true }
         }
         .sheet(item: $ui.archive, onDismiss: { ui.archivePath = [] }) { s in
             PatientArchiveView(archive: patient.archive, path: $ui.archivePath, opensFirst: s.opensFirst)
@@ -318,10 +316,8 @@ struct PatientRoomsBar: View {
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
         // A presentation asked for before the tab has settled can be dropped, so wait until it has; then the shared
         // state asks (and asks again if need be), whichever copy of the bar is on screen.
-        PatientTrace.hit("rbTask")
         try? await Task.sleep(nanoseconds: 1_500_000_000)
         let ui = PatientRoomsUI.shared
-        if Task.isCancelled { PatientTrace.hit("rbTaskX") }
         guard !Task.isCancelled, !ui.asked else { return }
         ui.asked = true
         Task { @MainActor in await PatientRoomsUI.shared.openForScreenshot(o) }

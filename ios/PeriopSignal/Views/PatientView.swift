@@ -63,9 +63,6 @@ struct PatientView: View {
     private var tab: PatientTab { tabOverride ?? PatientTab(rawValue: tabID) ?? .preop }
 
     var body: some View {
-        #if DEBUG
-        let _ = PatientTrace.hit("pv")
-        #endif
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
                 ScrollView {
@@ -141,7 +138,7 @@ struct PatientView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if !patient.isEmpty && !PatientTrace.noShield { NoIdentifiersShield() }
+                    if !patient.isEmpty { NoIdentifiersShield() }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     PatientUndoButton()
@@ -163,9 +160,6 @@ struct PatientView: View {
             }
         }
         .environment(handoff)
-        #if DEBUG
-        .overlay(alignment: .bottomLeading) { if PatientTrace.on { PatientTraceView().padding(.bottom, 110).allowsHitTesting(false) } }
-        #endif
         .task { await openForScreenshot() }
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
@@ -183,8 +177,6 @@ struct PatientView: View {
     /// change first (one-tap normals), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
-        PatientTrace.hit("task")
-        defer { PatientTrace.hit(Task.isCancelled ? "taskX" : "taskEnd") }
         let edit = LaunchSeed.string("ps.patient.edit")
         if !edit.isEmpty {
             try? await Task.sleep(nanoseconds: 300_000_000)
@@ -206,14 +198,13 @@ struct PatientView: View {
         case "history": path.append(PatientEditor.history)
         case "medications": path.append(PatientEditor.medications)
         case "assessment": path.append(PatientEditor.assessment)
-        case "airway": PatientTrace.hit("push"); path.append(PatientEditor.airway)
+        case "airway": path.append(PatientEditor.airway)
         case "intraop": path.append(PatientEditor.intraop)
         case "plan": path.append(PatientEditor.plan)
         case "handoff": tabOverride = .summary
         case "note":
             // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
-            PatientTrace.hit("note")
             showNote = true
         case "receive":
             try? await Task.sleep(nanoseconds: 800_000_000)
@@ -490,30 +481,28 @@ struct PatientView: View {
     // MARK: Pinned jump bar
 
     /// Reads where the tab's jump bar is as it scrolls; the pinned copy shows once it has gone under the top.
-    @ViewBuilder private var jumpBarReader: some View {
-        if !PatientTrace.noPin {
+    private var jumpBarReader: some View {
         GeometryReader { g in
             Color.clear
                 .onAppear { jumpGeometry.barY = g.frame(in: .global).minY; updateJumpPin() }
-                .onChange(of: g.frame(in: .global).minY) { _, y in PatientTrace.hit("bary"); jumpGeometry.barY = y; updateJumpPin() }
-        }
+                .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.barY = y; updateJumpPin() }
         }
     }
 
     private func updateJumpPin() {
         let pinned = jumpGeometry.barY < jumpGeometry.pinY
-        if pinned != jumpPinned { PatientTrace.hit("pin"); jumpPinned = pinned }
+        if pinned != jumpPinned { jumpPinned = pinned }
     }
 
     /// The jump bar again, pinned at the top of the tab on the app's background material, once the tab's own has
     /// scrolled under it: any section is one tap away from anywhere on the tab.
     @ViewBuilder private func pinnedJumpBar(_ proxy: ScrollViewProxy) -> some View {
-        if let editors = jumpEditors, !PatientTrace.noPin {
+        if let editors = jumpEditors {
             jumpBar(proxy, editors)
                 .background(GeometryReader { g in
                     Color.clear
                         .onAppear { jumpGeometry.pinY = g.frame(in: .global).minY; updateJumpPin() }
-                        .onChange(of: g.frame(in: .global).minY) { _, y in PatientTrace.hit("piny"); jumpGeometry.pinY = y; updateJumpPin() }
+                        .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.pinY = y; updateJumpPin() }
                 })
                 .padding(.horizontal, 20)
                 .padding(.vertical, 8)
@@ -764,35 +753,3 @@ extension View {
         padding(.top, 60).id(id).padding(.top, -60)
     }
 }
-
-/// Temporary launch diagnostics (DEBUG): -ps.debug.trace 1 shows counters; -ps.debug.nopin 1 and -ps.debug.noshield 1
-/// turn off the pinned jump bar and the shield.
-@MainActor enum PatientTrace {
-    #if DEBUG
-    static let on = LaunchSeed.bool("ps.debug.trace")
-    static let noPin = LaunchSeed.bool("ps.debug.nopin")
-    static let noShield = LaunchSeed.bool("ps.debug.noshield")
-    static var counts: [String: Int] = [:]
-    static let start = Date()
-    static func hit(_ k: String) { if on { counts[k, default: 0] += 1; if counts[k] == 1 { counts[k + "@"] = Int(Date().timeIntervalSince(start) * 10) } } }
-    #else
-    static let noPin = false
-    static let noShield = false
-    static func hit(_ k: String) {}
-    #endif
-}
-
-#if DEBUG
-struct PatientTraceView: View {
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-            Text(PatientTrace.counts.sorted { $0.key < $1.key }.map { "\($0.key) \($0.value)" }.joined(separator: " · "))
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                .foregroundStyle(.black)
-                .padding(5)
-                .background(Color.yellow)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-}
-#endif
