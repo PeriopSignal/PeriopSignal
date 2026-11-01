@@ -26,9 +26,9 @@ final class PatientRoomsUI {
 
     #if DEBUG
     /// Screenshot runs: opens the room sheet, the archive (on its newest summary) or the end-case dialog, and asks
-    /// again when a sheet asked for while the tab was still settling did not appear.
+    /// again (up to five times) when a sheet asked for while the tab was still settling did not appear.
     func openForScreenshot(_ o: String) async {
-        for attempt in 0..<3 {
+        for attempt in 0..<5 {
             if attempt > 0 {
                 editingRoom = false
                 archive = nil
@@ -51,9 +51,10 @@ final class PatientRoomsUI {
     #endif
 }
 
-/// The top of My Patient: a case for each room the anesthesiologist covers, labelled by room ("OR 12", "EP 3", or
-/// "Case 2" without one), to switch between in one tap; the current room's phone with Call and Text; and Add another
-/// case. The menu sets the room and phone, ends the case (its summary goes to the archive) and opens the archive.
+/// The top of My Patient in one row of chips: a chip for each room the anesthesiologist covers, labelled by room
+/// ("OR 12", "EP 3", or "Case 2" without one) over a short procedure line, to switch between in one tap; the current
+/// chip highlighted, with small Call and Text icons when its room has a phone; and + to add a case. A chip's context
+/// menu and the ⋯ menu hold the room and phone, End case (with Next Patient in the same room) and the case archive.
 struct PatientRoomsBar: View {
     @Environment(PatientStore.self) private var patient
     @Environment(\.openURL) private var openURL
@@ -65,14 +66,14 @@ struct PatientRoomsBar: View {
 
     var body: some View {
         @Bindable var ui = PatientRoomsUI.shared
-        return VStack(alignment: .leading, spacing: 10) {
-            caseStrip
-            Hairline()
-            roomRow
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                chipStrip
+                menu
+            }
+            .frame(minHeight: 44)
             if let ended { endedBanner(ended) }
         }
-        .padding(12)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .sheet(isPresented: $ui.editingRoom) {
             PatientRoomSheet()
                 .environment(patient)
@@ -104,84 +105,95 @@ struct PatientRoomsBar: View {
         .task { await openForScreenshot() }
     }
 
-    // MARK: Cases
+    // MARK: Chips
 
-    /// The cases, then Add another case: written out beside a single case, a + kept in view once there are more.
-    private var caseStrip: some View {
-        let single = patient.cases.count == 1
-        return HStack(spacing: 8) {
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(patient.cases) { c in caseTab(c).id(c.id) }
-                        if single { addButton(wide: true) }
-                    }
-                    .padding(1)
+    /// The cases, then +, in one row that scrolls sideways; the current case is kept in view.
+    private var chipStrip: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(patient.cases) { c in chip(c).id(c.id) }
+                    addChip
                 }
-                .onAppear {
-                    let id = current.id
-                    DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
-                }
-                .onChange(of: patient.currentCase.id) { _, id in
-                    withAnimation(.snappy) { proxy.scrollTo(id, anchor: .center) }
-                }
+                .padding(.vertical, 2)
+                .padding(.horizontal, 1)
             }
-            if !single { addButton(wide: false) }
+            .onAppear {
+                let id = current.id
+                DispatchQueue.main.async { proxy.scrollTo(id, anchor: .center) }
+            }
+            .onChange(of: patient.currentCase.id) { _, id in
+                withAnimation(.snappy) { proxy.scrollTo(id, anchor: .center) }
+            }
         }
     }
 
-    private func caseTab(_ c: PatientCase) -> some View {
+    /// One case: the room (or "Case 2") over its first procedure. The current one is highlighted and, with a room
+    /// phone, carries Call and Text.
+    private func chip(_ c: PatientCase) -> some View {
         let on = c.id == current.id
-        return Button {
-            guard !on else { return }
-            Haptics.light()
-            withAnimation(.snappy) {
-                ended = nil
-                patient.selectCase(c.id)
+        let call = on ? PatientPhone.callURL(c.roomPhone) : nil
+        let text = on ? PatientPhone.textURL(c.roomPhone) : nil
+        return HStack(spacing: 4) {
+            Button { select(c) } label: {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(c.label)
+                        .font(PS.sys(size: 13.5, weight: .semibold))
+                        .foregroundStyle(on ? PS.fg : PS.fg2)
+                    Text(c.detail.isEmpty ? "New case" : c.detail)
+                        .font(PS.sys(size: 11))
+                        .foregroundStyle(PS.fg3)
+                }
+                .lineLimit(1)
+                .frame(minWidth: 50, maxWidth: 116, alignment: .leading)
+                .padding(.leading, 10)
+                .padding(.trailing, call == nil && text == nil ? 10 : 2)
+                .padding(.vertical, 5)
+                .contentShape(Rectangle())
             }
-        } label: {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(c.label)
-                    .font(PS.sys(size: 14.5, weight: .semibold))
-                    .foregroundStyle(on ? PS.fg : PS.fg2)
-                Text(c.detail.isEmpty ? "New case" : c.detail)
-                    .font(PS.sys(size: 11.5))
-                    .foregroundStyle(PS.fg3)
+            .buttonStyle(.plain)
+            .accessibilityLabel(c.label + (c.detail.isEmpty ? "" : ", " + c.detail))
+            .accessibilityAddTraits(on ? .isSelected : [])
+            .accessibilityHint(on ? "Touch and hold for the room, phone and End case" : "Opens this case")
+            if let call {
+                contactIcon("phone.fill", tint: PS.green, url: call)
+                    .accessibilityLabel("Call \(c.label)")
             }
-            .lineLimit(1)
-            .frame(minWidth: 58, maxWidth: 120, alignment: .leading)
-            .padding(.horizontal, 11).padding(.vertical, 7)
-            .background(on ? PS.accent2.opacity(0.16) : PS.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(on ? PS.accent2 : Color.clear, lineWidth: 1.5))
-            .contentShape(Rectangle())
+            if let text {
+                contactIcon("message.fill", tint: PS.accent2, url: text)
+                    .accessibilityLabel("Text \(c.label)")
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(c.label + (c.detail.isEmpty ? "" : ", " + c.detail))
-        .accessibilityAddTraits(on ? .isSelected : [])
+        .padding(.trailing, call == nil && text == nil ? 0 : 5)
+        .background(on ? PS.accent2.opacity(0.16) : PS.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(on ? PS.accent2 : Color.clear, lineWidth: 1.5))
+        .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .contextMenu { chipMenu(c) }
     }
 
-    private func addButton(wide: Bool) -> some View {
+    private func contactIcon(_ icon: String, tint: Color, url: URL) -> some View {
         Button {
             Haptics.light()
-            withAnimation(.snappy) {
-                ended = nil
-                patient.addCase()
-            }
-            ui.editingRoom = true
+            openURL(url)
         } label: {
-            Group {
-                if wide {
-                    Label("Add another case", systemImage: "plus").padding(.horizontal, 12)
-                } else {
-                    Image(systemName: "plus").frame(width: 42)
-                }
-            }
-            .font(PS.sys(size: 13.5, weight: .semibold))
-            .foregroundStyle(PS.accent2)
-            .lineLimit(1)
-            .padding(.vertical, 14)
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
-            .contentShape(Rectangle())
+            Image(systemName: icon)
+                .font(PS.sys(size: 11.5, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 28, height: 28)
+                .background(tint.opacity(0.15), in: Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var addChip: some View {
+        Button { addCase() } label: {
+            Image(systemName: "plus")
+                .font(PS.sys(size: 14, weight: .semibold))
+                .foregroundStyle(PS.accent2)
+                .frame(width: 40, height: 40)
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!patient.canAddCase)
@@ -189,77 +201,57 @@ struct PatientRoomsBar: View {
         .accessibilityLabel("Add another case")
     }
 
-    // MARK: The current room
+    // MARK: Menus
 
-    private var roomRow: some View {
-        HStack(spacing: 8) {
-            Button { ui.editingRoom = true } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: current.hasRoom ? "door.left.hand.closed" : "plus.circle")
-                        .font(PS.sys(size: 14, weight: .semibold))
-                        .foregroundStyle(current.hasRoom ? PS.accent : PS.accent2)
-                        .frame(width: 30, height: 30)
-                        .background((current.hasRoom ? PS.accent : PS.accent2).opacity(0.12), in: Circle())
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(current.hasRoom ? current.room : "Set the room")
-                            .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text(current.roomPhone.isEmpty ? (current.hasRoom ? "Add the room's phone" : "Room and phone, for Call and Text") : current.roomPhone)
-                            .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
-                    }
-                    .lineLimit(1)
-                    Spacer(minLength: 2)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(current.hasRoom ? "Room \(current.room)" + (current.roomPhone.isEmpty ? "" : ", phone \(current.roomPhone)") : "Set the room and phone")
-            .accessibilityHint("Edits the room and its phone")
-            if let call = PatientPhone.callURL(current.roomPhone) {
-                contactButton("Call", icon: "phone.fill", tint: PS.green, url: call)
-                    .accessibilityLabel("Call \(current.label)")
-            }
-            if let text = PatientPhone.textURL(current.roomPhone) {
-                contactButton("Text", icon: "message.fill", tint: PS.accent2, url: text)
-                    .accessibilityLabel("Text \(current.label)")
-            }
-            menu
-        }
+    /// "OR 12 · 216-555-0112", or the case and "no room set": the menus' heading.
+    private func roomHeading(_ c: PatientCase) -> String {
+        let phone = c.roomPhone.trimmingCharacters(in: .whitespacesAndNewlines)
+        return c.hasRoom ? c.room + (phone.isEmpty ? " · no phone" : " · " + phone) : c.label + " · no room set"
     }
 
-    private func contactButton(_ title: String, icon: String, tint: Color, url: URL) -> some View {
-        Button {
-            Haptics.light()
-            openURL(url)
-        } label: {
-            VStack(spacing: 2) {
-                Image(systemName: icon).font(PS.sys(size: 14, weight: .semibold))
-                Text(title).font(PS.sys(size: 11, weight: .semibold))
-            }
-            .foregroundStyle(tint)
-            .frame(width: 50, height: 44)
-            .background(tint.opacity(0.13), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+    private var archiveTitle: String {
+        patient.archive.entries.isEmpty ? "Case Archive" : "Case Archive (\(patient.archive.entries.count))"
     }
 
+    /// A chip's context menu: its room and phone, and what can be done with the case.
+    @ViewBuilder private func chipMenu(_ c: PatientCase) -> some View {
+        Section(roomHeading(c)) {
+            if c.id != current.id {
+                Button { select(c) } label: { Label("Open \(c.label)", systemImage: "arrow.right.circle") }
+            }
+            Button { afterMenu(c) { ui.editingRoom = true } } label: { Label(c.hasRoom ? "Room & Phone" : "Set Room & Phone", systemImage: "pencil") }
+            if let call = PatientPhone.callURL(c.roomPhone) {
+                Button { openURL(call) } label: { Label("Call", systemImage: "phone") }
+            }
+            if let text = PatientPhone.textURL(c.roomPhone) {
+                Button { openURL(text) } label: { Label("Text", systemImage: "message") }
+            }
+            Button { afterMenu(c) { ui.confirmEnd = true } } label: { Label("End Case…", systemImage: "checkmark.circle") }
+        }
+        Button { afterMenu(nil) { ui.archive = PatientRoomsUI.Archive() } } label: { Label(archiveTitle, systemImage: "archivebox") }
+    }
+
+    /// The current case's room and phone, Add case, End case and the archive.
     private var menu: some View {
         Menu {
-            Button { ui.editingRoom = true } label: { Label("Room & Phone", systemImage: "pencil") }
-            Button { ui.confirmEnd = true } label: { Label("End Case…", systemImage: "checkmark.circle") }
-            Button { ui.archive = PatientRoomsUI.Archive() } label: {
-                Label(patient.archive.entries.isEmpty ? "Case Archive" : "Case Archive (\(patient.archive.entries.count))", systemImage: "archivebox")
+            Section(roomHeading(current)) {
+                Button { openRoomSheet() } label: { Label(current.hasRoom ? "Room & Phone" : "Set Room & Phone", systemImage: "pencil") }
+                Button { ui.confirmEnd = true } label: { Label("End Case…", systemImage: "checkmark.circle") }
+                if patient.canAddCase {
+                    Button { addCase() } label: { Label("Add Case", systemImage: "plus") }
+                }
             }
+            Button { ui.archive = PatientRoomsUI.Archive() } label: { Label(archiveTitle, systemImage: "archivebox") }
         } label: {
             Image(systemName: "ellipsis")
                 .font(PS.sys(size: 15, weight: .bold))
                 .foregroundStyle(PS.fg2)
-                .frame(width: 36, height: 44)
-                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .frame(width: 34, height: 40)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Case actions")
-        .accessibilityHint("Room and phone, end the case, case archive")
+        .accessibilityHint("Room and phone, end the case, add a case, case archive")
     }
 
     private func endedBanner(_ label: String) -> some View {
@@ -277,7 +269,40 @@ struct PatientRoomsBar: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Dismiss")
         }
-        .padding(.top, 2)
+        .padding(.horizontal, 12).padding(.vertical, 6)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    // MARK: Actions
+
+    /// Room & Phone, as the ⋯ menu's button opens it.
+    private func openRoomSheet() {
+        ui.editingRoom = true
+    }
+
+    private func select(_ c: PatientCase) {
+        guard c.id != current.id else { return }
+        Haptics.light()
+        withAnimation(.snappy) {
+            ended = nil
+            patient.selectCase(c.id)
+        }
+    }
+
+    private func addCase() {
+        Haptics.light()
+        withAnimation(.snappy) {
+            ended = nil
+            patient.addCase()
+        }
+        ui.editingRoom = true
+    }
+
+    /// From a chip's context menu: opens that case, then presents a sheet or dialog once the menu has closed (one
+    /// asked for while the menu is still closing can be dropped).
+    private func afterMenu(_ c: PatientCase?, _ present: @escaping () -> Void) {
+        if let c, c.id != current.id { select(c) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { present() }
     }
 
     private var hasRoom: Bool { !current.room.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -289,14 +314,23 @@ struct PatientRoomsBar: View {
         withAnimation(.snappy) { ended = kept ? label : nil }
     }
 
-    /// Screenshot runs: -ps.patient.open room | archive | archive-entry | end-case.
+    /// Screenshot runs: -ps.patient.open room | archive | archive-entry | end-case; room-tap opens Room & Phone once,
+    /// after the tab has settled, through the same call as the ⋯ menu's button (no retries), to tell a presentation
+    /// that fails from a launch hook asked too early.
     private func openForScreenshot() async {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
+        if o == "room-tap" {
+            try? await Task.sleep(nanoseconds: 6_000_000_000)
+            guard !Task.isCancelled, !ui.asked else { return }
+            ui.asked = true
+            openRoomSheet()
+            return
+        }
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
         // A presentation asked for before the tab has settled can be dropped, so wait until it has; then the shared
         // state asks (and asks again if need be), whichever copy of the bar is on screen.
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        try? await Task.sleep(nanoseconds: 2_500_000_000)
         let ui = PatientRoomsUI.shared
         guard !Task.isCancelled, !ui.asked else { return }
         ui.asked = true

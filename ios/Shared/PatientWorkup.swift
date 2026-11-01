@@ -342,6 +342,58 @@ struct PatientEcho: Codable, Hashable {
 
     var isEmpty: Bool { self == PatientEcho() }
 
+    /// What Echo normal sets, shown under its button.
+    static let normalCaption = "Sets LV and RV function normal, and no regurgitation or stenosis at the mitral, tricuspid and aortic valves. Change anything after."
+
+    /// What Echo normal sets when the EF typed is below normal: everything but the LV.
+    static func keepingLVCaption(ef: Double) -> String {
+        "EF " + NumText.short(ef) + "% recorded: LV left as is. Sets RV function normal, and no regurgitation or stenosis at the mitral, tricuspid and aortic valves. Change anything after."
+    }
+
+    /// The caption for this study: the LV is left as it is when its EF is below normal.
+    func normalCaption(keepingLV: Bool) -> String {
+        if keepingLV, let ef = lvef { return PatientEcho.keepingLVCaption(ef: ef) }
+        return PatientEcho.normalCaption
+    }
+
+    /// The lower limit of a normal LVEF when the reference data is not to hand: Lang 2015, Table 4, as the echo tools
+    /// grade it (52% for men, 54% for women).
+    static let lvefLowerLimit: [PatientSex: Double] = [.male: 52, .female: 54]
+
+    /// The EF typed is below the normal range by the ASE grading the echo tools use (the reference data's LVEF row, or
+    /// Lang 2015's limits without it): under 52% for a man, under 54% for a woman, and under 52%, below both, when the
+    /// sex is not recorded.
+    static func efBelowNormal(_ ef: Double?, measure: EchoMeasure? = nil, sex: PatientSex?) -> Bool {
+        guard let ef, ef.isFinite else { return false }
+        let s: EchoSex = sex == .female ? .female : .male
+        if let m = measure, let g = EchoCalc.grade(m, s, ef) { return g >= 1 }
+        return ef < (lvefLowerLimit[sex == .female ? .female : .male] ?? 52)
+    }
+
+    /// One tap for a normal study: LV and RV function normal, no regurgitation or stenosis at any valve. With
+    /// `keepingLV` (an EF below normal was typed) the LV function and the EF are left as they are. The EF,
+    /// prostheses, aorta, other findings, study and date are never changed.
+    mutating func applyNormal(keepingLV: Bool = false) {
+        if !keepingLV { lv = .normal }
+        rv = .normal
+        for kp in [\PatientEcho.mitral, \PatientEcho.tricuspid, \PatientEcho.aortic] {
+            self[keyPath: kp].regurgitation = .normal
+            self[keyPath: kp].stenosis = .normal
+        }
+    }
+
+    /// The study shows what Echo normal sets.
+    var isNormalPreset: Bool { isNormalPreset(keepingLV: false) }
+
+    func isNormalPreset(keepingLV: Bool) -> Bool {
+        (keepingLV || lv == .normal) && rv == .normal && noValveDisease
+    }
+
+    /// No regurgitation or stenosis recorded at all three valves (each graded none), and no prosthesis.
+    var noValveDisease: Bool {
+        [mitral, tricuspid, aortic].allSatisfy { $0.regurgitation == .normal && $0.stenosis == .normal && $0.prosthesis.isEmpty }
+    }
+
     /// Function words for a chamber grade: "normal", "mildly reduced"…
     static func function(_ g: EchoGrade) -> String {
         switch g {
@@ -362,6 +414,7 @@ struct PatientEcho: Codable, Hashable {
             out.append(s)
         }
         if let g = rv { out.append("RV function " + PatientEcho.function(g)) }
+        if noValveDisease { out.append("No significant valve disease") }
         func valve(_ v: EchoValve, _ letter: String, _ name: String) {
             if let g = v.stenosis, g != .normal { out.append(g.label + " " + letter + "S") }
             if let g = v.regurgitation, g != .normal { out.append(g.label + " " + letter + "R") }

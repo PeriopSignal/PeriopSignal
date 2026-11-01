@@ -542,6 +542,18 @@ enum PatientLabs {
 
     static func tests(_ group: LabGroup) -> [LabTest] { catalog.filter { $0.group == group } }
 
+    /// The CBC (WBC, Hb, Hct, Plt) and the BMP (Na, K, Cl, HCO₃, BUN, Cr, glucose) as the fishbone groups them.
+    static let fishboneOrder = ["wbc", "hb", "hct", "plt", "na", "k", "cl", "hco3", "bun", "cr", "glucose"]
+
+    /// The group as the Labs editor lists it, which is the order Next walks: the main labs start with the fishbone's
+    /// CBC and BMP, then the rest in catalog order; the other groups keep the catalog's order.
+    static func entryOrder(_ group: LabGroup) -> [LabTest] {
+        let all = tests(group)
+        guard group == .main else { return all }
+        let first = fishboneOrder.compactMap { k in all.first { $0.key == k } }
+        return first + all.filter { !fishboneOrder.contains($0.key) }
+    }
+
     /// Something entered in the group, so its section opens without the add button.
     static func entered(_ group: LabGroup, in labs: [String: Double]) -> Bool { tests(group).contains { labs[$0.key] != nil } }
 

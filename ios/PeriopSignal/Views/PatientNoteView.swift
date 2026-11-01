@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// "No patient identifiers": at the top of My Patient and of Fill from a note.
-/// One thin line, "No patient identifiers ⓘ", that opens to the full warning.
+/// "No patient identifiers", in full: on My Patient while the patient is empty (a first-time user's first view) and at
+/// the top of Fill from a note. One thin line, "No patient identifiers ⓘ", that opens to the full warning. Elsewhere on
+/// My Patient a grey shield in the navigation bar opens the same words (NoIdentifiersShield).
 struct NoIdentifiersBanner: View {
+    static let warning = "Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules."
     @State private var open = LaunchSeed.bool("ps.evidence.open")
 
     var body: some View {
@@ -23,7 +25,7 @@ struct NoIdentifiersBanner: View {
             .accessibilityValue(open ? "Warning shown" : "")
             .accessibilityHint(open ? "Hides the warning" : "Shows the full warning")
             if open {
-                Text("Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules.")
+                Text(Self.warning)
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5)
                     .fixedSize(horizontal: false, vertical: true)
                     .transition(.opacity)
@@ -36,11 +38,57 @@ struct NoIdentifiersBanner: View {
     }
 }
 
+/// "No patient identifiers" as a small grey shield in the navigation bar of My Patient's pages: a tap opens the same
+/// warning as the banner (noIdentifiersAlert, attached to the page itself rather than inside the toolbar item, where a
+/// presentation can hold up the page's own sheets). Grey, so red stays for abnormal values and alerts.
+struct NoIdentifiersShield: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            isPresented = true
+        } label: {
+            Image(systemName: "checkmark.shield")
+                .font(PS.sys(size: 15, weight: .medium))
+                .foregroundStyle(PS.fg3)
+                .frame(minWidth: 30, minHeight: 30)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("No patient identifiers")
+        .accessibilityHint("Shows what not to enter")
+    }
+}
+
+extension View {
+    /// The shield's explanation: the banner's words, in an alert from the page.
+    func noIdentifiersAlert(isPresented: Binding<Bool>) -> some View {
+        alert("No patient identifiers", isPresented: isPresented) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(NoIdentifiersBanner.warning)
+        }
+        #if DEBUG
+        // Screenshot runs: -ps.patient.shield 1 opens it once the page has settled.
+        .task {
+            guard LaunchSeed.bool("ps.patient.shield") else { return }
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            isPresented.wrappedValue = true
+        }
+        #endif
+    }
+}
+
 /// Fill from a note: type or dictate the history and assessment, check what was read, then add it to My Patient.
 /// The note is read on this phone by fixed rules (PatientNote) and is not kept; only what is added is saved.
 struct PatientNoteSheet: View {
     @Environment(PatientStore.self) private var patient
     @Environment(\.dismiss) private var dismiss
+    /// Text to read on open (a long paste into the quick-add bar).
+    var initialText = ""
+    /// The tab the sheet was opened from: on the Intraoperative tab the note is routed as the quick-add bar routes it.
+    var tab: QuickAddTab = .preop
     /// After adding: how many items, and the record as it was (for Undo).
     var onAdded: (Int, PatientRecord) -> Void
 
@@ -84,7 +132,15 @@ struct PatientNoteSheet: View {
                 }
             }
         }
-        .task { seedForScreenshot() }
+        .task {
+            seedForScreenshot()
+            // A long paste into the quick-add bar arrives here, read at once.
+            let seed = initialText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !seed.isEmpty, text.isEmpty, reading == nil {
+                text = initialText
+                if QuickAdd.isLong(seed) { read() }
+            }
+        }
     }
 
     // MARK: Writing the note
@@ -150,7 +206,7 @@ struct PatientNoteSheet: View {
         }
         if !reading.identifiers.isEmpty { identifierWarning(reading.identifiers) }
         if !reading.ambiguous.isEmpty || !reading.unknown.isEmpty { abbreviationGroup(reading) }
-        ForEach(PatientNote.sections, id: \.self) { s in
+        ForEach(QuickAdd.sections, id: \.self) { s in
             let items = reading.findings.filter { $0.section == s }
             if !items.isEmpty {
                 PatientGroup(title: s) {
@@ -215,7 +271,11 @@ struct PatientNoteSheet: View {
     }
 
     private func ambiguousRow(_ a: AmbiguousAbbreviation) -> some View {
-        let how = choices[a.id] != nil ? "Your choice" : (a.fromContext ? "From the context" : "Usual meaning")
+        // A question ("Cr: 0.9 or 1.6?"): nothing is added until it is answered.
+        let question = a.id.hasPrefix("quick:")
+        let how = choices[a.id] != nil ? "Your choice" : (question ? "Asked" : (a.fromContext ? "From the context" : "Usual meaning"))
+        let unset = question ? "Not added until you choose" : "Left as written"
+        let leave = question ? "Leave it out" : "Leave “\(a.abbreviation)” as written"
         return HStack(alignment: .top, spacing: 12) {
             AbbreviationBadge(text: a.abbreviation)
             VStack(alignment: .leading, spacing: 3) {
@@ -227,15 +287,15 @@ struct PatientNoteSheet: View {
                     }
                     Divider()
                     Button { choose(a, MedAbbreviations.asWritten) } label: {
-                        if a.chosenID == MedAbbreviations.asWritten {
-                            Label("Leave “\(a.abbreviation)” as written", systemImage: "checkmark")
+                        if a.chosenID == MedAbbreviations.asWritten && (!question || choices[a.id] != nil) {
+                            Label(leave, systemImage: "checkmark")
                         } else {
-                            Text("Leave “\(a.abbreviation)” as written")
+                            Text(leave)
                         }
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        Text(a.chosen?.text ?? "Left as written")
+                        Text(a.chosen?.text ?? unset)
                             .font(PS.sys(size: 14.5, weight: .medium))
                             .foregroundStyle(PS.fg)
                             .multilineTextAlignment(.leading)
@@ -245,8 +305,8 @@ struct PatientNoteSheet: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .accessibilityLabel(a.abbreviation + ": " + (a.chosen?.text ?? "left as written"))
-                .accessibilityHint("Choose what it means here")
+                .accessibilityLabel(a.abbreviation + ": " + (a.chosen?.text ?? unset.lowercased()))
+                .accessibilityHint(question ? "Choose an answer, or leave it out" : "Choose what it means here")
                 Text(how + " · " + a.context)
                     .font(PS.sys(size: 12))
                     .foregroundStyle(PS.fg3)
@@ -423,7 +483,7 @@ struct PatientNoteSheet: View {
     private func read() {
         Keyboard.dismiss()
         adding = nil
-        let result = PatientNote.read(text, abbreviations: abbreviations.items, choices: choices)
+        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices), tab: tab, record: patient.record)
         let r = patient.record
         chosen = Set(result.findings.filter { PatientNote.status($0, in: r).onByDefault }.map(\.id))
         other = result.other
@@ -437,7 +497,7 @@ struct PatientNoteSheet: View {
     /// Reads the note again after an abbreviation's meaning changed, keeping what the user ticked, unticked or edited.
     private func reread() {
         guard let old = reading else { return }
-        let result = PatientNote.read(text, abbreviations: abbreviations.items, choices: choices)
+        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices), tab: tab, record: patient.record)
         let r = patient.record
         let before = Set(old.findings.map(\.id))
         chosen = Set(result.findings.filter { before.contains($0.id) ? chosen.contains($0.id) : PatientNote.status($0, in: r).onByDefault }.map(\.id))
@@ -471,7 +531,7 @@ struct PatientNoteSheet: View {
         let list = changes(reading)
         guard !list.isEmpty else { return }
         let before = patient.record
-        patient.update { PatientNote.apply(list, to: &$0) }
+        patient.update(discrete: true) { PatientNote.apply(list, to: &$0) }
         Haptics.success()
         onAdded(list.count, before)
         dismiss()

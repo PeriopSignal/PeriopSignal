@@ -11,7 +11,7 @@ extension PatientEditorView {
         let sum = PatientLabs.summary(r)
         if !sum.isEmpty { LabFishboneView(summary: sum) }
         PatientGroup(title: "Labs") {
-            labRows(PatientLabs.tests(.main))
+            labRows(PatientLabs.entryOrder(.main), section: "main")
             PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.", text: bind(\.labNotes))
         }
         labSection("cardiac", "Add cardiac labs", PatientLabs.tests(.cardiac))
@@ -25,24 +25,41 @@ extension PatientEditorView {
     }
 
     @ViewBuilder private func labSection(_ id: String, _ add: String, _ tests: [LabTest]) -> some View {
-        if r.labSections.contains(id) || tests.contains(where: { r.labs[$0.key] != nil }) {
-            PatientGroup(title: tests.first?.group.title) { labRows(tests) }
+        if labSectionShown(id, tests) {
+            PatientGroup(title: tests.first?.group.title) { labRows(tests, section: id) }
         } else {
             labAdd(id, add)
         }
     }
 
+    private func labSectionShown(_ id: String, _ tests: [LabTest]) -> Bool {
+        r.labSections.contains(id) || tests.contains(where: { r.labs[$0.key] != nil })
+    }
+
+    static let liverKeys = ["tbili", "albumin", "inr", "cr", "na"]
+
+    /// The lab fields on screen, top to bottom: the order Previous and Next walk ("main.na", "liver.inr").
+    var labFieldOrder: [String] {
+        var ids = PatientLabs.entryOrder(.main).map { "main." + $0.key }
+        let cardiac = PatientLabs.tests(.cardiac)
+        if labSectionShown("cardiac", cardiac) { ids += cardiac.map { "cardiac." + $0.key } }
+        if r.labSections.contains("liver") { ids += Self.liverKeys.map { "liver." + $0 } }
+        let thyroid = PatientLabs.tests(.thyroid)
+        if labSectionShown("thyroid", thyroid) { ids += thyroid.map { "thyroid." + $0.key } }
+        return ids
+    }
+
     private func labAdd(_ id: String, _ title: String) -> some View {
-        Button { withAnimation(.snappy) { patient.update { _ = $0.labSections.insert(id) } } } label: { Label(title, systemImage: "plus.circle") }
+        Button { withAnimation(.snappy) { patient.update(discrete: true) { _ = $0.labSections.insert(id) } } } label: { Label(title, systemImage: "plus.circle") }
             .font(PS.sys(size: 14.5, weight: .semibold))
             .buttonStyle(.borderless)
             .tint(PS.accent)
             .padding(.horizontal, 4)
     }
 
-    @ViewBuilder private func labRows(_ tests: [LabTest]) -> some View {
+    @ViewBuilder private func labRows(_ tests: [LabTest], section: String) -> some View {
         ForEach(Array(tests.enumerated()), id: \.element.id) { i, t in
-            LabFieldRow(test: t, sex: r.sex, troponin99: r.labs["troponin99"], value: entry(\.labs, t.key))
+            LabFieldRow(test: t, sex: r.sex, troponin99: r.labs["troponin99"], value: entry(\.labs, t.key), chain: chain(section + "." + t.key))
             if i < tests.count - 1 { Hairline().padding(.leading, 14) }
         }
     }
@@ -52,7 +69,7 @@ extension PatientEditorView {
     @ViewBuilder private var liverGroup: some View {
         let res = PatientLabs.liver(LiverInput(record: r, dialysis: r.dialysis, ascites: r.ascites, encephalopathy: r.encephalopathy))
         PatientGroup(title: "Liver function testing (MELD & CTP)") {
-            labRows(["tbili", "albumin", "inr", "cr", "na"].compactMap { PatientLabs.test($0) })
+            labRows(Self.liverKeys.compactMap { PatientLabs.test($0) }, section: "liver")
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Ascites") {
                 PatientChoice(options: LiverAscites.allCases.map { (id: $0.rawValue, label: $0.label) },
@@ -143,6 +160,8 @@ struct LabFieldRow: View {
     var sex: PatientSex?
     var troponin99: Double?
     @Binding var value: Double?
+    /// Its place in the page's Previous / Next order.
+    var chain: PatientFieldChain? = nil
     @State private var text = ""
     @FocusState private var focused: Bool
 
@@ -161,7 +180,7 @@ struct LabFieldRow: View {
                 Text(flag.mark).font(PS.sys(size: 12, weight: .heavy)).foregroundStyle(PS.red)
             }
             TextField("—", text: $text)
-                .focused($focused)
+                .modifier(PatientFieldFocus(chain: chain, local: $focused))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 16, weight: flag.isAbnormal ? .bold : .medium, design: .monospaced))
@@ -176,9 +195,13 @@ struct LabFieldRow: View {
             Text(test.unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).frame(width: 54, alignment: .leading).lineLimit(2).minimumScaleFactor(0.8)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture { if let chain { chain.focusHere() } else { focused = true } }
         .onAppear { text = value.map { test.format($0) } ?? "" }
+        // A change from elsewhere (Undo, a preset): show it, unless the text being typed already reads as it ("1."
+        // while typing 1.5 stays as typed).
         .onChange(of: value) { _, v in
-            if !focused { text = v.map { test.format($0) } ?? "" }
+            if Double(text.replacingOccurrences(of: ",", with: ".")) != v { text = v.map { test.format($0) } ?? "" }
         }
     }
 }

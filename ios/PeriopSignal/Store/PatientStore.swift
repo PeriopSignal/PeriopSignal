@@ -8,6 +8,11 @@ import Observation
 /// excluded from iCloud and computer backups; nothing is sent anywhere. Clear empties the current case and keeps the
 /// cleared record in memory, so Undo can bring it back until the next edit, a change of case or until the app quits;
 /// the file is removed once nothing is left in it. Ending a case keeps a summary in the archive (PatientArchive).
+///
+/// Every change to the current case is also a step that `undo()` steps back through, on any tab or editor
+/// (PatientUndoHistory): in memory only, per case, up to 50 steps, a burst of typing as one step and a discrete action
+/// (`update(discrete: true)`, or `markDiscrete()` just before a binding is written) as its own. Each case keeps its own
+/// steps until the app quits; ending a case drops them.
 @MainActor
 @Observable
 final class PatientStore {
@@ -27,10 +32,15 @@ final class PatientStore {
     private(set) var replaced: PatientRecord?
     /// The file has been read (it cannot be while the phone is locked); edits wait for it so nothing overwrites it.
     private(set) var loaded = false
+    /// The current case has a change to undo (the Undo buttons show).
+    private(set) var canUndo = false
 
     private let url: URL?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var dirty = false
+    @ObservationIgnored private var history = PatientUndoHistory()
+    /// Set by `markDiscrete()`: the next change, if it comes within a second, is a step of its own.
+    @ObservationIgnored private var discreteMark: Date?
 
     init(url: URL? = PatientStore.defaultURL()) {
         self.url = url
@@ -49,20 +59,59 @@ final class PatientStore {
     }
 
     var isEmpty: Bool { record.isEmpty }
-    var canUndo: Bool { cleared != nil && record.isEmpty }
+    /// The patient was just cleared (the "Patient cleared" banner); Undo brings it back.
+    var canUndoClear: Bool { cleared != nil && record.isEmpty }
     var canUndoReceive: Bool { replaced != nil }
 
-    /// Change the record; it is written to disk shortly after.
-    func update(_ change: (inout PatientRecord) -> Void) {
+    /// Change the record; it is written to disk shortly after. The change is an Undo step: one with the changes around
+    /// it less than a second apart (typing), or its own with `discrete` (an add, a delete, a tap).
+    func update(discrete: Bool = false, now: Date = Date(), _ change: (inout PatientRecord) -> Void) {
         if !loaded { reload() }
         var r = record
         change(&r)
         guard r != record else { return }
-        r.updated = Date()
+        history.willChange(record, case: book.currentID, discrete: discrete || takeDiscreteMark(now), now: now)
+        r.updated = now
         record = r
         cleared = nil
         replaced = nil
+        syncUndo()
         scheduleSave()
+    }
+
+    /// The next change is a step of its own: for a chip, toggle or stepper that writes through a binding. It lapses
+    /// after a second if no change follows (a control that edits something other than the patient).
+    func markDiscrete(now: Date = Date()) {
+        discreteMark = now
+    }
+
+    private func takeDiscreteMark(_ now: Date) -> Bool {
+        defer { discreteMark = nil }
+        guard let m = discreteMark else { return false }
+        let gap = now.timeIntervalSince(m)
+        return gap >= 0 && gap < 1
+    }
+
+    /// Steps back one change in the current case.
+    func undo() {
+        if !loaded { reload() }
+        guard let previous = history.pop(book.currentID) else { syncUndo(); return }
+        record = previous
+        cleared = nil
+        replaced = nil
+        syncUndo()
+        scheduleSave(immediately: true)
+    }
+
+    /// The last step of the current case is the change from `before` to `after`, and nothing has changed since: what
+    /// the quick-add and note banners check before offering their Undo.
+    func isLatestStep(before: PatientRecord, after: PatientRecord) -> Bool {
+        record == after && history.top(book.currentID) == before
+    }
+
+    private func syncUndo() {
+        let can = history.canUndo(book.currentID)
+        if can != canUndo { canUndo = can }
     }
 
     /// Opens a patient a colleague sent in place of the current one, which Undo can bring back until the next edit.
@@ -70,44 +119,58 @@ final class PatientStore {
         if !loaded { reload() }
         var r = incoming
         r.updated = Date()
+        history.willChange(record, case: book.currentID, discrete: true)
         replaced = record.isEmpty ? nil : record
         cleared = nil
         record = r
+        syncUndo()
         scheduleSave(immediately: true)
     }
 
     func undoReceive() {
         guard let p = replaced else { return }
+        if history.top(book.currentID) == p { _ = history.pop(book.currentID) }
         record = p
         replaced = nil
+        syncUndo()
         scheduleSave(immediately: true)
     }
 
     func clear() {
         guard !record.isEmpty else { return }
         saveTask?.cancel()
+        history.willChange(record, case: book.currentID, discrete: true)
         cleared = record
         replaced = nil
         record = PatientRecord()
+        syncUndo()
         dirty = true
         write()
     }
 
     func undoClear() {
         guard let c = cleared else { return }
+        if history.top(book.currentID) == c { _ = history.pop(book.currentID) }
         record = c
         cleared = nil
+        syncUndo()
         scheduleSave(immediately: true)
     }
 
-    /// Changes the cases (add, switch, room, end); written to disk shortly after. A change of case ends Undo.
+    /// Changes the cases (add, switch, room, end); written to disk shortly after. A change of case ends the Clear and
+    /// Receive banners; each case keeps its own Undo steps, and those of a case ended or removed are dropped.
     func updateBook(immediately: Bool = false, _ change: (inout PatientCaseBook) -> Void) {
         if !loaded { reload() }
         var b = book
         change(&b)
         guard b != book else { return }
-        if b.currentID != book.currentID { cleared = nil; replaced = nil }
+        if b.currentID != book.currentID {
+            cleared = nil
+            replaced = nil
+        }
+        history.keep(only: Set(b.cases.map(\.id)))
         book = b
+        syncUndo()
         scheduleSave(immediately: immediately)
     }
 

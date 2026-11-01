@@ -2,13 +2,38 @@ import SwiftUI
 
 // MARK: - Pieces the My Patient screens share
 
+/// A number field's place in its page's Previous / Next order (PatientEditorView.numberOrder): the page's focus and
+/// this field's id in it.
+struct PatientFieldChain {
+    var focus: FocusState<String?>.Binding
+    var id: String
+
+    func focusHere() { focus.wrappedValue = id }
+}
+
+/// Focus from the page's chain when the field has a place in it, else the field's own.
+struct PatientFieldFocus: ViewModifier {
+    var chain: PatientFieldChain?
+    var local: FocusState<Bool>.Binding
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if let chain {
+            content.focused(chain.focus, equals: chain.id)
+        } else {
+            content.focused(local)
+        }
+    }
+}
+
 /// A number bound to the record, typed freely: the text is kept while typing and parsed into the value. The field
-/// has its own focus, and a tap anywhere on the row starts typing.
+/// has its own focus, or a place in the page's Previous / Next order (`chain`), and a tap anywhere on the row starts
+/// typing.
 struct PatientNumberField: View {
     var label: String
     var unit: String
     @Binding var value: Double?
     var hint: String? = nil
+    var chain: PatientFieldChain? = nil
     @State private var text = ""
     @FocusState private var focused: Bool
 
@@ -27,7 +52,7 @@ struct PatientNumberField: View {
             Spacer(minLength: 6)
             TextField("—", text: $text)
                 .keyboardType(.decimalPad)
-                .focused($focused)
+                .modifier(PatientFieldFocus(chain: chain, local: $focused))
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
                 .foregroundStyle(PS.fg)
@@ -38,7 +63,7 @@ struct PatientNumberField: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         .contentShape(Rectangle())
-        .onTapGesture { focused = true }
+        .onTapGesture { if let chain { chain.focusHere() } else { focused = true } }
         // NumText.exact, not a rounding format: the text parses back to the same value, so showing it never edits it.
         .onAppear { text = value.map { NumText.exact($0) } ?? "" }
         .onChange(of: text) { _, t in
@@ -47,6 +72,24 @@ struct PatientNumberField: View {
         }
         .onChange(of: value) { _, v in
             if Self.parse(text) != v { text = v.map { NumText.exact($0) } ?? "" }
+        }
+    }
+}
+
+/// Undo in the navigation bar: steps back the last change to the current case, on any My Patient tab or editor.
+/// Shown only when there is something to undo.
+struct PatientUndoButton: View {
+    @Environment(PatientStore.self) private var patient
+
+    var body: some View {
+        if patient.canUndo {
+            Button {
+                Haptics.light()
+                withAnimation(.snappy) { patient.undo() }
+            } label: {
+                Label("Undo", systemImage: "arrow.uturn.backward")
+            }
+            .accessibilityHint("Undoes the last change to this patient")
         }
     }
 }
@@ -75,11 +118,12 @@ struct PatientTextField: View {
     }
 }
 
-/// Toggle chips for a set of flags; several can be on.
+/// Toggle chips for a set of flags; several can be on. Each tap is an Undo step of its own.
 struct PatientChips: View {
     var options: [PatientFlag]
     @Binding var selection: Set<String>
     var tint: Color = PS.accent
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     var body: some View {
         WrapLayout(spacing: 7) {
@@ -87,6 +131,7 @@ struct PatientChips: View {
                 let on = selection.contains(o.id)
                 Button {
                     Haptics.light()
+                    store?.markDiscrete()
                     if on { selection.remove(o.id) } else { selection.insert(o.id) }
                 } label: {
                     HStack(spacing: 5) {
@@ -106,11 +151,12 @@ struct PatientChips: View {
     }
 }
 
-/// One choice among a few, as chips; tapping the chosen one clears it.
+/// One choice among a few, as chips; tapping the chosen one clears it. Each tap is an Undo step of its own.
 struct PatientChoice: View {
     var options: [(id: String, label: String)]
     @Binding var selection: String?
     var tint: Color = PS.accent
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     var body: some View {
         WrapLayout(spacing: 7) {
@@ -118,6 +164,7 @@ struct PatientChoice: View {
                 let on = selection == o.id
                 Button {
                     Haptics.light()
+                    store?.markDiscrete()
                     selection = on ? nil : o.id
                 } label: {
                     Text(o.label)
@@ -131,6 +178,38 @@ struct PatientChoice: View {
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
+    }
+}
+
+/// A one-tap preset (Exam normal, Echo normal): the button, then what it sets in a caption under it. Once the record
+/// shows what it sets, the button reads as done; everything stays editable below.
+struct PatientPresetRow: View {
+    var title: String
+    var caption: String
+    var applied: Bool
+    var action: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack {
+                Button {
+                    Haptics.light()
+                    withAnimation(.snappy) { action() }
+                } label: {
+                    Label(title, systemImage: applied ? "checkmark.circle.fill" : "checkmark.circle")
+                }
+                .buttonStyle(CapsuleButtonStyle(prominent: !applied, color: PS.green))
+                .accessibilityHint(caption)
+                Spacer(minLength: 0)
+            }
+            Text(caption)
+                .font(PS.sys(size: 12))
+                .foregroundStyle(PS.fg3)
+                .lineSpacing(1.5)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

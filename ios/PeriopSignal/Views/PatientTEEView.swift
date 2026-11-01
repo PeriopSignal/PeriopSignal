@@ -80,8 +80,8 @@ extension PatientEditorView {
                 Spacer(minLength: 6)
                 if fromRecord == nil {
                     YesNoPills(no: answer == false || (answer == nil && r.teeScreen.reviewed), yes: answer == true,
-                               onNo: { withAnimation(.snappy) { patient.update { $0.teeScreen.set(it.id, answer == false ? nil : false) } } },
-                               onYes: { withAnimation(.snappy) { patient.update { $0.teeScreen.set(it.id, answer == true ? nil : true) } } })
+                               onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0.teeScreen.set(it.id, answer == false ? nil : false) } } },
+                               onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0.teeScreen.set(it.id, answer == true ? nil : true) } } })
                 } else {
                     Label("In the record", systemImage: "checkmark.circle.fill")
                         .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(tint)

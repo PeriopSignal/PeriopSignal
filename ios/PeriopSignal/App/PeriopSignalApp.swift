@@ -19,6 +19,15 @@ struct PeriopSignalApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("ps.appearance") private var appearance: Appearance = .dark
 
+    /// The saved appearance. A screenshot run's -ps.forceAppearance light|dark applies to that launch only and is
+    /// never saved, so the next launch's appearance comes from its own arguments.
+    private var launchAppearance: Appearance {
+        #if DEBUG
+        if let forced = Appearance(rawValue: LaunchSeed.string("ps.forceAppearance")) { return forced }
+        #endif
+        return appearance
+    }
+
     init() {
         // Earlier versions kept the last patient weight and age in settings; those keys are removed. My Patient keeps
         // its one record in a protected file instead (PatientStore), until the user clears it.
@@ -49,7 +58,7 @@ struct PeriopSignalApp: App {
                 .environment(favorites)
                 .environment(patient)
                 .environment(inbox)
-                .preferredColorScheme(appearance.colorScheme)
+                .preferredColorScheme(launchAppearance.colorScheme)
                 .tint(PS.accent)
                 .onOpenURL { url in
                     // A patient a colleague sent (AirDrop or Messages) opens My Patient, which asks before taking it.
@@ -112,6 +121,20 @@ final class Router {
     var openSaved = false
 
     enum Tab: String, Hashable { case feed, patient, reference, more }
+
+    init() {
+        #if DEBUG
+        // Screenshot runs open on their tab from the first frame. RootView's launch task sets it too, but a slow first
+        // launch in the simulator can hold that task back past the screenshot, which then shows the Feed.
+        switch UserDefaults.standard.string(forKey: "ps.tab") {
+        case "patient": selectedTab = .patient
+        case "about", "more": selectedTab = .more
+        case "guidelines", "reference": selectedTab = .reference
+        default: break
+        }
+        if let r = UserDefaults.standard.string(forKey: "ps.ref"), !r.isEmpty { selectedTab = .reference }
+        #endif
+    }
 
     func showSaved() {
         selectedTab = .more

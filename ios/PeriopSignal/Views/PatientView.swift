@@ -47,6 +47,12 @@ struct PatientView: View {
     @State private var noteResult: NoteResult?
     /// A patient from a colleague was just opened (true when it replaced another, which Undo brings back).
     @State private var received: Bool?
+    /// The jump bar has scrolled under the top of the tab, so its pinned copy shows.
+    @State private var jumpPinned = false
+    /// The grey shield's "No patient identifiers" explanation is open.
+    @State private var showIdentifiers = false
+    /// Where the jump bar and its pinned copy are, read as the tab scrolls (not observed, so scrolling redraws nothing).
+    @State private var jumpGeometry = PatientJumpGeometry()
 
     private struct NoteResult {
         var count: Int
@@ -63,10 +69,11 @@ struct PatientView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        NoIdentifiersBanner()
+                        // In full for the empty patient; otherwise the grey shield in the navigation bar.
+                        if patient.isEmpty { NoIdentifiersBanner() }
                         PatientRoomsBar()
                         tabBar
-                        if patient.canUndo { undoBanner }
+                        if patient.canUndoClear { undoBanner }
                         if let n = noteResult { noteBanner(n) }
                         if let replaced = received { receivedBanner(replaced) }
                         switch tab {
@@ -80,16 +87,24 @@ struct PatientView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 32)
                 }
+                .overlay(alignment: .top) { pinnedJumpBar(proxy) }
+                .noIdentifiersAlert(isPresented: $showIdentifiers)
                 .onAppear {
                     #if DEBUG
-                    // Screenshot runs: -ps.patient.jump handoff | assessment | intraop:<part> scrolls the tab to it.
-                    let a = LaunchSeed.string("ps.patient.jump")
+                    // Screenshot runs: -ps.patient.jump handoff | assessment | history | airway | intraop:<part> scrolls
+                    // the tab to it. -ps.patient.scroll, when no editor is opened, does the same and then again once
+                    // the title has collapsed, as a tap on the pinned jump bar would.
+                    let jump = LaunchSeed.string("ps.patient.jump")
+                    let scroll = LaunchSeed.string("ps.patient.open").isEmpty ? LaunchSeed.string("ps.patient.scroll") : ""
+                    let a = jump.isEmpty ? scroll : jump
                     if !a.isEmpty {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientEditor.intraopPart(String(a.dropFirst(8))), anchor: .top) }
-                            else if a == "assessment" { proxy.scrollTo(PatientEditor.assessment, anchor: .top) }
+                        let go = {
+                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(PatientEditor.intraopPart(String(a.dropFirst(8)))), anchor: .top) }
+                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(PatientJumpID(e), anchor: .top) }
                             else { proxy.scrollTo(a, anchor: .top) }
                         }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
+                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 2.6, execute: go) }
                     }
                     #endif
                 }
@@ -129,13 +144,13 @@ struct PatientView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    if patient.canUndo {
-                        Button { withAnimation(.snappy) { patient.undoClear() } } label: { Label("Undo Clear", systemImage: "arrow.uturn.backward") }
-                    } else {
-                        Button(role: .destructive) { confirmClear = true } label: { Label("Clear Patient", systemImage: "trash") }
-                            .disabled(patient.isEmpty)
-                    }
+                ToolbarItem(placement: .topBarLeading) {
+                    if !patient.isEmpty { NoIdentifiersShield(isPresented: $showIdentifiers) }
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    PatientUndoButton()
+                    Button(role: .destructive) { confirmClear = true } label: { Label("Clear Patient", systemImage: "trash") }
+                        .disabled(patient.isEmpty)
                 }
             }
             .confirmationDialog("Clear this patient?", isPresented: $confirmClear, titleVisibility: .visible) {
@@ -165,9 +180,21 @@ struct PatientView: View {
 
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
     /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
-    /// intraop:<part> | a reference route such as score:rcri.
+    /// intraop:<part> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo makes that
+    /// change first (one-tap normals), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
+        let edit = LaunchSeed.string("ps.patient.edit")
+        if !edit.isEmpty {
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            patient.update(discrete: true) { r in
+                switch edit {
+                case "echo": r.echoFindings.applyNormal()
+                case "intraop-echo": r.intraopEcho.applyNormal()
+                default: PatientAirway.applyNormalExam(&r)
+                }
+            }
+        }
         let o = LaunchSeed.string("ps.patient.open")
         // A push asked for before the navigation stack is on screen is sometimes dropped (screenshot runs): wait a moment.
         if !o.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
@@ -230,19 +257,45 @@ struct PatientView: View {
     @ViewBuilder private func preop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         if patient.isEmpty { emptyCard }
-        jumpBar(proxy, [PatientEditor.procedure, .demographics, .history, .assessment, .airway, .devices("preop"), .devices("support")])
+        jumpBar(proxy, Self.preopJumps).background(jumpBarReader)
         PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
-            .id(PatientEditor.procedure)
+            .jumpTarget(PatientEditor.procedure)
         PatientSectionCard(editor: .demographics, lines: PatientSummary.demographicsLines(r), empty: "Age, sex, height, weight and preprocedure vital signs.")
-            .id(PatientEditor.demographics)
+            .jumpTarget(PatientEditor.demographics)
         PatientSectionCard(editor: .history, lines: PatientSummary.historyLines(r), empty: "Problems by system, surgical history, medications, allergies, anesthetic complications, NPO and labs.")
-            .id(PatientEditor.history)
+            .jumpTarget(PatientEditor.history)
         PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity, the cardiac evaluation and the risk scores.")
-            .id(PatientEditor.assessment)
-        airwayCard.id(PatientEditor.airway)
-        devicesCard.id(PatientEditor.devices("preop"))
+            .jumpTarget(PatientEditor.assessment)
+        airwayCard.jumpTarget(PatientEditor.airway)
+        devicesCard.jumpTarget(PatientEditor.devices("preop"))
         PatientSectionCard(editor: .devices("support"), lines: PatientSummary.supportLines(r), empty: "IABP, Impella, LVAD or ECMO, with their settings.")
-            .id(PatientEditor.devices("support"))
+            .jumpTarget(PatientEditor.devices("support"))
+    }
+
+    private static let preopJumps: [PatientEditor] = [.procedure, .demographics, .history, .assessment, .airway, .devices("preop"), .devices("support")]
+
+    /// Screenshot runs: the names -ps.patient.jump and -ps.patient.scroll take for the preoperative cards.
+    private static let jumpKeys: [String: PatientEditor] = [
+        "procedure": .procedure, "demographics": .demographics, "history": .history, "assessment": .assessment,
+        "airway": .airway, "devices": .devices("preop"), "support": .devices("support"),
+    ]
+
+    /// The intraoperative echo card shows when an echo is usual for the surgery, a TEE is planned, or one is recorded.
+    private var echoUp: Bool { PatientRules.echoFirst(r) || PatientTEE.planned(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty }
+
+    /// The intraoperative parts with a card of their own, in order; major considerations close the tab, after the
+    /// echo button.
+    private var intraopCardParts: [(id: String, title: String, icon: String)] {
+        PatientEditor.intraopParts.filter { ($0.id != "echo" || echoUp) && $0.id != "considerations" }
+    }
+
+    /// The jump bar's sections for the tab (none on Summary & Handoff).
+    private var jumpEditors: [PatientEditor]? {
+        switch tab {
+        case .preop: return Self.preopJumps
+        case .intraop: return intraopCardParts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")]
+        case .summary: return nil
+        }
     }
 
     /// Lines and devices on arrival, drawn on the patient.
@@ -268,13 +321,11 @@ struct PatientView: View {
 
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
-        let echoUp = PatientRules.echoFirst(r) || PatientTEE.planned(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty
-        // Major considerations close the tab, after the echo button.
-        let parts = PatientEditor.intraopParts.filter { ($0.id != "echo" || echoUp) && $0.id != "considerations" }
-        jumpBar(proxy, parts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")])
+        let parts = intraopCardParts
+        jumpBar(proxy, jumpEditors ?? []).background(jumpBarReader)
         ForEach(parts, id: \.id) { part in
             PatientSectionCard(editor: .intraopPart(part.id), lines: PatientSummary.intraopPartLines(r, part.id), empty: Self.intraopEmpty[part.id] ?? "")
-                .id(PatientEditor.intraopPart(part.id))
+                .jumpTarget(PatientEditor.intraopPart(part.id))
         }
         if !echoUp {
             NavigationLink(value: PatientEditor.intraopPart("echo")) {
@@ -283,7 +334,7 @@ struct PatientView: View {
             .buttonStyle(GhostButtonStyle())
         }
         PatientSectionCard(editor: .intraopPart("considerations"), lines: PatientSummary.intraopPartLines(r, "considerations"), empty: Self.intraopEmpty["considerations"] ?? "")
-            .id(PatientEditor.intraopPart("considerations"))
+            .jumpTarget(PatientEditor.intraopPart("considerations"))
     }
 
     private static let intraopEmpty: [String: String] = [
@@ -333,28 +384,9 @@ struct PatientView: View {
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
     }
 
+    /// The quick-add bar (1.8), in place of the Fill from a note card; its pencil opens the full note.
     private var noteButton: some View {
-        Button { showNote = true } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "square.and.pencil")
-                    .font(PS.sys(size: 16, weight: .semibold))
-                    .foregroundStyle(PS.accent2)
-                    .frame(width: 36, height: 36)
-                    .background(PS.accent2.opacity(0.12), in: Circle())
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Fill from a note").font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text("Type or dictate; check what's found before it's added.")
-                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 6)
-                Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-            }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        QuickAddBar(tab: tab == .intraop ? .intraop : .preop)
     }
 
     private func noteBanner(_ n: NoteResult) -> some View {
@@ -364,10 +396,11 @@ struct PatientView: View {
                 Image(systemName: "checkmark.circle.fill").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.green)
                 Text("Added \(n.count) item\(n.count == 1 ? "" : "s") from your note").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
                 Spacer(minLength: 6)
-                if patient.record == n.after {
+                // The note's add is one step in the store's Undo history: offered while it is still the latest.
+                if patient.isLatestStep(before: n.before, after: n.after) {
                     Button("Undo") {
                         withAnimation(.snappy) {
-                            patient.update { $0 = n.before }
+                            patient.undo()
                             noteResult = nil
                         }
                     }
@@ -434,11 +467,60 @@ struct PatientView: View {
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 
+    // MARK: Pinned jump bar
+
+    /// Reads where the tab's jump bar is as it scrolls; the pinned copy shows once it has gone under the top.
+    private var jumpBarReader: some View {
+        GeometryReader { g in
+            Color.clear
+                .onAppear { jumpGeometry.barY = g.frame(in: .global).minY; updateJumpPin() }
+                .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.barY = y; updateJumpPin() }
+        }
+    }
+
+    private func updateJumpPin() {
+        let pinned = jumpGeometry.barY < jumpGeometry.pinY
+        if pinned != jumpPinned { jumpPinned = pinned }
+    }
+
+    /// The jump bar again, pinned at the top of the tab on the app's background material, once the tab's own has
+    /// scrolled under it: any section is one tap away from anywhere on the tab. At rest only a point at the top is
+    /// there, to measure where the chips pin; the bar and its material exist only while pinned.
+    @ViewBuilder private func pinnedJumpBar(_ proxy: ScrollViewProxy) -> some View {
+        if let editors = jumpEditors {
+            ZStack(alignment: .top) {
+                Color.clear
+                    .frame(height: 1)
+                    .padding(.top, 8)
+                    .background(GeometryReader { g in
+                        Color.clear
+                            .onAppear { jumpGeometry.pinY = g.frame(in: .global).minY + 8; updateJumpPin() }
+                            .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.pinY = y + 8; updateJumpPin() }
+                    })
+                    .allowsHitTesting(false)
+                if jumpPinned {
+                    jumpBar(proxy, editors)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background {
+                            Rectangle().fill(.ultraThinMaterial)
+                                .overlay(PS.bg.opacity(0.55))
+                                .overlay(alignment: .bottom) { Hairline() }
+                                .ignoresSafeArea(edges: [.horizontal, .top])
+                        }
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeOut(duration: 0.12), value: jumpPinned)
+        }
+    }
+
     private func jumpBar(_ proxy: ScrollViewProxy, _ editors: [PatientEditor]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(editors, id: \.self) { e in
-                    Button { withAnimation(.snappy) { proxy.scrollTo(e, anchor: .top) } } label: {
+                    Button { withAnimation(.snappy) { proxy.scrollTo(PatientJumpID(e), anchor: .top) } } label: {
                         Text(e.title)
                             .font(PS.sys(size: 13.5, weight: .semibold))
                             .foregroundStyle(PS.fg2)
@@ -648,5 +730,39 @@ struct PatientLineText: View {
             Text(styled).font(PS.sys(size: 14, weight: line.alert ? .semibold : .regular)).foregroundStyle(line.alert ? PS.accent : PS.fg)
                 .lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+/// Where the tab's jump bar and its pinned copy sit on screen, updated as the tab scrolls. A plain class, so the
+/// updates redraw nothing; PatientView redraws only when the pinned copy shows or hides.
+final class PatientJumpGeometry {
+    /// The top of the tab's own jump bar.
+    var barY: CGFloat = .infinity
+    /// The top of the pinned copy's chips.
+    var pinY: CGFloat = -.infinity
+}
+
+/// A card's scroll target, kept apart from the jump bar's own chips (identified by the same editors), so a jump
+/// scrolls the tab and never the row of chips.
+struct PatientJumpID: Hashable {
+    var editor: PatientEditor
+    init(_ editor: PatientEditor) { self.editor = editor }
+}
+
+extension View {
+    /// A card the jump bar scrolls to. Its scroll target is a clear anchor stacked above the card, pulled up by
+    /// negative padding so the layout is unchanged: scrolling aligns the anchor with the top of the safe area, under
+    /// the navigation bar, so 110 pt clears the inline title and the pinned jump bar and the card lands just under
+    /// them. (An id in a background is not used by ScrollViewReader; a stacked child is.)
+    func jumpTarget(_ editor: PatientEditor) -> some View {
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(height: 110)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+                .id(PatientJumpID(editor))
+            self
+        }
+        .padding(.top, -110)
     }
 }

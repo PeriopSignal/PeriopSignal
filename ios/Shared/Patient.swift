@@ -113,7 +113,10 @@ struct PatientRecord: Codable, Equatable {
     var updated: Date?
 
     // Patient and procedure
-    var ageYears: Double?
+    /// At most 90: an age of 90 or more is kept as "90 or older" (HIPAA Safe Harbor), however it was entered.
+    var ageYears: Double? {
+        didSet { if let a = ageYears, a > Self.oldestAge { ageYears = Self.oldestAge } }
+    }
     var sex: PatientSex?
     var heightCm: Double?
     var weightKg: Double?
@@ -197,6 +200,9 @@ struct PatientRecord: Codable, Equatable {
     var dentition = ""
     var airwayNotes = ""
     var examNotes = ""
+    /// The airway examination was done: mouth opening, thyromental distance and neck movement not flagged under the
+    /// signs read as normal (set by Exam normal, PatientAirway.applyNormalExam). False in records saved before 1.8.
+    var airwayExamReviewed = false
     /// The airway the patient arrives with: "natural", "ett" or "trach"; with an ETT or a tracheostomy the airway
     /// examination and the intraoperative airway course are not asked.
     var currentAirway: String?
@@ -278,7 +284,7 @@ struct PatientRecord: Codable, Equatable {
         func v<T: Decodable>(_ key: CodingKeys, _ fallback: T) -> T { (try? c.decodeIfPresent(T.self, forKey: key)) ?? fallback }
         version = v(.version, 1)
         updated = try? c.decodeIfPresent(Date.self, forKey: .updated)
-        ageYears = try? c.decodeIfPresent(Double.self, forKey: .ageYears)
+        ageYears = (try? c.decodeIfPresent(Double.self, forKey: .ageYears)).map { Swift.min($0, PatientRecord.oldestAge) }
         sex = try? c.decodeIfPresent(PatientSex.self, forKey: .sex)
         heightCm = try? c.decodeIfPresent(Double.self, forKey: .heightCm)
         weightKg = try? c.decodeIfPresent(Double.self, forKey: .weightKg)
@@ -332,6 +338,7 @@ struct PatientRecord: Codable, Equatable {
         dentition = v(.dentition, "")
         airwayNotes = v(.airwayNotes, "")
         examNotes = v(.examNotes, "")
+        airwayExamReviewed = v(.airwayExamReviewed, false)
         currentAirway = try? c.decodeIfPresent(String.self, forKey: .currentAirway)
         ettSize = v(.ettSize, "")
         ettDepth = v(.ettDepth, "")
@@ -429,10 +436,19 @@ extension PatientRecord {
     var isChild: Bool { (ageYears ?? 99) < 18 }
     var emergency: Bool { urgency == .emergency }
 
-    /// "62-year-old man", "4-year-old girl", "Woman", "": the opening of the one-liner.
+    /// The oldest age kept: 90 stands for 90 or older.
+    static let oldestAge = 90.0
+
+    /// "62", or "90 or older" for 90 and over.
+    static func ageText(_ years: Double) -> String { years >= oldestAge ? "90 or older" : NumText.short(years) }
+    /// The age field's unit: "90 or older" reads as the number and this.
+    static func ageFieldUnit(_ years: Double?) -> String { (years ?? 0) >= oldestAge ? "or older" : "years" }
+
+    /// "62-year-old man", "4-year-old girl", "Woman, 90 or older", "Woman", "": the opening of the one-liner.
     var person: String {
         let noun: String? = sex.map { s in isChild ? (s == .male ? "boy" : "girl") : s.noun }
         guard let a = ageYears else { return noun.map { $0.prefix(1).uppercased() + $0.dropFirst() } ?? "" }
+        if a >= Self.oldestAge { return noun.map { $0.prefix(1).uppercased() + $0.dropFirst() + ", 90 or older" } ?? "90 or older" }
         let age = a < 1 ? "\(Int((a * 12).rounded()))-month-old" : "\(PedsCalc.fmt(a.rounded(.down)))-year-old"
         return age + (noun.map { " " + $0 } ?? "")
     }
@@ -450,6 +466,11 @@ extension PatientRecord {
 
     /// Arrives with an ETT or a tracheostomy: no airway examination or intraoperative airway course to record.
     var arrivesWithAirway: Bool { currentAirway == "ett" || currentAirway == "trach" }
+    /// Anything recorded in the airway examination: the Mallampati class, a sign, the teeth, or the exam marked
+    /// reviewed. Without it the full handoff says the exam was not assessed.
+    var airwayExamTouched: Bool {
+        mallampati != nil || !airwaySigns.isEmpty || !dentition.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || airwayExamReviewed
+    }
     /// Cardiac or thoracic operations from the surgical history and those added in the cardiac evaluation.
     var allIntrathoracic: [PatientSurgery] { surgeries.filter(\.intrathoracic) + intrathoracic }
     var hasCardiacSymptoms: Bool { cardiacSymptomsAnswer == true || !cardiacSymptoms.isEmpty }
