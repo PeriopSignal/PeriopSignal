@@ -142,7 +142,7 @@ struct PatientView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if !patient.isEmpty && !LaunchSeed.bool("ps.debug.noshield") { NoIdentifiersShield() }
+                    if !patient.isEmpty { NoIdentifiersShield() }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     PatientUndoButton()
@@ -164,7 +164,6 @@ struct PatientView: View {
             }
         }
         .environment(handoff)
-        .background { if LaunchSeed.bool("ps.debug.tick") { TimelineView(.periodic(from: .now, by: 0.5)) { t in Color.clear.opacity(t.date.timeIntervalSince1970.truncatingRemainder(dividingBy: 1) < 0.5 ? 0.001 : 0.002) } } }
         .task { await openForScreenshot() }
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
@@ -502,7 +501,7 @@ struct PatientView: View {
     /// The jump bar again, pinned at the top of the tab on the app's background material, once the tab's own has
     /// scrolled under it: any section is one tap away from anywhere on the tab.
     @ViewBuilder private func pinnedJumpBar(_ proxy: ScrollViewProxy) -> some View {
-        if let editors = jumpEditors, !LaunchSeed.bool("ps.debug.nopin") {
+        if let editors = jumpEditors {
             jumpBar(proxy, editors)
                 .background(GeometryReader { g in
                     Color.clear
