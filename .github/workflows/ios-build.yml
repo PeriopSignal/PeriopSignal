@@ -136,6 +136,9 @@ jobs:
             local name="$1"; local wait="$2"; shift 2
             if [ -n "$ONLY" ] && ! echo "$name" | grep -Eq "$ONLY"; then return 0; fi
             xcrun simctl terminate "$UDID" org.periopsignal.app 2>/dev/null || true
+            # Launch only once the last run has exited: a launch while it is still going comes up without its arguments
+            # (the plain Feed, in the default appearance).
+            for _ in $(seq 1 30); do pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null || break; sleep 0.5; done
             sleep 1
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
@@ -275,8 +278,8 @@ jobs:
           # Each sets its appearance (-ps.forceAppearance applies to its own launch only).
           shot 160-quickadd-preop 16 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
           shot 161-quickadd-preop-demo-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
-          shot 162-quickadd-intraop 22 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
-          shot 163-quickadd-intraop-light 22 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
+          shot 162-quickadd-intraop 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
+          shot 163-quickadd-intraop-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
           shot 164-quickadd-vitals-labs 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "148/86 72 95% 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210"
           shot 165-quickadd-identifier 16 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "MRN 1234567 72M for CABG x3 + AVR, EF 35%, no A-line, POEC"
           shot 166-quickadd-airway-blood 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "VL grade 1, 7.5 ETT 23 cm, easy mask, cryo 10, 1 pool cryo, cell saver 450, R radial A-line 20G"
