@@ -205,17 +205,28 @@ extension PatientRecord {
 /// One past operation: from the procedure list or typed, with the side and the month and year.
 struct PatientSurgery: Codable, Hashable, Identifiable {
     var id = UUID()
+    /// The operation as one line ("Aortic valve replacement + Coronary artery bypass grafting ×3"); kept in step with
+    /// `procedures` for older readers. In a save from before 1.7 it is the name as typed.
     var name = ""
-    /// The procedure list's id when picked from it.
+    /// The first procedure's list id, kept for older readers.
     var procedureID: String?
-    /// "left", "right", "bilateral".
+    /// "left", "right", "bilateral" (the first procedure's side).
     var side: String?
+    /// The procedures done in this operation (1.7): several on one date (AVR and CABG together), each picked from the
+    /// list or typed, with its side and details.
+    var procedures: [PlannedProcedure] = []
     var date = PatientMonthYear()
     /// A cardiac or thoracic operation (a previous sternotomy or thoracotomy), for the cardiac evaluation.
     var intrathoracic = false
 
     init(name: String = "", procedureID: String? = nil, side: String? = nil, date: PatientMonthYear = PatientMonthYear(), intrathoracic: Bool = false) {
         self.name = name; self.procedureID = procedureID; self.side = side; self.date = date; self.intrathoracic = intrathoracic
+        procedures = PatientSurgery.migrated(name: name, procedureID: procedureID, side: side)
+    }
+
+    init(procedures: [PlannedProcedure], date: PatientMonthYear = PatientMonthYear(), intrathoracic: Bool = false) {
+        self.date = date; self.intrathoracic = intrathoracic
+        setProcedures(procedures)
     }
 
     init(from decoder: Decoder) throws {
@@ -226,12 +237,31 @@ struct PatientSurgery: Codable, Hashable, Identifiable {
         side = try? c.decodeIfPresent(String.self, forKey: .side)
         date = (try? c.decodeIfPresent(PatientMonthYear.self, forKey: .date)) ?? PatientMonthYear()
         intrathoracic = (try? c.decodeIfPresent(Bool.self, forKey: .intrathoracic)) ?? false
+        let items = (try? c.decodeIfPresent([PlannedProcedure].self, forKey: .procedures)) ?? nil
+        procedures = items ?? PatientSurgery.migrated(name: name, procedureID: procedureID, side: side)
     }
 
-    /// "Left total knee arthroplasty (03/2019)".
+    /// A save from before 1.7: its one name becomes one procedure.
+    private static func migrated(name: String, procedureID: String?, side: String?) -> [PlannedProcedure] {
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !n.isEmpty else { return [] }
+        return [PlannedProcedure(catalogID: procedureID.flatMap { ProcedureCatalog.byID($0) == nil ? nil : $0 }, name: n, side: side)]
+    }
+
+    /// Replaces the procedures, keeps the older fields in step, and marks the operation cardiac or thoracic when a
+    /// procedure from the list is (it is never unmarked here: the clinician may know better).
+    mutating func setProcedures(_ list: [PlannedProcedure]) {
+        procedures = list
+        name = list.map(\.text).filter { !$0.isEmpty }.joined(separator: " + ")
+        procedureID = list.first?.catalogID
+        side = list.first?.side
+        if list.contains(where: { p in p.catalog.map { $0.cardiac || $0.incision == "Intrathoracic" } ?? false }) { intrathoracic = true }
+    }
+
+    /// "Left total knee arthroplasty (03/2019)"; several procedures joined with " + ".
     var text: String {
-        let sided = side.map { s in (s == "bilateral" ? "Bilateral " : s.prefix(1).uppercased() + s.dropFirst() + " ") + name.lowercasedFirst } ?? name
-        return date.isEmpty ? sided : sided + " (" + date.text + ")"
+        let what = procedures.map(\.text).filter { !$0.isEmpty }.joined(separator: " + ")
+        return date.isEmpty || what.isEmpty ? what : what + " (" + date.text + ")"
     }
 }
 
@@ -487,6 +517,11 @@ struct PatientOxygen: Codable, Hashable {
 
 /// ECG findings offered on the typeable list; anything else is typed in.
 enum PatientECG {
+    static let nsr = "Normal sinus rhythm"
+    /// The rhythms, of which one is recorded at a time.
+    static let rhythms: Set<String> = ["Normal sinus rhythm", "Sinus bradycardia", "Sinus tachycardia", "Atrial fibrillation", "Atrial flutter",
+                                       "SVT", "Paced rhythm (atrial)", "Paced rhythm (ventricular)", "Paced rhythm (AV)"]
+
     static let findings = [
         "Normal sinus rhythm", "Sinus bradycardia", "Sinus tachycardia", "Atrial fibrillation", "Atrial flutter", "SVT",
         "Paced rhythm (atrial)", "Paced rhythm (ventricular)", "Paced rhythm (AV)", "First-degree AV block", "Mobitz I (Wenckebach)",

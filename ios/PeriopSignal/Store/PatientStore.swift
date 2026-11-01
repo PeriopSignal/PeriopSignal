@@ -202,7 +202,7 @@ enum PatientDemo {
         r.todos = "Resume CPAP in PACU; check glucose on arrival"
         r.scores["rcri"] = PatientScore(points: 3, max: 6, label: "Class IV · 3 or more", detail: "15.0% (11.1–20.0)", answers: ["High-risk surgery", "Ischemic heart disease", "Insulin therapy for diabetes"], date: Date())
         r.surgeries = [PatientSurgery(name: "Total knee arthroplasty", side: "right", date: PatientMonthYear(month: 3, year: 2019)),
-                       PatientSurgery(name: "Laparoscopic cholecystectomy", date: PatientMonthYear(year: 2015))]
+                       PatientSurgery(procedures: PlannedProcedure.parse("lap chole + umbilical hernia repair"), date: PatientMonthYear(year: 2015))]
         r.cardiacSymptomsAnswer = false
         r.activeCardiacAnswer = false
         r.ecg = ["Normal sinus rhythm", "Q waves (old infarct)"]

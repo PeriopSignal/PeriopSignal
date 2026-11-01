@@ -324,11 +324,38 @@ final class PatientWorkupTests: XCTestCase {
     }
 
     func testSurgeryPickedFromList() {
-        var s = PatientSurgery(name: "cabg")
+        var s = PatientSurgery()
         let p = try! XCTUnwrap(ProcedureCatalog.byID("cabg"))
-        s.procedureID = p.id; s.name = p.name
-        if p.cardiac || p.incision == "Intrathoracic" { s.intrathoracic = true }
-        XCTAssertTrue(s.intrathoracic)
+        s.setProcedures([PlannedProcedure(p)])
+        XCTAssertTrue(s.intrathoracic, "a cardiac procedure marks the operation")
         XCTAssertEqual(s.text, "Coronary artery bypass grafting")
+        XCTAssertEqual(s.procedureID, "cabg")
+    }
+
+    /// Several procedures on one date (AVR and CABG together), and saves from before 1.7.
+    func testSurgeryWithSeveralProcedures() throws {
+        var s = PatientSurgery(date: PatientMonthYear(month: 10, year: 2020))
+        s.setProcedures(PlannedProcedure.parse("AVR + CABG x2"))
+        XCTAssertEqual(s.procedures.map(\.catalogID), ["avr", "cabg"])
+        XCTAssertEqual(s.text, "Aortic valve replacement + Coronary artery bypass grafting ×2 (10/2020)")
+        XCTAssertTrue(s.intrathoracic)
+        XCTAssertEqual(s.name, "Aortic valve replacement + Coronary artery bypass grafting ×2", "older readers see the whole operation")
+
+        var r = PatientRecord()
+        r.surgeries = [s, PatientSurgery(name: "Appendectomy", date: PatientMonthYear(year: 2001))]
+        XCTAssertEqual(PatientSummary.historyLines(r).first { $0.label == "Past surgical history" }?.text,
+                       "Aortic valve replacement + Coronary artery bypass grafting ×2 (10/2020); Appendectomy (2001)")
+        let round = try JSONDecoder().decode(PatientSurgery.self, from: JSONEncoder().encode(s))
+        XCTAssertEqual(round, s)
+
+        let old = try JSONDecoder().decode(PatientSurgery.self, from: Data(#"{"name":"Total knee arthroplasty","side":"right","procedureID":"tka","date":{"month":3,"year":2019}}"#.utf8))
+        XCTAssertEqual(old.procedures.count, 1)
+        XCTAssertEqual(old.text, "Right total knee arthroplasty (03/2019)")
+    }
+
+    func testECGRhythms() {
+        XCTAssertTrue(PatientECG.findings.contains(PatientECG.nsr))
+        XCTAssertTrue(PatientECG.rhythms.isSubset(of: Set(PatientECG.findings)))
+        XCTAssertFalse(PatientECG.rhythms.contains("Left bundle branch block"), "a conduction finding sits beside the rhythm")
     }
 }

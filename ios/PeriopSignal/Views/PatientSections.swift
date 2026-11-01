@@ -115,9 +115,8 @@ extension PatientEditorView {
         PatientGroup(title: "Past surgical history", note: "Cardiac and thoracic operations also appear under Previous intrathoracic surgery in the cardiac evaluation.") {
             ForEach(r.surgeries) { s in
                 SurgeryRow(surgery: surgeryBinding(\.surgeries, s.id)) { patient.update { $0.surgeries.removeAll { $0.id == s.id } } }
-                Hairline().padding(.leading, 14)
             }
-            addButton("Add an operation") { patient.update { $0.surgeries.append(PatientSurgery()) } }
+            addButton(r.surgeries.isEmpty ? "Add an operation" : "Add another operation") { patient.update { $0.surgeries.append(PatientSurgery()) } }
         }
     }
 
@@ -135,9 +134,8 @@ extension PatientEditorView {
         PatientGroup(title: "Previous intrathoracic surgery", note: "A previous sternotomy or thoracotomy matters for re-entry, adhesions, bleeding and lung isolation.") {
             ForEach(r.intrathoracic) { s in
                 SurgeryRow(surgery: surgeryBinding(\.intrathoracic, s.id), intrathoracicToggle: false) { patient.update { $0.intrathoracic.removeAll { $0.id == s.id } } }
-                Hairline().padding(.leading, 14)
             }
-            addButton("Add an operation") { patient.update { $0.intrathoracic.append(PatientSurgery(intrathoracic: true)) } }
+            addButton(r.intrathoracic.isEmpty ? "Add an operation" : "Add another operation") { patient.update { $0.intrathoracic.append(PatientSurgery(intrathoracic: true)) } }
         }
     }
 
@@ -151,6 +149,7 @@ extension PatientEditorView {
                 }
                 .padding(.horizontal, 14).padding(.top, 10)
             }
+            ECGQuickRow(ecg: bind(\.ecg))
             PatientTypeahead(label: "Add a finding", prompt: "Type: afib, LBBB, paced, Q waves…", options: PatientECG.findings.filter { !r.ecg.contains($0) }) { pick in
                 patient.update { if !$0.ecg.contains(pick) { $0.ecg.append(pick) } }
             }
@@ -424,38 +423,52 @@ struct MonthYearField: View {
 }
 
 /// One past operation: name, side, month and year, and whether it entered the chest.
+/// One past operation: its date, then the procedures done that day (several when they were done together, such as
+/// AVR and CABG), each from the procedure list or typed, with the side asked only when the procedure has one.
 struct SurgeryRow: View {
     @Binding var surgery: PatientSurgery
     var intrathoracicToggle = true
     var onDelete: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline) {
-                TextField("Operation, e.g. CABG ×3, R TKA", text: $surgery.name)
-                    .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 4) {
+                MonthYearField(label: "Date", value: $surgery.date)
                 Button(role: .destructive, action: onDelete) { Image(systemName: "trash").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
+                    .padding(.trailing, 14)
                     .accessibilityLabel("Delete this operation")
             }
-            .padding(.horizontal, 14).padding(.top, 10)
-            .onChange(of: surgery.name) { _, name in
-                // Typing over a picked procedure makes it a typed one.
-                if let id = surgery.procedureID, ProcedureCatalog.byID(id)?.name != name { surgery.procedureID = nil }
+            ForEach(surgery.procedures) { p in
+                Hairline().padding(.leading, 14)
+                PlannedProcedureRow(item: itemBinding(p.id), typedCaption: "Typed") {
+                    withAnimation(.snappy) { surgery.setProcedures(surgery.procedures.filter { $0.id != p.id }) }
+                }
             }
-            SurgerySuggestions(surgery: $surgery)
-            PatientChipRow(label: nil) {
-                PatientChoice(options: [(id: "left", label: "Left"), (id: "right", label: "Right"), (id: "bilateral", label: "Bilateral")], selection: $surgery.side)
+            Hairline().padding(.leading, 14)
+            ProcedureSearchField(prompt: surgery.procedures.isEmpty ? "Operation, e.g. CABG x3, R TKA" : "Add another procedure on this date",
+                                 typedCaption: "Not in the list: added as typed") { items in
+                surgery.setProcedures(surgery.procedures + items)
             }
-            MonthYearField(label: "Date", value: $surgery.date)
             if intrathoracicToggle {
                 Toggle(isOn: $surgery.intrathoracic) {
                     Text("Cardiac or thoracic (sternotomy, thoracotomy)").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
                 }
                 .tint(PS.accent)
-                .padding(.horizontal, 14).padding(.bottom, 8)
+                .padding(.horizontal, 14).padding(.vertical, 8)
             }
         }
+        .padding(.vertical, 4)
+        .background(PS.surface2.opacity(0.45), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.horizontal, 8).padding(.vertical, 6)
+    }
+
+    private func itemBinding(_ id: UUID) -> Binding<PlannedProcedure> {
+        Binding(get: { surgery.procedures.first { $0.id == id } ?? PlannedProcedure() },
+                set: { v in
+                    var list = surgery.procedures
+                    if let i = list.firstIndex(where: { $0.id == id }) { list[i] = v; surgery.setProcedures(list) }
+                })
     }
 }
 
@@ -595,5 +608,31 @@ struct PatientEchoSaveBar: View {
         }
         .padding(12)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+}
+
+/// Quick picks under the ECG findings. NSR is a rhythm, so it replaces another recorded rhythm (and a second tap
+/// removes it).
+struct ECGQuickRow: View {
+    @Binding var ecg: [String]
+
+    var body: some View {
+        let on = ecg.contains(PatientECG.nsr)
+        HStack(spacing: 8) {
+            Button {
+                Haptics.light()
+                withAnimation(.snappy) {
+                    if on { ecg.removeAll { $0 == PatientECG.nsr } }
+                    else { ecg.removeAll { PatientECG.rhythms.contains($0) }; ecg.insert(PatientECG.nsr, at: 0) }
+                }
+            } label: {
+                Label("NSR", systemImage: on ? "checkmark" : "plus")
+                    .font(PS.sys(size: 14, weight: .semibold))
+            }
+            .buttonStyle(CapsuleButtonStyle(prominent: on))
+            .accessibilityLabel(on ? "Normal sinus rhythm, recorded" : "Add normal sinus rhythm")
+            Spacer()
+        }
+        .padding(.horizontal, 14).padding(.top, 10)
     }
 }

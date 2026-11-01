@@ -8,6 +8,8 @@ private let sideOptions: [(id: String, label: String)] = [(id: "left", label: "L
 /// One planned procedure: its name, the side when it has one, details, and remove.
 struct PlannedProcedureRow: View {
     @Binding var item: PlannedProcedure
+    /// The caption under a typed procedure.
+    var typedCaption = "Typed: not used for the risk-score inputs"
     var onDelete: () -> Void
 
     var body: some View {
@@ -44,7 +46,7 @@ struct PlannedProcedureRow: View {
     }
 
     private var caption: String {
-        guard let p = item.catalog else { return "Typed: not used for the risk-score inputs" }
+        guard let p = item.catalog else { return typedCaption }
         return p.specialty
     }
 }
@@ -52,6 +54,9 @@ struct PlannedProcedureRow: View {
 /// Search the procedure list by name or abbreviation ("lap chole", "L TKA", "CABG x3 + AVR"); several procedures
 /// and a side typed together are read in one go. Anything else can be added as typed.
 struct ProcedureSearchField: View {
+    var prompt = "Add a procedure, e.g. lap chole, L TKA"
+    /// The caption of the "add as typed" row.
+    var typedCaption = "Not in the list: the risk-score inputs stay as set"
     var onAdd: ([PlannedProcedure]) -> Void
     @State private var text = ""
     @FocusState private var focused: Bool
@@ -77,7 +82,7 @@ struct ProcedureSearchField: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
-                TextField("Add a procedure, e.g. lap chole, L TKA", text: $text)
+                TextField(prompt, text: $text)
                     .focused($focused)
                     .font(PS.sys(size: 15)).foregroundStyle(PS.fg)
                     .autocorrectionDisabled()
@@ -101,7 +106,7 @@ struct ProcedureSearchField: View {
             }
             if query.count >= 2 {
                 Hairline().padding(.leading, 14)
-                suggestion("Add “\(query)” as typed", caption: "Not in the list: the risk-score inputs stay as set", typed: true) {
+                suggestion("Add “\(query)” as typed", caption: typedCaption, typed: true) {
                     add([PlannedProcedure(name: query)])
                 }
             }
@@ -136,46 +141,5 @@ struct ProcedureSearchField: View {
         Haptics.light()
         withAnimation(.snappy) { onAdd(items) }
         text = ""
-    }
-}
-
-/// Past-operation suggestions from the procedure list, under a surgical-history row's name while it is typed.
-struct SurgerySuggestions: View {
-    @Binding var surgery: PatientSurgery
-
-    private var results: [Procedure] {
-        let q = surgery.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard q.count >= 2, surgery.procedureID == nil else { return [] }
-        return ProcedureCatalog.search(q, limit: 4)
-    }
-
-    var body: some View {
-        if !results.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(results) { p in
-                    Button { pick(p) } label: {
-                        HStack {
-                            Text(p.name).font(PS.sys(size: 14)).foregroundStyle(PS.fg)
-                            Spacer()
-                            Image(systemName: "arrow.up.left").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.accent)
-                        }
-                        .padding(.horizontal, 14).padding(.vertical, 7)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.vertical, 2)
-            .background(PS.surface2.opacity(0.5))
-        }
-    }
-
-    private func pick(_ p: Procedure) {
-        Haptics.light()
-        let read = ProcedureCatalog.parse(surgery.name).first { $0.procedure.id == p.id }
-        surgery.procedureID = p.id
-        surgery.name = p.name
-        if p.lateral, surgery.side == nil, let s = read?.side { surgery.side = s }
-        if p.cardiac || p.incision == "Intrathoracic" { surgery.intrathoracic = true }
     }
 }
