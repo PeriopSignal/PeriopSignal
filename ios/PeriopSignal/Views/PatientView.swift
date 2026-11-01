@@ -66,7 +66,7 @@ struct PatientView: View {
                         NoIdentifiersBanner()
                         PatientRoomsBar()
                         tabBar
-                        if patient.canUndo { undoBanner }
+                        if patient.canUndoClear { undoBanner }
                         if let n = noteResult { noteBanner(n) }
                         if let replaced = received { receivedBanner(replaced) }
                         switch tab {
@@ -129,13 +129,10 @@ struct PatientView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    if patient.canUndo {
-                        Button { withAnimation(.snappy) { patient.undoClear() } } label: { Label("Undo Clear", systemImage: "arrow.uturn.backward") }
-                    } else {
-                        Button(role: .destructive) { confirmClear = true } label: { Label("Clear Patient", systemImage: "trash") }
-                            .disabled(patient.isEmpty)
-                    }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    PatientUndoButton()
+                    Button(role: .destructive) { confirmClear = true } label: { Label("Clear Patient", systemImage: "trash") }
+                        .disabled(patient.isEmpty)
                 }
             }
             .confirmationDialog("Clear this patient?", isPresented: $confirmClear, titleVisibility: .visible) {

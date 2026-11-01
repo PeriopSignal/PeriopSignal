@@ -51,6 +51,24 @@ struct PatientNumberField: View {
     }
 }
 
+/// Undo in the navigation bar: steps back the last change to the current case, on any My Patient tab or editor.
+/// Shown only when there is something to undo.
+struct PatientUndoButton: View {
+    @Environment(PatientStore.self) private var patient
+
+    var body: some View {
+        if patient.canUndo {
+            Button {
+                Haptics.light()
+                withAnimation(.snappy) { patient.undo() }
+            } label: {
+                Label("Undo", systemImage: "arrow.uturn.backward")
+            }
+            .accessibilityHint("Undoes the last change to this patient")
+        }
+    }
+}
+
 /// Free text bound to the record; a tap on the label or anywhere in the box starts typing.
 struct PatientTextField: View {
     var label: String
@@ -75,11 +93,12 @@ struct PatientTextField: View {
     }
 }
 
-/// Toggle chips for a set of flags; several can be on.
+/// Toggle chips for a set of flags; several can be on. Each tap is an Undo step of its own.
 struct PatientChips: View {
     var options: [PatientFlag]
     @Binding var selection: Set<String>
     var tint: Color = PS.accent
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     var body: some View {
         WrapLayout(spacing: 7) {
@@ -87,6 +106,7 @@ struct PatientChips: View {
                 let on = selection.contains(o.id)
                 Button {
                     Haptics.light()
+                    store?.markDiscrete()
                     if on { selection.remove(o.id) } else { selection.insert(o.id) }
                 } label: {
                     HStack(spacing: 5) {
@@ -106,11 +126,12 @@ struct PatientChips: View {
     }
 }
 
-/// One choice among a few, as chips; tapping the chosen one clears it.
+/// One choice among a few, as chips; tapping the chosen one clears it. Each tap is an Undo step of its own.
 struct PatientChoice: View {
     var options: [(id: String, label: String)]
     @Binding var selection: String?
     var tint: Color = PS.accent
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     var body: some View {
         WrapLayout(spacing: 7) {
@@ -118,6 +139,7 @@ struct PatientChoice: View {
                 let on = selection == o.id
                 Button {
                     Haptics.light()
+                    store?.markDiscrete()
                     selection = on ? nil : o.id
                 } label: {
                     Text(o.label)

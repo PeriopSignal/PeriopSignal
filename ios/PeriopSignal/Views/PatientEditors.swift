@@ -116,7 +116,8 @@ struct PatientEditorView: View {
                 Spacer()
                 Button("Done") { Keyboard.dismiss() }
             }
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                PatientUndoButton()
                 if wobbling {
                     Button("Done") { Haptics.light(); withAnimation(.snappy) { wobbling = false } }
                         .fontWeight(.semibold)
@@ -167,7 +168,7 @@ struct PatientEditorView: View {
     }
 
     func toggleRow(_ title: String, _ detail: String?, _ isOn: Binding<Bool>) -> some View {
-        Toggle(isOn: isOn) {
+        Toggle(isOn: Binding(get: { isOn.wrappedValue }, set: { v in patient.markDiscrete(); isOn.wrappedValue = v })) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
                 if let detail { Text(detail).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
@@ -375,7 +376,7 @@ struct PatientEditorView: View {
                     Text("Suggested: " + s.label).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
                     AsaReasonTable(reasons: s.reasons, top: s.level)
                     if r.asaClass != s.level {
-                        Button("Use ASA " + PatientRules.roman(s.level)) { patient.update { $0.asaClass = s.level } }
+                        Button("Use ASA " + PatientRules.roman(s.level)) { patient.update(discrete: true) { $0.asaClass = s.level } }
                             .buttonStyle(CapsuleButtonStyle())
                             .padding(.top, 4)
                     }
@@ -404,7 +405,7 @@ struct PatientEditorView: View {
             DisclosureGroup {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(PatientFunctional.dasiItems) { it in
-                        Toggle(isOn: Binding(get: { patient.record.dasi.contains(it.id) }, set: { on in patient.update { if on { $0.dasi.insert(it.id) } else { $0.dasi.remove(it.id) } } })) {
+                        Toggle(isOn: Binding(get: { patient.record.dasi.contains(it.id) }, set: { on in patient.update(discrete: true) { if on { $0.dasi.insert(it.id) } else { $0.dasi.remove(it.id) } } })) {
                             Text(it.label).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                         }
                         .tint(PS.accent)
@@ -523,7 +524,7 @@ struct PatientEditorView: View {
                     let on = r.mallampati == m
                     Button {
                         Haptics.light()
-                        patient.update { $0.mallampati = on ? nil : m }
+                        patient.update(discrete: true) { $0.mallampati = on ? nil : m }
                     } label: {
                         VStack(spacing: 6) {
                             MallampatiDrawing(mclass: m).frame(maxWidth: 120)
@@ -645,7 +646,7 @@ struct PatientEditorView: View {
                 EvidenceNote("Grade " + g + ": " + d.lowercased() + (g == "3" || g == "4" ? " (difficult laryngoscopy)." : "."))
                     .padding(.horizontal, 14).padding(.bottom, 6)
             }
-            Stepper(value: Binding(get: { patient.record.attempts ?? 0 }, set: { v in patient.update { $0.attempts = v > 0 ? v : nil } }), in: 0...9) {
+            Stepper(value: Binding(get: { patient.record.attempts ?? 0 }, set: { v in patient.update(discrete: true) { $0.attempts = v > 0 ? v : nil } }), in: 0...9) {
                 Text("Attempts: " + (r.attempts.map { String($0) } ?? "not recorded")).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
@@ -676,7 +677,7 @@ struct PatientEditorView: View {
                 lineEditor(l)
                 Hairline().padding(.leading, 14)
             }
-            Button { patient.update { $0.lines.append(PatientLine()) } } label: { Label("Add line", systemImage: "plus.circle") }
+            Button { patient.update(discrete: true) { $0.lines.append(PatientLine()) } } label: { Label("Add line", systemImage: "plus.circle") }
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
         }
@@ -688,7 +689,7 @@ struct PatientEditorView: View {
                 blockEditor(b)
                 Hairline().padding(.leading, 14)
             }
-            Button { patient.update { $0.regional.append(PatientRegional()) } } label: { Label("Add block", systemImage: "plus.circle") }
+            Button { patient.update(discrete: true) { $0.regional.append(PatientRegional()) } } label: { Label("Add block", systemImage: "plus.circle") }
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
         }
@@ -696,7 +697,7 @@ struct PatientEditorView: View {
 
     @ViewBuilder private var intraopInfusions: some View {
         if !r.homeInfusions.isEmpty && r.infusions.isEmpty {
-            Button { patient.update { $0.infusions = $0.homeInfusions.map { PatientInfusion(drug: $0.drug, rate: $0.rate) } } } label: {
+            Button { patient.update(discrete: true) { $0.infusions = $0.homeInfusions.map { PatientInfusion(drug: $0.drug, rate: $0.rate) } } } label: {
                 Label("Carry over the current infusions (" + r.homeInfusions.map(\.drug).filter { !$0.isEmpty }.joined(separator: ", ") + ")", systemImage: "arrow.down.circle")
             }
             .buttonStyle(GhostButtonStyle())
@@ -704,11 +705,11 @@ struct PatientEditorView: View {
         PatientGroup(title: "Infusions") {
             ForEach(r.infusions) { inf in
                 infusionEditor(inf)
-                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update { $0.infusions.removeAll { $0.id == inf.id } } }
+                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.infusions.removeAll { $0.id == inf.id } } }
                 Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
-            Button { patient.update { $0.infusions.append(PatientInfusion()) } } label: { Label("Add infusion", systemImage: "plus.circle") }
+            Button { patient.update(discrete: true) { $0.infusions.append(PatientInfusion()) } } label: { Label("Add infusion", systemImage: "plus.circle") }
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
         }
@@ -743,12 +744,12 @@ struct PatientEditorView: View {
         // At the end of the case: extubated takes the ETT off the patient diagram.
         if r.arrivesWithAirway || r.intubation == "easy" || r.intubation == "difficult" || !r.tube.isEmpty {
             HStack(spacing: 10) {
-                Button { withAnimation(.snappy) { patient.update { $0.airwayAtEnd = "intubated" } } } label: {
+                Button { withAnimation(.snappy) { patient.update(discrete: true) { $0.airwayAtEnd = "intubated" } } } label: {
                     Label("Remains intubated", systemImage: r.airwayAtEnd == "intubated" ? "checkmark.circle.fill" : "lungs")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(BigButtonStyle(prominent: r.airwayAtEnd == "intubated"))
-                Button { withAnimation(.snappy) { patient.update { $0.airwayAtEnd = "extubated" } } } label: {
+                Button { withAnimation(.snappy) { patient.update(discrete: true) { $0.airwayAtEnd = "extubated" } } } label: {
                     Label("Extubated", systemImage: r.airwayAtEnd == "extubated" ? "checkmark.circle.fill" : "wind")
                         .frame(maxWidth: .infinity)
                 }
@@ -771,7 +772,7 @@ struct PatientEditorView: View {
                 WrapLayout(spacing: 7) {
                     ForEach(PatientFunctional.echoPhrases, id: \.self) { phrase in
                         Button {
-                            patient.update { $0.echo = $0.echo.isEmpty ? phrase : $0.echo + "; " + phrase }
+                            patient.update(discrete: true) { $0.echo = $0.echo.isEmpty ? phrase : $0.echo + "; " + phrase }
                         } label: {
                             Text(phrase).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)
                                 .padding(.horizontal, 10).padding(.vertical, 6)
@@ -791,7 +792,7 @@ struct PatientEditorView: View {
             HStack {
                 Menu {
                     ForEach(PatientLine.kinds, id: \.self) { k in
-                        Button(k) { if let i = idx { patient.update { $0.lines[i].kind = k } } }
+                        Button(k) { if let i = idx { patient.update(discrete: true) { $0.lines[i].kind = k } } }
                     }
                 } label: {
                     HStack(spacing: 4) {
@@ -800,7 +801,7 @@ struct PatientEditorView: View {
                     }
                 }
                 Spacer()
-                Button(role: .destructive) { if let i = idx { patient.update { $0.lines.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
+                Button(role: .destructive) { if let i = idx { patient.update(discrete: true) { $0.lines.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove this line")
             }
@@ -829,7 +830,7 @@ struct PatientEditorView: View {
             HStack {
                 Menu {
                     ForEach(names, id: \.self) { n in
-                        Button(n) { if let i = idx { patient.update { $0.regional[i].technique = n } } }
+                        Button(n) { if let i = idx { patient.update(discrete: true) { $0.regional[i].technique = n } } }
                     }
                 } label: {
                     HStack(spacing: 4) {
@@ -838,7 +839,7 @@ struct PatientEditorView: View {
                     }
                 }
                 Spacer()
-                Button(role: .destructive) { if let i = idx { patient.update { $0.regional.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
+                Button(role: .destructive) { if let i = idx { patient.update(discrete: true) { $0.regional.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove this block")
             }
@@ -850,7 +851,7 @@ struct PatientEditorView: View {
                     .font(PS.sys(size: 14))
                     .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
-            Toggle("Catheter left in", isOn: Binding(get: { idx.map { patient.record.regional[$0].catheter } ?? false }, set: { v in if let i = idx { patient.update { $0.regional[i].catheter = v } } }))
+            Toggle("Catheter left in", isOn: Binding(get: { idx.map { patient.record.regional[$0].catheter } ?? false }, set: { v in if let i = idx { patient.update(discrete: true) { $0.regional[i].catheter = v } } }))
                 .font(PS.sys(size: 14)).tint(PS.accent)
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
@@ -863,7 +864,7 @@ struct PatientEditorView: View {
             HStack {
                 Menu {
                     ForEach(names, id: \.self) { n in
-                        Button(n) { if let i = idx { patient.update { $0.infusions[i].drug = n } } }
+                        Button(n) { if let i = idx { patient.update(discrete: true) { $0.infusions[i].drug = n } } }
                     }
                 } label: {
                     HStack(spacing: 4) {
@@ -872,7 +873,7 @@ struct PatientEditorView: View {
                     }
                 }
                 Spacer()
-                Button(role: .destructive) { if let i = idx { patient.update { $0.infusions.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
+                Button(role: .destructive) { if let i = idx { patient.update(discrete: true) { $0.infusions.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove this infusion")
             }

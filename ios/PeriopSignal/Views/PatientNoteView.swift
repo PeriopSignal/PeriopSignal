@@ -471,7 +471,7 @@ struct PatientNoteSheet: View {
         let list = changes(reading)
         guard !list.isEmpty else { return }
         let before = patient.record
-        patient.update { PatientNote.apply(list, to: &$0) }
+        patient.update(discrete: true) { PatientNote.apply(list, to: &$0) }
         Haptics.success()
         onAdded(list.count, before)
         dismiss()

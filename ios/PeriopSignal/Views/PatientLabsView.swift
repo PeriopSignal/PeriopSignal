@@ -33,7 +33,7 @@ extension PatientEditorView {
     }
 
     private func labAdd(_ id: String, _ title: String) -> some View {
-        Button { withAnimation(.snappy) { patient.update { _ = $0.labSections.insert(id) } } } label: { Label(title, systemImage: "plus.circle") }
+        Button { withAnimation(.snappy) { patient.update(discrete: true) { _ = $0.labSections.insert(id) } } } label: { Label(title, systemImage: "plus.circle") }
             .font(PS.sys(size: 14.5, weight: .semibold))
             .buttonStyle(.borderless)
             .tint(PS.accent)
@@ -177,8 +177,10 @@ struct LabFieldRow: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         .onAppear { text = value.map { test.format($0) } ?? "" }
+        // A change from elsewhere (Undo, a preset): show it, unless the text being typed already reads as it ("1."
+        // while typing 1.5 stays as typed).
         .onChange(of: value) { _, v in
-            if !focused { text = v.map { test.format($0) } ?? "" }
+            if Double(text.replacingOccurrences(of: ",", with: ".")) != v { text = v.map { test.format($0) } ?? "" }
         }
     }
 }

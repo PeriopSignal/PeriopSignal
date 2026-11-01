@@ -24,7 +24,7 @@ struct IntraopLabsEditor: View {
 
     var body: some View {
         Button {
-            withAnimation(.snappy) { patient.update { $0.intraopLabs.append(IntraopLabSet(time: Date())) } }
+            withAnimation(.snappy) { patient.update(discrete: true) { $0.intraopLabs.append(IntraopLabSet(time: Date())) } }
         } label: {
             Label(r.intraopLabs.isEmpty ? "Add a lab set" : "Add a new set", systemImage: "plus.circle")
         }
@@ -74,7 +74,7 @@ struct IntraopLabsEditor: View {
                     .labelsHidden()
                 Spacer()
                 Button(role: .destructive) {
-                    withAnimation(.snappy) { if let i = index(s.id) { patient.update { _ = $0.intraopLabs.remove(at: i) } } }
+                    withAnimation(.snappy) { if let i = index(s.id) { patient.update(discrete: true) { _ = $0.intraopLabs.remove(at: i) } } }
                 } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove this lab set")
@@ -98,6 +98,7 @@ struct IntraopLabsEditor: View {
                     LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key))
                     Button {
                         let b = value(id, t.key)
+                        patient.markDiscrete()
                         if let v = b.wrappedValue { b.wrappedValue = -v }
                     } label: {
                         Text("±").font(PS.sys(size: 16, weight: .bold)).foregroundStyle(PS.accent).frame(width: 30, height: 30)
@@ -146,11 +147,14 @@ struct BloodStepperRow: View {
     @Binding var value: Double?
     @State private var text = ""
     @FocusState private var focused: Bool
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     private var v: Double { value ?? 0 }
 
+    /// − and +: each tap is an Undo step of its own.
     private func set(_ n: Double) {
         Haptics.light()
+        store?.markDiscrete()
         value = n > 0 ? min(n, limit) : nil
     }
 
@@ -218,7 +222,7 @@ struct IntraopConsiderationsEditor: View {
             let suggested = IntraopConsiderations.suggested(r)
             if !suggested.isEmpty {
                 Button {
-                    patient.update { rec in for f in suggested { rec.considerations.insert(f.id) } }
+                    patient.update(discrete: true) { rec in for f in suggested { rec.considerations.insert(f.id) } }
                 } label: {
                     Label("Add " + suggested.map { $0.label.lowercased() }.joined(separator: ", ") + " (recorded in the airway)", systemImage: "plus.circle")
                         .font(PS.sys(size: 13.5, weight: .semibold)).multilineTextAlignment(.leading)
@@ -248,7 +252,7 @@ struct PatientCodeStatusGroup: View {
             if r.codeStatus == .limited {
                 PatientTextField(label: "Limits", prompt: "e.g. no chest compressions or defibrillation; vasopressors acceptable", text: patient.binding(\.codeStatusLimits))
             }
-            Toggle(isOn: patient.binding(\.polst)) {
+            Toggle(isOn: Binding(get: { patient.record.polst }, set: { v in patient.update(discrete: true) { $0.polst = v } })) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("POLST on file").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
                     Text("Portable medical orders (POLST, MOLST)").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)

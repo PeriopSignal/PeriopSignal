@@ -12,12 +12,12 @@ extension PatientEditorView {
         let noSide = r.procedures.filter(\.needsSide)
         PatientGroup(title: "Planned procedures", note: noSide.isEmpty ? nil : "Pick the side for " + noSide.map { ProcedureCatalog.lowerFirst($0.title) }.joined(separator: ", ") + ".") {
             ForEach(r.procedures) { p in
-                PlannedProcedureRow(item: plannedBinding(p.id)) { patient.update { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
-                    .wobbleDelete($wobbling, label: p.title) { patient.update { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
+                PlannedProcedureRow(item: plannedBinding(p.id)) { patient.update(discrete: true) { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
+                    .wobbleDelete($wobbling, label: p.title) { patient.update(discrete: true) { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
                 Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
-            ProcedureSearchField { items in patient.update { $0.setProcedures($0.procedures + items) } }
+            ProcedureSearchField { items in patient.update(discrete: true) { $0.setProcedures($0.procedures + items) } }
         }
         .onAppear(perform: readOldProcedureText)
         PatientGroup(title: "Urgency & anesthetic") {
@@ -58,7 +58,7 @@ extension PatientEditorView {
     /// risk-score inputs as they were until the list is changed.
     private func readOldProcedureText() {
         guard r.procedures.isEmpty, !r.procedure.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        patient.update { $0.procedures = PlannedProcedure.parse($0.procedure) }
+        patient.update(discrete: true) { $0.procedures = PlannedProcedure.parse($0.procedure) }
     }
 
     func plannedBinding(_ id: UUID) -> Binding<PlannedProcedure> {
@@ -117,11 +117,11 @@ extension PatientEditorView {
     @ViewBuilder private var surgeriesEditor: some View {
         PatientGroup(title: "Past surgical history", note: "Cardiac and thoracic operations also appear under Previous intrathoracic surgery in the cardiac evaluation.") {
             ForEach(r.surgeries) { s in
-                SurgeryRow(surgery: surgeryBinding(\.surgeries, s.id)) { patient.update { $0.surgeries.removeAll { $0.id == s.id } } }
-                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update { $0.surgeries.removeAll { $0.id == s.id } } }
+                SurgeryRow(surgery: surgeryBinding(\.surgeries, s.id)) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
+                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
             }
             WobbleDoneBar(editing: $wobbling)
-            addButton(r.surgeries.isEmpty ? "Add an operation" : "Add another operation") { patient.update { $0.surgeries.append(PatientSurgery()) } }
+            addButton(r.surgeries.isEmpty ? "Add an operation" : "Add another operation") { patient.update(discrete: true) { $0.surgeries.append(PatientSurgery()) } }
         }
     }
 
@@ -138,11 +138,11 @@ extension PatientEditorView {
         }
         PatientGroup(title: "Previous intrathoracic surgery", note: "A previous sternotomy or thoracotomy matters for re-entry, adhesions, bleeding and lung isolation.") {
             ForEach(r.intrathoracic) { s in
-                SurgeryRow(surgery: surgeryBinding(\.intrathoracic, s.id), intrathoracicToggle: false) { patient.update { $0.intrathoracic.removeAll { $0.id == s.id } } }
-                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update { $0.intrathoracic.removeAll { $0.id == s.id } } }
+                SurgeryRow(surgery: surgeryBinding(\.intrathoracic, s.id), intrathoracicToggle: false) { patient.update(discrete: true) { $0.intrathoracic.removeAll { $0.id == s.id } } }
+                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update(discrete: true) { $0.intrathoracic.removeAll { $0.id == s.id } } }
             }
             WobbleDoneBar(editing: $wobbling)
-            addButton(r.intrathoracic.isEmpty ? "Add an operation" : "Add another operation") { patient.update { $0.intrathoracic.append(PatientSurgery(intrathoracic: true)) } }
+            addButton(r.intrathoracic.isEmpty ? "Add an operation" : "Add another operation") { patient.update(discrete: true) { $0.intrathoracic.append(PatientSurgery(intrathoracic: true)) } }
         }
     }
 
@@ -151,14 +151,14 @@ extension PatientEditorView {
             if !r.ecg.isEmpty {
                 WrapLayout(spacing: 7) {
                     ForEach(r.ecg, id: \.self) { f in
-                        RemovableChip(text: f) { patient.update { $0.ecg.removeAll { $0 == f } } }
+                        RemovableChip(text: f) { patient.update(discrete: true) { $0.ecg.removeAll { $0 == f } } }
                     }
                 }
                 .padding(.horizontal, 14).padding(.top, 10)
             }
             ECGQuickRow(ecg: bind(\.ecg))
             PatientTypeahead(label: "Add a finding", prompt: "Type: afib, LBBB, paced, Q waves…", options: PatientECG.findings.filter { !r.ecg.contains($0) }) { pick in
-                patient.update { $0.ecg = PatientECG.adding(pick, to: $0.ecg) }
+                patient.update(discrete: true) { $0.ecg = PatientECG.adding(pick, to: $0.ecg) }
             }
             PatientTextField(label: "Other", prompt: "Rate, axis, intervals, comparison", text: bind(\.ecgNotes))
         }
@@ -238,7 +238,7 @@ extension PatientEditorView {
                 Hairline().padding(.leading, 14)
                 PatientNumberField(label: "FiO₂", unit: "%", value: bind(\.vent.fio2))
                 if r.currentAirway == "trach" {
-                    Button { patient.update { $0.oxygen.device = "trachCollar"; $0.vent = PatientVent() } } label: { Label("Off the ventilator: trach collar", systemImage: "arrow.uturn.right") }
+                    Button { patient.update(discrete: true) { $0.oxygen.device = "trachCollar"; $0.vent = PatientVent() } } label: { Label("Off the ventilator: trach collar", systemImage: "arrow.uturn.right") }
                         .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent).padding(14)
                 }
             }
@@ -265,12 +265,12 @@ extension PatientEditorView {
     @ViewBuilder var currentInfusionsGroup: some View {
         PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
             ForEach(r.homeInfusions) { inf in
-                InfusionRow(infusion: infusionBinding(\.homeInfusions, inf.id)) { patient.update { $0.homeInfusions.removeAll { $0.id == inf.id } } }
-                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update { $0.homeInfusions.removeAll { $0.id == inf.id } } }
+                InfusionRow(infusion: infusionBinding(\.homeInfusions, inf.id)) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
+                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
                 Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
-            addButton("Add an infusion") { patient.update { $0.homeInfusions.append(PatientInfusion()) } }
+            addButton("Add an infusion") { patient.update(discrete: true) { $0.homeInfusions.append(PatientInfusion()) } }
         }
     }
 
@@ -286,8 +286,8 @@ extension PatientEditorView {
                 Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
                 Spacer(minLength: 6)
                 YesNoPills(no: no, yes: yes,
-                           onNo: { withAnimation(.snappy) { patient.update { $0[keyPath: answer] = false; $0[keyPath: chips] = [] } } },
-                           onYes: { withAnimation(.snappy) { patient.update { $0[keyPath: answer] = true } } })
+                           onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = false; $0[keyPath: chips] = [] } } },
+                           onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = true } } })
             }
             if yes { PatientChips(options: options, selection: bind(chips)) }
         }
@@ -428,6 +428,11 @@ struct MonthYearField: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 9)
         .onAppear { text = value.text }
+        // A change from elsewhere (Undo): show it, unless the text typed already reads as it.
+        .onChange(of: value) { _, v in
+            let shown = PatientMonthYear.parse(text) ?? PatientMonthYear()
+            if shown != v { text = v.text }
+        }
     }
 }
 
@@ -608,8 +613,8 @@ struct PatientEchoSaveBar: View {
             }
             Spacer(minLength: 6)
             Menu {
-                Button("Preoperative echo") { Haptics.light(); myPatient.update { save(&$0.echoFindings) } }
-                Button("Intraoperative echo") { Haptics.light(); myPatient.update { save(&$0.intraopEcho) } }
+                Button("Preoperative echo") { Haptics.light(); myPatient.update(discrete: true) { save(&$0.echoFindings) } }
+                Button("Intraoperative echo") { Haptics.light(); myPatient.update(discrete: true) { save(&$0.intraopEcho) } }
             } label: {
                 Text(pre || intra ? "Update" : "Save").font(PS.sys(size: 13.5, weight: .semibold))
             }
@@ -624,12 +629,14 @@ struct PatientEchoSaveBar: View {
 /// removes it).
 struct ECGQuickRow: View {
     @Binding var ecg: [String]
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     var body: some View {
         let on = ecg.contains(PatientECG.nsr)
         HStack(spacing: 8) {
             Button {
                 Haptics.light()
+                store?.markDiscrete()
                 withAnimation(.snappy) {
                     if on { ecg.removeAll { $0 == PatientECG.nsr } }
                     else { ecg = PatientECG.adding(PatientECG.nsr, to: ecg) }
