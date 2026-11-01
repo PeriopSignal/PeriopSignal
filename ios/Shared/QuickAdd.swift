@@ -89,8 +89,13 @@ private struct QuickOut {
     var skipped: [String] = []
     /// Questions asked the way an ambiguous abbreviation is (SpO₂ without room air written).
     var questions: [AmbiguousAbbreviation] = []
-    /// Lab keys already read: the first value of a test wins.
+    /// Ambiguous abbreviations whose meaning must be confirmed for its value ("levo 0.1"): the value, by choice key,
+    /// and the keys whose choice was made for another value.
+    var valueKeys: [String: String] = [:]
+    var stale: Set<String> = []
+    /// Lab keys already read, with the value filed (a second, different value is asked about).
     var labs: Set<String> = []
+    var labValues: [String: Double] = [:]
 
     mutating func add(_ f: PatientNoteFinding) {
         guard !findings.contains(where: { $0.id == f.id }) else { return }
@@ -161,7 +166,7 @@ struct QuickDrip {
         self.bare = bare
         self.meaning = meaning
         self.confirm = confirm
-        rx = NoteRx(#"(?<![A-Za-z0-9])(?<![A-Za-z]-)("# + aliases + #")(?![A-Za-z0-9])\s*(?:((?:gtt|drip|infusion)s?\b\s*(?:(?:running at|at|of)\b|@)?|at\b|@)\s*|[=:]\s*)?(\d*\.\d+|\d+)(?![\d.:]|,\d|\s*[-–]\s*\d|\s*(?:mcg|mg|ug|µg|units?|u|ml|%|g|meq|ng|mmol)\b|\s*(?:kg|lbs?|cm|mm|mmhg|cc|l|lpm|bpm|yo|y/o|years?|yrs?|wks?|weeks?|days?|d|h|hrs?|hours?|mins?|minutes?|s|secs?|amps?|ampules?|vials?)\b|\s*[x×]|\s*/)"#)
+        rx = NoteRx(#"(?<![A-Za-z0-9])(?<![A-Za-z]-)("# + aliases + #")(?![A-Za-z0-9])\s*(?:((?:gtt|drip|infusion)s?\b\s*(?:(?:running at|at|of)\b|@)?|at\b|@)\s*|[=:]\s*)?(\d*\.\d+|\d+)(?![\d.:]|,\d|\s*[-–]\s*\d|\s*(?:mcg|mg|ug|µg|units?|u|ml|%|g|meq|ng|mmol)\b|\s*(?:kg|lbs?|cm|mm|mmhg|cc|l|lpm|bpm|yo|y/o|years?|yrs?|wks?|weeks?|days?|d|h|hrs?|hours?|mins?|minutes?|s|secs?|amps?|ampules?|vials?)\b|\s*[x×](?!\s*\d+\s*(?:days?|d|weeks?|wks?|months?|mos?|years?|yrs?|hours?|hrs?|h)\b)|\s*/)"#)
     }
 
     /// The weight-based unit: "mcg/min" per kg is "mcg/kg/min".
@@ -223,10 +228,16 @@ enum QuickAdd {
         readDrips(&s, c, &out)
         readProcedure(&s, c, &out)
 
-        // The note reader on what is left.
-        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: choices)
+        // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
+        let fresh = choices.filter { !out.stale.contains($0.key) }
+        if tab == .intraop { for m in placedTiming.all(s.text) { s.mask(m.range) } }
+        let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: fresh, askRoomAir: false)
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
+        // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
+        for q in note.ambiguous where q.id.hasPrefix(PatientNote.labQuestionPrefix) && !out.questions.contains(where: { $0.id == q.id }) {
+            out.questions.append(q)
+        }
         readPlan(base, c, &out)
 
         var rank: [String: Int] = [:]
@@ -243,9 +254,13 @@ enum QuickAdd {
             m.isAmbiguous && !certain.contains(where: { NSIntersectionRange($0, m.range).length > 0 })
                 && (!m.fromContext || choices[m.choiceKey ?? ""] != nil)
         }
-        reading.ambiguous = out.questions + MedAbbreviations.ambiguous(asked, in: base)
+        reading.ambiguous = out.questions + MedAbbreviations.ambiguous(asked, in: base).map { a in
+            var x = a
+            if let v = out.valueKeys[a.id] { x.valueKey = v }
+            return x
+        }
         reading.unread = asTyped([note.other, note.previous].filter { !$0.isEmpty }.joined(separator: "; "), s.text,
-                                 user: user, choices: choices)
+                                 user: user, choices: fresh)
         return reading
     }
 
@@ -255,9 +270,10 @@ enum QuickAdd {
                    gasRx, gasWord, venousGas, gasLabel, bpRx, notBPBefore, vHR, vSpO2, vPercent, vRoomAir, vOxygen, vRR, vTemp, vBareTemp, vBare,
                    bloodBefore, bloodAfter, cellSaverAfter, cellSaverBefore, notGiven, offAfter, plannedLead, lineLead, lastFor, urgencyWord,
                    pastWords, detailWord, tubeRx, dltRx, gradeRx, gradeNotBefore, airwayContext, maskGradeRx, maskEaseRx, intubationEaseRx,
-                   attemptsRx, inductionTiming, bolusCue, notDrip, ordinalAfter, ordinalBefore, notGivenAfter, beforeCase, totalWord, cellSaverWord,
-                   cellSaverReturned, processedAfter, doseAfter, doseBefore, trendAfter, earlierBefore, preopBefore, nowAfter, hemolyzed, cbcLabel,
-                   gasTrend, gradeNotAfter, standbyCue]
+                   attemptsRx, inductionTiming, placedTiming, bolusCue, notDrip, ordinalAfter, ordinalBefore, notGivenAfter, beforeCase, totalWord, cellSaverWord,
+                   cellSaverReturned, processedAfter, givenWord, unsureCue, clauseEnd, ofAfter, ofBefore, unitWordBefore, doseAfter, doseBefore, trendAfter, earlierBefore, preopBefore, nowAfter, hemolyzed, cbcLabel,
+                   gasTrend, gradeNotAfter, standbyAfter, standbyBefore, viewAfter, phraseEnd, maskCue, scheduleCue, codeCue, inductionCue, tivaCue, trendStop, venousWord, unitNumber,
+                   productWord, countWord, totalBefore, totalAfter, statedTotal, techniqueWord]
         out += labAliases.map(\.rx) + dripUnits.map(\.rx) + airwayDevices.map { $0.0 }
         return out
     }
@@ -276,8 +292,10 @@ enum QuickAdd {
                 let tail: NoteRx?
                 switch kind {
                 case "a record number": tail = matched.allSatisfy(\.isNumber) ? nil : recordTail
-                case "a date": tail = matched.first?.isNumber == true ? nil : dateTail
-                case "a name": tail = titleRx.first(matched) != nil ? surnameTail : nameTail
+                // A date already whole, or "born" to the end of the clause: nothing more.
+                case "a date": tail = matched.first?.isNumber == true || matched.last?.isNumber == true || matched.lowercased().hasPrefix("born") ? nil : dateTail
+                // A header ("Patient: ...") already runs to the end of the clause.
+                case "a name": tail = matched.contains(":") ? nil : (titleRx.first(matched) != nil ? surnameTail : nameTail)
                 default: tail = nil
                 }
                 if let tail, let t = tail.first(ns.substring(from: r.location + r.length)) {
@@ -311,14 +329,14 @@ enum QuickAdd {
 
     static let vitalsElsewhere = "Vital signs · the preoperative baseline, on the Preop tab"
     static let arrivalElsewhere = "Airway, ventilator and oxygen on arrival · on the Preop tab"
-    static let historyElsewhere = "History, symptoms and home medicines · on the Preop tab"
+    static let historyElsewhere = "History, exam, symptoms and home medicines · on the Preop tab"
 
     /// The preoperative history, assessment and home medicines: never filed from what happens in the OR ("new AF after
     /// bypass", "metoprolol 5 mg IV").
     private static func preoperativeOnly(_ change: PatientNoteChange) -> Bool {
         switch change {
         case .problem, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
-             .anesthesiaNotes:
+             .anesthesiaNotes, .dentition, .airwaySign, .mallampati:
             return true
         default:
             return false
@@ -335,8 +353,12 @@ enum QuickAdd {
         case .vital(let k, let v):
             guard c.tab == .preop else { return out.skip(vitalsElsewhere) }
             if k == "spo2" {
+                if f.note == PatientNote.roomAirUnstated {
+                    f.note = nil
+                    return addSpO2(f, v, roomAir: roomAirStated(line, c), c, &out)
+                }
                 if f.note != nil { return out.skip(oxygenNotice(v)) }
-                return addSpO2(f, v, roomAir: roomAirStated(line, c), c, &out)
+                return addSpO2(f, v, roomAir: true, c, &out)
             }
             out.add(f)
         case .lab(let k, let v):
@@ -371,10 +393,10 @@ enum QuickAdd {
     }
 
     /// The question a saturation without "room air" or "RA" is asked, in the menu an ambiguous abbreviation has
-    /// ("SpO₂ 95% · room air?"); the answer is kept in `choices` under this id.
-    static let roomAirQuestion = "quick:spo2"
-    static let roomAirAnswer = "spo2-room-air"
-    static let oxygenAnswer = "spo2-oxygen"
+    /// ("SpO₂ 95% · room air?"); the answer is kept in `choices` under this id, with the value it was given for.
+    static let roomAirQuestion = PatientNote.roomAirQuestion
+    static let roomAirAnswer = PatientNote.roomAirAnswer
+    static let oxygenAnswer = PatientNote.oxygenAnswer
 
     private static func oxygenNotice(_ v: Double) -> String { "SpO₂ " + NumText.short(v) + "% on oxygen · the field is SpO₂ on room air" }
 
@@ -382,13 +404,9 @@ enum QuickAdd {
     /// or not answered, nothing goes into it.
     private static func addSpO2(_ f: PatientNoteFinding, _ v: Double, roomAir: Bool, _ c: QuickContext, _ out: inout QuickOut) {
         if roomAir { return out.add(f) }
-        let value = "SpO₂ " + NumText.short(v) + "%"
-        let answer = c.choices[roomAirQuestion]
-        if !out.questions.contains(where: { $0.id == roomAirQuestion }) {
-            let options = [AbbreviationMeaning("room air", id: roomAirAnswer), AbbreviationMeaning("on oxygen", id: oxygenAnswer)]
-            out.questions.append(AmbiguousAbbreviation(id: roomAirQuestion, abbreviation: value, options: options, defaultID: roomAirAnswer,
-                                                       fromContext: false, chosenID: answer ?? roomAirAnswer, context: value))
-        }
+        let asked = PatientNote.roomAir(v, c.choices)
+        let answer = asked.answer
+        if !out.questions.contains(where: { $0.id == roomAirQuestion }) { out.questions.append(asked.question) }
         if answer == roomAirAnswer {
             out.add(f)
         } else if answer == oxygenAnswer {
@@ -483,9 +501,40 @@ enum QuickAdd {
     /// A lab value read from the line, to the record's labs (Preop) or a new intraoperative set (Intraop).
     private static func addLab(_ key: String, _ v: Double, _ c: QuickContext, _ out: inout QuickOut, note: String? = nil) {
         let k = c.tab == .intraop && key == "hco3" ? "hco3a" : key
-        guard PatientLabs.isPlausible(k, v), let t = PatientLabs.test(k) else { return }
-        guard !out.labs.contains(k) else { return out.skip(t.short + " " + t.format(v) + " · a second value; the first is added") }
+        guard PatientLabs.isPlausible(k, v), PatientLabs.test(k) != nil else { return }
+        if out.labs.contains(k) {
+            // A second value for the same test (a panel and a name, or the name twice): asked, nothing filed until then.
+            guard let old = out.labValues[k] else { return askLab(k, [v], c, &out) }
+            guard old != v else { return }
+            return askLab(k, [old, v], c, &out)
+        }
         out.labs.insert(k)
+        out.labValues[k] = v
+        fileLab(k, v, c, &out, note: note)
+    }
+
+    /// Two values of a test, neither marked current: "Cr: 0.9 or 1.6?", filed once one is chosen.
+    private static func askLab(_ k: String, _ values: [Double], _ c: QuickContext, _ out: inout QuickOut) {
+        // A test this tab does not file: the notice, no question.
+        guard c.tab == .preop ? preopLabKeys.contains(k) : IntraopLabs.keys.contains(k) else {
+            if let v = values.first { fileLab(k, v, c, &out, note: nil) }
+            return
+        }
+        let id = PatientNote.labQuestionPrefix + k
+        var all = out.questions.first(where: { $0.id == id }).map { q in q.options.compactMap { Double($0.text) } } ?? []
+        if let filed = out.labValues[k], !all.contains(filed) { all.append(filed) }
+        for v in values where !all.contains(v) { all.append(v) }
+        out.labs.insert(k)
+        out.labValues[k] = nil
+        out.questions.removeAll { $0.id == id }
+        out.findings.removeAll { $0.id == "lab:" + k || $0.id == "intraop-lab:" + k }
+        let asked = PatientNote.labChoice(k, all, c.choices)
+        out.questions.append(asked.question)
+        if let v = asked.value { fileLab(k, v, c, &out, note: nil) }
+    }
+
+    private static func fileLab(_ k: String, _ v: Double, _ c: QuickContext, _ out: inout QuickOut, note: String?) {
+        guard let t = PatientLabs.test(k) else { return }
         switch c.tab {
         case .preop:
             guard preopLabKeys.contains(k) else { return out.skip(t.short + " " + t.format(v) + " · an intraoperative lab, on the Intraop tab") }
@@ -523,16 +572,21 @@ enum QuickAdd {
     private static let vitaminBefore = NoteRx(#"\bvit(?:amin)?\.?\s*$"#)
     /// "a fib", "in fib 130s", "AF": a rhythm, not a fibrinogen.
     private static let fibBefore = NoteRx(#"\b(?:a|af|in|atrial|v|vent|ventricular|rapid|new|fast|slow|paroxysmal|persistent|permanent|coarse|fine)[- ]?$"#)
-    /// A dose given, not a lab value: "bicarb 1 amp", "bicarb 50 given", "K 10 IV", "gave bicarb 50".
-    private static let doseAfter = NoteRx(#"^\s*(?:amps?\b|ampules?\b|ampoules?\b|vials?\b|iv\b|ivp\b|ivpb\b|im\b|po\b|sq\b|given\b|gave\b|push(?:ed)?\b|bolus(?:ed)?\b|meq\b(?!\s*/)|[x×]\s?\d)"#)
-    private static let doseBefore = NoteRx(#"\b(?:gave|give|given|giving|administered|push(?:ed)?|bolus(?:ed)?|replete[ds]?\s+with)\b"#)
-    /// A trend ("0.9 → 1.6", "11 -> 7.8"): the last value is the current one.
-    private static let trendAfter = NoteRx(#"^\s*(?:-+>|→|⟶|➝|=>|\bthen\b|\bnow\b)\s*([-−]?\d+(?:\.\d+)?)(?![\d.]|\s*/\s*\d|\s*(?:mg|mcg|ug|units?|u|meq|g|gm|ml|cc)\b(?!\s*/))"#)
+    /// A dose given, not a lab value, said right next to the number: "bicarb 1 amp", "bicarb 50 given", "K 10 IV", "gave
+    /// bicarb 50". "K 6.4 given insulin" is a potassium: "given" goes with the insulin.
+    private static let doseAfter = NoteRx(#"^\s*(?:amps?\b|ampules?\b|ampoules?\b|vials?\b|iv\b|ivp\b|ivpb\b|im\b|po\b|sq\b|push(?:ed)?\b|meq\b(?!\s*/)|[x×]\s?\d|(?:given|gave)\b\s*(?:$|[,;.)]|iv\b|ivp\b|im\b|po\b|over\b|at\b|x\s?\d|now\b))"#)
+    private static let doseBefore = NoteRx(#"\b(?:gave|give|giving|given|administered|push(?:ed)?|bolused|replete[ds]?\s+with)\s*$"#)
+    /// After a trend's next number: a dose or blood, not the test's value ("Hb 6.9 then 2 PRBC", "K 6.4 then 1 amp").
+    private static let trendStop = NoteRx(#"^\s*(?:[x×]\s?\d|runs?\b|amps?\b|ampules?\b|vials?\b|units?\b|u\b|mg\b|mcg\b|g\b|gm\b|meq\b|ml\b|cc\b|iv\b|im\b|po\b|bags?\b|doses?\b|tabs?\b|"# + product + #"(?![A-Za-z]))"#)
+    /// The next value of a trend ("0.9 → 1.6", "11 -> 7.8", "0.9 to 1.6", "3.1 then 4.2").
+    private static let trendAfter = NoteRx(#"^\s*(?:-+>|→|⟶|➝|=>|\bto\b|\bthen\b)\s*([-−]?\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d|\s*(?:mg|mcg|ug|units?|u|meq|g|gm|ml|cc)\b(?!\s*/))"#)
     /// A value marked as earlier ("baseline Cr 1.1"); "now 1.6" after it is the current one. On the Intraoperative
     /// tab a preoperative value is earlier too.
-    private static let earlierBefore = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|old|outside|osh|historical)\b"#)
-    private static let preopBefore = NoteRx(#"\b(?:pre-?op(?:erative)?|preoperative)\b"#)
-    private static let nowAfter = NoteRx(#"^[\s,;]*(?:now|currently|current|today|repeat|latest|new)\s*:?\s*([-−]?\d+(?:\.\d+)?)(?![\d.]|\s*/\s*\d)"#)
+    private static let earlierBefore = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|outside|osh|historical)\s*:?\s*$"#)
+    private static let preopBefore = NoteRx(#"\b(?:pre-?op(?:erative)?|preoperative)\s*:?\s*$"#)
+    /// "venous" or "central venous" on the line: gas values read by name are not arterial ("venous pH 7.28 pCO2 55").
+    private static let venousWord = NoteRx(#"\b(?:vbg|venous|capillary)\b(?!\s*(?:catheter|cath|line|access|sheath|cannula|pressure|thrombo\w*|duplex|insufficiency|stasis))"#)
+    private static let nowAfter = NoteRx(#"^[\s,;]*(?:now|currently|current|today|repeat|latest|new)\s*:?\s*([-−]?\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d)"#)
     private static let hemolyzed = NoteRx(#"\bh(?:a)?emoly[sz](?:ed|is)\b"#)
     static let hemolyzedNote = "Hemolyzed: may be falsely high."
 
@@ -543,13 +597,11 @@ enum QuickAdd {
 
     private static func askICa(_ v: Double, _ c: QuickContext, _ out: inout QuickOut) {
         let mmol = (v / 4.008 * 100).rounded() / 100
-        let value = "iCa " + NumText.short(v)
         let reading = "mg/dL = " + NumText.short(mmol) + " mmol/L"
-        let answer = c.choices[icaQuestion]
-        if !out.questions.contains(where: { $0.id == icaQuestion }) {
-            out.questions.append(AmbiguousAbbreviation(id: icaQuestion, abbreviation: value, options: [AbbreviationMeaning(reading, id: icaAnswer)],
-                                                       defaultID: icaAnswer, fromContext: false, chosenID: answer ?? icaAnswer, context: value))
-        }
+        let asked = PatientNote.question(icaQuestion, "iCa " + NumText.short(v), value: NumText.short(v),
+                                         options: [AbbreviationMeaning(reading, id: icaAnswer)], usual: icaAnswer, c.choices)
+        let answer = asked.answer
+        if !out.questions.contains(where: { $0.id == icaQuestion }) { out.questions.append(asked.question) }
         if answer == icaAnswer { addLab("ica", mmol, c, &out, note: "Read as " + NumText.short(v) + " " + reading + ".") }
     }
 
@@ -593,37 +645,84 @@ enum QuickAdd {
                 out.skip((s.original as NSString).substring(with: m.range).trimmingCharacters(in: .whitespaces) + " · " + why)
             }
             // A dose given is not a lab value.
-            if doseAfter.first(rest) != nil || doseBefore.first(p.before) != nil {
+            if doseAfter.first(rest) != nil || doseBefore.first(before) != nil {
                 leave("a dose, not a lab value")
                 continue
             }
             // A venous gas's values are not arterial ones.
-            if ["ph", "paco2", "pao2"].contains(k), venousGas.first(text) != nil {
+            if ["ph", "paco2", "pao2"].contains(k), venousGas.first(text) != nil || venousWord.first(text) != nil {
                 taken.append(r)
                 s.mask(r)
                 if !venousShown { out.skip("Venous gas · not an arterial gas, not added") }
                 venousShown = true
                 continue
             }
-            var note: String?
-            // A trend ends on the current value.
+            // A goal or a threshold ("goal Hb 8 to 10") is no value.
+            if PatientNote.labGoal.first(before) != nil {
+                leave("a goal, not a value")
+                continue
+            }
+            func cut(_ t: String, _ n: Int) -> String { (t as NSString).substring(from: n) }
+            // The values written for the test: the first, with its marks before and after it ("baseline Cr", "Cr 1.1 at
+            // baseline", "now Hb"), then each after it: "now 1.6" is current; after an arrow, "to" or "then", current
+            // only as the last word ("Cr 0.9 to 1.6"). A preoperative value is an earlier one on the Intraoperative tab.
+            var markedEarlier = earlierBefore.first(before) != nil
+            var markedPreop = preopBefore.first(before) != nil
             var later = rest
-            while let t = trendAfter.first(later), let next = number(t, 1, later).flatMap({ normal(key, $0) }) {
-                if note == nil { note = "Was " + NumText.short(first) + ": the last value is added." }
-                v = next
-                r.length += t.range.length
-                later = (later as NSString).substring(from: t.range.length)
-            }
-            // A value marked as earlier: the current one after it, or nothing.
-            if note == nil, earlierBefore.first(p.before) != nil || (c.tab == .intraop && preopBefore.first(p.before) != nil) {
-                guard let t = nowAfter.first(rest), let now = number(t, 1, rest).flatMap({ normal(key, $0) }) else {
-                    leave("an earlier value, not added")
-                    continue
+            if let e = PatientNote.labEarlierAfter.first(later) {
+                let word = (later as NSString).substring(with: e.range).lowercased()
+                if word.contains("preop") || word.contains("pre-op") {
+                    markedPreop = true
+                } else {
+                    markedEarlier = true
                 }
-                note = "Was " + NumText.short(first) + " earlier: the current value is added."
-                v = now
-                r.length += t.range.length
+                r.length += e.range.length
+                later = cut(later, e.range.length)
             }
+            let earlier = markedEarlier || (c.tab == .intraop && markedPreop)
+            var values: [(v: Double, current: Bool, earlier: Bool)] = [(v, PatientNote.labCurrentBefore.first(before) != nil, earlier)]
+            while true {
+                if let t = nowAfter.first(later), let next = number(t, 1, later).flatMap({ normal(key, $0) }) {
+                    values.append((next, true, false))
+                    r.length += t.range.length
+                    later = cut(later, t.range.length)
+                } else if let t = trendAfter.first(later), let next = number(t, 1, later).flatMap({ normal(key, $0) }),
+                          trendStop.first(cut(later, t.range.location + t.range.length)) == nil {
+                    values.append((next, PatientNote.labEnd.first(cut(later, t.range.location + t.range.length)) != nil, false))
+                    r.length += t.range.length
+                    later = cut(later, t.range.length)
+                } else {
+                    break
+                }
+            }
+            // The current value: the last marked current, else the only one not marked earlier; two or more unmarked
+            // values are asked ("Cr: 0.9 or 1.6?").
+            let open = values.filter { !$0.earlier }
+            var distinct: [Double] = []
+            for x in open where !distinct.contains(x.v) { distinct.append(x.v) }
+            let rk = c.tab == .intraop && k == "hco3" ? "hco3a" : k
+            if let now = open.last(where: { $0.current }) {
+                v = now.v
+            } else if distinct.isEmpty {
+                leave("an earlier value, not added")
+                continue
+            } else if distinct.count == 1 {
+                v = distinct[0]
+            } else {
+                taken.append(r)
+                s.mask(r)
+                let plausible = distinct.filter { PatientLabs.isPlausible(rk, $0) }
+                if plausible.count > 1 {
+                    askLab(rk, plausible, c, &out)
+                } else if let only = plausible.first {
+                    addLab(k, only, c, &out)
+                } else {
+                    out.skip((s.original as NSString).substring(with: r).trimmingCharacters(in: .whitespaces) + " · not a plausible value, not added")
+                }
+                continue
+            }
+            var note: String?
+            if values.count > 1, v != values[0].v { note = "Was " + NumText.short(values[0].v) + (values[0].earlier ? " earlier" : "") + ": the current value is added." }
             if k == "k", hemolyzed.first(p.before + " " + p.after) != nil { note = hemolyzedNote }
             // Ionized calcium: mmol/L, or mg/dL once chosen, or nothing.
             if k == "ica", c.tab == .intraop || preopLabKeys.contains("ica"), !(0.3...2.5).contains(v) {
@@ -636,7 +735,6 @@ enum QuickAdd {
                 }
                 continue
             }
-            let rk = c.tab == .intraop && k == "hco3" ? "hco3a" : k
             guard PatientLabs.isPlausible(rk, v) else {
                 if r.length > m.range.length { leave("not a plausible value, not added") }
                 continue
@@ -692,7 +790,15 @@ enum QuickAdd {
 
     private static func readGas(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
         // On the Intraoperative tab, or wherever "ABG" or "gas" is written; never a venous gas (its PO₂ is not a PaO₂).
-        guard c.tab == .intraop || gasWord.first(s.text) != nil, venousGas.first(s.text) == nil else { return }
+        guard c.tab == .intraop || gasWord.first(s.text) != nil else { return }
+        if venousGas.first(s.text) != nil || venousWord.first(s.text) != nil {
+            // "venous 7.28/55/40", "central venous 7.30/50/38": left out, so no part of it is read as anything else.
+            for m in gasRx.all(s.text) {
+                s.mask(m.range)
+                out.skip("Venous gas · not an arterial gas, not added")
+            }
+            return
+        }
         let text = s.text
         let ns = text as NSString
         let all = gasRx.all(text)
@@ -868,7 +974,7 @@ enum QuickAdd {
     static let cellSaverAfter = NoteRx(#"(?<![A-Za-z])(?:cell\s*-?\s*sav(?:er|ed)|cellsaver|cell\s*salvage|salvaged blood)(?:\s+(?:returned|given|back))?\s*:?\s*\+?\s*(\d{2,4})\s*(?:ml|cc)?(?![\d.])"#)
     static let cellSaverBefore = NoteRx(#"(?<![\w.])(\d{2,4})\s*(?:ml|cc)\s+(?:of\s+)?(?:cell\s*-?\s*sav(?:er|ed)|cellsaver|cell\s*salvage|salvaged blood)"#)
     /// Blood that is ordered or waiting, not given.
-    private static let notGiven = NoteRx(#"\b(?:available|in (?:the )?room|cross-?matched|crossmatch|x-?matched|type and cross|t&c|ready|on hold|ordered|requested|consented|if needed|if|prn|standby|plan(?:ned|ning)?|pending|will (?:give|transfuse|hang|need|get|start)|to (?:give|transfuse|hang)|consider(?:ing)?|may need|might need|anticipated?)\b"#)
+    private static let notGiven = NoteRx(#"\b(?:available|in (?:the )?room|cross-?matched|crossmatch|x-?matched|type and cross|t&c|ready|on hold|ordered|requested|consented|if needed|if|prn|standby|(?<!as )plan(?:ned|ning)?|pending|will (?:give|transfuse|hang|need|get|start)|to (?:give|transfuse|hang)|consider(?:ing)?|may need|might need|anticipated?)\b"#)
 
     private static func productKey(_ word: String) -> String {
         let w = word.lowercased()
@@ -886,12 +992,50 @@ enum QuickAdd {
     /// "PRBC 3rd unit", "3rd unit of PRBC": one more unit, not three.
     static let ordinalAfter = NoteRx(#"(?<![A-Za-z])"# + product + #"\s*(?:#\s*)?(\d{1,2})(?:st|nd|rd|th)\b(?:\s+(unit|bag|pool)s?\b)?"#)
     static let ordinalBefore = NoteRx(#"(?<![\w.])(\d{1,2})(?:st|nd|rd|th)\s+(?:(unit|bag|pool)s?\s+(?:of\s+)?)?"# + product + #"(?![A-Za-z])"#)
+    /// "unit 3 of PRBC": the third unit, one more.
+    static let unitNumber = NoteRx(#"(?<![A-Za-z])(unit|bag)\s*#?\s*(\d{1,2})\s+(?:of\s+)?"# + product + #"(?![A-Za-z])"#)
+    /// A product named anywhere, for the words around it to go with the nearest one.
+    static let productWord = NoteRx(#"(?<![A-Za-z])"# + product + #"(?![A-Za-z])"#)
+    /// Between a product and a word about it, only a count ("2 PRBC available", "PRBC x2 declined").
+    private static let countWord = NoteRx(#"^(?:[+x×]?\d+(?:\.\d+)?(?:u|units?)?|x|×|u|units?|bags?|pools?|of|the|apheresis|doses?|were|was|is|are|been|now|just|already|all|[()#:,.-])$"#)
     /// Not given, said after the product: "2 PRBC not given", "2 FFP held", "PRBC x2 declined".
-    private static let notGivenAfter = NoteRx(#"\b(?:not\s+(?:given|transfused|hung|started|needed)|held|holding|on hold|declined|refused|cancell?ed|wasted|deferred|discontinued|stopped)\b"#)
+    private static let notGivenAfter = NoteRx(#"\b(?:not\s+(?:given|transfused|hung|started|needed|used)|never\s+(?:given|transfused|hung|used)|returned\s+to\s+(?:the\s+)?(?:(?:blood\s+)?bank|(?-i:BB))|sent\s+back|unused|held|holding|on hold|declined|refused|cancell?ed|wasted|deferred|discontinued|stopped)\b"#)
+    /// Said to be given, next to the product ("2 PRBC given", "gave 2 FFP", "PRBC 3 of 4 hanging"); not "to be given".
+    private static let givenWord = NoteRx(#"(?<!\bbe )(?<!\bto )\b(?:given|gave|transfused|transfusing|hung|hanging|running|infusing|infused|received|administered)\b"#)
+    /// Blood that may not have been given yet, anywhere in the clause: the product is asked about unless said given.
+    private static let unsureCue = NoteRx(#"\b(?:available|in (?:the )?room|cross-?matched|crossmatch|x-?matched|type and (?:cross|screen)|t&c|ready|on hold|ordered|requested|consented|if|prn|standby|(?<!as )plan(?:ned|ning|s)?|pending|will|to (?:give|transfuse|hang)|consider(?:ing)?|may need|might need|anticipated?|returned to|sent back|send back|blood bank|(?-i:BB)|cooler|on the way|coming)\b"#)
+    /// Where a clause ends: a full stop, a semicolon or a new line.
+    private static let clauseEnd = NoteRx(#"[;\n]|\.(?=\s|$)"#)
+    /// "PRBC 3 of 4": the third unit of four, one more. "3 of 4 PRBC" could be that or three of the four: not read.
+    static let ofAfter = NoteRx(#"(?<![A-Za-z])"# + product + #"\s*(?:#\s*)?(\d{1,2})\s+of\s+(\d{1,2})(?![\d.])"#)
+    static let ofBefore = NoteRx(#"(?<![\w.+×])(\d{1,2})\s+of\s+(?:the\s+)?(\d{1,2})\s+(?:(?:units?|bags?)\s+(?:of\s+)?)?"# + product + #"(?![A-Za-z])"#)
+    private static let unitWordBefore = NoteRx(#"\b(?:unit|bag)\s*#?\s*$"#)
+    static let bloodQuestion = "quick:blood:"
+    static let bloodGiven = "blood-given"
+    static let bloodNotYet = "blood-not-given"
+
+    private static func clauseRange(_ r: NSRange, in text: String) -> NSRange {
+        var lo = 0
+        var hi = (text as NSString).length
+        for m in clauseEnd.all(text) {
+            if m.range.location + m.range.length <= r.location {
+                lo = Swift.max(lo, m.range.location + m.range.length)
+            } else if m.range.location >= r.location + r.length {
+                hi = Swift.min(hi, m.range.location)
+                break
+            }
+        }
+        return NSRange(location: lo, length: Swift.max(0, hi - lo))
+    }
+
     /// Given before the case or somewhere else: not this case's.
     private static let beforeCase = NoteRx(#"\b(?:yesterday|overnight|last night|pre-?op(?:eratively)?|preoperative(?:ly)?|before (?:the )?(?:case|surgery|or|induction)|prior to (?:the )?(?:case|surgery|arrival|induction)|in (?:the )?(?:icu|ed|er|pacu|floor|ward|cath lab)|icu|osh|outside hospital|on the floor|days? ago)\b"#)
-    /// A running total restated ("4 PRBC total"): the total, not more.
+    /// A running total restated ("4 PRBC total"): the total, not more. A count is the total only with "total" right next
+    /// to it; "2 PRBC (total 4)" is 2 more, with the total written beside it.
     private static let totalWord = NoteRx(#"\b(?:total|in total|cumulative|so far|to date)\b"#)
+    private static let totalBefore = NoteRx(#"\b(?:total(?:\s+of)?|in total|cumulative)\s*:?\s*$"#)
+    private static let totalAfter = NoteRx(#"^\s*(?:total|in total|so far|to date|cumulative)\b(?!\s*:?\s*\(?\d)"#)
+    private static let statedTotal = NoteRx(#"\(?\s*(?:\btotal(?:\s+of)?\s*:?\s*(\d{1,3})|(\d{1,3})\s*(?:units?\s+)?total\b)\s*\)?"#)
     static let cellSaverWord = NoteRx(#"\b(?:cell\s*-?\s*sav(?:er|ed)|cellsaver|cell\s*salvage|salvaged blood)\b"#)
     /// The cell saver volume given back ("350 mL returned"), which is what is filed.
     static let cellSaverReturned = NoteRx(#"(?<![\d.])(\d{2,4})\s*(?:ml|cc)?\s*(?:returned|reinfused|re-infused|given back|back to (?:the )?patient)\b"#)
@@ -903,36 +1047,107 @@ enum QuickAdd {
     /// first ("PRBC 3 FFP 2") gives the number after a product to it, one written count first ("2 PRBC 3 FFP") the number
     /// before.
     private static func readBlood(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
-        var mentions: [(key: String, n: Double, pools: Double, at: Int, total: Bool, ordinal: String?)] = []
-        /// Whether the product at the range was given in this case; what says it was not is masked and shown.
-        func given(_ r: NSRange, _ text: String) -> Bool {
+        var mentions: [(key: String, n: Double, pools: Double, at: Int, total: Bool, ordinal: String?, stated: Double?, ask: Bool, typed: String)] = []
+        /// The words of a kind ("ready", "not given", "yesterday") that go with the product at the range: those whose
+        /// nearest product it is, with nothing but a count between ("2 PRBC given and 2 FFP ready": only the FFP is
+        /// ready; "2 PRBC 2 FFP repeat TEG pending": the TEG is pending).
+        func about(_ rx: NoteRx, _ r: NSRange, _ text: String) -> [NSRange] {
+            let ns = text as NSString
+            let piece = pieceRange(r, in: text)
+            let pieceText = ns.substring(with: piece)
+            let products = productWord.all(pieceText).map { shifted($0.range, piece.location) }
+            func gap(_ p: NSRange, _ g: NSRange) -> Int {
+                g.location >= p.location + p.length ? g.location - (p.location + p.length) : Swift.max(0, p.location - (g.location + g.length))
+            }
+            var found: [NSRange] = []
+            for m in rx.all(pieceText) {
+                let g = shifted(m.range, piece.location)
+                guard let nearest = products.min(by: { gap($0, g) < gap($1, g) }), NSIntersectionRange(nearest, r).length > 0 else { continue }
+                let lo = Swift.min(nearest.location + nearest.length, g.location + g.length)
+                let hi = Swift.max(nearest.location, g.location)
+                let between = hi > lo ? ns.substring(with: NSRange(location: lo, length: hi - lo)) : ""
+                let real = between.split(whereSeparator: { $0.isWhitespace }).filter { countWord.first(String($0)) == nil }
+                if real.isEmpty { found.append(g) }
+            }
+            return found
+        }
+        /// The words in the product's clause that it may not be given yet: in its piece, in a piece before it ("plan: 2
+        /// PRBC, 2 FFP", "if Hb < 7, give 2 PRBC"), or ending the list of blood it is in ("2 PRBC, 2 FFP ready"). Looked
+        /// for as typed, so a word masked for one product still counts for the next.
+        func unsureCues(_ r: NSRange) -> [NSRange] {
+            let ns = s.original as NSString
+            let clause = clauseRange(r, in: s.original)
+            var pieces: [NSRange] = []
+            var start = clause.location
+            let end = clause.location + clause.length
+            for i in clause.location..<end where ns.character(at: i) == 44 {
+                pieces.append(NSRange(location: start, length: i - start))
+                start = i + 1
+            }
+            pieces.append(NSRange(location: start, length: end - start))
+            guard let at = pieces.firstIndex(where: { NSLocationInRange(r.location, $0) }) else { return [] }
+            func cues(_ p: NSRange) -> [NSRange] { unsureCue.all(ns.substring(with: p)).map { shifted($0.range, p.location) } }
+            var found = pieces[..<at].flatMap { cues($0) } + cues(pieces[at])
+            for p in pieces[(at + 1)...] {
+                let c = cues(p)
+                found += c
+                if !c.isEmpty || productWord.first(ns.substring(with: p)) == nil { break }
+            }
+            return found
+        }
+        /// Whether the product at the range was given in this case. Said not given, or given before the case: masked and
+        /// shown. Said given: given. Otherwise, with a word in its clause that it may not be given yet ("plan", "if",
+        /// "in the room", "returned to BB"): asked, and filed only once answered given. The cell saver is never asked.
+        enum Status { case given, notGiven, ask }
+        func status(_ r: NSRange, _ text: String, asks: Bool = true) -> Status {
             let p = around(r, in: text)
-            if pieceNegation.first(p.before) != nil { return false }
-            func leave(_ rx: NoteRx, _ why: String) -> Bool {
+            if pieceNegation.first(p.before) != nil { return .notGiven }
+            /// Leaves the product out, masking it and the words of that kind in its piece (shown, not left as unread text).
+            func leave(_ rx: NoteRx, _ why: String) -> Status {
                 s.mask(r)
                 let piece = pieceRange(r, in: text)
                 for m in rx.all((text as NSString).substring(with: piece)) { s.mask(shifted(m.range, piece.location)) }
                 out.skip(why)
-                return false
+                return .notGiven
             }
-            if notGiven.first(p.before + " " + p.after) != nil {
-                return leave(notGiven, "Blood products ordered, planned or available · not given, not added")
+            if about(notGivenAfter, r, text).contains(where: { $0.location >= r.location + r.length }) {
+                return leave(notGivenAfter, "Blood products not given · not added")
             }
-            if notGivenAfter.first(p.after) != nil { return leave(notGivenAfter, "Blood products not given · not added") }
-            if beforeCase.first(p.before + " " + p.after) != nil {
-                return leave(beforeCase, "Blood given before the case or elsewhere · not this case's, not added")
+            if !about(beforeCase, r, text).isEmpty { return leave(beforeCase, "Blood given before the case or elsewhere · not this case's, not added") }
+            guard asks else {
+                if !about(notGiven, r, text).isEmpty { return leave(notGiven, "Blood products ordered, planned or available · not given, not added") }
+                return .given
             }
-            return true
+            if !about(givenWord, r, text).isEmpty { return .given }
+            let cues = unsureCues(r)
+            guard !cues.isEmpty else { return .given }
+            for m in cues { s.mask(m) }
+            return .ask
         }
-        func add(_ key: String, _ n: Double, _ r: NSRange, _ text: String, pools: Double = 0, ordinal: String? = nil) {
+        func given(_ r: NSRange, _ text: String) -> Bool { status(r, text, asks: false) == .given }
+        func add(_ key: String, _ n: Double, _ r: NSRange, _ text: String, pools: Double = 0, ordinal: String? = nil, ask: Bool = false) {
             let p = around(r, in: text)
-            let total = ordinal == nil && key != BloodProducts.cellSaver && totalWord.first(p.before + " " + p.after) != nil
-            mentions.append((key: key, n: n, pools: pools, at: r.location, total: total, ordinal: ordinal))
+            let ns = text as NSString
+            let piece = pieceRange(r, in: text)
+            let counted = ordinal == nil && key != BloodProducts.cellSaver
+            let total = counted && (totalBefore.first(p.before) != nil || totalAfter.first(p.after) != nil)
+            var stated: Double?
             s.mask(r)
             if total {
-                let piece = pieceRange(r, in: text)
-                for m in totalWord.all((text as NSString).substring(with: piece)) { s.mask(shifted(m.range, piece.location)) }
+                for m in totalWord.all(ns.substring(with: piece)) { s.mask(shifted(m.range, piece.location)) }
+            } else if counted {
+                // A total written beside the count ("2 PRBC (total 4)"): kept to check, and not left as unread text.
+                for m in statedTotal.all(ns.substring(with: piece)) {
+                    let at = shifted(m.range, piece.location)
+                    guard NSIntersectionRange(at, r).length == 0, let v = number(m, 1, ns.substring(with: piece)) ?? number(m, 2, ns.substring(with: piece))
+                    else { continue }
+                    stated = v
+                    s.mask(at)
+                    break
+                }
             }
+            let typed = (s.original as NSString).substring(with: r).trimmingCharacters(in: .whitespaces)
+            mentions.append((key: key, n: n, pools: pools, at: r.location, total: total, ordinal: ordinal, stated: stated, ask: ask, typed: typed))
         }
         // Units per entry that can be real; cryoprecipitate in units comes 5 or more at a time.
         func plausible(_ key: String, _ n: Double) -> Bool {
@@ -947,12 +1162,13 @@ enum QuickAdd {
         /// Reads one mention; true when it used the range (added, or shown as not given), so no other reading takes it.
         func entry(_ key: String, _ n: Double, unit: String?, _ r: NSRange, _ text: String) -> Bool {
             guard n == n.rounded() else { return false }
-            guard given(r, text) else { return (s.text as NSString).substring(with: r).trimmingCharacters(in: .whitespaces).isEmpty }
+            let st = status(r, text)
+            guard st != .notGiven else { return (s.text as NSString).substring(with: r).trimmingCharacters(in: .whitespaces).isEmpty }
             let u = (unit ?? "").lowercased()
             if key == "cryo" {
                 if u.hasPrefix("pool") {
                     guard (1...5).contains(n) else { return false }
-                    add(key, n * 5, r, text, pools: n)
+                    add(key, n * 5, r, text, pools: n, ask: st == .ask)
                     return true
                 }
                 // "2 cryo" could be units or pools: not read.
@@ -963,13 +1179,13 @@ enum QuickAdd {
                 }
             }
             guard plausible(key, n) else { return false }
-            add(key, n, r, text)
+            add(key, n, r, text, ask: st == .ask)
             return true
         }
 
         // "PRBC 3rd unit": one more.
         var text = s.text
-        for (rx, n, w, u) in [(ordinalAfter, 2, 1, 3), (ordinalBefore, 1, 3, 2)] {
+        for (rx, n, w, u) in [(ordinalAfter, 2, 1, 3), (ordinalBefore, 1, 3, 2), (unitNumber, 2, 3, 1)] {
             text = s.text
             for m in rx.all(text) {
                 guard let o = group(m, n, text), let v = Int(o), (1...30).contains(v), let word = group(m, w, text) else { continue }
@@ -977,16 +1193,49 @@ enum QuickAdd {
                 let matched = (text as NSString).substring(with: m.range)
                 let suffix = matched.range(of: #"(?<=\d)(?:st|nd|rd|th)"#, options: [.regularExpression, .caseInsensitive])
                     .map { String(matched[$0]).lowercased() } ?? "th"
-                let ordinal = o + suffix + " " + (group(m, u, text) ?? "unit").lowercased()
-                guard given(m.range, text) else { continue }
+                let unit = (group(m, u, text) ?? "unit").lowercased()
+                let ordinal = rx.pattern == unitNumber.pattern ? unit + " " + o : o + suffix + " " + unit
+                let st = status(m.range, text)
+                guard st != .notGiven else { continue }
                 if key == "cryo" {
                     s.mask(m.range)
                     out.skip("Cryo " + ordinal + " · units or pools? Write “1 pool cryo” or “cryo 5”")
                     continue
                 }
                 guard key != BloodProducts.cellSaver else { continue }
-                add(key, 1, m.range, text, ordinal: ordinal)
+                add(key, 1, m.range, text, ordinal: ordinal, ask: st == .ask)
             }
+        }
+        // "PRBC 3 of 4": unit 3 of 4, one more. "3 of 4 PRBC": unit 3, or three of the four? Not read.
+        text = s.text
+        for m in ofAfter.all(text) {
+            guard let word = group(m, 1, text), let o = group(m, 2, text), let all = group(m, 3, text), let v = Int(o), let t = Int(all),
+                  (1...30).contains(v), v <= t else { continue }
+            let key = productKey(word)
+            let st = status(m.range, text)
+            guard st != .notGiven else { continue }
+            if key == "cryo" {
+                s.mask(m.range)
+                out.skip("Cryo unit " + o + " of " + all + " · units or pools? Write “1 pool cryo” or “cryo 5”")
+                continue
+            }
+            add(key, 1, m.range, text, ordinal: "unit " + o + " of " + all, ask: st == .ask)
+        }
+        text = s.text
+        for m in ofBefore.all(text) {
+            guard let o = group(m, 1, text), let all = group(m, 2, text), let word = group(m, 3, text) else { continue }
+            // "unit 3 of 4 PRBC": the unit, one more.
+            if let u = unitWordBefore.first((text as NSString).substring(to: m.range.location)), let v = Int(o), let t = Int(all), v <= t,
+               productKey(word) != "cryo" {
+                let r = NSRange(location: u.range.location, length: m.range.location + m.range.length - u.range.location)
+                let st = status(r, text)
+                guard st != .notGiven else { continue }
+                add(productKey(word), 1, r, text, ordinal: "unit " + o + " of " + all, ask: st == .ask)
+                continue
+            }
+            s.mask(m.range)
+            let name = BloodProducts.units.first(where: { $0.id == productKey(word) })?.short ?? word
+            out.skip(o + " of " + all + " " + name + " · unit " + o + ", or " + o + " units? Write “" + name + " +1” or “" + name + " +" + o + "”")
         }
 
         text = s.text
@@ -1040,7 +1289,19 @@ enum QuickAdd {
 
         var running: [String: Double] = [:]
         var counts: [String: Int] = [:]
+        var asked: [String: Int] = [:]
         for m in mentions.sorted(by: { $0.at < $1.at }) {
+            // Maybe not given yet: "2 PRBC given?", filed only once answered given.
+            if m.ask {
+                let q = (asked[m.key] ?? 0) + 1
+                asked[m.key] = q
+                let a = PatientNote.question(bloodQuestion + m.key + (q > 1 ? ":" + String(q) : ""), m.typed,
+                                             value: NumText.short(m.n) + (m.ordinal.map { " " + $0 } ?? ""),
+                                             options: [AbbreviationMeaning("given", id: bloodGiven), AbbreviationMeaning("not given yet", id: bloodNotYet)],
+                                             usual: bloodGiven, c.choices)
+                out.questions.append(a.question)
+                guard a.answer == bloodGiven else { continue }
+            }
             let isCellSaver = m.key == BloodProducts.cellSaver
             let name = isCellSaver ? "Cell saver" : (BloodProducts.units.first(where: { $0.id == m.key })?.short ?? m.key)
             let have = (c.record.fluids[m.key] ?? 0) + (running[m.key] ?? 0)
@@ -1067,7 +1328,10 @@ enum QuickAdd {
             }
             if let o = m.ordinal {
                 label += " (" + o + ")"
-                note = "The " + o + ": one more."
+                note = (o.hasPrefix("unit") || o.hasPrefix("bag") ? "U" + o.dropFirst() : "The " + o) + ": one more."
+            }
+            if let stated = m.stated, stated != have + n {
+                note = "The line says " + NumText.short(stated) + " in all; with this, the record has " + NumText.short(have + n) + "."
             }
             out.add(PatientNoteFinding(id: "blood:" + m.key + (k > 1 ? ":" + String(k) : ""), section: intraop, label: label,
                                        change: .blood(m.key, n), note: note))
@@ -1090,8 +1354,9 @@ enum QuickAdd {
         QuickDrip("phenylephrine", "phenylephrine", #"phenylephrine|neo-?synephrine|phenyl|neo"#, unit: "mcg/min", usual: 5...300, overlap: 2...5,
                   perKg: 0.1...2, meaning: "neo-phenylephrine"),
         QuickDrip("propofol", "propofol", #"propofol|diprivan|prop"#, unit: "mcg/kg/min", usual: 5...300, overlap: 0.01...5),
-        QuickDrip("vasopressin", "vasopressin", #"vasopressin|vasostrict|vaso"#, unit: "units/min", usual: 0.01...0.2, overlap: 0.2...10),
-        QuickDrip("milrinone", "milrinone", #"milrinone|milri"#, unit: "mcg/kg/min", usual: 0.1...1, overlap: 1...50),
+        // Vasopressin and milrinone outside their infusion range are not read as drips ("vaso 1", "milrinone 50" are boluses).
+        QuickDrip("vasopressin", "vasopressin", #"vasopressin|vasostrict|vaso"#, unit: "units/min", usual: 0.01...0.2),
+        QuickDrip("milrinone", "milrinone", #"milrinone|milri"#, unit: "mcg/kg/min", usual: 0.1...1),
         QuickDrip("dobutamine", "dobutamine", #"dobutamine|dobuta|dobut"#, unit: "mcg/kg/min", usual: 1...40),
         QuickDrip("dopamine", "dopamine", #"dopamine|dopa"#, unit: "mcg/kg/min", usual: 1...50),
         QuickDrip("nitroglycerin", "nitroglycerin", #"nitroglycerin|ntg|tng|nitro"#, unit: "mcg/min", usual: 5...200, bare: false),
@@ -1105,11 +1370,18 @@ enum QuickAdd {
     ]
     private static let offAfter = NoteRx(#"^\s*(?:off|stopped|weaned|held|d/c'?d|discontinued)\b"#)
     /// A bolus, not a drip: "gave neo 100", "epi 10 push", "neo 100 x2", "prn", a route a drip does not take.
-    static let bolusCue = NoteRx(#"\b(?:bolus(?:es|ed)?|push(?:es|ed)?|gave|given|give|prn|im|ivp|sq|subq|sc)\b|(?<![A-Za-z])[x×]\s?\d|\d\s?[x×](?![A-Za-z])"#)
+    static let bolusCue = NoteRx(#"\b(?:bolus(?:es|ed)?|push(?:es|ed)?|gave|given|give|prn|im|ivp|sq|subq|sc)\b|(?<![A-Za-z])[x×]\s?\d+(?!\d)(?!\s*(?:days?|d|weeks?|wks?|months?|mos?|years?|yrs?|hours?|hrs?|h)\b)|\d\s?[x×](?![A-Za-z])"#)
+    /// A dose by the clock or a schedule, not a drip: "q3min", "tid", "3 times daily".
+    static let scheduleCue = NoteRx(#"\b(?:tid|bid|qid|qhs|qd|qam|qpm|daily|nightly|weekly|times\s+(?:a\s+|per\s+)?(?:day|daily|week)|q\s?\d+\s*(?:h|hr|hrs|hours?|min|mins|minutes?))\b"#)
+    /// A code: epinephrine and vasopressin are 1 mg and 40 unit boluses, not drips (ROSC is not a cue: infusions follow it).
+    static let codeCue = NoteRx(#"(?-i:\b(?:VF|VT|PEA|ACLS|CPR|AED)\b)|(?<!full )(?<!no )\bcode(?:\s+blue)?\b(?!\s*status)|\b(?:arrest(?:ed)?|asystole|asystolic|v-?fib|vfib|v-?tach|pulseless|compressions|defib(?:rillat\w*)?)\b|\bshock(?:ed)?\s*(?:x\s*\d+\s*)?(?:at\s*)?\d+\s*j\b"#)
+    /// An induction: a bare propofol number is the induction dose, not a drip ("prop 200, roc 50, fent 100").
+    static let inductionCue = NoteRx(#"\b(?:induction|induced?|rsi|roc(?:uronium)?|vec(?:uronium)?|cis(?:atracurium)?|sux|succ(?:inylcholine)?|fent(?:anyl)?|sufent(?:anil)?|etomidate|etom|ketamine|midaz(?:olam)?|versed)\b|\blido(?:caine)?\s*\d+(?:\.\d+)?\s*(?:mg\b)?"#)
+    static let tivaCue = NoteRx(#"\btiva\b"#)
     static let noUnitNote = "No unit written: added as written, without one."
-    /// Not a drip in this piece: levodopa ("L-dopa"), or a local anesthetic with epinephrine ("lidocaine 1% with epi
-    /// 1:200,000").
-    static let notDrip = NoteRx(#"\b(?:levodopa|carbidopa|l-dopa|sinemet|lido(?:caine)?|ropi(?:vacaine)?|bupi(?:vacaine)?|marcaine|sensorcaine|naropin|chloroprocaine|mepivacaine|articaine|prilocaine)\b|\b1\s*:\s*\d|\b(?:with|w/|w)\s+epi\b"#)
+    /// Not a drip in this piece: levodopa ("L-dopa", "L dopa"), or a local anesthetic (with its epinephrine:
+    /// "lidocaine 1% with epi 1:200,000").
+    static let notDrip = NoteRx(#"\b(?:levodopa|carbidopa|l[- ]?dopa|sinemet|rytary|lido(?:caine)?|ropi(?:vacaine)?|bupi(?:vacaine)?|marcaine|sensorcaine|naropin|chloroprocaine|mepivacaine|articaine|prilocaine)\b"#)
 
     private static func infusionFinding(_ drug: String, _ rate: String, _ c: QuickContext, note: String?) -> PatientNoteFinding {
         let label = "Infusion: " + drug + (rate.isEmpty ? "" : " at " + rate)
@@ -1143,12 +1415,30 @@ enum QuickAdd {
                 guard let rate = group(m, 3, text), num(rate) != nil else { continue }
                 let marked = m.range(at: 2).location != NSNotFound
                 if !d.bare && !marked { continue }
-                if let meaning = d.meaning, !c.means(meaning, at: m.range(at: 1), confirmed: d.confirm) { continue }
+                if let meaning = d.meaning {
+                    // A meaning confirmed for another value ("levo" chosen at 0.1, now 0.2) is asked again.
+                    let key = c.abbreviation(at: m.range(at: 1))?.choiceKey ?? ""
+                    if d.confirm, !key.isEmpty {
+                        out.valueKeys[key] = rate
+                        if let tied = c.choices[key + "@value"], tied != rate {
+                            out.stale.insert(key)
+                            continue
+                        }
+                    }
+                    if !c.means(meaning, at: m.range(at: 1), confirmed: d.confirm) { continue }
+                }
                 let p = around(m.range, in: text)
-                if pieceNegation.first(p.before) != nil || offAfter.first(p.after) != nil || bolusCue.first(p.before + " " + p.after) != nil
-                    || notDrip.first(p.before + " " + p.after) != nil {
+                let piece = p.before + " " + p.after
+                if pieceNegation.first(p.before) != nil || offAfter.first(p.after) != nil || bolusCue.first(piece) != nil
+                    || notDrip.first(piece) != nil || scheduleCue.first(piece) != nil {
                     continue
                 }
+                // An induction sequence's propofol, and a code's epinephrine or vasopressin, are boluses.
+                if d.drug == "propofol", !marked, tivaCue.first(s.original) == nil, inductionCue.first(s.original) != nil { continue }
+                // In a code, only an infusion-sized number is read: epinephrine of weight-based size (code doses are 1 mg,
+                // push-dose epinephrine 10–20 mcg) or vasopressin in units/min.
+                if d.drug == "epinephrine" || d.drug == "vasopressin", codeCue.first(s.original) != nil, let v = num(rate),
+                   d.fit(v) != .unit(d.drug == "epinephrine" ? d.perKgUnit : d.unit) { continue }
                 s.mask(m.range)
                 if let r = dripRate(rate, d, marked: marked) {
                     out.add(infusionFinding(d.drug, r.rate, c, note: r.note))
@@ -1299,6 +1589,8 @@ enum QuickAdd {
     // MARK: The planned anesthetic
 
     static let planPrefix = "plan-anesthetic:"
+    /// A technique written in shorthand ("under block", "ACB", "TIVA", "LMA"): the plan is the user's, not filled.
+    static let techniqueWord = NoteRx(#"(?-i:\b(?:GA|GETA|MAC|ACB|TAP|ESP|PENG|QL|ISB|SCB|FNB|SAB|CSE|LMA|TIVA)\b)|\b(?:blocks?|regional|spinal|epidural|neuraxial|sedation|ipack)\b"#)
     static let planNote = "The usual plan for the procedure, as the Procedure editor fills it."
 
     private static func isAnesthetic(_ f: PatientNoteFinding) -> Bool {
@@ -1310,7 +1602,7 @@ enum QuickAdd {
     /// line names no technique (even one the reader did not take, as in "TKA, spinal"). A plan already set is never
     /// replaced.
     private static func readPlan(_ line: String, _ c: QuickContext, _ out: inout QuickOut) {
-        let techniques = [PatientNote.gaRx, PatientNote.neuraxialRx, PatientNote.macRx, PatientNote.regionalRx]
+        let techniques = [PatientNote.gaRx, PatientNote.neuraxialRx, PatientNote.macRx, PatientNote.regionalRx, techniqueWord]
         guard c.record.anesthetic.isEmpty, !out.findings.contains(where: isAnesthetic),
               !techniques.contains(where: { $0.first(line) != nil }),
               let p = out.findings.first(where: { $0.id == "procedure" }), case .procedure(let text) = p.change,
@@ -1340,14 +1632,26 @@ enum QuickAdd {
     private static let maskGradeRx = NoteRx(#"\b(?:(?:bag[- ])?mask|mv|bmv)(?:\s+ventilation)?\s+(?:grade|gr\.?)\s*:?\s*([1-4])\b|\bhan\s*(?:grade)?\s*:?\s*([1-4])\b|\b(?:grade|gr\.?)\s*:?\s*([1-4])\s+(?:bag[- ])?(?:mask|mv|bmv)\b"#)
     /// After a grade: the mask, not the laryngoscopy ("grade 1 mask").
     private static let gradeNotAfter = NoteRx(#"^\s*(?:bag[- ])?(?:mask|mv|bmv|ventilation)\b"#)
-    /// A device that was there but not used: "VL in room", "glidescope available", "backup LMA".
-    private static let standbyCue = NoteRx(#"\b(?:in (?:the )?room|available|avail|backup|back-?up|back up|standby|on standby|ready|at (?:the )?bedside|on hand|if needed|prn)\b"#)
-    /// The question when two laryngoscopies are named; the answer is kept in `choices` under this id.
+    /// A device that was there but not used, said right next to it: "VL in room", "glidescope available", "backup LMA",
+    /// "DL grade 1 with VL backup" (the VL).
+    private static let standbyAfter = NoteRx(#"^\s*(?:(?:is|was|as|on)\s+)?(?:in (?:the )?room|available|avail|backup|back-?up|back up|standby|on standby|ready|at (?:the )?bedside|on hand|if needed|prn)\b"#)
+    private static let standbyBefore = NoteRx(#"\b(?:backup|back-?up|back up|standby|available|spare)\s*:?\s*$"#)
+    /// "view" right after a grade, and where a phrase ends.
+    private static let viewAfter = NoteRx(#"^\s*view\b"#)
+    private static let phraseEnd = NoteRx(#"\.(?:\s|$)|;|/"#)
+    /// The mask named in a phrase, for a grade after it.
+    private static let maskCue = NoteRx(#"\b(?:(?:bag[- ])?mask(?:ing)?|mv|bmv|ventilation)\b"#)
+    /// The questions when two laryngoscopies are named, or one with two grades; the answer is kept in `choices` under the
+    /// id, with the value it was given for.
     static let laryngoscopyQuestion = "quick:laryngoscopy"
+    static let gradeQuestion = "quick:grade"
     private static let maskEaseRx = NoteRx(#"\b(easy|difficult|diff)\s+(?:(?:bag[- ])?mask(?:ing)?|mv|bmv)(?:\s+ventilation)?\b|\b(?:(?:bag[- ])?mask(?:ing)?|mv|bmv)(?:\s+ventilation)?\s+(?:was\s+)?(easy|difficult|diff)\b"#)
     private static let intubationEaseRx = NoteRx(#"\b(easy|difficult|diff)\s+(?:intubation|(?-i:DL|VL)|laryngoscopy)\b|\bintubation\s+(?:was\s+)?(easy|difficult)\b"#)
     private static let attemptsRx = NoteRx(#"(?<![\w])(?:[x×]\s?([1-9])\s+attempts?|([1-9])\s+attempts?|(first|1st)[- ](?:attempt|pass)|(second|2nd)[- ]attempt|(third|3rd)[- ]attempt)\b"#)
     static let inductionTiming = NoteRx(#"\b(?:pre|post)-?\s?induction\b|\b(?:before|after)\s+induction\b"#)
+    /// The other timing words that make a device list planned on the Preoperative tab; on the Intraoperative tab they
+    /// say when it went in. Masked only for the note reader, after blood is read ("2 PRBC in the OR" is still asked).
+    static let placedTiming = NoteRx(#"\b(?:before|after)\s+intubation\b|\bin the or\b|\bonce asleep\b"#)
 
     /// The airway fields the bar fills, as PatientRecord.intraopAirway names them.
     static let airwayFields = ["device", "grade", "maskGrade", "mask", "intubation", "attempts", "tube"]
@@ -1387,39 +1691,54 @@ enum QuickAdd {
             let tube = NumText.short(v) + " Fr" + word + " DLT"
             put("tube", tube, tube, m.range, certain: true)
         }
-        // The mask grade first: "grade 1 mask" is the mask grade (Han), not the laryngoscopy view.
-        text = s.text
-        if let m = maskGradeRx.first(text), let g = group(m, 1, text) ?? group(m, 2, text) ?? group(m, 3, text), !negated(m.range, text) {
-            put("maskGrade", g, "Mask grade " + g, m.range)
-            s.mask(m.range)
-        }
+        // The mask grade: "mask grade 2", "Han 2", "grade 1 mask", or a grade whose phrase names the mask before it with
+        // no laryngoscopy between ("easy mask (grade 1)", "mask: grade 1", "Mask ventilation: grade 1").
         text = s.text
         let whole = NSRange(location: 0, length: (text as NSString).length)
-        // Laryngoscopes in the order written; one in the room, available or as a backup was not used.
+        var maskGrade: (value: String, range: NSRange)?
+        if let m = maskGradeRx.first(text), let g = group(m, 1, text) ?? group(m, 2, text) ?? group(m, 3, text), !negated(m.range, text) {
+            maskGrade = (g, m.range)
+        }
+        func maskPhrase(_ text: String) -> Bool {
+            // The phrase ends at a full stop, a semicolon or a slash ("Easy mask. Grade 3 view", "easy BMV/grade 3").
+            let before = phraseEnd.all(text).last.map { (text as NSString).substring(from: $0.range.location + $0.range.length) } ?? text
+            guard let mask = maskCue.all(before).last else { return false }
+            guard let scope = airwayContext.all(before).last else { return true }
+            return scope.range.location < mask.range.location
+        }
+        let context = airwayContext.first(text) != nil
+        let grades = ["1": "1", "i": "1", "2a": "2a", "2b": "2b", "3": "3", "3a": "3", "3b": "3", "iii": "3", "4": "4", "iv": "4"]
+        // The view grades, each with its range (nil for a bare "2", which needs 2a or 2b).
+        var views: [(value: String?, range: NSRange)] = []
+        for m in gradeRx.all(text) {
+            if let mg = maskGrade, NSIntersectionRange(mg.range, m.range).length > 0 { continue }
+            guard let g = group(m, 1, text)?.lowercased() else { continue }
+            let p = around(m.range, in: text)
+            guard gradeNotBefore.first(p.before) == nil else { continue }
+            // "Grade 3 view" is the view, whatever came before it.
+            if viewAfter.first(p.after) == nil, gradeNotAfter.first(p.after) != nil || maskPhrase(p.before) {
+                if maskGrade == nil, ["1", "2", "3", "4"].contains(g), !negated(m.range, text) { maskGrade = (g, m.range) } else { s.mask(m.range) }
+                continue
+            }
+            if context { views.append((value: grades[g], range: m.range)) }
+        }
+        if let mg = maskGrade {
+            put("maskGrade", mg.value, "Mask grade " + mg.value, mg.range)
+            s.mask(mg.range)
+        }
+        // Laryngoscopes in the order written; one said to be in the room, available or a backup was not used.
         var scopes: [(device: String, range: NSRange, certain: Bool)] = []
         for (rx, device) in airwayDevices {
             for m in rx.all(text) {
                 let t = (text as NSString).substring(with: m.range).lowercased()
                 if t.hasPrefix("mac"), !c.means("mac-blade", at: m.range) { continue }
-                let p = around(m.range, in: text)
-                if standbyCue.first(p.before + " " + p.after) != nil { continue }
+                let after = (text as NSString).substring(from: m.range.location + m.range.length)
+                if standbyAfter.first(after) != nil || standbyBefore.first((text as NSString).substring(to: m.range.location)) != nil { continue }
                 scopes.append((device: device, range: m.range, certain: device == "Direct laryngoscope" && t.hasPrefix("mac")))
             }
         }
         scopes.sort { $0.range.location < $1.range.location }
-        let context = airwayContext.first(text) != nil
-        let grades = ["1": "1", "i": "1", "2a": "2a", "2b": "2b", "3": "3", "3a": "3", "3b": "3", "iii": "3", "4": "4", "iv": "4"]
-        /// The first view grade in a stretch of the line: its value (nil for a bare "2") and range.
-        func grade(in span: NSRange) -> (value: String?, range: NSRange)? {
-            guard context else { return nil }
-            for m in gradeRx.all(text) where NSLocationInRange(m.range.location, span) {
-                let rest = (text as NSString).substring(from: m.range.location + m.range.length)
-                guard let g = group(m, 1, text)?.lowercased(), gradeNotBefore.first(around(m.range, in: text).before) == nil,
-                      gradeNotAfter.first(rest) == nil else { continue }
-                return (grades[g], m.range)
-            }
-            return nil
-        }
+        func grade(in span: NSRange) -> (value: String?, range: NSRange)? { views.first { NSLocationInRange($0.range.location, span) } }
         func file(_ g: (value: String?, range: NSRange)) {
             if let v = g.value {
                 put("grade", v, "View grade " + v, g.range)
@@ -1428,6 +1747,8 @@ enum QuickAdd {
                 out.skip("View grade 2 · choose 2a or 2b in the airway course")
             }
         }
+        let none = NSRange(location: NSNotFound, length: 0)
+        let short = ["Video laryngoscope": "VL", "Direct laryngoscope": "DL", "Flexible scope": "Flexible scope", "Supraglottic airway": "SGA"]
         var devices: [String] = []
         for sc in scopes where !devices.contains(sc.device) { devices.append(sc.device) }
         if devices.count > 1 {
@@ -1442,27 +1763,40 @@ enum QuickAdd {
                 s.mask(sc.range)
                 if !pairs.contains(where: { $0.device == sc.device }) { pairs.append((device: sc.device, grade: g?.value)) }
             }
+            for v in views { s.mask(v.range) }
             if !c.record.arrivesWithAirway {
-                let short = ["Video laryngoscope": "VL", "Direct laryngoscope": "DL", "Flexible scope": "Flexible scope", "Supraglottic airway": "SGA"]
                 let options = pairs.enumerated().map { i, pair in
                     AbbreviationMeaning((short[pair.device] ?? pair.device) + (pair.grade.map { ", grade " + $0 } ?? ""), id: "laryngoscopy-" + String(i))
                 }
-                let answer = c.choices[laryngoscopyQuestion]
-                let usual = options.last?.id ?? ""
-                out.questions.append(AmbiguousAbbreviation(id: laryngoscopyQuestion, abbreviation: "Laryngoscopy", options: options, defaultID: usual,
-                                                           fromContext: false, chosenID: answer ?? usual, context: "Laryngoscopy"))
-                if let answer, let i = options.firstIndex(where: { $0.id == answer }) {
-                    let none = NSRange(location: NSNotFound, length: 0)
+                let asked = PatientNote.question(laryngoscopyQuestion, "Laryngoscopy", value: options.map(\.text).joined(separator: " | "),
+                                                 options: options, usual: options.last?.id ?? "", c.choices)
+                out.questions.append(asked.question)
+                if let answer = asked.answer, let i = options.firstIndex(where: { $0.id == answer }) {
                     put("device", pairs[i].device, pairs[i].device, none)
                     if let g = pairs[i].grade { put("grade", g, "View grade " + g, none) }
                 }
             }
-        } else if let first = scopes.first {
-            put("device", first.device, first.device, first.range, certain: first.certain)
-            for sc in scopes.dropFirst() { s.mask(sc.range) }
-            if let g = grade(in: whole) { file(g) }
-        } else if let g = grade(in: whole) {
-            file(g)
+        } else {
+            if let first = scopes.first {
+                put("device", first.device, first.device, first.range, certain: first.certain)
+                for sc in scopes.dropFirst() { s.mask(sc.range) }
+            }
+            // One laryngoscopy with two view grades ("DL grade 1, grade 3"): asked, nothing filed until then.
+            var values: [String] = []
+            for v in views { if let x = v.value, !values.contains(x) { values.append(x) } }
+            if values.count > 1 {
+                for v in views { s.mask(v.range) }
+                if !c.record.arrivesWithAirway {
+                    let options = values.map { AbbreviationMeaning("grade " + $0, id: "grade-" + $0) }
+                    let asked = PatientNote.question(gradeQuestion, "View grade", value: values.joined(separator: ","), options: options,
+                                                     usual: options.last?.id ?? "", c.choices)
+                    out.questions.append(asked.question)
+                    if let answer = asked.answer, let v = values.first(where: { "grade-" + $0 == answer }) { put("grade", v, "View grade " + v, none) }
+                }
+            } else if let g = views.first(where: { $0.value != nil }) ?? views.first {
+                file(g)
+                for v in views where v.range.location != g.range.location { s.mask(v.range) }
+            }
         }
         if let m = maskEaseRx.first(text), let w = (group(m, 1, text) ?? group(m, 2, text))?.lowercased(), !negated(m.range, text) {
             let v = w == "easy" ? "easy" : "difficult"
@@ -1472,17 +1806,28 @@ enum QuickAdd {
             let v = w == "easy" ? "easy" : "difficult"
             put("intubation", v, "Intubation " + v, m.range)
         }
-        // Attempts: the highest number or ordinal written ("1st attempt DL failed, 2nd attempt VL" is 2).
+        // Attempts: the highest ordinal ("1st attempt DL failed, 2nd attempt VL" is 2); counts with each of two
+        // laryngoscopes add up ("DL 1 attempt failed, VL 1 attempt success" is 2).
         let ordinals = ["first": 1, "1st": 1, "second": 2, "2nd": 2, "third": 3, "3rd": 3]
-        var attempts: Int?
+        var highest = 0
+        var perDevice: [String: Int] = [:]
         var attemptRanges: [NSRange] = []
         for m in attemptsRx.all(text) {
-            let digits: Int? = (group(m, 1, text) ?? group(m, 2, text)).flatMap { Int($0) }
-            guard let n = digits ?? (group(m, 3, text) ?? group(m, 4, text) ?? group(m, 5, text)).flatMap({ ordinals[$0.lowercased()] }) else { continue }
-            attempts = Swift.max(attempts ?? 0, n)
             attemptRanges.append(m.range)
+            if let n = (group(m, 1, text) ?? group(m, 2, text)).flatMap({ Int($0) }) {
+                let piece = pieceRange(m.range, in: text)
+                if let sc = scopes.first(where: { NSLocationInRange($0.range.location, piece) }) {
+                    perDevice[sc.device] = Swift.max(perDevice[sc.device] ?? 0, n)
+                } else {
+                    highest = Swift.max(highest, n)
+                }
+            } else if let n = (group(m, 3, text) ?? group(m, 4, text) ?? group(m, 5, text)).flatMap({ ordinals[$0.lowercased()] }) {
+                highest = Swift.max(highest, n)
+            }
         }
-        if let n = attempts, let r = attemptRanges.first {
+        let counted = Swift.max(highest, perDevice.values.reduce(0, +))
+        if counted > 0, let r = attemptRanges.first {
+            let n = counted
             put("attempts", String(n), n == 1 ? "1 attempt" : "\(n) attempts", r)
             for x in attemptRanges.dropFirst() { s.mask(x) }
         }
@@ -1492,6 +1837,32 @@ enum QuickAdd {
         for f in found {
             out.add(PatientNoteFinding(id: "intraop-airway:" + f.key, section: intraop, label: f.label, change: .intraopAirway(f.key, f.value)))
         }
+    }
+
+    // MARK: The full note on a tab
+
+    /// A note read in the full-note sheet (a long paste, the pencil), routed for the tab it was opened from. On the
+    /// Preoperative tab it is the note reader's reading as it is. On the Intraoperative tab each finding goes where the
+    /// bar files it (labs to a new intraoperative set, drips to the case's infusions, lines placed in the OR); what
+    /// belongs before the case (history, the exam, home medicines, the vital-sign baseline, the airway on arrival) is left
+    /// out, and nothing goes to Other conditions.
+    static func forTab(_ note: PatientNoteReading, tab: QuickAddTab, record: PatientRecord, now: Date = Date()) -> PatientNoteReading {
+        guard tab == .intraop else { return note }
+        let c = QuickContext(tab: .intraop, record: record, now: now, abbreviations: [], choices: [:], setID: UUID())
+        var out = QuickOut()
+        for f in note.findings where !inferred(f) {
+            if case .procedure = f.change {
+                out.add(f)
+            } else {
+                route(f, "", c, &out)
+            }
+        }
+        var r = note
+        r.findings = out.findings
+        r.other = ""
+        r.previous = ""
+        r.ambiguous = note.ambiguous.filter { $0.id != PatientNote.roomAirQuestion }
+        return r
     }
 
     // MARK: Chips

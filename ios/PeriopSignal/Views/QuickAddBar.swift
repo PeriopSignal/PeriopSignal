@@ -75,7 +75,7 @@ struct QuickAddBar: View {
         }
         .onChange(of: text) { old, new in handle(old, new) }
         .sheet(item: $sheet) { seed in
-            PatientNoteSheet(initialText: seed.text) { n, before in
+            PatientNoteSheet(initialText: seed.text, tab: tab) { n, before in
                 withAnimation(.snappy) {
                     added = Added(count: n, before: before, after: patient.record, caseID: patient.currentCase.id)
                     clear()
@@ -214,10 +214,13 @@ struct QuickAddBar: View {
     /// question the reader asks ("SpO₂ 95% · room air?", "iCa 3.9 · mg/dL?", which laryngoscopy) uses the same menu;
     /// nothing is added from it until answered.
     private func ambiguousChip(_ a: AmbiguousAbbreviation) -> some View {
-        let picked = choices[a.id] != nil
         let question = a.id.hasPrefix("quick:")
+        // Answered for this value: a question says so itself; an abbreviation's choice holds unless made for another value.
+        let tied = choices[a.id + "@value"]
+        let picked = question ? a.fromContext : choices[a.id] != nil && (a.valueKey.isEmpty || tied == nil || tied == a.valueKey)
         let leave = question ? "Leave it out" : "Leave “\(a.abbreviation)” as written"
-        let shown = a.chosen?.text ?? (question ? "left out" : "as written")
+        let usual = a.options.first { $0.id == (question ? a.defaultID : a.chosenID) }?.text
+        let shown = picked ? (a.chosen?.text ?? (question ? "left out" : "as written")) : (usual ?? (question ? "left out" : "as written"))
         let spoken: String
         if question {
             spoken = a.abbreviation + ", " + shown + (picked ? "" : "? Not added until you choose")
@@ -227,12 +230,12 @@ struct QuickAddBar: View {
         return Menu {
             ForEach(a.options) { o in
                 Button { choose(a, o.id) } label: {
-                    if o.id == a.chosenID { Label(o.text, systemImage: "checkmark") } else { Text(o.text) }
+                    if (picked || !question) && o.id == a.chosenID { Label(o.text, systemImage: "checkmark") } else { Text(o.text) }
                 }
             }
             Divider()
             Button { choose(a, MedAbbreviations.asWritten) } label: {
-                if a.chosenID == MedAbbreviations.asWritten { Label(leave, systemImage: "checkmark") } else { Text(leave) }
+                if (picked || !question) && a.chosenID == MedAbbreviations.asWritten { Label(leave, systemImage: "checkmark") } else { Text(leave) }
             }
         } label: {
             HStack(spacing: 5) {
@@ -370,9 +373,11 @@ struct QuickAddBar: View {
         choices = [:]
     }
 
+    /// Keeps the choice with the value it was made for, when the reader gives one: a changed value is asked again.
     private func choose(_ a: AmbiguousAbbreviation, _ id: String) {
         Haptics.light()
         choices[a.id] = id
+        choices[a.id + "@value"] = a.valueKey.isEmpty ? nil : a.valueKey
         recompute()
     }
 
