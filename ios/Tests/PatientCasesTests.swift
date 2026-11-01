@@ -122,6 +122,30 @@ final class PatientCasesTests: XCTestCase {
         XCTAssertEqual(store.archive.entries.filter { $0.id == entry.id }.count, 1, "ending without a summary keeps nothing new")
     }
 
+    /// End case with Next Patient: the summary is kept and an empty case opens in the same room with the same phone.
+    @MainActor func testNextPatientInTheSameRoom() throws {
+        let store = PatientStore(url: nil)
+        store.update { $0.ageYears = 50 }
+        let first = store.currentCase.id
+        store.addCase(room: "OR 12", phone: "216-555-0112")
+        store.update { $0.weightKg = 80; $0.procedure = "Laparoscopic cholecystectomy" }
+        let or12 = store.currentCase.id
+        store.addCase(room: "EP 2")
+
+        store.selectCase(or12)
+        let entry = try XCTUnwrap(store.endCase(nextInRoom: true))
+        XCTAssertEqual(store.archive.entries.first?.id, entry.id, "the summary is kept")
+        XCTAssertFalse(entry.text.contains("OR 12"), "the archive still drops the room")
+        XCTAssertEqual(store.cases.count, 3, "the room keeps its place")
+        XCTAssertEqual(store.cases[1].room, "OR 12")
+        XCTAssertEqual(store.cases[1].roomPhone, "216-555-0112")
+        XCTAssertNotEqual(store.cases[1].id, or12, "a new case")
+        XCTAssertEqual(store.currentCase.id, store.cases[1].id, "and it opens")
+        XCTAssertTrue(store.isEmpty, "the next patient starts empty")
+        XCTAssertEqual(store.cases[0].id, first)
+        XCTAssertEqual(store.cases.map(\.label), ["Case 1", "OR 12", "EP 2"])
+    }
+
     @MainActor func testUndoStaysWithItsCase() {
         let store = PatientStore(url: nil)
         store.update { $0.ageYears = 30 }

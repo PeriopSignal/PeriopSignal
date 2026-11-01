@@ -166,6 +166,18 @@ struct PatientCaseBook: Codable, Equatable {
         cases[i].updated = now
     }
 
+    /// Replaces a case with an empty one in the same room, with the same phone, in its place in the list, and makes
+    /// it current: the next patient in that room.
+    @discardableResult
+    mutating func next(after id: UUID, now: Date = Date()) -> PatientCase? {
+        guard let i = cases.firstIndex(where: { $0.id == id }) else { return nil }
+        let gone = cases[i]
+        let c = PatientCase(number: nextNumber, room: gone.room, roomPhone: gone.roomPhone, now: now)
+        cases[i] = c
+        currentID = c.id
+        return gone
+    }
+
     /// Removes a case; the next one becomes current, and a fresh Case 1 takes the place of the last.
     @discardableResult
     mutating func remove(_ id: UUID, now: Date = Date()) -> PatientCase? {
@@ -239,15 +251,16 @@ extension PatientStore {
     }
 
     /// Ends a case (the current one by default): its summary goes to the archive, with the date only (no time and no
-    /// room), unless nothing was entered or `keepSummary` is false; then the case is removed from the phone.
+    /// room), unless nothing was entered or `keepSummary` is false; then the case is removed from the phone. With
+    /// `nextInRoom`, an empty case takes its place in the same room, with the same phone, for the next patient.
     @discardableResult
-    func endCase(_ id: UUID? = nil, keepSummary: Bool = true, now: Date = Date()) -> PatientArchiveEntry? {
+    func endCase(_ id: UUID? = nil, keepSummary: Bool = true, nextInRoom: Bool = false, now: Date = Date()) -> PatientArchiveEntry? {
         var entry: PatientArchiveEntry?
         updateBook(immediately: true) { b in
             let target = id ?? b.current.id
             guard let c = b.cases.first(where: { $0.id == target }) else { return }
             if keepSummary && !c.record.isEmpty { entry = PatientArchiveWriter.entry(for: c, now: now) }
-            b.remove(target, now: now)
+            if nextInRoom { b.next(after: target, now: now) } else { b.remove(target, now: now) }
         }
         if let entry { archive.add(entry, now: now) }
         return entry

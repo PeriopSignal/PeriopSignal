@@ -89,6 +89,8 @@ struct PatientRoomsBar: View {
             if current.record.isEmpty {
                 Button("Remove Case", role: .destructive) { end(keepSummary: false) }
             } else {
+                // The usual turnover: keep the summary and start the next patient in the same room and phone.
+                if hasRoom { Button("Next Patient in \(current.room)") { end(keepSummary: true, nextInRoom: true) } }
                 Button("End Case & Keep Summary") { end(keepSummary: true) }
                 Button("End Without a Summary", role: .destructive) { end(keepSummary: false) }
             }
@@ -96,7 +98,8 @@ struct PatientRoomsBar: View {
         } message: {
             Text(current.record.isEmpty
                  ? "Nothing has been entered, so no summary is kept."
-                 : "The handoff is kept in the case archive on this phone with the date only (no time or room) for \(PatientArchive.retentionLabel(patient.archive.retentionDays)), then deleted. The case is removed.")
+                 : "The handoff is kept in the case archive on this phone with the date only (no time or room) for \(PatientArchive.retentionLabel(patient.archive.retentionDays)), then deleted. The case is removed"
+                   + (hasRoom ? "; Next Patient opens an empty case in \(current.room) with the same phone." : "."))
         }
         .task { await openForScreenshot() }
     }
@@ -277,9 +280,11 @@ struct PatientRoomsBar: View {
         .padding(.top, 2)
     }
 
-    private func end(keepSummary: Bool) {
+    private var hasRoom: Bool { !current.room.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    private func end(keepSummary: Bool, nextInRoom: Bool = false) {
         let label = current.label
-        let kept = patient.endCase(keepSummary: keepSummary) != nil
+        let kept = patient.endCase(keepSummary: keepSummary, nextInRoom: nextInRoom) != nil
         Haptics.success()
         withAnimation(.snappy) { ended = kept ? label : nil }
     }
