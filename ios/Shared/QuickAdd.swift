@@ -660,8 +660,11 @@ enum QuickAdd {
             let p = around(r, in: text)
             if pieceNegation.first(p.before) != nil { return false }
             if notGiven.first(p.before + " " + p.after) != nil {
-                // Recognized and left out on purpose: shown as such, not as text nothing read.
+                // Recognized and left out on purpose: shown as such, not as text nothing read (the product and the
+                // word that says it was not given).
                 s.mask(r)
+                let piece = pieceRange(r, in: text)
+                for m in notGiven.all((text as NSString).substring(with: piece)) { s.mask(shifted(m.range, piece.location)) }
                 out.skip("Blood products ordered or available · not given, not added")
                 return false
             }
