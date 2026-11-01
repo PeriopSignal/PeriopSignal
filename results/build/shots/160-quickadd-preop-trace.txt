@@ -1,0 +1,23 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-01 23:09:29.929 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA body | text=0 reading=nil added=no
+2026-11-01 23:09:34.412 Df PeriopSignal[23326:11d92] (Foundation) QATRACE PV appear tab=preop empty=yes
+2026-11-01 23:09:34.413 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA appear | text=0 reading=nil added=no
+2026-11-01 23:09:34.413 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA seed? t=72 textEmpty=true | text=0 reading=nil added=no
+2026-11-01 23:09:34.414 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA seed set text | text=72 reading=nil added=no
+2026-11-01 23:09:34.414 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA recompute start t=72 recordAge=-1.0 | text=72 reading=nil added=no
+2026-11-01 23:09:35.187 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA recompute end 773 ms -> 12 findings empty=no | text=72 reading=nil added=no
+2026-11-01 23:09:35.514 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA body | text=0 reading=nil added=no
+2026-11-01 23:09:35.730 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA body | text=72 reading=nil added=no
+2026-11-01 23:09:35.798 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA body | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:35.946 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA text changed 0 -> 72 | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:35.947 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA reading became nil=false | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:36.438 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA body | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:36.821 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA task start key.text=72 | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:36.833 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA task start key.text=72 | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:38.022 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA task woke cancelled=true | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:38.051 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA task woke cancelled=false | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:38.063 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA recompute start t=72 recordAge=-1.0 | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:38.087 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA recompute end 25 ms -> 12 findings empty=no | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:38.130 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA body | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:38.675 Df PeriopSignal[23326:11d92] (Foundation) QATRACE 1AEA body | text=72 reading=12f empty=false added=no
+2026-11-01 23:09:38.801 Df PeriopSignal[23326:11d92] (Foundation) QATRACE scenePhase -> active
