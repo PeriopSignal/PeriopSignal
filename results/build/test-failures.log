@@ -1,0 +1,3 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientIntraopExtrasTests.swift:86: error: -[PeriopSignalTests.PatientIntraopExtrasTests testLastLabsLine] : XCTAssertEqual failed: ("["pH 7.33 L", "PaCO₂ 47 H", "BE -1.5", "Hb 11.6 L", "iCa 1.14 L", "Glu 192 H"]") is not equal to ("["pH 7.33 L", "PaCO₂ 47 H", "Hb 11.6 L", "iCa 1.14 L", "Glu 192 H"]")
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientIntraopExtrasTests.swift:92: error: -[PeriopSignalTests.PatientIntraopExtrasTests testLastLabsLine] : XCTAssertEqual failed: ("Optional(6)") is not equal to ("Optional(5)") - the card keeps the bold red
+Test Case '-[PeriopSignalTests.PatientIntraopExtrasTests testLastLabsLine]' failed (2.403 seconds).
