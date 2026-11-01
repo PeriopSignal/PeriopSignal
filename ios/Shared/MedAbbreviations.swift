@@ -715,7 +715,7 @@ extension MedAbbreviations {
         ("A-line|aline|art line", "arterial line"), ("CVC", "central venous catheter"), ("CVL", "central venous line"),         ("PICC", "peripherally inserted central catheter"), ("RIJ", "right internal jugular"), ("LIJ", "left internal jugular"),
         ("Swan|Swan-Ganz|SGC", "pulmonary artery catheter"), ("CVP", "central venous pressure"), ("PCWP", "pulmonary capillary wedge pressure"),
         ("SVR", "systemic vascular resistance"), ("SvO2", "mixed venous oxygen saturation"), ("ScvO2", "central venous oxygen saturation"),
-        ("IABP", "intra-aortic balloon pump"), ("Impella", "Impella percutaneous ventricular assist device"), ("LVAD", "left ventricular assist device"),
+        ("IABP", "intra-aortic balloon pump"), ("Impella", "Impella percutaneous ventricular assist device"), ("ProtekDuo", "ProtekDuo right atrium to pulmonary artery RVAD cannula"), ("LVAD", "left ventricular assist device"),
         ("RVAD", "right ventricular assist device"), ("BiVAD", "biventricular assist device"), ("VAD", "ventricular assist device"), ("HM3|HMIII", "HeartMate 3 LVAD"),
         ("HVAD", "HeartWare ventricular assist device"), ("ECMO", "extracorporeal membrane oxygenation"), ("VV ECMO|VV-ECMO|V-V ECMO", "venovenous ECMO"),
         ("VA ECMO|VA-ECMO|V-A ECMO", "venoarterial ECMO"), ("ECLS", "extracorporeal life support"), ("MCS", "mechanical circulatory support"),

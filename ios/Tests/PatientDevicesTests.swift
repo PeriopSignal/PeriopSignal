@@ -429,9 +429,9 @@ final class PatientDevicesTests: XCTestCase {
     // MARK: Model
 
     func testKinds() {
-        XCTAssertEqual(DeviceKind.allCases.count, 18)
+        XCTAssertEqual(DeviceKind.allCases.count, 19)
         XCTAssertEqual(DeviceKind.allCases.map(\.label), ["PIV", "A-line", "CVL", "PAC", "PICC", "IO", "ETT", "Trach", "ECMO drainage",
-                                                          "ECMO return", "LVAD", "IABP", "Impella", "Epidural", "Spinal", "Block",
+                                                          "ECMO return", "LVAD", "IABP", "Impella", "ProtekDuo", "Epidural", "Spinal", "Block",
                                                           "Catheter", "Other"])
         XCTAssertEqual(DeviceKind.piv.colorRole, .line)
         XCTAssertEqual(DeviceKind.cvc.colorRole, .central)
@@ -607,5 +607,24 @@ final class PatientDevicesTests: XCTestCase {
         XCTAssertEqual(cp.baseSite, "femoral-artery")
         XCTAssertTrue(DeviceSite.options(near: CGPoint(x: 95.5 / 200, y: 61 / 420), limit: 12, within: 36).contains { $0.kind == .impella },
                       "the IJ offers an Impella")
+    }
+
+    /// A ProtekDuo (RA to PA dual-lumen cannula) is right ventricular support of its own, never VV ECMO.
+    func testProtekDuo() throws {
+        let p = try XCTUnwrap(PatientDevices.parse("ProtekDuo 31 Fr RIJ 3500 rpm 4 L/min"))
+        XCTAssertEqual(p.kind, .protekDuo)
+        XCTAssertEqual(p.site, "ij-right")
+        XCTAssertEqual(p.size, "31")
+        let d = p.device()
+        XCTAssertEqual(d.settings["rpm"], "3500")
+        XCTAssertEqual(d.settings["flow"], "4")
+        XCTAssertTrue(d.label.hasPrefix("ProtekDuo 31 Fr R IJ"), d.label)
+        XCTAssertTrue(PatientDevice.supportKinds.contains(.protekDuo))
+        XCTAssertNil(PatientDevices.ecmoSystem([d]), "not an ECMO circuit")
+        var oxy = d
+        oxy.settings["oxygenator"] = "in circuit"; oxy.settings["sweep"] = "2"
+        XCTAssertTrue(oxy.label.contains("oxygenator, sweep 2 L/min"), oxy.label)
+        XCTAssertEqual(PatientDevices.parse("Protek Duo")?.kind, .protekDuo)
+        XCTAssertEqual(PatientDevices.parse("oxyRVAD")?.kind, .protekDuo)
     }
 }

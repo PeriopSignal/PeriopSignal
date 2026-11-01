@@ -65,12 +65,15 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     case piv, arterial, cvc, pac, picc, intraosseous
     case ett, trach
     case ecmoDrainage, ecmoReturn, lvad, iabp, impella
+    /// A dual-lumen right atrium to pulmonary artery cannula (ProtekDuo) on an external pump: right ventricular
+    /// support, with an oxygenator when spliced in (oxyRVAD); not VV ECMO, as the return is in the PA.
+    case protekDuo
     case epidural, spinal, block, perineuralCatheter
     case other
 
     /// The type buttons, in order; "Other" opens `more`.
     static let buttons: [DeviceKind] = [.piv, .arterial, .cvc, .pac, .ett]
-    static let more: [DeviceKind] = [.ecmoDrainage, .ecmoReturn, .trach, .picc, .intraosseous, .lvad, .iabp, .impella,
+    static let more: [DeviceKind] = [.ecmoDrainage, .ecmoReturn, .trach, .picc, .intraosseous, .lvad, .iabp, .impella, .protekDuo,
                                      .epidural, .spinal, .block, .perineuralCatheter, .other]
 
     /// Short label for buttons, the legend and the handoff.
@@ -89,6 +92,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .lvad: return "LVAD"
         case .iabp: return "IABP"
         case .impella: return "Impella"
+        case .protekDuo: return "ProtekDuo"
         case .epidural: return "Epidural"
         case .spinal: return "Spinal"
         case .block: return "Block"
@@ -113,6 +117,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .lvad: return "Left ventricular assist device"
         case .iabp: return "Intra-aortic balloon pump"
         case .impella: return "Impella"
+        case .protekDuo: return "ProtekDuo (RA to PA RVAD cannula)"
         case .epidural: return "Epidural catheter"
         case .spinal: return "Spinal"
         case .block: return "Single-shot block"
@@ -128,7 +133,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .pac: return .pac
         case .ecmoDrainage: return .venousECMO
         case .ecmoReturn: return .arterialECMO
-        case .lvad, .iabp, .impella: return .pump
+        case .lvad, .iabp, .impella, .protekDuo: return .pump
         case .epidural, .perineuralCatheter: return .neuraxial
         case .spinal, .block: return .needle
         case .ett, .trach: return .airway
@@ -139,7 +144,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     var sizeUnit: String {
         switch self {
         case .piv, .arterial, .intraosseous, .epidural, .spinal, .block, .perineuralCatheter: return "G"
-        case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella: return "Fr"
+        case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella, .protekDuo: return "Fr"
         case .ett, .trach: return "mm ID"
         case .lvad, .other: return ""
         }
@@ -193,6 +198,11 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
             return [detail("Device", ["2.5", "CP", "5.0", "5.5", "RP Flex"]),
                     DeviceField("pLevel", "P-level", choices: ["2", "3", "4", "5", "6", "7", "8", "9"], numeric: true), flow,
                     DeviceField("position", "Position", choices: ["good", "too deep", "too shallow"])]
+        case .protekDuo:
+            return [size(["29", "31"]), DeviceField("rpm", "Pump speed", unit: "rpm", numeric: true), flow,
+                    DeviceField("oxygenator", "Oxygenator", choices: ["none", "in circuit"]),
+                    DeviceField("sweep", "Sweep", unit: "L/min", numeric: true),
+                    DeviceField("fdo2", "FdO2", unit: "%", numeric: true)]
         case .epidural:
             return [DeviceField("level", "Level", choices: ["T4-5", "T6-7", "T8-9", "T10-11", "L1-2", "L2-3", "L3-4", "L4-5"]),
                     DeviceField("depth", "Catheter at the skin", unit: "cm", numeric: true), size(["17", "18", "19"]),
@@ -416,7 +426,7 @@ extension DeviceSite {
         Spec("mouth", "mouth", "oral", nil, "head", 100, 42, false, false, [.ett]),
         Spec("interscalene", "interscalene", "interscalene", nil, "neck", 92, 54, true, false, [.block, .perineuralCatheter]),
         Spec("ej", "external jugular vein", "EJ", nil, "neck", 92.5, 57, true, false, [.piv, .cvc]),
-        Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage, .impella]),
+        Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage, .impella, .protekDuo]),
         Spec("trach", "tracheostomy stoma", "stoma", nil, "neck", 100, 62, false, false, [.trach]),
         Spec("supraclavicular", "supraclavicular", "supraclavicular", nil, "chest", 84, 68.5, true, false, [.block, .perineuralCatheter]),
         Spec("subclavian", "subclavian vein", "subclavian", nil, "chest", 88, 76, true, false, [.cvc, .pac]),
@@ -655,6 +665,7 @@ enum PatientDevices {
         case .ett: return ("mouth", true)
         case .trach: return ("trach", true)
         case .lvad: return ("heart", true)
+        case .protekDuo: return ("ij", false)
         case .epidural, .spinal:
             if let l = level?.uppercased().first, l == "C" || l == "T" { return ("thoracic-spine", true) }
             return ("lumbar-spine", level != nil || kind == .spinal)
@@ -717,6 +728,15 @@ enum PatientDevices {
             let pos = val("position")
             if !pos.isEmpty { s.append("position " + pos + (Double(pos) != nil ? " cm" : "")) }
             return spaced("Impella", detail, sized, brief, s.joined(separator: ", ")) + paren(gone)
+        case .protekDuo:
+            var s: [String] = []
+            if !val("rpm").isEmpty { s.append(val("rpm") + " rpm") }
+            if !val("flow").isEmpty { s.append(val("flow") + " L/min") }
+            let oxy = val("oxygenator").lowercased()
+            if !oxy.isEmpty, oxy != "none", oxy != "no" {
+                s.append("oxygenator" + (val("sweep").isEmpty ? "" : ", sweep " + val("sweep") + " L/min") + (val("fdo2").isEmpty ? "" : ", FdO2 " + val("fdo2") + "%"))
+            }
+            return spaced("ProtekDuo", sized, brief, s.joined(separator: ", ")) + paren(detail, gone)
         case .epidural, .spinal:
             let level = val("level")
             let at = val("depthAt").isEmpty ? "skin" : val("depthAt")
@@ -869,8 +889,8 @@ extension PatientDevices {
     private static let gauges: Set<String> = ["14", "16", "18", "20", "22", "24"]
     private static let introducers: Set<String> = ["introducer", "MAC introducer", "Cordis", "sheath"]
     private static let arterialKinds: Set<DeviceKind> = [.arterial, .iabp, .impella, .ecmoReturn]
-    private static let venousKinds: Set<DeviceKind> = [.cvc, .pac, .picc, .ecmoDrainage]
-    private static let priority: [DeviceKind] = [.pac, .impella, .iabp, .lvad, .ett, .trach, .epidural, .spinal, .picc,
+    private static let venousKinds: Set<DeviceKind> = [.cvc, .pac, .picc, .ecmoDrainage, .protekDuo]
+    private static let priority: [DeviceKind] = [.protekDuo, .pac, .impella, .iabp, .lvad, .ett, .trach, .epidural, .spinal, .picc,
                                                  .intraosseous, .cvc, .arterial, .piv, .ecmoDrainage, .ecmoReturn, .other]
     private static let textSettings: Set<String> = ["timing", "issues", "position"]
     private static let unitSettings: [String: String] = ["rpm": "rpm", "L/min": "flow", "W": "power", "mmHg": "augmentation",
@@ -1661,6 +1681,7 @@ private enum Lexicon {
         v("hm2|hmii", .kind(.lvad, nil), .model("HeartMate II"))
         v("hvad", .kind(.lvad, nil), .model("HVAD"))
         v("iabp|balloon", .kind(.iabp, nil))
+        v("protekduo|protek|oxyrvad", .kind(.protekDuo, nil))
         v("epidural|epi", .kind(.epidural, nil))
         v("tea|tec", .kind(.epidural, nil), .site("thoracic-spine", nil))
         v("cse", .kind(.epidural, "CSE"))
@@ -1724,6 +1745,7 @@ private enum Lexicon {
         v("central venous catheter|central venous line|central venous", .kind(.cvc, nil))
         v("pulmonary artery catheter|pa catheter|pa cath|pa line|swan ganz", .kind(.pac, nil))
         v("double lumen tube", .kind(.ett, "DLT"))
+        v("protek duo|tandem protek|percutaneous rvad", .kind(.protekDuo, nil))
         v("at the teeth", .depthAt("teeth"))
         v("at the lip|at the lips", .depthAt("lip"))
         v("art line|arterial line|a line|art cath|arterial catheter", .kind(.arterial, nil))

@@ -47,6 +47,7 @@ enum PatientDiagramModel {
         case .iabp: return "IABP" + (d.settings["ratio"].map { " " + $0 } ?? "")
         case .impella: return "Impella" + (d.detail.isEmpty ? "" : " " + d.detail) + (d.settings["pLevel"].map { " " + $0 } ?? "")
         case .lvad: return "LVAD" + (d.settings["rpm"].map { " " + $0 } ?? "")
+        case .protekDuo: return "ProtekDuo" + size
         default: return d.kind.label + size
         }
     }
@@ -133,6 +134,12 @@ enum PatientDiagramModel {
                 item.course = (fromBelow ? [ivc, CGPoint(x: descendingAorta.x, y: 120)] : [CGPoint(x: left ? 80 : 120, y: 82)]) + [descendingAorta, CGPoint(x: 104, y: 86), lv]
                 item.width = 1.6
                 item.pumpAt = CGPoint(x: 106, y: 96)
+            case .protekDuo:
+                // From the right IJ through the right atrium and ventricle to the pulmonary artery: drainage ports
+                // in the atrium, return at the tip.
+                item.course = [svc, ra, rv, pa]
+                item.width = 2.8
+                item.pumpAt = ra
             case .ett, .trach, .epidural, .spinal, .block, .perineuralCatheter:
                 item.marker = .dot
             }
@@ -368,7 +375,7 @@ struct PatientDevicesEditor: View {
                     Button { addECMO("VV") } label: { Label("VV ECMO", systemImage: "plus") }
                         .buttonStyle(CapsuleButtonStyle(prominent: false))
                 }
-                ForEach([DeviceKind.iabp, .impella, .lvad], id: \.self) { k in
+                ForEach([DeviceKind.iabp, .impella, .lvad, .protekDuo], id: \.self) { k in
                     Button { addKind(k, open: false) } label: { Label(k.label, systemImage: "plus") }
                         .buttonStyle(CapsuleButtonStyle(prominent: false))
                 }

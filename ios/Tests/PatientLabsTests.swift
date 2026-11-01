@@ -94,12 +94,12 @@ final class PatientLabsTests: XCTestCase {
     func testSummaryAndFishbone() {
         var r = PatientRecord()
         r.sex = .female
-        r.labs = ["hb": 9.8, "plt": 98, "wbc": 7.2, "na": 131, "k": 4.1, "cr": 1.42, "glucose": 142, "inr": 1.6,
+        r.labs = ["hb": 9.8, "plt": 98, "wbc": 7.2, "na": 131, "k": 4.1, "cr": 1.42, "glucose": 212, "inr": 1.6,
                   "fibrinogen": 180, "troponin": 20, "troponin99": 14, "tsh": 2.1, "retired-key": 5]
         let s = PatientLabs.summary(r)
         XCTAssertEqual(s.items.map(\.key), ["hb", "wbc", "plt", "inr", "fibrinogen", "na", "k", "cr", "glucose", "troponin", "tsh"],
                        "catalog order; the 99th percentile and unknown keys are not items")
-        XCTAssertEqual(s.line, "Hb 9.8 L · WBC 7.2 · Plt 98 L · INR 1.6 H · Fib 180 L · Na 131 L · K 4.1 · Cr 1.42 H · Glu 142 H · Troponin 20 H · TSH 2.1")
+        XCTAssertEqual(s.line, "Hb 9.8 L · WBC 7.2 · Plt 98 L · INR 1.6 H · Fib 180 L · Na 131 L · K 4.1 · Cr 1.42 H · Glu 212 H · Troponin 20 H · TSH 2.1")
         XCTAssertEqual(s.abnormal.map(\.key), ["hb", "plt", "inr", "fibrinogen", "na", "cr", "glucose", "troponin"])
         let trop = s.items.first { $0.key == "troponin" }
         XCTAssertEqual(trop?.note, "assay's 99th percentile 14 ng/L")
@@ -120,6 +120,9 @@ final class PatientLabsTests: XCTestCase {
         XCTAssertEqual(fb.cr?.text, "1.42")
         XCTAssertEqual(fb.cr?.flag, .high, "women 0.50–1.10 mg/dL")
         XCTAssertEqual(fb.glucose?.flag, .high)
+        var g = PatientRecord()
+        g.labs = ["glucose": 162]
+        XCTAssertTrue(PatientLabs.summary(g).abnormal.isEmpty, "162 mg/dL is within the perioperative 100–180 target")
         XCTAssertEqual(fb.inr?.text, "1.6")
         XCTAssertEqual(fb.fibrinogen?.flag, .low)
         XCTAssertTrue(fb.hasCBC)

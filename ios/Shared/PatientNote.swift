@@ -1167,11 +1167,11 @@ enum PatientNote {
 
     /// A line or device the diagram knows (PatientDevices.parse reads the phrase): "PIV x2 18G", "R radial A-line",
     /// "RIJ TLC", "PAC/Swan", "Cordis", "HD catheter", "IABP 1:1", "Impella CP P8", "HM3 LVAD", "VA ECMO".
-    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline)\b|(?-i:\bIO\b)"#)
+    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline)\b|(?-i:\bIO\b)"#)
     /// An ETT or a tracheostomy.
     static let tubeCue = NoteRx(#"\b(?:ett|et tube|endotracheal tube|dlt|double[- ]lumen tube|trach(?:eostomy)?|trach'?d)\b"#)
     /// Mechanical support, whose settings and cannulas may follow a comma.
-    static let supportCue = NoteRx(#"\b(?:ecmo|ecls|iabp|balloon pump|impella|lvad|hm ?3|hm ?ii|heartmate|hvad)\b"#)
+    static let supportCue = NoteRx(#"\b(?:ecmo|ecls|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad)\b"#)
     static let deviceSettingCue = NoteRx(#"\b(?:flow|sweep|fdo2|rpm|speed|pi|power|aug(?:mentation)?|position)\b|\b\d:\d\b|\bp-?\d\b|\d\s*(?:l/min|lpm)\b"#)
     static let ecmoPart = NoteRx(#"\b(?:drainage|return|inflow|outflow)\b|\b\d+(?:\.\d)?\s*fr?\b"#)
     /// "x2", "×2", "2 PIVs".
@@ -1346,7 +1346,7 @@ enum PatientNote {
         "piv", "pivs", "pivc", "iv", "ivs", "peripheral", "midline", "aline", "a-line", "art", "arterial", "line", "lines", "cath", "catheter",
         "catheters", "cvc", "cvl", "central", "venous", "tlc", "triple", "quad", "lumen", "mac", "introducer", "intro", "cordis", "sheath",
         "trialysis", "hd", "dialysis", "quinton", "vascath", "vas-cath", "mahurkar", "swan", "swan-ganz", "swanganz", "ganz", "pac", "pa",
-        "pulmonary", "artery", "picc", "io", "ezio", "ez-io", "intraosseous", "iabp", "balloon", "pump", "impella", "cp", "rp", "ecp", "flex",
+        "pulmonary", "artery", "picc", "io", "ezio", "ez-io", "intraosseous", "iabp", "balloon", "pump", "impella", "cp", "rp", "ecp", "flex", "protek", "protekduo", "duo", "oxyrvad", "oxygenator",
         "lvad", "vad", "hm3", "hmiii", "hm2", "hmii", "hvad", "heartmate", "hm", "ecmo", "ecls", "cannula", "cannulas", "cannulae", "vv", "va",
         "vav", "v-v", "v-a", "drainage", "return", "inflow", "outflow", "avalon", "crescent", "flow", "sweep", "fdo2", "pi", "power", "speed",
         "rpm", "aug", "augmentation", "timing", "position", "depth", "ett", "et", "tube", "dlt", "double", "trach", "tracheostomy", "shiley",
