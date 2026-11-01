@@ -1,0 +1,9 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/QuickAddTests.swift:633:38: error: type 'PatientSummary' has no member 'text'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/QuickAddTests.swift:648:37: error: type 'PatientRules' has no member 'langeron'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/QuickAddTests.swift:648:71: error: type 'PatientRules' has no member 'langeron'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/QuickAddTests.swift:649:37: error: type 'PatientRules' has no member 'kheterpal'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/QuickAddTests.swift:649:72: error: type 'PatientRules' has no member 'kheterpal'
+Testing failed:
+	Testing cancelled because the build failed.
+** TEST FAILED **
+The following build commands failed:
