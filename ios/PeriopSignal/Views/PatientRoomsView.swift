@@ -235,7 +235,7 @@ struct PatientRoomsBar: View {
     private var menu: some View {
         Menu {
             Section(roomHeading(current)) {
-                Button { ui.editingRoom = true } label: { Label(current.hasRoom ? "Room & Phone" : "Set Room & Phone", systemImage: "pencil") }
+                Button { openRoomSheet() } label: { Label(current.hasRoom ? "Room & Phone" : "Set Room & Phone", systemImage: "pencil") }
                 Button { ui.confirmEnd = true } label: { Label("End Case…", systemImage: "checkmark.circle") }
                 if patient.canAddCase {
                     Button { addCase() } label: { Label("Add Case", systemImage: "plus") }
@@ -275,6 +275,11 @@ struct PatientRoomsBar: View {
 
     // MARK: Actions
 
+    /// Room & Phone, as the ⋯ menu's button opens it.
+    private func openRoomSheet() {
+        ui.editingRoom = true
+    }
+
     private func select(_ c: PatientCase) {
         guard c.id != current.id else { return }
         Haptics.light()
@@ -309,10 +314,19 @@ struct PatientRoomsBar: View {
         withAnimation(.snappy) { ended = kept ? label : nil }
     }
 
-    /// Screenshot runs: -ps.patient.open room | archive | archive-entry | end-case.
+    /// Screenshot runs: -ps.patient.open room | archive | archive-entry | end-case; room-tap opens Room & Phone once,
+    /// after the tab has settled, through the same call as the ⋯ menu's button (no retries), to tell a presentation
+    /// that fails from a launch hook asked too early.
     private func openForScreenshot() async {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
+        if o == "room-tap" {
+            try? await Task.sleep(nanoseconds: 6_000_000_000)
+            guard !Task.isCancelled, !ui.asked else { return }
+            ui.asked = true
+            openRoomSheet()
+            return
+        }
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
         // A presentation asked for before the tab has settled can be dropped, so wait until it has; then the shared
         // state asks (and asks again if need be), whichever copy of the bar is on screen.
