@@ -114,6 +114,13 @@ final class QuickAddReviewTests: XCTestCase {
         XCTAssertEqual(setValues(read("iCa 1.02", .intraop))["ica"], 1.02)
     }
 
+    /// "CBC 7.4/11/180" (WBC/Hb/Plt) on the Intraoperative tab is not a blood gas of pH 7.40, PaCO₂ 11, PaO₂ 180.
+    func testSlashedCBCIsNotABloodGas() {
+        let q = read("CBC 7.4/11/180", .intraop)
+        XCTAssertNil(setValues(q)["ph"], "\(setValues(q))")
+        XCTAssertNil(setValues(q)["paco2"])
+    }
+
     /// A venous gas typed by name: its PO₂ is not a PaO₂ and its PCO₂ is not a PaCO₂.
     func testVenousGasByNameIsNotArterial() {
         let q = read("VBG pH 7.31 pCO2 48 pO2 40", .intraop)
@@ -145,6 +152,20 @@ final class QuickAddReviewTests: XCTestCase {
         XCTAssertNotEqual(change(read("PT/INR 14/1.2"), "lab:inr"), .lab("inr", 14))
         XCTAssertTrue(read("Coags 14/35/1.2").findings.isEmpty)
         XCTAssertTrue(read("138/102/18/162/4.1/24/1.1").findings.isEmpty, "top row then bottom row: not this order")
+    }
+
+    /// A drug given is not a lab value: "bicarb 1 amp" is 50 mEq of sodium bicarbonate, not a bicarbonate of 1 mmol/L;
+    /// "K 10 IV" is a potassium rider, not a potassium of 10.
+    func testDrugDosesAreNotLabValues() {
+        XCTAssertNil(setValues(read("bicarb 1 amp, CaCl 1 g", .intraop))["hco3a"], "a bicarbonate of 1 filed")
+        XCTAssertNil(setValues(read("bicarb 50 given", .intraop))["hco3a"], "a bicarbonate of 50 filed")
+        XCTAssertNil(setValues(read("K 10 IV over 1 hr", .intraop))["k"], "a potassium of 10 filed")
+    }
+
+    /// A value the line marks as earlier (baseline, preop) is not the current one.
+    func testEarlierValuesAreNotCurrent() {
+        XCTAssertNotEqual(change(read("baseline Cr 1.1, now 1.6"), "lab:cr"), .lab("cr", 1.1))
+        XCTAssertNotEqual(setValues(read("preop Hb 12.1, now 8.2", .intraop))["hb"], 12.1, "a preop value filed in a set stamped now")
     }
 
     /// Units: conventional units read; SI values and doses not.
