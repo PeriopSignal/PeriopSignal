@@ -11,22 +11,17 @@ jama-2026-dapagliflozin-cardiac-surgery-aki | PMC13425237 | embargoed
 nejm-2026-prompt-bolus-balanced-vs-saline-children | PMC13134814 | embargoed
 bja-2025-lidocaine-vs-remifentanil-vats-lung-resection | PMC12597338 | embargoed
 jama-2025-clip-ii-cryopreserved-platelets | PMC12687203 | embargoed
-ehj-2026-fifth-universal-definition-mi | PMC13523810 | OA-subset lag
 hepatology-2025-aasld-ast-lt-candidate-evaluation-guideline | PMC13070310 | embargoed
 jama-2025-designation-driving-pressure-guided-peep | 41334859 | PMID; embargoed
 jama-2026-dobutamine-norepinephrine-septic-shock-surgery-aki | 42872914 | PMID; embargoed
 jama-2026-save-icu-isoflurane-sedation | PMC13670124 | embargoed
 jama-2026-chips-cold-stored-platelets | PMC13482631 | embargoed
-jamano-2026-covalent-videolaryngoscopy | PMC13434869 | OA-subset lag
 jacc-2026-harada-ase-diastolic-algorithm-misses-hfpef | PMC13482780 | embargoed
 jama-2025-andromeda-shock-2 | PMC12573117 | embargoed
 ajrccm-2026-ats-noninvasive-respiratory-support-guideline | PMC13519360 | embargoed
 bja-2025-paediatric-fasting-1h-clear-fluids-meta | PMC12851872 | embargoed
-aln-2025-chd-children-noncardiac-cardiac-events-registry | PMC12777584 | available but longer than the fetch cap
-jamanetwopen-2026-cnoc-neurodevelopment-chd | PMC13227305 | available but longer than the fetch cap
-ehj-2025-jpvad-danger-criteria | PMC12831186 | available but longer than the fetch cap
-aic-2026-french-cardiogenic-shock-expert-recommendations | PMC13081668 | available but longer than the fetch cap
 anaesthesia-2026-prospect-total-shoulder-arthroplasty | 42910655 | PMID; open access at Wiley, no PMC copy yet
 icm-2026-esicm-human-centred-partnership-consensus | 42931902 | PMID; open access at Springer, no PMC copy yet
 lancet-2026-prospect-prone-hfov-pards | 42956771 | PMID; NIH-funded, no PMC copy yet
 hepatology-2026-global-aclf-consensus-definitions | 42960623 | PMID; no PMC copy yet; criteria read from news and society coverage
+circ-2026-season-ar-tavr-pure-ar | 42965504 | PMID; no PMC copy yet

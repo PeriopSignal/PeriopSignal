@@ -1,7 +1,54 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-10-31T09:12:31+00:00",
+ "generatedAt": "2026-11-01T09:38:32+00:00",
  "posts": [
+  {
+   "id": "circ-2026-season-ar-tavr-pure-ar",
+   "date": "2026-10-31",
+   "dateApprox": false,
+   "addedAt": "2026-11-01",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "RCT",
+   "topics": [
+    "cardiac",
+    "cardiacSurgery",
+    "echo"
+   ],
+   "headline": "SEASON-AR: TAVR plus medical therapy cut 1-year death, disabling stroke or HF readmission to 8.3% vs 24.8% in pure AR",
+   "summary": "A multicenter open-label trial in China randomized 210 patients with severe pure aortic regurgitation, judged poor surgical candidates or declining surgery, to transfemoral TAVR with the self-expanding VitaFlow valve plus medical therapy or to medical therapy alone.",
+   "takeHome": [
+    "TAVR plus GDMT lowered 1-year death, disabling stroke or heart failure rehospitalization: 8.3% vs 24.8% with GDMT alone (HR 0.31)",
+    "The benefit was driven mainly by fewer heart failure rehospitalizations, 3.7% vs 21.3% (HR 0.16)",
+    "TAVR carried higher rates of major or life-threatening bleeding and new permanent pacemaker implantation, mostly within 30 days"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Pure aortic regurgitation has been the awkward case for TAVR: without annular calcium the frame has little to grip, and the pivotal TAVR trials excluded these patients. People too frail for surgery have usually been left on medical therapy alone. SEASON-AR is, by the authors' account, the first adequately powered randomized comparison of TAVR against guideline-directed medical therapy (GDMT) in this group.\n\n**What they did.** At 18 centers in China, 210 patients with severe pure AR whom the local heart team judged difficult or unacceptable surgical candidates, or who declined surgery, were randomized 1:1 to transfemoral TAVR with the self-expanding VitaFlow valve plus GDMT, or to GDMT alone. The primary end point was death, disabling stroke or heart failure rehospitalization at 1 year.\n\n**What they found.**\n- Primary end point: 8.3% vs 24.8% (HR 0.31, 95% CI 0.14-0.66).\n- The gap came mainly from heart failure rehospitalization: 3.7% vs 21.3% (HR 0.16).\n- TAVR brought more major or life-threatening bleeding and more new permanent pacemakers, mostly in the first 30 days.\n\n**Caveats.** Open-label, so the softer rehospitalization end point is open to bias; one valve in one country; 1-year follow-up only; and the abstract does not report death or stroke separately.\n\n**For the anesthesiologist.** Expect more of these cases on the structural list. With no calcium to anchor the valve, positioning is less forgiving: plan for migration or embolization and a possible second valve, keep pacing ready for new conduction block, and use echo to confirm position, grade paravalvular leak and watch for new wall-motion abnormalities. These are often dilated, volume-loaded ventricles, so avoid bradycardia and long diastoles until the valve is seated.",
+   "url": "https://doi.org/10.1161/CIRCULATIONAHA.126.082827",
+   "impact": 2,
+   "trialName": "SEASON-AR",
+   "firstAuthor": "Gao",
+   "title": "Transcatheter Aortic Valve Replacement in Pure Aortic Regurgitation: The Randomized SEASON-AR Clinical Trial",
+   "glance": {
+    "design": "Multicenter open-label RCT, 18 centers in China",
+    "n": "210 patients with severe pure AR; surgery difficult, unacceptable or declined",
+    "outcome": "All-cause death, disabling stroke or heart failure rehospitalization at 1 year",
+    "result": "8.3% vs 24.8%, HR 0.31 (95% CI 0.14-0.66); favors TAVR plus GDMT"
+   },
+   "quiz": {
+    "question": "In SEASON-AR, which outcome mainly drove the lower 1-year primary event rate with TAVR plus medical therapy in severe pure aortic regurgitation?",
+    "options": [
+     "Fewer heart failure rehospitalizations",
+     "Fewer all-cause deaths",
+     "Fewer disabling strokes",
+     "Fewer major or life-threatening bleeds"
+    ],
+    "answer": 0,
+    "explanation": "Heart failure rehospitalization fell from 21.3% to 3.7% (HR 0.16), driving the composite (8.3% vs 24.8%). Bleeding went the other way: major or life-threatening bleeding was more common after TAVR. Caveat: an open-label trial of one valve in one country, with 1-year follow-up only."
+   }
+  },
   {
    "id": "hepatology-2026-global-aclf-consensus-definitions",
    "date": "2026-10-30",
@@ -1511,8 +1558,12 @@
     "Inotropes probably yes, dobutamine or milrinone first with no preference between them; epinephrine probably not as an inotrope",
     "IABP not routine in AMI or heart failure shock (Grade 1-), except bridging mechanical complications; Impella CP 'probably' in AMI shock"
    ],
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "The overall level of evidence remains modest, reflecting the scarcity of randomized controlled trials in this heterogeneous population",
+    "17 of the 41 recommendations rest on expert opinion, and for 6 questions the experts were not able to give an answer",
+    "No recommendation was possible on renal replacement therapy versus diuretics for fluid removal, as the trials excluded hypotensive or unstable patients"
+   ],
+   "authorBasis": "full text",
    "takeHomeBy": "authors",
    "citation": {
     "title": "Experts’ recommendations for the management of adult patients with cardiogenic shock",
@@ -4607,8 +4658,13 @@
     "Sex-specific troponin 99th percentile limits are called for; coding aligns with ICD-11.",
     "Expect trial endpoints and quality metrics for CABG-related MI to be redefined over the next year."
    ],
-   "authorLimitations": [],
-   "authorBasis": "summary page",
+   "authorLimitations": [
+    "Thresholds of >5 times the URL after PCI and >35 times after cardiac surgery are arbitrary; their sensitivity and negative predictive value are unknown",
+    "Different thresholds may be needed for troponin I and T, for each sex, and for complex procedures such as combined valve and coronary surgery",
+    "Further research must validate the aligned definition of procedure-related MI after PCI and surgery and whether its prognosis is similar in both",
+    "No troponin assay is approved for age-adjusted 99th percentiles; reference studies include too few younger and older people to define them"
+   ],
+   "authorBasis": "full text",
    "takeHomeBy": "authors",
    "citation": {
     "title": "Fifth Universal Definition of Myocardial Infarction (2026)",
@@ -4976,8 +5032,13 @@
     "Hyperangulated video blade is the logical default under in-line stabilization."
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "Clinicians and observers were not blinded to group assignment, which may have introduced performance or detection bias",
+    "The pragmatic, device-agnostic design precluded assessment of brand-specific effects",
+    "Crossover was more frequent out of the direct laryngoscopy arm, though per-protocol estimates of the primary outcome were virtually identical",
+    "Operator experience varied and was not recorded; postoperative airway symptoms were collected at only 2 of 6 sites; stylet use was uneven between arms"
+   ],
+   "authorBasis": "full text",
    "citation": {
     "title": "Conventional vs Video-Assisted Laryngoscopy for Perioperative Endotracheal Intubations",
     "authors": [
@@ -6306,8 +6367,13 @@
     "After adjustment, d-TGA scored highest; tetralogy and AVSD among the lower-scoring diagnoses.",
     "Longer stays, more catheterizations and lower caregiver education tracked with worse scores; anesthesia was not isolated."
    ],
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "Clinical registry data: some variables (such as zip code) could not be entered at some sites, with heterogeneity and practice variation by site",
+    "Excluding children without Bayley raw scores further limited the size of the dataset",
+    "Selection bias: only 29% of eligible children attended assessment, and developmental concerns may have driven attendance, skewing scores downward",
+    "Genetic diagnoses relied on clinical detection, so some children with occult genetic conditions were likely counted as having none"
+   ],
+   "authorBasis": "full text",
    "takeHomeBy": "authors",
    "citation": {
     "title": "Early Neurodevelopmental Outcomes in Children With Congenital Heart Disease",
@@ -11380,8 +11446,13 @@
     "Age, renal dysfunction, VA-ECMO, ventricular arrhythmia and sepsis drove mortality in non-eligible STEMI patients."
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "Retrospective registry analysis; Impella use and its timing were at physician discretion, which may have introduced selection bias",
+    "Only 6 of DanGer Shock's 13 exclusion criteria could be applied, and coma status after ROSC was unavailable, so some patients may be misclassified",
+    "About a quarter of eligible STEMI shock patients had VA-ECMO before Impella, an escalation strategy unlike first-line Impella in the trial",
+    "Neurological outcomes and costs were not collected, and operator experience and treatment protocols varied between centres"
+   ],
+   "authorBasis": "full text",
    "citation": {
     "title": "DanGer shock criteria and outcomes in acute myocardial infarction-related cardiogenic shock treated with Impella: the J-PVAD registry",
     "authors": [
@@ -11661,8 +11732,13 @@
     "Respiratory and GI procedures carry higher risk; plan staffing, monitoring and location accordingly."
    ],
    "takeHomeBy": "authors",
-   "authorLimitations": [],
-   "authorBasis": "abstract",
+   "authorLimitations": [
+    "Patients were identified prospectively but some data were collected retrospectively, so consistency depends on each center's medical records",
+    "Data entry practices and definitions may have varied across centers; selection bias and missing data are possible",
+    "Only medium-to-large academic institutions with cardiac surgical programs took part, so results cannot be extrapolated to other institutions",
+    "Nearly all patients had general anesthesia, limiting power to compare techniques; the study was not designed to establish causal relationships"
+   ],
+   "authorBasis": "full text",
    "citation": {
     "title": "Intraoperative Cardiac Events in Pediatric Patients with Congenital Heart Disease Undergoing Noncardiac Procedures: Analysis of a Large Multicenter Registry",
     "authors": [
