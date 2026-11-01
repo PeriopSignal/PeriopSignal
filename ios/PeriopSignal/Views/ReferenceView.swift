@@ -129,9 +129,9 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .score("rcri"), icon: "heart.text.square", title: "RCRI", blurb: "Cardiac risk for non-cardiac surgery"),
             RefItem(route: .score("ariscat"), icon: "lungs", title: "ARISCAT", blurb: "Postoperative pulmonary complications"),
             RefItem(route: .score("stopbang"), icon: "zzz", title: "STOP-BANG", blurb: "Sleep apnea screening"),
-            RefItem(route: .score("apfel"), icon: "list.number", title: "Apfel PONV Score", blurb: "Adult risk of nausea and vomiting after surgery"),
+            RefItem(route: .score("apfel"), icon: "list.number", title: "APFEL PONV Score", blurb: "Adult risk of nausea and vomiting after surgery"),
             RefItem(route: .fasting, icon: "cup.and.saucer", title: "Fasting", blurb: "Last intake in, earliest start out"),
-            RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "Apfel score, how many agents, rescue"),
+            RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "APFEL score, how many agents, rescue"),
             RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
         ]

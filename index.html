@@ -2075,7 +2075,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       keywords: ['pacu', 'recovery', 'discharge criteria', 'phase i'],
     },
     {
-      id: 'apfel', name: 'Apfel PONV score', short: 'Apfel', blurb: 'Risk of postoperative nausea and vomiting, with the consensus prophylaxis',
+      id: 'apfel', name: 'APFEL PONV score', short: 'APFEL', blurb: 'Risk of postoperative nausea and vomiting, with the consensus prophylaxis',
       items: [
         toggle('female', 'Female sex'),
         toggle('nonsmoker', 'Non-smoker'),
@@ -4663,10 +4663,10 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
     'tool-rcri': T('RCRI', 'Cardiac risk for non-cardiac surgery', 'heartPulse', [], (h) => mountScore(h, 'rcri'), { score: 'rcri' }),
     'tool-ariscat': T('ARISCAT', 'Postoperative pulmonary complications', 'lungs', [], (h) => mountScore(h, 'ariscat'), { score: 'ariscat' }),
     'tool-stopbang': T('STOP-BANG', 'Sleep apnea screening', 'zzz', [], (h) => mountScore(h, 'stopbang'), { score: 'stopbang' }),
-    'tool-apfel': T('Apfel PONV Score', 'Adult risk of nausea and vomiting after surgery', 'pills', ['apfel', 'ponv risk', 'ponv score', 'nausea risk'], (h) => mountScore(h, 'apfel'), { score: 'apfel' }),
+    'tool-apfel': T('APFEL PONV Score', 'Adult risk of nausea and vomiting after surgery', 'pills', ['apfel', 'ponv risk', 'ponv score', 'nausea risk'], (h) => mountScore(h, 'apfel'), { score: 'apfel' }),
     'tool-fasting': T('Fasting', 'Last intake in, earliest start out', 'cup', ['npo', 'fasting', 'fast', 'clear liquid', 'breast milk', 'formula', 'meal', 'gum', 'aspiration'], mountFasting),
     'tool-abg': T('ABG Interpretation', 'Primary disorder, compensation, mixed disorders', 'flask', ['abg', 'blood gas', 'arterial blood gas', 'acid', 'base', 'acid-base', 'acidosis', 'alkalosis', 'acidemia', 'alkalemia', 'ph', 'paco2', 'pco2', 'hco3', 'bicarbonate', 'compensation', 'winter', 'respiratory acidosis', 'metabolic acidosis', 'respiratory alkalosis', 'metabolic alkalosis', 'mixed disorder', 'henderson'], (h) => window.PSAbg ? window.PSAbg.mount(h, ctxFor('tool-abg')) : notReady(h)),
-    'tool-ponv': T('PONV', 'Apfel score, how many agents, rescue', 'pills', ['ponv', 'nausea', 'vomiting', 'antiemetic', 'apfel', 'ondansetron', 'dexamethasone', 'droperidol', 'amisulpride', 'aprepitant', 'scopolamine', 'palonosetron', 'granisetron', 'promethazine', 'rescue', 'prophylaxis'], mountPONV),
+    'tool-ponv': T('PONV', 'APFEL score, how many agents, rescue', 'pills', ['ponv', 'nausea', 'vomiting', 'antiemetic', 'apfel', 'ondansetron', 'dexamethasone', 'droperidol', 'amisulpride', 'aprepitant', 'scopolamine', 'palonosetron', 'granisetron', 'promethazine', 'rescue', 'prophylaxis'], mountPONV),
     'tool-aldrete': T('Modified Aldrete', 'Ready to leave recovery?', 'bed', [], (h) => mountScore(h, 'aldrete'), { score: 'aldrete' }),
     'tool-regional-finder': T('Regional Technique Finder', 'Mark the incision, get neuraxial and block options', 'person', ['regional', 'block', 'nerve block', 'incision', 'which block', 'technique', 'dermatome', 'surgery', 'analgesia', 'neuraxial', 'spinal', 'epidural', 'peripheral'], (h) => window.PSRegional ? window.PSRegional.mountFinder(h, ctxFor('tool-regional-finder')) : notReady(h)),
     'tool-blocks': T('Peripheral Nerve Blocks', 'Technique, volume and schematic for each block', 'probe', ['nysora', 'block', 'nerve block', 'peripheral', 'ultrasound', 'interscalene', 'supraclavicular', 'infraclavicular', 'axillary', 'femoral', 'fascia iliaca', 'adductor canal', 'saphenous', 'popliteal', 'sciatic', 'peng', 'ipack', 'ankle', 'tap', 'transversus abdominis', 'rectus sheath', 'quadratus lumborum', 'erector spinae', 'esp', 'ilioinguinal', 'pecs', 'serratus', 'pifb', 'pecto-intercostal', 'parasternal', 'sternotomy', 'paravertebral', 'intercostal', 'cervical plexus', 'suprascapular', 'wrist'], (h) => window.PSRegional ? window.PSRegional.mountBlocks(h, ctxFor('tool-blocks')) : notReady(h)),
@@ -4935,7 +4935,7 @@ body.has-player .feed, body.has-player .ref { padding-bottom: 120px; }
       const factors = R.scoreTotal(def, sel), band = R.scoreBand(def, factors);
       const toneC = band ? TONE[band.tone] : 'var(--fg-3)';
       let h = `<div class="r-stack">`;
-      h += `<section class="r-sec"><div class="r-sechead"><h3>Risk Factors (Apfel)</h3>${sel.on.size || chosen.size ? `<button type="button" class="r-link" data-a="reset">${I.reset} Reset</button>` : ''}</div><div class="r-card flush">${def.items.map((it) => scoreItem(it, sel)).join('')}</div></section>`;
+      h += `<section class="r-sec"><div class="r-sechead"><h3>Risk Factors (APFEL)</h3>${sel.on.size || chosen.size ? `<button type="button" class="r-link" data-a="reset">${I.reset} Reset</button>` : ''}</div><div class="r-card flush">${def.items.map((it) => scoreItem(it, sel)).join('')}</div></section>`;
       if (!data) return h + loading('the agents') + `</div>`;
       const target = R.ponv.target(factors, data.counts), classes = R.ponv.classes(chosen, data.agents), need = target ? target.agents : 2;
       const wanted = target ? (target.agentsHigh && target.agentsHigh > target.agents ? `${target.agents}–${target.agentsHigh}` : String(target.agents)) : '2';

@@ -48,7 +48,7 @@ struct PONVView: View {
 
     private var riskCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Risk Factors (Apfel)").font(PS.serif(size: 18)).foregroundStyle(PS.fg).padding(.leading, 2)
+            Text("Risk Factors (APFEL)").font(PS.serif(size: 18)).foregroundStyle(PS.fg).padding(.leading, 2)
             VStack(spacing: 0) {
                 ForEach(Array(def.items.enumerated()), id: \.element.id) { i, item in
                     ScoreItemRow(item: item, selection: $selection)

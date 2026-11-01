@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-10-31",
-  "revision": 1793481925,
+  "updated": "2026-11-01",
+  "revision": 1793499859,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -45,7 +45,7 @@
           "rows": [
             [
               "Risk factors",
-              "Apfel: female sex · non-smoker · history of PONV or motion sickness · postoperative opioids"
+              "APFEL: female sex · non-smoker · history of PONV or motion sickness · postoperative opioids"
             ],
             [
               "Risk class",
@@ -64,7 +64,7 @@
               "Propofol TIVA, avoiding volatile agents and nitrous oxide, regional anesthesia, opioid minimization, adequate hydration, sugammadex rather than neostigmine"
             ]
           ],
-          "note": "Apfel's predicted incidence by factor count: 10%, 21%, 39%, 61%, 79% (the Apfel calculator applies it)."
+          "note": "Predicted incidence by APFEL factor count (Apfel 1999): 10%, 21%, 39%, 61%, 79% (the APFEL calculator applies it)."
         },
         {
           "heading": "Adult Agents, Doses & Timing",

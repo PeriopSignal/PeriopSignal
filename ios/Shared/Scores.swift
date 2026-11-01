@@ -214,7 +214,7 @@ enum Scores {
     /// Apfel simplified PONV score. Apfel CC et al. Anesthesiology 1999;91:693-700; prophylaxis per the
     /// Fourth Consensus Guidelines (Gan TJ et al. Anesth Analg 2020;131:411-48).
     static let apfel = ScoreDefinition(
-        id: "apfel", name: "Apfel PONV score", short: "Apfel",
+        id: "apfel", name: "APFEL PONV score", short: "APFEL",
         blurb: "Risk of postoperative nausea and vomiting, with the consensus prophylaxis",
         icon: "pills",
         items: [

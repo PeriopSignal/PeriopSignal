@@ -184,7 +184,7 @@
       keywords: ['pacu', 'recovery', 'discharge criteria', 'phase i'],
     },
     {
-      id: 'apfel', name: 'Apfel PONV score', short: 'Apfel', blurb: 'Risk of postoperative nausea and vomiting, with the consensus prophylaxis',
+      id: 'apfel', name: 'APFEL PONV score', short: 'APFEL', blurb: 'Risk of postoperative nausea and vomiting, with the consensus prophylaxis',
       items: [
         toggle('female', 'Female sex'),
         toggle('nonsmoker', 'Non-smoker'),
