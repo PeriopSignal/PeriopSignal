@@ -67,7 +67,8 @@ struct PatientView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        NoIdentifiersBanner()
+                        // In full for the empty patient; otherwise the grey shield in the navigation bar.
+                        if patient.isEmpty { NoIdentifiersBanner() }
                         PatientRoomsBar()
                         tabBar
                         if patient.canUndoClear { undoBanner }
@@ -136,6 +137,9 @@ struct PatientView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if !patient.isEmpty { NoIdentifiersShield() }
+                }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     PatientUndoButton()
                     Button(role: .destructive) { confirmClear = true } label: { Label("Clear Patient", systemImage: "trash") }

@@ -70,7 +70,6 @@ extension PatientEditorView {
     }
 
     @ViewBuilder var demographicsEditor: some View {
-        NoIdentifiersBanner()
         PatientGroup(title: "Demographics") {
             PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)

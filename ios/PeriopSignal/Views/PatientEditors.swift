@@ -139,6 +139,8 @@ struct PatientEditorView: View {
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 PatientUndoButton()
+                // Where the age and the like are typed: the grey "No patient identifiers" shield.
+                if editor == .details || editor == .demographics { NoIdentifiersShield() }
                 if wobbling {
                     Button("Done") { Haptics.light(); withAnimation(.snappy) { wobbling = false } }
                         .fontWeight(.semibold)
@@ -244,7 +246,6 @@ struct PatientEditorView: View {
     // MARK: Patient
 
     @ViewBuilder private var details: some View {
-        NoIdentifiersBanner()
         PatientGroup(title: "Patient") {
             PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)
