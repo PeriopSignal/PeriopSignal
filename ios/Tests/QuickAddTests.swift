@@ -235,6 +235,82 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(swapped.fluids, ["prbc": 3, "plasma": 2, "cryo": 5], "each count with its product, piece by piece")
     }
 
+    /// Blood that may not be given yet is asked about, not guessed: nothing is filed until the user answers.
+    func testBloodMaybeNotGivenIsAsked() {
+        let q = read("plan for 2 PRBC", .intraop)
+        let asked = q.ambiguous.first { $0.id == QuickAdd.bloodQuestion + "prbc" }
+        XCTAssertEqual(asked?.abbreviation, "2 PRBC")
+        XCTAssertEqual(asked?.options.map(\.id), [QuickAdd.bloodGiven, QuickAdd.bloodNotYet])
+        XCTAssertTrue(applied(q).fluids.isEmpty, "nothing until answered")
+        let given = [QuickAdd.bloodQuestion + "prbc": QuickAdd.bloodGiven]
+        XCTAssertEqual(applied(read("plan for 2 PRBC", .intraop, choices: given)).fluids["prbc"], 2)
+        XCTAssertTrue(applied(read("plan for 2 PRBC", .intraop, choices: [QuickAdd.bloodQuestion + "prbc": QuickAdd.bloodNotYet])).fluids.isEmpty)
+        // An answer is for the count it was given for.
+        let tied = given.merging([QuickAdd.bloodQuestion + "prbc@value": "2"]) { a, _ in a }
+        XCTAssertTrue(applied(read("plan for 3 PRBC", .intraop, choices: tied)).fluids.isEmpty, "answered for 2, not 3")
+
+        // Said given: filed, with the unsure word elsewhere in the clause; the other product is asked.
+        let mixed = read("2 PRBC given and 2 FFP ready", .intraop)
+        XCTAssertEqual(applied(mixed).fluids, ["prbc": 2])
+        XCTAssertEqual(mixed.ambiguous.map(\.id).filter { $0.hasPrefix(QuickAdd.bloodQuestion) }, [QuickAdd.bloodQuestion + "plasma"])
+        // A word before the list carries along it; one ending a list of blood covers the list; other items stop it.
+        XCTAssertEqual(read("if Hb < 7, give 2 PRBC, 2 FFP", .intraop).ambiguous.filter { $0.id.hasPrefix(QuickAdd.bloodQuestion) }.count, 2)
+        XCTAssertEqual(read("2 PRBC, 2 FFP ready", .intraop).ambiguous.filter { $0.id.hasPrefix(QuickAdd.bloodQuestion) }.count, 2)
+        let cardiac = read("plt 1, +2 FFP, K 5.6, 2 PRBC available", .intraop)
+        XCTAssertEqual(applied(cardiac).fluids, ["platelets": 1, "plasma": 2])
+        XCTAssertEqual(cardiac.ambiguous.map(\.id).filter { $0.hasPrefix(QuickAdd.bloodQuestion) }, [QuickAdd.bloodQuestion + "prbc"])
+        // A new sentence is a new clause.
+        XCTAssertEqual(applied(read("2 PRBC given. Plan 2 FFP if INR > 2", .intraop)).fluids, ["prbc": 2])
+
+        // Said not given, or returned: a notice, no question.
+        for line in ["2 FFP returned to BB", "2 FFP sent back to blood bank"] {
+            let r = read(line, .intraop)
+            XCTAssertTrue(applied(r).fluids.isEmpty, line)
+            XCTAssertTrue(r.skipped.contains { $0.hasPrefix("Blood products not given") }, line + " → \(r.skipped)")
+        }
+        // "PRBC 3 of 4": unit 3, one more; "3 of 4 PRBC" could be three units: not read.
+        XCTAssertEqual(QuickAdd.chips(read("PRBC 3 of 4 hanging", .intraop), record: PatientRecord()).first?.value, "PRBC +1 (unit 3 of 4)")
+        XCTAssertEqual(applied(read("unit 2 of 3 PRBC hanging", .intraop)).fluids["prbc"], 1)
+        let ofFour = read("3 of 4 PRBC given", .intraop)
+        XCTAssertTrue(applied(ofFour).fluids.isEmpty)
+        XCTAssertTrue(ofFour.skipped.contains { $0.hasPrefix("3 of 4 PRBC") }, "\(ofFour.skipped)")
+    }
+
+    /// Two values of a test: the one marked current, else asked ("Cr: 0.9 or 1.6?"), filed only once chosen.
+    func testTwoValuesOfALabAreAskedUnlessOneIsCurrent() {
+        XCTAssertEqual(change(read("Cr 0.9 to 1.6"), "lab:cr"), .lab("cr", 1.6), "the last word: current")
+        XCTAssertEqual(change(read("Cr 0.9 → 1.6."), "lab:cr"), .lab("cr", 1.6))
+        XCTAssertEqual(change(read("Cr 1.1 at baseline, now 1.6"), "lab:cr"), .lab("cr", 1.6))
+        XCTAssertEqual(change(read("K 3.1 then 4 runs KCl"), "lab:k"), .lab("k", 3.1), "4 runs is a dose")
+        XCTAssertNil(change(read("Cr 1.1 at baseline"), "lab:cr"), "an earlier value only")
+        XCTAssertEqual(change(read("Hb 12.1 preop"), "lab:hb"), .lab("hb", 12.1), "on the Preoperative tab, the preop value is the one")
+
+        let open = read("Cr 0.9 then 1.6 after fluids")
+        XCTAssertNil(change(open, "lab:cr"), "neither marked current")
+        XCTAssertEqual(open.ambiguous.first { $0.id == PatientNote.labQuestionPrefix + "cr" }?.options.map(\.text), ["0.9", "1.6"])
+        XCTAssertEqual(change(read("Cr 0.9 then 1.6 after fluids", choices: [PatientNote.labQuestionPrefix + "cr": "lab-0.9"]), "lab:cr"), .lab("cr", 0.9))
+        // A panel and the name: asked when they differ.
+        let panel = read("138/4.1/102/24/18/1.1/162, K 3.9")
+        XCTAssertNil(change(panel, "lab:k"))
+        XCTAssertEqual(change(panel, "lab:na"), .lab("na", 138), "the rest of the panel is filed")
+        XCTAssertNotNil(panel.ambiguous.first { $0.id == PatientNote.labQuestionPrefix + "k" })
+        XCTAssertEqual(change(read("138/4.1/102/24/18/1.1/162, K 4.1"), "lab:k"), .lab("k", 4.1), "the same value twice")
+        // Intraoperative: a preoperative value is an earlier one.
+        XCTAssertEqual(setValues(read("preop Hb 12.1, now 8.2", .intraop))["hb"], 8.2)
+        XCTAssertNil(setValues(read("Hb 12.1 preop", .intraop))["hb"])
+
+        // The full-note path asks the same way.
+        let note = PatientNote.read("Cr 0.9 then 1.6 after fluids", now: now)
+        XCTAssertNil(note.findings.first { $0.id == "lab:cr" })
+        XCTAssertNotNil(note.ambiguous.first { $0.id == PatientNote.labQuestionPrefix + "cr" })
+        let chosen = PatientNote.read("Cr 0.9 then 1.6 after fluids", now: now, choices: [PatientNote.labQuestionPrefix + "cr": "lab-1.6"])
+        XCTAssertEqual(chosen.findings.first { $0.id == "lab:cr" }?.change, .lab("cr", 1.6))
+        XCTAssertEqual(PatientNote.read("Cr 1.1 at baseline, now 1.6", now: now).findings.first { $0.id == "lab:cr" }?.change, .lab("cr", 1.6))
+        let sentences = PatientNote.read("Cr 0.9. Cr 1.6.", now: now)
+        XCTAssertNil(sentences.findings.first { $0.id == "lab:cr" }, "two sentences, neither marked current")
+        XCTAssertNotNil(sentences.ambiguous.first { $0.id == PatientNote.labQuestionPrefix + "cr" })
+    }
+
     func testReaderQuestionsFileOnlyWhenAnswered() {
         let ica = read("iCa 3.9", .intraop)
         XCTAssertEqual(ica.ambiguous.map(\.id), [QuickAdd.icaQuestion])

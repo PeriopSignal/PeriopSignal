@@ -32,7 +32,15 @@ final class QuickAddReview2Tests: XCTestCase {
         let ready = applied(read("2 PRBC given and 2 FFP ready", .intraop))
         XCTAssertEqual(ready.fluids["prbc"], 2, "the PRBC were given; only the FFP is ready")
         XCTAssertNil(ready.fluids["plasma"])
-        let pending = applied(read("2 PRBC 2 FFP repeat TEG pending", .intraop))
+        // Review 3 ("ask when unsure"): "pending" in the clause makes each product a question chip; nothing is filed
+        // until the user answers, and answering "given" files them.
+        let line = "2 PRBC 2 FFP repeat TEG pending"
+        let asked = read(line, .intraop)
+        XCTAssertTrue(applied(asked).fluids.isEmpty, "nothing filed until the user answers: \(applied(asked).fluids)")
+        XCTAssertEqual(Set(asked.ambiguous.map(\.id).filter { $0.hasPrefix(QuickAdd.bloodQuestion) }),
+                       [QuickAdd.bloodQuestion + "prbc", QuickAdd.bloodQuestion + "plasma"])
+        let answers = [QuickAdd.bloodQuestion + "prbc": QuickAdd.bloodGiven, QuickAdd.bloodQuestion + "plasma": QuickAdd.bloodGiven]
+        let pending = applied(read(line, .intraop, choices: answers))
         XCTAssertEqual(pending.fluids["prbc"], 2, "the TEG is pending, not the blood")
         XCTAssertEqual(pending.fluids["plasma"], 2)
         XCTAssertEqual(applied(read("2 PRBC given as planned", .intraop)).fluids["prbc"], 2)

@@ -227,7 +227,11 @@ struct PatientNoteSheet: View {
     }
 
     private func ambiguousRow(_ a: AmbiguousAbbreviation) -> some View {
-        let how = choices[a.id] != nil ? "Your choice" : (a.fromContext ? "From the context" : "Usual meaning")
+        // A question ("Cr: 0.9 or 1.6?"): nothing is added until it is answered.
+        let question = a.id.hasPrefix("quick:")
+        let how = choices[a.id] != nil ? "Your choice" : (question ? "Asked" : (a.fromContext ? "From the context" : "Usual meaning"))
+        let unset = question ? "Not added until you choose" : "Left as written"
+        let leave = question ? "Leave it out" : "Leave “\(a.abbreviation)” as written"
         return HStack(alignment: .top, spacing: 12) {
             AbbreviationBadge(text: a.abbreviation)
             VStack(alignment: .leading, spacing: 3) {
@@ -239,15 +243,15 @@ struct PatientNoteSheet: View {
                     }
                     Divider()
                     Button { choose(a, MedAbbreviations.asWritten) } label: {
-                        if a.chosenID == MedAbbreviations.asWritten {
-                            Label("Leave “\(a.abbreviation)” as written", systemImage: "checkmark")
+                        if a.chosenID == MedAbbreviations.asWritten && (!question || choices[a.id] != nil) {
+                            Label(leave, systemImage: "checkmark")
                         } else {
-                            Text("Leave “\(a.abbreviation)” as written")
+                            Text(leave)
                         }
                     }
                 } label: {
                     HStack(spacing: 5) {
-                        Text(a.chosen?.text ?? "Left as written")
+                        Text(a.chosen?.text ?? unset)
                             .font(PS.sys(size: 14.5, weight: .medium))
                             .foregroundStyle(PS.fg)
                             .multilineTextAlignment(.leading)
@@ -257,8 +261,8 @@ struct PatientNoteSheet: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .accessibilityLabel(a.abbreviation + ": " + (a.chosen?.text ?? "left as written"))
-                .accessibilityHint("Choose what it means here")
+                .accessibilityLabel(a.abbreviation + ": " + (a.chosen?.text ?? unset.lowercased()))
+                .accessibilityHint(question ? "Choose an answer, or leave it out" : "Choose what it means here")
                 Text(how + " · " + a.context)
                     .font(PS.sys(size: 12))
                     .foregroundStyle(PS.fg3)
