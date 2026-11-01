@@ -16,6 +16,8 @@ final class PatientRoomsUI {
     var editingRoom = false
     /// The archive sheet; an item, so what it opens on is never read stale.
     var archive: Archive?
+    /// The summary open in the archive.
+    var archivePath: [UUID] = []
     var confirmEnd = false
     /// Screenshot runs: the launch's presentation has been asked for (once, whichever copy of the bar asks).
     @ObservationIgnored var asked = false
@@ -49,8 +51,8 @@ struct PatientRoomsBar: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
-        .sheet(item: $ui.archive) { s in
-            PatientArchiveView(archive: patient.archive, opensFirst: s.opensFirst)
+        .sheet(item: $ui.archive, onDismiss: { ui.archivePath = [] }) { s in
+            PatientArchiveView(archive: patient.archive, path: $ui.archivePath, opensFirst: s.opensFirst)
                 .presentationDragIndicator(.visible)
         }
         .confirmationDialog("End \(current.label)?", isPresented: $ui.confirmEnd, titleVisibility: .visible) {

@@ -28,11 +28,12 @@ enum ArchiveLock {
 /// (no time or room) and is deleted after the retention period chosen here.
 struct PatientArchiveView: View {
     var archive: PatientArchive
+    /// The summary open (kept by the caller, so it survives the sheet being rebuilt).
+    @Binding var path: [UUID]
     /// Screenshot runs: open the newest summary.
     var opensFirst = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @State private var path: [UUID] = []
     @State private var unlocked = false
     @State private var confirmDeleteAll = false
 
