@@ -256,6 +256,7 @@ jobs:
           shot 106-cardiac-support 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open devices:support -ps.forceAppearance light
           shot 107-cardiac-labs 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:labs
           shot 108-cardiac-rhc 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:rhc
+          shot 140-patient-ecg 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
