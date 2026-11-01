@@ -336,6 +336,8 @@ final class PatientLabsTests: XCTestCase {
         XCTAssertEqual(r.ph, .noPH)
         XCTAssertEqual(r.phText, "No pulmonary hypertension at rest: mPAP 20 mmHg or less (2022 ESC/ERS).")
         XCTAssertTrue(r.papiBelow.isEmpty)
+        let near = PatientLabs.rightHeart(RightHeartInput(ra: 5, pasp: 33, padp: 14, pcwp: 9, co: 5.0, bsa: 1.9))
+        XCTAssertTrue(near.phText?.hasSuffix("confirm with a measured mean.") ?? false, "an estimate of about 20 mmHg is flagged")
         XCTAssertTrue(r.missing.isEmpty)
     }
 

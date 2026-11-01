@@ -96,33 +96,50 @@ struct PlannedProcedure: Codable, Hashable, Identifiable {
             .filter { $0.range.upperBound <= t.endIndex }
             .sorted { $0.range.lowerBound < $1.range.lowerBound }
         var items: [PlannedProcedure] = []
+        // Words before the first recognized procedure: a typed procedure, and any history told before it.
         var lead: [String] = []
+        var leadHistory: [String] = []
+        var afterContext = false
         var cursor = t.startIndex
-        func attach(_ ws: [String]) {
+        func attach(_ ws: [String], history: Bool = false) {
             guard !ws.isEmpty else { return }
-            if items.isEmpty { lead += ws; return }
+            if items.isEmpty {
+                if history || afterContext { leadHistory += ws } else { lead += ws }
+                return
+            }
             let d = items[items.count - 1].detail
             items[items.count - 1].detail = ((d.isEmpty ? [] : [d]) + ws).joined(separator: " ")
         }
         for m in matches where m.range.lowerBound >= cursor {
             let gap = words(t[cursor..<m.range.lowerBound])
-            if let last = gap.last?.lowercased(), contextWords.contains(last) {
-                attach(gap + [String(t[m.range])])
+            if let last = gap.last, contextWords.contains(last.lowercased()) {
+                attach(Array(gap.dropLast()))
+                attach([last, String(t[m.range])], history: true)
+                afterContext = true
             } else {
                 attach(gap)
                 items.append(PlannedProcedure(m.procedure, side: m.side))
+                afterContext = false
             }
             cursor = m.range.upperBound
         }
         attach(words(t[cursor...]))
-        if items.isEmpty { return [PlannedProcedure(name: t)] }
         let typed = lead.joined(separator: " ")
-        if typed.filter(\.isLetter).count >= 3 { items.insert(PlannedProcedure(name: typed), at: 0) }
+        let history = leadHistory.joined(separator: " ")
+        if items.isEmpty {
+            return [typed.isEmpty ? PlannedProcedure(name: t) : PlannedProcedure(name: typed, detail: history)]
+        }
+        if typed.filter(\.isLetter).count >= 3 {
+            items.insert(PlannedProcedure(name: typed, detail: history), at: 0)
+        } else if !history.isEmpty {
+            items[0].detail = ([history] + (items[0].detail.isEmpty ? [] : [items[0].detail])).joined(separator: " ")
+        }
         return items
     }
 
     /// A procedure after one of these is one the patient is on or has had.
-    private static let contextWords: Set<String> = ["on", "s/p", "sp", "post", "h/o", "hx", "after", "prior", "previous"]
+    private static let contextWords: Set<String> = ["on", "s/p", "sp", "post", "h/o", "hx", "after", "prior", "previous",
+                                                    "in", "known", "existing", "has", "had", "history"]
     /// Joining words and the urgency (recorded on its own) are dropped.
     private static let fillerWords: Set<String> = ["and", "with", "w/", "w", "plus", "then", "&", "+", "/", "-",
         "emergency", "emergent", "urgent", "elective", "stat", "planned", "scheduled", "for"]
@@ -174,9 +191,15 @@ extension PatientRecord {
     }
 
     /// The planned procedures the list recognizes: from the items, or read from the text in an older save.
-    var recognizedProcedures: [Procedure] {
-        procedures.isEmpty ? ProcedureCatalog.parse(procedure).map(\.procedure) : procedures.compactMap(\.catalog)
-    }
+    var recognizedProcedures: [Procedure] { plannedItems.compactMap(\.catalog) }
+
+    /// The planned procedures as items: the record's own, or read from the text in an older save (so "s/p CABG" and
+    /// "on LVAD" stay details, not planned procedures).
+    var plannedItems: [PlannedProcedure] { procedures.isEmpty ? PlannedProcedure.parse(procedure) : procedures }
+
+    /// The names of the typed procedures, without details: what keyword rules may read. A recognized procedure has
+    /// its own flags, and details ("s/p CABG", "in an LVAD patient") are history, not the operation.
+    var typedProcedureNames: String { plannedItems.filter { $0.catalogID == nil }.map(\.name).joined(separator: " + ") }
 }
 
 /// One past operation: from the procedure list or typed, with the side and the month and year.

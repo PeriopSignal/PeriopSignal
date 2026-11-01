@@ -139,9 +139,19 @@ final class PatientWorkupTests: XCTestCase {
             XCTAssertTrue(PatientRules.cardiacSurgery(r), p)
             XCTAssertFalse(PatientRules.prompts(r).contains { $0.id == "rcri" }, p)
         }
-        for p in ["Laparoscopic sigmoid colectomy", "Carotid endarterectomy", "Liver transplant"] {
+        for p in ["Laparoscopic sigmoid colectomy", "Carotid endarterectomy", "Liver transplant",
+                  "Lap chole s/p CABG", "Ex lap on LVAD", "EGD in LVAD patient", "Endobronchial valve placement", "Hip fracture, prior AVR"] {
             r.procedure = p
             XCTAssertFalse(PatientRules.cardiacSurgery(r), p)
+            r.setProcedures(PlannedProcedure.parse(p))
+            XCTAssertFalse(PatientRules.cardiacSurgery(r), p + " (as items)")
+            XCTAssertTrue(PatientRules.prompts(r).contains { $0.id == "rcri" }, p)
+            r.procedures = []
+        }
+        XCTAssertEqual(PlannedProcedure.parse("EGD in LVAD patient").map(\.catalogID).compactMap { $0 }.contains("lvad"), false)
+        for p in ["Watchman", "Balloon aortic valvuloplasty", "Impella CP insertion", "PFO closure"] {
+            r.procedure = p
+            XCTAssertTrue(PatientRules.cardiacSurgery(r), p + ": transcatheter heart procedures are treated alike")
         }
     }
 

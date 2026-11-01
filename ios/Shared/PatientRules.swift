@@ -304,9 +304,11 @@ extension PatientRules {
                                "oht", "cardiac", "sternotomy", "coronary", "myectomy", "maze", "ross", "asd", "vsd", "pericardiectomy",
                                "aortic root", "bentall", "arch replacement", "cardiopulmonary bypass"]
 
-    /// The procedure list's flag for any recognized procedure, or a keyword in the text (typed procedures).
+    /// The procedure list's flag for any recognized procedure, or a keyword in a typed procedure's name. Details and
+    /// history ("lap chole s/p CABG", "EGD in an LVAD patient") never count: the RCRI is meant for exactly those
+    /// patients having noncardiac surgery.
     static func cardiacSurgery(_ r: PatientRecord) -> Bool {
-        r.recognizedProcedures.contains(where: \.cardiac) || matches(r.procedure, cardiacWords)
+        r.recognizedProcedures.contains(where: \.cardiac) || matches(r.typedProcedureNames, cardiacWords)
     }
 
     private static func matches(_ text: String, _ words: [String]) -> Bool {
@@ -315,6 +317,6 @@ extension PatientRules {
     }
 
     static func echoFirst(_ r: PatientRecord) -> Bool {
-        r.recognizedProcedures.contains(where: \.echoFirst) || matches(r.procedure, echoFirstWords)
+        r.recognizedProcedures.contains(where: \.echoFirst) || matches(r.typedProcedureNames, echoFirstWords)
     }
 }

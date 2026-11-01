@@ -877,7 +877,13 @@ enum PatientLabs {
                 }
             }
         }
-        if let ph = r.ph { r.phText = ph.label + ": " + ph.criteria + " (2022 ESC/ERS)." }
+        if let ph = r.ph {
+            r.phText = ph.label + ": " + ph.criteria + " (2022 ESC/ERS)."
+            // The definitions use a measured mean; within 5 mmHg of the 20 mmHg cut-off an estimate can change the class.
+            if r.mpapEstimated, let m = r.mpap, abs(m - 20) < 5 {
+                r.phText = (r.phText ?? "") + " The mean PA is estimated and near the cut-off: confirm with a measured mean."
+            }
+        }
         if r.ph == .combined, let v = r.pvr, v > 5 { r.notes.append(severePVRNote) }
         if let p = r.papi { r.papiBelow = papiThresholds.filter { $0.applies(p) } }
 

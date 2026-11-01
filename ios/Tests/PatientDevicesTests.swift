@@ -595,4 +595,17 @@ final class PatientDevicesTests: XCTestCase {
         XCTAssertEqual(PatientDevice(line: line).id, line.id)
         XCTAssertEqual(PatientDevice(line: line).label, "PAC via R IJ")
     }
+
+    /// Impella RP Flex goes in through the internal jugular vein; the 5.5 usually through the axillary artery.
+    func testImpellaDefaultSites() throws {
+        let rp = try XCTUnwrap(PatientDevices.parse("Impella RP Flex"))
+        XCTAssertEqual(rp.kind, .impella)
+        XCTAssertEqual(rp.baseSite, "ij")
+        let big = try XCTUnwrap(PatientDevices.parse("Impella 5.5"))
+        XCTAssertEqual(big.baseSite, "axillary-artery")
+        let cp = try XCTUnwrap(PatientDevices.parse("Impella CP"))
+        XCTAssertEqual(cp.baseSite, "femoral-artery")
+        XCTAssertTrue(DeviceSite.options(near: CGPoint(x: 95.5 / 200, y: 61 / 420), limit: 12, within: 36).contains { $0.kind == .impella },
+                      "the IJ offers an Impella")
+    }
 }

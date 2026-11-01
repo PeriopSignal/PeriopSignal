@@ -104,6 +104,8 @@ enum PatientSummary {
         let res = PatientLabs.liver(LiverInput(record: r, dialysis: r.dialysis, ascites: r.ascites, encephalopathy: r.encephalopathy))
         var parts: [String] = []
         var marks: [String] = []
+        // Bold red from 15: in Teh 2007 (Gastroenterology 2007;132:1261), 30-day mortality after major surgery in
+        // cirrhosis rose steadily with MELD, from 5.7% under 8 to over 50% above 20; 15 marks the middle of that rise.
         if let m = res.meld3 { let t = "MELD 3.0 \(m)"; parts.append(t); if m >= 15 { marks.append(t) } }
         if let m = res.meldNa { let t = "MELD-Na \(m)"; parts.append(t); if m >= 15 { marks.append(t) } }
         if let c = res.childPughClass, let p = res.childPugh { let t = "Child-Pugh \(c.rawValue) (\(p))"; parts.append(t); if c != .a { marks.append(t) } }

@@ -416,7 +416,7 @@ extension DeviceSite {
         Spec("mouth", "mouth", "oral", nil, "head", 100, 42, false, false, [.ett]),
         Spec("interscalene", "interscalene", "interscalene", nil, "neck", 92, 54, true, false, [.block, .perineuralCatheter]),
         Spec("ej", "external jugular vein", "EJ", nil, "neck", 92.5, 57, true, false, [.piv, .cvc]),
-        Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage]),
+        Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage, .impella]),
         Spec("trach", "tracheostomy stoma", "stoma", nil, "neck", 100, 62, false, false, [.trach]),
         Spec("supraclavicular", "supraclavicular", "supraclavicular", nil, "chest", 84, 68.5, true, false, [.block, .perineuralCatheter]),
         Spec("subclavian", "subclavian vein", "subclavian", nil, "chest", 88, 76, true, false, [.cvc, .pac]),
@@ -1143,7 +1143,7 @@ extension PatientDevices {
             return ("forearm", 0)
         case "femoral":
             if blockDevice { return ("femoral-block", 1) }
-            if kind == .impella, model?.hasPrefix("RP") == true { return ("femoral-vein", 1) }
+            if kind == .impella, model?.uppercased().hasPrefix("RP") == true { return ("femoral-vein", 1) }
             if arterialDevice { return ("femoral-artery", 1) }
             if let k = kind, venousKinds.contains(k) { return ("femoral-vein", 1) }
             if unit == "Fr" { return ("femoral-vein", 1) }
@@ -1283,6 +1283,12 @@ extension PatientDevices {
             case .side, .limb, .site, .kind, .model, .blockWord, .cathWord, .via, .at, .filler, .unit, .sep: used[i] = true
             default: break
             }
+        }
+        if base == nil, kind == .impella, let m = model?.uppercased(), m.hasPrefix("RP") || m.hasPrefix("5") {
+            // Impella RP Flex goes in through the internal jugular vein; the 5.5 (and 5.0) usually through the
+            // axillary artery. Both stay guesses until a site is given.
+            base = m.hasPrefix("RP") ? "ij" : "axillary-artery"
+            penalty += 0.15
         }
         if base == nil {
             if let d = defaultSite(for: kind, limb: limbs.first?.limb, level: settings["level"]) {
