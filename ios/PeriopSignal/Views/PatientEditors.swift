@@ -745,6 +745,8 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopEcho: some View {
+        // The probe's safety first: one tap to the TEE screen from where the TEE is recorded.
+        PatientGroup(title: nil) { teeLinkRow }
         EchoFindingsEditor(echo: bind(\.intraopEcho))
         PatientGroup(title: "Echo summary") {
             PatientChipRow(label: "Add a finding") {
