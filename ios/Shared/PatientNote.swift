@@ -1084,7 +1084,7 @@ enum PatientNote {
     static let labEnd = NoteRx(#"^[\s)\]]*(?:[,;.]|$)"#)
     /// The words that mark a value earlier ("baseline", "on admit", "last month", "old") or current ("now"), after it,
     /// in brackets or not: "Cr 1.1 (baseline), now 1.6", "K 3.1 on admit", "Cr 1.1 last month".
-    static let earlierWords = #"(?:baseline|admission|admit|prior|previous(?:ly)?|earlier|before|old|yesterday|last\s+(?:month|week|year|visit|admission)|pre-?op(?:eratively)?)"#
+    static let earlierWords = #"(?:baseline|admission|admit|prior|previous(?:ly)?|earlier|before|old|yesterday|last\s+(?:month|week|year|visit|admission|wk|mo|yr)|(?:\d+|a|an|one|two|three|few|several)\s*(?:days?|d|wks?|weeks?|mos?|months?|yrs?|years?)\s+ago|pre-?op(?:eratively)?)"#
     static let labEarlierAfter = NoteRx(#"^[\s(\[]*(?:(?:at|on|from|in)\s+)?"# + earlierWords + #"\b[\s)\]]*"#)
     static let labCurrentAfter = NoteRx(#"^[\s(\[]*(?:now|current(?:ly)?|latest|today|new|repeat)\b(?![\s:]*[-−]?\d)[\s)\]]*"#)
     /// Marked current right before the test's name ("Now Hb 8.2"), or preoperative ("Preop Hb 12.1").
@@ -1094,7 +1094,7 @@ enum PatientNote {
     static let labGoal = NoteRx(#"\b(?:goal|target|keep|maintain|threshold|trigger|transfuse\s+(?:for|if|to|at|when))\b[^,;]*$"#)
     static let labTrendStop = NoteRx(#"^\s*(?:[x×]\s?\d|runs?\b|amps?\b|ampules?\b|vials?\b|units?\b|u\b|mg\b|mcg\b|g\b|gm\b|meq\b|ml\b|cc\b|iv\b|im\b|po\b|prbcs?\b|rbcs?\b|ffp\b|plasma\b|plts?\b|platelets?\b|cryo\w*|whole blood|packed|bags?\b|doses?\b|tabs?\b)"#)
     /// Marked as earlier right before the test's name, and the current value that follows.
-    static let labEarlier = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|outside|osh|historical|(?<!year )(?<!years )(?<!yr )(?<!-)old|yesterday(?:'s)?|last\s+(?:month|week|year)(?:'s)?)[\s:()\[\]]*$"#)
+    static let labEarlier = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|outside|osh|historical|(?<!year )(?<!years )(?<!yr )(?<!-)old|yesterday(?:'s)?|last\s+(?:month|week|year|wk|mo|yr)(?:'s)?|(?:\d+|a|an|one|two|three|few|several)\s*(?:days?|d|wks?|weeks?|mos?|months?|yrs?|years?)\s+ago)[\s:()\[\]]*$"#)
     static let labNow = NoteRx(#"^[\s,;()\[\]]*(?:now|currently|current|today|repeat|latest|new)\b[\s:()\[\]]*(\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d)"#)
     static let hemolyzedRx = NoteRx(#"\bh(?:a)?emoly[sz](?:ed|is)\b"#)
     private static let labRules: [(id: String, rx: NoteRx, min: Double, max: Double)] = [
@@ -1401,7 +1401,7 @@ enum PatientNote {
     // MARK: Identifiers
 
     /// Words after "Patient" or "Pt" that begin a sentence about the patient, not a name.
-    static let headerStop = #"(?:is|was|has|had|a|an|the|with|presents?|presented|presenting|and|who|will|did|does|not|no|in|on|for|to|of|here|being|now|states?|stated|reports?|reported|denies|denied|underwent|tolerated|agrees|agreed)"#
+    static let headerStop = #"(?:is|was|has|had|a|an|the|with|presents?|presented|presenting|and|who|will|did|does|not|no|in|on|for|to|of|here|being|now|states?|stated|reports?|reported|denies|denied|underwent|tolerated|agrees|agreed|plan|he|she|they|we|this|it|seen|consented)"#
     static let identifierRules: [(String, NoteRx)] = [
         ("a record number", NoteRx(#"\b(?:mrn|medical record|record (?:no|number|#)|patient id|acct|account (?:no|number)|nhs (?:no|number)|ssn|social security)\b|\b\d{7,}\b"#)),
         ("a date", NoteRx(#"\b(?:dob|d\.o\.b|date of birth|born on)\b|\b\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}\b"#)),
@@ -1412,12 +1412,13 @@ enum PatientNote {
         ("a date", NoteRx(#"\b\d{1,2}(?:st|nd|rd|th)?\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?,?\s+(?:19|20)\d{2}\b|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?,?\s+(?:19|20)\d{2}\b"#)),
         ("a name", NoteRx(#"\b(?:Mr|Mrs|Ms|Miss|Mx)\.?\s+[A-Z][A-Za-z'’-]*[a-z][A-Za-z'’-]*"#, caseSensitive: true)),
         ("a name", NoteRx(#"\b(?:name is|named|patient name|pt name)\b|\bname\s*:"#)),
-        // After a header ("Patient:", "Pt -", "Name —", or "Patient" alone before a capitalized word), the words that
+        // After a header ("Patient:", "Pt -", "Name —"; or "Patient", "Pt." or "Patient-" right before a capitalized
+        // name, or one in capitals: "Pt. Jane Doe", "Patient-Jane Doe", "Patient JANE DOE"), the words that
         // follow, in any case or order ("Doe, Jane", "jane doe"), up to a number or the end of the line; never when the
         // next word is a stop word or a number ("Patient is a 68M", "Pt: 68M"). Past a comma only a capitalized name that
         // ends the line ("Doe, Jane"): "Name: Jane Doe, 68F for lap chole" and "pt name John Smith, K 5.4" still read the
         // rest. A hyphen needs a space beside it ("patient-controlled" is no header).
-        ("a name", NoteRx(#"\b(?:patient|pt|name|patient name|pt name)(?:\s*(?::|\s[-–—]+|[–—]+|-+\s)[ \t]*(?!"# + headerStop + #"\b)[A-Za-z]|[ \t]+(?!"# + headerStop + #"\b)(?-i:[A-Z][a-z]))[A-Za-z'’.-]*(?:[ \t]+[A-Za-z][A-Za-z'’.-]*){0,3}(?:,[ \t]*(?-i:[A-Z][a-z])[A-Za-z'’.-]*(?:[ \t]+(?-i:[A-Z][a-z])[A-Za-z'’.-]*)?(?=[ \t]*(?:$|[\n.;])))?"#)),
+        ("a name", NoteRx(#"\b(?:patient|pt|name|patient name|pt name)(?:\s*(?::|\s[-–—]+|[–—]+|-+\s)[ \t]*(?!"# + headerStop + #"\b)[A-Za-z]|(?:[ \t]+|\.[ \t]*|-)(?!"# + headerStop + #"\b)(?-i:[A-Z][a-z]|[A-Z]{2,}(?=[ \t]+[A-Z]{2,})))[A-Za-z'’.-]*(?:[ \t]+[A-Za-z][A-Za-z'’.-]*){0,3}(?:,[ \t]*(?-i:[A-Z][a-z])[A-Za-z'’.-]*(?:[ \t]+(?-i:[A-Z][a-z])[A-Za-z'’.-]*)?(?=[ \t]*(?:$|[\n.;])))?"#)),
         ("a phone number", NoteRx(#"\b\d{3}[-. )]\s?\d{3}[-. ]\d{4}\b"#)),
     ]
 

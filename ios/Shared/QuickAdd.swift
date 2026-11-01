@@ -589,7 +589,7 @@ enum QuickAdd {
     private static let trendAfter = NoteRx(#"^[\s,)\]]*(?:-+>|→|⟶|➝|=>|\bto\b|\bthen\b)\s*([-−]?\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d|\s*(?:mg|mcg|ug|units?|u|meq|g|gm|ml|cc)\b(?!\s*/))"#)
     /// A value marked as earlier ("baseline Cr 1.1"); "now 1.6" after it is the current one. On the Intraoperative
     /// tab a preoperative value is earlier too.
-    private static let earlierBefore = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|outside|osh|historical|(?<!year )(?<!years )(?<!yr )(?<!-)old|yesterday(?:'s)?|last\s+(?:month|week|year)(?:'s)?)[\s:()\[\]]*$"#)
+    private static let earlierBefore = NoteRx(#"\b(?:baseline|prior|previous(?:ly)?|admission|admit|initial|outside|osh|historical|(?<!year )(?<!years )(?<!yr )(?<!-)old|yesterday(?:'s)?|last\s+(?:month|week|year|wk|mo|yr)(?:'s)?|(?:\d+|a|an|one|two|three|few|several)\s*(?:days?|d|wks?|weeks?|mos?|months?|yrs?|years?)\s+ago)[\s:()\[\]]*$"#)
     private static let preopBefore = NoteRx(#"\b(?:pre-?op(?:erative)?|preoperative)[\s:()\[\]]*$"#)
     /// "venous" or "central venous" on the line: gas values read by name are not arterial ("venous pH 7.28 pCO2 55").
     private static let venousWord = NoteRx(#"\b(?:vbg|venous|capillary)\b(?!\s*(?:catheter|cath|line|access|sheath|cannula|pressure|thrombo\w*|duplex|insufficiency|stasis))"#)
@@ -1013,9 +1013,9 @@ enum QuickAdd {
     /// Not given, said after the product: "2 PRBC not given", "2 FFP held", "PRBC x2 declined".
     private static let notGivenAfter = NoteRx(#"\b(?:not\s+(?:given|transfused|hung|started|needed|used)|never\s+(?:given|transfused|hung|used)|returned\s+to\s+(?:the\s+)?(?:(?:blood\s+)?bank|(?-i:BB))|sent\s+back|unused|held|holding|on hold|declined|refused|cancell?ed|wasted|deferred|discontinued|stopped)\b"#)
     /// Said to be given, next to the product ("2 PRBC given", "gave 2 FFP", "PRBC 3 of 4 hanging"); not "to be given".
-    private static let givenWord = NoteRx(#"(?<!\bbe )(?<!\bto )\b(?:given|gave|transfused|transfusing|hung|hanging|running|infusing|infused|received|administered)\b"#)
+    private static let givenWord = NoteRx(#"(?<!\bbe )(?<!\bto )\b(?:given|gave|transfused|transfusing|hung|hanging|running|infusing|infused|administered)\b"#)
     /// Blood that may not have been given yet, anywhere in the clause: the product is asked about unless said given.
-    private static let unsureCue = NoteRx(#"\b(?:available|in (?:the )?room|cross-?matched|crossmatch|x-?matched|type and (?:cross|screen)|t&c|ready|on hold|ordered|requested|consented|if|prn|standby|(?<!as )plan(?:ned|ning|s)?|pending|will|to (?:give|transfuse|hang)|consider(?:ing)?|may need|might need|anticipated?|returned to|sent back|send back|blood bank|(?-i:BB)|cooler|on the way|coming)\b"#)
+    private static let unsureCue = NoteRx(#"\b(?:available|in (?:the )?room|in the or|in (?-i:OR)|cross-?matched|crossmatch|x-?matched|type and (?:cross|screen)|t&c|ready|on hold|ordered|requested|consented|if|prn|standby|(?<!as )plan(?:ned|ning|s)?|pending|will|to (?:give|transfuse|hang)|consider(?:ing)?|may need|might need|anticipated?|returned to|sent back|send back|blood bank|(?-i:BB)|cooler|on the way|coming)\b"#)
     /// Where a clause ends: a full stop, a semicolon or a new line.
     private static let clauseEnd = NoteRx(#"[;\n]|\.(?=\s|$)"#)
     /// "PRBC 3 of 4": the third unit of four, one more. "3 of 4 PRBC" could be that or three of the four: not read.
@@ -1030,7 +1030,7 @@ enum QuickAdd {
     private static let bloodToken = NoteRx(#"[A-Za-z]+|\d+(?:\.\d+)?[A-Za-z]*|\?"#)
     private static let bloodWords: Set<String> = [
         "u", "unit", "units", "bag", "bags", "pool", "pools", "dose", "doses", "apheresis", "of", "the", "x", "total", "cumulative",
-        "ml", "cc", "given", "gave", "transfused", "transfusing", "hung", "hanging", "running", "infused", "infusing", "received",
+        "ml", "cc", "given", "gave", "transfused", "transfusing", "hung", "hanging", "running", "infused", "infusing",
         "administered", "and", "also", "then", "now", "more", "another", "additional", "were", "was", "been", "all",
         "prbc", "prbcs", "rbc", "rbcs", "red", "blood", "cells", "cell", "packed", "ffp", "plasma", "plt", "plts", "platelet",
         "platelets", "cryo", "cryoprecipitate", "whole", "ltowb", "saver", "cellsaver",
@@ -1701,7 +1701,7 @@ enum QuickAdd {
     /// A score's grade, never the airway's ("Mallampati 3", "ASA 3").
     private static let scoreBefore = NoteRx(#"\b(?:mallampati|mp|asa|nyha|ckd|ulbt)\s*$"#)
     /// A laryngoscope right after a grade ("gr 3 DL", "grade 2a with VL"), and one named later in its piece.
-    private static let laryngoscopeAfter = NoteRx(#"^\s*(?:(?:on|with|via|by)\s+)?(?:(?-i:DL|VL)\b|mac\s*#?\s*[1-5]\b|miller\b|glide\s*scope|glidescope|glide\b|c-?mac\b|mcgrath\b|(?:video|direct)\s*laryngoscop\w*|laryngoscop\w*)"#)
+    private static let laryngoscopeAfter = NoteRx(#"^[\s(\[]*(?:(?:on|with|via|by)\s+|w/\s*)?[\s(\[]*(?:(?-i:DL|VL)\b|mac\s*#?\s*[1-5]\b|miller\b|glide\s*scope|glidescope|glide\b|c-?mac\b|mcgrath\b|(?:video|direct)\s*laryngoscop\w*|laryngoscop\w*)"#)
     private static let laryngoscopeWord = NoteRx(#"(?-i:\b(?:DL|VL)\b)|\b(?:mac\s*#?\s*[1-5]|miller|glide\s*scope|glidescope|glide|c-?mac|mcgrath|(?:video|direct)\s*laryngoscop\w*|laryngoscop\w*)\b"#)
     private static let gradeNotBefore = NoteRx(#"\b(?:mask|mv|bmv|han|mallampati|mp|asa|nyha|ckd|ulbt|ventilation)\s*$"#)
     private static let airwayContext = NoteRx(#"(?-i:\b(?:VL|DL)\b)|\b(?:ett|et tube|endotracheal|intubat\w*|laryngoscop\w*|glide ?scope|glide|c-?mac|mcgrath|miller|mac\s*#?\s*[1-5]|view|cormack|lma|i-?gel|dlt|bougie|fob)\b"#)
