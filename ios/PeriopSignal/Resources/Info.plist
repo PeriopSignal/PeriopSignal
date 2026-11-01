@@ -26,6 +26,8 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID opens My Patient's case archive when you turn on its lock.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

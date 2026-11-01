@@ -3,7 +3,7 @@ import Foundation
 /// The terms a user accepts on first launch, and the privacy notes, as plain text the app shows.
 /// Changing the terms means a new `version`: everyone is asked to accept again.
 enum Terms {
-    static let version = "2026-10-30"
+    static let version = "2026-10-31"
 
     /// The first-launch screen's points (title, body).
     static let points: [(icon: String, title: String, body: String)] = [
@@ -33,6 +33,8 @@ enum Terms {
          "Ask answers questions with Apple Intelligence on the phone when it is available, otherwise with Anthropic's Claude through the Periop Signal proxy. AI answers can be wrong: check them against the sources they cite."),
         ("Patient information",
          "My Patient stores what you enter on this iPhone, in a protected file that cannot be read while the phone is locked and is excluded from iCloud and computer backups; Clear removes it. It leaves the phone only when you send it yourself: a handoff shared as text, or a patient sent to a colleague's Periop Signal by AirDrop or Messages, which goes directly between the phones and not through Periop Signal. Messages keeps a copy in that conversation until you delete it. Don't enter names, record numbers, dates of birth or other identifiers. You are responsible for following HIPAA and your institution's policies, including where you share a handoff or send a patient."),
+        ("Case archive and rooms",
+         "No patient identifiers here either: don't put a name, record number, date of birth or other identifier in a room name or anywhere else. My Patient can hold a case for each room you cover. A room's name and phone are hospital details, kept on this iPhone so the number is typed once; Call and Text open the Phone and Messages apps with it. When you end a case, its handoff is kept in the case archive on this iPhone with the date only, no time or room, in a protected file excluded from iCloud and computer backups. It is deleted automatically after the period you choose (7 days unless you change it), Delete All removes it at once, and you can lock the archive with Face ID or the passcode."),
         ("No warranty",
          "The app and its content are provided as is, without warranties of any kind. To the extent the law allows, the author is not liable for any loss or harm arising from its use."),
         ("Links",
@@ -49,5 +51,6 @@ enum Terms {
         ("Alerts", "If you turn alerts on, Google's Firebase Cloud Messaging holds a device token and the topics you follow, used only to send the morning alert."),
         ("Ask", "When a question is answered by Claude, the question and the reference material shown with it are sent through the Periop Signal proxy to Anthropic; nothing else."),
         ("My Patient", "Nothing entered in My Patient leaves the phone unless you share a handoff or send the patient to a colleague, which goes by AirDrop or Messages directly between the phones. Fill from a note reads the note on the phone and doesn't keep it; dictating it uses iOS keyboard dictation, under Apple's privacy terms."),
+        ("Case archive & rooms", "Archived summaries and saved rooms stay on this phone, out of iCloud and computer backups, and are never sent to Periop Signal; a summary leaves only if you copy or share it. Calling or texting a room uses the Phone and Messages apps, under Apple's and your carrier's terms."),
     ]
 }

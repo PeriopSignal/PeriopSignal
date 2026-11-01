@@ -64,6 +64,7 @@ struct PatientView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         NoIdentifiersBanner()
+                        PatientRoomsBar()
                         tabBar
                         if patient.canUndo { undoBanner }
                         if let n = noteResult { noteBanner(n) }
@@ -395,7 +396,7 @@ struct PatientView: View {
 
     private var emptyCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Eyebrow(text: "One patient at a time", color: PS.accent)
+            Eyebrow(text: "New case", color: PS.accent)
             Text("Start with the procedure and the patient's age, sex, height and weight.")
                 .font(PS.serif(size: 22)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
             Text("They fill in the calculators for you; the tabs build a short history and physical, the intraoperative record and a handoff.")
