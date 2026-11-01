@@ -27,7 +27,8 @@ struct QuickAddReading: Hashable {
     var skipped: [String] = []
     /// Kinds of identifier found ("a record number"): masked before reading, so nothing is filed from them.
     var identifiers: [String] = []
-    /// Ambiguous abbreviations read by their usual meaning or the user's choice (one the context settled is not asked).
+    /// Ambiguous abbreviations read by their usual meaning or the user's choice (one the context settled is not asked),
+    /// after the reader's own questions (QuickAdd.roomAirQuestion), which add nothing until answered.
     var ambiguous: [AmbiguousAbbreviation] = []
     var unknown: [UnknownAbbreviation] = []
     /// What nothing was read from.
@@ -86,6 +87,8 @@ private struct QuickScan {
 private struct QuickOut {
     var findings: [PatientNoteFinding] = []
     var skipped: [String] = []
+    /// Questions asked the way an ambiguous abbreviation is (SpO₂ without room air written).
+    var questions: [AmbiguousAbbreviation] = []
     /// Lab keys already read: the first value of a test wins.
     var labs: Set<String> = []
 
@@ -170,6 +173,7 @@ enum QuickAdd {
         let note = PatientNote.read(s.text, now: now, abbreviations: user, choices: choices)
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
+        readPlan(base, c, &out)
 
         var rank: [String: Int] = [:]
         for (i, sec) in sections.enumerated() { rank[sec] = i }
@@ -185,8 +189,9 @@ enum QuickAdd {
             m.isAmbiguous && !certain.contains(where: { NSIntersectionRange($0, m.range).length > 0 })
                 && (!m.fromContext || choices[m.choiceKey ?? ""] != nil)
         }
-        reading.ambiguous = MedAbbreviations.ambiguous(asked, in: base)
-        reading.unread = [note.other, note.previous].filter { !$0.isEmpty }.joined(separator: "; ")
+        reading.ambiguous = out.questions + MedAbbreviations.ambiguous(asked, in: base)
+        reading.unread = asTyped([note.other, note.previous].filter { !$0.isEmpty }.joined(separator: "; "), s.text,
+                                 user: user, choices: choices)
         return reading
     }
 
@@ -250,7 +255,6 @@ enum QuickAdd {
 
     static let vitalsElsewhere = "Vital signs · the preoperative baseline, on the Preop tab"
     static let arrivalElsewhere = "Airway, ventilator and oxygen on arrival · on the Preop tab"
-    static let spo2Caution = "Room air not written: drop it if it was on oxygen."
 
     private static func route(_ f: PatientNoteFinding, _ line: String, _ c: QuickContext, _ out: inout QuickOut) {
         var f = f
@@ -261,8 +265,8 @@ enum QuickAdd {
         case .vital(let k, let v):
             guard c.tab == .preop else { return out.skip(vitalsElsewhere) }
             if k == "spo2" {
-                if f.note != nil { return out.skip("SpO₂ " + NumText.short(v) + "% on oxygen · the field is SpO₂ on room air") }
-                if !roomAirStated(line, c) { f.note = spo2Caution }
+                if f.note != nil { return out.skip(oxygenNotice(v)) }
+                return addSpO2(f, v, roomAir: roomAirStated(line, c), c, &out)
             }
             out.add(f)
         case .lab(let k, let v):
@@ -290,6 +294,48 @@ enum QuickAdd {
 
     private static func roomAirStated(_ line: String, _ c: QuickContext) -> Bool {
         roomAirWords.first(line) != nil || c.abbreviations.contains(where: { $0.key == "RA" && $0.meaning?.id == "ra-air" })
+    }
+
+    /// The question a saturation without "room air" or "RA" is asked, in the menu an ambiguous abbreviation has
+    /// ("SpO₂ 95% · room air?"); the answer is kept in `choices` under this id.
+    static let roomAirQuestion = "quick:spo2"
+    static let roomAirAnswer = "spo2-room-air"
+    static let oxygenAnswer = "spo2-oxygen"
+
+    private static func oxygenNotice(_ v: Double) -> String { "SpO₂ " + NumText.short(v) + "% on oxygen · the field is SpO₂ on room air" }
+
+    /// The field is SpO₂ on room air: filed when the line says room air, or once the user answers room air. On oxygen,
+    /// or not answered, nothing goes into it.
+    private static func addSpO2(_ f: PatientNoteFinding, _ v: Double, roomAir: Bool, _ c: QuickContext, _ out: inout QuickOut) {
+        if roomAir { return out.add(f) }
+        let value = "SpO₂ " + NumText.short(v) + "%"
+        let answer = c.choices[roomAirQuestion]
+        if !out.questions.contains(where: { $0.id == roomAirQuestion }) {
+            let options = [AbbreviationMeaning("room air", id: roomAirAnswer), AbbreviationMeaning("on oxygen", id: oxygenAnswer)]
+            out.questions.append(AmbiguousAbbreviation(id: roomAirQuestion, abbreviation: value, options: options, defaultID: roomAirAnswer,
+                                                       fromContext: false, chosenID: answer ?? roomAirAnswer, context: value))
+        }
+        if answer == roomAirAnswer {
+            out.add(f)
+        } else if answer == oxygenAnswer {
+            out.skip(oxygenNotice(v))
+        }
+    }
+
+    /// What nothing was read from, as typed: an ambiguous abbreviation that neither the context nor the user settled
+    /// is shown as written, not as the meaning the note reader tried ("levo 0.1", not "norepinephrine 0.1").
+    private static func asTyped(_ leftover: String, _ text: String, user: [String: String], choices: [String: String]) -> String {
+        guard !leftover.isEmpty else { return leftover }
+        var out = leftover
+        let typed = text.lowercased()
+        for m in MedAbbreviations.scan(text, user: user, choices: choices) {
+            guard m.isAmbiguous, !m.fromContext, choices[m.choiceKey ?? ""] == nil, let reading = m.meaning?.reading,
+                  !typed.contains(reading.lowercased()) else { continue }
+            let rx = NoteRx(#"(?<![A-Za-z])"# + NSRegularExpression.escapedPattern(for: reading) + #"(?![A-Za-z])"#)
+            guard let hit = rx.first(out) else { continue }
+            out = (out as NSString).replacingCharacters(in: hit.range, with: m.token)
+        }
+        return out
     }
 
     // MARK: Helpers
@@ -611,20 +657,23 @@ enum QuickAdd {
         guard labeled || hr != nil else { return }
         for r in taken { s.mask(r) }
         guard c.tab == .preop else { return out.skip(vitalsElsewhere) }
-        func add(_ key: String, _ v: Double, note: String? = nil) {
-            guard let f = PatientCatalog.vitals.first(where: { $0.id == key }) else { return }
+        func finding(_ key: String, _ v: Double, note: String? = nil) -> PatientNoteFinding? {
+            guard let f = PatientCatalog.vitals.first(where: { $0.id == key }) else { return nil }
             let unit = f.unit.hasPrefix("/") || f.unit == "%" ? f.unit : " " + f.unit
-            out.add(PatientNoteFinding(id: "vital:" + key, section: PatientNote.Part.vitals, label: f.label + " " + NumText.short(v) + unit,
-                                       change: .vital(key, v), note: note))
+            return PatientNoteFinding(id: "vital:" + key, section: PatientNote.Part.vitals, label: f.label + " " + NumText.short(v) + unit,
+                                      change: .vital(key, v), note: note)
+        }
+        func add(_ key: String, _ v: Double, note: String? = nil) {
+            if let f = finding(key, v, note: note) { out.add(f) }
         }
         add("sbp", sbp)
         add("dbp", dbp)
         if let v = hr { add("hr", v) }
         if let v = spo2 {
             if onOxygen {
-                out.skip("SpO₂ " + NumText.short(v) + "% on oxygen · the field is SpO₂ on room air")
-            } else {
-                add("spo2", v, note: roomAir || roomAirStated(s.original, c) ? nil : spo2Caution)
+                out.skip(oxygenNotice(v))
+            } else if let f = finding("spo2", v) {
+                addSpO2(f, v, roomAir: roomAir || roomAirStated(s.original, c), c, &out)
             }
         }
         if let v = rr { add("rr", v) }
@@ -652,10 +701,12 @@ enum QuickAdd {
         return "prbc"
     }
 
+    static let poolNote = "A pool read as 5 units, as the Fluids +5 button counts it; change it there if your pools differ."
+
+    /// Each mention is its own finding ("cryo 10, 1 pool cryo": Cryo +10 and Cryo +5 (1 pool)), so either can be left
+    /// out; the chips put the running total on the last one.
     private static func readBlood(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
-        var totals: [String: Double] = [:]
-        var order: [String] = []
-        var pools = 0.0
+        var mentions: [(key: String, n: Double, pools: Double, at: Int)] = []
         func given(_ r: NSRange, _ text: String) -> Bool {
             let p = around(r, in: text)
             if pieceNegation.first(p.before) != nil { return false }
@@ -670,9 +721,8 @@ enum QuickAdd {
             }
             return true
         }
-        func add(_ key: String, _ n: Double, _ r: NSRange) {
-            if totals[key] == nil { order.append(key) }
-            totals[key, default: 0] += n
+        func add(_ key: String, _ n: Double, _ r: NSRange, pools: Double = 0) {
+            mentions.append((key: key, n: n, pools: pools, at: r.location))
             s.mask(r)
         }
         // Units per entry that can be real; cryoprecipitate in units comes 5 or more at a time.
@@ -691,8 +741,7 @@ enum QuickAdd {
             if key == "cryo" {
                 if u.hasPrefix("pool") {
                     guard (1...5).contains(n) else { return }
-                    pools += n
-                    return add(key, n * 5, r)
+                    return add(key, n * 5, r, pools: n)
                 }
                 // "2 cryo" could be units or pools: not read.
                 if n < 5 {
@@ -723,19 +772,24 @@ enum QuickAdd {
                 add(BloodProducts.cellSaver, n, m.range)
             }
         }
-        for key in order {
-            guard let n = totals[key] else { continue }
-            let isCellSaver = key == BloodProducts.cellSaver
-            let total = (c.record.fluids[key] ?? 0) + n
-            guard total <= (isCellSaver ? 20000 : 199) else { continue }
-            let name = isCellSaver ? "Cell saver" : (BloodProducts.units.first(where: { $0.id == key })?.short ?? key)
-            var label = name + " +" + NumText.short(n) + (isCellSaver ? " mL" : "")
+        var running: [String: Double] = [:]
+        var counts: [String: Int] = [:]
+        for m in mentions.sorted(by: { $0.at < $1.at }) {
+            let isCellSaver = m.key == BloodProducts.cellSaver
+            let sum = (running[m.key] ?? 0) + m.n
+            guard (c.record.fluids[m.key] ?? 0) + sum <= (isCellSaver ? 20000 : 199) else { continue }
+            running[m.key] = sum
+            let k = (counts[m.key] ?? 0) + 1
+            counts[m.key] = k
+            let name = isCellSaver ? "Cell saver" : (BloodProducts.units.first(where: { $0.id == m.key })?.short ?? m.key)
+            var label = name + " +" + NumText.short(m.n) + (isCellSaver ? " mL" : "")
             var note: String?
-            if key == "cryo" && pools > 0 {
-                label += " (" + NumText.short(pools) + " pool" + (pools == 1 ? "" : "s") + ")"
-                note = "A pool read as 5 units, as the Fluids +5 button counts it; change it there if your pools differ."
+            if m.pools > 0 {
+                label += " (" + NumText.short(m.pools) + " pool" + (m.pools == 1 ? "" : "s") + ")"
+                note = poolNote
             }
-            out.add(PatientNoteFinding(id: "blood:" + key, section: intraop, label: label, change: .blood(key, n), note: note))
+            out.add(PatientNoteFinding(id: "blood:" + m.key + (k > 1 ? ":" + String(k) : ""), section: intraop, label: label,
+                                       change: .blood(m.key, m.n), note: note))
         }
     }
 
@@ -920,6 +974,34 @@ enum QuickAdd {
                                    note: known ? "Fills the risk-score inputs from the procedure list." : nil))
     }
 
+    // MARK: The planned anesthetic
+
+    static let planPrefix = "plan-anesthetic:"
+    static let planNote = "The usual plan for the procedure, as the Procedure editor fills it."
+
+    private static func isAnesthetic(_ f: PatientNoteFinding) -> Bool {
+        if case .anesthetic = f.change { return true }
+        return false
+    }
+
+    /// The planned anesthetic the Procedure editor fills from procedures on the list, when the record has none and the
+    /// line names no technique (even one the reader did not take, as in "TKA, spinal"). A plan already set is never
+    /// replaced.
+    private static func readPlan(_ line: String, _ c: QuickContext, _ out: inout QuickOut) {
+        let techniques = [PatientNote.gaRx, PatientNote.neuraxialRx, PatientNote.macRx, PatientNote.regionalRx]
+        guard c.record.anesthetic.isEmpty, !out.findings.contains(where: isAnesthetic),
+              !techniques.contains(where: { $0.first(line) != nil }),
+              let p = out.findings.first(where: { $0.id == "procedure" }), case .procedure(let text) = p.change,
+              PatientNote.status(p, in: c.record).canAdd else { return }
+        let picked = PlannedProcedure.parse(text).compactMap { i in i.catalog.map { (procedure: $0, side: i.side) } }
+        guard !picked.isEmpty else { return }
+        let plan = ProcedureCatalog.risk(picked: picked).anesthetic
+        for a in PatientCatalog.anesthetics where plan.contains(a.id) {
+            out.add(PatientNoteFinding(id: planPrefix + a.id, section: PatientNote.Part.procedure, label: "Planned anesthetic: " + a.label.lowercased(),
+                                       change: .anesthetic(a.id), note: planNote))
+        }
+    }
+
     // MARK: The intraoperative airway
 
     static let tubeRx = NoteRx(#"(?<![\d.])(?:(\d{1,2}(?:\.\d)?)\s*(?:mm\s*)?(?:cuffed\s+)?(?:ett|et tube|endotracheal tube)\b|\b(?:ett|et tube|endotracheal tube)\s*#?\s*(\d{1,2}(?:\.\d)?))(?![\d.])(?:\s*(?:@|at)?\s*(\d{2})(?:\s*cm\b|(?=\s*(?:$|[,;]|at\b|@))))?(?:\s*(?:at|@)?\s*(?:the\s+)?(lips?|teeth|incisors|gums|nares?)\b)?"#)
@@ -1024,13 +1106,27 @@ enum QuickAdd {
 
     // MARK: Chips
 
-    /// The chips for a reading, in its order; a blood pressure's two halves are one chip.
-    static func chips(_ q: QuickAddReading, record r: PatientRecord) -> [QuickAddChip] {
+    /// The chips for a reading, in its order: a blood pressure's two halves are one chip, and so is the planned
+    /// anesthetic. `dropped` (chip ids left out) decides what the others show: the running blood total counts only the
+    /// chips left on, and the planned anesthetic goes in only with its procedure.
+    static func chips(_ q: QuickAddReading, record r: PatientRecord, dropped: Set<String> = []) -> [QuickAddChip] {
         let sbp = q.findings.first { $0.id == "vital:sbp" }
         let dbp = q.findings.first { $0.id == "vital:dbp" }
+        let plan = q.findings.filter { $0.id.hasPrefix(planPrefix) }
         var out: [QuickAddChip] = []
         for f in q.findings {
             if f.id == "vital:dbp", sbp != nil { continue }
+            if f.id.hasPrefix(planPrefix) {
+                guard f.id == plan.first?.id else { continue }
+                let names = plan.compactMap { p -> String? in
+                    guard case .anesthetic(let a) = p.change else { return nil }
+                    return PatientCatalog.anesthetics.first(where: { $0.id == a })?.label
+                }
+                let value = names.joined(separator: " + ") + " (usual plan)"
+                out.append(QuickAddChip(id: "plan-anesthetic|" + value, findings: plan, destination: "Anesthetic", value: value, status: .new,
+                                        note: f.note))
+                continue
+            }
             if f.id == "vital:sbp", let d = dbp, case .vital(_, let s) = f.change, case .vital(_, let dv) = d.change {
                 let a = PatientNote.status(f, in: r)
                 let b = PatientNote.status(d, in: r)
@@ -1050,7 +1146,28 @@ enum QuickAdd {
             out.append(QuickAddChip(id: f.id + "|" + value, findings: [f], destination: destination, value: value,
                                     status: PatientNote.status(f, in: r), note: f.note))
         }
+        func on(_ c: QuickAddChip) -> Bool { c.canAdd && !dropped.contains(c.id) }
+        // The planned anesthetic goes in only with the procedure it comes from.
+        if let i = out.firstIndex(where: { $0.id.hasPrefix("plan-anesthetic|") }),
+           !out.contains(where: { c in c.findings.contains(where: { $0.id == "procedure" }) && on(c) }) {
+            out[i].status = .conflicts("needs the procedure")
+        }
+        // Blood: the running total on the last chip left on for each product, so it is what the chips add.
+        var keys: [String] = []
+        for c in out { if let b = blood(c), !keys.contains(b.key) { keys.append(b.key) } }
+        for k in keys {
+            let kept = out.indices.filter { blood(out[$0])?.key == k && on(out[$0]) }
+            let before = r.fluids[k] ?? 0
+            guard let last = kept.last, before > 0 || kept.count > 1 else { continue }
+            let total = kept.reduce(before) { $0 + (blood(out[$1])?.n ?? 0) }
+            out[last].value += " (total " + NumText.short(total) + (k == BloodProducts.cellSaver ? " mL" : "") + ")"
+        }
         return out
+    }
+
+    private static func blood(_ c: QuickAddChip) -> (key: String, n: Double)? {
+        guard c.findings.count == 1, case .blood(let k, let n) = c.findings[0].change else { return nil }
+        return (k, n)
     }
 
     /// The changes of the chips to file: those not dropped, that can be added.
@@ -1076,18 +1193,15 @@ enum QuickAdd {
         case .vital(let k, let v):
             let names = ["hr": "HR ", "spo2": "SpO₂ ", "rr": "RR ", "temp": "T "]
             let units = ["spo2": "%", "temp": " °C"]
-            var value = (names[k] ?? k + " ") + NumText.short(v) + (units[k] ?? "")
-            if k == "spo2", f.note == spo2Caution { value += " (RA not written)" }
-            return (destination, value)
+            return (destination, (names[k] ?? k + " ") + NumText.short(v) + (units[k] ?? ""))
         case .lab(let k, let v):
             return (destination, labText(k, v, sex: r.sex))
         case .intraopLabs(let set):
             let keys = IntraopLabs.keys.filter { set.values[$0] != nil }
             return (destination, keys.compactMap { k in set.values[k].map { labText(k, $0, sex: r.sex) } }.joined(separator: ", "))
-        case .blood(let k, let n):
-            let total = (r.fluids[k] ?? 0) + n
-            let unit = k == BloodProducts.cellSaver ? " mL" : ""
-            return (destination, f.label + ((r.fluids[k] ?? 0) > 0 ? " (total " + NumText.short(total) + unit + ")" : ""))
+        case .blood:
+            // The total goes on in chips(), from the chips left on.
+            return (destination, f.label)
         case .infusion(let drug, let rate), .intraopInfusion(let drug, let rate):
             let unit = rate.contains(where: { $0.isLetter })
             return (f.section == PatientNote.Part.meds ? "Infusions" : destination,

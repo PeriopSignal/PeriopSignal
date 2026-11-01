@@ -157,7 +157,7 @@ jobs:
               fi
             done
           }
-          shot 01-feed 14
+          shot 01-feed 18
           shot 02-deepdive 12 -ps.openPost "$LANDMARK"
           shot 03-deepdive-limits 12 -ps.openPost "$LIMITS"
           shot 04-saved 12 -ps.presave "$LANDMARK" -ps.tab saved
@@ -213,8 +213,8 @@ jobs:
           shot 55-ob-arrest 12 -ps.ref ob -ps.ob.event arrest -ps.la.weight 80
           shot 56-ob-newborn 12 -ps.ref ob -ps.forceAppearance light -ps.ob.event newborn -ps.ob.newborn 3.2
           shot 57-ob-hypertension 12 -ps.ref ob -ps.ob.event hypertension
-          shot 58-patient 12 -ps.tab patient -ps.patient demo
-          shot 59-patient-empty 12 -ps.tab patient -ps.forceAppearance light
+          shot 58-patient 16 -ps.tab patient -ps.patient demo
+          shot 59-patient-empty 16 -ps.tab patient -ps.forceAppearance light
           shot 60-patient-assessment 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment
           shot 61-patient-airway 18 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.forceAppearance light
           shot 62-patient-intraop 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop
@@ -272,12 +272,12 @@ jobs:
           shot 152-cardiac-handoff-full-text 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format full -ps.patient.jump handoff
           shot 153-dnr-preop-assessment 14 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.jump assessment
           # 1.8 quick-add bar: -ps.quickadd types a line into the bar (its chips show); -ps.quickadd.add 1 then adds it.
-          # Each sets its appearance: a forced one is kept for the launches after it.
+          # Each sets its appearance (-ps.forceAppearance applies to its own launch only).
           shot 160-quickadd-preop 16 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
           shot 161-quickadd-preop-demo-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
           shot 162-quickadd-intraop 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
           shot 163-quickadd-intraop-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
-          shot 164-quickadd-vitals-labs 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "148/86 72 95% RA 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210"
+          shot 164-quickadd-vitals-labs 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "148/86 72 95% 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210"
           shot 165-quickadd-identifier 16 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "MRN 1234567 72M for CABG x3 + AVR, EF 35%, no A-line, POEC"
           shot 166-quickadd-airway-blood 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "VL grade 1, 7.5 ETT 23 cm, easy mask, cryo 10, 1 pool cryo, cell saver 450, R radial A-line 20G"
           shot 167-quickadd-rest-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light

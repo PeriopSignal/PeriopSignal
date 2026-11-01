@@ -48,7 +48,8 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(change(q, "vital:hr"), .vital("hr", 72))
         XCTAssertEqual(change(q, "vital:rr"), .vital("rr", 16))
         XCTAssertEqual(change(q, "vital:temp"), .vital("temp", 36.8))
-        XCTAssertEqual(q.findings.first { $0.id == "vital:spo2" }?.note, QuickAdd.spo2Caution, "room air not written")
+        XCTAssertNil(change(q, "vital:spo2"), "room air not written: asked, not filed")
+        XCTAssertEqual(q.ambiguous.map(\.id), [QuickAdd.roomAirQuestion])
 
         let p = read("bp 148/86, p 72")
         XCTAssertEqual(change(p, "vital:dbp"), .vital("dbp", 86))
@@ -72,6 +73,41 @@ final class QuickAddTests: XCTestCase {
         XCTAssertTrue(q.skipped.contains { $0.hasPrefix("SpO₂ 94%") })
         XCTAssertEqual(change(q, "oxygen"), .oxygen(PatientOxygen(device: "nc", flow: 4)), "the oxygen itself is read")
         XCTAssertFalse(ids(q).contains("airway"), "own airway is inferred, not written")
+    }
+
+    func testSaturationWithoutRoomAirIsAsked() {
+        let line = "148/86 72 95% 16"
+        let q = read(line)
+        XCTAssertNil(change(q, "vital:spo2"), "not filed until room air is chosen")
+        XCTAssertEqual(change(q, "vital:rr"), .vital("rr", 16), "the rest of the row is read")
+        let ask = q.ambiguous.first { $0.id == QuickAdd.roomAirQuestion }
+        XCTAssertEqual(ask?.abbreviation, "SpO₂ 95%")
+        XCTAssertEqual(ask?.options.map(\.text), ["room air", "on oxygen"])
+        XCTAssertEqual(ask?.chosen?.text, "room air", "shown as “room air?” until chosen")
+        XCTAssertFalse(QuickAdd.chips(q, record: PatientRecord()).contains { $0.value.hasPrefix("SpO₂") }, "no chip until answered")
+
+        let air = read(line, choices: [QuickAdd.roomAirQuestion: QuickAdd.roomAirAnswer])
+        XCTAssertEqual(change(air, "vital:spo2"), .vital("spo2", 95), "room air chosen")
+        XCTAssertTrue(QuickAdd.chips(air, record: PatientRecord()).contains { $0.text == "Vitals · SpO₂ 95%" })
+
+        let o2 = read(line, choices: [QuickAdd.roomAirQuestion: QuickAdd.oxygenAnswer])
+        XCTAssertNil(change(o2, "vital:spo2"), "on oxygen: the field is SpO₂ on room air")
+        XCTAssertTrue(o2.skipped.contains { $0.hasPrefix("SpO₂ 95% on oxygen") })
+
+        let out = read(line, choices: [QuickAdd.roomAirQuestion: MedAbbreviations.asWritten])
+        XCTAssertNil(change(out, "vital:spo2"), "left out")
+        XCTAssertNil(out.ambiguous.first { $0.id == QuickAdd.roomAirQuestion }?.chosen)
+
+        // A saturation the note reader reads is asked the same way.
+        let sats = read("SpO2 96%")
+        XCTAssertNil(change(sats, "vital:spo2"))
+        XCTAssertEqual(sats.ambiguous.map(\.id), [QuickAdd.roomAirQuestion])
+        XCTAssertEqual(change(read("SpO2 96%", choices: [QuickAdd.roomAirQuestion: QuickAdd.roomAirAnswer]), "vital:spo2"), .vital("spo2", 96))
+        let written = read("SpO2 96% on room air")
+        XCTAssertEqual(change(written, "vital:spo2"), .vital("spo2", 96), "room air written: filed, nothing asked")
+        XCTAssertFalse(written.ambiguous.contains { $0.id == QuickAdd.roomAirQuestion })
+        XCTAssertTrue(read(line, .intraop).ambiguous.isEmpty, "no vital signs on the Intraoperative tab, so nothing to ask")
+        XCTAssertFalse(read("120/80 70 94% on 4L NC").ambiguous.contains { $0.id == QuickAdd.roomAirQuestion }, "oxygen written: the notice")
     }
 
     // MARK: Labs
@@ -180,6 +216,34 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(applied(neg).fluids["plasma"], 2)
     }
 
+    func testEachBloodMentionIsItsOwnChip() {
+        let q = read("cryo 10, 1 pool cryo", .intraop)
+        XCTAssertEqual(q.findings.map(\.id), ["blood:cryo", "blood:cryo:2"])
+        let chips = QuickAdd.chips(q, record: PatientRecord())
+        XCTAssertEqual(chips.map(\.text), ["Intraop · Cryo +10", "Intraop · Cryo +5 (1 pool) (total 15)"], "the running total on the last")
+        XCTAssertEqual(QuickAdd.changes(chips), [.blood("cryo", 10), .blood("cryo", 5)])
+
+        // Either can be left out, and the total is what the chips left on add.
+        let first = QuickAdd.chips(q, record: PatientRecord(), dropped: [chips[0].id])
+        XCTAssertEqual(first.map(\.id), chips.map(\.id), "a chip keeps its id when another is left out")
+        XCTAssertEqual(first.map(\.value), ["Cryo +10", "Cryo +5 (1 pool)"])
+        XCTAssertEqual(QuickAdd.changes(first, dropped: [chips[0].id]), [.blood("cryo", 5)])
+        let second = QuickAdd.chips(q, record: PatientRecord(), dropped: [chips[1].id])
+        XCTAssertEqual(QuickAdd.changes(second, dropped: [chips[1].id]), [.blood("cryo", 10)])
+
+        var given = PatientRecord()
+        given.fluids["cryo"] = 10
+        let more = QuickAdd.chips(read("cryo 10, 1 pool cryo", .intraop, record: given), record: given, dropped: [chips[1].id])
+        XCTAssertEqual(more.map(\.value), ["Cryo +10 (total 20)", "Cryo +5 (1 pool)"], "on the last chip left on")
+        var r = given
+        PatientNote.apply(QuickAdd.changes(more, dropped: [chips[1].id]), to: &r)
+        XCTAssertEqual(r.fluids["cryo"], 20, "what is filed is the total shown")
+
+        let twice = QuickAdd.chips(read("2 PRBC, 2 PRBC", .intraop), record: PatientRecord())
+        XCTAssertEqual(twice.map(\.value), ["PRBC +2", "PRBC +2 (total 4)"], "the same amount twice is two chips")
+        XCTAssertEqual(Set(twice.map(\.id)).count, 2)
+    }
+
     func testDrips() {
         let q = read("epi 0.05", .intraop)
         let r = applied(q)
@@ -208,8 +272,10 @@ final class QuickAddTests: XCTestCase {
         let levo = read("levo 0.1", .intraop)
         XCTAssertTrue(applied(levo).infusions.isEmpty, "levothyroxine 0.1 mg is a dose: not read on the usual meaning")
         XCTAssertEqual(levo.ambiguous.map(\.abbreviation), ["levo"])
+        XCTAssertEqual(levo.unread, "levo 0.1", "not read: shown as typed, not as the meaning it might have")
         let chosen = read("levo 0.1", .intraop, choices: ["levo@levo-norepinephrine": "levo-norepinephrine"])
         XCTAssertEqual(applied(chosen).infusions.map(\.drug), ["Norepinephrine"])
+        XCTAssertEqual(chosen.unread, "")
     }
 
     func testDevicesRouteByTab() {
@@ -281,6 +347,43 @@ final class QuickAddTests: XCTestCase {
         XCTAssertTrue(ids(past).contains("problem:cabg"))
         XCTAssertNil(change(read("VA ECMO 25F RFV"), "procedure"), "a device, not a planned cannulation")
         XCTAssertNil(change(read("on heparin for DVT"), "procedure"))
+    }
+
+    func testPlannedAnestheticFromTheProcedure() {
+        let q = read("68M for lap chole")
+        XCTAssertEqual(change(q, QuickAdd.planPrefix + "ga"), .anesthetic("ga"), "as the Procedure editor fills it")
+        XCTAssertEqual(applied(q).anesthetic, ["ga"])
+        let chips = QuickAdd.chips(q, record: PatientRecord())
+        guard let plan = chips.first(where: { $0.destination == "Anesthetic" }),
+              let procedure = chips.first(where: { $0.destination == "Procedure" }) else { return XCTFail("a chip each") }
+        XCTAssertEqual(plan.value, "General (usual plan)")
+        XCTAssertEqual(plan.status, .new)
+
+        // Its own chip: left out, the procedure still goes in.
+        let without = QuickAdd.changes(chips, dropped: [plan.id])
+        XCTAssertTrue(without.contains(.procedure("lap chole")))
+        XCTAssertFalse(without.contains(.anesthetic("ga")))
+        // Never without its procedure.
+        let alone = QuickAdd.chips(q, record: PatientRecord(), dropped: [procedure.id])
+        XCTAssertEqual(alone.first { $0.destination == "Anesthetic" }?.canAdd, false)
+        XCTAssertFalse(QuickAdd.changes(alone, dropped: [procedure.id]).contains(.anesthetic("ga")))
+
+        // A plan already set is never replaced, and nothing is shown.
+        var planned = PatientRecord()
+        planned.anesthetic = ["mac"]
+        let kept = read("68M for lap chole", record: planned)
+        XCTAssertFalse(kept.findings.contains { $0.id.hasPrefix(QuickAdd.planPrefix) })
+        XCTAssertFalse(QuickAdd.chips(kept, record: planned).contains { $0.destination == "Anesthetic" })
+        var r = planned
+        PatientNote.apply(QuickAdd.changes(QuickAdd.chips(kept, record: planned)), to: &r)
+        XCTAssertEqual(r.anesthetic, ["mac"])
+
+        XCTAssertFalse(read("68M for lap chole, spinal").findings.contains { $0.id.hasPrefix(QuickAdd.planPrefix) }, "a technique written")
+        XCTAssertFalse(read("68M for frobnication").findings.contains { $0.id.hasPrefix(QuickAdd.planPrefix) }, "not on the list")
+        var same = PatientRecord()
+        same.setProcedures(PlannedProcedure.parse("lap chole"), fillAnesthetic: false)
+        XCTAssertFalse(read("68M for lap chole", record: same).findings.contains { $0.id.hasPrefix(QuickAdd.planPrefix) },
+                       "the procedure is already recorded, so the bar adds neither")
     }
 
     // MARK: Negation and identifiers
@@ -378,6 +481,14 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(ids(intra), ["blood:prbc", "intraop-lab:ph", "intraop-lab:paco2", "intraop-lab:pao2", "intraop-infusion:epinephrine"])
         XCTAssertEqual(intra.ambiguous.map(\.abbreviation), ["epi"])
         XCTAssertEqual(intra.unread, "")
+
+        let vitals = read("148/86 72 95% 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210")
+        XCTAssertEqual(vitals.ambiguous.map(\.abbreviation), ["SpO₂ 95%"], "the room-air question")
+        XCTAssertFalse(ids(vitals).contains("vital:spo2"))
+        XCTAssertTrue(ids(vitals).isSuperset(of: ["vital:sbp", "vital:hr", "vital:rr", "vital:temp", "lab:na", "lab:k", "lab:plt"]))
+
+        let heart = read("MRN 1234567 72M for CABG x3 + AVR, EF 35%, no A-line, POEC")
+        XCTAssertEqual(change(heart, QuickAdd.planPrefix + "ga"), .anesthetic("ga"))
     }
 
     // MARK: The new note changes

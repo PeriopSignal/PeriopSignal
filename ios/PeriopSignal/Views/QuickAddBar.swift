@@ -44,7 +44,7 @@ struct QuickAddBar: View {
     }
 
     private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
-    private var chips: [QuickAddChip] { reading.map { QuickAdd.chips($0, record: patient.record) } ?? [] }
+    private var chips: [QuickAddChip] { reading.map { QuickAdd.chips($0, record: patient.record, dropped: dropped) } ?? [] }
     private var addable: [QuickAddChip] { chips.filter { $0.canAdd && !dropped.contains($0.id) } }
 
     var body: some View {
@@ -207,9 +207,19 @@ struct QuickAddBar: View {
         }
     }
 
-    /// An ambiguous abbreviation, read as the meaning shown: a menu to choose another (the line is read again).
+    /// An ambiguous abbreviation, read as the meaning shown: a menu to choose another (the line is read again). A
+    /// question the reader asks ("SpO₂ 95% · room air?") uses the same menu; nothing is added from it until answered.
     private func ambiguousChip(_ a: AmbiguousAbbreviation) -> some View {
         let picked = choices[a.id] != nil
+        let question = a.id.hasPrefix("quick:")
+        let leave = question ? "Leave it out" : "Leave “\(a.abbreviation)” as written"
+        let shown = a.chosen?.text ?? (question ? "left out" : "as written")
+        let spoken: String
+        if question {
+            spoken = a.abbreviation + ", " + shown + (picked ? "" : "? Not added until you choose")
+        } else {
+            spoken = a.abbreviation + " read as " + (a.chosen?.text ?? "written")
+        }
         return Menu {
             ForEach(a.options) { o in
                 Button { choose(a, o.id) } label: {
@@ -218,16 +228,12 @@ struct QuickAddBar: View {
             }
             Divider()
             Button { choose(a, MedAbbreviations.asWritten) } label: {
-                if a.chosenID == MedAbbreviations.asWritten {
-                    Label("Leave “\(a.abbreviation)” as written", systemImage: "checkmark")
-                } else {
-                    Text("Leave “\(a.abbreviation)” as written")
-                }
+                if a.chosenID == MedAbbreviations.asWritten { Label(leave, systemImage: "checkmark") } else { Text(leave) }
             }
         } label: {
             HStack(spacing: 5) {
                 Text(a.abbreviation).font(PS.mono(size: 12, weight: .bold)).foregroundStyle(PS.fg)
-                Text((a.chosen?.text ?? "as written") + (picked ? "" : "?"))
+                Text(shown + (picked ? "" : "?"))
                     .font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent2)
                 Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 9, weight: .bold)).foregroundStyle(PS.accent2)
             }
@@ -235,8 +241,8 @@ struct QuickAddBar: View {
             .background(PS.surface2, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(PS.accent2.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         }
-        .accessibilityLabel(a.abbreviation + " read as " + (a.chosen?.text ?? "written"))
-        .accessibilityHint("Choose what it means here")
+        .accessibilityLabel(spoken)
+        .accessibilityHint(question ? "Choose room air, on oxygen, or leave it out" : "Choose what it means here")
     }
 
     private func identifierChip(_ kind: String) -> some View {
@@ -328,7 +334,7 @@ struct QuickAddBar: View {
         let before = patient.record
         let seen = Set(QuickAdd.chips(shown, record: before).map(\.id))
         let q = QuickAdd.read(t, record: before, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
-        let chosen = QuickAdd.chips(q, record: before).filter { seen.contains($0.id) && $0.canAdd && !dropped.contains($0.id) }
+        let chosen = QuickAdd.chips(q, record: before, dropped: dropped).filter { seen.contains($0.id) && $0.canAdd && !dropped.contains($0.id) }
         guard !chosen.isEmpty else { return Haptics.light() }
         patient.update { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
         Haptics.success()
