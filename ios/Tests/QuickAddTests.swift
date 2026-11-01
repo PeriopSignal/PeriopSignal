@@ -336,9 +336,11 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(rate("clevi @ 2"), "2 mg/h")
         XCTAssertEqual(rate("epi gtt 50"), "50", "an infusion over the usual range: kept as written, not dropped")
         XCTAssertEqual(rate("phenylephrine infusion at 50"), "50 mcg/min")
+        XCTAssertNotEqual(rate("NTG gtt 10 mL/h"), "10 mcg/min", "a unit written is never replaced")
 
         // A bolus is not a drip.
-        for line in ["neo 100 mcg", "prop 50 mg", "gave neo 100", "neo 100 x2", "epi 10 push", "neo 100 prn", "bolus neo 100", "epi 0.3 IM"] {
+        for line in ["neo 100 mcg", "prop 50 mg", "gave neo 100", "neo 100 x2", "epi 10 push", "neo 100 prn", "bolus neo 100", "epi 0.3 IM",
+                     "neo 3 kg", "epi 10 min ago"] {
             XCTAssertTrue(applied(read(line, .intraop)).infusions.isEmpty, line)
         }
         // Levo still waits for the choice.

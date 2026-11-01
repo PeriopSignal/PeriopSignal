@@ -161,7 +161,7 @@ struct QuickDrip {
         self.bare = bare
         self.meaning = meaning
         self.confirm = confirm
-        rx = NoteRx(#"(?<![A-Za-z0-9])("# + aliases + #")(?![A-Za-z0-9])\s*(?:((?:gtt|drip|infusion)s?\b\s*(?:(?:running at|at|of)\b|@)?|at\b|@)\s*|[=:]\s*)?(\d*\.\d+|\d+)(?![\d.:]|,\d|\s*[-–]\s*\d|\s*(?:mcg|mg|ug|µg|units?|u|ml|%|g|meq|ng|mmol)\b|\s*/)"#)
+        rx = NoteRx(#"(?<![A-Za-z0-9])("# + aliases + #")(?![A-Za-z0-9])\s*(?:((?:gtt|drip|infusion)s?\b\s*(?:(?:running at|at|of)\b|@)?|at\b|@)\s*|[=:]\s*)?(\d*\.\d+|\d+)(?![\d.:]|,\d|\s*[-–]\s*\d|\s*(?:mcg|mg|ug|µg|units?|u|ml|%|g|meq|ng|mmol)\b|\s*(?:kg|lbs?|cm|mm|mmhg|cc|l|lpm|bpm|yo|y/o|years?|yrs?|wks?|weeks?|days?|d|h|hrs?|hours?|mins?|minutes?|s|secs?)\b|\s*/)"#)
     }
 
     /// The weight-based unit: "mcg/min" per kg is "mcg/kg/min".
