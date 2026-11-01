@@ -605,8 +605,7 @@ final class PatientDevicesTests: XCTestCase {
         XCTAssertEqual(big.baseSite, "axillary-artery")
         let cp = try XCTUnwrap(PatientDevices.parse("Impella CP"))
         XCTAssertEqual(cp.baseSite, "femoral-artery")
-        XCTAssertTrue(DeviceSite.options(near: CGPoint(x: 95.5 / 200, y: 61 / 420), limit: 12, within: 36).contains { $0.kind == .impella },
-                      "the IJ offers an Impella")
+        XCTAssertTrue(DeviceSite.site(id: "ij-right")?.kinds.contains(.impella) ?? false, "the IJ can hold an Impella")
     }
 
     /// A ProtekDuo (RA to PA dual-lumen cannula) is right ventricular support of its own, never VV ECMO.

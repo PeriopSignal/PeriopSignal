@@ -108,7 +108,7 @@ jobs:
             -destination "id=${{ steps.sim.outputs.udid }}" \
             -configuration Debug -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
-            test 2>&1 | tee build/test.log | grep -E "error:|Test Case|Executed|TEST" | tail -60
+            test 2>&1 | tee build/test.log | grep -E "error:|failed|Executed|TEST" | tail -60
 
       - name: Screenshots
         working-directory: ios
@@ -268,6 +268,7 @@ jobs:
           tail -c 200000 build/build.log > ../ci-out/build-tail.log 2>/dev/null || true
           grep -E "error:|warning:" build/build.log | sort | uniq -c | sort -rn | head -200 > ../ci-out/build-issues.log 2>/dev/null || true
           grep -E "error:|Test Case|Executed|TEST|failed" build/test.log | tail -200 > ../ci-out/test-summary.log 2>/dev/null || true
+          grep -E ": error: |' failed \(" build/test.log | head -100 > ../ci-out/test-failures.log 2>/dev/null || true
           echo "run=${{ github.run_number }} sha=${{ github.sha }} status=${{ job.status }}" > ../ci-out/STATUS
           # Crash reports from the simulator runs land in the host's DiagnosticReports.
           mkdir -p ../ci-out/crashes
