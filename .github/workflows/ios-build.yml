@@ -264,6 +264,7 @@ jobs:
           shot 135-rooms-archive 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive
           shot 136-rooms-archive-entry 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive-entry -ps.forceAppearance light
           shot 137-rooms-handoff 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.patient.tab summary
+          shot 138-rooms-receive 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

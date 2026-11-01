@@ -520,17 +520,23 @@ struct PatientReceiveSheet: View {
                     if !patient.isEmpty {
                         HStack(alignment: .top, spacing: 10) {
                             Image(systemName: "arrow.triangle.2.circlepath").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent)
-                            Text("This replaces the patient on your phone (\(patient.record.person.isEmpty ? "unnamed" : patient.record.person)). Undo brings it back until your next edit.")
+                            Text("Open it as a new case, or in place of the patient in \(patient.currentCase.label) (\(patient.record.person.isEmpty ? "unnamed" : patient.record.person)); Undo brings that one back until your next edit.")
                                 .font(PS.sys(size: 13)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                         }
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(PS.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        if patient.canAddCase {
+                            Button { openAsNewCase() } label: {
+                                Label("Open as a New Case", systemImage: "plus.square.on.square").frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(BigButtonStyle(prominent: true))
+                        }
                     }
                     Button { open() } label: {
-                        Label(patient.isEmpty ? "Open This Patient" : "Replace My Patient", systemImage: "person.badge.plus").frame(maxWidth: .infinity)
+                        Label(patient.isEmpty ? "Open This Patient" : "Replace \(patient.currentCase.label)", systemImage: "person.badge.plus").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(BigButtonStyle(prominent: true))
+                    .buttonStyle(BigButtonStyle(prominent: patient.isEmpty || !patient.canAddCase))
                     Button { dismiss() } label: { Text("Discard").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: false))
                     EvidenceNote("Check it against the chart. It stays on this phone like any patient you enter, until you clear it; the file you received has been deleted.", title: "Check it against the chart")
@@ -552,6 +558,15 @@ struct PatientReceiveSheet: View {
         patient.receive(packet.record)
         Haptics.success()
         onOpened(replacing)
+        dismiss()
+    }
+
+    /// In a case of its own, so the patient in the current room stays as it is.
+    private func openAsNewCase() {
+        patient.addCase()
+        patient.receive(packet.record)
+        Haptics.success()
+        onOpened(false)
         dismiss()
     }
 }

@@ -146,7 +146,7 @@ final class PatientArchive {
     static let lockKey = "ps.archive.lock"
 
     private(set) var entries: [PatientArchiveEntry] = []
-    private(set) var retentionDays = PatientArchive.defaultRetention
+    private(set) var retentionDays = 7
     /// Face ID or the passcode to open the archive; off unless turned on.
     private(set) var lockEnabled = false
     /// The file has been read (not while the phone is locked); writes wait for it so nothing is lost.

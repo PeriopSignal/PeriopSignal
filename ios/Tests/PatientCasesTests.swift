@@ -137,6 +137,16 @@ final class PatientCasesTests: XCTestCase {
         XCTAssertEqual(store.currentCase.room, "OR 4", "a patient from a colleague opens in the current case")
         store.undoReceive()
         XCTAssertEqual(store.ageYears, 61)
+
+        // Open as a New Case, from the receive sheet: the current room's patient stays as it is.
+        let before = store.currentCase.id
+        store.addCase()
+        store.receive(PatientDemo.cardiac)
+        XCTAssertEqual(store.cases.count, 3)
+        XCTAssertEqual(store.ageYears, 58)
+        XCTAssertFalse(store.canUndoReceive, "nothing was replaced")
+        store.selectCase(before)
+        XCTAssertEqual(store.ageYears, 61)
     }
 
     @MainActor func testClearKeepsTheOtherCasesOnDisk() async throws {
