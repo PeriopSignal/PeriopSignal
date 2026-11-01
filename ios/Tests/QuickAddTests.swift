@@ -299,6 +299,39 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(QuickAdd.chips(read("PRBC 3/4 hanging", .intraop), record: PatientRecord()).first?.value, "PRBC +1 (unit 3 of 4)")
     }
 
+    /// "received" does not say the blood went in: asked.
+    func testReceivedBloodIsAsked() {
+        let q = read("2 FFP received", .intraop)
+        XCTAssertTrue(applied(q).fluids.isEmpty, "nothing until answered")
+        XCTAssertNotNil(q.ambiguous.first { $0.id == QuickAdd.bloodQuestion + "plasma" })
+        XCTAssertEqual(applied(read("2 FFP received", .intraop, choices: [QuickAdd.bloodQuestion + "plasma": QuickAdd.bloodGiven])).fluids["plasma"], 2)
+    }
+
+    /// "in the OR", "in room", "in the room" next to blood: not given yet, asked; ending a list of blood, the list.
+    func testBloodInTheRoomIsAsked() {
+        for line in ["4 PRBC in the OR", "4 PRBC in room", "4 PRBC in the room"] {
+            let q = read(line, .intraop)
+            XCTAssertTrue(applied(q).fluids.isEmpty, line)
+            XCTAssertNotNil(q.ambiguous.first { $0.id == QuickAdd.bloodQuestion + "prbc" }, line)
+        }
+        let list = read("2 PRBC, 2 FFP in the OR", .intraop)
+        XCTAssertTrue(applied(list).fluids.isEmpty)
+        XCTAssertEqual(list.ambiguous.filter { $0.id.hasPrefix(QuickAdd.bloodQuestion) }.count, 2)
+    }
+
+    /// A header with a hyphen and no spaces before a capitalized name, or a period: masked; "patient-controlled" is not.
+    func testUnspacedHyphenAndPeriodHeaders() {
+        for text in ["Patient-Jane Doe\n68F for lap chole, HTN", "Pt. Jane Doe\n68F for lap chole, HTN"] {
+            let n = PatientNote.read(text, now: now)
+            XCTAssertTrue(n.identifiers.contains("a name"), text)
+            XCTAssertFalse(n.other.lowercased().contains("jane") || n.other.lowercased().contains("doe"), n.other)
+        }
+        XCTAssertFalse(PatientNote.identifiers("patient-controlled analgesia after surgery").contains("a name"))
+        let q = read("Patient-Jane Doe, 68F for lap chole")
+        XCTAssertTrue(q.identifiers.contains("a name"))
+        XCTAssertNotNil(change(q, "procedure"), "the rest is still read")
+    }
+
     /// Marks in brackets or after the value count; with two values, exactly one marked current is filed, else asked.
     func testLabMarksInBracketsAndExactlyOneCurrent() {
         XCTAssertEqual(change(read("Cr 1.1 (baseline), now 1.6"), "lab:cr"), .lab("cr", 1.6))
