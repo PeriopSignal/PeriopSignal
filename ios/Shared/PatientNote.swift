@@ -1414,9 +1414,10 @@ enum PatientNote {
         ("a name", NoteRx(#"\b(?:name is|named|patient name|pt name)\b|\bname\s*:"#)),
         // After a header ("Patient:", "Pt -", "Name —", or "Patient" alone before a capitalized word), the words that
         // follow, in any case or order ("Doe, Jane", "jane doe"), up to a number or the end of the line; never when the
-        // next word is a stop word or a number ("Patient is a 68M", "Pt: 68M"). "Name: Jane Doe, 68F for lap chole"
-        // still reads the rest. A hyphen needs a space beside it ("patient-controlled" is no header).
-        ("a name", NoteRx(#"\b(?:patient|pt|name|patient name|pt name)(?:\s*(?::|\s[-–—]+|[–—]+|-+\s)[ \t]*(?!"# + headerStop + #"\b)[A-Za-z]|[ \t]+(?!"# + headerStop + #"\b)(?-i:[A-Z][a-z]))[A-Za-z'’.-]*(?:,?[ \t]+[A-Za-z][A-Za-z'’.-]*){0,3}"#)),
+        // next word is a stop word or a number ("Patient is a 68M", "Pt: 68M"). Past a comma only a capitalized name that
+        // ends the line ("Doe, Jane"): "Name: Jane Doe, 68F for lap chole" and "pt name John Smith, K 5.4" still read the
+        // rest. A hyphen needs a space beside it ("patient-controlled" is no header).
+        ("a name", NoteRx(#"\b(?:patient|pt|name|patient name|pt name)(?:\s*(?::|\s[-–—]+|[–—]+|-+\s)[ \t]*(?!"# + headerStop + #"\b)[A-Za-z]|[ \t]+(?!"# + headerStop + #"\b)(?-i:[A-Z][a-z]))[A-Za-z'’.-]*(?:[ \t]+[A-Za-z][A-Za-z'’.-]*){0,3}(?:,[ \t]*(?-i:[A-Z][a-z])[A-Za-z'’.-]*(?:[ \t]+(?-i:[A-Z][a-z])[A-Za-z'’.-]*)?(?=[ \t]*(?:$|[\n.;])))?"#)),
         ("a phone number", NoteRx(#"\b\d{3}[-. )]\s?\d{3}[-. ]\d{4}\b"#)),
     ]
 
