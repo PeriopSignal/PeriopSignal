@@ -81,11 +81,11 @@ final class PatientIntraopExtrasTests: XCTestCase {
     func testLastLabsLine() throws {
         let l = try XCTUnwrap(IntraopLabs.lastLine(demo))
         XCTAssertEqual(l.label, "Last labs")
-        XCTAssertTrue(l.text.hasPrefix("10:40: pH 7.33 L · PaCO₂ 47 H · PaO₂ 212 · HCO₃ 24 · BE -1.5"), l.text)
+        XCTAssertTrue(l.text.hasPrefix("10:40 · pH 7.33 L · PaCO₂ 47 H · PaO₂ 212 · HCO₃ 24 · BE -1.5"), l.text)
         XCTAssertEqual(l.marks, ["pH 7.33 L", "PaCO₂ 47 H", "Hb 11.6 L", "iCa 1.14 L", "Glu 192 H"])
         for m in l.marks { XCTAssertTrue(l.text.contains(m), m) }
         let short = try XCTUnwrap(IntraopLabs.lastLine(demo, abnormalOnly: true))
-        XCTAssertEqual(short.text, "10:40: pH 7.33 L · PaCO₂ 47 H · Hb 11.6 L · iCa 1.14 L · Glu 192 H · 6 more not flagged")
+        XCTAssertEqual(short.text, "10:40 · pH 7.33 L · PaCO₂ 47 H · Hb 11.6 L · iCa 1.14 L · Glu 192 H · 6 more not flagged")
         let card = PatientSummary.intraopPartLines(demo, "labs")
         XCTAssertEqual(card.first?.marks.count, 5, "the card keeps the bold red")
         XCTAssertTrue(HandoffWriter.marks(demo).contains("Hb 11.6 L"))

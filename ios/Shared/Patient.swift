@@ -249,7 +249,7 @@ struct PatientRecord: Codable, Equatable {
     /// Intraoperative echo: the structured findings, and anything else as text.
     var intraopEcho = PatientEcho()
     var echo = ""
-    /// Intraoperative lab sets (PatientIntraopExtras); the handoff shows the most recent.
+    /// Intraoperative lab sets (PatientIntraop); the handoff shows the most recent.
     var intraopLabs: [IntraopLabSet] = []
     /// Major intraoperative considerations (IntraopConsiderations.flags) and anything else, for the handoff.
     var considerations: Set<String> = []

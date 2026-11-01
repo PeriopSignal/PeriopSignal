@@ -85,7 +85,7 @@ enum IntraopLabs {
 
     static func latest(_ r: PatientRecord) -> IntraopLabSet? { ordered(r.intraopLabs).first }
 
-    /// "10:40: pH 7.33 L · PaCO₂ 47 H · … · ROTEM/TEG: …", the abnormal values marked for bold red. `abnormalOnly`
+    /// "10:40 · pH 7.33 L · PaCO₂ 47 H · … · ROTEM/TEG: …", the abnormal values marked for bold red. `abnormalOnly`
     /// (the short handoff) keeps the flagged values and counts the rest.
     static func line(_ s: IntraopLabSet, sex: PatientSex?, now: Date = Date(), abnormalOnly: Bool = false) -> PatientSummary.Line? {
         let vals = values(s, sex: sex)
@@ -100,7 +100,7 @@ enum IntraopLabs {
         let other = s.other.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { parts.append(other) }
         guard !parts.isEmpty else { return nil }
-        let head = s.time.map { PatientSummary.time($0, now: now) + ": " } ?? ""
+        let head = s.time.map { PatientSummary.time($0, now: now) + " · " } ?? ""
         return PatientSummary.Line("Last labs", head + parts.joined(separator: " · "), marks: flagged.map(\.compact))
     }
 

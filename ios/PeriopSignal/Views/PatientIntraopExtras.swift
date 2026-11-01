@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Intraoperative extras: lab sets, blood products with + and −, major considerations; and code status
 //
-// The record's fields, ranges, lines and sources are in Shared/PatientIntraopExtras.swift and
+// The record's fields, ranges, lines and sources are in Shared/PatientIntraop.swift and
 // Shared/PatientCodeStatus.swift.
 
 private extension PatientStore {
