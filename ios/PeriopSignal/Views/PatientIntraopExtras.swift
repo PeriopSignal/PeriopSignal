@@ -16,6 +16,14 @@ private extension PatientStore {
 /// The intraoperative lab sets: the newest open, the earlier ones folded under their summary.
 struct IntraopLabsEditor: View {
     @Environment(PatientStore.self) private var patient
+    /// The page's Previous / Next focus: the newest set's fields take part in it.
+    var focus: FocusState<String?>.Binding? = nil
+
+    /// The newest set's fields, top to bottom: the order Previous and Next walk ("iop.ph").
+    static func fieldOrder(_ r: PatientRecord) -> [String] {
+        guard !r.intraopLabs.isEmpty else { return [] }
+        return IntraopLabs.tests(IntraopLabs.abg + IntraopLabs.coag).map { "iop." + $0.key }
+    }
 
     private var r: PatientRecord { patient.record }
 
@@ -35,7 +43,7 @@ struct IntraopLabsEditor: View {
         }
         ForEach(Array(sets.enumerated()), id: \.element.id) { i, s in
             if i == 0 {
-                setEditor(s)
+                setEditor(s, chained: true)
             } else {
                 DisclosureGroup {
                     VStack(alignment: .leading, spacing: 16) { setEditor(s) }.padding(.top, 8)
@@ -65,7 +73,7 @@ struct IntraopLabsEditor: View {
                 set: { v in if let i = index(id) { patient.update { $0.intraopLabs[i][keyPath: kp] = v } } })
     }
 
-    @ViewBuilder private func setEditor(_ s: IntraopLabSet) -> some View {
+    @ViewBuilder private func setEditor(_ s: IntraopLabSet, chained: Bool = false) -> some View {
         PatientGroup(title: "Drawn at") {
             HStack(spacing: 10) {
                 DatePicker("Time drawn", selection: Binding(get: { index(s.id).flatMap { patient.record.intraopLabs[$0].time } ?? Date() },
@@ -81,21 +89,26 @@ struct IntraopLabsEditor: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
         }
-        PatientGroup(title: "Blood gas") { rows(s.id, IntraopLabs.abg) }
-        PatientGroup(title: "Coagulation") { rows(s.id, IntraopLabs.coag) }
+        PatientGroup(title: "Blood gas") { rows(s.id, IntraopLabs.abg, chained: chained) }
+        PatientGroup(title: "Coagulation") { rows(s.id, IntraopLabs.coag, chained: chained) }
         PatientGroup(title: "Viscoelastic & other") {
             PatientTextField(label: "ROTEM or TEG", prompt: "e.g. EXTEM CT 85 s, A10 38 mm; FIBTEM A10 7 mm", text: text(s.id, \.viscoelastic))
             PatientTextField(label: "Other results", prompt: "e.g. Mg 1.6, SvO₂ 64%, anti-Xa", text: text(s.id, \.other))
         }
     }
 
-    @ViewBuilder private func rows(_ id: UUID, _ keys: [String]) -> some View {
+    private func chain(_ key: String, _ chained: Bool) -> PatientFieldChain? {
+        guard chained, let focus else { return nil }
+        return PatientFieldChain(focus: focus, id: "iop." + key)
+    }
+
+    @ViewBuilder private func rows(_ id: UUID, _ keys: [String], chained: Bool) -> some View {
         let tests = IntraopLabs.tests(keys)
         ForEach(Array(tests.enumerated()), id: \.element.id) { i, t in
             if t.key == "be" {
                 // The number pad has no minus sign: ± turns an excess into a deficit.
                 HStack(spacing: 0) {
-                    LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key))
+                    LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key), chain: chain(t.key, chained))
                     Button {
                         let b = value(id, t.key)
                         patient.markDiscrete()
@@ -108,7 +121,7 @@ struct IntraopLabsEditor: View {
                     .accessibilityLabel("Change the sign of the base excess")
                 }
             } else {
-                LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key))
+                LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key), chain: chain(t.key, chained))
             }
             if i < tests.count - 1 { Hairline().padding(.leading, 14) }
         }

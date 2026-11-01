@@ -72,13 +72,13 @@ extension PatientEditorView {
     @ViewBuilder var demographicsEditor: some View {
         NoIdentifiersBanner()
         PatientGroup(title: "Demographics") {
-            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears))
+            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
             Hairline().padding(.leading, 14)
-            PatientNumberField(label: "Height", unit: "cm", value: bind(\.heightCm))
+            PatientNumberField(label: "Height", unit: "cm", value: bind(\.heightCm), chain: chain("height"))
             Hairline().padding(.leading, 14)
-            PatientNumberField(label: "Weight", unit: "kg", value: bind(\.weightKg))
+            PatientNumberField(label: "Weight", unit: "kg", value: bind(\.weightKg), chain: chain("weight"))
             if r.bmi != nil {
                 Text(PatientSummary.bodyLine(r)).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)
                     .padding(.horizontal, 14).padding(.vertical, 10)
@@ -91,7 +91,7 @@ extension PatientEditorView {
         }
         PatientGroup(title: "Preprocedure vital signs") {
             ForEach(Array(PatientCatalog.vitals.enumerated()), id: \.element.id) { i, v in
-                PatientNumberField(label: v.label, unit: v.unit, value: entry(\.vitals, v.id))
+                PatientNumberField(label: v.label, unit: v.unit, value: entry(\.vitals, v.id), chain: chain("vital." + v.id))
                 if i < PatientCatalog.vitals.count - 1 { Hairline().padding(.leading, 14) }
             }
         }

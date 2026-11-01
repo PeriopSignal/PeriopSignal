@@ -2,7 +2,7 @@ import XCTest
 @testable import PeriopSignal
 
 /// My Patient 1.8, phase 1: Undo on every tab and editor (PatientUndoHistory in PatientStore); Exam normal, Echo
-/// normal and "not assessed" in the full handoff.
+/// normal and "not assessed" in the full handoff; number fields in the order Previous and Next walk.
 final class PatientPhase1Tests: XCTestCase {
     private let t0 = Date(timeIntervalSince1970: 1_800_000_000)
 
@@ -294,5 +294,27 @@ final class PatientPhase1Tests: XCTestCase {
         // The demo patient has both: nothing changes, and the short handoff is still one screen.
         XCTAssertFalse(HandoffWriter.text(PatientDemo.record).contains("not assessed"))
         XCTAssertLessThanOrEqual(HandoffWriter.shortText(PatientDemo.record).components(separatedBy: "\n").count, 14)
+    }
+    // MARK: Number entry
+
+    func testLabEntryOrderFollowsTheFishbone() {
+        let keys = PatientLabs.entryOrder(.main).map(\.key)
+        XCTAssertEqual(Array(keys.prefix(4)), ["wbc", "hb", "hct", "plt"], "WBC → Hb → Hct → Plt")
+        XCTAssertEqual(Array(keys.dropFirst(4).prefix(7)), ["na", "k", "cl", "hco3", "bun", "cr", "glucose"], "Na → K → Cl → HCO₃ → BUN → Cr → Glu")
+        XCTAssertEqual(keys.count, PatientLabs.tests(.main).count, "every main lab once")
+        XCTAssertEqual(Set(keys), Set(PatientLabs.tests(.main).map(\.key)))
+        XCTAssertEqual(PatientLabs.entryOrder(.cardiac), PatientLabs.tests(.cardiac), "the other groups keep the catalog's order")
+        XCTAssertEqual(PatientLabs.summary(PatientDemo.record).items.map(\.key), ["hb", "plt", "k", "cr", "glucose"], "the summary keeps the catalog's order")
+    }
+
+    @MainActor func testIntraopLabsChainTheNewestSet() {
+        var r = PatientRecord()
+        XCTAssertTrue(IntraopLabsEditor.fieldOrder(r).isEmpty, "no set, no fields")
+        r.intraopLabs = [IntraopLabSet(time: Date())]
+        let order = IntraopLabsEditor.fieldOrder(r)
+        XCTAssertEqual(order.first, "iop.ph")
+        XCTAssertTrue(order.contains("iop.be"), "base excess keeps its place, beside its ± button")
+        XCTAssertEqual(order.last, "iop.act")
+        XCTAssertEqual(Set(order).count, order.count, "every field once")
     }
 }

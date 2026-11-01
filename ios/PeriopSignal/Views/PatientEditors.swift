@@ -68,6 +68,8 @@ struct PatientEditorView: View {
     var onOpenRoute: (String) -> Void
     /// Home Screen–style editing of this page's lists (procedures, operations, infusions): long-press to wobble.
     @State var wobbling = false
+    /// The number field typing, by its id in `numberOrder`: Previous and Next on the keyboard move it.
+    @FocusState private var numberFocus: String?
 
     var r: PatientRecord { patient.record }
 
@@ -98,10 +100,15 @@ struct PatientEditorView: View {
             }
             .onAppear {
                 #if DEBUG
-                // Screenshot runs: -ps.patient.scroll cardiac | mask scrolls to that group.
+                // Screenshot runs: -ps.patient.scroll cardiac | mask scrolls to that group; -ps.patient.focus main.k
+                // starts typing in that number field (the keyboard's Previous / Next / Done).
                 let a = LaunchSeed.string("ps.patient.scroll")
                 if !a.isEmpty {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { proxy.scrollTo(a, anchor: .top) }
+                }
+                let f = LaunchSeed.string("ps.patient.focus")
+                if !f.isEmpty {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { numberFocus = f }
                 }
                 #endif
             }
@@ -113,8 +120,22 @@ struct PatientEditorView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
+                // In a run of number fields (labs, vitals): Previous and Next, in screen order, keep the number pad up.
+                if let i = numberFocus.flatMap({ numberOrder.firstIndex(of: $0) }) {
+                    Button { moveFocus(i - 1) } label: {
+                        HStack(spacing: 3) { Image(systemName: "chevron.up"); Text("Previous") }
+                    }
+                    .disabled(i == 0)
+                    .accessibilityLabel("Previous field")
+                    Button { moveFocus(i + 1) } label: {
+                        HStack(spacing: 3) { Image(systemName: "chevron.down"); Text("Next") }
+                    }
+                    .disabled(i + 1 >= numberOrder.count)
+                    .accessibilityLabel("Next field")
+                }
                 Spacer()
-                Button("Done") { Keyboard.dismiss() }
+                Button("Done") { numberFocus = nil; Keyboard.dismiss() }
+                    .fontWeight(.semibold)
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 PatientUndoButton()
@@ -124,6 +145,26 @@ struct PatientEditorView: View {
                 }
             }
         }
+    }
+
+    // MARK: Number fields in order
+
+    /// The number fields that Previous and Next walk on this page, in screen order.
+    var numberOrder: [String] {
+        switch editor {
+        case .details, .demographics: return ["age", "height", "weight"] + PatientCatalog.vitals.map { "vital." + $0.id }
+        case .workup("labs"): return labFieldOrder
+        case .intraop, .intraopPart("labs"): return IntraopLabsEditor.fieldOrder(r)
+        default: return []
+        }
+    }
+
+    func chain(_ id: String) -> PatientFieldChain { PatientFieldChain(focus: $numberFocus, id: id) }
+
+    private func moveFocus(_ i: Int) {
+        let order = numberOrder
+        guard order.indices.contains(i) else { return }
+        numberFocus = order[i]
     }
 
     // MARK: Bindings
@@ -205,13 +246,13 @@ struct PatientEditorView: View {
     @ViewBuilder private var details: some View {
         NoIdentifiersBanner()
         PatientGroup(title: "Patient") {
-            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears))
+            PatientNumberField(label: "Age", unit: "years", value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
             Hairline().padding(.leading, 14)
-            PatientNumberField(label: "Height", unit: "cm", value: bind(\.heightCm))
+            PatientNumberField(label: "Height", unit: "cm", value: bind(\.heightCm), chain: chain("height"))
             Hairline().padding(.leading, 14)
-            PatientNumberField(label: "Weight", unit: "kg", value: bind(\.weightKg))
+            PatientNumberField(label: "Weight", unit: "kg", value: bind(\.weightKg), chain: chain("weight"))
             let size = PatientSummary.bodyLine(r)
             if r.bmi != nil {
                 Text(size).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)
@@ -244,7 +285,7 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Vital signs") {
             ForEach(Array(PatientCatalog.vitals.enumerated()), id: \.element.id) { i, v in
-                PatientNumberField(label: v.label, unit: v.unit, value: entry(\.vitals, v.id))
+                PatientNumberField(label: v.label, unit: v.unit, value: entry(\.vitals, v.id), chain: chain("vital." + v.id))
                 if i < PatientCatalog.vitals.count - 1 { Hairline().padding(.leading, 14) }
             }
         }
@@ -598,7 +639,7 @@ struct PatientEditorView: View {
         case "meds": intraopMeds
         case "events": intraopEvents
         case "echo": intraopEcho
-        case "labs": IntraopLabsEditor()
+        case "labs": IntraopLabsEditor(focus: $numberFocus)
         case "considerations": IntraopConsiderationsEditor()
         default: EmptyView()
         }
