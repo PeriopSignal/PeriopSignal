@@ -96,8 +96,8 @@ struct PatientView: View {
                     let a = jump.isEmpty ? scroll : jump
                     if !a.isEmpty {
                         let go = {
-                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientEditor.intraopPart(String(a.dropFirst(8))), anchor: .top) }
-                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(e, anchor: .top) }
+                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(PatientEditor.intraopPart(String(a.dropFirst(8)))), anchor: .top) }
+                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(PatientJumpID(e), anchor: .top) }
                             else { proxy.scrollTo(a, anchor: .top) }
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
@@ -528,7 +528,7 @@ struct PatientView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(editors, id: \.self) { e in
-                    Button { withAnimation(.snappy) { proxy.scrollTo(e, anchor: .top) } } label: {
+                    Button { withAnimation(.snappy) { proxy.scrollTo(PatientJumpID(e), anchor: .top) } } label: {
                         Text(e.title)
                             .font(PS.sys(size: 13.5, weight: .semibold))
                             .foregroundStyle(PS.fg2)
@@ -750,16 +750,23 @@ final class PatientJumpGeometry {
     var pinY: CGFloat = -.infinity
 }
 
+/// A card's scroll target, kept apart from the jump bar's own chips (identified by the same editors), so a jump
+/// scrolls the tab and never the row of chips.
+struct PatientJumpID: Hashable {
+    var editor: PatientEditor
+    init(_ editor: PatientEditor) { self.editor = editor }
+}
+
 extension View {
     /// A card the jump bar scrolls to. The scroll target is a marker laid out a pinned bar's height above the card
     /// (an alignment guide, so the card's own layout is unchanged), so the card lands just under the pinned jump bar
     /// rather than behind it.
-    func jumpTarget<ID: Hashable>(_ id: ID) -> some View {
+    func jumpTarget(_ editor: PatientEditor) -> some View {
         background(alignment: .top) {
             Color.clear
                 .frame(height: 1)
                 .alignmentGuide(.top) { d in d[.top] + 56 }
-                .id(id)
+                .id(PatientJumpID(editor))
         }
     }
 }
