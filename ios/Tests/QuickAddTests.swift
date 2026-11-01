@@ -248,19 +248,127 @@ final class QuickAddTests: XCTestCase {
         let q = read("epi 0.05", .intraop)
         let r = applied(q)
         XCTAssertEqual(r.infusions.map(\.drug), ["Epinephrine"])
-        XCTAssertEqual(r.infusions.first?.rate, "0.05")
+        XCTAssertEqual(r.infusions.first?.rate, "0.05 mcg/kg/min", "below 1: only the weight-based unit fits")
         XCTAssertTrue(r.homeInfusions.isEmpty, "a drip in the OR is the case's")
-        XCTAssertEqual(q.findings.first?.note, QuickAdd.noUnitNote)
+        XCTAssertEqual(q.findings.first?.note, "No unit written: read as mcg/kg/min.")
         XCTAssertEqual(applied(read("epi 0.05")).homeInfusions.map(\.drug), ["Epinephrine"], "on the Preoperative tab: running on arrival")
 
         let ne = applied(read("norepinephrine 0.1 mcg/kg/min", .intraop))
         XCTAssertEqual(ne.infusions.first?.rate, "0.1 mcg/kg/min", "the note reader's drip, routed to the case")
         XCTAssertTrue(ne.homeInfusions.isEmpty)
 
-        XCTAssertTrue(applied(read("neo 100", .intraop)).infusions.isEmpty, "a bolus or a rate: not read")
-        XCTAssertTrue(applied(read("epi 10", .intraop)).infusions.isEmpty, "not a rate written bare")
+        XCTAssertEqual(applied(read("neo 100", .intraop)).infusions.first?.rate, "100 mcg/min", "shown with its unit before it is added")
+        XCTAssertEqual(applied(read("epi 10", .intraop)).infusions.first?.rate, "10 mcg/min")
         XCTAssertTrue(applied(read("off epi 0.05", .intraop)).infusions.isEmpty)
         XCTAssertTrue(applied(read("epi 0.05 off", .intraop)).infusions.isEmpty)
+    }
+
+    func testDripUnitsBySize() {
+        func rate(_ line: String) -> String? { applied(read(line, .intraop)).infusions.first?.rate }
+        // Epinephrine and norepinephrine: mcg/min from 2 to 40; below 1 only mcg/kg/min fits; 1 to 2 could be either.
+        for name in ["epi", "norepi"] {
+            XCTAssertEqual(rate(name + " 0.01"), "0.01 mcg/kg/min", name)
+            XCTAssertEqual(rate(name + " 0.99"), "0.99 mcg/kg/min", name)
+            XCTAssertEqual(rate(name + " 1"), "1", name + ": either unit, added as written")
+            XCTAssertEqual(rate(name + " 1.5"), "1.5", name)
+            XCTAssertEqual(rate(name + " 2"), "2 mcg/min", name)
+            XCTAssertEqual(rate(name + " 40"), "40 mcg/min", name)
+            XCTAssertNil(rate(name + " 41"), name + ": fits no unit")
+            XCTAssertNil(rate(name + " 0.005"), name)
+        }
+        // Phenylephrine: mcg/min from 5 to 300; 0.1 to 2 mcg/kg/min; 2 to 5 either.
+        XCTAssertEqual(rate("neo 0.1"), "0.1 mcg/kg/min")
+        XCTAssertEqual(rate("phenylephrine 1.9"), "1.9 mcg/kg/min")
+        XCTAssertEqual(rate("neo 2"), "2")
+        XCTAssertEqual(rate("neo 4.9"), "4.9")
+        XCTAssertEqual(rate("neo 5"), "5 mcg/min")
+        XCTAssertEqual(rate("phenyl 300"), "300 mcg/min")
+        XCTAssertNil(rate("neo 301"))
+        XCTAssertNil(rate("neo 0.05"))
+        // Propofol: mcg/kg/min from 5 to 300; below 5 as written (never mg/kg/h).
+        XCTAssertEqual(rate("prop 4.9"), "4.9")
+        XCTAssertEqual(rate("prop 5"), "5 mcg/kg/min")
+        XCTAssertEqual(rate("propofol 300"), "300 mcg/kg/min")
+        XCTAssertNil(rate("prop 301"))
+        // Vasopressin: units/min up to 0.2; larger as written, up to 10.
+        XCTAssertEqual(rate("vaso 0.01"), "0.01 units/min")
+        XCTAssertEqual(rate("vaso 0.2"), "0.2 units/min")
+        XCTAssertEqual(rate("vaso 0.3"), "0.3")
+        XCTAssertEqual(rate("vaso 10"), "10")
+        XCTAssertNil(rate("vaso 11"))
+        XCTAssertNil(rate("vaso 0.005"))
+        // Milrinone: mcg/kg/min from 0.1 to 1; larger as written, up to 50.
+        XCTAssertEqual(rate("milri 0.1"), "0.1 mcg/kg/min")
+        XCTAssertEqual(rate("milrinone 1"), "1 mcg/kg/min")
+        XCTAssertEqual(rate("milri 1.5"), "1.5")
+        XCTAssertNil(rate("milri 51"))
+        XCTAssertNil(rate("milri 0.05"))
+        // Dobutamine 1 to 40 and dopamine 1 to 50 mcg/kg/min.
+        XCTAssertEqual(rate("dobutamine 1"), "1 mcg/kg/min")
+        XCTAssertEqual(rate("dobut 40"), "40 mcg/kg/min")
+        XCTAssertNil(rate("dobut 41"))
+        XCTAssertNil(rate("dobut 0.5"))
+        XCTAssertEqual(rate("dopamine 1"), "1 mcg/kg/min")
+        XCTAssertEqual(rate("dopa 50"), "50 mcg/kg/min")
+        XCTAssertNil(rate("dopa 51"))
+
+        // A number that fits no unit is shown as typed, never added.
+        let high = read("epi 41", .intraop)
+        XCTAssertTrue(high.findings.isEmpty)
+        XCTAssertTrue(high.skipped.contains("“epi 41” · fits no usual rate without a unit, not added"))
+        // The chip always shows the unit, and the line says when it was assumed.
+        XCTAssertEqual(QuickAdd.chips(read("vaso 0.04", .intraop), record: PatientRecord()).first?.text, "Intraop · Vasopressin 0.04 units/min")
+        XCTAssertEqual(read("vaso 0.04", .intraop).findings.first?.note, "No unit written: read as units/min.")
+        let either = read("epi 1.5", .intraop)
+        XCTAssertEqual(QuickAdd.chips(either, record: PatientRecord()).first?.text, "Intraop · Epinephrine 1.5 (no unit)")
+        XCTAssertEqual(either.findings.first?.note, "No unit written: 1.5 could be mcg/min or mcg/kg/min, so it is added as written.")
+
+        // Written as an infusion: the Reference unit when the number fits, else as written. Bare numbers only for the
+        // eight above.
+        XCTAssertEqual(rate("NTG gtt 50"), "50 mcg/min")
+        XCTAssertEqual(rate("nitroglycerin drip 0.5"), "0.5", "fits no unit: kept as written")
+        XCTAssertNil(rate("NTG 50"), "a bare number: not read")
+        XCTAssertEqual(rate("nipride gtt 0.5"), "0.5 mcg/kg/min")
+        XCTAssertEqual(rate("esmolol infusion 100"), "100 mcg/kg/min")
+        XCTAssertEqual(rate("remi @ 0.1"), "0.1 mcg/kg/min")
+        XCTAssertEqual(rate("dex gtt 0.5"), "0.5 mcg/kg/h")
+        XCTAssertEqual(rate("nicardipine gtt 5"), "5 mg/h")
+        XCTAssertEqual(rate("clevi @ 2"), "2 mg/h")
+        XCTAssertEqual(rate("epi gtt 50"), "50", "an infusion over the usual range: kept as written, not dropped")
+        XCTAssertEqual(rate("phenylephrine infusion at 50"), "50 mcg/min")
+
+        // A bolus is not a drip.
+        for line in ["neo 100 mcg", "prop 50 mg", "gave neo 100", "neo 100 x2", "epi 10 push", "neo 100 prn", "bolus neo 100", "epi 0.3 IM"] {
+            XCTAssertTrue(applied(read(line, .intraop)).infusions.isEmpty, line)
+        }
+        // Levo still waits for the choice.
+        XCTAssertNil(rate("levo 0.1"))
+        XCTAssertEqual(applied(read("levo 0.1", .intraop, choices: ["levo@levo-norepinephrine": "levo-norepinephrine"])).infusions.first?.rate,
+                       "0.1 mcg/kg/min")
+    }
+
+    func testDripUnitsMatchTheReferenceTable() throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "reference", withExtension: "json"), "reference.json is bundled with the tests")
+        let bundle = try ReferenceLoader.decode(try Data(contentsOf: url))
+        let drugs = (bundle.infusions?.groups ?? []).flatMap(\.drugs)
+        for d in QuickAdd.dripUnits {
+            guard let ref = drugs.first(where: { $0.id == d.reference }) else {
+                XCTFail(d.reference + " is in the Reference infusion table")
+                continue
+            }
+            let unit: String?
+            switch ref.form {
+            case .perMin: unit = ref.unit.map { $0 + "/min" }
+            case .perKgPerMin: unit = ref.unit.map { $0 + "/kg/min" }
+            case .perKgPerHour: unit = ref.unit.map { $0 + "/kg/h" }
+            case .perHour: unit = ref.unit.map { $0 + "/h" }
+            default: unit = ref.unit
+            }
+            XCTAssertEqual(unit, d.unit, d.drug + ": the Reference table's unit")
+            for v in [ref.start, ref.startHigh].compactMap({ $0 }) {
+                XCTAssertEqual(d.fit(v), .unit(d.unit), d.drug + ": the Reference's starting rate is in the usual range")
+            }
+        }
     }
 
     func testAmbiguousAbbreviations() {
@@ -436,7 +544,7 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(QuickAdd.chips(read("68M for lap chole"), record: PatientRecord()).first { $0.destination == "Procedure" }?.value,
                        "Laparoscopic cholecystectomy")
         XCTAssertTrue(QuickAdd.chips(read("A-line L radial 20G"), record: PatientRecord()).contains { $0.text.hasPrefix("Lines · A-line 20 G") })
-        XCTAssertEqual(QuickAdd.chips(read("epi 0.05", .intraop), record: PatientRecord()).first?.text, "Intraop · Epinephrine 0.05 (no unit)")
+        XCTAssertEqual(QuickAdd.chips(read("epi 0.05", .intraop), record: PatientRecord()).first?.text, "Intraop · Epinephrine 0.05 mcg/kg/min")
 
         // What is already recorded is shown but not filed.
         var known = PatientRecord()
@@ -480,7 +588,13 @@ final class QuickAddTests: XCTestCase {
         let intra = read("2 PRBC, ABG 7.29/41/168, epi 0.05", .intraop)
         XCTAssertEqual(ids(intra), ["blood:prbc", "intraop-lab:ph", "intraop-lab:paco2", "intraop-lab:pao2", "intraop-infusion:epinephrine"])
         XCTAssertEqual(intra.ambiguous.map(\.abbreviation), ["epi"])
+        XCTAssertEqual(change(intra, "intraop-infusion:epinephrine"), .intraopInfusion("epinephrine", "0.05 mcg/kg/min"))
         XCTAssertEqual(intra.unread, "")
+
+        let cardiac = read("plt 1, +2 FFP, cryo 2, iCa 1.02 K 5.6 Cr 1.9, levo 0.1, vaso 0.04, 2 PRBC available", .intraop)
+        XCTAssertEqual(change(cardiac, "intraop-infusion:vasopressin"), .intraopInfusion("vasopressin", "0.04 units/min"))
+        XCTAssertNil(change(cardiac, "intraop-infusion:norepinephrine"), "levo waits for the choice")
+        XCTAssertEqual(cardiac.unread, "levo 0.1")
 
         let vitals = read("148/86 72 95% 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210")
         XCTAssertEqual(vitals.ambiguous.map(\.abbreviation), ["SpO₂ 95%"], "the room-air question")

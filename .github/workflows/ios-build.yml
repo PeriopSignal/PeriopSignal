@@ -282,7 +282,7 @@ jobs:
           shot 166-quickadd-airway-blood 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "VL grade 1, 7.5 ETT 23 cm, easy mask, cryo 10, 1 pool cryo, cell saver 450, R radial A-line 20G"
           shot 167-quickadd-rest-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
           shot 168-quickadd-added 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05" -ps.quickadd.add 1
-          shot 169-quickadd-cardiac-intraop 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "plt 1, +2 FFP, cryo 2, iCa 1.02 K 5.6 Cr 1.9, levo 0.1, 2 PRBC available"
+          shot 169-quickadd-cardiac-intraop 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "plt 1, +2 FFP, cryo 2, iCa 1.02 K 5.6 Cr 1.9, levo 0.1, vaso 0.04, 2 PRBC available"
           shot 120-cardiac-tee 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee
           shot 121-cardiac-tee-evidence 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.evidence.open 1 -ps.patient.scroll done
           shot 122-cardiac-tee-light 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light

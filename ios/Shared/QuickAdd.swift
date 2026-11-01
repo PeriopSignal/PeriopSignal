@@ -124,6 +124,60 @@ private struct QuickContext {
     }
 }
 
+/// A drip whose rate, written without a unit, gets one "by size": the Reference table's unit for a number in its
+/// usual range; the weight-based unit for one that fits only that; none for one that could be either (added as
+/// written); and nothing at all for one that fits no unit. Ranges are tried in that order, so a shared boundary goes
+/// to the earlier one ("epi 2" is 2 mcg/min, "epi 1" is added as written).
+struct QuickDrip {
+    enum Fit: Equatable { case unit(String), asTyped, none }
+
+    /// As the record names it ("epinephrine").
+    let drug: String
+    /// Its InfusionDrug id in reference.json.
+    let reference: String
+    /// The Reference table's unit ("mcg/min"), for a number in `usual`.
+    let unit: String
+    let usual: ClosedRange<Double>
+    /// Numbers that could be in either unit, or that are larger than usual but could be another rate: as written.
+    let overlap: ClosedRange<Double>?
+    /// Numbers that fit only the weight-based unit (`unit` per kg).
+    let perKg: ClosedRange<Double>?
+    /// Read with a bare number; the others need "gtt", "drip", "infusion", "at" or "@".
+    let bare: Bool
+    /// The meaning an ambiguous alias must be read as, and whether the context or the user must have chosen it.
+    let meaning: String?
+    let confirm: Bool
+    /// Group 1 the alias, group 2 the word that marks an infusion, group 3 the rate (with no unit after it).
+    let rx: NoteRx
+
+    init(_ drug: String, _ reference: String, _ aliases: String, unit: String, usual: ClosedRange<Double>, overlap: ClosedRange<Double>? = nil,
+         perKg: ClosedRange<Double>? = nil, bare: Bool = true, meaning: String? = nil, confirm: Bool = false) {
+        self.drug = drug
+        self.reference = reference
+        self.unit = unit
+        self.usual = usual
+        self.overlap = overlap
+        self.perKg = perKg
+        self.bare = bare
+        self.meaning = meaning
+        self.confirm = confirm
+        rx = NoteRx(#"(?<![A-Za-z0-9])("# + aliases + #")(?![A-Za-z0-9])\s*(?:((?:gtt|drip|infusion)s?\b\s*(?:(?:running at|at|of)\b|@)?|at\b|@)\s*|[=:]\s*)?(\d*\.\d+|\d+)(?![\d.:]|,\d|\s*[-–]\s*\d|\s*(?:mcg|mg|ug|µg|units?|u|ml|%|g|meq|ng|mmol)\b|\s*/)"#)
+    }
+
+    /// The weight-based unit: "mcg/min" per kg is "mcg/kg/min".
+    var perKgUnit: String { unit.replacingOccurrences(of: "/min", with: "/kg/min") }
+
+    /// The units a number in the overlap could be.
+    var overlapUnits: [String] { perKg == nil ? [unit] : [unit, perKgUnit] }
+
+    func fit(_ v: Double) -> Fit {
+        if usual.contains(v) { return .unit(unit) }
+        if let o = overlap, o.contains(v) { return .asTyped }
+        if let k = perKg, k.contains(v) { return .unit(perKgUnit) }
+        return .none
+    }
+}
+
 enum QuickAdd {
     /// The review group for what goes to the case itself: intraoperative labs, blood, drips and the airway course.
     static let intraop = "Intraoperative"
@@ -201,8 +255,8 @@ enum QuickAdd {
                    gasRx, gasWord, venousGas, gasLabel, bpRx, notBPBefore, vHR, vSpO2, vPercent, vRoomAir, vOxygen, vRR, vTemp, vBareTemp, vBare,
                    bloodBefore, bloodAfter, cellSaverAfter, cellSaverBefore, notGiven, offAfter, plannedLead, lineLead, lastFor, urgencyWord,
                    pastWords, detailWord, tubeRx, dltRx, gradeRx, gradeNotBefore, airwayContext, maskGradeRx, maskEaseRx, intubationEaseRx,
-                   attemptsRx, inductionTiming]
-        out += labAliases.map(\.rx) + drips.map(\.rx) + airwayDevices.map { $0.0 }
+                   attemptsRx, inductionTiming, bolusCue]
+        out += labAliases.map(\.rx) + dripUnits.map(\.rx) + airwayDevices.map { $0.0 }
         return out
     }
 
@@ -272,6 +326,10 @@ enum QuickAdd {
         case .lab(let k, let v):
             addLab(k, v, c, &out)
         case .infusion(let drug, let rate):
+            // Written as an infusion without a unit ("phenylephrine infusion at 50"): the unit by size, else as written.
+            if let d = dripUnits.first(where: { $0.drug == drug }), let r = dripRate(rate, d, marked: true) {
+                return out.add(infusionFinding(drug, r.rate, c, note: r.note))
+            }
             out.add(c.tab == .intraop ? infusionFinding(drug, rate, c, note: f.note) : f)
         case .devices(let ds):
             if c.tab == .intraop {
@@ -795,24 +853,36 @@ enum QuickAdd {
 
     // MARK: Drips
 
-    /// Drips read with a bare rate ("epi 0.05"), each with the rates that can only be a rate (a bolus is never written
-    /// that way). Others need "gtt", "drip" or a unit per minute or hour, which the note reader reads. "levo" is
-    /// read only once its meaning is chosen (levothyroxine 0.1 mg is a dose).
-    private static let drips: [(drug: String, rx: NoteRx, rates: ClosedRange<Double>, meaning: String?, confirm: Bool)] = dripList.map {
-        (drug: $0.0, rx: NoteRx(#"(?<![A-Za-z0-9])("# + $0.1 + #")(?![A-Za-z0-9])\s*(?:(?:gtt|drip|infusion)s?\s*)?(?:at\s+|@\s*|=\s*|:\s*)?(\d*\.\d+|\d+)(?![\d.]|\s*(?:mcg|mg|ug|µg|units?|u|ml|%|g|meq|ng|mmol)\b|\s*/)"#),
-         rates: $0.2, meaning: $0.3, confirm: $0.4)
-    }
-
-    private static let dripList: [(String, String, ClosedRange<Double>, String?, Bool)] = [
-        ("epinephrine", #"epinephrine|adrenaline|epi"#, 0.01...1.0, "epi-epinephrine", false),
-        ("norepinephrine", #"norepinephrine|noradrenaline|norepi|levophed|(?-i:NE)"#, 0.01...1.0, nil, false),
-        ("norepinephrine", #"levo"#, 0.01...1.0, "levo-norepinephrine", true),
-        ("vasopressin", #"vasopressin|vaso"#, 0.01...0.1, nil, false),
-        ("milrinone", #"milrinone|milri"#, 0.1...1.0, nil, false),
-        ("dobutamine", #"dobutamine|dobuta|dobut"#, 1.0...20.0, nil, false),
-        ("dopamine", #"dopamine|dopa"#, 1.0...20.0, nil, false),
+    /// Drips and the unit their rate gets "by size" (QuickDrip). The eight on top are read with a bare rate ("epi 0.05");
+    /// the others only when written as an infusion ("NTG gtt 50", "remi @ 0.1"). "levo" is read only once its meaning
+    /// is chosen (levothyroxine 0.1 mg is a dose). The units are the Reference infusion table's (reference.json), and
+    /// QuickAddTests checks them against it; the ranges are its label ranges.
+    static let dripUnits: [QuickDrip] = [
+        QuickDrip("epinephrine", "epinephrine", #"epinephrine|adrenaline|epi"#, unit: "mcg/min", usual: 2...40, overlap: 1...2, perKg: 0.01...1,
+                  meaning: "epi-epinephrine"),
+        QuickDrip("norepinephrine", "norepinephrine", #"norepinephrine|noradrenaline|norepi|levophed|(?-i:NE)"#, unit: "mcg/min", usual: 2...40,
+                  overlap: 1...2, perKg: 0.01...1),
+        QuickDrip("norepinephrine", "norepinephrine", #"levo"#, unit: "mcg/min", usual: 2...40, overlap: 1...2, perKg: 0.01...1,
+                  meaning: "levo-norepinephrine", confirm: true),
+        QuickDrip("phenylephrine", "phenylephrine", #"phenylephrine|neo-?synephrine|phenyl|neo"#, unit: "mcg/min", usual: 5...300, overlap: 2...5,
+                  perKg: 0.1...2, meaning: "neo-phenylephrine"),
+        QuickDrip("propofol", "propofol", #"propofol|diprivan|prop"#, unit: "mcg/kg/min", usual: 5...300, overlap: 0.01...5),
+        QuickDrip("vasopressin", "vasopressin", #"vasopressin|vasostrict|vaso"#, unit: "units/min", usual: 0.01...0.2, overlap: 0.2...10),
+        QuickDrip("milrinone", "milrinone", #"milrinone|milri"#, unit: "mcg/kg/min", usual: 0.1...1, overlap: 1...50),
+        QuickDrip("dobutamine", "dobutamine", #"dobutamine|dobuta|dobut"#, unit: "mcg/kg/min", usual: 1...40),
+        QuickDrip("dopamine", "dopamine", #"dopamine|dopa"#, unit: "mcg/kg/min", usual: 1...50),
+        QuickDrip("nitroglycerin", "nitroglycerin", #"nitroglycerin|ntg|tng|nitro"#, unit: "mcg/min", usual: 5...200, bare: false),
+        QuickDrip("nitroprusside", "nitroprusside", #"nitroprusside|nipride|snp"#, unit: "mcg/kg/min", usual: 0.3...10, bare: false),
+        QuickDrip("esmolol", "esmolol", #"esmolol|brevibloc"#, unit: "mcg/kg/min", usual: 50...300, bare: false),
+        QuickDrip("remifentanil", "remifentanil", #"remifentanil|ultiva|remi"#, unit: "mcg/kg/min", usual: 0.025...2, bare: false),
+        QuickDrip("dexmedetomidine", "dexmedetomidine", #"dexmedetomidine|precedex|dexmed|dex"#, unit: "mcg/kg/h", usual: 0.2...1, bare: false,
+                  meaning: "dex-dexmedetomidine"),
+        QuickDrip("nicardipine", "nicardipine", #"nicardipine|cardene|nicard"#, unit: "mg/h", usual: 3...15, bare: false),
+        QuickDrip("clevidipine", "clevidipine", #"clevidipine|cleviprex|clevi"#, unit: "mg/h", usual: 1...32, bare: false),
     ]
     private static let offAfter = NoteRx(#"^\s*(?:off|stopped|weaned|held|d/c'?d|discontinued)\b"#)
+    /// A bolus, not a drip: "gave neo 100", "epi 10 push", "neo 100 x2", "prn", a route a drip does not take.
+    static let bolusCue = NoteRx(#"\b(?:bolus(?:es|ed)?|push(?:es|ed)?|gave|given|give|prn|im|ivp|sq|subq|sc)\b|(?<![A-Za-z])[x×]\s?\d|\d\s?[x×](?![A-Za-z])"#)
     static let noUnitNote = "No unit written: added as written, without one."
 
     private static func infusionFinding(_ drug: String, _ rate: String, _ c: QuickContext, note: String?) -> PatientNoteFinding {
@@ -823,17 +893,42 @@ enum QuickAdd {
         return PatientNoteFinding(id: "infusion:" + drug, section: PatientNote.Part.meds, label: label, change: .infusion(drug, rate), note: note)
     }
 
+    /// A rate written without a unit, with the unit it gets by size and the line saying so; nil when the number fits
+    /// no unit. `marked`: written as an infusion ("gtt", "@"), so a number that fits none is kept as written.
+    static func dripRate(_ rate: String, _ d: QuickDrip, marked: Bool) -> (rate: String, note: String)? {
+        guard let v = num(rate) else { return nil }
+        let typed = rate.hasPrefix(".") ? "0" + rate : rate
+        switch d.fit(v) {
+        case .unit(let u):
+            return (typed + " " + u, "No unit written: read as " + u + ".")
+        case .asTyped:
+            let units = d.overlapUnits
+            return (typed, units.count > 1 ? "No unit written: " + typed + " could be " + units.joined(separator: " or ") + ", so it is added as written."
+                                          : noUnitNote)
+        case .none:
+            return marked ? (typed, noUnitNote) : nil
+        }
+    }
+
     private static func readDrips(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
-        for d in drips {
+        for d in dripUnits {
             let text = s.text
             for m in d.rx.all(text) {
-                guard var rate = group(m, 2, text), let v = num(rate), d.rates.contains(v) else { continue }
+                guard let rate = group(m, 3, text), num(rate) != nil else { continue }
+                let marked = m.range(at: 2).location != NSNotFound
+                if !d.bare && !marked { continue }
                 if let meaning = d.meaning, !c.means(meaning, at: m.range(at: 1), confirmed: d.confirm) { continue }
                 let p = around(m.range, in: text)
-                if pieceNegation.first(p.before) != nil || offAfter.first(p.after) != nil { continue }
-                if rate.hasPrefix(".") { rate = "0" + rate }
+                if pieceNegation.first(p.before) != nil || offAfter.first(p.after) != nil || bolusCue.first(p.before + " " + p.after) != nil {
+                    continue
+                }
                 s.mask(m.range)
-                out.add(infusionFinding(d.drug, rate, c, note: noUnitNote))
+                if let r = dripRate(rate, d, marked: marked) {
+                    out.add(infusionFinding(d.drug, r.rate, c, note: r.note))
+                } else {
+                    let typed = (s.original as NSString).substring(with: m.range).trimmingCharacters(in: .whitespaces)
+                    out.skip("“" + typed + "” · fits no usual rate without a unit, not added")
+                }
             }
         }
     }
