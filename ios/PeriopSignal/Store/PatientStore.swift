@@ -157,6 +157,7 @@ final class PatientStore {
         switch LaunchSeed.string("ps.patient") {
         case "demo": return PatientDemo.record
         case "demo-cardiac": return PatientDemo.cardiac
+        case "demo-dnr": return PatientDemo.dnr
         default: return nil
         }
     }
@@ -216,7 +217,28 @@ enum PatientDemo {
         r.lhc = lhc
         r.currentAirway = "natural"
         r.oxygen = PatientOxygen(device: "ra")
+        // Intraoperative labs with the pneumoperitoneum, the considerations for the handoff and the code status.
+        r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["ph": 7.33, "paco2": 47, "pao2": 212, "hco3a": 24, "be": -1.5,
+                                                                              "lactate": 1.1, "hb": 11.6, "k": 4.1, "na": 139, "ica": 1.14, "glucose": 192])]
+        r.considerations = ["positioning"]
+        r.considerationsNote = "Steep Trendelenburg with arms tucked for 3 h; pressure points padded, eyes taped"
+        r.codeStatus = .full
         return r
+    }
+
+    /// The demo patient with DNR/DNI orders modified for the procedure, for the code-status screenshots.
+    static var dnr: PatientRecord {
+        var r = record
+        r.codeStatus = .dnrDni
+        r.polst = true
+        r.codeStatusPlan = .modified
+        r.codeStatusPlanNote = "Accepts intubation and vasopressors for the procedure; no chest compressions or defibrillation. Original orders resume on leaving the PACU"
+        return r
+    }
+
+    /// Today at this time on the device's clock.
+    static func today(_ hour: Int, _ minute: Int) -> Date? {
+        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date())
     }
 
     /// A made-up cardiac ICU patient on support, for the diagram screenshots.
@@ -248,6 +270,19 @@ enum PatientDemo {
         r.surgeries = [PatientSurgery(name: "Laparoscopic Nissen fundoplication", procedureID: "nissen", date: PatientMonthYear(year: 2018))]
         r.teeScreen.set("dysphagia", true)
         r.teeScreen.set("stricture", false)
+        r.fluids = ["crystalloid": 1500, "prbc": 4, "plasma": 4, "platelets": 2, "cryo": 10, "cellSaver": 750, "ebl": 2200, "uop": 400]
+        r.factors = "PCC 1500 units"
+        r.intraopLabs = [
+            IntraopLabSet(time: PatientDemo.today(9, 15), values: ["ph": 7.35, "paco2": 40, "pao2": 245, "hco3a": 22, "be": -3, "lactate": 2.6,
+                                                                  "hb": 9.4, "k": 4.6, "na": 134, "ica": 1.12, "glucose": 176, "act": 132]),
+            IntraopLabSet(time: PatientDemo.today(13, 20), values: ["ph": 7.29, "paco2": 41, "pao2": 168, "hco3a": 19, "be": -6.5, "lactate": 4.2,
+                                                                   "hb": 7.9, "k": 5.4, "na": 133, "ica": 1.02, "glucose": 214,
+                                                                   "inr": 1.9, "ptt": 52, "fibrinogen": 142, "plt": 74, "act": 128],
+                          viscoelastic: "EXTEM CT 92 s, A10 34 mm; FIBTEM A10 6 mm"),
+        ]
+        r.considerations = ["pressors", "tee", "surgical"]
+        r.considerationsNote = "Epinephrine and norepinephrine rising after bypass; severe LV dysfunction on TEE; diffuse coagulopathy, chest may stay open"
+        r.codeStatus = .full
         return r
     }
 }

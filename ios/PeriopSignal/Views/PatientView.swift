@@ -79,6 +79,19 @@ struct PatientView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 32)
                 }
+                .onAppear {
+                    #if DEBUG
+                    // Screenshot runs: -ps.patient.jump handoff | assessment | intraop:<part> scrolls the tab to it.
+                    let a = LaunchSeed.string("ps.patient.jump")
+                    if !a.isEmpty {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientEditor.intraopPart(String(a.dropFirst(8))), anchor: .top) }
+                            else if a == "assessment" { proxy.scrollTo(PatientEditor.assessment, anchor: .top) }
+                            else { proxy.scrollTo(a, anchor: .top) }
+                        }
+                    }
+                    #endif
+                }
             }
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
@@ -253,8 +266,9 @@ struct PatientView: View {
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         let echoUp = PatientRules.echoFirst(r) || PatientTEE.planned(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty
-        let parts = PatientEditor.intraopParts.filter { $0.id != "echo" || echoUp }
-        jumpBar(proxy, parts.map { PatientEditor.intraopPart($0.id) })
+        // Major considerations close the tab, after the echo button.
+        let parts = PatientEditor.intraopParts.filter { ($0.id != "echo" || echoUp) && $0.id != "considerations" }
+        jumpBar(proxy, parts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")])
         ForEach(parts, id: \.id) { part in
             PatientSectionCard(editor: .intraopPart(part.id), lines: PatientSummary.intraopPartLines(r, part.id), empty: Self.intraopEmpty[part.id] ?? "")
                 .id(PatientEditor.intraopPart(part.id))
@@ -265,6 +279,8 @@ struct PatientView: View {
             }
             .buttonStyle(GhostButtonStyle())
         }
+        PatientSectionCard(editor: .intraopPart("considerations"), lines: PatientSummary.intraopPartLines(r, "considerations"), empty: Self.intraopEmpty["considerations"] ?? "")
+            .id(PatientEditor.intraopPart("considerations"))
     }
 
     private static let intraopEmpty: [String: String] = [
@@ -272,7 +288,9 @@ struct PatientView: View {
         "lines": "Peripheral, arterial and central lines.",
         "regional": "Blocks and neuraxial techniques, drugs and catheters.",
         "infusions": "Drips running and their rates.",
-        "fluids": "Crystalloid, colloid, blood products, cell saver, blood loss and urine.",
+        "fluids": "Crystalloid, colloid, blood products with + and −, cell saver, blood loss and urine.",
+        "labs": "Blood gas and coagulation sets with their times; the latest goes to the handoff.",
+        "considerations": "Difficult airway, massive transfusion, pressors, TEE findings and more, for the top of the handoff.",
         "meds": "Antibiotic and time, steroids, TXA, reversal, positioning.",
         "events": "What happened, and whether the patient leaves intubated or extubated.",
         "echo": "LV and RV function, valves, aorta, other findings.",
@@ -286,7 +304,7 @@ struct PatientView: View {
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
         } else {
-            HandoffPanel(record: r)
+            HandoffPanel(record: r).id("handoff")
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Lines & devices now")
                 PatientDiagramCard(record: r, phase: .all, height: 380)
@@ -526,7 +544,7 @@ struct HandoffPanel: View {
                 .pickerStyle(.segmented)
                 .frame(width: 150)
             }
-            Text(text)
+            Text(handoffStyled(text, marks: HandoffWriter.marks(record)))
                 .font(PS.sys(size: 14.5))
                 .foregroundStyle(PS.fg)
                 .lineSpacing(3)

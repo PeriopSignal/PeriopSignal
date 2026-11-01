@@ -41,6 +41,8 @@ enum PatientNoteChange: Hashable {
     /// already has (same kind and site) is not added again.
     case devices([PatientDevice])
     case otherHistory(String)
+    /// Code status, a POLST on file and the perioperative plan (PatientCodeStatus); nil where the note did not say.
+    case codeStatus(CodeStatus?, polst: Bool, plan: CodeStatusPlan?)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -455,6 +457,7 @@ enum PatientNote {
     static var allPatterns: [NoteRx] {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
+        out += PatientCodeStatus.patterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
@@ -1053,6 +1056,10 @@ enum PatientNote {
                 h.add(PatientNoteFinding(id: "dentition", section: Part.airway, label: "Teeth: " + t, change: .dentition(t)), at: m.range)
             }
         }
+        if let cs = PatientCodeStatus.read(c), let first = cs.ranges.first {
+            h.add(PatientCodeStatus.finding(cs.status, polst: cs.polst, plan: cs.plan), at: first)
+            for r in cs.ranges.dropFirst() { h.seen(r) }
+        }
         if let m = npoMidnightRx.first(c) {
             let midnight = PatientRecord.npoMidnight(now)
             h.add(PatientNoteFinding(id: "intake:solids", section: Part.intake, label: "Solids: midnight", change: .lastSolids(midnight)), at: m.range)
@@ -1531,6 +1538,8 @@ enum PatientNote {
             // A bare "intubated" or "on the vent" gives way to a tracheostomy named.
             if i == "ett", d.isEmpty, p.isEmpty, j == "trach" { return b }
             return nil
+        case (.codeStatus, .codeStatus):
+            return PatientCodeStatus.merged(a.change, b.change)
         default:
             return nil
         }
@@ -1689,6 +1698,8 @@ enum PatientNote {
             return newDevices(ds, in: r).isEmpty ? .recorded : .new
         case .otherHistory(let t):
             return mentions(r.otherHistory, t) ? .recorded : .new
+        case .codeStatus(let s, let polst, let plan):
+            return PatientCodeStatus.status(s, polst: polst, plan: plan, in: r)
         }
     }
 
@@ -1758,6 +1769,7 @@ enum PatientNote {
                 let add = newDevices(ds, in: r)
                 r.devices += add
             case .otherHistory(let t): r.otherHistory = joined(r.otherHistory, t)
+            case .codeStatus(let s, let polst, let plan): PatientCodeStatus.apply(s, polst: polst, plan: plan, to: &r)
             }
         }
     }
