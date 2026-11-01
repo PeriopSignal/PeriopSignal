@@ -32,17 +32,9 @@ struct PatientArchiveView: View {
     var opensFirst = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @State private var path: [UUID]
+    @State private var path: [UUID] = []
     @State private var unlocked = false
     @State private var confirmDeleteAll = false
-
-    init(archive: PatientArchive, opensFirst: Bool = false) {
-        self.archive = archive
-        self.opensFirst = opensFirst
-        // Screenshot runs open on the newest summary (never behind the lock).
-        let first = opensFirst && !archive.lockEnabled ? archive.byDay.first?.entries.first?.id : nil
-        _path = State(initialValue: first.map { [$0] } ?? [])
-    }
 
     private var locked: Bool { archive.lockEnabled && !unlocked }
 
@@ -71,6 +63,11 @@ struct PatientArchiveView: View {
         .task {
             archive.prune()
             if archive.lockEnabled { unlocked = await ArchiveLock.unlock("Open the case archive") }
+            if opensFirst {
+                // Pushed once the sheet has settled (never behind the lock).
+                try? await Task.sleep(nanoseconds: 700_000_000)
+                if !locked, let first = archive.byDay.first?.entries.first { path = [first.id] }
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             // Locked again when the app leaves the screen; past-due summaries go when it comes back.
