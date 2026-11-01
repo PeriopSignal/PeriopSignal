@@ -79,6 +79,19 @@ struct PatientView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 32)
                 }
+                .onAppear {
+                    #if DEBUG
+                    // Screenshot runs: -ps.patient.jump handoff | assessment | intraop:<part> scrolls the tab to it.
+                    let a = LaunchSeed.string("ps.patient.jump")
+                    if !a.isEmpty {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientEditor.intraopPart(String(a.dropFirst(8))), anchor: .top) }
+                            else if a == "assessment" { proxy.scrollTo(PatientEditor.assessment, anchor: .top) }
+                            else { proxy.scrollTo(a, anchor: .top) }
+                        }
+                    }
+                    #endif
+                }
             }
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
@@ -290,7 +303,7 @@ struct PatientView: View {
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
         } else {
-            HandoffPanel(record: r)
+            HandoffPanel(record: r).id("handoff")
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Lines & devices now")
                 PatientDiagramCard(record: r, phase: .all, height: 380)

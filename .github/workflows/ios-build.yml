@@ -266,6 +266,11 @@ jobs:
           shot 116-dnr-handoff-short 12 -ps.tab patient -ps.patient demo-dnr -ps.patient.open handoff -ps.handoff.format short
           shot 117-patient-note-code 14 -ps.tab patient -ps.patient.open note -ps.patient.note "78 yo F for TAVR. DNR/DNI, POLST on file; DNR suspended for the procedure."
           shot 118-cardiac-handoff-short 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format short
+          shot 119-cardiac-intraop-cards 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.jump intraop:fluids
+          shot 120-patient-considerations-card 14 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.patient.jump intraop:considerations
+          shot 121-cardiac-handoff-short-text 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format short -ps.patient.jump handoff
+          shot 122-cardiac-handoff-full-text 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format full -ps.patient.jump handoff
+          shot 123-dnr-preop-assessment 14 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.jump assessment
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
