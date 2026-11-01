@@ -243,9 +243,9 @@ jobs:
           shot 93-patient-intraop-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab intraop
           shot 94-patient-summary-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab summary
           shot 95-patient-procedure 12 -ps.tab patient -ps.patient demo -ps.patient.open procedure
-          shot 96-patient-demographics 12 -ps.tab patient -ps.patient demo -ps.patient.open demographics
+          shot 96-patient-demographics 16 -ps.tab patient -ps.patient demo -ps.patient.open demographics
           shot 97-patient-history 12 -ps.tab patient -ps.patient demo -ps.patient.open history
-          shot 98-patient-echo 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
+          shot 98-patient-echo 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
           shot 99-patient-lhc 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc
           shot 100-patient-surgeries 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries
           shot 101-patient-events 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events
@@ -279,12 +279,22 @@ jobs:
           shot 130-rooms 12 -ps.tab patient -ps.patient demo-rooms
           shot 131-rooms-cvor-light 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.forceAppearance light
           shot 132-rooms-ep-no-phone 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3
-          shot 133-rooms-room 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room
-          shot 134-rooms-end-case 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open end-case
-          shot 135-rooms-archive 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive
-          shot 136-rooms-archive-entry 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive-entry -ps.forceAppearance light
+          shot 133-rooms-room 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room
+          shot 134-rooms-end-case 16 -ps.tab patient -ps.patient demo-rooms -ps.patient.open end-case
+          shot 135-rooms-archive 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive
+          shot 136-rooms-archive-entry 21 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive-entry -ps.forceAppearance light
           shot 137-rooms-handoff 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.patient.tab summary
           shot 138-rooms-receive 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive
+          shot 170-patient-pinned-jump 15 -ps.tab patient -ps.patient demo -ps.patient.scroll history
+          shot 171-patient-vitals-keyboard 16 -ps.tab patient -ps.patient demo -ps.patient.open demographics -ps.patient.focus vital.hr
+          shot 172-cardiac-pinned-intraop 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance light
+          shot 173-rooms-exam-normal 16 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open airway
+          shot 174-rooms-exam-normal-undo 16 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open airway -ps.patient.edit exam -ps.forceAppearance light
+          shot 175-rooms-echo-normal 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open workup:echo
+          shot 176-cardiac-intraop-echo-normal 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:echo
+          shot 177-patient-labs-keyboard 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:labs -ps.patient.focus main.k
+          shot 178-patient-undo-tab 14 -ps.tab patient -ps.patient demo -ps.patient.edit exam
+          shot 179-patient-shield 16 -ps.tab patient -ps.patient demo -ps.patient.shield 1
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -285,11 +285,6 @@ struct PatientDevicesEditor: View {
     @State private var showTapMenu = false
     @State private var editingID: UUID?
     @FocusState private var typing: Bool
-    /// Undo: the record before each change made on this page (a burst of typing counts as one), newest last.
-    @State private var history: [PatientRecord] = []
-    @State private var restoring = false
-    @State private var checkpointNext = false
-    @State private var lastChange = Date.distantPast
     /// The item held on the diagram, for its actions.
     @State private var heldID: UUID?
     @State private var showHeldMenu = false
@@ -311,9 +306,9 @@ struct PatientDevicesEditor: View {
                         Spacer(minLength: 4)
                         Button(action: undo) { Label("Undo", systemImage: "arrow.uturn.backward") }
                             .buttonStyle(CapsuleButtonStyle(prominent: false))
-                            .disabled(history.isEmpty)
-                            .opacity(history.isEmpty ? 0.4 : 1)
-                            .accessibilityHint("Undoes the last change on this page")
+                            .disabled(!patient.canUndo)
+                            .opacity(patient.canUndo ? 1 : 0.4)
+                            .accessibilityHint("Undoes the last change to this patient")
                         Button(editing ? "Done" : "Edit") { Haptics.light(); withAnimation(.snappy) { editing.toggle() } }
                             .buttonStyle(CapsuleButtonStyle(prominent: editing))
                     }
@@ -359,7 +354,6 @@ struct PatientDevicesEditor: View {
                 list
             }
         }
-        .onChange(of: patient.record) { old, _ in remember(old) }
         .sheet(item: Binding(get: { editingID.map { IDBox(id: $0) } }, set: { editingID = $0?.id })) { box in
             DeviceDetailSheet(deviceID: box.id)
                 .environment(patient)
@@ -372,26 +366,12 @@ struct PatientDevicesEditor: View {
 
     // MARK: Undo
 
-    /// Keeps the record as it was before a change. A tap, drag or delete is one step; typing in a field within a second
-    /// of the last change joins that step.
-    private func remember(_ old: PatientRecord) {
-        if restoring { restoring = false; return }
-        let now = Date()
-        if checkpointNext || history.isEmpty || now.timeIntervalSince(lastChange) > 1 {
-            history.append(old)
-            if history.count > 50 { history.removeFirst(history.count - 50) }
-        }
-        checkpointNext = false
-        lastChange = now
-    }
-
-    private func checkpoint() { checkpointNext = true }
-
+    /// The store's Undo (PatientUndoHistory), as in the navigation bar: a tap, drag or delete is one step; typing
+    /// within a second of the last change joins that step.
     private func undo() {
-        guard let previous = history.popLast() else { return }
+        guard patient.canUndo else { return }
         Haptics.light()
-        restoring = true
-        withAnimation(.snappy) { patient.update { $0 = previous } }
+        withAnimation(.snappy) { patient.undo() }
     }
 
     // MARK: Typed shorthand
@@ -609,10 +589,9 @@ struct PatientDevicesEditor: View {
 
     private func add(_ ds: [PatientDevice], open: Bool) {
         guard !ds.isEmpty else { return }
-        checkpoint()
         Haptics.light()
         var added: [UUID] = []
-        patient.update { r in
+        patient.update(discrete: true) { r in
             for d in ds {
                 // The airway is the record's own: an ETT or tracheostomy sets it instead of adding a device.
                 switch d.kind {
@@ -644,8 +623,7 @@ struct PatientDevicesEditor: View {
 
     private func move(_ id: String, _ by: CGSize) {
         guard let uuid = UUID(uuidString: id) else { return }
-        checkpoint()
-        patient.update { r in
+        patient.update(discrete: true) { r in
             guard let i = r.devices.firstIndex(where: { $0.id == uuid }) else { return }
             let o = r.devices[i].offset ?? .zero
             r.devices[i].offset = CGPoint(x: o.x + by.width / 200, y: o.y + by.height / 420)
@@ -654,9 +632,8 @@ struct PatientDevicesEditor: View {
 
     private func delete(_ id: String) {
         guard let uuid = UUID(uuidString: id) else { return }
-        checkpoint()
         Haptics.light()
-        withAnimation(.snappy) { patient.update { $0.devices.removeAll { $0.id == uuid } } }
+        withAnimation(.snappy) { patient.update(discrete: true) { $0.devices.removeAll { $0.id == uuid } } }
     }
 }
 
@@ -673,8 +650,9 @@ struct DeviceDetailSheet: View {
     private var index: Int? { patient.record.devices.firstIndex { $0.id == deviceID } }
     private var device: PatientDevice? { index.map { patient.record.devices[$0] } }
 
-    private func update(_ f: (inout PatientDevice) -> Void) {
-        patient.update { r in if let i = r.devices.firstIndex(where: { $0.id == deviceID }) { f(&r.devices[i]) } }
+    /// A typed detail joins the burst it is part of; a menu pick, toggle or chip (`discrete`) is an Undo step of its own.
+    private func update(discrete: Bool = false, _ f: (inout PatientDevice) -> Void) {
+        patient.update(discrete: discrete) { r in if let i = r.devices.firstIndex(where: { $0.id == deviceID }) { f(&r.devices[i]) } }
     }
 
     var body: some View {
@@ -688,7 +666,7 @@ struct DeviceDetailSheet: View {
                                 Spacer()
                                 Menu {
                                     ForEach(DeviceKind.allCases.filter { ![.ett, .trach, .epidural, .spinal, .block, .perineuralCatheter].contains($0) }, id: \.self) { k in
-                                        Button(k.name) { update { $0.kind = k } }
+                                        Button(k.name) { update(discrete: true) { $0.kind = k } }
                                     }
                                 } label: {
                                     HStack(spacing: 4) {
@@ -704,7 +682,7 @@ struct DeviceDetailSheet: View {
                                 Spacer()
                                 Menu {
                                     ForEach(DeviceSite.all.filter { $0.kinds.contains(d.kind) || d.kind == .other }) { s in
-                                        Button(s.name.prefix(1).uppercased() + s.name.dropFirst()) { update { $0.site = s.id; $0.side = s.side; $0.offset = nil } }
+                                        Button(s.name.prefix(1).uppercased() + s.name.dropFirst()) { update(discrete: true) { $0.site = s.id; $0.side = s.side; $0.offset = nil } }
                                     }
                                 } label: {
                                     HStack(spacing: 4) {
@@ -722,12 +700,12 @@ struct DeviceDetailSheet: View {
                             }
                         }
                         PatientGroup(title: nil) {
-                            Toggle(isOn: Binding(get: { device?.placedIntraop ?? false }, set: { v in update { $0.placedIntraop = v } })) {
+                            Toggle(isOn: Binding(get: { device?.placedIntraop ?? false }, set: { v in update(discrete: true) { $0.placedIntraop = v } })) {
                                 Text("Placed in the room (not there on arrival)").font(PS.sys(size: 14.5)).foregroundStyle(PS.fg)
                             }
                             .tint(PS.accent).padding(.horizontal, 14).padding(.vertical, 9)
                             Hairline().padding(.leading, 14)
-                            Toggle(isOn: Binding(get: { device?.removed ?? false }, set: { v in update { $0.removed = v } })) {
+                            Toggle(isOn: Binding(get: { device?.removed ?? false }, set: { v in update(discrete: true) { $0.removed = v } })) {
                                 Text("Removed").font(PS.sys(size: 14.5)).foregroundStyle(PS.fg)
                             }
                             .tint(PS.accent).padding(.horizontal, 14).padding(.vertical, 9)
@@ -736,7 +714,7 @@ struct DeviceDetailSheet: View {
                             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                             .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         Button(role: .destructive) {
-                            patient.update { $0.devices.removeAll { $0.id == deviceID } }
+                            patient.update(discrete: true) { $0.devices.removeAll { $0.id == deviceID } }
                             dismiss()
                         } label: { Label("Delete", systemImage: "trash").frame(maxWidth: .infinity) }
                             .buttonStyle(BigButtonStyle(prominent: false))
@@ -756,6 +734,7 @@ struct DeviceDetailSheet: View {
 struct DeviceFieldRow: View {
     var field: DeviceField
     @Binding var value: String
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     var body: some View {
         Group {
@@ -812,7 +791,7 @@ struct DeviceFieldRow: View {
 
     @ViewBuilder private var chips: some View {
         ForEach(field.choices, id: \.self) { c in
-            Button(c) { value = value == c ? "" : c }
+            Button(c) { store?.markDiscrete(); value = value == c ? "" : c }
                 .font(PS.sys(size: 12.5, weight: .semibold))
                 .foregroundStyle(value == c ? PS.accentFg : PS.fg2)
                 .padding(.horizontal, 10).padding(.vertical, 5)

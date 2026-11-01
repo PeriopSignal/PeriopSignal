@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// "No patient identifiers": at the top of My Patient and of Fill from a note.
-/// One thin line, "No patient identifiers ⓘ", that opens to the full warning.
+/// "No patient identifiers", in full: on My Patient while the patient is empty (a first-time user's first view) and at
+/// the top of Fill from a note. One thin line, "No patient identifiers ⓘ", that opens to the full warning. Elsewhere on
+/// My Patient a grey shield in the navigation bar opens the same words (NoIdentifiersShield).
 struct NoIdentifiersBanner: View {
+    static let warning = "Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules."
     @State private var open = LaunchSeed.bool("ps.evidence.open")
 
     var body: some View {
@@ -23,7 +25,7 @@ struct NoIdentifiersBanner: View {
             .accessibilityValue(open ? "Warning shown" : "")
             .accessibilityHint(open ? "Hides the warning" : "Shows the full warning")
             if open {
-                Text("Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules.")
+                Text(Self.warning)
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5)
                     .fixedSize(horizontal: false, vertical: true)
                     .transition(.opacity)
@@ -33,6 +35,48 @@ struct NoIdentifiersBanner: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(PS.accent.opacity(0.28), lineWidth: 1))
+    }
+}
+
+/// "No patient identifiers" as a small grey shield in the navigation bar of My Patient's pages: a tap opens the same
+/// warning as the banner (noIdentifiersAlert, attached to the page itself rather than inside the toolbar item, where a
+/// presentation can hold up the page's own sheets). Grey, so red stays for abnormal values and alerts.
+struct NoIdentifiersShield: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            isPresented = true
+        } label: {
+            Image(systemName: "checkmark.shield")
+                .font(PS.sys(size: 15, weight: .medium))
+                .foregroundStyle(PS.fg3)
+                .frame(minWidth: 30, minHeight: 30)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("No patient identifiers")
+        .accessibilityHint("Shows what not to enter")
+    }
+}
+
+extension View {
+    /// The shield's explanation: the banner's words, in an alert from the page.
+    func noIdentifiersAlert(isPresented: Binding<Bool>) -> some View {
+        alert("No patient identifiers", isPresented: isPresented) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(NoIdentifiersBanner.warning)
+        }
+        #if DEBUG
+        // Screenshot runs: -ps.patient.shield 1 opens it once the page has settled.
+        .task {
+            guard LaunchSeed.bool("ps.patient.shield") else { return }
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            isPresented.wrappedValue = true
+        }
+        #endif
     }
 }
 
@@ -471,7 +515,7 @@ struct PatientNoteSheet: View {
         let list = changes(reading)
         guard !list.isEmpty else { return }
         let before = patient.record
-        patient.update { PatientNote.apply(list, to: &$0) }
+        patient.update(discrete: true) { PatientNote.apply(list, to: &$0) }
         Haptics.success()
         onAdded(list.count, before)
         dismiss()

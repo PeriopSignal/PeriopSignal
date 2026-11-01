@@ -72,7 +72,7 @@ struct ScoreCalculatorView: View {
         let b = band
         let entry = PatientScore(points: score, max: def.maxScore, label: b?.label, detail: b?.detail, answers: answers,
                                  on: Array(selection.on).sorted(), choices: selection.choices, date: Date())
-        myPatient.update { $0.scores[def.id] = entry }
+        myPatient.update(discrete: true) { $0.scores[def.id] = entry }
         savedSelection = selection
         copied.toggle()
     }

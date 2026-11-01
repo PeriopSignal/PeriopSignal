@@ -227,6 +227,7 @@ enum PatientSummary {
         }
         if !r.oxygen.isEmpty && (!r.arrivesWithAirway || r.oxygen.device == "trachCollar") { out.append(Line("Oxygen", r.oxygen.text)) }
         if let m = r.mallampati { out.append(Line(nil, PatientAirway.mallampatiLine(m), alert: m >= 3)) }
+        if let n = PatientAirway.reviewedNormals(r) { out.append(Line("Exam", n)) }
         let signs = PatientAirway.signs.filter { r.airwaySigns.contains($0.id) }.map(\.label)
         if !signs.isEmpty { out.append(Line("Difficult-airway signs", signs.joined(separator: "; "), alert: signs.count >= 2 || (r.mallampati ?? 0) >= 3)) }
         for m in PatientAirway.maskRisk(r) where m.alert { out.append(Line(nil, m.text, alert: true)) }
@@ -268,6 +269,16 @@ enum PatientSummary {
         }
         guard !parts.isEmpty else { return nil }
         return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
+    }
+
+    /// What the full handoff says for an airway examination or an echo never touched, so a blank is never read as
+    /// normal.
+    static let notAssessed = "not assessed"
+
+    /// The intraoperative echo is expected: surgery that shows the echo first (cardiac, aortic, transplant) or a TEE
+    /// planned.
+    static func intraopEchoExpected(_ r: PatientRecord) -> Bool {
+        PatientRules.echoFirst(r) || PatientTEE.planned(r)
     }
 
     /// Mask, supraglottic airway or intubation recorded as difficult.
@@ -400,11 +411,22 @@ enum HandoffWriter {
         section("Key considerations", IntraopConsiderations.text(r).map { [PatientSummary.Line(nil, $0)] } ?? [])
         section("History", PatientSummary.historyLines(r, now: now))
         var assess = PatientSummary.assessmentLines(r).filter { $0.label != "Cardiac evaluation" && $0.label != "Cardiac advice" && $0.label != "Code status" }
+        // An echo never entered says so, where the echo would be (before the catheterizations).
+        if r.echoFindings.isEmpty {
+            let at = assess.firstIndex { ["Coronaries", "Right heart cath"].contains($0.label ?? "") } ?? assess.count
+            assess.insert(PatientSummary.Line("Echo", PatientSummary.notAssessed), at: at)
+        }
         for (id, sc) in r.scores.sorted(by: { $0.key < $1.key }) {
             assess.append(PatientSummary.Line(Scores.byID(id)?.name ?? id, PatientRules.scoreLine(id, sc) + (sc.detail.map { " (" + $0 + ")" } ?? "")))
         }
         section("Assessment", assess)
         var airway = PatientSummary.airwayLines(r)
+        // An airway examination never touched says so, after the current airway and oxygen (none with an ETT or a
+        // tracheostomy in place, where the exam is not asked).
+        if !r.arrivesWithAirway && !r.airwayExamTouched {
+            let at = airway.firstIndex { !["Current airway", "Ventilator", "Oxygen"].contains($0.label ?? "") } ?? airway.count
+            airway.insert(PatientSummary.Line("Airway exam", PatientSummary.notAssessed), at: at)
+        }
         if let c = PatientSummary.airwayCourse(r) { airway.append(PatientSummary.Line("Course", c.text, alert: c.alert)) }
         if let fu = PatientSummary.followUpLine(r) { airway.append(fu) }
         section("Airway", airway)
@@ -412,7 +434,11 @@ enum HandoffWriter {
         let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
         let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
         section("Lines & devices", lines + support)
-        let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" && $0.label != "Lines" }
+        var intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" && $0.label != "Lines" }
+        // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
+        if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            intraop.append(PatientSummary.Line("Echo", PatientSummary.notAssessed))
+        }
         section("Intraoperative", intraop)
         section("Plan", PatientSummary.planLines(r))
         out.append(footer(now))

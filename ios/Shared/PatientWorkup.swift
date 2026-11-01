@@ -342,6 +342,30 @@ struct PatientEcho: Codable, Hashable {
 
     var isEmpty: Bool { self == PatientEcho() }
 
+    /// What Echo normal sets, shown under its button.
+    static let normalCaption = "Sets LV and RV function normal, and no regurgitation or stenosis at the mitral, tricuspid and aortic valves. Change anything after."
+
+    /// One tap for a normal study: LV and RV function normal, no regurgitation or stenosis at any valve. The EF,
+    /// prostheses, aorta, other findings, study and date are left as they are.
+    mutating func applyNormal() {
+        lv = .normal
+        rv = .normal
+        for kp in [\PatientEcho.mitral, \PatientEcho.tricuspid, \PatientEcho.aortic] {
+            self[keyPath: kp].regurgitation = .normal
+            self[keyPath: kp].stenosis = .normal
+        }
+    }
+
+    /// The study shows what Echo normal sets.
+    var isNormalPreset: Bool {
+        lv == .normal && rv == .normal && noValveDisease
+    }
+
+    /// No regurgitation or stenosis recorded at all three valves (each graded none), and no prosthesis.
+    var noValveDisease: Bool {
+        [mitral, tricuspid, aortic].allSatisfy { $0.regurgitation == .normal && $0.stenosis == .normal && $0.prosthesis.isEmpty }
+    }
+
     /// Function words for a chamber grade: "normal", "mildly reduced"…
     static func function(_ g: EchoGrade) -> String {
         switch g {
@@ -362,6 +386,7 @@ struct PatientEcho: Codable, Hashable {
             out.append(s)
         }
         if let g = rv { out.append("RV function " + PatientEcho.function(g)) }
+        if noValveDisease { out.append("No significant valve disease") }
         func valve(_ v: EchoValve, _ letter: String, _ name: String) {
             if let g = v.stenosis, g != .normal { out.append(g.label + " " + letter + "S") }
             if let g = v.regurgitation, g != .normal { out.append(g.label + " " + letter + "R") }

@@ -463,13 +463,13 @@ final class PatientTests: XCTestCase {
         XCTAssertNotNil(store.record.updated)
         store.clear()
         XCTAssertTrue(store.isEmpty)
-        XCTAssertTrue(store.canUndo)
+        XCTAssertTrue(store.canUndoClear)
         store.undoClear()
         XCTAssertEqual(store.weightKg, 80)
-        XCTAssertFalse(store.canUndo)
+        XCTAssertFalse(store.canUndoClear)
         store.clear()
         store.update { $0.ageYears = 20 }
-        XCTAssertFalse(store.canUndo, "an edit after clearing ends the undo")
+        XCTAssertFalse(store.canUndoClear, "an edit after clearing ends the Undo Clear banner")
     }
 
     func testPrompts() {
