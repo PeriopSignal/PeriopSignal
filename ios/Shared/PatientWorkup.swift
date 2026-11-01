@@ -524,9 +524,24 @@ struct PatientOxygen: Codable, Hashable {
 /// ECG findings offered on the typeable list; anything else is typed in.
 enum PatientECG {
     static let nsr = "Normal sinus rhythm"
-    /// The rhythms, of which one is recorded at a time.
+    /// The atrial rhythms, of which one is recorded at a time. Ventricular pacing is not among them: it sits beside
+    /// sinus rhythm (atrial-sensed ventricular pacing), atrial fibrillation or flutter (AHA/ACCF/HRS ECG statements,
+    /// Mason 2007).
     static let rhythms: Set<String> = ["Normal sinus rhythm", "Sinus bradycardia", "Sinus tachycardia", "Atrial fibrillation", "Atrial flutter",
-                                       "SVT", "Paced rhythm (atrial)", "Paced rhythm (ventricular)", "Paced rhythm (AV)"]
+                                       "SVT", "Paced rhythm (atrial)", "Paced rhythm (AV)"]
+    /// Blocks that "normal" sinus rhythm (1:1 conduction) cannot sit beside.
+    static let notWithNSR: Set<String> = ["Complete heart block", "Mobitz II"]
+
+    /// The findings after adding one: a rhythm replaces the rhythm recorded before it, and NSR and a high-grade
+    /// block replace each other.
+    static func adding(_ f: String, to ecg: [String]) -> [String] {
+        guard !ecg.contains(f) else { return ecg }
+        var out = rhythms.contains(f) ? ecg.filter { !rhythms.contains($0) } : ecg
+        if f == nsr { out.removeAll { notWithNSR.contains($0) } }
+        if notWithNSR.contains(f) { out.removeAll { $0 == nsr } }
+        if f == nsr { out.insert(f, at: 0) } else { out.append(f) }
+        return out
+    }
 
     static let findings = [
         "Normal sinus rhythm", "Sinus bradycardia", "Sinus tachycardia", "Atrial fibrillation", "Atrial flutter", "SVT",

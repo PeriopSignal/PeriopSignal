@@ -86,7 +86,8 @@ final class PatientIntraopExtrasTests: XCTestCase {
         XCTAssertEqual(l.marks, ["pH 7.33 L", "PaCO₂ 47 H", "Hb 11.6 L", "iCa 1.14 L", "Glu 192 H"])
         for m in l.marks { XCTAssertTrue(l.text.contains(m), m) }
         let short = try XCTUnwrap(IntraopLabs.lastLine(demo, abnormalOnly: true))
-        XCTAssertEqual(short.text, "10:40 · pH 7.33 L · PaCO₂ 47 H · Hb 11.6 L · iCa 1.14 L · Glu 192 H · 6 more not flagged")
+        XCTAssertEqual(short.text, "10:40 · pH 7.33 L · PaCO₂ 47 H · BE -1.5 · Hb 11.6 L · iCa 1.14 L · Glu 192 H · 5 more not flagged",
+                       "base excess has no range, so it is listed rather than counted as normal")
         let card = PatientSummary.intraopPartLines(demo, "labs")
         XCTAssertEqual(card.first?.marks.count, 5, "the card keeps the bold red")
         XCTAssertTrue(HandoffWriter.marks(demo).contains("Hb 11.6 L"))
@@ -151,7 +152,12 @@ final class PatientIntraopExtrasTests: XCTestCase {
         r.codeStatus = .limited; r.codeStatusLimits = "no compressions"; r.codeStatusPlan = nil
         XCTAssertEqual(PatientCodeStatus.text(r), "Limited: no compressions; perioperative plan not yet discussed")
         var p = PatientRecord(); p.polst = true
-        XCTAssertEqual(PatientCodeStatus.text(p), "POLST on file")
+        XCTAssertEqual(PatientCodeStatus.text(p), "not recorded · POLST on file (check its orders)", "a POLST alone says nothing about CPR")
+        var sus = PatientRecord(); sus.codeStatus = .dnr; sus.codeStatusPlan = .suspended
+        XCTAssertEqual(PatientCodeStatus.text(sus), "DNR; suspended for the procedure; when the orders resume: not recorded")
+        XCTAssertEqual(PatientCodeStatus.line(sus)?.marks, ["when the orders resume: not recorded"])
+        sus.codeStatusPlanNote = "Resume DNR on arrival in the ICU"
+        XCTAssertEqual(PatientCodeStatus.text(sus), "DNR; suspended for the procedure: Resume DNR on arrival in the ICU")
         XCTAssertNil(PatientCodeStatus.text(PatientRecord()))
         XCTAssertTrue(PatientCodeStatus.note.contains("required reconsideration"))
         XCTAssertTrue(PatientCodeStatus.url.hasPrefix("https://www.asahq.org/"))
@@ -206,6 +212,26 @@ final class PatientNoteCodeStatusTests: XCTestCase {
         XCTAssertEqual(reading.findings.first { $0.id == "codeStatus" }?.section, PatientNote.Part.assessment)
         XCTAssertFalse(reading.other.contains("DNR"), "read, not left over: " + reading.other)
         XCTAssertFalse(reading.other.contains("POLST"), reading.other)
+    }
+
+    /// From an independent review: phrasings that once reversed the meaning.
+    func testCodeStatusReadsDeclinesNegationsAndOthers() {
+        XCTAssertEqual(change("Code status discussed: full code. Patient declines DNR."), .codeStatus(.full, polst: false, plan: nil))
+        XCTAssertEqual(change("DNR discussed with patient, wishes to remain full code"), .codeStatus(.full, polst: false, plan: nil))
+        XCTAssertEqual(change("Full code (DNR discussed and declined)"), .codeStatus(.full, polst: false, plan: nil))
+        XCTAssertEqual(change("DNR status reversed, now full code"), .codeStatus(.full, polst: false, plan: nil))
+        XCTAssertEqual(change("Was DNR last admission, now full code"), .codeStatus(.full, polst: false, plan: nil))
+        XCTAssertEqual(change("Previously full code, now DNR"), .codeStatus(.dnr, polst: false, plan: nil))
+        XCTAssertNil(change("DNR order rescinded"), "no longer an order")
+        XCTAssertNil(change("Wife is DNR"), "someone else's order")
+        XCTAssertEqual(change("Wife at bedside; patient is DNR"), .codeStatus(.dnr, polst: false, plan: nil))
+        XCTAssertEqual(change("DNR will not be suspended during surgery"), .codeStatus(.dnr, polst: false, plan: .maintained))
+        XCTAssertEqual(change("DNR not suspended for the procedure; no compressions"), .codeStatus(.dnr, polst: false, plan: .maintained))
+        XCTAssertEqual(change("DNR remains in effect except intubation acceptable for the procedure"), .codeStatus(.dnr, polst: false, plan: .modified))
+        XCTAssertEqual(change("Patient is DNR. Family requests full code for the procedure"), .codeStatus(.dnr, polst: false, plan: .suspended))
+        XCTAssertNil(change("No POLST on file"))
+        XCTAssertNil(change("POLST not completed"))
+        XCTAssertEqual(change("Full code. No POLST."), .codeStatus(.full, polst: false, plan: nil))
     }
 
     func testStatusAndApply() throws {

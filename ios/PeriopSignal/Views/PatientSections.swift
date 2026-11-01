@@ -158,7 +158,7 @@ extension PatientEditorView {
             }
             ECGQuickRow(ecg: bind(\.ecg))
             PatientTypeahead(label: "Add a finding", prompt: "Type: afib, LBBB, paced, Q waves…", options: PatientECG.findings.filter { !r.ecg.contains($0) }) { pick in
-                patient.update { if !$0.ecg.contains(pick) { $0.ecg.append(pick) } }
+                patient.update { $0.ecg = PatientECG.adding(pick, to: $0.ecg) }
             }
             PatientTextField(label: "Other", prompt: "Rate, axis, intervals, comparison", text: bind(\.ecgNotes))
         }
@@ -632,7 +632,7 @@ struct ECGQuickRow: View {
                 Haptics.light()
                 withAnimation(.snappy) {
                     if on { ecg.removeAll { $0 == PatientECG.nsr } }
-                    else { ecg.removeAll { PatientECG.rhythms.contains($0) }; ecg.insert(PatientECG.nsr, at: 0) }
+                    else { ecg = PatientECG.adding(PatientECG.nsr, to: ecg) }
                 }
             } label: {
                 Label("NSR", systemImage: on ? "checkmark" : "plus")

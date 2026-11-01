@@ -52,7 +52,7 @@ enum IntraopLabs {
                 note: "Not flagged: the ABIM ranges give none; read it against your analyzer's range."),
         LabTest("lactate", "Lactate, arterial", short: "Lactate", unit: "mmol/L", group: .main, range: LabRange(nil, 2.0),
                 decimals: 1, plausible: 0...40,
-                note: "High above 2 mmol/L, the usual clinical threshold (Sepsis-3: Singer M, et al. JAMA 2016;315:801); the ABIM arterial reference limit is stricter (under 1.3)."),
+                note: "High above 2 mmol/L, the Sepsis-3 septic-shock lactate criterion (Singer M, et al. JAMA 2016;315:801); the ABIM arterial reference limit is stricter (under 1.3)."),
         LabTest("ica", "Ionized calcium", short: "iCa", unit: "mmol/L", group: .main, range: LabRange(1.16, 1.31), decimals: 2, plausible: 0.2...4),
         LabTest("ptt", "aPTT", short: "PTT", unit: "s", group: .main, range: LabRange(25, 35), decimals: 0, plausible: 10...300),
         LabTest("act", "ACT", short: "ACT", unit: "s", group: .main, decimals: 0, plausible: 30...1500,
@@ -66,7 +66,7 @@ enum IntraopLabs {
 
     static func tests(_ keys: [String]) -> [LabTest] { keys.compactMap { PatientLabs.test($0) } }
 
-    static let sources = "Reference ranges: ABIM Laboratory Test Reference Ranges, January 2026 (arterial pH 7.38–7.44, PaCO₂ 38–42 mmHg, PaO₂ 75–100 mmHg, bicarbonate 23–26 mEq/L, arterial lactate under 1.3 mmol/L, ionized calcium 1.16–1.31 mmol/L, aPTT 25–35 s); hemoglobin, potassium, sodium, platelets and fibrinogen as in the preoperative labs; INR from MedlinePlus; glucose 70–180 mg/dL, the ADA's perioperative range. PaO₂ is flagged only when low. Base excess and ACT have no ABIM range and are not flagged; during bypass an ACT above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa). Your laboratory's ranges may differ."
+    static let sources = "Reference ranges: ABIM Laboratory Test Reference Ranges, January 2026 (arterial pH 7.38–7.44, PaCO₂ 38–42 mmHg, PaO₂ 75–100 mmHg, bicarbonate 23–26 mEq/L, arterial lactate under 1.3 mmol/L (flagged here above 2, the Sepsis-3 criterion), ionized calcium 1.16–1.31 mmol/L, aPTT 25–35 s); hemoglobin, potassium, sodium, platelets and fibrinogen as in the preoperative labs; INR from MedlinePlus; glucose flagged above 180 mg/dL (ADA perioperative target 100–180 mg/dL) and below 70 (hypoglycemia). PaO₂ is flagged only when low. Base excess and ACT have no ABIM range and are not flagged; during bypass an ACT above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa). Your laboratory's ranges may differ."
 
     /// The values entered in a set, in the screen's order, flagged.
     static func values(_ s: IntraopLabSet, sex: PatientSex?) -> [LabValue] {
@@ -98,7 +98,8 @@ enum IntraopLabs {
     /// (the short handoff) keeps the flagged values and counts the rest.
     static func line(_ s: IntraopLabSet, sex: PatientSex?, now: Date = Date(), abnormalOnly: Bool = false) -> PatientSummary.Line? {
         let vals = values(s, sex: sex)
-        let flagged = vals.filter { $0.flag.isAbnormal }
+        // Values with no range to judge them by (base excess, ACT) are listed rather than counted as unflagged.
+        let flagged = vals.filter { $0.flag.isAbnormal || !$0.rated }
         var parts = (abnormalOnly ? flagged : vals).map(\.compact)
         if abnormalOnly && vals.count > flagged.count {
             let n = vals.count - flagged.count
@@ -123,7 +124,7 @@ enum IntraopLabs {
 enum BloodProducts {
     /// Counted in units with + and −; the keys are PatientRecord.fluids' own.
     static let units: [(id: String, label: String, short: String)] = [
-        ("prbc", "Red cells (PRBC)", "PRBC"), ("plasma", "Plasma (FFP)", "FFP"), ("platelets", "Platelets", "Platelets"),
+        ("prbc", "Red cells (PRBC)", "PRBC"), ("plasma", "Plasma (FFP)", "FFP"), ("platelets", "Platelets (apheresis or pooled doses)", "Platelets"),
         ("cryo", "Cryoprecipitate", "Cryo"), ("wholeBlood", "Whole blood", "Whole blood"),
     ]
     static let cellSaver = "cellSaver"
@@ -134,7 +135,9 @@ enum BloodProducts {
     static func text(_ r: PatientRecord) -> String {
         var parts: [String] = units.compactMap { u in
             guard let v = r.fluids[u.id], v > 0 else { return nil }
-            return u.short + " " + NumText.short(v) + (v == 1 ? " unit" : " units")
+            // Platelets come as doses (one apheresis unit or one pool); the rest as units.
+            let word = u.id == "platelets" ? "dose" : "unit"
+            return u.short + " " + NumText.short(v) + " " + word + (v == 1 ? "" : "s")
         }
         if let v = r.fluids[cellSaver], v > 0 { parts.append("Cell saver " + NumText.short(v) + " mL") }
         return parts.joined(separator: " · ")
@@ -189,6 +192,7 @@ extension HandoffWriter {
         out += PatientSummary.liverLine(r)?.marks ?? []
         out += IntraopLabs.lastLine(r)?.marks ?? []
         out += PatientCodeStatus.line(r)?.marks ?? []
+        out += PatientTEE.line(r)?.marks ?? []
         return out
     }
 }

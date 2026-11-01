@@ -55,7 +55,7 @@ enum CodeStatusPlan: String, Codable, CaseIterable, Hashable {
     /// The ASA option each one is.
     var detail: String {
         switch self {
-        case .maintained: return "The orders stand as written during the anesthetic: the procedures the patient refuses are not used."
+        case .maintained: return "The orders stand as written during the anesthetic: the procedures the patient refuses are not used. Tell the patient which procedures are essential to the anesthetic and the operation (for example intubation for a general anesthetic in someone who is DNI); if any is refused, the plan is a modified one."
         case .modified: return "A limited attempt at resuscitation, defined by specific procedures or by the patient's goals and values (ASA options 2 and 3). Write down what is and is not acceptable."
         case .suspended: return "A full attempt at resuscitation during the anesthetic and the immediate postoperative period (ASA option 1). Write down when the original orders resume."
         }
@@ -76,9 +76,15 @@ enum PatientCodeStatus {
 
     static let note = "Automatically suspending DNR orders before anesthesia may not respect the patient's right to self-determination. Before the anesthetic, review the orders with the patient or surrogate, agree on one of three approaches (full attempt at resuscitation, or a limited attempt defined by specific procedures or by the patient's goals and values), document it, and note when the original orders resume. ASA Committee on Ethics, Statement on Ethical Guidelines for the Anesthesia Care of Patients with Do-Not-Resuscitate Orders (reaffirmed October 18, 2023); the American College of Surgeons calls this “required reconsideration” (2014)."
 
+    /// When a suspended or modified order resumes has not been written down (the ASA asks the plan to say if or when
+    /// the original orders are reinstated).
+    static let resumeMissing = "when the orders resume: not recorded"
+    /// A POLST with no status chosen: it may order CPR or not, so the line says to check it.
+    static let polstOnly = "not recorded · POLST on file (check its orders)"
+
     /// "DNR/DNI (POLST on file); modified for the procedure: accepts intubation", "Full code", "POLST on file".
     static func text(_ r: PatientRecord) -> String? {
-        guard let s = r.codeStatus else { return r.polst ? "POLST on file" : nil }
+        guard let s = r.codeStatus else { return r.polst ? polstOnly : nil }
         var t = s.label
         let limits = r.codeStatusLimits.trimmingCharacters(in: .whitespacesAndNewlines)
         if s == .limited && !limits.isEmpty { t += ": " + limits }
@@ -87,6 +93,7 @@ enum PatientCodeStatus {
             let note = r.codeStatusPlanNote.trimmingCharacters(in: .whitespacesAndNewlines)
             if let p = r.codeStatusPlan {
                 t += "; " + p.label.lowercased() + (note.isEmpty ? "" : ": " + note)
+                if note.isEmpty && p != .maintained { t += "; " + resumeMissing }
             } else {
                 t += "; perioperative plan not yet discussed"
             }
@@ -98,7 +105,11 @@ enum PatientCodeStatus {
     static func line(_ r: PatientRecord) -> PatientSummary.Line? {
         guard let t = text(r) else { return nil }
         let limits = r.codeStatus?.limits ?? false
-        return PatientSummary.Line("Code status", t, alert: limits, marks: limits && r.codeStatusPlan == nil ? ["perioperative plan not yet discussed"] : [])
+        var marks: [String] = []
+        if limits && r.codeStatusPlan == nil { marks.append("perioperative plan not yet discussed") }
+        if t.contains(resumeMissing) { marks.append(resumeMissing) }
+        if r.codeStatus == nil && r.polst { marks.append(polstOnly) }
+        return PatientSummary.Line("Code status", t, alert: limits || r.codeStatus == nil, marks: marks)
     }
 
     // MARK: Fill from a note
@@ -112,9 +123,20 @@ enum PatientCodeStatus {
     static let periopRx = NoteRx(#"\b(?:for|during|in|through)\s+(?:the\s+)?(?:procedure|surgery|operation|case|or|operating room|an(?:a)?esthe\w*|perioperative period)\b|\bperi-?op(?:erative(?:ly)?)?\b|\bintra-?op(?:erative(?:ly)?)?\b"#)
     static let suspendedRx = NoteRx(#"\b(?:suspend\w*|rescind\w*|revok\w*|revers\w*|lifted|on hold|waived)\b"#)
     static let maintainedRx = NoteRx(#"\b(?:maintain\w*|honou?r\w*|remains?|continu\w*|upheld|kept|stays?|in (?:place|effect))\b"#)
-    static let modifiedRx = NoteRx(#"\b(?:modif\w*|amend\w*|ok(?:ay)? to (?:intubate|use|give)|will accept|accepts?)\b"#)
+    static let modifiedRx = NoteRx(#"\b(?:modif\w*|amend\w*|ok(?:ay)? to (?:intubate|use|give)|will accept|accepts?|except|other than|acceptable|allowed|permitted)\b"#)
     /// "do not resuscitate" and "do not intubate" hold a "not" that is not a negation.
     private static let phraseNot = NoteRx(#"\bdo[- ](not)[- ](?=(?:attempt[- ])?resuscitat|intubat)"#)
+    /// Before an order: the patient declines it, or had it before ("declines DNR", "was DNR last admission").
+    static let voidBefore = NoteRx(#"\b(?:declin\w*|refus\w*|does not want|doesn't want|did not want|opts? out of|no longer|rescind\w*|revok\w*|cancel\w*|discontinu\w*|was|previously|formerly|prior|previous)\b[^.;,]{0,25}$"#)
+    /// After an order, in the same sentence: it was declined or undone ("DNR discussed and declined", "DNR order
+    /// rescinded"). With the procedure named, these words mean the plan for the procedure instead.
+    static let voidAfter = NoteRx(#"^[^.;]{0,40}?\b(?:declin\w*|refus\w*|rescind\w*|revok\w*|revers\w*|cancel\w*|discontinu\w*|removed|withdrawn|no longer)\b"#)
+    /// Someone else's order ("wife is DNR").
+    static let otherPerson = NoteRx(#"\b(?:wife|husband|spouse|partner|son|daughter|mother|father|brother|sister|parents?|family member|roommate)\b[^.;,]{0,25}$"#)
+    /// A plan word with a negation just before it ("will not be suspended", "won't be modified").
+    static let planNot = NoteRx(#"\b(?:not|never|no longer|n't|wont)\b[^.;]{0,12}$|n't\s+(?:be\s+)?$"#)
+    /// After a POLST mention: there is none ("POLST not completed", "POLST: none").
+    static let polstNone = NoteRx(#"^[^.;]{0,15}\b(?:not|none|unavailable|missing|pending|absent)\b"#)
 
     static var patterns: [NoteRx] { [dnrDniRx, dnrRx, dniRx, fullRx, polstRx, labelRx, periopRx, suspendedRx, maintainedRx, modifiedRx, phraseNot] }
 
@@ -124,33 +146,66 @@ enum PatientCodeStatus {
         let neutral = NSMutableString(string: c)
         for m in phraseNot.all(c).reversed() { neutral.replaceCharacters(in: m.range(at: 1), with: "nxt") }
         let plain = neutral as String
+        let ns = plain as NSString
+        let periop = periopRx.first(c)
+        func before(_ m: NSTextCheckingResult) -> String { ns.substring(to: m.range.location) }
+        func after(_ m: NSTextCheckingResult) -> String { ns.substring(from: m.range.location + m.range.length) }
         func found(_ rx: NoteRx) -> NSTextCheckingResult? { rx.all(c).first { !PatientNote.negated(plain, at: $0.range.location) } }
+        /// An order that is the patient's and in force: not negated, declined, undone, past or someone else's.
+        func order(_ rx: NoteRx) -> NSTextCheckingResult? {
+            rx.all(c).first { m in
+                if PatientNote.negated(plain, at: m.range.location) { return false }
+                let b = before(m)
+                if voidBefore.first(b) != nil || otherPerson.first(b) != nil { return false }
+                if periop == nil, voidAfter.first(after(m)) != nil { return false }
+                return true
+            }
+        }
         var ranges: [NSRange] = []
         var status: CodeStatus?
-        if let m = found(dnrDniRx) {
+        if let m = order(dnrDniRx) {
             status = .dnrDni; ranges.append(m.range)
         } else {
-            let dnr = found(dnrRx), dni = found(dniRx)
+            let dnr = order(dnrRx), dni = order(dniRx)
             if let a = dnr, let b = dni { status = .dnrDni; ranges += [a.range, b.range] }
             else if let a = dnr { status = .dnr; ranges.append(a.range) }
             else if let b = dni { status = .dni; ranges.append(b.range) }
         }
         let full = found(fullRx)
-        let periop = periopRx.first(c)
         var plan: CodeStatusPlan?
         if let f = full {
             ranges.append(f.range)
-            // "DNR; full code for surgery": the orders are suspended for the procedure.
-            if status != nil || periop != nil { plan = .suspended } else { status = .full }
-            if status == nil { status = .full }
+            if status == nil {
+                status = .full
+                // "Full code for the OR": full resuscitation for the procedure (an order elsewhere is suspended).
+                if periop != nil { plan = .suspended }
+            } else if periop != nil {
+                // "DNR; full code for surgery": the orders are suspended for the procedure.
+                plan = .suspended
+            } else if let lim = ranges.first, f.range.location > lim.location {
+                // "DNR discussed, wishes to remain full code": the later statement stands ("Previously full code,
+                // now DNR" keeps the order).
+                status = .full
+            }
         }
-        let polst = polstRx.first(c)
+        var polst = found(polstRx)
+        if let p = polst, polstNone.first(after(p)) != nil { polst = nil }
         if let p = polst { ranges.append(p.range) }
         guard status != nil || polst != nil else { return nil }
         if plan == nil, periop != nil {
-            if let m = suspendedRx.first(c) { plan = .suspended; ranges.append(m.range) }
-            else if let m = modifiedRx.first(c) { plan = .modified; ranges.append(m.range) }
-            else if let m = maintainedRx.first(c) { plan = .maintained; ranges.append(m.range) }
+            /// A plan word, and whether a negation sits just before it.
+            func planWord(_ rx: NoteRx) -> (match: NSTextCheckingResult, negated: Bool)? {
+                guard let m = rx.first(c) else { return nil }
+                return (m, planNot.first(before(m)) != nil)
+            }
+            if let w = planWord(suspendedRx) {
+                // "DNR will not be suspended during surgery": the orders stand.
+                plan = w.negated ? .maintained : .suspended; ranges.append(w.match.range)
+            } else if let w = planWord(modifiedRx) {
+                plan = w.negated ? .maintained : .modified; ranges.append(w.match.range)
+            } else if let w = planWord(maintainedRx), !w.negated {
+                plan = .maintained; ranges.append(w.match.range)
+            }
         }
         if plan != nil, let p = periop { ranges.append(p.range) }
         if let l = labelRx.first(c) { ranges.append(l.range) }
@@ -172,14 +227,16 @@ enum PatientCodeStatus {
         guard case .codeStatus(let s, let p, let q) = a, case .codeStatus(let t, let p2, let q2) = b else { return nil }
         var status = s ?? t
         var plan = q ?? q2
-        // A limiting order and "full code for the procedure": the order, suspended.
         if let x = s, let y = t, x != y {
-            if x.limits && y == .full { status = x; plan = plan ?? .suspended }
-            else if y.limits && x == .full { status = y; plan = plan ?? .suspended }
+            // A limiting order and "full code for the procedure" (read with the procedure named): the order, suspended.
+            if x.limits && y == .full && q2 == .suspended { status = x; plan = .suspended }
+            else if y.limits && x == .full && q == .suspended { status = y; plan = .suspended }
             // "DNR/DNI." then "DNR suspended for the OR": the fuller order stands.
             else if x.resuscitationOrder && y.resuscitationOrder { status = .dnrDni }
-            else { return nil }
+            // Otherwise the later sentence stands ("Was DNR. Now full code."); its own plan only.
+            else { return finding(y, polst: p || p2, plan: y.limits ? q2 : nil) }
         }
+        if status == .full { plan = nil }
         return finding(status, polst: p || p2, plan: plan)
     }
 

@@ -160,13 +160,13 @@ enum PatientTEE {
         TEEItem(id: "stricture", label: "Esophageal stricture", short: "esophageal stricture", level: .absolute, source: .hahn2013),
         TEEItem(id: "tumor", label: "Esophageal tumor", short: "esophageal tumor", level: .absolute, source: .hahn2013),
         TEEItem(id: "perforation", label: "Esophageal perforation or laceration", short: "esophageal perforation or laceration",
-                detail: "Including a Mallory-Weiss tear", level: .absolute, source: .hahn2013),
+                detail: "An acute tear (for example Mallory-Weiss) is a laceration", level: .absolute, source: .hahn2013),
         TEEItem(id: "diverticulum", label: "Esophageal diverticulum, including Zenker", short: "esophageal diverticulum",
                 detail: "Zenker: absolute in the ASA/SCA 2010 consultants' view, equivocal among members", level: .absolute, source: .hahn2013),
         TEEItem(id: "ugib-active", label: "Active upper GI bleeding", short: "active upper GI bleeding", level: .absolute, source: .hahn2013),
         // Absolute in the ASA/SCA 2010 survey (opinion), not in Hahn's table by name.
         TEEItem(id: "esophagectomy", label: "Esophagectomy or esophagogastrectomy", short: "esophagectomy",
-                detail: "Absolute in the ASA/SCA 2010 survey (opinion)", level: .absolute, source: .asa2010),
+                detail: "ASA/SCA 2010: named as the exception to \u{201C}no absolute contraindications\u{201D} (survey opinion, not trial evidence)", level: .absolute, source: .asa2010),
         TEEItem(id: "te-fistula", label: "Tracheoesophageal fistula", short: "tracheoesophageal fistula",
                 detail: "Absolute in the ASA/SCA 2010 survey (opinion)", level: .absolute, source: .asa2010),
         // Relative: Hahn 2013, Table 6.
@@ -213,7 +213,7 @@ enum PatientTEE {
     static let upperGIIDs: Set<String> = ["sleeve", "rygb", "lap-band", "duodenal-switch", "bariatric-revision", "nissen", "heller", "linx",
                                           "total-gastrectomy", "partial-gastrectomy", "lap-gastrectomy", "gastric-wedge", "gastrojejunostomy",
                                           "hiatal-hernia", "whipple", "robotic-whipple", "zenker", "poem", "endoscopic-bariatric", "tef"]
-    static let esophagectomyWords = ["esophagectomy", "esophagogastrectomy", "ivor lewis", "mckeown"]
+    static let esophagectomyWords = ["esophagectomy", "esophagogastrectomy", "ivor lewis", "mckeown", "colonic interposition", "colon interposition"]
     static let upperGIWords = ["fundoplication", "nissen", "toupet", "hiatal hernia repair", "hiatus hernia repair", "paraesophageal hernia",
                                "heller", "esophageal myotomy", "poem", "gastrectomy", "gastric bypass", "roux-en-y gastric", "rygb", "gastric sleeve",
                                "gastric band", "lap band", "duodenal switch", "linx", "whipple", "pancreaticoduodenectomy", "zenker",
@@ -262,6 +262,7 @@ enum PatientTEE {
         ("esophagectomy", esophagectomyWords),
         ("te-fistula", ["tracheoesophageal fistula", "tef"]),
         ("radiation", ["radiation", "radiotherapy", "xrt"]),
+        ("ugib-active", ["active gi bleed", "active upper gi bleed", "active ugib", "actively bleeding", "ongoing hematemesis", "acute upper gi bleed", "acute gi bleed"]),
         ("ugib-recent", ["gi bleed", "ugib", "hematemesis", "melena", "variceal bleed", "variceal bleeding"]),
         ("barretts", ["barrett", "barretts"]),
         ("dysphagia", ["dysphagia"]),
@@ -389,12 +390,13 @@ enum PatientTEE {
             let pattern = "\\b" + NSRegularExpression.escapedPattern(for: w) + "\\b"
             var from = t.startIndex
             while let r = t.range(of: pattern, options: .regularExpression, range: from..<t.endIndex) {
-                let start = t.index(r.lowerBound, offsetBy: -min(30, t.distance(from: t.startIndex, to: r.lowerBound)))
-                var before = String(t[start..<r.lowerBound])
-                if let cut = before.lastIndex(where: { ".;\n".contains($0) }) { before = String(before[before.index(after: cut)...]) }
-                let negated = before.range(of: "\\b(no|denies|denied|without|negative for|never|not)\\b", options: .regularExpression) != nil
-                if !negated { return w }
-                from = r.upperBound
+                defer { from = r.upperBound }
+                // The sentence the word is in, and the note reader's own negation scope ("no reflux but has
+                // dysphagia" keeps the dysphagia).
+                let sentenceStart = t[..<r.lowerBound].lastIndex(where: { ".;\n".contains($0) }).map { t.index(after: $0) } ?? t.startIndex
+                let prefix = String(t[sentenceStart..<r.lowerBound])
+                if prefix.hasSuffix("lower ") { continue }   // a lower GI bleed is not an upper one
+                if !PatientNote.negated(String(t[sentenceStart...]), at: (prefix as NSString).length) { return w }
             }
         }
         return nil

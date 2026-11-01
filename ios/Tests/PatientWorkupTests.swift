@@ -357,6 +357,11 @@ final class PatientWorkupTests: XCTestCase {
         XCTAssertTrue(PatientECG.findings.contains(PatientECG.nsr))
         XCTAssertTrue(PatientECG.rhythms.isSubset(of: Set(PatientECG.findings)))
         XCTAssertFalse(PatientECG.rhythms.contains("Left bundle branch block"), "a conduction finding sits beside the rhythm")
+        XCTAssertEqual(PatientECG.adding(PatientECG.nsr, to: ["Atrial fibrillation", "Paced rhythm (ventricular)", "Q waves (old infarct)"]),
+                       ["Normal sinus rhythm", "Paced rhythm (ventricular)", "Q waves (old infarct)"], "ventricular pacing stays with sinus rhythm")
+        XCTAssertEqual(PatientECG.adding("Atrial fibrillation", to: ["Normal sinus rhythm", "Left bundle branch block"]),
+                       ["Left bundle branch block", "Atrial fibrillation"], "a rhythm added later replaces NSR too")
+        XCTAssertEqual(PatientECG.adding("Complete heart block", to: ["Normal sinus rhythm"]), ["Complete heart block"])
     }
 
     /// Many lines: labels never overlap (each column is spaced), and lines to the same vessels run side by side.
