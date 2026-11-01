@@ -43,6 +43,8 @@ struct PatientNoteSheet: View {
     @Environment(\.dismiss) private var dismiss
     /// Text to read on open (a long paste into the quick-add bar).
     var initialText = ""
+    /// The tab the sheet was opened from: on the Intraoperative tab the note is routed as the quick-add bar routes it.
+    var tab: QuickAddTab = .preop
     /// After adding: how many items, and the record as it was (for Undo).
     var onAdded: (Int, PatientRecord) -> Void
 
@@ -160,7 +162,7 @@ struct PatientNoteSheet: View {
         }
         if !reading.identifiers.isEmpty { identifierWarning(reading.identifiers) }
         if !reading.ambiguous.isEmpty || !reading.unknown.isEmpty { abbreviationGroup(reading) }
-        ForEach(PatientNote.sections, id: \.self) { s in
+        ForEach(QuickAdd.sections, id: \.self) { s in
             let items = reading.findings.filter { $0.section == s }
             if !items.isEmpty {
                 PatientGroup(title: s) {
@@ -433,7 +435,7 @@ struct PatientNoteSheet: View {
     private func read() {
         Keyboard.dismiss()
         adding = nil
-        let result = PatientNote.read(text, abbreviations: abbreviations.items, choices: choices)
+        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices), tab: tab, record: patient.record)
         let r = patient.record
         chosen = Set(result.findings.filter { PatientNote.status($0, in: r).onByDefault }.map(\.id))
         other = result.other
@@ -447,7 +449,7 @@ struct PatientNoteSheet: View {
     /// Reads the note again after an abbreviation's meaning changed, keeping what the user ticked, unticked or edited.
     private func reread() {
         guard let old = reading else { return }
-        let result = PatientNote.read(text, abbreviations: abbreviations.items, choices: choices)
+        let result = QuickAdd.forTab(PatientNote.read(text, abbreviations: abbreviations.items, choices: choices), tab: tab, record: patient.record)
         let r = patient.record
         let before = Set(old.findings.map(\.id))
         chosen = Set(result.findings.filter { before.contains($0.id) ? chosen.contains($0.id) : PatientNote.status($0, in: r).onByDefault }.map(\.id))

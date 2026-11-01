@@ -83,7 +83,9 @@ final class QuickAddTests: XCTestCase {
         let ask = q.ambiguous.first { $0.id == QuickAdd.roomAirQuestion }
         XCTAssertEqual(ask?.abbreviation, "SpO₂ 95%")
         XCTAssertEqual(ask?.options.map(\.text), ["room air", "on oxygen"])
-        XCTAssertEqual(ask?.chosen?.text, "room air", "shown as “room air?” until chosen")
+        XCTAssertEqual(ask?.options.first { $0.id == ask?.defaultID }?.text, "room air", "shown as “room air?” until chosen")
+        XCTAssertEqual(ask?.fromContext, false, "not answered")
+        XCTAssertNil(ask?.chosen, "nothing is read from it until answered")
         XCTAssertFalse(QuickAdd.chips(q, record: PatientRecord()).contains { $0.value.hasPrefix("SpO₂") }, "no chip until answered")
 
         let air = read(line, choices: [QuickAdd.roomAirQuestion: QuickAdd.roomAirAnswer])
@@ -236,7 +238,7 @@ final class QuickAddTests: XCTestCase {
     func testReaderQuestionsFileOnlyWhenAnswered() {
         let ica = read("iCa 3.9", .intraop)
         XCTAssertEqual(ica.ambiguous.map(\.id), [QuickAdd.icaQuestion])
-        XCTAssertEqual(ica.ambiguous.first?.chosen?.text, "mg/dL = 0.97 mmol/L")
+        XCTAssertEqual(ica.ambiguous.first.flatMap { a in a.options.first { $0.id == a.defaultID } }?.text, "mg/dL = 0.97 mmol/L")
         XCTAssertNil(setValues(ica)["ica"])
         XCTAssertEqual(setValues(read("iCa 3.9", .intraop, choices: [QuickAdd.icaQuestion: QuickAdd.icaAnswer]))["ica"], 0.97)
         XCTAssertNil(setValues(read("iCa 2.8", .intraop))["ica"], "neither unit")
@@ -255,6 +257,63 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(dl.airwayDevice, "Direct laryngoscope")
         XCTAssertEqual(dl.laryngoscopyGrade, "3")
         XCTAssertEqual(applied(read("1st attempt DL failed, 2nd attempt VL, 7.0 ETT", .intraop)).attempts, 2)
+    }
+
+    func testAnswersAreForTheValueTheyWereGivenFor() {
+        // The bar keeps the value with the answer; a changed value is asked again.
+        let air: [String: String] = [QuickAdd.roomAirQuestion: QuickAdd.roomAirAnswer, QuickAdd.roomAirQuestion + "@value": "95"]
+        XCTAssertEqual(change(read("148/86 72 95% 16", choices: air), "vital:spo2"), .vital("spo2", 95))
+        let changed = read("148/86 72 93% 16", choices: air)
+        XCTAssertNil(change(changed, "vital:spo2"), "answered for 95, not for 93")
+        XCTAssertEqual(changed.ambiguous.first { $0.id == QuickAdd.roomAirQuestion }?.fromContext, false, "asked again")
+        XCTAssertEqual(changed.ambiguous.first { $0.id == QuickAdd.roomAirQuestion }?.valueKey, "93")
+
+        let ica: [String: String] = [QuickAdd.icaQuestion: QuickAdd.icaAnswer, QuickAdd.icaQuestion + "@value": "3.9"]
+        XCTAssertEqual(setValues(read("iCa 3.9", .intraop, choices: ica))["ica"], 0.97)
+        XCTAssertNil(setValues(read("iCa 4.4", .intraop, choices: ica))["ica"])
+
+        let levo: [String: String] = ["levo@levo-norepinephrine": "levo-norepinephrine", "levo@levo-norepinephrine@value": "0.1"]
+        XCTAssertEqual(applied(read("levo 0.1", .intraop, choices: levo)).infusions.map(\.drug), ["Norepinephrine"])
+        let higher = read("levo 0.2", .intraop, choices: levo)
+        XCTAssertTrue(applied(higher).infusions.isEmpty, "chosen at 0.1: asked again at 0.2")
+        XCTAssertEqual(higher.ambiguous.first { $0.abbreviation == "levo" }?.valueKey, "0.2")
+        XCTAssertEqual(higher.unread, "levo 0.2")
+    }
+
+    func testOneLaryngoscopyWithTwoGradesIsAsked() {
+        let q = read("DL grade 1, grade 3, 7.5 ETT", .intraop)
+        XCTAssertEqual(q.ambiguous.first { $0.id == QuickAdd.gradeQuestion }?.options.map(\.text), ["grade 1", "grade 3"])
+        XCTAssertNil(applied(q).laryngoscopyGrade)
+        XCTAssertEqual(applied(q).airwayDevice, "Direct laryngoscope")
+        XCTAssertEqual(applied(read("DL grade 1, grade 3, 7.5 ETT", .intraop, choices: [QuickAdd.gradeQuestion: "grade-3"])).laryngoscopyGrade, "3")
+        XCTAssertEqual(applied(read("easy mask (grade 1), DL grade 3", .intraop)).maskGrade, 1, "the mask grade, from its phrase")
+    }
+
+    func testTheFullNoteOnTheIntraoperativeTab() {
+        let text = "New AF after bypass, amio 150. BP 85/50 HR 130. K 5.9, Hb 7.1. Epinephrine infusion at 0.05 mcg/kg/min. R radial A-line 20G. Chipped tooth."
+        let note = PatientNote.read(text, now: now)
+        let r = QuickAdd.forTab(note, tab: .intraop, record: PatientRecord(), now: now)
+        let kinds = r.findings.map(\.change)
+        XCTAssertFalse(kinds.contains { if case .problem = $0 { return true }; return false }, "no history from the OR")
+        XCTAssertFalse(kinds.contains { if case .acute = $0 { return true }; return false })
+        XCTAssertFalse(kinds.contains { if case .vital = $0 { return true }; return false }, "no preoperative baseline")
+        XCTAssertFalse(kinds.contains { if case .dentition = $0 { return true }; return false })
+        XCTAssertTrue(kinds.contains { if case .intraopInfusion = $0 { return true }; return false }, "the case's drip")
+        XCTAssertTrue(kinds.contains { if case .intraopLabs = $0 { return true }; return false }, "a new intraoperative set")
+        var rec = PatientRecord()
+        PatientNote.apply(kinds, to: &rec)
+        XCTAssertEqual(rec.devices.first?.placedIntraop, true, "placed in the OR")
+        XCTAssertTrue(rec.homeInfusions.isEmpty)
+        XCTAssertEqual(r.other, "", "nothing to Other conditions")
+        XCTAssertEqual(r.previous, "")
+        XCTAssertEqual(QuickAdd.forTab(note, tab: .preop, record: PatientRecord(), now: now), note, "the Preoperative tab as before")
+
+        // The sheet asks about room air as the bar does.
+        let sat = PatientNote.read("SpO2 92%", now: now)
+        XCTAssertNil(sat.findings.first { $0.id == "vital:spo2" })
+        XCTAssertEqual(sat.ambiguous.first?.id, PatientNote.roomAirQuestion)
+        XCTAssertEqual(PatientNote.read("SpO2 92%", now: now, choices: [PatientNote.roomAirQuestion: PatientNote.roomAirAnswer])
+            .findings.first { $0.id == "vital:spo2" }?.change, .vital("spo2", 92))
     }
 
     func testEachBloodMentionIsItsOwnChip() {
@@ -331,18 +390,18 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(rate("prop 5"), "5 mcg/kg/min")
         XCTAssertEqual(rate("propofol 300"), "300 mcg/kg/min")
         XCTAssertNil(rate("prop 301"))
-        // Vasopressin: units/min up to 0.2; larger as written, up to 10.
+        // Vasopressin: units/min up to 0.2; above it a bolus ("vaso 1"), not a drip, shown as typed.
         XCTAssertEqual(rate("vaso 0.01"), "0.01 units/min")
         XCTAssertEqual(rate("vaso 0.2"), "0.2 units/min")
-        XCTAssertEqual(rate("vaso 0.3"), "0.3")
-        XCTAssertEqual(rate("vaso 10"), "10")
-        XCTAssertNil(rate("vaso 11"))
+        XCTAssertNil(rate("vaso 0.3"))
+        XCTAssertNil(rate("vaso 1"))
+        XCTAssertTrue(read("vaso 1", .intraop).skipped.contains("“vaso 1” · fits no usual rate without a unit, not added"))
         XCTAssertNil(rate("vaso 0.005"))
-        // Milrinone: mcg/kg/min from 0.1 to 1; larger as written, up to 50.
+        // Milrinone: mcg/kg/min from 0.1 to 1; above it not a drip.
         XCTAssertEqual(rate("milri 0.1"), "0.1 mcg/kg/min")
         XCTAssertEqual(rate("milrinone 1"), "1 mcg/kg/min")
-        XCTAssertEqual(rate("milri 1.5"), "1.5")
-        XCTAssertNil(rate("milri 51"))
+        XCTAssertNil(rate("milri 1.5"))
+        XCTAssertNil(rate("milrinone 50"))
         XCTAssertNil(rate("milri 0.05"))
         // Dobutamine 1 to 40 and dopamine 1 to 50 mcg/kg/min.
         XCTAssertEqual(rate("dobutamine 1"), "1 mcg/kg/min")

@@ -110,6 +110,9 @@ struct AmbiguousAbbreviation: Hashable, Identifiable {
     var chosenID: String
     /// A few words around its first use.
     var context: String
+    /// The value the choice is for ("0.1" after "levo", "95" for a saturation): the quick-add bar keeps it with the
+    /// choice and asks again when the value changes. Empty when the choice holds whatever the value.
+    var valueKey = ""
 
     var chosen: AbbreviationMeaning? { options.first { $0.id == chosenID } }
 }
