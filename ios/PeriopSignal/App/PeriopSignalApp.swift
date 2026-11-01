@@ -122,6 +122,20 @@ final class Router {
 
     enum Tab: String, Hashable { case feed, patient, reference, more }
 
+    init() {
+        #if DEBUG
+        // Screenshot runs open on their tab from the first frame. RootView's launch task sets it too, but a slow first
+        // launch in the simulator can hold that task back past the screenshot, which then shows the Feed.
+        switch UserDefaults.standard.string(forKey: "ps.tab") {
+        case "patient": selectedTab = .patient
+        case "about", "more": selectedTab = .more
+        case "guidelines", "reference": selectedTab = .reference
+        default: break
+        }
+        if let r = UserDefaults.standard.string(forKey: "ps.ref"), !r.isEmpty { selectedTab = .reference }
+        #endif
+    }
+
     func showSaved() {
         selectedTab = .more
         openSaved = true
