@@ -382,7 +382,7 @@ final class PatientTests: XCTestCase {
     func testHandoffText() {
         let t = HandoffWriter.text(demo)
         for s in ["ANESTHESIA HANDOFF", "67-year-old man", "Laparoscopic sigmoid colectomy", "ASA III", "Penicillin", "Mallampati III",
-                  "Intubation easy", "PACU", "RCRI 3", "No notable events", "Crystalloid 1800 mL", "Hb 12.8", "Creatinine 1.1",
+                  "Intubation easy", "PACU", "RCRI 3", "No notable events", "Crystalloid 1800 mL", "Hb 12.8", "Cr 1.1",
                   "Medications: Metoprolol", "Langeron", "Call if: ", "At handoff: extubated."] {
             XCTAssertTrue(t.contains(s), "handoff has \(s)")
         }

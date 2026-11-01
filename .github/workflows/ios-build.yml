@@ -108,7 +108,7 @@ jobs:
             -destination "id=${{ steps.sim.outputs.udid }}" \
             -configuration Debug -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
-            test 2>&1 | tee build/test.log | grep -E "error:|Test Case|Executed|TEST" | tail -60
+            test 2>&1 | tee build/test.log | grep -E "error:|failed|Executed|TEST" | tail -60
 
       - name: Screenshots
         working-directory: ios
@@ -140,6 +140,12 @@ jobs:
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            # The app is gone (it crashed): keep the newest crash report for this shot.
+            if ! pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null; then
+              crash=$(ls -t ~/Library/Logs/DiagnosticReports/PeriopSignal*.ips 2>/dev/null | head -1)
+              if [ -n "$crash" ]; then cp "$crash" "build/shots/$name-crash.ips"; else echo "app not running, no crash report" > "build/shots/$name-crash.txt"; fi
+              xcrun simctl spawn "$UDID" log show --last 1m --style compact --predicate 'process == "PeriopSignal"' > "build/shots/$name-log.txt" 2>/dev/null || true
+            fi
             # Nothing drawn yet (a blank frame): record why, then try twice more. A blank frame shrinks to a tiny file
             # once scaled down, whatever the screen's resolution.
             blank () { sips -Z 300 "build/shots/$name.png" --out /tmp/ps-check.png >/dev/null 2>&1; [ "$(stat -f%z /tmp/ps-check.png 2>/dev/null || echo 0)" -lt 7000 ]; }
@@ -234,6 +240,22 @@ jobs:
           shot 90-rcri-evidence 12 -ps.ref score:rcri -ps.evidence.open 1
           shot 91-patient-assessment-evidence 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1
           shot 92-infusions-evidence 12 -ps.ref infusions -ps.la.weight 70 -ps.evidence.open 1
+          shot 93-patient-intraop-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab intraop
+          shot 94-patient-summary-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab summary
+          shot 95-patient-procedure 12 -ps.tab patient -ps.patient demo -ps.patient.open procedure
+          shot 96-patient-demographics 12 -ps.tab patient -ps.patient demo -ps.patient.open demographics
+          shot 97-patient-history 12 -ps.tab patient -ps.patient demo -ps.patient.open history
+          shot 98-patient-echo 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
+          shot 99-patient-lhc 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc
+          shot 100-patient-surgeries 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries
+          shot 101-patient-events 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events
+          shot 102-patient-preop-light 12 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
+          shot 103-cardiac-preop 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop
+          shot 104-cardiac-devices 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open devices:preop
+          shot 105-cardiac-summary 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary
+          shot 106-cardiac-support 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open devices:support -ps.forceAppearance light
+          shot 107-cardiac-labs 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:labs
+          shot 108-cardiac-rhc 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:rhc
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
@@ -246,6 +268,7 @@ jobs:
           tail -c 200000 build/build.log > ../ci-out/build-tail.log 2>/dev/null || true
           grep -E "error:|warning:" build/build.log | sort | uniq -c | sort -rn | head -200 > ../ci-out/build-issues.log 2>/dev/null || true
           grep -E "error:|Test Case|Executed|TEST|failed" build/test.log | tail -200 > ../ci-out/test-summary.log 2>/dev/null || true
+          grep -E ": error: |' failed \(" build/test.log | head -100 > ../ci-out/test-failures.log 2>/dev/null || true
           echo "run=${{ github.run_number }} sha=${{ github.sha }} status=${{ job.status }}" > ../ci-out/STATUS
           # Crash reports from the simulator runs land in the host's DiagnosticReports.
           mkdir -p ../ci-out/crashes

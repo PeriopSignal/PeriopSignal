@@ -153,7 +153,8 @@ enum PatientRules {
             out.append(PatientPrompt(id: id, title: Scores.byID(id)?.name ?? id, why: why, route: "score:" + id, done: r.scores[id].map { scoreLine(id, $0) }))
         }
         if r.isAdult {
-            score("rcri", "Cardiac risk before noncardiac surgery")
+            // The RCRI was derived and validated for noncardiac surgery only.
+            if !cardiacSurgery(r) { score("rcri", "Cardiac risk before noncardiac surgery") }
             score("ariscat", "Postoperative pulmonary complications")
             score("stopbang", "Obstructive sleep apnea screen")
             if r.anesthetic.isEmpty || r.anesthetic.contains("ga") { score("apfel", "Nausea and vomiting risk, with the prophylaxis plan") }
@@ -285,4 +286,37 @@ enum PatientAirway {
         ("3", "3", "Difficult (inadequate, unstable, or needing two providers)"),
         ("4", "4", "Unable to ventilate by mask"),
     ]
+}
+
+// MARK: - Echo up front
+
+extension PatientRules {
+    /// Liver or lung transplant, cardiac surgery and major aortic surgery show the echo findings up front; for any other
+    /// case they wait behind "Add echo findings".
+    static let echoFirstWords = ["cabg", "valve", "avr", "mvr", "tvr", "tavr", "tavi", "teer", "mitraclip", "lvad", "vad", "heart transplant",
+                                 "liver transplant", "lung transplant", "olt", "oht", "blt", "slt", "cardiac", "sternotomy", "coronary",
+                                 "ecmo", "mitral", "tricuspid", "myectomy", "maze", "ross", "aortic", "aorta", "aaa", "evar", "tevar",
+                                 "fevar", "thromboendarterectomy", "asd", "vsd", "pericardiectomy"]
+
+    /// Cardiac surgery or a transcatheter heart procedure, where the RCRI does not apply (it was derived for
+    /// noncardiac surgery; Lee 1999).
+    static let cardiacWords = ["cabg", "opcab", "valve", "avr", "mvr", "tvr", "tavr", "tavi", "teer", "mitraclip", "lvad", "heart transplant",
+                               "oht", "cardiac", "sternotomy", "coronary", "myectomy", "maze", "ross", "asd", "vsd", "pericardiectomy",
+                               "aortic root", "bentall", "arch replacement", "cardiopulmonary bypass"]
+
+    /// The procedure list's flag for any recognized procedure, or a keyword in a typed procedure's name. Details and
+    /// history ("lap chole s/p CABG", "EGD in an LVAD patient") never count: the RCRI is meant for exactly those
+    /// patients having noncardiac surgery.
+    static func cardiacSurgery(_ r: PatientRecord) -> Bool {
+        r.recognizedProcedures.contains(where: \.cardiac) || matches(r.typedProcedureNames, cardiacWords)
+    }
+
+    private static func matches(_ text: String, _ words: [String]) -> Bool {
+        let p = " " + text.lowercased() + " "
+        return words.contains { w in p.range(of: "\\b" + NSRegularExpression.escapedPattern(for: w) + "\\b", options: .regularExpression) != nil }
+    }
+
+    static func echoFirst(_ r: PatientRecord) -> Bool {
+        r.recognizedProcedures.contains(where: \.echoFirst) || matches(r.typedProcedureNames, echoFirstWords)
+    }
 }

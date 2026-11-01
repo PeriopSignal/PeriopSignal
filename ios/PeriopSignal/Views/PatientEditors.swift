@@ -2,24 +2,37 @@ import SwiftUI
 
 /// The editors behind My Patient's cards.
 enum PatientEditor: Hashable {
-    case details, history, system(String), medications, assessment, airway, intraop, plan
+    case details, procedure, demographics, history, system(String), medications, assessment, airway, intraop, plan
+    /// One part of the intraoperative record: "airway", "lines", "regional", "infusions", "fluids", "meds", "events", "echo".
+    case intraopPart(String)
+    /// The cardiac evaluation's tests: "ecg", "echo" (preoperative), "lhc", "rhc"; and the surgical history.
+    case workup(String)
+    /// The lines and devices on the diagram: "preop" (on arrival), "support" (mechanical support), "intraop".
+    case devices(String)
 
     var title: String {
         switch self {
         case .details: return "Patient"
+        case .procedure: return "Procedure"
+        case .demographics: return "Demographics"
         case .history: return "History"
         case .system(let id): return PatientCatalog.allSystems.first { $0.id == id }?.name ?? "System"
         case .medications: return "Medications & Allergies"
         case .assessment: return "Assessment"
-        case .airway: return "Airway & Exam"
+        case .airway: return "Airway"
         case .intraop: return "Intraop"
         case .plan: return "Plan"
+        case .intraopPart(let id): return PatientEditor.intraopParts.first { $0.id == id }?.title ?? "Intraop"
+        case .workup(let id): return PatientEditor.workups.first { $0.id == id }?.title ?? "Workup"
+        case .devices(let p): return p == "support" ? "Mechanical Support" : "Lines & Devices"
         }
     }
 
     var icon: String {
         switch self {
         case .details: return "person"
+        case .procedure: return "scissors"
+        case .demographics: return "person"
         case .history: return "list.bullet.clipboard"
         case .system(let id): return PatientCatalog.allSystems.first { $0.id == id }?.icon ?? "circle"
         case .medications: return "pills"
@@ -27,17 +40,31 @@ enum PatientEditor: Hashable {
         case .airway: return "mouth"
         case .intraop: return "waveform.path.ecg.rectangle"
         case .plan: return "arrow.right.circle"
+        case .intraopPart(let id): return PatientEditor.intraopParts.first { $0.id == id }?.icon ?? "waveform.path.ecg.rectangle"
+        case .workup(let id): return PatientEditor.workups.first { $0.id == id }?.icon ?? "waveform.path.ecg"
+        case .devices(let p): return p == "support" ? "heart.circle" : "figure.stand"
         }
     }
+
+    static let intraopParts: [(id: String, title: String, icon: String)] = [
+        ("airway", "Airway", "mouth"), ("lines", "Lines", "syringe"), ("regional", "Regional & Neuraxial", "figure.flexibility"),
+        ("infusions", "Infusions", "ivfluid.bag"), ("fluids", "Fluids & Blood", "drop"), ("meds", "Medications & Interventions", "pills"),
+        ("events", "Events", "exclamationmark.triangle"), ("echo", "Echo Findings", "waveform.path.ecg.rectangle"),
+    ]
+    static let workups: [(id: String, title: String, icon: String)] = [
+        ("surgeries", "Past Surgical History", "scissors"), ("ecg", "ECG", "waveform.path.ecg"), ("echo", "Echo Findings", "heart.text.square"),
+        ("lhc", "Left Heart Catheterization", "heart"), ("rhc", "Right Heart Catheterization", "heart.circle"), ("intrathoracic", "Previous Intrathoracic Surgery", "lungs"),
+        ("anesthetic", "Anesthetic Complications", "exclamationmark.shield"), ("labs", "Labs", "testtube.2"),
+    ]
 }
 
 struct PatientEditorView: View {
-    @Environment(PatientStore.self) private var patient
-    @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) var patient
+    @Environment(ReferenceStore.self) var refs
     var editor: PatientEditor
     var onOpenRoute: (String) -> Void
 
-    private var r: PatientRecord { patient.record }
+    var r: PatientRecord { patient.record }
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -45,6 +72,8 @@ struct PatientEditorView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     switch editor {
                     case .details: details
+                    case .procedure: procedureEditor
+                    case .demographics: demographicsEditor
                     case .history: history
                     case .system(let id): system(id)
                     case .medications: medications
@@ -52,6 +81,9 @@ struct PatientEditorView: View {
                     case .airway: airway
                     case .intraop: intraop
                     case .plan: plan
+                    case .intraopPart(let id): intraopPart(id)
+                    case .workup(let id): workup(id)
+                    case .devices(let p): PatientDevicesEditor(phase: p == "intraop" ? .intraop : .preop, supportOnly: p == "support")
                     }
                     DoneFooter().padding(.top, 4).id("done")
                 }
@@ -84,32 +116,32 @@ struct PatientEditorView: View {
 
     // MARK: Bindings
 
-    private func bind<T>(_ kp: WritableKeyPath<PatientRecord, T>) -> Binding<T> {
+    func bind<T>(_ kp: WritableKeyPath<PatientRecord, T>) -> Binding<T> {
         Binding(get: { patient.record[keyPath: kp] }, set: { v in patient.update { $0[keyPath: kp] = v } })
     }
 
-    private func entry(_ kp: WritableKeyPath<PatientRecord, [String: Double]>, _ key: String) -> Binding<Double?> {
+    func entry(_ kp: WritableKeyPath<PatientRecord, [String: Double]>, _ key: String) -> Binding<Double?> {
         Binding(get: { patient.record[keyPath: kp][key] }, set: { v in patient.update { $0[keyPath: kp][key] = v } })
     }
 
-    private func note(_ key: String) -> Binding<String> {
+    func note(_ key: String) -> Binding<String> {
         Binding(get: { patient.record.systemNotes[key] ?? "" }, set: { v in patient.update { $0.systemNotes[key] = v.isEmpty ? nil : v } })
     }
 
-    private var sexChoice: Binding<String?> {
+    var sexChoice: Binding<String?> {
         Binding(get: { patient.record.sex?.rawValue }, set: { v in patient.update { $0.sex = v.flatMap { PatientSex(rawValue: $0) } } })
     }
 
-    private var urgencyChoice: Binding<String?> {
+    var urgencyChoice: Binding<String?> {
         Binding(get: { patient.record.urgency?.rawValue }, set: { v in patient.update { $0.urgency = v.flatMap { PatientUrgency(rawValue: $0) } } })
     }
 
-    private func line(_ text: String) -> some View {
+    func line(_ text: String) -> some View {
         Text(text).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
     }
 
     /// A titled list of recommendations, each on its own line.
-    private func adviceList(_ title: String, _ items: [String], tint: Color) -> some View {
+    func adviceList(_ title: String, _ items: [String], tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
             ForEach(Array(items.enumerated()), id: \.offset) { _, a in
@@ -123,7 +155,7 @@ struct PatientEditorView: View {
         .padding(.horizontal, 14).padding(.vertical, 10)
     }
 
-    private func toggleRow(_ title: String, _ detail: String?, _ isOn: Binding<Bool>) -> some View {
+    func toggleRow(_ title: String, _ detail: String?, _ isOn: Binding<Bool>) -> some View {
         Toggle(isOn: isOn) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
@@ -134,7 +166,7 @@ struct PatientEditorView: View {
         .padding(.horizontal, 14).padding(.vertical, 9)
     }
 
-    private func linkRow(_ title: String, _ detail: String, icon: String, value: PatientEditor) -> some View {
+    func linkRow(_ title: String, _ detail: String, icon: String, value: PatientEditor) -> some View {
         NavigationLink(value: value) {
             HStack(spacing: 12) {
                 Image(systemName: icon).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.accent).frame(width: 24)
@@ -151,7 +183,7 @@ struct PatientEditorView: View {
         .buttonStyle(.plain)
     }
 
-    private func toolButton(_ title: String, route: String) -> some View {
+    func toolButton(_ title: String, route: String) -> some View {
         Button { onOpenRoute(route) } label: { Label(title, systemImage: "arrow.right.circle") }
             .buttonStyle(GhostButtonStyle())
     }
@@ -224,38 +256,34 @@ struct PatientEditorView: View {
             PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
+            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with the month and year" : r.surgeries.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
+            Hairline().padding(.leading, 50)
             linkRow("Medications & allergies", medsSummary, icon: "pills", value: .medications)
-        }
-        PatientGroup(title: "Smoking") {
-            PatientChipRow(label: nil) {
-                PatientChoice(options: [(id: "never", label: "Never"), (id: "former", label: "Former"), (id: "current", label: "Current")], selection: bind(\.smoking))
-            }
-        }
-        PatientGroup(title: "Anesthesia history") {
-            PatientChipRow(label: nil) { PatientChips(options: PatientCatalog.anesthesiaHistory, selection: bind(\.anesthesiaHistory)) }
-            PatientTextField(label: "Details", prompt: "Previous anesthetics and what happened", text: bind(\.anesthesiaNotes))
+            Hairline().padding(.leading, 50)
+            linkRow("Anesthetic complications", PatientSummary.anestheticComplications(r)?.text ?? "None recorded; tap to add", icon: r.anesthesiaHistory.isEmpty && r.anesthesiaNotes.isEmpty ? "plus.circle" : "exclamationmark.shield", value: .workup("anesthetic"))
         }
         PatientGroup(title: "Last intake", note: "Set time starts at midnight, the usual nothing-by-mouth instruction; change it to what the patient reports. The ASA fasting guidance is under Reference.") {
             intakeRow("Solids", bind(\.lastSolids))
             Hairline().padding(.leading, 14)
             intakeRow("Clear fluids", bind(\.lastClears))
         }
-        PatientGroup(title: "Labs") {
-            ForEach(Array(PatientCatalog.labs.enumerated()), id: \.element.id) { i, l in
-                PatientNumberField(label: l.label, unit: l.unit, value: entry(\.labs, l.id))
-                if i < PatientCatalog.labs.count - 1 { Hairline().padding(.leading, 14) }
+        PatientGroup(title: nil) {
+            let labs = PatientSummary.labsLine(r)
+            linkRow("Labs", labs?.text ?? "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", icon: labs == nil ? "plus.circle" : "testtube.2", value: .workup("labs"))
+            if let liver = PatientSummary.liverLine(r) {
+                Hairline().padding(.leading, 50)
+                linkRow("Liver (MELD & CTP)", liver.text, icon: "cross.case", value: .workup("labs"))
             }
-            PatientTextField(label: "Other results", prompt: "ECG, echo, imaging, other labs", text: bind(\.labNotes))
         }
     }
 
-    private var medsSummary: String {
+    var medsSummary: String {
         if r.nkda && r.medications.isEmpty { return "No known drug allergies" }
         let parts = [r.nkda ? "NKDA" : (r.allergies.isEmpty ? "" : "Allergies: " + r.allergies), r.medications].filter { !$0.isEmpty }
         return parts.isEmpty ? "None recorded" : parts.joined(separator: " · ")
     }
 
-    private func intakeRow(_ title: String, _ date: Binding<Date?>) -> some View {
+    func intakeRow(_ title: String, _ date: Binding<Date?>) -> some View {
         HStack {
             Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
             Spacer()
@@ -277,6 +305,13 @@ struct PatientEditorView: View {
 
     @ViewBuilder private func system(_ id: String) -> some View {
         if let s = PatientCatalog.allSystems.first(where: { $0.id == id }) {
+            if id == "social" {
+                PatientGroup(title: "Smoking") {
+                    PatientChipRow(label: nil) {
+                        PatientChoice(options: [(id: "never", label: "Never"), (id: "former", label: "Former"), (id: "current", label: "Current")], selection: bind(\.smoking))
+                    }
+                }
+            }
             PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-BANG and other scores open with them ticked.") {
                 PatientChipRow(label: nil) {
                     PatientChips(options: s.problems.map { p in PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" }) }, selection: bind(\.problems))
@@ -297,6 +332,7 @@ struct PatientEditorView: View {
             PatientTextField(label: "Home medications", prompt: "Drug, dose, last taken", text: bind(\.medications))
             PatientChipRow(label: "Flags") { PatientChips(options: PatientCatalog.medFlags, selection: bind(\.medFlags)) }
         }
+        currentInfusionsGroup
         let notes = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }.compactMap { f in PatientFunctional.medNotes[f.id].map { (f.label, $0) } }
         if !notes.isEmpty {
             PatientGroup(title: "Before surgery", note: "2024 AHA/ACC perioperative guideline, with the class of each recommendation.") {
@@ -380,9 +416,22 @@ struct PatientEditorView: View {
         // The guideline is for adults (2024 AHA/ACC §1.4, p e355): under 18 the symptoms and acute conditions are still
         // recorded, without the stepwise evaluation or its advice, as in the H&P (PatientSummary).
         PatientGroup(title: "Cardiac evaluation", note: r.isAdult ? PatientFunctional.cardiacNote : PatientFunctional.cardiacAdultOnly) {
-            PatientChipRow(label: "Cardiac symptoms or signs") { PatientChips(options: PatientFunctional.cardiacSymptomFlags, selection: bind(\.cardiacSymptoms)) }
-            PatientChipRow(label: "Acute cardiac conditions") { PatientChips(options: PatientFunctional.activeCardiac, selection: bind(\.activeCardiac)) }
+            yesNoRow("Cardiac symptoms or signs", answer: \.cardiacSymptomsAnswer, chips: \.cardiacSymptoms, options: PatientFunctional.cardiacSymptomFlags)
+            Hairline().padding(.leading, 14)
+            yesNoRow("Acute cardiac conditions", answer: \.activeCardiacAnswer, chips: \.activeCardiac, options: PatientFunctional.activeCardiac)
+            Hairline().padding(.leading, 14)
+            let thoracic = r.allIntrathoracic
+            linkRow("Previous intrathoracic surgery", thoracic.isEmpty ? "None recorded" : thoracic.map(\.text).joined(separator: "; "), icon: thoracic.isEmpty ? "plus.circle" : "lungs", value: .workup("intrathoracic"))
+            Hairline().padding(.leading, 50)
+            linkRow("ECG", PatientSummary.ecgText(r) ?? "Add findings", icon: r.ecg.isEmpty && r.ecgNotes.isEmpty ? "plus.circle" : "waveform.path.ecg", value: .workup("ecg"))
+            Hairline().padding(.leading, 50)
+            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
+            Hairline().padding(.leading, 50)
+            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
+            Hairline().padding(.leading, 50)
+            linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
             if r.isAdult {
+                Hairline().padding(.leading, 14)
                 let mods = PatientFunctional.riskModifiers(r)
                 if !mods.isEmpty {
                     line("Adds risk beyond the RCRI: " + mods.joined(separator: ", ") + ".")
@@ -437,6 +486,23 @@ struct PatientEditorView: View {
     // MARK: Airway and exam
 
     @ViewBuilder private var airway: some View {
+        currentAirwayGroup
+        if r.arrivesWithAirway {
+            EvidenceNote("With an ETT or a tracheostomy in place, the airway examination and the intraoperative airway course are not asked; record the previous intubation grade under Airway notes if you know it.", title: "Airway already secured")
+            PatientGroup(title: "Airway notes") {
+                PatientTextField(label: "Airway notes", prompt: "Previous intubation grade, how the ETT was placed, plan for extubation", text: bind(\.airwayNotes))
+            }
+        } else {
+            airwayExam
+        }
+        if !r.examNotes.isEmpty {
+            PatientGroup(title: "Examination") {
+                PatientTextField(label: "Heart, lungs & other findings", prompt: "e.g. regular rhythm, no murmur; clear lungs", text: bind(\.examNotes))
+            }
+        }
+    }
+
+    @ViewBuilder private var airwayExam: some View {
         PatientGroup(title: "Mallampati", note: PatientFunctional.mallampatiHow) {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                 ForEach(1...4, id: \.self) { m in
@@ -489,14 +555,41 @@ struct PatientEditorView: View {
             EvidenceNote("The ASA's 2022 guideline finds no single sign consistently more predictive than another.")
             toolButton("Open the airway guide", route: "airway")
         }
-        PatientGroup(title: "Examination") {
-            PatientTextField(label: "Heart, lungs & other findings", prompt: "e.g. regular rhythm, no murmur; clear lungs", text: bind(\.examNotes))
-        }
     }
 
     // MARK: Intraop
 
     @ViewBuilder private var intraop: some View {
+        ForEach(PatientEditor.intraopParts, id: \.id) { part in intraopPart(part.id) }
+    }
+
+    @ViewBuilder func intraopPart(_ id: String) -> some View {
+        switch id {
+        case "airway": intraopAirway
+        case "lines": intraopLines
+        case "regional": intraopRegional
+        case "infusions": intraopInfusions
+        case "fluids": intraopFluids
+        case "meds": intraopMeds
+        case "events": intraopEvents
+        case "echo": intraopEcho
+        default: EmptyView()
+        }
+    }
+
+    @ViewBuilder private var intraopAirway: some View {
+        if r.arrivesWithAirway {
+            PatientGroup(title: "Airway") {
+                Text((r.currentAirwayText ?? "Airway secured") + " on arrival: no airway course to record.")
+                    .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                    .padding(14)
+            }
+        } else {
+            intraopAirwayCourse
+        }
+    }
+
+    @ViewBuilder private var intraopAirwayCourse: some View {
         PatientGroup(title: "Airway") {
             PatientChipRow(label: "Mask ventilation") {
                 PatientChoice(options: [(id: "easy", label: "Easy"), (id: "difficult", label: "Difficult"), (id: "none", label: "Not used")], selection: bind(\.mask))
@@ -544,9 +637,6 @@ struct PatientEditorView: View {
             PatientChipRow(label: "At handoff") {
                 PatientChoice(options: PatientCatalog.airwayAtEnd, selection: bind(\.airwayAtEnd))
             }
-            if r.airwayAtEnd == "intubated" {
-                PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: bind(\.ventilation))
-            }
         }
         if PatientSummary.difficultAirway(r) {
             PatientGroup(title: "Difficult-airway follow-up", note: "ASA 2022: tell the patient or a responsible person, document the nature of the difficulty and what worked, and advise registering with an alert service.") {
@@ -556,6 +646,15 @@ struct PatientEditorView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder private var intraopLines: some View {
+        PatientDevicesEditor(phase: .intraop)
+        if !r.lines.isEmpty { legacyLines }
+    }
+
+    /// Lines entered before the diagram (normally moved into devices when the patient opens).
+    @ViewBuilder private var legacyLines: some View {
         PatientGroup(title: "Lines") {
             ForEach(r.lines) { l in
                 lineEditor(l)
@@ -565,6 +664,9 @@ struct PatientEditorView: View {
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
         }
+    }
+
+    @ViewBuilder private var intraopRegional: some View {
         PatientGroup(title: "Regional & neuraxial") {
             ForEach(r.regional) { b in
                 blockEditor(b)
@@ -573,6 +675,15 @@ struct PatientEditorView: View {
             Button { patient.update { $0.regional.append(PatientRegional()) } } label: { Label("Add block", systemImage: "plus.circle") }
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
+        }
+    }
+
+    @ViewBuilder private var intraopInfusions: some View {
+        if !r.homeInfusions.isEmpty && r.infusions.isEmpty {
+            Button { patient.update { $0.infusions = $0.homeInfusions.map { PatientInfusion(drug: $0.drug, rate: $0.rate) } } } label: {
+                Label("Carry over the current infusions (" + r.homeInfusions.map(\.drug).filter { !$0.isEmpty }.joined(separator: ", ") + ")", systemImage: "arrow.down.circle")
+            }
+            .buttonStyle(GhostButtonStyle())
         }
         PatientGroup(title: "Infusions") {
             ForEach(r.infusions) { inf in
@@ -583,6 +694,9 @@ struct PatientEditorView: View {
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
         }
+    }
+
+    @ViewBuilder private var intraopFluids: some View {
         PatientGroup(title: "Fluids & blood") {
             ForEach(Array(PatientCatalog.fluids.enumerated()), id: \.element.id) { i, fl in
                 PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id))
@@ -590,16 +704,46 @@ struct PatientEditorView: View {
             }
             PatientTextField(label: "Factor concentrates & other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors))
         }
+    }
+
+    @ViewBuilder private var intraopMeds: some View {
         PatientGroup(title: "Medications & interventions") {
             PatientTextField(label: "Notable medications & interventions", prompt: "Antibiotic and time, steroids, TXA, reversal, positioning", text: bind(\.medsGiven))
         }
+    }
+
+    @ViewBuilder private var intraopEvents: some View {
         PatientGroup(title: "Events") {
             toggleRow("No notable events", nil, bind(\.noEvents))
             if !r.noEvents {
                 PatientTextField(label: "What happened", prompt: "Hypotension, arrhythmia, bronchospasm, bleeding…", text: bind(\.events))
             }
         }
-        PatientGroup(title: "Echo findings") {
+        // At the end of the case: extubated takes the ETT off the patient diagram.
+        if r.arrivesWithAirway || r.intubation == "easy" || r.intubation == "difficult" || !r.tube.isEmpty {
+            HStack(spacing: 10) {
+                Button { withAnimation(.snappy) { patient.update { $0.airwayAtEnd = "intubated" } } } label: {
+                    Label("Remains intubated", systemImage: r.airwayAtEnd == "intubated" ? "checkmark.circle.fill" : "lungs")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(BigButtonStyle(prominent: r.airwayAtEnd == "intubated"))
+                Button { withAnimation(.snappy) { patient.update { $0.airwayAtEnd = "extubated" } } } label: {
+                    Label("Extubated", systemImage: r.airwayAtEnd == "extubated" ? "checkmark.circle.fill" : "wind")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(BigButtonStyle(prominent: r.airwayAtEnd == "extubated"))
+            }
+            if r.airwayAtEnd == "intubated" {
+                PatientGroup(title: nil) {
+                    PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: bind(\.ventilation))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var intraopEcho: some View {
+        EchoFindingsEditor(echo: bind(\.intraopEcho))
+        PatientGroup(title: "Echo summary") {
             PatientChipRow(label: "Add a finding") {
                 WrapLayout(spacing: 7) {
                     ForEach(PatientFunctional.echoPhrases, id: \.self) { phrase in

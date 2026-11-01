@@ -35,6 +35,8 @@ enum PS {
     static let accentFg = Color.dynamic(dark: "1C0906", light: "FFFFFF")
     static let accent2 = Color.dynamic(dark: "8AB8FF", light: "2460CC")
     static let green = Color.dynamic(dark: "43D68E", light: "1E9D5A")
+    /// Abnormal values and scores (bold red in My Patient).
+    static let red = Color.dynamic(dark: "FF6B6B", light: "C62828")
     static let coral = Color(hex: "F2634F")
     static let coralDeep = Color(hex: "D9472F")
     static let coralLight = Color(hex: "FF7A66")

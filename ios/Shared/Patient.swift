@@ -117,7 +117,10 @@ struct PatientRecord: Codable, Equatable {
     var sex: PatientSex?
     var heightCm: Double?
     var weightKg: Double?
+    /// The planned procedures joined with " + " for the summary, handoff and rules; kept in step with `procedures`.
     var procedure = ""
+    /// The planned procedures as items (1.6). Empty in older saves, where only `procedure` holds the text.
+    var procedures: [PlannedProcedure] = []
     var urgency: PatientUrgency?
     /// "ga", "mac", "neuraxial", "regional".
     var anesthetic: Set<String> = []
@@ -149,6 +152,17 @@ struct PatientRecord: Codable, Equatable {
     /// 99th percentile).
     var labs: [String: Double] = [:]
     var labNotes = ""
+    /// Past surgical history (PatientWorkup), in the order entered.
+    var surgeries: [PatientSurgery] = []
+    /// Infusions running before the case, with their rates (Medications & Allergies).
+    var homeInfusions: [PatientInfusion] = []
+    /// Child-Turcotte-Pugh and MELD inputs beyond the labs (PatientLabs): ascites, encephalopathy, and dialysis twice
+    /// or more in the past week (or CVVHD for 24 h).
+    var ascites: LiverAscites?
+    var encephalopathy: LiverEncephalopathy?
+    var dialysis = false
+    /// The lab sections opened with their ⊕ (cardiac, liver, thyroid), kept open while the patient is.
+    var labSections: Set<String> = []
 
     // Assessment
     /// "ge4", "lt4", "unknown".
@@ -157,6 +171,18 @@ struct PatientRecord: Codable, Equatable {
     var activeCardiac: Set<String> = []
     /// Active cardiac symptoms and signs (PatientFunctional.cardiacSymptomFlags).
     var cardiacSymptoms: Set<String> = []
+    /// The single-line answers that open the symptom and acute-condition chips: nil not asked, false No, true Yes.
+    var cardiacSymptomsAnswer: Bool?
+    var activeCardiacAnswer: Bool?
+    /// Previous cardiac or thoracic operations added in the cardiac evaluation (the surgical history's own
+    /// intrathoracic operations are listed with them).
+    var intrathoracic: [PatientSurgery] = []
+    /// ECG findings from the typeable list, and anything else.
+    var ecg: [String] = []
+    var ecgNotes = ""
+    var echoFindings = PatientEcho()
+    var lhc = PatientLHC()
+    var rhc = PatientRHC()
     /// Frail by a validated tool (a risk modifier in the stepwise cardiac evaluation).
     var frail = false
     /// The class the clinician chose (1–6); the suggestion is never stored.
@@ -171,6 +197,17 @@ struct PatientRecord: Codable, Equatable {
     var dentition = ""
     var airwayNotes = ""
     var examNotes = ""
+    /// The airway the patient arrives with: "natural", "ett" or "trach"; with an ETT or a tracheostomy the airway
+    /// examination and the intraoperative airway course are not asked.
+    var currentAirway: String?
+    var ettSize = ""
+    /// "23 cm at the lip".
+    var ettDepth = ""
+    /// "Shiley 8 cuffed".
+    var trachType = ""
+    /// Ventilator settings (intubated or on a tracheostomy) or oxygen (breathing on their own) on arrival.
+    var vent = PatientVent()
+    var oxygen = PatientOxygen()
 
     // Intraoperative
     /// "easy", "difficult", "none".
@@ -195,7 +232,12 @@ struct PatientRecord: Codable, Equatable {
     var ventilation = ""
     /// After a difficult airway: "told", "documented", "alert" (ASA 2022 follow-up care).
     var airwayFollowUp: Set<String> = []
+    /// Lines as entered before 1.6; a saved patient's are moved into `devices` when it opens.
     var lines: [PatientLine] = []
+    /// Lines and devices on the patient diagram (PatientDevices): peripheral, arterial and central lines, PA catheter,
+    /// ECMO cannulas, LVAD, IABP, Impella. The airway lives in currentAirway and the intraoperative course; blocks and
+    /// neuraxial techniques in `regional`.
+    var devices: [PatientDevice] = []
     var regional: [PatientRegional] = []
     var infusions: [PatientInfusion] = []
     /// Units: "prbc", "wholeBlood", "plasma", "platelets", "cryo"; mL: "cellSaver", "crystalloid", "colloid", "ebl", "uop".
@@ -204,6 +246,8 @@ struct PatientRecord: Codable, Equatable {
     var medsGiven = ""
     var noEvents = false
     var events = ""
+    /// Intraoperative echo: the structured findings, and anything else as text.
+    var intraopEcho = PatientEcho()
     var echo = ""
 
     // Plan
@@ -226,6 +270,7 @@ struct PatientRecord: Codable, Equatable {
         heightCm = try? c.decodeIfPresent(Double.self, forKey: .heightCm)
         weightKg = try? c.decodeIfPresent(Double.self, forKey: .weightKg)
         procedure = v(.procedure, "")
+        procedures = v(.procedures, [])
         urgency = try? c.decodeIfPresent(PatientUrgency.self, forKey: .urgency)
         anesthetic = v(.anesthetic, [])
         highRiskSurgery = v(.highRiskSurgery, false)
@@ -247,10 +292,24 @@ struct PatientRecord: Codable, Equatable {
         lastClears = try? c.decodeIfPresent(Date.self, forKey: .lastClears)
         labs = v(.labs, [:])
         labNotes = v(.labNotes, "")
+        surgeries = v(.surgeries, [])
+        homeInfusions = v(.homeInfusions, [])
+        ascites = try? c.decodeIfPresent(LiverAscites.self, forKey: .ascites)
+        encephalopathy = try? c.decodeIfPresent(LiverEncephalopathy.self, forKey: .encephalopathy)
+        dialysis = v(.dialysis, false)
+        labSections = v(.labSections, [])
         mets = try? c.decodeIfPresent(String.self, forKey: .mets)
         dasi = v(.dasi, [])
         activeCardiac = v(.activeCardiac, [])
         cardiacSymptoms = v(.cardiacSymptoms, [])
+        cardiacSymptomsAnswer = try? c.decodeIfPresent(Bool.self, forKey: .cardiacSymptomsAnswer)
+        activeCardiacAnswer = try? c.decodeIfPresent(Bool.self, forKey: .activeCardiacAnswer)
+        intrathoracic = v(.intrathoracic, [])
+        ecg = v(.ecg, [])
+        ecgNotes = v(.ecgNotes, "")
+        echoFindings = v(.echoFindings, PatientEcho())
+        lhc = v(.lhc, PatientLHC())
+        rhc = v(.rhc, PatientRHC())
         frail = v(.frail, false)
         asaClass = try? c.decodeIfPresent(Int.self, forKey: .asaClass)
         asaE = try? c.decodeIfPresent(Bool.self, forKey: .asaE)
@@ -260,6 +319,12 @@ struct PatientRecord: Codable, Equatable {
         dentition = v(.dentition, "")
         airwayNotes = v(.airwayNotes, "")
         examNotes = v(.examNotes, "")
+        currentAirway = try? c.decodeIfPresent(String.self, forKey: .currentAirway)
+        ettSize = v(.ettSize, "")
+        ettDepth = v(.ettDepth, "")
+        trachType = v(.trachType, "")
+        vent = v(.vent, PatientVent())
+        oxygen = v(.oxygen, PatientOxygen())
         mask = try? c.decodeIfPresent(String.self, forKey: .mask)
         maskNote = v(.maskNote, "")
         maskGrade = try? c.decodeIfPresent(Int.self, forKey: .maskGrade)
@@ -275,6 +340,11 @@ struct PatientRecord: Codable, Equatable {
         ventilation = v(.ventilation, "")
         airwayFollowUp = v(.airwayFollowUp, [])
         lines = v(.lines, [])
+        devices = v(.devices, [])
+        if !c.contains(.devices) && !lines.isEmpty {
+            devices = lines.map { l in var d = PatientDevice(line: l); d.placedIntraop = true; return d }
+            lines = []
+        }
         regional = v(.regional, [])
         infusions = v(.infusions, [])
         fluids = v(.fluids, [:])
@@ -282,6 +352,7 @@ struct PatientRecord: Codable, Equatable {
         medsGiven = v(.medsGiven, "")
         noEvents = v(.noEvents, false)
         events = v(.events, "")
+        intraopEcho = v(.intraopEcho, PatientEcho())
         echo = v(.echo, "")
         disposition = try? c.decodeIfPresent(String.self, forKey: .disposition)
         painPlan = v(.painPlan, "")
@@ -354,4 +425,24 @@ extension PatientRecord {
     }
 
     func has(_ problem: String) -> Bool { problems.contains(problem) }
+
+    /// Arrives with an ETT or a tracheostomy: no airway examination or intraoperative airway course to record.
+    var arrivesWithAirway: Bool { currentAirway == "ett" || currentAirway == "trach" }
+    /// Cardiac or thoracic operations from the surgical history and those added in the cardiac evaluation.
+    var allIntrathoracic: [PatientSurgery] { surgeries.filter(\.intrathoracic) + intrathoracic }
+    var hasCardiacSymptoms: Bool { cardiacSymptomsAnswer == true || !cardiacSymptoms.isEmpty }
+    var hasActiveCardiac: Bool { activeCardiacAnswer == true || !activeCardiac.isEmpty }
+    /// Devices in place now (not removed); on arrival only, for the preoperative picture.
+    func currentDevices(arrivalOnly: Bool = false) -> [PatientDevice] { devices.filter { !$0.removed && (!arrivalOnly || !$0.placedIntraop) } }
+    /// IABP, Impella, LVAD and ECMO cannulas in place.
+    var mechanicalSupport: [PatientDevice] { currentDevices().filter { PatientDevice.supportKinds.contains($0.kind) } }
+    /// "7.5 ETT at 23 cm at the lip", "Tracheostomy (Shiley 8 cuffed)", "Own airway".
+    var currentAirwayText: String? {
+        switch currentAirway {
+        case "ett": return ["ETT" + (ettSize.isEmpty ? "" : " " + ettSize), ettDepth.isEmpty ? nil : "at " + ettDepth].compactMap { $0 }.joined(separator: " ")
+        case "trach": return "Tracheostomy" + (trachType.isEmpty ? "" : " (" + trachType + ")")
+        case "natural": return "Own airway"
+        default: return nil
+        }
+    }
 }

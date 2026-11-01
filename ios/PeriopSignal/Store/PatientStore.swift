@@ -154,8 +154,11 @@ final class PatientStore {
     #if DEBUG
     /// Screenshot runs: -ps.patient demo fills a made-up patient (never written to disk).
     static func debugSeed() -> PatientRecord? {
-        guard LaunchSeed.string("ps.patient") == "demo" else { return nil }
-        return PatientDemo.record
+        switch LaunchSeed.string("ps.patient") {
+        case "demo": return PatientDemo.record
+        case "demo-cardiac": return PatientDemo.cardiac
+        default: return nil
+        }
     }
     #endif
 }
@@ -165,7 +168,7 @@ enum PatientDemo {
     static var record: PatientRecord {
         var r = PatientRecord()
         r.ageYears = 67; r.sex = .male; r.heightCm = 178; r.weightKg = 96
-        r.procedure = "Laparoscopic sigmoid colectomy"
+        r.setProcedures(PlannedProcedure.parse("Laparoscopic sigmoid colectomy"))
         r.urgency = .elective
         r.anesthetic = ["ga", "regional"]
         r.highRiskSurgery = true
@@ -187,7 +190,7 @@ enum PatientDemo {
         r.mask = "easy"; r.intubation = "easy"; r.airwayDevice = "Video laryngoscope"; r.laryngoscopyGrade = "1"; r.attempts = 1
         r.tube = "7.5 ETT, 23 cm at the lip"
         r.airwayAtEnd = "extubated"
-        r.lines = [PatientLine(kind: "Peripheral IV", site: "left forearm", size: "18 G"), PatientLine(kind: "Arterial line", site: "right radial", size: "20 G")]
+        r.devices = ["18g lfa", "20g R radial art line"].compactMap { PatientDevices.parse($0)?.device(placedIntraop: true) }
         r.regional = [PatientRegional(technique: "TAP block", side: "Bilateral", drug: "ropivacaine 0.25% 20 mL each side")]
         r.infusions = [PatientInfusion(drug: "Phenylephrine", rate: "0.3 mcg/kg/min")]
         r.fluids = ["crystalloid": 1800, "ebl": 250, "uop": 320]
@@ -198,6 +201,48 @@ enum PatientDemo {
         r.callIf = "SBP under 90 or over 170; SpO₂ under 92%"
         r.todos = "Resume CPAP in PACU; check glucose on arrival"
         r.scores["rcri"] = PatientScore(points: 3, max: 6, label: "Class IV · 3 or more", detail: "15.0% (11.1–20.0)", answers: ["High-risk surgery", "Ischemic heart disease", "Insulin therapy for diabetes"], date: Date())
+        r.surgeries = [PatientSurgery(name: "Total knee arthroplasty", side: "right", date: PatientMonthYear(month: 3, year: 2019)),
+                       PatientSurgery(name: "Laparoscopic cholecystectomy", date: PatientMonthYear(year: 2015))]
+        r.cardiacSymptomsAnswer = false
+        r.activeCardiacAnswer = false
+        r.ecg = ["Normal sinus rhythm", "Q waves (old infarct)"]
+        var echo = PatientEcho()
+        echo.study = "TTE"; echo.date = PatientMonthYear(month: 6, year: 2026)
+        echo.lv = .mild; echo.lvef = 50; echo.rv = .normal
+        echo.mitral = EchoValve(regurgitation: .mild); echo.aortaIntact = true
+        r.echoFindings = echo
+        var lhc = PatientLHC()
+        lhc.dominance = "right"; lhc.stenosis = ["lad": 90, "rca": 40]; lhc.notes = "DES to proximal LAD"; lhc.date = PatientMonthYear(month: 5, year: 2023)
+        r.lhc = lhc
+        r.currentAirway = "natural"
+        r.oxygen = PatientOxygen(device: "ra")
+        return r
+    }
+
+    /// A made-up cardiac ICU patient on support, for the diagram screenshots.
+    static var cardiac: PatientRecord {
+        var r = PatientRecord()
+        r.ageYears = 58; r.sex = .male; r.heightCm = 180; r.weightKg = 88
+        r.setProcedures(PlannedProcedure.parse("Emergency CABG ×3 on VA ECMO"))
+        r.urgency = .emergency
+        r.anesthetic = ["ga"]
+        r.problems = ["htn", "cad", "hf"]
+        r.currentAirway = "ett"; r.ettSize = "8.0"; r.ettDepth = "23 cm at the lip"
+        r.vent.mode = "AC/VC"; r.vent.vt = 450; r.vent.rr = 18; r.vent.peep = 8; r.vent.fio2 = 60
+        r.homeInfusions = [PatientInfusion(drug: "Epinephrine", rate: "0.05 mcg/kg/min"), PatientInfusion(drug: "Norepinephrine", rate: "0.1 mcg/kg/min")]
+        r.devices = ["20 lue", "R radial art line 20g", "swan RIJ 8.5 Fr introducer", "VA ECMO 25F RFV drainage / 17F LFA return flow 4.2 sweep 3", "L fem IABP 7.5 Fr 1:1"]
+            .flatMap { PatientDevices.parse($0)?.devices(placedIntraop: false) ?? [] }
+        var echo = PatientEcho()
+        echo.study = "TEE"; echo.lv = .severe; echo.lvef = 15; echo.rv = .moderate
+        echo.mitral = EchoValve(regurgitation: .moderate)
+        r.echoFindings = echo
+        var rhc = PatientRHC()
+        rhc.ra = 16; rhc.pasp = 48; rhc.padp = 24; rhc.pcwp = 26; rhc.co = 3.1
+        r.rhc = rhc
+        r.labs = ["hb": 9.1, "plt": 96, "inr": 1.8, "fibrinogen": 180, "na": 131, "k": 4.9, "cr": 1.9, "bun": 38,
+                  "albumin": 2.9, "tbili": 2.4, "troponin": 4200, "troponin99": 14, "glucose": 188]
+        r.labSections = ["cardiac", "liver"]
+        r.dialysis = false
         return r
     }
 }

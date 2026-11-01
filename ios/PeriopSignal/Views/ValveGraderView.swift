@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Measurements in, the ASE grade out: pick the lesion, enter what you measured, tick the signs.
 struct ValveGraderView: View {
+    @Environment(PatientStore.self) private var myPatient
     var onOpen: (URL) -> Void
     var onOpenTable: () -> Void
 
@@ -25,6 +26,7 @@ struct ValveGraderView: View {
             VStack(alignment: .leading, spacing: 18) {
                 picker
                 result
+                if let g = reading.overall { PatientEchoSaveBar(label: g.label + " " + lesion.short, isSaved: { $0.grade(for: lesion) == EchoGrade(g) }, save: { $0.apply(lesion, g) }) }
                 numbers
                 if params.contains(where: \.isSign) { signsCard }
                 footer

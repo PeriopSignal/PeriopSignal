@@ -35,6 +35,28 @@ struct ChamberQuantView: View {
         return out
     }
 
+    /// LV ejection fraction and function, and RV function (the worst of TAPSE, FAC and S′), for My Patient's echo.
+    @ViewBuilder private func chamberSave(_ d: EchoData) -> some View {
+        let measures = d.groups.flatMap(\.measures)
+        let lvefM = measures.first { $0.id == "lvef" }
+        let ef = lvefM.flatMap { m in WeightField.value(values[m.id] ?? "") }
+        let lv = lvefM.flatMap { m in EchoCalc.grade(m, sex, ef, ctx) }.flatMap { EchoGrade(chamber: $0) }
+        let rv = ["tapse", "fac", "rvs"].compactMap { id -> Int? in
+            guard let m = measures.first(where: { $0.id == id }) else { return nil }
+            return EchoCalc.grade(m, sex, WeightField.value(values[m.id] ?? ""), ctx)
+        }.max().flatMap { EchoGrade(chamber: $0) }
+        if ef != nil || rv != nil {
+            let parts = [ef.map { "LVEF " + EchoCalc.fmt($0) + "%" }, lv.map { "LV " + PatientEcho.function($0) }, rv.map { "RV " + PatientEcho.function($0) }].compactMap { $0 }
+            PatientEchoSaveBar(label: parts.joined(separator: ", "),
+                               isSaved: { e in (ef == nil || e.lvef == ef) && (lv == nil || e.lv == lv) && (rv == nil || e.rv == rv) },
+                               save: { e in
+                                   if let ef { e.lvef = ef }
+                                   if let lv { e.lv = lv }
+                                   if let rv { e.rv = rv }
+                               })
+        }
+    }
+
     static func color(_ g: Int) -> Color {
         switch g {
         case 0: return PS.green
@@ -56,6 +78,7 @@ struct ChamberQuantView: View {
                         if let g = currentGroup(d) { groupCard(g) }
                         if let ivc = d.ivc, ivc.group == currentGroup(d)?.id { ivcCard(ivc) }
                         if let cp = d.coupling, cp.group == currentGroup(d)?.id { couplingCard(cp).id("coupling") }
+                        chamberSave(d)
                         footer(d)
                     } else {
                         Text("Loading the reference values…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)

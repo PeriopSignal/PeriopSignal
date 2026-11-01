@@ -8,7 +8,9 @@ enum PatientSummary {
         var text: String
         /// Needs attention (allergies, a difficult airway, an event).
         var alert = false
-        init(_ label: String?, _ text: String, alert: Bool = false) { self.label = label; self.text = text; self.alert = alert }
+        /// Parts of the text to show in bold red: abnormal values and scores ("K 5.9", "MELD 3.0 24").
+        var marks: [String] = []
+        init(_ label: String?, _ text: String, alert: Bool = false, marks: [String] = []) { self.label = label; self.text = text; self.alert = alert; self.marks = marks }
     }
 
     /// Typed values as typed (to two decimals): "Hb 12.8", "Creatinine 1.15".
@@ -57,17 +59,102 @@ enum PatientSummary {
         return fmt.string(from: d)
     }
 
+    /// The procedure card: what, how urgent, the planned anesthetic and the risk-score inputs it sets.
+    static func procedureLines(_ r: PatientRecord) -> [Line] {
+        var out: [Line] = []
+        let what = r.procedure.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !what.isEmpty { out.append(Line(nil, what)) }
+        let noSide = r.procedures.filter(\.needsSide).map(\.title)
+        if !noSide.isEmpty { out.append(Line("Side not set", noSide.joined(separator: ", "), alert: true)) }
+        var how: [String] = []
+        if let u = r.urgency { how.append(u.label) }
+        let an = anestheticText(r)
+        if !an.isEmpty { how.append(an) }
+        if !how.isEmpty { out.append(Line(nil, how.joined(separator: " · "), alert: r.emergency)) }
+        var risk: [String] = []
+        if r.highRiskSurgery && !PatientRules.cardiacSurgery(r) { risk.append("High-risk surgery (RCRI)") }
+        if let i = r.incision { risk.append(i + " incision") }
+        if let d = r.duration { risk.append(d) }
+        if !risk.isEmpty { out.append(Line("Risk-score inputs", risk.joined(separator: " · "))) }
+        return out
+    }
+
+    /// The demographics card: the one-liner, body size and baseline vitals.
+    static func demographicsLines(_ r: PatientRecord) -> [Line] {
+        var out: [Line] = []
+        if !r.person.isEmpty { out.append(Line(nil, r.person)) }
+        let body = bodyLine(r)
+        if !body.isEmpty { out.append(Line(nil, body)) }
+        if let v = vitalsLine(r) { out.append(Line("Preprocedure vitals", v)) }
+        return out
+    }
+
+    /// "Hb 9.8 L · Plt 98 L · INR 1.6 H · …", the abnormal values marked for bold red, with the other results after.
+    static func labsLine(_ r: PatientRecord) -> Line? {
+        let sum = PatientLabs.summary(r)
+        let note = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !sum.isEmpty || !note.isEmpty else { return nil }
+        let text = ([sum.line].filter { !$0.isEmpty } + (note.isEmpty ? [] : [note])).joined(separator: " · ")
+        return Line("Labs", text, marks: sum.abnormal.map(\.compact))
+    }
+
+    /// "MELD 3.0 18 · MELD-Na 17 · Child-Pugh B (8)", when the liver section has what it needs.
+    static func liverLine(_ r: PatientRecord) -> Line? {
+        guard r.labSections.contains("liver") || r.ascites != nil || r.encephalopathy != nil else { return nil }
+        let res = PatientLabs.liver(LiverInput(record: r, dialysis: r.dialysis, ascites: r.ascites, encephalopathy: r.encephalopathy))
+        var parts: [String] = []
+        var marks: [String] = []
+        // Bold red from 15: in Teh 2007 (Gastroenterology 2007;132:1261), 30-day mortality after major surgery in
+        // cirrhosis rose steadily with MELD, from 5.7% under 8 to over 50% above 20; 15 marks the middle of that rise.
+        if let m = res.meld3 { let t = "MELD 3.0 \(m)"; parts.append(t); if m >= 15 { marks.append(t) } }
+        if let m = res.meldNa { let t = "MELD-Na \(m)"; parts.append(t); if m >= 15 { marks.append(t) } }
+        if let c = res.childPughClass, let p = res.childPugh { let t = "Child-Pugh \(c.rawValue) (\(p))"; parts.append(t); if c != .a { marks.append(t) } }
+        return parts.isEmpty ? nil : Line("Liver", parts.joined(separator: " · "), alert: !marks.isEmpty, marks: marks)
+    }
+
+    static func smokingText(_ s: String) -> String { s == "current" ? "Current smoker" : (s == "former" ? "Former smoker" : "Never smoked") }
+
+    /// "Known difficult airway; PONV or motion sickness; …", flagged when it matters for this anesthetic.
+    static func anestheticComplications(_ r: PatientRecord) -> Line? {
+        let ah = PatientCatalog.anesthesiaHistory.filter { r.anesthesiaHistory.contains($0.id) }.map(\.label)
+        let note = r.anesthesiaNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !ah.isEmpty || !note.isEmpty else { return nil }
+        let serious: Set<String> = ["mh", "difficult-airway", "pseudocholinesterase"]
+        return Line("Anesthetic complications", (ah + (note.isEmpty ? [] : [note])).joined(separator: "; "), alert: !r.anesthesiaHistory.isDisjoint(with: serious))
+    }
+
+    static func ecgText(_ r: PatientRecord) -> String? {
+        let note = r.ecgNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        let all = r.ecg + (note.isEmpty ? [] : [note])
+        return all.isEmpty ? nil : all.joined(separator: "; ")
+    }
+
+    /// "RA 12, PA 52/24 (mean 33), PCWP 22, CO 3.8": the measured values; the derived ones are on the RHC page.
+    static func rhcText(_ r: PatientRecord) -> String? {
+        let h = r.rhc
+        guard !h.isEmpty else { return nil }
+        var parts: [String] = []
+        if let v = h.ra { parts.append("RA " + f(v)) }
+        if let s = h.pasp, let d = h.padp { parts.append("PA " + f(s) + "/" + f(d) + (h.pam.map { " (mean " + f($0) + ")" } ?? "")) }
+        else if let m = h.pam { parts.append("PA mean " + f(m)) }
+        if let v = h.pcwp { parts.append("PCWP " + f(v)) }
+        if let v = h.co { parts.append("CO " + f(v)) }
+        let head = h.date.isEmpty ? "" : "RHC " + h.date.text + ": "
+        return parts.isEmpty ? nil : head + parts.joined(separator: ", ")
+    }
+
     static func historyLines(_ r: PatientRecord, now: Date = Date()) -> [Line] {
         var out: [Line] = []
         if r.noHistory && r.problems.isEmpty { out.append(Line(nil, "No significant medical history")) }
         for sys in PatientCatalog.allSystems {
             var items = sys.problems.filter { r.problems.contains($0.id) }.map(\.label)
+            if sys.id == "social", let s = r.smoking { items.insert(smokingText(s), at: 0) }
             if let n = r.systemNotes[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty { items.append(n) }
             if !items.isEmpty { out.append(Line(sys.name, items.joined(separator: "; "))) }
         }
         let other = r.otherHistory.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { out.append(Line("Other conditions", other)) }
-        if let s = r.smoking { out.append(Line("Smoking", s == "current" ? "Current smoker" : (s == "former" ? "Former smoker" : "Never smoked"))) }
+        if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeries.map(\.text).joined(separator: "; "))) }
         if r.nkda { out.append(Line("Allergies", "No known drug allergies")) }
         else if !r.allergies.isEmpty { out.append(Line("Allergies", r.allergies, alert: true)) }
         // The list as typed; the flags only add what needs action (an anticoagulant, a GLP-1 agonist), so the
@@ -81,19 +168,15 @@ enum PatientSummary {
         } else if !flags.isEmpty {
             out.append(Line("Medications", flags.map(\.label).joined(separator: ", "), alert: !watched.isEmpty))
         }
-        let ah = PatientCatalog.anesthesiaHistory.filter { r.anesthesiaHistory.contains($0.id) }.map(\.label)
-        let ahNote = r.anesthesiaNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !ah.isEmpty || !ahNote.isEmpty {
-            let serious: Set<String> = ["mh", "difficult-airway", "pseudocholinesterase"]
-            out.append(Line("Anesthesia history", (ah + (ahNote.isEmpty ? [] : [ahNote])).joined(separator: "; "), alert: !r.anesthesiaHistory.isDisjoint(with: serious)))
-        }
+        let drips = r.homeInfusions.map(\.text).filter { !$0.isEmpty }
+        if !drips.isEmpty { out.append(Line("Current infusions", drips.joined(separator: "; "), alert: true)) }
+        if let a = anestheticComplications(r) { out.append(a) }
         var npo: [String] = []
         if let d = r.lastSolids { npo.append("solids " + time(d, now: now)) }
         if let d = r.lastClears { npo.append("clear fluids " + time(d, now: now)) }
         if !npo.isEmpty { out.append(Line("Last intake", npo.joined(separator: " · "))) }
-        let labs = PatientCatalog.labs.compactMap { l -> String? in r.labs[l.id].map { (l.id == "hb" ? "Hb" : (l.id == "plt" ? "Plt" : (l.id == "a1c" ? "HbA1c" : l.label))) + " " + f($0) } }
-        let labNote = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !labs.isEmpty || !labNote.isEmpty { out.append(Line("Labs", (labs + (labNote.isEmpty ? [] : [labNote])).joined(separator: " · "))) }
+        if let l = labsLine(r) { out.append(l) }
+        if let m = liverLine(r) { out.append(m) }
         return out
     }
 
@@ -117,6 +200,12 @@ enum PatientSummary {
         if !symptoms.isEmpty { out.append(Line("Cardiac symptoms", symptoms.joined(separator: "; "), alert: true)) }
         let active = PatientFunctional.acuteConditions(r)
         if !active.isEmpty { out.append(Line("Acute cardiac conditions", active.joined(separator: "; "), alert: true)) }
+        let thoracic = r.allIntrathoracic
+        if !thoracic.isEmpty { out.append(Line("Previous intrathoracic surgery", thoracic.map(\.text).joined(separator: "; "), alert: true)) }
+        if let e = ecgText(r) { out.append(Line("ECG", e)) }
+        if !r.echoFindings.isEmpty { out.append(Line("Echo", r.echoFindings.summary)) }
+        if !r.lhc.isEmpty { out.append(Line("Coronaries", r.lhc.summary)) }
+        if let h = rhcText(r) { out.append(Line("Right heart cath", h)) }
         if r.isAdult, !r.emergency, r.ageYears != nil {
             let step = PatientFunctional.cardiacStep(r)
             out.append(Line("Cardiac evaluation", step.title, alert: step.alert))
@@ -131,6 +220,11 @@ enum PatientSummary {
 
     static func airwayLines(_ r: PatientRecord) -> [Line] {
         var out: [Line] = []
+        if let a = r.currentAirwayText {
+            out.append(Line("Current airway", a, alert: r.arrivesWithAirway))
+            if r.arrivesWithAirway && !r.vent.isEmpty && r.oxygen.device != "trachCollar" { out.append(Line("Ventilator", r.vent.text)) }
+        }
+        if !r.oxygen.isEmpty && (!r.arrivesWithAirway || r.oxygen.device == "trachCollar") { out.append(Line("Oxygen", r.oxygen.text)) }
         if let m = r.mallampati { out.append(Line(nil, PatientAirway.mallampatiLine(m), alert: m >= 3)) }
         let signs = PatientAirway.signs.filter { r.airwaySigns.contains($0.id) }.map(\.label)
         if !signs.isEmpty { out.append(Line("Difficult-airway signs", signs.joined(separator: "; "), alert: signs.count >= 2 || (r.mallampati ?? 0) >= 3)) }
@@ -202,7 +296,8 @@ enum PatientSummary {
         var out: [Line] = []
         if let a = airwayCourse(r) { out.append(a) }
         if let fu = followUpLine(r) { out.append(fu) }
-        let lines = r.lines.map(\.text).filter { !$0.isEmpty }
+        let placed = PatientDevices.labels(r.devices.filter { $0.placedIntraop && PatientDevice.lineKinds.contains($0.kind) })
+        let lines = placed + r.lines.map(\.text).filter { !$0.isEmpty }
         if !lines.isEmpty { out.append(Line("Lines", lines.joined(separator: "; "))) }
         let blocks = r.regional.map(\.text).filter { !$0.isEmpty }
         if !blocks.isEmpty { out.append(Line("Regional", blocks.joined(separator: "; "))) }
@@ -214,8 +309,42 @@ enum PatientSummary {
         if !r.medsGiven.isEmpty { out.append(Line("Medications & interventions", r.medsGiven)) }
         if r.noEvents { out.append(Line("Events", "No notable events")) }
         else if !r.events.isEmpty { out.append(Line("Events", r.events, alert: true)) }
-        if !r.echo.isEmpty { out.append(Line("Echo", r.echo)) }
+        if !r.intraopEcho.isEmpty { out.append(Line("Echo", r.intraopEcho.summary)) }
+        if !r.echo.isEmpty { out.append(Line(r.intraopEcho.isEmpty ? "Echo" : "Echo notes", r.echo)) }
         return out
+    }
+
+    /// The lines for one part of the intraoperative record (PatientEditor.intraopParts).
+    static func intraopPartLines(_ r: PatientRecord, _ part: String) -> [Line] {
+        if part == "airway" && r.arrivesWithAirway {
+            var out = [Line(nil, (r.currentAirwayText ?? "Secured") + " on arrival")]
+            if let end = r.airwayAtEnd { out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : end))) }
+            return out
+        }
+        let labels: [String: Set<String>] = [
+            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines"], "regional": ["Regional"], "infusions": ["Infusions"],
+            "fluids": ["In", "Out", "Factor concentrates & other products"], "meds": ["Medications & interventions"],
+            "events": ["Events"], "echo": ["Echo", "Echo notes"],
+        ]
+        // The card's own title names the part, so a line labelled the same way drops its label.
+        let titles: Set<String> = ["Airway", "Lines", "Regional", "Infusions", "Medications & interventions", "Events", "Echo"]
+        var out = intraopLines(r).filter { l in l.label.map { labels[part]?.contains($0) ?? false } ?? false }
+            .map { l in titles.contains(l.label ?? "") ? Line(nil, l.text, alert: l.alert, marks: l.marks) : l }
+        if part == "events", let end = r.airwayAtEnd, r.arrivesWithAirway || r.intubation != nil {
+            out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label ?? end))))
+        }
+        return out
+    }
+
+    /// Lines and devices present on arrival (the preoperative picture).
+    static func arrivalDeviceLines(_ r: PatientRecord) -> [Line] {
+        let lines = PatientDevices.labels(r.currentDevices(arrivalOnly: true).filter { PatientDevice.lineKinds.contains($0.kind) })
+        return lines.isEmpty ? [] : [Line(nil, lines.joined(separator: "; "))]
+    }
+
+    /// IABP, Impella, LVAD and ECMO with their settings, each on its own line.
+    static func supportLines(_ r: PatientRecord) -> [Line] {
+        PatientDevices.labels(r.mechanicalSupport).map { Line(nil, $0, alert: true) }
     }
 
     static func planLines(_ r: PatientRecord) -> [Line] {
@@ -272,7 +401,11 @@ enum HandoffWriter {
         if let c = PatientSummary.airwayCourse(r) { airway.append(PatientSummary.Line("Course", c.text, alert: c.alert)) }
         if let fu = PatientSummary.followUpLine(r) { airway.append(fu) }
         section("Airway", airway)
-        let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" }
+        // Every line and device in place now, on arrival or placed in the room, with the mechanical support.
+        let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
+        let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
+        section("Lines & devices", lines + support)
+        let intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" && $0.label != "Lines" }
         section("Intraoperative", intraop)
         section("Plan", PatientSummary.planLines(r))
         out.append(footer(now))
@@ -297,10 +430,16 @@ enum HandoffWriter {
             if !t.isEmpty { out.append(label + ": " + t) }
         }
         line("Allergies", r.nkda ? "No known drug allergies" : r.allergies)
-        if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
+        if r.arrivesWithAirway, let a = r.currentAirwayText {
+            var t = a + " on arrival"
+            if !r.vent.isEmpty && r.oxygen.device != "trachCollar" { t += "; " + r.vent.text }
+            if let end = r.airwayAtEnd { t += "; at handoff: " + (end == "intubated" ? "remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label.lowercased() ?? end)) }
+            line("Airway", t)
+        } else if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
         if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
-        line("Lines", r.lines.map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
-        line("Drips", r.infusions.map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
+        line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
+        line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
+        line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
         line("Events", r.noEvents ? "No notable events" : r.events)
         var plan: [String] = []
         if let d = r.disposition { plan.append(d + ".") }
