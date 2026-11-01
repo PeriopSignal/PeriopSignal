@@ -285,6 +285,16 @@ jobs:
           shot 136-rooms-archive-entry 15 -ps.tab patient -ps.patient demo-rooms -ps.patient.open archive-entry -ps.forceAppearance light
           shot 137-rooms-handoff 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.patient.tab summary
           shot 138-rooms-receive 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open receive
+          shot 170-patient-pinned-jump 14 -ps.tab patient -ps.patient demo -ps.patient.scroll history
+          shot 171-patient-vitals-keyboard 16 -ps.tab patient -ps.patient demo -ps.patient.open demographics -ps.patient.focus vital.hr
+          shot 172-cardiac-pinned-intraop 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance light
+          shot 173-rooms-exam-normal 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open airway
+          shot 174-rooms-exam-normal-undo 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open airway -ps.patient.edit exam -ps.forceAppearance light
+          shot 175-rooms-echo-normal 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open workup:echo
+          shot 176-cardiac-intraop-echo-normal 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:echo
+          shot 177-patient-labs-keyboard 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:labs -ps.patient.focus main.k
+          shot 178-patient-undo-tab 14 -ps.tab patient -ps.patient demo -ps.patient.edit exam
+          shot 179-patient-shield 14 -ps.tab patient -ps.patient demo -ps.patient.shield 1
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -173,9 +173,21 @@ struct PatientView: View {
 
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
     /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
-    /// intraop:<part> | a reference route such as score:rcri.
+    /// intraop:<part> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo makes that
+    /// change first (one-tap normals), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
+        let edit = LaunchSeed.string("ps.patient.edit")
+        if !edit.isEmpty {
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            patient.update(discrete: true) { r in
+                switch edit {
+                case "echo": r.echoFindings.applyNormal()
+                case "intraop-echo": r.intraopEcho.applyNormal()
+                default: PatientAirway.applyNormalExam(&r)
+                }
+            }
+        }
         let o = LaunchSeed.string("ps.patient.open")
         // A push asked for before the navigation stack is on screen is sometimes dropped (screenshot runs): wait a moment.
         if !o.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
