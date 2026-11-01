@@ -197,6 +197,9 @@ struct PatientRecord: Codable, Equatable {
     var dentition = ""
     var airwayNotes = ""
     var examNotes = ""
+    /// The airway examination was done: mouth opening, thyromental distance and neck movement not flagged under the
+    /// signs read as normal (set by Exam normal, PatientAirway.applyNormalExam). False in records saved before 1.8.
+    var airwayExamReviewed = false
     /// The airway the patient arrives with: "natural", "ett" or "trach"; with an ETT or a tracheostomy the airway
     /// examination and the intraoperative airway course are not asked.
     var currentAirway: String?
@@ -332,6 +335,7 @@ struct PatientRecord: Codable, Equatable {
         dentition = v(.dentition, "")
         airwayNotes = v(.airwayNotes, "")
         examNotes = v(.examNotes, "")
+        airwayExamReviewed = v(.airwayExamReviewed, false)
         currentAirway = try? c.decodeIfPresent(String.self, forKey: .currentAirway)
         ettSize = v(.ettSize, "")
         ettDepth = v(.ettDepth, "")
@@ -450,6 +454,11 @@ extension PatientRecord {
 
     /// Arrives with an ETT or a tracheostomy: no airway examination or intraoperative airway course to record.
     var arrivesWithAirway: Bool { currentAirway == "ett" || currentAirway == "trach" }
+    /// Anything recorded in the airway examination: the Mallampati class, a sign, the teeth, or the exam marked
+    /// reviewed. Without it the full handoff says the exam was not assessed.
+    var airwayExamTouched: Bool {
+        mallampati != nil || !airwaySigns.isEmpty || !dentition.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || airwayExamReviewed
+    }
     /// Cardiac or thoracic operations from the surgical history and those added in the cardiac evaluation.
     var allIntrathoracic: [PatientSurgery] { surgeries.filter(\.intrathoracic) + intrathoracic }
     var hasCardiacSymptoms: Bool { cardiacSymptomsAnswer == true || !cardiacSymptoms.isEmpty }

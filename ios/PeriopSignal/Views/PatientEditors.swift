@@ -518,6 +518,16 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var airwayExam: some View {
+        PatientGroup(title: nil) {
+            PatientPresetRow(title: "Exam normal", caption: PatientAirway.normalExamCaption, applied: PatientAirway.isNormalExam(r)) {
+                patient.update(discrete: true) { PatientAirway.applyNormalExam(&$0) }
+            }
+            if r.airwayExamReviewed {
+                Hairline().padding(.leading, 14)
+                toggleRow("Exam reviewed", "Mouth opening, thyromental distance and neck movement read as normal unless a sign below says otherwise", bind(\.airwayExamReviewed))
+            }
+        }
+        .id("examnormal")
         PatientGroup(title: "Mallampati", note: PatientFunctional.mallampatiHow) {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                 ForEach(1...4, id: \.self) { m in

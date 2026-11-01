@@ -156,6 +156,38 @@ struct PatientChoice: View {
     }
 }
 
+/// A one-tap preset (Exam normal, Echo normal): the button, then what it sets in a caption under it. Once the record
+/// shows what it sets, the button reads as done; everything stays editable below.
+struct PatientPresetRow: View {
+    var title: String
+    var caption: String
+    var applied: Bool
+    var action: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack {
+                Button {
+                    Haptics.light()
+                    withAnimation(.snappy) { action() }
+                } label: {
+                    Label(title, systemImage: applied ? "checkmark.circle.fill" : "checkmark.circle")
+                }
+                .buttonStyle(CapsuleButtonStyle(prominent: !applied, color: PS.green))
+                .accessibilityHint(caption)
+                Spacer(minLength: 0)
+            }
+            Text(caption)
+                .font(PS.sys(size: 12))
+                .foregroundStyle(PS.fg3)
+                .lineSpacing(1.5)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 /// The ASA suggestion as a small table: what is recorded, the ASA example it matches (when that says more), and the
 /// example's class; the rows that set the suggestion are filled.
 struct AsaReasonTable: View {

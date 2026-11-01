@@ -509,6 +509,7 @@ struct InfusionRow: View {
 struct EchoFindingsEditor: View {
     @Binding var echo: PatientEcho
     var showsStudy = false
+    @Environment(PatientStore.self) private var store: PatientStore?
 
     private func grade(_ b: Binding<EchoGrade?>, normalLabel: String = "Normal") -> some View {
         PatientChoice(options: EchoGrade.allCases.map { (id: $0.rawValue, label: $0 == .normal ? normalLabel : $0.label) },
@@ -535,6 +536,15 @@ struct EchoFindingsEditor: View {
                 MonthYearField(label: "Date", value: $echo.date)
             }
         }
+        PatientGroup(title: nil) {
+            PatientPresetRow(title: "Echo normal", caption: PatientEcho.normalCaption, applied: echo.isNormalPreset) {
+                var e = echo
+                e.applyNormal()
+                store?.markDiscrete()
+                echo = e
+            }
+        }
+        .id("echonormal")
         PatientGroup(title: "Left ventricle") {
             PatientChipRow(label: "Function") { grade($echo.lv) }
             PatientNumberField(label: "Ejection fraction", unit: "%", value: $echo.lvef)

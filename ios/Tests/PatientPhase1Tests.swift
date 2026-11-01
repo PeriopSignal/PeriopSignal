@@ -1,7 +1,8 @@
 import XCTest
 @testable import PeriopSignal
 
-/// My Patient 1.8, phase 1: Undo on every tab and editor (PatientUndoHistory in PatientStore).
+/// My Patient 1.8, phase 1: Undo on every tab and editor (PatientUndoHistory in PatientStore); Exam normal, Echo
+/// normal and "not assessed" in the full handoff.
 final class PatientPhase1Tests: XCTestCase {
     private let t0 = Date(timeIntervalSince1970: 1_800_000_000)
 
@@ -169,5 +170,129 @@ final class PatientPhase1Tests: XCTestCase {
         h.clear(a)
         XCTAssertFalse(h.canUndo(a))
         XCTAssertNil(h.pop(a))
+    }
+    // MARK: One-tap normals
+
+    func testExamNormalSetsWhatItsCaptionSays() throws {
+        var r = PatientRecord()
+        r.ageYears = 50
+        r.mallampati = 4
+        r.airwaySigns = ["mouth", "tmd", "neck", "edentulous", "beard"]
+        r.dentition = "Loose upper incisor"
+        XCTAssertFalse(PatientAirway.isNormalExam(r))
+        PatientAirway.applyNormalExam(&r)
+        XCTAssertEqual(r.mallampati, 2)
+        XCTAssertEqual(r.airwaySigns, ["beard"], "the signs it rules out go; the others stay")
+        XCTAssertEqual(r.dentition, "Intact")
+        XCTAssertTrue(r.airwayExamReviewed)
+        XCTAssertTrue(PatientAirway.isNormalExam(r))
+        for word in ["Mallampati II", "mouth opening", "thyromental distance", "neck range of motion", "intact teeth"] {
+            XCTAssertTrue(PatientAirway.normalExamCaption.contains(word), word)
+        }
+        let lines = PatientSummary.airwayLines(r)
+        XCTAssertTrue(lines.contains { $0.text.hasPrefix("Mallampati II") })
+        XCTAssertEqual(lines.first { $0.label == "Exam" }?.text, "Mouth opening and thyromental distance adequate; full neck range of motion")
+        XCTAssertEqual(lines.first { $0.label == "Teeth" }?.text, "Intact")
+
+        // Editable after: a sign ticked later replaces its normal finding.
+        r.airwaySigns.insert("neck")
+        XCTAssertEqual(PatientAirway.reviewedNormals(r), "Mouth opening and thyromental distance adequate")
+        r.airwaySigns.insert("mouth")
+        XCTAssertEqual(PatientAirway.reviewedNormals(r), "Thyromental distance adequate")
+        XCTAssertFalse(PatientAirway.isNormalExam(r))
+        r.airwayExamReviewed = false
+        XCTAssertNil(PatientAirway.reviewedNormals(r))
+
+        // The new field reads from a record saved before it, and round-trips.
+        let old = try JSONDecoder().decode(PatientRecord.self, from: Data("{\"mallampati\": 2}".utf8))
+        XCTAssertFalse(old.airwayExamReviewed)
+        var reviewed = PatientRecord(); reviewed.airwayExamReviewed = true
+        let back = try JSONDecoder().decode(PatientRecord.self, from: try JSONEncoder().encode(reviewed))
+        XCTAssertTrue(back.airwayExamReviewed)
+        XCTAssertFalse(reviewed.isEmpty)
+    }
+
+    func testEchoNormalSetsWhatItsCaptionSays() {
+        var e = PatientEcho()
+        e.lvef = 60
+        e.aortic.prosthesis = ""
+        e.applyNormal()
+        XCTAssertEqual(e.lv, .normal)
+        XCTAssertEqual(e.rv, .normal)
+        for v in [e.mitral, e.tricuspid, e.aortic] {
+            XCTAssertEqual(v.regurgitation, .normal)
+            XCTAssertEqual(v.stenosis, .normal)
+        }
+        XCTAssertEqual(e.lvef, 60, "the EF typed stays")
+        XCTAssertTrue(e.isNormalPreset)
+        XCTAssertEqual(e.summary, "LV EF 60%, normal; RV function normal; No significant valve disease")
+        XCTAssertTrue(PatientEcho.normalCaption.contains("LV and RV function normal"))
+
+        // Editable after: a valve graded later shows, and the summary no longer says there is none.
+        e.mitral.regurgitation = .moderate
+        XCTAssertFalse(e.isNormalPreset)
+        XCTAssertEqual(e.phrases, ["LV EF 60%, normal", "RV function normal", "Moderate MR"])
+        var noneGraded = PatientEcho()
+        noneGraded.lv = .normal
+        XCTAssertFalse(noneGraded.noValveDisease, "valves not graded are not called normal")
+    }
+
+    @MainActor func testPresetsAreOneUndoStep() {
+        let store = PatientStore(url: nil)
+        store.update(discrete: true) { $0.ageYears = 50 }
+        store.update(discrete: true) { PatientAirway.applyNormalExam(&$0) }
+        store.update(discrete: true) { $0.intraopEcho.applyNormal() }
+        store.undo()
+        XCTAssertTrue(store.record.intraopEcho.isEmpty)
+        XCTAssertEqual(store.record.mallampati, 2)
+        store.undo()
+        XCTAssertNil(store.record.mallampati)
+        XCTAssertFalse(store.record.airwayExamReviewed)
+        XCTAssertEqual(store.ageYears, 50)
+    }
+
+    func testFullHandoffSaysNotAssessed() throws {
+        var r = PatientRecord()
+        r.ageYears = 50; r.sex = .female
+        r.setProcedures(PlannedProcedure.parse("Laparoscopic cholecystectomy"))
+        let full = HandoffWriter.text(r)
+        XCTAssertTrue(full.contains("Echo: not assessed"), full)
+        XCTAssertTrue(full.contains("Airway exam: not assessed"), full)
+        let assessment = try XCTUnwrap(full.range(of: "ASSESSMENT"))
+        let airway = try XCTUnwrap(full.range(of: "AIRWAY"))
+        XCTAssertLessThan(assessment.lowerBound, try XCTUnwrap(full.range(of: "Echo: not assessed")).lowerBound)
+        XCTAssertLessThan(airway.lowerBound, try XCTUnwrap(full.range(of: "Airway exam: not assessed")).lowerBound)
+        XCTAssertEqual(full.components(separatedBy: "not assessed").count, 3, "no intraoperative echo is expected for a cholecystectomy")
+        XCTAssertFalse(HandoffWriter.shortText(r).contains("not assessed"), "the short handoff stays short")
+
+        // Touched, even by one sign or the presets: no longer "not assessed".
+        var touched = r
+        touched.airwaySigns = ["beard"]
+        touched.echoFindings.applyNormal()
+        let t = HandoffWriter.text(touched)
+        XCTAssertFalse(t.contains("not assessed"), t)
+        XCTAssertTrue(t.contains("Echo: LV function normal; RV function normal; No significant valve disease"), t)
+        var normal = r
+        PatientAirway.applyNormalExam(&normal)
+        XCTAssertTrue(HandoffWriter.text(normal).contains("Exam: Mouth opening and thyromental distance adequate; full neck range of motion"))
+        XCTAssertFalse(HandoffWriter.text(normal).contains("Airway exam: not assessed"))
+
+        // With an ETT in place the exam is not asked, so it is not called missing.
+        var ett = r
+        ett.currentAirway = "ett"
+        XCTAssertFalse(HandoffWriter.text(ett).contains("Airway exam: not assessed"))
+
+        // Cardiac surgery expects an intraoperative echo.
+        let cardiac = HandoffWriter.text(PatientDemo.cardiac)
+        let intraop = try XCTUnwrap(cardiac.range(of: "INTRAOPERATIVE"))
+        let echo = try XCTUnwrap(cardiac.range(of: "Echo: not assessed", range: intraop.upperBound..<cardiac.endIndex))
+        XCTAssertLessThan(intraop.lowerBound, echo.lowerBound)
+        var recorded = PatientDemo.cardiac
+        recorded.intraopEcho.lv = .severe
+        XCTAssertFalse(HandoffWriter.text(recorded).contains("Echo: not assessed"))
+
+        // The demo patient has both: nothing changes, and the short handoff is still one screen.
+        XCTAssertFalse(HandoffWriter.text(PatientDemo.record).contains("not assessed"))
+        XCTAssertLessThanOrEqual(HandoffWriter.shortText(PatientDemo.record).components(separatedBy: "\n").count, 14)
     }
 }

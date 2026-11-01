@@ -278,6 +278,43 @@ enum PatientAirway {
         return out
     }
 
+    // MARK: Exam normal
+
+    /// What Exam normal sets, shown under its button.
+    static let normalExamCaption = "Sets Mallampati II, mouth opening and thyromental distance adequate, full neck range of motion and intact teeth. Change anything after."
+    /// The signs a normal exam rules out: mouth opening, thyromental distance, neck movement and no teeth.
+    static let normalExamClears: Set<String> = ["mouth", "tmd", "neck", "edentulous"]
+    static let intactTeeth = "Intact"
+
+    /// One tap for a normal airway examination: Mallampati II, the signs it rules out taken off (the others stay),
+    /// teeth intact, and the exam marked reviewed so the handoff says what was found normal.
+    static func applyNormalExam(_ r: inout PatientRecord) {
+        r.mallampati = 2
+        r.airwaySigns.subtract(normalExamClears)
+        r.dentition = intactTeeth
+        r.airwayExamReviewed = true
+    }
+
+    /// The record shows what Exam normal sets.
+    static func isNormalExam(_ r: PatientRecord) -> Bool {
+        r.mallampati == 2 && r.airwaySigns.isDisjoint(with: normalExamClears) && r.dentition == intactTeeth && r.airwayExamReviewed
+    }
+
+    /// With the exam reviewed, the findings no sign contradicts: "Mouth opening and thyromental distance adequate;
+    /// full neck range of motion".
+    static func reviewedNormals(_ r: PatientRecord) -> String? {
+        guard r.airwayExamReviewed else { return nil }
+        let mouth = !r.airwaySigns.contains("mouth"), tmd = !r.airwaySigns.contains("tmd"), neck = !r.airwaySigns.contains("neck")
+        var parts: [String] = []
+        if mouth && tmd { parts.append("mouth opening and thyromental distance adequate") }
+        else if mouth { parts.append("mouth opening adequate") }
+        else if tmd { parts.append("thyromental distance adequate") }
+        if neck { parts.append("full neck range of motion") }
+        guard let first = parts.first else { return nil }
+        parts[0] = first.prefix(1).uppercased() + first.dropFirst()
+        return parts.joined(separator: "; ")
+    }
+
     /// Han mask-ventilation grades (Han R, et al. Anesthesiology 2004;101:267, as Kheterpal 2006 tabulates them), in
     /// our words; each applies with or without a muscle relaxant.
     static let maskGrades: [(id: String, label: String, detail: String)] = [
