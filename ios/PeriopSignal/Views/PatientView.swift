@@ -384,28 +384,9 @@ struct PatientView: View {
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
     }
 
+    /// The quick-add bar (1.8), in place of the Fill from a note card; its pencil opens the full note.
     private var noteButton: some View {
-        Button { showNote = true } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "square.and.pencil")
-                    .font(PS.sys(size: 16, weight: .semibold))
-                    .foregroundStyle(PS.accent2)
-                    .frame(width: 36, height: 36)
-                    .background(PS.accent2.opacity(0.12), in: Circle())
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Fill from a note").font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text("Type or dictate; check what's found before it's added.")
-                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 6)
-                Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-            }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        QuickAddBar(tab: tab == .intraop ? .intraop : .preop)
     }
 
     private func noteBanner(_ n: NoteResult) -> some View {

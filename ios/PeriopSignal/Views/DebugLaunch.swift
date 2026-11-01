@@ -15,7 +15,7 @@ import WidgetKit
 ///   -ps.screen cards        show the two posts with the most topic tags as cards (button-row layout check)
 ///   -ps.screen sharecard    render the share image for the newest landmark post
 ///   -ps.showWelcome 1       open the welcome screen (topics and alerts)
-///   -ps.forceAppearance light / -ps.forceLaunchCount N
+///   -ps.forceAppearance light|dark   this launch only (not saved) / -ps.forceLaunchCount N
 enum DebugLaunch {
     static var openPost: String? { UserDefaults.standard.string(forKey: "ps.openPost") }
     static var tab: String? { UserDefaults.standard.string(forKey: "ps.tab") }
