@@ -168,15 +168,6 @@ struct PatientView: View {
         }
         .environment(handoff)
         .task { await openForScreenshot() }
-        #if DEBUG
-        // TEMPORARY trace for shot 161 (to be reverted).
-        .onAppear { NSLog("QATRACE PV appear tab=%@ empty=%@", "\(tab)", patient.isEmpty ? "yes" : "no") }
-        .onDisappear { NSLog("QATRACE PV disappear") }
-        .onChange(of: patient.record) { _, _ in NSLog("QATRACE PV record changed age=%@", "\(patient.record.ageYears ?? -1)") }
-        .onChange(of: patient.book.currentID) { _, _ in NSLog("QATRACE PV case changed") }
-        .onChange(of: tab) { _, t in NSLog("QATRACE PV tab -> %@", "\(t)") }
-        .onChange(of: jumpPinned) { _, p in NSLog("QATRACE PV jumpPinned -> %@", p ? "yes" : "no") }
-        #endif
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
         }

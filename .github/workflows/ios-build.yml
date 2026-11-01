@@ -141,17 +141,8 @@ jobs:
             for _ in $(seq 1 30); do pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null || break; sleep 0.5; done
             sleep 1
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
-            # TEMPORARY (shot 161 trace, to be reverted): a screenshot every 2 s during the wait, then the app's trace.
-            if echo "$name" | grep -Eq '^16[01]-'; then
-              for i in $(seq 2 2 "$wait"); do sleep 2; xcrun simctl io "$UDID" screenshot "build/shots/$name-t$(printf %02d "$i").png" >/dev/null 2>&1 || true; done
-            else
-              sleep "$wait"
-            fi
+            sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
-            if echo "$name" | grep -Eq '^16[01]-'; then
-              sleep 2; xcrun simctl io "$UDID" screenshot "build/shots/$name-t99.png" >/dev/null 2>&1 || true
-              xcrun simctl spawn "$UDID" log show --last 3m --style compact --predicate 'process == "PeriopSignal" AND eventMessage CONTAINS "QATRACE"' > "build/shots/$name-trace.txt" 2>/dev/null || true
-            fi
             # The app is gone (it crashed): keep the newest crash report for this shot.
             if ! pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null; then
               crash=$(ls -t ~/Library/Logs/DiagnosticReports/PeriopSignal*.ips 2>/dev/null | head -1)

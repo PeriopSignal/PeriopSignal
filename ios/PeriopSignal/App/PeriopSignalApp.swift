@@ -80,9 +80,6 @@ struct PeriopSignalApp: App {
                     }
                 }
                 .onChange(of: scenePhase) { _, phase in
-                    #if DEBUG
-                    NSLog("QATRACE scenePhase -> %@", "\(phase)")
-                    #endif
                     if phase == .active { patient.refresh() }
                 }
         }
