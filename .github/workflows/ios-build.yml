@@ -295,6 +295,16 @@ jobs:
           shot 177-patient-labs-keyboard 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:labs -ps.patient.focus main.k
           shot 178-patient-undo-tab 14 -ps.tab patient -ps.patient demo -ps.patient.edit exam
           shot 179-patient-shield 14 -ps.tab patient -ps.patient demo -ps.patient.shield 1
+          shot 190-diag-note 14 -ps.tab patient -ps.patient.open note -ps.debug.trace 1
+          shot 191-diag-note-nopin 14 -ps.tab patient -ps.patient.open note -ps.debug.trace 1 -ps.debug.nopin 1
+          shot 192-diag-room 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.debug.trace 1
+          shot 193-diag-room-nopin 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.debug.trace 1 -ps.debug.nopin 1
+          shot 194-diag-room-noshield 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.debug.trace 1 -ps.debug.noshield 1
+          shot 195-diag-room-neither 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.open room -ps.debug.trace 1 -ps.debug.nopin 1 -ps.debug.noshield 1
+          shot 196-diag-airway 16 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.debug.trace 1
+          shot 197-diag-airway-nopin 16 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.debug.trace 1 -ps.debug.nopin 1
+          shot 198-diag-tab 14 -ps.tab patient -ps.patient demo -ps.debug.trace 1
+          shot 199-diag-empty 14 -ps.tab patient -ps.debug.trace 1
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
