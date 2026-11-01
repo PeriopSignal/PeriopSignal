@@ -386,13 +386,22 @@ struct QuickAddBar: View {
         sheet = SheetSeed(text: seed.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
-    /// Screenshot runs: -ps.quickadd "<line>" types a line into the bar; -ps.quickadd.add 1 then adds it.
+    /// Screenshot runs: -ps.quickadd "<line>" types a line into the bar; -ps.quickadd.add 1 then adds it. The line and
+    /// its chips go in together, in one update without animation: set apart (the text, then the reading animated in),
+    /// the launch's own work can hold the main thread between the two for seconds on a slow simulator, and the
+    /// screenshot catches the line without its chips (runs 201 and 202, shot 161).
     private func seedForScreenshot() {
         #if DEBUG
-        let t = LaunchSeed.string("ps.quickadd")
+        let t = LaunchSeed.string("ps.quickadd").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty, text.isEmpty, added == nil else { return }
-        text = t
-        recompute()
+        let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
+        var still = Transaction()
+        still.disablesAnimations = true
+        withTransaction(still) {
+            text = t
+            reading = q
+            readText = t
+        }
         if LaunchSeed.bool("ps.quickadd.add") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { add() }
         }
