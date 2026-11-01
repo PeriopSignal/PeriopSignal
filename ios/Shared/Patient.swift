@@ -249,6 +249,8 @@ struct PatientRecord: Codable, Equatable {
     /// Intraoperative echo: the structured findings, and anything else as text.
     var intraopEcho = PatientEcho()
     var echo = ""
+    /// The TEE screen's checklist answers (PatientTEE).
+    var teeScreen = PatientTEEScreen()
 
     // Plan
     var disposition: String?
@@ -354,6 +356,7 @@ struct PatientRecord: Codable, Equatable {
         events = v(.events, "")
         intraopEcho = v(.intraopEcho, PatientEcho())
         echo = v(.echo, "")
+        teeScreen = v(.teeScreen, PatientTEEScreen())
         disposition = try? c.decodeIfPresent(String.self, forKey: .disposition)
         painPlan = v(.painPlan, "")
         callIf = v(.callIf, "")

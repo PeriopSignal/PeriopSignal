@@ -309,6 +309,7 @@ enum PatientSummary {
         if !r.medsGiven.isEmpty { out.append(Line("Medications & interventions", r.medsGiven)) }
         if r.noEvents { out.append(Line("Events", "No notable events")) }
         else if !r.events.isEmpty { out.append(Line("Events", r.events, alert: true)) }
+        if let t = PatientTEE.line(r) { out.append(t) }
         if !r.intraopEcho.isEmpty { out.append(Line("Echo", r.intraopEcho.summary)) }
         if !r.echo.isEmpty { out.append(Line(r.intraopEcho.isEmpty ? "Echo" : "Echo notes", r.echo)) }
         return out
@@ -324,7 +325,7 @@ enum PatientSummary {
         let labels: [String: Set<String>] = [
             "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines"], "regional": ["Regional"], "infusions": ["Infusions"],
             "fluids": ["In", "Out", "Factor concentrates & other products"], "meds": ["Medications & interventions"],
-            "events": ["Events"], "echo": ["Echo", "Echo notes"],
+            "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes"],
         ]
         // The card's own title names the part, so a line labelled the same way drops its label.
         let titles: Set<String> = ["Airway", "Lines", "Regional", "Infusions", "Medications & interventions", "Events", "Echo"]
@@ -441,6 +442,7 @@ enum HandoffWriter {
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
         line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
         line("Events", r.noEvents ? "No notable events" : r.events)
+        if let t = PatientTEE.line(r) { line("TEE screen", t.text) }
         var plan: [String] = []
         if let d = r.disposition { plan.append(d + ".") }
         let call = r.callIf.trimmingCharacters(in: .whitespacesAndNewlines)

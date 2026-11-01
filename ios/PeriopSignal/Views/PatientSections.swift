@@ -107,6 +107,7 @@ extension PatientEditorView {
         case "rhc": rhcEditor
         case "anesthetic": anestheticEditor
         case "labs": labsEditor
+        case "tee": teeScreenEditor
         default: EmptyView()
         }
     }

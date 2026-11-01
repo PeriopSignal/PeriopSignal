@@ -55,6 +55,7 @@ enum PatientEditor: Hashable {
         ("surgeries", "Past Surgical History", "scissors"), ("ecg", "ECG", "waveform.path.ecg"), ("echo", "Echo Findings", "heart.text.square"),
         ("lhc", "Left Heart Catheterization", "heart"), ("rhc", "Right Heart Catheterization", "heart.circle"), ("intrathoracic", "Previous Intrathoracic Surgery", "lungs"),
         ("anesthetic", "Anesthetic Complications", "exclamationmark.shield"), ("labs", "Labs", "testtube.2"),
+        ("tee", "TEE Screen", "exclamationmark.triangle"),
     ]
 }
 
@@ -427,6 +428,8 @@ struct PatientEditorView: View {
             Hairline().padding(.leading, 50)
             linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
             Hairline().padding(.leading, 50)
+            teeLinkRow
+            Hairline().padding(.leading, 50)
             linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
             Hairline().padding(.leading, 50)
             linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
@@ -457,7 +460,7 @@ struct PatientEditorView: View {
         }
         .id("cardiac")
         PatientGroup(title: "Risk scores & checks") {
-            let prompts = PatientRules.prompts(r)
+            let prompts = PatientRules.prompts(r) + PatientTEE.prompts(r)
             ForEach(Array(prompts.enumerated()), id: \.element.id) { i, p in
                 Button { onOpenRoute(p.route) } label: {
                     HStack(spacing: 12) {
