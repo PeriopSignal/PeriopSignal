@@ -1,5 +1,4 @@
-[0;93m2026-10-31 09:13:57.290447348 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-2 post(s) to synthesize with kokoro:af_heart
-  hepatology-2026-global-aclf-consensus-definitions: 222 s, 1731 KB, 102 s to make
-  fda-2026-hemosil-acustar-hit-igg-class-i-recall: 204 s, 1593 KB, 93 s to make
-synthesized 2, failed 0, 5168 characters, 3 min
+[0;93m2026-11-01 09:39:56.395131160 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+1 post(s) to synthesize with kokoro:af_heart
+  circ-2026-season-ar-tavr-pure-ar: 191 s, 1494 KB, 79 s to make
+synthesized 1, failed 0, 2385 characters, 1 min
