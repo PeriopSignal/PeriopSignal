@@ -399,7 +399,7 @@ enum MedAbbreviations {
         "mg", "mcg", "ug", "kg", "gm", "ml", "dl", "cc", "cm", "mm", "mmhg", "cmh", "bpm", "iu", "meq", "mmol", "umol", "nmol", "pmol",
         "mol", "hz", "mhz", "khz", "kpa", "kcal", "cal", "hr", "hrs", "min", "mins", "sec", "secs", "wk", "wks", "mo", "mos", "yr", "yrs",
         "lb", "lbs", "oz", "ft", "fr", "mosm", "ng", "pg", "miu", "uiu", "mu", "ppm", "wu", "mv", "ms", "lpm", "am", "pm", "mcl", "ul",
-        "dyn", "dynes", "gy", "cgy", "mgy", "msv", "mph", "kph", "mmh",
+        "dyn", "dynes", "gy", "cgy", "mgy", "msv", "mph", "kph", "mmh", "rpm",
     ]
 
     static let romanNumerals: Set<String> = ["II", "III", "IV", "VI", "VII", "VIII", "IX", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"]
@@ -507,7 +507,7 @@ extension MedAbbreviations {
         ]),
         entry("CP", [m("chest pain", "cp-pain"), m("cerebral palsy", "cp-palsy")], hints: [
             near("cp-palsy", #"\b(?:spastic\w*|quadripleg\w*|dipleg\w*|hemipleg\w*|g-?tube|baclofen|contractures?|nonverbal|non-verbal|developmental|seizures?|scoliosis|wheelchair|prematur\w*)\b"#),
-        ]),
+        ], skip: [AbbreviationContext(before: NoteRx(#"\bimpella\s*$"#))]),
         entry("AS", [m("aortic stenosis", "as-aortic"), m("ankylosing spondylitis", "as-spondylitis")], hints: [
             before("as-aortic", severity),
             near("as-spondylitis", #"\b(?:spondyl\w*|spine|spinal|cervical|neck|fusion|fused|kyphosis|bamboo|sacroiliitis|hla-?b27|humira|adalimumab|etanercept|enbrel|infliximab|remicade|secukinumab|cosentyx|rheum\w*)\b"#),
@@ -805,7 +805,9 @@ extension MedAbbreviations {
         ("CSE", "combined spinal-epidural"), ("SQ|subq|subcut|sub-q", "subcutaneous"), ("po", "by mouth"), ("prn", "as needed"), ("qd", "once daily"),
         ("qam", "every morning"), ("qpm", "every evening"), ("qhs", "at bedtime"), ("bid", "twice daily"), ("tid", "three times daily"),
         ("qid", "four times daily"), ("qod", "every other day"), ("qwk|qweek", "weekly"), ("MWF|M/W/F", "Monday, Wednesday and Friday"),
-        ("TTS|TThS|T/Th/S", "Tuesday, Thursday and Saturday"), ("NT/ND", "nontender, nondistended"), ("VSS", "vital signs stable"),
+        ("TTS|TThS|T/Th/S", "Tuesday, Thursday and Saturday"), ("AC/VC", "assist-control volume control"), ("AC/PC", "assist-control pressure control"),
+        ("PRVC", "pressure-regulated volume control"), ("SIMV", "synchronized intermittent mandatory ventilation"), ("PSV", "pressure support ventilation"),
+        ("APRV", "airway pressure release ventilation"), ("DLT", "double-lumen tube"), ("NT/ND", "nontender, nondistended"), ("VSS", "vital signs stable"),
         ("HEENT", "head, eyes, ears, nose and throat"), ("EOMI", "extraocular movements intact"), ("PERRL|PERRLA", "pupils equal and reactive"),
         ("NCAT", "normocephalic, atraumatic"), ("MAE", "moves all extremities"), ("AAOx3|AOx4", "alert and oriented"), ("WWP", "warm and well perfused"),
         ("RUQ", "right upper quadrant"), ("LUQ", "left upper quadrant"), ("RLQ", "right lower quadrant"), ("LLQ", "left lower quadrant"),
@@ -823,6 +825,13 @@ extension MedAbbreviations {
         ("MH", "malignant hyperthermia"), ("SL", "sublingual"), ("IM", "intramuscular"), ("SC", "subcutaneous"), ("Mac", "Macintosh blade"),
         ("NT", "nontender"), ("ND", "nondistended"), ("MN", "midnight"), ("BM", "bowel movement"), ("OT", "occupational therapy"),
         ("SLP", "speech-language pathology"), ("CN", "cranial nerves"),
+        // Line sites and device settings, read by the device parser as written.
+        ("AC", "antecubital fossa or assist-control"), ("FA", "forearm or femoral artery"), ("EJ", "external jugular"), ("FV", "femoral vein"),
+        ("DP", "dorsalis pedis"), ("RFV", "right femoral vein"), ("LFV", "left femoral vein"), ("RFA", "right femoral artery or forearm"),
+        ("LFA", "left femoral artery or forearm"), ("RSC", "right subclavian"), ("LSC", "left subclavian"), ("RAC", "right antecubital fossa"),
+        ("LAC", "left antecubital fossa"), ("REJ", "right external jugular"), ("LEJ", "left external jugular"), ("HM", "HeartMate"),
+        ("PI", "pulsatility index"), ("RP", "right-sided (Impella RP)"), ("VV", "venovenous"), ("VA", "venoarterial"), ("VAV", "veno-arteriovenous"),
+        ("VC", "volume control"), ("PC", "pressure control"), ("TC", "trach collar"),
     ]
 
     /// CKD with its stage ("CKD 3b", "CKD stage IV"), "x3" (three times) and "q6h" (every 6 hours).
