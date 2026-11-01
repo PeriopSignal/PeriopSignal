@@ -62,18 +62,22 @@ struct PatientDiagramCanvas: View {
     var figure: RegionalFigure
     var items: [DiagramItem]
     var cart: DiagramCart?
-    /// Edit mode: the markers jiggle, drag to move, × to delete.
+    /// Edit mode: the markers jiggle, drag at once to move, × to delete.
     var editing = false
     var onTapFigure: ((CGPoint) -> Void)? = nil
     var onTapItem: ((String) -> Void)? = nil
     var onLongPress: (() -> Void)? = nil
     var onMove: ((String, CGSize) -> Void)? = nil
     var onDelete: ((String) -> Void)? = nil
+    /// An item held and let go without moving: the editor offers its actions (details, delete).
+    var onHold: ((String) -> Void)? = nil
 
     /// Figure units of margin on each side for labels and the cart.
     static let margin: CGFloat = 38
     @State private var drag: (id: String, by: CGSize)?
     @State private var wiggle = false
+    /// The item being held: it lifts (larger, ringed) until let go.
+    @State private var lifted: String?
 
     private var bw: CGFloat { CGFloat(figure.box.first ?? 200) }
     private var bh: CGFloat { CGFloat(figure.box.count > 1 ? figure.box[1] : 420) }
@@ -89,7 +93,7 @@ struct PatientDiagramCanvas: View {
                         guard !editing else { return }
                         onTapFigure?(CGPoint(x: (g.location.x - ox) / k, y: g.location.y / k))
                     }, including: onTapFigure == nil ? .none : .all)
-                    .onLongPressGesture(minimumDuration: 0.5) { onLongPress?() }
+                    .onLongPressGesture(minimumDuration: 0.4) { onLongPress?() }
                 ForEach(items.filter(\.movable)) { item in
                     marker(item, k: k, ox: ox)
                 }
@@ -112,37 +116,59 @@ struct PatientDiagramCanvas: View {
 
     private func marker(_ item: DiagramItem, k: CGFloat, ox: CGFloat) -> some View {
         let at = point(moved(item), k: k, ox: ox)
-        let size: CGFloat = 30
+        let size: CGFloat = 44
+        let held = lifted == item.id
+        let interactive = onMove != nil || onHold != nil
+        // Hold briefly, then drag to move; let go without moving for the item's actions. In edit mode a drag moves at once.
+        let hold = LongPressGesture(minimumDuration: editing ? 0.01 : 0.3)
+            .sequenced(before: DragGesture(minimumDistance: 0))
+            .onChanged { value in
+                guard case .second(true, let d) = value else { return }
+                if lifted != item.id {
+                    lifted = item.id
+                    Haptics.light()
+                }
+                if let d { drag = (item.id, CGSize(width: d.translation.width / k, height: d.translation.height / k)) }
+            }
+            .onEnded { value in
+                defer { lifted = nil; drag = nil }
+                guard case .second(true, let d) = value else { return }
+                let by = CGSize(width: (d?.translation.width ?? 0) / k, height: (d?.translation.height ?? 0) / k)
+                if abs(by.width) + abs(by.height) < 2 {
+                    if !editing { onHold?(item.id) }
+                } else {
+                    onMove?(item.id, by)
+                }
+            }
         return ZStack(alignment: .topTrailing) {
-            Circle().fill(Color.clear).frame(width: size, height: size).contentShape(Circle())
+            Circle().fill(held ? item.color.opacity(0.16) : Color.clear)
+                .overlay(Circle().stroke(held ? item.color : Color.clear, lineWidth: 2))
+                .frame(width: size, height: size).contentShape(Circle())
             if editing {
                 Button { onDelete?(item.id) } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 22, weight: .bold))
                         .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, PS.fg2)
+                        .foregroundStyle(.white, PS.red)
+                        .frame(width: 30, height: 30)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .offset(x: 6, y: -6)
+                .offset(x: 10, y: -10)
                 .accessibilityLabel("Delete \(item.label)")
             }
         }
-        .rotationEffect(.degrees(editing ? (wiggle ? 4 : -4) : 0))
+        .scaleEffect(held ? 1.18 : 1)
+        .animation(.snappy(duration: 0.15), value: held)
+        .rotationEffect(.degrees(editing && !held ? (wiggle ? 4 : -4) : 0))
         .animation(editing ? .easeInOut(duration: 0.13).repeatForever(autoreverses: true) : .default, value: wiggle)
         .position(at)
         .onTapGesture { if !editing { onTapItem?(item.id) } }
-        .onLongPressGesture(minimumDuration: 0.5) { onLongPress?() }
-        .gesture(DragGesture(minimumDistance: 2).onChanged { g in
-            guard editing else { return }
-            drag = (item.id, CGSize(width: g.translation.width / k, height: g.translation.height / k))
-        }.onEnded { g in
-            guard editing else { return }
-            drag = nil
-            onMove?(item.id, CGSize(width: g.translation.width / k, height: g.translation.height / k))
-        }, including: editing ? .all : .none)
+        .gesture(hold, including: interactive ? .all : .none)
         .accessibilityElement()
         .accessibilityLabel(item.label)
         .accessibilityAddTraits(.isButton)
+        .accessibilityAction(named: "Delete") { onDelete?(item.id) }
     }
 
     // MARK: Drawing

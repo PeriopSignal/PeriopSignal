@@ -5,7 +5,7 @@ import SwiftUI
 // PatientDiagramModel turns the record into what PatientDiagramCanvas draws: the airway (from the current airway and
 // the intraoperative course), the lines and devices (PatientDevice), the ECMO circuit to its cart, and the blocks and
 // neuraxial techniques (read from the Regional list). PatientDevicesEditor adds and edits them: tap a body point,
-// type shorthand ("20 rue", "RIJ introducer"), or use the type buttons; long-press to move or delete.
+// type shorthand ("20 rue", "RIJ introducer"), or use the type buttons; hold an item to drag it or to delete it, and Undo steps back.
 
 enum PatientDiagramModel {
     enum Phase: String { case preop, intraop, all }
@@ -225,6 +225,14 @@ struct PatientDevicesEditor: View {
     @State private var showTapMenu = false
     @State private var editingID: UUID?
     @FocusState private var typing: Bool
+    /// Undo: the record before each change made on this page (a burst of typing counts as one), newest last.
+    @State private var history: [PatientRecord] = []
+    @State private var restoring = false
+    @State private var checkpointNext = false
+    @State private var lastChange = Date.distantPast
+    /// The item held on the diagram, for its actions.
+    @State private var heldID: UUID?
+    @State private var showHeldMenu = false
 
     private var r: PatientRecord { patient.record }
     private var placedIntraop: Bool { phase == .intraop }
@@ -236,14 +244,18 @@ struct PatientDevicesEditor: View {
             if let fig = refs.bundle?.regional?.figure {
                 let m = PatientDiagramModel.items(r, phase: phase == .preop ? .preop : .all)
                 VStack(spacing: 6) {
-                    HStack {
-                        Text(editing ? "Drag to move · × to delete" : "Tap the body to add · long-press to move or delete")
+                    HStack(spacing: 8) {
+                        Text(editing ? "Drag to move · × to delete" : "Tap to add · hold an item to drag it, or let go for Delete")
                             .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
-                        Spacer()
-                        if editing {
-                            Button("Done") { withAnimation(.snappy) { editing = false } }
-                                .buttonStyle(CapsuleButtonStyle())
-                        }
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 4)
+                        Button(action: undo) { Label("Undo", systemImage: "arrow.uturn.backward") }
+                            .buttonStyle(CapsuleButtonStyle(prominent: false))
+                            .disabled(history.isEmpty)
+                            .opacity(history.isEmpty ? 0.4 : 1)
+                            .accessibilityHint("Undoes the last change on this page")
+                        Button(editing ? "Done" : "Edit") { Haptics.light(); withAnimation(.snappy) { editing.toggle() } }
+                            .buttonStyle(CapsuleButtonStyle(prominent: editing))
                     }
                     PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, editing: editing,
                                          onTapFigure: { p in
@@ -254,8 +266,19 @@ struct PatientDevicesEditor: View {
                                          onTapItem: { id in editingID = UUID(uuidString: id) },
                                          onLongPress: { Haptics.light(); withAnimation(.snappy) { editing = true } },
                                          onMove: { id, by in move(id, by) },
-                                         onDelete: { id in delete(id) })
+                                         onDelete: { id in delete(id) },
+                                         onHold: { id in
+                                             guard let u = UUID(uuidString: id), r.devices.contains(where: { $0.id == u }) else { return }
+                                             heldID = u
+                                             showHeldMenu = true
+                                         })
                         .frame(height: 430)
+                        .confirmationDialog(heldID.flatMap { id in r.devices.first { $0.id == id }?.label } ?? "Device",
+                                            isPresented: $showHeldMenu, titleVisibility: .visible) {
+                            Button("Details") { editingID = heldID }
+                            Button("Delete", role: .destructive) { if let id = heldID { delete(id.uuidString) } }
+                            Button("Cancel", role: .cancel) {}
+                        }
                 }
                 .padding(12)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
@@ -276,6 +299,7 @@ struct PatientDevicesEditor: View {
                 list
             }
         }
+        .onChange(of: patient.record) { old, _ in remember(old) }
         .sheet(item: Binding(get: { editingID.map { IDBox(id: $0) } }, set: { editingID = $0?.id })) { box in
             DeviceDetailSheet(deviceID: box.id)
                 .environment(patient)
@@ -285,6 +309,30 @@ struct PatientDevicesEditor: View {
     }
 
     private struct IDBox: Identifiable { var id: UUID }
+
+    // MARK: Undo
+
+    /// Keeps the record as it was before a change. A tap, drag or delete is one step; typing in a field within a second
+    /// of the last change joins that step.
+    private func remember(_ old: PatientRecord) {
+        if restoring { restoring = false; return }
+        let now = Date()
+        if checkpointNext || history.isEmpty || now.timeIntervalSince(lastChange) > 1 {
+            history.append(old)
+            if history.count > 50 { history.removeFirst(history.count - 50) }
+        }
+        checkpointNext = false
+        lastChange = now
+    }
+
+    private func checkpoint() { checkpointNext = true }
+
+    private func undo() {
+        guard let previous = history.popLast() else { return }
+        Haptics.light()
+        restoring = true
+        withAnimation(.snappy) { patient.update { $0 = previous } }
+    }
 
     // MARK: Typed shorthand
 
@@ -485,6 +533,10 @@ struct PatientDevicesEditor: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .contextMenu {
+                        Button { editingID = d.id } label: { Label("Details", systemImage: "slider.horizontal.3") }
+                        Button(role: .destructive) { delete(d.id.uuidString) } label: { Label("Delete", systemImage: "trash") }
+                    }
                     Hairline().padding(.leading, 33)
                 }
                 if !r.regional.isEmpty {
@@ -499,6 +551,7 @@ struct PatientDevicesEditor: View {
 
     private func add(_ ds: [PatientDevice], open: Bool) {
         guard !ds.isEmpty else { return }
+        checkpoint()
         Haptics.light()
         var added: [UUID] = []
         patient.update { r in
@@ -533,6 +586,7 @@ struct PatientDevicesEditor: View {
 
     private func move(_ id: String, _ by: CGSize) {
         guard let uuid = UUID(uuidString: id) else { return }
+        checkpoint()
         patient.update { r in
             guard let i = r.devices.firstIndex(where: { $0.id == uuid }) else { return }
             let o = r.devices[i].offset ?? .zero
@@ -542,6 +596,7 @@ struct PatientDevicesEditor: View {
 
     private func delete(_ id: String) {
         guard let uuid = UUID(uuidString: id) else { return }
+        checkpoint()
         Haptics.light()
         withAnimation(.snappy) { patient.update { $0.devices.removeAll { $0.id == uuid } } }
     }
