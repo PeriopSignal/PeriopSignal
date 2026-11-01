@@ -1,33 +1,41 @@
 import SwiftUI
 
+/// What the rooms bar has open. Kept outside the view, like a received patient (PatientInbox), so a sheet survives the
+/// tab being rebuilt and a screenshot launch reaches the bar that is on screen.
+@MainActor
+@Observable
+final class PatientRoomsUI {
+    static let shared = PatientRoomsUI()
+
+    struct Archive: Identifiable {
+        let id = UUID()
+        /// Screenshot runs: open on the newest summary.
+        var opensFirst = false
+    }
+
+    var editingRoom = false
+    /// The archive sheet; an item, so what it opens on is never read stale.
+    var archive: Archive?
+    var confirmEnd = false
+    /// Screenshot runs: the launch's presentation has been asked for (once, whichever copy of the bar asks).
+    @ObservationIgnored var asked = false
+}
+
 /// The top of My Patient: a case for each room the anesthesiologist covers, labelled by room ("OR 12", "EP 3", or
 /// "Case 2" without one), to switch between in one tap; the current room's phone with Call and Text; and Add another
 /// case. The menu sets the room and phone, ends the case (its summary goes to the archive) and opens the archive.
 struct PatientRoomsBar: View {
     @Environment(PatientStore.self) private var patient
     @Environment(\.openURL) private var openURL
-    @State private var editingRoom = false
-    /// The archive sheet; an item, so what it opens on is never read stale.
-    @State private var archiveSheet: ArchiveSheet?
-    @State private var confirmEnd = false
     /// The room (or "Case 2") just ended, for the banner.
     @State private var ended: String?
-    /// Screenshot runs: the sheet asked for has appeared (a reference, so the launch task reads it as it is now).
-    @State private var shot = ShotFlag()
 
-    private struct ArchiveSheet: Identifiable {
-        let id = UUID()
-        var opensFirst = false
-    }
-
-    private final class ShotFlag {
-        var shown = false
-    }
-
+    private var ui: PatientRoomsUI { PatientRoomsUI.shared }
     private var current: PatientCase { patient.currentCase }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        @Bindable var ui = PatientRoomsUI.shared
+        return VStack(alignment: .leading, spacing: 10) {
             caseStrip
             Hairline()
             roomRow
@@ -35,19 +43,17 @@ struct PatientRoomsBar: View {
         }
         .padding(12)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .sheet(isPresented: $editingRoom) {
+        .sheet(isPresented: $ui.editingRoom) {
             PatientRoomSheet()
                 .environment(patient)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .onAppear { shot.shown = true }
         }
-        .sheet(item: $archiveSheet) { s in
+        .sheet(item: $ui.archive) { s in
             PatientArchiveView(archive: patient.archive, opensFirst: s.opensFirst)
                 .presentationDragIndicator(.visible)
-                .onAppear { shot.shown = true }
         }
-        .confirmationDialog("End \(current.label)?", isPresented: $confirmEnd, titleVisibility: .visible) {
+        .confirmationDialog("End \(current.label)?", isPresented: $ui.confirmEnd, titleVisibility: .visible) {
             if current.record.isEmpty {
                 Button("Remove Case", role: .destructive) { end(keepSummary: false) }
             } else {
@@ -126,7 +132,7 @@ struct PatientRoomsBar: View {
                 ended = nil
                 patient.addCase()
             }
-            editingRoom = true
+            ui.editingRoom = true
         } label: {
             Group {
                 if wide {
@@ -152,7 +158,7 @@ struct PatientRoomsBar: View {
 
     private var roomRow: some View {
         HStack(spacing: 8) {
-            Button { editingRoom = true } label: {
+            Button { ui.editingRoom = true } label: {
                 HStack(spacing: 10) {
                     Image(systemName: current.hasRoom ? "door.left.hand.closed" : "plus.circle")
                         .font(PS.sys(size: 14, weight: .semibold))
@@ -204,9 +210,9 @@ struct PatientRoomsBar: View {
 
     private var menu: some View {
         Menu {
-            Button { editingRoom = true } label: { Label("Room & Phone", systemImage: "pencil") }
-            Button { confirmEnd = true } label: { Label("End Case…", systemImage: "checkmark.circle") }
-            Button { archiveSheet = ArchiveSheet() } label: {
+            Button { ui.editingRoom = true } label: { Label("Room & Phone", systemImage: "pencil") }
+            Button { ui.confirmEnd = true } label: { Label("End Case…", systemImage: "checkmark.circle") }
+            Button { ui.archive = PatientRoomsUI.Archive() } label: {
                 Label(patient.archive.entries.isEmpty ? "Case Archive" : "Case Archive (\(patient.archive.entries.count))", systemImage: "archivebox")
             }
         } label: {
@@ -227,7 +233,7 @@ struct PatientRoomsBar: View {
             Text("\(label) ended").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
             Spacer(minLength: 6)
             if !patient.archive.entries.isEmpty {
-                Button("Archive") { archiveSheet = ArchiveSheet() }
+                Button("Archive") { ui.archive = PatientRoomsUI.Archive() }
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
             Button { withAnimation(.snappy) { ended = nil } } label: {
@@ -251,24 +257,16 @@ struct PatientRoomsBar: View {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
-        // A presentation asked for before the tab has settled can be dropped, so ask again until a sheet shows (a
-        // dialog can't say when it has, so it is asked twice). Each retry lets the last request settle first.
-        for attempt in 0..<(o == "end-case" ? 2 : 3) {
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
-            guard !Task.isCancelled, !shot.shown else { return }
-            if attempt > 0 {
-                editingRoom = false
-                archiveSheet = nil
-                confirmEnd = false
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                guard !Task.isCancelled, !shot.shown else { return }
-            }
-            switch o {
-            case "room": editingRoom = true
-            case "archive": archiveSheet = ArchiveSheet()
-            case "archive-entry": archiveSheet = ArchiveSheet(opensFirst: true)
-            default: confirmEnd = true
-            }
+        // A presentation asked for before the tab has settled can be dropped, so wait until it has.
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        let ui = PatientRoomsUI.shared
+        guard !Task.isCancelled, !ui.asked else { return }
+        ui.asked = true
+        switch o {
+        case "room": ui.editingRoom = true
+        case "archive": ui.archive = PatientRoomsUI.Archive()
+        case "archive-entry": ui.archive = PatientRoomsUI.Archive(opensFirst: true)
+        default: ui.confirmEnd = true
         }
         #endif
     }
