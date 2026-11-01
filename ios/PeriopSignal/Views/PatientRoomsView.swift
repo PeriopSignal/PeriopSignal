@@ -26,9 +26,9 @@ final class PatientRoomsUI {
 
     #if DEBUG
     /// Screenshot runs: opens the room sheet, the archive (on its newest summary) or the end-case dialog, and asks
-    /// again when a sheet asked for while the tab was still settling did not appear.
+    /// again (up to five times) when a sheet asked for while the tab was still settling did not appear.
     func openForScreenshot(_ o: String) async {
-        for attempt in 0..<3 {
+        for attempt in 0..<5 {
             if attempt > 0 {
                 editingRoom = false
                 archive = nil
@@ -316,7 +316,7 @@ struct PatientRoomsBar: View {
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
         // A presentation asked for before the tab has settled can be dropped, so wait until it has; then the shared
         // state asks (and asks again if need be), whichever copy of the bar is on screen.
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        try? await Task.sleep(nanoseconds: 2_500_000_000)
         let ui = PatientRoomsUI.shared
         guard !Task.isCancelled, !ui.asked else { return }
         ui.asked = true
