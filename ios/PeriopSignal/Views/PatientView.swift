@@ -168,6 +168,8 @@ struct PatientView: View {
     private func openForScreenshot() async {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
+        // A push asked for before the navigation stack is on screen is sometimes dropped (screenshot runs): wait a moment.
+        if !o.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
         switch o {
         case "details": path.append(PatientEditor.details)
         case "procedure": path.append(PatientEditor.procedure)
