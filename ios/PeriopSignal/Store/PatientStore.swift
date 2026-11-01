@@ -243,6 +243,11 @@ enum PatientDemo {
                   "albumin": 2.9, "tbili": 2.4, "troponin": 4200, "troponin99": 14, "glucose": 188]
         r.labSections = ["cardiac", "liver"]
         r.dialysis = false
+        // The TEE screen: an earlier fundoplication (relative, from the surgical history), dysphagia answered on the
+        // checklist, and the platelets and INR offered to confirm.
+        r.surgeries = [PatientSurgery(name: "Laparoscopic Nissen fundoplication", procedureID: "nissen", date: PatientMonthYear(year: 2018))]
+        r.teeScreen.set("dysphagia", true)
+        r.teeScreen.set("stricture", false)
         return r
     }
 }

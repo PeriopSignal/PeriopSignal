@@ -145,6 +145,7 @@ struct PatientView: View {
     }
 
     private func open(_ key: String) {
+        if key.hasPrefix("workup:") { path.append(PatientEditor.workup(String(key.dropFirst(7)))); return }
         if let route = RefRoute(key: key) { path.append(route) }
     }
 
@@ -251,7 +252,7 @@ struct PatientView: View {
 
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
-        let echoUp = PatientRules.echoFirst(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty
+        let echoUp = PatientRules.echoFirst(r) || PatientTEE.planned(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty
         let parts = PatientEditor.intraopParts.filter { $0.id != "echo" || echoUp }
         jumpBar(proxy, parts.map { PatientEditor.intraopPart($0.id) })
         ForEach(parts, id: \.id) { part in
