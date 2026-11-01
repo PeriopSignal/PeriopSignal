@@ -1,5 +1,0 @@
-Timestamp               Ty Process[PID:TID]
-2026-11-01 13:06:11.133 Df PeriopSignal[25594:128e1] [com.apple.network:activity] <nw_activity 50:1 [6A574765-86BC-4086-87DA-4079F62685BC] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 32323ms
-2026-11-01 13:06:11.133 Df PeriopSignal[25594:128e1] [com.apple.network:activity] <nw_activity 50:2 [42B2E0C2-33EC-42C2-BBCA-38AF98CD8B6F] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 32323ms
-2026-11-01 13:06:11.133 Df PeriopSignal[25594:128e1] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [6A574765-86BC-4086-87DA-4079F62685BC] (global parent) (reporting strategy default) complete (reason success)>
-2026-11-01 13:06:11.133 Df PeriopSignal[25594:128e1] [com.apple.network:activity] Unset the global parent activity
