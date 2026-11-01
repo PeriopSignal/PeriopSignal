@@ -324,8 +324,12 @@ final class QuickAddReviewTests: XCTestCase {
     }
 
     /// HIPAA Safe Harbor: ages over 89 are identifiers unless aggregated as 90 or older.
-    func testAgeOverEightyNineIsAggregated() throws {
-        try XCTSkipIf(true, "Waiting on Ben's decision on ages over 89 (shown as 90 or older); not implemented yet.")
-        XCTAssertNotEqual(change(read("92F for hip fracture"), "age"), .age(92))
+    func testAgeOverEightyNineIsAggregated() {
+        let q = read("92F for hip fracture")
+        XCTAssertNotEqual(change(q, "age"), .age(92))
+        XCTAssertEqual(change(q, "age"), .age(90), "kept as 90 or older")
+        XCTAssertEqual(q.findings.first { $0.id == "age" }?.label, "Age 90 or older")
+        XCTAssertFalse(shown(q).contains("92"), shown(q))
+        XCTAssertEqual(change(read("89M for hip fracture"), "age"), .age(89))
     }
 }

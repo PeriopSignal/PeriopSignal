@@ -113,7 +113,10 @@ struct PatientRecord: Codable, Equatable {
     var updated: Date?
 
     // Patient and procedure
-    var ageYears: Double?
+    /// At most 90: an age of 90 or more is kept as "90 or older" (HIPAA Safe Harbor), however it was entered.
+    var ageYears: Double? {
+        didSet { if let a = ageYears, a > Self.oldestAge { ageYears = Self.oldestAge } }
+    }
     var sex: PatientSex?
     var heightCm: Double?
     var weightKg: Double?
@@ -278,7 +281,7 @@ struct PatientRecord: Codable, Equatable {
         func v<T: Decodable>(_ key: CodingKeys, _ fallback: T) -> T { (try? c.decodeIfPresent(T.self, forKey: key)) ?? fallback }
         version = v(.version, 1)
         updated = try? c.decodeIfPresent(Date.self, forKey: .updated)
-        ageYears = try? c.decodeIfPresent(Double.self, forKey: .ageYears)
+        ageYears = (try? c.decodeIfPresent(Double.self, forKey: .ageYears)).map { Swift.min($0, PatientRecord.oldestAge) }
         sex = try? c.decodeIfPresent(PatientSex.self, forKey: .sex)
         heightCm = try? c.decodeIfPresent(Double.self, forKey: .heightCm)
         weightKg = try? c.decodeIfPresent(Double.self, forKey: .weightKg)
@@ -429,10 +432,17 @@ extension PatientRecord {
     var isChild: Bool { (ageYears ?? 99) < 18 }
     var emergency: Bool { urgency == .emergency }
 
-    /// "62-year-old man", "4-year-old girl", "Woman", "": the opening of the one-liner.
+    /// The oldest age kept: 90 stands for 90 or older.
+    static let oldestAge = 90.0
+
+    /// "62", or "90 or older" for 90 and over.
+    static func ageText(_ years: Double) -> String { years >= oldestAge ? "90 or older" : NumText.short(years) }
+
+    /// "62-year-old man", "4-year-old girl", "Woman, 90 or older", "Woman", "": the opening of the one-liner.
     var person: String {
         let noun: String? = sex.map { s in isChild ? (s == .male ? "boy" : "girl") : s.noun }
         guard let a = ageYears else { return noun.map { $0.prefix(1).uppercased() + $0.dropFirst() } ?? "" }
+        if a >= Self.oldestAge { return noun.map { $0.prefix(1).uppercased() + $0.dropFirst() + ", 90 or older" } ?? "90 or older" }
         let age = a < 1 ? "\(Int((a * 12).rounded()))-month-old" : "\(PedsCalc.fmt(a.rounded(.down)))-year-old"
         return age + (noun.map { " " + $0 } ?? "")
     }

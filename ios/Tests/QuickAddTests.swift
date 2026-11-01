@@ -613,6 +613,42 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(book.currentRecord, before, "the snapshot, its time stamp included")
     }
 
+    func testAgesOverEightyNineAreNinetyOrOlder() throws {
+        let q = read("92F for hip fracture")
+        XCTAssertEqual(change(q, "age"), .age(90))
+        XCTAssertEqual(QuickAdd.chips(q, record: PatientRecord()).first { $0.destination == "Patient" && $0.value.hasPrefix("Age") }?.value,
+                       "Age 90 or older")
+        XCTAssertEqual(change(read("89M for hip fracture"), "age"), .age(89))
+        XCTAssertEqual(change(read("Mr Smith is a 95 year old man"), "age"), .age(90), "the note reader's age, too")
+
+        // One place in the record: every way in.
+        var r = PatientRecord()
+        r.ageYears = 95
+        XCTAssertEqual(r.ageYears, 90, "the age field's binding")
+        r.ageYears = 89
+        XCTAssertEqual(r.ageYears, 89)
+        let saved = try JSONDecoder().decode(PatientRecord.self, from: Data(#"{"ageYears": 95, "sex": "female"}"#.utf8))
+        XCTAssertEqual(saved.ageYears, 90, "a record saved with 95 opens as 90")
+        XCTAssertEqual(saved.person, "Woman, 90 or older")
+        XCTAssertTrue(PatientSummary.text(saved, now: now).contains("Woman, 90 or older"), "the handoff")
+        var applied = PatientRecord()
+        PatientNote.apply([.age(92)], to: &applied)
+        XCTAssertEqual(applied.ageYears, 90)
+        XCTAssertEqual(PatientNote.status(PatientNoteFinding(id: "age", section: PatientNote.Part.patient, label: "", change: .age(90)), in: saved),
+                       .recorded)
+
+        // No score changes: the top bands are above 80 (ARISCAT), above 50 (STOP-BANG) and over 55 or 65.
+        let ninetyTwo = try JSONDecoder().decode(PatientRecord.self, from: Data(#"{"ageYears": 92, "sex": "male"}"#.utf8))
+        let ninety = try JSONDecoder().decode(PatientRecord.self, from: Data(#"{"ageYears": 90, "sex": "male"}"#.utf8))
+        for score in ["rcri", "ariscat", "stopbang", "apfel"] {
+            XCTAssertEqual(PatientRules.prefill(score, ninetyTwo), PatientRules.prefill(score, ninety), score)
+        }
+        XCTAssertEqual(PatientRules.prefill("ariscat", ninetyTwo).choices["age"], "> 80")
+        XCTAssertEqual(PatientFunctional.riskFactors(ninetyTwo), PatientFunctional.riskFactors(ninety))
+        XCTAssertEqual(PatientRules.langeron(ninetyTwo), PatientRules.langeron(ninety))
+        XCTAssertEqual(PatientRules.kheterpal(ninetyTwo), PatientRules.kheterpal(ninety))
+    }
+
     func testLongTextGoesToTheFullNote() {
         XCTAssertTrue(QuickAdd.isLong(String(repeating: "HTN ", count: 51)))
         XCTAssertTrue(QuickAdd.isLong("HTN\nDM2"))

@@ -739,11 +739,13 @@ enum PatientNote {
         } else if let m = ageWeeksRx.first(c), let v = number(m, [1], c), v > 0 {
             h.add(PatientNoteFinding(id: "age", section: Part.patient, label: "Age " + NumText.short(v) + " weeks", change: .age(v / 52)), at: m.range)
         } else if let m = ageSexRx.first(c), let v = number(m, [1], c), v > 0, v < 120, let s = m.text(2, in: c) {
-            h.add(PatientNoteFinding(id: "age", section: Part.patient, label: "Age " + NumText.short(v), change: .age(v)), at: m.range)
+            h.add(PatientNoteFinding(id: "age", section: Part.patient, label: "Age " + PatientRecord.ageText(v),
+                                     change: .age(Swift.min(v, PatientRecord.oldestAge))), at: m.range)
             let sex: PatientSex = s == "M" ? .male : .female
             h.add(PatientNoteFinding(id: "sex", section: Part.patient, label: sex.label, change: .sex(sex)), at: m.range)
         } else if let m = ageRx.first(c), let v = number(m, [1, 2], c), v > 0, v < 120 {
-            h.add(PatientNoteFinding(id: "age", section: Part.patient, label: "Age " + NumText.short(v), change: .age(v)), at: m.range)
+            h.add(PatientNoteFinding(id: "age", section: Part.patient, label: "Age " + PatientRecord.ageText(v),
+                                     change: .age(Swift.min(v, PatientRecord.oldestAge))), at: m.range)
         }
         if let m = femaleRx.first(c) {
             h.add(PatientNoteFinding(id: "sex", section: Part.patient, label: "Female", change: .sex(.female)), at: m.range)
@@ -1619,7 +1621,7 @@ enum PatientNote {
         switch f.change {
         case .age(let v):
             guard let o = r.ageYears else { return .new }
-            return same(o, v) ? .recorded : .replaces("age " + NumText.short(o))
+            return same(o, v) ? .recorded : .replaces("age " + PatientRecord.ageText(o))
         case .sex(let s):
             guard let o = r.sex else { return .new }
             return o == s ? .recorded : .replaces(o.label.lowercased())
