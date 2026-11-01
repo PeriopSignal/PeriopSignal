@@ -272,16 +272,21 @@ jobs:
           shot 152-cardiac-handoff-full-text 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format full -ps.patient.jump handoff
           shot 153-dnr-preop-assessment 14 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.jump assessment
           # 1.8 quick-add bar: -ps.quickadd types a line into the bar (its chips show); -ps.quickadd.add 1 then adds it.
-          shot 160-quickadd-preop 14 -ps.tab patient -ps.patient.tab preop -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
+          # Each sets its appearance: a forced one is kept for the launches after it.
+          shot 160-quickadd-preop 14 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
           shot 161-quickadd-preop-demo-light 14 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
-          shot 162-quickadd-intraop 14 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
-          shot 163-quickadd-intraop-light 14 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
-          shot 164-quickadd-vitals-labs 14 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.quickadd "148/86 72 95% RA 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210"
-          shot 165-quickadd-identifier 14 -ps.tab patient -ps.patient.tab preop -ps.quickadd "MRN 1234567 72M for CABG x3 + AVR, EF 35%, no A-line, POEC"
-          shot 166-quickadd-airway-blood 14 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.quickadd "VL grade 1, 7.5 ETT 23 cm, easy mask, cryo 10, 1 pool cryo, cell saver 450, R radial A-line 20G"
+          shot 162-quickadd-intraop 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
+          shot 163-quickadd-intraop-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
+          shot 163d1-diag-no-epi 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168"
+          shot 163d2-diag-epi 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "epi 0.05"
+          shot 163d3-diag-preop 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
+          shot 163d4-diag-empty 16 -ps.tab patient -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
+          shot 164-quickadd-vitals-labs 14 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "148/86 72 95% RA 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210"
+          shot 165-quickadd-identifier 14 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "MRN 1234567 72M for CABG x3 + AVR, EF 35%, no A-line, POEC"
+          shot 166-quickadd-airway-blood 14 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "VL grade 1, 7.5 ETT 23 cm, easy mask, cryo 10, 1 pool cryo, cell saver 450, R radial A-line 20G"
           shot 167-quickadd-rest-light 12 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
-          shot 168-quickadd-added 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05" -ps.quickadd.add 1
-          shot 169-quickadd-cardiac-intraop 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.quickadd "plt 1, +2 FFP, cryo 2, iCa 1.02 K 5.6 Cr 1.9, levo 0.1, 2 PRBC available"
+          shot 168-quickadd-added 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05" -ps.quickadd.add 1
+          shot 169-quickadd-cardiac-intraop 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "plt 1, +2 FFP, cryo 2, iCa 1.02 K 5.6 Cr 1.9, levo 0.1, 2 PRBC available"
           shot 120-cardiac-tee 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee
           shot 121-cardiac-tee-evidence 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.evidence.open 1 -ps.patient.scroll done
           shot 122-cardiac-tee-light 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light

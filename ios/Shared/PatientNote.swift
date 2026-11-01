@@ -1724,7 +1724,9 @@ enum PatientNote {
             return o.rate.isEmpty ? .new : .replaces(o.rate)
         case .intraopAirway(let key, let value):
             guard let o = r.intraopAirway(key) else { return .new }
-            return o.caseInsensitiveCompare(value) == .orderedSame ? .recorded : .replaces(o)
+            // A tube written with less than the record has ("7.5 ETT, 23 cm" for "… at the lip") is already there.
+            let known = o.caseInsensitiveCompare(value) == .orderedSame || (key == "tube" && o.lowercased().hasPrefix(value.lowercased()))
+            return known ? .recorded : .replaces(o)
         }
     }
 

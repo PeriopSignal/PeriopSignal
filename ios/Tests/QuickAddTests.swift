@@ -396,6 +396,11 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(PatientNote.status(mask, in: r), .replaces("easy"))
         let grade = PatientNoteFinding(id: "g", section: QuickAdd.intraop, label: "", change: .intraopAirway("grade", "1"))
         XCTAssertEqual(PatientNote.status(grade, in: r), .new)
+        r.tube = "7.5 ETT, 23 cm at the lip"
+        let tube = PatientNoteFinding(id: "t", section: QuickAdd.intraop, label: "", change: .intraopAirway("tube", "7.5 ETT, 23 cm"))
+        XCTAssertEqual(PatientNote.status(tube, in: r), .recorded, "less than the record says is already there")
+        let other = PatientNoteFinding(id: "t", section: QuickAdd.intraop, label: "", change: .intraopAirway("tube", "8.0 ETT"))
+        XCTAssertEqual(PatientNote.status(other, in: r), .replaces("7.5 ETT, 23 cm at the lip"))
 
         let q = read("K 5.6 Hb 8.4", .intraop)
         let labs = applied(q)
