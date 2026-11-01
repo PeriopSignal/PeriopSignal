@@ -967,11 +967,14 @@ enum PatientNote {
     static let bpRx = NoteRx(#"\b(?:bp|blood pressure|nibp)\s*(?:of|is|was|:|=)?\s*(\d{2,3})\s*/\s*(\d{2,3})"#)
     static let hrRx = NoteRx(#"\b(?:hr|heart rate|pulse)\s*(?:of|is|was|:|=)?\s*(\d{2,3})\b"#)
     static let spo2Rx = NoteRx(#"\b(?:spo2|spo₂|sats?|saturation|saturating|o2 sat|sao2|pulse ox)\s*(?:of|is|was|:|=)?\s*(\d{2,3})\s*%?"#)
+    /// A mixed venous, central venous or cerebral saturation is not the SpO₂.
+    static let venousSatBefore = NoteRx(#"\b(?:venous|mixed|cerebral|central|regional|tissue|fetal|svo2|scvo2|rso2|nirs)\s*(?:o2\s*)?$"#)
     static let onOxygenRx = NoteRx(#"^\s*%?\s*(?:on|with)\s+(?:\d+(?:\.\d+)?\s*(?:l\b|lpm|liters?)|o2|oxygen|nc\b|nasal cannula|bipap|cpap|hfnc|face ?mask|nrb)"#)
     static let rrRx = NoteRx(#"\b(?:rr|resp(?:iratory)? rate|resps)\s*(?:of|is|was|:|=)?\s*(\d{1,2})\b"#)
     static let tempRx = NoteRx(#"\b(?:temp|temperature|(?-i:T))\s*(?:of|is|was|:|=)?\s*(\d{2,3}(?:\.\d)?)\s*°?\s*([cf])?\b"#)
     static let efRx = NoteRx(#"\b(?:ef|lvef|ejection fraction)\s*(?:of|is|was|:|=|~|<|>|≤|≥)?\s*(\d{1,2})\s*(?:-|–|to)?\s*(\d{1,2})?\s*%"#)
     private static let value = #"(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)"#
+    static let hemolyzedRx = NoteRx(#"\bh(?:a)?emoly[sz](?:ed|is)\b"#)
     private static let labRules: [(id: String, rx: NoteRx, min: Double, max: Double)] = [
         ("hb", NoteRx(#"\b(?:hb|hgb|hemoglobin|haemoglobin)\s*(?:of|is|was|:|=)?\s*(\d{1,2}(?:\.\d)?)\b"#), 3, 25),
         ("plt", NoteRx(#"\b(?:plt|plts|platelets?)\s*(?:of|is|was|:|=)?\s*"# + value + #"\s*k?\b"#), 5, 2000),
@@ -991,7 +994,7 @@ enum PatientNote {
             vital("dbp", d, 20, 160, m.range, &h)
         }
         if let m = hrRx.first(c), let v = number(m, [1], c) { vital("hr", v, 20, 220, m.range, &h) }
-        if let m = spo2Rx.first(c), let v = number(m, [1], c) {
+        if let m = spo2Rx.first(c), let v = number(m, [1], c), venousSatBefore.first((c as NSString).substring(to: m.range.location)) == nil {
             let after = (c as NSString).substring(from: m.range.location + m.range.length)
             let o2 = onOxygenRx.first(after) != nil
             vital("spo2", v, 50, 100, m.range, &h, note: o2 ? "The note gives it on oxygen; this field is SpO₂ on room air." : nil)
@@ -1009,7 +1012,10 @@ enum PatientNote {
                 continue
             }
             let unit = f.unit.isEmpty ? "" : (f.unit == "%" ? "%" : " " + f.unit)
-            h.add(PatientNoteFinding(id: "lab:" + l.id, section: Part.labs, label: f.label + " " + NumText.short(v) + unit, change: .lab(l.id, v)), at: m.range)
+            // A hemolyzed sample's potassium may be falsely high.
+            let note = l.id == "k" && hemolyzedRx.first(c) != nil ? "Hemolyzed: may be falsely high." : nil
+            h.add(PatientNoteFinding(id: "lab:" + l.id, section: Part.labs, label: f.label + " " + NumText.short(v) + unit, change: .lab(l.id, v),
+                                     note: note), at: m.range)
         }
     }
 
@@ -1167,8 +1173,8 @@ enum PatientNote {
     static let identifierRules: [(String, NoteRx)] = [
         ("a record number", NoteRx(#"\b(?:mrn|medical record|record (?:no|number|#)|patient id|acct|account (?:no|number)|nhs (?:no|number)|ssn|social security)\b|\b\d{7,}\b"#)),
         ("a date", NoteRx(#"\b(?:dob|d\.o\.b|date of birth|born on)\b|\b\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}\b"#)),
-        ("a name", NoteRx(#"\b(?:Mr|Mrs|Ms|Miss|Mx)\.?\s+[A-Z][a-z]+"#, caseSensitive: true)),
-        ("a name", NoteRx(#"\b(?:name is|named|patient name|pt name)\b"#)),
+        ("a name", NoteRx(#"\b(?:Mr|Mrs|Ms|Miss|Mx)\.?\s+[A-Z][A-Za-z'’-]*[a-z][A-Za-z'’-]*"#, caseSensitive: true)),
+        ("a name", NoteRx(#"\b(?:name is|named|patient name|pt name)\b|\bname\s*:"#)),
         ("a phone number", NoteRx(#"\b\d{3}[-. )]\s?\d{3}[-. ]\d{4}\b"#)),
     ]
 
@@ -1196,6 +1202,8 @@ enum PatientNote {
     static let tubeSkip = NoteRx(#"\b(?:for|undergo(?:ing)?|scheduled|booked|consent(?:ed)?|planned|plan|presenting|candidate|will|prior|previous|previously|history of|h/o|was|were)\b(?:\s+[a-z/]+){0,3}\s*$"#)
     /// A line still to be placed ("will place an A-line", "A-line pre-induction").
     static let devicePlannedBefore = NoteRx(#"\b(?:will|plan(?:ned)?|to place|placing|prior to|consider|possible|may need|needs?)\b[^.;,]{0,25}$"#)
+    /// A device said to be there, which ends a planned list.
+    static let devicePresent = NoteRx(#"\b(?:has|have|had|with|existing|in place|placed|in situ|indwelling|already|current(?:ly)?|present)\b"#)
     static let devicePlannedAfter = NoteRx(#"^[^.;,]{0,25}\b(?:pre-?induction|post-?induction|after induction|before induction|to be placed|planned)\b"#)
     /// "IV fluids", "IV antibiotics": the route, not a line.
     static let ivRoute = NoteRx(#"\bivs?\s+(?:fluids?|abx|antibiotics?|push|pushes|meds?|medications?|contrast|iron|hydration|bolus|access|drip|infusion|ns|lr|steroids?|dexamethasone|tylenol|acetaminophen|morphine|dilaudid)\b"#)
@@ -1247,11 +1255,17 @@ enum PatientNote {
             let r = NSRange(location: piece.location + m.range.location, length: m.range.length)
             return !blocked.contains { NSIntersectionRange($0, r).length > 0 }
         }
+        // A plan carries along the list of devices after it ("plan A-line, PAC": the PAC is planned too), until a piece
+        // that is not a device or that says the device is there.
+        var planned = false
         for piece in devicePieces(written) {
             let text = ns.substring(with: piece)
             let tube = tubeCue.all(text).first { free($0, in: piece) }
             let device = deviceCue.all(text).first { free($0, in: piece) }
-            guard let cue = tube ?? device else { continue }
+            guard let cue = tube ?? device else {
+                planned = false
+                continue
+            }
             let at = piece.location + cue.range.location
             let target = meant.target(piece)
             if negated(written, at: at) {
@@ -1279,7 +1293,18 @@ enum PatientNote {
                 }
                 continue
             }
-            guard devicePlannedBefore.first(before) == nil, devicePlannedAfter.first(after) == nil, ivRoute.first(text) == nil else {
+            if devicePlannedBefore.first(before) != nil || devicePlannedAfter.first(after) != nil {
+                // Only a plan written before the device carries on ("A-line pre-induction, PIV 18G": the PIV is there).
+                planned = devicePlannedBefore.first(before) != nil
+                h.seen(target)
+                continue
+            }
+            if planned, devicePresent.first(text) == nil {
+                h.seen(target)
+                continue
+            }
+            planned = false
+            guard ivRoute.first(text) == nil else {
                 h.seen(target)
                 continue
             }

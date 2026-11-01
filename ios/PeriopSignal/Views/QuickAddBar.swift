@@ -143,8 +143,10 @@ struct QuickAddBar: View {
         VStack(alignment: .leading, spacing: 7) {
             ChipFlow(spacing: 6) {
                 ForEach(q.identifiers, id: \.self) { kind in identifierChip(kind) }
+                // The reader's own questions first: nothing is added from them until answered.
+                ForEach(q.ambiguous.filter { $0.id.hasPrefix("quick:") }) { a in ambiguousChip(a) }
                 ForEach(shown) { c in chipView(c) }
-                ForEach(q.ambiguous) { a in ambiguousChip(a) }
+                ForEach(q.ambiguous.filter { !$0.id.hasPrefix("quick:") }) { a in ambiguousChip(a) }
                 ForEach(q.unknown) { u in
                     Button { openSheet(trimmed) } label: { infoChip(u.token + " · not in the list", icon: "questionmark.circle") }
                         .buttonStyle(.plain)
@@ -208,7 +210,8 @@ struct QuickAddBar: View {
     }
 
     /// An ambiguous abbreviation, read as the meaning shown: a menu to choose another (the line is read again). A
-    /// question the reader asks ("SpO₂ 95% · room air?") uses the same menu; nothing is added from it until answered.
+    /// question the reader asks ("SpO₂ 95% · room air?", "iCa 3.9 · mg/dL?", which laryngoscopy) uses the same menu;
+    /// nothing is added from it until answered.
     private func ambiguousChip(_ a: AmbiguousAbbreviation) -> some View {
         let picked = choices[a.id] != nil
         let question = a.id.hasPrefix("quick:")
@@ -242,7 +245,7 @@ struct QuickAddBar: View {
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(PS.accent2.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         }
         .accessibilityLabel(spoken)
-        .accessibilityHint(question ? "Choose room air, on oxygen, or leave it out" : "Choose what it means here")
+        .accessibilityHint(question ? "Choose an answer, or leave it out" : "Choose what it means here")
     }
 
     private func identifierChip(_ kind: String) -> some View {

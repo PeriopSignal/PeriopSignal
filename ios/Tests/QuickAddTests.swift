@@ -216,6 +216,47 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(applied(neg).fluids["plasma"], 2)
     }
 
+    func testBloodWordsAroundTheCount() {
+        XCTAssertEqual(QuickAdd.chips(read("PRBC 3rd unit hanging", .intraop), record: PatientRecord()).first?.value, "PRBC +1 (3rd unit)")
+        var two = PatientRecord()
+        two.fluids["prbc"] = 2
+        XCTAssertEqual(QuickAdd.chips(read("4 PRBC total", .intraop, record: two), record: two).first?.value, "PRBC +2 (total 4)", "only what the total adds")
+        var four = PatientRecord()
+        four.fluids["prbc"] = 4
+        let same = read("4 PRBC total", .intraop, record: four)
+        XCTAssertTrue(same.findings.isEmpty)
+        XCTAssertTrue(same.skipped.contains("PRBC total 4 · already recorded"))
+        XCTAssertEqual(applied(read("cell saver: 800 mL processed, 350 mL returned", .intraop)).fluids["cellSaver"], 350)
+        XCTAssertTrue(read("2 PRBC yesterday", .intraop).skipped.contains { $0.hasPrefix("Blood given before the case") })
+        XCTAssertTrue(read("2 PRBC not given", .intraop).skipped.contains { $0.hasPrefix("Blood products not given") })
+        let swapped = applied(read("PRBC 3 FFP 2, 1 pool cryo", .intraop))
+        XCTAssertEqual(swapped.fluids, ["prbc": 3, "plasma": 2, "cryo": 5], "each count with its product, piece by piece")
+    }
+
+    func testReaderQuestionsFileOnlyWhenAnswered() {
+        let ica = read("iCa 3.9", .intraop)
+        XCTAssertEqual(ica.ambiguous.map(\.id), [QuickAdd.icaQuestion])
+        XCTAssertEqual(ica.ambiguous.first?.chosen?.text, "mg/dL = 0.97 mmol/L")
+        XCTAssertNil(setValues(ica)["ica"])
+        XCTAssertEqual(setValues(read("iCa 3.9", .intraop, choices: [QuickAdd.icaQuestion: QuickAdd.icaAnswer]))["ica"], 0.97)
+        XCTAssertNil(setValues(read("iCa 2.8", .intraop))["ica"], "neither unit")
+        XCTAssertTrue(read("iCa 2.8", .intraop).ambiguous.isEmpty)
+
+        let line = "DL grade 3, VL grade 1, 7.0 ETT"
+        let two = read(line, .intraop)
+        XCTAssertEqual(two.ambiguous.first { $0.id == QuickAdd.laryngoscopyQuestion }?.options.map(\.text), ["DL, grade 3", "VL, grade 1"])
+        XCTAssertNil(applied(two).airwayDevice, "nothing until chosen")
+        XCTAssertNil(applied(two).laryngoscopyGrade)
+        XCTAssertEqual(applied(two).tube, "7.0 ETT", "the rest is read")
+        let vl = applied(read(line, .intraop, choices: [QuickAdd.laryngoscopyQuestion: "laryngoscopy-1"]))
+        XCTAssertEqual(vl.airwayDevice, "Video laryngoscope")
+        XCTAssertEqual(vl.laryngoscopyGrade, "1")
+        let dl = applied(read(line, .intraop, choices: [QuickAdd.laryngoscopyQuestion: "laryngoscopy-0"]))
+        XCTAssertEqual(dl.airwayDevice, "Direct laryngoscope")
+        XCTAssertEqual(dl.laryngoscopyGrade, "3")
+        XCTAssertEqual(applied(read("1st attempt DL failed, 2nd attempt VL, 7.0 ETT", .intraop)).attempts, 2)
+    }
+
     func testEachBloodMentionIsItsOwnChip() {
         let q = read("cryo 10, 1 pool cryo", .intraop)
         XCTAssertEqual(q.findings.map(\.id), ["blood:cryo", "blood:cryo:2"])
