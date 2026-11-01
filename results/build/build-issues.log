@@ -1,1 +1,2 @@
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift:411:37: warning: call to main actor-isolated static method 'parse' in a synchronous nonisolated context
+   1 error: Filename "PatientIntraopExtras.swift" used twice: '/Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/PatientIntraopExtras.swift' and '/Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/PatientIntraopExtras.swift' (in target 'PeriopSignal' from project 'PeriopSignal')
+   1 error: filename "PatientIntraopExtras.swift" used twice: '/Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/PatientIntraopExtras.swift' and '/Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/PatientIntraopExtras.swift'
