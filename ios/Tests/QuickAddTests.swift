@@ -449,6 +449,16 @@ final class QuickAddTests: XCTestCase {
                        "0.1 mcg/kg/min")
     }
 
+    func testCodeCuesLeaveInfusionSizedDrips() {
+        func rates(_ line: String) -> [String] { applied(read(line, .intraop)).infusions.map { $0.drug + " " + $0.rate } }
+        XCTAssertEqual(rates("ROSC, epi 0.05"), ["Epinephrine 0.05 mcg/kg/min"], "a post-arrest infusion")
+        XCTAssertEqual(rates("VF arrest, epi 1 q3min, now epi 0.05"), ["Epinephrine 0.05 mcg/kg/min"], "the 1 mg doses are not; the infusion is")
+        XCTAssertTrue(rates("code: epi 1, CPR").isEmpty)
+        XCTAssertTrue(rates("PEA arrest, epi 10").isEmpty, "push-dose size")
+        XCTAssertEqual(rates("CPR, vaso 0.04"), ["Vasopressin 0.04 units/min"])
+        XCTAssertTrue(rates("code: vaso 40").isEmpty)
+    }
+
     func testDripUnitsMatchTheReferenceTable() throws {
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "reference", withExtension: "json"), "reference.json is bundled with the tests")
         let bundle = try ReferenceLoader.decode(try Data(contentsOf: url))

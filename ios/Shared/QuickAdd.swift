@@ -1172,8 +1172,8 @@ enum QuickAdd {
     static let bolusCue = NoteRx(#"\b(?:bolus(?:es|ed)?|push(?:es|ed)?|gave|given|give|prn|im|ivp|sq|subq|sc)\b|(?<![A-Za-z])[x×]\s?\d+(?!\d)(?!\s*(?:days?|d|weeks?|wks?|months?|mos?|years?|yrs?|hours?|hrs?|h)\b)|\d\s?[x×](?![A-Za-z])"#)
     /// A dose by the clock or a schedule, not a drip: "q3min", "tid", "3 times daily".
     static let scheduleCue = NoteRx(#"\b(?:tid|bid|qid|qhs|qd|qam|qpm|daily|nightly|weekly|times\s+(?:a\s+|per\s+)?(?:day|daily|week)|q\s?\d+\s*(?:h|hr|hrs|hours?|min|mins|minutes?))\b"#)
-    /// A code: epinephrine and vasopressin are 1 mg and 40 unit boluses, not drips.
-    static let codeCue = NoteRx(#"(?-i:\b(?:VF|VT|PEA|ROSC|ACLS|CPR|AED)\b)|(?<!full )(?<!no )\bcode(?:\s+blue)?\b(?!\s*status)|\b(?:arrest(?:ed)?|asystole|asystolic|v-?fib|vfib|v-?tach|pulseless|compressions|defib(?:rillat\w*)?)\b|\bshock(?:ed)?\s*(?:x\s*\d+\s*)?(?:at\s*)?\d+\s*j\b"#)
+    /// A code: epinephrine and vasopressin are 1 mg and 40 unit boluses, not drips (ROSC is not a cue: infusions follow it).
+    static let codeCue = NoteRx(#"(?-i:\b(?:VF|VT|PEA|ACLS|CPR|AED)\b)|(?<!full )(?<!no )\bcode(?:\s+blue)?\b(?!\s*status)|\b(?:arrest(?:ed)?|asystole|asystolic|v-?fib|vfib|v-?tach|pulseless|compressions|defib(?:rillat\w*)?)\b|\bshock(?:ed)?\s*(?:x\s*\d+\s*)?(?:at\s*)?\d+\s*j\b"#)
     /// An induction: a bare propofol number is the induction dose, not a drip ("prop 200, roc 50, fent 100").
     static let inductionCue = NoteRx(#"\b(?:induction|induced?|rsi|roc(?:uronium)?|vec(?:uronium)?|cis(?:atracurium)?|sux|succ(?:inylcholine)?|fent(?:anyl)?|sufent(?:anil)?|etomidate|etom|ketamine|midaz(?:olam)?|versed)\b|\blido(?:caine)?\s*\d+(?:\.\d+)?\s*(?:mg\b)?"#)
     static let tivaCue = NoteRx(#"\btiva\b"#)
@@ -1234,7 +1234,10 @@ enum QuickAdd {
                 }
                 // An induction sequence's propofol, and a code's epinephrine or vasopressin, are boluses.
                 if d.drug == "propofol", !marked, tivaCue.first(s.original) == nil, inductionCue.first(s.original) != nil { continue }
-                if d.drug == "epinephrine" || d.drug == "vasopressin", codeCue.first(s.original) != nil { continue }
+                // In a code, only an infusion-sized number is read: epinephrine of weight-based size (code doses are 1 mg,
+                // push-dose epinephrine 10–20 mcg) or vasopressin in units/min.
+                if d.drug == "epinephrine" || d.drug == "vasopressin", codeCue.first(s.original) != nil, let v = num(rate),
+                   d.fit(v) != .unit(d.drug == "epinephrine" ? d.perKgUnit : d.unit) { continue }
                 s.mask(m.range)
                 if let r = dripRate(rate, d, marked: marked) {
                     out.add(infusionFinding(d.drug, r.rate, c, note: r.note))
