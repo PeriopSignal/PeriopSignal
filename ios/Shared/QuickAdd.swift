@@ -660,6 +660,8 @@ enum QuickAdd {
             let p = around(r, in: text)
             if pieceNegation.first(p.before) != nil { return false }
             if notGiven.first(p.before + " " + p.after) != nil {
+                // Recognized and left out on purpose: shown as such, not as text nothing read.
+                s.mask(r)
                 out.skip("Blood products ordered or available · not given, not added")
                 return false
             }
@@ -690,7 +692,10 @@ enum QuickAdd {
                     return add(key, n * 5, r)
                 }
                 // "2 cryo" could be units or pools: not read.
-                if n < 5 { return out.skip("Cryo " + NumText.short(n) + " · units or pools? Write “2 pools cryo” or “cryo 10”") }
+                if n < 5 {
+                    s.mask(r)
+                    return out.skip("Cryo " + NumText.short(n) + " · units or pools? Write “2 pools cryo” or “cryo 10”")
+                }
             }
             guard plausible(key, n) else { return }
             add(key, n, r)
