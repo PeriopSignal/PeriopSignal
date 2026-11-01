@@ -19,8 +19,36 @@ final class PatientRoomsUI {
     /// The summary open in the archive.
     var archivePath: [UUID] = []
     var confirmEnd = false
-    /// Screenshot runs: the launch's presentation has been asked for (once, whichever copy of the bar asks).
+    /// Screenshot runs: the launch's presentation has been asked for (once, whichever copy of the bar asks), and its
+    /// sheet has appeared.
     @ObservationIgnored var asked = false
+    @ObservationIgnored var shown = false
+
+    #if DEBUG
+    /// Screenshot runs: opens the room sheet, the archive (on its newest summary) or the end-case dialog, and asks
+    /// again when a sheet asked for while the tab was still settling did not appear.
+    func openForScreenshot(_ o: String) async {
+        for attempt in 0..<3 {
+            if attempt > 0 {
+                editingRoom = false
+                archive = nil
+                confirmEnd = false
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+            shown = false
+            switch o {
+            case "room": editingRoom = true
+            case "archive": archive = Archive()
+            case "archive-entry": archive = Archive(opensFirst: true)
+            default:
+                confirmEnd = true
+                return   // a dialog can't say when it has appeared
+            }
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            if shown { return }
+        }
+    }
+    #endif
 }
 
 /// The top of My Patient: a case for each room the anesthesiologist covers, labelled by room ("OR 12", "EP 3", or
@@ -50,10 +78,12 @@ struct PatientRoomsBar: View {
                 .environment(patient)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .onAppear { ui.shown = true }
         }
         .sheet(item: $ui.archive, onDismiss: { ui.archivePath = [] }) { s in
             PatientArchiveView(archive: patient.archive, path: $ui.archivePath, opensFirst: s.opensFirst)
                 .presentationDragIndicator(.visible)
+                .onAppear { ui.shown = true }
         }
         .confirmationDialog("End \(current.label)?", isPresented: $ui.confirmEnd, titleVisibility: .visible) {
             if current.record.isEmpty {
@@ -259,17 +289,13 @@ struct PatientRoomsBar: View {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
-        // A presentation asked for before the tab has settled can be dropped, so wait until it has.
+        // A presentation asked for before the tab has settled can be dropped, so wait until it has; then the shared
+        // state asks (and asks again if need be), whichever copy of the bar is on screen.
         try? await Task.sleep(nanoseconds: 1_500_000_000)
         let ui = PatientRoomsUI.shared
         guard !Task.isCancelled, !ui.asked else { return }
         ui.asked = true
-        switch o {
-        case "room": ui.editingRoom = true
-        case "archive": ui.archive = PatientRoomsUI.Archive()
-        case "archive-entry": ui.archive = PatientRoomsUI.Archive(opensFirst: true)
-        default: ui.confirmEnd = true
-        }
+        Task { @MainActor in await PatientRoomsUI.shared.openForScreenshot(o) }
         #endif
     }
 }
