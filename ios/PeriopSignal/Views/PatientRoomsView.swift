@@ -7,11 +7,18 @@ struct PatientRoomsBar: View {
     @Environment(PatientStore.self) private var patient
     @Environment(\.openURL) private var openURL
     @State private var editingRoom = false
-    @State private var showArchive = false
-    @State private var archiveOpensFirst = false
+    /// The archive sheet; an item, so what it opens on is never read stale.
+    @State private var archiveSheet: ArchiveSheet?
     @State private var confirmEnd = false
     /// The room (or "Case 2") just ended, for the banner.
     @State private var ended: String?
+    /// Screenshot runs: the sheet asked for has appeared.
+    @State private var shotShown = false
+
+    private struct ArchiveSheet: Identifiable {
+        let id = UUID()
+        var opensFirst = false
+    }
 
     private var current: PatientCase { patient.currentCase }
 
@@ -29,10 +36,12 @@ struct PatientRoomsBar: View {
                 .environment(patient)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .onAppear { shotShown = true }
         }
-        .sheet(isPresented: $showArchive, onDismiss: { archiveOpensFirst = false }) {
-            PatientArchiveView(archive: patient.archive, opensFirst: archiveOpensFirst)
+        .sheet(item: $archiveSheet) { s in
+            PatientArchiveView(archive: patient.archive, opensFirst: s.opensFirst)
                 .presentationDragIndicator(.visible)
+                .onAppear { shotShown = true }
         }
         .confirmationDialog("End \(current.label)?", isPresented: $confirmEnd, titleVisibility: .visible) {
             if current.record.isEmpty {
@@ -193,7 +202,7 @@ struct PatientRoomsBar: View {
         Menu {
             Button { editingRoom = true } label: { Label("Room & Phone", systemImage: "pencil") }
             Button { confirmEnd = true } label: { Label("End Case…", systemImage: "checkmark.circle") }
-            Button { showArchive = true } label: {
+            Button { archiveSheet = ArchiveSheet() } label: {
                 Label(patient.archive.entries.isEmpty ? "Case Archive" : "Case Archive (\(patient.archive.entries.count))", systemImage: "archivebox")
             }
         } label: {
@@ -214,7 +223,7 @@ struct PatientRoomsBar: View {
             Text("\(label) ended").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
             Spacer(minLength: 6)
             if !patient.archive.entries.isEmpty {
-                Button("Archive") { showArchive = true }
+                Button("Archive") { archiveSheet = ArchiveSheet() }
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
             Button { withAnimation(.snappy) { ended = nil } } label: {
@@ -238,16 +247,23 @@ struct PatientRoomsBar: View {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
-        // A sheet asked for before the tab is on screen can be dropped, so wait until it has settled.
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
-        guard !Task.isCancelled else { return }
-        switch o {
-        case "room": editingRoom = true
-        case "archive": showArchive = true
-        case "archive-entry":
-            archiveOpensFirst = true
-            showArchive = true
-        default: confirmEnd = true
+        // A presentation asked for before the tab has settled can be dropped, so ask again until it shows (a dialog
+        // can't say when it has, so it is asked twice).
+        for attempt in 0..<(o == "end-case" ? 2 : 4) {
+            try? await Task.sleep(nanoseconds: attempt == 0 ? 1_500_000_000 : 1_200_000_000)
+            guard !Task.isCancelled, !shotShown else { return }
+            if attempt > 0 {
+                editingRoom = false
+                archiveSheet = nil
+                confirmEnd = false
+                try? await Task.sleep(nanoseconds: 400_000_000)
+            }
+            switch o {
+            case "room": editingRoom = true
+            case "archive": archiveSheet = ArchiveSheet()
+            case "archive-entry": archiveSheet = ArchiveSheet(opensFirst: true)
+            default: confirmEnd = true
+            }
         }
         #endif
     }
