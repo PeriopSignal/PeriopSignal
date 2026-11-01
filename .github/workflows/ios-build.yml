@@ -32,7 +32,7 @@ jobs:
   build:
     name: Build, test and screenshot in the simulator
     runs-on: macos-15-intel   # Intel pool; the arm64 (macos-15 / macos-latest) pool has been capacity-constrained and jobs were never acquired
-    timeout-minutes: 60
+    timeout-minutes: 120   # the full screenshot set (about 175 shots) runs about 65 minutes after the build and tests
     steps:
       - uses: actions/checkout@v4
 
