@@ -89,15 +89,19 @@ struct PatientView: View {
                 .onAppear {
                     #if DEBUG
                     // Screenshot runs: -ps.patient.jump handoff | assessment | history | airway | intraop:<part> scrolls
-                    // the tab to it; so does -ps.patient.scroll when no editor is opened (the pinned jump bar).
-                    var a = LaunchSeed.string("ps.patient.jump")
-                    if a.isEmpty && LaunchSeed.string("ps.patient.open").isEmpty { a = LaunchSeed.string("ps.patient.scroll") }
+                    // the tab to it. -ps.patient.scroll, when no editor is opened, does the same and then again once
+                    // the title has collapsed, as a tap on the pinned jump bar would.
+                    let jump = LaunchSeed.string("ps.patient.jump")
+                    let scroll = LaunchSeed.string("ps.patient.open").isEmpty ? LaunchSeed.string("ps.patient.scroll") : ""
+                    let a = jump.isEmpty ? scroll : jump
                     if !a.isEmpty {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        let go = {
                             if a.hasPrefix("intraop:") { proxy.scrollTo(PatientEditor.intraopPart(String(a.dropFirst(8))), anchor: .top) }
                             else if let e = Self.jumpKeys[a] { proxy.scrollTo(e, anchor: .top) }
                             else { proxy.scrollTo(a, anchor: .top) }
                         }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
+                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 2.6, execute: go) }
                     }
                     #endif
                 }
@@ -747,9 +751,15 @@ final class PatientJumpGeometry {
 }
 
 extension View {
-    /// A card the jump bar scrolls to: the target starts a little above the card, so the card lands just under the
-    /// pinned jump bar rather than behind it. The layout is unchanged.
+    /// A card the jump bar scrolls to. The scroll target is a marker laid out a pinned bar's height above the card
+    /// (an alignment guide, so the card's own layout is unchanged), so the card lands just under the pinned jump bar
+    /// rather than behind it.
     func jumpTarget<ID: Hashable>(_ id: ID) -> some View {
-        padding(.top, 60).id(id).padding(.top, -60)
+        background(alignment: .top) {
+            Color.clear
+                .frame(height: 1)
+                .alignmentGuide(.top) { d in d[.top] + 56 }
+                .id(id)
+        }
     }
 }

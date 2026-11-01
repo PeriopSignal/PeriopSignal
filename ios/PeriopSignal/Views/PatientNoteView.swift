@@ -42,6 +42,8 @@ struct NoIdentifiersBanner: View {
 /// warning as the banner. Grey, so red stays for abnormal values and alerts.
 struct NoIdentifiersShield: View {
     @State private var open = false
+    /// Screenshot runs: the popover has appeared.
+    @State private var shown = false
 
     var body: some View {
         Button {
@@ -69,12 +71,18 @@ struct NoIdentifiersShield: View {
             .padding(16)
             .frame(width: 300, alignment: .leading)
             .presentationCompactAdaptation(.popover)
+            .onAppear { shown = true }
         }
         .task {
             #if DEBUG
-            // Screenshot runs: -ps.patient.shield 1 opens it.
-            if LaunchSeed.bool("ps.patient.shield") {
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+            // Screenshot runs: -ps.patient.shield 1 opens it, and asks again if a request made while the tab was still
+            // settling did not appear.
+            guard LaunchSeed.bool("ps.patient.shield") else { return }
+            for _ in 0..<3 {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                if shown || Task.isCancelled { return }
+                open = false
+                try? await Task.sleep(nanoseconds: 300_000_000)
                 open = true
             }
             #endif
