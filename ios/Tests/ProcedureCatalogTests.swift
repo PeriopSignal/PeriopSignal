@@ -249,9 +249,9 @@ final class ProcedureCatalogTests: XCTestCase {
         XCTAssertTrue(ProcedureCatalog.parse("follow up in clinic tomorrow with the patient").isEmpty)
         XCTAssertTrue(ProcedureCatalog.parse("left, right, bilateral").isEmpty)
         XCTAssertTrue(ProcedureCatalog.parse("12345 ; --").isEmpty)
-        XCTAssertNil(ProcedureCatalog.risk([]).incision)
-        XCTAssertNil(ProcedureCatalog.risk([]).duration)
-        XCTAssertTrue(ProcedureCatalog.risk([]).anesthetic.isEmpty)
+        XCTAssertNil(ProcedureCatalog.risk([ProcedureMatch]()).incision)
+        XCTAssertNil(ProcedureCatalog.risk([ProcedureMatch]()).duration)
+        XCTAssertTrue(ProcedureCatalog.risk([ProcedureMatch]()).anesthetic.isEmpty)
         XCTAssertFalse(ProcedureCatalog.risk("hello").highRisk)
     }
 
