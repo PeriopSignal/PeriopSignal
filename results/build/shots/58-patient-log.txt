@@ -1,0 +1,103 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-01 15:42:17.115 Df PeriopSignal[23865:117ca] [com.apple.FrontBoard:SceneExtension] Realizing settings extension SBUISecureRenderingSettingsExtension on FBSSceneSettings
+2026-11-01 15:42:17.116 Df PeriopSignal[23865:117ca] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x10200d290> (9ED8B99D-D8E3-432C-B764-30C9D1468989)
+2026-11-01 15:42:17.117 Df PeriopSignal[23865:117ca] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x10200d290> (9ED8B99D-D8E3-432C-B764-30C9D1468989)
+2026-11-01 15:42:17.120 Df PeriopSignal[23865:117ca] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: 9ED8B99D-D8E3-432C-B764-30C9D1468989
+2026-11-01 15:42:17.120 Df PeriopSignal[23865:117ca] [com.apple.UIKit:Application] Deactivation reason removed: 12; deactivation reasons: 4128 -> 32; animating application lifecycle event: 1
+2026-11-01 15:42:17.120 Df PeriopSignal[23865:117ca] [com.apple.KeyboardArbiter:Client] Send setDeactivating: N (-DeactivationReason:SuspendedEventsOnly)
+2026-11-01 15:42:17.123 Df PeriopSignal[23865:117ca] [com.apple.UIKit:Application] Deactivation reason removed: 5; deactivation reasons: 32 -> 0; animating application lifecycle event: 0
+2026-11-01 15:42:17.991 Df PeriopSignal[23865:12273] [com.apple.CFNetwork:Default] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-01 15:42:17.995 Df PeriopSignal[23865:12272] [com.apple.network:connection] [C1] event: client:connection_reused @12.753s
+2026-11-01 15:42:17.995 Df PeriopSignal[23865:12272] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-01 15:42:17.995 E  PeriopSignal[23865:12272] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-01 15:42:17.995 Df PeriopSignal[23865:12272] [com.apple.CFNetwork:Default] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> now using Connection 1
+2026-11-01 15:42:17.995 Df PeriopSignal[23865:12272] [com.apple.CFNetwork:Default] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> sent request, body N 0
+2026-11-01 15:42:18.000 Df PeriopSignal[23865:117ca] [com.apple.chrono:widget] Creating WidgetCenter connection.
+2026-11-01 15:42:18.006 Df PeriopSignal[23865:117ca] [com.apple.xpc:connection] [0x102152990] activating connection: mach=true listener=false peer=false name=com.apple.chrono.widgetcenterconnection
+2026-11-01 15:42:18.010 Df PeriopSignal[23865:117ca] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-01 15:42:18.011 Df PeriopSignal[23865:117ca] [com.apple.KeyboardArbiter:Client] startConnection
+2026-11-01 15:42:18.013 Df PeriopSignal[23865:117ca] [com.apple.xpc:connection] [0x10217f780] activating connection: mach=true listener=false peer=false name=com.apple.UIKit.KeyboardManagement.hosted
+2026-11-01 15:42:18.013 Df PeriopSignal[23865:12273] [com.apple.xpc:connection] [0x102172e30] activating connection: mach=true listener=false peer=false name=com.apple.usernotifications.listener
+2026-11-01 15:42:18.018 Df PeriopSignal[23865:12272] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-01 15:42:18.038 Df PeriopSignal[23865:11d29] [com.apple.chrono:widget] reloadAllTimelines() - reloaded all timelines
+2026-11-01 15:42:18.122 Df PeriopSignal[23865:11d29] [com.apple.CFNetwork:Default] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> received response, status 200 content K
+2026-11-01 15:42:18.122 Df PeriopSignal[23865:11d29] [com.apple.CFNetwork:Default] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> done using Connection 1
+2026-11-01 15:42:18.122 Df PeriopSignal[23865:11d29] [com.apple.network:connection] [C1] event: client:connection_idle @12.880s
+2026-11-01 15:42:18.122 Df PeriopSignal[23865:11d29] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-01 15:42:18.122 E  PeriopSignal[23865:11d29] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-01 15:42:18.126 Df PeriopSignal[23865:11d29] [com.apple.CFNetwork:Default] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> response ended
+2026-11-01 15:42:18.126 Df PeriopSignal[23865:12281] [com.apple.CFNetwork:Summary] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> summary for task success {transaction_duration_ms=132, response_status=200, connection=1, reused=1, reused_after_ms=11309, request_start_ms=1, request_duration_ms=0, response_start_ms=127, response_duration_ms=4, request_bytes=50, request_throughput_kbps=2298, response_bytes=127166, response_throughput_kbps=224430, cache_hit=false}
+2026-11-01 15:42:18.126 Df PeriopSignal[23865:12281] [com.apple.CFNetwork:Default] Task <C521D4C8-41B2-449C-B96A-25F952BC2E54>.<2> finished successfully
+2026-11-01 15:42:24.068 Df PeriopSignal[23865:117ca] [com.apple.xpc:connection] [0x10237ba00] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-01 15:42:24.069 Df PeriopSignal[23865:117ca] [com.apple.xpc:connection] [0x1023866f0] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-01 15:42:24.070 Df PeriopSignal[23865:117ca] [com.apple.xpc:connection] [0x102391ad0] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-01 15:42:24.281 Df PeriopSignal[23865:117ca] [com.apple.renderbox:misc] RBDevice: initialized bg state: false
+2026-11-01 15:42:24.353 E  PeriopSignal[23865:117ca] (libCoreFSCache.dylib) fopen failed for data file: errno = 2 (No such file or directory)
+2026-11-01 15:42:24.353 E  PeriopSignal[23865:117ca] (libCoreFSCache.dylib) Errors found! Invalidating cache...
+2026-11-01 15:42:24.355 Df PeriopSignal[23865:117ca] [com.apple.xpc:connection] [0x1021f1ac0] activating connection: mach=false listener=false peer=false name=com.apple.MTLCompilerService
+2026-11-01 15:42:24.571 Df PeriopSignal[23865:117ca] [com.apple.xpc:connection] [0x10a62c680] activating connection: mach=false listener=false peer=false name=com.apple.MTLCompilerService
+2026-11-01 15:42:24.573 A  PeriopSignal[23865:11d29] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.151 E  PeriopSignal[23865:117ca] (libCoreFSCache.dylib) fopen failed for data file: errno = 2 (No such file or directory)
+2026-11-01 15:42:25.151 E  PeriopSignal[23865:117ca] (libCoreFSCache.dylib) Errors found! Invalidating cache...
+2026-11-01 15:42:25.152 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.187 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.199 F  PeriopSignal[23865:117ca] [com.apple.renderbox:error] building pipeline path_exterior-jba6la8feba4 took 0.846006 seconds
+2026-11-01 15:42:25.199 A  PeriopSignal[23865:117ca] (libsystem_trace.dylib) Activity for state dumps
+2026-11-01 15:42:25.199 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.204 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.209 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.215 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.227 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.233 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.244 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.261 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.271 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.286 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.291 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.328 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.343 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.358 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.371 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.400 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.414 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.420 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.439 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.452 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.461 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.478 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.487 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.494 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.514 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.552 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.566 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.713 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.720 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.726 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.746 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.782 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.794 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.831 A  PeriopSignal[23865:12273] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.851 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.870 A  PeriopSignal[23865:12284] (Metal) Metal Compiling Shader
+2026-11-01 15:42:25.906 Df PeriopSignal[23865:12272] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-01 15:42:25.910 Df PeriopSignal[23865:12273] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-01 15:42:25.911 Sd PeriopSignal[23865:0] (EB73264B-09AE-3310-B642-B0B5D9390089) IOHIDManager State
+{
+    DispatchQueue = 0;
+    RunLoop = 1;
+    createOptions = 0;
+    isOpen = 0;
+    openOptions = 0;
+}
+2026-11-01 15:42:25.941 Df PeriopSignal[23865:117ca] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-01 15:42:25.942 Df PeriopSignal[23865:12284] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-01 15:42:25.944 Df PeriopSignal[23865:117ca] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-01 15:42:25.993 Df PeriopSignal[23865:12284] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-01 15:42:26.372 Sd PeriopSignal[23865:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+UAUserActivityManager supportsActivityContinuation=YES isEnabled=YES serverPid=0 PROJECT:UserActivity-551
+2026-11-01 15:42:26.372 Sd PeriopSignal[23865:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+[71668B50-C6E9-4C13-84F4-F7FA05E7868C userInfo.count=1 dirty 
+2026-11-01 15:42:26.411 Df PeriopSignal[23865:117ca] [com.apple.network:activity] <nw_activity 50:1 [68B9A4A6-3CF0-4253-9614-295C1F5FD3AD] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 40131ms
+2026-11-01 15:42:26.411 Df PeriopSignal[23865:117ca] [com.apple.network:activity] <nw_activity 50:2 [0B016AC6-3C7D-43BB-82E6-71BAE1B98F2F] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 40131ms
+2026-11-01 15:42:26.411 Df PeriopSignal[23865:117ca] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [68B9A4A6-3CF0-4253-9614-295C1F5FD3AD] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-01 15:42:26.411 Df PeriopSignal[23865:117ca] [com.apple.network:activity] Unset the global parent activity
