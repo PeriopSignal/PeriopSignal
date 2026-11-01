@@ -1,2 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/QuickAddTests.swift:173: error: -[PeriopSignalTests.QuickAddTests testBloodProducts] : XCTAssertEqual failed: ("available") is not equal to ("") - recognized and left out, not unread
-Test Case '-[PeriopSignalTests.QuickAddTests testBloodProducts]' failed (1.534 seconds).
