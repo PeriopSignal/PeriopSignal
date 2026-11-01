@@ -358,4 +358,24 @@ final class PatientWorkupTests: XCTestCase {
         XCTAssertTrue(PatientECG.rhythms.isSubset(of: Set(PatientECG.findings)))
         XCTAssertFalse(PatientECG.rhythms.contains("Left bundle branch block"), "a conduction finding sits beside the rhythm")
     }
+
+    /// Many lines: labels never overlap (each column is spaced), and lines to the same vessels run side by side.
+    func testDiagramLayoutKeepsLinesAndLabelsApart() {
+        var r = PatientDemo.cardiac
+        r.devices += ["R IJ triple lumen", "L IJ introducer", "R subclavian CVC", "L brachial PICC", "R fem CVC", "18 rue", "18 lue", "20 lfa"]
+            .flatMap { PatientDevices.parse($0)?.devices(placedIntraop: false) ?? [] }
+        let m = PatientDiagramModel.items(r, phase: .preop)
+        for left in [true, false] {
+            let ys = m.items.filter { !$0.label.isEmpty && $0.labelLeft == left }.compactMap { $0.labelAt?.y }.sorted()
+            for (a, b) in zip(ys, ys.dropFirst()) { XCTAssertGreaterThanOrEqual(b - a, 8.4, "labels in the \(left ? "left" : "right") column overlap") }
+        }
+        XCTAssertTrue(m.items.filter { !$0.label.isEmpty }.allSatisfy { $0.labelAt != nil }, "every label has a place")
+        let central = m.items.filter { $0.course.count > 0 && $0.course.contains { abs($0.y - PatientDiagramModel.svc.y) < 0.5 } }
+        let ends = Set(central.compactMap { $0.course.first.map { Int(($0.x * 10).rounded()) } })
+        XCTAssertEqual(ends.count, central.count, "each line to the SVC has its own lane")
+        if let cart = m.cart {
+            let right = m.items.filter { !$0.labelLeft }.compactMap(\.labelAt)
+            XCTAssertFalse(right.contains { abs($0.y - cart.at.y) < 17 }, "no label under the ECMO cart")
+        }
+    }
 }

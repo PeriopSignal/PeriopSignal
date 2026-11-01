@@ -29,6 +29,9 @@ struct DiagramItem: Identifiable, Hashable {
     var pumpAt: CGPoint?
     /// Moves the label down, for several items at one site.
     var labelDY: CGFloat = 0
+    /// Where the label is drawn when the layout moved it to a column beside the figure (with a leader line back to
+    /// the insertion point), so labels never overlap.
+    var labelAt: CGPoint?
 
     static func == (a: DiagramItem, b: DiagramItem) -> Bool {
         a.id == b.id && a.anchor == b.anchor && a.course == b.course && a.label == b.label && a.marker == b.marker && a.pumpAt == b.pumpAt
@@ -201,7 +204,10 @@ struct PatientDiagramCanvas: View {
                 var p = Path()
                 p.move(to: CGPoint(x: pts[0].x * k, y: pts[0].y * k))
                 for q in pts.dropFirst() { p.addLine(to: CGPoint(x: q.x * k, y: q.y * k)) }
-                ctx.stroke(p, with: .color(item.color), style: StrokeStyle(lineWidth: item.width * max(1, k * 0.9), lineCap: .round, lineJoin: .round, dash: item.dashed ? [3, 2.5] : []))
+                let w = item.width * max(1, k * 0.9)
+                // A thin halo in the page color under each line, so lines that cross or run side by side stay apart.
+                ctx.stroke(p, with: .color(PS.surface), style: StrokeStyle(lineWidth: w + 1.8, lineCap: .round, lineJoin: .round))
+                ctx.stroke(p, with: .color(item.color), style: StrokeStyle(lineWidth: w, lineCap: .round, lineJoin: .round, dash: item.dashed ? [3, 2.5] : []))
             }
             if let pump = item.pumpAt {
                 let r = CGRect(x: (pump.x - 4.2) * k, y: (pump.y - 4.2) * k, width: 8.4 * k, height: 8.4 * k)
@@ -231,8 +237,19 @@ struct PatientDiagramCanvas: View {
             }
             let font = Font.system(size: max(7, 5.6 * k), weight: .semibold)
             if !item.label.isEmpty {
-                let lp = CGPoint(x: c.x + (item.labelLeft ? -5 : 5) * k, y: c.y + item.labelDY * k)
-                ctx.draw(Text(item.label).font(font).foregroundColor(item.color), at: lp, anchor: item.labelLeft ? .trailing : .leading)
+                if let la = item.labelAt {
+                    // A leader from the insertion point to the label in its column.
+                    let end = CGPoint(x: la.x * k + (item.labelLeft ? 1.5 : -1.5) * k, y: la.y * k)
+                    var leader = Path()
+                    leader.move(to: c)
+                    leader.addLine(to: CGPoint(x: (item.labelLeft ? min(c.x, end.x + 6 * k) : max(c.x, end.x - 6 * k)), y: end.y))
+                    leader.addLine(to: end)
+                    ctx.stroke(leader, with: .color(item.color.opacity(0.55)), style: StrokeStyle(lineWidth: 0.7, lineCap: .round, lineJoin: .round))
+                    ctx.draw(Text(item.label).font(font).foregroundColor(item.color), at: CGPoint(x: la.x * k, y: la.y * k), anchor: item.labelLeft ? .trailing : .leading)
+                } else {
+                    let lp = CGPoint(x: c.x + (item.labelLeft ? -5 : 5) * k, y: c.y + item.labelDY * k)
+                    ctx.draw(Text(item.label).font(font).foregroundColor(item.color), at: lp, anchor: item.labelLeft ? .trailing : .leading)
+                }
             }
         }
     }

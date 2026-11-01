@@ -64,6 +64,8 @@ struct PatientEditorView: View {
     @Environment(ReferenceStore.self) var refs
     var editor: PatientEditor
     var onOpenRoute: (String) -> Void
+    /// Home Screen–style editing of this page's lists (procedures, operations, infusions): long-press to wobble.
+    @State var wobbling = false
 
     var r: PatientRecord { patient.record }
 
@@ -111,6 +113,12 @@ struct PatientEditorView: View {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("Done") { Keyboard.dismiss() }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                if wobbling {
+                    Button("Done") { Haptics.light(); withAnimation(.snappy) { wobbling = false } }
+                        .fontWeight(.semibold)
+                }
             }
         }
     }
@@ -691,8 +699,10 @@ struct PatientEditorView: View {
         PatientGroup(title: "Infusions") {
             ForEach(r.infusions) { inf in
                 infusionEditor(inf)
+                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update { $0.infusions.removeAll { $0.id == inf.id } } }
                 Hairline().padding(.leading, 14)
             }
+            WobbleDoneBar(editing: $wobbling)
             Button { patient.update { $0.infusions.append(PatientInfusion()) } } label: { Label("Add infusion", systemImage: "plus.circle") }
                 .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
                 .padding(14)
