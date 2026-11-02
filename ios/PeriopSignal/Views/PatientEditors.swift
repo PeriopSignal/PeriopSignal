@@ -589,7 +589,7 @@ struct PatientEditorView: View {
             Hairline().padding(.leading, 50)
             linkRow("Radial artery ultrasound", r.radial.isEmpty ? "Add findings" : r.radial.summary, icon: r.radial.isEmpty ? "plus.circle" : "hand.raised", value: .workup("radial"))
             Hairline().padding(.leading, 50)
-            linkRow("Pulmonary function tests", r.pft.isEmpty ? "Add results" : r.pft.summary, icon: r.pft.isEmpty ? "plus.circle" : "lungs", value: .workup("pft"))
+            linkRow("Pulmonary function tests", r.pft.isEmpty ? "Add results" : r.pft.summary(copd: r.has("copd")), icon: r.pft.isEmpty ? "plus.circle" : "lungs", value: .workup("pft"))
         }
         .id("studies")
     }
@@ -772,8 +772,9 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopLines: some View {
-        // A planned radial artery harvest: where the lines go, and any already on that arm (PatientStudies).
-        studyCautions(PatientStudies.cautions(r).filter { $0.id.hasPrefix("harvest") })
+        // A planned radial artery harvest and subclavian steal: where the lines and the cuff go, and any already on the
+        // harvest arm (PatientStudies).
+        studyCautions(PatientStudies.cautions(r).filter { $0.id.hasPrefix("harvest") || $0.id.hasPrefix("vertebral") })
         PatientDevicesEditor(phase: .intraop)
         if !r.lines.isEmpty { legacyLines }
     }

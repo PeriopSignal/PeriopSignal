@@ -212,7 +212,7 @@ enum PatientSummary {
             out.append(Line("Carotid ultrasound", r.carotid.summary, alert: cautions.contains { $0.id == "carotid" || $0.id.hasPrefix("vertebral") }))
         }
         if !r.radial.isEmpty { out.append(Line("Radial artery ultrasound", r.radial.summary)) }
-        if !r.pft.isEmpty { out.append(Line("Pulmonary function tests", r.pft.summary)) }
+        if !r.pft.isEmpty { out.append(Line("Pulmonary function tests", r.pft.summary(copd: r.has("copd")))) }
         // The carotid and vertebral cautions; the harvest arm is told with the lines (intraopLines, the handoff).
         for c in cautions where !c.id.hasPrefix("harvest") { out.append(Line("Caution", c.text, alert: true, marks: [c.mark])) }
         if r.isAdult, !r.emergency, r.ageYears != nil {

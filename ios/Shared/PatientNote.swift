@@ -245,22 +245,25 @@ enum PatientNote {
         Rule("taaa-ruptured", #"ruptured (?:(?-i:TAAA)\b|thoraco-?abdominal (?:aortic )?aneurysm)|(?-i:\bTAAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
         Rule("aaa", #"(?<!thoraco)(?<!thoraco-)\babdominal aortic aneurysm|\binfrarenal (?:aortic )?aneurysm|(?-i:\bAAA\b)(?!\s+repair)|\btriple a\b"#),
         // An ascending, root, arch or descending aneurysm is a thoracic aortic aneurysm (2022 ACC/AHA) [G]; "dilated" and
-        // "ectasia" are below aneurysm size and are not read [P]. Not beside "ankle": a "TAA" there is read through its
-        // abbreviation's meaning, and is an ankle arthroplasty.
-        Rule("taa", #"\bthoracic aortic aneurysm|\b(?:ascending|descending|descending thoracic|aortic root|aortic arch|arch) (?:aortic )?aneurysm|\baneurysm of the (?:ascending|descending|thoracic) aorta"#, notIf: ankleContext),
-        // A bare "TAA" is also a total ankle arthroplasty [P]: read only beside aortic words or a size, never near "ankle";
-        // otherwise asked (readTAA).
+        // "ectasia" are below aneurysm size and are not read [P]. Written out, always read (an "aortic valve replacement"
+        // or "orthopnea" beside it changes nothing).
+        Rule("taa", #"\bthoracic aortic aneurysm|\b(?:ascending|descending|descending thoracic|aortic root|aortic arch|arch) (?:aortic )?aneurysm|\baneurysm of the (?:ascending|descending|thoracic) aorta"#),
+        // A bare "TAA" is also a total ankle arthroplasty [P]: aortic words or a size and no ankle words read it; ankle
+        // words alone leave it unread; both or neither ask (readTAA). It is never read through its abbreviation's meaning.
         Rule("taa", #"\bTAA\b"#, onlyIf: taaContext, notIf: ankleContext),
         // TAAA: a descending aneurysm into the abdominal aorta; extent by Crawford (2022 ACC/AHA) [G].
         Rule("taaa", #"thoraco-?abdominal (?:aortic )?aneurysm|(?-i:\bTAAA\b)|\bcrawford (?:type |extent )?(?:i|ii|iii|iv|v|1|2|3|4|5)\b"#),
         // Stanford and DeBakey classifications (2022 ACC/AHA) [G]. "Type A"/"type B" only beside "dissection" (influenza,
-        // WPW, personality) and never a bare "AD" (Alzheimer disease) [P]. "TAAD" is asked: in the 2022 ACC/AHA guideline it
-        // means thoracic aortic aneurysm and dissection [G]; "ATAAD" is acute type A [P].
+        // WPW, personality) and never a bare "AD" (Alzheimer disease) [P]. "TAAD" is asked: common usage (as in
+        // ProcedureCatalog) is type A aortic dissection, but in genetics, and per the research in the 2022 ACC/AHA guideline,
+        // thoracic aortic aneurysm and dissection [G?, unverified]; "ATAAD" is acute type A [P].
         Rule("dissection-a", #"\b(?:stanford )?type[- ]?a (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?a\b|(?-i:\bATAAD\b)|\bstanford a (?:aortic )?dissection|\bascending aortic dissection|\bdebakey (?:type )?(?:i|ii|1|2)\b"#),
         Rule("dissection-b", #"\b(?:stanford )?type[- ]?b (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?b\b|(?-i:\b[uc]?TBAD\b)|\bstanford b (?:aortic )?dissection|\bdescending (?:thoracic )?aortic dissection|\bdebakey (?:type )?(?:iii|3)[ab]?\b"#),
         // Open repair: Bentall, hemiarch, elephant trunk imply a thoracic open repair [P]. "s/p AAA repair" with no
         // modality is not read (open or EVAR) [P].
-        Rule("aortic-repair-open", #"\bopen (?:(?-i:AAA|TAA|TAAA)\s+|aortic\s+|aneurysm\s+|abdominal aortic aneurysm\s+|thoracoabdominal\s+)?repair|\bopen (?:(?-i:AAA|TAAA)) (?:repair|resection)|\btype a (?:aortic )?dissection repair|\bbentall\b|\b(?:ascending|hemiarch|total arch) (?:aortic )?replacement|\belephant trunk"#),
+        Rule("aortic-repair-open", #"\bopen (?:(?-i:AAA|TAA|TAAA)\s+|aortic\s+|aneurysm\s+|abdominal aortic aneurysm\s+|thoracoabdominal\s+)repair|\bopen (?:(?-i:AAA|TAAA)) (?:repair|resection)|\btype a (?:aortic )?dissection repair|\bbentall\b|\b(?:ascending|hemiarch|total arch) (?:aortic )?replacement|\belephant trunk"#),
+        // A bare "open repair" only with an aortic word in the sentence ("open repair of an inguinal hernia" is not) [P].
+        Rule("aortic-repair-open", #"\bopen repair\b"#, onlyIf: NoteRx(#"\b(?:aorta|aortic|aneurysm|thoracoabdominal)\b|(?-i:\b(?:AAA|TAA|TAAA)\b)"#)),
         // EVAR, FEVAR (fenestrated-branched EVAR, 2022 ACC/AHA) [G]; FEVAR and BEVAR file as Prior EVAR (coordinator's
         // decision) [P]. "TEVAR" is its own word.
         Rule("evar", #"(?-i:\b(?:F/?B?|B)?EVAR\b)|\bendovascular (?:aaa |abdominal aortic aneurysm |aortic aneurysm |aneurysm )repair|\b(?:fenestrated|branched) (?:endovascular|(?-i:EVAR))"#),
@@ -311,8 +314,11 @@ enum PatientNote {
         Rule("sepsis", #"\bsepsis\b|\bseptic\b(?!\s+(?:arthritis|joint|knee|hip|bursitis|emboli))"#),
         Rule("shock", #"(?:septic|cardiogenic|hemorrhagic|haemorrhagic|hypovolemic|distributive) shock|\bin shock\b"#),
         Rule("massive-trauma", #"massive trauma|polytrauma|multi-?trauma|multiple trauma"#),
-        // Where the note does not say where (a specific site reads as the Aorta group's item).
-        Rule("ruptured-aneurysm", #"ruptured (?:aortic )?aneurysm\b"#),
+        // Where the note does not say where (a specific site reads as the Aorta group's item). "Ruptured aortic aneurysm"
+        // is always read; a bare "ruptured aneurysm" not when the note has intracranial words (a subarachnoid
+        // hemorrhage: PatientNote.read drops it for the whole note) [P].
+        Rule("ruptured-aneurysm", #"ruptured aortic aneurysm\b"#),
+        Rule("ruptured-aneurysm", #"ruptured aneurysm\b"#, notIf: intracranialAneurysm),
         Rule("pregnant", #"\bpregnant\b|(?-i:\bG\d{1,2} ?P\d)|\b\d{1,2}(?:\+\d/7| \d/7)? (?:weeks|wks)'? (?:gestation|pregnant|(?-i:GA)|gestational age)\b|(?-i:\bIUP\b)|\bparturient\b|\bin (?:active )?labou?r\b|\blabou?ring\b"#),
         Rule("gest-htn", #"gestational hypertension|(?-i:\b(?:gHTN|GHTN|PIH)\b)|pregnancy[- ]induced hypertension"#),
         Rule("preeclampsia-severe", #"pre-?eclampsia with severe features|severe pre-?eclampsia"#),
@@ -505,7 +511,8 @@ enum PatientNote {
     /// Every pattern, for the test that each one compiles.
     static var allPatterns: [NoteRx] {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
-        out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA]
+        out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA,
+                intracranialAneurysm, rupturedAorticRx, notAorticDissection]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
@@ -717,6 +724,10 @@ enum PatientNote {
                 }
             }
         }
+        // A bare "ruptured aneurysm" in a note about the head (a subarachnoid hemorrhage) is not aortic.
+        if has("problem:ruptured-aneurysm"), intracranialAneurysm.first(text) != nil, rupturedAorticRx.first(text) == nil {
+            found["problem:ruptured-aneurysm"] = nil
+        }
         // The more specific item replaces the general one.
         for (general, specific) in supersededBy where has("problem:" + general) && specific.contains(where: { has("problem:" + $0) }) {
             found["problem:" + general] = nil
@@ -786,26 +797,38 @@ enum PatientNote {
     static let aortaSizeAfter = NoteRx(#"^\s*[,(:\-–]?\s*(?:(?:measuring|measures|measured|of|is|at|now|size|sized|diameter|max|maximal|maximum|approx|approximately|about|~)\s*:?\s*){0,3}(\d{1,3}(?:\.\d{1,2})?)(?:\s*[x×]\s*(\d{1,3}(?:\.\d{1,2})?))?\s*(cm|mm)\b"#)
     /// A bare "dissection" with no type, which is asked about: "aortic dissection", "AoD", or "dissection" opening a
     /// phrase of the history ("HTN, dissection, CKD"); not a surgical one ("lymph node dissection", "neck dissection").
-    /// "TAAD" is asked too: in the 2022 ACC/AHA aortic guideline it means thoracic aortic aneurysm and dissection, not
-    /// type A dissection ("ATAAD" is read as type A). A bare "AD" (Alzheimer disease) is never read.
+    /// "TAAD" is asked too: usually type A aortic dissection, but also thoracic aortic aneurysm and dissection ("ATAAD"
+    /// is read as type A). A bare "AD" (Alzheimer disease) is never read.
     static let bareDissection = NoteRx(#"\baortic dissection\b|\bdissection of the aorta\b|\bdissecting (?:aortic )?aneurysm\b|(?-i:\b(?:TAAD|AoD)\b)|(?:^|[,;:(+]\s*|\b(?:and|with|known|chronic|acute|prior|previous|old|remote|s/p|h/o|hx|history of|hx of)\s+)(?:acute |chronic )?dissection\b(?!\s+of\b)"#)
     static let dissectionQuestion = "quick:aorta:dissection"
+    /// A sentence about another dissection: coronary (PCI, SCAD), carotid or vertebral; not asked about [P].
+    static let notAorticDissection = NoteRx(#"\bcoronary\b|(?-i:\b(?:PCI|SCAD)\b)|\bcarotid\b|\bvertebral\b"#)
     static let taaQuestion = "quick:aorta:taa"
+    /// Words that place an aneurysm in the head: a bare "ruptured aneurysm" in such a note is not aortic. Not a bare
+    /// "clip" (left atrial appendage clip).
+    static let intracranialAneurysm = NoteRx(#"(?-i:\bSAH\b)|subarachnoid|intracranial|cerebral|\bberry\b|\bcoil(?:ed|ing)\b|\bclipp(?:ed|ing)\b|hunt[- ]?hess|fisher grade|\baneurysmal\b|(?-i:\b(?:ACOM|PCOM|AComm|PComm|ACoA|PCoA|MCA)\b)|\bbasilar\b|(?-i:\bEVD\b)|ventriculostomy"#)
+    static let rupturedAorticRx = NoteRx(#"ruptured aortic aneurysm"#)
     /// Aortic words or a size in the sentence: a bare "TAA" is the aneurysm.
     static let taaContext = NoteRx(#"\b(?:thoracic|aortic|aorta|ascending|aneurysm)\b|\d\s*(?:cm|mm)\b"#)
-    static let ankleContext = NoteRx(#"\bankle\b|arthroplasty|arthritis|replacement|ortho"#)
+    static let ankleContext = NoteRx(#"\bankle\b|\barthroplast(?:y|ies)\b|\bortho(?:p(?:a)?edic)?s?\b|\bpodiatr"#)
     static let bareTAA = NoteRx(#"\bTAA\b"#)
 
-    /// A bare "TAA" with no aortic word or size beside it: asked whether it is the aneurysm or an ankle arthroplasty.
+    /// A bare "TAA" with both aortic and ankle words in its sentence, or neither: asked whether it is the aneurysm or an
+    /// ankle arthroplasty.
     private static func readTAA(_ c: String, _ choices: [String: String], _ h: inout Hits) {
+        let ankle = ankleContext.first(c) != nil, aortic = taaContext.first(c) != nil
         guard !h.findings.contains(where: { ["problem:taa", "problem:taa-ruptured", "problem:taaa"].contains($0.id) }),
-              ankleContext.first(c) == nil, taaContext.first(c) == nil,
+              ankle == aortic,
               let m = bareTAA.all(c).first(where: { !negated(c, at: $0.range.location) && !familyContext(c, at: $0.range.location) }) else { return }
         let asked = question(taaQuestion, "TAA", value: "", options: [AbbreviationMeaning("thoracic aortic aneurysm", id: "taa"),
                                                                        AbbreviationMeaning("total ankle arthroplasty", id: "ankle")], usual: "", choices)
         h.questions.append(asked.question)
         if asked.answer == "taa", let label = problemLabels["taa"] {
-            h.add(PatientNoteFinding(id: "problem:taa", section: Part.history, label: label, change: .problem("taa")), at: m.range)
+            if let size = aortaSize(c, m) {
+                h.add(PatientNoteFinding(id: "problem:taa", section: Part.history, label: label + ", " + NumText.short(size.cm) + " cm", change: .aortaSize("taa", size.cm)), at: size.range)
+            } else {
+                h.add(PatientNoteFinding(id: "problem:taa", section: Part.history, label: label, change: .problem("taa")), at: m.range)
+            }
         } else {
             h.seen(m.range)
         }
@@ -850,7 +873,8 @@ enum PatientNote {
     /// A dissection with no type ("dissection", "aortic dissection"): asked type A or type B, and read once answered.
     private static func readDissection(_ c: String, _ choices: [String: String], _ h: inout Hits) {
         guard !h.findings.contains(where: { $0.id == "problem:dissection-a" || $0.id == "problem:dissection-b" }) else { return }
-        guard let m = bareDissection.all(c).first(where: { !negated(c, at: $0.range.location) && !familyContext(c, at: $0.range.location) }) else { return }
+        guard notAorticDissection.first(c) == nil,
+              let m = bareDissection.all(c).first(where: { !negated(c, at: $0.range.location) && !familyContext(c, at: $0.range.location) }) else { return }
         let asked = question(dissectionQuestion, "Dissection", value: "", options: [AbbreviationMeaning("type A", id: "dissection-a"), AbbreviationMeaning("type B", id: "dissection-b")],
                              usual: "", choices)
         h.questions.append(asked.question)
