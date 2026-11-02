@@ -284,7 +284,8 @@ struct ReferenceView: View {
 
     /// The disclaimer stays in view at the foot; how the tools work and the review date sit behind its ⓘ (1.8.1).
     @ViewBuilder private var footer: some View {
-        let reviewed = refs.bundle?.updated.map { " Content reviewed \(PSDate.monthYear($0))." } ?? ""
+        let updated: String? = refs.bundle?.updated
+        let reviewed = updated.map { " Content reviewed \(PSDate.monthYear($0))." } ?? ""
         InfoTitle(caption: "Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. Confirm against the source before acting." + reviewed,
                   open: $footerInfo, captionFont: PS.sys(size: 12), spacing: 6) {
             Text("A reference aid for licensed clinicians: confirm against the source and your institution's protocols before acting. Not reviewed or cleared by the FDA.")
