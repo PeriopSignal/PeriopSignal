@@ -16,6 +16,8 @@ struct AirwayGuideView: View {
     @State private var maskOK = true
     @State private var cannotVentilate = false
     @State private var done: Set<String> = []
+    /// Questions whose long caption is open (ⓘ), for the visit.
+    @State private var openDetails: Set<String> = []
 
     private enum Plan { case routine, prepared, awake }
     private var plan: Plan {
@@ -73,15 +75,29 @@ struct AirwayGuideView: View {
         }
     }
 
-    private func question(_ title: String, _ detail: String?, _ on: Binding<Bool>) -> some View {
-        Toggle(isOn: on) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                if let d = detail { Text(d).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+    @ViewBuilder private func question(_ title: String, _ detail: String?, _ on: Binding<Bool>) -> some View {
+        if InfoCaption.runsLong(detail) {
+            // A caption past two lines sits behind ⓘ; the switch stands apart so the ⓘ is its own button.
+            HStack(spacing: 10) {
+                InfoTitle(caption: detail, open: Binding(get: { openDetails.contains(title) },
+                                                         set: { if $0 { openDetails.insert(title) } else { openDetails.remove(title) } }),
+                          captionFont: PS.sys(size: 12)) {
+                    Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Toggle(title, isOn: on).labelsHidden().tint(PS.accent)
             }
+            .padding(.horizontal, 16).padding(.vertical, 11)
+        } else {
+            Toggle(isOn: on) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                    if let d = detail { Text(d).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+                }
+            }
+            .tint(PS.accent)
+            .padding(.horizontal, 16).padding(.vertical, 11)
         }
-        .tint(PS.accent)
-        .padding(.horizontal, 16).padding(.vertical, 11)
     }
 
     // MARK: Plan

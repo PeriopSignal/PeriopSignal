@@ -159,6 +159,7 @@ struct AbgView: View {
                 }
             }
             Text(r.headline).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(r.empty ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
+                .promptHeadline(r.empty)
             Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             if let v = r.visual { AbgStrip(visual: v).padding(.top, 4) }
             if !r.steps.isEmpty {

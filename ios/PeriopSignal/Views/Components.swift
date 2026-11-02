@@ -210,6 +210,101 @@ struct EvidenceNote: View {
     }
 }
 
+// MARK: - Captions behind ⓘ
+
+/// A question or item title whose long grey caption sits behind a small ⓘ at the end of the title, in the look of
+/// "Explanation & Evidence ⓘ": hidden until tapped, then shown under the title; tap again to hide. The parent owns
+/// `open`, so each row keeps its state for the visit. VoiceOver reads the ⓘ as "Details" and the caption once shown.
+/// With `collapsible` false the caption simply shows, as before (short captions stay as they are).
+struct InfoTitle<Title: View>: View {
+    var caption: String?
+    var collapsible = true
+    @Binding var open: Bool
+    var captionFont: Font = PS.sys(size: 11.5)
+    var spacing: CGFloat = 2
+    @ViewBuilder var title: () -> Title
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: spacing) {
+            HStack(alignment: .lastTextBaseline, spacing: 6) {
+                title()
+                if caption != nil && collapsible { InfoButton(open: $open) }
+            }
+            if let c = caption, !collapsible || open {
+                InfoCaptionText(text: c, font: captionFont)
+            }
+        }
+    }
+}
+
+/// The small ⓘ that shows or hides a caption.
+struct InfoButton: View {
+    @Binding var open: Bool
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            withAnimation(.snappy) { open.toggle() }
+        } label: {
+            Image(systemName: open ? "info.circle.fill" : "info.circle")
+                .font(PS.sys(size: 12, weight: .semibold))
+                .foregroundStyle(open ? PS.fg2 : PS.fg3)
+                // A finger-sized target without making the row taller.
+                .padding(10).contentShape(Rectangle()).padding(-10)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Details")
+        .accessibilityValue(open ? "Shown" : "Hidden")
+        .accessibilityHint(open ? "Hides the details" : "Shows the details under the title")
+    }
+}
+
+/// The caption text itself, in the grey of the rows it belongs to.
+struct InfoCaptionText: View {
+    var text: String
+    var font: Font = PS.sys(size: 11.5)
+
+    var body: some View {
+        Text(text).font(font).foregroundStyle(PS.fg3).lineSpacing(1).fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .transition(.opacity)
+    }
+}
+
+enum InfoCaption {
+    /// Whether a caption runs past two lines on a phone row (about 45 characters a line at 12 pt beside a switch), so
+    /// it goes behind ⓘ; shorter captions stay in view.
+    static func runsLong(_ text: String?) -> Bool { (text?.count ?? 0) > 90 }
+}
+
+/// Takes the width it is offered and reports no ideal width of its own, so a ViewThatFits choosing between layouts
+/// decides on the other children (a caption that wraps should not push a row into its stacked form).
+struct OfferedWidth: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let s = subviews.first else { return .zero }
+        guard let w = proposal.width, w.isFinite else {
+            let ideal = s.sizeThatFits(.unspecified)
+            return CGSize(width: proposal.width == nil ? 0 : ideal.width, height: ideal.height)
+        }
+        return CGSize(width: w, height: s.sizeThatFits(ProposedViewSize(width: w, height: nil)).height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(width: bounds.width, height: nil))
+    }
+}
+
+extension View {
+    /// See OfferedWidth: this view takes the offered width and adds nothing to a ViewThatFits decision.
+    func offeredWidth() -> some View { OfferedWidth().callAsFunction { self } }
+
+    /// An empty-input headline ("Enter Measurements") stays on one line, shrinking a little if it must; result
+    /// headlines wrap as usual.
+    func promptHeadline(_ isPrompt: Bool) -> some View {
+        lineLimit(isPrompt ? 1 : nil).minimumScaleFactor(isPrompt ? 0.75 : 1)
+    }
+}
+
 /// One ECG cycle repeated across the width; the brand's hairline. `progress` draws it in.
 struct ECGLine: Shape {
     var progress: CGFloat = 1

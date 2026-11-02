@@ -201,6 +201,13 @@ jobs:
           shot 40-chamber-lv 12 -ps.ref chamber -ps.forceAppearance light -ps.echo.values "lvef=45,lvidd=60"
           shot 41-diastolic 12 -ps.ref diastolic -ps.dd.values "E=100,A=80,eSeptal=5,eLateral=6,tr=3.1"
           shot 42-diastolic-mac 12 -ps.ref diastolic -ps.dd.pop mac -ps.dd.values "E=80,A=80,ivrt=70"
+          # 1.8.1 Reference polish: one-line empty headline, diastolic scope at the bottom and plain e′ cutoffs, captions behind ⓘ.
+          shot 190-valves-mr-empty 12 -ps.ref valves -ps.vg.lesion mr -ps.forceAppearance light
+          shot 191-diastolic-bottom 14 -ps.ref diastolic -ps.dd.values "E=100,A=80,eSeptal=5,eLateral=6,tr=3.1" -ps.dd.scroll bottom -ps.forceAppearance dark
+          shot 192-diastolic-age 12 -ps.ref diastolic -ps.dd.age 40-65 -ps.forceAppearance light
+          shot 193-intervention-captions 12 -ps.ref intervention -ps.forceAppearance dark
+          shot 194-intervention-info 12 -ps.ref intervention -ps.vi.info sev -ps.forceAppearance light
+          shot 195-stopbang-info 12 -ps.ref score:stopbang -ps.forceAppearance light
           shot 43-acls 12 -ps.ref acls
           shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals

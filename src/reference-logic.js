@@ -568,7 +568,7 @@
     const n = i.numbers, vmax = n.vmax, mg = n.mg, ava = n.ava, avai = n.avai, svi = n.svi, lvef = n.lvef;
     const has = (x) => x !== undefined;
     if (!has(vmax) && !has(mg) && !has(ava) && !has(avai))
-      return reading(null, 'Enter the measurements', 'Peak velocity and mean gradient first; the valve area, flow and LVEF decide the low-gradient cases.', lines, []);
+      return reading(null, 'Enter measurements', 'Peak velocity and mean gradient first; the valve area, flow and LVEF decide the low-gradient cases.', lines, []);
     const highGradient = (vmax || 0) >= 4.0 || (mg || 0) >= 40;
     const smallArea = (has(ava) && ava < 1.0) || (has(avai) && avai < 0.6);
     if (has(svi) && svi > 58) cautions.push('High flow (SVi > 58 mL/m²) inflates gradients: reassess the area.');
@@ -605,7 +605,7 @@
       if (v !== undefined && g) lines.push({ id: p.id, label: p.label, text: vfmt(v, p.unit) + ' · ' + GRADE[g].toLowerCase(), grade: g });
       else if (i.signs.has(p.id) && p.kind === 'sign') lines.push({ id: p.id, label: p.label, text: p.grade === 2 ? 'noted' : 'specific for ' + GRADE[p.grade].toLowerCase(), grade: p.grade === 2 ? null : p.grade });
     }
-    if (isEmptyInput(i)) return reading(null, 'Enter the signs and measurements', 'Four specific signs settle mild or severe; otherwise the quantitative values decide (EROA, regurgitant volume and fraction).', [], []);
+    if (isEmptyInput(i)) return reading(null, 'Enter signs and measurements', 'Four specific signs settle mild or severe; otherwise the quantitative values decide (EROA, regurgitant volume and fraction).', [], []);
     let sev = 0, mild = 0;
     const n = i.numbers;
     if (n.vc !== undefined) { if (n.vc >= 0.7) sev++; else if (n.vc <= 0.3) mild++; }
@@ -642,7 +642,7 @@
       const v = i.numbers[p.id];
       if (v !== undefined) { const g = R.valveGrade(p, v); if (g) lines.push({ id: p.id, label: p.label, text: vfmt(v, p.unit) + ' · ' + GRADE[g].toLowerCase(), grade: g }); }
     }
-    if (isEmptyInput(i)) return reading(null, 'Enter the measurements', 'Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.', [], []);
+    if (isEmptyInput(i)) return reading(null, 'Enter measurements', 'Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.', [], []);
     const cautions = ['Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.', 'Pressure half-time misleads with severe AR, right after balloon commissurotomy and with altered LA or LV compliance.'];
     const mva = i.numbers.mva, pht = i.numbers.pht;
     const anatomicSevere = (mva !== undefined && mva <= 1.5) || (pht !== undefined && pht >= 150);
@@ -681,7 +681,7 @@
         else if (p.grade === 3) specSevere++; else if (p.grade === 1) specMild++;
       }
     }
-    if (isEmptyInput(i)) return reading(null, 'Enter the signs and measurements', 'Specific signs settle the grade; the quantitative values decide the middle.', [], []);
+    if (isEmptyInput(i)) return reading(null, 'Enter signs and measurements', 'Specific signs settle the grade; the quantitative values decide the middle.', [], []);
     const cautions = [];
     if (lesion === 'ar') cautions.push('Pressure half-time shortens with high LV diastolic pressure and lengthens in chronic adaptation; quantitative volumes anchor eccentric jets.');
     if (lesion === 'tr') cautions.push('Hepatic-vein and inflow signs are nonspecific (RV diastolic function, AF, RA pressure); color jet area underestimates eccentric jets.');
@@ -1174,6 +1174,17 @@
     prEdv: 2, padp: 16, lwave: 50, ara: 30, valsalva: 50, // ≥, ≥, ≥, >, ≥ (% fall in E/A)
     ageE: { '20-39': [7, 10, 9], '40-65': [6, 8, 7], '>65': [6, 7, 6.5] }, // Table 6: abnormal when < septal, lateral, average
   };
+  /** The "e′ cutoffs" choice in plain words ('' is Figure 3, any age); caption names the band inside a sentence. */
+  R.diastolicAgeBands = [
+    { id: '', label: 'Any age', caption: 'any age' }, { id: '20-39', label: '20–39 years', caption: '20–39 years' },
+    { id: '40-65', label: '40–65 years', caption: '40–65 years' }, { id: '>65', label: 'Over 65', caption: 'over 65' },
+  ];
+  /** The cutoffs in force for the chosen band, from DD so the words cannot drift from the rules (DiastolicCalc.cutoffCaption). */
+  R.diastolicCutoffCaption = function (band) {
+    const c = band && DD.ageE[band], b = band && R.diastolicAgeBands.find((x) => x.id === band);
+    if (c && b) return `Table 6, ${b.caption}: below ${R.fmt(c[0])} / ${R.fmt(c[1])} / ${R.fmt(c[2])} cm/s (septal / lateral / average)`;
+    return `Figure 3: reduced when septal ≤ ${R.fmt(DD.eSeptal)}, lateral ≤ ${R.fmt(DD.eLateral)}, average ≤ ${R.fmt(DD.eAverage)} cm/s`;
+  };
   const has = (x) => x !== null && x !== undefined && Number.isFinite(x);
   /** The three main variables and the derived ratios. i: { E, A, eSeptal, eLateral, tr, pasp, lungDisease, ageBand }.
       With both e′ sites measured, the average decides e′ and E/e′; a single site's cutoff applies only when that is
@@ -1276,7 +1287,7 @@
       return { lap: r.lap, grade: r.grade, headline, explanation: (extra ? extra + ' ' : '') + explanation, steps, cautions, primaries: p, dysfunction: R.diastolicPresence(i, p) };
     };
     const prim = [p.v1, p.v2, p.v3];
-    if (prim.every((x) => x === null)) return { lap: 'unknown', grade: null, headline: 'Enter the Measurements', explanation: 'Start with septal and lateral e′, mitral E and A, and PASP or TR velocity.', steps, cautions, primaries: p, dysfunction: R.diastolicPresence(i, p) };
+    if (prim.every((x) => x === null)) return { lap: 'unknown', grade: null, headline: 'Enter Measurements', explanation: 'Start with septal and lateral e′, mitral E and A, and PASP or TR velocity.', steps, cautions, primaries: p, dysfunction: R.diastolicPresence(i, p) };
     if (prim.every((x) => x !== null)) return finish(ddCore(p.v1, p.v2, p.v3, p, sg, v3name));
     // a main variable missing: read every way it could fall
     const names = ['e′', 'E/e′', 'PASP or TR velocity'];
@@ -1612,7 +1623,7 @@
       const A = R.abg, N = d.normal, M = d.mid, steps = [], cautions = [];
       let ph = has(i.ph) ? i.ph : null, pc = has(i.paco2) ? i.paco2 : null, hc = has(i.hco3) ? i.hco3 : null;
       const given = [ph, pc, hc].filter((x) => x !== null).length;
-      if (given < 2) return { state: 'empty', headline: 'Enter the Gas', explanation: 'Enter pH, PaCO₂ and HCO₃. Any two are enough: the third is worked out from them.', status: null, primary: null, second: null, phase: null, disorders: [], steps, cautions, visual: null, values: { ph, paco2: pc, hco3: hc }, derived: null, check: null };
+      if (given < 2) return { state: 'empty', headline: 'Enter Blood Gas', explanation: 'Enter pH, PaCO₂ and HCO₃. Any two are enough: the third is worked out from them.', status: null, primary: null, second: null, phase: null, disorders: [], steps, cautions, visual: null, values: { ph, paco2: pc, hco3: hc }, derived: null, check: null };
       let derived = null;
       if (ph === null) { ph = A.ph(d, pc, hc); derived = 'ph'; }
       else if (hc === null) { hc = A.hco3(d, ph, pc); derived = 'hco3'; }
