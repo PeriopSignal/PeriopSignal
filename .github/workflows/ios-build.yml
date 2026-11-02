@@ -329,6 +329,19 @@ jobs:
           shot 181-tips-tabs 14 -ps.tab patient -ps.patient empty -ps.tips 1 -ps.tips.step 2 -ps.forceAppearance dark
           shot 182-tips-more 14 -ps.tab patient -ps.patient empty -ps.tips 1 -ps.tips.step 3 -ps.forceAppearance light
           shot 183-tips-shield 14 -ps.tab patient -ps.patient empty -ps.tips 1 -ps.tips.step 4 -ps.forceAppearance dark
+          # 1.8.1 wave 2b (shell and tips): the welcome's ⓘ, the first-open tour of the tabs (-ps.tips.set tour), the
+          # Reference home's first-visit tips (-ps.tips.set reference), the deep dive's title ⓘ and More's card ⓘ, opened.
+          # A set shows only when its shot asks (-ps.tips 1 -ps.tips.set NAME -ps.tips.step N); nothing is marked seen.
+          shot 240-welcome-info 13 -ps.showWelcome 1 -ps.evidence.open 1 -ps.forceAppearance light
+          shot 241-tour-feed 14 -ps.tips 1 -ps.tips.set tour -ps.tips.step 1 -ps.forceAppearance dark
+          shot 242-tour-patient 14 -ps.tips 1 -ps.tips.set tour -ps.tips.step 2 -ps.forceAppearance light
+          shot 243-tour-reference 14 -ps.tips 1 -ps.tips.set tour -ps.tips.step 3 -ps.forceAppearance dark
+          shot 244-reference-tips-search 14 -ps.tab reference -ps.tips 1 -ps.tips.set reference -ps.tips.step 1 -ps.forceAppearance light
+          shot 245-reference-tips-folder 14 -ps.tab reference -ps.tips 1 -ps.tips.set reference -ps.tips.step 2 -ps.forceAppearance dark
+          shot 246-deepdive-title-light 12 -ps.openPost "$LANDMARK" -ps.evidence.open 1 -ps.forceAppearance light
+          shot 247-more-info 10 -ps.tab more -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 248-reference-footer-light 12 -ps.tab reference -ps.evidence.open 1 -ps.forceAppearance light
+          shot 249-more-light 10 -ps.tab more -ps.forceAppearance light
           shot 184-patient-empty-clean 12 -ps.tab patient -ps.patient empty -ps.forceAppearance dark
           shot 185-patient-empty-clean-light 12 -ps.tab patient -ps.patient empty -ps.forceAppearance light
           shot 186-rooms-row-light 12 -ps.tab patient -ps.patient demo-rooms -ps.forceAppearance light
