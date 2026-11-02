@@ -341,7 +341,7 @@ enum PatientSummary {
     /// The planned radial artery harvest: where the arterial line and IVs go, and any already on the harvest arm.
     static func harvestLines(_ r: PatientRecord) -> [Line] {
         PatientStudies.cautions(r).filter { $0.id.hasPrefix("harvest") }.map { c in
-            Line(["harvest": "Radial harvest", "harvest-arm": "Harvest arm"][c.id] ?? "Arterial line", c.text, alert: true, marks: [c.mark])
+            Line("Arms", c.text, alert: true, marks: [c.mark])
         }
     }
 
@@ -354,7 +354,7 @@ enum PatientSummary {
             return out
         }
         let labels: [String: Set<String>] = [
-            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Radial harvest", "Harvest arm", "Arterial line"], "regional": ["Regional"], "infusions": ["Infusions"],
+            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Arms"], "regional": ["Regional"], "infusions": ["Infusions"],
             "fluids": ["In", "Blood products", "Out", "Factor concentrates & other products"], "labs": ["Last labs"], "meds": ["Medications & interventions"],
             "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes"],
         ]
@@ -450,7 +450,7 @@ enum HandoffWriter {
         let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
         let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
         section("Lines & devices", PatientSummary.harvestLines(r) + lines + support)
-        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Radial harvest", "Harvest arm", "Arterial line"]
+        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Arms"]
         var intraop = PatientSummary.intraopLines(r).filter { !told.contains($0.label ?? "") }
         // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
         if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -490,7 +490,7 @@ enum HandoffWriter {
         } else if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
         if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
         line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
-        line("Radial harvest", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))
+        line("Arms", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))
         line("Cautions", PatientStudies.cautions(r).filter { !$0.id.hasPrefix("harvest") }.map(\.text).joined(separator: " "))
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
         line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))

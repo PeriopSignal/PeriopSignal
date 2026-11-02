@@ -98,7 +98,7 @@ extension PatientEditorView {
         }
         studyDateNotes(date: bind(\.pft.date), notes: bind(\.pft.notes), prompt: "Bronchodilator response, ABG, the trend")
         if !r.pft.isEmpty {
-            summaryBox(r.pft.summary)
+            summaryBox(r.pft.summary(gold: false))
             if let g = r.pft.goldText {
                 GoldRow(text: g)
             }

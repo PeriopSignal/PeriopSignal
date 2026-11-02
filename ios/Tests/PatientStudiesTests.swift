@@ -87,6 +87,7 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertEqual(p.gold, 2)
         XCTAssertEqual(p.goldText, "GOLD 2 (moderate), FEV1 58% predicted")
         XCTAssertTrue(p.summary.hasPrefix("PFT: obstruction, moderate; GOLD 2 (moderate), FEV1 58% predicted; "), p.summary)
+        XCTAssertFalse(p.summary(gold: false).contains("GOLD"))
         XCTAssertTrue(p.summary.contains("FEV1 1.86 L (58%), FVC 3.21 L (79%), FEV1/FVC 0.58"), p.summary)
 
         // GOLD only when the lab reads obstruction, with FEV1 % predicted.
@@ -146,15 +147,15 @@ final class PatientStudiesTests: XCTestCase {
         // In the intraoperative Lines card and the handoffs.
         r.devices[i].removed = false
         let lines = PatientSummary.intraopPartLines(r, "lines")
-        XCTAssertTrue(lines.contains { $0.label == "Radial harvest" && $0.alert }, lines.map(\.text).joined(separator: " | "))
-        XCTAssertTrue(lines.contains { $0.label == "Harvest arm" })
+        XCTAssertTrue(lines.contains { $0.label == "Arms" && $0.alert && $0.text.hasPrefix("Planned left radial harvest") }, lines.map(\.text).joined(separator: " | "))
+        XCTAssertTrue(lines.contains { $0.label == "Arms" && $0.text.hasPrefix("On the left (harvest) arm") })
         let full = HandoffWriter.text(r)
-        XCTAssertTrue(full.contains("Radial harvest: Planned left radial harvest: arterial line, IVs and BP cuff in the right arm."), full)
+        XCTAssertTrue(full.contains("Arms: Planned left radial harvest: arterial line, IVs and BP cuff in the right arm."), full)
         let lineSection = try XCTUnwrap(full.range(of: "LINES & DEVICES"))
-        let harvest = try XCTUnwrap(full.range(of: "Radial harvest:"))
+        let harvest = try XCTUnwrap(full.range(of: "Arms: Planned"))
         XCTAssertLessThan(lineSection.lowerBound, harvest.lowerBound, "told with the lines")
-        XCTAssertEqual(full.components(separatedBy: "Radial harvest:").count, 2, "once")
-        XCTAssertTrue(HandoffWriter.shortText(r).contains("Radial harvest: Planned left radial harvest"))
+        XCTAssertEqual(full.components(separatedBy: "Planned left radial harvest").count, 2, "once")
+        XCTAssertTrue(HandoffWriter.shortText(r).contains("Arms: Planned left radial harvest"))
         XCTAssertTrue(HandoffWriter.marks(r).contains("Planned left radial harvest"))
     }
 

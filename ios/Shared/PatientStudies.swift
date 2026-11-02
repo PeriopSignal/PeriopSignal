@@ -263,14 +263,17 @@ struct PatientPFT: Codable, Hashable {
     }
 
     /// "PFT 04/2026: obstruction, moderate; GOLD 2 (moderate), FEV1 58% predicted; FEV1 1.62 L (58%), FVC 2.90 L (78%), FEV1/FVC 0.56; TLC 104%, DLCO 61%".
-    var summary: String {
+    var summary: String { summary(gold: true) }
+
+    /// The summary, with or without the GOLD grade (the PFT page shows it on its own line, with its caveat).
+    func summary(gold withGold: Bool) -> String {
         var head = "PFT"
         if !date.isEmpty { head += " " + date.text }
         var parts: [String] = []
         if let r = readingText {
             parts.append(r.lowercased() == "normal" ? "normal" : r.prefix(1).lowercased() + r.dropFirst())
         }
-        if let g = goldText { parts.append(g) }
+        if withGold, let g = goldText { parts.append(g) }
         var spiro: [String] = []
         func vol(_ name: String, _ l: Double?, _ pct: Double?) {
             guard l != nil || pct != nil else { return }
