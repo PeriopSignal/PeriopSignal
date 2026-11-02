@@ -110,9 +110,14 @@ struct PatientEditorView: View {
                 }
                 let f = LaunchSeed.string("ps.patient.focus")
                 if !f.isEmpty {
-                    // Again if a slow launch's push or layout dropped it (run 209, shot 177 without its keyboard).
-                    for delay in [1.2, 2.4, 3.6] {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { if numberFocus != f { numberFocus = f } }
+                    // Again, from scratch, in case a slow launch's push dropped it while the focus still reads as set
+                    // (runs 209 and 210: 177, then 171, without the keyboard).
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { numberFocus = f }
+                    for delay in [2.8, 4.4] {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                            numberFocus = nil
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { numberFocus = f }
+                        }
                     }
                 }
                 #endif
