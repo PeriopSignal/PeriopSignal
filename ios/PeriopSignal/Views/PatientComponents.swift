@@ -181,17 +181,19 @@ struct PatientChoice: View {
     }
 }
 
-/// A one-tap preset (Exam normal, Echo normal): the button, then what it sets in a caption under it. Once the record
-/// shows what it sets, the button reads as done; everything stays editable below.
+/// A one-tap preset (Exam normal, Echo normal): the button, with what it sets behind an ⓘ beside it (the fields it
+/// fills are right below, and Undo steps it back). Once the record shows what it sets, the button reads as done;
+/// everything stays editable below. VoiceOver reads what it sets as the button's hint.
 struct PatientPresetRow: View {
     var title: String
     var caption: String
     var applied: Bool
     var action: () -> Void
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            HStack {
+            HStack(spacing: 10) {
                 Button {
                     Haptics.light()
                     withAnimation(.snappy) { action() }
@@ -200,13 +202,12 @@ struct PatientPresetRow: View {
                 }
                 .buttonStyle(CapsuleButtonStyle(prominent: !applied, color: PS.green))
                 .accessibilityHint(caption)
+                InfoButton(open: $open, label: "What " + title + " sets", size: 13)
                 Spacer(minLength: 0)
             }
-            Text(caption)
-                .font(PS.sys(size: 12))
-                .foregroundStyle(PS.fg3)
-                .lineSpacing(1.5)
-                .fixedSize(horizontal: false, vertical: true)
+            if open {
+                InfoCaptionText(text: caption, font: PS.sys(size: 12))
+            }
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -257,7 +258,10 @@ struct AsaReasonTable: View {
     }
 }
 
-/// A titled group of inputs on a card.
+/// A titled group of inputs on a card. The group's `note` (how it works, its source) sits behind an ⓘ at the end of
+/// the title and opens under it (SectionHeader), so groups no longer stack "Explanation & Evidence ⓘ" rows between
+/// their cards. A group without a title keeps the note on its own ⓘ line under the card. Notes are explanation only:
+/// a caution that must stay in view belongs in the card's content, not here.
 struct PatientGroup<Content: View>: View {
     var title: String?
     var note: String? = nil
@@ -265,12 +269,12 @@ struct PatientGroup<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let title { Eyebrow(text: title).padding(.leading, 2) }
+            if let title { SectionHeader(title: title, info: note).padding(.leading, 2) }
             VStack(alignment: .leading, spacing: 0) { content() }
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            if let note { EvidenceNote(note).padding(.horizontal, 2) }
+            if title == nil, let note, !note.isEmpty { EvidenceNote(note).padding(.horizontal, 2) }
         }
     }
 }

@@ -208,6 +208,9 @@ jobs:
           shot 193-intervention-captions 12 -ps.ref intervention -ps.forceAppearance dark
           shot 194-intervention-info 12 -ps.ref intervention -ps.vi.info sev -ps.forceAppearance light
           shot 195-stopbang-info 12 -ps.ref score:stopbang -ps.forceAppearance light
+          # 1.8.1 wave 1 (shared components): group notes and the preset caption behind header ⓘ, the weight's ⓘ, all opened.
+          shot 210-wave1-airway-info 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open airway -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 211-wave1-weight-info 12 -ps.ref quickref:asra-last -ps.la.weight 70 -ps.evidence.open 1 -ps.forceAppearance light
           shot 43-acls 12 -ps.ref acls
           shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals
