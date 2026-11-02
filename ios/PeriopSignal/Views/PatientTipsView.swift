@@ -4,9 +4,17 @@ import SwiftUI
 //
 // A dimmed layer over the whole tab with a rounded spotlight cut out around the target, a short arrow from a card to
 // it, the card's text, and Next (Done on the last) and Skip. The quick-add bar and the tab bar are found where they
-// are drawn (anchor preferences, read inside the navigation stack, which preferences don't cross); the ⋯ menu and the
-// shield are navigation bar items, whose frames can't be read that way, so their spotlights are placed from the safe
-// area and the bar's margins.
+// are drawn (anchor preferences, read inside the navigation stack, which preferences don't cross). The ⋯ menu and the
+// shield are navigation bar items, which anchors don't reach: each reports its own frame (onGeometryChange) into
+// PatientTipBarFrames, which the overlay reads; until a frame comes in, or if one lies off the bar's row, the spotlight
+// is placed on the row from the safe area's top, the inline bar's height and its margins.
+
+/// Where the navigation bar's ⋯ menu and shield are, in global coordinates, as their toolbar items report them. Only
+/// the tips' overlay reads it, so the reports redraw nothing else.
+@Observable
+final class PatientTipBarFrames {
+    var frames: [PatientTipTarget: CGRect] = [:]
+}
 
 /// Where the tips' targets in the scroll view are: the quick-add bar and the tab bar.
 struct PatientTipAnchorKey: PreferenceKey {
@@ -28,6 +36,13 @@ struct PatientTipAnchorKey: PreferenceKey {
 }
 
 extension View {
+    /// A navigation bar item the tips point at (the ⋯ menu or the shield): reports where it is drawn.
+    func patientTipBarItem(_ target: PatientTipTarget, into bar: PatientTipBarFrames) -> some View {
+        onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { f in
+            if bar.frames[target] != f { bar.frames[target] = f }
+        }
+    }
+
     /// A target of My Patient's tips, found where it is drawn.
     func patientTipTarget(_ target: PatientTipTarget) -> some View {
         anchorPreference(key: PatientTipAnchorKey.self, value: .bounds) { [target: $0] }
@@ -69,15 +84,18 @@ struct PatientTipsOverlay: View {
     @Binding var tips: PatientTips
     /// The scroll view's targets, in global coordinates.
     var frames: [PatientTipTarget: CGRect]
+    /// The navigation bar items' frames, as they report them.
+    var bar: PatientTipBarFrames
     @Environment(\.colorScheme) private var scheme
     @AccessibilityFocusState private var textFocused: Bool
 
-    /// The navigation bar's round buttons (iOS 26, measured on an iPhone 16 Pro): 44 pt across, their centres 38.5 pt
-    /// in from the safe area's leading side and 39.5 pt from its trailing side, 21 pt below its top. The ⋯ is the
-    /// last item on the trailing side, with or without Undo beside it.
+    /// The inline navigation bar, right under the safe area's top, and its round buttons (iOS 26, iPhone 16 Pro): 44 pt
+    /// across, their centres 38.5 pt in from the screen's leading edge and 39.5 pt from its trailing edge, on the bar's
+    /// middle. The ⋯ is the last item on the trailing side, with or without Undo beside it.
+    static let barHeight: CGFloat = 44
     static let barItemLeading: CGFloat = 38.5
     static let barItemTrailing: CGFloat = 39.5
-    static let barItemCenterY: CGFloat = 21
+    /// Around a bar button: 5 pt clear of its 44 pt glass circle.
     static let barItemRadius: CGFloat = 27
     /// Around a target in the scroll view.
     static let padding: CGFloat = 6
@@ -87,40 +105,64 @@ struct PatientTipsOverlay: View {
 
     var body: some View {
         GeometryReader { outer in
-            let safe = Self.safeRect(outer)
+            // The reader keeps to the safe area, so its frame is the safe area (in run 207 its insets were added to it
+            // a second time, which put the bar's spotlights 62 pt low); the window's own inset is preferred.
+            let safeTop = Self.windowSafeTop() ?? outer.frame(in: .global).minY
             GeometryReader { g in
-                layer(size: g.size, origin: g.frame(in: .global).origin, safe: safe)
+                let f = g.frame(in: .global)
+                layer(size: g.size, origin: f.origin, safeTop: safeTop, screen: f)
             }
             .ignoresSafeArea()
         }
     }
 
-    /// The safe area, in global coordinates (the status bar above it; the navigation bar is inside it).
-    private static func safeRect(_ g: GeometryProxy) -> CGRect {
-        let f = g.frame(in: .global)
-        let i = g.safeAreaInsets
-        return CGRect(x: f.minX + i.leading, y: f.minY + i.top,
-                      width: max(0, f.width - i.leading - i.trailing), height: max(0, f.height - i.top - i.bottom))
+    /// The top of the key window's safe area (the status bar's height), in global coordinates.
+    @MainActor private static func windowSafeTop() -> CGFloat? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let windows = scenes.flatMap(\.windows)
+        guard let w = windows.first(where: \.isKeyWindow) ?? windows.first else { return nil }
+        let top = w.safeAreaInsets.top
+        return top > 0 ? top : nil
+    }
+
+    /// A bar item's spotlight, in global coordinates: around the item where it reported itself, when that is on the
+    /// bar's row (`safeTop` to 44 pt below) on its own side of the screen; otherwise on the row's middle, the bar's
+    /// margins in from the screen's edges.
+    static func barSpot(_ target: PatientTipTarget, reported: CGRect?, safeTop: CGFloat, screen: CGRect) -> PatientTipSpot {
+        var center = CGPoint(x: target == .more ? screen.maxX - barItemTrailing : screen.minX + barItemLeading,
+                             y: safeTop + barHeight / 2)
+        var r = barItemRadius
+        if let f = reported, plausibleBarItem(f, target: target, safeTop: safeTop, screen: screen) {
+            center = CGPoint(x: f.midX, y: f.midY)
+            r = max(r, min(34, max(f.width, f.height) / 2 + 5))
+        }
+        return PatientTipSpot(rect: CGRect(x: center.x - r, y: center.y - r, width: 2 * r, height: 2 * r), radius: r)
+    }
+
+    /// A reported frame is a bar button's: button-sized, its middle on the bar's row and on the item's side.
+    static func plausibleBarItem(_ f: CGRect, target: PatientTipTarget, safeTop: CGFloat, screen: CGRect) -> Bool {
+        guard f.width >= 8, f.height >= 8, f.width <= 60, f.height <= 60 else { return false }
+        guard f.midY >= safeTop, f.midY <= safeTop + barHeight else { return false }
+        return target == .more ? (f.midX > screen.midX && f.midX < screen.maxX) : (f.midX < screen.midX && f.midX > screen.minX)
     }
 
     /// Where the current tip's spotlight goes, in the overlay's coordinates (`origin` is the overlay's global origin).
-    private func spotlight(for target: PatientTipTarget, origin: CGPoint, safe: CGRect) -> PatientTipSpot? {
+    private func spotlight(for target: PatientTipTarget, origin: CGPoint, safeTop: CGFloat, screen: CGRect) -> PatientTipSpot? {
         switch target {
         case .quickAdd, .tabs:
             guard let f = frames[target], f.width > 1, f.height > 1 else { return nil }
             let rect = f.offsetBy(dx: -origin.x, dy: -origin.y).insetBy(dx: -Self.padding, dy: -Self.padding)
             return PatientTipSpot(rect: rect, radius: (target == .quickAdd ? PS.cardRadius : 16) + Self.padding)
         case .more, .shield:
-            let x = target == .more ? safe.maxX - Self.barItemTrailing : safe.minX + Self.barItemLeading
-            let c = CGPoint(x: x - origin.x, y: safe.minY + Self.barItemCenterY - origin.y)
-            let r = Self.barItemRadius
-            return PatientTipSpot(rect: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r), radius: r)
+            var s = Self.barSpot(target, reported: bar.frames[target], safeTop: safeTop, screen: screen)
+            s.rect = s.rect.offsetBy(dx: -origin.x, dy: -origin.y)
+            return s
         }
     }
 
-    @ViewBuilder private func layer(size: CGSize, origin: CGPoint, safe: CGRect) -> some View {
+    @ViewBuilder private func layer(size: CGSize, origin: CGPoint, safeTop: CGFloat, screen: CGRect) -> some View {
         if let tip = tips.current {
-            let hole = self.spotlight(for: tip.target, origin: origin, safe: safe)
+            let hole = self.spotlight(for: tip.target, origin: origin, safeTop: safeTop, screen: screen)
             let cardWidth = min(size.width - 32, 380)
             ZStack(alignment: .topLeading) {
                 dim(size: size, spot: hole)

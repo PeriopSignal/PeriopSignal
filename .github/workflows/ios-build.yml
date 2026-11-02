@@ -216,8 +216,8 @@ jobs:
           shot 55-ob-arrest 12 -ps.ref ob -ps.ob.event arrest -ps.la.weight 80
           shot 56-ob-newborn 12 -ps.ref ob -ps.forceAppearance light -ps.ob.event newborn -ps.ob.newborn 3.2
           shot 57-ob-hypertension 12 -ps.ref ob -ps.ob.event hypertension
-          shot 58-patient 16 -ps.tab patient -ps.patient demo
-          shot 59-patient-empty 16 -ps.tab patient -ps.forceAppearance light
+          shot 58-patient 22 -ps.tab patient -ps.patient demo
+          shot 59-patient-empty 24 -ps.tab patient -ps.patient empty -ps.forceAppearance light
           shot 60-patient-assessment 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment
           shot 61-patient-airway 18 -ps.tab patient -ps.patient demo -ps.patient.open airway -ps.forceAppearance light
           shot 62-patient-intraop 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop
@@ -231,10 +231,10 @@ jobs:
           shot 70-terms 16 -ps.terms show
           shot 71-patient-handoff-short 12 -ps.tab patient -ps.patient demo -ps.patient.open handoff -ps.handoff.format short
           shot 72-patient-done 12 -ps.tab patient -ps.patient demo -ps.patient.open details -ps.patient.scroll done
-          shot 73-patient-note 14 -ps.tab patient -ps.patient.open note -ps.patient.note example
-          shot 74-patient-note-compose 12 -ps.tab patient -ps.patient.open note -ps.forceAppearance light
-          shot 75-patient-receive 12 -ps.tab patient -ps.patient.open receive
-          shot 76-patient-top-light 12 -ps.tab patient -ps.patient demo -ps.forceAppearance light
+          shot 73-patient-note 16 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.patient.note example
+          shot 74-patient-note-compose 12 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.forceAppearance light
+          shot 75-patient-receive 12 -ps.tab patient -ps.patient empty -ps.patient.open receive
+          shot 76-patient-top-light 22 -ps.tab patient -ps.patient demo -ps.forceAppearance light
           shot 77-chamber-coupling 18 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling
           shot 78-chamber-annuli 15 -ps.ref chamber -ps.echo.group annuli -ps.echo.height 178 -ps.echo.weight 82 -ps.echo.values "ma=38,maratio=1.4,ta=42"
           shot 87-blocks-pifb 15 -ps.ref blocks -ps.blk.group chest -ps.blk.open pifb
@@ -243,8 +243,8 @@ jobs:
           shot 90-rcri-evidence 12 -ps.ref score:rcri -ps.evidence.open 1
           shot 91-patient-assessment-evidence 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1
           shot 92-infusions-evidence 12 -ps.ref infusions -ps.la.weight 70 -ps.evidence.open 1
-          shot 93-patient-intraop-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab intraop
-          shot 94-patient-summary-tab 12 -ps.tab patient -ps.patient demo -ps.patient.tab summary
+          shot 93-patient-intraop-tab 20 -ps.tab patient -ps.patient demo -ps.patient.tab intraop
+          shot 94-patient-summary-tab 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary
           shot 95-patient-procedure 12 -ps.tab patient -ps.patient demo -ps.patient.open procedure
           shot 96-patient-demographics 16 -ps.tab patient -ps.patient demo -ps.patient.open demographics
           shot 97-patient-history 12 -ps.tab patient -ps.patient demo -ps.patient.open history
@@ -252,7 +252,7 @@ jobs:
           shot 99-patient-lhc 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc
           shot 100-patient-surgeries 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries
           shot 101-patient-events 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events
-          shot 102-patient-preop-light 12 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
+          shot 102-patient-preop-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
           shot 103-cardiac-preop 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop
           shot 104-cardiac-devices 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open devices:preop
           shot 105-cardiac-summary 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary
@@ -267,7 +267,7 @@ jobs:
           shot 114-dnr-code-status 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.open assessment -ps.patient.scroll codestatus
           shot 115-dnr-handoff 12 -ps.tab patient -ps.patient demo-dnr -ps.patient.open handoff
           shot 116-dnr-handoff-short 12 -ps.tab patient -ps.patient demo-dnr -ps.patient.open handoff -ps.handoff.format short
-          shot 117-patient-note-code 14 -ps.tab patient -ps.patient.open note -ps.patient.note "78 yo F for TAVR. DNR/DNI, POLST on file; DNR suspended for the procedure."
+          shot 117-patient-note-code 14 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.patient.note "78 yo F for TAVR. DNR/DNI, POLST on file; DNR suspended for the procedure."
           shot 118-cardiac-handoff-short 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format short
           shot 119-cardiac-intraop-cards 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.jump intraop:fluids
           shot 150-patient-considerations-card 14 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.patient.jump intraop:considerations
@@ -276,12 +276,12 @@ jobs:
           shot 153-dnr-preop-assessment 14 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.jump assessment
           # 1.8 quick-add bar: -ps.quickadd types a line into the bar (its chips show); -ps.quickadd.add 1 then adds it.
           # Each sets its appearance (-ps.forceAppearance applies to its own launch only).
-          shot 160-quickadd-preop 16 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
+          shot 160-quickadd-preop 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
           shot 161-quickadd-preop-demo-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M for lap chole, HTN DM2 on insulin, K 5.4 Cr 1.6, A-line L radial 20G"
           shot 162-quickadd-intraop 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
           shot 163-quickadd-intraop-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05"
           shot 164-quickadd-vitals-labs 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "148/86 72 95% 16 36.8, 138/4.1/102/24/18/1.1/162, 7.2>12.1/36<210"
-          shot 165-quickadd-identifier 16 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "MRN 1234567 72M for CABG x3 + AVR, EF 35%, no A-line, POEC"
+          shot 165-quickadd-identifier 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "MRN 1234567 72M for CABG x3 + AVR, EF 35%, no A-line, POEC"
           shot 166-quickadd-airway-blood 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "VL grade 1, 7.5 ETT 23 cm, easy mask, cryo 10, 1 pool cryo, cell saver 450, R radial A-line 20G"
           shot 167-quickadd-rest-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
           shot 168-quickadd-added 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "2 PRBC, ABG 7.29/41/168, epi 0.05" -ps.quickadd.add 1
@@ -312,13 +312,14 @@ jobs:
           shot 178-patient-undo-tab 14 -ps.tab patient -ps.patient demo -ps.patient.edit exam
           shot 179-patient-shield 16 -ps.tab patient -ps.patient demo -ps.patient.shield 1
           # 1.8.1 My Patient cleanup: the first-time tips (shown in a screenshot run only with -ps.tips 1, at
-          # -ps.tips.step N), the empty screen without them, and the row of cases when it earns its place.
-          shot 180-tips-quickadd 14 -ps.tab patient -ps.tips 1 -ps.tips.step 1 -ps.forceAppearance light
-          shot 181-tips-tabs 14 -ps.tab patient -ps.tips 1 -ps.tips.step 2 -ps.forceAppearance dark
-          shot 182-tips-more 14 -ps.tab patient -ps.tips 1 -ps.tips.step 3 -ps.forceAppearance light
-          shot 183-tips-shield 14 -ps.tab patient -ps.tips 1 -ps.tips.step 4 -ps.forceAppearance dark
-          shot 184-patient-empty-clean 12 -ps.tab patient -ps.forceAppearance dark
-          shot 185-patient-empty-clean-light 12 -ps.tab patient -ps.forceAppearance light
+          # -ps.tips.step N), the empty screen without them, and the row of cases when it earns its place. The tips and
+          # the empty screen open on -ps.patient empty, the first-open state, whatever an earlier shot left on the phone.
+          shot 180-tips-quickadd 14 -ps.tab patient -ps.patient empty -ps.tips 1 -ps.tips.step 1 -ps.forceAppearance light
+          shot 181-tips-tabs 14 -ps.tab patient -ps.patient empty -ps.tips 1 -ps.tips.step 2 -ps.forceAppearance dark
+          shot 182-tips-more 14 -ps.tab patient -ps.patient empty -ps.tips 1 -ps.tips.step 3 -ps.forceAppearance light
+          shot 183-tips-shield 14 -ps.tab patient -ps.patient empty -ps.tips 1 -ps.tips.step 4 -ps.forceAppearance dark
+          shot 184-patient-empty-clean 12 -ps.tab patient -ps.patient empty -ps.forceAppearance dark
+          shot 185-patient-empty-clean-light 12 -ps.tab patient -ps.patient empty -ps.forceAppearance light
           shot 186-rooms-row-light 12 -ps.tab patient -ps.patient demo-rooms -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done

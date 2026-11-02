@@ -163,6 +163,84 @@ final class PatientCleanupTests: XCTestCase {
         XCTAssertFalse(p.isEmpty)
     }
 
+    /// Run 207, shots 182 and 183: the ⋯ and shield spotlights sat 62 pt under their buttons, over the tabs. They go on
+    /// the bar's row: where the item reported itself, or 22 pt under the safe area's top, at the bar's margins.
+    @MainActor func testTheBarItemSpotlightsSitOnTheBarsRow() {
+        let screen = CGRect(x: 0, y: 0, width: 402, height: 874)
+        let more = PatientTipsOverlay.barSpot(.more, reported: nil, safeTop: 62, screen: screen)
+        XCTAssertEqual(more.rect.midX, 362.5, accuracy: 0.5)
+        XCTAssertEqual(more.rect.midY, 84, accuracy: 0.5, "the middle of the 44 pt bar under the status bar")
+        XCTAssertEqual(more.rect.width, 54, accuracy: 0.5, "5 pt clear of the 44 pt glass button")
+        let shield = PatientTipsOverlay.barSpot(.shield, reported: nil, safeTop: 62, screen: screen)
+        XCTAssertEqual(shield.rect.midX, 38.5, accuracy: 0.5)
+        XCTAssertEqual(shield.rect.midY, 84, accuracy: 0.5)
+
+        // Where the item reported itself, when that is on the row and on its side.
+        let reported = PatientTipsOverlay.barSpot(.shield, reported: CGRect(x: 25, y: 70, width: 30, height: 30), safeTop: 62, screen: screen)
+        XCTAssertEqual(reported.rect.midX, 40, accuracy: 0.5)
+        XCTAssertEqual(reported.rect.midY, 85, accuracy: 0.5)
+        XCTAssertGreaterThanOrEqual(reported.radius, 27)
+
+        // A frame off the row (relative to the item's own host, or run 207's place) or on the wrong side is not used.
+        for f in [CGRect(x: 0, y: 0, width: 30, height: 30), CGRect(x: 349, y: 124, width: 44, height: 44),
+                  CGRect(x: 10, y: 62, width: 44, height: 44)] {
+            let s = PatientTipsOverlay.barSpot(.more, reported: f, safeTop: 62, screen: screen)
+            XCTAssertEqual(s.rect.midX, 362.5, accuracy: 0.5, "\(f)")
+            XCTAssertEqual(s.rect.midY, 84, accuracy: 0.5, "\(f)")
+        }
+        XCTAssertFalse(PatientTipsOverlay.plausibleBarItem(CGRect(x: 300, y: 62, width: 90, height: 44), target: .more, safeTop: 62, screen: screen),
+                       "Undo and ⋯ together are not the ⋯")
+    }
+
+    // MARK: Screenshot seeds stay off the disk
+
+    /// Run 207: a shot that edited the demo patient saved it, and later shots without a seed opened it. A seeded store
+    /// neither reads nor writes the file.
+    @MainActor func testASeededStoreLeavesTheFileAlone() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("seeded-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let url = folder.appendingPathComponent("patient.json")
+
+        // Nothing on the phone: a seeded edit, add, room and clear write nothing.
+        let seeded = PatientStore(url: url, seed: PatientDemo.Seed(book: PatientCaseBook(cases: [PatientCase(record: PatientDemo.record)]), archived: [], rooms: []))
+        XCTAssertEqual(seeded.ageYears, 67)
+        seeded.update(discrete: true) { PatientAirway.applyNormalExam(&$0) }
+        seeded.setRoom("OR 12", phone: "216-555-0112", remember: true)
+        seeded.refresh()
+        try await Task.sleep(nanoseconds: 900_000_000)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path), "the edited demo patient is not saved")
+        seeded.clear()
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: folder.path), [], "no patient, archive or rooms file")
+
+        // A patient on the phone: an empty seed starts clean and leaves it as it was.
+        var kept = PatientCaseBook()
+        kept.currentRecord = PatientDemo.ep
+        let saved = try kept.encoded()
+        try saved.write(to: url)
+        XCTAssertEqual(PatientStore(url: url).ageYears, 71, "an unseeded store opens the file")
+        let empty = PatientStore(url: url, seed: PatientDemo.Seed(book: PatientCaseBook(), archived: [], rooms: []))
+        XCTAssertTrue(empty.isEmpty, "the first-open state, whatever is on the phone")
+        XCTAssertFalse(empty.showsCaseRow)
+        empty.update(discrete: true) { $0.ageYears = 40 }
+        try await Task.sleep(nanoseconds: 900_000_000)
+        empty.clear()
+        XCTAssertEqual(try Data(contentsOf: url), saved, "the file is untouched")
+    }
+
+    #if DEBUG
+    @MainActor func testTheEmptySeed() {
+        let seed = PatientStore.debugCases("empty")
+        XCTAssertNotNil(seed, "-ps.patient empty is a seed")
+        XCTAssertEqual(seed?.book.cases.count, 1)
+        XCTAssertEqual(seed?.book.current.record.isEmpty, true)
+        XCTAssertEqual(seed?.archived.count, 0)
+        XCTAssertEqual(PatientStore.debugCases("demo")?.book.current.record.ageYears, 67)
+        XCTAssertEqual(PatientStore.debugCases("demo-rooms", select: 2)?.book.cases.count, 3)
+        XCTAssertNil(PatientStore.debugCases(""), "no seed: the file")
+    }
+    #endif
+
     // MARK: Clear and Undo
 
     @MainActor func testClearingStillOffersUndoInTheBar() {

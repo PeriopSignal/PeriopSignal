@@ -42,17 +42,36 @@ final class PatientStore {
     /// Set by `markDiscrete()`: the next change, if it comes within a second, is a step of its own.
     @ObservationIgnored private var discreteMark: Date?
 
-    init(url: URL? = PatientStore.defaultURL()) {
-        self.url = url
+    /// The app's: the cases kept in Application Support. In a screenshot run with a -ps.patient seed (debug builds),
+    /// the seed's made-up cases instead, and the folder is not touched.
+    convenience init() {
         #if DEBUG
-        if let demo = PatientStore.debugCases() {
-            archive = PatientArchive(url: nil, entries: demo.archived)
-            rooms = PatientRoomDirectory(url: nil, rooms: demo.rooms)
-            book = demo.book
-            loaded = true
+        if let seed = PatientStore.debugCases() {
+            self.init(url: nil, seed: seed)
             return
         }
         #endif
+        self.init(url: PatientStore.defaultURL(), seed: nil)
+    }
+
+    /// The cases kept at `url`, or in memory only with nil (tests).
+    convenience init(url: URL?) {
+        self.init(url: url, seed: nil)
+    }
+
+    /// With a `seed` (screenshot runs and tests), its cases, archive and rooms, held in memory only: nothing is read
+    /// from or written to `url` or the files beside it, so a screenshot that edits the made-up patient leaves nothing
+    /// behind for the next launch.
+    init(url: URL?, seed: PatientDemo.Seed?) {
+        if let seed {
+            self.url = nil
+            archive = PatientArchive(url: nil, entries: seed.archived)
+            rooms = PatientRoomDirectory(url: nil, rooms: seed.rooms)
+            book = seed.book
+            loaded = true
+            return
+        }
+        self.url = url
         archive = PatientArchive(url: PatientStore.fileURL("archive.json", near: url))
         rooms = PatientRoomDirectory(url: PatientStore.fileURL("rooms.json", near: url))
         reload()
@@ -245,8 +264,8 @@ final class PatientStore {
 
     #if DEBUG
     /// Screenshot runs: -ps.patient demo fills a made-up patient (never written to disk).
-    static func debugSeed() -> PatientRecord? {
-        switch LaunchSeed.string("ps.patient") {
+    static func debugSeed(_ seed: String = LaunchSeed.string("ps.patient")) -> PatientRecord? {
+        switch seed {
         case "demo": return PatientDemo.record
         case "demo-cardiac": return PatientDemo.cardiac
         case "demo-dnr": return PatientDemo.dnr

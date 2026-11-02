@@ -8,7 +8,7 @@ import Foundation
 // patient is involved. PatientTipsView draws them.
 
 /// What a tip points at: two targets in My Patient's scroll view (their frames come from anchor preferences) and two
-/// navigation bar items (placed from the safe area and the bar's margins).
+/// navigation bar items (which report their own frames; placed on the bar's row from the safe area until they do).
 enum PatientTipTarget: Int, CaseIterable, Hashable {
     case quickAdd, tabs, more, shield
 

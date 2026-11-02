@@ -61,6 +61,8 @@ struct PatientView: View {
     @AppStorage(PatientTips.seenKey) private var tipsSeen = false
     /// Where the tips' targets in the scroll view are, read only while the tips show.
     @State private var tipFrames: [PatientTipTarget: CGRect] = [:]
+    /// Where the ⋯ menu and the shield are in the navigation bar, as they report it.
+    @State private var tipBar = PatientTipBarFrames()
     /// Asks the tab to scroll back to the top (the tips start there).
     @State private var scrollToTop = 0
 
@@ -170,10 +172,12 @@ struct PatientView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     NoIdentifiersShield(isPresented: $showIdentifiers)
+                        .patientTipBarItem(.shield, into: tipBar)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     PatientUndoButton()
                     PatientCaseMenu(onClear: { confirmClear = true }, onShowTips: showTips)
+                        .patientTipBarItem(.more, into: tipBar)
                 }
             }
             .confirmationDialog("Clear this patient?", isPresented: $confirmClear, titleVisibility: .visible) {
@@ -191,7 +195,7 @@ struct PatientView: View {
         }
         .overlay {
             if tips.isShowing {
-                PatientTipsOverlay(tips: $tips, frames: tipFrames)
+                PatientTipsOverlay(tips: $tips, frames: tipFrames, bar: tipBar)
                     .transition(.opacity)
             }
         }
