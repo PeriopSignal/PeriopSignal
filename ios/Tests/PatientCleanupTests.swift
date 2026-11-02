@@ -5,6 +5,19 @@ import XCTest
 /// skip and are remembered (and come back from ⋯ → Show Tips), and Clear still leaves Undo in the bar.
 final class PatientCleanupTests: XCTestCase {
 
+    // MARK: Fluids with + and −
+
+    func testCrystalloidAndColloidStepByABagAndABottle() {
+        XCTAssertEqual(BloodProducts.fluidSteps["crystalloid"], 1000)
+        XCTAssertEqual(BloodProducts.fluidSteps["colloid"], 250)
+        XCTAssertNil(BloodProducts.fluidSteps["ebl"], "blood loss stays typed")
+        XCTAssertNil(BloodProducts.fluidSteps["uop"], "urine stays typed")
+        for id in BloodProducts.fluidSteps.keys {
+            XCTAssertFalse(BloodProducts.ids.contains(id), "\(id) is in Fluids & output, not Blood products")
+            XCTAssertTrue(PatientCatalog.fluids.contains { $0.id == id && $0.unit == "mL" }, id)
+        }
+    }
+
     // MARK: The row of cases
 
     func testOneCaseWithoutARoomHidesTheRow() {
