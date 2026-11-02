@@ -219,7 +219,9 @@ struct QuickAddBar: View {
         let tied = choices[a.id + "@value"]
         let picked = question ? a.fromContext : choices[a.id] != nil && (a.valueKey.isEmpty || tied == nil || tied == a.valueKey)
         let leave = question ? "Leave it out" : "Leave “\(a.abbreviation)” as written"
+        // A question with no usual answer ("Dissection · type A or type B?") names its choices.
         let usual = a.options.first { $0.id == (question ? a.defaultID : a.chosenID) }?.text
+            ?? (question ? a.options.map(\.text).joined(separator: " or ") : nil)
         let shown = picked ? (a.chosen?.text ?? (question ? "left out" : "as written")) : (usual ?? (question ? "left out" : "as written"))
         let spoken: String
         if question {

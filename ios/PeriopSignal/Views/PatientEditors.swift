@@ -6,7 +6,7 @@ enum PatientEditor: Hashable {
     /// One part of the intraoperative record: "airway", "lines", "regional", "infusions", "fluids", "labs", "meds", "events",
     /// "echo", "considerations".
     case intraopPart(String)
-    /// The cardiac evaluation's tests: "ecg", "echo" (preoperative), "lhc", "rhc"; and the surgical history.
+    /// The Studies: "ecg", "echo" (preoperative), "lhc", "rhc", "tee", "carotid", "radial", "pft"; and the surgical history.
     case workup(String)
     /// The lines and devices on the diagram: "preop" (on arrival), "support" (mechanical support), "intraop".
     case devices(String)
@@ -57,7 +57,8 @@ enum PatientEditor: Hashable {
         ("surgeries", "Past Surgical History", "scissors"), ("ecg", "ECG", "waveform.path.ecg"), ("echo", "Echo Findings", "heart.text.square"),
         ("lhc", "Left Heart Catheterization", "heart"), ("rhc", "Right Heart Catheterization", "heart.circle"), ("intrathoracic", "Previous Intrathoracic Surgery", "lungs"),
         ("anesthetic", "Anesthetic Complications", "exclamationmark.shield"), ("labs", "Labs", "testtube.2"),
-        ("tee", "TEE Screen", "exclamationmark.triangle"),
+        ("tee", "TEE Screen", "exclamationmark.triangle"), ("carotid", "Carotid Ultrasound", "waveform.path"),
+        ("radial", "Radial Artery Ultrasound", "hand.raised"), ("pft", "Pulmonary Function Tests", "lungs"),
     ]
 }
 
@@ -316,7 +317,7 @@ struct PatientEditorView: View {
         PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything else goes under Other conditions.") {
             let systems = PatientCatalog.systems(for: r)
             ForEach(Array(systems.enumerated()), id: \.element.id) { i, s in
-                let picked = s.problems.filter { r.problems.contains($0.id) }.map(\.label)
+                let picked = s.problems.filter { r.problems.contains($0.id) }.map { PatientCatalog.problemText($0, r) }
                 linkRow(s.name, picked.isEmpty ? "None recorded" : picked.joined(separator: "; "), icon: s.icon, value: .system(s.id))
                 if i < systems.count - 1 { Hairline().padding(.leading, 50) }
             }
@@ -381,13 +382,37 @@ struct PatientEditorView: View {
                     }
                 }
             }
+            let aorta = Set(PatientCatalog.aortaIDs)
             PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-BANG and other scores open with them ticked.") {
                 PatientChipRow(label: nil) {
-                    PatientChips(options: s.problems.map { p in PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" }) }, selection: bind(\.problems))
+                    PatientChips(options: s.problems.filter { !aorta.contains($0.id) }.map(problemFlag), selection: bind(\.problems))
                 }
                 PatientTextField(label: "Details", prompt: "Severity, dates, devices, the last echo or stress test", text: note(s.id))
             }
+            if s.problems.contains(where: { aorta.contains($0.id) }) { aortaGroup(s) }
         }
+    }
+
+    func problemFlag(_ p: PatientProblem) -> PatientFlag {
+        PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" })
+    }
+
+    /// The Cardiovascular page's aortic disease, apart from its other problems: the items, then the diameter of each
+    /// unruptured aneurysm ticked.
+    @ViewBuilder private func aortaGroup(_ s: PatientSystem) -> some View {
+        let items = PatientCatalog.aortaIDs.compactMap { id in s.problems.first { $0.id == id } }
+        PatientGroup(title: "Aorta") {
+            PatientChipRow(label: nil) {
+                PatientChips(options: items.map(problemFlag), selection: bind(\.problems))
+            }
+            let sized = PatientCatalog.aneurysmIDs.filter { r.problems.contains($0) }
+            ForEach(sized, id: \.self) { id in
+                Hairline().padding(.leading, 14)
+                PatientNumberField(label: (PatientCatalog.aneurysmShort[id] ?? id) + " diameter", unit: "cm",
+                                   value: Binding(get: { patient.record.aortaSizes[id] }, set: { v in patient.update { $0.aortaSizes[id] = v } }))
+            }
+        }
+        .id("aorta")
     }
 
     @ViewBuilder private var medications: some View {
@@ -492,16 +517,6 @@ struct PatientEditorView: View {
             Hairline().padding(.leading, 14)
             let thoracic = r.allIntrathoracic
             linkRow("Previous intrathoracic surgery", thoracic.isEmpty ? "None recorded" : thoracic.map(\.text).joined(separator: "; "), icon: thoracic.isEmpty ? "plus.circle" : "lungs", value: .workup("intrathoracic"))
-            Hairline().padding(.leading, 50)
-            linkRow("ECG", PatientSummary.ecgText(r) ?? "Add findings", icon: r.ecg.isEmpty && r.ecgNotes.isEmpty ? "plus.circle" : "waveform.path.ecg", value: .workup("ecg"))
-            Hairline().padding(.leading, 50)
-            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
-            Hairline().padding(.leading, 50)
-            teeLinkRow
-            Hairline().padding(.leading, 50)
-            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
-            Hairline().padding(.leading, 50)
-            linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
             if r.isAdult {
                 Hairline().padding(.leading, 14)
                 let mods = PatientFunctional.riskModifiers(r)
@@ -528,6 +543,7 @@ struct PatientEditorView: View {
             }
         }
         .id("cardiac")
+        studiesGroup
         PatientGroup(title: "Risk scores & checks") {
             let prompts = PatientRules.prompts(r) + PatientTEE.prompts(r)
             ForEach(Array(prompts.enumerated()), id: \.element.id) { i, p in
@@ -553,6 +569,29 @@ struct PatientEditorView: View {
                 line("Add the age to see the adult scores.").padding(14)
             }
         }
+    }
+
+    /// The tests on file: the cardiac studies (unchanged from the cardiac evaluation, in its order), then the carotid
+    /// and radial artery ultrasound and the pulmonary function tests.
+    @ViewBuilder private var studiesGroup: some View {
+        PatientGroup(title: "Studies") {
+            linkRow("ECG", PatientSummary.ecgText(r) ?? "Add findings", icon: r.ecg.isEmpty && r.ecgNotes.isEmpty ? "plus.circle" : "waveform.path.ecg", value: .workup("ecg"))
+            Hairline().padding(.leading, 50)
+            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
+            Hairline().padding(.leading, 50)
+            teeLinkRow
+            Hairline().padding(.leading, 50)
+            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
+            Hairline().padding(.leading, 50)
+            linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
+            Hairline().padding(.leading, 50)
+            linkRow("Carotid ultrasound", r.carotid.isEmpty ? "Add findings" : r.carotid.summary, icon: r.carotid.isEmpty ? "plus.circle" : "waveform.path", value: .workup("carotid"))
+            Hairline().padding(.leading, 50)
+            linkRow("Radial artery ultrasound", r.radial.isEmpty ? "Add findings" : r.radial.summary, icon: r.radial.isEmpty ? "plus.circle" : "hand.raised", value: .workup("radial"))
+            Hairline().padding(.leading, 50)
+            linkRow("Pulmonary function tests", r.pft.isEmpty ? "Add results" : r.pft.summary(copd: r.has("copd")), icon: r.pft.isEmpty ? "plus.circle" : "lungs", value: .workup("pft"))
+        }
+        .id("studies")
     }
 
     // MARK: Airway and exam
@@ -733,6 +772,9 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopLines: some View {
+        // A planned radial artery harvest and subclavian steal: where the lines and the cuff go, and any already on the
+        // harvest arm (PatientStudies).
+        studyCautions(PatientStudies.cautions(r).filter { $0.id.hasPrefix("harvest") || $0.id.hasPrefix("vertebral") })
         PatientDevicesEditor(phase: .intraop)
         if !r.lines.isEmpty { legacyLines }
     }

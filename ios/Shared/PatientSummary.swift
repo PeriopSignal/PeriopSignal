@@ -147,7 +147,7 @@ enum PatientSummary {
         var out: [Line] = []
         if r.noHistory && r.problems.isEmpty { out.append(Line(nil, "No significant medical history")) }
         for sys in PatientCatalog.allSystems {
-            var items = sys.problems.filter { r.problems.contains($0.id) }.map(\.label)
+            var items = sys.problems.filter { r.problems.contains($0.id) }.map { PatientCatalog.problemText($0, r) }
             if sys.id == "social", let s = r.smoking { items.insert(smokingText(s), at: 0) }
             if let n = r.systemNotes[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty { items.append(n) }
             if !items.isEmpty { out.append(Line(sys.name, items.joined(separator: "; "))) }
@@ -207,6 +207,14 @@ enum PatientSummary {
         if !r.echoFindings.isEmpty { out.append(Line("Echo", r.echoFindings.summary)) }
         if !r.lhc.isEmpty { out.append(Line("Coronaries", r.lhc.summary)) }
         if let h = rhcText(r) { out.append(Line("Right heart cath", h)) }
+        let cautions = PatientStudies.cautions(r)
+        if !r.carotid.isEmpty {
+            out.append(Line("Carotid ultrasound", r.carotid.summary, alert: cautions.contains { $0.id == "carotid" || $0.id.hasPrefix("vertebral") }))
+        }
+        if !r.radial.isEmpty { out.append(Line("Radial artery ultrasound", r.radial.summary)) }
+        if !r.pft.isEmpty { out.append(Line("Pulmonary function tests", r.pft.summary(copd: r.has("copd")))) }
+        // The carotid and vertebral cautions; the harvest arm is told with the lines (intraopLines, the handoff).
+        for c in cautions where !c.id.hasPrefix("harvest") { out.append(Line("Caution", c.text, alert: true, marks: [c.mark])) }
         if r.isAdult, !r.emergency, r.ageYears != nil {
             let step = PatientFunctional.cardiacStep(r)
             out.append(Line("Cardiac evaluation", step.title, alert: step.alert))
@@ -311,6 +319,7 @@ enum PatientSummary {
         let placed = PatientDevices.labels(r.devices.filter { $0.placedIntraop && PatientDevice.lineKinds.contains($0.kind) })
         let lines = placed + r.lines.map(\.text).filter { !$0.isEmpty }
         if !lines.isEmpty { out.append(Line("Lines", lines.joined(separator: "; "))) }
+        out += harvestLines(r)
         let blocks = r.regional.map(\.text).filter { !$0.isEmpty }
         if !blocks.isEmpty { out.append(Line("Regional", blocks.joined(separator: "; "))) }
         let inf = r.infusions.map(\.text).filter { !$0.isEmpty }
@@ -329,6 +338,13 @@ enum PatientSummary {
         return out
     }
 
+    /// The planned radial artery harvest: where the arterial line and IVs go, and any already on the harvest arm.
+    static func harvestLines(_ r: PatientRecord) -> [Line] {
+        PatientStudies.cautions(r).filter { $0.id.hasPrefix("harvest") }.map { c in
+            Line("Arms", c.text, alert: true, marks: [c.mark])
+        }
+    }
+
     /// The lines for one part of the intraoperative record (PatientEditor.intraopParts).
     static func intraopPartLines(_ r: PatientRecord, _ part: String) -> [Line] {
         if part == "considerations" { return IntraopConsiderations.text(r).map { [Line(nil, $0, alert: true)] } ?? [] }
@@ -338,7 +354,7 @@ enum PatientSummary {
             return out
         }
         let labels: [String: Set<String>] = [
-            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines"], "regional": ["Regional"], "infusions": ["Infusions"],
+            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Arms"], "regional": ["Regional"], "infusions": ["Infusions"],
             "fluids": ["In", "Blood products", "Out", "Factor concentrates & other products"], "labs": ["Last labs"], "meds": ["Medications & interventions"],
             "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes"],
         ]
@@ -433,8 +449,9 @@ enum HandoffWriter {
         // Every line and device in place now, on arrival or placed in the room, with the mechanical support.
         let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
         let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
-        section("Lines & devices", lines + support)
-        var intraop = PatientSummary.intraopLines(r).filter { $0.label != "Airway" && $0.label != "Difficult-airway follow-up" && $0.label != "Lines" }
+        section("Lines & devices", PatientSummary.harvestLines(r) + lines + support)
+        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Arms"]
+        var intraop = PatientSummary.intraopLines(r).filter { !told.contains($0.label ?? "") }
         // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
         if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             intraop.append(PatientSummary.Line("Echo", PatientSummary.notAssessed))
@@ -473,6 +490,8 @@ enum HandoffWriter {
         } else if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
         if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
         line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
+        line("Arms", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))
+        line("Cautions", PatientStudies.cautions(r).filter { !$0.id.hasPrefix("harvest") }.map(\.text).joined(separator: " "))
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
         line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
         line("Blood products", BloodProducts.text(r))

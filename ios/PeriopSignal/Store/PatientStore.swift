@@ -391,6 +391,21 @@ enum PatientDemo {
                                                                    "inr": 1.9, "ptt": 52, "fibrinogen": 142, "plt": 74, "act": 128],
                           viscoelastic: "EXTEM CT 92 s, A10 34 mm; FIBTEM A10 6 mm"),
         ]
+        // Studies (1.8.1): a planned left radial artery graft, severe left carotid disease with reversed left vertebral
+        // flow, obstructive PFTs, and an abdominal aortic aneurysm, so the screenshots show every caution.
+        r.problems.insert("aaa")
+        r.aortaSizes = ["aaa": 4.8]
+        r.carotid.right = CarotidSide(stenosis: "50-69", vertebral: "antegrade", psv: 182, edv: 54)
+        r.carotid.left = CarotidSide(stenosis: "ge70", vertebral: "reversed", psv: 268, edv: 112)
+        r.carotid.date = PatientMonthYear(month: 9, year: 2026)
+        r.radial.right = RadialSide(diameter: 2.3, calcified: false, ulnar: "adequate")
+        r.radial.left = RadialSide(diameter: 2.7, calcified: false, ulnar: "adequate")
+        r.radial.harvest = "left"
+        r.radial.date = PatientMonthYear(month: 9, year: 2026)
+        r.pft.fev1 = 1.86; r.pft.fev1Pct = 58; r.pft.fvc = 3.21; r.pft.fvcPct = 79; r.pft.ratioTyped = 0.58
+        r.pft.tlcPct = 104; r.pft.dlcoPct = 62
+        r.pft.pattern = "obstruction"; r.pft.severity = "moderate"
+        r.pft.date = PatientMonthYear(month: 8, year: 2026)
         r.considerations = ["pressors", "tee", "surgical"]
         r.considerationsNote = "Epinephrine and norepinephrine rising after bypass; severe LV dysfunction on TEE; diffuse coagulopathy, chest may stay open"
         r.codeStatus = .full

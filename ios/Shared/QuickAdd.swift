@@ -235,7 +235,8 @@ enum QuickAdd {
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
-        for q in note.ambiguous where q.id.hasPrefix(PatientNote.labQuestionPrefix) && !out.questions.contains(where: { $0.id == q.id }) {
+        // And the aorta's: a dissection with no type, a bare "TAA".
+        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:")) && !out.questions.contains(where: { $0.id == q.id }) {
             out.questions.append(q)
         }
         readPlan(base, c, &out)
@@ -274,7 +275,7 @@ enum QuickAdd {
                    cellSaverReturned, processedAfter, givenWord, unsureCue, clauseEnd, ofAfter, ofBefore, unitWordBefore, bloodJoin,
                    bloodHarmlessPhrase, asPlanned, bloodToken, doseAfter, doseBefore, trendAfter, earlierBefore, preopBefore, nowAfter, hemolyzed, cbcLabel,
                    gasTrend, gradeNotAfter, standbyAfter, standbyBefore, viewAfter, phraseEnd, scoreBefore, laryngoscopeAfter, laryngoscopeWord, maskCue, scheduleCue, codeCue, inductionCue, tivaCue, trendStop, venousWord, unitNumber,
-                   productWord, countWord, totalBefore, totalAfter, statedTotal, techniqueWord]
+                   productWord, countWord, totalBefore, totalAfter, statedTotal, techniqueWord, aortaHistoryLead, rupturedAAA]
         out += labAliases.map(\.rx) + dripUnits.map(\.rx) + airwayDevices.map { $0.0 }
         return out
     }
@@ -342,7 +343,7 @@ enum QuickAdd {
     /// bypass", "metoprolol 5 mg IV").
     private static func preoperativeOnly(_ change: PatientNoteChange) -> Bool {
         switch change {
-        case .problem, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
+        case .problem, .aortaSize, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
              .anesthesiaNotes, .dentition, .airwaySign, .mallampati:
             return true
         default:
@@ -1528,6 +1529,13 @@ enum QuickAdd {
     /// The start of the line, past the age and sex ("68M", "72 yo F").
     private static let lineLead = NoteRx(#"^\s*(?:\d{1,3}\s*(?:yo|y/o|y\.o\.?|-?year-old|yrs?)?\s*(?:M|F|male|female|man|woman)\b\s*[,:\-–]?\s*)?"#)
     private static let lastFor = NoteRx(#"\bfor\b"#)
+    /// An aneurysm opening the line is history ("AAA 5.2 cm, HTN"), not the planned repair the procedure list's "AAA"
+    /// would read: only "AAA repair" and the like are planned without "for". A rupture opening the line ("rAAA",
+    /// "ruptured AAA") is tonight's repair (the procedure list's open AAA repair lists them), and the rupture is filed in
+    /// the history as well (take).
+    private static let aortaHistoryLead = NoteRx(#"^(?-i:AAA)\b(?!\s*(?:repair|open|graft|resection))"#)
+    /// A ruptured AAA named in the planned procedure: the ASA V history item goes in with it.
+    private static let rupturedAAA = NoteRx(#"(?-i:\brAAA\b)|\bruptured (?:(?-i:AAA)\b|abdominal aortic aneurysm)"#)
     private static let urgencyWord = NoteRx(#"\b(?:elective|urgent|emergent|emergency|semi-?urgent|stat|time[- ]sensitive)\b"#)
     /// A procedure from the past, not planned ("CABG 2015", "s/p", "years ago").
     private static let pastWords = NoteRx(#"\b(?:19|20)\d\d\b|\bago\b|\b(?:s/p|status post|prior|previous|history|hx|h/o|remote)\b"#)
@@ -1582,7 +1590,7 @@ enum QuickAdd {
         let next = p.range.location + p.range.length < ns.length ? ns.substring(with: NSRange(location: p.range.location + p.range.length, length: 1)) : ""
         let rest = ns.substring(with: pieceRange(p.range, in: text))
         guard PatientNote.deviceCue.first(named) == nil, PatientNote.tubeCue.first(named) == nil, next != ":",
-              pastWords.first(rest) == nil else { return }
+              pastWords.first(rest) == nil, aortaHistoryLead.first(named) == nil else { return }
         take(p, &s, c, &out)
     }
 
@@ -1655,6 +1663,9 @@ enum QuickAdd {
         let known = items.contains { $0.catalogID != nil }
         out.add(PatientNoteFinding(id: "procedure", section: PatientNote.Part.procedure, label: "Procedure: " + p.text, change: .procedure(p.text),
                                    note: known ? "Fills the risk-score inputs from the procedure list." : nil))
+        if c.tab == .preop, rupturedAAA.first(p.text) != nil, let label = PatientCatalog.problem("aaa-ruptured")?.label {
+            out.add(PatientNoteFinding(id: "problem:aaa-ruptured", section: PatientNote.Part.history, label: label, change: .problem("aaa-ruptured")))
+        }
     }
 
     // MARK: The planned anesthetic
