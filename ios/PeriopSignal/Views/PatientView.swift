@@ -404,7 +404,7 @@ struct PatientView: View {
         "lines": "Peripheral, arterial and central lines.",
         "regional": "Blocks and neuraxial techniques, drugs and catheters.",
         "infusions": "Drips running and their rates.",
-        "fluids": "Crystalloid, colloid, blood products with + and −, cell saver, blood loss and urine.",
+        "fluids": "Blood products, cell saver, crystalloid and albumin with + and −; blood loss and urine.",
         "labs": "Blood gas and coagulation sets with their times; the latest goes to the handoff.",
         "considerations": "Difficult airway, massive transfusion, pressors, TEE findings and more, for the top of the handoff.",
         "meds": "Antibiotic and time, steroids, TXA, reversal, positioning.",
