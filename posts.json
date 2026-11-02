@@ -28,7 +28,13 @@
    "url": "https://www.acc.org/Latest-in-Cardiology/Articles/2026/11/01/00/11/sun-551pm-combo2-tct-2026",
    "impact": 1,
    "trialName": "TRAVEL III",
-   "firstAuthor": "Ge"
+   "firstAuthor": "Ge",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/tct26-2026-travel-iii-lux-valve-ttvr.mp3",
+    "seconds": 204,
+    "bytes": 1634541,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "circ-2026-season-ar-tavr-pure-ar",
