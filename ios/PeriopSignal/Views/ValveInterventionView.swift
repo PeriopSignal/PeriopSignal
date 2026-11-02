@@ -9,6 +9,9 @@ struct ValveInterventionView: View {
 
     @State private var lesion: VILesion = .as_
     @State private var answers: [String: String] = [:]
+    /// Which questions show their caption (ⓘ), by lesion and question, for the visit. DEBUG screenshots:
+    /// -ps.vi.info sev opens that question's caption on the first lesion.
+    @State private var openInfo: Set<String> = Set(LaunchSeed.list("ps.vi.info").map { VILesion.as_.rawValue + "/" + $0 })
 
     private var result: VIResult { ValveIntervention.evaluate(lesion, answers: answers) }
     private var questions: [VIQuestion] { ValveIntervention.questions(for: lesion) }
@@ -91,7 +94,7 @@ struct ValveInterventionView: View {
             } else if let f = r.fallback {
                 Text(f).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(answers.isEmpty ? "Severity & Symptoms First" : "Nothing Settled Yet").font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg3)
+                Text(answers.isEmpty ? "Severity & Symptoms First" : "Nothing Settled Yet").font(PS.serif(size: 22, weight: .semibold)).foregroundStyle(PS.fg3).promptHeadline(true)
                 Text(answers.isEmpty ? "The recommendations appear as the answers come in; the dots mark the questions that would decide." : "Keep going: the marked questions decide.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             let rest = r.matched.filter { $0.id != top?.id }
@@ -158,15 +161,22 @@ struct ValveInterventionView: View {
             Eyebrow(text: "What is known").padding(.leading, 2)
             VStack(spacing: 0) {
                 ForEach(Array(questions.enumerated()), id: \.element.id) { i, q in
-                    // The options on the question's line when they fit, otherwise under it.
+                    // The options on the question's line when they fit, otherwise under it. The caption (behind ⓘ)
+                    // shows under the title in both forms and never decides between them.
                     ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .center, spacing: 8) {
-                            questionLabel(q, needed: needed).fixedSize()
-                            Spacer(minLength: 8)
-                            options(q).fixedSize()
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(alignment: .center, spacing: 8) {
+                                questionLabel(q, needed: needed).fixedSize()
+                                Spacer(minLength: 8)
+                                options(q).fixedSize()
+                            }
+                            if isOpen(q) { questionCaption(q).offeredWidth() }
                         }
                         VStack(alignment: .leading, spacing: 8) {
-                            questionLabel(q, needed: needed)
+                            VStack(alignment: .leading, spacing: 4) {
+                                questionLabel(q, needed: needed)
+                                if isOpen(q) { questionCaption(q) }
+                            }
                             options(q).padding(.leading, 14)
                         }
                     }
@@ -202,11 +212,25 @@ extension ValveInterventionView {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Circle().fill(needed.contains(q.id) ? PS.accent2 : Color.clear).frame(width: 6, height: 6)
                 .alignmentGuide(.firstTextBaseline) { d in d[VerticalAlignment.center] + 3 }
-            VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .lastTextBaseline, spacing: 6) {
                 Text(q.label).font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                if let h = q.hint { Text(h).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+                if q.hint != nil { InfoButton(open: infoBinding(q)) }
             }
         }
+    }
+
+    /// The question's caption, shown under its title once ⓘ is tapped (indented to the title's text).
+    func questionCaption(_ q: VIQuestion) -> some View {
+        InfoCaptionText(text: q.hint ?? "").padding(.leading, 14)
+    }
+
+    func isOpen(_ q: VIQuestion) -> Bool { q.hint != nil && openInfo.contains(infoKey(q)) }
+
+    private func infoKey(_ q: VIQuestion) -> String { lesion.rawValue + "/" + q.id }
+
+    private func infoBinding(_ q: VIQuestion) -> Binding<Bool> {
+        let key = infoKey(q)
+        return Binding(get: { openInfo.contains(key) }, set: { on in if on { openInfo.insert(key) } else { openInfo.remove(key) } })
     }
 
     func options(_ q: VIQuestion) -> some View {

@@ -209,6 +209,11 @@ test('valve param bands', () => {
   const jet = R.valveParams('tr').find((p) => p.id === 'jet');
   eq(R.valveGrade(jet, 6), null); eq(R.valveGrade(jet, 12), 3);
 });
+test('valve empty-state headlines are the short one-line forms', () => {
+  eq(['as', 'ar', 'mr', 'ms', 'tr'].map((l) => R.titleCase(valve(l).headline)),
+    ['Enter Measurements', 'Enter Signs & Measurements', 'Enter Signs & Measurements', 'Enter Measurements', 'Enter Signs & Measurements']);
+  eq(R.titleCase(valve('as', { lvef: 55 }).headline), 'Enter Measurements', 'LVEF alone still asks for the gradient');
+});
 test('aortic stenosis pathways', () => {
   eq(valve('as').overall, null);
   eq(valve('as', { vmax: 4.2, mg: 45, ava: 0.8 }).overall, 3);
@@ -581,6 +586,15 @@ test('echo values in reference.json', () => {
 
 // ---------- ASE 2025 diastolic function ----------
 const dd = (i) => R.diastolic(i);
+test('diastolic: empty headline and the e′ cutoff captions', () => {
+  eq(dd({}).headline, 'Enter Measurements');
+  eq(R.diastolicAgeBands.map((b) => b.label), ['Any age', '20–39 years', '40–65 years', 'Over 65']);
+  eq(R.diastolicCutoffCaption(null), 'Figure 3: reduced when septal ≤ 6, lateral ≤ 7, average ≤ 6.5 cm/s');
+  eq(R.diastolicCutoffCaption('40-65'), 'Table 6, 40–65 years: below 6 / 8 / 7 cm/s (septal / lateral / average)');
+  eq(R.diastolicCutoffCaption('20-39'), 'Table 6, 20–39 years: below 7 / 10 / 9 cm/s (septal / lateral / average)');
+  eq(R.diastolicCutoffCaption('>65'), 'Table 6, over 65: below 6 / 7 / 6.5 cm/s (septal / lateral / average)');
+  eq(R.diastolicAgeBands.filter((b) => b.id).map((b) => b.id), Object.keys(R.diastolicCutoffs.ageE), 'every Table 6 band has an option');
+});
 test('diastolic: the main algorithm (Figure 3)', () => {
   // all normal
   let r = dd({ E: 80, A: 60, eSeptal: 9, eLateral: 12, tr: 2.3 });
@@ -980,6 +994,7 @@ const ABG = {
 };
 const abg = (ph, paco2, hco3) => R.abg.read({ ph, paco2, hco3 }, ABG);
 test('abg: primary disorder, compensation and mixed disorders', () => {
+  eq([abg(null, null, null).state, abg(null, null, null).headline], ['empty', 'Enter Blood Gas']);
   let r = abg(7.28, 30, 14);
   eq([r.headline, r.primary, r.second, r.check.ok], ['Metabolic Acidosis', 'metAcid', null, true]);
   eq(r.visual.bands.map((b) => [R.abg.f1(b.lo), R.abg.f1(b.hi)]), [['27', '31']], 'Winters’ formula: 1.5 × 14 + 8 ± 2');

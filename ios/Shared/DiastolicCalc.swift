@@ -21,6 +21,23 @@ enum DiastolicCalc {
     /// Table 6: age-specific e′, abnormal when below (septal, lateral, average).
     static let ageE: [String: [Double]] = ["20-39": [7, 10, 9], "40-65": [6, 8, 7], ">65": [6, 7, 6.5]]
 
+    /// The "e′ cutoffs" choice in plain words ("" is Figure 3, any age); `caption` names the band inside a sentence.
+    struct AgeBand: Hashable, Identifiable { let id: String; let label: String; let caption: String }
+    static let ageBands: [AgeBand] = [
+        AgeBand(id: "", label: "Any age", caption: "any age"), AgeBand(id: "20-39", label: "20–39 years", caption: "20–39 years"),
+        AgeBand(id: "40-65", label: "40–65 years", caption: "40–65 years"), AgeBand(id: ">65", label: "Over 65", caption: "over 65"),
+    ]
+
+    /// The cutoffs in force for the chosen band, from the constants above so the words cannot drift from the rules:
+    /// "Figure 3: reduced when septal ≤ 6, lateral ≤ 7, average ≤ 6.5 cm/s" or
+    /// "Table 6, 40–65 years: below 6 / 8 / 7 cm/s (septal / lateral / average)".
+    static func cutoffCaption(_ band: String?) -> String {
+        if let band, let c = ageE[band], c.count == 3, let b = ageBands.first(where: { $0.id == band }) {
+            return "Table 6, \(b.caption): below \(f(c[0])) / \(f(c[1])) / \(f(c[2])) cm/s (septal / lateral / average)"
+        }
+        return "Figure 3: reduced when septal ≤ \(f(eSeptal)), lateral ≤ \(f(eLateral)), average ≤ \(f(eAverage)) cm/s"
+    }
+
     struct Input: Hashable {
         var E: Double?, A: Double?, eSeptal: Double?, eLateral: Double?, pasp: Double?, tr: Double?
         var lungDisease = false
@@ -233,7 +250,7 @@ enum DiastolicCalc {
 
         let prim = [p.v1, p.v2, p.v3]
         if prim.allSatisfy({ $0 == nil }) {
-            return Reading(lap: .unknown, grade: nil, headline: "Enter the Measurements", explanation: "Start with septal and lateral e′, mitral E and A, and PASP or TR velocity.",
+            return Reading(lap: .unknown, grade: nil, headline: "Enter Measurements", explanation: "Start with septal and lateral e′, mitral E and A, and PASP or TR velocity.",
                            steps: steps, cautions: cautions, primaries: p, presence: pres)
         }
         if let v1 = p.v1, let v2 = p.v2, let v3 = p.v3 { return finish(core(v1, v2, v3, p, s, v3name)) }

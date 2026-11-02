@@ -453,6 +453,12 @@ final class ReferenceTests: XCTestCase {
         }
     }
 
+    func testValveEmptyHeadlinesAreShort() {
+        XCTAssertEqual(ValveLesion.allCases.map { valve($0).headline.titleCased },
+                       ["Enter Measurements", "Enter Signs & Measurements", "Enter Signs & Measurements", "Enter Measurements", "Enter Signs & Measurements"])
+        XCTAssertEqual(valve(.as_, ["lvef": 55]).headline.titleCased, "Enter Measurements", "LVEF alone still asks for the gradient")
+    }
+
     func testAorticStenosisPathways() {
         XCTAssertNil(valve(.as_).overall)
         XCTAssertEqual(valve(.as_, ["vmax": 4.2, "mg": 45, "ava": 0.8]).overall, .severe)
@@ -920,6 +926,16 @@ final class ReferenceTests: XCTestCase {
         return i
     }
 
+    func testDiastolicEmptyHeadlineAndCutoffCaptions() {
+        XCTAssertEqual(DiastolicCalc.read(DiastolicCalc.Input()).headline, "Enter Measurements")
+        XCTAssertEqual(DiastolicCalc.ageBands.map(\.label), ["Any age", "20–39 years", "40–65 years", "Over 65"])
+        XCTAssertEqual(DiastolicCalc.cutoffCaption(nil), "Figure 3: reduced when septal ≤ 6, lateral ≤ 7, average ≤ 6.5 cm/s")
+        XCTAssertEqual(DiastolicCalc.cutoffCaption("40-65"), "Table 6, 40–65 years: below 6 / 8 / 7 cm/s (septal / lateral / average)")
+        XCTAssertEqual(DiastolicCalc.cutoffCaption("20-39"), "Table 6, 20–39 years: below 7 / 10 / 9 cm/s (septal / lateral / average)")
+        XCTAssertEqual(DiastolicCalc.cutoffCaption(">65"), "Table 6, over 65: below 6 / 7 / 6.5 cm/s (septal / lateral / average)")
+        XCTAssertEqual(Set(DiastolicCalc.ageBands.map(\.id).filter { !$0.isEmpty }), Set(DiastolicCalc.ageE.keys), "every Table 6 band has an option")
+    }
+
     func testDiastolicFigure3() {
         func dd(_ v: [String: Double], lung: Bool = false) -> DiastolicCalc.Reading { DiastolicCalc.read(ddInput(v, lung: lung)) }
         var r = dd(["E": 80, "A": 60, "eSeptal": 9, "eLateral": 12, "tr": 2.3])
@@ -1331,6 +1347,7 @@ final class ReferenceTests: XCTestCase {
     func testAbgReadings() throws {
         let d = try JSONDecoder().decode(AbgData.self, from: Data(Self.abgFixture.utf8))
         func abg(_ ph: Double?, _ pc: Double?, _ hc: Double?) -> AbgCalc.Reading { AbgCalc.read(ph: ph, paco2: pc, hco3: hc, data: d) }
+        XCTAssertTrue(abg(nil, nil, nil).empty); XCTAssertEqual(abg(nil, nil, nil).headline, "Enter Blood Gas")
         var r = abg(7.28, 30, 14)
         XCTAssertEqual(r.headline, "Metabolic Acidosis"); XCTAssertEqual(r.primary, .metAcid); XCTAssertNil(r.second); XCTAssertEqual(r.check?.ok, true)
         XCTAssertEqual(r.visual?.bands.map { [AbgCalc.f1($0.lo), AbgCalc.f1($0.hi)] }, [["27", "31"]], "Winters’ formula: 1.5 × 14 + 8 ± 2")
