@@ -6,7 +6,7 @@ import UIKit
 // TipLayer is the one look for every tip set, My Patient's included: a dimmed layer with a rounded spotlight cut out
 // around the target, a short arrow from a card to it, the card's text, and Next (Done on the last) and Skip. The app's
 // sets (TipCenter) are drawn by TipsOverlay over the whole tab view, tab bar included; their targets are views that
-// report their frames (`.tipTarget(id)`, read with `.readTipFrames(_:)` inside each navigation stack, which
+// report their frames (`.tipTarget(id)`, read with `.readTipFrames(_:into:)` inside each navigation stack, which
 // preferences don't cross) or system views found where UIKit draws them (TipLocator: the tab bar's items and the
 // Reference search field), with a measured fallback for each.
 
@@ -33,11 +33,13 @@ extension View {
 
     /// While a tip set shows, keeps `center.frames` up to date with where this view's tip targets are, in global
     /// coordinates; otherwise reads nothing, so scrolling redraws nothing. Put it inside the navigation stack.
-    @MainActor func readTipFrames(_ center: TipCenter) -> some View {
+    /// `active` is the caller's `center.isShowing`, passed as a value so the reader redraws when it changes (run 229,
+    /// shot 245: read inside the closure, the first folder's frame never arrived).
+    @MainActor func readTipFrames(_ active: Bool, into center: TipCenter) -> some View {
         overlayPreferenceValue(TipAnchorKey.self) { anchors in
             GeometryReader { g in
                 let origin = g.frame(in: .global).origin
-                let rects: [String: CGRect] = center.isShowing
+                let rects: [String: CGRect] = active
                     ? anchors.mapValues { g[$0].offsetBy(dx: origin.x, dy: origin.y) }
                     : [:]
                 TipFrameSink(rects: rects, center: center)

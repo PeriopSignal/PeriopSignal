@@ -236,7 +236,7 @@ struct ReferenceView: View {
                 .padding(.top, 4)
                 .padding(.bottom, 28)
             }
-            .readTipFrames(tips)
+            .readTipFrames(tips.isShowing, into: tips)
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Drug, score, society, procedure")

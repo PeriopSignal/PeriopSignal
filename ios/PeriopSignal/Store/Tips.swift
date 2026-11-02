@@ -10,7 +10,7 @@ import Observation
 //   reference  Reference home, first visit: the search field, then (only with no favorites) the first folder
 //   patient    My Patient (PatientTips, drawn by My Patient itself: PatientView and PatientTipsOverlay)
 // Tool-level tips (first non-emergency tool, Regional finder, Lines & Devices) come later; any view can be a target
-// (`.tipTarget(id)`, read with `.readTipFrames(_:)`), and `TipSet.allowed(on:)` keeps them off emergency tools.
+// (`.tipTarget(id)`, read with `.readTipFrames(_:into:)`), and `TipSet.allowed(on:)` keeps them off emergency tools.
 //
 // Never on an emergency tool (ACLS, OB, LAST, MH, Difficult Airway): a first open may be a real emergency. Those
 // screens block the tips while they are on screen (TipCenter.block), and a tip set showing when one opens is put away

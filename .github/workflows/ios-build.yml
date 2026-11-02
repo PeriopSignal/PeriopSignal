@@ -165,7 +165,7 @@ jobs:
               fi
             done
           }
-          shot 01-feed 18
+          shot 01-feed 18 -ps.tips 0   # any -ps. argument marks a screenshot run, so the first-open tour stays off (1.8.1)
           shot 02-deepdive 12 -ps.openPost "$LANDMARK"
           shot 03-deepdive-limits 12 -ps.openPost "$LIMITS"
           shot 04-saved 12 -ps.presave "$LANDMARK" -ps.tab saved
