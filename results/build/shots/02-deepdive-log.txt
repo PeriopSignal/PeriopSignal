@@ -1,0 +1,25 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-02 00:01:01.470 F  PeriopSignal[23012:117b7] [com.apple.SwiftUI:Invalid Configuration] Update NavigationRequestObserver tried to update multiple times per frame.
+2026-11-02 00:01:01.470 A  PeriopSignal[23012:117b7] (libsystem_trace.dylib) Activity for state dumps
+2026-11-02 00:01:02.239 Df PeriopSignal[23012:12386] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-02 00:01:02.241 Df PeriopSignal[23012:11beb] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-02 00:01:02.411 Sd PeriopSignal[23012:0] (EB73264B-09AE-3310-B642-B0B5D9390089) IOHIDManager State
+{
+    DispatchQueue = 0;
+    RunLoop = 1;
+    createOptions = 0;
+    isOpen = 0;
+    openOptions = 0;
+}
+2026-11-02 00:01:02.414 Df PeriopSignal[23012:12373] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-02 00:01:02.415 Df PeriopSignal[23012:117b7] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-02 00:01:02.416 Df PeriopSignal[23012:12373] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-02 00:01:02.416 Df PeriopSignal[23012:117b7] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-02 00:01:02.656 Sd PeriopSignal[23012:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+UAUserActivityManager supportsActivityContinuation=YES isEnabled=YES serverPid=0 PROJECT:UserActivity-551
+2026-11-02 00:01:02.656 Sd PeriopSignal[23012:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+[30DC71CB-7AE1-4C06-B3AC-24EE3146A3D8 userInfo.count=1 dirty 
+2026-11-02 00:01:03.081 Df PeriopSignal[23012:117b7] [com.apple.network:activity] <nw_activity 50:1 [DF90F764-83E2-4D76-8C18-107BDFDEB6AF] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 43475ms
+2026-11-02 00:01:03.081 Df PeriopSignal[23012:117b7] [com.apple.network:activity] <nw_activity 50:2 [B49F5E56-37F0-4787-8084-C235381207EE] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 43475ms
+2026-11-02 00:01:03.082 Df PeriopSignal[23012:117b7] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [DF90F764-83E2-4D76-8C18-107BDFDEB6AF] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-02 00:01:03.082 Df PeriopSignal[23012:117b7] [com.apple.network:activity] Unset the global parent activity
