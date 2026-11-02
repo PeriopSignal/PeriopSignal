@@ -29,15 +29,17 @@ struct CarotidSide: Codable, Hashable {
 
     var isEmpty: Bool { self == CarotidSide() }
 
-    // The lab's category as reported, in the Society of Radiologists in Ultrasound consensus's (Grant EG, et al.
-    // Radiology 2003;229:340). It is not worked out from the velocities: criteria differ between labs (IAC, Gornik HL,
-    // et al. Vasc Med 2021;26:515), and near occlusion can have low or no measurable velocity (Johansson E, Fox AJ.
-    // AJNR 2016;37:2).
+    // The lab's category as reported, never worked out from the velocities. Categories: SRU consensus, Grant EG, et al.
+    // Radiology 2003;229:340 [G?, abstract]; near occlusion its own category, its velocities high, low or undetectable
+    // [G?, SRU abstract; Johansson E, Fox AJ. AJNR 2016;37:2, G?]. Labs' criteria differ and SRU overcalls stenosis
+    // (IAC, Gornik HL, et al. Vasc Med 2021;26:515) [G]. NASCET method recommended (ESC 2024 PAAD, Mazzolai L, et al.
+    // Eur Heart J 2024;45:3538, class I, B) [G].
     static let stenoses: [(id: String, label: String)] = [
         ("normal", "Normal"), ("lt50", "<50%"), ("50-69", "50–69%"), ("ge70", "≥70%"), ("near", "Near occlusion"), ("occluded", "Occluded"),
     ]
-    // Antegrade, partial reversal (alternating, partial steal), reversed (complete steal), absent (Kliewer MA, et al.
-    // AJR 2000;174:815).
+    // Antegrade, partial reversal (alternating, Kliewer type 4: partial steal), reversed (complete steal), absent
+    // (occlusion or hypoplasia, not steal): Kliewer MA, et al. AJR 2000;174:815 [G?, abstract]; the grouping is common
+    // teaching [P]. Systolic deceleration without reversal goes in Notes.
     static let vertebralFlows: [(id: String, label: String)] = [
         ("antegrade", "Antegrade"), ("partial", "Partial reversal"), ("reversed", "Reversed"), ("absent", "Absent"),
     ]
@@ -112,7 +114,7 @@ struct RadialSide: Codable, Hashable {
     /// Inner diameter, mm.
     var diameter: Double?
     var calcified: Bool?
-    /// RadialSide.ulnarOptions' ids: "adequate", "borderline", "inadequate".
+    /// RadialSide.ulnarOptions' ids: "adequate", "inadequate".
     var ulnar: String?
 
     init(diameter: Double? = nil, calcified: Bool? = nil, ulnar: String? = nil) {
@@ -127,9 +129,9 @@ struct RadialSide: Codable, Hashable {
 
     var isEmpty: Bool { self == RadialSide() }
 
-    // No society sets a threshold for adequate ulnar compensation (Gaudino M, et al. Eur J Cardiothorac Surg 2023);
-    // the lab's reading is recorded as it is.
-    static let ulnarOptions: [(id: String, label: String)] = [("adequate", "Adequate"), ("borderline", "Borderline"), ("inadequate", "Inadequate")]
+    // Adequate or inadequate as the lab reads it: no society sets a threshold (Gaudino M, et al. EACTS/STS-endorsed
+    // review, Eur J Cardiothorac Surg 2023;64:ezad163) [G]; a "borderline" grade has no source [P] and is left out.
+    static let ulnarOptions: [(id: String, label: String)] = [("adequate", "Adequate"), ("inadequate", "Inadequate")]
     static func ulnarLabel(_ id: String?) -> String? { id.flatMap { i in ulnarOptions.first { $0.id == i }?.label } }
 
     /// "2.6 mm, calcified, ulnar compensation reduced".
@@ -219,9 +221,10 @@ struct PatientPFT: Codable, Hashable {
     var isEmpty: Bool { self == PatientPFT() }
 
     // The lab's reading as reported, in the ERS/ATS 2022 interpretive standard's words (Stanojevic S, et al. Eur
-    // Respir J 2022;60:2101499): obstruction is FEV1/FVC below the lower limit of normal; restriction a TLC below it
-    // (spirometry alone only suggests it); mixed both; nonspecific a low FEV1 or FVC with a normal ratio and TLC. It
-    // grades severity in three (mild, moderate, severe); older reports use five (ATS/ERS 2005), recorded nearest.
+    // Respir J 2022;60:2101499) [G]: obstruction FEV1/FVC below the lower limit of normal; restriction a TLC below it,
+    // which spirometry alone cannot confirm; mixed both; nonspecific a low FEV1 or FVC with a normal ratio and TLC.
+    // Severity in three grades: mild, moderate, severe [G]. Older reports' five grades (ATS/ERS 2005) [G?, unverified]
+    // go in Notes.
     static let patterns: [(id: String, label: String)] = [
         ("normal", "Normal"), ("obstruction", "Obstruction"), ("restriction", "Restriction"), ("mixed", "Mixed"), ("nonspecific", "Nonspecific"),
     ]
@@ -234,14 +237,17 @@ struct PatientPFT: Codable, Hashable {
         return v <= 100 ? v / 100 : nil
     }
 
-    /// The lab's reading includes obstruction (obstructive or mixed).
-    var obstruction: Bool { pattern == "obstruction" || pattern == "mixed" }
-
-    /// The GOLD grade of airflow obstruction from FEV1 % predicted, when the lab reads obstruction and FEV1/FVC, if
-    /// entered, is below GOLD's fixed 0.70 (a lab may call obstruction by the lower limit of normal above it).
+    /// The GOLD grade, when the lab reads obstruction, FEV1 % predicted is entered and FEV1/FVC is below GOLD's fixed
+    /// 0.70 or not entered (a lab may call obstruction by the lower limit of normal above 0.70).
     var gold: Int? {
-        guard obstruction, let p = fev1Pct, (ratio ?? 0) < 0.70 else { return nil }
+        guard pattern == "obstruction", let p = fev1Pct, (ratio ?? 0) < 0.70 else { return nil }
         return PatientStudies.goldGrade(fev1Pct: p)
+    }
+
+    /// "GOLD 2 (moderate), FEV1 58% predicted".
+    var goldText: String? {
+        guard let g = gold, let p = fev1Pct else { return nil }
+        return "GOLD \(g) (" + PatientStudies.goldNames[g - 1] + "), FEV1 " + NumText.short(p) + "% predicted"
     }
 
     /// "Obstruction, moderate".
@@ -256,14 +262,15 @@ struct PatientPFT: Codable, Hashable {
         }
     }
 
-    /// "PFT 04/2026: obstruction, moderate (GOLD 2); FEV1 1.62 L (58%), FVC 2.90 L (78%), FEV1/FVC 0.56; TLC 104%, DLCO 61%".
+    /// "PFT 04/2026: obstruction, moderate; GOLD 2 (moderate), FEV1 58% predicted; FEV1 1.62 L (58%), FVC 2.90 L (78%), FEV1/FVC 0.56; TLC 104%, DLCO 61%".
     var summary: String {
         var head = "PFT"
         if !date.isEmpty { head += " " + date.text }
         var parts: [String] = []
         if let r = readingText {
-            parts.append(r.lowercased() == "normal" ? "normal" : r.prefix(1).lowercased() + r.dropFirst() + (gold.map { " (GOLD \($0) if post-bronchodilator)" } ?? ""))
+            parts.append(r.lowercased() == "normal" ? "normal" : r.prefix(1).lowercased() + r.dropFirst())
         }
+        if let g = goldText { parts.append(g) }
         var spiro: [String] = []
         func vol(_ name: String, _ l: Double?, _ pct: Double?) {
             guard l != nil || pct != nil else { return }
@@ -288,51 +295,49 @@ struct PatientPFT: Codable, Hashable {
 
 // MARK: - Cautions
 
-/// A caution a study raises, with the source it rests on (shown behind ⓘ).
+/// A caution a study raises: one short line, and the details and sources behind its ⓘ.
 struct StudyCaution: Hashable, Identifiable {
-    /// "harvest", "harvest-arm", "carotid", "vertebral".
+    /// "harvest", "harvest-arm", "harvest-femoral", "carotid", "vertebral-left", "vertebral-right".
     var id: String
     var text: String
     var source: String
-    /// The words shown in bold red on the handoff: the caution's head, before its colon.
-    var mark: String { text.components(separatedBy: ":").first ?? text }
+    /// The words shown in bold red on the handoff.
+    var mark: String
+
+    init(id: String, text: String, source: String, mark: String? = nil) {
+        self.id = id; self.text = text; self.source = source
+        self.mark = mark ?? (text.components(separatedBy: ":").first ?? text)
+    }
 }
 
 enum PatientStudies {
-    /// The vertebral flows that raise the subclavian-steal caution. Every pattern but normal antegrade flow and absent
-    /// flow means a pressure gradient across the proximal subclavian (innominate on the right): partial reversal
-    /// (alternating flow) is partial steal, reversed flow complete steal; absent flow (occluded or hypoplastic) is not
-    /// steal. Kliewer MA, et al. AJR 2000;174:815 (abstract; the grouping is common teaching, no guideline defines it).
+    /// The vertebral flows that raise the subclavian-steal caution: partial reversal and reversed flow both mean a
+    /// gradient across the proximal subclavian (innominate on the right) (Kliewer MA, et al. AJR 2000;174:815) [G?,
+    /// abstract]; that partial reversal already matters for the arm pressure and the mammary inflow [P].
     static let stealFlows: Set<String> = ["partial", "reversed"]
 
-    /// GOLD 1 FEV1 ≥80% predicted, 2 50–79%, 3 30–49%, 4 <30% (post-bronchodilator, with FEV1/FVC below 0.70).
-    // GOLD 2025 report (Global Initiative for Chronic Obstructive Lung Disease): the grades of airflow obstruction, a
-    // long-standing figure read from secondary sources; the post-bronchodilator FEV1/FVC < 0.7 rule from the 2025
-    // Pocket Guide's text. Pre-bronchodilator spirometry rules COPD out, post-bronchodilator confirms it (Singh D, et al.
-    // Eur Respir J 2025;65:2401603, abstract).
+    /// GOLD 1 FEV1 ≥80% predicted, 2 50–79%, 3 30–49%, 4 <30%: GOLD 2025 report's grades [G?, figure read from
+    /// secondary sources]; post-bronchodilator FEV1/FVC < 0.70 (GOLD 2025 Pocket Guide text) [G].
     static func goldGrade(fev1Pct p: Double) -> Int {
         if p >= 80 { return 1 }
         if p >= 50 { return 2 }
         if p >= 30 { return 3 }
         return 4
     }
-
-    static let goldCaveat = "GOLD grading assumes post-bronchodilator values, with FEV1/FVC below 0.70; it is for COPD, not asthma."
+    static let goldNames = ["mild", "moderate", "severe", "very severe"]
+    // GOLD 2025 Pocket Guide [G]; pre-bronchodilator rules COPD out, post confirms it (Singh D, et al. Eur Respir J
+    // 2025;65:2401603) [G?, abstract].
+    static let goldCaveat = "GOLD grades assume post-bronchodilator FEV1/FVC <0.70 (GOLD 2025)."
 
     /// The device kinds that are a line in the arm: arterial lines, peripheral IVs and PICCs.
     static let armLineKinds: Set<DeviceKind> = [.arterial, .piv, .picc]
 
     static func otherSide(_ s: String) -> String { s == "left" ? "right" : "left" }
 
-    /// "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm." When the other arm has subclavian steal
-    /// it reads low too, so neither radial is right for the arterial line: a femoral line is suggested instead.
+    /// "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm."
     static func harvestReminder(_ r: PatientRecord) -> String? {
         guard let h = r.radial.harvestSide else { return nil }
-        let other = otherSide(h)
-        if r.carotid.reversedSides.contains(other) {
-            return "Planned " + h + " radial harvest: IVs in the " + other + " arm, but it may read low (" + other + " vertebral flow reversed): consider a femoral arterial line."
-        }
-        return "Planned " + h + " radial harvest: arterial line, IVs and BP cuff in the " + other + " arm."
+        return "Planned " + h + " radial harvest: arterial line, IVs and BP cuff in the " + otherSide(h) + " arm."
     }
 
     /// Arterial lines, IVs and PICCs in place on the arm planned for harvest.
@@ -344,19 +349,21 @@ enum PatientStudies {
         }
     }
 
-    // Gaudino M, et al. Expert systematic review on the choice of conduits for CABG, endorsed by EACTS and STS. Eur J
-    // Cardiothorac Surg 2023;64:ezad163 (full text): "Previous catheterization of the RA is a contraindication to RA use
-    // for CABG". No guideline names lines in the harvest arm: keeping them off it is practice extrapolated from that.
-    static let harvestSource = "A radial artery that has been catheterized should not be used as a graft (EACTS/STS-endorsed review, Gaudino M, et al. Eur J Cardiothorac Surg 2023). Keeping lines, IVs and the cuff off the harvest arm follows from that; no guideline states it. With steal on the other arm, neither radial reads true, so a femoral line is suggested (practice)."
-    // Grant EG, et al. Radiology 2003;229:340 (SRU categories, abstract); Naylor AR, et al. Eur J Vasc Endovasc Surg
-    // 2002;23:283 (peri-CABG stroke: under 2% without carotid disease, about 3% unilateral and 5% bilateral 50–99%,
-    // 7–11% with occlusion; about half of strokes occur without carotid disease); Thiele RH, et al. ASER/POQI-6, Anesth
-    // Analg 2020;131:1444 (cerebral oximetry against a pre-induction baseline).
-    static let carotidSource = "≥70%, near occlusion or occlusion (Society of Radiologists in Ultrasound categories, Grant EG, et al. Radiology 2003). Stroke with CABG is about 3% with one-sided 50–99% stenosis, 5% with both sides and 7–11% with an occlusion, against under 2% without; half of strokes occur without carotid disease (Naylor AR, et al. Eur J Vasc Endovasc Surg 2002). Cerebral oximetry is read against a pre-induction baseline (ASER/POQI, Thiele RH, et al. Anesth Analg 2020)."
-    // Kliewer MA, et al. AJR 2000;174:815 (waveforms, abstract); Clark CE, et al. Lancet 2012;379:905 (an inter-arm
-    // difference ≥10 mmHg is strongly associated with subclavian stenosis, abstract); Kilic ID, et al. Herz
-    // 2013;38:250 (coronary–subclavian steal, abstract). The arterial line on the other side is practice.
-    static let vertebralSource = "Reversed or alternating vertebral flow means subclavian steal: a stenosis of the subclavian (or, on the right, the innominate) before the vertebral (Kliewer MA, et al. AJR 2000). The arm beyond it reads low; a difference of 10 mmHg or more between the arms suggests it (Clark CE, et al. Lancet 2012). The internal mammary arises beyond the stenosis, so a graft from it on that side can steal from the coronaries (Kilic ID, et al. Herz 2013). Measuring on the other arm is practice, not a guideline."
+    // "Previous catheterization of the RA is a contraindication to RA use for CABG" (Gaudino M, et al. EACTS/STS-
+    // endorsed review, Eur J Cardiothorac Surg 2023;64:ezad163) [G]. No guideline names lines or a cuff on the harvest
+    // arm; keeping them off it is extrapolated from that [P].
+    static let harvestSource = "A radial artery that has been catheterized should not be used as a graft (EACTS/STS-endorsed review, Gaudino M, et al. Eur J Cardiothorac Surg 2023). Keeping lines, IVs and the cuff off the harvest arm follows from that; no guideline states it."
+    // Neither radial reads true with steal on the arm not harvested: femoral access [P].
+    static let femoralSource = "The arm not harvested has subclavian steal, so its pressure may read low too. A femoral arterial line is practice; no guideline states it."
+    // Naylor AR, et al. Eur J Vasc Endovasc Surg 2002;23:283 [G?, abstract]: peri-CABG stroke under 2% without carotid
+    // disease, about 3% unilateral and 5% bilateral 50–99%, 7–11% with occlusion; about half of strokes occur without
+    // carotid disease. Cerebral oximetry against a pre-induction baseline (ASER/POQI-6, Thiele RH, et al. Anesth Analg
+    // 2020;131:1444) [G?, abstract]; using it for carotid disease [P].
+    static let carotidSource = "Stroke with CABG runs under 2% without carotid disease, about 3% with one-sided 50–99% stenosis, 5% with both sides and 7–11% with an occlusion; about half of strokes after CABG occur without carotid disease (Naylor AR, et al. Eur J Vasc Endovasc Surg 2002). A cerebral oximetry baseline before induction is reasonable (ASER/POQI, Thiele RH, et al. Anesth Analg 2020); its use for carotid disease is practice."
+    // Kliewer MA, et al. AJR 2000;174:815 [G?]; an inter-arm difference ≥10 mmHg strongly associated with subclavian
+    // stenosis (Clark CE, et al. Lancet 2012;379:905) [G?]; bilateral arm BP in arterial disease (ESC 2024, I, B) [G];
+    // coronary–subclavian steal (Kilic ID, et al. Herz 2013;38:250) [G?]; the arterial line on the other side [P].
+    static let vertebralSource = "Partial or reversed vertebral flow means subclavian steal, from a stenosis of the subclavian (on the right, possibly the innominate) before the vertebral (Kliewer MA, et al. AJR 2000). A difference of 10 mmHg or more between the arms suggests it (Clark CE, et al. Lancet 2012); measure both arms (ESC 2024). The internal mammary arises beyond the stenosis, so a graft from it can steal from the heart (Kilic ID, et al. Herz 2013). The arterial line on the other side is practice."
 
     /// The cautions the studies raise, in the order the handoff reads them: the harvest arm first.
     static func cautions(_ r: PatientRecord) -> [StudyCaution] {
@@ -367,25 +374,49 @@ enum PatientStudies {
             let names = PatientDevices.labels(onArm).joined(separator: "; ")
             out.append(StudyCaution(id: "harvest-arm", text: "On the " + h + " (harvest) arm: " + names + ". Move it to the other arm if you can.", source: harvestSource))
         }
+        if let h = r.radial.harvestSide, r.carotid.reversedSides.contains(otherSide(h)) {
+            out.append(StudyCaution(id: "harvest-femoral", text: "Both arms are limited for arterial monitoring; consider femoral arterial access.",
+                                    source: femoralSource, mark: "Both arms are limited for arterial monitoring"))
+        }
         let severe = r.carotid.severeSides
         if !severe.isEmpty {
-            let what = severe.map { s in s + " ICA " + (CarotidSide.stenosisLabel((s == "right" ? r.carotid.right : r.carotid.left).stenosis) ?? "").lowercased() }
-            out.append(StudyCaution(id: "carotid", text: "Severe carotid disease: " + what.joined(separator: ", ") + ". Higher stroke risk with cardiac surgery, though most strokes after CABG are not carotid; consider a cerebral oximetry baseline before induction.", source: carotidSource))
+            let what = severe.map { s in s + " (" + (CarotidSide.stenosisLabel((s == "right" ? r.carotid.right : r.carotid.left).stenosis) ?? "").lowercased() + ")" }
+            out.append(StudyCaution(id: "carotid", text: "Severe carotid disease, " + what.joined(separator: " and ") + ": higher stroke risk with cardiac surgery.", source: carotidSource))
         }
         for s in r.carotid.reversedSides {
-            let partial = (s == "right" ? r.carotid.right : r.carotid.left).vertebral == "partial"
-            let head = partial ? "Alternating " + s + " vertebral flow" : "Reversed " + s + " vertebral flow"
+            let o = otherSide(s)
             let lesion = s == "right" ? "right subclavian or innominate" : "left subclavian"
-            out.append(StudyCaution(id: "vertebral-" + s, text: head + ": suggests " + lesion + " stenosis. The " + s + " arm may read low: cuff and arterial line on the " + otherSide(s) + ". A " + s + " internal mammary graft would sit beyond the stenosis.", source: vertebralSource))
+            let partial = (s == "right" ? r.carotid.right : r.carotid.left).vertebral == "partial"
+            let tail: String = "-arm BP may read low; use the " + o + " arm for the arterial line and cuff. Matters for a " + s + " internal mammary graft."
+            let capital: String = s.capitalized + tail
+            let text: String
+            if partial {
+                text = "Partial (alternating) " + s + " vertebral flow: suggests significant " + lesion + " stenosis. Compare arm BPs; " + s + tail
+            } else {
+                text = "Reversed " + s + " vertebral flow: suggests " + lesion + " stenosis. " + capital
+            }
+            out.append(StudyCaution(id: "vertebral-" + s, text: text, source: vertebralSource))
         }
         return out
     }
 }
 
 extension PatientStudies {
-    static let carotidEvidence = "Record the ICA stenosis as the lab reports it. The usual categories are the Society of Radiologists in Ultrasound's (Grant EG, et al. Radiology 2003): peak systolic velocity under 125 cm/s for normal and under 50%, 125–230 for 50–69%, and over 230 for 70% or more; near occlusion can have high, low or no measurable velocity, and occlusion has no flow. Labs may use other validated criteria (IAC, Gornik HL, et al. Vasc Med 2021). Percentages are NASCET-method (ESC 2024); ECST percentages run higher. Vertebral flow: partial reversal (alternating) and reversed flow mean subclavian steal; absent flow does not (Kliewer MA, et al. AJR 2000)."
-    static let radialEvidence = "The ulnar collateral circulation should always be assessed before a radial artery is harvested; the clinical Allen test depends on the examiner, and ultrasound adds the artery's diameter and calcification. Harvest the side with the better ulnar compensation and artery quality, not the nondominant arm by rule. A radial artery that has been catheterized should not be used (EACTS/STS-endorsed review, Gaudino M, et al. Eur J Cardiothorac Surg 2023). No society sets a minimum diameter: trials used 1.5 mm (RAPCO) or 2.0 mm (Agrifoglio M, et al. Ann Thorac Surg 2005)."
-    static let pftEvidence = "Record the lab's reading as reported. ERS/ATS 2022 (Stanojevic S, et al. Eur Respir J 2022): obstruction is FEV1/FVC below the lower limit of normal; restriction needs a low TLC, since spirometry alone only suggests it; mixed is both; nonspecific is a low FEV1 or FVC with a normal ratio and TLC. Severity has three grades (mild, moderate, severe); older reports use five (ATS/ERS 2005). GOLD grades COPD by post-bronchodilator FEV1 % predicted when FEV1/FVC is below 0.70: 1 at 80% or more, 2 at 50–79%, 3 at 30–49%, 4 under 30% (GOLD 2025). It is shown when the reading includes obstruction and the ratio, if entered, is below 0.70."
+    // Each page's Explanation & Evidence; the tags and sources are in the comments beside each fact above.
+    static let carotidEvidence = "Record the ICA category the lab reports. The usual categories are the Society of Radiologists in Ultrasound's (Grant EG, et al. Radiology 2003): peak systolic velocity under 125 cm/s for normal and under 50%, 125–230 for 50–69%, over 230 for 70% or more; near occlusion can have high, low or no measurable velocity, and an occlusion has no flow. Vertebral flow: partial reversal and reversed flow mean subclavian steal; absent flow does not (Kliewer MA, et al. AJR 2000). Put systolic deceleration without reversal in Notes."
+    static let radialEvidence = "Assess the ulnar collateral circulation before a radial artery is harvested; ultrasound adds the artery's diameter and calcification. Harvest the side with the better ulnar compensation and artery quality (EACTS/STS-endorsed review, Gaudino M, et al. Eur J Cardiothorac Surg 2023). No society sets a minimum diameter: trials used 1.5 mm (RAPCO) or 2.0 mm (Agrifoglio M, et al. Ann Thorac Surg 2005), so it is recorded without a cut-off."
+    static let pftEvidence = "Record the lab's reading (ERS/ATS 2022, Stanojevic S, et al. Eur Respir J 2022): obstruction is FEV1/FVC below the lower limit of normal; restriction needs a low TLC; mixed is both; nonspecific is a low FEV1 or FVC with a normal ratio and TLC. GOLD grades COPD by FEV1 % predicted: 1 at 80% or more, 2 at 50–79%, 3 at 30–49%, 4 under 30% (GOLD 2025). It shows when the reading is obstruction and FEV1/FVC, if entered, is below 0.70."
+
+    // Row captions behind ⓘ.
+    // IAC 2021 [G]; NASCET method, ESC 2024 I/B [G].
+    static let stenosisInfo = "Use the lab's category; labs' criteria differ (IAC 2021). Graded by the NASCET method (ESC 2024)."
+    // Gaudino 2023 [G]: "the clinical Allen test is highly operator dependent"; previous RA catheterization is a
+    // contraindication. Agrifoglio 2005 [G]: 5.3% with a normal Allen test had duplex findings against harvest.
+    static let ulnarInfo = "The Allen test alone is not enough; a radial artery used for catheterization should not be used as a graft (Gaudino M, et al. Eur J Cardiothorac Surg 2023)."
+    // ERS/ATS 2022 [G].
+    static let patternInfo = "Restriction needs TLC; spirometry alone can't confirm it (ATS/ERS 2022)."
+    // ERS/ATS 2022 three grades [G]; ATS/ERS 2005 five grades [G?, unverified].
+    static let severityInfo = "Older reports may use five grades; record those in Notes."
 }
 
 extension PatientRecord {

@@ -235,8 +235,8 @@ enum QuickAdd {
         let mine = Set(out.findings.map(\.id))
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
-        // And whether a dissection with no type written is type A or B.
-        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id == PatientNote.dissectionQuestion) && !out.questions.contains(where: { $0.id == q.id }) {
+        // And the aorta's: a dissection with no type, a bare "TAA".
+        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:")) && !out.questions.contains(where: { $0.id == q.id }) {
             out.questions.append(q)
         }
         readPlan(base, c, &out)

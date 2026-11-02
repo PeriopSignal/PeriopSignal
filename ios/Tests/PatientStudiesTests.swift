@@ -85,14 +85,16 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertNil(p.ratio, "neither a ratio nor a percentage")
         p.ratioTyped = 0.58
         XCTAssertEqual(p.gold, 2)
-        XCTAssertTrue(p.summary.hasPrefix("PFT: obstruction, moderate (GOLD 2 if post-bronchodilator)"), p.summary)
+        XCTAssertEqual(p.goldText, "GOLD 2 (moderate), FEV1 58% predicted")
+        XCTAssertTrue(p.summary.hasPrefix("PFT: obstruction, moderate; GOLD 2 (moderate), FEV1 58% predicted; "), p.summary)
         XCTAssertTrue(p.summary.contains("FEV1 1.86 L (58%), FVC 3.21 L (79%), FEV1/FVC 0.58"), p.summary)
 
-        // GOLD only when the lab reads obstruction (or mixed), with FEV1 % predicted.
-        p.pattern = "restriction"
-        XCTAssertNil(p.gold)
-        p.pattern = "mixed"
-        XCTAssertEqual(p.gold, 2)
+        // GOLD only when the lab reads obstruction, with FEV1 % predicted.
+        for other in ["restriction", "mixed", "normal", "nonspecific"] {
+            p.pattern = other
+            XCTAssertNil(p.gold, other)
+        }
+        p.pattern = "obstruction"
         p.ratioTyped = 72
         XCTAssertNil(p.gold, "GOLD needs FEV1/FVC below 0.70")
         p.ratioTyped = nil
@@ -120,11 +122,15 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(PatientStudies.linesOnHarvestArm(r).isEmpty)
         // Steal on the other arm: neither radial is right for the arterial line.
         var steal = r
-        steal.carotid.right.vertebral = "reversed"
-        XCTAssertTrue(PatientStudies.harvestReminder(steal)?.contains("consider a femoral arterial line") ?? false)
+        for flow in ["reversed", "partial"] {
+            steal.carotid.right.vertebral = flow
+            let femoral = PatientStudies.cautions(steal).first { $0.id == "harvest-femoral" }
+            XCTAssertEqual(femoral?.text, "Both arms are limited for arterial monitoring; consider femoral arterial access.", flow)
+        }
         steal.carotid.right.vertebral = nil
         steal.carotid.left.vertebral = "reversed"
-        XCTAssertEqual(PatientStudies.harvestReminder(steal), "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm.", "steal on the harvest side")
+        XCTAssertFalse(PatientStudies.cautions(steal).contains { $0.id == "harvest-femoral" }, "steal on the harvest side")
+        XCTAssertEqual(PatientStudies.harvestReminder(steal), "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm.")
         // An arterial line on the other arm: no caution; on the harvest arm: one.
         r.devices = ["R radial art line 20g"].flatMap { PatientDevices.parse($0)?.devices(placedIntraop: true) ?? [] }
         XCTAssertFalse(r.devices.isEmpty)
@@ -165,7 +171,10 @@ final class PatientStudiesTests: XCTestCase {
         r.carotid.left.stenosis = "ge70"
         let lines = PatientSummary.assessmentLines(r)
         XCTAssertTrue(lines.contains { $0.label == "Carotid ultrasound" && $0.alert })
-        XCTAssertTrue(lines.contains { $0.label == "Caution" && $0.text.hasPrefix("Severe carotid disease: left ICA ≥70%") }, lines.map(\.text).joined(separator: " | "))
+        XCTAssertTrue(lines.contains { $0.label == "Caution" && $0.text == "Severe carotid disease, left (≥70%): higher stroke risk with cardiac surgery." }, lines.map(\.text).joined(separator: " | "))
+        r.carotid.right.stenosis = "occluded"
+        XCTAssertTrue(PatientStudies.cautions(r).contains { $0.text.hasPrefix("Severe carotid disease, right (occluded) and left (≥70%):") })
+        r.carotid.right.stenosis = nil
         XCTAssertTrue(HandoffWriter.text(r).contains("Caution: Severe carotid disease"))
         XCTAssertTrue(HandoffWriter.shortText(r).contains("Cautions: Severe carotid disease"))
         r.carotid.left.stenosis = "50-69"
@@ -181,11 +190,10 @@ final class PatientStudiesTests: XCTestCase {
         r.carotid.right.vertebral = "reversed"
         let c = PatientStudies.cautions(r)
         XCTAssertEqual(c.map(\.id), ["vertebral-right"])
-        XCTAssertTrue(c[0].text.contains("right arm may read low"), c[0].text)
-        XCTAssertTrue(c[0].text.contains("innominate"), c[0].text)
-        XCTAssertTrue(c[0].text.contains("internal mammary"), c[0].text)
-        r.carotid.right.vertebral = "partial"
-        XCTAssertEqual(PatientStudies.cautions(r).isEmpty, !PatientStudies.stealFlows.contains("partial"))
+        XCTAssertEqual(c[0].text, "Reversed right vertebral flow: suggests right subclavian or innominate stenosis. Right-arm BP may read low; use the left arm for the arterial line and cuff. Matters for a right internal mammary graft.")
+        r.carotid.right.vertebral = nil
+        r.carotid.left.vertebral = "partial"
+        XCTAssertEqual(PatientStudies.cautions(r).first?.text, "Partial (alternating) left vertebral flow: suggests significant left subclavian stenosis. Compare arm BPs; left-arm BP may read low; use the right arm for the arterial line and cuff. Matters for a left internal mammary graft.")
     }
 
     func testEveryCautionHasASource() {
@@ -244,8 +252,19 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(ids(note("ascending aortic aneurysm")).contains("problem:taa"))
         XCTAssertTrue(ids(note("aortic root aneurysm")).contains("problem:taa"))
         XCTAssertFalse(ids(note("dilated aortic root")).contains("problem:taa"), "dilation is below aneurysm size")
-        XCTAssertFalse(ids(note("s/p L TAA")).contains("problem:taa"), "a total ankle arthroplasty")
-        XCTAssertFalse(ids(note("TAA for ankle arthritis")).contains("problem:taa"))
+        // A bare TAA (also a total ankle arthroplasty) is asked about, unless aortic words or a size say which.
+        for s in ["HTN, TAA, CKD", "s/p L TAA"] {
+            let n = note(s)
+            XCTAssertFalse(ids(n).contains("problem:taa"), s)
+            XCTAssertTrue(n.ambiguous.contains { $0.id == PatientNote.taaQuestion }, s)
+            XCTAssertTrue(ids(note(s, choices: [PatientNote.taaQuestion: "taa"])).contains("problem:taa"), s)
+            XCTAssertFalse(ids(note(s, choices: [PatientNote.taaQuestion: "ankle"])).contains("problem:taa"), s)
+        }
+        XCTAssertTrue(ids(note("TAA 4.6 cm")).contains("problem:taa"))
+        XCTAssertTrue(ids(note("ascending aorta, TAA")).contains("problem:taa"))
+        let ankle = note("TAA for ankle arthritis")
+        XCTAssertFalse(ids(ankle).contains("problem:taa"))
+        XCTAssertFalse(ankle.ambiguous.contains { $0.id == PatientNote.taaQuestion })
         XCTAssertTrue(ids(note("Crawford extent II")).contains("problem:taaa"))
         XCTAssertTrue(ids(note("triple A")).contains("problem:aaa"))
         XCTAssertTrue(ids(note("leaking AAA")).contains("problem:aaa-ruptured"))
@@ -307,7 +326,7 @@ final class PatientStudiesTests: XCTestCase {
     }
 
     func testDissectionShorthand() {
-        for s in ["type A dissection", "ATAAD", "Stanford type A aortic dissection", "aortic dissection, type A", "Stanford A"] {
+        for s in ["type A dissection", "ATAAD", "Stanford type A aortic dissection", "aortic dissection, type A", "Stanford A dissection"] {
             XCTAssertTrue(ids(note(s)).contains("problem:dissection-a"), s)
             XCTAssertFalse(ids(note(s)).contains("problem:dissection-b"), s)
         }
@@ -339,6 +358,9 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(open.contains("problem:aortic-repair-open"))
         XCTAssertFalse(open.contains("problem:aaa"), "a repaired aneurysm is the repair")
         XCTAssertTrue(ids(note("history of Bentall")).contains("problem:aortic-repair-open"))
+        XCTAssertTrue(ids(note("s/p FEVAR 2021")).contains("problem:evar"))
+        XCTAssertTrue(ids(note("prior BEVAR")).contains("problem:evar"))
+        XCTAssertFalse(ids(note("s/p TEVAR")).contains("problem:evar"), "TEVAR is its own item")
         // The planned procedure is not past history.
         XCTAssertFalse(ids(note("72 yo M presenting for EVAR")).contains("problem:evar"))
         XCTAssertFalse(ids(note("scheduled for open AAA repair")).contains("problem:aortic-repair-open"))

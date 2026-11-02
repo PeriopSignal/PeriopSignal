@@ -29,7 +29,7 @@ extension PatientEditorView {
 
     private func carotidSide(_ title: String, _ kp: WritableKeyPath<PatientRecord, CarotidSide>) -> some View {
         PatientGroup(title: title) {
-            PatientChipRow(label: "ICA stenosis") {
+            InfoChipRow(label: "ICA stenosis", info: PatientStudies.stenosisInfo) {
                 PatientChoice(options: CarotidSide.stenoses, selection: bind(kp.appending(path: \.stenosis)))
             }
             Hairline().padding(.leading, 14)
@@ -56,7 +56,7 @@ extension PatientEditorView {
                               right: calcified(\.radial.right.calcified), left: calcified(\.radial.left.calcified))
             Hairline().padding(.leading, 14)
             SideBySideChoices(label: "Ulnar compensation", options: RadialSide.ulnarOptions,
-                              right: bind(\.radial.right.ulnar), left: bind(\.radial.left.ulnar))
+                              right: bind(\.radial.right.ulnar), left: bind(\.radial.left.ulnar), info: PatientStudies.ulnarInfo)
         }
         studyDateNotes(date: bind(\.radial.date), notes: bind(\.radial.notes), prompt: "Allen test, palmar arch, ulnar artery")
         if !r.radial.isEmpty {
@@ -88,20 +88,19 @@ extension PatientEditorView {
             PatientNumberField(label: "DLCO", unit: "% pred.", value: bind(\.pft.dlcoPct))
         }
         PatientGroup(title: "Lab's reading") {
-            PatientChipRow(label: nil) {
+            InfoChipRow(label: "Pattern", info: PatientStudies.patternInfo) {
                 PatientChoice(options: PatientPFT.patterns, selection: bind(\.pft.pattern))
             }
             Hairline().padding(.leading, 14)
-            PatientChipRow(label: "Severity") {
+            InfoChipRow(label: "Severity", info: PatientStudies.severityInfo) {
                 PatientChoice(options: PatientPFT.severities, selection: bind(\.pft.severity))
             }
         }
         studyDateNotes(date: bind(\.pft.date), notes: bind(\.pft.notes), prompt: "Bronchodilator response, ABG, the trend")
         if !r.pft.isEmpty {
             summaryBox(r.pft.summary)
-            if r.pft.gold != nil {
-                InfoCaptionText(text: PatientStudies.goldCaveat, font: PS.sys(size: 12))
-                    .padding(.horizontal, 4)
+            if let g = r.pft.goldText {
+                GoldRow(text: g)
             }
         }
         EvidenceNote(PatientStudies.pftEvidence)
@@ -149,6 +148,41 @@ struct StudyCautionRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14).padding(.vertical, 10)
+    }
+}
+
+/// A chip row whose title has a caption behind ⓘ; the chips go under the title.
+struct InfoChipRow<Content: View>: View {
+    var label: String
+    var info: String
+    @ViewBuilder var content: () -> Content
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            InfoTitle(caption: info, open: $open, captionFont: PS.sys(size: 12), spacing: 4) {
+                Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+            }
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14).padding(.vertical, 10)
+    }
+}
+
+/// The GOLD grade under the PFT summary, its caveat behind ⓘ.
+struct GoldRow: View {
+    var text: String
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    var body: some View {
+        InfoTitle(caption: PatientStudies.goldCaveat, open: $open, captionFont: PS.sys(size: 12), spacing: 4) {
+            Text(text).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 }
 
@@ -201,10 +235,14 @@ struct SideBySideChoices: View {
     var options: [(id: String, label: String)]
     @Binding var right: String?
     @Binding var left: String?
+    var info: String? = nil
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+            InfoTitle(caption: info, open: $open, captionFont: PS.sys(size: 12), spacing: 4) {
+                Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+            }
             HStack(alignment: .top, spacing: 12) {
                 column("R", $right)
                 column("L", $left)
