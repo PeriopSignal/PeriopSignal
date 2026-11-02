@@ -85,6 +85,20 @@ enum PatientCatalog {
             // 2024 AHA/ACC Table 10: single ventricle or Fontan, cyanotic disease, TGA and similar lesions.
             PatientProblem("chd-elevated", "Congenital heart disease, elevated-risk lesion"),
             PatientProblem("fh-cad", "Family history of premature coronary disease"),
+            // The Aorta group, shown apart from the chips above (PatientCatalog.aortaIDs). "Ruptured abdominal/thoracic
+            // aneurysm" is the ASA's own class V example, its only aortic one (ASA Physical Status Classification System);
+            // a thoracoabdominal aneurysm is both. Unruptured aneurysms, dissections and repairs are in no ASA example.
+            PatientProblem("aaa", "Abdominal aortic aneurysm"),
+            PatientProblem("aaa-ruptured", "Ruptured abdominal aortic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
+            PatientProblem("taa", "Thoracic aortic aneurysm"),
+            PatientProblem("taa-ruptured", "Ruptured thoracic aortic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
+            PatientProblem("taaa", "Thoracoabdominal aortic aneurysm"),
+            PatientProblem("taaa-ruptured", "Ruptured thoracoabdominal aortic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
+            PatientProblem("dissection-a", "Aortic dissection, type A"),
+            PatientProblem("dissection-b", "Aortic dissection, type B"),
+            PatientProblem("aortic-repair-open", "Prior open aortic repair"),
+            PatientProblem("evar", "Prior EVAR"),
+            PatientProblem("tevar", "Prior TEVAR"),
         ]),
         PatientSystem(id: "resp", name: "Respiratory", icon: "lungs", problems: [
             PatientProblem("lung-mild", "Mild lung disease", asa: 2, asaExample: "mild lung disease"),
@@ -219,6 +233,19 @@ enum PatientCatalog {
     static func systems(for r: PatientRecord) -> [PatientSystem] { r.isChild ? [pediatric] + systems : systems }
 
     static let allProblems: [PatientProblem] = allSystems.flatMap(\.problems)
+
+    /// The Cardiovascular page's Aorta group, in its order; the page shows them apart from the other chips.
+    static let aortaIDs: [String] = ["aaa", "aaa-ruptured", "taa", "taa-ruptured", "taaa", "taaa-ruptured", "dissection-a", "dissection-b",
+                                     "aortic-repair-open", "evar", "tevar"]
+    /// The unruptured aneurysms, which take a diameter (PatientRecord.aortaSizes).
+    static let aneurysmIDs: [String] = ["aaa", "taa", "taaa"]
+    static let aneurysmShort: [String: String] = ["aaa": "AAA", "taa": "TAA", "taaa": "TAAA"]
+
+    /// A problem's words in a summary: its label, with the diameter for an aneurysm ("Abdominal aortic aneurysm, 5.2 cm").
+    static func problemText(_ p: PatientProblem, _ r: PatientRecord) -> String {
+        guard let d = r.aortaSizes[p.id], aneurysmIDs.contains(p.id) else { return p.label }
+        return p.label + ", " + NumText.short(d) + " cm"
+    }
     static func problem(_ id: String) -> PatientProblem? { allProblems.first { $0.id == id } }
     static func system(of problemId: String) -> PatientSystem? { allSystems.first { s in s.problems.contains { $0.id == problemId } } }
 
