@@ -194,6 +194,7 @@ extension HandoffWriter {
         out += IntraopLabs.lastLine(r)?.marks ?? []
         out += PatientCodeStatus.line(r)?.marks ?? []
         out += PatientTEE.line(r)?.marks ?? []
+        out += PatientStudies.cautions(r).map(\.mark)
         return out
     }
 }

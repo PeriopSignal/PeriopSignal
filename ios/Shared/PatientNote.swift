@@ -21,6 +21,8 @@ enum PatientNoteChange: Hashable {
     case age(Double), sex(PatientSex), height(Double), weight(Double)
     case procedure(String), urgency(PatientUrgency), anesthetic(String), asa(Int, Bool)
     case problem(String), noHistory, smoking(String)
+    /// An unruptured aortic aneurysm ("aaa", "taa", "taaa") with its diameter in cm: the problem, and its size.
+    case aortaSize(String, Double)
     case medFlag(String), medications(String)
     /// A running infusion: the drug and its rate as written ("0.1 mcg/kg/min", or "" when none was given).
     case infusion(String, String)
@@ -231,7 +233,23 @@ enum PatientNote {
         Rule("icd", #"(?-i:\b(?:ICD|AICD)\b)(?!-?\d)|defibrillator"#),
         Rule("pulm-htn-severe", #"severe pulmonary (?:arterial )?(?:hypertension|htn)|severe (?-i:\b(?:PH|PAH)\b)"#),
         Rule("pulm-htn", #"pulmonary (?:arterial )?(?:hypertension|htn)|(?-i:\bPAH\b)|\bphtn\b"#),
-        Rule("pvd", #"(?-i:\b(?:PVD|PAD)\b)|peripheral (?:vascular|arterial) disease|claudication|aortic aneurysm|(?-i:\bAAA\b)"#),
+        Rule("pvd", #"(?-i:\b(?:PVD|PAD)\b)|peripheral (?:vascular|arterial) disease|claudication"#),
+        // The aorta (the Cardiovascular page's Aorta group). "AAA" in capitals only; "rAAA" and "TAAA" are words of
+        // their own. A size beside an aneurysm is read with it (aortaSize). A repair counts as history only when the
+        // sentence places it in the past ("s/p EVAR", "TEVAR 2019"): otherwise it may be the planned procedure. A
+        // rupture told as past ("s/p repair of a ruptured AAA") is not read as a rupture now.
+        Rule("aaa-ruptured", #"ruptured (?:(?-i:AAA)\b|abdominal aortic aneurysm|abdominal aneurysm|infrarenal (?:aortic )?aneurysm)|(?-i:\brAAA\b)|(?-i:\bAAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
+        Rule("taa-ruptured", #"ruptured (?:(?-i:TAA)\b|thoracic aortic aneurysm|thoracic aneurysm|(?:ascending|descending|arch) (?:aortic )?aneurysm)|(?-i:\brTAA\b)|(?-i:\bTAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
+        Rule("taaa-ruptured", #"ruptured (?:(?-i:TAAA)\b|thoraco-?abdominal (?:aortic )?aneurysm)|(?-i:\bTAAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
+        Rule("aaa", #"(?<!thoraco)(?<!thoraco-)\babdominal aortic aneurysm|\binfrarenal (?:aortic )?aneurysm|(?-i:\bAAA\b)(?!\s+repair)"#),
+        // TODO(research): whether an ascending or root aneurysm counts as a thoracic aortic aneurysm.
+        Rule("taa", #"\bthoracic aortic aneurysm|(?-i:\bTAA\b)|\b(?:ascending|descending|descending thoracic|aortic root|aortic arch|arch) (?:aortic )?aneurysm|\baneurysm of the (?:ascending|descending|thoracic) aorta"#),
+        Rule("taaa", #"thoraco-?abdominal (?:aortic )?aneurysm|(?-i:\bTAAA\b)"#),
+        Rule("dissection-a", #"\b(?:stanford )?type[- ]?a (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?a\b|(?-i:\bTAAD\b)|\bascending aortic dissection|\bdebakey (?:type )?(?:i|ii|1|2)\b"#),
+        Rule("dissection-b", #"\b(?:stanford )?type[- ]?b (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?b\b|(?-i:\bTBAD\b)|\bdescending (?:thoracic )?aortic dissection|\bdebakey (?:type )?(?:iii|3)[ab]?\b"#),
+        Rule("aortic-repair-open", #"\bopen (?:(?-i:AAA|TAA|TAAA)\s+|aortic\s+|aneurysm\s+|abdominal aortic aneurysm\s+|thoracoabdominal\s+)?repair|\bopen (?:(?-i:AAA|TAAA)) (?:repair|resection)|\btype a (?:aortic )?dissection repair|\bbentall\b|\b(?:ascending|hemiarch|total arch) (?:aortic )?replacement|\belephant trunk"#),
+        Rule("evar", #"(?-i:\bEVAR\b)|\bendovascular (?:aaa |abdominal aortic aneurysm |aortic aneurysm |aneurysm )repair"#),
+        Rule("tevar", #"(?-i:\bTEVAR\b)|\bthoracic endovascular (?:aortic )?repair"#),
         Rule("chd-elevated", #"\bfontan\b|single ventricle|cyanotic (?:congenital|heart)|transposition of the great|(?-i:\b(?:TGA|HLHS)\b)|truncus arteriosus|eisenmenger|hypoplastic left heart"#),
         Rule("chd", #"congenital heart|atrial septal defect|ventricular septal defect|(?-i:\b(?:VSD|TOF)\b)|tetralogy|coarctation|ebstein"#),
         Rule("fh-cad", #"(?:family history|fhx|(?-i:\bFH\b))(?: of|:)? (?:premature )?(?:cad|coronary|mi\b|heart attack|heart disease)|\b(?:father|mother|brother|sister|parent)s? (?:had|has|with|died of|died from) (?:an? )?(?:mi\b|heart attack|cad\b|coronary)"#, family: true),
@@ -278,7 +296,8 @@ enum PatientNote {
         Rule("sepsis", #"\bsepsis\b|\bseptic\b(?!\s+(?:arthritis|joint|knee|hip|bursitis|emboli))"#),
         Rule("shock", #"(?:septic|cardiogenic|hemorrhagic|haemorrhagic|hypovolemic|distributive) shock|\bin shock\b"#),
         Rule("massive-trauma", #"massive trauma|polytrauma|multi-?trauma|multiple trauma"#),
-        Rule("ruptured-aneurysm", #"ruptured (?:(?-i:AAA)|aneurysm|aortic aneurysm|abdominal aortic|thoracic aortic)|(?-i:\brAAA\b)"#),
+        // Where the note does not say where (a specific site reads as the Aorta group's item).
+        Rule("ruptured-aneurysm", #"ruptured (?:aortic )?aneurysm\b"#),
         Rule("pregnant", #"\bpregnant\b|(?-i:\bG\d{1,2} ?P\d)|\b\d{1,2}(?:\+\d/7| \d/7)? (?:weeks|wks)'? (?:gestation|pregnant|(?-i:GA)|gestational age)\b|(?-i:\bIUP\b)|\bparturient\b|\bin (?:active )?labou?r\b|\blabou?ring\b"#),
         Rule("gest-htn", #"gestational hypertension|(?-i:\b(?:gHTN|GHTN|PIH)\b)|pregnancy[- ]induced hypertension"#),
         Rule("preeclampsia-severe", #"pre-?eclampsia with severe features|severe pre-?eclampsia"#),
@@ -304,6 +323,8 @@ enum PatientNote {
         "htn": ["htn-poor", "htn-180"], "dm": ["dm-poor"], "cad": ["cad-recent"], "pci": ["pci-recent"], "cva": ["cva-recent"],
         "hf": ["hf-decomp"], "ef-moderate": ["ef-severe"], "pulm-htn": ["pulm-htn-severe"], "chd": ["chd-elevated"],
         "ckd": ["esrd-dialysis"], "gdm-diet": ["gdm-complex"], "alcohol-social": ["alcohol-abuse"],
+        "aaa": ["aaa-ruptured"], "taa": ["taa-ruptured"], "taaa": ["taaa-ruptured"],
+        "ruptured-aneurysm": ["aaa-ruptured", "taa-ruptured", "taaa-ruptured"],
         "preeclampsia": ["preeclampsia-severe", "hellp"], "gest-htn": ["preeclampsia", "preeclampsia-severe", "hellp"],
     ]
 
@@ -469,6 +490,7 @@ enum PatientNote {
     /// Every pattern, for the test that each one compiles.
     static var allPatterns: [NoteRx] {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
+        out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
@@ -587,6 +609,7 @@ enum PatientNote {
             readMeds(c, &h, names: &names)
             readAllergies(c, &h)
             readNumbers(c, &h, choices)
+            readDissection(c, choices, &h)
             readAssessment(c, now: now, &h)
             if planClause.first(c) == nil {
                 readTubesAndDevices(written, abbreviations, meant, &h)
@@ -731,11 +754,84 @@ enum PatientNote {
         h.infusions += h2.infusions.map { y.source($0) }
     }
 
+    // MARK: The aorta
+
+    private static let rupturedIDs: Set<String> = ["aaa-ruptured", "taa-ruptured", "taaa-ruptured", "ruptured-aneurysm"]
+    private static let repairIDs: Set<String> = ["aortic-repair-open", "evar", "tevar"]
+    /// A rupture told as past: repaired, or after a history cue.
+    static let rupturePastBefore = NoteRx(#"\b(?:s/p|status post|history of|hx of|h/o|prior|previous|previously|old|remote|repaired|repair of)\b[^.;]{0,24}$"#)
+    /// A repair told as done: after a history cue or "had", or with a year or "ago" after it.
+    static let repairPastBefore = NoteRx(#"\b(?:s/p|status post|history of|hx of|h/o|prior|previous|previously|old|remote|had|has had|underwent|treated with|repaired with|after|post)\b[^.;]{0,24}$"#)
+    static let repairPastAfter = NoteRx(#"^[^.;]{0,24}?(?:\(?\b(?:19|20)\d\d\b|\bago\b|\bin (?:19|20)\d\d\b)"#)
+    /// The diameter written before an aneurysm ("5.2 cm AAA", "5.2-cm infrarenal AAA") or after it ("AAA 52 mm",
+    /// "TAA measuring 4.8 cm").
+    static let aortaSizeBefore = NoteRx(#"(\d{1,2}(?:\.\d{1,2})?)\s*-?\s*(cm|mm)\s+(?:(?:infrarenal|juxtarenal|pararenal|suprarenal|fusiform|saccular|ascending|descending|thoracic|abdominal|aortic|root|arch)\s+){0,3}$"#)
+    static let aortaSizeAfter = NoteRx(#"^\s*[,(:\-–]?\s*(?:(?:measuring|measures|measured|of|is|at|now|size|sized|diameter|max|maximal|maximum|approx|approximately|about|~)\s*:?\s*){0,3}(\d{1,3}(?:\.\d{1,2})?)\s*(cm|mm)\b"#)
+    /// A bare "dissection" with no type, which is asked about: "aortic dissection", or "dissection" opening a phrase
+    /// of the history ("HTN, dissection, CKD"); not a surgical one ("lymph node dissection", "neck dissection").
+    static let bareDissection = NoteRx(#"\baortic dissection\b|\bdissection of the aorta\b|\bdissecting (?:aortic )?aneurysm\b|(?:^|[,;:(+]\s*|\b(?:and|with|known|chronic|acute|prior|previous|old|remote|s/p|h/o|hx|history of|hx of)\s+)(?:acute |chronic )?dissection\b(?!\s+of\b)"#)
+    static let dissectionQuestion = "quick:aorta:dissection"
+
+    private static func rupturePast(_ c: String, _ m: NSTextCheckingResult) -> Bool {
+        let ns = c as NSString
+        return rupturePastBefore.first(ns.substring(to: m.range.location)) != nil || pastAfter.first(ns.substring(from: m.range.location + m.range.length)) != nil
+    }
+
+    private static func repairPast(_ c: String, _ m: NSTextCheckingResult) -> Bool {
+        let ns = c as NSString
+        return repairPastBefore.first(ns.substring(to: m.range.location)) != nil || repairPastAfter.first(ns.substring(from: m.range.location + m.range.length)) != nil
+    }
+
+    /// The diameter written beside an aneurysm, in cm (mm read as tenths), from 2 to 15 cm; with the range that covers
+    /// the aneurysm and its size.
+    static func aortaSize(_ c: String, _ m: NSTextCheckingResult) -> (cm: Double, range: NSRange)? {
+        let ns = c as NSString
+        let end = m.range.location + m.range.length
+        func cm(_ v: String?, _ unit: String?) -> Double? {
+            guard let v, let n = Double(v), let unit else { return nil }
+            let x = unit.lowercased() == "mm" ? n / 10 : n
+            return x >= 2 && x <= 15 ? (x * 100).rounded() / 100 : nil
+        }
+        let after = ns.substring(from: end)
+        if let a = aortaSizeAfter.first(after), let x = cm(a.text(1, in: after), a.text(2, in: after)) {
+            return (x, NSRange(location: m.range.location, length: end - m.range.location + a.range.length))
+        }
+        let before = ns.substring(to: m.range.location)
+        if let b = aortaSizeBefore.first(before), let x = cm(b.text(1, in: before), b.text(2, in: before)) {
+            return (x, NSRange(location: b.range.location, length: end - b.range.location))
+        }
+        return nil
+    }
+
+    /// A dissection with no type ("dissection", "aortic dissection"): asked type A or type B, and read once answered.
+    private static func readDissection(_ c: String, _ choices: [String: String], _ h: inout Hits) {
+        guard !h.findings.contains(where: { $0.id == "problem:dissection-a" || $0.id == "problem:dissection-b" }) else { return }
+        guard let m = bareDissection.all(c).first(where: { !negated(c, at: $0.range.location) && !familyContext(c, at: $0.range.location) }) else { return }
+        let asked = question(dissectionQuestion, "Dissection", value: "", options: [AbbreviationMeaning("type A", id: "dissection-a"), AbbreviationMeaning("type B", id: "dissection-b")],
+                             usual: "", choices)
+        h.questions.append(asked.question)
+        if let a = asked.answer, let label = problemLabels[a] {
+            h.add(PatientNoteFinding(id: "problem:" + a, section: Part.history, label: label, change: .problem(a)), at: m.range)
+        } else {
+            h.seen(m.range)
+        }
+    }
+
     private static let problemLabels: [String: String] = Dictionary(PatientCatalog.allProblems.map { ($0.id, $0.label) }, uniquingKeysWith: { a, _ in a })
 
     private static func readRules(_ c: String, _ h: inout Hits) {
         for rule in problemRules {
             guard let m = accepted(rule, in: c, &h), let label = problemLabels[rule.id] else { continue }
+            if rupturedIDs.contains(rule.id), rupturePast(c, m) {
+                h.seen(m.range)
+                continue
+            }
+            if repairIDs.contains(rule.id), !repairPast(c, m) { continue }
+            if PatientCatalog.aneurysmIDs.contains(rule.id), let size = aortaSize(c, m) {
+                h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label + ", " + NumText.short(size.cm) + " cm",
+                                         change: .aortaSize(rule.id, size.cm)), at: size.range)
+                continue
+            }
             h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label, change: .problem(rule.id), note: cautions[rule.id]), at: m.range)
         }
         if let m = efRx.first(c), let a = number(m, [1], c) {
@@ -1921,6 +2017,11 @@ enum PatientNote {
             if r.problems.contains(p) || (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { return .recorded }
             let general = supersededBy.keys.filter { (supersededBy[$0] ?? []).contains(p) && r.problems.contains($0) }.compactMap { problemLabels[$0] }.sorted()
             return general.isEmpty ? .new : .replaces(general.joined(separator: "; "))
+        case .aortaSize(let p, let cm):
+            if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { return .recorded }
+            guard r.problems.contains(p) else { return .new }
+            guard let o = r.aortaSizes[p] else { return .new }
+            return same(o, cm) ? .recorded : .replaces(NumText.short(o) + " cm")
         case .noHistory:
             if r.noHistory { return .recorded }
             return r.problems.isEmpty ? .new : .conflicts("Problems are already recorded.")
@@ -2052,6 +2153,11 @@ enum PatientNote {
                 if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { continue }
                 r.problems.insert(p)
                 for general in supersededBy.keys where (supersededBy[general] ?? []).contains(p) { r.problems.remove(general) }
+            case .aortaSize(let p, let cm):
+                r.noHistory = false
+                if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { continue }
+                r.problems.insert(p)
+                r.aortaSizes[p] = cm
             case .noHistory:
                 if r.problems.isEmpty { r.noHistory = true }
             case .smoking(let s): r.smoking = s

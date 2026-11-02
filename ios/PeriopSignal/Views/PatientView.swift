@@ -233,7 +233,7 @@ struct PatientView: View {
 
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
     /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
-    /// intraop:<part> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo makes that
+    /// intraop:<part> | system:<id> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo makes that
     /// change first (one-tap normals), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
@@ -273,6 +273,7 @@ struct PatientView: View {
             if o.hasPrefix("workup:") { path.append(PatientEditor.workup(String(o.dropFirst(7)))) }
             else if o.hasPrefix("intraop:") { path.append(PatientEditor.intraopPart(String(o.dropFirst(8)))) }
             else if o.hasPrefix("devices:") { path.append(PatientEditor.devices(String(o.dropFirst(8)))) }
+            else if o.hasPrefix("system:") { path.append(PatientEditor.system(String(o.dropFirst(7)))) }
             else if let route = RefRoute(key: o) { path.append(route) }
         }
         #endif

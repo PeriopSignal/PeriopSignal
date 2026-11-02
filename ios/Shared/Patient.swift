@@ -139,6 +139,8 @@ struct PatientRecord: Codable, Equatable {
     // History
     var noHistory = false
     var problems: Set<String> = []
+    /// The diameter (cm) of each unruptured aortic aneurysm ticked, by problem id ("aaa", "taa", "taaa"; 1.8.1).
+    var aortaSizes: [String: Double] = [:]
     var systemNotes: [String: String] = [:]
     var otherHistory = ""
     /// "never", "former", "current".
@@ -186,6 +188,10 @@ struct PatientRecord: Codable, Equatable {
     var echoFindings = PatientEcho()
     var lhc = PatientLHC()
     var rhc = PatientRHC()
+    /// Studies beyond the heart (PatientStudies, 1.8.1): carotid and radial artery ultrasound, pulmonary function tests.
+    var carotid = PatientCarotid()
+    var radial = PatientRadial()
+    var pft = PatientPFT()
     /// Frail by a validated tool (a risk modifier in the stepwise cardiac evaluation).
     var frail = false
     /// The class the clinician chose (1–6); the suggestion is never stored.
@@ -298,6 +304,7 @@ struct PatientRecord: Codable, Equatable {
         vitals = v(.vitals, [:])
         noHistory = v(.noHistory, false)
         problems = v(.problems, [])
+        aortaSizes = v(.aortaSizes, [:])
         systemNotes = v(.systemNotes, [:])
         otherHistory = v(.otherHistory, "")
         smoking = try? c.decodeIfPresent(String.self, forKey: .smoking)
@@ -329,6 +336,9 @@ struct PatientRecord: Codable, Equatable {
         echoFindings = v(.echoFindings, PatientEcho())
         lhc = v(.lhc, PatientLHC())
         rhc = v(.rhc, PatientRHC())
+        carotid = v(.carotid, PatientCarotid())
+        radial = v(.radial, PatientRadial())
+        pft = v(.pft, PatientPFT())
         frail = v(.frail, false)
         asaClass = try? c.decodeIfPresent(Int.self, forKey: .asaClass)
         asaE = try? c.decodeIfPresent(Bool.self, forKey: .asaE)

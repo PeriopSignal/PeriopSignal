@@ -109,6 +109,9 @@ extension PatientEditorView {
         case "anesthetic": anestheticEditor
         case "labs": labsEditor
         case "tee": teeScreenEditor
+        case "carotid": carotidEditor
+        case "radial": radialEditor
+        case "pft": pftEditor
         default: EmptyView()
         }
     }

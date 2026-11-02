@@ -625,7 +625,8 @@ extension MedAbbreviations {
         ("PFO", "patent foramen ovale"), ("VSD", "ventricular septal defect"), ("AVSD", "atrioventricular septal defect"),
         ("TOF", "tetralogy of Fallot"), ("TGA", "transposition of the great arteries"), ("HLHS", "hypoplastic left heart syndrome"),
         ("SBE", "subacute bacterial endocarditis"), ("PVD", "peripheral vascular disease"), ("AAA", "abdominal aortic aneurysm"), ("TAA", "thoracic aortic aneurysm"),
-        ("TAAA", "thoracoabdominal aortic aneurysm"), ("TIA", "transient ischemic attack"), ("DVT", "deep vein thrombosis"), ("VTE", "venous thromboembolism"),
+        ("TAAA", "thoracoabdominal aortic aneurysm"), ("rAAA", "ruptured abdominal aortic aneurysm"), ("TAAD", "type A aortic dissection"),
+        ("TBAD", "type B aortic dissection"), ("TIA", "transient ischemic attack"), ("DVT", "deep vein thrombosis"), ("VTE", "venous thromboembolism"),
         ("SAH", "subarachnoid hemorrhage"), ("SDH", "subdural hematoma"), ("ICH", "intracerebral hemorrhage"), ("IVH", "intraventricular hemorrhage"),
         ("TBI", "traumatic brain injury"), ("ICP", "intracranial pressure"), ("EVD", "external ventricular drain"), ("VPS|VP shunt", "ventriculoperitoneal shunt"),
         // Respiratory
