@@ -1,2 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/SharedComponentsTests.swift:24: error: -[PeriopSignalTests.SharedComponentsTests testToolHeaderTitleStaysOnOneLine] : XCTAssertEqualWithAccuracy failed: ("48.0") is not equal to ("54.0") +/- ("1.0") - a long title shrinks or truncates on one line instead of wrapping
-Test Case '-[PeriopSignalTests.SharedComponentsTests testToolHeaderTitleStaysOnOneLine]' failed (2.473 seconds).
