@@ -225,9 +225,9 @@ jobs:
           shot 254-wave3-note-compose-info 14 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.evidence.open 1 -ps.forceAppearance dark
           shot 255-wave3-note-check-info 16 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.patient.note example -ps.evidence.open 1 -ps.forceAppearance light
           shot 256-wave3-end-case-info 16 -ps.tab patient -ps.patient demo-rooms -ps.patient.open end-case -ps.evidence.open 1 -ps.forceAppearance light
-          shot 257-wave3-airway-secured-info 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open airway -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 257-wave3-airway-secured-info 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open airway -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
           shot 258-wave3-procedure-info 14 -ps.tab patient -ps.patient demo -ps.patient.open procedure -ps.evidence.open 1 -ps.forceAppearance light
-          shot 259-wave3-support-info 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open devices:support -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 259-wave3-support-empty-info 18 -ps.tab patient -ps.patient demo -ps.patient.open devices:support -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
           shot 43-acls 12 -ps.ref acls
           shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals

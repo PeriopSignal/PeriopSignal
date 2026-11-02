@@ -723,7 +723,7 @@ struct PatientEditorView: View {
             }
             // Each grade's definition: behind an ⓘ on its row's label (1.8.1), not on a row of its own.
             if r.mask != nil && r.mask != "none" {
-                InfoChipRow(label: "Grade (Han)", info: maskGradeNote, inline: true) {
+                InfoChipRow(label: "Grade (Han)", info: maskGradeNote) {
                     PatientChoice(options: PatientAirway.maskGrades.map { (id: $0.id, label: $0.label) },
                                   selection: Binding(get: { patient.record.maskGrade.map { String($0) } }, set: { v in patient.update { $0.maskGrade = v.flatMap { Int($0) } } }))
                 }
@@ -746,7 +746,7 @@ struct PatientEditorView: View {
             PatientChipRow(label: "Device") {
                 PatientChoice(options: PatientCatalog.devices.map { (id: $0, label: $0) }, selection: bind(\.airwayDevice))
             }
-            InfoChipRow(label: "Laryngeal view (Cormack–Lehane)", info: laryngealGradeNote, inline: true) {
+            InfoChipRow(label: "Laryngeal view (Cormack–Lehane)", info: laryngealGradeNote) {
                 PatientChoice(options: PatientCatalog.grades.map { (id: $0, label: $0) }, selection: bind(\.laryngoscopyGrade))
             }
             Stepper(value: Binding(get: { patient.record.attempts ?? 0 }, set: { v in patient.update(discrete: true) { $0.attempts = v > 0 ? v : nil } }), in: 0...9) {
