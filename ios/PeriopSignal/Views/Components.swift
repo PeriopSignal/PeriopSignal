@@ -165,6 +165,11 @@ struct Hairline: View {
 
 /// Explanations, sources and caveats sit behind one small "Explanation & Evidence ⓘ" line that opens in place, so a
 /// screen shows its numbers and choices first. CI screenshots: -ps.evidence.open 1 opens them all.
+///
+/// Usage rule (1.8.1): at most one free-standing "Explanation & Evidence ⓘ" per screen, at the bottom, holding the
+/// screen's sources and how it works. An explanation that belongs to one card or section goes behind the ⓘ on that
+/// card's header instead (SectionHeader, or InfoTitle for a row); per-row repeats are merged into the one footer.
+/// Safety cautions never go behind either: they stay in view next to the control they qualify.
 struct EvidenceDisclosure<Content: View>: View {
     var title = "Explanation & Evidence"
     @ViewBuilder var content: () -> Content
@@ -240,6 +245,10 @@ struct InfoTitle<Title: View>: View {
 /// The small ⓘ that shows or hides a caption.
 struct InfoButton: View {
     @Binding var open: Bool
+    /// What VoiceOver calls the button ("Details", "About Mallampati").
+    var label: String = "Details"
+    /// The symbol's point size: 12 beside a row title or eyebrow, larger beside a page title.
+    var size: CGFloat = 12
 
     var body: some View {
         Button {
@@ -247,15 +256,65 @@ struct InfoButton: View {
             withAnimation(.snappy) { open.toggle() }
         } label: {
             Image(systemName: open ? "info.circle.fill" : "info.circle")
-                .font(PS.sys(size: 12, weight: .semibold))
+                .font(PS.sys(size: size, weight: .semibold))
                 .foregroundStyle(open ? PS.fg2 : PS.fg3)
                 // A finger-sized target without making the row taller.
                 .padding(10).contentShape(Rectangle()).padding(-10)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Details")
+        .fixedSize()
+        .accessibilityLabel(label)
         .accessibilityValue(open ? "Shown" : "Hidden")
         .accessibilityHint(open ? "Hides the details" : "Shows the details under the title")
+    }
+}
+
+/// A section's eyebrow with its explanation behind a small ⓘ at the end of the eyebrow; a tap opens the explanation
+/// under the header, above the section's card, and a second tap hides it. This replaces a free-standing
+/// "Explanation & Evidence ⓘ" row under a card (see EvidenceDisclosure's usage rule). Without an explanation it is
+/// the plain eyebrow. CI screenshots: -ps.evidence.open 1 opens them, as it does EvidenceDisclosure.
+struct SectionHeader<Info: View>: View {
+    var title: String
+    var color: Color = PS.fg3
+    var size: CGFloat = 11
+    private let info: (() -> Info)?
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    init(title: String, color: Color = PS.fg3, size: CGFloat = 11, @ViewBuilder info: @escaping () -> Info) {
+        self.title = title
+        self.color = color
+        self.size = size
+        self.info = info
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: 6) {
+                Eyebrow(text: title, color: color, size: size)
+                    .accessibilityAddTraits(.isHeader)
+                if info != nil { InfoButton(open: $open, label: "About " + title) }
+            }
+            if open, let info {
+                VStack(alignment: .leading, spacing: 8) { info() }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+extension SectionHeader where Info == InfoCaptionText {
+    /// The eyebrow with one paragraph behind its ⓘ; no ⓘ when `info` is nil or empty.
+    init(title: String, info: String?, color: Color = PS.fg3, size: CGFloat = 11) {
+        self.title = title
+        self.color = color
+        self.size = size
+        if let text = info, !text.isEmpty {
+            self.info = { InfoCaptionText(text: text, font: PS.sys(size: 12.5)) }
+        } else {
+            self.info = nil
+        }
     }
 }
 
