@@ -238,15 +238,17 @@ enum PatientNote {
         // their own. A size beside an aneurysm is read with it (aortaSize). A repair counts as history only when the
         // sentence places it in the past ("s/p EVAR", "TEVAR 2019"): otherwise it may be the planned procedure. A
         // rupture told as past ("s/p repair of a ruptured AAA") is not read as a rupture now.
-        Rule("aaa-ruptured", #"ruptured (?:(?-i:AAA)\b|abdominal aortic aneurysm|abdominal aneurysm|infrarenal (?:aortic )?aneurysm)|(?-i:\brAAA\b)|(?-i:\bAAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
+        Rule("aaa-ruptured", #"(?:ruptured|leaking) (?:(?-i:AAA)\b|abdominal aortic aneurysm|abdominal aneurysm|infrarenal (?:aortic )?aneurysm)|(?-i:\brAAA\b)|(?-i:\bAAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
         Rule("taa-ruptured", #"ruptured (?:(?-i:TAA)\b|thoracic aortic aneurysm|thoracic aneurysm|(?:ascending|descending|arch) (?:aortic )?aneurysm)|(?-i:\brTAA\b)|(?-i:\bTAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
         Rule("taaa-ruptured", #"ruptured (?:(?-i:TAAA)\b|thoraco-?abdominal (?:aortic )?aneurysm)|(?-i:\bTAAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
-        Rule("aaa", #"(?<!thoraco)(?<!thoraco-)\babdominal aortic aneurysm|\binfrarenal (?:aortic )?aneurysm|(?-i:\bAAA\b)(?!\s+repair)"#),
-        // TODO(research): whether an ascending or root aneurysm counts as a thoracic aortic aneurysm.
-        Rule("taa", #"\bthoracic aortic aneurysm|(?-i:\bTAA\b)|\b(?:ascending|descending|descending thoracic|aortic root|aortic arch|arch) (?:aortic )?aneurysm|\baneurysm of the (?:ascending|descending|thoracic) aorta"#),
-        Rule("taaa", #"thoraco-?abdominal (?:aortic )?aneurysm|(?-i:\bTAAA\b)"#),
-        Rule("dissection-a", #"\b(?:stanford )?type[- ]?a (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?a\b|(?-i:\bTAAD\b)|\bascending aortic dissection|\bdebakey (?:type )?(?:i|ii|1|2)\b"#),
-        Rule("dissection-b", #"\b(?:stanford )?type[- ]?b (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?b\b|(?-i:\bTBAD\b)|\bdescending (?:thoracic )?aortic dissection|\bdebakey (?:type )?(?:iii|3)[ab]?\b"#),
+        Rule("aaa", #"(?<!thoraco)(?<!thoraco-)\babdominal aortic aneurysm|\binfrarenal (?:aortic )?aneurysm|(?-i:\bAAA\b)(?!\s+repair)|\btriple a\b"#),
+        // An ascending, root or arch aneurysm is a thoracic aortic aneurysm (2022 ACC/AHA aortic guideline); "dilated"
+        // and "ectasia" are below aneurysm size and are not read. "TAA" is also a total ankle arthroplasty: not after a
+        // side or near "ankle".
+        Rule("taa", #"\bthoracic aortic aneurysm|(?<!\b[LR] )(?<!\b(?:left|right) )(?<!bilateral )(?-i:\bTAA\b)|\b(?:ascending|descending|descending thoracic|aortic root|aortic arch|arch) (?:aortic )?aneurysm|\baneurysm of the (?:ascending|descending|thoracic) aorta"#, notIf: NoteRx(#"\bankle\b|arthroplasty|replacement"#)),
+        Rule("taaa", #"thoraco-?abdominal (?:aortic )?aneurysm|(?-i:\bTAAA\b)|\bcrawford (?:type |extent )?(?:i|ii|iii|iv|v|1|2|3|4|5)\b"#),
+        Rule("dissection-a", #"\b(?:stanford )?type[- ]?a (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?a\b|(?-i:\bATAAD\b)|\bstanford a\b|\bascending aortic dissection|\bdebakey (?:type )?(?:i|ii|1|2)\b"#),
+        Rule("dissection-b", #"\b(?:stanford )?type[- ]?b (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?b\b|(?-i:\b[uc]?TBAD\b)|\bstanford b\b|\bdescending (?:thoracic )?aortic dissection|\bdebakey (?:type )?(?:iii|3)[ab]?\b"#),
         Rule("aortic-repair-open", #"\bopen (?:(?-i:AAA|TAA|TAAA)\s+|aortic\s+|aneurysm\s+|abdominal aortic aneurysm\s+|thoracoabdominal\s+)?repair|\bopen (?:(?-i:AAA|TAAA)) (?:repair|resection)|\btype a (?:aortic )?dissection repair|\bbentall\b|\b(?:ascending|hemiarch|total arch) (?:aortic )?replacement|\belephant trunk"#),
         Rule("evar", #"(?-i:\bEVAR\b)|\bendovascular (?:aaa |abdominal aortic aneurysm |aortic aneurysm |aneurysm )repair"#),
         Rule("tevar", #"(?-i:\bTEVAR\b)|\bthoracic endovascular (?:aortic )?repair"#),
@@ -764,12 +766,15 @@ enum PatientNote {
     static let repairPastBefore = NoteRx(#"\b(?:s/p|status post|history of|hx of|h/o|prior|previous|previously|old|remote|had|has had|underwent|treated with|repaired with|after|post)\b[^.;]{0,24}$"#)
     static let repairPastAfter = NoteRx(#"^[^.;]{0,24}?(?:\(?\b(?:19|20)\d\d\b|\bago\b|\bin (?:19|20)\d\d\b)"#)
     /// The diameter written before an aneurysm ("5.2 cm AAA", "5.2-cm infrarenal AAA") or after it ("AAA 52 mm",
-    /// "TAA measuring 4.8 cm").
+    /// "TAA measuring 4.8 cm", "AAA 4.5 x 4.3 cm": the largest). A number with no unit (a year, "AAA 2019") is not a
+    /// size. 2.5 to 15 cm (2022 ACC/AHA: an AAA is over 3.0 cm).
     static let aortaSizeBefore = NoteRx(#"(\d{1,2}(?:\.\d{1,2})?)\s*-?\s*(cm|mm)\s+(?:(?:infrarenal|juxtarenal|pararenal|suprarenal|fusiform|saccular|ascending|descending|thoracic|abdominal|aortic|root|arch)\s+){0,3}$"#)
-    static let aortaSizeAfter = NoteRx(#"^\s*[,(:\-–]?\s*(?:(?:measuring|measures|measured|of|is|at|now|size|sized|diameter|max|maximal|maximum|approx|approximately|about|~)\s*:?\s*){0,3}(\d{1,3}(?:\.\d{1,2})?)\s*(cm|mm)\b"#)
-    /// A bare "dissection" with no type, which is asked about: "aortic dissection", or "dissection" opening a phrase
-    /// of the history ("HTN, dissection, CKD"); not a surgical one ("lymph node dissection", "neck dissection").
-    static let bareDissection = NoteRx(#"\baortic dissection\b|\bdissection of the aorta\b|\bdissecting (?:aortic )?aneurysm\b|(?:^|[,;:(+]\s*|\b(?:and|with|known|chronic|acute|prior|previous|old|remote|s/p|h/o|hx|history of|hx of)\s+)(?:acute |chronic )?dissection\b(?!\s+of\b)"#)
+    static let aortaSizeAfter = NoteRx(#"^\s*[,(:\-–]?\s*(?:(?:measuring|measures|measured|of|is|at|now|size|sized|diameter|max|maximal|maximum|approx|approximately|about|~)\s*:?\s*){0,3}(\d{1,3}(?:\.\d{1,2})?)(?:\s*[x×]\s*(\d{1,3}(?:\.\d{1,2})?))?\s*(cm|mm)\b"#)
+    /// A bare "dissection" with no type, which is asked about: "aortic dissection", "AoD", or "dissection" opening a
+    /// phrase of the history ("HTN, dissection, CKD"); not a surgical one ("lymph node dissection", "neck dissection").
+    /// "TAAD" is asked too: in the 2022 ACC/AHA aortic guideline it means thoracic aortic aneurysm and dissection, not
+    /// type A dissection ("ATAAD" is read as type A). A bare "AD" (Alzheimer disease) is never read.
+    static let bareDissection = NoteRx(#"\baortic dissection\b|\bdissection of the aorta\b|\bdissecting (?:aortic )?aneurysm\b|(?-i:\b(?:TAAD|AoD)\b)|(?:^|[,;:(+]\s*|\b(?:and|with|known|chronic|acute|prior|previous|old|remote|s/p|h/o|hx|history of|hx of)\s+)(?:acute |chronic )?dissection\b(?!\s+of\b)"#)
     static let dissectionQuestion = "quick:aorta:dissection"
 
     private static func rupturePast(_ c: String, _ m: NSTextCheckingResult) -> Bool {
@@ -782,7 +787,7 @@ enum PatientNote {
         return repairPastBefore.first(ns.substring(to: m.range.location)) != nil || repairPastAfter.first(ns.substring(from: m.range.location + m.range.length)) != nil
     }
 
-    /// The diameter written beside an aneurysm, in cm (mm read as tenths), from 2 to 15 cm; with the range that covers
+    /// The diameter written beside an aneurysm, in cm (mm read as tenths), from 2.5 to 15 cm; with the range that covers
     /// the aneurysm and its size.
     static func aortaSize(_ c: String, _ m: NSTextCheckingResult) -> (cm: Double, range: NSRange)? {
         let ns = c as NSString
@@ -790,10 +795,15 @@ enum PatientNote {
         func cm(_ v: String?, _ unit: String?) -> Double? {
             guard let v, let n = Double(v), let unit else { return nil }
             let x = unit.lowercased() == "mm" ? n / 10 : n
-            return x >= 2 && x <= 15 ? (x * 100).rounded() / 100 : nil
+            return x >= 2.5 && x <= 15 ? (x * 100).rounded() / 100 : nil
         }
         let after = ns.substring(from: end)
-        if let a = aortaSizeAfter.first(after), let x = cm(a.text(1, in: after), a.text(2, in: after)) {
+        // "4.5 x 4.3 cm": the largest.
+        let largest = { (a: NSTextCheckingResult) -> String? in
+            let xs = [a.text(1, in: after), a.text(2, in: after)].compactMap { $0 }.compactMap(Double.init)
+            return xs.max().map { String($0) }
+        }
+        if let a = aortaSizeAfter.first(after), let x = cm(largest(a), a.text(3, in: after)) {
             return (x, NSRange(location: m.range.location, length: end - m.range.location + a.range.length))
         }
         let before = ns.substring(to: m.range.location)

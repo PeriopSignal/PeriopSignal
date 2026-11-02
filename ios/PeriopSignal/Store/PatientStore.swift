@@ -398,8 +398,8 @@ enum PatientDemo {
         r.carotid.right = CarotidSide(stenosis: "50-69", vertebral: "antegrade", psv: 182, edv: 54)
         r.carotid.left = CarotidSide(stenosis: "ge70", vertebral: "reversed", psv: 268, edv: 112)
         r.carotid.date = PatientMonthYear(month: 9, year: 2026)
-        r.radial.right = RadialSide(diameter: 2.3, calcified: false, ulnar: "normal")
-        r.radial.left = RadialSide(diameter: 2.7, calcified: false, ulnar: "normal")
+        r.radial.right = RadialSide(diameter: 2.3, calcified: false, ulnar: "adequate")
+        r.radial.left = RadialSide(diameter: 2.7, calcified: false, ulnar: "adequate")
         r.radial.harvest = "left"
         r.radial.date = PatientMonthYear(month: 9, year: 2026)
         r.pft.fev1 = 1.86; r.pft.fev1Pct = 58; r.pft.fvc = 3.21; r.pft.fvcPct = 79; r.pft.ratioTyped = 0.58

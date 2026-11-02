@@ -85,8 +85,9 @@ enum PatientCatalog {
             // 2024 AHA/ACC Table 10: single ventricle or Fontan, cyanotic disease, TGA and similar lesions.
             PatientProblem("chd-elevated", "Congenital heart disease, elevated-risk lesion"),
             PatientProblem("fh-cad", "Family history of premature coronary disease"),
-            // The Aorta group, shown apart from the chips above (PatientCatalog.aortaIDs). Ruptured abdominal or
-            // thoracic aneurysm is one of the ASA's own class V examples. TODO(research): wording against the ASA text.
+            // The Aorta group, shown apart from the chips above (PatientCatalog.aortaIDs). "Ruptured abdominal/thoracic
+            // aneurysm" is the ASA's own class V example, its only aortic one (ASA Physical Status Classification System);
+            // a thoracoabdominal aneurysm is both. Unruptured aneurysms, dissections and repairs are in no ASA example.
             PatientProblem("aaa", "Abdominal aortic aneurysm"),
             PatientProblem("aaa-ruptured", "Ruptured abdominal aortic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
             PatientProblem("taa", "Thoracic aortic aneurysm"),

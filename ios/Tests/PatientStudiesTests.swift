@@ -66,9 +66,9 @@ final class PatientStudiesTests: XCTestCase {
     func testRadialSummary() {
         var r = PatientRadial()
         r.harvest = "left"
-        r.left = RadialSide(diameter: 2.7, calcified: false, ulnar: "normal")
+        r.left = RadialSide(diameter: 2.7, calcified: false, ulnar: "adequate")
         r.right = RadialSide(diameter: 2.3, calcified: true)
-        XCTAssertEqual(r.summary, "Radial US: planned left harvest; R 2.3 mm, calcified; L 2.7 mm, not calcified, ulnar compensation normal")
+        XCTAssertEqual(r.summary, "Radial US: planned left harvest; R 2.3 mm, calcified; L 2.7 mm, not calcified, ulnar compensation adequate")
         r.harvest = "none"
         XCTAssertNil(r.harvestSide)
         XCTAssertTrue(r.summary.contains("no harvest planned"))
@@ -85,7 +85,7 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertNil(p.ratio, "neither a ratio nor a percentage")
         p.ratioTyped = 0.58
         XCTAssertEqual(p.gold, 2)
-        XCTAssertTrue(p.summary.hasPrefix("PFT: obstruction, moderate (GOLD 2"), p.summary)
+        XCTAssertTrue(p.summary.hasPrefix("PFT: obstruction, moderate (GOLD 2 if post-bronchodilator)"), p.summary)
         XCTAssertTrue(p.summary.contains("FEV1 1.86 L (58%), FVC 3.21 L (79%), FEV1/FVC 0.58"), p.summary)
 
         // GOLD only when the lab reads obstruction (or mixed), with FEV1 % predicted.
@@ -93,6 +93,10 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertNil(p.gold)
         p.pattern = "mixed"
         XCTAssertEqual(p.gold, 2)
+        p.ratioTyped = 72
+        XCTAssertNil(p.gold, "GOLD needs FEV1/FVC below 0.70")
+        p.ratioTyped = nil
+        XCTAssertEqual(p.gold, 2, "or the ratio not entered")
         p.fev1Pct = nil
         XCTAssertNil(p.gold)
     }
@@ -112,8 +116,15 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(PatientStudies.cautions(r).isEmpty)
 
         r.radial.harvest = "left"
-        XCTAssertEqual(PatientStudies.harvestReminder(r), "Planned left radial harvest: arterial line and IVs in the right arm.")
+        XCTAssertEqual(PatientStudies.harvestReminder(r), "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm.")
         XCTAssertTrue(PatientStudies.linesOnHarvestArm(r).isEmpty)
+        // Steal on the other arm: neither radial is right for the arterial line.
+        var steal = r
+        steal.carotid.right.vertebral = "reversed"
+        XCTAssertTrue(PatientStudies.harvestReminder(steal)?.contains("consider a femoral arterial line") ?? false)
+        steal.carotid.right.vertebral = nil
+        steal.carotid.left.vertebral = "reversed"
+        XCTAssertEqual(PatientStudies.harvestReminder(steal), "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm.", "steal on the harvest side")
         // An arterial line on the other arm: no caution; on the harvest arm: one.
         r.devices = ["R radial art line 20g"].flatMap { PatientDevices.parse($0)?.devices(placedIntraop: true) ?? [] }
         XCTAssertFalse(r.devices.isEmpty)
@@ -132,7 +143,7 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(lines.contains { $0.label == "Radial harvest" && $0.alert }, lines.map(\.text).joined(separator: " | "))
         XCTAssertTrue(lines.contains { $0.label == "Harvest arm" })
         let full = HandoffWriter.text(r)
-        XCTAssertTrue(full.contains("Radial harvest: Planned left radial harvest: arterial line and IVs in the right arm."), full)
+        XCTAssertTrue(full.contains("Radial harvest: Planned left radial harvest: arterial line, IVs and BP cuff in the right arm."), full)
         let lineSection = try XCTUnwrap(full.range(of: "LINES & DEVICES"))
         let harvest = try XCTUnwrap(full.range(of: "Radial harvest:"))
         XCTAssertLessThan(lineSection.lowerBound, harvest.lowerBound, "told with the lines")
@@ -170,7 +181,8 @@ final class PatientStudiesTests: XCTestCase {
         r.carotid.right.vertebral = "reversed"
         let c = PatientStudies.cautions(r)
         XCTAssertEqual(c.map(\.id), ["vertebral-right"])
-        XCTAssertTrue(c[0].text.contains("right arm"), c[0].text)
+        XCTAssertTrue(c[0].text.contains("right arm may read low"), c[0].text)
+        XCTAssertTrue(c[0].text.contains("innominate"), c[0].text)
         XCTAssertTrue(c[0].text.contains("internal mammary"), c[0].text)
         r.carotid.right.vertebral = "partial"
         XCTAssertEqual(PatientStudies.cautions(r).isEmpty, !PatientStudies.stealFlows.contains("partial"))
@@ -230,6 +242,13 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(ids(note("known abdominal aortic aneurysm")).contains("problem:aaa"))
         XCTAssertTrue(ids(note("TAA")).contains("problem:taa"))
         XCTAssertTrue(ids(note("ascending aortic aneurysm")).contains("problem:taa"))
+        XCTAssertTrue(ids(note("aortic root aneurysm")).contains("problem:taa"))
+        XCTAssertFalse(ids(note("dilated aortic root")).contains("problem:taa"), "dilation is below aneurysm size")
+        XCTAssertFalse(ids(note("s/p L TAA")).contains("problem:taa"), "a total ankle arthroplasty")
+        XCTAssertFalse(ids(note("TAA for ankle arthritis")).contains("problem:taa"))
+        XCTAssertTrue(ids(note("Crawford extent II")).contains("problem:taaa"))
+        XCTAssertTrue(ids(note("triple A")).contains("problem:aaa"))
+        XCTAssertTrue(ids(note("leaking AAA")).contains("problem:aaa-ruptured"))
 
         let taaa = ids(note("thoracoabdominal aortic aneurysm"))
         XCTAssertTrue(taaa.contains("problem:taaa"))
@@ -265,6 +284,8 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertEqual(size("TAA 4.8 cm")?.0, "taa")
         XCTAssertEqual(size("TAAA 6.1 cm")?.0, "taaa")
         XCTAssertNil(size("AAA 5.2"), "no unit: not read")
+        XCTAssertNil(size("AAA 2019"), "a year")
+        XCTAssertEqual(size("AAA 4.5 x 5.1 cm")?.1, 5.1, "the largest")
         XCTAssertNil(size("AAA 80 cm"), "implausible")
         let f = note("HTN, 5.2 cm AAA, CKD").findings.first { $0.id == "problem:aaa" }
         XCTAssertEqual(f?.label, "Abdominal aortic aneurysm, 5.2 cm")
@@ -286,15 +307,16 @@ final class PatientStudiesTests: XCTestCase {
     }
 
     func testDissectionShorthand() {
-        for s in ["type A dissection", "TAAD", "Stanford type A aortic dissection", "aortic dissection, type A"] {
+        for s in ["type A dissection", "ATAAD", "Stanford type A aortic dissection", "aortic dissection, type A", "Stanford A"] {
             XCTAssertTrue(ids(note(s)).contains("problem:dissection-a"), s)
             XCTAssertFalse(ids(note(s)).contains("problem:dissection-b"), s)
         }
-        for s in ["type B dissection", "TBAD", "chronic type B aortic dissection", "DeBakey IIIb"] {
+        for s in ["type B dissection", "TBAD", "uTBAD", "chronic type B aortic dissection", "DeBakey IIIb"] {
             XCTAssertTrue(ids(note(s)).contains("problem:dissection-b"), s)
         }
         // No type: asked, and read once answered.
-        for s in ["HTN, dissection, CKD", "known aortic dissection"] {
+        // "TAAD" is thoracic aortic aneurysm and dissection in the 2022 ACC/AHA guideline, not type A: asked too.
+        for s in ["HTN, dissection, CKD", "known aortic dissection", "TAAD", "HTN, AoD"] {
             let n = note(s)
             XCTAssertTrue(n.ambiguous.contains { $0.id == PatientNote.dissectionQuestion }, s)
             XCTAssertFalse(ids(n).contains("problem:dissection-a"), s)
@@ -303,7 +325,8 @@ final class PatientStudiesTests: XCTestCase {
             XCTAssertTrue(ids(answered).contains("problem:dissection-b"), s)
         }
         // Not a typed one, a surgical one or a denied one.
-        for s in ["type B dissection", "axillary lymph node dissection", "radical neck dissection", "no dissection", "carotid dissection"] {
+        for s in ["type B dissection", "axillary lymph node dissection", "radical neck dissection", "no dissection", "carotid dissection",
+                  "type A personality", "influenza type B", "AD on donepezil"] {
             XCTAssertFalse(note(s).ambiguous.contains { $0.id == PatientNote.dissectionQuestion }, s)
         }
     }
