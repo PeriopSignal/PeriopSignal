@@ -112,8 +112,8 @@ jobs:
 
       - name: Screenshots
         working-directory: ios
-        # The inputs come in through env so the script holds no ${{ }} expression: GitHub caps a run block that holds
-        # one at 21,000 characters, and the shot list has outgrown that.
+        # Passed in the environment: an expression inside this long script would count its whole text against
+        # GitHub's 21,000-character expression limit.
         env:
           SIM_UDID: ${{ steps.sim.outputs.udid }}
           SHOTS_ONLY: ${{ inputs.shots }}
@@ -317,7 +317,7 @@ jobs:
           shot 120-cardiac-tee 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee
           shot 121-cardiac-tee-evidence 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.evidence.open 1 -ps.patient.scroll done
           shot 122-cardiac-tee-light 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light
-          shot 123-cardiac-assessment-tee 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open assessment -ps.patient.scroll cardiac
+          shot 123-cardiac-assessment-tee 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open assessment -ps.patient.scroll studies
           shot 140-patient-ecg 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg
           shot 130-rooms 12 -ps.tab patient -ps.patient demo-rooms
           shot 131-rooms-cvor-light 12 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.forceAppearance light
@@ -351,6 +351,24 @@ jobs:
           shot 186-rooms-row-light 12 -ps.tab patient -ps.patient demo-rooms -ps.forceAppearance light
           shot 196-fluids-steppers-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:fluids -ps.patient.scroll fluidsOutput -ps.forceAppearance light
           shot 197-fluids-steppers 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:fluids -ps.patient.scroll fluidsOutput -ps.forceAppearance dark
+          # 1.8.1 Studies and the aorta: the Studies group on the Assessment page, the carotid, radial and PFT editors
+          # filled (demo-cardiac) and empty (demo), the Aorta group on the Cardiovascular page, the harvest reminder in
+          # the intraoperative Lines, the cautions on the Assessment card and in the handoffs, and quick add.
+          shot 200-studies-assessment 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open assessment -ps.patient.scroll studies -ps.forceAppearance dark
+          shot 201-studies-carotid 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:carotid -ps.forceAppearance dark
+          shot 202-studies-carotid-summary 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:carotid -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 203-studies-radial 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:radial -ps.forceAppearance dark
+          shot 204-studies-radial-light 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:radial -ps.patient.scroll done -ps.forceAppearance light
+          shot 205-studies-pft 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:pft -ps.forceAppearance dark
+          shot 206-studies-pft-summary 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:pft -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 207-studies-carotid-empty 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:carotid -ps.forceAppearance light
+          shot 208-aorta-cardiovascular 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open system:cv -ps.patient.scroll aorta -ps.forceAppearance dark
+          shot 209-intraop-lines-harvest 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:lines -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 210-cardiac-assessment-card 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.scroll assessment -ps.forceAppearance dark
+          shot 211-cardiac-handoff-short-cautions 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format short -ps.patient.jump handoff -ps.forceAppearance dark
+          shot 212-cardiac-handoff-full-cautions 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format full -ps.patient.jump handoff -ps.forceAppearance light
+          shot 213-quickadd-aorta 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "74M, HTN, 5.2 cm AAA, s/p TEVAR 2019, dissection, TAA 48 mm, CKD"
+          shot 214-history-aorta 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open history -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
