@@ -245,8 +245,9 @@ enum PatientNote {
         Rule("taaa-ruptured", #"ruptured (?:(?-i:TAAA)\b|thoraco-?abdominal (?:aortic )?aneurysm)|(?-i:\bTAAA\b),? (?:has |had |with )?(?:ruptured|rupture)\b"#),
         Rule("aaa", #"(?<!thoraco)(?<!thoraco-)\babdominal aortic aneurysm|\binfrarenal (?:aortic )?aneurysm|(?-i:\bAAA\b)(?!\s+repair)|\btriple a\b"#),
         // An ascending, root, arch or descending aneurysm is a thoracic aortic aneurysm (2022 ACC/AHA) [G]; "dilated" and
-        // "ectasia" are below aneurysm size and are not read [P].
-        Rule("taa", #"\bthoracic aortic aneurysm|\b(?:ascending|descending|descending thoracic|aortic root|aortic arch|arch) (?:aortic )?aneurysm|\baneurysm of the (?:ascending|descending|thoracic) aorta"#),
+        // "ectasia" are below aneurysm size and are not read [P]. Not beside "ankle": a "TAA" there is read through its
+        // abbreviation's meaning, and is an ankle arthroplasty.
+        Rule("taa", #"\bthoracic aortic aneurysm|\b(?:ascending|descending|descending thoracic|aortic root|aortic arch|arch) (?:aortic )?aneurysm|\baneurysm of the (?:ascending|descending|thoracic) aorta"#, notIf: ankleContext),
         // A bare "TAA" is also a total ankle arthroplasty [P]: read only beside aortic words or a size, never near "ankle";
         // otherwise asked (readTAA).
         Rule("taa", #"\bTAA\b"#, onlyIf: taaContext, notIf: ankleContext),

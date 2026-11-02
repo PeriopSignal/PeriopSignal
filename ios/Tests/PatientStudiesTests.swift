@@ -248,7 +248,7 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(ids(note("PAD with claudication")).contains("problem:pvd"))
         XCTAssertFalse(ids(note("PAD with claudication")).contains("problem:aaa"))
         XCTAssertTrue(ids(note("known abdominal aortic aneurysm")).contains("problem:aaa"))
-        XCTAssertTrue(ids(note("TAA")).contains("problem:taa"))
+        XCTAssertTrue(note("TAA").ambiguous.contains { $0.id == PatientNote.taaQuestion }, "bare: asked")
         XCTAssertTrue(ids(note("ascending aortic aneurysm")).contains("problem:taa"))
         XCTAssertTrue(ids(note("aortic root aneurysm")).contains("problem:taa"))
         XCTAssertFalse(ids(note("dilated aortic root")).contains("problem:taa"), "dilation is below aneurysm size")
