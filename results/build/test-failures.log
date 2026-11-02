@@ -1,3 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientStudiesTests.swift:251: error: -[PeriopSignalTests.PatientStudiesTests testAorticAneurysmShorthand] : XCTAssertTrue failed
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientStudiesTests.swift:266: error: -[PeriopSignalTests.PatientStudiesTests testAorticAneurysmShorthand] : XCTAssertFalse failed
-Test Case '-[PeriopSignalTests.PatientStudiesTests testAorticAneurysmShorthand]' failed (3.792 seconds).
