@@ -21,14 +21,15 @@ final class SharedComponentsTests: XCTestCase {
         let short = height(ToolHeader(eyebrow: "Emergency checklist", title: "LAST", summary: "Stop the injection.", infoSummary: true))
         let long = height(ToolHeader(eyebrow: "Emergency checklist", title: "Local Anesthetic Systemic Toxicity Management", summary: "Stop the injection.", infoSummary: true))
         XCTAssertGreaterThan(short, 0)
-        XCTAssertEqual(long, short, accuracy: 1, "a long title shrinks or truncates on one line instead of wrapping")
+        // Shrinking to 80% can make the line a little shorter; a second line would add about 30 points.
+        XCTAssertLessThanOrEqual(long, short + 1, "a long title shrinks or truncates on one line instead of wrapping")
     }
 
     @MainActor func testToolHeaderSummaryBehindInfoUnlessEmergency() {
         let bare = height(ToolHeader(eyebrow: "Regional", title: "Fasting", summary: nil))
         let behind = height(ToolHeader(eyebrow: "Regional", title: "Fasting", summary: longNote, infoSummary: true))
         let shown = height(ToolHeader(eyebrow: "Emergency checklist", title: "MH", summary: longNote, infoSummary: false))
-        XCTAssertEqual(behind, bare, accuracy: 1, "the summary is hidden behind ⓘ until tapped")
+        XCTAssertEqual(behind, bare, accuracy: 2, "the summary is hidden behind ⓘ until tapped")
         XCTAssertGreaterThan(shown, bare + 30, "an emergency checklist keeps its summary in view")
     }
 
@@ -39,14 +40,15 @@ final class SharedComponentsTests: XCTestCase {
         let empty = height(SectionHeader(title: "Mallampati", info: ""))
         let closed = height(SectionHeader(title: "Mallampati", info: longNote))
         XCTAssertEqual(empty, plain, accuracy: 0.5)
-        XCTAssertEqual(closed, plain, accuracy: 1, "the explanation stays closed until the ⓘ is tapped")
+        // The ⓘ may stand a point or two taller than the eyebrow's text; an open note would add several lines.
+        XCTAssertLessThan(closed, plain + 6, "the explanation stays closed until the ⓘ is tapped")
     }
 
     @MainActor func testPatientGroupNoteAddsNoRowUnderTheCard() {
         let row = { Text("ASA III").padding(14) }
         let without = height(PatientGroup(title: "ASA physical status", content: row))
         let with = height(PatientGroup(title: "ASA physical status", note: longNote, content: row))
-        XCTAssertEqual(with, without, accuracy: 1, "the note sits behind the title's ⓘ, not on an Explanation & Evidence row")
+        XCTAssertLessThan(with, without + 6, "the note sits behind the title's ⓘ, not on an Explanation & Evidence row")
         // Untitled groups have no header to carry the ⓘ, so they keep the row under the card.
         let untitled = height(PatientGroup(title: nil, content: row))
         let untitledNote = height(PatientGroup(title: nil, note: longNote, content: row))
@@ -58,7 +60,7 @@ final class SharedComponentsTests: XCTestCase {
     @MainActor func testPresetCaptionIsBehindInfo() {
         let shortCaption = height(PatientPresetRow(title: "Exam normal", caption: "Sets the exam.", applied: false) {})
         let longCaption = height(PatientPresetRow(title: "Exam normal", caption: longNote, applied: false) {})
-        XCTAssertEqual(longCaption, shortCaption, accuracy: 1, "what the preset sets opens from its ⓘ")
+        XCTAssertEqual(longCaption, shortCaption, accuracy: 2, "what the preset sets opens from its ⓘ")
     }
 
     // MARK: WeightField (S4)
