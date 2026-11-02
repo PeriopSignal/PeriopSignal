@@ -1,7 +1,35 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-01T09:38:32+00:00",
+ "generatedAt": "2026-11-02T09:17:20+00:00",
  "posts": [
+  {
+   "id": "tct26-2026-travel-iii-lux-valve-ttvr",
+   "date": "2026-11-01",
+   "dateApprox": false,
+   "addedAt": "2026-11-02",
+   "journal": "TCT 2026",
+   "jshort": "TCT",
+   "kind": "Conference",
+   "topics": [
+    "cardiac",
+    "echo"
+   ],
+   "headline": "TRAVEL III: LuX-Valve Plus TTVR met a 6-month composite in 82.9% vs 4.8% on medical therapy alone in severe TR",
+   "summary": "A randomized late-breaking trial at TCT 2026 compared transjugular tricuspid valve replacement plus optimal medical therapy with medical therapy alone in 126 high-risk patients with severe or greater tricuspid regurgitation.",
+   "takeHome": [
+    "Transjugular LuX-Valve Plus TTVR plus OMT beat OMT alone: 6-month composite success 82.9% vs 4.8% (difference 78.1%, 95% CI 67.5-88.8; p<0.001).",
+    "126 randomized patients with severe or greater TR, NYHA III-IV and high surgical risk; Ge calls it the first randomized evidence for this device.",
+    "TR fell in all TTVR patients, to moderate or less in 93%; no MI, stroke, access-site complication or device-related PE at 6 months."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** Transcatheter tricuspid therapy is moving quickly, and this adds a randomized comparison for a jugular-delivered replacement valve. Ge describes it as the first randomized evidence for transjugular TTVR with this system.\n\n**What they did.** Ge and colleagues randomized 126 patients with severe or greater TR, NYHA class III-IV and high surgical risk to LuX-Valve Plus plus optimal medical therapy or medical therapy alone. ClinicalTrials.gov (NCT07705594) lists 2:1 allocation, age 65 or older, and exclusions including LVEF below 50%, renal replacement therapy, MELD-albumin of 12 or more, and respiratory disease too severe for general anesthesia.\n\n**What they found.** The six-month composite (alive, no HF rehospitalization, TR down at least one grade, NYHA up at least one class) was met by 82.9% vs 4.8%. TR fell in all treated patients, to moderate or less in 93%. No MI, stroke, access-site complication or device-related PE occurred by six months, and pacemaker rates were described as low.\n\n**Caveats.** This is a congress report with no paper noted yet, and the ACC summary gives no figures for the 30-day major adverse event endpoint, mortality or pacemakers. The composite requires TR reduction, which medical therapy seldom achieves, plus NYHA class with no sham described, so a wide gap was close to built in. It is small, sponsor-run and followed for six months so far.\n\n**For us.** Not practice-changing yet, and the report says nothing about anesthesia or imaging. Expect older patients with preserved LVEF and tired right ventricles; abolishing TR can load the RV abruptly, so watch RV function and conduction around deployment. A registered 680-patient pivotal trial lists LuX-Valve Plus and EVOQUE as interventions, so TEE teams may meet this device.",
+   "url": "https://www.acc.org/Latest-in-Cardiology/Articles/2026/11/01/00/11/sun-551pm-combo2-tct-2026",
+   "impact": 1,
+   "trialName": "TRAVEL III",
+   "firstAuthor": "Ge"
+  },
   {
    "id": "circ-2026-season-ar-tavr-pure-ar",
    "date": "2026-10-31",
