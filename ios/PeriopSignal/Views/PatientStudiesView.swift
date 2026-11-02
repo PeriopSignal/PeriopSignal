@@ -151,19 +151,38 @@ struct StudyCautionRow: View {
     }
 }
 
-/// A chip row whose title has a caption behind ⓘ; the chips go under the title.
+/// A chip row whose title has a caption behind ⓘ (no ⓘ when `info` is nil); the chips go under the title. With
+/// `inline`, the chips sit on the title's line when they fit there, as in PatientChipRow, and the caption opens under
+/// the row.
 struct InfoChipRow<Content: View>: View {
     var label: String
-    var info: String
+    var info: String?
+    var inline = false
     @ViewBuilder var content: () -> Content
     @State private var open = LaunchSeed.bool("ps.evidence.open")
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            InfoTitle(caption: info, open: $open, captionFont: PS.sys(size: 12), spacing: 4) {
-                Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+        Group {
+            if inline {
+                VStack(alignment: .leading, spacing: 6) {
+                    InlineChoices {
+                        HStack(alignment: .center, spacing: 6) {
+                            Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+                            if info != nil { InfoButton(open: $open, label: "About " + label) }
+                        }
+                    } choices: {
+                        content()
+                    }
+                    if open, let info { InfoCaptionText(text: info, font: PS.sys(size: 12)) }
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    InfoTitle(caption: info, open: $open, captionFont: PS.sys(size: 12), spacing: 4) {
+                        Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+                    }
+                    content()
+                }
             }
-            content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14).padding(.vertical, 10)

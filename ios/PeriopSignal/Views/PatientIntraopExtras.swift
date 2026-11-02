@@ -275,15 +275,14 @@ struct PatientCodeStatusGroup: View {
             .padding(.horizontal, 14).padding(.vertical, 9)
             if r.codeStatus?.limits == true {
                 Hairline().padding(.leading, 14)
-                PatientChipRow(label: "For the procedure") {
+                // The chosen plan's definition (the ASA option it is) sits behind the ⓘ on "For the procedure" (1.8.1);
+                // "Not yet discussed" stays in view in red.
+                InfoChipRow(label: "For the procedure", info: r.codeStatusPlan?.detail, inline: true) {
                     PatientChoice(options: CodeStatusPlan.allCases.map { (id: $0.rawValue, label: $0.label) },
                                   selection: Binding(get: { patient.record.codeStatusPlan?.rawValue }, set: { v in patient.update { $0.codeStatusPlan = v.flatMap { CodeStatusPlan(rawValue: $0) } } }),
                                   tint: PS.accent2)
                 }
-                if let p = r.codeStatusPlan {
-                    Text(p.detail).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 14).padding(.bottom, 4)
-                } else {
+                if r.codeStatusPlan == nil {
                     Text("Not yet discussed: review the orders with the patient or surrogate before the anesthetic.")
                         .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.red).fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 14).padding(.bottom, 4)

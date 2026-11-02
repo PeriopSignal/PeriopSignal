@@ -20,13 +20,10 @@ extension PatientEditorView {
             ProcedureSearchField { items in patient.update(discrete: true) { $0.setProcedures($0.procedures + items) } }
         }
         .onAppear(perform: readOldProcedureText)
-        PatientGroup(title: "Urgency & anesthetic") {
+        // The chosen urgency's definition: behind the group title's ⓘ (1.8.1), not on a row of its own in the card.
+        PatientGroup(title: "Urgency & anesthetic", note: urgencyNote) {
             PatientChipRow(label: "Urgency") {
                 PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
-            }
-            if let u = r.urgency {
-                EvidenceNote(u.detail + " (2024 AHA/ACC)")
-                    .padding(.horizontal, 14).padding(.bottom, 8)
             }
             PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
         }
@@ -41,6 +38,14 @@ extension PatientEditorView {
                 PatientChoice(options: [(id: "≤ 2 h", label: "2 h or less"), (id: "> 2–3 h", label: "Over 2 to 3 h"), (id: "> 3 h", label: "Over 3 h")], selection: bind(\.duration))
             }
         }
+    }
+
+    /// The chosen urgency's definition, for the group title's ⓘ.
+    var urgencyNote: String? { r.urgency.map { $0.detail + " (2024 AHA/ACC)" } }
+
+    /// How the body-size line is worked out, for the group title's ⓘ once there is a line.
+    var bodySizeNote: String? {
+        r.bmi == nil ? nil : "BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian."
     }
 
     private func riskInputsNote(recognized: Bool) -> String? {
@@ -70,7 +75,7 @@ extension PatientEditorView {
     }
 
     @ViewBuilder var demographicsEditor: some View {
-        PatientGroup(title: "Demographics") {
+        PatientGroup(title: "Demographics", note: bodySizeNote) {
             PatientNumberField(label: "Age", unit: PatientRecord.ageFieldUnit(r.ageYears), value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
@@ -84,9 +89,6 @@ extension PatientEditorView {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(PS.surface2.opacity(0.5))
             }
-        }
-        if r.bmi != nil {
-            EvidenceNote("BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian.")
         }
         PatientGroup(title: "Preprocedure vital signs") {
             ForEach(Array(PatientCatalog.vitals.enumerated()), id: \.element.id) { i, v in
@@ -585,6 +587,51 @@ struct EchoFindingsEditor: View {
                 .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         EvidenceNote("Grades as the ASE documents name them: chamber function normal or mildly, moderately or severely reduced; regurgitation and stenosis none, mild, moderate or severe. The ASE grading and chamber tools under Reference work the numbers out.")
+    }
+}
+
+/// A switch whose explanation sits behind an ⓘ after its title; a short `detail` can stay in view under the title.
+/// Each change is an Undo step of its own, as with the editor's toggle rows.
+struct PatientInfoToggle: View {
+    var title: String
+    var detail: String? = nil
+    var info: String
+    @Binding var isOn: Bool
+    @Environment(PatientStore.self) private var store: PatientStore?
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .lastTextBaseline, spacing: 6) {
+                    Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    InfoButton(open: $open, label: "About " + title)
+                }
+                if let detail { Text(detail).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+                if open { InfoCaptionText(text: info, font: PS.sys(size: 12)) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Toggle(title, isOn: Binding(get: { isOn }, set: { v in store?.markDiscrete(); isOn = v }))
+                .labelsHidden()
+                .tint(PS.accent)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 9)
+    }
+}
+
+/// A line of text with its explanation behind an ⓘ at its end.
+struct PatientInfoLine: View {
+    var text: String
+    var info: String
+    var font: Font = PS.sys(size: 12.5)
+    var color: Color = PS.fg3
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    var body: some View {
+        InfoTitle(caption: info, open: $open, captionFont: PS.sys(size: 12.5), spacing: 6) {
+            Text(text).font(font).foregroundStyle(color).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
