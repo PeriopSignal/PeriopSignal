@@ -137,6 +137,11 @@ struct PatientCaseBook: Codable, Equatable {
 
     /// One case with nothing in it: there is nothing to keep, so the file is removed.
     var isEmpty: Bool { cases.count == 1 && cases[0].isBlank }
+    /// My Patient's row of case chips earns its place with two cases or more, or a room or phone on the current one;
+    /// one case without a room shows no row (its actions are in the ⋯ menu).
+    var showsCaseRow: Bool {
+        cases.count > 1 || current.hasRoom || !current.roomPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     var canAdd: Bool { cases.count < PatientCaseBook.maxCases }
     private var nextNumber: Int { (cases.map(\.number).max() ?? 0) + 1 }
 
@@ -234,6 +239,7 @@ extension PatientStore {
     var cases: [PatientCase] { book.cases }
     var currentCase: PatientCase { book.current }
     var canAddCase: Bool { book.canAdd }
+    var showsCaseRow: Bool { book.showsCaseRow }
 
     /// Adds a case and opens it.
     func addCase(room: String = "", phone: String = "") {

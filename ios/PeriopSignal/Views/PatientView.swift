@@ -30,7 +30,9 @@ enum PatientTab: String, CaseIterable, Identifiable {
 /// My Patient: one patient, in three tabs. Preoperative is the history and physical (procedure, demographics,
 /// history, assessment, airway); Intraoperative is the anesthetic in parts; Summary & Handoff carries the plan and
 /// the handoff, written as you go, to share or send. Each card opens its editor; the tools it prompts open already
-/// filled in. Kept on this phone only until Clear (with Undo).
+/// filled in. Kept on this phone only until Clear (with Undo). The bar holds the shield (no identifiers) on the left
+/// and Undo and the ⋯ menu (cases, rooms, End case, Clear, Show Tips) on the right; the first time, four tips point
+/// at the quick-add bar, the tabs, the ⋯ menu and the shield (PatientTips).
 struct PatientView: View {
     @Environment(PatientStore.self) private var patient
     @Environment(PatientInbox.self) private var inbox
@@ -53,8 +55,18 @@ struct PatientView: View {
     @State private var showIdentifiers = false
     /// Where the jump bar and its pinned copy are, read as the tab scrolls (not observed, so scrolling redraws nothing).
     @State private var jumpGeometry = PatientJumpGeometry()
+    /// The first-time tips: whether they show, and which step.
+    @State private var tips = PatientTips()
+    /// Finished or skipped on this phone (the tips then show only from ⋯ → Show Tips).
+    @AppStorage(PatientTips.seenKey) private var tipsSeen = false
+    /// Where the tips' targets in the scroll view are, read only while the tips show.
+    @State private var tipFrames: [PatientTipTarget: CGRect] = [:]
+    /// Asks the tab to scroll back to the top (the tips start there).
+    @State private var scrollToTop = 0
 
     private struct NoteResult {
+        /// Each banner's own, so its 6-second timer ends only that one.
+        var id = UUID()
         var count: Int
         var before: PatientRecord
         /// The record right after adding: Undo is offered only until the next edit.
@@ -63,17 +75,18 @@ struct PatientView: View {
 
     private var r: PatientRecord { patient.record }
     private var tab: PatientTab { tabOverride ?? PatientTab(rawValue: tabID) ?? .preop }
+    /// The top of the tab, which the tips scroll back to.
+    private static let topID = "ps.patient.top"
 
     var body: some View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        // In full for the empty patient; otherwise the grey shield in the navigation bar.
-                        if patient.isEmpty { NoIdentifiersBanner() }
-                        PatientRoomsBar()
-                        tabBar
-                        if patient.canUndoClear { undoBanner }
+                        // The row of cases only when it earns its place (two or more, or a room or phone); its sheets
+                        // and the End case dialog are on the page (PatientCasePresentations).
+                        if PatientRoomsBar.shows(patient) { PatientRoomsBar() }
+                        tabBar.patientTipTarget(.tabs)
                         if let n = noteResult { noteBanner(n) }
                         if let replaced = received { receivedBanner(replaced) }
                         switch tab {
@@ -85,10 +98,17 @@ struct PatientView: View {
                             .padding(.horizontal, 2)
                     }
                     .padding(.horizontal, 20)
+                    .padding(.top, 4)
                     .padding(.bottom, 32)
+                    .id(Self.topID)
                 }
                 .overlay(alignment: .top) { pinnedJumpBar(proxy) }
+                .readPatientTipFrames(tips.isShowing, into: $tipFrames)
                 .noIdentifiersAlert(isPresented: $showIdentifiers)
+                .modifier(PatientCasePresentations())
+                .onChange(of: scrollToTop) { _, _ in
+                    withAnimation(.snappy) { proxy.scrollTo(Self.topID, anchor: .top) }
+                }
                 .onAppear {
                     #if DEBUG
                     // Screenshot runs: -ps.patient.jump handoff | assessment | history | airway | intraop:<part> scrolls
@@ -107,6 +127,10 @@ struct PatientView: View {
                         if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 2.6, execute: go) }
                     }
                     #endif
+                    // The first time (not in screenshot runs unless -ps.tips 1), once the tab has settled.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        withAnimation(.easeOut(duration: 0.25)) { tips.appear(storedSeen: tipsSeen, launch: PatientTips.launch) }
+                    }
                 }
             }
             .background(FeedBackground())
@@ -141,16 +165,15 @@ struct PatientView: View {
                 Text(inbox.problem ?? "")
             }
             .navigationTitle("My Patient")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if !patient.isEmpty { NoIdentifiersShield(isPresented: $showIdentifiers) }
+                    NoIdentifiersShield(isPresented: $showIdentifiers)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     PatientUndoButton()
-                    Button(role: .destructive) { confirmClear = true } label: { Label("Clear Patient", systemImage: "trash") }
-                        .disabled(patient.isEmpty)
+                    PatientCaseMenu(onClear: { confirmClear = true }, onShowTips: showTips)
                 }
             }
             .confirmationDialog("Clear this patient?", isPresented: $confirmClear, titleVisibility: .visible) {
@@ -166,11 +189,37 @@ struct PatientView: View {
                 RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: nil, handoff: handoff)
             }
         }
+        .overlay {
+            if tips.isShowing {
+                PatientTipsOverlay(tips: $tips, frames: tipFrames)
+                    .transition(.opacity)
+            }
+        }
+        .onChange(of: tips.step) { old, new in
+            if old == nil && new != nil { prepareForTips() }
+        }
+        .onChange(of: tips.seen) { _, seen in
+            if seen { tipsSeen = true }
+        }
         .environment(handoff)
         .task { await openForScreenshot() }
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
         }
+    }
+
+    /// ⋯ → Show Tips: once the menu has closed.
+    private func showTips() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeOut(duration: 0.25)) { tips.showAgain() }
+        }
+    }
+
+    /// The tips start at the top of a tab with the quick-add bar, with the keyboard down.
+    private func prepareForTips() {
+        Keyboard.dismiss()
+        if tab == .summary { tabOverride = .preop }
+        scrollToTop += 1
     }
 
     private func open(_ key: String) {
@@ -255,8 +304,17 @@ struct PatientView: View {
     }
 
     @ViewBuilder private func preop(_ proxy: ScrollViewProxy) -> some View {
-        noteButton
-        if patient.isEmpty { emptyCard }
+        VStack(alignment: .leading, spacing: 8) {
+            noteButton
+            // The empty patient's one hint, in place of an explainer card.
+            if patient.isEmpty {
+                Text("Type the patient in one line, or open a section below.")
+                    .font(PS.sys(size: 12.5))
+                    .foregroundStyle(PS.fg3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 4)
+            }
+        }
         jumpBar(proxy, Self.preopJumps).background(jumpBarReader)
         PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
             .jumpTarget(PatientEditor.procedure)
@@ -371,22 +429,11 @@ struct PatientView: View {
 
     // MARK: Top
 
-    private var undoBanner: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "trash").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
-            Text("Patient cleared").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-            Spacer()
-            Button("Undo") { withAnimation(.snappy) { patient.undoClear() } }
-                .buttonStyle(CapsuleButtonStyle())
-        }
-        .padding(12)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
-    }
-
-    /// The quick-add bar (1.8), in place of the Fill from a note card; its pencil opens the full note.
+    /// The quick-add bar (1.8), in place of the Fill from a note card; its pencil opens the full note. The first tip
+    /// points at it.
     private var noteButton: some View {
         QuickAddBar(tab: tab == .intraop ? .intraop : .preop)
+            .patientTipTarget(.quickAdd)
     }
 
     private func noteBanner(_ n: NoteResult) -> some View {
@@ -416,6 +463,13 @@ struct PatientView: View {
         .padding(12)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(PS.line2, lineWidth: 1))
+        // Goes after 6 seconds, like the quick-add snackbar; its Undo is there until then. (The ↩ in the bar steps
+        // back the same change afterwards.)
+        .task(id: n.id) {
+            try? await Task.sleep(nanoseconds: 6_000_000_000)
+            guard !Task.isCancelled, noteResult?.id == n.id else { return }
+            withAnimation(.snappy) { noteResult = nil }
+        }
     }
 
     private func receivedBanner(_ replaced: Bool) -> some View {
@@ -446,25 +500,6 @@ struct PatientView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Dismiss")
-    }
-
-    private var emptyCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Eyebrow(text: "New case", color: PS.accent)
-            Text("Start with the procedure and the patient's age, sex, height and weight.")
-                .font(PS.serif(size: 22)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-            Text("They fill in the calculators for you; the tabs build a short history and physical, the intraoperative record and a handoff.")
-                .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 10) {
-                NavigationLink(value: PatientEditor.procedure) { Label("Procedure", systemImage: "plus") }
-                    .buttonStyle(CapsuleButtonStyle())
-                NavigationLink(value: PatientEditor.demographics) { Label("Demographics", systemImage: "plus") }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
-            }
-        }
-        .padding(18)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 
     // MARK: Pinned jump bar

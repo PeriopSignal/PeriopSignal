@@ -1,7 +1,9 @@
 import SwiftUI
 
-/// What the rooms bar has open. Kept outside the view, like a received patient (PatientInbox), so a sheet survives the
-/// tab being rebuilt and a screenshot launch reaches the bar that is on screen.
+/// What My Patient's case actions have open: Room & Phone, the case archive, the End case dialog and the banner for a
+/// case just ended. Kept outside the views, like a received patient (PatientInbox), so a sheet survives the tab being
+/// rebuilt, the ⋯ menu, a chip's context menu and a screenshot launch all reach the same presentations, and the row
+/// of chips can come and go.
 @MainActor
 @Observable
 final class PatientRoomsUI {
@@ -19,10 +21,39 @@ final class PatientRoomsUI {
     /// The summary open in the archive.
     var archivePath: [UUID] = []
     var confirmEnd = false
-    /// Screenshot runs: the launch's presentation has been asked for (once, whichever copy of the bar asks), and its
-    /// sheet has appeared.
+    /// The room (or "Case 2") just ended, for the banner.
+    var ended: String?
+    /// Screenshot runs: the launch's presentation has been asked for (once), and its sheet has appeared.
     @ObservationIgnored var asked = false
     @ObservationIgnored var shown = false
+
+    /// "OR 12 · 216-555-0112", or the case and "no room set": the menus' heading.
+    static func roomHeading(_ c: PatientCase) -> String {
+        let phone = c.roomPhone.trimmingCharacters(in: .whitespacesAndNewlines)
+        return c.hasRoom ? c.room + (phone.isEmpty ? " · no phone" : " · " + phone) : c.label + " · no room set"
+    }
+
+    static func archiveTitle(_ archive: PatientArchive) -> String {
+        archive.entries.isEmpty ? "Case Archive" : "Case Archive (\(archive.entries.count))"
+    }
+
+    /// Adds a case, opens it, and asks for its room and phone.
+    func addCase(_ patient: PatientStore) {
+        Haptics.light()
+        withAnimation(.snappy) {
+            ended = nil
+            patient.addCase()
+        }
+        editingRoom = true
+    }
+
+    /// Ends the current case (the End case dialog's buttons); the banner says so when a summary was kept.
+    func end(_ patient: PatientStore, keepSummary: Bool, nextInRoom: Bool = false) {
+        let label = patient.currentCase.label
+        let kept = patient.endCase(keepSummary: keepSummary, nextInRoom: nextInRoom) != nil
+        Haptics.success()
+        withAnimation(.snappy) { ended = kept ? label : nil }
+    }
 
     #if DEBUG
     /// Screenshot runs: opens the room sheet, the archive (on its newest summary) or the end-case dialog, and asks
@@ -51,69 +82,41 @@ final class PatientRoomsUI {
     #endif
 }
 
-/// The top of My Patient in one row of chips: a chip for each room the anesthesiologist covers, labelled by room
+/// The cases in one row of chips, shown only when it earns its place (two cases or more, or a room or phone on the
+/// current one: PatientCaseBook.showsCaseRow): a chip for each room the anesthesiologist covers, labelled by room
 /// ("OR 12", "EP 3", or "Case 2" without one) over a short procedure line, to switch between in one tap; the current
-/// chip highlighted, with small Call and Text icons when its room has a phone; and + to add a case. A chip's context
-/// menu and the ⋯ menu hold the room and phone, End case (with Next Patient in the same room) and the case archive.
+/// chip highlighted, with small Call and Text icons when its room has a phone. A chip's context menu holds its room
+/// and phone, End case and the case archive; adding a case and the rest are in My Patient's ⋯ menu (PatientCaseMenu).
+/// Under the row, the banner for a case just ended.
 struct PatientRoomsBar: View {
     @Environment(PatientStore.self) private var patient
     @Environment(\.openURL) private var openURL
-    /// The room (or "Case 2") just ended, for the banner.
-    @State private var ended: String?
 
     private var ui: PatientRoomsUI { PatientRoomsUI.shared }
     private var current: PatientCase { patient.currentCase }
 
+    /// The bar has something to show: the row of chips, or the banner for a case just ended.
+    @MainActor static func shows(_ patient: PatientStore) -> Bool {
+        patient.showsCaseRow || PatientRoomsUI.shared.ended != nil
+    }
+
     var body: some View {
-        @Bindable var ui = PatientRoomsUI.shared
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                chipStrip
-                menu
+        VStack(alignment: .leading, spacing: 8) {
+            if patient.showsCaseRow {
+                chipStrip.frame(minHeight: 44)
             }
-            .frame(minHeight: 44)
-            if let ended { endedBanner(ended) }
+            if let ended = ui.ended { endedBanner(ended) }
         }
-        .sheet(isPresented: $ui.editingRoom) {
-            PatientRoomSheet()
-                .environment(patient)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-                .onAppear { ui.shown = true }
-        }
-        .sheet(item: $ui.archive, onDismiss: { ui.archivePath = [] }) { s in
-            PatientArchiveView(archive: patient.archive, path: $ui.archivePath, opensFirst: s.opensFirst)
-                .presentationDragIndicator(.visible)
-                .onAppear { ui.shown = true }
-        }
-        .confirmationDialog("End \(current.label)?", isPresented: $ui.confirmEnd, titleVisibility: .visible) {
-            if current.record.isEmpty {
-                Button("Remove Case", role: .destructive) { end(keepSummary: false) }
-            } else {
-                // The usual turnover: keep the summary and start the next patient in the same room and phone.
-                if hasRoom { Button("Next Patient in \(current.room)") { end(keepSummary: true, nextInRoom: true) } }
-                Button("End Case & Keep Summary") { end(keepSummary: true) }
-                Button("End Without a Summary", role: .destructive) { end(keepSummary: false) }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(current.record.isEmpty
-                 ? "Nothing has been entered, so no summary is kept."
-                 : "The handoff is kept in the case archive on this phone with the date only (no time or room) for \(PatientArchive.retentionLabel(patient.archive.retentionDays)), then deleted. The case is removed"
-                   + (hasRoom ? "; Next Patient opens an empty case in \(current.room) with the same phone." : "."))
-        }
-        .task { await openForScreenshot() }
     }
 
     // MARK: Chips
 
-    /// The cases, then +, in one row that scrolls sideways; the current case is kept in view.
+    /// The cases in one row that scrolls sideways; the current case is kept in view.
     private var chipStrip: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     ForEach(patient.cases) { c in chip(c).id(c.id) }
-                    addChip
                 }
                 .padding(.vertical, 2)
                 .padding(.horizontal, 1)
@@ -186,72 +189,19 @@ struct PatientRoomsBar: View {
         .buttonStyle(.plain)
     }
 
-    private var addChip: some View {
-        Button { addCase() } label: {
-            Image(systemName: "plus")
-                .font(PS.sys(size: 14, weight: .semibold))
-                .foregroundStyle(PS.accent2)
-                .frame(width: 40, height: 40)
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!patient.canAddCase)
-        .opacity(patient.canAddCase ? 1 : 0.4)
-        .accessibilityLabel("Add another case")
-    }
-
-    // MARK: Menus
-
-    /// "OR 12 · 216-555-0112", or the case and "no room set": the menus' heading.
-    private func roomHeading(_ c: PatientCase) -> String {
-        let phone = c.roomPhone.trimmingCharacters(in: .whitespacesAndNewlines)
-        return c.hasRoom ? c.room + (phone.isEmpty ? " · no phone" : " · " + phone) : c.label + " · no room set"
-    }
-
-    private var archiveTitle: String {
-        patient.archive.entries.isEmpty ? "Case Archive" : "Case Archive (\(patient.archive.entries.count))"
-    }
+    // MARK: Menu
 
     /// A chip's context menu: its room and phone, and what can be done with the case.
     @ViewBuilder private func chipMenu(_ c: PatientCase) -> some View {
-        Section(roomHeading(c)) {
+        Section(PatientRoomsUI.roomHeading(c)) {
             if c.id != current.id {
                 Button { select(c) } label: { Label("Open \(c.label)", systemImage: "arrow.right.circle") }
             }
-            Button { afterMenu(c) { ui.editingRoom = true } } label: { Label(c.hasRoom ? "Room & Phone" : "Set Room & Phone", systemImage: "pencil") }
-            if let call = PatientPhone.callURL(c.roomPhone) {
-                Button { openURL(call) } label: { Label("Call", systemImage: "phone") }
-            }
-            if let text = PatientPhone.textURL(c.roomPhone) {
-                Button { openURL(text) } label: { Label("Text", systemImage: "message") }
-            }
-            Button { afterMenu(c) { ui.confirmEnd = true } } label: { Label("End Case…", systemImage: "checkmark.circle") }
+            PatientCaseItems(c: c) { present in afterMenu(c, present) }
         }
-        Button { afterMenu(nil) { ui.archive = PatientRoomsUI.Archive() } } label: { Label(archiveTitle, systemImage: "archivebox") }
-    }
-
-    /// The current case's room and phone, Add case, End case and the archive.
-    private var menu: some View {
-        Menu {
-            Section(roomHeading(current)) {
-                Button { openRoomSheet() } label: { Label(current.hasRoom ? "Room & Phone" : "Set Room & Phone", systemImage: "pencil") }
-                Button { ui.confirmEnd = true } label: { Label("End Case…", systemImage: "checkmark.circle") }
-                if patient.canAddCase {
-                    Button { addCase() } label: { Label("Add Case", systemImage: "plus") }
-                }
-            }
-            Button { ui.archive = PatientRoomsUI.Archive() } label: { Label(archiveTitle, systemImage: "archivebox") }
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(PS.sys(size: 15, weight: .bold))
-                .foregroundStyle(PS.fg2)
-                .frame(width: 34, height: 40)
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                .contentShape(Rectangle())
+        Button { afterMenu(nil) { ui.archive = PatientRoomsUI.Archive() } } label: {
+            Label(PatientRoomsUI.archiveTitle(patient.archive), systemImage: "archivebox")
         }
-        .accessibilityLabel("Case actions")
-        .accessibilityHint("Room and phone, end the case, add a case, case archive")
     }
 
     private func endedBanner(_ label: String) -> some View {
@@ -263,7 +213,7 @@ struct PatientRoomsBar: View {
                 Button("Archive") { ui.archive = PatientRoomsUI.Archive() }
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
-            Button { withAnimation(.snappy) { ended = nil } } label: {
+            Button { withAnimation(.snappy) { ui.ended = nil } } label: {
                 Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3).frame(width: 28, height: 28)
             }
             .buttonStyle(.plain)
@@ -275,27 +225,13 @@ struct PatientRoomsBar: View {
 
     // MARK: Actions
 
-    /// Room & Phone, as the ⋯ menu's button opens it.
-    private func openRoomSheet() {
-        ui.editingRoom = true
-    }
-
     private func select(_ c: PatientCase) {
         guard c.id != current.id else { return }
         Haptics.light()
         withAnimation(.snappy) {
-            ended = nil
+            ui.ended = nil
             patient.selectCase(c.id)
         }
-    }
-
-    private func addCase() {
-        Haptics.light()
-        withAnimation(.snappy) {
-            ended = nil
-            patient.addCase()
-        }
-        ui.editingRoom = true
     }
 
     /// From a chip's context menu: opens that case, then presents a sheet or dialog once the menu has closed (one
@@ -304,34 +240,133 @@ struct PatientRoomsBar: View {
         if let c, c.id != current.id { select(c) }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { present() }
     }
+}
 
-    private var hasRoom: Bool { !current.room.trimmingCharacters(in: .whitespaces).isEmpty }
+/// A case's Room & Phone, Call and Text (when its room has a phone) and End case, in a chip's context menu and in the
+/// ⋯ menu. `present` opens the sheet or dialog (a context menu first waits for itself to close).
+struct PatientCaseItems: View {
+    var c: PatientCase
+    var canEnd = true
+    var present: (@escaping () -> Void) -> Void
+    @Environment(\.openURL) private var openURL
 
-    private func end(keepSummary: Bool, nextInRoom: Bool = false) {
-        let label = current.label
-        let kept = patient.endCase(keepSummary: keepSummary, nextInRoom: nextInRoom) != nil
-        Haptics.success()
-        withAnimation(.snappy) { ended = kept ? label : nil }
+    var body: some View {
+        Button { present { PatientRoomsUI.shared.editingRoom = true } } label: {
+            Label(c.hasRoom ? "Room & Phone" : "Set Room & Phone", systemImage: "pencil")
+        }
+        if let call = PatientPhone.callURL(c.roomPhone) {
+            Button { openURL(call) } label: { Label("Call", systemImage: "phone") }
+        }
+        if let text = PatientPhone.textURL(c.roomPhone) {
+            Button { openURL(text) } label: { Label("Text", systemImage: "message") }
+        }
+        Button { present { PatientRoomsUI.shared.confirmEnd = true } } label: {
+            Label("End Case…", systemImage: "checkmark.circle")
+        }
+        .disabled(!canEnd)
+    }
+}
+
+/// My Patient's ⋯ menu, top right beside Undo: Add Case, the current case's Room & Phone (with Call and Text), End
+/// case and the case archive; then Clear Patient; then Show Tips. With more than one case or a room, the current
+/// case's items sit under its room and phone, as in a chip's menu.
+struct PatientCaseMenu: View {
+    @Environment(PatientStore.self) private var patient
+    var onClear: () -> Void
+    var onShowTips: () -> Void
+
+    private var ui: PatientRoomsUI { PatientRoomsUI.shared }
+
+    var body: some View {
+        Menu {
+            if patient.canAddCase {
+                Button { ui.addCase(patient) } label: { Label("Add Case", systemImage: "plus") }
+            }
+            if patient.showsCaseRow {
+                Section(PatientRoomsUI.roomHeading(patient.currentCase)) { caseItems }
+            } else {
+                caseItems
+            }
+            Button { ui.archive = PatientRoomsUI.Archive() } label: {
+                Label(PatientRoomsUI.archiveTitle(patient.archive), systemImage: "archivebox")
+            }
+            Divider()
+            Button(role: .destructive) { onClear() } label: { Label("Clear Patient", systemImage: "trash") }
+                .disabled(patient.isEmpty)
+            Divider()
+            Button { onShowTips() } label: { Label("Show Tips", systemImage: "lightbulb") }
+        } label: {
+            Label("More", systemImage: "ellipsis")
+        }
+        .accessibilityLabel("More")
+        .accessibilityHint("Add a case, room and phone, end the case, the case archive, clear the patient and tips")
+    }
+
+    /// The current case's items; End case needs something to end (not one empty case without a room).
+    private var caseItems: some View {
+        PatientCaseItems(c: patient.currentCase, canEnd: !patient.book.isEmpty) { present in present() }
+    }
+}
+
+/// Room & Phone, the case archive and the End case dialog, on My Patient's page so they open whether or not the row of
+/// chips is showing; the ⋯ menu, a chip's context menu and screenshot launches ask for them through PatientRoomsUI.
+struct PatientCasePresentations: ViewModifier {
+    @Environment(PatientStore.self) private var patient
+
+    func body(content: Content) -> some View {
+        @Bindable var ui = PatientRoomsUI.shared
+        let current = patient.currentCase
+        let hasRoom = current.hasRoom
+        return content
+            .sheet(isPresented: $ui.editingRoom) {
+                PatientRoomSheet()
+                    .environment(patient)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .onAppear { ui.shown = true }
+            }
+            .sheet(item: $ui.archive, onDismiss: { ui.archivePath = [] }) { s in
+                PatientArchiveView(archive: patient.archive, path: $ui.archivePath, opensFirst: s.opensFirst)
+                    .presentationDragIndicator(.visible)
+                    .onAppear { ui.shown = true }
+            }
+            .confirmationDialog("End \(current.label)?", isPresented: $ui.confirmEnd, titleVisibility: .visible) {
+                if current.record.isEmpty {
+                    Button("Remove Case", role: .destructive) { ui.end(patient, keepSummary: false) }
+                } else {
+                    // The usual turnover: keep the summary and start the next patient in the same room and phone.
+                    if hasRoom { Button("Next Patient in \(current.room)") { ui.end(patient, keepSummary: true, nextInRoom: true) } }
+                    Button("End Case & Keep Summary") { ui.end(patient, keepSummary: true) }
+                    Button("End Without a Summary", role: .destructive) { ui.end(patient, keepSummary: false) }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text(current.record.isEmpty
+                     ? "Nothing has been entered, so no summary is kept."
+                     : "The handoff is kept in the case archive on this phone with the date only (no time or room) for \(PatientArchive.retentionLabel(patient.archive.retentionDays)), then deleted. The case is removed"
+                       + (hasRoom ? "; Next Patient opens an empty case in \(current.room) with the same phone." : "."))
+            }
+            .task { await openForScreenshot() }
     }
 
     /// Screenshot runs: -ps.patient.open room | archive | archive-entry | end-case; room-tap opens Room & Phone once,
     /// after the tab has settled, through the same call as the ⋯ menu's button (no retries), to tell a presentation
     /// that fails from a launch hook asked too early.
-    private func openForScreenshot() async {
+    @MainActor private func openForScreenshot() async {
         #if DEBUG
         let o = LaunchSeed.string("ps.patient.open")
+        let ui = PatientRoomsUI.shared
         if o == "room-tap" {
             try? await Task.sleep(nanoseconds: 6_000_000_000)
             guard !Task.isCancelled, !ui.asked else { return }
             ui.asked = true
-            openRoomSheet()
+            ui.editingRoom = true
             return
         }
         guard ["room", "archive", "archive-entry", "end-case"].contains(o) else { return }
         // A presentation asked for before the tab has settled can be dropped, so wait until it has; then the shared
-        // state asks (and asks again if need be), whichever copy of the bar is on screen.
+        // state asks (and asks again if need be).
         try? await Task.sleep(nanoseconds: 2_500_000_000)
-        let ui = PatientRoomsUI.shared
         guard !Task.isCancelled, !ui.asked else { return }
         ui.asked = true
         Task { @MainActor in await PatientRoomsUI.shared.openForScreenshot(o) }

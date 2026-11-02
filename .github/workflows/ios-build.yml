@@ -311,6 +311,15 @@ jobs:
           shot 177-patient-labs-keyboard 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:labs -ps.patient.focus main.k
           shot 178-patient-undo-tab 14 -ps.tab patient -ps.patient demo -ps.patient.edit exam
           shot 179-patient-shield 16 -ps.tab patient -ps.patient demo -ps.patient.shield 1
+          # 1.8.1 My Patient cleanup: the first-time tips (shown in a screenshot run only with -ps.tips 1, at
+          # -ps.tips.step N), the empty screen without them, and the row of cases when it earns its place.
+          shot 180-tips-quickadd 14 -ps.tab patient -ps.tips 1 -ps.tips.step 1 -ps.forceAppearance light
+          shot 181-tips-tabs 14 -ps.tab patient -ps.tips 1 -ps.tips.step 2 -ps.forceAppearance dark
+          shot 182-tips-more 14 -ps.tab patient -ps.tips 1 -ps.tips.step 3 -ps.forceAppearance light
+          shot 183-tips-shield 14 -ps.tab patient -ps.tips 1 -ps.tips.step 4 -ps.forceAppearance dark
+          shot 184-patient-empty-clean 12 -ps.tab patient -ps.forceAppearance dark
+          shot 185-patient-empty-clean-light 12 -ps.tab patient -ps.forceAppearance light
+          shot 186-rooms-row-light 12 -ps.tab patient -ps.patient demo-rooms -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// "No patient identifiers", in full: on My Patient while the patient is empty (a first-time user's first view) and at
-/// the top of Fill from a note. One thin line, "No patient identifiers ⓘ", that opens to the full warning. Elsewhere on
-/// My Patient a grey shield in the navigation bar opens the same words (NoIdentifiersShield).
+/// "No patient identifiers", in full, at the top of Fill from a note: one thin line, "No patient identifiers ⓘ", that
+/// opens to the full warning. On My Patient the grey shield in the navigation bar opens the same words
+/// (NoIdentifiersShield), and the first-time tips (PatientTips) point at it once.
 struct NoIdentifiersBanner: View {
     static let warning = "Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules."
     @State private var open = LaunchSeed.bool("ps.evidence.open")
