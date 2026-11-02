@@ -346,8 +346,15 @@ struct RegionalFinderView: View {
 
     @State private var view = LaunchSeed.string("ps.rg.view").isEmpty ? "front" : LaunchSeed.string("ps.rg.view")
     @State private var selected: Set<String> = Set(LaunchSeed.list("ps.rg.sel"))
+    /// The explanation of the neuraxial height, behind the ⓘ on its eyebrow (1.8.1).
+    @State private var levelInfoOpen = LaunchSeed.bool("ps.evidence.open")
 
     private var data: RegionalData? { refs.bundle?.regional }
+
+    /// The one-line prompt over the figure and the empty state (1.8.1). How to clear an area and the back view become
+    /// a first-open tip in a later wave.
+    static let prompt = "Tap or drag over the operative area."
+    static let emptyState = "Mark an area to see options."
 
     var body: some View {
         ToolScroll {
@@ -355,7 +362,7 @@ struct RegionalFinderView: View {
                 if let d = data {
                     let rec = RegionalCalc.recommend(Array(selected), d)
                     RegionalCard {
-                        Text("Tap or drag across the figure to mark the incision or operative area; tap again to clear it. Switch to the back view for the spine, buttocks and the backs of the limbs.")
+                        Text(Self.prompt)
                             .font(PS.sys(size: 13)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                         HStack {
                             Picker("View", selection: $view) { Text("Front").tag("front"); Text("Back").tag("back") }
@@ -374,16 +381,22 @@ struct RegionalFinderView: View {
                     }
                     if rec.items.isEmpty {
                         RegionalCard {
-                            Text("Nothing marked yet. The options for each marked area appear here: neuraxial technique and level, and the peripheral blocks NYSORA describes for it.")
+                            Text(Self.emptyState)
                                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                         }
                     } else {
                         if rec.items.count > 1, let top = rec.top {
                             RegionalCard(tone: PS.accent2) {
-                                WrapEyebrow(text: "Neuraxial height for everything marked", color: PS.accent2)
+                                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                    WrapEyebrow(text: "Neuraxial height for everything marked", color: PS.accent2)
+                                    InfoButton(open: $levelInfoOpen, label: "About the neuraxial height")
+                                }
                                 Text(top.level).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(PS.fg)
-                                Text("The highest level any marked area needs (\(top.region.lowercased())). A spinal or epidural planned for all of them has to reach it.")
-                                    .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                                if levelInfoOpen {
+                                    Text("The highest level any marked area needs (\(top.region.lowercased())). A spinal or epidural planned for all of them has to reach it.")
+                                        .font(PS.sys(size: 14)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                                        .transition(.opacity)
+                                }
                             }
                         }
                         ForEach(rec.items) { it in itemCard(it) }
@@ -607,8 +620,20 @@ struct NeuraxialGuideView: View {
     var onOpen: (URL) -> Void
 
     @State private var proc = LaunchSeed.string("ps.nx.proc")
+    /// The rest of the level's text, behind the ⓘ on "Target sensory level" (1.8.1).
+    @State private var levelInfoOpen = LaunchSeed.bool("ps.evidence.open")
 
     private var data: RegionalData? { refs.bundle?.regional }
+
+    /// A level text that opens with "At least <level>" keeps that in view and puts the rest (the source's chapters and
+    /// caveats) behind the ⓘ. Other level texts stay in view whole, as before.
+    static func splitLevelText(_ text: String) -> (shown: String, hidden: String?) {
+        guard text.hasPrefix("At least ") else { return (text, nil) }
+        let ends = [text.range(of: " ("), text.range(of: ". ")].compactMap { $0 }
+        guard let end = ends.min(by: { $0.lowerBound < $1.lowerBound }) else { return (text, nil) }
+        let rest = String(text[end.lowerBound...]).trimmingCharacters(in: CharacterSet(charactersIn: " ."))
+        return (String(text[..<end.lowerBound]), rest.isEmpty ? nil : String(text[end.lowerBound...]).trimmingCharacters(in: .whitespaces))
+    }
 
     var body: some View {
         ToolScroll {
@@ -640,9 +665,18 @@ struct NeuraxialGuideView: View {
                             return (x.level, yy)
                         }
                         RegionalCard(tone: PS.accent2) {
-                            Eyebrow(text: "Target sensory level", color: PS.accent2)
+                            let lt = p.levelText.map { Self.splitLevelText($0) }
+                            HStack(alignment: .center, spacing: 6) {
+                                Eyebrow(text: "Target sensory level", color: PS.accent2)
+                                if lt?.hidden != nil { InfoButton(open: $levelInfoOpen, label: "About the level") }
+                            }
                             Text(p.level ?? "—").font(PS.serif(size: 26, weight: .semibold)).foregroundStyle(PS.fg)
-                            if let t = p.levelText { Text(t).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
+                            if let lt {
+                                Text(lt.shown).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                                if levelInfoOpen, let h = lt.hidden {
+                                    InfoCaptionText(text: h, font: PS.sys(size: 12.5)).transition(.opacity)
+                                }
+                            }
                             RegionalFigureView(figure: d.figure, view: "front", shadeFrom: saddle ? nil : y, saddle: saddle, levels: marks, showSides: false)
                                 .frame(maxWidth: 190).frame(maxWidth: .infinity)
                             factRows(present([("Technique", p.technique), ("Insertion", p.insertion), ("Spinal", p.spinal), ("Epidural", p.epidural), ("Adjuvants", p.adjuvants), ("Notes", p.notes)]))

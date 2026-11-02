@@ -69,6 +69,9 @@ struct AclsView: View {
 
     @State private var store = AclsStore.shared
     @State private var copied = false
+    /// The protocol note behind the ⓘ on the phase chips, and the log's note behind the ⓘ on its header.
+    @State private var protocolOpen = LaunchSeed.bool("ps.evidence.open")
+    @State private var logInfoOpen = LaunchSeed.bool("ps.evidence.open")
     @FocusState private var focused: Bool
     private let ticker = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
 
@@ -146,14 +149,14 @@ struct AclsView: View {
                     WeightField(text: Binding(get: { store.weightText }, set: { v in
                         store.weightText = v
                         store.state?.weight = WeightField.value(v)
-                    }), focus: $focused, prompt: "Enter the weight for the child doses and energies; it clears when the code ends.",
-                        patientWeight: myPatient.record.isChild ? myPatient.weightKg : nil)
+                    }), focus: $focused, prompt: WeightField.perKgPrompt,
+                        patientWeight: myPatient.record.isChild ? myPatient.weightKg : nil, clearNote: Self.weightClearNote)
                 }
                 modeTabs(d, m)
                 if let pts = m.patients, !pts.contains(s.patient) {
                     note(m.patientNote ?? "This protocol is written for \(pts.joined(separator: " and ")) patients.", warn: true)
                 }
-                if let n = m.note { note(n) }
+                protocolNote(m)
                 deadlines(d, s, t)
                 prompts(d, s, t, m)
                 if let tr = AclsCalc.tree(s, d) { treeCard(d, s, t, tr) }
@@ -256,6 +259,13 @@ struct AclsView: View {
     }
 
     private func modeTabs(_ d: AclsData, _ m: AclsMode) -> some View {
+        HStack(spacing: 8) {
+            modeChips(d, m)
+            if !(m.note ?? "").isEmpty { InfoButton(open: $protocolOpen, label: "About this protocol", size: 15) }
+        }
+    }
+
+    private func modeChips(_ d: AclsData, _ m: AclsMode) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(d.modes) { x in
@@ -277,6 +287,52 @@ struct AclsView: View {
             }
             .padding(.horizontal, 1)
         }
+    }
+
+    /// When the child's weight is cleared (the code store keeps it until "End code", not until the screen closes).
+    static let weightClearNote = "Cleared when the code ends."
+
+    /// The mode's protocol note (1.8.1): behind the ⓘ on the phase chips, except its "not recommended" and "not routine"
+    /// sentences, which stay in view, one line each (Ben, Nov 2).
+    @ViewBuilder private func protocolNote(_ m: AclsMode) -> some View {
+        if let n = m.note, !n.isEmpty {
+            let parts = Self.splitProtocolNote(n)
+            if protocolOpen && !parts.hidden.isEmpty { note(parts.hidden).transition(.opacity) }
+            ForEach(parts.kept, id: \.self) { k in note(k) }
+        }
+    }
+
+    /// Phrases that keep a sentence of a protocol note in view: what the guideline advises against.
+    static let keepVisible = ["not recommended", "not routine", "no immediate role"]
+
+    /// A protocol note split into the sentences that stay in view (in order) and the rest, joined, for the ⓘ.
+    static func splitProtocolNote(_ text: String) -> (kept: [String], hidden: String) {
+        var kept: [String] = [], hidden: [String] = []
+        for sentence in sentences(text) {
+            let lower = sentence.lowercased()
+            if keepVisible.contains(where: { lower.contains($0) }) { kept.append(sentence) } else { hidden.append(sentence) }
+        }
+        return (kept, hidden.joined(separator: " "))
+    }
+
+    /// Sentences: split after ". " where the next sentence starts with a capital letter.
+    static func sentences(_ text: String) -> [String] {
+        var out: [String] = []
+        var current = ""
+        let chars = Array(text)
+        var i = 0
+        while i < chars.count {
+            current.append(chars[i])
+            if chars[i] == ".", i + 2 < chars.count, chars[i + 1] == " ", chars[i + 2].isUppercase {
+                out.append(current.trimmingCharacters(in: .whitespaces))
+                current = ""
+                i += 1   // skip the space
+            }
+            i += 1
+        }
+        let rest = current.trimmingCharacters(in: .whitespaces)
+        if !rest.isEmpty { out.append(rest) }
+        return out
     }
 
     private func note(_ text: String, warn: Bool = false) -> some View {
@@ -533,12 +589,17 @@ struct AclsView: View {
 
     private func logSection(_ s: AclsState) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            HStack(spacing: 6) {
                 Eyebrow(text: "Log · \(s.log.count) \(s.log.count == 1 ? "entry" : "entries")")
+                InfoButton(open: $logInfoOpen, label: "About the log")
                 Spacer()
                 Button { copyLog(s) } label: { Label("Copy log", systemImage: "doc.on.doc") }.buttonStyle(GhostButtonStyle())
             }
             .padding(.leading, 2)
+            if logInfoOpen {
+                InfoCaptionText(text: "Clock times are this phone's; the log stays in the app while it runs and clears when the code ends.", font: PS.sys(size: 12.5))
+                    .padding(.horizontal, 2)
+            }
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(s.log.reversed().enumerated()), id: \.element.id) { i, e in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -562,7 +623,6 @@ struct AclsView: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 4)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            EvidenceNote("Clock times are this phone's; the log stays in the app while it runs and clears when the code ends.").padding(.horizontal, 2)
         }
     }
 

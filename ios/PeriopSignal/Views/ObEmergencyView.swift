@@ -85,18 +85,24 @@ struct ObEmergencyView: View {
         }
     }
 
+    /// The tab's head (1.8.1): "Emergency checklist", a short title on one line and the summary, which stays in view
+    /// (an emergency checklist keeps it).
     private func header(_ ev: ObEvent) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "Emergency checklist", color: PS.accent)
-            Text(ev.title.titleCased)
-                .font(PS.serif(size: 25, weight: .semibold))
-                .foregroundStyle(PS.fg)
-                .fixedSize(horizontal: false, vertical: true)
-            if let s = ev.summary {
-                Text(s).font(PS.sys(size: 15)).foregroundStyle(PS.fg2).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
-            }
-        }
+        ToolHeader(eyebrow: "Emergency checklist", title: Self.title(for: ev), summary: ev.summary, infoSummary: false, tint: PS.accent)
     }
+
+    /// Short titles for the events whose full title runs past one line; the others keep their own.
+    static let shortTitles: [String: String] = [
+        "arrest": "Maternal Arrest",
+        "hypertension": "Hypertension & Eclampsia",
+        "high-block": "High or Total Block",
+        "airway": "Failed Intubation",
+        "last": "LAST in Pregnancy",
+        "sepsis": "Maternal Sepsis",
+        "cord": "Cord Prolapse",
+    ]
+
+    static func title(for ev: ObEvent) -> String { shortTitles[ev.id] ?? ev.title.titleCased }
 
     private static func clock(_ seconds: Double) -> String {
         let s = max(0, Int(seconds))
@@ -161,7 +167,7 @@ struct ObEmergencyView: View {
             Eyebrow(text: wf?.eyebrow ?? "Doses for this patient", color: tint)
             FocusBox { f in
                 WeightField(text: Binding(get: { weights[key] ?? "" }, set: { weights[key] = $0 }), focus: f,
-                            prompt: wf?.prompt ?? "Enter the weight: the doses below are per kilogram until you do.",
+                            prompt: wf?.prompt ?? WeightField.perKgPrompt,
                             title: wf?.title ?? "Patient Weight",
                             patientWeight: key.isEmpty && myPatient.sex == .female ? myPatient.weightKg : nil)
             }
@@ -209,6 +215,10 @@ struct ObEmergencyView: View {
             Hairline()
             EvidenceDisclosure {
                 Eyebrow(text: srcs.count > 1 ? "Sources" : "Source")
+                // The full title, where the header shows a short one.
+                if Self.shortTitles[ev.id] != nil {
+                    Text(ev.title.titleCased).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                }
                 ForEach(srcs) { s in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(s.citation).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)

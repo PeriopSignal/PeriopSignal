@@ -10,6 +10,8 @@ struct AbgView: View {
 
     @State private var values: [String: String] = Self.seededValues()
     @State private var copied = false
+    /// The reading's narrative, behind the ⓘ on the result header (1.8.1); the strip and the steps stay in view.
+    @State private var explanationOpen = LaunchSeed.bool("ps.evidence.open")
 
     private var data: AbgData? { refs.bundle?.abg }
 
@@ -147,8 +149,9 @@ struct AbgView: View {
     private func readingCard(_ r: AbgCalc.Reading) -> some View {
         let t = tone(r)
         return VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            HStack(spacing: 6) {
                 Eyebrow(text: "Acid–base", color: t)
+                if Self.explanationBehindInfo(r) { InfoButton(open: $explanationOpen, label: "About this reading") }
                 Spacer()
                 if !r.empty {
                     Button {
@@ -160,7 +163,10 @@ struct AbgView: View {
             }
             Text(r.headline).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(r.empty ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
                 .promptHeadline(r.empty)
-            Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            if !Self.explanationBehindInfo(r) || explanationOpen {
+                Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+            }
             if let v = r.visual { AbgStrip(visual: v).padding(.top, 4) }
             if !r.steps.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
@@ -191,6 +197,12 @@ struct AbgView: View {
                 .fill(t.opacity(0.9)).frame(height: 3)
                 .clipShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
+    }
+
+    /// The narrative repeats the steps below it, so it sits behind the ⓘ. It stays in view while the gas is empty (it
+    /// is the instruction) and for a normal gas, whose narrative carries the caveat that two disorders can cancel out.
+    static func explanationBehindInfo(_ r: AbgCalc.Reading) -> Bool {
+        !r.empty && r.headline != "Normal Acid–Base Status"
     }
 
     // MARK: Rules and sources

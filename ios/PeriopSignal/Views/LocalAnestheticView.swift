@@ -15,6 +15,9 @@ struct LocalAnestheticView: View {
     @State private var entries: [LAEntry] = []
     @State private var volumes: [UUID: String] = [:]
     @State private var copied = false
+    /// Captions behind ⓘ (1.8.1): the epinephrine switch's and the colour key on the Doses header.
+    @State private var epiInfoOpen = LaunchSeed.bool("ps.evidence.open")
+    @State private var dosesInfoOpen = LaunchSeed.bool("ps.evidence.open")
     @FocusState private var focused: Bool
 
     private var agents: [LocalAnesthetic] { refs.peds?.localAnesthetics ?? [] }
@@ -71,7 +74,7 @@ struct LocalAnestheticView: View {
 
     private var patient: some View {
         VStack(alignment: .leading, spacing: 12) {
-            WeightField(text: $weightText, focus: $focused, prompt: "Enter the weight: the maximum for each agent, and whether the total is under it, depend on it.", patientWeight: myPatient.weightKg)
+            WeightField(text: $weightText, focus: $focused, prompt: WeightField.perKgPrompt, patientWeight: myPatient.weightKg)
             HStack(spacing: 14) {
                 Text("Patient").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
                 Spacer()
@@ -90,13 +93,14 @@ struct LocalAnestheticView: View {
                     }
                 }
             }
-            Toggle(isOn: $epinephrine) {
-                VStack(alignment: .leading, spacing: 2) {
+            // The caption sits behind ⓘ; the switch stands apart so the ⓘ is its own button.
+            HStack(spacing: 10) {
+                InfoTitle(caption: "Raises the label maximum for lidocaine, bupivacaine, mepivacaine and chloroprocaine; not for Exparel.", open: $epiInfoOpen, captionFont: PS.sys(size: 12)) {
                     Text("With epinephrine").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
-                    Text("Raises the label maximum for lidocaine, bupivacaine, mepivacaine and chloroprocaine; not for Exparel.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 }
+                Spacer(minLength: 8)
+                Toggle("With epinephrine", isOn: $epinephrine).labelsHidden().tint(PS.accent)
             }
-            .tint(PS.accent)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -111,12 +115,17 @@ struct LocalAnestheticView: View {
         let tone: Color = weight == nil ? PS.fg3 : (over ? PS.accent : PS.green)
         let totalMg = r.agents.reduce(0) { $0 + $1.mg }
         return VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            HStack(spacing: 6) {
                 Eyebrow(text: "Doses").padding(.leading, 2)
+                InfoButton(open: $dosesInfoOpen, label: "About the colours")
                 Spacer()
                 Menu {
                     ForEach(agents) { a in Button(a.name) { add(a) } }
                 } label: { Label("Add agent", systemImage: "plus").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent) }
+            }
+            if dosesInfoOpen {
+                InfoCaptionText(text: "Green: under the maximum for this weight. Red: above it. With more than one agent, each counts as a fraction of its own maximum and the fractions add up.", font: PS.sys(size: 12.5))
+                    .padding(.horizontal, 2)
             }
             VStack(spacing: 0) {
                 // Header
@@ -137,7 +146,9 @@ struct LocalAnestheticView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Total").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text(statusLine(r)).font(PS.sys(size: 12)).foregroundStyle(tone).fixedSize(horizontal: false, vertical: true)
+                        if let line = statusLine(r) {
+                            Text(line).font(PS.sys(size: 12)).foregroundStyle(tone).fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                     Spacer()
                     Text(weight == nil ? "—" : "\(PedsCalc.fmt(totalMg)) mg")
@@ -152,7 +163,6 @@ struct LocalAnestheticView: View {
             .clipShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(weight == nil ? PS.line : tone.opacity(0.6), lineWidth: 1))
             HStack {
-                EvidenceNote("Green: under the maximum for this weight. Red: above it. With more than one agent, each counts as a fraction of its own maximum and the fractions add up.")
                 Spacer(minLength: 8)
                 Button {
                     UIPasteboard.general.string = summaryText
@@ -165,10 +175,11 @@ struct LocalAnestheticView: View {
         .animation(.snappy, value: r.percentUsed)
     }
 
-    private func statusLine(_ r: LAMixResult) -> String {
+    /// The line under Total; nil before any volume is typed (the mL fields' placeholder asks for them).
+    private func statusLine(_ r: LAMixResult) -> String? {
         guard weight != nil else { return "Enter the weight" }
         let dosed = r.agents.filter { $0.mg > 0 }
-        if dosed.isEmpty { return "Type the volumes" }
+        if dosed.isEmpty { return nil }
         if dosed.count == 1, let only = dosed.first, let m = only.maxMg {
             return r.combined > 1 ? "Above the maximum of \(PedsCalc.fmt(m)) mg" : "Under the maximum of \(PedsCalc.fmt(m)) mg (\(r.percentUsed)%)"
         }
@@ -176,7 +187,7 @@ struct LocalAnestheticView: View {
     }
 
     private var summaryText: String {
-        var s = "Local anesthetic for \(weightText) kg \(pediatric ? "child" : "adult")\(epinephrine ? " with epinephrine" : ""): \(statusLine(result))."
+        var s = "Local anesthetic for \(weightText) kg \(pediatric ? "child" : "adult")\(epinephrine ? " with epinephrine" : "")" + (statusLine(result).map { ": \($0)." } ?? ".")
         for a in result.agents where a.mL > 0 {
             s += "\n• \(a.agent.name) \(PedsCalc.fmt(a.percent))% × \(PedsCalc.fmt(a.mL)) mL = \(PedsCalc.fmt(a.mg)) mg" + (a.maxMg.map { " (max \(PedsCalc.fmt($0)) mg)" } ?? "")
         }
@@ -311,7 +322,6 @@ struct LocalAnestheticView: View {
                             Text(a.concentrations.map { "\(PedsCalc.fmt(m / ($0 * 10))) mL of \(PedsCalc.fmt($0))%" }.joined(separator: " · "))
                                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg2).lineLimit(2).minimumScaleFactor(0.85)
                         }
-                        if let n = a.note { EvidenceNote(n) }
                     }
                     .padding(.horizontal, 16).padding(.vertical, 11)
                     if i < agents.count - 1 { Hairline().padding(.leading, 16) }
@@ -345,6 +355,11 @@ struct LocalAnestheticView: View {
             EvidenceDisclosure {
                 Text("Adult maxima are the FDA labels' figures (with a conventional per-kilogram ceiling where the label gives only milligrams); pediatric per-kilogram maxima follow the ASRA/ESRA 2018 recommendations. The additive rule for mixtures (each agent as a fraction of its own maximum, summed) is the convention described in ASRA's 2026 Pro-Con on mixing local anesthetics; no label or guideline codifies it. Label maxima are conservative conventions, not pharmacological thresholds: site, vascularity, age, hepatic and cardiac function change the risk. Exparel's rules come from its label. The LAST checklist is in the Emergency folder.")
                     .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                // Each agent's own note, gathered here from the "Explanation & Evidence" row it had under its maximum.
+                ForEach(agents.filter { $0.note != nil }) { a in
+                    (Text(a.name + ": ").fontWeight(.semibold) + Text(a.note ?? ""))
+                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                }
                 ForEach(Array(Set(agents.compactMap(\.source))).sorted(), id: \.self) { s in
                     Text(s).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
                 }
