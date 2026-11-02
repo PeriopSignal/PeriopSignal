@@ -1,31 +1,31 @@
-Analysis of sampling PeriopSignal (pid 21628) every 1 millisecond
-Process:         PeriopSignal [21628]
-Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/B03F4468-2EC8-4EC2-8E0B-08FDDCA411D7/PeriopSignal.app/PeriopSignal
-Load Address:    0x103f5d000
+Analysis of sampling PeriopSignal (pid 50267) every 1 millisecond
+Process:         PeriopSignal [50267]
+Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/CFAABFB3-9414-4CCD-9A1D-4EA3ABA70E46/PeriopSignal.app/PeriopSignal
+Load Address:    0x109717000
 Identifier:      PeriopSignal
 Version:         ???
 Code Type:       X86-64
 Platform:        iOS Simulator
-Parent Process:  launchd_sim [18284]
+Parent Process:  launchd_sim [25472]
 Target Type:     live task
 
-Date/Time:       2026-11-02 22:51:20.508 +0000
-Launch Time:     2026-11-02 22:51:05.086 +0000
+Date/Time:       2026-11-02 22:56:53.304 +0000
+Launch Time:     2026-11-02 22:56:29.762 +0000
 OS Version:      macOS 15.7.9 (24G830)
 Report Version:  7
 Analysis Tool:   /usr/bin/sample
 
-Physical footprint:         43.3M
-Physical footprint (peak):  46.2M
+Physical footprint:         35.9M
+Physical footprint (peak):  40.0M
 Idle exit:                  untracked
 ----
 
 Call graph:
-    2 Thread_65140   DispatchQueue_1: com.apple.main-thread  (serial)
-    + 2 start  (in dyld) + 3056  [0x112fd1530]
-    +   2 start_sim  (in dyld_sim) + 10  [0x1040a53dc]
-    +     2 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x107e6d4f9]  PeriopSignalApp.swift:0
-    +       2 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x107e661c3]  /<compiler-generated>:0
+    2 Thread_137670   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 2 start  (in dyld) + 3056  [0x11465d530]
+    +   2 start_sim  (in dyld_sim) + 10  [0x10985f3dc]
+    +     2 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x10d4befd9]  PeriopSignalApp.swift:0
+    +       2 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x10d4b7ca3]  /<compiler-generated>:0
     +         2 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
     +           2 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
     +             2 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
@@ -33,166 +33,36 @@ Call graph:
     +                 2 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
     +                   2 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
     +                     2 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-    +                       2 __CFRunLoopRun  (in CoreFoundation) + 956  [0x7ff80293ab83]
-    +                         2 __CFRunLoopDoBlocks  (in CoreFoundation) + 391  [0x7ff80293b885]
-    +                           2 __CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__  (in CoreFoundation) + 12  [0x7ff80293c0c3]
-    +                             2 __34-[UIApplication _firstCommitBlock]_block_invoke_2  (in UIKitCore) + 34  [0x7ff80932ca4e]
-    +                               2 CA::Transaction::commit()  (in QuartzCore) + 748  [0x7ff81016bede]
-    +                                 2 CA::Context::commit_transaction(CA::Transaction*, double, double*)  (in QuartzCore) + 769  [0x7ff81012e6b7]
-    +                                   2 CA::Layer::layout_and_display_if_needed(CA::Transaction*)  (in QuartzCore) + 110  [0x7ff81023c0a4]
-    +                                     2 CA::Layer::update_if_needed_(CA::Transaction*, CA::LayerUpdateReason)  (in QuartzCore) + 700  [0x7ff81022f490]
-    +                                       2 CA::Layer::perform_update_(CA::Layer*, CALayer*, unsigned int, CA::LayerUpdateReason, CA::Transaction*)  (in QuartzCore) + 391  [0x7ff81022fbb1]
-    +                                         2 -[UIView(CALayerDelegate) layoutSublayersOfLayer:]  (in UIKitCore) + 3327  [0x7ff809ad39c1]
-    +                                           2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x473b55  [0x7ff808081b55]
-    +                                             2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x4737a6  [0x7ff8080817a6]
-    +                                               2 @objc _UIHostingView.layoutSubviews()  (in SwiftUI) + 21  [0x7ffb05615765]
-    +                                                 2 _UIHostingView.layoutSubviews()  (in SwiftUI) + 76  [0x7ffb0561573c]
-    +                                                   2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192ec4  [0x7ff807da0ec4]
-    +                                                     2 ViewGraphRootValueUpdater.render(interval:updateDisplayList:targetTimestamp:)  (in SwiftUICore) + 464  [0x7ffb066db140]
-    +                                                       2 closure #1 in ViewGraphRootValueUpdater.render(interval:updateDisplayList:targetTimestamp:)  (in SwiftUICore) + 626  [0x7ffb066dcae2]
-    +                                                         2 ViewGraph.updateOutputs(at:)  (in SwiftUICore) + 194  [0x7ffb066e30e2]
-    +                                                           2 specialized GraphHost.runTransaction(_:do:id:)  (in SwiftUICore) + 409  [0x7ffb0626cdd9]
-    +                                                             2 AG::Subgraph::update(unsigned int)  (in AttributeGraph) + 1115  [0x7ffa0cd7c2c3]
-    +                                                               2 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                 2 specialized implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 54  [0x7ffb061626c6]
-    +                                                                   2 RootGeometry.value.getter  (in SwiftUICore) + 660  [0x7ffb066eb294]
-    +                                                                     2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                       2 ???  (in SwiftUICore)  load address 0x7ffb05a34000 + 0x6625a9  [0x7ffb060965a9]
-    +                                                                         2 UnaryLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 853  [0x7ffb06096965]
-    +                                                                           2 protocol witness for UnaryLayout.sizeThatFits(in:context:child:) in conformance _FlexFrameLayout  (in SwiftUICore) + 82  [0x7ffb062df8c2]
-    +                                                                             2 _FlexFrameLayout.sizeThatFits(in:context:child:)  (in SwiftUICore) + 388  [0x7ffb062decb4]
-    +                                                                               2 LayoutProxy.size(in:)  (in SwiftUICore) + 218  [0x7ffb05e7098a]
-    +                                                                                 2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                   2 ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 832  [0x7ffb060de550]
-    +                                                                                     2 closure #1 in ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 144  [0x7ffb060de830]
-    +                                                                                       2 <deduplicated_symbol>  (in SwiftUICore) + 105  [0x7ffb05e3b0e9]
-    +                                                                                         2 closure #1 in StackLayout.sizeThatFits(_:)  (in SwiftUICore) + 225  [0x7ffb0653d5a1]
-    +                                                                                           2 specialized StackLayout.UnmanagedImplementation.placeChildren1(in:minorProposalForChild:)  (in SwiftUICore) + 143  [0x7ffb065414df]
-    +                                                                                             2 specialized StackLayout.UnmanagedImplementation.sizeChildrenGenerallyWithConcreteMajorProposal(in:minorProposalForChild:)  (in SwiftUICore) + 1060  [0x7ffb0653fc84]
-    +                                                                                               2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                 2 InsetLayoutComputer.Engine.sizeThatFits(_:)  (in SwiftUICore) + 574  [0x7ffb0668598e]
-    +                                                                                                   2 AG::Graph::with_update(AG::data::ptr<AG::Node>, AG::ClosureFunction<void>)  (in AttributeGraph) + 281  [0x7ffa0cd6e243]
-    +                                                                                                     2 partial apply for closure #1 in closure #1 in InsetLayoutComputer.Engine.sizeThatFits(_:)  (in SwiftUICore) + 78  [0x7ffb0668760e]
-    +                                                                                                       2 InsetViewLayout.sizeThatFits(_:)  (in SwiftUICore) + 153  [0x7ffb06684df9]
-    +                                                                                                         2 InsetViewLayout.secondaryProposal(parentProposal:spacing:)  (in SwiftUICore) + 274  [0x7ffb06684082]
-    +                                                                                                           2 InsetViewLayout.primaryMinimum(parentProposalWithoutSpacing:)  (in SwiftUICore) + 303  [0x7ffb06683e7f]
-    +                                                                                                             2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                               2 protocol witness for LayoutEngine.sizeThatFits(_:) in conformance ScrollViewLayoutComputer.Engine  (in SwiftUI) + 205  [0x7ffb0572fffd]
-    +                                                                                                                 2 ViewSizeCache.get(_:makeValue:)  (in SwiftUICore) + 477  [0x7ffb060c975d]
-    +                                                                                                                   2 closure #1 in ScrollViewLayoutComputer.Engine.sizeThatFits(_:)  (in SwiftUI) + 127  [0x7ffb0572fe9f]
-    +                                                                                                                     2 specialized static ScrollViewUtilities.sizeThatFits(in:contentComputer:axes:)  (in SwiftUI) + 397  [0x7ffb0494900d]
-    +                                                                                                                       2 LayoutComputer.sizeThatFits(_:)  (in SwiftUICore) + 115  [0x7ffb06463823]
-    +                                                                                                                         2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                           2 ???  (in SwiftUICore)  load address 0x7ffb05a34000 + 0x6625a9  [0x7ffb060965a9]
-    +                                                                                                                             2 UnaryLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 853  [0x7ffb06096965]
-    +                                                                                                                               2 protocol witness for UnaryLayout.sizeThatFits(in:context:child:) in conformance _PaddingLayout  (in SwiftUICore) + 46  [0x7ffb05d5dfae]
-    +                                                                                                                                 2 _PaddingLayout.sizeThatFits(in:context:child:)  (in SwiftUICore) + 249  [0x7ffb05d5d489]
-    +                                                                                                                                   2 LayoutProxy.size(in:)  (in SwiftUICore) + 218  [0x7ffb05e7098a]
-    +                                                                                                                                     2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                       2 ???  (in SwiftUICore)  load address 0x7ffb05a34000 + 0x6625a9  [0x7ffb060965a9]
-    +                                                                                                                                         2 UnaryLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 853  [0x7ffb06096965]
-    +                                                                                                                                           2 protocol witness for UnaryLayout.sizeThatFits(in:context:child:) in conformance _PaddingLayout  (in SwiftUICore) + 46  [0x7ffb05d5dfae]
-    +                                                                                                                                             2 _PaddingLayout.sizeThatFits(in:context:child:)  (in SwiftUICore) + 249  [0x7ffb05d5d489]
-    +                                                                                                                                               2 LayoutProxy.size(in:)  (in SwiftUICore) + 218  [0x7ffb05e7098a]
-    +                                                                                                                                                 2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                                   2 ???  (in SwiftUICore)  load address 0x7ffb05a34000 + 0x6625a9  [0x7ffb060965a9]
-    +                                                                                                                                                     2 UnaryLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 853  [0x7ffb06096965]
-    +                                                                                                                                                       2 protocol witness for UnaryLayout.sizeThatFits(in:context:child:) in conformance _PaddingLayout  (in SwiftUICore) + 46  [0x7ffb05d5dfae]
-    +                                                                                                                                                         2 _PaddingLayout.sizeThatFits(in:context:child:)  (in SwiftUICore) + 249  [0x7ffb05d5d489]
-    +                                                                                                                                                           2 LayoutProxy.size(in:)  (in SwiftUICore) + 218  [0x7ffb05e7098a]
-    +                                                                                                                                                             2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                                               2 LazyLayoutComputer.Engine.sizeThatFits(_:)  (in SwiftUICore) + 678  [0x7ffb060073b6]
-    +                                                                                                                                                                 2 closure #1 in LazyLayoutComputer.Engine.sizeThatFits(_:)  (in SwiftUICore) + 146  [0x7ffb06007662]
-    +                                                                                                                                                                   2 AG::Graph::with_update(AG::data::ptr<AG::Node>, AG::ClosureFunction<void>)  (in AttributeGraph) + 281  [0x7ffa0cd6e243]
-    +                                                                                                                                                                     2 specialized closure #1 in SizeAndSpacingContext.update<A>(_:)  (in SwiftUICore) + 23  [0x7ffb05e41ef7]
-    +                                                                                                                                                                       2 partial apply for closure #1 in closure #1 in LazyLayoutComputer.Engine.sizeThatFits(_:)  (in SwiftUICore) + 82  [0x7ffb060159c2]
-    +                                                                                                                                                                         2 closure #1 in closure #1 in LazyLayoutComputer.Engine.sizeThatFits(_:)  (in SwiftUICore) + 223  [0x7ffb0600775f]
-    +                                                                                                                                                                           2 protocol witness for LazyLayout.sizeThatFits(proposedSize:subviews:context:cache:) in conformance LazyVStackLayout  (in SwiftUICore) + 42  [0x7ffb05f6b2ea]
-    +                                                                                                                                                                             2 protocol witness for LazyLayout.sizeThatFits(proposedSize:subviews:context:cache:) in conformance LazyHStackLayout  (in SwiftUICore) + 79  [0x7ffb05f6b33f]
-    +                                                                                                                                                                               2 specialized LazyStack<>.sizeThatFits(proposedSize:subviews:context:cache:)  (in SwiftUICore) + 420  [0x7ffb05f59c84]
-    +                                                                                                                                                                                 2 specialized LazyStack<>.measureEstimates(updatingPosition:index:minor:subviews:cache:)  (in SwiftUICore) + 89  [0x7ffb05b71e09]
-    +                                                                                                                                                                                   2 specialized LazyStack<>.measureEstimates(updatingPosition:index:minor:subviews:cache:)  (in SwiftUICore) + 923  [0x7ffb05b721ab]
-    +                                                                                                                                                                                     2 _LazyLayout_Subviews.apply(from:style:to:)  (in SwiftUICore) + 192  [0x7ffb061da5d0]
-    +                                                                                                                                                                                       2 _ViewList_Node.applyNodes(from:style:transform:to:)  (in SwiftUICore) + 234  [0x7ffb0614681a]
-    +                                                                                                                                                                                         2 DynamicViewList.WrappedList.applyNodes(from:style:list:transform:to:)  (in SwiftUICore) + 157  [0x7ffb0646c6bd]
-    +                                                                                                                                                                                           2 _ViewList_TemporarySublistTransform.withPushedItem<A, B>(_:do:)  (in SwiftUICore) + 185  [0x7ffb06145829]
-    +                                                                                                                                                                                             2 <deduplicated_symbol>  (in SwiftUICore) + 61  [0x7ffb06470bbd]
-    +                                                                                                                                                                                               2 <deduplicated_symbol>  (in SwiftUICore) + 138  [0x7ffb0615363a]
-    +                                                                                                                                                                                                 2 protocol witness for ViewList.applyNodes(from:style:list:transform:to:) in conformance _ViewList_Group  (in SwiftUICore) + 94  [0x7ffb0614f9de]
-    +                                                                                                                                                                                                   2 partial apply for closure #1 in closure #1 in _LazyLayout_Subviews.apply(from:style:to:)  (in SwiftUICore) + 30  [0x7ffb05beef3e]
-    +                                                                                                                                                                                                     2 closure #1 in closure #1 in _LazyLayout_Subviews.apply(from:style:to:)  (in SwiftUICore) + 1177  [0x7ffb061dff59]
-    +                                                                                                                                                                                                       2 BaseViewList.applyNodes(from:style:list:transform:to:)  (in SwiftUICore) + 361  [0x7ffb0614d649]
-    +                                                                                                                                                                                                         2 partial apply for closure #1 in applyNode #1 (start:style:node:transform:section:) in _LazyLayout_Subviews.apply(from:style:to:)  (in SwiftUICore) + 76  [0x7ffb061e79bc]
-    +                                                                                                                                                                                                           2 closure #1 in applyNode #1 (start:style:node:transform:section:) in _LazyLayout_Subviews.apply(from:style:to:)  (in SwiftUICore) + 1388  [0x7ffb061df3ac]
-    +                                                                                                                                                                                                             2 partial apply for specialized closure #1 in LazyStack<>.measureEstimates(updatingPosition:index:minor:subviews:cache:)  (in SwiftUICore) + 94  [0x7ffb05bf018e]
-    +                                                                                                                                                                                                               2 specialized closure #1 in LazyStack<>.measureEstimates(updatingPosition:index:minor:subviews:cache:)  (in SwiftUICore) + 113  [0x7ffb05be69c1]
-    +                                                                                                                                                                                                                 2 specialized closure #1 in LazyStack<>.measureEstimates(updatingPosition:index:minor:subviews:cache:)  (in SwiftUICore) + 2182  [0x7ffb05b72f76]
-    +                                                                                                                                                                                                                   2 specialized LazyHVStack<>.lengthAndSpacing(subviews:predecessors:minorGeometry:)  (in SwiftUICore) + 375  [0x7ffb05b55a27]
-    +                                                                                                                                                                                                                     2 LayoutEngineBox.lengthThatFits(_:in:)  (in SwiftUICore) + 80  [0x7ffb06465140]
-    +                                                                                                                                                                                                                       2 LayoutEngine.lengthThatFits(_:in:)  (in SwiftUICore) + 55  [0x7ffb064633c7]
-    +                                                                                                                                                                                                                         2 ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 832  [0x7ffb060de550]
-    +                                                                                                                                                                                                                           2 closure #1 in ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 144  [0x7ffb060de830]
-    +                                                                                                                                                                                                                             2 <deduplicated_symbol>  (in SwiftUICore) + 105  [0x7ffb05e3b0e9]
-    +                                                                                                                                                                                                                               2 closure #1 in StackLayout.sizeThatFits(_:)  (in SwiftUICore) + 225  [0x7ffb0653d5a1]
-    +                                                                                                                                                                                                                                 2 specialized StackLayout.UnmanagedImplementation.placeChildren1(in:minorProposalForChild:)  (in SwiftUICore) + 82  [0x7ffb065414a2]
-    +                                                                                                                                                                                                                                   2 specialized StackLayout.UnmanagedImplementation.sizeChildrenIdeally(in:minorProposalForChild:)  (in SwiftUICore) + 436  [0x7ffb06546174]
-    +                                                                                                                                                                                                                                     2 LayoutProxy.dimensions(in:)  (in SwiftUICore) + 244  [0x7ffb05e713b4]
-    +                                                                                                                                                                                                                                       2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                                                                                                                         2 ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 832  [0x7ffb060de550]
-    +                                                                                                                                                                                                                                           2 closure #1 in ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 144  [0x7ffb060de830]
-    +                                                                                                                                                                                                                                             2 <deduplicated_symbol>  (in SwiftUICore) + 105  [0x7ffb05e3b0e9]
-    +                                                                                                                                                                                                                                               2 closure #1 in StackLayout.sizeThatFits(_:)  (in SwiftUICore) + 225  [0x7ffb0653d5a1]
-    +                                                                                                                                                                                                                                                 2 specialized StackLayout.UnmanagedImplementation.placeChildren1(in:minorProposalForChild:)  (in SwiftUICore) + 82  [0x7ffb065414a2]
-    +                                                                                                                                                                                                                                                   2 specialized StackLayout.UnmanagedImplementation.sizeChildrenIdeally(in:minorProposalForChild:)  (in SwiftUICore) + 436  [0x7ffb06546174]
-    +                                                                                                                                                                                                                                                     2 LayoutProxy.dimensions(in:)  (in SwiftUICore) + 244  [0x7ffb05e713b4]
-    +                                                                                                                                                                                                                                                       2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                                                                                                                                         2 ???  (in SwiftUICore)  load address 0x7ffb05a34000 + 0x6625a9  [0x7ffb060965a9]
-    +                                                                                                                                                                                                                                                           2 UnaryLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 853  [0x7ffb06096965]
-    +                                                                                                                                                                                                                                                             2 protocol witness for UnaryLayout.sizeThatFits(in:context:child:) in conformance _PaddingLayout  (in SwiftUICore) + 46  [0x7ffb05d5dfae]
-    +                                                                                                                                                                                                                                                               2 _PaddingLayout.sizeThatFits(in:context:child:)  (in SwiftUICore) + 249  [0x7ffb05d5d489]
-    +                                                                                                                                                                                                                                                                 2 LayoutProxy.size(in:)  (in SwiftUICore) + 218  [0x7ffb05e7098a]
-    +                                                                                                                                                                                                                                                                   2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                                                                                                                                                     2 ???  (in SwiftUICore)  load address 0x7ffb05a34000 + 0x6625a9  [0x7ffb060965a9]
-    +                                                                                                                                                                                                                                                                       2 UnaryLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 853  [0x7ffb06096965]
-    +                                                                                                                                                                                                                                                                         2 protocol witness for UnaryLayout.sizeThatFits(in:context:child:) in conformance _PaddingLayout  (in SwiftUICore) + 46  [0x7ffb05d5dfae]
-    +                                                                                                                                                                                                                                                                           2 _PaddingLayout.sizeThatFits(in:context:child:)  (in SwiftUICore) + 249  [0x7ffb05d5d489]
-    +                                                                                                                                                                                                                                                                             2 LayoutProxy.size(in:)  (in SwiftUICore) + 218  [0x7ffb05e7098a]
-    +                                                                                                                                                                                                                                                                               2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                                                                                                                                                                 2 ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 832  [0x7ffb060de550]
-    +                                                                                                                                                                                                                                                                                   2 closure #1 in ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 144  [0x7ffb060de830]
-    +                                                                                                                                                                                                                                                                                     2 <deduplicated_symbol>  (in SwiftUICore) + 105  [0x7ffb05e3b0e9]
-    +                                                                                                                                                                                                                                                                                       2 closure #1 in StackLayout.sizeThatFits(_:)  (in SwiftUICore) + 225  [0x7ffb0653d5a1]
-    +                                                                                                                                                                                                                                                                                         2 specialized StackLayout.UnmanagedImplementation.placeChildren1(in:minorProposalForChild:)  (in SwiftUICore) + 143  [0x7ffb065414df]
-    +                                                                                                                                                                                                                                                                                           2 specialized StackLayout.UnmanagedImplementation.sizeChildrenGenerallyWithConcreteMajorProposal(in:minorProposalForChild:)  (in SwiftUICore) + 125  [0x7ffb0653f8dd]
-    +                                                                                                                                                                                                                                                                                             2 StackLayout.UnmanagedImplementation.prioritize(_:proposedSize:)  (in SwiftUICore) + 1826  [0x7ffb065407b2]
-    +                                                                                                                                                                                                                                                                                               2 LayoutEngineBox.lengthThatFits(_:in:)  (in SwiftUICore) + 80  [0x7ffb06465140]
-    +                                                                                                                                                                                                                                                                                                 2 LayoutEngine.lengthThatFits(_:in:)  (in SwiftUICore) + 55  [0x7ffb064633c7]
-    +                                                                                                                                                                                                                                                                                                   2 ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 832  [0x7ffb060de550]
-    +                                                                                                                                                                                                                                                                                                     2 closure #1 in ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 144  [0x7ffb060de830]
-    +                                                                                                                                                                                                                                                                                                       2 <deduplicated_symbol>  (in SwiftUICore) + 105  [0x7ffb05e3b0e9]
-    +                                                                                                                                                                                                                                                                                                         2 closure #1 in StackLayout.sizeThatFits(_:)  (in SwiftUICore) + 225  [0x7ffb0653d5a1]
-    +                                                                                                                                                                                                                                                                                                           2 specialized StackLayout.UnmanagedImplementation.placeChildren1(in:minorProposalForChild:)  (in SwiftUICore) + 82  [0x7ffb065414a2]
-    +                                                                                                                                                                                                                                                                                                             2 specialized StackLayout.UnmanagedImplementation.sizeChildrenIdeally(in:minorProposalForChild:)  (in SwiftUICore) + 436  [0x7ffb06546174]
-    +                                                                                                                                                                                                                                                                                                               2 LayoutProxy.dimensions(in:)  (in SwiftUICore) + 244  [0x7ffb05e713b4]
-    +                                                                                                                                                                                                                                                                                                                 2 LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-    +                                                                                                                                                                                                                                                                                                                   2 StyledTextLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 239  [0x7ffb05f0530f]
-    +                                                                                                                                                                                                                                                                                                                     2 ResolvedStyledText.StringDrawing.sizeThatFits(_:)  (in SwiftUICore) + 232  [0x7ffb06108fe8]
-    +                                                                                                                                                                                                                                                                                                                       2 NSAttributedString.MetricsCache.metrics(requestedSize:layoutMargins:wantsNumberOfLineFragments:context:)  (in SwiftUICore) + 1717  [0x7ffb06107f35]
-    +                                                                                                                                                                                                                                                                                                                         2 -[NSAttributedString(NSExtendedStringDrawing) boundingRectWithSize:options:context:]  (in UIFoundation) + 601  [0x7ff807b36aae]
-    +                                                                                                                                                                                                                                                                                                                           2 __NSStringDrawingEngine  (in UIFoundation) + 2240  [0x7ff807b352c7]
-    +                                                                                                                                                                                                                                                                                                                             2 -[NSCoreTypesetter _stringDrawingCoreTextEngineWithOriginalString:rect:padding:graphicsContext:forceClipping:attributes:stringDrawingOptions:drawingContext:stringDrawingInterface:]  (in UIFoundation) + 3569  [0x7ff807b3d576]
-    +                                                                                                                                                                                                                                                                                                                               2 __NSCoreTypesetterCreateBaseLineFromAttributedString  (in UIFoundation) + 723  [0x7ff807b39262]
-    +                                                                                                                                                                                                                                                                                                                                 2 CTLineCreateWithAttributedString  (in CoreText) + 86  [0x7ff80449ffd4]
-    +                                                                                                                                                                                                                                                                                                                                   2 TTypesetterAttrString::TTypesetterAttrString(__CFAttributedString const*, __CFDictionary const*, bool)  (in CoreText) + 176  [0x7ff8044bc28a]
-    +                                                                                                                                                                                                                                                                                                                                     2 TTypesetterAttrString::Initialize(__CFAttributedString const*, bool)  (in CoreText) + 4333  [0x7ff8044bd387]
-    +                                                                                                                                                                                                                                                                                                                                       2 TTypesetter::FinishLayout(std::tuple<TLine const*, TCharStream const*, void const* (*)(__CTRun const*, __CFString const*, void*), void*, std::shared_ptr<TBidiLevelsProvider>*, unsigned int, unsigned char, bool, long*> const&, TRunGlue&, signed char, SyncState)  (in CoreText) + 60  [0x7ff80449e858]
-    +                                                                                                                                                                                                                                                                                                                                         2 TKerningEngine::PositionGlyphs(TRunGlue&, TCharStream const&, signed char)  (in CoreText) + 860  [0x7ff80448efbc]
-    +                                                                                                                                                                                                                                                                                                                                           2 TOpenTypePositioningEngine::PositionRuns(SyncState&, KerningStatus&)  (in CoreText) + 5255  [0x7ff804559285]
-    +                                                                                                                                                                                                                                                                                                                                             2 OTL::GPOS::ApplyPairPosAccelerated(OTL::Lookup const&, unsigned int, TGlyphIterator&) const  (in CoreText) + 3416  [0x7ff80453617e]
-    +                                                                                                                                                                                                                                                                                                                                               2 ValueRecord::operator()(TRunGlue::TGlyph)  (in CoreText) + 126  [0x7ff8045348a8]
-    2 Thread_65169: com.apple.uikit.eventfetch-thread
-    + 2 thread_start  (in libsystem_pthread.dylib) + 15  [0x103f67857]
-    +   2 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x103f6be05]
+    +                       2 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                         2 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                           2 mach_msg  (in libsystem_kernel.dylib) + 19  [0x109797e3b]
+    +                             2 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10979ebc3]
+    +                               2 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x1097a66bc]
+    +                                 2 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x109797b4a]
+    2 Thread_137863   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)
+    + 2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x109721843]
+    +   2 _pthread_wqthread  (in libsystem_pthread.dylib) + 233  [0x109722820]
+    +     2 _dispatch_worker_thread2  (in libdispatch.dylib) + 266  [0x7ff8026a5dc5]
+    +       2 _dispatch_root_queue_drain  (in libdispatch.dylib) + 1299  [0x7ff8026a57a6]
+    +         2 _dispatch_root_queue_drain.cold.4  (in libdispatch.dylib) + 34  [0x7ff8026c7df7]
+    +           2 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
+    +             2 AG::(anonymous namespace)::TypeDescriptorCache::drain_queue(void*)  (in AttributeGraph) + 383  [0x7ffa0cd8384f]
+    +               2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                 2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                   2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                     2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                       2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                         2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                           2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 95  [0x7ffa0cd81bb6]
+    +                             2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 308  [0x7ffa0cd81028]
+    +                               2 swift_conformsToProtocol  (in libswiftCore.dylib) + 47  [0x7ff81c8c4c3f]
+    +                                 2 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
+    +                                   1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 183  [0x7ff81c8c8327]
+    +                                   ! 1 (anonymous namespace)::ConformanceCandidate::getMatchingType(swift::TargetMetadata<swift::InProcess> const*, bool) const  (in libswiftCore.dylib) + 63  [0x7ff81c8c4b1f]
+    +                                   1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 4  [0x7ff81c8c8274]
+    2 Thread_137866: com.apple.uikit.eventfetch-thread
+    + 2 thread_start  (in libsystem_pthread.dylib) + 15  [0x109721857]
+    +   2 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x109725e05]
     +     2 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
     +       2 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
     +         2 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
@@ -200,38 +70,77 @@ Call graph:
     +             2 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
     +               2 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
     +                 2 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
-    +                   2 mach_msg  (in libsystem_kernel.dylib) + 19  [0x103fdde3b]
-    +                     2 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x103fe4bc3]
-    +                       2 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x103fec6bc]
-    +                         2 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x103fddb4a]
-    2 Thread_65170
-      2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x103f67843]
-        2 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x103f688ba]
-          2 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x103fdf286]
+    +                   2 mach_msg  (in libsystem_kernel.dylib) + 19  [0x109797e3b]
+    +                     2 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10979ebc3]
+    +                       2 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x1097a66bc]
+    +                         2 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x109797b4a]
+    2 Thread_137871
+    + 2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x109721843]
+    +   2 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x1097228ba]
+    +     2 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x109799286]
+    2 Thread_139416: com.apple.UIKit.inProcessAnimationManager
+    + 2 thread_start  (in libsystem_pthread.dylib) + 15  [0x109721857]
+    +   2 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x109725e05]
+    +     2 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192209  [0x7ff807da0209]
+    +         2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x577ce5  [0x7ff808185ce5]
+    +           2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x572f3f  [0x7ff808180f3f]
+    +             2 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 98  [0x7ff802693ff0]
+    +               2 _dispatch_sema4_wait  (in libdispatch.dylib) + 16  [0x7ff802693b82]
+    +                 2 semaphore_wait_trap  (in libsystem_kernel.dylib) + 10  [0x109797ac6]
+    2 Thread_139443
+    + 2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x109721843]
+    +   2 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x1097228ba]
+    +     2 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x109799286]
+    1 Thread_137870   DispatchQueue_14: com.apple.root.default-qos.overcommit  (concurrent)
+    + 1 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x109721843]
+    +   1 _pthread_wqthread  (in libsystem_pthread.dylib) + 233  [0x109722820]
+    +     1 _dispatch_worker_thread2  (in libdispatch.dylib) + 266  [0x7ff8026a5dc5]
+    +       1 _dispatch_root_queue_drain  (in libdispatch.dylib) + 352  [0x7ff8026a53f3]
+    +         1 _dispatch_queue_override_invoke  (in libdispatch.dylib) + 679  [0x7ff80269630f]
+    +           1 _dispatch_lane_invoke  (in libdispatch.dylib) + 1438  [0x7ff80269bea7]
+    +             1 _objc_msgSend_uncached  (in libobjc.A.dylib) + 75  [0x7ff80253a81b]
+    +               1 lookUpImpOrForward  (in libobjc.A.dylib) + 194  [0x7ff802554408]
+    +                 1 initializeAndMaybeRelock(objc_class*, objc_object*, locker_mixin<lockdebug::lock_mixin<objc_lock_base_t>>&, bool)  (in libobjc.A.dylib) + 179  [0x7ff802540b65]
+    +                   1 initializeNonMetaClass  (in libobjc.A.dylib) + 486  [0x7ff80253f88f]
+    +                     1 CALLING_SOME_+initialize_METHOD  (in libobjc.A.dylib) + 17  [0x7ff80253eb1c]
+    +                       1 _objc_msgSend_uncached  (in libobjc.A.dylib) + 75  [0x7ff80253a81b]
+    +                         1 lookUpImpOrForward  (in libobjc.A.dylib) + 276  [0x7ff80255445a]
+    +                           1 getMethodFromRelativeList(relative_list_list_t<method_list_t>*, objc_selector*)  (in libobjc.A.dylib) + 183  [0x7ff802547daa]
+    1 Thread_137870
+    + 1 start_wqthread  (in libsystem_pthread.dylib) + 0  [0x109721834]
+    1 Thread_139564
+    + 1 start_wqthread  (in libsystem_pthread.dylib) + 0  [0x109721834]
+    1 Thread_139582: com.apple.SwiftUI.AsyncRenderer
+      1 thread_start  (in libsystem_pthread.dylib) + 15  [0x109721857]
+        1 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x109725e05]
+          1 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+            1 @objc static ViewGraphDisplayLink.asyncThread(arg:)  (in SwiftUICore) + 70  [0x7ffb05cc01d6]
+              1 specialized static ViewGraphDisplayLink.asyncThread(arg:)  (in SwiftUICore) + 510  [0x7ffb05cc12ae]
+                1 -[NSRunLoop(NSRunLoop) run]  (in Foundation) + 76  [0x7ff8036e1633]
+                  1 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
+                    1 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+                      1 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+                        1 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+                          1 mach_msg  (in libsystem_kernel.dylib) + 19  [0x109797e3b]
+                            1 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10979ebc3]
+                              1 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x1097a66bc]
+                                1 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x109797b4a]
 
 Total number in stack (recursive counted multiple, when >=5):
-        13       LayoutEngineBox.sizeThatFits(_:)  (in SwiftUICore) + 72  [0x7ffb064650e8]
-        6       ???  (in SwiftUICore)  load address 0x7ffb05a34000 + 0x6625a9  [0x7ffb060965a9]
-        6       LayoutProxy.size(in:)  (in SwiftUICore) + 218  [0x7ffb05e7098a]
-        6       UnaryLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 853  [0x7ffb06096965]
-        5       <deduplicated_symbol>  (in SwiftUICore) + 105  [0x7ffb05e3b0e9]
-        5       ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 832  [0x7ffb060de550]
-        5       _PaddingLayout.sizeThatFits(in:context:child:)  (in SwiftUICore) + 249  [0x7ffb05d5d489]
-        5       closure #1 in StackLayout.sizeThatFits(_:)  (in SwiftUICore) + 225  [0x7ffb0653d5a1]
-        5       closure #1 in ViewLayoutEngine.sizeThatFits(_:)  (in SwiftUICore) + 144  [0x7ffb060de830]
-        5       protocol witness for UnaryLayout.sizeThatFits(in:context:child:) in conformance _PaddingLayout  (in SwiftUICore) + 46  [0x7ffb05d5dfae]
 
 Sort by top of stack, same collapsed (when >= 5):
+        mach_msg2_trap  (in libsystem_kernel.dylib)        5
 
 Binary Images:
-       0x103f5d000 -        0x103f60dfb +org.periopsignal.app (1.8.0 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/B03F4468-2EC8-4EC2-8E0B-08FDDCA411D7/PeriopSignal.app/PeriopSignal
-       0x103f66000 -        0x103f71fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
-       0x103fc4000 -        0x103fcd93f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
-       0x103fdd000 -        0x104019b1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
-       0x1040a4000 -        0x1041061b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
-       0x104429000 -        0x10443503f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
-       0x107173000 -        0x1086336ef +PeriopSignal.debug.dylib (0) <E04FBE1B-0CE5-3303-9EFB-57D24C2E663C> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/B03F4468-2EC8-4EC2-8E0B-08FDDCA411D7/PeriopSignal.app/PeriopSignal.debug.dylib
-       0x112fcb000 -        0x1130656c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
+       0x109717000 -        0x10971adfb +org.periopsignal.app (1.8.0 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/CFAABFB3-9414-4CCD-9A1D-4EA3ABA70E46/PeriopSignal.app/PeriopSignal
+       0x109720000 -        0x10972bfd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
+       0x10977e000 -        0x10978793f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
+       0x109797000 -        0x1097d3b1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
+       0x10985e000 -        0x1098c01b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
+       0x109b29000 -        0x109b3503f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
+       0x10c85c000 -        0x10dc92fcf +PeriopSignal.debug.dylib (0) <8EAF1FA9-00E9-3B5A-8AF2-8561616A5110> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/CFAABFB3-9414-4CCD-9A1D-4EA3ABA70E46/PeriopSignal.app/PeriopSignal.debug.dylib
+       0x114657000 -        0x1146f16c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
     0x7ff802539000 -     0x7ff8025741a0 +libobjc.A.dylib (951.1) <B6C5F541-EB9A-30FA-8B48-5A06501D5867> /Volumes/*/libobjc.A.dylib
     0x7ff802575000 -     0x7ff8025a3903 +libdyld.dylib (1335) <D605623A-F7E5-3FCA-9A89-D78CFB0DF709> /Volumes/*/libdyld.dylib
     0x7ff8025a4000 -     0x7ff8025c168d +libsystem_trace.dylib (1815.62.1) <AB003E68-00D3-3735-AB7F-DFC9213DC12D> /Volumes/*/libsystem_trace.dylib
@@ -360,6 +269,7 @@ Binary Images:
     0x7ff819e49000 -     0x7ff81a10945b +libmecabra.dylib (1121) <7412678A-9BBD-31D2-B1E5-56B9684869E8> /Volumes/*/libmecabra.dylib
     0x7ff81a10a000 -     0x7ff81a2e82eb  com.apple.AuthKit (1.0 - 1) <2400D86C-F303-3CF2-920A-14A61BC403EF> /Volumes/*/AuthKit.framework/AuthKit
     0x7ff81a2e9000 -     0x7ff81a9a13b4  com.apple.Intents (1.0 - 1) <26679595-F627-3ADD-9365-93B8B181D3E7> /Volumes/*/Intents.framework/Intents
+    0x7ff81a9a2000 -     0x7ff81a9be5eb +libCGInterfaces.dylib (630) <5106FBB9-C195-31DF-AD0E-B1EEE64FB8E3> /Volumes/*/Accelerate.framework/Frameworks/vImage.framework/Libraries/libCGInterfaces.dylib
     0x7ff81a9bf000 -     0x7ff81ab89f3f  com.apple.WebKitLegacy (8623 - 8623.1.14.10.9) <F56708A6-AEB2-3361-BD9C-4DACFBA43049> /Volumes/*/WebKitLegacy.framework/WebKitLegacy
     0x7ff81ab8a000 -     0x7ff81ad5ce9c  com.apple.TextInput (1.0 - 1.0) <7AE7243A-3C6C-36AE-B2F5-FE3A6A0FE9CB> /Volumes/*/TextInput.framework/TextInput
     0x7ff81ad5d000 -     0x7ff81ae6ef59  com.apple.accessibility.AXMediaUtilities (1.0 - 1) <04A922E6-730F-3845-818A-5BE5D2EAE2FE> /Volumes/*/AXMediaUtilities.framework/AXMediaUtilities
