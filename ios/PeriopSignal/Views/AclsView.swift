@@ -297,8 +297,13 @@ struct AclsView: View {
     @ViewBuilder private func protocolNote(_ m: AclsMode) -> some View {
         if let n = m.note, !n.isEmpty {
             let parts = Self.splitProtocolNote(n)
-            if protocolOpen && !parts.hidden.isEmpty { note(parts.hidden).transition(.opacity) }
-            ForEach(parts.kept, id: \.self) { k in note(k) }
+            if (protocolOpen && !parts.hidden.isEmpty) || !parts.kept.isEmpty {
+                // One block under the chips, so the kept lines sit together rather than a page gap apart.
+                VStack(alignment: .leading, spacing: 6) {
+                    if protocolOpen && !parts.hidden.isEmpty { note(parts.hidden).transition(.opacity) }
+                    ForEach(parts.kept, id: \.self) { k in note(k) }
+                }
+            }
         }
     }
 
