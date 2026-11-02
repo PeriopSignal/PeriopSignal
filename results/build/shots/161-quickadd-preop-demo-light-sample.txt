@@ -1,228 +1,97 @@
-Analysis of sampling PeriopSignal (pid 25477) every 1 millisecond
-Process:         PeriopSignal [25477]
-Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/CE95FF78-6275-4898-A3F5-7D721F071852/PeriopSignal.app/PeriopSignal
-Load Address:    0x105284000
+Analysis of sampling PeriopSignal (pid 30467) every 1 millisecond
+Process:         PeriopSignal [30467]
+Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/C9FAFAD6-4F9B-4945-BB60-7297E8FF8CB7/PeriopSignal.app/PeriopSignal
+Load Address:    0x100c95000
 Identifier:      PeriopSignal
 Version:         ???
 Code Type:       X86-64
 Platform:        iOS Simulator
-Parent Process:  launchd_sim [23557]
+Parent Process:  launchd_sim [20312]
 Target Type:     live task
 
-Date/Time:       2026-11-02 12:53:29.760 +0000
-Launch Time:     2026-11-02 12:53:13.482 +0000
+Date/Time:       2026-11-02 13:00:13.799 +0000
+Launch Time:     2026-11-02 12:59:39.348 +0000
 OS Version:      macOS 15.7.9 (24G830)
 Report Version:  7
 Analysis Tool:   /usr/bin/sample
 
-Physical footprint:         41.3M
-Physical footprint (peak):  44.4M
+Physical footprint:         53.6M
+Physical footprint (peak):  60.8M
 Idle exit:                  untracked
 ----
 
 Call graph:
-    69 Thread_75334   DispatchQueue_1: com.apple.main-thread  (serial)
-    + 69 start  (in dyld) + 3056  [0x10870f530]
-    +   69 start_sim  (in dyld_sim) + 10  [0x1053cc3dc]
-    +     69 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x1094474d9]  PeriopSignalApp.swift:0
-    +       69 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x1094401a3]  /<compiler-generated>:0
-    +         69 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
-    +           69 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
-    +             69 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
-    +               69 UIApplicationMain  (in UIKitCore) + 123  [0x7ff809311f29]
-    +                 69 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
-    +                   69 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
-    +                     69 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-    +                       69 __CFRunLoopRun  (in CoreFoundation) + 956  [0x7ff80293ab83]
-    +                         69 __CFRunLoopDoBlocks  (in CoreFoundation) + 391  [0x7ff80293b885]
-    +                           69 __CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__  (in CoreFoundation) + 12  [0x7ff80293c0c3]
-    +                             69 __34-[UIApplication _firstCommitBlock]_block_invoke_2  (in UIKitCore) + 34  [0x7ff80932ca4e]
-    +                               69 CA::Transaction::commit()  (in QuartzCore) + 748  [0x7ff81016bede]
-    +                                 69 CA::Context::commit_transaction(CA::Transaction*, double, double*)  (in QuartzCore) + 769  [0x7ff81012e6b7]
-    +                                   69 CA::Layer::layout_and_display_if_needed(CA::Transaction*)  (in QuartzCore) + 110  [0x7ff81023c0a4]
-    +                                     69 CA::Layer::update_if_needed_(CA::Transaction*, CA::LayerUpdateReason)  (in QuartzCore) + 700  [0x7ff81022f490]
-    +                                       69 CA::Layer::perform_update_(CA::Layer*, CALayer*, unsigned int, CA::LayerUpdateReason, CA::Transaction*)  (in QuartzCore) + 391  [0x7ff81022fbb1]
-    +                                         69 -[UIView(CALayerDelegate) layoutSublayersOfLayer:]  (in UIKitCore) + 3327  [0x7ff809ad39c1]
-    +                                           69 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x473b55  [0x7ff808081b55]
-    +                                             69 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x4737a6  [0x7ff8080817a6]
-    +                                               69 @objc _UIHostingView.layoutSubviews()  (in SwiftUI) + 21  [0x7ffb05615765]
-    +                                                 69 _UIHostingView.layoutSubviews()  (in SwiftUI) + 76  [0x7ffb0561573c]
-    +                                                   69 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192ec4  [0x7ff807da0ec4]
-    +                                                     69 ViewGraphRootValueUpdater.render(interval:updateDisplayList:targetTimestamp:)  (in SwiftUICore) + 464  [0x7ffb066db140]
-    +                                                       69 closure #1 in ViewGraphRootValueUpdater.render(interval:updateDisplayList:targetTimestamp:)  (in SwiftUICore) + 626  [0x7ffb066dcae2]
-    +                                                         69 ViewGraph.updateOutputs(at:)  (in SwiftUICore) + 194  [0x7ffb066e30e2]
-    +                                                           69 specialized GraphHost.runTransaction(_:do:id:)  (in SwiftUICore) + 409  [0x7ffb0626cdd9]
-    +                                                             69 AG::Subgraph::update(unsigned int)  (in AttributeGraph) + 1115  [0x7ffa0cd7c2c3]
-    +                                                               69 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                 67 specialized implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 15  [0x7ffb05be095f]
-    +                                                                 ! 67 specialized ShapeStyleResolver.updateValue()  (in SwiftUICore) + 1155  [0x7ffb05b7cec3]
-    +                                                                 !   67 specialized ForegroundStyle._apply(to:)  (in SwiftUICore) + 145  [0x7ffb061907a1]
-    +                                                                 !     66 ShapeStyleBox.apply(to:)  (in SwiftUICore) + 26  [0x7ffb05edcd9a]
-    +                                                                 !     : 66 HierarchicalShapeStyle._apply(to:)  (in SwiftUICore) + 416  [0x7ffb05fe2730]
-    +                                                                 !     :   66 specialized HierarchicalShapeStyle.apply<A>(_:to:)  (in SwiftUICore) + 225  [0x7ffb05fe2c51]
-    +                                                                 !     :     66 SystemColorsStyle._apply(to:)  (in SwiftUICore) + 225  [0x7ffb06070771]
-    +                                                                 !     :       66 specialized ColorProvider.resolveHDR(in:)  (in SwiftUICore) + 146  [0x7ffb06070092]
-    +                                                                 !     :         66 protocol witness for static SystemColorDefinition.value(for:environment:) in conformance CoreUIDefaultSystemColorDefinition  (in SwiftUICore) + 21  [0x7ffb06456cd5]
-    +                                                                 !     :           66 specialized static CoreUIDefaultSystemColorDefinition.value(for:environment:)  (in SwiftUICore) + 515  [0x7ffb06457eb3]
-    +                                                                 !     :             66 specialized static CoreUIDefaultSystemColorDefinition.value(named:in:)  (in SwiftUICore) + 158  [0x7ffb06457c8e]
-    +                                                                 !     :               66 CUIDesignLibraryCacheKey.fetch()  (in SwiftUICore) + 478  [0x7ffb0645695e]
-    +                                                                 !     :                 66 specialized Color.Resolved.init(failableCGColor:)  (in SwiftUICore) + 352  [0x7ffb064628c0]
-    +                                                                 !     :                   66 CGColorCreateCopyByMatchingToColorSpace  (in CoreGraphics) + 329  [0x7ff8104f80b1]
-    +                                                                 !     :                     66 CGColorTransformConvertColor  (in CoreGraphics) + 746  [0x7ff8108c182c]
-    +                                                                 !     :                       66 CGColorTransformConvertColorComponents  (in CoreGraphics) + 647  [0x7ff8108c130c]
-    +                                                                 !     :                         66 CGCMSConverterConvertColorComponents  (in CoreGraphics) + 613  [0x7ff8104ebe36]
-    +                                                                 !     :                           66 CGCMSConverterConvert  (in CoreGraphics) + 184  [0x7ff8104eaadc]
-    +                                                                 !     :                             65 convert_using_vImageConverter  (in CoreGraphics) + 204  [0x7ff8104eb022]
-    +                                                                 !     :                             | 65 CGCMSConverterCreateCachedCGvImageConverter  (in CoreGraphics) + 1428  [0x7ff8104e9e3e]
-    +                                                                 !     :                             |   65 vImageConverter_CreateWithCGColorConversionInfo  (in vImage) + 65  [0x7ff8185d8cc1]
-    +                                                                 !     :                             |     65 LoadCGInterfaces  (in vImage) + 48  [0x7ff8185f6400]
-    +                                                                 !     :                             |       65 _dispatch_once_callout  (in libdispatch.dylib) + 20  [0x7ff8026949eb]
-    +                                                                 !     :                             |         65 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-    +                                                                 !     :                             |           64 InitCGInterfaces  (in vImage) + 34  [0x7ff8185f5ab2]
-    +                                                                 !     :                             |           + 64 dyld4::APIs::dlopen_from(char const*, int, void*)  (in dyld_sim) + 347  [0x1053ec0e3]
-    +                                                                 !     :                             |           +   64 dyld4::APIs::dlopen_from(char const*, int, void*)::$_0::operator()() const  (in dyld_sim) + 367  [0x1053f01fd]
-    +                                                                 !     :                             |           +     64 dyld4::APIs::dlopen_from(char const*, int, void*)::$_0::operator()() const::'lambda'()::operator()() const  (in dyld_sim) + 2085  [0x1053f1065]
-    +                                                                 !     :                             |           +       64 dyld4::RuntimeState::notifyDebuggerLoad(std::span<dyld4::Loader const*, 18446744073709551615ul> const&)  (in dyld_sim) + 492  [0x1053d6cec]
-    +                                                                 !     :                             |           +         64 dyld4::ExternallyViewableState::addImages(lsl::Allocator&, lsl::Allocator&, std::span<dyld4::ExternallyViewableState::ImageInfo, 18446744073709551615ul> const&)  (in dyld_sim) + 569  [0x1053f2465]
-    +                                                                 !     :                             |           +           64 dyld4::ExternallyViewableState::triggerNotifications(dyld_image_mode, unsigned int, dyld_image_info const*)  (in dyld_sim) + 583  [0x1053f2195]
-    +                                                                 !     :                             |           +             64 dyld4::ExternallyViewableState::notifyMonitorOfImageListChangesSim(bool, unsigned int, mach_header const**, char const**)  (in dyld) + 157  [0x108742eef]
-    +                                                                 !     :                             |           +               64 invocation function for block in dyld4::ExternallyViewableState::notifyMonitorOfImageListChangesSim(bool, unsigned int, mach_header const**, char const**)  (in dyld) + 2702  [0x108745cc1]
-    +                                                                 !     :                             |           +                 63 dyld4::ExternallyViewableState::triggerNotifications(dyld_image_mode, unsigned int, dyld_image_info const*)  (in dyld) + 235  [0x108743f25]
-    +                                                                 !     :                             |           +                 ! 63 dyld4::RemoteNotificationResponder::blockOnSynchronousEvent(unsigned int)  (in dyld) + 42  [0x10873632a]
-    +                                                                 !     :                             |           +                 !   63 dyld4::RemoteNotificationResponder::sendMessage(int, unsigned int, mach_msg_header_t*)  (in dyld) + 234  [0x108735fe4]
-    +                                                                 !     :                             |           +                 !     63 mach_msg_overwrite  (in dyld) + 335  [0x10878927e]
-    +                                                                 !     :                             |           +                 !       63 mach_msg2_internal  (in dyld) + 83  [0x108788e42]
-    +                                                                 !     :                             |           +                 !         63 mach_msg2_trap  (in dyld) + 10  [0x10870a666]
-    +                                                                 !     :                             |           +                 1 dyld4::ExternallyViewableState::triggerNotifications(dyld_image_mode, unsigned int, dyld_image_info const*)  (in dyld) + 526  [0x108744048]
-    +                                                                 !     :                             |           +                   1 lsl::Allocator::~Allocator()  (in dyld) + 23  [0x1087332c1]
-    +                                                                 !     :                             |           +                     1 mach_vm_deallocate  (in dyld) + 29  [0x10870d1d8]
-    +                                                                 !     :                             |           +                       1 _kernelrpc_mach_vm_deallocate_trap  (in dyld) + 10  [0x10870a4da]
-    +                                                                 !     :                             |           1 InitCGInterfaces  (in vImage) + 48  [0x7ff8185f5ac0]
-    +                                                                 !     :                             |             1 gotNullHelper_$_Init_CGInterfaces  (in vImage) + 18  [0x7ff818dd7041]
-    +                                                                 !     :                             |               1 dlopenHelper$libCGInterfaces.dylib  (in vImage) + 28  [0x7ff818dd7067]
-    +                                                                 !     :                             |                 1 dyld4::APIs::dlopen_from(char const*, int, void*)  (in dyld_sim) + 347  [0x1053ec0e3]
-    +                                                                 !     :                             |                   1 dyld4::APIs::dlopen_from(char const*, int, void*)::$_0::operator()() const  (in dyld_sim) + 367  [0x1053f01fd]
-    +                                                                 !     :                             |                     1 dyld4::APIs::dlopen_from(char const*, int, void*)::$_0::operator()() const::'lambda'()::operator()() const  (in dyld_sim) + 332  [0x1053f098c]
-    +                                                                 !     :                             |                       1 dyld4::Loader::getLoader(Diagnostics&, dyld4::RuntimeState&, char const*, dyld4::Loader::LoadOptions const&)  (in dyld_sim) + 1021  [0x1053da833]
-    +                                                                 !     :                             |                         1 dyld4::Loader::forEachPath(Diagnostics&, dyld4::RuntimeState&, char const*, dyld4::Loader::LoadOptions const&, void (char const*, dyld4::ProcessConfig::PathOverrides::Type, bool&) block_pointer)  (in dyld_sim) + 267  [0x1053da05d]
-    +                                                                 !     :                             |                           1 dyld4::ProcessConfig::PathOverrides::forEachPathVariant(char const*, mach_o::Platform, bool, bool, bool&, void (char const*, dyld4::ProcessConfig::PathOverrides::Type, bool&) block_pointer) const  (in dyld_sim) + 814  [0x1053d1760]
-    +                                                                 !     :                             |                             1 dyld4::Loader::forEachResolvedAtPathVar(dyld4::RuntimeState&, char const*, dyld4::Loader::LoadOptions const&, dyld4::ProcessConfig::PathOverrides::Type, bool&, void (char const*, dyld4::ProcessConfig::PathOverrides::Type, bool&) block_pointer)  (in dyld_sim) + 261  [0x1053da2e9]
-    +                                                                 !     :                             |                               1 invocation function for block in dyld4::Loader::getLoader(Diagnostics&, dyld4::RuntimeState&, char const*, dyld4::Loader::LoadOptions const&)  (in dyld_sim) + 254  [0x1053dad26]
-    +                                                                 !     :                             |                                 1 dyld4::JustInTimeLoader::matchesPath(dyld4::RuntimeState const&, char const*) const  (in dyld_sim) + 66  [0x1053e1fb0]
-    +                                                                 !     :                             |                                   1 mach_o::Header::installName() const  (in dyld_sim) + 40  [0x10541794e]
-    +                                                                 !     :                             |                                     1 mach_o::Header::getDylibInstallName(char const**, mach_o::Version32*, mach_o::Version32*) const  (in dyld_sim) + 125  [0x105418d7f]
-    +                                                                 !     :                             |                                       1 mach_o::Header::forEachLoadCommand(void (load_command const*, bool&) block_pointer) const  (in dyld_sim) + 142  [0x105417626]
-    +                                                                 !     :                             1 convert_using_vImageConverter  (in CoreGraphics) + 331  [0x7ff8104eb0a1]
-    +                                                                 !     :                               1 CGvImageConverterCacheRelease  (in CoreGraphics) + 17  [0x7ff8108ea650]
-    +                                                                 !     1 AnyColorBox.apply(to:)  (in SwiftUICore) + 212  [0x7ffb0643f9e4]
-    +                                                                 !       1 ColorBox.apply(color:to:)  (in SwiftUICore) + 35  [0x7ffb06440143]
-    +                                                                 !         1 specialized ColorProvider._apply(color:to:)  (in SwiftUICore) + 531  [0x7ffb0606e6a3]
-    +                                                                 !           1 specialized PlatformColorProvider.resolveHDR(in:)  (in SwiftUICore) + 119  [0x7ffb06070507]
-    +                                                                 !             1 static UIKitPlatformColorDefinition.resolvedHDRColor(_:environment:)  (in SwiftUI) + 463  [0x7ffb0542d94f]
-    +                                                                 !               1 -[UIDynamicColor resolvedColorWithTraitCollection:]  (in UIKitCore) + 52  [0x7ff808c3961f]
-    +                                                                 !                 1 -[UIDynamicProviderColor _resolvedColorWithTraitCollection:]  (in UIKitCore) + 48  [0x7ff808c3f446]
-    +                                                                 !                   1 +[UITraitCollection _currentTraitCollectionWithFallback:markFallback:]  (in UIKitCore) + 867  [0x7ff808ce59dc]
-    +                                                                 !                     1 _UIGetCurrentFallbackTraitCollection  (in UIKitCore) + 60  [0x7ff808cea156]
-    +                                                                 1 specialized implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 32  [0x7ffb05be0d20]
-    +                                                                 ! 1 <deduplicated_symbol>  (in SwiftUICore) + 45  [0x7ffb05bcbe9d]
-    +                                                                 !   1 AGGraphGetValue  (in AttributeGraph) + 313  [0x7ffa0cd8e9e4]
-    +                                                                 !     1 AG::Graph::input_value_ref_slow(AG::data::ptr<AG::Node>, AG::AttributeID, unsigned int, unsigned int, AGSwiftMetadata const*, unsigned char&, long)  (in AttributeGraph) + 588  [0x7ffa0cd756f2]
-    +                                                                 !       1 AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)  (in AttributeGraph) + 372  [0x7ffa0cd6dee8]
-    +                                                                 !         1 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                 !           1 partial apply for implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 26  [0x7ffb05cfc95a]
-    +                                                                 !             1 DynamicBody.updateValue()  (in SwiftUICore) + 437  [0x7ffb05fe6fc5]
-    +                                                                 !               1 AGGraphGetValue  (in AttributeGraph) + 313  [0x7ffa0cd8e9e4]
-    +                                                                 !                 1 AG::Graph::input_value_ref_slow(AG::data::ptr<AG::Node>, AG::AttributeID, unsigned int, unsigned int, AGSwiftMetadata const*, unsigned char&, long)  (in AttributeGraph) + 588  [0x7ffa0cd756f2]
-    +                                                                 !                   1 AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)  (in AttributeGraph) + 372  [0x7ffa0cd6dee8]
-    +                                                                 !                     1 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                 !                       1 partial apply for implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 26  [0x7ffb05cfc95a]
-    +                                                                 !                         1 DynamicBody.updateValue()  (in SwiftUICore) + 437  [0x7ffb05fe6fc5]
-    +                                                                 !                           1 AGGraphGetValue  (in AttributeGraph) + 313  [0x7ffa0cd8e9e4]
-    +                                                                 !                             1 AG::Graph::input_value_ref_slow(AG::data::ptr<AG::Node>, AG::AttributeID, unsigned int, unsigned int, AGSwiftMetadata const*, unsigned char&, long)  (in AttributeGraph) + 588  [0x7ffa0cd756f2]
-    +                                                                 !                               1 AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)  (in AttributeGraph) + 372  [0x7ffa0cd6dee8]
-    +                                                                 !                                 1 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                 !                                   1 partial apply for implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 26  [0x7ffb05cfc95a]
-    +                                                                 !                                     1 StaticBody.updateValue()  (in SwiftUICore) + 582  [0x7ffb05fe6786]
-    +                                                                 !                                       1 closure #1 in StaticBody.updateValue()  (in SwiftUICore) + 279  [0x7ffb05fe6b97]
-    +                                                                 !                                         1 protocol witness for BodyAccessor.updateBody(of:changed:) in conformance ViewBodyAccessor<A>  (in SwiftUICore) + 9  [0x7ffb05e956c9]
-    +                                                                 !                                           1 ViewBodyAccessor.updateBody(of:changed:)  (in SwiftUICore) + 158  [0x7ffb05e94eee]
-    +                                                                 !                                             1 closure #1 in ViewBodyAccessor.updateBody(of:changed:)  (in SwiftUICore) + 1707  [0x7ffb05e955bb]
-    +                                                                 !                                               1 WrappedButtonStyleBody.body.getter  (in SwiftUI) + 364  [0x7ffb04f2734c]
-    +                                                                 !                                                 1 property wrapper backing initializer of ButtonBehavior.state  (in SwiftUI) + 46  [0x7ffb04f29e0e]
-    +                                                                 !                                                   1 State.init(wrappedValue:)  (in SwiftUICore) + 26  [0x7ffb0656f04a]
-    +                                                                 !                                                     1 __swift_instantiateGenericMetadata  (in SwiftUICore) + 32  [0x7ffb05a7cac0]
-    +                                                                 !                                                       1 _swift_getGenericMetadata(swift::MetadataRequest, void const* const*, swift::TargetTypeContextDescriptor<swift::InProcess> const*)  (in libswiftCore.dylib) + 306  [0x7ff81c883872]
-    +                                                                 !                                                         1 swift::LockingConcurrentMap<swift::GenericCacheEntry, swift::LockingConcurrentMapStorage<swift::GenericCacheEntry, (unsigned short)14>>::getOrInsert<swift::MetadataCacheKey, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&>(swift::MetadataCacheKey, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&)  (in libswiftCore.dylib) + 84  [0x7ff81c897d14]
-    +                                                                 !                                                           1 swift::StableAddressConcurrentReadableHashMap<swift::GenericCacheEntry, swift::TaggedMetadataAllocator<(unsigned short)14>, swift::Mutex>::getOrInsert<swift::MetadataCacheKey, swift::MetadataWaitQueue::Worker&, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&>(swift::MetadataCacheKey, swift::MetadataWaitQueue::Worker&, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&)  (in libswiftCore.dylib) + 52  [0x7ff81c897fc4]
-    +                                                                 1 specialized implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 15  [0x7ffb05be29bf]
-    +                                                                   1 specialized InterpolatedDisplayList.updateValue()  (in SwiftUICore) + 2239  [0x7ffb05bd4cdf]
-    +                                                                     1 AGGraphGetValue  (in AttributeGraph) + 313  [0x7ffa0cd8e9e4]
-    +                                                                       1 AG::Graph::input_value_ref_slow(AG::data::ptr<AG::Node>, AG::AttributeID, unsigned int, unsigned int, AGSwiftMetadata const*, unsigned char&, long)  (in AttributeGraph) + 588  [0x7ffa0cd756f2]
-    +                                                                         1 AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)  (in AttributeGraph) + 372  [0x7ffa0cd6dee8]
-    +                                                                           1 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                             1 specialized implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 15  [0x7ffb05be29ff]
-    +                                                                               1 specialized ShapeStyledDisplayList.updateValue()  (in SwiftUICore) + 3090  [0x7ffb05b32082]
-    +                                                                                 1 specialized _ShapeStyle_RenderedShape.renderItem(name:styles:layers:)  (in SwiftUICore) + 2395  [0x7ffb05f91f8b]
-    +                                                                                   1 AGGraphGetValue  (in AttributeGraph) + 313  [0x7ffa0cd8e9e4]
-    +                                                                                     1 AG::Graph::input_value_ref_slow(AG::data::ptr<AG::Node>, AG::AttributeID, unsigned int, unsigned int, AGSwiftMetadata const*, unsigned char&, long)  (in AttributeGraph) + 588  [0x7ffa0cd756f2]
-    +                                                                                       1 AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)  (in AttributeGraph) + 372  [0x7ffa0cd6dee8]
-    +                                                                                         1 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                                           1 specialized implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 15  [0x7ffb05be095f]
-    +                                                                                             1 specialized ShapeStyleResolver.updateValue()  (in SwiftUICore) + 1155  [0x7ffb05b7cec3]
-    +                                                                                               1 specialized ForegroundStyle._apply(to:)  (in SwiftUICore) + 145  [0x7ffb061907a1]
-    +                                                                                                 1 AnyColorBox.apply(to:)  (in SwiftUICore) + 212  [0x7ffb0643f9e4]
-    +                                                                                                   1 ColorBox.apply(color:to:)  (in SwiftUICore) + 35  [0x7ffb06440143]
-    +                                                                                                     1 specialized ColorProvider._apply(color:to:)  (in SwiftUICore) + 531  [0x7ffb0606e6a3]
-    +                                                                                                       1 specialized PlatformColorProvider.resolveHDR(in:)  (in SwiftUICore) + 119  [0x7ffb06070507]
-    +                                                                                                         1 static UIKitPlatformColorDefinition.resolvedHDRColor(_:environment:)  (in SwiftUI) + 281  [0x7ffb0542d899]
-    +                                                                                                           1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xf4bf  [0x7ff807c1d4bf]
-    +                                                                                                             1 -[UITraitCollection traitCollectionByModifyingTraits:]  (in UIKitCore) + 83  [0x7ff808cd5ad5]
-    +                                                                                                               1 -[UITraitCollection _traitCollectionByModifyingTraitsCopyOnWrite:]  (in UIKitCore) + 192  [0x7ff808cd5c1c]
-    +                                                                                                                 1 __54-[UITraitCollection traitCollectionByModifyingTraits:]_block_invoke  (in UIKitCore) + 15  [0x7ff808cd5b49]
-    +                                                                                                                   1 __66-[UITraitCollection _traitCollectionByModifyingTraitsCopyOnWrite:]_block_invoke.167  (in UIKitCore) + 57  [0x7ff808cd977c]
-    +                                                                                                                     1 _objc_rootAllocWithZone  (in libobjc.A.dylib) + 52  [0x7ff802557ee6]
-    +                                                                                                                       1 szone_malloc_should_clear  (in libsystem_malloc.dylib) + 65  [0x7ff8026dcbc3]
-    +                                                                                                                         1 tiny_malloc_should_clear  (in libsystem_malloc.dylib) + 31  [0x7ff802708f22]
-    +                                                                                                                           1 rack_get_thread_index  (in libsystem_malloc.dylib) + 0  [0x7ff80270d2f5]
-    69 Thread_75426
-    + 69 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10528e843]
-    +   69 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10528f8ba]
-    +     69 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x105306286]
-    69 Thread_75427: com.apple.uikit.eventfetch-thread
-      69 thread_start  (in libsystem_pthread.dylib) + 15  [0x10528e857]
-        69 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x105292e05]
-          69 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
-            69 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
-              69 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
-                69 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
-                  69 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-                    69 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
-                      69 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
-                        69 mach_msg  (in libsystem_kernel.dylib) + 19  [0x105304e3b]
-                          69 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10530bbc3]
-                            69 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x1053136bc]
-                              69 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x105304b4a]
+    4146 Thread_88100   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 4146 start  (in dyld) + 3056  [0x102150530]
+    +   4146 start_sim  (in dyld_sim) + 10  [0x100ddd3dc]
+    +     4146 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x105d1b2a9]  PeriopSignalApp.swift:0
+    +       4146 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x105d13f73]  /<compiler-generated>:0
+    +         4146 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
+    +           4146 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
+    +             4146 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
+    +               4146 UIApplicationMain  (in UIKitCore) + 123  [0x7ff809311f29]
+    +                 4146 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
+    +                   4146 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
+    +                     4146 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +                       4146 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                         4146 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                           4146 mach_msg  (in libsystem_kernel.dylib) + 19  [0x100d15e3b]
+    +                             4146 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x100d1cbc3]
+    +                               4146 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x100d246bc]
+    +                                 4146 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x100d15b4a]
+    4146 Thread_88167
+    + 4146 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x100c9f843]
+    +   4146 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x100ca08ba]
+    +     4146 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x100d17286]
+    4146 Thread_88192: com.apple.uikit.eventfetch-thread
+    + 4146 thread_start  (in libsystem_pthread.dylib) + 15  [0x100c9f857]
+    +   4146 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x100ca3e05]
+    +     4146 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       4146 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
+    +         4146 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
+    +           4146 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
+    +             4146 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +               4146 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                 4146 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                   4146 mach_msg  (in libsystem_kernel.dylib) + 19  [0x100d15e3b]
+    +                     4146 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x100d1cbc3]
+    +                       4146 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x100d246bc]
+    +                         4146 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x100d15b4a]
+    4146 Thread_88196
+    + 4146 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x100c9f843]
+    +   4146 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x100ca08ba]
+    +     4146 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x100d17286]
+    4146 Thread_89699
+    + 4146 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x100c9f843]
+    +   4146 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x100ca08ba]
+    +     4146 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x100d17286]
+    4146 Thread_89861: com.apple.UIKit.inProcessAnimationManager
+      4146 thread_start  (in libsystem_pthread.dylib) + 15  [0x100c9f857]
+        4146 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x100ca3e05]
+          4146 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+            4146 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192209  [0x7ff807da0209]
+              4146 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x577ce5  [0x7ff808185ce5]
+                4146 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x572f3f  [0x7ff808180f3f]
+                  4146 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 98  [0x7ff802693ff0]
+                    4146 _dispatch_sema4_wait  (in libdispatch.dylib) + 16  [0x7ff802693b82]
+                      4146 semaphore_wait_trap  (in libsystem_kernel.dylib) + 10  [0x100d15ac6]
 
 Total number in stack (recursive counted multiple, when >=5):
-        6       AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-        5       AG::Graph::input_value_ref_slow(AG::data::ptr<AG::Node>, AG::AttributeID, unsigned int, unsigned int, AGSwiftMetadata const*, unsigned char&, long)  (in AttributeGraph) + 588  [0x7ffa0cd756f2]
-        5       AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)  (in AttributeGraph) + 372  [0x7ffa0cd6dee8]
-        5       AGGraphGetValue  (in AttributeGraph) + 313  [0x7ffa0cd8e9e4]
 
 Sort by top of stack, same collapsed (when >= 5):
-        __workq_kernreturn  (in libsystem_kernel.dylib)        69
-        mach_msg2_trap  (in libsystem_kernel.dylib)        69
-        mach_msg2_trap  (in dyld)        63
+        __workq_kernreturn  (in libsystem_kernel.dylib)        12438
+        mach_msg2_trap  (in libsystem_kernel.dylib)        8292
+        semaphore_wait_trap  (in libsystem_kernel.dylib)        4146
 
 Binary Images:
-       0x105284000 -        0x105287dfb +org.periopsignal.app (1.8.0 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/CE95FF78-6275-4898-A3F5-7D721F071852/PeriopSignal.app/PeriopSignal
-       0x10528d000 -        0x105298fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
-       0x1052eb000 -        0x1052f493f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
-       0x105304000 -        0x105340b1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
-       0x1053cb000 -        0x10542d1b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
-       0x1057cc000 -        0x1057d803f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
-       0x108709000 -        0x1087a36c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
-       0x108825000 -        0x109be1747 +PeriopSignal.debug.dylib (0) <551D2ACE-E486-3C87-9259-FB8215C04577> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/CE95FF78-6275-4898-A3F5-7D721F071852/PeriopSignal.app/PeriopSignal.debug.dylib
+       0x100c95000 -        0x100c98dfb +org.periopsignal.app (1.8.0 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/C9FAFAD6-4F9B-4945-BB60-7297E8FF8CB7/PeriopSignal.app/PeriopSignal
+       0x100c9e000 -        0x100ca9fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
+       0x100cfc000 -        0x100d0593f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
+       0x100d15000 -        0x100d51b1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
+       0x100ddc000 -        0x100e3e1b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
+       0x1011e6000 -        0x1011f203f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
+       0x10214a000 -        0x1021e46c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
+       0x1050d0000 -        0x1064b23df +PeriopSignal.debug.dylib (0) <AB04A6F3-7CFE-3D85-BED3-1400690CE5F2> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/C9FAFAD6-4F9B-4945-BB60-7297E8FF8CB7/PeriopSignal.app/PeriopSignal.debug.dylib
     0x7ff802539000 -     0x7ff8025741a0 +libobjc.A.dylib (951.1) <B6C5F541-EB9A-30FA-8B48-5A06501D5867> /Volumes/*/libobjc.A.dylib
     0x7ff802575000 -     0x7ff8025a3903 +libdyld.dylib (1335) <D605623A-F7E5-3FCA-9A89-D78CFB0DF709> /Volumes/*/libdyld.dylib
     0x7ff8025a4000 -     0x7ff8025c168d +libsystem_trace.dylib (1815.62.1) <AB003E68-00D3-3735-AB7F-DFC9213DC12D> /Volumes/*/libsystem_trace.dylib
@@ -351,7 +220,7 @@ Binary Images:
     0x7ff819e49000 -     0x7ff81a10945b +libmecabra.dylib (1121) <7412678A-9BBD-31D2-B1E5-56B9684869E8> /Volumes/*/libmecabra.dylib
     0x7ff81a10a000 -     0x7ff81a2e82eb  com.apple.AuthKit (1.0 - 1) <2400D86C-F303-3CF2-920A-14A61BC403EF> /Volumes/*/AuthKit.framework/AuthKit
     0x7ff81a2e9000 -     0x7ff81a9a13b4  com.apple.Intents (1.0 - 1) <26679595-F627-3ADD-9365-93B8B181D3E7> /Volumes/*/Intents.framework/Intents
-    0x7ff81a9a2000 -     0x7ff81a9be5eb  libCGInterfaces.dylib (630) <5106FBB9-C195-31DF-AD0E-B1EEE64FB8E3> /System/Library/Frameworks/Accelerate.framework/Frameworks/vImage.framework/Libraries/libCGInterfaces.dylib
+    0x7ff81a9a2000 -     0x7ff81a9be5eb +libCGInterfaces.dylib (630) <5106FBB9-C195-31DF-AD0E-B1EEE64FB8E3> /Volumes/*/Accelerate.framework/Frameworks/vImage.framework/Libraries/libCGInterfaces.dylib
     0x7ff81a9bf000 -     0x7ff81ab89f3f  com.apple.WebKitLegacy (8623 - 8623.1.14.10.9) <F56708A6-AEB2-3361-BD9C-4DACFBA43049> /Volumes/*/WebKitLegacy.framework/WebKitLegacy
     0x7ff81ab8a000 -     0x7ff81ad5ce9c  com.apple.TextInput (1.0 - 1.0) <7AE7243A-3C6C-36AE-B2F5-FE3A6A0FE9CB> /Volumes/*/TextInput.framework/TextInput
     0x7ff81ad5d000 -     0x7ff81ae6ef59  com.apple.accessibility.AXMediaUtilities (1.0 - 1) <04A922E6-730F-3845-818A-5BE5D2EAE2FE> /Volumes/*/AXMediaUtilities.framework/AXMediaUtilities
@@ -950,6 +819,7 @@ Binary Images:
     0x7ffb1fd02000 -     0x7ffb1fd7b38d  com.apple.CoreML.MLAssetIO (1.0 - 3505.4.1) <D25BA44F-1E69-3D42-BC93-5F1468CDA92E> /Volumes/*/MLAssetIO.framework/MLAssetIO
     0x7ffb1fd7c000 -     0x7ffb1fdd6c6f  com.apple.mlcompiler.runtime (3404.3.1 - 3404.3.1) <DF0FF09D-CCD3-3679-BC38-294638EFA55C> /Volumes/*/MLCompilerRuntime.framework/MLCompilerRuntime
     0x7ffb1fdd7000 -     0x7ffb1fdf1123  com.apple.mlcompiler.services (3404.3.1 - 3404.3.1) <F5C90754-6CCE-35B3-8D24-D932A9EA3CA9> /Volumes/*/MLCompilerServices.framework/MLCompilerServices
+    0x7ffc01550000 -     0x7ffc0158aa8f  com.apple.MTLSimDriver (370.64.2 - 370.64.2) <FBD4B934-7FA4-3EC9-ACDD-933AB08F5A19> /Volumes/*/MTLSimDriver.framework/MTLSimDriver
     0x7ffc01591000 -     0x7ffc0160769a  com.apple.mxi (1.0 - 1) <671D51B1-4A26-3BDA-8B8D-9BA6A78942D3> /Volumes/*/MXI.framework/MXI
     0x7ffc016a0000 -     0x7ffc016c75fe  com.apple.MailKit (1.0 - 3864.300.41.2.1) <F06EE6E8-12BD-375E-8CA7-213BD734EF40> /Volumes/*/MailKit.framework/MailKit
     0x7ffc01a6d000 -     0x7ffc01a84b85  com.apple.backgroundassets.managed (1.0 - 1.2.1) <8B27DE8E-14C9-38D7-9331-2E439035EB0D> /Volumes/*/ManagedBackgroundAssets.framework/ManagedBackgroundAssets
@@ -963,6 +833,7 @@ Binary Images:
     0x7ffc02938000 -     0x7ffc0293a64e  com.apple.MediaAnalysisGeneration (1.0 - 1) <3257CEDB-89EC-3995-A06B-4773FD71809C> /Volumes/*/MediaAnalysisGeneration.framework/MediaAnalysisGeneration
     0x7ffc0293b000 -     0x7ffc0293e921  com.apple.MediaAnalysisPhotosServices (1.0 - 1) <E1AF1452-5373-3AD4-8377-63948C656AD4> /Volumes/*/MediaAnalysisPhotosServices.framework/MediaAnalysisPhotosServices
     0x7ffc0293f000 -     0x7ffc0299e606  com.apple.MediaAnalysisServices (1.0 - 1) <71120162-FEBC-3A21-A997-2F8FFADFDEC2> /Volumes/*/MediaAnalysisServices.framework/MediaAnalysisServices
+    0x7ffc03299000 -     0x7ffc032c63b9  com.apple.gpusw.MetalSerializer (1.0 - 1) <D610DD32-31CD-38F5-B227-9A30619556A6> /Volumes/*/MetalSerializer.framework/MetalSerializer
     0x7ffc032d6000 -     0x7ffc0381ee57  com.apple.mobilesafari.framework (26.2 - 8623.1.14.10.9) <DFD70813-D71C-3F0C-B7C9-5F8341F7A608> /Volumes/*/MobileSafari.framework/MobileSafari
     0x7ffc041c1000 -     0x7ffc04533306  com.apple.ModelCatalog.ModelCatalog (1.0 - 218.25) <AA137DF4-9E73-3072-9671-37DB27FF6CDA> /Volumes/*/ModelCatalog.framework/ModelCatalog
     0x7ffc045a0000 -     0x7ffc046f43f6  com.apple.ModelManagerServices (1.0 - 1) <4D0D55B1-724D-3DA0-BB21-2A4758D4B738> /Volumes/*/ModelManagerServices.framework/ModelManagerServices
