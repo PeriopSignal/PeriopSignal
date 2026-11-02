@@ -333,6 +333,8 @@ jobs:
           shot 184-patient-empty-clean 12 -ps.tab patient -ps.patient empty -ps.forceAppearance dark
           shot 185-patient-empty-clean-light 12 -ps.tab patient -ps.patient empty -ps.forceAppearance light
           shot 186-rooms-row-light 12 -ps.tab patient -ps.patient demo-rooms -ps.forceAppearance light
+          shot 196-fluids-steppers-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:fluids -ps.patient.scroll fluidsOutput -ps.forceAppearance light
+          shot 197-fluids-steppers 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:fluids -ps.patient.scroll fluidsOutput -ps.forceAppearance dark
           # 1.8.1 Studies and the aorta: the Studies group on the Assessment page, the carotid, radial and PFT editors
           # filled (demo-cardiac) and empty (demo), the Aorta group on the Cardiovascular page, the harvest reminder in
           # the intraoperative Lines, the cautions on the Assessment card and in the handoffs, and quick add.

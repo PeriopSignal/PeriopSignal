@@ -824,16 +824,22 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var intraopFluids: some View {
-        // Blood products have their own + and − (PatientIntraopExtras); the rest are typed.
+        // Blood products have their own + and − (PatientIntraopExtras); so do crystalloid (a 1000 mL bag a tap) and
+        // colloid (a 250 mL bottle), BloodProducts.fluidSteps. Blood loss and urine are typed.
         BloodProductsGroup()
         let typed = PatientCatalog.fluids.filter { !BloodProducts.ids.contains($0.id) }
         PatientGroup(title: "Fluids & output") {
             ForEach(Array(typed.enumerated()), id: \.element.id) { i, fl in
-                PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id))
+                if let step = BloodProducts.fluidSteps[fl.id] {
+                    BloodStepperRow(label: fl.label, unit: fl.unit, step: step, limit: BloodProducts.fluidLimit, value: entry(\.fluids, fl.id))
+                } else {
+                    PatientNumberField(label: fl.label, unit: fl.unit, value: entry(\.fluids, fl.id))
+                }
                 if i < typed.count - 1 { Hairline().padding(.leading, 14) }
             }
             PatientTextField(label: "Factor concentrates & other products", prompt: "e.g. fibrinogen concentrate 2 g; PCC", text: bind(\.factors))
         }
+        .id("fluidsOutput")
     }
 
     @ViewBuilder private var intraopMeds: some View {

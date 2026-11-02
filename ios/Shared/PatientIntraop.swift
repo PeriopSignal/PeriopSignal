@@ -132,6 +132,11 @@ enum BloodProducts {
     static let cellSaverStep = 50.0
     static var ids: [String] { units.map(\.id) + [cellSaver] }
 
+    /// Crystalloid and colloid also get − and +, one tap a bag or bottle: 1000 mL of crystalloid, 250 mL of albumin
+    /// (Ben, Nov 2). The total can still be typed; blood loss and urine stay typed.
+    static let fluidSteps: [String: Double] = ["crystalloid": 1000, "colloid": 250]
+    static let fluidLimit = 30000.0
+
     /// "PRBC 2 units · FFP 2 units · Cryo 10 units · Cell saver 450 mL", the case's totals.
     static func text(_ r: PatientRecord) -> String {
         var parts: [String] = units.compactMap { u in
