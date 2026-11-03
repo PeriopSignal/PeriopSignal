@@ -44,7 +44,7 @@ final class AppTipsTests: XCTestCase {
 
     func testNeverOnAnEmergencyTool() {
         let emergency = RefFolder.emergency.items.map(\.route.key)
-        XCTAssertEqual(Set(emergency), TipSet.emergencyRouteKeys, "ACLS, OB, LAST, MH and Difficult Airway")
+        XCTAssertEqual(Set(emergency), TipSet.emergencyRouteKeys, "ACLS, OB, LAST, MH, Difficult Airway and MTP")
         for key in emergency { XCTAssertFalse(TipSet.allowed(onRouteKey: key), key) }
         for item in RefItem.all where !emergency.contains(item.route.key) {
             XCTAssertTrue(TipSet.allowed(onRouteKey: item.route.key), item.route.key)

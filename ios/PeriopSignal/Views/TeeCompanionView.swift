@@ -10,6 +10,7 @@ struct TeeCompanionView: View {
     var onOpen: (URL) -> Void
     var onOpenTool: (RefRoute) -> Void
     @Environment(ReferenceStore.self) private var refs
+    @Environment(TipCenter.self) private var tips
     @State private var surgery = "cabg"
     @State private var post = false
     @State private var checked: Set<String> = []
@@ -50,6 +51,12 @@ struct TeeCompanionView: View {
                 Button("Reset") { withAnimation(.snappy) { checked = []; found = [] } }.disabled(checked.isEmpty && found.isEmpty)
             }
         }
+        .task(id: refs.tee != nil) {
+            // The first visit, once the content is on screen: one tip at the phase switch.
+            guard refs.tee != nil else { return }
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            withAnimation(.easeOut(duration: 0.25)) { _ = tips.offer(.tee) }
+        }
         .onAppear {
             #if DEBUG
             if !LaunchSeed.string("ps.tee.surgery").isEmpty { surgery = LaunchSeed.string("ps.tee.surgery") }
@@ -68,7 +75,7 @@ struct TeeCompanionView: View {
                 Text("After bypass").tag(true)
             }
             .pickerStyle(.segmented)
-            .onceTip("ps.tips.tee.phase", "Switch to After bypass for the comparison with the pre-bypass exam.")
+            .tipFrame(TipSet.tee.steps[0].target, in: tips)
         }
     }
 

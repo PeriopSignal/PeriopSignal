@@ -246,7 +246,22 @@ struct FlagTable: View {
     }
 }
 
-// MARK: - First-time tips with an arrow
+// MARK: - First-time tips
+
+/// The 1.9 tools' tip sets, drawn by the app-wide TipsOverlay (Tips.swift). None on the MTP screen: it is an emergency
+/// tool (TipSet.emergencyRouteKeys). Screenshot runs: -ps.tips 1 -ps.tips.set tee | mcs.
+extension TipSet {
+    static let tee = TipSet(id: "tee", seenKey: "ps.tips.tee.v1", steps: [
+        TipStep(target: "tee.phase", text: "Switch to After bypass to compare with the pre-bypass exam."),
+    ])
+    static let mcs = TipSet(id: "mcs", seenKey: "ps.tips.mcs.v1", steps: [
+        TipStep(target: "mcs.questions", text: "Tap a question to see what to look at."),
+    ])
+}
+
+// MARK: - First-time tips with an arrow, inside a sheet
+//
+// The Case Timers sheet sits above the app-wide tips overlay, so its tips are popovers with an arrow instead.
 
 /// A one-time tip that points at a control with a popover arrow, instead of a permanent explainer box. Shown once on
 /// this phone (`key`), never on its own in a screenshot run (CI asks for it with -ps.tips 1).

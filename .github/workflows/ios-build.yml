@@ -420,6 +420,8 @@ jobs:
           shot 310-mcs-ecmo-evidence 18 -ps.ref mcs -ps.mcs.device ecmo -ps.evidence.open 1 -ps.forceAppearance light
           shot 311-folder-cardiothoracic 18 -ps.ref folder:cardiothoracic -ps.forceAppearance dark
           shot 312-folder-emergency 18 -ps.ref folder:emergency -ps.forceAppearance dark
+          shot 313-tee-tip 18 -ps.ref tee -ps.tee.surgery cabg -ps.tips 1 -ps.tips.set tee -ps.forceAppearance dark
+          shot 314-mcs-tip 18 -ps.ref mcs -ps.mcs.device lvad -ps.tips 1 -ps.tips.set mcs -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

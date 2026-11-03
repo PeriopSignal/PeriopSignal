@@ -11,6 +11,7 @@ struct McsView: View {
     var onOpen: (URL) -> Void
     @Environment(ReferenceStore.self) private var refs
     @Environment(PatientStore.self) private var patient
+    @Environment(TipCenter.self) private var tips
     @State private var device: String?
     @State private var openQuestions: Set<Int> = []
     @State private var tableOpen = false
@@ -51,6 +52,12 @@ struct McsView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle("Mechanical Support")
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: device != nil && refs.mcs != nil) {
+            // The first visit, once a device's questions are on screen: one tip at the questions.
+            guard device != nil, refs.mcs != nil else { return }
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            withAnimation(.easeOut(duration: 0.25)) { _ = tips.offer(.mcs) }
+        }
     }
 
     /// The device in the current My Patient case, if one is recorded (a screenshot run may name one: -ps.mcs.device).
@@ -101,7 +108,7 @@ struct McsView: View {
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .onceTip("ps.tips.mcs.questions", "Tap a question to see what to look at.")
+            .tipFrame(TipSet.mcs.steps[0].target, in: tips)
             if let call = dev.call {
                 Label(call, systemImage: "phone.arrow.up.right").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.accent)
                     .fixedSize(horizontal: false, vertical: true)
