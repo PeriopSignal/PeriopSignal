@@ -109,6 +109,11 @@ struct PatientEditorView: View {
                 if !a.isEmpty {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { proxy.scrollTo(a, anchor: .top) }
                 }
+                // -ps.patient.addproc "TKA" adds that procedure on the Procedure page (a sided one without its side).
+                let add = LaunchSeed.string("ps.patient.addproc")
+                if editor == .procedure, !add.isEmpty, !patient.record.procedures.contains(where: \.needsSide) {
+                    patient.update(discrete: true) { $0.setProcedures($0.procedures + PlannedProcedure.parse(add)) }
+                }
                 let f = LaunchSeed.string("ps.patient.focus")
                 if !f.isEmpty {
                     // Again, from scratch, in case a slow launch's push dropped it while the focus still reads as set

@@ -9,11 +9,19 @@ extension PatientEditorView {
 
     @ViewBuilder var procedureEditor: some View {
         let recognized = r.procedures.contains { $0.catalogID != nil }
-        let noSide = r.procedures.filter(\.needsSide)
-        PatientGroup(title: "Planned procedures", note: noSide.isEmpty ? nil : "Pick the side for " + noSide.map { ProcedureCatalog.lowerFirst($0.title) }.joined(separator: ", ") + ".") {
+        PatientGroup(title: "Planned procedures") {
             ForEach(r.procedures) { p in
                 PlannedProcedureRow(item: plannedBinding(p.id)) { patient.update(discrete: true) { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
                     .wobbleDelete($wobbling, label: p.title) { patient.update(discrete: true) { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
+                // Laterality is a safety item: the prompt stays in view under the procedure that has no side (Ben, Nov 2),
+                // not behind the group title's ⓘ.
+                if p.needsSide {
+                    Text("Pick the side for " + ProcedureCatalog.lowerFirst(p.title) + ".")
+                        .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.red)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 14).padding(.bottom, 10)
+                }
                 Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
