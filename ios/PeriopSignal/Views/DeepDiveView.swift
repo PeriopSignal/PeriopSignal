@@ -11,6 +11,8 @@ struct DeepDiveView: View {
     var onOpenPaper: (URL) -> Void
     @State private var shareItems: ShareItems?
     @State private var copied: String?
+    /// The paper's full title, shown under the journal line from its ⓘ (open in screenshots with -ps.evidence.open 1).
+    @State private var showTitle = LaunchSeed.bool("ps.evidence.open")
 
     struct ShareItems: Identifiable {
         let id = UUID()
@@ -27,13 +29,6 @@ struct DeepDiveView: View {
                         .foregroundStyle(PS.fg)
                         .lineSpacing(1)
                         .fixedSize(horizontal: false, vertical: true)
-                    if let title = post.title, !title.isEmpty, title.lowercased() != post.headline.lowercased() {
-                        Text(title)
-                            .font(PS.sys(size: 13.5).italic())
-                            .foregroundStyle(PS.fg3)
-                            .lineLimit(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
                 }
                 actions
                 if let g = post.glance {
@@ -100,12 +95,29 @@ struct DeepDiveView: View {
         .onAppear { read.markRead(post.id) }
     }
 
+    /// The paper's own title, when it differs from the headline: behind the ⓘ on the journal line (1.8.1).
+    private var paperTitle: String? {
+        guard let title = post.title, !title.isEmpty, title.lowercased() != post.headline.lowercased() else { return nil }
+        return title
+    }
+
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 MetaLine(post: post, long: true)
+                if paperTitle != nil {
+                    InfoButton(open: $showTitle, label: "Paper title")
+                }
                 Spacer(minLength: 6)
                 if post.isLandmark { Eyebrow(text: "Landmark", color: PS.accent, size: 10) }
+            }
+            if showTitle, let title = paperTitle {
+                Text(title)
+                    .font(PS.sys(size: 13.5).italic())
+                    .foregroundStyle(PS.fg3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+                    .transition(.opacity)
             }
             HStack(spacing: 8) {
                 SignalBars(impact: post.impact)
@@ -120,44 +132,44 @@ struct DeepDiveView: View {
         .padding(.top, 8)
     }
 
+    /// Open paper · Save · Listen, on one row that fits the phone; Copy is in the share menu (1.8.1). At the largest
+    /// text sizes the row scrolls rather than clipping.
     private var actions: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                if let url = post.paperURL {
-                    Button { onOpenPaper(url) } label: {
-                        Label("Open paper", systemImage: "arrow.up.right.square")
-                            .font(PS.sys(size: 14, weight: .semibold))
-                            .lineLimit(1)
-                            .fixedSize(horizontal: true, vertical: false)
-                            .padding(.horizontal, 14).padding(.vertical, 9)
-                            .background(PS.accent, in: Capsule())
-                            .foregroundStyle(PS.accentFg)
-                    }
-                    .buttonStyle(.plain)
-                }
-                Button {
-                    Haptics.light(); saved.toggle(post.id)
-                } label: {
-                    Label(saved.contains(post.id) ? "Saved" : "Save", systemImage: saved.contains(post.id) ? "bookmark.fill" : "bookmark")
-                }
-                .buttonStyle(CardButtonStyle(prominent: false))
-                Button {
-                    Haptics.light()
-                    if speech.current?.id == post.id, speech.isActive { speech.toggle() } else { speech.play(post) }
-                } label: {
-                    Label(speech.current?.id == post.id && speech.isPlaying ? "Pause" : "Listen", systemImage: speech.current?.id == post.id && speech.isPlaying ? "pause.fill" : "headphones")
-                }
-                .buttonStyle(CardButtonStyle(prominent: false))
-                Button {
-                    UIPasteboard.general.string = post.shareText
-                    flash("Summary copied")
-                } label: {
-                    Label("Copy", systemImage: "doc.on.doc")
-                }
-                .buttonStyle(CardButtonStyle(prominent: false))
-            }
+        ViewThatFits(in: .horizontal) {
+            actionButtons
+            ScrollView(.horizontal, showsIndicators: false) { actionButtons }
+                .scrollClipDisabled()
         }
-        .scrollClipDisabled()
+    }
+
+    private var actionButtons: some View {
+        HStack(spacing: 8) {
+            if let url = post.paperURL {
+                Button { onOpenPaper(url) } label: {
+                    Label("Open paper", systemImage: "arrow.up.right.square")
+                        .font(PS.sys(size: 14, weight: .semibold))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .padding(.horizontal, 14).padding(.vertical, 9)
+                        .background(PS.accent, in: Capsule())
+                        .foregroundStyle(PS.accentFg)
+                }
+                .buttonStyle(.plain)
+            }
+            Button {
+                Haptics.light(); saved.toggle(post.id)
+            } label: {
+                Label(saved.contains(post.id) ? "Saved" : "Save", systemImage: saved.contains(post.id) ? "bookmark.fill" : "bookmark")
+            }
+            .buttonStyle(CardButtonStyle(prominent: false))
+            Button {
+                Haptics.light()
+                if speech.current?.id == post.id, speech.isActive { speech.toggle() } else { speech.play(post) }
+            } label: {
+                Label(speech.current?.id == post.id && speech.isPlaying ? "Pause" : "Listen", systemImage: speech.current?.id == post.id && speech.isPlaying ? "pause.fill" : "headphones")
+            }
+            .buttonStyle(CardButtonStyle(prominent: false))
+        }
     }
 
     private var shareMenu: some View {
@@ -168,6 +180,10 @@ struct DeepDiveView: View {
                 }
             } label: { Label("Share as image", systemImage: "photo") }
             Button { shareItems = ShareItems(items: [post.shareText]) } label: { Label("Share summary text", systemImage: "text.alignleft") }
+            Button {
+                UIPasteboard.general.string = post.shareText
+                flash("Summary copied")
+            } label: { Label("Copy summary", systemImage: "doc.on.doc") }
             Button { shareItems = ShareItems(items: [post.siteLink]) } label: { Label("Share link", systemImage: "link") }
             if let url = post.paperURL {
                 Button { shareItems = ShareItems(items: [url]) } label: { Label("Share paper link", systemImage: "doc.text") }

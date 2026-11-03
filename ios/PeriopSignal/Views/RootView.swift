@@ -10,6 +10,8 @@ struct RootView: View {
     @Environment(ReferenceStore.self) private var refs
     /// The terms version this phone accepted; a new version asks again.
     @AppStorage("ps.terms.accepted") private var termsAccepted = ""
+    /// The app's first-time tips (Tips.swift), drawn over the tab bar; My Patient keeps its own.
+    @State private var tipCenter = TipCenter()
 
     var body: some View {
         #if DEBUG
@@ -30,6 +32,12 @@ struct RootView: View {
     private var main: some View {
         @Bindable var router = router
         return tabs
+            .overlay {
+                if tipCenter.isShowing {
+                    TipsOverlay(center: tipCenter)
+                        .transition(.opacity)
+                }
+            }
             .sheet(isPresented: $router.showWelcome) {
                 OnboardingView()
                     .presentationDetents([.large])
@@ -38,7 +46,11 @@ struct RootView: View {
             .fullScreenCover(isPresented: Binding(get: { needsTerms }, set: { _ in })) {
                 TermsGateView { termsAccepted = Terms.version }
             }
-            .task { await launch() }
+            .task { await launch(); offerTour() }
+            .onChange(of: router.showWelcome) { _, _ in offerTour() }
+            .onChange(of: termsAccepted) { _, _ in offerTour() }
+            .onChange(of: router.selectedTab) { _, _ in offerTour() }
+            .environment(tipCenter)
             .onChange(of: read.ids.count) { _, _ in
                 Task { await ReadStore.updateBadge(unread: read.unread(in: store.posts).count) }
             }
@@ -53,6 +65,16 @@ struct RootView: View {
         if LaunchSeed.string("ps.terms") != "show" { return false }
         #endif
         return termsAccepted != Terms.version
+    }
+
+    /// The first open after the welcome and the terms: the tour of the three tabs, on the Feed, once both are closed
+    /// (a first open from a link to another tab waits for the Feed; My Patient's own tips show on My Patient).
+    private func offerTour() {
+        guard !tipCenter.tourSeen || Tips.launch(for: .tour) != .normal else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            guard !needsTerms, !router.showWelcome, router.selectedTab == .feed else { return }
+            withAnimation(.easeOut(duration: 0.25)) { _ = tipCenter.offer(.tour) }
+        }
     }
 
     private var tabs: some View {
