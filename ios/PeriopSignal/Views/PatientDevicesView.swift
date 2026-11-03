@@ -265,7 +265,7 @@ struct PatientDiagramCard: View {
     var body: some View {
         if let fig = refs.bundle?.regional?.figure {
             let m = PatientDiagramModel.items(record, phase: phase)
-            PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart)
+            PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
                 .frame(height: height)
                 .frame(maxWidth: .infinity)
                 .allowsHitTesting(false)
