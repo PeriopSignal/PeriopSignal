@@ -238,9 +238,22 @@ enum PatientNote {
     /// A time over 3 months ago: a year ("2019"; the current year or later is not, see strokeYearNotPast), "5 years
     /// ago", "6 months ago".
     private static let over3Months = #"(?:(?:19|20)\d\d\b|(?:[4-9]|1[0-2]) months? ago|\d{1,2} (?:years?|yrs?) ago|(?:a|one|two|three|several|many) years? ago)"#
+    // One vocabulary for a result that is not positive, shared by the history rules (infectionNotPositive) and the lab
+    // results reader (LabResults), so the two never disagree: what reads as a negative or pending result never files a
+    // history item (1.8.3 review).
+    /// The words written between a test's name and its result ("MRSA nasal swab PCR …").
+    static let resultQualifiers = #"-?1\s*[/&]\s*2|ab|abs|antibody|antibodies|ag|antigen|sag|serology|serologies|screen|screening|swab|nares|nasal|test|testing|tests|pcr|naat|rapid|status|igm|igg|culture|cultures|toxin|stool|result|results|precautions|aureus|colonization"#
+    /// A negative result: "neg", "negative", "non-reactive", "-ve", "(-)", "not detected", "non-detected", "undetected",
+    /// a "-" or "−" written onto the name ("MRSA-") or ending the phrase ("MRSA −"); a spaced dash before more words is a
+    /// separator ("MRSA - on contact precautions").
+    static let resultNegative = #"neg(?:ative)?\b|non-?reactive\b|-ve\b|\(-\)|not detected\b|non-?detected\b|undetected\b|[-−](?=[,;.)/]|$)|(?<=[A-Za-z0-9)])[-−](?=\s)"#
+    /// A result still to come: "pending", "sent", "in process", "in progress".
+    static let resultPending = #"pending\b|sent\b|in process\b|in progress\b"#
+
     /// After an infection word, a result that is not positive: "HIV negative", "MRSA screen neg", "HCV Ab (-)", "HIV-",
-    /// "HIV-1/2 Ab negative", "C diff pending", "Isolation: none"; other abbreviations may sit between ("HIV/HCV neg").
-    static let infectionNotPositive = NoteRx(#"^(?:\s*[/,&]\s*(?:and\s+)?(?-i:[A-Z][A-Z0-9]{1,6}))*(?:-(?=[\s,;.)]|$)|\s*\(?\s*(?:(?:-?1\s*[/&]\s*2|ab|abs|antibody|antibodies|ag|antigen|sag|serology|serologies|screen|screening|swab|nares|test|testing|tests|pcr|naat|status|igm|igg|culture|cultures|toxin|stool|result|results|precautions)\s*){0,3}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+)?(?:neg(?:ative)?\b|non-?reactive\b|-ve\b|\(-\)|pending\b|unknown\b|sent\b|ordered\b|none\b|no\b|n/a\b|not required\b|decoloni[sz]ation\b))"#)
+    /// "HIV-1/2 Ab negative", "C diff pending", "MRSA PCR not detected", "Isolation: none"; other abbreviations may sit
+    /// between ("HIV/HCV neg").
+    static let infectionNotPositive = NoteRx(#"^(?:\s*[/,&]\s*(?:and\s+)?(?-i:[A-Z][A-Z0-9]{1,6}))*(?:-(?=[\s,;.)]|$)|\s*\(?\s*(?:(?:"# + resultQualifiers + #")\s*){0,4}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+)?(?:"# + resultNegative + "|" + resultPending + #"|unknown\b|ordered\b|none\b|no\b|n/a\b|not required\b|decoloni[sz]ation\b))"#)
     /// HIV prevention, which is not HIV.
     static let hivPrevention = NoteRx(#"(?-i:\bPrEP\b|\bPEP\b)|pre-?exposure prophylaxis|post-?exposure prophylaxis|\bhiv prevention"#)
     /// COVID-19 written any common way, but not its vaccine, an exposure, a screen, or a test that is not positive.
@@ -248,9 +261,23 @@ enum PatientNote {
     /// Recent or positive: "recent COVID", "COVID-19 positive", "COVID 2 weeks ago", "tested positive for SARS-CoV-2".
     private static let covidRecent: String = [
         #"\b(?:recent|recently|current|active|acute|ongoing)\s+(?:(?:mild|symptomatic|asymptomatic)\s+)?"#, covidWord,
-        #"|\b"#, covidWord, #"\s*(?:\(\s*)?(?:(?:pcr|antigen|ag|test|swab|infection|diagnosis|diagnosed)\s*)?(?:positive\b|pos\b|\+|"#, within3Months, #")"#,
+        #"|\b"#, covidWord, #"\s*(?:\(\s*)?(?:(?:pcr|antigen|ag|test|swab|infection|diagnosis|diagnosed)\s*)?(?:positive\b|pos\b|\+|detected\b|"#, within3Months, #")"#,
         #"|(?:\bpositive|\+)\s+(?:for\s+)?"#, covidWord,
     ].joined()
+    /// Years before this one: a COVID-19 dated then is not recent ("COVID+ 2021").
+    private static let pastYears: String = {
+        let y = Calendar(identifier: .gregorian).component(.year, from: Date())
+        return "(?:19\\d\\d|" + (2000..<max(y, 2001)).map { String($0) }.joined(separator: "|") + ")"
+    }()
+    /// A COVID-19 mention that is old or someone else's: a past year or "over 3 months ago" next to it, or an exposure
+    /// ("exposure to a COVID-positive coworker"). The history item is not filed and no positive result is read (1.8.3
+    /// review).
+    static let covidNotRecent = NoteRx([
+        #"(?:covid|sars[- ]?cov|coronavirus)[^,;.]{0,24}?\b(?:"#, pastYears, #"\b|(?:[4-9]|1[0-2]) months? ago|\d{1,2} (?:years?|yrs?) ago|(?:a|one|two|three|several|many) years? ago)"#,
+        #"|\b(?:in\s+)?"#, pastYears, #"\b[^,;.]{0,12}?(?:covid|sars[- ]?cov|coronavirus)"#,
+        #"|\b(?:expos(?:ure|ed)|close contacts?|contacts? with|sick contacts?)\b[^,;.]{0,40}?(?:covid|sars[- ]?cov|coronavirus)"#,
+        #"|(?:covid|sars[- ]?cov|coronavirus)[^,;.]{0,30}?\b(?:co-?workers?|colleagues?|family members?|household|spouse|wife|husband|partner|roommate|exposure|exposed)\b"#,
+    ].joined())
 
     /// Problem-list items, by the catalog's ids. Abbreviations that are also words are matched in capitals only.
     private static let problemRules: [Rule] = [
@@ -379,7 +406,7 @@ enum PatientNote {
         Rule("mdro", #"\b(?:mrsa|vre)\b|\bmethicillin[- ]resistant (?:staph(?:ylococcus)?|s\.)\s*(?:aureus)?|\bvancomycin[- ]resistant enterococc(?:us|i|al)\b"#, negAfter: infectionNotPositive),
         Rule("c-diff", #"\bc\.?\s?diff(?:icile)?\b|\bclostridi(?:um|oides) difficile\b|(?-i:\bCDI\b)"#, negAfter: infectionNotPositive),
         Rule("tb", #"(?:\btuberculosis\b|(?-i:\b(?:TB|LTBI)\b)|\blatent tb\b)(?!\s+exposure)|(?:\bpositive|\+)\s*(?:ppd|quantiferon|qft|igra|tst|tb test)\b|\b(?:ppd|quantiferon|qft|igra|tst)\s*(?:test\s*)?(?:\+|positive\b|pos\b)"#, negAfter: infectionNotPositive),
-        Rule("covid-recent", covidRecent, negAfter: infectionNotPositive),
+        Rule("covid-recent", covidRecent, notIf: covidNotRecent, negAfter: infectionNotPositive),
         Rule("isolation", #"\b(?:contact|droplet|airborne|enteric|respiratory|enhanced contact|special contact|contact plus)(?:\s*(?:/|and|&|\+|,)\s*(?:contact|droplet|airborne|enteric|respiratory))*\s+(?:isolation|precautions)\b|\b(?:on|in|under|requires?|requiring|needs?)\s+(?:strict\s+)?(?:contact\s+|droplet\s+|airborne\s+|respiratory\s+|reverse\s+|protective\s+|neutropenic\s+)?isolation\b|(?<!lung )(?<!vein )(?<!veins )(?<!wall )(?<!social )(?<!electrical )\bisolation\s+(?:precautions|room|status|for (?:mrsa|vre|c\.?\s?diff|covid|tb|flu|influenza|esbl|cre|mdro))\b|(?:^|[,;:(]\s*)isolation\b(?!\s+of\b)"#, negAfter: infectionNotPositive),
         Rule("thrombophilia", #"thrombophilia|factor v leiden|antiphospholipid|prothrombin gene mutation|protein [cs] deficiency|antithrombin deficiency"#),
         Rule("sepsis", #"\bsepsis\b|\bseptic\b(?!\s+(?:arthritis|joint|knee|hip|bursitis|emboli))"#),
@@ -588,7 +615,7 @@ enum PatientNote {
                 intracranialAneurysm, rupturedAorticRx, notAorticDissection, complexEVARRx, complexEVARTail]
         out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
                 prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI]
-        out += [infectionNotPositive, hivPrevention]
+        out += [infectionNotPositive, hivPrevention, covidNotRecent]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
         out += LabResults.patterns
@@ -1178,6 +1205,14 @@ enum PatientNote {
 
     /// A problem's own note-reader pattern (LabResults.otherLink asks whether "VRE" reads as MRSA or VRE).
     static func problemRule(_ id: String) -> NoteRx? { problemRules.first { $0.id == id }?.rx }
+
+    /// The history rule for a problem files it from this clause, with all its conditions (negation, notIf, a result that
+    /// is not positive): a positive COVID-19 result is read only where Recent COVID-19 would be filed.
+    static func problemRuleAccepts(_ id: String, _ c: String) -> Bool {
+        guard let rule = problemRules.first(where: { $0.id == id }) else { return false }
+        var h = Hits()
+        return accepted(rule, in: c, &h) != nil
+    }
 
     private static let problemLabels: [String: String] = Dictionary(PatientCatalog.allProblems.map { ($0.id, $0.label) }, uniquingKeysWith: { a, _ in a })
 

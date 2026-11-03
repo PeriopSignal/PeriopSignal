@@ -657,16 +657,18 @@ enum PatientLabs {
 
     // MARK: Hemoglobin and hematocrit, one from the other
 
-    // Hct (%) ≈ 3 × Hb (g/dL), and Hb ≈ Hct ÷ 3 (Ben, Nov 3: "HCT and hb can be calculated from either variable"). The
-    // ratio is 100 ÷ MCHC, so 3 assumes an MCHC near 33 g/dL. Lee SJ, Stepniewska K, Anstey N, et al. The relationship
-    // between the haemoglobin concentration and the haematocrit in Plasmodium falciparum malaria. Malar J 2008;7:149
-    // (doi:10.1186/1475-2875-7-149; PMID 18673575): 3,254 paired measurements from 1,810 patients in 85 trials, best
-    // fit Hct = 5.62 + 2.60 × Hb, and "the commonly used threefold conversion is also valid" (abstract). Its limits:
-    // Quintó L, Aponte JJ, Menéndez C, et al. Trop Med Int Health 2006;11:1295–1302 (doi:10.1111/j.1365-3156.2006.01679.x;
-    // PMID 16903892): in young children the ratio differed from 3 and varied with age, tending to 3, too loose to derive
-    // one from the other for defining anemia. So the estimate is only shown, marked as such: never saved, never in
-    // place of a measured value, never flagged and never read by a rule (the anemia rule reads the measured Hb).
-    static let estimateCaption = "Estimated as Hct ≈ 3 × Hb (Hb ≈ Hct ÷ 3), which assumes an MCHC near 33 g/dL; only measured values are saved (Lee SJ et al., Malar J 2008)."
+    // Hct (%) ≈ 3 × Hb (g/dL), and Hb ≈ Hct ÷ 3 (Ben, Nov 3: "HCT and hb can be calculated from either variable").
+    // By definition MCHC = Hb ÷ Hct × 100, so Hct ÷ Hb = 100 ÷ MCHC: the ratio is about 3 when the MCHC is about
+    // 33 g/dL (arithmetic, not a finding of the papers below). The threefold rule held in a pooled malaria cohort:
+    // Lee SJ, Stepniewska K, Anstey N, et al. The relationship between the haemoglobin concentration and the haematocrit
+    // in Plasmodium falciparum malaria. Malar J 2008;7:149 (doi:10.1186/1475-2875-7-149; PMID 18673575): 3,254 paired
+    // measurements from 1,810 patients pooled from 85 antimalarial drug trials, best fit Hct = 5.62 + 2.60 × Hb, and
+    // "the commonly used threefold conversion is also valid" (abstract). Its limits: Quintó L, Aponte JJ, Menéndez C,
+    // et al. Trop Med Int Health 2006;11:1295–1302 (doi:10.1111/j.1365-3156.2006.01679.x; PMID 16903892): in young
+    // children the ratio differed from 3 and varied with age, tending to 3, too loose to derive one from the other for
+    // defining anemia. So the estimate is only shown, marked as such: never saved, never in place of a measured value,
+    // never flagged and never read by a rule (the anemia rule reads the measured Hb).
+    static let estimateCaption = "Estimated as Hct ≈ 3 × Hb (Hb ≈ Hct ÷ 3). Hct ÷ Hb = 100 ÷ MCHC, so the ratio is about 3 when MCHC is about 33 g/dL; the threefold rule held in a pooled malaria cohort (Lee SJ et al., Malar J 2008). Only measured values are saved."
 
     /// The other of hemoglobin and hematocrit when only one is entered: Hct to the whole %, Hb to 0.1 g/dL.
     static func estimate(_ labs: [String: Double]) -> LabValue? {
