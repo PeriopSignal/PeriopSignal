@@ -234,7 +234,7 @@ struct PatientView: View {
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
     /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
     /// intraop:<part> | system:<id> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo | echo-trivial makes that
-    /// change first (one-tap normals), so Undo shows.
+    /// change first (one-tap normals; harvest-both plans both radials; echo-trivial grades TR and AR trivial), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
         let edit = LaunchSeed.string("ps.patient.edit")
@@ -248,6 +248,7 @@ struct PatientView: View {
                 case "echo-trivial":
                     r.echoFindings.tricuspid.regurgitation = .trivial
                     r.echoFindings.aortic.regurgitation = .trivial
+                case "harvest-both": r.radial.harvest = "both"
                 default: PatientAirway.applyNormalExam(&r)
                 }
             }

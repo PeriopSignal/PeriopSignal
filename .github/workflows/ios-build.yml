@@ -380,6 +380,8 @@ jobs:
           shot 212-cardiac-handoff-full-cautions 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format full -ps.patient.jump handoff -ps.forceAppearance light
           shot 213-quickadd-aorta 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "74M, HTN, 5.2 cm AAA, s/p TEVAR 2019, dissection, TAA 48 mm, CKD"
           shot 214-history-aorta 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open history -ps.forceAppearance light
+          shot 215-studies-radial-both 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open workup:radial -ps.patient.scroll done -ps.forceAppearance dark
+          shot 216-intraop-lines-both 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open intraop:lines -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

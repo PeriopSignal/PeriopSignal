@@ -345,7 +345,7 @@ enum QuickAdd {
     /// bypass", "metoprolol 5 mg IV").
     private static func preoperativeOnly(_ change: PatientNoteChange) -> Bool {
         switch change {
-        case .problem, .aortaSize, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
+        case .problem, .aortaSize, .problemNote, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
              .anesthesiaNotes, .dentition, .airwaySign, .mallampati:
             return true
         default:
