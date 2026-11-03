@@ -1,221 +1,208 @@
-Analysis of sampling PeriopSignal (pid 24460) every 1 millisecond
-Process:         PeriopSignal [24460]
-Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/9085FA94-A051-4C57-80AF-89E092566E9B/PeriopSignal.app/PeriopSignal
-Load Address:    0x10d2c7000
+Analysis of sampling PeriopSignal (pid 26742) every 1 millisecond
+Process:         PeriopSignal [26742]
+Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/A3C372BC-1BED-4F7B-900E-8BFD1821FA84/PeriopSignal.app/PeriopSignal
+Load Address:    0x103672000
 Identifier:      PeriopSignal
 Version:         ???
 Code Type:       X86-64
 Platform:        iOS Simulator
-Parent Process:  launchd_sim [21929]
+Parent Process:  launchd_sim [23487]
 Target Type:     live task
 
-Date/Time:       2026-11-03 15:07:08.071 +0000
-Launch Time:     2026-11-03 15:06:49.340 +0000
+Date/Time:       2026-11-03 15:10:40.141 +0000
+Launch Time:     2026-11-03 15:10:07.824 +0000
 OS Version:      macOS 15.7.9 (24G830)
 Report Version:  7
 Analysis Tool:   /usr/bin/sample
 
-Physical footprint:         44.2M
-Physical footprint (peak):  50.8M
+Physical footprint:         47.0M
+Physical footprint (peak):  50.3M
 Idle exit:                  untracked
 ----
 
 Call graph:
-    4 Thread_73930   DispatchQueue_1: com.apple.main-thread  (serial)
-    + 4 start  (in dyld) + 3056  [0x1171aa530]
-    +   4 start_sim  (in dyld_sim) + 10  [0x10d40f3dc]
-    +     4 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x111582409]  PeriopSignalApp.swift:0
-    +       4 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x11157b0d3]  /<compiler-generated>:0
-    +         4 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
-    +           4 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
-    +             4 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
-    +               4 UIApplicationMain  (in UIKitCore) + 123  [0x7ff809311f29]
-    +                 4 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
-    +                   4 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
-    +                     4 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-    +                       4 __CFRunLoopRun  (in CoreFoundation) + 2627  [0x7ff80293b20a]
-    +                         4 __CFRunLoopDoSource1  (in CoreFoundation) + 541  [0x7ff80293c023]
-    +                           4 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__  (in CoreFoundation) + 41  [0x7ff80293ca55]
-    +                             4 __CFMachPortPerform  (in CoreFoundation) + 157  [0x7ff8028ff42b]
-    +                               4 UC::DriverCore::continueProcessing()  (in UpdateCycle) + 68  [0x7ffc1ec2d2fe]
-    +                                 4 schedulerStepScheduledMainSectionContinue  (in UIKitCore) + 57  [0x7ff8091d9cc5]
-    +                                   4 _UIUpdateSequenceRunNext  (in UIKitCore) + 95  [0x7ff8083dedc1]
-    +                                     4 __setupUpdateSequence_block_invoke_2  (in UIKitCore) + 437  [0x7ff8091d98a6]
-    +                                       4 _UIApplicationFlushCATransaction  (in UIKitCore) + 57  [0x7ff80930b4cf]
-    +                                         4 CA::Transaction::flush_as_runloop_observer(bool)  (in QuartzCore) + 60  [0x7ff81016d776]
-    +                                           4 CA::Transaction::commit()  (in QuartzCore) + 748  [0x7ff81016bede]
-    +                                             4 CA::Context::commit_transaction(CA::Transaction*, double, double*)  (in QuartzCore) + 769  [0x7ff81012e6b7]
-    +                                               4 CA::Layer::layout_and_display_if_needed(CA::Transaction*)  (in QuartzCore) + 110  [0x7ff81023c0a4]
-    +                                                 4 CA::Layer::update_if_needed_(CA::Transaction*, CA::LayerUpdateReason)  (in QuartzCore) + 700  [0x7ff81022f490]
-    +                                                   4 CA::Layer::perform_update_(CA::Layer*, CALayer*, unsigned int, CA::LayerUpdateReason, CA::Transaction*)  (in QuartzCore) + 391  [0x7ff81022fbb1]
-    +                                                     4 -[UIView(CALayerDelegate) layoutSublayersOfLayer:]  (in UIKitCore) + 3327  [0x7ff809ad39c1]
-    +                                                       4 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x473b55  [0x7ff808081b55]
-    +                                                         4 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x4737a6  [0x7ff8080817a6]
-    +                                                           4 @objc _UIHostingView.layoutSubviews()  (in SwiftUI) + 21  [0x7ffb05615765]
-    +                                                             4 _UIHostingView.layoutSubviews()  (in SwiftUI) + 76  [0x7ffb0561573c]
-    +                                                               4 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192ec4  [0x7ff807da0ec4]
-    +                                                                 4 ViewGraphRootValueUpdater.render(interval:updateDisplayList:targetTimestamp:)  (in SwiftUICore) + 464  [0x7ffb066db140]
-    +                                                                   4 closure #1 in ViewGraphRootValueUpdater.render(interval:updateDisplayList:targetTimestamp:)  (in SwiftUICore) + 1200  [0x7ffb066dcd20]
-    +                                                                     4 ViewGraph.updateOutputs(at:)  (in SwiftUICore) + 194  [0x7ffb066e30e2]
-    +                                                                       4 specialized GraphHost.runTransaction(_:do:id:)  (in SwiftUICore) + 409  [0x7ffb0626cdd9]
-    +                                                                         4 AG::Subgraph::update(unsigned int)  (in AttributeGraph) + 1115  [0x7ffa0cd7c2c3]
-    +                                                                           4 AG::Graph::UpdateStack::update()  (in AttributeGraph) + 539  [0x7ffa0cd6d765]
-    +                                                                             4 specialized implicit closure #1 in closure #1 in closure #1 in Attribute.init<A>(_:)  (in SwiftUICore) + 15  [0x7ffb05be2a3f]
-    +                                                                               4 ResolvedTextFilter.updateValue()  (in SwiftUICore) + 671  [0x7ffb05f0431f]
-    +                                                                                 4 ResolvedTextHelper.resolve(_:with:sizeFitting:)  (in SwiftUICore) + 3306  [0x7ffb05efee5a]
-    +                                                                                   4 Text.resolveAttributedStringAndProperties(in:includeDefaultAttributes:options:idiom:)  (in SwiftUICore) + 845  [0x7ffb05ec69ad]
-    +                                                                                     4 specialized Text.resolve<A>(into:in:with:)  (in SwiftUICore) + 288  [0x7ffb05b13b30]
-    +                                                                                       3 specialized Text.Storage.resolve<A>(into:in:with:)  (in SwiftUICore) + 116  [0x7ffb05b13c94]
-    +                                                                                       ! 3 AttributedStringTextStorage.resolve<A>(into:in:with:)  (in SwiftUICore) + 687  [0x7ffb06079a7f]
-    +                                                                                       !   3 ResolvedTextContainer.append(_:in:with:)  (in SwiftUICore) + 147  [0x7ffb06495763]
-    +                                                                                       !     3 Text.Resolved.append(_:in:with:isUniqueSizeVariant:)  (in SwiftUICore) + 367  [0x7ffb0649792f]
-    +                                                                                       !       3 -[NSAttributedString enumerateAttributesInRange:options:usingBlock:]  (in Foundation) + 313  [0x7ff8035c4f42]
-    +                                                                                       !         3 thunk for @escaping @callee_guaranteed (@guaranteed [NSAttributedStringKey : Any], @unowned _NSRange, @unowned UnsafeMutablePointer<ObjCBool>) -> ()  (in SwiftUICore) + 99  [0x7ffb05b129b3]
-    +                                                                                       !           3 <deduplicated_symbol>  (in SwiftUICore) + 13  [0x7ffb05b1293d]
-    +                                                                                       !             3 partial apply for closure #1 in Text.Resolved.append(_:in:with:isUniqueSizeVariant:)  (in SwiftUICore) + 39  [0x7ffb0649ba97]
-    +                                                                                       !               3 closure #1 in Text.Resolved.append(_:in:with:isUniqueSizeVariant:)  (in SwiftUICore) + 864  [0x7ffb06497d40]
-    +                                                                                       !                 1 Text.Style.nsAttributes(content:environment:includeDefaultAttributes:with:properties:)  (in SwiftUICore) + 3192  [0x7ffb05ec30d8]
-    +                                                                                       !                 : 1 Text.Style.TextStyleColor.resolve(in:with:properties:includeDefaultAttributes:)  (in SwiftUICore) + 538  [0x7ffb0649605a]
-    +                                                                                       !                 :   1 AnyColorBox.apply(to:)  (in SwiftUICore) + 212  [0x7ffb0643f9e4]
-    +                                                                                       !                 :     1 ColorBox.apply(color:to:)  (in SwiftUICore) + 35  [0x7ffb06440143]
-    +                                                                                       !                 :       1 specialized ColorProvider._apply(color:to:)  (in SwiftUICore) + 531  [0x7ffb0606e6a3]
-    +                                                                                       !                 :         1 specialized PlatformColorProvider.resolveHDR(in:)  (in SwiftUICore) + 119  [0x7ffb06070507]
-    +                                                                                       !                 :           1 static UIKitPlatformColorDefinition.resolvedHDRColor(_:environment:)  (in SwiftUI) + 281  [0x7ffb0542d899]
-    +                                                                                       !                 :             1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xf4bf  [0x7ff807c1d4bf]
-    +                                                                                       !                 :               1 -[UITraitCollection traitCollectionByModifyingTraits:]  (in UIKitCore) + 83  [0x7ff808cd5ad5]
-    +                                                                                       !                 :                 1 -[UITraitCollection _traitCollectionByModifyingTraitsCopyOnWrite:]  (in UIKitCore) + 192  [0x7ff808cd5c1c]
-    +                                                                                       !                 :                   1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xf0a3  [0x7ff807c1d0a3]
-    +                                                                                       !                 :                     1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x1ec51  [0x7ff807c2cc51]
-    +                                                                                       !                 :                       1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xf5ae  [0x7ff807c1d5ae]
-    +                                                                                       !                 :                         1 closure #1 in UITraitCollection.resolvedPreTraitCollection(environment:wrapper:forImageAssetsOnly:)  (in SwiftUI) + 207  [0x7ffb05786a3f]
-    +                                                                                       !                 :                           1 <deduplicated_symbol>  (in SwiftUICore) + 45  [0x7ffb05aac8dd]
-    +                                                                                       !                 :                             1 specialized PropertyList.Tracker.value<A>(_:for:)  (in SwiftUICore) + 102  [0x7ffb05a58806]
-    +                                                                                       !                 :                               1 <deduplicated_symbol>  (in SwiftUICore) + 3  [0x7ffb05a7be93]
-    +                                                                                       !                 1 Text.Style.nsAttributes(content:environment:includeDefaultAttributes:with:properties:)  (in SwiftUICore) + 3327  [0x7ffb05ec315f]
-    +                                                                                       !                 : 1 specialized ObjectCache.subscript.getter  (in SwiftUICore) + 110  [0x7ffb05c5f3fe]
-    +                                                                                       !                 :   1 Color.Resolved.hash(into:)  (in SwiftUICore) + 150  [0x7ffb05d3a6b6]
-    +                                                                                       !                 :     1 Hasher._combine(_:)  (in libswiftCore.dylib) + 0  [0x7ff81ca3b3d0]
-    +                                                                                       !                 1 Text.Style.nsAttributes(content:environment:includeDefaultAttributes:with:properties:)  (in SwiftUICore) + 8399  [0x7ffb05ec452f]
-    +                                                                                       !                   1 ParagraphStyleResolutionContext.init(_:)  (in SwiftUICore) + 1178  [0x7ffb05ec5c5a]
-    +                                                                                       !                     1 specialized EnvironmentValues.subscript.getter  (in SwiftUICore) + 93  [0x7ffb05ec801d]
-    +                                                                                       !                       1 static UITraitBridgedEnvironmentResolver.read<A>(for:from:)  (in SwiftUI) + 112  [0x7ffb05512c00]
-    +                                                                                       !                         1 EnvironmentValues.getBridgedValue<A>(for:)  (in SwiftUI) + 17  [0x7ffb05512861]
-    +                                                                                       !                           1 __swift_instantiateGenericMetadata  (in SwiftUI) + 32  [0x7ffb04882cb0]
-    +                                                                                       !                             1 _swift_getGenericMetadata(swift::MetadataRequest, void const* const*, swift::TargetTypeContextDescriptor<swift::InProcess> const*)  (in libswiftCore.dylib) + 306  [0x7ff81c883872]
-    +                                                                                       !                               1 swift::LockingConcurrentMap<swift::GenericCacheEntry, swift::LockingConcurrentMapStorage<swift::GenericCacheEntry, (unsigned short)14>>::getOrInsert<swift::MetadataCacheKey, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&>(swift::MetadataCacheKey, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&)  (in libswiftCore.dylib) + 84  [0x7ff81c897d14]
-    +                                                                                       !                                 1 swift::StableAddressConcurrentReadableHashMap<swift::GenericCacheEntry, swift::TaggedMetadataAllocator<(unsigned short)14>, swift::Mutex>::getOrInsert<swift::MetadataCacheKey, swift::MetadataWaitQueue::Worker&, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&>(swift::MetadataCacheKey, swift::MetadataWaitQueue::Worker&, swift::MetadataRequest&, swift::TargetTypeContextDescriptor<swift::InProcess> const*&, void const* const*&)  (in libswiftCore.dylib) + 171  [0x7ff81c89803b]
-    +                                                                                       !                                   1 const* swift::ConcurrentReadableHashMap<swift::HashMapElementWrapper<swift::GenericCacheEntry>, swift::Mutex>::Snapshot::find<swift::MetadataCacheKey>(swift::MetadataCacheKey const&) &  (in libswiftCore.dylib) + 270  [0x7ff81c89519e]
-    +                                                                                       1 specialized Text.Storage.resolve<A>(into:in:with:)  (in SwiftUICore) + 469  [0x7ffb05b13df5]
-    +                                                                                         1 Text.Style.nsAttributes(content:environment:includeDefaultAttributes:with:properties:)  (in SwiftUICore) + 3192  [0x7ffb05ec30d8]
-    +                                                                                           1 Text.Style.TextStyleColor.resolve(in:with:properties:includeDefaultAttributes:)  (in SwiftUICore) + 538  [0x7ffb0649605a]
-    +                                                                                             1 AnyColorBox.apply(to:)  (in SwiftUICore) + 212  [0x7ffb0643f9e4]
-    +                                                                                               1 ColorBox.apply(color:to:)  (in SwiftUICore) + 35  [0x7ffb06440143]
-    +                                                                                                 1 specialized ColorProvider._apply(color:to:)  (in SwiftUICore) + 531  [0x7ffb0606e6a3]
-    +                                                                                                   1 specialized PlatformColorProvider.resolveHDR(in:)  (in SwiftUICore) + 119  [0x7ffb06070507]
-    +                                                                                                     1 static UIKitPlatformColorDefinition.resolvedHDRColor(_:environment:)  (in SwiftUI) + 360  [0x7ffb0542d8e8]
-    +                                                                                                       1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xd7288  [0x7ff807ce5288]
-    +                                                                                                         1 -[UITraitCollection traitCollectionByModifyingTraits:]  (in UIKitCore) + 83  [0x7ff808cd5ad5]
-    +                                                                                                           1 -[UITraitCollection _traitCollectionByModifyingTraitsCopyOnWrite:]  (in UIKitCore) + 192  [0x7ff808cd5c1c]
-    +                                                                                                             1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xf0a3  [0x7ff807c1d0a3]
-    +                                                                                                               1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xf06c  [0x7ff807c1d06c]
-    +                                                                                                                 1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xf5ae  [0x7ff807c1d5ae]
-    +                                                                                                                   1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xd84e5  [0x7ff807ce64e5]
-    +                                                                                                                     1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x3417e5  [0x7ff807f4f7e5]
-    +                                                                                                                       1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0xeb94  [0x7ff807c1cb94]
-    +                                                                                                                         1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x12fb6  [0x7ff807c20fb6]
-    +                                                                                                                           1 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x1f87f  [0x7ff807c2d87f]
-    +                                                                                                                             1 -[UITraitCollection _setNSIntegerValue:forTraitToken:]  (in UIKitCore) + 95  [0x7ff808cd702d]
-    +                                                                                                                               1 -[UITraitCollection _setValue:forTraitWithMetadata:]  (in UIKitCore) + 940  [0x7ff808cd684d]
-    +                                                                                                                                 1 -[__NSDictionaryM setObject:forKey:]  (in CoreFoundation) + 187  [0x7ff802a4f299]
-    +                                                                                                                                   1 _cow_mutate_slow  (in CoreFoundation) + 16  [0x7ff8028f109d]
-    +                                                                                                                                     1 cow_copy_storage  (in CoreFoundation) + 247  [0x7ff802a52d42]
-    +                                                                                                                                       1 objc_msgSend  (in libobjc.A.dylib) + 28  [0x7ff802539d9c]
-    4 Thread_73969
-    + 4 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10d2d1843]
-    +   4 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10d2d28ba]
-    +     4 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10d349286]
-    4 Thread_73971: com.apple.uikit.eventfetch-thread
-    + 4 thread_start  (in libsystem_pthread.dylib) + 15  [0x10d2d1857]
-    +   4 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10d2d5e05]
-    +     4 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
-    +       4 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
-    +         4 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
-    +           4 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
-    +             4 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-    +               4 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
-    +                 4 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
-    +                   4 mach_msg  (in libsystem_kernel.dylib) + 19  [0x10d347e3b]
-    +                     4 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10d34ebc3]
-    +                       4 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10d3566bc]
-    +                         4 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10d347b4a]
-    4 Thread_75712   DispatchQueue_22: com.apple.libtrace.state.block-list  (serial)
-    + 4 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10d2d1843]
-    +   4 _pthread_wqthread  (in libsystem_pthread.dylib) + 298  [0x10d2d2861]
-    +     4 _dispatch_workloop_worker_thread  (in libdispatch.dylib) + 814  [0x7ff8026a6606]
-    +       4 _dispatch_root_queue_drain_deferred_wlh  (in libdispatch.dylib) + 290  [0x7ff8026a6ee6]
-    +         4 _dispatch_lane_invoke  (in libdispatch.dylib) + 413  [0x7ff80269baa6]
-    +           4 _dispatch_lane_serial_drain  (in libdispatch.dylib) + 1170  [0x7ff80269afb7]
-    +             4 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-    +               4 _dispatch_call_block_and_release  (in libdispatch.dylib) + 12  [0x7ff802692644]
-    +                 4 ___os_state_request_for_self_block_invoke  (in libsystem_trace.dylib) + 377  [0x7ff8025bd3f7]
-    +                   4 _dispatch_sync_f_slow  (in libdispatch.dylib) + 196  [0x7ff8026a2690]
-    +                     4 __DISPATCH_WAIT_FOR_QUEUE__  (in libdispatch.dylib) + 356  [0x7ff8026a2b38]
-    +                       4 _dispatch_thread_event_wait_slow  (in libdispatch.dylib) + 40  [0x7ff802693cbf]
-    +                         4 _dlock_wait  (in libdispatch.dylib) + 46  [0x7ff802693e47]
-    +                           4 __ulock_wait  (in libsystem_kernel.dylib) + 10  [0x10d349316]
-    4 Thread_75763   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)
-    + 4 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10d2d1843]
-    +   4 _pthread_wqthread  (in libsystem_pthread.dylib) + 233  [0x10d2d2820]
-    +     4 _dispatch_worker_thread2  (in libdispatch.dylib) + 266  [0x7ff8026a5dc5]
-    +       4 _dispatch_root_queue_drain  (in libdispatch.dylib) + 1299  [0x7ff8026a57a6]
-    +         4 _dispatch_root_queue_drain.cold.4  (in libdispatch.dylib) + 34  [0x7ff8026c7df7]
-    +           4 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-    +             4 AG::(anonymous namespace)::TypeDescriptorCache::drain_queue(void*)  (in AttributeGraph) + 383  [0x7ffa0cd8384f]
-    +               4 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 95  [0x7ffa0cd81bb6]
-    +                 4 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 308  [0x7ffa0cd81028]
-    +                   4 swift_conformsToProtocol  (in libswiftCore.dylib) + 47  [0x7ff81c8c4c3f]
-    +                     4 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
-    +                       3 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 379,46  [0x7ff81c8c83eb,0x7ff81c8c829e]
-    +                       1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 183  [0x7ff81c8c8327]
-    +                         1 (anonymous namespace)::ConformanceCandidate::getMatchingType(swift::TargetMetadata<swift::InProcess> const*, bool) const  (in libswiftCore.dylib) + 10  [0x7ff81c8c4aea]
-    4 Thread_75801
-    + 4 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10d2d1843]
-    +   4 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10d2d28ba]
-    +     4 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10d349286]
-    4 Thread_75820: com.apple.UIKit.inProcessAnimationManager
-    + 4 thread_start  (in libsystem_pthread.dylib) + 15  [0x10d2d1857]
-    +   4 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10d2d5e05]
-    +     4 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
-    +       4 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192209  [0x7ff807da0209]
-    +         4 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x577ce5  [0x7ff808185ce5]
-    +           4 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x572f3f  [0x7ff808180f3f]
-    +             4 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 98  [0x7ff802693ff0]
-    +               4 _dispatch_sema4_wait  (in libdispatch.dylib) + 16  [0x7ff802693b82]
-    +                 4 semaphore_wait_trap  (in libsystem_kernel.dylib) + 10  [0x10d347ac6]
-    4 Thread_75823
-    + 4 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10d2d1843]
-    +   4 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10d2d28ba]
-    +     4 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10d349286]
-    4 Thread_75826
-      4 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10d2d1843]
-        4 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10d2d28ba]
-          4 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10d349286]
+    2 Thread_79816   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 2 start  (in dyld) + 3056  [0x108095530]
+    +   2 start_sim  (in dyld_sim) + 10  [0x1037ba3dc]
+    +     2 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x108fb4da9]  PeriopSignalApp.swift:0
+    +       2 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x108fada73]  /<compiler-generated>:0
+    +         2 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
+    +           2 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
+    +             2 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
+    +               2 UIApplicationMain  (in UIKitCore) + 123  [0x7ff809311f29]
+    +                 2 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
+    +                   2 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
+    +                     2 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +                       2 __CFRunLoopRun  (in CoreFoundation) + 916  [0x7ff80293ab5b]
+    +                         2 __CFRunLoopDoSources0  (in CoreFoundation) + 311  [0x7ff80293ba57]
+    +                           2 __CFRunLoopDoSource0  (in CoreFoundation) + 157  [0x7ff80293c20e]
+    +                             2 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__  (in CoreFoundation) + 17  [0x7ff80293c2cc]
+    +                               2 UC::DriverCore::continueProcessing()  (in UpdateCycle) + 68  [0x7ffc1ec2d2fe]
+    +                                 2 schedulerStepScheduledMainSectionContinue  (in UIKitCore) + 57  [0x7ff8091d9cc5]
+    +                                   2 _UIUpdateSequenceRunNext  (in UIKitCore) + 95  [0x7ff8083dedc1]
+    +                                     2 __setupUpdateSequence_block_invoke_2  (in UIKitCore) + 437  [0x7ff8091d98a6]
+    +                                       2 _UIApplicationFlushCATransaction  (in UIKitCore) + 57  [0x7ff80930b4cf]
+    +                                         2 CA::Transaction::flush_as_runloop_observer(bool)  (in QuartzCore) + 60  [0x7ff81016d776]
+    +                                           2 CA::Transaction::commit()  (in QuartzCore) + 748  [0x7ff81016bede]
+    +                                             2 CA::Context::commit_transaction(CA::Transaction*, double, double*)  (in QuartzCore) + 769  [0x7ff81012e6b7]
+    +                                               2 CA::Layer::layout_and_display_if_needed(CA::Transaction*)  (in QuartzCore) + 573  [0x7ff81023c273]
+    +                                                 2 -[CALayer _display]  (in QuartzCore) + 2524  [0x7ff810226d24]
+    +                                                   2 invocation function for block in CA::Layer::display_()  (in QuartzCore) + 64  [0x7ff810231c8c]
+    +                                                     2 CABackingStoreUpdate_  (in QuartzCore) + 848  [0x7ff81003c12a]
+    +                                                       2 CGDisplayListDrawInContextDelegate  (in CoreGraphics) + 293  [0x7ff81087c588]
+    +                                                         2 CG::DisplayList::execute(CGContextDelegate*, CGRenderingState*, CGGStack*, CGRect const*, __CFDictionary const*)  (in CoreGraphics) + 412  [0x7ff8108788f6]
+    +                                                           2 CG::DisplayList::executeEntries(std::__wrap_iter<std::shared_ptr<CG::DisplayListEntry const>*>, std::__wrap_iter<std::shared_ptr<CG::DisplayListEntry const>*>, CGContextDelegate*, CGRenderingState*, CGGStack*, CGRect const*, __CFDictionary const*, bool)  (in CoreGraphics) + 5320  [0x7ff81087a7d2]
+    +                                                             2 ripc_DrawGlyphs  (in CoreGraphics) + 1950  [0x7ff8108b9d89]
+    +                                                               2 draw_glyph_bitmaps  (in CoreGraphics) + 1683  [0x7ff8108bad0b]
+    +                                                                 2 render_glyphs  (in CoreGraphics) + 289  [0x7ff8108bb08d]
+    +                                                                   2 CGGlyphBuilderLockBitmaps  (in CoreGraphics) + 1309  [0x7ff8108c5971]
+    +                                                                     2 CGFontCreateGlyphPath  (in CoreGraphics) + 40  [0x7ff8109638a3]
+    +                                                                       2 FPFontCopyGlyphPath  (in libFontParser.dylib) + 18  [0x7ff816ea4615]
+    +                                                                         2 TFPFont::CopyGlyphPath(CGAffineTransform const*, unsigned int) const  (in libFontParser.dylib) + 28  [0x7ff81705bbec]
+    +                                                                           2 TFPFont::CopyGlyphPath(unsigned int) const  (in libFontParser.dylib) + 281  [0x7ff81705aa37]
+    +                                                                             2 TConcreteFontScaler::CopyGlyphPath(unsigned short, CGAffineTransform const*) const  (in libFontParser.dylib) + 461  [0x7ff816eba6cd]
+    +                                                                               2 TTRenderGlyphs  (in libFontParser.dylib) + 652  [0x7ff816fee8a8]
+    +                                                                                 2 AssureGlyphBlock(fsg_SplineKey*, memoryContext*, scalerGlyph*)  (in libFontParser.dylib) + 137  [0x7ff816ffa565]
+    +                                                                                   2 CreateScalerGlyphBlock(fsg_SplineKey*, memoryContext*, scalerGlyph const*)  (in libFontParser.dylib) + 348  [0x7ff816ffc36a]
+    +                                                                                     2 CreateGlyphElement(fsg_SplineKey*, int, unsigned char, unsigned char)  (in libFontParser.dylib) + 657  [0x7ff816ffc0a9]
+    +                                                                                       2 CreateGlyphOutline(fsg_SplineKey*, unsigned short, unsigned char)  (in libFontParser.dylib) + 79  [0x7ff816ff35d1]
+    +                                                                                         2 StretchGlyph(fsg_SplineKey*, fnt_ElementType*, transformState const*, std::unique_ptr<float []>*, unsigned char, unsigned char*, unsigned int)  (in libFontParser.dylib) + 453  [0x7ff816ff1b6e]
+    +                                                                                           2 ApplyFeaturesToOutline(fsg_SplineKey*, fnt_ElementType*)  (in libFontParser.dylib) + 868  [0x7ff81700a44a]
+    +                                                                                             1 ApplyVariationsToGlyph(int, short*, unsigned int, glyphVariation const*, int, short const*, int, int, unsigned short const*, float*, float*, float*, float*, float*, float*, int)  (in libFontParser.dylib) + 1693  [0x7ff817009c66]
+    +                                                                                             ! 1 ApplyAllPointDeltas(int, float*, char const*, float, void const*)  (in libFontParser.dylib) + 27  [0x7ff81700af55]
+    +                                                                                             1 ApplyVariationsToGlyph(int, short*, unsigned int, glyphVariation const*, int, short const*, int, int, unsigned short const*, float*, float*, float*, float*, float*, float*, int)  (in libFontParser.dylib) + 476  [0x7ff8170097a5]
+    2 Thread_79892   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)
+    + 2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10367c843]
+    +   2 _pthread_wqthread  (in libsystem_pthread.dylib) + 233  [0x10367d820]
+    +     2 _dispatch_worker_thread2  (in libdispatch.dylib) + 266  [0x7ff8026a5dc5]
+    +       2 _dispatch_root_queue_drain  (in libdispatch.dylib) + 1299  [0x7ff8026a57a6]
+    +         2 _dispatch_root_queue_drain.cold.4  (in libdispatch.dylib) + 34  [0x7ff8026c7df7]
+    +           2 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
+    +             2 AG::(anonymous namespace)::TypeDescriptorCache::drain_queue(void*)  (in AttributeGraph) + 383  [0x7ffa0cd8384f]
+    +               2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                 2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                   2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                     2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                       2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                         2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                           2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                             2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                               2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                 2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                   2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                     2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                       2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                         2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                                           2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                             2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                               2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                 2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                   2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                                     2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 481  [0x7ffa0cd6a36d]
+    +                                                       2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                                         2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                           2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                             2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                                               2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                                                                 2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                                                   2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                                                     2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                                       2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                                         2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                                                           2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                                                                             2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                                                               2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                                                                 2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                                                   2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                                                     2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                                                                       2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                                                                                         2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                                                                           2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                                                                             2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                                                               2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                                                                 2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                                                                                   2 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                                                                                                     2 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                                                                                       2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                                                                                         2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                                                                           2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                                                                             1 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 95  [0x7ffa0cd81bb6]
+    +                                                                                                             ! 1 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 308  [0x7ffa0cd81028]
+    +                                                                                                             !   1 swift_conformsToProtocol  (in libswiftCore.dylib) + 47  [0x7ff81c8c4c3f]
+    +                                                                                                             !     1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
+    +                                                                                                             !       1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 46  [0x7ff81c8c829e]
+    +                                                                                                             1 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                                                                                               1 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                                                                                                                 1 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                                                                                                   1 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                                                                                                     1 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                                                                                       1 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                                                                                         1 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+    +                                                                                                                           1 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+    +                                                                                                                             1 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
+    +                                                                                                                               1 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+    +                                                                                                                                 1 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+    +                                                                                                                                   1 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+    +                                                                                                                                     1 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 95  [0x7ffa0cd81bb6]
+    +                                                                                                                                       1 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 308  [0x7ffa0cd81028]
+    +                                                                                                                                         1 swift_conformsToProtocol  (in libswiftCore.dylib) + 47  [0x7ff81c8c4c3f]
+    +                                                                                                                                           1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
+    +                                                                                                                                             1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 46  [0x7ff81c8c829e]
+    2 Thread_79894: com.apple.uikit.eventfetch-thread
+    + 2 thread_start  (in libsystem_pthread.dylib) + 15  [0x10367c857]
+    +   2 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x103680e05]
+    +     2 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       2 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
+    +         2 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
+    +           2 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
+    +             2 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +               2 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                 2 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                   2 mach_msg  (in libsystem_kernel.dylib) + 19  [0x1036f2e3b]
+    +                     2 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x1036f9bc3]
+    +                       2 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x1037016bc]
+    +                         2 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x1036f2b4a]
+    2 Thread_81185: com.apple.UIKit.inProcessAnimationManager
+    + 2 thread_start  (in libsystem_pthread.dylib) + 15  [0x10367c857]
+    +   2 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x103680e05]
+    +     2 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192209  [0x7ff807da0209]
+    +         2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x577ce5  [0x7ff808185ce5]
+    +           2 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x572f3f  [0x7ff808180f3f]
+    +             2 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 98  [0x7ff802693ff0]
+    +               2 _dispatch_sema4_wait  (in libdispatch.dylib) + 16  [0x7ff802693b82]
+    +                 2 semaphore_wait_trap  (in libsystem_kernel.dylib) + 10  [0x1036f2ac6]
+    2 Thread_81204
+    + 1 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10367c843]
+    + ! 1 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10367d8ba]
+    + !   1 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x1036f4286]
+    + 1 start_wqthread  (in libsystem_pthread.dylib) + 0  [0x10367c834]
+    1 Thread_81203
+    + 1 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10367c843]
+    +   1 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10367d8ba]
+    +     1 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x1036f4286]
+    1 Thread_82437
+      1 start_wqthread  (in libsystem_pthread.dylib) + 0  [0x10367c834]
 
 Total number in stack (recursive counted multiple, when >=5):
-        6       start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10d2d1843]
+        10       AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
+        10       AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
+        10       AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
+        10       AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
+        9       AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
+        9       AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
 
 Sort by top of stack, same collapsed (when >= 5):
-        __workq_kernreturn  (in libsystem_kernel.dylib)        16
 
 Binary Images:
-       0x10d2c7000 -        0x10d2cadfb +org.periopsignal.app (1.8.1 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/9085FA94-A051-4C57-80AF-89E092566E9B/PeriopSignal.app/PeriopSignal
-       0x10d2d0000 -        0x10d2dbfd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
-       0x10d32e000 -        0x10d33793f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
-       0x10d347000 -        0x10d383b1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
-       0x10d40e000 -        0x10d4701b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
-       0x10d7e1000 -        0x10d7ed03f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
-       0x11079b000 -        0x111dae8a7 +PeriopSignal.debug.dylib (0) <D96F1176-D324-3C6B-BAC2-A22B5CB05E4F> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/9085FA94-A051-4C57-80AF-89E092566E9B/PeriopSignal.app/PeriopSignal.debug.dylib
-       0x1171a4000 -        0x11723e6c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
+       0x103672000 -        0x103675dfb +org.periopsignal.app (1.8.1 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/A3C372BC-1BED-4F7B-900E-8BFD1821FA84/PeriopSignal.app/PeriopSignal
+       0x10367b000 -        0x103686fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
+       0x1036d9000 -        0x1036e293f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
+       0x1036f2000 -        0x10372eb1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
+       0x1037b9000 -        0x10381b1b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
+       0x103bba000 -        0x103bc603f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
+       0x10808f000 -        0x1081296c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
+       0x1081ab000 -        0x1097e462f +PeriopSignal.debug.dylib (0) <6D4FE768-D055-3FDC-BFC8-ED29545BB373> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/A3C372BC-1BED-4F7B-900E-8BFD1821FA84/PeriopSignal.app/PeriopSignal.debug.dylib
     0x7ff802539000 -     0x7ff8025741a0 +libobjc.A.dylib (951.1) <B6C5F541-EB9A-30FA-8B48-5A06501D5867> /Volumes/*/libobjc.A.dylib
     0x7ff802575000 -     0x7ff8025a3903 +libdyld.dylib (1335) <D605623A-F7E5-3FCA-9A89-D78CFB0DF709> /Volumes/*/libdyld.dylib
     0x7ff8025a4000 -     0x7ff8025c168d +libsystem_trace.dylib (1815.62.1) <AB003E68-00D3-3735-AB7F-DFC9213DC12D> /Volumes/*/libsystem_trace.dylib
@@ -344,7 +331,7 @@ Binary Images:
     0x7ff819e49000 -     0x7ff81a10945b +libmecabra.dylib (1121) <7412678A-9BBD-31D2-B1E5-56B9684869E8> /Volumes/*/libmecabra.dylib
     0x7ff81a10a000 -     0x7ff81a2e82eb  com.apple.AuthKit (1.0 - 1) <2400D86C-F303-3CF2-920A-14A61BC403EF> /Volumes/*/AuthKit.framework/AuthKit
     0x7ff81a2e9000 -     0x7ff81a9a13b4  com.apple.Intents (1.0 - 1) <26679595-F627-3ADD-9365-93B8B181D3E7> /Volumes/*/Intents.framework/Intents
-    0x7ff81a9a2000 -     0x7ff81a9be5eb  libCGInterfaces.dylib (630) <5106FBB9-C195-31DF-AD0E-B1EEE64FB8E3> /System/Library/Frameworks/Accelerate.framework/Frameworks/vImage.framework/Libraries/libCGInterfaces.dylib
+    0x7ff81a9a2000 -     0x7ff81a9be5eb +libCGInterfaces.dylib (630) <5106FBB9-C195-31DF-AD0E-B1EEE64FB8E3> /Volumes/*/Accelerate.framework/Frameworks/vImage.framework/Libraries/libCGInterfaces.dylib
     0x7ff81a9bf000 -     0x7ff81ab89f3f  com.apple.WebKitLegacy (8623 - 8623.1.14.10.9) <F56708A6-AEB2-3361-BD9C-4DACFBA43049> /Volumes/*/WebKitLegacy.framework/WebKitLegacy
     0x7ff81ab8a000 -     0x7ff81ad5ce9c  com.apple.TextInput (1.0 - 1.0) <7AE7243A-3C6C-36AE-B2F5-FE3A6A0FE9CB> /Volumes/*/TextInput.framework/TextInput
     0x7ff81ad5d000 -     0x7ff81ae6ef59  com.apple.accessibility.AXMediaUtilities (1.0 - 1) <04A922E6-730F-3845-818A-5BE5D2EAE2FE> /Volumes/*/AXMediaUtilities.framework/AXMediaUtilities
@@ -943,7 +930,6 @@ Binary Images:
     0x7ffb1fd02000 -     0x7ffb1fd7b38d  com.apple.CoreML.MLAssetIO (1.0 - 3505.4.1) <D25BA44F-1E69-3D42-BC93-5F1468CDA92E> /Volumes/*/MLAssetIO.framework/MLAssetIO
     0x7ffb1fd7c000 -     0x7ffb1fdd6c6f  com.apple.mlcompiler.runtime (3404.3.1 - 3404.3.1) <DF0FF09D-CCD3-3679-BC38-294638EFA55C> /Volumes/*/MLCompilerRuntime.framework/MLCompilerRuntime
     0x7ffb1fdd7000 -     0x7ffb1fdf1123  com.apple.mlcompiler.services (3404.3.1 - 3404.3.1) <F5C90754-6CCE-35B3-8D24-D932A9EA3CA9> /Volumes/*/MLCompilerServices.framework/MLCompilerServices
-    0x7ffc01550000 -     0x7ffc0158aa8f  com.apple.MTLSimDriver (368.53 - 368.53) <FBD4B934-7FA4-3EC9-ACDD-933AB08F5A19> /System/Library/PrivateFrameworks/MTLSimDriver.framework/MTLSimDriver
     0x7ffc01591000 -     0x7ffc0160769a  com.apple.mxi (1.0 - 1) <671D51B1-4A26-3BDA-8B8D-9BA6A78942D3> /Volumes/*/MXI.framework/MXI
     0x7ffc016a0000 -     0x7ffc016c75fe  com.apple.MailKit (1.0 - 3864.300.41.2.1) <F06EE6E8-12BD-375E-8CA7-213BD734EF40> /Volumes/*/MailKit.framework/MailKit
     0x7ffc01a6d000 -     0x7ffc01a84b85  com.apple.backgroundassets.managed (1.0 - 1.2.1) <8B27DE8E-14C9-38D7-9331-2E439035EB0D> /Volumes/*/ManagedBackgroundAssets.framework/ManagedBackgroundAssets
@@ -957,7 +943,6 @@ Binary Images:
     0x7ffc02938000 -     0x7ffc0293a64e  com.apple.MediaAnalysisGeneration (1.0 - 1) <3257CEDB-89EC-3995-A06B-4773FD71809C> /Volumes/*/MediaAnalysisGeneration.framework/MediaAnalysisGeneration
     0x7ffc0293b000 -     0x7ffc0293e921  com.apple.MediaAnalysisPhotosServices (1.0 - 1) <E1AF1452-5373-3AD4-8377-63948C656AD4> /Volumes/*/MediaAnalysisPhotosServices.framework/MediaAnalysisPhotosServices
     0x7ffc0293f000 -     0x7ffc0299e606  com.apple.MediaAnalysisServices (1.0 - 1) <71120162-FEBC-3A21-A997-2F8FFADFDEC2> /Volumes/*/MediaAnalysisServices.framework/MediaAnalysisServices
-    0x7ffc03299000 -     0x7ffc032c63b9  com.apple.gpusw.MetalSerializer (1.0 - 1) <D610DD32-31CD-38F5-B227-9A30619556A6> /System/Library/PrivateFrameworks/MetalSerializer.framework/MetalSerializer
     0x7ffc032d6000 -     0x7ffc0381ee57  com.apple.mobilesafari.framework (26.2 - 8623.1.14.10.9) <DFD70813-D71C-3F0C-B7C9-5F8341F7A608> /Volumes/*/MobileSafari.framework/MobileSafari
     0x7ffc041c1000 -     0x7ffc04533306  com.apple.ModelCatalog.ModelCatalog (1.0 - 218.25) <AA137DF4-9E73-3072-9671-37DB27FF6CDA> /Volumes/*/ModelCatalog.framework/ModelCatalog
     0x7ffc045a0000 -     0x7ffc046f43f6  com.apple.ModelManagerServices (1.0 - 1) <4D0D55B1-724D-3DA0-BB21-2A4758D4B738> /Volumes/*/ModelManagerServices.framework/ModelManagerServices
