@@ -272,6 +272,7 @@ final class PatientStore {
         case "demo-history": return PatientDemo.history
         case "demo-cardio": return PatientDemo.cardio
         case "demo-neuro": return PatientDemo.neuro
+        case "demo-typed": return PatientDemo.typed
         case "demo-labs": return PatientDemo.labs
         default: return nil
         }

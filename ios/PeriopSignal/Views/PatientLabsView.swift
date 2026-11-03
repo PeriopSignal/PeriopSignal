@@ -111,7 +111,7 @@ extension PatientEditorView {
             ForEach(r.infections.other) { o in
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        TextField("Other test, e.g. VRE", text: Binding(get: { patient.record.infections.other.first { $0.id == o.id }?.name ?? "" },
+                        CapTextField(prompt: "Other test, e.g. VRE", text: Binding(get: { patient.record.infections.other.first { $0.id == o.id }?.name ?? "" },
                                                                          set: { v in patient.update { r in LabResults.edit(&r) { x in
                                                                              if let i = x.other.firstIndex(where: { $0.id == o.id }) { x.other[i].name = v } } } }))
                             .font(PS.sys(size: 14.5, weight: .medium))

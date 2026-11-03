@@ -107,6 +107,7 @@ struct PatientTextField: View {
             TextField(prompt, text: $text, axis: .vertical)
                 .lineLimit(1...8)
                 .focused($focused)
+                .onChange(of: focused) { _, now in if !now { let c = FreeText.cap(text); if c != text { text = c } } }
                 .font(PS.sys(size: 15))
                 .foregroundStyle(PS.fg)
                 .padding(10)

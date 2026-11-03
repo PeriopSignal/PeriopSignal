@@ -156,7 +156,7 @@ extension PatientEditorView {
             if !r.ecg.isEmpty {
                 WrapLayout(spacing: 7) {
                     ForEach(r.ecg, id: \.self) { f in
-                        RemovableChip(text: f) { patient.update(discrete: true) { $0.ecg.removeAll { $0 == f } } }
+                        RemovableChip(text: FreeText.cap(f)) { patient.update(discrete: true) { $0.ecg.removeAll { $0 == f } } }
                     }
                 }
                 .padding(.horizontal, 14).padding(.top, 10)
@@ -391,7 +391,8 @@ struct PatientTypeahead: View {
         let v = value.trimmingCharacters(in: .whitespaces)
         guard !v.isEmpty else { return }
         Haptics.light()
-        onPick(v)
+        // A pick from the list stays as the list words it; anything typed starts with a capital.
+        onPick(FreeText.picked(v, from: options))
         text = ""
     }
 }
@@ -499,7 +500,7 @@ struct InfusionRow: View {
     var onDelete: () -> Void
     var body: some View {
         HStack(spacing: 10) {
-            TextField("Drug, e.g. norepinephrine", text: $infusion.drug)
+            CapTextField(prompt: "Drug, e.g. norepinephrine", text: $infusion.drug)
                 .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
             TextField("Rate, e.g. 0.05 mcg/kg/min", text: $infusion.rate)
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2)

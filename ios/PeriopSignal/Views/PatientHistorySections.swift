@@ -147,7 +147,7 @@ struct PatientHistorySectionsView: View {
             HistoryInlineField(prompt: "e.g. AVR 2015; CABG ×3 2010", text: Binding(get: { PatientHistoryDetails.cardiacSurgeryText(patient.record) },
                                                                                     set: { v in edit { PatientHistoryDetails.setCardiacSurgery(v, &$0) } }))
         case "other":
-            HistoryInlineField(prompt: "Anything else", text: Binding(get: { patient.record.systemNotes[system.id] ?? "" },
+            HistoryInlineField(prompt: "Anything else", capitalizes: true, text: Binding(get: { patient.record.systemNotes[system.id] ?? "" },
                                                                      set: { v in edit { $0.systemNotes[system.id] = v.isEmpty ? nil : v } }))
         case "stroke":
             PatientChoice(options: [(id: "cva-recent", label: "Within 3 months"), (id: "cva", label: "Over 3 months")], selection: choice(["cva-recent", "cva"], s))
@@ -161,7 +161,7 @@ struct PatientHistorySectionsView: View {
         case "resp-infection":
             PatientChips(options: [PatientFlag("uri", "URI"), PatientFlag("pneumonia", "Pneumonia"), PatientFlag("resp-infection-other", "Other")],
                          selection: options(["uri", "pneumonia", "resp-infection-other"], s))
-            if r.has("resp-infection-other") { HistoryInlineField(prompt: "Type", text: text(\.respInfectionType)) }
+            if r.has("resp-infection-other") { HistoryInlineField(prompt: "Type", capitalizes: true, text: text(\.respInfectionType)) }
         case "home-o2":
             PatientNumberField(label: "Flow", unit: "L/min", value: Binding(get: { patient.record.hx.homeO2Flow }, set: { v in edit { $0.hx.homeO2Flow = v } }))
                 .padding(.horizontal, -14)
@@ -336,6 +336,8 @@ struct PatientHistorySectionsView: View {
 /// A short typed field inside an expanded item: the box only, its prompt as the placeholder and the VoiceOver label.
 struct HistoryInlineField: View {
     var prompt: String
+    /// A free-standing note or item (not words inside a parenthesis): its first letter is capitalized when the field is left.
+    var capitalizes = false
     @Binding var text: String
     @FocusState private var focused: Bool
 
@@ -343,6 +345,7 @@ struct HistoryInlineField: View {
         TextField(prompt, text: $text, axis: .vertical)
             .lineLimit(1...4)
             .focused($focused)
+            .onChange(of: focused) { _, now in if !now && capitalizes { let c = FreeText.cap(text); if c != text { text = c } } }
             .font(PS.sys(size: 14.5))
             .foregroundStyle(PS.fg)
             .padding(.horizontal, 10).padding(.vertical, 8)
