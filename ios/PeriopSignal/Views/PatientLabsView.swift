@@ -256,7 +256,7 @@ struct LabFieldRow: View {
                 }
                 if value == nil, let e = estimate {
                     Text("Est. ~" + e.text + (e.key == "hct" ? " (3 × Hb)" : " (Hct ÷ 3)"))
-                        .font(PS.sys(size: 11, weight: .medium)).italic().foregroundStyle(PS.accent)
+                        .font(PS.sys(size: 11, weight: .medium)).italic().foregroundStyle(PS.fg3)
                 }
             }
             Spacer(minLength: 6)

@@ -299,6 +299,12 @@ enum PatientDemo {
         r.typeScreen = PatientTypeScreen(type: "A-", screen: .negative, crossmatched: 2)
         r.infections = PatientInfections(results: ["staph": .negative, "mrsa": .negative, "covid": .negative, "cdiff": .pending])
         r.asaClass = nil
+        // A shorter history, so the handoff's labs line shows on the first screen of the handoff shot.
+        r.surgeries = []
+        r.considerations = []
+        r.considerationsNote = ""
+        r.anesthesiaHistory = []
+        r.anesthesiaNotes = ""
         return r
     }
 
