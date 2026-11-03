@@ -70,6 +70,9 @@ struct Procedure: Hashable, Identifiable {
     var echoFirst: Bool
     /// Forms whose case changes the meaning ("AVr" is a repair, "AVR" a replacement).
     var caseSensitive: [String]
+    /// A procedure not complete without one more choice (a bare Bentall: which valve, 1.8.1). It is hidden from the
+    /// picker (search), read from typed text and kept for saved cases; the editor and the quick-add ask the question.
+    var ask: ProcedureAsk? = nil
 
     /// True when the procedure has a side and none was given.
     func needsSide(_ side: String?) -> Bool { lateral && (side ?? "").isEmpty }
@@ -79,6 +82,26 @@ struct Procedure: Hashable, Identifiable {
         guard let side, !side.isEmpty else { return name }
         return side.capitalized + " " + ProcedureCatalog.lowerFirst(name)
     }
+}
+
+/// The one more choice a general procedure asks ("Bentall: bioprosthetic or mechanical valve?"); each option is a
+/// procedure of the list.
+struct ProcedureAsk: Hashable {
+    struct Option: Hashable {
+        /// The procedure list's id.
+        var id: String
+        /// "bioprosthetic", "mechanical valve".
+        var text: String
+    }
+    /// "Bentall".
+    var label: String
+    var options: [Option]
+
+    /// "Bentall: bioprosthetic or mechanical valve?"
+    var text: String { label + ": " + options.map(\.text).joined(separator: " or ") + "?" }
+
+    /// The quick-add question's id (PatientNote.question), by the general procedure's id.
+    static func questionID(_ procedureID: String) -> String { "quick:procedure:" + procedureID }
 }
 
 /// One procedure read from free text, with its side and where it was found.
@@ -173,7 +196,8 @@ enum ProcedureCatalog {
                 best[ph.proc] = (score, pos, ph.isName)
             }
         }
-        for i in procs {
+        // A general procedure that asks one more thing (a bare Bentall) is not offered: its choices are.
+        for i in procs where all[i].ask == nil {
             for pi in phrasesByProc[i] {
                 let ph = phrases[pi]
                 if let ex = ph.exact {
@@ -189,7 +213,7 @@ enum ProcedureCatalog {
             }
         }
         if best.isEmpty && !qRaw.isEmpty {
-            for ph in phrases where ph.exact == nil {
+            for ph in phrases where ph.exact == nil && all[ph.proc].ask == nil {
                 if let p = wordPosition(qRaw, ph.raw, prefix: false) { keep(ph, 200, p) }
             }
         }
@@ -355,6 +379,26 @@ enum ProcedureCatalog {
             r.anesthetic.remove("mac")
         }
         return r
+    }
+
+    /// The procedures in the text that ask one more thing (a bare Bentall), as quick-add questions; with the text the
+    /// answers are read into (the general name replaced by the chosen procedure's), unchanged until one is answered.
+    static func asking(_ text: String, choices: [String: String]) -> (questions: [AmbiguousAbbreviation], text: String) {
+        var questions: [AmbiguousAbbreviation] = []
+        var out = ""
+        var at = text.startIndex
+        for m in parse(text) where m.range.lowerBound >= at {
+            guard let ask = m.procedure.ask else { continue }
+            let asked = PatientNote.question(ProcedureAsk.questionID(m.procedure.id), ask.label, value: "",
+                                             options: ask.options.map { AbbreviationMeaning($0.text, id: $0.id) }, usual: "", choices)
+            if !questions.contains(where: { $0.id == asked.question.id }) { questions.append(asked.question) }
+            if let a = asked.answer, let chosen = byID(a), ask.options.contains(where: { $0.id == a }) {
+                out += text[at..<m.range.lowerBound] + chosen.name
+                at = m.range.upperBound
+            }
+        }
+        out += text[at...]
+        return (questions, out)
     }
 
     /// Parse and add up in one step.
@@ -550,6 +594,13 @@ extension ProcedureCatalog {
                               risk: Bool = false, side: Bool = false, cardiac: Bool = false, echo: Bool = false, exact: [String] = []) -> Procedure {
         Procedure(id: id, name: name, specialty: "", synonyms: synonyms + exact, anesthetic: anesthetic, highRisk: risk, incision: incision,
                   duration: duration, lateral: side, cardiac: cardiac, echoFirst: echo, caseSensitive: exact)
+    }
+
+    /// A general procedure that asks one more thing before it is complete.
+    fileprivate static func asking(_ p: Procedure, _ ask: ProcedureAsk) -> Procedure {
+        var x = p
+        x.ask = ask
+        return x
     }
 
     /// A cardiac case: cardiac and echo first, general anesthesia, through the chest, over 3 h unless given.
@@ -775,7 +826,12 @@ extension ProcedureCatalog {
         heart("pv-replacement", "Pulmonary valve replacement", ["pulmonic valve replacement", "surgical pulmonary valve replacement", "SPVR"]),
         heart("pv-repair", "Pulmonary valve repair", ["pulmonic valve repair", "pulmonary valvotomy"], exact: ["PVr"]),
         heart("dvr", "Double valve replacement", ["DVR", "aortic and mitral valve replacement", "double valve surgery", "triple valve surgery"]),
-        heart("bentall", "Aortic root replacement", ["Bentall", "Bentall procedure", "modified Bentall", "composite valve graft", "root replacement", "aortic root replacement with composite graft"]),
+        // A Bentall names its valve (1.8.1, Ben): bioprosthetic or mechanical. The general entry stays for saved cases
+        // and for typed text without the valve, and asks which (ProcedureAsk); the picker offers only the two.
+        heart("bentall-bio", "Bio-Bentall (bioprosthetic valved conduit)", ["bio-Bentall", "biobentall", "bio Bentall", "bioprosthetic Bentall", "tissue Bentall"]),
+        heart("bentall-mech", "Bentall, mechanical valve", ["mechanical Bentall", "mech Bentall", "Bentall with mechanical valve"]),
+        asking(heart("bentall", "Aortic root replacement", ["Bentall", "Bentall procedure", "modified Bentall", "composite valve graft", "root replacement", "aortic root replacement with composite graft"]),
+               ProcedureAsk(label: "Bentall", options: [.init(id: "bentall-bio", text: "bioprosthetic"), .init(id: "bentall-mech", text: "mechanical valve")])),
         heart("valve-sparing-root", "Valve-sparing aortic root replacement", ["VSRR", "David procedure", "valve sparing root replacement", "valve sparing aortic root", "Yacoub procedure"]),
         heart("ascending-aorta", "Ascending aorta replacement", ["ascending aortic aneurysm repair", "ascending aortic replacement", "supracoronary graft", "hemiarch replacement", "hemiarch"]),
         heart("arch", "Aortic arch replacement", ["total arch replacement", "arch replacement", "aortic arch repair", "elephant trunk", "frozen elephant trunk", "FET"]),

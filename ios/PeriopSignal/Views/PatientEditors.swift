@@ -826,6 +826,9 @@ struct PatientEditorView: View {
             .buttonStyle(GhostButtonStyle())
         }
         PatientGroup(title: "Infusions") {
+            // Typed in one line, as the quick-add bar takes them (1.8.1).
+            InfusionTypeField(list: \.infusions)
+            Hairline().padding(.leading, 14)
             ForEach(r.infusions) { inf in
                 infusionEditor(inf)
                     .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.infusions.removeAll { $0.id == inf.id } } }

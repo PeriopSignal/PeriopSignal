@@ -233,7 +233,7 @@ struct PatientView: View {
 
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
     /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
-    /// intraop:<part> | system:<id> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo makes that
+    /// intraop:<part> | system:<id> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo | echo-trivial makes that
     /// change first (one-tap normals), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
@@ -244,6 +244,10 @@ struct PatientView: View {
                 switch edit {
                 case "echo": r.echoFindings.applyNormal()
                 case "intraop-echo": r.intraopEcho.applyNormal()
+                // Trivial regurgitation (1.8.1) on the preoperative echo, for its screenshots.
+                case "echo-trivial":
+                    r.echoFindings.tricuspid.regurgitation = .trivial
+                    r.echoFindings.aortic.regurgitation = .trivial
                 default: PatientAirway.applyNormalExam(&r)
                 }
             }
@@ -421,14 +425,8 @@ struct PatientView: View {
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
         } else {
+            // The lines and devices figure sits in the handoff, under its text (HandoffLinesFigure, 1.8.1).
             HandoffPanel(record: r).id("handoff")
-            VStack(alignment: .leading, spacing: 8) {
-                Eyebrow(text: "Lines & devices now")
-                PatientDiagramCard(record: r, phase: .all, height: 380)
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
     }
 
@@ -677,6 +675,7 @@ struct HandoffPanel: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            HandoffLinesFigure(record: record)
             HStack(spacing: 10) {
                 Button { sharing = [text] + (diagramImage().map { [$0] } ?? []) } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
                     .buttonStyle(BigButtonStyle(prominent: true))
@@ -744,6 +743,40 @@ struct HandoffPanel: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+    }
+}
+
+/// Every line and device in place now, on arrival and placed in the room (the handoff's Lines and Support, the Foley
+/// with them), drawn on the patient under the handoff text (1.8.1, Ben): read-only and compact, the editor's own figure
+/// without its touch handlers (PatientDiagramCard). A tap opens the Lines editor. The shared handoff carries the same
+/// picture (HandoffPanel.diagramImage); the copied text stays text.
+struct HandoffLinesFigure: View {
+    @Environment(ReferenceStore.self) private var refs
+    var record: PatientRecord
+
+    var body: some View {
+        if refs.bundle?.regional?.figure != nil, !PatientDiagramModel.items(record, phase: .all).items.isEmpty {
+            NavigationLink(value: PatientEditor.intraopPart("lines")) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Eyebrow(text: "Lines & devices now")
+                        Spacer()
+                        Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+                    }
+                    PatientDiagramCard(record: record, phase: .all, height: 260)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Lines and devices now: " + PatientDevices.labels(record.currentDevices()).joined(separator: "; "))
+            .accessibilityHint("Opens the Lines editor")
+            .accessibilityAddTraits(.isButton)
+            .id("handofffigure")
+        }
     }
 }
 

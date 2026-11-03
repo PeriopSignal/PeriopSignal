@@ -215,7 +215,7 @@ enum PatientNote {
         Rule("htn", #"(?<!pulmonary )(?<!arterial )(?<!gestational )(?<!induced )(?<!portal )(?<!intracranial )\b(?:hypertension|htn)\b|high blood pressure"#),
         Rule("hyperlipidemia", #"hyperlipid(?:a)?emia|(?-i:\bHLD\b)|dyslipid(?:a)?emia|hypercholesterol(?:a)?emia|high cholesterol"#),
         Rule("cad-recent", #"\b(?:recent|new) (?:mi|myocardial infarction|n?stemi|acs|acute coronary syndrome|heart attack)\b|\b(?:mi|n?stemi|myocardial infarction|heart attack|acs)\s+"# + within3Months),
-        Rule("cad", #"\bcad\b|coronary artery disease|coronary (?:heart )?disease|ischemic heart disease|(?-i:\bIHD\b)|\b(?:prior|previous|old|remote|history of|hx of|h/o|s/p) (?:mi|myocardial infarction|n?stemi|heart attack|acs)\b|\bn?stemi\b|\bmyocardial infarction\b|(?<!mild )(?<!trace )(?<!moderate )(?<!severe )(?-i:\bMI\b)"#),
+        Rule("cad", #"\bcad\b|coronary artery disease|coronary (?:heart )?disease|ischemic heart disease|(?-i:\bIHD\b)|\b(?:prior|previous|old|remote|history of|hx of|h/o|s/p) (?:mi|myocardial infarction|n?stemi|heart attack|acs)\b|\bn?stemi\b|\bmyocardial infarction\b|(?<!mild )(?<!trace )(?<!trivial )(?<!moderate )(?<!severe )(?-i:\bMI\b)"#),
         Rule("pci-recent", #"\b(?:recent|new) (?:coronary )?(?:stents?|(?-i:DES|PCI))\b|\b(?:stents?|(?-i:DES|PCI))(?: placed| to the [a-z]+)?\s+"# + within3Months, notIf: stentOther),
         Rule("pci", #"(?-i:\b(?:DES|BMS|PCI)\b)|percutaneous coronary|coronary stents?|cardiac stents?|\b(?:LAD|RCA|LCx|circumflex) stents?\b"#),
         Rule("pci", #"\bstents?(?:ed)?\b"#, onlyIf: stentCardiac, notIf: stentOther),
@@ -225,7 +225,8 @@ enum PatientNote {
         Rule("hf", #"heart failure|\bchf\b|\bhf[rpm]?ef\b|(?-i:\bHF\b)"#),
         Rule("valve-severe", #"\b(?:severe|critical) (?:aortic|mitral|tricuspid|pulmonic) (?:valve )?(?:stenosis|regurgitation|insufficiency)\b|\b(?:severe|critical) (?-i:(?:AS|MR|MS|AR|TR|AI))\b"#),
         Rule("as", #"aortic (?:valve )?stenosis|\b(?:mild|moderate|severe|critical)\s+(?-i:AS)\b"#),
-        Rule("mr", #"mitral (?:valve )?(?:regurgitation|insufficiency)|\b(?:mild|moderate|severe|trace)\s+(?-i:MR)\b"#),
+        // Trivial or trace regurgitation (the echo's Trivial grade, 1.8.1) is not valve disease: not read as MR.
+        Rule("mr", #"(?<!trace )(?<!trivial )mitral (?:valve )?(?:regurgitation|insufficiency)|\b(?:mild|moderate|severe)\s+(?-i:MR)\b"#),
         Rule("prosthetic-valve", #"mechanical (?:aortic |mitral )?valve|prosthetic (?:heart )?valve|bioprosthetic|\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old)\s+(?:(?-i:AVR|MVR|SAVR|TAVR|TAVI|TMVR)|valve replacement)\b|(?-i:\b(?:AVR|MVR|SAVR|TAVR|TAVI|TMVR))\s+(?:in\s+)?(?:19|20)\d\d\b"#),
         Rule("af", #"atrial fibrillation|atrial flutter|\ba[-. ]?fib\b|(?-i:\b(?:AF|AFL|PAF)\b)"#),
         Rule("arrhythmia", #"(?-i:\b(?:SVT|WPW|VT)\b)|ventricular tachycardia|heart block|long qt|\barrhythmias?\b|bradyarrhythmia|sick sinus"#),
@@ -261,7 +262,7 @@ enum PatientNote {
         Rule("dissection-b", #"\b(?:stanford )?type[- ]?b (?:aortic )?dissection|\b(?:aortic )?dissection,? (?:stanford )?type[- ]?b\b|(?-i:\b[uc]?TBAD\b)|\bstanford b (?:aortic )?dissection|\bdescending (?:thoracic )?aortic dissection|\bdebakey (?:type )?(?:iii|3)[ab]?\b"#),
         // Open repair: Bentall, hemiarch, elephant trunk imply a thoracic open repair [P]. "s/p AAA repair" with no
         // modality is not read (open or EVAR) [P].
-        Rule("aortic-repair-open", #"\bopen (?:(?-i:AAA|TAA|TAAA)\s+|aortic\s+|aneurysm\s+|abdominal aortic aneurysm\s+|thoracoabdominal\s+)repair|\bopen (?:(?-i:AAA|TAAA)) (?:repair|resection)|\btype a (?:aortic )?dissection repair|\bbentall\b|\b(?:ascending|hemiarch|total arch) (?:aortic )?replacement|\belephant trunk"#),
+        Rule("aortic-repair-open", #"\bopen (?:(?-i:AAA|TAA|TAAA)\s+|aortic\s+|aneurysm\s+|abdominal aortic aneurysm\s+|thoracoabdominal\s+)repair|\bopen (?:(?-i:AAA|TAAA)) (?:repair|resection)|\btype a (?:aortic )?dissection repair|\b(?:bio-?)?bentall\b|\b(?:ascending|hemiarch|total arch) (?:aortic )?replacement|\belephant trunk"#),
         // A bare "open repair" only with an aortic word in the sentence ("open repair of an inguinal hernia" is not) [P].
         Rule("aortic-repair-open", #"\bopen repair\b"#, onlyIf: NoteRx(#"\b(?:aorta|aortic|aneurysm|thoracoabdominal)\b|(?-i:\b(?:AAA|TAA|TAAA)\b)"#)),
         // EVAR, FEVAR (fenestrated-branched EVAR, 2022 ACC/AHA) [G]; FEVAR and BEVAR file as Prior EVAR (coordinator's
@@ -512,7 +513,7 @@ enum PatientNote {
     static var allPatterns: [NoteRx] {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
         out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA,
-                intracranialAneurysm, rupturedAorticRx, notAorticDissection]
+                intracranialAneurysm, rupturedAorticRx, notAorticDissection, bentallWord]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
@@ -626,7 +627,7 @@ enum PatientNote {
             var h = Hits()
             readRules(c, &h)
             readPatient(c, &h)
-            readProcedure(c, &h)
+            readProcedure(c, choices, &h)
             readInfusions(c, &h)
             readMeds(c, &h, names: &names)
             readAllergies(c, &h)
@@ -785,6 +786,7 @@ enum PatientNote {
 
     private static let rupturedIDs: Set<String> = ["aaa-ruptured", "taa-ruptured", "taaa-ruptured", "ruptured-aneurysm"]
     private static let repairIDs: Set<String> = ["aortic-repair-open", "evar", "tevar"]
+    static let bentallWord = NoteRx(#"\b(?:bio-?)?bentall\b"#)
     /// A rupture told as past: repaired, or after a history cue.
     static let rupturePastBefore = NoteRx(#"\b(?:s/p|status post|history of|hx of|h/o|prior|previous|previously|old|remote|repaired|repair of)\b[^.;]{0,24}$"#)
     /// A repair told as done: after a history cue or "had", or with a year or "ago" after it.
@@ -895,6 +897,8 @@ enum PatientNote {
                 continue
             }
             if repairIDs.contains(rule.id), !repairPast(c, m) { continue }
+            // "bioprosthetic Bentall", "Bentall with mechanical valve": the valve of a planned Bentall, not one in place.
+            if rule.id == "prosthetic-valve", bentallWord.first(c) != nil, !repairPast(c, m) { continue }
             if PatientCatalog.aneurysmIDs.contains(rule.id), let size = aortaSize(c, m) {
                 h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label + ", " + NumText.short(size.cm) + " cm",
                                          change: .aortaSize(rule.id, size.cm)), at: size.range)
@@ -1041,7 +1045,7 @@ enum PatientNote {
     static let regionalRx = NoteRx(#"nerve block|regional (?:an(?:a)?esthesia|block)|interscalene|supraclavicular|infraclavicular|axillary block|femoral (?:nerve )?block|adductor canal|(?-i:\b(?:TAP|ESP|PENG|QL)\b) block|popliteal|sciatic (?:nerve )?block|fascia iliaca"#)
     static let asaRx = NoteRx(#"\bASA\s*(?:class|PS|physical status)?\s*:?\s*(VI|IV|V|III|II|I|[1-6])(E)?\b"#, caseSensitive: true)
 
-    private static func readProcedure(_ c: String, _ h: inout Hits) {
+    private static func readProcedure(_ c: String, _ choices: [String: String], _ h: inout Hits) {
         let pastClause = pastCare.first(c) != nil
         var gotProcedure = false
         if !pastClause {
@@ -1050,6 +1054,10 @@ enum PatientNote {
                 if let cut = procedureCut.first(p) { p = (p as NSString).substring(to: cut.range.location) }
                 p = p.trimmingCharacters(in: CharacterSet(charactersIn: " ,.:;"))
                 if p.count >= 3 && p.count <= 120 {
+                    // A bare Bentall asks which valve (1.8.1); the answer is read into the procedure.
+                    let asked = ProcedureCatalog.asking(p, choices: choices)
+                    h.questions += asked.questions
+                    p = asked.text
                     h.add(PatientNoteFinding(id: "procedure", section: Part.procedure, label: "Procedure: " + p, change: .procedure(p)), at: m.range)
                     gotProcedure = true
                 }
@@ -1597,7 +1605,7 @@ enum PatientNote {
 
     /// A line or device the diagram knows (PatientDevices.parse reads the phrase): "PIV x2 18G", "R radial A-line",
     /// "RIJ TLC", "PAC/Swan", "Cordis", "HD catheter", "IABP 1:1", "Impella CP P8", "HM3 LVAD", "VA ECMO".
-    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline)\b|(?-i:\bIO\b)"#)
+    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline|foley|suprapubic catheter|urinary catheter)\b|(?-i:\bIO\b)"#)
     /// An ETT or a tracheostomy.
     static let tubeCue = NoteRx(#"\b(?:ett|et tube|endotracheal tube|dlt|double[- ]lumen tube|trach(?:eostomy)?|trach'?d)\b"#)
     /// Mechanical support, whose settings and cannulas may follow a comma.
@@ -1834,7 +1842,7 @@ enum PatientNote {
         "hum", "humeral", "ac", "antecubital", "fa", "forearm", "hand", "wrist", "upper", "arm", "foot", "saphenous", "r", "l", "rt", "lt",
         "right", "left", "bilat", "b/l", "bilateral", "rue", "lue", "rle", "lle", "ue", "le", "g", "ga", "gauge", "f", "fr", "french", "cm",
         "mm", "lpm", "w", "mmhg", "%", "via", "at", "@", "teeth", "lip", "lips", "gums", "nare", "oral", "nasal", "stoma", "heart", "apex",
-        "aorta", "atrium", "1:1", "1:2", "1:3", "/",
+        "aorta", "atrium", "1:1", "1:2", "1:3", "/", "foley", "foleys", "ifc", "spc", "suprapubic", "urethral", "urinary", "bladder", "coude", "coudé",
     ]
 
     /// Intubated or ventilated with no tube named, the ventilator's settings, and oxygen (on the reading text: "RA" is

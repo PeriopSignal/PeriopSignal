@@ -276,6 +276,8 @@ extension PatientEditorView {
 
     @ViewBuilder var currentInfusionsGroup: some View {
         PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
+            InfusionTypeField(list: \.homeInfusions)
+            Hairline().padding(.leading, 14)
             ForEach(r.homeInfusions) { inf in
                 InfusionRow(infusion: infusionBinding(\.homeInfusions, inf.id)) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
                     .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
@@ -530,20 +532,22 @@ struct EchoFindingsEditor: View {
         return PatientEcho.efBelowNormal(echo.lvef, measure: lvef, sex: store?.record.sex)
     }
 
-    private func grade(_ b: Binding<EchoGrade?>, normalLabel: String = "Normal") -> some View {
-        PatientChoice(options: EchoGrade.allCases.map { (id: $0.rawValue, label: $0 == .normal ? normalLabel : $0.label) },
+    /// Chamber function and stenosis use `EchoGrade.severities`; regurgitation adds Trivial (`EchoGrade.regurgitation`).
+    private func grade(_ b: Binding<EchoGrade?>, normalLabel: String = "Normal", grades: [EchoGrade] = EchoGrade.severities) -> some View {
+        PatientChoice(options: grades.map { (id: $0.rawValue, label: $0 == .normal ? normalLabel : $0.label) },
                       selection: Binding(get: { b.wrappedValue?.rawValue }, set: { b.wrappedValue = $0.flatMap { EchoGrade(rawValue: $0) } }))
     }
 
     @ViewBuilder private func valve(_ title: String, _ letter: String, _ v: Binding<EchoValve>) -> some View {
         PatientGroup(title: title) {
-            PatientChipRow(label: letter + "R") { grade(v.regurgitation, normalLabel: "None") }
+            PatientChipRow(label: letter + "R") { grade(v.regurgitation, normalLabel: "None", grades: EchoGrade.regurgitation) }
             PatientChipRow(label: letter + "S") { grade(v.stenosis, normalLabel: "None") }
             PatientChipRow(label: "Prosthesis or repair") {
                 PatientChoice(options: EchoValve.prostheses.map { (id: $0, label: $0) },
                               selection: Binding(get: { v.wrappedValue.prosthesis.isEmpty ? nil : v.wrappedValue.prosthesis }, set: { v.wrappedValue.prosthesis = $0 ?? "" }))
             }
         }
+        .id("echo-" + letter.lowercased())
     }
 
     var body: some View {
@@ -594,7 +598,7 @@ struct EchoFindingsEditor: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        EvidenceNote("Grades as the ASE documents name them: chamber function normal or mildly, moderately or severely reduced; regurgitation and stenosis none, mild, moderate or severe. The ASE grading and chamber tools under Reference work the numbers out.")
+        EvidenceNote("Grades as the ASE documents name them: chamber function normal or mildly, moderately or severely reduced; regurgitation none, trivial, mild, moderate or severe; stenosis none, mild, moderate or severe. The ASE grading and chamber tools under Reference work the numbers out.")
     }
 }
 

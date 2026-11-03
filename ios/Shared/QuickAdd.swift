@@ -236,7 +236,9 @@ enum QuickAdd {
         for f in note.findings where !mine.contains(f.id) && !inferred(f) { route(f, one, c, &out) }
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
         // And the aorta's: a dissection with no type, a bare "TAA".
-        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:")) && !out.questions.contains(where: { $0.id == q.id }) {
+        // And the procedure's: a bare Bentall's valve.
+        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:") || q.id.hasPrefix("quick:procedure:"))
+            && !out.questions.contains(where: { $0.id == q.id }) {
             out.questions.append(q)
         }
         readPlan(base, c, &out)
@@ -1659,9 +1661,13 @@ enum QuickAdd {
 
     private static func take(_ p: (range: NSRange, text: String), _ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
         s.mask(p.range)
-        let items = PlannedProcedure.parse(p.text)
+        // A bare Bentall asks which valve (1.8.1); the answer is read into the procedure.
+        let asked = ProcedureCatalog.asking(p.text, choices: c.choices)
+        for q in asked.questions where !out.questions.contains(where: { $0.id == q.id }) { out.questions.append(q) }
+        let text = asked.text
+        let items = PlannedProcedure.parse(text)
         let known = items.contains { $0.catalogID != nil }
-        out.add(PatientNoteFinding(id: "procedure", section: PatientNote.Part.procedure, label: "Procedure: " + p.text, change: .procedure(p.text),
+        out.add(PatientNoteFinding(id: "procedure", section: PatientNote.Part.procedure, label: "Procedure: " + text, change: .procedure(text),
                                    note: known ? "Fills the risk-score inputs from the procedure list." : nil))
         if c.tab == .preop, rupturedAAA.first(p.text) != nil, let label = PatientCatalog.problem("aaa-ruptured")?.label {
             out.add(PatientNoteFinding(id: "problem:aaa-ruptured", section: PatientNote.Part.history, label: label, change: .problem("aaa-ruptured")))
