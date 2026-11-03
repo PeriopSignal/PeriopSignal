@@ -264,6 +264,9 @@ struct PatientView: View {
                 // cleared, so the history's AF is offered as a suggestion and a dependent pacemaker's paced rhythm is filed.
                 case "ecg-af": PatientECGLink.add("Atrial fibrillation", to: &r)
                 case "ecg-none": r.ecg = []; r.ecgFromHistory = []
+                // 1.8.3: a non-obstructive cath, right dominant, with a date.
+                case "lhc-nonobstructive":
+                    r.lhc.dominance = "right"; r.lhc.nonObstructive = true; r.lhc.date = PatientMonthYear(month: 6, year: 2026)
                 default: PatientAirway.applyNormalExam(&r)
                 }
             }

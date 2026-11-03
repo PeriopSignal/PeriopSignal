@@ -36,6 +36,8 @@ enum PatientNoteChange: Hashable {
     /// One past operation (1.8.3): the operation as written, without its date, and its month and year when the note gives
     /// them. It becomes an entry in Past surgical history (PastSurgeryNote).
     case pastSurgery(String, PatientMonthYear)
+    /// The cath was non-obstructive (1.8.3): the Left heart cath's option. Read only beside a cath word.
+    case lhcNonObstructive
     /// Home oxygen with its flow, L/min.
     case homeO2(Double)
     /// A problem, and the words to add to its details ("evar", "FEVAR 2021": a complex EVAR files as Prior EVAR, and its
@@ -586,7 +588,7 @@ enum PatientNote {
         out += [infectionNotPositive, hivPrevention]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
-        out += PastSurgeryNote.allPatterns
+        out += PastSurgeryNote.allPatterns + PatientLHC.patterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
@@ -735,6 +737,17 @@ enum PatientNote {
                         && NSIntersectionRange(meant.target(a.range), h.at[i]).length > 0
                 }), let meaning = a.meaning else { continue }
                 h.findings[i].note = "Read “" + a.token + "” as " + meaning.text + "; change it under Abbreviations if not."
+            }
+            if let m = PatientLHC.readNonObstructive(c) {
+                h.add(PatientNoteFinding(id: "lhc:nonobstructive", section: Part.assessment, label: "Left heart cath: non-obstructive", change: .lhcNonObstructive), at: m.phrase)
+                h.seen(m.cath)
+                // "nonobstructive CAD" is the cath's result, not coronary artery disease for the history (and the ASA class
+                // that follows from it): the CAD item read from the words right after it is not filed.
+                let end = m.phrase.location + m.phrase.length
+                if let i = h.findings.indices.first(where: { h.findings[$0].id == "problem:cad" && h.at[$0].location >= end && h.at[$0].location - end <= 20 }) {
+                    h.findings.remove(at: i)
+                    h.at.remove(at: i)
+                }
             }
             // Past surgical history: a "PSH:" section, "s/p ...", "h/o ..." (1.8.3). What the cardiac reader took is its own.
             let taken = zip(h.findings, h.at).filter { $0.0.id == "cardiac-surgery" }.map { $0.1 }
@@ -2452,6 +2465,8 @@ enum PatientNote {
                 || PastSurgeryNote.cardiacRecorded(t, in: r) ? .recorded : .new
         case .pastSurgery(let t, let d):
             return PastSurgeryNote.isRecorded(t, d, in: r) ? .recorded : .new
+        case .lhcNonObstructive:
+            return r.lhc.nonObstructive ? .recorded : .new
         case .homeO2(let flow):
             guard r.has("home-o2"), let o = r.hx.homeO2Flow else { return .new }
             return same(o, flow) ? .recorded : .replaces(NumText.short(o) + " L/min")
@@ -2660,6 +2675,8 @@ enum PatientNote {
                 PastSurgeryNote.addCardiac(t, to: &r)
             case .pastSurgery(let t, let d):
                 PastSurgeryNote.add(t, d, to: &r)
+            case .lhcNonObstructive:
+                r.lhc.nonObstructive = true
             case .homeO2(let flow):
                 r.noHistory = false
                 r.problems.insert("home-o2")

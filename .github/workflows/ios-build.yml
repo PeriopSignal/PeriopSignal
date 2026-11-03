@@ -279,6 +279,7 @@ jobs:
           shot 422-ecg-history-suggestion 16 -ps.tab patient -ps.patient demo-cardio -ps.patient.edit ecg-none -ps.patient.open workup:ecg -ps.forceAppearance light
           shot 425-ecg-af-on-ecg 14 -ps.tab patient -ps.patient empty -ps.patient.edit ecg-af -ps.patient.open workup:ecg -ps.forceAppearance light
           shot 426-ecg-af-in-cv-history 14 -ps.tab patient -ps.patient empty -ps.patient.edit ecg-af -ps.patient.open system:cv -ps.forceAppearance light
+          shot 427-lhc-nonobstructive 14 -ps.tab patient -ps.patient empty -ps.patient.edit lhc-nonobstructive -ps.patient.open workup:lhc -ps.forceAppearance light
           # 1.8.1 Cardiovascular and Respiratory as expanding sections (280-292): the collapsed list, each section opened,
           # the studies rows, and quick-add lines read into the new structure.
           shot 280-cv-collapsed 14 -ps.tab patient -ps.patient empty -ps.patient.open system:cv -ps.forceAppearance light
