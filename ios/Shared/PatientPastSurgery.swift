@@ -271,6 +271,8 @@ enum PastSurgeryNote {
         let p = piece.trimmingCharacters(in: .whitespaces)
         guard !p.isEmpty else { return [] }
         var parsed = PlannedProcedure.parse(p)
+        // Nothing in the list: the words as typed (the list's reading drops joining words such as "and").
+        if !parsed.contains(where: { $0.catalogID != nil }) { return [typed(p)] }
         let lower = p.lowercased()
         for item in parsed {
             guard let c = item.catalog else { continue }
