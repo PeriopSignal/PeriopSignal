@@ -73,6 +73,16 @@ extension PatientEditorView {
     // MARK: Pulmonary function tests
 
     @ViewBuilder var pftEditor: some View {
+        // The lab's reading comes first, above the spirometry table (Ben, 1.8.3).
+        PatientGroup(title: "Lab's reading") {
+            InfoChipRow(label: "Pattern", info: PatientStudies.patternInfo) {
+                PatientChoice(options: PatientPFT.patterns, selection: bind(\.pft.pattern))
+            }
+            Hairline().padding(.leading, 14)
+            InfoChipRow(label: "Severity", info: PatientStudies.severityInfo) {
+                PatientChoice(options: PatientPFT.severities, selection: bind(\.pft.severity))
+            }
+        }
         PatientGroup(title: "Spirometry") {
             SideBySideHeader(columns: ["Liters", "% pred."])
             Hairline().padding(.leading, 14)
@@ -86,15 +96,6 @@ extension PatientEditorView {
             PatientNumberField(label: "TLC", unit: "% pred.", value: bind(\.pft.tlcPct))
             Hairline().padding(.leading, 14)
             PatientNumberField(label: "DLCO", unit: "% pred.", value: bind(\.pft.dlcoPct))
-        }
-        PatientGroup(title: "Lab's reading") {
-            InfoChipRow(label: "Pattern", info: PatientStudies.patternInfo) {
-                PatientChoice(options: PatientPFT.patterns, selection: bind(\.pft.pattern))
-            }
-            Hairline().padding(.leading, 14)
-            InfoChipRow(label: "Severity", info: PatientStudies.severityInfo) {
-                PatientChoice(options: PatientPFT.severities, selection: bind(\.pft.severity))
-            }
         }
         studyDateNotes(date: bind(\.pft.date), notes: bind(\.pft.notes), prompt: "Bronchodilator response, ABG, the trend")
         if !r.pft.isEmpty {
