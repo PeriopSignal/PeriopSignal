@@ -290,12 +290,11 @@ final class PatientPhase1Tests: XCTestCase {
         r.setProcedures(PlannedProcedure.parse("Laparoscopic cholecystectomy"))
         let full = HandoffWriter.text(r)
         XCTAssertTrue(full.contains("Echo: not assessed"), full)
-        XCTAssertTrue(full.contains("Airway exam: not assessed"), full)
+        // 1.8.3: the airway examination is not in the handoff at all, so it is not called "not assessed" either.
+        XCTAssertFalse(full.contains("Airway exam"), full)
         let assessment = try XCTUnwrap(full.range(of: "ASSESSMENT"))
-        let airway = try XCTUnwrap(full.range(of: "AIRWAY"))
         XCTAssertLessThan(assessment.lowerBound, try XCTUnwrap(full.range(of: "Echo: not assessed")).lowerBound)
-        XCTAssertLessThan(airway.lowerBound, try XCTUnwrap(full.range(of: "Airway exam: not assessed")).lowerBound)
-        XCTAssertEqual(full.components(separatedBy: "not assessed").count, 3, "no intraoperative echo is expected for a cholecystectomy")
+        XCTAssertEqual(full.components(separatedBy: "not assessed").count, 2, "no intraoperative echo is expected for a cholecystectomy")
         XCTAssertFalse(HandoffWriter.shortText(r).contains("not assessed"), "the short handoff stays short")
 
         // Touched, even by one sign or the presets: no longer "not assessed".
@@ -307,7 +306,7 @@ final class PatientPhase1Tests: XCTestCase {
         XCTAssertTrue(t.contains("Echo: LV function normal; RV function normal; No significant valve disease"), t)
         var normal = r
         PatientAirway.applyNormalExam(&normal)
-        XCTAssertTrue(HandoffWriter.text(normal).contains("Exam: Mouth opening and thyromental distance adequate; full neck range of motion"))
+        XCTAssertFalse(HandoffWriter.text(normal).contains("Mouth opening"), "the exam stays on the airway page, not in the handoff")
         XCTAssertFalse(HandoffWriter.text(normal).contains("Airway exam: not assessed"))
 
         // With an ETT in place the exam is not asked, so it is not called missing.

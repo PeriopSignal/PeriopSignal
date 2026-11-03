@@ -436,13 +436,8 @@ enum HandoffWriter {
             assess.append(PatientSummary.Line(Scores.byID(id)?.name ?? id, PatientRules.scoreLine(id, sc) + (sc.detail.map { " (" + $0 + ")" } ?? "")))
         }
         section("Assessment", assess)
-        var airway = PatientSummary.airwayLines(r)
-        // An airway examination never touched says so, after the current airway and oxygen (none with an ETT or a
-        // tracheostomy in place, where the exam is not asked).
-        if !r.arrivesWithAirway && !r.airwayExamTouched {
-            let at = airway.firstIndex { !["Current airway", "Ventilator", "Oxygen"].contains($0.label ?? "") } ?? airway.count
-            airway.insert(PatientSummary.Line("Airway exam", PatientSummary.notAssessed), at: at)
-        }
+        // No preoperative airway examination in the handoff (1.8.3): the airway now, then the intraoperative course.
+        var airway = PatientSummary.handoffAirwayLines(r)
         if let c = PatientSummary.airwayCourse(r) { airway.append(PatientSummary.Line("Course", c.text, alert: c.alert)) }
         if let fu = PatientSummary.followUpLine(r) { airway.append(fu) }
         section("Airway", airway)
