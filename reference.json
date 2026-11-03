@@ -14853,9 +14853,9 @@
         "doseLow": 300,
         "doseHigh": 400,
         "doseDefault": 300,
-        "goal": 480,
+        "goal": 450,
         "goalDevice": 400,
-        "goalText": ">480 s, or >400 s on maximally activated or microcuvette ACT",
+        "goalText": ">450 s (institutional; STS 2018: >480 s), or >400 s on maximally activated or microcuvette ACT",
         "actEvery": [
           30,
           20
@@ -14875,11 +14875,13 @@
         "goal": 300,
         "goalText": "Commonly >250–300 s",
         "actEvery": [
-          30
+          30,
+          20
         ],
         "strength": "P",
         "sources": [],
-        "note": "Some centres give a full dose. Before an emergency conversion to bypass, give a full dose to >480 s."
+        "note": "Usually 200 U/kg, half the bypass dose; some centres give a full dose. Before an emergency conversion to bypass, give a full dose to >480 s.",
+        "doseDefault": 200
       },
       {
         "id": "vascular",
@@ -14890,7 +14892,8 @@
         "goal": null,
         "userGoalText": "~200–250 s, practice only",
         "actEvery": [
-          30
+          30,
+          20
         ],
         "strength": "P",
         "sources": [
@@ -14908,7 +14911,8 @@
         "goal": null,
         "userGoalText": "200–250 s (some aim ≥250), practice only",
         "actEvery": [
-          30
+          30,
+          20
         ],
         "strength": "P",
         "sources": [
@@ -14924,7 +14928,8 @@
         "goal": 250,
         "goalText": "250–300 s",
         "actEvery": [
-          30
+          30,
+          20
         ],
         "strength": "G",
         "sources": [
@@ -14937,23 +14942,25 @@
         "name": "ECMO cannulation",
         "doseLow": 50,
         "doseHigh": 100,
-        "goal": 300,
-        "goalText": ">300 s at cannulation, then anti-Xa 0.3–0.7 IU/mL or aPTT",
+        "goal": null,
         "actEvery": [
-          30
+          30,
+          20
         ],
         "strength": "G?",
         "sources": [
           "elso2021"
         ],
-        "note": "Less if bleeding or after bypass. ELSO full text not yet opened."
+        "note": "Less if bleeding or after bypass. ELSO full text not yet opened.",
+        "userGoalText": "varies by center, set yours (ELSO: anti-Xa 0.3–0.7 IU/mL or aPTT once running)"
       },
       {
         "id": "other",
         "name": "Other",
         "goal": null,
         "actEvery": [
-          30
+          30,
+          20
         ],
         "strength": "",
         "sources": [],
@@ -14969,7 +14976,11 @@
       "unitsCheckBelow": 1000,
       "resistance": "Goal not reached despite an adequate dose: consider heparin resistance (no numeric definition in STS 2018).",
       "clottingTest": "STS 2018 Rec 1: a clotting test before bypass (I/C).",
-      "deviceNote": "ACT values differ between devices (557 vs 618 s in one changeover). Pick your device."
+      "deviceNote": "ACT values differ between devices (557 vs 618 s in one changeover). Pick your device.",
+      "hardConfirmExempt": [
+        "bypass",
+        "ecmo"
+      ]
     },
     "protamine": {
       "ratioLow": 0.8,
@@ -15043,6 +15054,12 @@
         "sources": [
           "amsect",
           "eacts2024"
+        ],
+        "every": [
+          30,
+          60,
+          90,
+          120
         ]
       },
       {
@@ -15050,23 +15067,29 @@
         "name": "Glucose",
         "options": [
           {
-            "label": "Bypass or insulin drip",
-            "minutes": 30
+            "label": "Default",
+            "minutes": 60
           },
           {
-            "label": "Cardiac or major case",
-            "minutes": 60
+            "label": "Bypass or insulin drip",
+            "minutes": 30
           }
         ],
         "high": 180,
         "low": 70,
         "unit": "mg/dL",
-        "note": "Alerts above 180 (STS 2009; ADA 100–180) or below 70 mg/dL. ADA: every 30 min to 2 h on IV insulin; the rest is practice. SHEA 2022's 110–150 target is postoperative only.",
+        "note": "Every 60 min by default; change it to suit the case. Alerts above 180 (STS 2009; ADA 100–180) or below 70 mg/dL. ADA: every 30 min to 2 h on IV insulin. SHEA 2022's 110–150 target is postoperative only.",
         "strength": "G?",
         "sources": [
           "stsglucose",
           "ada2026",
           "shea2022"
+        ],
+        "every": [
+          30,
+          60,
+          90,
+          120
         ]
       }
     ],

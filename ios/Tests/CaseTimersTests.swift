@@ -31,8 +31,12 @@ final class CaseTimersTests: XCTestCase {
         let d = try data()
         XCTAssertNil(d.purpose("vascular")?.goal, "ACTION-1: no preset ACT goal for open vascular or carotid")
         XCTAssertNil(d.purpose("endovascular")?.goal)
-        XCTAssertEqual(d.purpose("bypass")?.goal, 480)
+        XCTAssertEqual(d.purpose("bypass")?.goal, 450, "signed off: >450 s")
         XCTAssertEqual(d.purpose("bypass")?.goalDevice, 400)
+        XCTAssertNil(d.purpose("ecmo")?.goal, "ECMO: varies by center, the user sets it")
+        for p in d.heparinPurposes { XCTAssertEqual(p.actEvery, [30, 20], "\(p.id): 30 or 20 min") }
+        XCTAssertEqual(d.check("glucose")?.options.first?.minutes, 60, "glucose every 60 min by default")
+        XCTAssertEqual(d.check("glucose")?.every, [30, 60, 90, 120])
     }
 
     // MARK: Antibiotics
@@ -89,7 +93,7 @@ final class CaseTimersTests: XCTestCase {
         let d = try data()
         var t = CaseTimers()
         t.antibiotic = AntibioticCourse(drug: "gentamicin", doses: [TimedEntry(time: t0, ebl: 0)])
-        t.heparin = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30)
+        t.heparin = HeparinCourse(purpose: "bypass", goal: 450, actEvery: 30)
         var r = adult(); r.fluids["ebl"] = 2000
         XCTAssertTrue(CaseTimerEngine.reminders(t, record: r, data: d).filter { $0.kind == .bloodLoss || $0.kind == .antibiotic }.isEmpty)
     }
@@ -98,7 +102,7 @@ final class CaseTimersTests: XCTestCase {
 
     func testFirstACTThreeMinutesAfterBolusThenEvery30() throws {
         let d = try data()
-        var h = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30)
+        var h = HeparinCourse(purpose: "bypass", goal: 450, actEvery: 30)
         h.doses = [TimedEntry(time: t0, value: 24000)]
         var t = CaseTimers(); t.heparin = h
         XCTAssertEqual(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }?.due, t0.addingTimeInterval(180))
@@ -113,6 +117,7 @@ final class CaseTimersTests: XCTestCase {
         let p = try XCTUnwrap(try data().purpose("bypass"))
         XCTAssertEqual(CaseTimerEngine.suggestedBolus(p, weightKg: 80), 24000)
         XCTAssertNil(CaseTimerEngine.suggestedBolus(p, weightKg: nil))
+        XCTAssertEqual(CaseTimerEngine.suggestedBolus(try XCTUnwrap(try data().purpose("offpump")), weightKg: 80), 16000, "off-pump 200 U/kg")
     }
 
     func testSafetyChecks() throws {
@@ -124,6 +129,10 @@ final class CaseTimersTests: XCTestCase {
         XCTAssertTrue(CaseTimerEngine.heparinIssues(units: 24000, course: nil, purpose: bypass, record: noWeight, data: d).blocks, "weight required")
         XCTAssertTrue(CaseTimerEngine.heparinIssues(units: 30, course: nil, purpose: bypass, record: adult(), data: d).needsConfirm, "30 for 30,000 U")
         XCTAssertTrue(CaseTimerEngine.heparinIssues(units: 24000, course: nil, purpose: vascular, record: adult(), data: d).needsConfirm, "bypass-size dose outside bypass")
+        let ecmo = try XCTUnwrap(d.purpose("ecmo"))
+        let ecmoIssues = CaseTimerEngine.heparinIssues(units: 24000, course: nil, purpose: ecmo, record: adult(), data: d)
+        XCTAssertFalse(ecmoIssues.needsConfirm, "ECMO is exempt from the hard confirm")
+        XCTAssertEqual(ecmoIssues.worst, .soft, "but 300 U/kg is still flagged against 50–100")
         XCTAssertTrue(CaseTimerEngine.heparinIssues(units: 16000, course: nil, purpose: bypass, record: adult(), data: d).needsConfirm, "200 U/kg on bypass")
         XCTAssertFalse(CaseTimerEngine.heparinIssues(units: 24000, course: nil, purpose: bypass, record: adult(), data: d).needsConfirm)
         XCTAssertEqual(CaseTimerEngine.heparinIssues(units: 2000, course: nil, purpose: vascular, record: adult(), data: d).worst, .soft, "25 U/kg is below 50 − 20%")
@@ -136,7 +145,7 @@ final class CaseTimersTests: XCTestCase {
     func testProtamineOnBypassFromTheInitialBolus() throws {
         let d = try data()
         let p = try XCTUnwrap(d.purpose("bypass"))
-        var h = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30)
+        var h = HeparinCourse(purpose: "bypass", goal: 450, actEvery: 30)
         h.doses = [TimedEntry(time: t0, value: 30000), TimedEntry(time: t0.addingTimeInterval(3600), value: 5000)]
         let s = try XCTUnwrap(CaseTimerEngine.protamineSuggestion(h, purpose: p, rules: d.protamine))
         XCTAssertEqual(s.lowMg, 240)
@@ -163,7 +172,7 @@ final class CaseTimersTests: XCTestCase {
 
     func testACTAfterProtamineWhenTheDoseEnds() throws {
         let d = try data()
-        var h = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30)
+        var h = HeparinCourse(purpose: "bypass", goal: 450, actEvery: 30)
         h.doses = [TimedEntry(time: t0, value: 30000)]
         h.protamine = [TimedEntry(time: t0.addingTimeInterval(7200), value: 250)]
         var t = CaseTimers(); t.heparin = h

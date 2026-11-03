@@ -93,6 +93,8 @@ struct HeparinPurpose: Codable, Hashable, Identifiable {
 struct HeparinRules: Codable, Hashable {
     var outOfRangePct: Double
     var hardConfirmNonBypassUPerKg: Double
+    /// Purposes without the bypass-size hard confirm (bypass; ECMO, signed off in the review doc).
+    var hardConfirmExempt: [String]?
     var bypassMinUPerKg: Double
     var bypassMinGoal: Double
     var firstActMinutes: Double
@@ -125,6 +127,8 @@ struct LabCheckDef: Codable, Hashable, Identifiable {
     var id: String
     var name: String
     var options: [Option]
+    /// Intervals (min) the running check can be changed to.
+    var every: [Double]?
     var high: Double?
     var low: Double?
     var unit: String?

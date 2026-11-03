@@ -52,7 +52,7 @@ enum CaseTimersDemo {
             if r.ageYears == nil { r.ageYears = 66 }
             var t = CaseTimers()
             t.antibiotic = AntibioticCourse(drug: "cefazolin", doses: [TimedEntry(time: now.addingTimeInterval(-220 * 60), ebl: 0)])
-            var h = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30)
+            var h = HeparinCourse(purpose: "bypass", goal: 450, actEvery: 30)
             h.acts = [TimedEntry(time: now.addingTimeInterval(-95 * 60), value: 128, baseline: true)]
             h.doses = [TimedEntry(time: now.addingTimeInterval(-80 * 60), value: 25000)]
             h.acts.append(TimedEntry(time: now.addingTimeInterval(-76 * 60), value: 512))
@@ -629,6 +629,11 @@ struct CaseTimersView: View {
                 }
                 Spacer()
                 Button("Stop") { edit { $0.checks[def.id] = nil } }.font(PS.sys(size: 13, weight: .semibold)).tint(PS.fg3)
+            }
+            if let every = def.every, every.count > 1 {
+                ChoiceChips(options: every.map { (id: $0, label: "\(CaseTimerEngine.fmt($0)) min") }, selected: c.every) { v in
+                    edit { $0.checks[def.id]?.every = v }
+                }
             }
             if let last = c.last {
                 let alert = last.value.flatMap { CaseTimerEngine.glucoseAlert($0, def: def) }

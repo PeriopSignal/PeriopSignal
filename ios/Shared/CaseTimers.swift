@@ -299,7 +299,7 @@ enum CaseTimerEngine {
         guard let w = r.weightKg, w > 0 else { return out }
         let perKg = u / w
         let perKgText = "\(fmt(perKg.rounded())) U/kg"
-        if !p.isBypass && perKg >= rules.hardConfirmNonBypassUPerKg {
+        if !(rules.hardConfirmExempt ?? ["bypass"]).contains(p.id) && perKg >= rules.hardConfirmNonBypassUPerKg {
             out.append(DoseIssue(level: .confirm, text: "\(perKgText) is a bypass-size dose, and the purpose is \(p.name.lowercased())."))
         }
         if first {
