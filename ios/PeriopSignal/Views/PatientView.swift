@@ -668,6 +668,31 @@ struct HandoffPanel: View {
 
     private var text: String { format == "short" ? HandoffWriter.shortText(record) : HandoffWriter.text(record) }
 
+    /// What the card shows: the text. Screenshot runs: -ps.handoff.from AIRWAY starts it at that header, so a section
+    /// far down the full handoff fits the frame.
+    private var shownText: String {
+        #if DEBUG
+        let from = LaunchSeed.string("ps.handoff.from")
+        if !from.isEmpty, let r = text.range(of: "\n" + from + "\n") { return String(text[text.index(after: r.lowerBound)...]) }
+        #endif
+        return text
+    }
+
+    /// Screenshot runs: -ps.handoff.image 1 shows the picture that goes after the text when the handoff is shared.
+    @ViewBuilder private var sharedImageShot: some View {
+        #if DEBUG
+        if LaunchSeed.string("ps.handoff.image") == "1", let img = HandoffShare.diagramImage(record, figure: refs.bundle?.regional?.figure) {
+            VStack(alignment: .leading, spacing: 8) {
+                Eyebrow(text: "Picture shared after the text")
+                Image(uiImage: img).resizable().scaledToFit().frame(maxWidth: .infinity)
+            }
+            .padding(12)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            .id("sharedimage")
+        }
+        #endif
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
@@ -680,7 +705,7 @@ struct HandoffPanel: View {
                 .pickerStyle(.segmented)
                 .frame(width: 150)
             }
-            Text(handoffStyled(text, marks: HandoffWriter.marks(record)))
+            Text(handoffStyled(shownText, marks: HandoffWriter.marks(record)))
                 .font(PS.sys(size: 14.5))
                 .foregroundStyle(PS.fg)
                 .lineSpacing(3)
@@ -689,10 +714,11 @@ struct HandoffPanel: View {
                 .padding(16)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
             HandoffLinesFigure(record: record)
+            sharedImageShot
             HStack(spacing: 10) {
-                Button { sharing = [text] + (diagramImage().map { [$0] } ?? []) } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
+                Button { sharing = HandoffShare.items(text: text, image: HandoffShare.diagramImage(record, figure: refs.bundle?.regional?.figure)) } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
                     .buttonStyle(BigButtonStyle(prominent: true))
-                Button { UIPasteboard.general.string = text; copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
+                Button { HandoffShare.copy(text); copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
                     .buttonStyle(BigButtonStyle(prominent: false))
             }
             EvidenceNote("Share only through channels your institution approves for patient information.", title: "Approved channels only")
@@ -715,21 +741,6 @@ struct HandoffPanel: View {
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
             ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
         }
-    }
-
-    /// The diagram as a picture for the end of the shared handoff, when anything is drawn on it.
-    @MainActor private func diagramImage() -> UIImage? {
-        guard let fig = refs.bundle?.regional?.figure else { return nil }
-        let m = PatientDiagramModel.items(record, phase: .all)
-        guard !m.items.isEmpty else { return nil }
-        let view = PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart)
-            .frame(width: 360, height: 560)
-            .padding(12)
-            .background(Color.white)
-            .environment(\.colorScheme, .light)
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = 3
-        return renderer.uiImage
     }
 
     private var sendCard: some View {
@@ -762,7 +773,7 @@ struct HandoffPanel: View {
 /// Every line and device in place now, on arrival and placed in the room (the handoff's Lines and Support, the Foley
 /// with them), drawn on the patient under the handoff text (1.8.1, Ben): read-only and compact, the editor's own figure
 /// without its touch handlers (PatientDiagramCard). A tap opens the Lines editor. The shared handoff carries the same
-/// picture (HandoffPanel.diagramImage); the copied text stays text.
+/// picture after the text (HandoffShare.diagramImage); the copied text stays text.
 struct HandoffLinesFigure: View {
     @Environment(ReferenceStore.self) private var refs
     var record: PatientRecord

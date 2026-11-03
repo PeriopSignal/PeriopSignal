@@ -261,6 +261,12 @@ jobs:
           shot 267-f181-bentall-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "64M for Bentall" -ps.forceAppearance dark
           shot 268-f181-handoff-figure 24 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance light
           shot 269-f181-handoff-figure-dark 24 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance dark
+          # 1.8.3 handoff (410-419): headers bold and underlined, labels bold, no airway exam, the picture shared after the text.
+          shot 410-handoff-styled-full 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 411-handoff-styled-full-dark 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 412-handoff-styled-short 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 413-handoff-airway-course 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.handoff.format full -ps.handoff.from AIRWAY -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 414-handoff-shared-image 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.handoff.image 1 -ps.patient.scroll sharedimage -ps.forceAppearance dark
           # 1.8.1 History (270-279): plain Diabetes, Stroke, unspecified, the Infectious system; the group notes opened.
           shot 270-history-infectious 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance dark
           shot 271-history-infectious-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance light
