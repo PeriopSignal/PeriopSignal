@@ -71,9 +71,7 @@ final class PatientRoomsUI {
             case "room": editingRoom = true
             case "archive": archive = Archive()
             case "archive-entry": archive = Archive(opensFirst: true)
-            default:
-                confirmEnd = true
-                return   // a dialog can't say when it has appeared
+            default: confirmEnd = true
             }
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             if shown { return }
@@ -318,8 +316,6 @@ struct PatientCasePresentations: ViewModifier {
 
     func body(content: Content) -> some View {
         @Bindable var ui = PatientRoomsUI.shared
-        let current = patient.currentCase
-        let hasRoom = current.hasRoom
         return content
             .sheet(isPresented: $ui.editingRoom) {
                 PatientRoomSheet()
@@ -333,21 +329,13 @@ struct PatientCasePresentations: ViewModifier {
                     .presentationDragIndicator(.visible)
                     .onAppear { ui.shown = true }
             }
-            .confirmationDialog("End \(current.label)?", isPresented: $ui.confirmEnd, titleVisibility: .visible) {
-                if current.record.isEmpty {
-                    Button("Remove Case", role: .destructive) { ui.end(patient, keepSummary: false) }
-                } else {
-                    // The usual turnover: keep the summary and start the next patient in the same room and phone.
-                    if hasRoom { Button("Next Patient in \(current.room)") { ui.end(patient, keepSummary: true, nextInRoom: true) } }
-                    Button("End Case & Keep Summary") { ui.end(patient, keepSummary: true) }
-                    Button("End Without a Summary", role: .destructive) { ui.end(patient, keepSummary: false) }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text(current.record.isEmpty
-                     ? "Nothing has been entered, so no summary is kept."
-                     : "The handoff is kept in the case archive on this phone with the date only (no time or room) for \(PatientArchive.retentionLabel(patient.archive.retentionDays)), then deleted. The case is removed"
-                       + (hasRoom ? "; Next Patient opens an empty case in \(current.room) with the same phone." : "."))
+            // A small sheet rather than a confirmation dialog (1.8.1), so the full explanation can sit behind an ⓘ.
+            .sheet(isPresented: $ui.confirmEnd) {
+                PatientEndCaseSheet()
+                    .environment(patient)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+                    .onAppear { ui.shown = true }
             }
             .task { await openForScreenshot() }
     }
@@ -374,6 +362,68 @@ struct PatientCasePresentations: ViewModifier {
         ui.asked = true
         Task { @MainActor in await PatientRoomsUI.shared.openForScreenshot(o) }
         #endif
+    }
+}
+
+/// End case: one short question, what is kept and for how long, with the full explanation behind its ⓘ, then the same
+/// choices the confirmation dialog had (Next Patient in the room, End Case & Keep Summary, End Without a Summary, or
+/// Remove Case when nothing was entered). The wording is for Ben's review (1.8.1).
+struct PatientEndCaseSheet: View {
+    @Environment(PatientStore.self) private var patient
+    @Environment(\.dismiss) private var dismiss
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    var body: some View {
+        let ui = PatientRoomsUI.shared
+        let current = patient.currentCase
+        let hasRoom = current.hasRoom
+        let retention = PatientArchive.retentionLabel(patient.archive.retentionDays)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("End \(current.label)?")
+                    .font(PS.sys(size: 20, weight: .bold)).foregroundStyle(PS.fg)
+                    .accessibilityAddTraits(.isHeader)
+                if current.record.isEmpty {
+                    Text("Nothing has been entered, so no summary is kept.")
+                        .font(PS.sys(size: 15)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                } else {
+                    InfoTitle(caption: "The handoff is kept in the case archive on this phone with the date only (no time or room) for \(retention), then deleted. The case is removed"
+                                       + (hasRoom ? "; Next Patient opens an empty case in \(current.room) with the same phone." : "."),
+                              open: $open, captionFont: PS.sys(size: 13), spacing: 6) {
+                        Text("Keep the handoff \(retention) on this phone (date only)?")
+                            .font(PS.sys(size: 15)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                VStack(spacing: 10) {
+                    if current.record.isEmpty {
+                        choice("Remove Case", destructive: true) { ui.end(patient, keepSummary: false) }
+                    } else {
+                        // The usual turnover: keep the summary and start the next patient in the same room and phone.
+                        if hasRoom { choice("Next Patient in \(current.room)", prominent: true) { ui.end(patient, keepSummary: true, nextInRoom: true) } }
+                        choice("End Case & Keep Summary", prominent: !hasRoom) { ui.end(patient, keepSummary: true) }
+                        choice("End Without a Summary", destructive: true) { ui.end(patient, keepSummary: false) }
+                    }
+                    Button { dismiss() } label: { Text("Cancel").frame(maxWidth: .infinity) }
+                        .buttonStyle(BigButtonStyle(prominent: false))
+                }
+                .padding(.top, 4)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .padding(.bottom, 20)
+        }
+        .background(FeedBackground())
+    }
+
+    private func choice(_ title: String, prominent: Bool = false, destructive: Bool = false, _ action: @escaping () -> Void) -> some View {
+        Button {
+            dismiss()
+            action()
+        } label: {
+            Text(title).frame(maxWidth: .infinity)
+                .foregroundStyle(destructive ? PS.red : (prominent ? PS.accentFg : PS.fg))
+        }
+        .buttonStyle(BigButtonStyle(prominent: prominent))
     }
 }
 

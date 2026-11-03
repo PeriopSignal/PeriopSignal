@@ -19,6 +19,15 @@ struct ChamberQuantView: View {
     @State private var collapses: Bool?
     @State private var ventilated = LaunchSeed.bool("ps.echo.vent")
     @State private var paspText = LaunchSeed.string("ps.echo.pasp")
+    /// Captions behind ⓘ (1.8.1): each row's technique, the BSA note and the coupling notes. -ps.evidence.open 1 opens
+    /// them all for screenshots; a tap on a row's ⓘ then closes that one.
+    @State private var infoAll = LaunchSeed.bool("ps.evidence.open")
+    @State private var infoToggled: Set<String> = []
+
+    private func infoOpen(_ id: String) -> Binding<Bool> {
+        Binding(get: { infoAll != infoToggled.contains(id) },
+                set: { v in if v != (infoAll != infoToggled.contains(id)) { if infoToggled.contains(id) { infoToggled.remove(id) } else { infoToggled.insert(id) } } })
+    }
 
     private var data: EchoData? { refs.bundle?.echo }
     private var bsa: Double? { EchoCalc.bsa(heightCm: WeightField.value(heightText), weightKg: WeightField.value(weightText), formula: data?.bsaFormula) }
@@ -145,7 +154,7 @@ struct ChamberQuantView: View {
             VStack(alignment: .leading, spacing: 8) {
                 FromPatientLine(values: values, what: "age, sex, height and weight") { changingPatient = true }
                 if let b = bsa {
-                    Text("Body surface area \(EchoCalc.fmt(b)) m² (\(data?.bsaFormula == "mosteller" ? "Mosteller" : "DuBois")).")
+                    Text("BSA \(EchoCalc.fmt(b)) m² (\(bsaFormulaName))")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).padding(.horizontal, 2)
                 }
             }
@@ -171,7 +180,9 @@ struct ChamberQuantView: View {
             }
             Group {
                 if let b = bsa {
-                    Text("Body surface area **\(EchoCalc.fmt(b)) m²** (\(data?.bsaFormula == "mosteller" ? "Mosteller" : "DuBois")). Indexed rows accept the raw value too, and rows with indexed cutoffs grade both.")
+                    InfoTitle(caption: "Indexed rows accept the raw value too, and rows with indexed cutoffs grade both.", open: infoOpen("bsa"), captionFont: PS.sys(size: 12)) {
+                        Text("BSA **\(EchoCalc.fmt(b)) m²** (\(bsaFormulaName))")
+                    }
                 } else {
                     Text("Height and weight give the body surface area for indexed values (volumes, mass, the indexed RV and annulus cutoffs); they clear when you leave.")
                 }
@@ -182,6 +193,8 @@ struct ChamberQuantView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
+
+    private var bsaFormulaName: String { data?.bsaFormula == "mosteller" ? "Mosteller" : "DuBois" }
 
     private func field(_ label: String, text: Binding<String>) -> some View {
         FocusBox { f in
@@ -299,7 +312,7 @@ struct ChamberQuantView: View {
 
     private func groupCard(_ g: EchoGroup) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Eyebrow(text: g.name).padding(.leading, 2)
+            SectionHeader(title: g.name, info: g.note).padding(.leading, 2)
             VStack(spacing: 0) {
                 if g.measures.contains(where: { $0.byAge != nil }) {
                     ageRow
@@ -311,15 +324,13 @@ struct ChamberQuantView: View {
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            if let n = g.note { EvidenceNote(n).padding(.horizontal, 2) }
         }
     }
 
     private var ageRow: some View {
         HStack(alignment: .top, spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
+            InfoTitle(caption: "The aortic root limits are set by age and sex, then BSA", open: infoOpen("age")) {
                 Text("Age").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                Text("The aortic root limits are set by age and sex, then BSA").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 6)
             numberField($ageText)
@@ -354,9 +365,8 @@ struct ChamberQuantView: View {
         let hasRef = EchoCalc.ref(m, sex, ctx) != nil
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
+                InfoTitle(caption: m.method, open: infoOpen(m.id)) {
                     Text(m.name).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                    if let me = m.method { Text(me).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
                 }
                 Spacer(minLength: 6)
                 // Strain rows take a negative entry, so they get the keyboard with a minus sign.
@@ -438,9 +448,8 @@ struct ChamberQuantView: View {
                     .frame(width: 230)
                 }
                 HStack(alignment: .top, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
+                    InfoTitle(caption: ivc.method ?? "Subcostal, just proximal to the hepatic veins", open: infoOpen("ivc")) {
                         Text("IVC diameter").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text(ivc.method ?? "Subcostal, just proximal to the hepatic veins").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 6)
                     FocusBox { f in
@@ -496,12 +505,14 @@ struct ChamberQuantView: View {
         let tapse = WeightField.value(values["tapse"] ?? "")
         let r = EchoCalc.coupling(tapseCm: tapse, pasp: WeightField.value(paspText), c)
         return VStack(alignment: .leading, spacing: 8) {
-            Eyebrow(text: "RV–PA coupling: TAPSE/PASP").padding(.leading, 2)
+            SectionHeader(title: "RV–PA coupling: TAPSE/PASP") {
+                ForEach(c.notes ?? [], id: \.self) { n in InfoCaptionText(text: n, font: PS.sys(size: 12)) }
+            }
+            .padding(.leading, 2)
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
+                    InfoTitle(caption: (c.method ?? "").isEmpty ? nil : c.method, open: infoOpen("pasp")) {
                         Text("PA systolic pressure").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text(c.method ?? "").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 6)
                     FocusBox { f in
@@ -526,9 +537,6 @@ struct ChamberQuantView: View {
                 } else {
                     Text((tapse ?? 0) > 0 ? "Enter the PA systolic pressure." : "Enter TAPSE above and the PA systolic pressure.")
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
-                }
-                ForEach(c.notes ?? [], id: \.self) { n in
-                    Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 }
                 if let ref = c.ref { Text(ref).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(PS.fg3) }
             }

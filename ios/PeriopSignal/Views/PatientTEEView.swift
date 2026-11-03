@@ -73,10 +73,7 @@ extension PatientEditorView {
         let tint = it.level == .absolute ? PS.red : PS.accent
         return VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(it.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                    if let d = it.detail { Text(d).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
-                }
+                TEEItemTitle(item: it)
                 Spacer(minLength: 6)
                 if fromRecord == nil {
                     YesNoPills(no: answer == false || (answer == nil && r.teeScreen.reviewed), yes: answer == true,
@@ -97,6 +94,23 @@ extension PatientEditorView {
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
         .accessibilityElement(children: .contain)
+    }
+}
+
+/// An item's label, with its definition behind an ⓘ at the end of the label (1.8.1). Captions that say how an item is
+/// graded stay in view: Zenker's (Ben, Nov 2) and, like it, the ones that say a class rests on survey opinion or on
+/// severity.
+struct TEEItemTitle: View {
+    var item: TEEItem
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    /// The items whose caption is about the grading, so it stays in view.
+    static let gradingCaptions: Set<String> = ["diverticulum", "esophagectomy", "te-fistula", "motility"]
+
+    var body: some View {
+        InfoTitle(caption: item.detail, collapsible: !Self.gradingCaptions.contains(item.id), open: $open, captionFont: PS.sys(size: 12), spacing: 2) {
+            Text(item.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 
@@ -135,8 +149,8 @@ struct TEEResultCard: View {
                 Text(title).font(PS.sys(size: 16.5, weight: .bold)).foregroundStyle(result.level == .none ? PS.fg : color)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if result.findings.isEmpty {
-                Text(result.reviewed ? "Every item asked; none applies." : "Answer the questions below, or confirm what the record suggests.")
+            if result.findings.isEmpty && result.reviewed {
+                Text("Every item asked; none applies.")
                     .font(PS.sys(size: 13)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             ForEach(result.findings, id: \.item.id) { f in

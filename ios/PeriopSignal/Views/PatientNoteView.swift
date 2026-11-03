@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// "No patient identifiers", in full, at the top of Fill from a note: one thin line, "No patient identifiers ⓘ", that
-/// opens to the full warning. On My Patient the grey shield in the navigation bar opens the same words
-/// (NoIdentifiersShield), and the first-time tips (PatientTips) point at it once.
+/// "No patient identifiers", in full: one thin line, "No patient identifiers ⓘ", that opens to the full warning. Since
+/// 1.8.1 Fill from a note shows the grey shield in its navigation bar instead (NoIdentifiersShield, the same words) and
+/// "No names or record numbers." in the empty note; `warning` is the text every shield opens. On My Patient the first-time
+/// tips (PatientTips) point at the shield once.
 struct NoIdentifiersBanner: View {
     static let warning = "Don't enter names, record numbers, dates of birth or other identifiers: the age is enough for the calculators. Follow your institution's privacy rules."
     @State private var open = LaunchSeed.bool("ps.evidence.open")
@@ -108,12 +109,17 @@ struct PatientNoteSheet: View {
     @State private var draft = ""
     @FocusState private var editing: Bool
     @FocusState private var meaningFocused: Bool
+    /// The grey shield's "No patient identifiers" warning is open.
+    @State private var showIdentifiers = false
+    /// "Untick anything that's wrong." is shown under "Nothing changes until you tap Add."
+    @State private var checkInfo = LaunchSeed.bool("ps.evidence.open")
 
     var body: some View {
         NavigationStack {
             ScrollView {
+                // "No patient identifiers": the grey shield in the navigation bar (1.8.1, in place of the banner here),
+                // and the first line of the empty note's placeholder.
                 VStack(alignment: .leading, spacing: 16) {
-                    NoIdentifiersBanner()
                     if let reading { review(reading) } else { compose }
                 }
                 .padding(.horizontal, 20)
@@ -126,11 +132,13 @@ struct PatientNoteSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .topBarTrailing) { NoIdentifiersShield(isPresented: $showIdentifiers) }
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { Keyboard.dismiss() }
                 }
             }
+            .noIdentifiersAlert(isPresented: $showIdentifiers)
         }
         .task {
             seedForScreenshot()
@@ -148,12 +156,17 @@ struct PatientNoteSheet: View {
     @ViewBuilder private var compose: some View {
         ZStack(alignment: .topLeading) {
             if text.isEmpty {
-                Text("e.g. 68M for elective lap colectomy under GA. HTN, T2DM on insulin, OSA on CPAP. Denies chest pain. Climbs 2 flights. Meds: metoprolol, glargine. NKDA. BP 148/86. Mallampati 3. NPO after midnight.")
-                    .font(PS.sys(size: 15))
-                    .foregroundStyle(PS.fg3)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 8)
-                    .allowsHitTesting(false)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("No names or record numbers.")
+                        .font(PS.sys(size: 15, weight: .semibold))
+                        .foregroundStyle(PS.fg2)
+                    Text("e.g. 68M for elective lap colectomy under GA. HTN, T2DM on insulin, OSA on CPAP. Denies chest pain. Climbs 2 flights. Meds: metoprolol, glargine. NKDA. BP 148/86. Mallampati 3. NPO after midnight.")
+                        .font(PS.sys(size: 15))
+                        .foregroundStyle(PS.fg3)
+                }
+                .padding(.horizontal, 5)
+                .padding(.vertical, 8)
+                .allowsHitTesting(false)
             }
             TextEditor(text: $text)
                 .focused($editing)
@@ -164,12 +177,6 @@ struct PatientNoteSheet: View {
         }
         .padding(10)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-        VStack(alignment: .leading, spacing: 6) {
-            hint("text.alignleft", "Write it the way you'd chart it, abbreviations and all: age and sex, procedure, history, medications, allergies, vitals, airway and fasting.")
-            hint("mic", "To dictate, tap the microphone on the keyboard.")
-            hint("lock", "Read on this phone; the note itself isn't kept. You check every item before it's added.")
-        }
-        .padding(.horizontal, 2)
         Button { read() } label: {
             Label("Read the note", systemImage: "text.magnifyingglass").frame(maxWidth: .infinity)
         }
@@ -182,6 +189,15 @@ struct PatientNoteSheet: View {
             Spacer()
         }
         if !abbreviations.isEmpty { SavedAbbreviationsList(store: abbreviations) }
+        // How to write the note, dictation and where it is read: behind the one ⓘ at the bottom (1.8.1).
+        EvidenceDisclosure {
+            VStack(alignment: .leading, spacing: 6) {
+                hint("text.alignleft", "Write it the way you'd chart it, abbreviations and all: age and sex, procedure, history, medications, allergies, vitals, airway and fasting.")
+                hint("mic", "To dictate, tap the microphone on the keyboard.")
+                hint("lock", "Read on this phone; the note itself isn't kept. You check every item before it's added.")
+            }
+        }
+        .padding(.horizontal, 2)
     }
 
     private func hint(_ icon: String, _ s: String) -> some View {
@@ -199,10 +215,20 @@ struct PatientNoteSheet: View {
             Text(reading.isEmpty ? "Nothing was recognized" : "Found \(reading.findings.count) item\(reading.findings.count == 1 ? "" : "s")")
                 .font(PS.serif(size: 22))
                 .foregroundStyle(PS.fg)
-            Text(reading.isEmpty ? "Try the usual abbreviations (HTN, DM, OSA, NKDA, BP 120/80), or edit the note." : "Untick anything that's wrong. Nothing changes until you tap Add.")
-                .font(PS.sys(size: 13.5))
-                .foregroundStyle(PS.fg2)
-                .fixedSize(horizontal: false, vertical: true)
+            if reading.isEmpty {
+                Text("Try the usual abbreviations (HTN, DM, OSA, NKDA, BP 120/80), or edit the note.")
+                    .font(PS.sys(size: 13.5))
+                    .foregroundStyle(PS.fg2)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                // "Nothing changes until you tap Add." stays in view; "Untick anything that's wrong." is behind its ⓘ.
+                InfoTitle(caption: "Untick anything that's wrong.", open: $checkInfo, captionFont: PS.sys(size: 13), spacing: 4) {
+                    Text("Nothing changes until you tap Add.")
+                        .font(PS.sys(size: 13.5))
+                        .foregroundStyle(PS.fg2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
         if !reading.identifiers.isEmpty { identifierWarning(reading.identifiers) }
         if !reading.ambiguous.isEmpty || !reading.unknown.isEmpty { abbreviationGroup(reading) }

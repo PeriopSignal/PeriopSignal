@@ -9,6 +9,9 @@ struct PONVView: View {
 
     @State private var selection = ScoreSelection(on: Set(LaunchSeed.list("ps.ponv.factors")))
     @State private var chosen: Set<String> = Set(LaunchSeed.list("ps.ponv.agents"))
+    /// Captions behind ⓘ (1.8.1): the consensus line on the plan's headline and the ticking rule on the agents' title.
+    @State private var planInfoOpen = LaunchSeed.bool("ps.evidence.open")
+    @State private var agentsInfoOpen = LaunchSeed.bool("ps.evidence.open")
 
     private let def = Scores.apfel
     private var data: PONVData? { refs.bundle?.ponv }
@@ -89,12 +92,14 @@ struct PONVView: View {
             }
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Image(systemName: "pills.fill").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(toneColor)
-                Text("Give \(wanted) antiemetics from different classes")
-                    .font(PS.serif(size: 20, weight: .semibold)).foregroundStyle(PS.fg)
-                    .fixedSize(horizontal: false, vertical: true)
+                InfoTitle(caption: target.map { $0.text + " (Fifth consensus)." }, open: $planInfoOpen, captionFont: PS.sys(size: 13), spacing: 4) {
+                    Text("Give \(wanted) antiemetics from different classes")
+                        .font(PS.serif(size: 20, weight: .semibold)).foregroundStyle(PS.fg)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            if let t = target { Text(t.text + " (Fifth consensus).").font(PS.sys(size: 13)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true) }
-            ChecklistProgress(done: min(classes.count, need), total: need, tint: toneColor, title: "Classes Chosen", doneWord: "chosen") { chosen = [] }
+            // The toolbar's Reset clears the factors and the agents; this bar has none of its own.
+            ChecklistProgress(done: min(classes.count, need), total: need, tint: toneColor, title: "Classes Chosen", doneWord: "chosen", onReset: nil)
             if factors >= 3 {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Reduce the Baseline Risk").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
@@ -125,8 +130,10 @@ struct PONVView: View {
     private func agentsSection(_ data: PONVData) -> some View {
         let agents = data.agents.filter { $0.prophylaxis != false }
         return VStack(alignment: .leading, spacing: 8) {
-            Text("Antiemetic Agents").font(PS.serif(size: 18)).foregroundStyle(PS.fg).padding(.leading, 2)
-            Text("Tick what you give; two agents of one class count once.").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).padding(.leading, 2)
+            InfoTitle(caption: "Tick what you give; two agents of one class count once.", open: $agentsInfoOpen, captionFont: PS.sys(size: 12.5), spacing: 4) {
+                Text("Antiemetic Agents").font(PS.serif(size: 18)).foregroundStyle(PS.fg)
+            }
+            .padding(.leading, 2)
             VStack(spacing: 0) {
                 ForEach(Array(agents.enumerated()), id: \.element.id) { i, a in
                     agentRow(a, all: data.agents)

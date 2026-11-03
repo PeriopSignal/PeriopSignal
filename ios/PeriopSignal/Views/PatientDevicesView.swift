@@ -376,10 +376,19 @@ struct PatientDevicesEditor: View {
 
     // MARK: Typed shorthand
 
+    /// What the shorthand field reads, as examples behind the title's ⓘ: on Mechanical Support, the examples the empty
+    /// state used to give; elsewhere, the field's old placeholder.
+    private var shorthandExamples: String {
+        supportOnly
+            ? "\u{201C}VA ECMO 25F RFV / 17F LFA flow 4 sweep 3\u{201D}, \u{201C}IABP 1:1\u{201D}"
+            : "20 rue · RIJ introducer · VA ECMO 25F RFV / 17F LFA"
+    }
+
     private var shorthand: some View {
-        PatientGroup(title: "Type a line or device") {
+        // Short placeholder (1.8.1); the shorthand examples sit behind the title's ⓘ.
+        PatientGroup(title: "Type a line or device", note: shorthandExamples) {
             HStack(spacing: 8) {
-                TextField("20 rue · RIJ introducer · VA ECMO 25F RFV / 17F LFA", text: $typed)
+                TextField("Type a line or device", text: $typed)
                     .focused($typing)
                     .font(PS.sys(size: 15))
                     .autocorrectionDisabled()
@@ -492,7 +501,7 @@ struct PatientDevicesEditor: View {
 
     @ViewBuilder private var supportSettings: some View {
         if support.isEmpty {
-            Text("No mechanical support recorded. Add it above or type it below (\u{201C}VA ECMO 25F RFV / 17F LFA flow 4 sweep 3\u{201D}, \u{201C}IABP 1:1\u{201D}).")
+            Text("None recorded.")
                 .font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
                 .padding(.horizontal, 4)
         }

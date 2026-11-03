@@ -305,7 +305,7 @@ struct PatientRecord: Codable, Equatable {
         duration = try? c.decodeIfPresent(String.self, forKey: .duration)
         vitals = v(.vitals, [:])
         noHistory = v(.noHistory, false)
-        problems = v(.problems, [])
+        problems = PatientCatalog.migratedProblems(v(.problems, []))
         aortaSizes = v(.aortaSizes, [:])
         systemNotes = v(.systemNotes, [:])
         otherHistory = v(.otherHistory, "")
