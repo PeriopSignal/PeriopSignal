@@ -148,6 +148,8 @@ struct MtpData: Codable, Hashable {
         var citrated: Bool
         /// The intraoperative fluids key in My Patient ("prbc", "plasma", "platelets", "cryo", "wholeBlood").
         var caseKey: String?
+        /// Counted in the ratio as these lines too (whole blood: ["prbc", "plasma"]).
+        var ratioAs: [String]?
         var note: String?
     }
     struct Setting: Codable, Hashable {
@@ -271,6 +273,10 @@ struct TeeData: Codable, Hashable {
     var rv: String
     var diastolic: String
     var report: String
+    /// Checklist items that must be filled in (the exam's conditions, Nicoara 2020).
+    var required: [String]?
+    struct Handoff: Codable, Hashable { var title: String; var note: String }
+    var handoff: Handoff?
     var sources: [EvidenceSource]
 
     func surgery(_ id: String) -> Surgery? { surgeries.first { $0.id == id } }

@@ -100,12 +100,21 @@ struct MtpView: View {
 
     // MARK: Running
 
+    /// The newest measured iCa: typed here, or the newest intraoperative ABG in the open My Patient case.
+    private func measuredIca(_ s: MtpState) -> MtpCalc.IcaReading? {
+        MtpCalc.latestIca(s, caseLabs: patient.record.intraopLabs)
+    }
+
+    private func calcium(_ s: MtpState, _ d: MtpData) -> MtpCalc.CalciumStatus {
+        MtpCalc.calcium(s, data: d, measured: measuredIca(s))
+    }
+
     @ViewBuilder private func running(_ s: MtpState, _ d: MtpData, now: Date) -> some View {
-        let ca = MtpCalc.calcium(s, data: d)
+        let ca = calcium(s, d)
         summary(s, d, now: now)
-        if ca.due { calciumDue(s, d, ca) }
+        if ca.due || ca.action == .check { calciumDue(s, d, ca) }
         tally(s, d)
-        if !ca.due { calciumLine(d, ca) }
+        if !ca.due && ca.action != .check { calciumLine(d, ca) }
         labsCard(s, d, now: now)
         txaCard(s, d, now: now)
         settings(s, d)
@@ -113,7 +122,7 @@ struct MtpView: View {
     }
 
     private func summary(_ s: MtpState, _ d: MtpData, now: Date) -> some View {
-        let ratio = MtpCalc.ratio(s)
+        let ratio = MtpCalc.ratio(s, data: d)
         return ToolCard(tint: PS.accent) {
             HStack(alignment: .firstTextBaseline) {
                 Eyebrow(text: "MTP since \(ClockText.time(s.started))", color: PS.accent)
@@ -129,7 +138,7 @@ struct MtpView: View {
             let cryo = MtpCalc.total(s, "cryo"), wb = MtpCalc.total(s, "wholeBlood")
             if cryo > 0 || wb > 0 {
                 Text([cryo > 0 ? "cryo \(MtpCalc.one(cryo)) pool\(cryo == 1 ? "" : "s") (≥\(MtpCalc.grams(MtpCalc.cryoFibrinogenGrams(s, data: d))) g fibrinogen)" : nil,
-                      wb > 0 ? "whole blood \(MtpCalc.one(wb))" : nil].compactMap { $0 }.joined(separator: " · "))
+                      wb > 0 ? "whole blood \(MtpCalc.one(wb)) (in the ratio as RBC + plasma)" : nil].compactMap { $0 }.joined(separator: " · "))
                     .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
             }
         }
@@ -145,7 +154,7 @@ struct MtpView: View {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(blood) { p in tallyButton(p, s, big: true) }
             }
-            HStack(spacing: 10) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(factors) { p in tallyButton(p, s, big: false) }
             }
         }
@@ -159,7 +168,7 @@ struct MtpView: View {
                 Text(p.name).font(PS.sys(size: big ? 15 : 12.5, weight: .semibold)).foregroundStyle(PS.fg).lineLimit(1).minimumScaleFactor(0.8)
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(MtpCalc.one(n)).font(big ? PS.serif(size: 30, weight: .semibold) : PS.sys(size: 18, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text(p.unit + (n == 1 || p.unit == "g" || p.unit == "IU" || p.unit == "mg" ? "" : "s")).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                    Text(p.unit + (n == 1 || ["g", "IU", "mg", "mL"].contains(p.unit) ? "" : "s")).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                     Spacer(minLength: 0)
                     Image(systemName: "plus").font(PS.sys(size: big ? 15 : 12, weight: .bold)).foregroundStyle(PS.accent)
                 }
@@ -222,22 +231,42 @@ struct MtpView: View {
     // MARK: Calcium
 
     private func calciumDue(_ s: MtpState, _ d: MtpData, _ ca: MtpCalc.CalciumStatus) -> some View {
-        ToolCard(tint: PS.red) {
-            Eyebrow(text: ca.firstDose ? "Calcium with the first unit" : "Calcium: \(MtpCalc.one(ca.since)) units since the last dose", color: PS.red)
-            Text(d.calcium.dose).font(PS.serif(size: 19)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-            Text(d.calcium.chloride).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-            HStack(spacing: 10) {
-                Button("CaCl₂ given") { log("calcium", detail: "chloride") }.buttonStyle(CapsuleButtonStyle(prominent: true))
-                Button("Gluconate given") { log("calcium", detail: "gluconate") }.buttonStyle(CapsuleButtonStyle(prominent: false))
+        ToolCard(tint: ca.action == .check ? PS.accent : PS.red) {
+            Eyebrow(text: Self.calciumHeading(ca, d), color: ca.action == .check ? PS.accent : PS.red)
+            if ca.action == .check {
+                Text("Send an iCa: \(MtpCalc.one(Double(d.calcium.everyUnits))) citrated units since the last one was at target.")
+                    .font(PS.serif(size: 19)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text(d.calcium.dose).font(PS.serif(size: 19)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                Text(d.calcium.chloride).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
+                HStack(spacing: 10) {
+                    Button("CaCl₂ given") { log("calcium", detail: "chloride") }.buttonStyle(CapsuleButtonStyle(prominent: true))
+                    Button("Gluconate given") { log("calcium", detail: "gluconate") }.buttonStyle(CapsuleButtonStyle(prominent: false))
+                }
             }
             icaRow(s, d)
         }
     }
 
+    /// "iCa 0.85 at 14:02: urgent", "Calcium with the first unit", "Calcium: 4 units since the last dose".
+    static func calciumHeading(_ ca: MtpCalc.CalciumStatus, _ d: MtpData) -> String {
+        if let r = ca.reading {
+            let at = "iCa \(String(format: "%.2f", r.value)) at \(ClockText.time(r.time))" + (r.fromCase ? " (My Patient)" : "")
+            switch ca.action {
+            case .urgent: return at + ": urgent"
+            case .give: return at + ": give calcium"
+            default: return at + ": at target"
+            }
+        }
+        return ca.firstDose ? "Calcium with the first unit" : "Calcium: \(MtpCalc.one(ca.since)) units since the last dose"
+    }
+
     private func calciumLine(_ d: MtpData, _ ca: MtpCalc.CalciumStatus) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "drop.triangle").foregroundStyle(PS.fg3)
-            Text(ca.firstDose ? "Calcium comes with the first citrated unit." : "Calcium after \(MtpCalc.one(ca.untilNext)) more unit\(ca.untilNext == 1 ? "" : "s").")
+            Text(ca.reading != nil
+                 ? Self.calciumHeading(ca, d) + "; send another after \(MtpCalc.one(ca.untilNext)) more unit\(ca.untilNext == 1 ? "" : "s")."
+                 : (ca.firstDose ? "Calcium comes with the first citrated unit." : "Calcium after \(MtpCalc.one(ca.untilNext)) more unit\(ca.untilNext == 1 ? "" : "s")."))
                 .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
             Spacer()
             Button("Given") { log("calcium") }.font(PS.sys(size: 13, weight: .semibold))
@@ -248,10 +277,13 @@ struct MtpView: View {
     @ViewBuilder private func icaRow(_ s: MtpState, _ d: MtpData) -> some View {
         HStack(spacing: 10) {
             Text("iCa").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-            UnitField(prompt: "mmol/L", unit: "mmol/L", value: binding(\.ica), width: 80)
+            UnitField(prompt: "mmol/L", unit: "mmol/L", value: Binding(get: { state?.ica }, set: { v in state?.ica = v; state?.icaTime = v == nil ? nil : Date() }), width: 80)
             Spacer()
         }
-        switch MtpCalc.ica(s.ica, data: d) {
+        if let r = measuredIca(s), r.fromCase {
+            Text("Newest from My Patient's ABG: \(String(format: "%.2f", r.value)) at \(ClockText.time(r.time))").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
+        }
+        switch MtpCalc.ica(measuredIca(s)?.value, data: d) {
         case .urgent?: Text("Below \(MtpCalc.one(d.calcium.icaUrgent)): urgent.").font(PS.sys(size: 13.5, weight: .bold)).foregroundStyle(PS.red)
         case .give?: Text("Below \(MtpCalc.one(d.calcium.icaGive)): give calcium.").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.accent)
         default: EmptyView()
@@ -276,7 +308,7 @@ struct MtpView: View {
                     Button("Sent") { log("labs") }.buttonStyle(CapsuleButtonStyle(prominent: l.due))
                 }
                 Text("\(MtpCalc.one(l.rbcSince)) RBC since the last set").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
-                if !MtpCalc.calcium(s, data: d).due { icaRow(s, d) }
+                if !calcium(s, d).due && calcium(s, d).action != .check { icaRow(s, d) }
                 labField("Fibrinogen (Clauss)", "g/L", \.fibrinogen)
                 labField("FIBTEM CA5", "mm", \.fibtem)
                 labField("TEG FF MA", "mm", \.tegFF)
@@ -487,6 +519,7 @@ enum MtpDemo {
         tap("prbc"); tap("calcium", "chloride"); tap("plasma"); tap("prbc"); tap("plasma"); tap("prbc"); tap("labs")
         tap("plasma"); tap("prbc"); tap("platelets"); tap("prbc"); tap("plasma"); tap("cryo"); tap("prbc"); tap("plasma")
         s.ica = 1.08
+        s.icaTime = now.addingTimeInterval(-4 * 60)
         s.injury = now.addingTimeInterval(-70 * 60)
         return s
     }

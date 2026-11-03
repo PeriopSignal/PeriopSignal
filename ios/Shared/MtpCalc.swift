@@ -31,6 +31,8 @@ struct MtpState: Codable, Equatable {
     var addToCase = false
     /// The latest values typed in, for the prompts (not stored as labs anywhere else).
     var ica: Double?
+    /// When `ica` was typed in.
+    var icaTime: Date?
     var fibrinogen: Double?
     var fibtem: Double?
     var tegFF: Double?
@@ -53,6 +55,7 @@ struct MtpState: Codable, Equatable {
         injury = try? c.decodeIfPresent(Date.self, forKey: .injury)
         addToCase = (try? c.decodeIfPresent(Bool.self, forKey: .addToCase)) ?? false
         ica = try? c.decodeIfPresent(Double.self, forKey: .ica)
+        icaTime = try? c.decodeIfPresent(Date.self, forKey: .icaTime)
         fibrinogen = try? c.decodeIfPresent(Double.self, forKey: .fibrinogen)
         fibtem = try? c.decodeIfPresent(Double.self, forKey: .fibtem)
         tegFF = try? c.decodeIfPresent(Double.self, forKey: .tegFF)
@@ -96,16 +99,49 @@ enum MtpCalc {
         var text: String?
     }
 
-    static func ratio(_ s: MtpState) -> Ratio {
-        let rbc = total(s, "prbc"), plasma = total(s, "plasma"), plt = total(s, "platelets") * s.plateletUnits
+    /// RBC : plasma : platelets. A product with `ratioAs` (whole blood: 1 RBC + 1 plasma, signed off in the review doc)
+    /// adds to those lines.
+    static func ratio(_ s: MtpState, data d: MtpData) -> Ratio {
+        var rbc = total(s, "prbc"), plasma = total(s, "plasma")
+        let plt = total(s, "platelets") * s.plateletUnits
+        for p in d.products {
+            guard let parts = p.ratioAs, !parts.isEmpty else { continue }
+            let n = total(s, p.id)
+            if parts.contains("prbc") { rbc += n }
+            if parts.contains("plasma") { plasma += n }
+        }
         let text: String? = rbc > 0 ? "1 : \(one(plasma / rbc)) : \(one(plt / rbc))" : nil
         return Ratio(rbc: rbc, plasma: plasma, plateletUnits: plt, text: text)
     }
 
     // MARK: Calcium
 
+    /// A measured ionized calcium and when it was drawn: typed in on the MTP screen, or the newest ABG in My Patient.
+    struct IcaReading: Hashable {
+        var value: Double
+        var time: Date
+        /// From My Patient's intraoperative labs rather than typed here.
+        var fromCase = false
+    }
+
+    /// What the calcium card asks for.
+    enum CalciumAction: Hashable {
+        /// Nothing due.
+        case none
+        /// Give calcium: empirically by the unit count (no iCa since the last dose), or a measured iCa below 1.1.
+        case give
+        /// A measured iCa below 0.9.
+        case urgent
+        /// The measured iCa was at target, and 4 more citrated units have gone in since: send another.
+        case check
+    }
+
     struct CalciumStatus: Hashable {
-        var due: Bool
+        var action: CalciumAction = .none
+        /// The measured iCa the decision used (drawn after the last calcium dose), if any.
+        var reading: IcaReading?
+        /// Give or urgent.
+        var due: Bool { action == .give || action == .urgent }
         /// Citrated units since the last logged dose (or since the start).
         var since: Double
         /// Units left before the next prompt; 0 when due.
@@ -113,15 +149,39 @@ enum MtpCalc {
         var firstDose: Bool
     }
 
-    /// JTS: with the first citrated unit, then after every 4 units since the last logged dose.
-    static func calcium(_ s: MtpState, data d: MtpData) -> CalciumStatus {
+    /// The calcium prompt, from the measured iCa when there is one (review doc, MTP row 9: "base the calcium prompt on
+    /// the measured iCa from the ABG, not a fixed threshold alone"):
+    /// - an iCa drawn since the last calcium dose decides: below 0.9 urgent, below 1.1 give; at or above 1.1 nothing,
+    ///   until 4 more citrated units have gone in since it was drawn, then "send iCa";
+    /// - with no iCa since the last dose, the JTS rule: with the first citrated unit, then after every 4 units.
+    static func calcium(_ s: MtpState, data d: MtpData, measured: IcaReading? = nil) -> CalciumStatus {
         let lastCa = last(s, "calcium")?.time
         let since = citrated(s, data: d, after: lastCa)
         let every = Double(d.calcium.everyUnits)
-        if lastCa == nil {
-            return CalciumStatus(due: since >= 1, since: since, untilNext: since >= 1 ? 0 : 1, firstDose: true)
+        if let r = measured, r.time > (lastCa ?? .distantPast) {
+            var st = CalciumStatus(reading: r, since: since, untilNext: 0, firstDose: lastCa == nil)
+            if r.value < d.calcium.icaUrgent { st.action = .urgent; return st }
+            if r.value < d.calcium.icaGive { st.action = .give; return st }
+            let afterDraw = citrated(s, data: d, after: r.time)
+            st.untilNext = max(0, every - afterDraw)
+            st.action = afterDraw >= every ? .check : .none
+            return st
         }
-        return CalciumStatus(due: since >= every, since: since, untilNext: max(0, every - since), firstDose: false)
+        if lastCa == nil {
+            return CalciumStatus(action: since >= 1 ? .give : .none, since: since, untilNext: since >= 1 ? 0 : 1, firstDose: true)
+        }
+        return CalciumStatus(action: since >= every ? .give : .none, since: since, untilNext: max(0, every - since), firstDose: false)
+    }
+
+    /// The newer of the iCa typed in here and the newest in My Patient's intraoperative labs.
+    static func latestIca(_ s: MtpState, caseLabs: [IntraopLabSet]) -> IcaReading? {
+        var best: IcaReading?
+        if let v = s.ica, let t = s.icaTime { best = IcaReading(value: v, time: t) }
+        for set in caseLabs {
+            guard let v = set.values["ica"], let t = set.time else { continue }
+            if best == nil || t > best!.time { best = IcaReading(value: v, time: t, fromCase: true) }
+        }
+        return best
     }
 
     enum IcaLevel: Hashable { case normal, give, urgent }

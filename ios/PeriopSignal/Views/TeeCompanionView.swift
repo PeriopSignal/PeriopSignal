@@ -11,6 +11,9 @@ struct TeeCompanionView: View {
     var onOpenTool: (RefRoute) -> Void
     @Environment(ReferenceStore.self) private var refs
     @Environment(TipCenter.self) private var tips
+    @Environment(PatientStore.self) private var patient
+    /// The handoff just added to My Patient (for its Undo), cleared when anything changes.
+    @State private var handedOff: (before: PatientRecord, after: PatientRecord)?
     @State private var surgery = "cabg"
     @State private var post = false
     @State private var checked: Set<String> = []
@@ -30,6 +33,7 @@ struct TeeCompanionView: View {
                         questions(d)
                         checklist(d)
                         if post { changes(d) }
+                        handoff(d)
                         Text(d.rv).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                         footer(d)
                     }
@@ -107,6 +111,7 @@ struct TeeCompanionView: View {
                             Image(systemName: on ? "checkmark.circle.fill" : "circle").font(PS.sys(size: 18)).foregroundStyle(on ? PS.green : PS.fg3)
                             Text(item).font(PS.sys(size: 14.5)).foregroundStyle(on ? PS.fg2 : PS.fg).fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: 0)
+                            if (d.required ?? []).contains(item) && !on { EvidenceTag(text: "Required") }
                         }
                         .padding(.horizontal, 16).padding(.vertical, 10)
                         .contentShape(Rectangle())
@@ -149,6 +154,57 @@ struct TeeCompanionView: View {
             if !found.isEmpty {
                 Text("Tell the surgeon: " + d.flags.compactMap(\.first).filter { found.contains($0) }.joined(separator: ", ") + ".")
                     .font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.red).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    // MARK: Handoff to My Patient (review doc, TEE row 11)
+
+    /// About six lines for the case's echo notes, marked as a draft to confirm with the echocardiographer.
+    static func handoffLines(_ d: TeeData, surgery: String, post: Bool, checked: [String], unchecked: [String], found: [String], at: Date) -> [String] {
+        let name = surgery == "all" ? "Cardiac surgery" : (d.surgery(surgery)?.name ?? surgery)
+        var lines = [(d.handoff?.title ?? "TEE draft: confirm with the echocardiographer") + " (\(ClockText.time(at)), TEE companion)"]
+        lines.append("\(name), \(post ? "after" : "before") bypass: \(checked.count) of \(checked.count + unchecked.count) checked")
+        if post { lines.append(found.isEmpty ? "No change from before bypass marked" : "Changed from before bypass: " + found.joined(separator: ", ")) }
+        let missingRequired = unchecked.filter { (d.required ?? []).contains($0) }
+        if !missingRequired.isEmpty { lines.append("Required, not recorded: " + missingRequired.joined(separator: ", ")) }
+        let rest = unchecked.filter { !missingRequired.contains($0) }
+        if !rest.isEmpty { lines.append("Not checked: " + rest.prefix(4).joined(separator: ", ") + (rest.count > 4 ? ", and \(rest.count - 4) more" : "")) }
+        if !found.isEmpty { lines.append("Surgeon to be told: " + found.joined(separator: ", ")) }
+        return Array(lines.prefix(6))
+    }
+
+    @ViewBuilder private func handoff(_ d: TeeData) -> some View {
+        let list = items(d)
+        let key = { (i: String) in "\(surgery):\(post):\(i)" }
+        let checkedItems = list.filter { checked.contains(key($0)) }
+        if !checkedItems.isEmpty || !found.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                if let h = handedOff, patient.isLatestStep(before: h.before, after: h.after) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(PS.green)
+                        Text("Added to the case's echo notes").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+                        Spacer()
+                        Button("Undo") { withAnimation(.snappy) { patient.undo(); handedOff = nil } }
+                            .buttonStyle(CapsuleButtonStyle(prominent: false))
+                    }
+                } else {
+                    Button {
+                        let lines = Self.handoffLines(d, surgery: surgery, post: post, checked: checkedItems,
+                                                      unchecked: list.filter { !checked.contains(key($0)) },
+                                                      found: d.flags.compactMap(\.first).filter { found.contains($0) }, at: Date())
+                        let before = patient.record
+                        withAnimation(.snappy) {
+                            patient.update(discrete: true) { r in
+                                let text = lines.joined(separator: "\n")
+                                r.echo = r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? text : r.echo + "\n\n" + text
+                            }
+                        }
+                        handedOff = (before, patient.record)
+                    } label: { Label("Add a draft to My Patient", systemImage: "square.and.arrow.down") }
+                    .buttonStyle(GhostButtonStyle())
+                    if let n = d.handoff?.note { InfoCaptionText(text: n, font: PS.sys(size: 12)) }
+                }
             }
         }
     }

@@ -26,9 +26,9 @@ final class MtpTests: XCTestCase {
             _ = s.add("plasma", at: t0.addingTimeInterval(Double(i)))
         }
         _ = s.add("platelets", at: t0.addingTimeInterval(10))
-        XCTAssertEqual(MtpCalc.ratio(s).text, "1 : 1 : 1")
+        XCTAssertEqual(MtpCalc.ratio(s, data: d).text, "1 : 1 : 1")
         s.plateletUnits = 4
-        XCTAssertEqual(MtpCalc.ratio(s).text, "1 : 1 : 0.7")
+        XCTAssertEqual(MtpCalc.ratio(s, data: d).text, "1 : 1 : 0.7")
     }
 
     func testCalciumWithTheFirstUnitThenEveryFour() throws {
@@ -53,9 +53,49 @@ final class MtpTests: XCTestCase {
 
     func testIcaLevels() throws {
         let d = try data()
-        XCTAssertEqual(MtpCalc.ica(1.15, data: d), .give)
+        XCTAssertEqual(MtpCalc.ica(1.05, data: d), .give, "signed off: below 1.1")
+        XCTAssertEqual(MtpCalc.ica(1.15, data: d), .normal)
         XCTAssertEqual(MtpCalc.ica(0.85, data: d), .urgent)
-        XCTAssertEqual(MtpCalc.ica(1.25, data: d), .normal)
+    }
+
+    func testMeasuredIcaDecidesTheCalciumPrompt() throws {
+        let d = try data()
+        var s = MtpState(started: t0, data: d)
+        s.add("prbc", at: t0.addingTimeInterval(1))
+        s.add("calcium", detail: "chloride", at: t0.addingTimeInterval(2))
+        for i in 3..<7 { s.add("plasma", at: t0.addingTimeInterval(Double(i))) }
+        XCTAssertEqual(MtpCalc.calcium(s, data: d).action, .give, "no iCa since the dose: the JTS count")
+        let ok = MtpCalc.IcaReading(value: 1.18, time: t0.addingTimeInterval(6.5))
+        XCTAssertEqual(MtpCalc.calcium(s, data: d, measured: ok).action, .none, "at target: no calcium")
+        for i in 7..<11 { s.add("prbc", at: t0.addingTimeInterval(Double(i))) }
+        XCTAssertEqual(MtpCalc.calcium(s, data: d, measured: ok).action, .check, "4 units since a normal iCa: send another")
+        XCTAssertEqual(MtpCalc.calcium(s, data: d, measured: .init(value: 1.02, time: t0.addingTimeInterval(11))).action, .give)
+        XCTAssertEqual(MtpCalc.calcium(s, data: d, measured: .init(value: 0.85, time: t0.addingTimeInterval(11))).action, .urgent)
+        let stale = MtpCalc.IcaReading(value: 1.25, time: t0.addingTimeInterval(1.5))
+        XCTAssertEqual(MtpCalc.calcium(s, data: d, measured: stale).action, .give, "an iCa from before the last dose doesn't count")
+    }
+
+    func testTheNewestIcaWinsAcrossMtpAndTheCase() throws {
+        let d = try data()
+        var s = MtpState(started: t0, data: d)
+        s.ica = 1.0; s.icaTime = t0.addingTimeInterval(60)
+        let abg = IntraopLabSet(time: t0.addingTimeInterval(120), values: ["ica": 1.2])
+        let r = try XCTUnwrap(MtpCalc.latestIca(s, caseLabs: [abg]))
+        XCTAssertEqual(r.value, 1.2)
+        XCTAssertTrue(r.fromCase)
+        XCTAssertEqual(MtpCalc.latestIca(s, caseLabs: [])?.value, 1.0)
+    }
+
+    func testWholeBloodCountsAsRbcAndPlasma() throws {
+        let d = try data()
+        var s = MtpState(started: t0, data: d)
+        s.add("wholeBlood", at: t0)
+        s.add("prbc", at: t0)
+        let r = MtpCalc.ratio(s, data: d)
+        XCTAssertEqual(r.rbc, 2)
+        XCTAssertEqual(r.plasma, 1)
+        XCTAssertFalse(d.product("cellSaver")?.citrated ?? true, "cell saver doesn't count toward calcium")
+        XCTAssertEqual(d.product("cellSaver")?.caseKey, "cellSaver")
     }
 
     func testLabsAfterFourRbcOrThirtyMinutes() throws {
