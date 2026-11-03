@@ -63,7 +63,7 @@ final class Features181cTests: XCTestCase {
         }
         XCTAssertTrue(ids(note("mild MR")).contains("problem:mr"))
         XCTAssertTrue(ids(note("moderate mitral regurgitation")).contains("problem:mr"))
-        XCTAssertFalse(ids(note("trivial MI")).contains("problem:cad"), "MI after trivial is mitral insufficiency")
+        XCTAssertTrue(ids(note("trivial MI")).isDisjoint(with: ["problem:cad", "problem:mi", "problem:cad-recent"]), "MI after trivial is mitral insufficiency")
         XCTAssertFalse(ids(note("TTE: trace TR, trivial PR")).contains("problem:valve-severe"))
     }
 
@@ -333,8 +333,8 @@ final class Features181cTests: XCTestCase {
         XCTAssertTrue(PatientRules.cardiacSurgery(r))
         XCTAssertTrue(ids(note("s/p Bentall 2019")).contains("problem:aortic-repair-open"))
         XCTAssertTrue(ids(note("s/p bio-Bentall 2019")).contains("problem:aortic-repair-open"))
-        XCTAssertFalse(ids(note("Scheduled for bioprosthetic Bentall.")).contains("problem:prosthetic-valve"), "the planned valve is not one in place")
-        XCTAssertTrue(ids(note("s/p Bentall with mechanical valve 2015")).contains("problem:prosthetic-valve"))
+        XCTAssertFalse(ids(note("Scheduled for bioprosthetic Bentall.")).contains { $0.hasPrefix("problem:prosthetic-valve") }, "the planned valve is not one in place")
+        XCTAssertTrue(ids(note("s/p Bentall with mechanical valve 2015")).contains { $0.hasPrefix("problem:prosthetic-valve") })
     }
 
     // MARK: 5. The lines figure in the handoff

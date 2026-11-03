@@ -270,6 +270,7 @@ final class PatientStore {
         case "demo-cardiac": return PatientDemo.cardiac
         case "demo-dnr": return PatientDemo.dnr
         case "demo-history": return PatientDemo.history
+        case "demo-cardio": return PatientDemo.cardio
         default: return nil
         }
     }
@@ -287,6 +288,31 @@ enum PatientDemo {
         return r
     }
 
+    /// The demo patient with the 1.8.1 Cardiovascular and Respiratory sections filled in: each option, detail and
+    /// study row shows (Ben's summary example).
+    static var cardio: PatientRecord {
+        var r = record
+        r.problems = ["htn", "hyperlipidemia", "cad-recent", "cabg", "hf-decomp", "ef-severe", "af", "pacemaker", "pulm-htn", "dissection-b", "tevar",
+                      "dm", "copd", "osa", "cpap", "pneumonia", "home-o2"]
+        r.hx.valves = ["aortic": PatientValve(stenosis: true, stenosisGrade: "severe"), "mitral": PatientValve(prosthetic: true, prosthesis: "mechanical 27 mm")]
+        r.hx.deviceDetails = "dependent"
+        r.hx.pulmHtnSeverity = "moderate"
+        r.hx.aneurysms = ["root": PatientAneurysm(cm: 4.8)]
+        r.hx.repairDetails = "2021"
+        r.hx.cpapSettings = "BiPAP 14/8"
+        r.hx.homeO2Flow = 2
+        r.systemNotes = ["cv": "Followed by cardiology"]
+        PatientHistoryDetails.setCardiacSurgery("CABG ×3 2019", &r)
+        PatientHistoryDetails.sync(&r)
+        r.ecg = ["Atrial fibrillation"]
+        var echo = PatientEcho()
+        echo.study = "TTE"; echo.lv = .severe; echo.lvef = 25
+        r.echoFindings = echo
+        r.medFlags.insert("anticoagulant")
+        r.asaClass = nil
+        return r
+    }
+
     static var record: PatientRecord {
         var r = PatientRecord()
         r.ageYears = 67; r.sex = .male; r.heightCm = 178; r.weightKg = 96
@@ -296,7 +322,8 @@ enum PatientDemo {
         r.highRiskSurgery = true
         r.incision = "Upper abdominal"; r.duration = "> 3 h"
         r.vitals = ["sbp": 148, "dbp": 86, "hr": 72, "spo2": 95]
-        r.problems = ["htn", "cad", "pci", "dm", "insulin", "osa", "cpap", "snoring", "copd"]
+        r.problems = ["htn", "pci", "dm", "insulin", "osa", "cpap", "copd"]
+        r.hx.cpapSettings = "CPAP 10"
         r.systemNotes = ["cv": "DES to LAD 2023; on aspirin"]
         r.smoking = "former"
         r.allergies = "Penicillin (rash)"
@@ -403,8 +430,8 @@ enum PatientDemo {
         ]
         // Studies (1.8.1): a planned left radial artery graft, severe left carotid disease with reversed left vertebral
         // flow, obstructive PFTs, and an abdominal aortic aneurysm, so the screenshots show every caution.
-        r.problems.insert("aaa")
-        r.aortaSizes = ["aaa": 4.8]
+        r.hx.aneurysms = ["abdominal": PatientAneurysm(cm: 4.8)]
+        PatientHistoryDetails.sync(&r)
         r.carotid.right = CarotidSide(stenosis: "50-69", vertebral: "antegrade", psv: 182, edv: 54)
         r.carotid.left = CarotidSide(stenosis: "ge70", vertebral: "reversed", psv: 268, edv: 112)
         r.carotid.date = PatientMonthYear(month: 9, year: 2026)

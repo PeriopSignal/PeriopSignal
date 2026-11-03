@@ -22,7 +22,7 @@ final class PatientTests: XCTestCase {
         let s = PatientRules.asaSuggestion(demo)
         XCTAssertEqual(s?.level, 3, "COPD and coronary disease are ASA III examples")
         XCTAssertEqual(s?.reasons.first?.level, 3, "the highest class leads")
-        XCTAssertEqual(s?.topFindings, ["Coronary disease or MI, over 3 months", "Coronary stent, over 3 months", "COPD"])
+        XCTAssertEqual(s?.topFindings, ["PCI over 3 months", "COPD"])
         XCTAssertNil(s?.reasons.first { $0.finding == "COPD" }?.example, "an example that repeats the finding is not shown")
         XCTAssertEqual(s?.reasons.first { $0.finding.hasPrefix("BMI") }?.finding, "BMI 30.3", "BMI to one decimal")
         XCTAssertFalse(s?.emergency ?? true)
@@ -92,7 +92,7 @@ final class PatientTests: XCTestCase {
         XCTAssertEqual(a.choices["incision"], "Upper abdominal")
         XCTAssertEqual(a.choices["duration"], "> 3 h")
         XCTAssertTrue(a.on.isEmpty)
-        XCTAssertEqual(PatientRules.prefill("stopbang", demo).on, ["snoring", "pressure", "age", "neck", "gender"])
+        XCTAssertEqual(PatientRules.prefill("stopbang", demo).on, ["pressure", "age", "neck", "gender"], "snoring is the tool's own question (1.8.1)")
         XCTAssertEqual(PatientRules.prefill("apfel", demo).on, ["nonsmoker", "history"])
         // every pre-filled id and choice exists in its score
         for id in ["rcri", "ariscat", "stopbang", "apfel"] {
@@ -198,7 +198,7 @@ final class PatientTests: XCTestCase {
         var obese = healthy; obese.weightKg = 90
         XCTAssertEqual(PatientFunctional.riskFactors(obese), ["obesity"], "BMI 33")
         var family = healthy; family.problems = ["fh-cad"]
-        XCTAssertEqual(PatientFunctional.riskFactors(family), ["family history of premature CAD"])
+        XCTAssertTrue(PatientFunctional.riskFactors(family).isEmpty, "a saved family history still loads and is no longer read (1.8.1)")
         var symptomatic = healthy; symptomatic.cardiacSymptoms = ["syncope"]
         XCTAssertFalse(PatientFunctional.noCardiacRisk(symptomatic))
         var raisedBP = healthy; raisedBP.vitals["sbp"] = 150
@@ -288,9 +288,6 @@ final class PatientTests: XCTestCase {
         var reading = demo; reading.vitals["sbp"] = 185; reading.vitals["dbp"] = 112
         XCTAssertFalse(deferral(reading), "a single reading of unknown timing does not count")
         XCTAssertTrue(pointer(reading), "but it points to the History item (review R6)")
-        var poorlyControlled = demo; poorlyControlled.problems.insert("htn-poor")
-        XCTAssertFalse(deferral(poorlyControlled), "poorly controlled, without the numbers")
-        XCTAssertTrue(pointer(poorlyControlled))
         XCTAssertFalse(pointer(bp), "the History item recorded: the deferral itself shows")
         var urgentBP = bp; urgentBP.urgency = .urgent
         XCTAssertFalse(deferral(urgentBP), "elective surgery only")
@@ -355,7 +352,9 @@ final class PatientTests: XCTestCase {
     }
 
     func testMaskVentilationPredictors() {
-        XCTAssertEqual(PatientAirway.langeron(demo), ["age over 55", "BMI over 26", "snoring"])
+        XCTAssertEqual(PatientAirway.langeron(demo), ["age over 55", "BMI over 26"])
+        var snores = demo; snores.scores["stopbang"] = PatientScore(points: 4, on: ["snoring", "pressure", "age", "gender"])
+        XCTAssertEqual(PatientAirway.langeron(snores), ["age over 55", "BMI over 26", "snoring"], "snoring from the saved STOP-BANG")
         XCTAssertEqual(PatientAirway.kheterpal(demo), ["male", "sleep apnea", "Mallampati III"])
         XCTAssertEqual(PatientAirway.maskRisk(demo).filter { $0.alert }.count, 2)
         var young = PatientRecord(); young.ageYears = 30; young.sex = .female; young.heightCm = 165; young.weightKg = 60

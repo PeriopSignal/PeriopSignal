@@ -315,7 +315,8 @@ struct PatientEditorView: View {
         PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything else goes under Other conditions.") {
             let systems = PatientCatalog.systems(for: r)
             ForEach(Array(systems.enumerated()), id: \.element.id) { i, s in
-                let picked = s.problems.filter { r.problems.contains($0.id) }.map { PatientCatalog.problemText($0, r) }
+                // The expanding pages' words are lowercase for the summary; the row reads as a sentence.
+                let picked = HistorySections.items(s, r).enumerated().map { $0.offset == 0 ? $0.element.prefix(1).uppercased() + $0.element.dropFirst() : $0.element }
                 linkRow(s.name, picked.isEmpty ? "None recorded" : picked.joined(separator: "; "), icon: s.icon, value: .system(s.id))
                 if i < systems.count - 1 { Hairline().padding(.leading, 50) }
             }
@@ -380,37 +381,38 @@ struct PatientEditorView: View {
                     }
                 }
             }
-            let aorta = Set(PatientCatalog.aortaIDs)
-            PatientGroup(title: s.name, note: PatientCatalog.systemNote(s)) {
-                PatientChipRow(label: nil) {
-                    PatientChips(options: s.problems.filter { !aorta.contains($0.id) }.map(problemFlag), selection: bind(\.problems))
+            if HistorySections.sections(s.id) != nil {
+                // Cardiovascular and Respiratory (1.8.1): expanding sections; Cardiovascular ends with its studies, the
+                // same editors and data as Assessment.
+                PatientHistorySectionsView(system: s)
+                if s.id == "cv" { cvStudies }
+            } else {
+                PatientGroup(title: s.name, note: PatientCatalog.systemNote(s)) {
+                    PatientChipRow(label: nil) {
+                        PatientChips(options: s.problems.map(problemFlag), selection: bind(\.problems))
+                    }
+                    PatientTextField(label: "Details", prompt: "Severity, dates, devices, the last echo or stress test", text: note(s.id))
                 }
-                PatientTextField(label: "Details", prompt: "Severity, dates, devices, the last echo or stress test", text: note(s.id))
             }
-            if s.problems.contains(where: { aorta.contains($0.id) }) { aortaGroup(s) }
         }
+    }
+
+    /// The cardiac studies, as Assessment's Studies list them (ECG, echo, left and right heart cath).
+    @ViewBuilder private var cvStudies: some View {
+        PatientGroup(title: "Studies") {
+            linkRow("ECG", PatientSummary.ecgText(r) ?? "Add findings", icon: r.ecg.isEmpty && r.ecgNotes.isEmpty ? "plus.circle" : "waveform.path.ecg", value: .workup("ecg"))
+            Hairline().padding(.leading, 50)
+            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
+            Hairline().padding(.leading, 50)
+            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
+            Hairline().padding(.leading, 50)
+            linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
+        }
+        .id("cvstudies")
     }
 
     func problemFlag(_ p: PatientProblem) -> PatientFlag {
         PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" })
-    }
-
-    /// The Cardiovascular page's aortic disease, apart from its other problems: the items, then the diameter of each
-    /// unruptured aneurysm ticked.
-    @ViewBuilder private func aortaGroup(_ s: PatientSystem) -> some View {
-        let items = PatientCatalog.aortaIDs.compactMap { id in s.problems.first { $0.id == id } }
-        PatientGroup(title: "Aorta") {
-            PatientChipRow(label: nil) {
-                PatientChips(options: items.map(problemFlag), selection: bind(\.problems))
-            }
-            let sized = PatientCatalog.aneurysmIDs.filter { r.problems.contains($0) }
-            ForEach(sized, id: \.self) { id in
-                Hairline().padding(.leading, 14)
-                PatientNumberField(label: (PatientCatalog.aneurysmShort[id] ?? id) + " diameter", unit: "cm",
-                                   value: Binding(get: { patient.record.aortaSizes[id] }, set: { v in patient.update { $0.aortaSizes[id] = v } }))
-            }
-        }
-        .id("aorta")
     }
 
     @ViewBuilder private var medications: some View {
