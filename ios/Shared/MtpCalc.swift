@@ -1,0 +1,217 @@
+import Foundation
+
+// MARK: - Massive transfusion tally
+//
+// Each tap is an entry with its time; the ratio, the calcium and lab prompts and the fibrinogen estimate are read back
+// from the entries and reference.json "mtp" (MtpData), so removing a mistaken tap corrects them all. A tally tap is not
+// a verified dose. The tally lives on the phone (MtpStore) and holds no patient details.
+
+struct MtpEntry: Codable, Equatable, Identifiable {
+    var id = UUID()
+    var time: Date
+    /// MtpData.Product id, or "calcium", "txa", "labs".
+    var product: String
+    var qty: Double = 1
+    /// The calcium salt ("chloride", "gluconate") or the TXA context.
+    var detail: String?
+    /// The My Patient case it was also added to, so removing it removes it there too.
+    var caseID: UUID?
+}
+
+struct MtpState: Codable, Equatable {
+    var started: Date
+    var entries: [MtpEntry] = []
+    /// Units per platelet dose, for the ratio (4–6).
+    var plateletUnits: Double
+    /// Single-donor units per cryo pool.
+    var cryoPool: Double
+    var txaContext = "trauma"
+    var injury: Date?
+    /// Also add products to the open My Patient case (off unless switched on).
+    var addToCase = false
+    /// The latest values typed in, for the prompts (not stored as labs anywhere else).
+    var ica: Double?
+    var fibrinogen: Double?
+    var fibtem: Double?
+    var tegFF: Double?
+    var potassium: Double?
+    var inr: Double?
+
+    init(started: Date, data: MtpData) {
+        self.started = started
+        plateletUnits = data.plateletUnits.default
+        cryoPool = data.cryoPool.default
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        started = (try? c.decodeIfPresent(Date.self, forKey: .started)) ?? Date()
+        entries = (try? c.decodeIfPresent([MtpEntry].self, forKey: .entries)) ?? []
+        plateletUnits = (try? c.decodeIfPresent(Double.self, forKey: .plateletUnits)) ?? 6
+        cryoPool = (try? c.decodeIfPresent(Double.self, forKey: .cryoPool)) ?? 5
+        txaContext = (try? c.decodeIfPresent(String.self, forKey: .txaContext)) ?? "trauma"
+        injury = try? c.decodeIfPresent(Date.self, forKey: .injury)
+        addToCase = (try? c.decodeIfPresent(Bool.self, forKey: .addToCase)) ?? false
+        ica = try? c.decodeIfPresent(Double.self, forKey: .ica)
+        fibrinogen = try? c.decodeIfPresent(Double.self, forKey: .fibrinogen)
+        fibtem = try? c.decodeIfPresent(Double.self, forKey: .fibtem)
+        tegFF = try? c.decodeIfPresent(Double.self, forKey: .tegFF)
+        potassium = try? c.decodeIfPresent(Double.self, forKey: .potassium)
+        inr = try? c.decodeIfPresent(Double.self, forKey: .inr)
+    }
+
+    @discardableResult
+    mutating func add(_ product: String, qty: Double = 1, detail: String? = nil, at t: Date, caseID: UUID? = nil) -> MtpEntry {
+        let e = MtpEntry(time: t, product: product, qty: qty, detail: detail, caseID: caseID)
+        entries.append(e)
+        entries.sort { $0.time < $1.time }
+        return e
+    }
+
+    mutating func remove(_ id: UUID) { entries.removeAll { $0.id == id } }
+}
+
+enum MtpCalc {
+    static func total(_ s: MtpState, _ product: String) -> Double {
+        s.entries.filter { $0.product == product }.map(\.qty).reduce(0, +)
+    }
+
+    /// Citrated units given after `since` (all of them when nil): every RBC, plasma, platelet dose, cryo pool (as 1)
+    /// and whole blood tap; not cell saver or factor concentrates.
+    static func citrated(_ s: MtpState, data d: MtpData, after since: Date?) -> Double {
+        let ids = Set(d.products.filter(\.citrated).map(\.id))
+        return s.entries.filter { ids.contains($0.product) && (since == nil || $0.time > since!) }.map(\.qty).reduce(0, +)
+    }
+
+    static func last(_ s: MtpState, _ product: String) -> MtpEntry? { s.entries.last { $0.product == product } }
+
+    // MARK: Ratio
+
+    struct Ratio: Hashable {
+        var rbc: Double
+        var plasma: Double
+        /// Platelet doses × units per dose.
+        var plateletUnits: Double
+        /// "1 : 0.8 : 1", normalized to RBC; nil before any RBC.
+        var text: String?
+    }
+
+    static func ratio(_ s: MtpState) -> Ratio {
+        let rbc = total(s, "prbc"), plasma = total(s, "plasma"), plt = total(s, "platelets") * s.plateletUnits
+        let text: String? = rbc > 0 ? "1 : \(one(plasma / rbc)) : \(one(plt / rbc))" : nil
+        return Ratio(rbc: rbc, plasma: plasma, plateletUnits: plt, text: text)
+    }
+
+    // MARK: Calcium
+
+    struct CalciumStatus: Hashable {
+        var due: Bool
+        /// Citrated units since the last logged dose (or since the start).
+        var since: Double
+        /// Units left before the next prompt; 0 when due.
+        var untilNext: Double
+        var firstDose: Bool
+    }
+
+    /// JTS: with the first citrated unit, then after every 4 units since the last logged dose.
+    static func calcium(_ s: MtpState, data d: MtpData) -> CalciumStatus {
+        let lastCa = last(s, "calcium")?.time
+        let since = citrated(s, data: d, after: lastCa)
+        let every = Double(d.calcium.everyUnits)
+        if lastCa == nil {
+            return CalciumStatus(due: since >= 1, since: since, untilNext: since >= 1 ? 0 : 1, firstDose: true)
+        }
+        return CalciumStatus(due: since >= every, since: since, untilNext: max(0, every - since), firstDose: false)
+    }
+
+    enum IcaLevel: Hashable { case normal, give, urgent }
+
+    static func ica(_ v: Double?, data d: MtpData) -> IcaLevel? {
+        guard let v else { return nil }
+        if v < d.calcium.icaUrgent { return .urgent }
+        if v < d.calcium.icaGive { return .give }
+        return .normal
+    }
+
+    // MARK: Labs
+
+    struct LabStatus: Hashable {
+        var due: Bool
+        var rbcSince: Double
+        var minutesSince: Double
+    }
+
+    /// After every 4 RBC units since labs were last sent, or at least every 30 min.
+    static func labs(_ s: MtpState, data d: MtpData, now: Date) -> LabStatus {
+        let lastLabs = last(s, "labs")?.time
+        let rbcSince = s.entries.filter { $0.product == "prbc" && (lastLabs == nil || $0.time > lastLabs!) }.map(\.qty).reduce(0, +)
+        let minutes = now.timeIntervalSince(lastLabs ?? s.started) / 60
+        let due = rbcSince >= Double(d.labs.everyRbc) || minutes >= d.labs.everyMinutes
+        return LabStatus(due: due, rbcSince: rbcSince, minutesSince: minutes)
+    }
+
+    static func labsDueAt(_ s: MtpState, data d: MtpData) -> Date {
+        (last(s, "labs")?.time ?? s.started).addingTimeInterval(d.labs.everyMinutes * 60)
+    }
+
+    static func potassiumHigh(_ s: MtpState, data d: MtpData) -> Bool { (s.potassium ?? 0) > d.labs.kHigh }
+
+    // MARK: Fibrinogen
+
+    /// Fibrinogen in the cryo given, at the Circular's minimum per unit (g).
+    static func cryoFibrinogenGrams(_ s: MtpState, data d: MtpData) -> Double {
+        total(s, "cryo") * s.cryoPool * (d.cryoPool.mgPerUnit ?? 150) / 1000
+    }
+
+    /// Single-donor units for a fibrinogen dose (g), at the minimum per unit.
+    static func cryoUnits(forGrams g: Double, data d: MtpData) -> Double {
+        let mg = d.cryoPool.mgPerUnit ?? 150
+        return (g * 1000 / mg).rounded(.up)
+    }
+
+    static func fibrinogenLow(_ s: MtpState, data d: MtpData) -> Bool {
+        if let v = s.fibrinogen, v <= d.fibrinogen.clauss { return true }
+        if let v = s.fibtem, v < d.fibrinogen.fibtem { return true }
+        if let v = s.tegFF, v < d.fibrinogen.tegFF { return true }
+        return false
+    }
+
+    // MARK: 4F-PCC (vitamin K antagonist reversal)
+
+    struct PccDose: Hashable {
+        var iuPerKg: Double
+        var dosingKg: Double
+        var capped: Bool
+        var iu: Double
+    }
+
+    /// The label's band for the INR, on a dosing weight capped at 100 kg; nil under INR 2 or without a weight.
+    static func pcc(inr: Double?, weightKg: Double?, data d: MtpData) -> PccDose? {
+        guard let inr, let w = weightKg, w > 0 else { return nil }
+        guard let band = d.pcc.bands.first(where: { b in
+            guard inr >= b.from else { return false }
+            guard let to = b.to else { return true }
+            return (b.toInclusive ?? false) ? inr <= to : inr < to
+        }) else { return nil }
+        let kg = min(w, d.pcc.capKg)
+        return PccDose(iuPerKg: band.iuPerKg, dosingKg: kg, capped: w > d.pcc.capKg, iu: (band.iuPerKg * kg / 10).rounded() * 10)
+    }
+
+    // MARK: TXA
+
+    /// Hours since injury when a trauma context has an injury time.
+    static func hoursSinceInjury(_ s: MtpState, now: Date) -> Double? {
+        s.injury.map { now.timeIntervalSince($0) / 3600 }
+    }
+
+    static func txaLate(_ s: MtpState, data d: MtpData, now: Date) -> Bool {
+        guard let ctx = d.txa.contexts.first(where: { $0.id == s.txaContext }), let max = ctx.maxHoursFromInjury,
+              let h = hoursSinceInjury(s, now: now) else { return false }
+        return h > max
+    }
+
+    static func one(_ v: Double) -> String {
+        let r = (v * 10).rounded() / 10
+        return r == r.rounded() ? String(Int(r)) : String(format: "%.1f", r)
+    }
+}
