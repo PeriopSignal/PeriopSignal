@@ -210,6 +210,13 @@ enum MtpCalc {
         return h > max
     }
 
+    /// Grams of fibrinogen to two places, trailing zeros dropped ("0.75", "1.5", "3").
+    static func grams(_ v: Double) -> String {
+        let r = (v * 100).rounded() / 100
+        if r == r.rounded() { return String(Int(r)) }
+        return String(format: (r * 10) == (r * 10).rounded() ? "%.1f" : "%.2f", r)
+    }
+
     static func one(_ v: Double) -> String {
         let r = (v * 10).rounded() / 10
         return r == r.rounded() ? String(Int(r)) : String(format: "%.1f", r)

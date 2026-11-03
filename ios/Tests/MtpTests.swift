@@ -79,6 +79,9 @@ final class MtpTests: XCTestCase {
         XCTAssertEqual(MtpCalc.cryoFibrinogenGrams(s, data: d), 1.5, accuracy: 0.001)
         // Rossaint 2023: 3–4 g ≈ 15–20 single-donor units at 150–200 mg each; at the 150 mg minimum, 4 g is 27.
         XCTAssertEqual(MtpCalc.cryoUnits(forGrams: 3, data: d), 20)
+        XCTAssertEqual(MtpCalc.grams(0.75), "0.75")
+        XCTAssertEqual(MtpCalc.grams(1.5), "1.5")
+        XCTAssertEqual(MtpCalc.grams(3), "3")
     }
 
     func testPccBandsAndWeightCap() throws {

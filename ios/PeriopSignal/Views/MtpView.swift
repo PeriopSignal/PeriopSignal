@@ -120,15 +120,15 @@ struct MtpView: View {
                 Spacer()
                 Text(Self.elapsed(from: s.started, to: now)).font(PS.mono(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
             }
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(ratio.text ?? "—").font(PS.serif(size: 30, weight: .semibold)).foregroundStyle(PS.fg)
-                Text("RBC : plasma : platelets, target \(d.ratio.target)").font(PS.sys(size: 13)).foregroundStyle(PS.fg2)
+                Text("RBC : plasma : platelets · target \(d.ratio.target)").font(PS.sys(size: 13)).foregroundStyle(PS.fg2)
             }
             Text("RBC \(MtpCalc.one(ratio.rbc)) · plasma \(MtpCalc.one(ratio.plasma)) · platelets \(MtpCalc.one(MtpCalc.total(s, "platelets"))) dose\(MtpCalc.total(s, "platelets") == 1 ? "" : "s") (\(MtpCalc.one(ratio.plateletUnits)) units)")
                 .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             let cryo = MtpCalc.total(s, "cryo"), wb = MtpCalc.total(s, "wholeBlood")
             if cryo > 0 || wb > 0 {
-                Text([cryo > 0 ? "cryo \(MtpCalc.one(cryo)) pool\(cryo == 1 ? "" : "s") (≥\(MtpCalc.one(MtpCalc.cryoFibrinogenGrams(s, data: d))) g fibrinogen)" : nil,
+                Text([cryo > 0 ? "cryo \(MtpCalc.one(cryo)) pool\(cryo == 1 ? "" : "s") (≥\(MtpCalc.grams(MtpCalc.cryoFibrinogenGrams(s, data: d))) g fibrinogen)" : nil,
                       wb > 0 ? "whole blood \(MtpCalc.one(wb))" : nil].compactMap { $0 }.joined(separator: " · "))
                     .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
             }
@@ -367,7 +367,7 @@ struct MtpView: View {
                 Stepper(value: Binding(get: { s.cryoPool }, set: { state?.cryoPool = $0 }), in: d.cryoPool.min...d.cryoPool.max, step: 1) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Cryo pool: \(MtpCalc.one(s.cryoPool)) units").font(PS.sys(size: 14)).foregroundStyle(PS.fg)
-                        Text("≥\(MtpCalc.one(s.cryoPool * (d.cryoPool.mgPerUnit ?? 150) / 1000)) g fibrinogen per pool").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                        Text("≥\(MtpCalc.grams(s.cryoPool * (d.cryoPool.mgPerUnit ?? 150) / 1000)) g fibrinogen per pool").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                     }
                 }
                 if let n = d.cryoPool.note { InfoCaptionText(text: n, font: PS.sys(size: 12)) }
