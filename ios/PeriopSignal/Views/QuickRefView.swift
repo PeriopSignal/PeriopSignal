@@ -75,9 +75,31 @@ struct QuickRefView: View {
     /// title's ⓘ. No decorative ECG line.
     private var header: some View {
         let h = Self.header(for: ref)
-        return ToolHeader(eyebrow: h.eyebrow, title: h.title, summary: ref.summary, infoSummary: !ref.isEmergency,
-                          tint: ref.isEmergency ? PS.accent : tint)
+        return VStack(alignment: .leading, spacing: 8) {
+            ToolHeader(eyebrow: h.eyebrow, title: h.title, summary: ref.summary, infoSummary: !Self.summaryInView(ref),
+                       tint: ref.isEmergency ? PS.accent : tint)
+            if let scope = Self.scopeLines[ref.id] {
+                // Who the reference is written for: a population caution, so it stays in view as one line.
+                HStack(alignment: .firstTextBaseline, spacing: 7) {
+                    Image(systemName: "exclamationmark.triangle.fill").font(PS.sys(size: 11)).foregroundStyle(PS.accent)
+                    Text(scope).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
     }
+
+    /// Emergency references keep the summary in view: the emergency checklists, and the difficult-airway brief, which is
+    /// an emergency reference without being a tick-box checklist. (Its data stays `emergency: false`: that flag also
+    /// turns the steps into checklists, tints the card coral, sorts it first and changes the website and installed
+    /// apps, which download reference.json.)
+    static let summaryInViewIDs: Set<String> = ["asa-difficult-airway"]
+    static func summaryInView(_ ref: QuickRef) -> Bool { ref.isEmergency || summaryInViewIDs.contains(ref.id) }
+
+    /// One-line scope cautions, kept in view when the summary that holds them goes behind ⓘ (wording from the summary).
+    static let scopeLines: [String: String] = [
+        "asa-fasting": "For healthy patients having elective procedures.",
+    ]
 
     /// Short headers by quick-reference id. A reference without one keeps its own title, under its topic's name.
     static let headers: [String: (eyebrow: String, title: String)] = [

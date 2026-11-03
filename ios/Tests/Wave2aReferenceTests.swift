@@ -107,15 +107,33 @@ final class Wave2aReferenceTests: XCTestCase {
 
     // MARK: ABG
 
-    @MainActor func testAbgNarrativeBehindInfoExceptEmptyAndNormal() throws {
-        let b = try bundled()
-        let d = try XCTUnwrap(b.abg)
+    @MainActor func testAbgNarrativeBehindInfoExceptEmptyAndNormalCaveat() throws {
+        let d = try XCTUnwrap(try bundled().abg)
         let empty = AbgCalc.read(ph: nil, paco2: nil, hco3: nil, data: d)
         let normal = AbgCalc.read(ph: 7.40, paco2: 40, hco3: 24, data: d)
         let acid = AbgCalc.read(ph: 7.28, paco2: 30, hco3: 14, data: d)
-        XCTAssertFalse(AbgView.explanationBehindInfo(empty), "the empty gas keeps its instruction")
-        XCTAssertFalse(AbgView.explanationBehindInfo(normal), "a normal gas keeps its caveat in view")
-        XCTAssertTrue(AbgView.explanationBehindInfo(acid))
+        XCTAssertEqual(AbgView.explanationParts(empty).kept, empty.explanation, "the empty gas keeps its instruction")
+        XCTAssertNil(AbgView.explanationParts(empty).hidden)
+        let n = AbgView.explanationParts(normal)
+        XCTAssertEqual(n.kept, "A metabolic acidosis and alkalosis that cancel out can still hide behind a normal gas.")
+        XCTAssertEqual(n.hidden, "pH, PaCO₂ and HCO₃ are all in the normal range.")
+        let a = AbgView.explanationParts(acid)
+        XCTAssertNil(a.kept)
+        XCTAssertEqual(a.hidden, acid.explanation, "the whole narrative is behind ⓘ, unchanged")
         XCTAssertFalse(acid.steps.isEmpty, "the steps stay in view under the strip")
+    }
+
+    // MARK: Coordinator fixes (population cautions in view)
+
+    @MainActor func testFastingScopeAndDifficultAirwaySummaryStayInView() throws {
+        let b = try bundled()
+        let fasting = try XCTUnwrap(b.quickrefs.first { $0.id == "asa-fasting" })
+        let scope = try XCTUnwrap(QuickRefView.scopeLines[fasting.id])
+        XCTAssertTrue(fasting.summary.lowercased().contains(scope.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))),
+                      "the scope line is the summary's own words")
+        XCTAssertFalse(QuickRefView.summaryInView(fasting))
+        let airway = try XCTUnwrap(b.quickrefs.first { $0.id == "asa-difficult-airway" })
+        XCTAssertTrue(QuickRefView.summaryInView(airway), "Difficult Airway keeps its summary in view")
+        XCTAssertEqual(LocalAnestheticView.volumePlaceholder, "Volume")
     }
 }
