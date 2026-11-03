@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Features181cTests.swift:66: error: -[PeriopSignalTests.Features181cTests testNoteReadsTrivialAndTraceAsNotValveDisease] : XCTAssertFalse failed - MI after trivial is mitral insufficiency
+Test Case '-[PeriopSignalTests.Features181cTests testNoteReadsTrivialAndTraceAsNotValveDisease]' failed (3.567 seconds).
