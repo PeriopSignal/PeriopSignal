@@ -284,7 +284,9 @@ final class ProcedureCatalog183Tests: XCTestCase {
         XCTAssertEqual(ids("SSLT"), ["bilateral-lung-transplant"])
         XCTAssertFalse(proc("single-lung-transplant").synonyms.contains("SSLT"))
         // Debranching in the neck is carotid and neck vascular surgery; through the sternum it is the chest.
-        XCTAssertEqual(ids("debranching TEVAR"), ["cervical-debranching"])
+        // "Debranching TEVAR" keeps the TEVAR (its RCRI flag and echo-first), not only the neck debranching (1.8.3 re-check).
+        XCTAssertTrue(ids("debranching TEVAR").contains("tevar"))
+        XCTAssertFalse(proc("cervical-debranching").synonyms.contains("debranching TEVAR"))
         XCTAssertEqual(ids("supra-aortic debranching"), ["cervical-debranching"])
         check("cervical-debranching", high: false, "Peripheral")
         check("arch-debranching", high: true, "Intrathoracic")

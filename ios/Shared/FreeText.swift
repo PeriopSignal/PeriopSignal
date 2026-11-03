@@ -17,7 +17,8 @@ enum FreeText {
 
     /// "metoprolol" → "Metoprolol"; "  adhesive tape" → "  Adhesive tape"; "eGFR 45", "3 vessel disease" unchanged.
     static func cap(_ s: String) -> String {
-        guard let i = s.firstIndex(where: { !skipped.contains($0) }), s[i].isLetter, s[i].isLowercase else { return s }
+        // ASCII letters only: a leading "µg" or "μg" must not become "Μg", which reads as mg or Mg.
+        guard let i = s.firstIndex(where: { !skipped.contains($0) }), s[i].isASCII, s[i].isLetter, s[i].isLowercase else { return s }
         // The first word, up to the next space; its first run of letters decides.
         let wordEnd = s[i...].firstIndex(where: { $0.isWhitespace }) ?? s.endIndex
         let word = s[i..<wordEnd]

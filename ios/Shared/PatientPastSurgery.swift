@@ -63,6 +63,11 @@ enum PastSurgeryNote {
     /// A diagnosis, which a procedure-list alias can also be ("AAA" is the open repair's, "dissection" a cardiac repair's):
     /// with no operative word it is not an operation, after "h/o" or in a "PSH:" section.
     static let diagnosisRx = NoteRx(#"\b(?:aaa|taaa?|taad|aod|aneurysms?|dissections?|hernias?|ectopic|fractures?|appendicitis|cholecystitis|cholelithiasis|gallstones?|obstruction|sbo|cancer|carcinoma|tumou?rs?|mass|stones?|stenosis|regurgitation|insufficiency|pregnancy|pneumothorax|empyema|abscess|torsion|bleed(?:ing)?|perforation|ulcers?|polyps?|cysts?)\b"#)
+    /// Operations named by an eponym, a shorthand or an abbreviation, with no operative word ("Whipple", "Nissen", "lap
+    /// chole", "appy", "ACDF"). After a history lead ("h/o", "Hx", "prior"), a procedure-list match counts only with an
+    /// operative word or one of these: the list's aliases include diagnoses ("scoliosis", "coarctation", "varicose veins")
+    /// that a history lead usually introduces (1.8.3 re-check).
+    static let shorthandRx = NoteRx(#"\b(?:procedure|whipple|nissen|toupet|heller|bentall|fontan|glenn|norwood|kasai|ladd|hartmann'?s?|ivor lewis|mckeown|sistrunk|puestow|latarjet|bankart|brostrom|ravitch|nuss|maze|cox-maze|watchman|mitraclip|roux-en-y|billroth|mohs|lichtenstein|lap chole|appy|lap appy|lap band|gastric band|gastric sleeve|t&a|d&c|leep)\b|(?-i:\b(?:TSA|ACDF|PLIF|TLIF|ALIF|XLIF|VATS|RATS|LAR|APR|IPAA|TAH|TLH|LAVH|BSO|TURBT|PCNL|FESS|UPPP|LVAD|OHT|OLT|CEA|TCAR|LAAO|TEP|TAPP)\b)"#)
     static let chestRx = NoteRx(#"\b(?:thoracotomy|sternotomy|vats|thoracoscopic|lobectomy|pneumonectomy|segmentectomy|esophagectomy|open[- ]heart|cardiac surgery|heart surgery)\b"#)
     static let monthYearRx = NoteRx(#"(?:\bin\s+|\(\s*|\b(?:on|dated|at)\s+)?\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?,?\s+(?:19|20)\d\d)\b\s*\)?"#)
     /// Dates in a note: MM/YYYY, a year, a month name and year, and "'19" (with or without a month before it). Never M/D
@@ -77,7 +82,7 @@ enum PastSurgeryNote {
     private static let generic: Set<String> = ["surgery", "surgeries", "operation", "operations", "procedure", "procedures", "surgical", "history"]
 
     static var allPatterns: [NoteRx] {
-        [cardiacWordsRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, chestRx, monthYearRx, numericRx, apostropheRx, yearRx]
+        [cardiacWordsRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, shorthandRx, chestRx, monthYearRx, numericRx, apostropheRx, yearRx]
     }
 
     // MARK: Reading a sentence
@@ -133,7 +138,7 @@ enum PastSurgeryNote {
             let start = m.range.location + m.range.length
             let end = m.range.location < sectionStart ? sectionStart : ns.length
             guard start < end else { continue }
-            let found = leadItems(ns, NSRange(location: start, length: end - start))
+            let found = leadItems(ns, NSRange(location: start, length: end - start), historyLead: isHistoryLead(ns.substring(with: m.range)))
             if found.isEmpty { continue }
             out.operations += found.filter { clear($0.range) }
             if let last = found.last { covered = NSRange(location: m.range.location, length: last.range.location + last.range.length - m.range.location) }
@@ -142,11 +147,18 @@ enum PastSurgeryNote {
     }
 
     /// The operation right after a lead, then the items after it while each one is an operation too.
-    private static func leadItems(_ ns: NSString, _ range: NSRange) -> [Operation] {
+    /// "h/o", "Hx", "history of", "prior", "previous": what follows is often a diagnosis. "s/p" and "status post" name an
+    /// operation.
+    static func isHistoryLead(_ lead: String) -> Bool {
+        let l = lead.lowercased().trimmingCharacters(in: .whitespaces)
+        return !(l.hasPrefix("s/p") || l.hasPrefix("status post"))
+    }
+
+    private static func leadItems(_ ns: NSString, _ range: NSRange, historyLead: Bool = false) -> [Operation] {
         var out: [Operation] = []
         for (i, p) in split(ns, range).enumerated() {
             var stopped = false
-            let op = operation(ns, p, strict: true, stopped: &stopped)
+            let op = operation(ns, p, strict: true, historyLead: historyLead, stopped: &stopped)
             if let op {
                 if !op.text.isEmpty {
                     out.append(op)
@@ -224,10 +236,14 @@ enum PastSurgeryNote {
 
     /// One item as an operation; nil when it is not one. An item that is only a date has empty text. `stopped` is set when
     /// the item runs on into the rest of the sentence ("... now presenting for ..."): nothing after it is read.
-    private static func operation(_ ns: NSString, _ range: NSRange, strict: Bool, stopped: inout Bool) -> Operation? {
+    private static func operation(_ ns: NSString, _ range: NSRange, strict: Bool, historyLead: Bool = false, stopped: inout Bool) -> Operation? {
         var t = ns.substring(with: range)
         if let b = bulletRx.first(t) { t = (t as NSString).substring(from: b.range.length) }
-        if let l = leadRx.first(t), l.range.location == 0 { t = (t as NSString).substring(from: l.range.length) }
+        var historyLead = historyLead
+        if let l = leadRx.first(t), l.range.location == 0 {
+            historyLead = isHistoryLead((t as NSString).substring(with: l.range))
+            t = (t as NSString).substring(from: l.range.length)
+        }
         // The planned procedure: the item is dropped, whole, and nothing after it is read.
         if planningRx.first(t) != nil || (strict && forRx.first(t) != nil) {
             stopped = true
@@ -249,7 +265,7 @@ enum PastSurgeryNote {
         if t.isEmpty { return date.isEmpty ? nil : Operation(text: "", date: date, aside: aside, range: range) }
         if commentaryRx.first(t) != nil || generic.contains(t.lowercased()) { return nil }
         if strict {
-            guard isOperation(t) else { return nil }
+            guard isOperation(t, historyLead: historyLead) else { return nil }
         } else {
             guard t.filter(\.isLetter).count >= 3, !diagnosisLike(t) else { return nil }
         }
@@ -287,9 +303,11 @@ enum PastSurgeryNote {
     }
 
     /// A recognized operation: in the procedure list, or named like one.
-    static func isOperation(_ t: String) -> Bool {
+    static func isOperation(_ t: String, historyLead: Bool = false) -> Bool {
         if surgicalRx.first(t) != nil || chestRx.first(t) != nil { return true }
         if diagnosisLike(t) { return false }
+        // After a history lead, a procedure-list match alone is not enough: the list's aliases include diagnoses.
+        if historyLead && shorthandRx.first(t) == nil { return false }
         return PlannedProcedure.parse(t).contains { $0.catalogID != nil }
     }
 

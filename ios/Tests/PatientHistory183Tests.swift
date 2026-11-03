@@ -392,6 +392,28 @@ final class PatientHistory183Tests: XCTestCase {
         XCTAssertEqual(applied("s/p lap chole 2015, appendectomy 2010, ORIF R ankle").surgeries.count, 3)
     }
 
+    /// 1.8.3 re-check: after "h/o", "Hx" or "prior", a procedure-list alias that names a diagnosis is not an operation;
+    /// an operative word, an eponym or an operation abbreviation is needed. "s/p" still reads the list.
+    func testAHistoryLeadNeedsAnOperativeWord() {
+        for note in ["h/o scoliosis", "Hx: scoliosis", "h/o adolescent idiopathic scoliosis", "h/o coarctation", "history of neuroblastoma",
+                     "h/o acoustic neuroma", "h/o varicose veins", "h/o varicocele", "h/o hydrocele", "h/o Achilles tendon rupture",
+                     "h/o Lisfranc injury", "h/o rectovaginal fistula", "h/o anal fistula", "prior popliteal entrapment", "h/o midgut volvulus",
+                     "h/o epiphrenic diverticulum", "Hx of esophageal leiomyoma"] {
+            let r = applied(note)
+            XCTAssertTrue(r.surgeries.isEmpty, note + " → " + r.surgeries.map(\.text).joined(separator: "; "))
+            XCTAssertNil(r.hx.cardiacSurgeryID, note)
+            XCTAssertTrue(psh(note).isEmpty, note)
+        }
+        for note in ["h/o Whipple 2019", "h/o lap chole", "prior VATS", "h/o TKA 2018", "Hx CABG 2015", "h/o Nissen fundoplication",
+                     "s/p scoliosis fusion 2010", "s/p coarctation repair", "h/o hiatal hernia repair 2015", "history of Bentall procedure"] {
+            XCTAssertEqual(applied(note).surgeries.count, 1, note)
+        }
+        XCTAssertTrue(PastSurgeryNote.isHistoryLead("h/o "))
+        XCTAssertTrue(PastSurgeryNote.isHistoryLead("Hx: "))
+        XCTAssertFalse(PastSurgeryNote.isHistoryLead("s/p "))
+        XCTAssertFalse(PastSurgeryNote.isHistoryLead("Status post "))
+    }
+
     func testAPlanningWordDropsTheItemWhole() {
         for note in ["s/p PCI 2020, CABG scheduled 11/4", "s/p LHC 10/28 showing 3VD, referred for CABG", "s/p appendectomy 2010, awaiting CABG",
                      "s/p CABG 2019, needs AVR", "s/p PCI 2020; candidate for CABG", "s/p lap chole 2015, booked for AVR",

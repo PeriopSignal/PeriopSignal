@@ -279,15 +279,15 @@ enum LabResults {
     }
 
     // Type and screen.
-    static let tsLead = NoteRx(#"\bt\s*&\s*s\b|\bt\s+and\s+s\b|\btype\s*(?:&|and)\s*(?:screen|cross(?:match)?)\b|\bt\s*&\s*c\b|\babo(?:\s*/\s*rh)?\b|\bblood\s+(?:type|group|bank)\b|(?-i:\bBB\b)"#)
+    static let tsLead = NoteRx(#"\bt\s*&\s*s\b|\bt\s+and\s+s\b|\btype\s*(?:&|and)\s*(?:screen|cross(?:match)?)\b|\bt\s*&\s*c\b|\babo(?:\s*/\s*rh)?\b|\bblood\s+(?:type|group|bank)\b"#)
     private static let rhWord = #"\+|-|−|pos(?:itive)?\b|neg(?:ative)?\b"#
     static let tsType = NoteRx(#"^\s*[:=]?\s*(?:is\s+)?(ab|a|b|o)\s*(?:rh\s*(?:\(d\)\s*)?)?("# + rhWord + #")(?:\s*/\s*("# + rhWord + #"))?"#)
     static let tsScreen = NoteRx(#"\b((?:antibody|ab|abs)\s+)?screen(?:ing)?\s*(?:is\s+|was\s+)?[:=]?\s*(neg(?:ative)?\b|pos(?:itive)?\b|pending\b|-(?=[\s,;.)]|$)|\+)"#)
     /// Screens that are not the blood bank's, said just before "screen": infectious (MRSA, COVID), HIT (PF4, heparin),
     /// viral serologies (HIV, HCV, HBs), transplant (HLA, PRA), ANA, drug, tox and urine screens.
-    private static let notBloodBankBefore = NoteRx(#"\b(?:mrsa|mssa|staph\w*|aureus|covid\S*|vre|nares|nasal|diff\w*|esbl|cre|gbs|flu|influenza|rsv|swab|hit|pf4|heparin|hiv(?:[- ]?1\s*/\s*2)?|hcv|hbs\w*|hbv|hla|pra|ana|drugs?|tox\w*|urine|uds)\s*(?:[/&]\s*\w+\s*)?(?:(?:antibody|ab|abs)\s+)?$"#)
+    private static let notBloodBankBefore = NoteRx(#"\b(?:mrsa|mssa|staph\w*|aureus|covid\S*|vre|nares|nasal|diff\w*|esbl|cre|gbs|flu|influenza|rsv|swab|hit|pf4|heparin|hiv(?:[- ]?1\s*/\s*2)?|hcv|hbs\w*|hbv|hla|pra|ana|drugs?|tox\w*|urine|uds|hep(?:atitis)?\s*[abc]|hav|hev)\s*(?:[/&]\s*\w+\s*)?(?:(?:antibody|ab|abs)\s+)?$"#)
     /// An ABO/Rh type written without a lead ("O neg, antibody screen negative"): lets the clause's antibody screen be read.
-    static let aboType = NoteRx(#"(?<![A-Za-z])(?:AB|A|B|O)\s*(?:Rh\s*)?(?:\+|[-−](?![A-Za-z])|pos(?:itive)?\b|neg(?:ative)?\b)"#, caseSensitive: true)
+    static let aboType = NoteRx(#"(?<![A-Za-z])(?<![Hh]ep\s)(?<!HEP\s)(?<![Hh]epatitis\s)(?<![Gg]roup\s)(?<!GROUP\s)(?<![Vv]itamin\s)(?:AB|A|B|O)\s*(?:Rh\s*)?(?:\+|[-−](?![A-Za-z])|pos(?:itive)?\b|neg(?:ative)?\b)"#, caseSensitive: true)
     /// Red-cell alloantibodies only ("anti-K", "anti-Fya", "anti-Jk(a)"), case as written: not anti-Xa, anti-PF4 or an
     /// anticoagulant.
     static let tsAntibody = NoteRx(#"(?<![A-Za-z])[Aa]nti-?\s?(D|C|c|E|e|K|k|Cw|Kp(?:a|b|\([ab]\))|Js(?:a|b|\([ab]\))|Fy(?:a|b|\([ab]\))|Jk(?:a|b|\([ab]\))|Le(?:a|b|\([ab]\))|Lu(?:a|b|\([ab]\))|Di(?:a|b|\([ab]\))|M|N|S|s|U|P1|Wra)(?![A-Za-z0-9(])"#, caseSensitive: true)

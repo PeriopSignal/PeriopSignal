@@ -166,7 +166,10 @@ final class PatientLHC183Tests: XCTestCase {
                   // Not coronary disease:
                   "cath: non-obstructive HCM", "LHC non-obstructive hypertrophic cardiomyopathy", "cath showed non-obstructive cardiomyopathy",
                   // A cath that is not the LHC needs a coronary word:
-                  "cath: non-obstructive"] {
+                  "cath: non-obstructive",
+                  // Other catheters (1.8.3 re-check):
+                  "tunneled HD cath placed, no CAD", "dialysis cath in place, no CAD", "Swan cath placed; non-obstructive CAD",
+                  "PICC cath, no CAD"] {
             XCTAssertNil(typed(s), s)
         }
     }

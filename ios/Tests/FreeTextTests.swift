@@ -19,7 +19,9 @@ final class FreeTextTests: XCTestCase {
 
     func testLeavesWhatIsAlreadyRightOrMeaningful() {
         for s in ["eGFR 45", "pH 7.2", "iCa low", "3 vessel disease", "mL/kg", "NTproBNP high", "iPad", "On levetiracetam", "Metoprolol", "",
-                  "mg daily", "mcg/kg/min", "kg", "dL", "mmHg", "q6h prn", "q4-6h", "x3 weeks", "\"urgent\" case", "~29 ml", "<5 mm", "  ", "ΔEF 10"] {
+                  "mg daily", "mcg/kg/min", "kg", "dL", "mmHg", "q6h prn", "q4-6h", "x3 weeks", "\"urgent\" case", "~29 ml", "<5 mm", "  ", "ΔEF 10",
+                  // A micro sign must not become a capital mu, which reads as mg or Mg (1.8.3 re-check).
+                  "µg/kg/min", "μg/kg/min"] {
             XCTAssertEqual(FreeText.cap(s), s, "'\(s)' stays")
         }
     }

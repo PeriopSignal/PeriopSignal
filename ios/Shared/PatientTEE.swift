@@ -205,8 +205,9 @@ enum PatientTEE {
 
     // MARK: The record
 
-    /// Esophagectomy in the procedure list, and an esophageal replacement with colon, which follows one (1.8.3).
-    static let esophagectomyIDs: Set<String> = ["ivor-lewis", "mie", "transhiatal-esophagectomy", "mckeown", "colon-interposition"]
+    /// Esophagectomy in the procedure list, an esophageal replacement with colon and a conduit takedown, which follow one
+    /// (1.8.3).
+    static let esophagectomyIDs: Set<String> = ["ivor-lewis", "mie", "transhiatal-esophagectomy", "mckeown", "colon-interposition", "conduit-takedown"]
     /// Esophageal and gastric operations in the procedure list (not endoscopy, gastrostomy, a gastric stimulator or a
     /// perforated or bleeding ulcer patch). A tracheoesophageal fistula repair, a tracheoesophageal puncture for a voice
     /// prosthesis and a Zenker or other esophageal diverticulectomy are esophageal surgery here; the fistula or the

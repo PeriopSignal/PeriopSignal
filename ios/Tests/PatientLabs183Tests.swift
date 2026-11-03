@@ -341,6 +341,17 @@ final class PatientLabs183Tests: XCTestCase {
 
     /// The antibody screen is the blood bank's only with a T&S, type-and-screen or blood-bank lead, or an ABO/Rh type in
     /// the clause, and never a screen named for something else.
+    /// 1.8.3 re-check: a hepatitis serology, a beta blocker ("BB") or "Group B" is not the blood bank's.
+    func testHepatitisBetaBlockerAndGroupBAreNotTheBloodBank() {
+        for line in ["Hep B neg, Hep C Ab screen negative", "Hepatitis B negative, hepatitis C antibody screen negative",
+                     "HepB neg, antibody screen negative", "BB: metoprolol, antibody screen negative", "Group B neg, antibody screen negative"] {
+            XCTAssertNil(ts(note(line).findings)?.screen, "note: " + line)
+            XCTAssertNil(ts(quick(line).findings)?.screen, "bar: " + line)
+        }
+        XCTAssertEqual(ts(note("T&S: O neg, antibody screen negative").findings)?.screen, .negative, "a T&S lead still reads it")
+        XCTAssertEqual(ts(note("Blood bank: antibody screen negative").findings)?.screen, .negative)
+    }
+
     func testAntibodyScreenOnlyForTheBloodBank() {
         for line in ["HIT antibody screen positive", "HCV Ab screen neg", "HLA antibody screen positive", "antibody screen negative",
                      "T&S A neg, HIT antibody screen positive", "T&S O pos, drug/tox screen positive", "T&S O pos, HCV Ab screen neg",

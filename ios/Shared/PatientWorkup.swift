@@ -808,7 +808,7 @@ extension PatientLHC {
     /// A coronary cath: "LHC" or "left heart cath" (coronary by themselves), "cath" (not a PA, arterial or central catheter),
     /// or a coronary angiogram, which is not a CT or MR one. A mesenteric, leg or cerebral angiogram is none of these.
     private static let lhcRx = NoteRx(#"\b(?:lhc|left heart cath(?:eterization|eterisation)?)\b"#)
-    private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )(?<!\bpa )\bcath(?:eterization|eterisation)?\b|(?<!\bct )(?<!\bcta )(?<!\bccta )(?<!\bmr )(?<!\bmra )\bcoronary angiogra(?:m|phy)\b"#)
+    private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )(?<!\bpa )(?<!\bhd )(?<!dialysis )(?<!tunneled )(?<!tunnelled )(?<!swan )(?<!swan-ganz )(?<!\bpicc )(?<!\bcvc )(?<!suprapubic )(?<!epidural )(?<!\bpd )\bcath(?:eterization|eterisation)?\b|(?<!\bct )(?<!\bcta )(?<!\bccta )(?<!\bmr )(?<!\bmra )\bcoronary angiogra(?:m|phy)\b"#)
     private static let coronaryWordsRx = NoteRx(#"\b(?:cad|coronar(?:y|ies)|coronary artery disease)\b"#)
     /// Not coronary disease.
     private static let notCoronaryRx = NoteRx(#"\b(?:hcm|hocm|hypertrophic|cardiomyopath\w*|lvot)\b"#)
