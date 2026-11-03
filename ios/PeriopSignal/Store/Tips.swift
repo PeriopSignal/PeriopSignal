@@ -200,7 +200,7 @@ struct Tips: Equatable {
 final class TipCenter {
     /// The set showing, or nil.
     private(set) var showing: Tips?
-    /// Where the targets that report themselves are, in global coordinates (only while a set shows).
+    /// Where the targets that report themselves are, in global coordinates.
     var frames: [String: CGRect] = [:]
     /// The first-open tour has been finished or skipped on this phone.
     private(set) var tourSeen: Bool
@@ -264,16 +264,12 @@ final class TipCenter {
             if t.tipSet.id == TipSet.tour.id { tourSeen = true }
         }
         showing = nil
-        frames = [:]
     }
 
     /// An emergency screen appeared (`id`): no tips while it is up; one showing is put away unseen.
     func block(_ id: String) {
         blockers.insert(id)
-        if showing != nil {
-            showing = nil
-            frames = [:]
-        }
+        if showing != nil { showing = nil }
     }
 
     func unblock(_ id: String) {

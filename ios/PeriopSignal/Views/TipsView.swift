@@ -49,6 +49,14 @@ extension View {
         }
     }
 
+    /// A target that reports its own frame into `center` as it is laid out (onGeometryChange), for views whose anchor
+    /// preferences don't reach a reader (run 242, shot 245: a folder row in the Reference home's lazy stack).
+    @MainActor func tipFrame(_ id: String, in center: TipCenter) -> some View {
+        onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { f in
+            if center.frames[id] != f { center.frames[id] = f }
+        }
+    }
+
     /// An emergency screen: while it is up, no tip starts and one showing is put away (TipCenter.block).
     @MainActor func blocksTips(_ blocks: Bool, id: String, in center: TipCenter) -> some View {
         onAppear { if blocks { center.block(id) } }

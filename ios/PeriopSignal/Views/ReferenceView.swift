@@ -231,7 +231,7 @@ struct ReferenceView: View {
                         footer
                     }
                 }
-                .tipTarget(TipTarget.referenceTop)
+                .tipFrame(TipTarget.referenceTop, in: tips)
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
                 .padding(.bottom, 28)
@@ -346,7 +346,7 @@ struct ReferenceView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .tipTarget(i == 0 ? TipTarget.referenceFirstFolder : "reference.folder.\(f.rawValue)")
+                    .tipFrame(i == 0 ? TipTarget.referenceFirstFolder : "reference.folder.\(f.rawValue)", in: tips)
                     if i < RefFolder.allCases.count - 1 { Hairline().padding(.leading, 70) }
                 }
             }
