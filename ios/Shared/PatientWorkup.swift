@@ -90,10 +90,11 @@ struct PatientMonthYear: Codable, Hashable {
 
     /// The text as it is typed into a month and year field: a "/" goes in by itself after the month ("06" becomes "06/",
     /// "6" becomes "06/", "062026" becomes "06/2026"), and a "-", "." or space typed after the month becomes it. A year
-    /// alone ("2019", "1999") is left to be typed. Deleting never adds anything, so Backspace goes back through the "/".
+    /// alone ("2019", "1999") is left to be typed. Deleting from the end never adds anything, so Backspace goes back through the "/".
     /// `old` is the text before the change.
     static func typing(_ new: String, was old: String) -> String {
-        if new.count <= old.count { return new }
+        // Deleting from the end (or nothing changed): as it is. Replacing a selection is typing.
+        if old.hasPrefix(new) { return new }
         guard new.allSatisfy({ ($0.isASCII && $0.isWholeNumber) || separator($0) }) else { return new }
         let trimmed = new.trimmingCharacters(in: .whitespaces)
         // Pasted digits that read as a whole date ("62026", "0626"): the date.

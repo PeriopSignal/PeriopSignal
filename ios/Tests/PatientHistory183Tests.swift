@@ -118,6 +118,9 @@ final class PatientHistory183Tests: XCTestCase {
         XCTAssertEqual(PatientMonthYear.typing("0", was: "06"), "0")
         XCTAssertEqual(PatientMonthYear.typing("06/202", was: "06/2026"), "06/202")
         XCTAssertEqual(PatientMonthYear.typing("06/", was: "06/2"), "06/")
+        XCTAssertEqual(PatientMonthYear.typing("", was: "06/"), "")
+        // A selection replaced by a digit is typing.
+        XCTAssertEqual(PatientMonthYear.typing("7", was: "06/2026"), "07/")
         // And typing on after deleting back to the month works as before.
         XCTAssertEqual(typed("2", from: "06"), "06/2")
         XCTAssertEqual(typed("7", from: "06"), "06/7")
