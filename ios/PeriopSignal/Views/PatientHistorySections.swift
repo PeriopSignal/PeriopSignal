@@ -104,11 +104,12 @@ struct PatientHistorySectionsView: View {
     }
 
     private func row<C: View>(_ label: String?, @ViewBuilder _ c: () -> C) -> some View {
-        Group {
+        let choices = c()
+        return Group {
             if let label {
-                InlineChoices { Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2) } choices: { c() }
+                InlineChoices { Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2) } choices: { choices }
             } else {
-                c()
+                choices
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
