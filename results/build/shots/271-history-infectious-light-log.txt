@@ -1,0 +1,7 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-03 03:52:58.017 Df PeriopSignal[29735:152f7] [com.apple.network:activity] <nw_activity 50:1 [C2235BE0-B83B-42E7-BC0C-098FC35F907E] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 66027ms
+2026-11-03 03:52:58.018 Df PeriopSignal[29735:152f7] [com.apple.network:activity] <nw_activity 50:2 [079CB148-A8F5-4B1E-AFC6-A8DA20E39E57] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 66027ms
+2026-11-03 03:52:58.018 Df PeriopSignal[29735:152f7] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [C2235BE0-B83B-42E7-BC0C-098FC35F907E] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-03 03:52:58.018 Df PeriopSignal[29735:152f7] [com.apple.network:activity] Unset the global parent activity
+2026-11-03 03:52:58.018 E  PeriopSignal[29735:1531c] [com.apple.app_launch_measurement:General] Failed to send CA Event for app launch measurements for ca_event_type: 1 event_name: com.apple.app_launch_measurement.ExtendedLaunchMetrics
+2026-11-03 03:53:10.032 A  PeriopSignal[29735:162b5] (RunningBoardServices) didChangeInheritances
