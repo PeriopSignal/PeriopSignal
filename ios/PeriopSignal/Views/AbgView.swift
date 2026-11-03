@@ -10,6 +10,8 @@ struct AbgView: View {
 
     @State private var values: [String: String] = Self.seededValues()
     @State private var copied = false
+    /// The reading's narrative, behind the ⓘ on the result header (1.8.1); the strip and the steps stay in view.
+    @State private var explanationOpen = LaunchSeed.bool("ps.evidence.open")
 
     private var data: AbgData? { refs.bundle?.abg }
 
@@ -147,8 +149,9 @@ struct AbgView: View {
     private func readingCard(_ r: AbgCalc.Reading) -> some View {
         let t = tone(r)
         return VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            HStack(spacing: 6) {
                 Eyebrow(text: "Acid–base", color: t)
+                if Self.explanationParts(r).hidden != nil { InfoButton(open: $explanationOpen, label: "About this reading") }
                 Spacer()
                 if !r.empty {
                     Button {
@@ -159,7 +162,15 @@ struct AbgView: View {
                 }
             }
             Text(r.headline).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(r.empty ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
-            Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                .promptHeadline(r.empty)
+            let parts = Self.explanationParts(r)
+            if explanationOpen, let h = parts.hidden {
+                Text(h).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+            }
+            if let k = parts.kept {
+                Text(k).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            }
             if let v = r.visual { AbgStrip(visual: v).padding(.top, 4) }
             if !r.steps.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
@@ -191,6 +202,20 @@ struct AbgView: View {
                 .clipShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
     }
+
+    /// The narrative repeats the steps below it, so it sits behind the ⓘ. It stays in view while the gas is empty (it
+    /// is the instruction) and for a normal gas, whose narrative carries the caveat that two disorders can cancel out.
+    /// The narrative split into what stays in view and what goes behind the ⓘ. The empty gas keeps its instruction
+    /// whole; otherwise a "can still hide" caveat (the normal gas) stays in view as one line and the rest goes behind ⓘ.
+    static func explanationParts(_ r: AbgCalc.Reading) -> (kept: String?, hidden: String?) {
+        if r.empty { return (r.explanation, nil) }
+        var kept: [String] = [], hidden: [String] = []
+        for s in AclsView.sentences(r.explanation) {
+            if s.lowercased().contains("can still hide") { kept.append(s) } else { hidden.append(s) }
+        }
+        return (kept.isEmpty ? nil : kept.joined(separator: " "), hidden.isEmpty ? nil : hidden.joined(separator: " "))
+    }
+
 
     // MARK: Rules and sources
 

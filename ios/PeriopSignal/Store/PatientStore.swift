@@ -42,17 +42,36 @@ final class PatientStore {
     /// Set by `markDiscrete()`: the next change, if it comes within a second, is a step of its own.
     @ObservationIgnored private var discreteMark: Date?
 
-    init(url: URL? = PatientStore.defaultURL()) {
-        self.url = url
+    /// The app's: the cases kept in Application Support. In a screenshot run with a -ps.patient seed (debug builds),
+    /// the seed's made-up cases instead, and the folder is not touched.
+    convenience init() {
         #if DEBUG
-        if let demo = PatientStore.debugCases() {
-            archive = PatientArchive(url: nil, entries: demo.archived)
-            rooms = PatientRoomDirectory(url: nil, rooms: demo.rooms)
-            book = demo.book
-            loaded = true
+        if let seed = PatientStore.debugCases() {
+            self.init(url: nil, seed: seed)
             return
         }
         #endif
+        self.init(url: PatientStore.defaultURL(), seed: nil)
+    }
+
+    /// The cases kept at `url`, or in memory only with nil (tests).
+    convenience init(url: URL?) {
+        self.init(url: url, seed: nil)
+    }
+
+    /// With a `seed` (screenshot runs and tests), its cases, archive and rooms, held in memory only: nothing is read
+    /// from or written to `url` or the files beside it, so a screenshot that edits the made-up patient leaves nothing
+    /// behind for the next launch.
+    init(url: URL?, seed: PatientDemo.Seed?) {
+        if let seed {
+            self.url = nil
+            archive = PatientArchive(url: nil, entries: seed.archived)
+            rooms = PatientRoomDirectory(url: nil, rooms: seed.rooms)
+            book = seed.book
+            loaded = true
+            return
+        }
+        self.url = url
         archive = PatientArchive(url: PatientStore.fileURL("archive.json", near: url))
         rooms = PatientRoomDirectory(url: PatientStore.fileURL("rooms.json", near: url))
         reload()
@@ -245,11 +264,13 @@ final class PatientStore {
 
     #if DEBUG
     /// Screenshot runs: -ps.patient demo fills a made-up patient (never written to disk).
-    static func debugSeed() -> PatientRecord? {
-        switch LaunchSeed.string("ps.patient") {
+    static func debugSeed(_ seed: String = LaunchSeed.string("ps.patient")) -> PatientRecord? {
+        switch seed {
         case "demo": return PatientDemo.record
         case "demo-cardiac": return PatientDemo.cardiac
         case "demo-dnr": return PatientDemo.dnr
+        case "demo-history": return PatientDemo.history
+        case "demo-cardio": return PatientDemo.cardio
         default: return nil
         }
     }
@@ -258,6 +279,40 @@ final class PatientStore {
 
 /// A made-up patient for screenshots and previews.
 enum PatientDemo {
+    /// The demo patient with the 1.8.1 History items: plain Diabetes, Stroke, unspecified, and Infectious problems.
+    static var history: PatientRecord {
+        var r = record
+        r.problems = ["htn", "dm", "cva-unspec", "copd", "hepatitis-viral", "mdro", "isolation"]
+        r.medFlags.remove("insulin")
+        r.asaClass = nil
+        return r
+    }
+
+    /// The demo patient with the 1.8.1 Cardiovascular and Respiratory sections filled in: each option, detail and
+    /// study row shows (Ben's summary example).
+    static var cardio: PatientRecord {
+        var r = record
+        r.problems = ["htn", "hyperlipidemia", "cad-recent", "cabg", "hf-decomp", "ef-severe", "af", "pacemaker", "pulm-htn", "dissection-b", "tevar",
+                      "dm", "copd", "osa", "cpap", "pneumonia", "home-o2"]
+        r.hx.valves = ["aortic": PatientValve(stenosis: true, stenosisGrade: "severe"), "mitral": PatientValve(prosthetic: true, prosthesis: "mechanical 27 mm")]
+        r.hx.deviceDetails = "dependent"
+        r.hx.pulmHtnSeverity = "moderate"
+        r.hx.aneurysms = ["root": PatientAneurysm(cm: 4.8)]
+        r.hx.repairDetails = "2021"
+        r.hx.cpapSettings = "BiPAP 14/8"
+        r.hx.homeO2Flow = 2
+        r.systemNotes = ["cv": "Followed by cardiology"]
+        PatientHistoryDetails.setCardiacSurgery("CABG ×3 2019", &r)
+        PatientHistoryDetails.sync(&r)
+        r.ecg = ["Atrial fibrillation"]
+        var echo = PatientEcho()
+        echo.study = "TTE"; echo.lv = .severe; echo.lvef = 25
+        r.echoFindings = echo
+        r.medFlags.insert("anticoagulant")
+        r.asaClass = nil
+        return r
+    }
+
     static var record: PatientRecord {
         var r = PatientRecord()
         r.ageYears = 67; r.sex = .male; r.heightCm = 178; r.weightKg = 96
@@ -267,7 +322,8 @@ enum PatientDemo {
         r.highRiskSurgery = true
         r.incision = "Upper abdominal"; r.duration = "> 3 h"
         r.vitals = ["sbp": 148, "dbp": 86, "hr": 72, "spo2": 95]
-        r.problems = ["htn", "cad", "pci", "dm", "insulin", "osa", "cpap", "snoring", "copd"]
+        r.problems = ["htn", "pci", "dm", "insulin", "osa", "cpap", "copd"]
+        r.hx.cpapSettings = "CPAP 10"
         r.systemNotes = ["cv": "DES to LAD 2023; on aspirin"]
         r.smoking = "former"
         r.allergies = "Penicillin (rash)"
@@ -344,7 +400,7 @@ enum PatientDemo {
         r.currentAirway = "ett"; r.ettSize = "8.0"; r.ettDepth = "23 cm at the lip"
         r.vent.mode = "AC/VC"; r.vent.vt = 450; r.vent.rr = 18; r.vent.peep = 8; r.vent.fio2 = 60
         r.homeInfusions = [PatientInfusion(drug: "Epinephrine", rate: "0.05 mcg/kg/min"), PatientInfusion(drug: "Norepinephrine", rate: "0.1 mcg/kg/min")]
-        r.devices = ["20 lue", "R radial art line 20g", "swan RIJ 8.5 Fr introducer", "VA ECMO 25F RFV drainage / 17F LFA return flow 4.2 sweep 3", "L fem IABP 7.5 Fr 1:1"]
+        r.devices = ["20 lue", "R radial art line 20g", "swan RIJ 8.5 Fr introducer", "VA ECMO 25F RFV drainage / 17F LFA return flow 4.2 sweep 3", "L fem IABP 7.5 Fr 1:1", "foley 16 Fr"]
             .flatMap { PatientDevices.parse($0)?.devices(placedIntraop: false) ?? [] }
         var echo = PatientEcho()
         echo.study = "TEE"; echo.lv = .severe; echo.lvef = 15; echo.rv = .moderate
@@ -372,6 +428,21 @@ enum PatientDemo {
                                                                    "inr": 1.9, "ptt": 52, "fibrinogen": 142, "plt": 74, "act": 128],
                           viscoelastic: "EXTEM CT 92 s, A10 34 mm; FIBTEM A10 6 mm"),
         ]
+        // Studies (1.8.1): a planned left radial artery graft, severe left carotid disease with reversed left vertebral
+        // flow, obstructive PFTs, and an abdominal aortic aneurysm, so the screenshots show every caution.
+        r.hx.aneurysms = ["abdominal": PatientAneurysm(cm: 4.8)]
+        PatientHistoryDetails.sync(&r)
+        r.carotid.right = CarotidSide(stenosis: "50-69", vertebral: "antegrade", psv: 182, edv: 54)
+        r.carotid.left = CarotidSide(stenosis: "ge70", vertebral: "reversed", psv: 268, edv: 112)
+        r.carotid.date = PatientMonthYear(month: 9, year: 2026)
+        r.radial.right = RadialSide(diameter: 2.3, calcified: false, ulnar: "adequate")
+        r.radial.left = RadialSide(diameter: 2.7, calcified: false, ulnar: "adequate")
+        r.radial.harvest = "left"
+        r.radial.date = PatientMonthYear(month: 9, year: 2026)
+        r.pft.fev1 = 1.86; r.pft.fev1Pct = 58; r.pft.fvc = 3.21; r.pft.fvcPct = 79; r.pft.ratioTyped = 0.58
+        r.pft.tlcPct = 104; r.pft.dlcoPct = 62
+        r.pft.pattern = "obstruction"; r.pft.severity = "moderate"
+        r.pft.date = PatientMonthYear(month: 8, year: 2026)
         r.considerations = ["pressors", "tee", "surgical"]
         r.considerationsNote = "Epinephrine and norepinephrine rising after bypass; severe LV dysfunction on TEE; diffuse coagulopathy, chest may stay open"
         r.codeStatus = .full

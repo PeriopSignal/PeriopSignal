@@ -129,7 +129,7 @@ enum AbgCalc {
         var cautions: [String] = []
         let given = [phIn, pcIn, hcIn].compactMap { $0 }.count
         guard given >= 2 else {
-            return Reading(empty: true, headline: "Enter the Gas", explanation: "Enter pH, PaCO₂ and HCO₃. Any two are enough: the third is worked out from them.",
+            return Reading(empty: true, headline: "Enter Blood Gas", explanation: "Enter pH, PaCO₂ and HCO₃. Any two are enough: the third is worked out from them.",
                            status: nil, primary: nil, second: nil, phase: nil, disorders: [], steps: [], cautions: [], visual: nil,
                            values: Values(ph: phIn, paco2: pcIn, hco3: hcIn), derived: nil, check: nil)
         }

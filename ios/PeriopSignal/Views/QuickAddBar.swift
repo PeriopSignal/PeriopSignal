@@ -1,13 +1,17 @@
 import SwiftUI
 
-/// Quick add: one line at the top of the Preoperative and Intraoperative tabs, typed or pasted the way you'd present
-/// the patient ("68M for lap chole, HTN DM2 on insulin, K 5.4"). As you type, chips show what was read and where each
-/// piece goes; tap one to leave it out. Return or Add files the rest (QuickAdd, then PatientNote.apply) as one Undo
-/// step in the store's history, and the snackbar's Undo steps back exactly that, the record as it was. A long paste opens the full note review instead, and the pencil opens it for
-/// dictation. Read on this phone by fixed rules; the line itself is not kept.
+/// Quick add: one line at the top of every My Patient tab, and in a compact form at the top of every editor page
+/// (1.8.1), typed or pasted the way you'd present the patient ("68M for lap chole, HTN DM2 on insulin, K 5.4"). It
+/// fills the whole record from wherever it is: the same reader everywhere, routed by where the bar sits
+/// (QuickAddPlace). As you type, chips show what was read and where each piece goes; tap one to leave it out. Return
+/// or Add files the rest (QuickAdd, then PatientNote.apply) as one Undo step in the store's history, and the snackbar's
+/// Undo steps back exactly that, the record as it was. A long paste opens the full note review instead, and the pencil
+/// opens it for dictation. Read on this phone by fixed rules; the line itself is not kept.
 struct QuickAddBar: View {
     @Environment(PatientStore.self) private var patient
-    var tab: QuickAddTab
+    var place: QuickAddPlace
+    private var tab: QuickAddTab { place.tab }
+    private var compact: Bool { place.compact }
 
     @State private var text = ""
     @State private var reading: QuickAddReading?
@@ -91,15 +95,16 @@ struct QuickAddBar: View {
     // MARK: The field
 
     private var field: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: compact ? 8 : 10) {
             Image(systemName: "text.badge.plus")
-                .font(PS.sys(size: 15, weight: .semibold))
+                .font(PS.sys(size: compact ? 13.5 : 15, weight: .semibold))
                 .foregroundStyle(PS.accent2)
                 .accessibilityHidden(true)
-            TextField(QuickAdd.placeholder(tab), text: $text, axis: .vertical)
-                .lineLimit(1...4)
+            // The editor pages' bar stays one line; the tabs' grows to four as a long line is typed.
+            TextField(QuickAdd.placeholder(place), text: $text, axis: .vertical)
+                .lineLimit(compact ? 1...1 : 1...4)
                 .focused($focused)
-                .font(PS.sys(size: 15))
+                .font(PS.sys(size: compact ? 14 : 15))
                 .foregroundStyle(PS.fg)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -120,22 +125,24 @@ struct QuickAddBar: View {
             }
             Button { openSheet(trimmed) } label: {
                 Image(systemName: "square.and.pencil")
-                    .font(PS.sys(size: 14.5, weight: .semibold))
+                    .font(PS.sys(size: compact ? 13 : 14.5, weight: .semibold))
                     .foregroundStyle(PS.accent2)
-                    .frame(width: 34, height: 34)
+                    .frame(width: compact ? 28 : 34, height: compact ? 28 : 34)
                     .background(PS.accent2.opacity(0.12), in: Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Fill from a note")
             .accessibilityHint("Opens the full note, for long text and dictation")
         }
-        .padding(.leading, 14).padding(.trailing, 8).padding(.vertical, 8)
+        .padding(.leading, compact ? 12 : 14).padding(.trailing, compact ? 6 : 8).padding(.vertical, compact ? 5 : 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(focused ? PS.accent2.opacity(0.55) : Color.clear, lineWidth: 1))
-        .contentShape(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).stroke(focused ? PS.accent2.opacity(0.55) : Color.clear, lineWidth: 1))
+        .contentShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
         .onTapGesture { focused = true }
     }
+
+    private var radius: CGFloat { compact ? 12 : PS.cardRadius }
 
     // MARK: The preview
 
@@ -145,9 +152,9 @@ struct QuickAddBar: View {
             ChipFlow(spacing: 6) {
                 ForEach(q.identifiers, id: \.self) { kind in identifierChip(kind) }
                 // The reader's own questions first: nothing is added from them until answered.
-                ForEach(q.ambiguous.filter { $0.id.hasPrefix("quick:") }) { a in ambiguousChip(a) }
+                ForEach(q.ambiguous.filter { QuickAdd.isQuestion($0.id) }) { a in ambiguousChip(a) }
                 ForEach(shown) { c in chipView(c) }
-                ForEach(q.ambiguous.filter { !$0.id.hasPrefix("quick:") }) { a in ambiguousChip(a) }
+                ForEach(q.ambiguous.filter { !QuickAdd.isQuestion($0.id) }) { a in ambiguousChip(a) }
                 ForEach(q.unknown) { u in
                     Button { openSheet(trimmed) } label: { infoChip(u.token + " · not in the list", icon: "questionmark.circle") }
                         .buttonStyle(.plain)
@@ -214,12 +221,14 @@ struct QuickAddBar: View {
     /// question the reader asks ("SpO₂ 95% · room air?", "iCa 3.9 · mg/dL?", which laryngoscopy) uses the same menu;
     /// nothing is added from it until answered.
     private func ambiguousChip(_ a: AmbiguousAbbreviation) -> some View {
-        let question = a.id.hasPrefix("quick:")
+        let question = QuickAdd.isQuestion(a.id)
         // Answered for this value: a question says so itself; an abbreviation's choice holds unless made for another value.
         let tied = choices[a.id + "@value"]
         let picked = question ? a.fromContext : choices[a.id] != nil && (a.valueKey.isEmpty || tied == nil || tied == a.valueKey)
         let leave = question ? "Leave it out" : "Leave “\(a.abbreviation)” as written"
+        // A question with no usual answer ("Dissection · type A or type B?") names its choices.
         let usual = a.options.first { $0.id == (question ? a.defaultID : a.chosenID) }?.text
+            ?? (question ? a.options.map(\.text).joined(separator: " or ") : nil)
         let shown = picked ? (a.chosen?.text ?? (question ? "left out" : "as written")) : (usual ?? (question ? "left out" : "as written"))
         let spoken: String
         if question {
@@ -386,13 +395,14 @@ struct QuickAddBar: View {
         sheet = SheetSeed(text: seed.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
-    /// Screenshot runs: -ps.quickadd "<line>" types a line into the bar; -ps.quickadd.add 1 then adds it. The line and
+    /// Screenshot runs: -ps.quickadd "<line>" types a line into a tab's bar, -ps.quickadd.editor "<line>" into an editor
+    /// page's (so a line meant for one is not filed twice); -ps.quickadd.add 1 then adds it. The line and
     /// its chips go in together, in one update without animation: set apart (the text, then the reading animated in),
     /// the launch's own work can hold the main thread between the two for seconds on a slow simulator, and the
     /// screenshot catches the line without its chips (runs 201 and 202, shot 161).
     private func seedForScreenshot() {
         #if DEBUG
-        let t = LaunchSeed.string("ps.quickadd").trimmingCharacters(in: .whitespacesAndNewlines)
+        let t = LaunchSeed.string(compact ? "ps.quickadd.editor" : "ps.quickadd").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty, text.isEmpty, added == nil else { return }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
         var still = Transaction()

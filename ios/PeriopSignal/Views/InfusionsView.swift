@@ -37,6 +37,7 @@ struct InfusionsView: View {
             VStack(alignment: .leading, spacing: 14) {
                 CompactWeightField(text: $weightText, focus: $focused, patientWeight: myPatient.weightKg)
                 searchField
+                if !groups.isEmpty { pumpLine }
                 if groups.isEmpty {
                     Text("Loading the table…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
                 } else if q.isEmpty {
@@ -87,6 +88,18 @@ struct InfusionsView: View {
             .padding(.horizontal, 12).padding(.vertical, 9)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+    }
+
+    /// The one caution surfaced from the footer (Ben, Nov 2), in view above the tables.
+    static let pumpCaution = "Check your pump's concentration before programming a rate."
+
+    private var pumpLine: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Image(systemName: "exclamationmark.triangle.fill").font(PS.sys(size: 11)).foregroundStyle(PS.accent)
+            Text(Self.pumpCaution).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 4)
+        .accessibilityElement(children: .combine)
     }
 
     private var tabBar: some View {

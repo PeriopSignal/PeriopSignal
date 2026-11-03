@@ -38,6 +38,15 @@ struct PlannedProcedureRow: View {
                 }
                 PatientChoice(options: sideOptions, selection: $item.side, tint: item.needsSide ? PS.red : PS.accent)
             }
+            if let ask = item.ask {
+                // A bare Bentall: which valve (1.8.1), asked in view as the side is. The answer makes it that procedure,
+                // one Undo step (PatientChoice).
+                Label(ask.text, systemImage: "questionmark.circle.fill")
+                    .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.accent)
+                    .fixedSize(horizontal: false, vertical: true)
+                PatientChoice(options: ask.options.map { (id: $0.id, label: $0.text.prefix(1).uppercased() + $0.text.dropFirst()) },
+                              selection: Binding(get: { nil }, set: { id in if let id, let x = item.answering(id) { item = x } }))
+            }
             TextField("Details, e.g. ×3, possible open", text: $item.detail)
                 .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
                 .autocorrectionDisabled()
@@ -131,7 +140,10 @@ struct ProcedureSearchField: View {
     }
 
     private func addBest() {
-        if !reading.isEmpty { add(reading) }
+        // A bare "Bentall" goes in as typed, to be asked which valve, rather than as the first of the two in the list.
+        let parsed = query.count >= 2 ? PlannedProcedure.parse(query) : []
+        if parsed.contains(where: { $0.ask != nil }) { add(parsed) }
+        else if !reading.isEmpty { add(reading) }
         else if let p = results.first { add([PlannedProcedure(p)]) }
         else if !query.isEmpty { add([PlannedProcedure(name: query)]) }
     }

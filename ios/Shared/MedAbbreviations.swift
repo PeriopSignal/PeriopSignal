@@ -523,6 +523,8 @@ extension MedAbbreviations {
             near("ps-support", #"\b(?:peep|vent\w*|cpap|fio2|sbt|extubat\w*|intubat\w*|psv|trach\w*)\b"#),
         ], skip: [AbbreviationContext(before: NoteRx(#"\basa\s*(?:class\s*)?$"#))]),
         entry("PR", [m("pulmonic regurgitation", "pr-pulmonic"), m("PR interval", "pr-interval"), m("per rectum", "pr-rectal")], hints: [
+            // "trivial PR", "trace PR", "mild PR": a grade before it is the valve (1.8.1).
+            before("pr-pulmonic", severity),
             near("pr-interval", #"\b(?:interval|msec|ms|prolonged|ecg|ekg|qrs|qtc|av block|first[- ]degree|1st degree)\b"#),
             near("pr-rectal", #"\b(?:suppositor\w*|tylenol|acetaminophen|rectal\w*|mg)\b"#),
         ]),
@@ -600,6 +602,10 @@ extension MedAbbreviations {
                         skip: [AbbreviationContext(after: NoteRx(#"^\s*-?\s*(?:9|10|11)\b"#))]),
         MedAbbreviation("K", caseSensitive: true, meanings: [AbbreviationMeaning("potassium")],
                         skip: [AbbreviationContext(before: NoteRx(#"\bvitamin\s*$"#))], reads: false),
+        // Also a total ankle arthroplasty, and TAAD also thoracic aortic aneurysm and dissection: the note reader asks
+        // about each (PatientNote.readTAA, readDissection), so neither is read through its meaning.
+        MedAbbreviation("TAA", caseSensitive: false, meanings: [AbbreviationMeaning("thoracic aortic aneurysm")], reads: false),
+        MedAbbreviation("TAAD", caseSensitive: false, meanings: [AbbreviationMeaning("type A aortic dissection; also thoracic aortic aneurysm and dissection")], reads: false),
     ]
 
     /// Read in any case ("htn" is "HTN").
@@ -624,8 +630,8 @@ extension MedAbbreviations {
         ("BiV", "biventricular"), ("MVP", "mitral valve prolapse"), ("BAV", "bicuspid aortic valve"),         ("LVOT", "left ventricular outflow tract"), ("LVOTO", "left ventricular outflow tract obstruction"), ("RVOT", "right ventricular outflow tract"),
         ("PFO", "patent foramen ovale"), ("VSD", "ventricular septal defect"), ("AVSD", "atrioventricular septal defect"),
         ("TOF", "tetralogy of Fallot"), ("TGA", "transposition of the great arteries"), ("HLHS", "hypoplastic left heart syndrome"),
-        ("SBE", "subacute bacterial endocarditis"), ("PVD", "peripheral vascular disease"), ("AAA", "abdominal aortic aneurysm"), ("TAA", "thoracic aortic aneurysm"),
-        ("TAAA", "thoracoabdominal aortic aneurysm"), ("TIA", "transient ischemic attack"), ("DVT", "deep vein thrombosis"), ("VTE", "venous thromboembolism"),
+        ("SBE", "subacute bacterial endocarditis"), ("PVD", "peripheral vascular disease"), ("AAA", "abdominal aortic aneurysm"),
+        ("TAAA", "thoracoabdominal aortic aneurysm"), ("rAAA", "ruptured abdominal aortic aneurysm"), ("ATAAD", "acute type A aortic dissection"), ("TBAD", "type B aortic dissection"), ("TIA", "transient ischemic attack"), ("DVT", "deep vein thrombosis"), ("VTE", "venous thromboembolism"),
         ("SAH", "subarachnoid hemorrhage"), ("SDH", "subdural hematoma"), ("ICH", "intracerebral hemorrhage"), ("IVH", "intraventricular hemorrhage"),
         ("TBI", "traumatic brain injury"), ("ICP", "intracranial pressure"), ("EVD", "external ventricular drain"), ("VPS|VP shunt", "ventriculoperitoneal shunt"),
         // Respiratory

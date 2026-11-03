@@ -139,6 +139,11 @@ struct PatientRecord: Codable, Equatable {
     // History
     var noHistory = false
     var problems: Set<String> = []
+    /// The diameter (cm) of each unruptured aortic aneurysm, by problem id ("aaa", "taa", "taaa"), as saved before the
+    /// aneurysms were kept by location (PatientHistoryDetails.aneurysms); read once and moved there.
+    var aortaSizes: [String: Double] = [:]
+    /// What the expanding History pages hold beside the problem ids: valves, aneurysms by location, typed details (1.8.1).
+    var hx = PatientHistoryDetails()
     var systemNotes: [String: String] = [:]
     var otherHistory = ""
     /// "never", "former", "current".
@@ -186,6 +191,10 @@ struct PatientRecord: Codable, Equatable {
     var echoFindings = PatientEcho()
     var lhc = PatientLHC()
     var rhc = PatientRHC()
+    /// Studies beyond the heart (PatientStudies, 1.8.1): carotid and radial artery ultrasound, pulmonary function tests.
+    var carotid = PatientCarotid()
+    var radial = PatientRadial()
+    var pft = PatientPFT()
     /// Frail by a validated tool (a risk modifier in the stepwise cardiac evaluation).
     var frail = false
     /// The class the clinician chose (1–6); the suggestion is never stored.
@@ -297,7 +306,9 @@ struct PatientRecord: Codable, Equatable {
         duration = try? c.decodeIfPresent(String.self, forKey: .duration)
         vitals = v(.vitals, [:])
         noHistory = v(.noHistory, false)
-        problems = v(.problems, [])
+        problems = PatientCatalog.migratedProblems(v(.problems, []))
+        aortaSizes = v(.aortaSizes, [:])
+        hx = v(.hx, PatientHistoryDetails())
         systemNotes = v(.systemNotes, [:])
         otherHistory = v(.otherHistory, "")
         smoking = try? c.decodeIfPresent(String.self, forKey: .smoking)
@@ -329,6 +340,9 @@ struct PatientRecord: Codable, Equatable {
         echoFindings = v(.echoFindings, PatientEcho())
         lhc = v(.lhc, PatientLHC())
         rhc = v(.rhc, PatientRHC())
+        carotid = v(.carotid, PatientCarotid())
+        radial = v(.radial, PatientRadial())
+        pft = v(.pft, PatientPFT())
         frail = v(.frail, false)
         asaClass = try? c.decodeIfPresent(Int.self, forKey: .asaClass)
         asaE = try? c.decodeIfPresent(Bool.self, forKey: .asaE)
@@ -387,6 +401,7 @@ struct PatientRecord: Codable, Equatable {
         painPlan = v(.painPlan, "")
         callIf = v(.callIf, "")
         todos = v(.todos, "")
+        PatientHistoryDetails.migrate(&self)
     }
 
     /// Nothing entered (the time stamp alone does not count).

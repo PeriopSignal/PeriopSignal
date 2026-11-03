@@ -218,7 +218,7 @@ enum ValveGrading {
         }
         let vmax = i.numbers["vmax"], mg = i.numbers["mg"], ava = i.numbers["ava"], avai = i.numbers["avai"], svi = i.numbers["svi"], lvef = i.numbers["lvef"]
         guard vmax != nil || mg != nil || ava != nil || avai != nil else {
-            return ValveReading(overall: nil, headline: "Enter the measurements", explanation: "Peak velocity and mean gradient first; the valve area, flow and LVEF decide the low-gradient cases.", lines: lines, cautions: [])
+            return ValveReading(overall: nil, headline: "Enter measurements", explanation: "Peak velocity and mean gradient first; the valve area, flow and LVEF decide the low-gradient cases.", lines: lines, cautions: [])
         }
         let highGradient = (vmax ?? 0) >= 4.0 || (mg ?? 0) >= 40
         let smallArea = (ava.map { $0 < 1.0 } ?? false) || (avai.map { $0 < 0.6 } ?? false)
@@ -268,7 +268,7 @@ enum ValveGrading {
                 lines.append(.init(id: param.id, label: param.label, text: g == .moderate ? "noted" : "specific for \(g.label.lowercased())", grade: g == .moderate ? nil : g))
             }
         }
-        if i.isEmpty { return ValveReading(overall: nil, headline: "Enter the signs and measurements", explanation: "Four specific signs settle mild or severe; otherwise the quantitative values decide (EROA, regurgitant volume and fraction).", lines: [], cautions: []) }
+        if i.isEmpty { return ValveReading(overall: nil, headline: "Enter signs and measurements", explanation: "Four specific signs settle mild or severe; otherwise the quantitative values decide (EROA, regurgitant volume and fraction).", lines: [], cautions: []) }
         // Specific criteria
         var severeSigns = 0, mildSigns = 0
         if let vc = i.numbers["vc"] { if vc >= 0.7 { severeSigns += 1 } else if vc <= 0.3 { mildSigns += 1 } }
@@ -317,7 +317,7 @@ enum ValveGrading {
         for param in p {
             if let v = i.numbers[param.id], let g = param.grade(v) { lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g)) }
         }
-        if i.isEmpty { return ValveReading(overall: nil, headline: "Enter the measurements", explanation: "Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.", lines: [], cautions: []) }
+        if i.isEmpty { return ValveReading(overall: nil, headline: "Enter measurements", explanation: "Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.", lines: [], cautions: []) }
         var cautions = ["Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.", "Pressure half-time misleads with severe AR, right after balloon commissurotomy and with altered LA or LV compliance."]
         let mva = i.numbers["mva"], pht = i.numbers["pht"]
         let anatomicSevere = (mva.map { $0 <= 1.5 } ?? false) || (pht.map { $0 >= 150 } ?? false)
@@ -358,7 +358,7 @@ enum ValveGrading {
                 else if g == .severe { specificSevere += 1 } else if g == .mild { specificMild += 1 }
             }
         }
-        if i.isEmpty { return ValveReading(overall: nil, headline: "Enter the signs and measurements", explanation: "Specific signs settle the grade; the quantitative values decide the middle.", lines: [], cautions: []) }
+        if i.isEmpty { return ValveReading(overall: nil, headline: "Enter signs and measurements", explanation: "Specific signs settle the grade; the quantitative values decide the middle.", lines: [], cautions: []) }
         var cautions: [String] = []
         if lesion == .ar { cautions.append("Pressure half-time shortens with high LV diastolic pressure and lengthens in chronic adaptation; quantitative volumes anchor eccentric jets.") }
         if lesion == .tr { cautions.append("Hepatic-vein and inflow signs are nonspecific (RV diastolic function, AF, RA pressure); color jet area underestimates eccentric jets.") }

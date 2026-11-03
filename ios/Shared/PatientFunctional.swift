@@ -127,27 +127,29 @@ enum PatientFunctional {
     /// Known heart, vascular or cerebrovascular disease (§4.1: coronary disease, significant arrhythmia, peripheral
     /// arterial disease, cerebrovascular disease or other significant structural heart disease).
     static let cvdProblems: Set<String> = [
-        "cad", "pci", "pci-recent", "cad-recent", "cabg", "ischemia", "hf", "hf-decomp", "ef-moderate", "ef-severe",
-        "valve-severe", "as", "mr", "prosthetic-valve", "af", "arrhythmia", "pacemaker", "icd", "pulm-htn", "pulm-htn-severe",
-        "pvd", "chd", "chd-elevated", "cva", "cva-recent", "peripartum-cm",
+        "cad", "mi", "pci", "pci-recent", "cad-recent", "cabg", "ischemia", "hf", "hf-decomp", "ef-moderate", "ef-severe",
+        "valve-severe", "af", "arrhythmia", "pacemaker", "icd", "pulm-htn", "pulm-htn-severe",
+        "pvd", "chd", "chd-elevated", "cva", "cva-recent", "cva-unspec", "peripartum-cm",
     ]
 
-    static func knownCVD(_ r: PatientRecord) -> Bool { !r.problems.isDisjoint(with: cvdProblems) }
+    /// With the valve lesions and prostheses (PatientHistoryDetails), which were the "as", "mr" and "prosthetic-valve"
+    /// problems before 1.8.1.
+    static func knownCVD(_ r: PatientRecord) -> Bool { !r.problems.isDisjoint(with: cvdProblems) || r.hx.hasValveDisease }
 
     /// Figure 1's cardiovascular risk factors that the record shows (its footnote: hypertension, smoking, high
-    /// cholesterol, diabetes, women over 65, men over 55, obesity, family history of premature CAD). A raised blood
-    /// pressure reading counts here, so that it never ends the evaluation at the first question.
+    /// cholesterol, diabetes, women over 65, men over 55, obesity, family history of premature CAD; the family history is
+    /// no longer recorded, 1.8.1). A raised blood pressure reading counts here, so that it never ends the evaluation at
+    /// the first question.
     static func riskFactors(_ r: PatientRecord) -> [String] {
         var out: [String] = []
-        if r.has("htn") || r.has("htn-poor") || r.has("htn-180") || (r.vitals["sbp"] ?? 0) >= 140 || (r.vitals["dbp"] ?? 0) >= 90 { out.append("hypertension") }
+        if r.has("htn") || r.has("htn-180") || (r.vitals["sbp"] ?? 0) >= 140 || (r.vitals["dbp"] ?? 0) >= 90 { out.append("hypertension") }
         if r.smoking == "current" { out.append("smoking") }
-        if r.has("hyperlipidemia") { out.append("high cholesterol") }
-        if r.has("dm") || r.has("dm-poor") || r.has("insulin") { out.append("diabetes") }
+        if r.has("hyperlipidemia") { out.append("hyperlipidemia") }
+        if r.has("dm") || r.has("insulin") { out.append("diabetes") }
         if let age = r.ageYears, age > (r.sex == .female ? 65 : 55) {
             out.append(r.sex == .female ? "woman over 65" : (r.sex == .male ? "man over 55" : "over 55"))
         }
         if let b = r.bmi, b >= 30 { out.append("obesity") }
-        if r.has("fh-cad") { out.append("family history of premature CAD") }
         return out
     }
 
@@ -174,7 +176,7 @@ enum PatientFunctional {
 
     /// Atherosclerotic disease recorded (coronary, cerebrovascular, peripheral): the ASCVD history among §7.1's
     /// criteria for starting a statin (p e390).
-    static let ascvdProblems: Set<String> = ["cad", "cad-recent", "pci", "pci-recent", "cabg", "ischemia", "cva", "cva-recent", "pvd"]
+    static let ascvdProblems: Set<String> = ["cad", "mi", "cad-recent", "pci", "pci-recent", "cabg", "ischemia", "cva", "cva-recent", "cva-unspec", "pvd"]
 
     /// Statins by generic and brand name (the note reader uses the same list): one named under Medications counts as
     /// taken, so that a record saved before the Statin flag existed does not read as statin-naive.
@@ -253,7 +255,7 @@ enum PatientFunctional {
         }
         if r.has("cva-recent") { out.append("Stroke or TIA within 3 months: delaying elective surgery until 3 months or more after it is reasonable (class 2a).") }
         if r.has("valve-severe") { out.append("Severe valve disease: severe aortic or mitral stenosis should be evaluated for valve intervention before elective surgery (class 1).") }
-        if (r.has("as") || r.has("mr")) && !r.has("valve-severe") { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
+        if r.hx.hasUngradedOrModerateLesion && !r.has("valve-severe") { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
         if r.has("chd") || r.has("chd-elevated") { out.append("Congenital heart disease: for intermediate- or elevated-risk lesions, an adult congenital heart disease specialist consult before elective surgery is recommended (class 1).") }
         if r.has("pulm-htn-severe") { out.append("Severe pulmonary hypertension: continue targeted therapy (class 1); before elevated-risk surgery, referral to a pulmonary hypertension center is reasonable (class 2a).") }
         if r.has("pacemaker") || r.has("icd") { out.append("Pacemaker or ICD: a device management plan before surgery when electromagnetic interference is expected (class 1).") }
@@ -262,12 +264,11 @@ enum PatientFunctional {
         }
         // §6.2, rec 2 (class 2b, C-LD, p e373): elective elevated-risk surgery, one or more RCRI components (footnote ‡)
         // and a recent history of SBP 180 or more or DBP 110 or more before the day of surgery. A reading of unknown
-        // timing (the vital signs) does not count, nor does "poorly controlled" without the numbers: those get a pointer
-        // to the History item. Urgency not yet recorded counts as elective here, as elsewhere in the evaluation.
+        // timing (the vital signs) does not count: it gets a pointer to the History item. Urgency not yet recorded counts as elective here, as elsewhere in the evaluation.
         let mayDefer = (r.urgency == nil || r.urgency == .elective) && elevated(r) && !rcriRiskFactors(r).isEmpty
         if r.has("htn-180"), mayDefer {
             out.append("A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b).")
-        } else if mayDefer, r.has("htn-poor") || (r.vitals["sbp"] ?? 0) >= 180 || (r.vitals["dbp"] ?? 0) >= 110 {
+        } else if mayDefer, (r.vitals["sbp"] ?? 0) >= 180 || (r.vitals["dbp"] ?? 0) >= 110 {
             out.append("High blood pressure recorded: if SBP was 180 or more or DBP 110 or more recently, before the day of surgery, add it under History, where deferring elective elevated-risk surgery may be considered (class 2b).")
         }
         let hf = r.has("hf") || r.has("ef-moderate") || r.has("ef-severe")
@@ -346,7 +347,7 @@ enum PatientFunctional {
 
     private static func stepBeforeSurgery(_ r: PatientRecord) -> CardiacStep {
         if noCardiacRisk(r) {
-            return CardiacStep(title: "No cardiovascular risk factors, disease or symptoms: proceed", detail: "None recorded: hypertension, smoking, high cholesterol, diabetes, age over 65 in women or 55 in men, obesity, a family history of premature coronary disease, known heart or vascular disease, or cardiac symptoms.", alert: false)
+            return CardiacStep(title: "No cardiovascular risk factors, disease or symptoms: proceed", detail: "None recorded: hypertension, smoking, hyperlipidemia, diabetes, age over 65 in women or 55 in men, obesity, a family history of premature coronary disease, known heart or vascular disease, or cardiac symptoms.", alert: false)
         }
         let active = acuteConditions(r)
         if !active.isEmpty {

@@ -165,6 +165,11 @@ struct Hairline: View {
 
 /// Explanations, sources and caveats sit behind one small "Explanation & Evidence ⓘ" line that opens in place, so a
 /// screen shows its numbers and choices first. CI screenshots: -ps.evidence.open 1 opens them all.
+///
+/// Usage rule (1.8.1): at most one free-standing "Explanation & Evidence ⓘ" per screen, at the bottom, holding the
+/// screen's sources and how it works. An explanation that belongs to one card or section goes behind the ⓘ on that
+/// card's header instead (SectionHeader, or InfoTitle for a row); per-row repeats are merged into the one footer.
+/// Safety cautions never go behind either: they stay in view next to the control they qualify.
 struct EvidenceDisclosure<Content: View>: View {
     var title = "Explanation & Evidence"
     @ViewBuilder var content: () -> Content
@@ -207,6 +212,155 @@ struct EvidenceNote: View {
         EvidenceDisclosure(title: title) {
             Text(text).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+// MARK: - Captions behind ⓘ
+
+/// A question or item title whose long grey caption sits behind a small ⓘ at the end of the title, in the look of
+/// "Explanation & Evidence ⓘ": hidden until tapped, then shown under the title; tap again to hide. The parent owns
+/// `open`, so each row keeps its state for the visit. VoiceOver reads the ⓘ as "Details" and the caption once shown.
+/// With `collapsible` false the caption simply shows, as before (short captions stay as they are).
+struct InfoTitle<Title: View>: View {
+    var caption: String?
+    var collapsible = true
+    @Binding var open: Bool
+    var captionFont: Font = PS.sys(size: 11.5)
+    var spacing: CGFloat = 2
+    @ViewBuilder var title: () -> Title
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: spacing) {
+            HStack(alignment: .lastTextBaseline, spacing: 6) {
+                title()
+                if caption != nil && collapsible { InfoButton(open: $open) }
+            }
+            if let c = caption, !collapsible || open {
+                InfoCaptionText(text: c, font: captionFont)
+            }
+        }
+    }
+}
+
+/// The small ⓘ that shows or hides a caption.
+struct InfoButton: View {
+    @Binding var open: Bool
+    /// What VoiceOver calls the button ("Details", "About Mallampati").
+    var label: String = "Details"
+    /// The symbol's point size: 12 beside a row title or eyebrow, larger beside a page title.
+    var size: CGFloat = 12
+
+    var body: some View {
+        Button {
+            Haptics.light()
+            withAnimation(.snappy) { open.toggle() }
+        } label: {
+            Image(systemName: open ? "info.circle.fill" : "info.circle")
+                .font(PS.sys(size: size, weight: .semibold))
+                .foregroundStyle(open ? PS.fg2 : PS.fg3)
+                // A finger-sized target without making the row taller.
+                .padding(10).contentShape(Rectangle()).padding(-10)
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .accessibilityLabel(label)
+        .accessibilityValue(open ? "Shown" : "Hidden")
+        .accessibilityHint(open ? "Hides the details" : "Shows the details under the title")
+    }
+}
+
+/// A section's eyebrow with its explanation behind a small ⓘ at the end of the eyebrow; a tap opens the explanation
+/// under the header, above the section's card, and a second tap hides it. This replaces a free-standing
+/// "Explanation & Evidence ⓘ" row under a card (see EvidenceDisclosure's usage rule). Without an explanation it is
+/// the plain eyebrow. CI screenshots: -ps.evidence.open 1 opens them, as it does EvidenceDisclosure.
+struct SectionHeader<Info: View>: View {
+    var title: String
+    var color: Color = PS.fg3
+    var size: CGFloat = 11
+    private let info: (() -> Info)?
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
+
+    init(title: String, color: Color = PS.fg3, size: CGFloat = 11, @ViewBuilder info: @escaping () -> Info) {
+        self.title = title
+        self.color = color
+        self.size = size
+        self.info = info
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: 6) {
+                Eyebrow(text: title, color: color, size: size)
+                    .accessibilityAddTraits(.isHeader)
+                if info != nil { InfoButton(open: $open, label: "About " + title) }
+            }
+            if open, let info {
+                VStack(alignment: .leading, spacing: 8) { info() }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+extension SectionHeader where Info == InfoCaptionText {
+    /// The eyebrow with one paragraph behind its ⓘ; no ⓘ when `info` is nil or empty.
+    init(title: String, info: String?, color: Color = PS.fg3, size: CGFloat = 11) {
+        self.title = title
+        self.color = color
+        self.size = size
+        if let text = info, !text.isEmpty {
+            self.info = { InfoCaptionText(text: text, font: PS.sys(size: 12.5)) }
+        } else {
+            self.info = nil
+        }
+    }
+}
+
+/// The caption text itself, in the grey of the rows it belongs to.
+struct InfoCaptionText: View {
+    var text: String
+    var font: Font = PS.sys(size: 11.5)
+
+    var body: some View {
+        Text(text).font(font).foregroundStyle(PS.fg3).lineSpacing(1).fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .transition(.opacity)
+    }
+}
+
+enum InfoCaption {
+    /// Whether a caption runs past two lines on a phone row (about 45 characters a line at 12 pt beside a switch), so
+    /// it goes behind ⓘ; shorter captions stay in view.
+    static func runsLong(_ text: String?) -> Bool { (text?.count ?? 0) > 90 }
+}
+
+/// Takes the width it is offered and reports no ideal width of its own, so a ViewThatFits choosing between layouts
+/// decides on the other children (a caption that wraps should not push a row into its stacked form).
+struct OfferedWidth: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let s = subviews.first else { return .zero }
+        guard let w = proposal.width, w.isFinite else {
+            let ideal = s.sizeThatFits(.unspecified)
+            return CGSize(width: proposal.width == nil ? 0 : ideal.width, height: ideal.height)
+        }
+        return CGSize(width: w, height: s.sizeThatFits(ProposedViewSize(width: w, height: nil)).height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(width: bounds.width, height: nil))
+    }
+}
+
+extension View {
+    /// See OfferedWidth: this view takes the offered width and adds nothing to a ViewThatFits decision.
+    func offeredWidth() -> some View { OfferedWidth().callAsFunction { self } }
+
+    /// An empty-input headline ("Enter Measurements") stays on one line, shrinking a little if it must; result
+    /// headlines wrap as usual.
+    func promptHeadline(_ isPrompt: Bool) -> some View {
+        lineLimit(isPrompt ? 1 : nil).minimumScaleFactor(isPrompt ? 0.75 : 1)
     }
 }
 

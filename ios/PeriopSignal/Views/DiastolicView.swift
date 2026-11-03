@@ -14,6 +14,8 @@ struct DiastolicView: View {
     @State private var values: [String: String] = Self.seededValues()
     @State private var showMore = LaunchSeed.bool("ps.dd.more")
     @State private var copied = false
+    /// The lung-disease switch's caption, behind its ⓘ (1.8.1).
+    @State private var lungInfoOpen = LaunchSeed.bool("ps.evidence.open")
 
     private var data: DiastolicData? { refs.bundle?.diastolic }
 
@@ -73,24 +75,37 @@ struct DiastolicView: View {
 
     var body: some View {
         ToolScroll {
-            VStack(alignment: .leading, spacing: 18) {
-                if let d = data {
-                    scopeCard(d)
-                    patientCard(d)
-                    let pop = d.populations.first { $0.id == population } ?? d.populations[0]
-                    switch pop.mode {
-                    case "main": mainPathway(d, pop)
-                    case "mac", "transplant": shortPathway(d, pop)
-                    default: listPathway(d, pop)
+            ScrollViewReader { proxy in
+                VStack(alignment: .leading, spacing: 18) {
+                    if let d = data {
+                        patientCard(d)
+                        let pop = d.populations.first { $0.id == population } ?? d.populations[0]
+                        switch pop.mode {
+                        case "main": mainPathway(d, pop)
+                        case "mac", "transplant": shortPathway(d, pop)
+                        default: listPathway(d, pop)
+                        }
+                        // The guideline's scope sits under the algorithm, before the sources; each reading keeps its
+                        // own "not for intraoperative use" line.
+                        scopeCard(d)
+                        footer(d)
+                            .id("bottom")
+                            .onAppear {
+                                #if DEBUG
+                                // Screenshot runs: -ps.dd.scroll bottom shows the end of the page (scope and sources).
+                                if LaunchSeed.string("ps.dd.scroll") == "bottom" {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { proxy.scrollTo("bottom", anchor: .bottom) }
+                                }
+                                #endif
+                            }
+                    } else {
+                        Text("Loading the algorithm…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
                     }
-                    footer(d)
-                } else {
-                    Text("Loading the algorithm…").font(PS.sys(size: 14)).foregroundStyle(PS.fg3)
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 6)
+                .padding(.bottom, 30)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 6)
-            .padding(.bottom, 30)
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
@@ -141,27 +156,28 @@ struct DiastolicView: View {
                 .contentShape(Rectangle())
             }
             if pop.mode == "main" {
-                HStack {
-                    VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
                         Text("e′ cutoffs").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
-                        Text(ageBand.isEmpty ? "Any age" : "Table 6, by age").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                        Spacer()
+                        Picker("e′ cutoffs", selection: $ageBand) {
+                            ForEach(DiastolicCalc.ageBands) { b in Text(b.label).tag(b.id) }
+                        }
+                        .labelsHidden().pickerStyle(.menu).tint(PS.fg)
                     }
-                    Spacer()
-                    Picker("e′ cutoffs", selection: $ageBand) {
-                        Text("Figure 3").tag("")
-                        Text("Age 20–39").tag("20-39")
-                        Text("Age 40–65").tag("40-65")
-                        Text("Over 65").tag(">65")
-                    }
-                    .labelsHidden().pickerStyle(.menu).tint(PS.fg)
+                    // The numbers in force, taken from DiastolicCalc so they cannot drift from the rules.
+                    Text(DiastolicCalc.cutoffCaption(ageBand.isEmpty ? nil : ageBand))
+                        .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 }
-                Toggle(isOn: $lungDisease) {
-                    VStack(alignment: .leading, spacing: 2) {
+                // The caption sits behind ⓘ; the switch stands apart so the ⓘ is its own button.
+                HStack(spacing: 10) {
+                    InfoTitle(caption: "TR velocity and PASP then stop standing in for LAP", open: $lungInfoOpen, captionFont: PS.sys(size: 12)) {
                         Text("Lung or pulmonary vascular disease").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
-                        Text("TR velocity and PASP then stop standing in for LAP").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    Spacer(minLength: 8)
+                    Toggle("Lung or pulmonary vascular disease", isOn: $lungDisease).labelsHidden().tint(PS.accent)
                 }
-                .tint(PS.accent)
             }
         }
         .padding(16)
@@ -194,6 +210,7 @@ struct DiastolicView: View {
                 .buttonStyle(GhostButtonStyle())
             }
             Text(r.headline).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(r.lap == .unknown ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
+                .promptHeadline(r.headline.hasPrefix("Enter "))
             Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(r.steps) { s in
@@ -276,6 +293,7 @@ struct DiastolicView: View {
         resultCard(tone: t) {
             Eyebrow(text: pop.mode == "mac" ? "ASE 2025 · Figure 4" : "ASE 2025 · Section 15B", color: t)
             Text(r.headline).font(PS.serif(size: 23, weight: .semibold)).foregroundStyle(r.lap == .unknown ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
+                .promptHeadline(r.headline.hasPrefix("Enter "))
             Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             readingWarning(d)
         }

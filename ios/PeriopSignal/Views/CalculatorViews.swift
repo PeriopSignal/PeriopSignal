@@ -232,20 +232,37 @@ struct ScoreCalculatorView: View {
 struct ScoreItemRow: View {
     var item: ScoreItem
     @Binding var selection: ScoreSelection
+    /// A caption past two lines sits behind ⓘ; this row's choice lasts for the visit.
+    @State private var detailOpen = false
+    private var collapses: Bool { InfoCaption.runsLong(item.detail) }
+
+    private var isOn: Binding<Bool> {
+        Binding(
+            get: { selection.on.contains(item.id) },
+            set: { on in
+                Haptics.light()
+                withAnimation(.snappy) { if on { selection.on.insert(item.id) } else { selection.on.remove(item.id) } }
+            })
+    }
 
     var body: some View {
         switch item.input {
         case .toggle(let points):
-            Toggle(isOn: Binding(
-                get: { selection.on.contains(item.id) },
-                set: { on in
-                    Haptics.light()
-                    withAnimation(.snappy) { if on { selection.on.insert(item.id) } else { selection.on.remove(item.id) } }
-                })) {
-                label(points: points)
+            if collapses {
+                // The switch stands apart from the title so the ⓘ is its own button (also for VoiceOver).
+                HStack(spacing: 10) {
+                    label(points: points)
+                    Spacer(minLength: 8)
+                    Toggle(item.label, isOn: isOn).labelsHidden().tint(PS.accent)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 11)
+            } else {
+                Toggle(isOn: isOn) {
+                    label(points: points)
+                }
+                .tint(PS.accent)
+                .padding(.horizontal, 16).padding(.vertical, 11)
             }
-            .tint(PS.accent)
-            .padding(.horizontal, 16).padding(.vertical, 11)
         case .choice(let options):
             VStack(alignment: .leading, spacing: 8) {
                 label(points: nil)
@@ -282,15 +299,12 @@ struct ScoreItemRow: View {
     }
 
     private func label(points: Int?) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+        InfoTitle(caption: item.detail, collapsible: collapses, open: $detailOpen, captionFont: PS.sys(size: 12.5), spacing: 3) {
             HStack(spacing: 8) {
                 Text(item.label).font(PS.sys(size: 15, weight: .medium)).foregroundStyle(PS.fg)
                 if let p = points, p != 1 {
                     Text("+\(p)").font(PS.mono(size: 10.5, weight: .semibold)).foregroundStyle(PS.fg3)
                 }
-            }
-            if let d = item.detail {
-                Text(d).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1).fixedSize(horizontal: false, vertical: true)
             }
         }
     }

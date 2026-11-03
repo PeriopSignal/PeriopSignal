@@ -6,7 +6,8 @@ struct ValveGraderView: View {
     var onOpen: (URL) -> Void
     var onOpenTable: () -> Void
 
-    @State private var lesion: ValveLesion = .as_
+    /// DEBUG screenshots: -ps.vg.lesion mr opens on that lesion.
+    @State private var lesion: ValveLesion = ValveLesion(rawValue: LaunchSeed.string("ps.vg.lesion")) ?? .as_
     @State private var texts: [String: String] = [:]
     @State private var signs: Set<String> = []
 
@@ -80,6 +81,7 @@ struct ValveGraderView: View {
         return VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: lesion.name, color: tone)
             Text(r.headline.titleCased).font(PS.serif(size: 24, weight: .semibold)).foregroundStyle(input.isEmpty ? PS.fg3 : PS.fg).fixedSize(horizontal: false, vertical: true)
+                .promptHeadline(r.overall == nil && r.headline.hasPrefix("Enter "))
             Text(r.explanation).font(PS.sys(size: 14)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             if !r.lines.isEmpty {
                 FlowLayout(spacing: 6) {

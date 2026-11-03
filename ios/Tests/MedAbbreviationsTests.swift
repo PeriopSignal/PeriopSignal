@@ -36,25 +36,27 @@ final class MedAbbreviationsTests: XCTestCase {
         XCTAssertEqual(MedAbbreviations.lookup("MG")?.meanings.first?.text, "myasthenia gravis")
         XCTAssertNil(MedAbbreviations.lookup("mg"), "a milligram")
 
-        XCTAssertNotNil(change(read("s/p AVR 2018"), "problem:prosthetic-valve"))
+        XCTAssertEqual(change(read("s/p AVR 2018"), "problem:prosthetic-valve-aortic"), .prosthesis("aortic", ""))
         let repaired = read("s/p AVr 2018")
-        XCTAssertNil(change(repaired, "problem:prosthetic-valve"), "a repair is not a prosthetic valve")
-        XCTAssertEqual(repaired.previous, "s/p AVr 2018")
+        XCTAssertNil(change(repaired, "problem:prosthetic-valve-aortic"), "a repair is not a prosthetic valve")
+        XCTAssertEqual(change(repaired, "cardiac-surgery"), .cardiacSurgery("AVr 2018"), "a valve repair is previous cardiac surgery")
         XCTAssertTrue(repaired.unknown.isEmpty)
     }
 
     func testAbbreviatedHistory() {
         let r = read("HTN, HLD, DM2, CAD s/p CABG x3 2015, AVr 2020, OSA on CPAP, NKA")
         let found = ids(r)
-        for id in ["problem:htn", "problem:hyperlipidemia", "problem:dm", "problem:cad", "problem:cabg", "problem:osa", "problem:cpap", "nkda"] {
+        for id in ["problem:htn", "problem:hyperlipidemia", "problem:dm", "problem:cabg", "problem:osa", "problem:cpap", "nkda"] {
             XCTAssertTrue(found.contains(id), id)
         }
-        XCTAssertFalse(found.contains("problem:prosthetic-valve"), "AVr is a repair")
+        XCTAssertFalse(found.contains("problem:prosthetic-valve-aortic"), "AVr is a repair")
+        XCTAssertFalse(found.contains("problem:cad"), "CAD with a CABG files the CABG under CAD (1.8.1)")
+        XCTAssertEqual(change(r, "cardiac-surgery"), .cardiacSurgery("CABG x3 2015"))
         XCTAssertEqual(r.previous, "AVr 2020", "a valve repair is a past operation")
         XCTAssertEqual(r.other, "")
         XCTAssertTrue(r.ambiguous.isEmpty)
         XCTAssertTrue(r.unknown.isEmpty)
-        XCTAssertNotNil(change(read("AVR 2020"), "problem:prosthetic-valve"))
+        XCTAssertNotNil(change(read("AVR 2020"), "problem:prosthetic-valve-aortic"))
         XCTAssertEqual(MedAbbreviations.read("HTN, s/p AVr").expanded, "hypertension, status post aortic valve repair")
         // Read through their meanings where no rule reads them as written.
         XCTAssertNotNil(change(read("PMH: SSS, PH, MG"), "problem:arrhythmia"), "sick sinus syndrome")
@@ -100,9 +102,12 @@ final class MedAbbreviationsTests: XCTestCase {
         XCTAssertEqual(bare?.fromContext, false)
         XCTAssertEqual(bare?.defaultMeaning?.id, "ms-sclerosis")
         XCTAssertEqual(bare?.options.map(\.id), ["ms-sclerosis", "ms-mitral", "ms-morphine"])
-        XCTAssertNotNil(change(read("severe MS"), "problem:valve-severe"))
+        XCTAssertEqual(change(read("severe MS"), "valve:mitral:stenosis"), .valve("mitral", "stenosis", "severe"))
         XCTAssertEqual(read("PMH: MS, HTN").other, "multiple sclerosis")
-        XCTAssertEqual(read("PMH: MS, HTN", choices: ["MS@ms-sclerosis": "ms-mitral"]).other, "mitral stenosis")
+        // Chosen as mitral stenosis, it files the mitral valve's stenosis (1.8.1), not Other conditions.
+        let mitral = read("PMH: MS, HTN", choices: ["MS@ms-sclerosis": "ms-mitral"])
+        XCTAssertEqual(change(mitral, "valve:mitral:stenosis"), .valve("mitral", "stenosis", nil))
+        XCTAssertEqual(mitral.other, "")
     }
 
     func testEmbolismAndAsaClassByContext() {

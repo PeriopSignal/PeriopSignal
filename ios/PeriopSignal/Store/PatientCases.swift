@@ -137,6 +137,11 @@ struct PatientCaseBook: Codable, Equatable {
 
     /// One case with nothing in it: there is nothing to keep, so the file is removed.
     var isEmpty: Bool { cases.count == 1 && cases[0].isBlank }
+    /// My Patient's row of case chips earns its place with two cases or more, or a room or phone on the current one;
+    /// one case without a room shows no row (its actions are in the ⋯ menu).
+    var showsCaseRow: Bool {
+        cases.count > 1 || current.hasRoom || !current.roomPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     var canAdd: Bool { cases.count < PatientCaseBook.maxCases }
     private var nextNumber: Int { (cases.map(\.number).max() ?? 0) + 1 }
 
@@ -234,6 +239,7 @@ extension PatientStore {
     var cases: [PatientCase] { book.cases }
     var currentCase: PatientCase { book.current }
     var canAddCase: Bool { book.canAdd }
+    var showsCaseRow: Bool { book.showsCaseRow }
 
     /// Adds a case and opens it.
     func addCase(room: String = "", phone: String = "") {
@@ -272,13 +278,16 @@ extension PatientStore {
 
     #if DEBUG
     /// Screenshot runs: -ps.patient demo-rooms opens three made-up cases in OR 12, CVOR 3 and EP 2 (-ps.patient.case 2
-    /// opens the second) with one archived summary and two saved rooms; the other -ps.patient seeds open one case.
-    /// Nothing is read from or written to disk.
-    static func debugCases() -> PatientDemo.Seed? {
-        if LaunchSeed.string("ps.patient") == "demo-rooms" {
-            return PatientDemo.rooms(select: LaunchSeed.int("ps.patient.case", default: 1))
+    /// opens the second) with one archived summary and two saved rooms; -ps.patient empty opens one empty case, as on
+    /// the first open; the other -ps.patient seeds open one case. Nothing is read from or written to disk.
+    static func debugCases(_ seed: String = LaunchSeed.string("ps.patient"),
+                           select n: Int = LaunchSeed.int("ps.patient.case", default: 1)) -> PatientDemo.Seed? {
+        switch seed {
+        case "demo-rooms": return PatientDemo.rooms(select: n)
+        case "empty": return PatientDemo.Seed(book: PatientCaseBook(), archived: [], rooms: [])
+        default: break
         }
-        guard let r = debugSeed() else { return nil }
+        guard let r = debugSeed(seed) else { return nil }
         return PatientDemo.Seed(book: PatientCaseBook(cases: [PatientCase(record: r)]), archived: [], rooms: [])
     }
     #endif

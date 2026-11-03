@@ -195,10 +195,11 @@
       if (!d) return `<p class="r-muted">${c.bundle() ? 'The diastolic content is not in this copy of the reference file yet; reload in a minute.' : 'Loading the algorithm…'}</p>`;
       const pop = d.populations.find((x) => x.id === st.pop) || d.populations[0];
       const i = input();
-      let h = `<div class="r-stack"><section class="r-warnbox">${c.caution(d.scope)}</section>`;
+      let h = `<div class="r-stack">`;
       h += `<section class="r-card"><label class="r-lesion plain r-pick" for="dd-pop"><span class="r-eyebrow">Patient</span><span class="r-picked"><span>${esc(pop.name)}</span>${I.updown}</span><select id="dd-pop" data-a="pop" aria-label="Patient group">${d.populations.map((x) => `<option value="${esc(x.id)}"${x.id === pop.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>`;
       if (pop.mode === 'main') {
-        h += `<div class="r-inline"><span class="lab">e′ cutoffs</span><select id="dd-age" data-a="age" aria-label="e′ cutoffs"><option value=""${st.age ? '' : ' selected'}>Figure 3 (any age)</option><option value="20-39"${st.age === '20-39' ? ' selected' : ''}>Age 20–39 (Table 6)</option><option value="40-65"${st.age === '40-65' ? ' selected' : ''}>Age 40–65 (Table 6)</option><option value=">65"${st.age === '>65' ? ' selected' : ''}>Age over 65 (Table 6)</option></select></div>`;
+        h += `<div class="r-inline"><span class="lab">e′ cutoffs</span><select id="dd-age" data-a="age" aria-label="e′ cutoffs">${R.diastolicAgeBands.map((b) => `<option value="${esc(b.id)}"${(st.age || '') === b.id ? ' selected' : ''}>${esc(b.label)}</option>`).join('')}</select></div>`;
+        h += `<p class="r-small">${esc(R.diastolicCutoffCaption(st.age || null))}</p>`;
         h += c.switchRow('lung', st.lung, 'Lung or pulmonary vascular disease', 'TR velocity and PASP then stop standing in for LAP');
       }
       h += `</section>`;
@@ -235,6 +236,8 @@
         if (pop.indicators && pop.indicators.length) h += `<section class="r-sec">${eyebrow('Signs of increased filling pressure')}${c.takeList(pop.indicators)}</section>`;
         if (pop.notes) h += `<section class="r-sec">${pop.notes.map((n) => footnote(n)).join('')}</section>`;
       }
+      // The guideline's scope sits under the algorithm, before the sources (each reading keeps its own warning line).
+      h += `<section class="r-warnbox">${c.caution(d.scope)}</section>`;
       h += `<footer class="r-footer">${eyebrow('Source')}<div class="r-src"><p>${esc(d.source.citation)}</p><a href="${esc(d.source.url)}" target="_blank" rel="noopener">Open ${I.ext}</a></div>${footnote(d.supersedes)}${footnote(d.validation)}${(d.notes || []).map((n) => footnote(n)).join('')}</footer>`;
       return h + `</div>`;
     }, {

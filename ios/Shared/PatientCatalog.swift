@@ -21,10 +21,13 @@ struct PatientProblem: Hashable, Identifiable {
     var rcri: String?
     /// The STOP-BANG item it answers ("snoring", "tired", "observed", "pressure").
     var stopBang: String?
+    /// A line for the system page's ⓘ (its group note), when the item's class can be higher than its example gives.
+    var note: String?
 
-    init(_ id: String, _ label: String, asa: Int? = nil, asaExample: String? = nil, peds: Int? = nil, pedsExample: String? = nil, rcri: String? = nil, stopBang: String? = nil) {
+    init(_ id: String, _ label: String, asa: Int? = nil, asaExample: String? = nil, peds: Int? = nil, pedsExample: String? = nil, rcri: String? = nil, stopBang: String? = nil,
+         note: String? = nil) {
         self.id = id; self.label = label; self.asa = asa; self.asaExample = asaExample; self.peds = peds; self.pedsExample = pedsExample
-        self.rcri = rcri; self.stopBang = stopBang
+        self.rcri = rcri; self.stopBang = stopBang; self.note = note
     }
 }
 
@@ -53,55 +56,79 @@ struct PatientFlag: Hashable, Identifiable {
 
 enum PatientCatalog {
     static let systems: [PatientSystem] = [
+        // Cardiovascular and Respiratory are drawn as expanding sections (HistorySections, 1.8.1); their details sit in
+        // PatientRecord.hx. Every id the rules read is here, the ones the page sets from its options too.
         PatientSystem(id: "cv", name: "Cardiovascular", icon: "heart", problems: [
-            PatientProblem("htn", "Hypertension, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", stopBang: "pressure"),
-            PatientProblem("htn-poor", "Hypertension, poorly controlled", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
+            // Confirmed by Ben, Nov 2: plain hypertension suggests class II ("well-controlled DM/HTN"); "poorly controlled
+            // DM or HTN" is class III, set by hand. "htn-poor" (poorly controlled) loads as this item (renamedProblems).
+            PatientProblem("htn", "Hypertension", asa: 2, asaExample: "well-controlled DM/HTN", stopBang: "pressure",
+                           note: "ASA III if poorly controlled; change the class by hand."),
             // 2024 AHA/ACC §6.2 (p e373): "recent history of poorly controlled hypertension (SBP ≥180 mm Hg or DBP ≥110
             // mm Hg before the day of surgery)".
-            PatientProblem("htn-180", "Recent SBP ≥ 180 or DBP ≥ 110, before the day of surgery", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
-            PatientProblem("hyperlipidemia", "High cholesterol"),
-            PatientProblem("cad", "Coronary disease or MI, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
-            PatientProblem("pci", "Coronary stent, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
-            PatientProblem("pci-recent", "Coronary stent within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
-            PatientProblem("cad-recent", "MI or ACS within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
-            PatientProblem("ischemia", "Ongoing (unstable) cardiac ischemia", asa: 4, asaExample: "ongoing cardiac ischemia", rcri: "ihd"),
+            PatientProblem("htn-180", "BP ≥ 180/110 before the day of surgery", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
+            PatientProblem("hyperlipidemia", "Hyperlipidemia"),
+            // CAD chosen alone is coronary disease of unrecorded timing: the ASA's ">3 months … CAD/stents" example.
+            PatientProblem("cad", "Coronary artery disease", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
+            PatientProblem("mi", "MI over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
+            PatientProblem("cad-recent", "MI within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
+            PatientProblem("pci", "PCI over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
+            PatientProblem("pci-recent", "PCI within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "ihd"),
+            PatientProblem("ischemia", "Ongoing (unstable) ischemia", asa: 4, asaExample: "ongoing cardiac ischemia", rcri: "ihd"),
             PatientProblem("cabg", "Prior CABG", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("hf", "Heart failure", peds: 4, pedsExample: "congestive heart failure", rcri: "hf"),
-            PatientProblem("hf-decomp", "Decompensated heart failure", peds: 5, pedsExample: "decompensated congestive heart failure", rcri: "hf"),
-            PatientProblem("ef-moderate", "Ejection fraction moderately reduced", asa: 3, asaExample: "moderate reduction of ejection fraction"),
-            PatientProblem("ef-severe", "Ejection fraction severely reduced", asa: 4, asaExample: "severe reduction of ejection fraction"),
+            PatientProblem("hf-decomp", "Heart failure, decompensated", peds: 5, pedsExample: "decompensated congestive heart failure", rcri: "hf"),
+            PatientProblem("ef-moderate", "EF moderately reduced", asa: 3, asaExample: "moderate reduction of ejection fraction"),
+            PatientProblem("ef-severe", "EF severely reduced", asa: 4, asaExample: "severe reduction of ejection fraction"),
+            // Set by a severe lesion on any valve (PatientHistoryDetails.sync), or saved before 1.8.1 without its valve.
             PatientProblem("valve-severe", "Severe valve disease", asa: 4, asaExample: "severe valve dysfunction"),
-            PatientProblem("as", "Aortic stenosis"),
-            PatientProblem("mr", "Mitral regurgitation"),
-            PatientProblem("prosthetic-valve", "Prosthetic valve"),
-            PatientProblem("af", "Atrial fibrillation or flutter"),
-            PatientProblem("arrhythmia", "Other significant arrhythmia"),
+            PatientProblem("af", "AF/flutter"),
+            PatientProblem("arrhythmia", "Other arrhythmia"),
             PatientProblem("pacemaker", "Pacemaker", asa: 3, asaExample: "implanted pacemaker"),
-            PatientProblem("icd", "Implanted defibrillator (ICD)", peds: 4, pedsExample: "automatic implantable cardioverter-defibrillator"),
+            PatientProblem("icd", "ICD", peds: 4, pedsExample: "automatic implantable cardioverter-defibrillator"),
             PatientProblem("pulm-htn", "Pulmonary hypertension"),
-            PatientProblem("pulm-htn-severe", "Severe pulmonary hypertension"),
+            PatientProblem("pulm-htn-severe", "Pulmonary hypertension, severe"),
             PatientProblem("pvd", "Peripheral vascular disease"),
             PatientProblem("chd", "Congenital heart disease"),
             // 2024 AHA/ACC Table 10: single ventricle or Fontan, cyanotic disease, TGA and similar lesions.
-            PatientProblem("chd-elevated", "Congenital heart disease, elevated-risk lesion"),
-            PatientProblem("fh-cad", "Family history of premature coronary disease"),
+            PatientProblem("chd-elevated", "Congenital heart disease, complex lesion"),
+            // Aortopathy. Set from the aneurysms by location (PatientHistoryDetails.sync). "Ruptured abdominal/thoracic
+            // aneurysm" is the ASA's own class V example, its only aortic one (ASA Physical Status Classification System);
+            // a thoracoabdominal aneurysm is both. Unruptured aneurysms, dissections and repairs are in no ASA example.
+            PatientProblem("aaa", "Abdominal aortic aneurysm"),
+            PatientProblem("aaa-ruptured", "Ruptured abdominal aortic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
+            PatientProblem("taa", "Thoracic aortic aneurysm"),
+            PatientProblem("taa-ruptured", "Ruptured thoracic aortic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
+            PatientProblem("taaa", "Thoracoabdominal aortic aneurysm"),
+            PatientProblem("taaa-ruptured", "Ruptured thoracoabdominal aortic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
+            PatientProblem("dissection-a", "Aortic dissection, type A"),
+            PatientProblem("dissection-b", "Aortic dissection, type B"),
+            PatientProblem("aortic-repair-open", "Prior open aortic repair"),
+            PatientProblem("evar", "Prior EVAR"),
+            PatientProblem("tevar", "Prior TEVAR"),
         ]),
+        // The STOP-BANG questions (snoring, tiredness, observed apnea) and "Mild lung disease" are no longer items
+        // (1.8.1): the STOP-BANG tool asks its own questions. Saved ones still load and are not shown.
         PatientSystem(id: "resp", name: "Respiratory", icon: "lungs", problems: [
-            PatientProblem("lung-mild", "Mild lung disease", asa: 2, asaExample: "mild lung disease"),
             PatientProblem("asthma", "Asthma", peds: 2, pedsExample: "asthma without exacerbation"),
+            // The coordinator's default (Ben had no preference): uncontrolled is the pediatric "asthma with exacerbation".
+            PatientProblem("asthma-uncontrolled", "Asthma, uncontrolled", peds: 3, pedsExample: "asthma with exacerbation"),
             PatientProblem("copd", "COPD", asa: 3, asaExample: "COPD"),
             PatientProblem("osa", "Obstructive sleep apnea", peds: 2, pedsExample: "mild/moderate OSA"),
             PatientProblem("cpap", "Uses CPAP or BiPAP"),
-            PatientProblem("snoring", "Loud snoring", stopBang: "snoring"),
-            PatientProblem("tired", "Daytime tiredness or sleepiness", stopBang: "tired"),
-            PatientProblem("observed-apnea", "Observed apnea or choking in sleep", stopBang: "observed"),
-            PatientProblem("uri", "Respiratory infection in the last month"),
-            PatientProblem("home-o2", "Home oxygen"),
+            // Each is ARISCAT's respiratory infection in the last month (PatientRules.prefill).
+            PatientProblem("uri", "URI"),
+            PatientProblem("pneumonia", "Pneumonia"),
+            PatientProblem("resp-infection-other", "Other respiratory infection"),
             PatientProblem("ild", "Interstitial lung disease"),
+            PatientProblem("home-o2", "Home oxygen"),
         ]),
         PatientSystem(id: "neuro", name: "Neurologic", icon: "brain.head.profile", problems: [
             PatientProblem("cva", "Stroke or TIA, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva"),
             PatientProblem("cva-recent", "Stroke or TIA within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "cva"),
+            // A stroke whose timing the record does not give (1.8.1). Confirmed by Ben, Nov 2: the lowest class the ASA's
+            // examples give a stroke, history (>3 months), class III; within 3 months is class IV.
+            PatientProblem("cva-unspec", "Stroke, unspecified", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva",
+                           note: "ASA IV if within 3 months."),
             PatientProblem("ich-mass", "Intracranial bleed with mass effect", asa: 5, asaExample: "intracranial bleed with mass effect", peds: 5, pedsExample: "intracranial hemorrhage with mass effect"),
             PatientProblem("raised-icp", "Intracranial mass or raised ICP"),
             PatientProblem("seizure", "Seizure disorder", peds: 2, pedsExample: "well-controlled epilepsy"),
@@ -126,8 +153,11 @@ enum PatientCatalog {
             PatientProblem("varices", "Esophageal varices"),
         ]),
         PatientSystem(id: "endo", name: "Endocrine", icon: "flask", problems: [
-            PatientProblem("dm", "Diabetes, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", peds: 2, pedsExample: "non-insulin-dependent diabetes mellitus"),
-            PatientProblem("dm-poor", "Diabetes, poorly controlled", asa: 3, asaExample: "poorly controlled DM or HTN"),
+            // One item since 1.8.1 ("dm-poor", Diabetes, poorly controlled, loads as this one: migratedProblems). Confirmed
+            // by Ben, Nov 2: the lowest class the ASA's examples give a diabetic, "well-controlled DM/HTN", class II; "poorly
+            // controlled DM or HTN" is class III, set by hand.
+            PatientProblem("dm", "Diabetes", asa: 2, asaExample: "well-controlled DM/HTN", peds: 2, pedsExample: "non-insulin-dependent diabetes mellitus",
+                           note: "ASA III if poorly controlled; change the class by hand."),
             PatientProblem("insulin", "Diabetes treated with insulin", peds: 3, pedsExample: "insulin-dependent diabetes mellitus", rcri: "insulin"),
             PatientProblem("thyroid", "Thyroid disease"),
             PatientProblem("adrenal", "Adrenal insufficiency or chronic steroids"),
@@ -139,6 +169,18 @@ enum PatientCatalog {
             PatientProblem("sickle", "Sickle cell disease"),
             PatientProblem("dic", "DIC", asa: 4, asaExample: "DIC", peds: 4, pedsExample: "disseminated intravascular coagulation"),
             PatientProblem("declines-blood", "Declines blood products"),
+        ]),
+        // 1.8.1. None is among the ASA's examples (sepsis stays under Acute illness, with shock).
+        PatientSystem(id: "infectious", name: "Infectious", icon: "facemask", problems: [
+            PatientProblem("infection-active", "Active infection"),
+            PatientProblem("endocarditis", "Endocarditis"),
+            PatientProblem("hiv", "HIV"),
+            PatientProblem("hepatitis-viral", "Hepatitis B or C"),
+            PatientProblem("mdro", "MRSA or VRE"),
+            PatientProblem("c-diff", "C. difficile"),
+            PatientProblem("tb", "Tuberculosis"),
+            PatientProblem("covid-recent", "Recent COVID-19"),
+            PatientProblem("isolation", "Isolation precautions"),
         ]),
         PatientSystem(id: "acute", name: "Acute illness", icon: "waveform.path.ecg", problems: [
             PatientProblem("sepsis", "Sepsis", asa: 4, asaExample: "sepsis", peds: 4, pedsExample: "sepsis"),
@@ -219,7 +261,29 @@ enum PatientCatalog {
     static func systems(for r: PatientRecord) -> [PatientSystem] { r.isChild ? [pediatric] + systems : systems }
 
     static let allProblems: [PatientProblem] = allSystems.flatMap(\.problems)
+
+    /// The Cardiovascular page's Aortopathy ids, in the page's order (the aneurysm ids follow from the aneurysms by
+    /// location: PatientHistoryDetails.sync).
+    static let aortaIDs: [String] = ["aaa", "aaa-ruptured", "taa", "taa-ruptured", "taaa", "taaa-ruptured", "dissection-a", "dissection-b",
+                                     "aortic-repair-open", "evar", "tevar"]
     static func problem(_ id: String) -> PatientProblem? { allProblems.first { $0.id == id } }
+
+    /// Problem ids that are no longer offered, and the item a saved record's id now loads as (1.8.1: diabetes is one
+    /// item; hypertension has no control qualifier). Aortic stenosis, mitral regurgitation and a prosthetic valve move
+    /// into the valve details (PatientHistoryDetails.migrate); "fh-cad", "snoring", "tired", "observed-apnea" and
+    /// "lung-mild" still load and are no longer shown or read.
+    static let renamedProblems: [String: String] = ["dm-poor": "dm", "htn-poor": "htn"]
+
+    /// A saved record's problems with retired ids moved to their current item.
+    static func migratedProblems(_ ids: Set<String>) -> Set<String> { Set(ids.map { renamedProblems[$0] ?? $0 }) }
+
+    /// The system page's ⓘ: each item's own line first ("Diabetes: ASA III if poorly controlled; change the class by
+    /// hand."), then how the page's problems feed the scores.
+    static func systemNote(_ s: PatientSystem) -> String {
+        let base = "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-BANG and other scores open with them ticked."
+        let items = s.problems.compactMap { p in p.note.map { p.label + ": " + $0 } }
+        return (items + [base]).joined(separator: "\n\n")
+    }
     static func system(of problemId: String) -> PatientSystem? { allSystems.first { s in s.problems.contains { $0.id == problemId } } }
 
     static let medFlags: [PatientFlag] = [
