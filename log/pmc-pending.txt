@@ -25,3 +25,5 @@ icm-2026-esicm-human-centred-partnership-consensus | 42931902 | PMID; open acces
 lancet-2026-prospect-prone-hfov-pards | 42956771 | PMID; NIH-funded, no PMC copy yet
 hepatology-2026-global-aclf-consensus-definitions | 42960623 | PMID; no PMC copy yet; criteria read from news and society coverage
 circ-2026-season-ar-tavr-pure-ar | 42965504 | PMID; no PMC copy yet
+nejm-2026-progress-tavr-moderate-as | 42970708 | PMID; no PMC copy yet
+icm-2026-bicarbonate-bayesian-meta-analysis | 42970124 | PMID; no PMC copy yet

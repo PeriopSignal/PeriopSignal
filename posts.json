@@ -1,7 +1,88 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-02T09:17:20+00:00",
+ "generatedAt": "2026-11-03T09:17:26+00:00",
  "posts": [
+  {
+   "id": "nejm-2026-progress-tavr-moderate-as",
+   "date": "2026-11-02",
+   "dateApprox": false,
+   "addedAt": "2026-11-03",
+   "journal": "NEJM",
+   "jshort": "NEJM",
+   "kind": "RCT",
+   "topics": [
+    "cardiac",
+    "cardiacSurgery",
+    "echo"
+   ],
+   "headline": "PROGRESS: TAVR beat surveillance in moderate AS with at-risk features: death or HF event 16.7% vs 23.9% at 2 years",
+   "summary": "An international open-label trial randomized 744 patients with moderate aortic stenosis and at least one at-risk feature to transfemoral TAVR with a balloon-expandable valve or to clinical surveillance. The primary end point was death from any cause or a heart-failure event at 2 years.",
+   "takeHome": [
+    "In moderate AS with at-risk features, TAVR beat clinical surveillance for death or heart-failure event at 2 years: 16.7% vs 23.9% (P=0.02)",
+    "Heart-failure events drove the difference, 10.8% vs 19.0%; all-cause death was 8.4% with TAVR and 7.3% with surveillance",
+    "Procedure-related adverse events did not differ meaningfully between TAVR patients and surveillance patients who went on to valve replacement"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Guidelines tell us to watch moderate aortic stenosis with echo every 1 or 2 years. PROGRESS asks whether treating selected patients early does better, and if it changes practice the structural list gets a new group of patients.\n\n**What they did.** 744 patients (mean age 78, 39.1% women, 45.6% low surgical risk; mean valve area 1.2 cm², peak velocity 3.3 m/s) with at least one symptom or structural or functional abnormality were randomized 1:1 to transfemoral balloon-expandable TAVR or clinical surveillance. Surveillance patients could have valve replacement when indicated.\n\n**What they found.**\n- Death or heart-failure event: 16.7% vs 23.9% (risk difference -7.2 points, 95% CI -13.1 to -1.3).\n- Heart-failure event: 10.8% vs 19.0%.\n- All-cause death: 8.4% vs 7.3%, so no survival gain at 2 years.\n\n**Caveats.** Open-label and funded by Edwards, with a softer end point doing the work. Cedars-Sinai's release says more than half of the surveillance patients had valve replacement within 2 years, which blurs the comparison, and that follow-up continues to 10 years for durability and survival. Investigators there state plainly that this does not mean every moderate AS patient needs TAVR.\n\n**For the anesthesiologist.** Expect older, comorbid patients with less severe gradients on the structural list; their risk may sit more in the ventricle and comorbidities than in the valve. Careful grading matters more now, so report valve area, velocity and the structural findings that may count as at-risk features. The trial says nothing about TAVR before noncardiac surgery or adding AVR during other cardiac surgery, so do not stretch it to those decisions.",
+   "url": "https://doi.org/10.1056/NEJMoa2607326",
+   "impact": 3,
+   "trialName": "PROGRESS",
+   "firstAuthor": "Généreux",
+   "title": "TAVR in Patients with Moderate Aortic Stenosis with At-Risk Features",
+   "glance": {
+    "design": "International open-label RCT, 1:1, transfemoral TAVR vs clinical surveillance",
+    "n": "744 patients, mean age 78, moderate AS with at least one at-risk feature",
+    "outcome": "Death from any cause or heart-failure event at 2 years",
+    "result": "16.7% vs 23.9%, risk difference -7.2 points (95% CI -13.1 to -1.3); P=0.02"
+   },
+   "quiz": {
+    "question": "In PROGRESS, what accounted for TAVR's 2-year advantage over clinical surveillance in moderate aortic stenosis with at-risk features?",
+    "options": [
+     "Lower all-cause death, with heart-failure events about equal",
+     "Fewer procedure-related adverse events than surveillance patients having valve replacement",
+     "Fewer heart-failure events, with all-cause death numerically similar",
+     "Lower all-cause death and fewer heart-failure events in equal measure"
+    ],
+    "answer": 2,
+    "explanation": "Heart-failure events were 10.8% vs 19.0%, while death was 8.4% with TAVR and 7.3% with surveillance, giving a composite of 16.7% vs 23.9%. Death did not favor TAVR, so the survival options are wrong. Main caveat: an open-label, sponsor-funded trial with 2-year data only."
+   }
+  },
+  {
+   "id": "icm-2026-bicarbonate-bayesian-meta-analysis",
+   "date": "2026-11-02",
+   "dateApprox": false,
+   "addedAt": "2026-11-03",
+   "journal": "Intensive Care Med",
+   "jshort": "ICM",
+   "kind": "Meta-analysis",
+   "topics": [
+    "criticalCare"
+   ],
+   "headline": "Bicarbonate in ICU metabolic acidosis: no clear survival gain in 4 RCTs, but a 97% probability of less dialysis",
+   "summary": "A Bayesian random-effects meta-analysis pooled four randomized trials (1544 adults) comparing intravenous sodium bicarbonate with placebo or usual care in ICU patients with metabolic acidosis. Short-term mortality was the primary outcome.",
+   "takeHome": [
+    "Across four RCTs and 1544 patients, bicarbonate showed no clear short-term mortality benefit: RR 0.94 (95% CrI 0.73-1.22), probability of benefit 72.1%",
+    "Renal replacement therapy initiation was lower with bicarbonate: RR 0.74 (95% CrI 0.59-0.98), posterior probability of benefit 97.2%",
+    "Effects on other outcomes were small or imprecise with no consistent safety signal; further trials should define who is most likely to benefit"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Recent trials pulled in different directions: BICARICU-2 reported less dialysis, while SODa-BIC found no gain in kidney outcomes or death. This pooled analysis, searched through April 2026, gives a single estimate to set against those headlines.\n\n**What they did.** A systematic review of MEDLINE, Embase and CENTRAL, with Bayesian random-effects pooling of RCTs of IV sodium bicarbonate against placebo or usual care in adult ICU patients with metabolic acidosis. The abstract does not name the four trials.\n\n**What they found.**\n- Short-term mortality: RR 0.94 (95% CrI 0.73-1.22), a 72.1% probability of benefit.\n- RRT initiation: RR 0.74 (95% CrI 0.59-0.98), a 97.2% probability of benefit.\n- Other outcomes were small or imprecise, and no consistent safety signal appeared.\n\n**Caveats.** Only four trials, so the mortality interval still spans a meaningful benefit and meaningful harm. The decision to start RRT is made by clinicians and can follow the numbers on the gas, so a lower start rate is not automatically better kidney biology. We read the abstract only; it gives no pH thresholds or subgroup results.\n\n**For the anesthesiologist.** This does not make bicarbonate routine for acidosis in the shocked patient, in the OR or the ICU. It does support considering it when the question is avoiding or delaying dialysis, with eyes open: it adds a sodium load and generates CO2 that your ventilation has to clear.",
+   "url": "https://doi.org/10.1007/s00134-026-08602-3",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": "Kitisin",
+   "title": "Sodium bicarbonate therapy for metabolic acidosis in critically ill patients: a Bayesian systematic review and meta-analysis of randomised controlled trials",
+   "glance": {
+    "design": "Bayesian random-effects meta-analysis of 4 RCTs",
+    "n": "1544 adult ICU patients with metabolic acidosis",
+    "outcome": "Short-term all-cause mortality",
+    "result": "RR 0.94 (95% CrI 0.73-1.22); 72.1% probability of benefit; no clear benefit"
+   }
+  },
   {
    "id": "tct26-2026-travel-iii-lux-valve-ttvr",
    "date": "2026-11-01",
