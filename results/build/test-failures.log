@@ -1,0 +1,5 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientHistory181Tests.swift:152: error: -[PeriopSignalTests.PatientHistory181Tests testStrokeTiming] : XCTAssertEqual failed: ("["problem:cva-unspec"]") is not equal to ("["problem:cva"]") - TIA as before
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientHistory181Tests.swift:153: error: -[PeriopSignalTests.PatientHistory181Tests testStrokeTiming] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("Added as over 3 months ago; choose within 3 months in History if recent.")")
+Test Case '-[PeriopSignalTests.PatientHistory181Tests testStrokeTiming]' failed (29.482 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientNeuro182Tests.swift:222: error: -[PeriopSignalTests.PatientNeuro182Tests testTIAReadsLikeStroke] : XCTAssertTrue failed - a name, not the abbreviation
+Test Case '-[PeriopSignalTests.PatientNeuro182Tests testTIAReadsLikeStroke]' failed (0.053 seconds).
