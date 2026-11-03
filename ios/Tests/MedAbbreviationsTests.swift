@@ -104,7 +104,10 @@ final class MedAbbreviationsTests: XCTestCase {
         XCTAssertEqual(bare?.options.map(\.id), ["ms-sclerosis", "ms-mitral", "ms-morphine"])
         XCTAssertEqual(change(read("severe MS"), "valve:mitral:stenosis"), .valve("mitral", "stenosis", "severe"))
         XCTAssertEqual(read("PMH: MS, HTN").other, "multiple sclerosis")
-        XCTAssertEqual(read("PMH: MS, HTN", choices: ["MS@ms-sclerosis": "ms-mitral"]).other, "mitral stenosis")
+        // Chosen as mitral stenosis, it files the mitral valve's stenosis (1.8.1), not Other conditions.
+        let mitral = read("PMH: MS, HTN", choices: ["MS@ms-sclerosis": "ms-mitral"])
+        XCTAssertEqual(change(mitral, "valve:mitral:stenosis"), .valve("mitral", "stenosis", nil))
+        XCTAssertEqual(mitral.other, "")
     }
 
     func testEmbolismAndAsaClassByContext() {
