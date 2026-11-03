@@ -201,9 +201,13 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(r.fluids["cellSaver"], 450)
         XCTAssertTrue(r.labs.isEmpty && r.intraopLabs.isEmpty, "plt 1 is a dose, not a count")
 
+        // 1.8.1: a count is the case total; "+2" adds to it.
         var given = PatientRecord()
         given.fluids["prbc"] = 2
-        XCTAssertEqual(applied(read("2 PRBC", .intraop, record: given), to: given).fluids["prbc"], 4, "added to the total")
+        XCTAssertEqual(applied(read("2 PRBC", .intraop, record: given), to: given).fluids["prbc"], 2, "the case total, already recorded")
+        XCTAssertTrue(read("2 PRBC", .intraop, record: given).skipped.contains("PRBC total 2 · already recorded"))
+        XCTAssertEqual(applied(read("+2 PRBC", .intraop, record: given), to: given).fluids["prbc"], 4, "added to the total")
+        XCTAssertEqual(applied(read("3 PRBC", .intraop, record: given), to: given).fluids["prbc"], 3, "the total, not 5")
 
         XCTAssertFalse(ids(read("2 PRBC")).contains("blood:prbc"), "not on the Preoperative tab")
         let ordered = read("2 PRBC available", .intraop)
@@ -222,7 +226,7 @@ final class QuickAddTests: XCTestCase {
         XCTAssertEqual(QuickAdd.chips(read("PRBC 3rd unit hanging", .intraop), record: PatientRecord()).first?.value, "PRBC +1 (3rd unit)")
         var two = PatientRecord()
         two.fluids["prbc"] = 2
-        XCTAssertEqual(QuickAdd.chips(read("4 PRBC total", .intraop, record: two), record: two).first?.value, "PRBC +2 (total 4)", "only what the total adds")
+        XCTAssertEqual(QuickAdd.chips(read("4 PRBC total", .intraop, record: two), record: two).first?.value, "PRBC: total 4 units (was 2)", "the total, and what was recorded")
         var four = PatientRecord()
         four.fluids["prbc"] = 4
         let same = read("4 PRBC total", .intraop, record: four)
@@ -500,27 +504,30 @@ final class QuickAddTests: XCTestCase {
         let q = read("cryo 10, 1 pool cryo", .intraop)
         XCTAssertEqual(q.findings.map(\.id), ["blood:cryo", "blood:cryo:2"])
         let chips = QuickAdd.chips(q, record: PatientRecord())
-        XCTAssertEqual(chips.map(\.text), ["Intraop · Cryo +10", "Intraop · Cryo +5 (1 pool) (total 15)"], "the running total on the last")
+        XCTAssertEqual(chips.map(\.text), ["Intraop · Cryo: total 10 units", "Intraop · Cryo +5 (1 pool) (total 15)"],
+                       "the first count is the total; a second one adds, with the running total on the last")
         XCTAssertEqual(QuickAdd.changes(chips), [.blood("cryo", 10), .blood("cryo", 5)])
 
         // Either can be left out, and the total is what the chips left on add.
         let first = QuickAdd.chips(q, record: PatientRecord(), dropped: [chips[0].id])
         XCTAssertEqual(first.map(\.id), chips.map(\.id), "a chip keeps its id when another is left out")
-        XCTAssertEqual(first.map(\.value), ["Cryo +10", "Cryo +5 (1 pool)"])
+        XCTAssertEqual(first.map(\.value), ["Cryo: total 10 units", "Cryo +5 (1 pool)"])
         XCTAssertEqual(QuickAdd.changes(first, dropped: [chips[0].id]), [.blood("cryo", 5)])
         let second = QuickAdd.chips(q, record: PatientRecord(), dropped: [chips[1].id])
         XCTAssertEqual(QuickAdd.changes(second, dropped: [chips[1].id]), [.blood("cryo", 10)])
 
         var given = PatientRecord()
         given.fluids["cryo"] = 10
-        let more = QuickAdd.chips(read("cryo 10, 1 pool cryo", .intraop, record: given), record: given, dropped: [chips[1].id])
+        let plusRead = read("+10 cryo, 1 pool cryo", .intraop, record: given)
+        let plusChips = QuickAdd.chips(plusRead, record: given)
+        let more = QuickAdd.chips(plusRead, record: given, dropped: [plusChips[1].id])
         XCTAssertEqual(more.map(\.value), ["Cryo +10 (total 20)", "Cryo +5 (1 pool)"], "on the last chip left on")
         var r = given
-        PatientNote.apply(QuickAdd.changes(more, dropped: [chips[1].id]), to: &r)
+        PatientNote.apply(QuickAdd.changes(more, dropped: [plusChips[1].id]), to: &r)
         XCTAssertEqual(r.fluids["cryo"], 20, "what is filed is the total shown")
 
         let twice = QuickAdd.chips(read("2 PRBC, 2 PRBC", .intraop), record: PatientRecord())
-        XCTAssertEqual(twice.map(\.value), ["PRBC +2", "PRBC +2 (total 4)"], "the same amount twice is two chips")
+        XCTAssertEqual(twice.map(\.value), ["PRBC: total 2 units", "PRBC +2 (total 4)"], "the same amount twice is two chips")
         XCTAssertEqual(Set(twice.map(\.id)).count, 2)
     }
 
@@ -714,7 +721,7 @@ final class QuickAddTests: XCTestCase {
         let two = read("DL grade 2", .intraop)
         XCTAssertEqual(change(two, "intraop-airway:device"), .intraopAirway("device", "Direct laryngoscope"))
         XCTAssertNil(change(two, "intraop-airway:grade"), "2a or 2b is not written")
-        XCTAssertTrue(two.skipped.contains { $0.hasPrefix("View grade 2") })
+        XCTAssertEqual(two.ambiguous.first { $0.id == QuickAdd.grade2Question }?.options.map(\.text), ["2a", "2b"], "asked (1.8.1)")
         XCTAssertEqual(applied(read("ETT 8.0 @ 22 at the teeth, 1 attempt", .intraop)).tube, "8.0 ETT, 22 cm at the teeth")
     }
 
@@ -832,7 +839,8 @@ final class QuickAddTests: XCTestCase {
 
         var given = PatientRecord()
         given.fluids["prbc"] = 2
-        XCTAssertEqual(QuickAdd.chips(read("2 PRBC", .intraop, record: given), record: given).first?.text, "Intraop · PRBC +2 (total 4)")
+        XCTAssertEqual(QuickAdd.chips(read("+2 PRBC", .intraop, record: given), record: given).first?.text, "Intraop · PRBC +2 (total 4)")
+        XCTAssertEqual(QuickAdd.chips(read("3 PRBC", .intraop, record: given), record: given).first?.text, "Intraop · PRBC: total 3 units (was 2)")
         XCTAssertEqual(QuickAdd.chips(read("68M for lap chole"), record: PatientRecord()).first { $0.destination == "Procedure" }?.value,
                        "Laparoscopic cholecystectomy")
         XCTAssertTrue(QuickAdd.chips(read("A-line L radial 20G"), record: PatientRecord()).contains { $0.text.hasPrefix("Lines · A-line 20 G") })
