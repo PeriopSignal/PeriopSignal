@@ -47,6 +47,12 @@
     ],
     "answer": 2,
     "explanation": "Heart-failure events were 10.8% vs 19.0%, while death was 8.4% with TAVR and 7.3% with surveillance, giving a composite of 16.7% vs 23.9%. Death did not favor TAVR, so the survival options are wrong. Main caveat: an open-label, sponsor-funded trial with 2-year data only."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2026-progress-tavr-moderate-as.mp3",
+    "seconds": 185,
+    "bytes": 1479405,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -81,6 +87,12 @@
     "n": "1544 adult ICU patients with metabolic acidosis",
     "outcome": "Short-term all-cause mortality",
     "result": "RR 0.94 (95% CrI 0.73-1.22); 72.1% probability of benefit; no clear benefit"
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/icm-2026-bicarbonate-bayesian-meta-analysis.mp3",
+    "seconds": 184,
+    "bytes": 1471149,
+    "voice": "kokoro:af_heart"
    }
   },
   {
