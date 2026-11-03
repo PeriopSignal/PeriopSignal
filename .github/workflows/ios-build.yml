@@ -357,6 +357,8 @@ jobs:
           shot 212-cardiac-handoff-full-cautions 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format full -ps.patient.jump handoff -ps.forceAppearance light
           shot 213-quickadd-aorta 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "74M, HTN, 5.2 cm AAA, s/p TEVAR 2019, dissection, TAA 48 mm, CKD"
           shot 214-history-aorta 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open history -ps.forceAppearance light
+          shot 215-studies-radial-both 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open workup:radial -ps.patient.scroll done -ps.forceAppearance dark
+          shot 216-intraop-lines-both 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open intraop:lines -ps.forceAppearance light
           # 1.9 drafts (300+): case timers, MTP, TEE companion, mechanical support.
           shot 300-timers-strip 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.forceAppearance dark
           shot 301-timers-sheet 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.forceAppearance dark
@@ -401,10 +403,16 @@ jobs:
             rm -rf results/build && mkdir -p results/build && cp -R "$GITHUB_WORKSPACE/ci-out/." results/build/ || return 1
             git add -f results/build || return 1
             git commit -q -m "Build results for run ${{ github.run_number }}" || true
-            for attempt in 1 2 3; do
+            # Parallel runs all replace results/build, so a rebase onto another run's results always conflicts.
+            # On a rejected push, start again from the newest results commit and copy this run's results over it.
+            for attempt in 1 2 3 4 5 6; do
               git push origin "HEAD:$RESULTS_BRANCH" && return 0
-              sleep 5
-              git fetch origin "$RESULTS_BRANCH" && git rebase "origin/$RESULTS_BRANCH" || git rebase --abort || true
+              sleep $(( attempt * 4 + RANDOM % 7 ))
+              git fetch origin "$RESULTS_BRANCH" || continue
+              git reset -q --hard "origin/$RESULTS_BRANCH" || return 1
+              rm -rf results/build && mkdir -p results/build && cp -R "$GITHUB_WORKSPACE/ci-out/." results/build/ || return 1
+              git add -f results/build || return 1
+              git commit -q -m "Build results for run ${{ github.run_number }}" || true
             done
             return 1
           }
