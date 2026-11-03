@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientHistory183Tests.swift:192: error: -[PeriopSignalTests.PatientHistory183Tests testSeveralProceduresOnOneDateAreOneOperation] : XCTAssertTrue failed - LM RCA endarterectomy
+Test Case '-[PeriopSignalTests.PatientHistory183Tests testSeveralProceduresOnOneDateAreOneOperation]' failed (111.025 seconds).
