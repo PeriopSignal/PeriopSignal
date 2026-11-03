@@ -1,2 +1,2 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientLHC183Tests.swift:126: error: -[PeriopSignalTests.PatientLHC183Tests testFilesThroughTheNoteAndTheBar] : XCTAssertTrue failed
-Test Case '-[PeriopSignalTests.PatientLHC183Tests testFilesThroughTheNoteAndTheBar]' failed (1.527 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientLHC183Tests.swift:162: error: -[PeriopSignalTests.PatientLHC183Tests testNeverWithoutACathWord] : XCTAssertNil failed: "no-cad" - CTA: normal coronary arteries
+Test Case '-[PeriopSignalTests.PatientLHC183Tests testNeverWithoutACathWord]' failed (1.574 seconds).
