@@ -80,6 +80,26 @@ struct PatientAneurysm: Codable, Hashable {
     }
 }
 
+/// One anticoagulant on the Hematologic page (1.9): heparin's intensity, the last dose as typed, and a name for Other.
+/// Warfarin's last INR is the record's INR (PatientRecord.labs["inr"]), so it is entered once.
+struct PatientAnticoagulant: Codable, Hashable {
+    /// Heparin (and enoxaparin): "therapeutic" or "prophylaxis".
+    var intensity: String?
+    /// As typed: "yesterday 08:00", "11/02 21:00".
+    var lastDose = ""
+    /// Other: the drug, as typed ("apixaban 5 mg BID").
+    var name = ""
+
+    init(intensity: String? = nil, lastDose: String = "", name: String = "") { self.intensity = intensity; self.lastDose = lastDose; self.name = name }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        intensity = try? c.decodeIfPresent(String.self, forKey: .intensity)
+        lastDose = (try? c.decodeIfPresent(String.self, forKey: .lastDose)) ?? ""
+        name = (try? c.decodeIfPresent(String.self, forKey: .name)) ?? ""
+    }
+}
+
 struct PatientHistoryDetails: Codable, Hashable {
     // Cardiovascular
     /// Heart failure marked compensated (decompensated is the "hf-decomp" problem).
@@ -117,6 +137,152 @@ struct PatientHistoryDetails: Codable, Hashable {
     /// Home oxygen flow, L/min.
     var homeO2Flow: Double?
 
+    // MARK: 1.9 (Ben's Wanted Changes): what the new pages hold beside their problem ids. Every field has a fallback
+    // when a record saved before 1.9 opens; nothing here needs a migration.
+
+    // Cardiovascular
+    /// AF/flutter: "paroxysmal", "persistent", "longstanding" (long-standing persistent), "permanent" (2023 ACC/AHA/ACCP/HRS).
+    var afType: String?
+    /// Pacemaker or ICD: the patient is pacer dependent (a paced rhythm is filed on the ECG: PatientCrossFill).
+    var pacerDependent = false
+    /// The generator's side, "left" or "right", for the diagram; nil not recorded.
+    var ciedSide: String?
+    /// Infective endocarditis: the valve and organism, as typed.
+    var endocarditisDetails = ""
+
+    // Respiratory
+    /// Pleural effusion or pneumothorax: "left", "right", "bilateral".
+    var pleuralSide: String?
+    /// The fluid of an effusion: "unspecified", "hemothorax", "chylothorax".
+    var pleuralFluid: String?
+    /// Drained: nil not asked, false No, true Yes.
+    var pleuralDrained: Bool?
+    /// A chest tube in place (asked when drained): nil not asked, false No, true Yes.
+    var chestTube: Bool?
+    /// Its side or sides: "left", "right".
+    var chestTubeSides: Set<String> = []
+
+    // Neurologic
+    /// Visual impairment: "acute" or "chronic".
+    var visualImpairment: String?
+    /// Psychological disorder: anything beyond depression and anxiety, as typed.
+    var psychOther = ""
+
+    // Renal
+    /// CKD stage, KDIGO's GFR categories: "1", "2", "3a", "3b", "4", "5".
+    var ckdStage: String?
+    /// Hemodialysis days: "mwf" (Mon/Wed/Fri), "tts" (Tue/Thu/Sat); nil with a typed schedule or none recorded.
+    var dialysisSchedule: String?
+    var dialysisScheduleOther = ""
+    /// The dialysis access: "fistula" (an AV fistula or graft), "catheter".
+    var dialysisAccess: Set<String> = []
+    /// Where each is, as typed ("left forearm", "right IJ tunneled"); placed on the diagram when it can be read.
+    var fistulaSite = ""
+    var dialysisCatheterSite = ""
+
+    // GI & liver
+    var gastricBypassDetails = ""
+    /// Esophageal disorder: its type, as typed ("achalasia", "stricture").
+    var esophagealDisorderType = ""
+    /// Previous esophageal procedure: nil not asked, false No, true Yes; what it was (stent, dilation, resection).
+    var esophagealProcedure: Bool?
+    var esophagealProcedureDetails = ""
+    /// GI bleed: "active" or "resolved"; "upper" or "lower"; anything else.
+    var giBleedStatus: String?
+    var giBleedSite: String?
+    var giBleedDetails = ""
+
+    // Endocrine
+    /// Diabetes marked not on insulin (on insulin is the "insulin" problem).
+    var dmNoInsulin = false
+    /// Thyroid disease: "hypo" or "hyper".
+    var thyroidType: String?
+    /// Adrenal insufficiency or chronic steroids: "insufficiency", "steroids" (either or both).
+    var adrenalKinds: Set<String> = []
+    /// The glucocorticoid, as picked or typed ("prednisolone", "hydrocortisone").
+    var steroidDrug = ""
+    /// Its total daily dose, mg.
+    var steroidDailyMg: Double?
+    /// How long: "lt1m" (under 1 month) or "ge1m" (1 month or more), the threshold of the 2020 UK perioperative
+    /// guideline (Woodcock T, et al. Anaesthesia 2020;75:654–663).
+    var steroidDuration: String?
+
+    // Hematologic
+    /// Bleeding disorder, Other: as typed.
+    var bleedingOther = ""
+    /// Thrombophilia, Other: as typed ("prothrombin G20210A", "antiphospholipid syndrome").
+    var thrombophiliaOther = ""
+    /// On anticoagulation, by drug: "heparin", "warfarin", "enoxaparin", "other".
+    var anticoagulants: [String: PatientAnticoagulant] = [:]
+    /// Declines blood products: what is and is not accepted, as typed.
+    var declinesBloodDetails = ""
+    /// DVT/PE: "acute" or "chronic", and the date as typed.
+    var vteTiming: String?
+    var vteDate = ""
+
+    // Infectious and acute illness
+    /// Sepsis: the source, as typed (shown on both pages).
+    var sepsisSource = ""
+    /// Sepsis: the antibiotic, as typed (also listed with the medications: PatientCrossFill).
+    var sepsisAntibiotic = ""
+    /// HIV viral load, as typed ("undetectable", "<20 copies/mL").
+    var hivViralLoad = ""
+    /// Viral hepatitis: "a", "b", "c".
+    var hepatitisTypes: Set<String> = []
+    /// COVID-19: "active" or "recent"; the positive test's date as typed.
+    var covidStatus: String?
+    var covidTestDate = ""
+    /// Tuberculosis: "active" (pulmonary or laryngeal) or "latent".
+    var tbStatus: String?
+    /// Isolation precautions: "contact", "droplet", "airborne".
+    var precautions: Set<String> = []
+    /// Shock: "cardiogenic", "distributive", "obstructive", "hypovolemic"; two or more read as mixed shock.
+    var shockTypes: Set<String> = []
+    /// Massive trauma or burn: as typed.
+    var traumaDetails = ""
+
+    // Obstetric
+    /// G, P, A, L.
+    var gravida: Int?
+    var para: Int?
+    var abortus: Int?
+    var living: Int?
+    /// Weeks (and days) of gestation.
+    var gestationWeeks: Int?
+    var gestationDays: Int?
+    /// Prior cesarean delivery, and whether it was the last birth: nil not asked, false No, true Yes.
+    var priorCesarean: Bool?
+    var cesareanLastBirth: Bool?
+    /// Preeclampsia with severe features: "neuro" (headache or visual changes), "aki", "thrombocytopenia", "pulm-edema",
+    /// "hellp" (HELLP is also the "hellp" problem). Shown on the matching system pages (OB cross-references).
+    var preeclampsiaFeatures: Set<String> = []
+    /// Gestational diabetes: "controlled" or "uncontrolled"; on insulin.
+    var gdmControl: String?
+    var gdmInsulin = false
+    /// Peripartum cardiomyopathy: the LVEF, %; below 40 is the ASA's class IV example ("peripartum-cm").
+    var ppcmEF: Double?
+    /// Placenta: "previa", "accreta".
+    var placenta: Set<String> = []
+    /// Thrombophilia in pregnancy, anticoagulated: nil not asked, false No; Yes is the "thrombophilia" problem.
+    var obThrombophiliaAnticoag: Bool?
+
+    // Musculoskeletal
+    var arthritisLocation = ""
+    var fractureLocation = ""
+    /// Marfan or Ehlers-Danlos: valve disease or aortopathy? nil not asked, false No, true Yes (recorded on the
+    /// Cardiovascular page).
+    var ctdCardiovascular: Bool?
+    var compartmentLocation = ""
+
+    // Smoking & substances (smoking itself is PatientRecord.smoking)
+    var smokingQuitYear: Int?
+    /// Estimated pack-years.
+    var packYears: Double?
+    /// Alcohol: none (the other answers are problem ids).
+    var alcoholNone = false
+    /// Illicit drug use, Other: as typed.
+    var drugsOther = ""
+
     init() {}
 
     init(from decoder: Decoder) throws {
@@ -139,6 +305,74 @@ struct PatientHistoryDetails: Codable, Hashable {
         cpapSettings = v(.cpapSettings, "")
         respInfectionType = v(.respInfectionType, "")
         homeO2Flow = try? c.decodeIfPresent(Double.self, forKey: .homeO2Flow)
+        afType = try? c.decodeIfPresent(String.self, forKey: .afType)
+        pacerDependent = v(.pacerDependent, false)
+        ciedSide = try? c.decodeIfPresent(String.self, forKey: .ciedSide)
+        endocarditisDetails = v(.endocarditisDetails, "")
+        pleuralSide = try? c.decodeIfPresent(String.self, forKey: .pleuralSide)
+        pleuralFluid = try? c.decodeIfPresent(String.self, forKey: .pleuralFluid)
+        pleuralDrained = try? c.decodeIfPresent(Bool.self, forKey: .pleuralDrained)
+        chestTube = try? c.decodeIfPresent(Bool.self, forKey: .chestTube)
+        chestTubeSides = v(.chestTubeSides, [])
+        visualImpairment = try? c.decodeIfPresent(String.self, forKey: .visualImpairment)
+        psychOther = v(.psychOther, "")
+        ckdStage = try? c.decodeIfPresent(String.self, forKey: .ckdStage)
+        dialysisSchedule = try? c.decodeIfPresent(String.self, forKey: .dialysisSchedule)
+        dialysisScheduleOther = v(.dialysisScheduleOther, "")
+        dialysisAccess = v(.dialysisAccess, [])
+        fistulaSite = v(.fistulaSite, "")
+        dialysisCatheterSite = v(.dialysisCatheterSite, "")
+        gastricBypassDetails = v(.gastricBypassDetails, "")
+        esophagealDisorderType = v(.esophagealDisorderType, "")
+        esophagealProcedure = try? c.decodeIfPresent(Bool.self, forKey: .esophagealProcedure)
+        esophagealProcedureDetails = v(.esophagealProcedureDetails, "")
+        giBleedStatus = try? c.decodeIfPresent(String.self, forKey: .giBleedStatus)
+        giBleedSite = try? c.decodeIfPresent(String.self, forKey: .giBleedSite)
+        giBleedDetails = v(.giBleedDetails, "")
+        dmNoInsulin = v(.dmNoInsulin, false)
+        thyroidType = try? c.decodeIfPresent(String.self, forKey: .thyroidType)
+        adrenalKinds = v(.adrenalKinds, [])
+        steroidDrug = v(.steroidDrug, "")
+        steroidDailyMg = try? c.decodeIfPresent(Double.self, forKey: .steroidDailyMg)
+        steroidDuration = try? c.decodeIfPresent(String.self, forKey: .steroidDuration)
+        bleedingOther = v(.bleedingOther, "")
+        thrombophiliaOther = v(.thrombophiliaOther, "")
+        anticoagulants = v(.anticoagulants, [:])
+        declinesBloodDetails = v(.declinesBloodDetails, "")
+        vteTiming = try? c.decodeIfPresent(String.self, forKey: .vteTiming)
+        vteDate = v(.vteDate, "")
+        sepsisSource = v(.sepsisSource, "")
+        sepsisAntibiotic = v(.sepsisAntibiotic, "")
+        hivViralLoad = v(.hivViralLoad, "")
+        hepatitisTypes = v(.hepatitisTypes, [])
+        covidStatus = try? c.decodeIfPresent(String.self, forKey: .covidStatus)
+        covidTestDate = v(.covidTestDate, "")
+        tbStatus = try? c.decodeIfPresent(String.self, forKey: .tbStatus)
+        precautions = v(.precautions, [])
+        shockTypes = v(.shockTypes, [])
+        traumaDetails = v(.traumaDetails, "")
+        gravida = try? c.decodeIfPresent(Int.self, forKey: .gravida)
+        para = try? c.decodeIfPresent(Int.self, forKey: .para)
+        abortus = try? c.decodeIfPresent(Int.self, forKey: .abortus)
+        living = try? c.decodeIfPresent(Int.self, forKey: .living)
+        gestationWeeks = try? c.decodeIfPresent(Int.self, forKey: .gestationWeeks)
+        gestationDays = try? c.decodeIfPresent(Int.self, forKey: .gestationDays)
+        priorCesarean = try? c.decodeIfPresent(Bool.self, forKey: .priorCesarean)
+        cesareanLastBirth = try? c.decodeIfPresent(Bool.self, forKey: .cesareanLastBirth)
+        preeclampsiaFeatures = v(.preeclampsiaFeatures, [])
+        gdmControl = try? c.decodeIfPresent(String.self, forKey: .gdmControl)
+        gdmInsulin = v(.gdmInsulin, false)
+        ppcmEF = try? c.decodeIfPresent(Double.self, forKey: .ppcmEF)
+        placenta = v(.placenta, [])
+        obThrombophiliaAnticoag = try? c.decodeIfPresent(Bool.self, forKey: .obThrombophiliaAnticoag)
+        arthritisLocation = v(.arthritisLocation, "")
+        fractureLocation = v(.fractureLocation, "")
+        ctdCardiovascular = try? c.decodeIfPresent(Bool.self, forKey: .ctdCardiovascular)
+        compartmentLocation = v(.compartmentLocation, "")
+        smokingQuitYear = try? c.decodeIfPresent(Int.self, forKey: .smokingQuitYear)
+        packYears = try? c.decodeIfPresent(Double.self, forKey: .packYears)
+        alcoholNone = v(.alcoholNone, false)
+        drugsOther = v(.drugsOther, "")
     }
 
     // MARK: Fixed lists
@@ -303,6 +537,8 @@ enum HistorySections {
                        replacesBase: ["mi", "cad-recent", "pci", "pci-recent", "ischemia", "cabg"]),
         HistorySection(id: "hf", title: "Heart failure", base: "hf", members: ["hf", "hf-decomp", "ef-moderate", "ef-severe"], replacesBase: ["hf-decomp"]),
         HistorySection(id: "valves", title: "Valve disease", base: nil, members: ["valve-severe"]),
+        // The Infectious item, shown here too (1.9): one id, either page.
+        HistorySection(id: "endocarditis", title: "Infective endocarditis", base: "endocarditis", members: ["endocarditis"]),
         HistorySection(id: "arrhythmia", title: "Arrhythmia", base: nil, members: ["af", "arrhythmia"]),
         HistorySection(id: "device", title: "Pacemaker / ICD", base: nil, members: ["pacemaker", "icd"]),
         HistorySection(id: "pulm-htn", title: "Pulmonary hypertension", base: "pulm-htn", members: ["pulm-htn", "pulm-htn-severe"], replacesBase: ["pulm-htn-severe"]),
@@ -311,8 +547,7 @@ enum HistorySections {
         HistorySection(id: "pvd", title: "Peripheral vascular disease", base: "pvd", members: ["pvd"]),
         HistorySection(id: "chd", title: "Congenital heart disease", base: "chd", members: ["chd", "chd-elevated"], replacesBase: ["chd-elevated"]),
         HistorySection(id: "cardiac-surgery", title: "Previous cardiac surgery", base: nil, members: []),
-        HistorySection(id: "other", title: "Other", base: nil, members: []),
-    ]
+    ] + closing("cv")
 
     static let resp: [HistorySection] = [
         HistorySection(id: "asthma", title: "Asthma", base: "asthma", members: ["asthma", "asthma-uncontrolled"], replacesBase: ["asthma-uncontrolled"]),
@@ -321,8 +556,8 @@ enum HistorySections {
         HistorySection(id: "resp-infection", title: "Respiratory infection", base: nil, members: ["uri", "pneumonia", "resp-infection-other"]),
         HistorySection(id: "ild", title: "Interstitial lung disease", base: "ild", members: ["ild"]),
         HistorySection(id: "home-o2", title: "Home oxygen", base: "home-o2", members: ["home-o2"]),
-        HistorySection(id: "other", title: "Other", base: nil, members: []),
-    ]
+        HistorySection(id: "pleural", title: "Pleural effusion or pneumothorax", base: nil, members: ["pleural-effusion", "pneumothorax"]),
+    ] + closing("resp")
 
     /// Neurologic (1.8.2). Stroke or TIA keeps "Stroke or TIA, unspecified" (cva-unspec) as the item chosen alone, whose timing
     /// is not recorded; Within 3 months (cva-recent) or Over 3 months (cva) replaces it. An intracranial bleed alone is "ich";
@@ -337,8 +572,144 @@ enum HistorySections {
         HistorySection(id: "neuromuscular", title: "Neuromuscular disease", base: "neuromuscular", members: ["neuromuscular"]),
         HistorySection(id: "sci", title: "Spinal cord injury", base: "sci", members: ["sci"]),
         HistorySection(id: "chronic-pain", title: "Chronic pain or opioid tolerance", base: "chronic-pain", members: ["chronic-pain"]),
-        HistorySection(id: "other", title: "Other", base: nil, members: []),
-    ]
+        HistorySection(id: "visual", title: "Visual impairment", base: "visual-impairment", members: ["visual-impairment"]),
+        HistorySection(id: "psych", title: "Psychological disorder", base: "psych", members: ["psych", "mdd", "anxiety"]),
+        // The Musculoskeletal item, shown here too (1.9).
+        HistorySection(id: "cspine", title: "Unstable C-spine", base: "cspine-unstable", members: ["cspine-unstable"]),
+    ] + closing("neuro")
+
+    // MARK: 1.9 pages (Ben's Wanted Changes), in his order. Every page ends with Other [system] disorders and Other
+    // details (closing(_:)), both always open.
+
+    static let renal: [HistorySection] = [
+        HistorySection(id: "ckd", title: "CKD/ESRD", base: "ckd", members: ["ckd", "esrd-no-dialysis"]),
+        HistorySection(id: "aki", title: "Acute kidney injury", base: "aki", members: ["aki"]),
+        HistorySection(id: "prostate", title: "Prostate disease", base: nil, members: ["bph", "prostate-cancer"]),
+        HistorySection(id: "hemodialysis", title: "Hemodialysis", base: "esrd-dialysis", members: ["esrd-dialysis"]),
+    ] + closing("renal")
+
+    static let gi: [HistorySection] = [
+        HistorySection(id: "gerd", title: "Reflux/GERD", base: "gerd", members: ["gerd"]),
+        HistorySection(id: "gastric-bypass", title: "History of gastric bypass", base: "gastric-bypass", members: ["gastric-bypass"]),
+        HistorySection(id: "esophageal", title: "Dysphagia or esophageal disorder", base: nil, members: ["dysphagia", "esophageal-disorder"]),
+        HistorySection(id: "hiatal-hernia", title: "Hiatal hernia", base: "hiatal-hernia", members: ["hiatal-hernia"]),
+        HistorySection(id: "varices", title: "Esophageal varices", base: "varices", members: ["varices"]),
+        HistorySection(id: "cirrhosis", title: "Cirrhosis", base: "cirrhosis", members: ["cirrhosis"]),
+        // Not in Ben's list; kept, as the ASA's class III example ("active hepatitis").
+        HistorySection(id: "hepatitis-active", title: "Active hepatitis", base: "hepatitis-active", members: ["hepatitis-active"]),
+        HistorySection(id: "gastroparesis", title: "Gastroparesis", base: "gastroparesis", members: ["gastroparesis"]),
+        HistorySection(id: "gi-bleed", title: "GI bleed", base: "gi-bleed", members: ["gi-bleed"]),
+        HistorySection(id: "full-stomach", title: "Full stomach or bowel obstruction", base: "full-stomach", members: ["full-stomach"]),
+    ] + closing("gi")
+
+    /// Diabetes keeps "dm" with "insulin" beside it (not in its place): the ASA's class II example is read from "dm".
+    static let endo: [HistorySection] = [
+        HistorySection(id: "dm", title: "Diabetes", base: "dm", members: ["dm", "insulin"]),
+        HistorySection(id: "thyroid", title: "Thyroid disease", base: "thyroid", members: ["thyroid"]),
+        HistorySection(id: "adrenal", title: "Adrenal insufficiency or chronic steroids", base: "adrenal", members: ["adrenal"]),
+    ] + closing("endo")
+
+    static let heme: [HistorySection] = [
+        HistorySection(id: "anemia", title: "Anemia", base: "anemia", members: ["anemia"]),
+        HistorySection(id: "thrombocytopenia", title: "Thrombocytopenia", base: "thrombocytopenia", members: ["thrombocytopenia"]),
+        HistorySection(id: "bleeding", title: "Bleeding disorder or coagulopathy", base: "bleeding",
+                       members: ["bleeding", "vwd", "hemophilia-a", "hemophilia-b", "dic"]),
+        HistorySection(id: "thrombophilia", title: "Thrombophilia", base: "thrombophilia-heme", members: ["thrombophilia-heme", "fvl"]),
+        HistorySection(id: "anticoagulation", title: "On anticoagulation", base: "anticoagulation", members: ["anticoagulation"]),
+        HistorySection(id: "declines-blood", title: "Declines blood products", base: "declines-blood", members: ["declines-blood"]),
+        HistorySection(id: "vte", title: "DVT/PE", base: "vte", members: ["vte"]),
+        // Not in Ben's list; kept from 1.8.
+        HistorySection(id: "sickle", title: "Sickle cell disease", base: "sickle", members: ["sickle"]),
+    ] + closing("heme")
+
+    /// Sepsis is the Acute illness item and URI and pneumonia the Respiratory ones, shown here with the same ids.
+    static let infectious: [HistorySection] = [
+        HistorySection(id: "sepsis", title: "Sepsis", base: "sepsis", members: ["sepsis"]),
+        HistorySection(id: "mdro", title: "MRSA or VRE", base: "mdro", members: ["mdro"]),
+        HistorySection(id: "uri", title: "Upper respiratory tract infection", base: "uri", members: ["uri"]),
+        HistorySection(id: "hiv", title: "HIV", base: "hiv", members: ["hiv"]),
+        HistorySection(id: "hepatitis", title: "Viral hepatitis", base: "hepatitis-viral", members: ["hepatitis-viral"]),
+        HistorySection(id: "covid", title: "COVID-19", base: "covid-recent", members: ["covid-recent"]),
+        HistorySection(id: "pneumonia", title: "Pneumonia", base: "pneumonia", members: ["pneumonia"]),
+        HistorySection(id: "c-diff", title: "C. difficile", base: "c-diff", members: ["c-diff"]),
+        HistorySection(id: "tb", title: "Tuberculosis", base: "tb", members: ["tb"]),
+        HistorySection(id: "endocarditis", title: "Infective endocarditis", base: "endocarditis", members: ["endocarditis"]),
+        // Not in Ben's list; kept from 1.8.1.
+        HistorySection(id: "infection-active", title: "Active infection", base: "infection-active", members: ["infection-active"]),
+        HistorySection(id: "isolation", title: "Isolation precautions", base: "isolation", members: ["isolation"]),
+    ] + closing("infectious")
+
+    /// Shock is its own item and an option of Sepsis (one id); the dissections are the Cardiovascular page's.
+    static let acute: [HistorySection] = [
+        HistorySection(id: "sepsis", title: "Sepsis", base: "sepsis", members: ["sepsis"]),
+        HistorySection(id: "shock", title: "Shock", base: "shock", members: ["shock"]),
+        HistorySection(id: "trauma", title: "Massive trauma or burn", base: nil, members: ["massive-trauma", "burn"]),
+        HistorySection(id: "aorta-acute", title: "Aortic dissection or rupture", base: nil, members: ["dissection-a", "dissection-b", "ruptured-aneurysm"]),
+    ] + closing("acute")
+
+    /// Thrombophilia is the Hematologic item ("thrombophilia-heme"); anticoagulated in pregnancy adds the ASA's
+    /// obstetric example ("thrombophilia") beside it. Peripartum cardiomyopathy alone is "ppcm" (LVEF < 45%); an EF
+    /// below 40% replaces it with the ASA's class IV example ("peripartum-cm").
+    static let ob: [HistorySection] = [
+        HistorySection(id: "pregnant", title: "Pregnant", base: "pregnant", members: ["pregnant"]),
+        HistorySection(id: "gest-htn", title: "Gestational hypertension (controlled)", base: "gest-htn", members: ["gest-htn"]),
+        HistorySection(id: "preeclampsia", title: "Preeclampsia", base: nil, members: ["preeclampsia", "preeclampsia-severe", "hellp"]),
+        HistorySection(id: "gdm", title: "Gestational diabetes", base: "gdm", members: ["gdm", "gdm-diet", "gdm-complex"]),
+        HistorySection(id: "ppcm", title: "Peripartum cardiomyopathy (LVEF < 45%)", base: "ppcm", members: ["ppcm", "peripartum-cm"], replacesBase: ["peripartum-cm"]),
+        HistorySection(id: "placenta", title: "Placenta previa or accreta", base: "previa-accreta", members: ["previa-accreta"]),
+        HistorySection(id: "uterine-rupture", title: "Uterine rupture", base: nil, members: ["uterine-rupture", "uterine-rupture-past"]),
+        HistorySection(id: "thrombophilia", title: "Thrombophilia", base: "thrombophilia-heme", members: ["thrombophilia-heme", "thrombophilia"]),
+    ] + closing("ob")
+
+    static let msk: [HistorySection] = [
+        HistorySection(id: "arthritis", title: "Arthritis", base: nil, members: ["ra", "oa"]),
+        HistorySection(id: "spine", title: "Spine disorders", base: nil, members: ["spine-fusion", "cspine-unstable", "scoliosis"]),
+        HistorySection(id: "fracture", title: "Fracture", base: "fracture", members: ["fracture"]),
+        HistorySection(id: "muscular-dystrophy", title: "Muscular dystrophy", base: "muscular-dystrophy", members: ["muscular-dystrophy"]),
+        HistorySection(id: "ctd", title: "Connective tissue disorder", base: nil, members: ["marfan", "eds"]),
+        HistorySection(id: "compartment", title: "Compartment syndrome", base: "compartment-syndrome", members: ["compartment-syndrome"]),
+    ] + closing("msk")
+
+    /// Smoking is PatientRecord.smoking; alcohol is one answer among none and three problem ids.
+    static let social: [HistorySection] = [
+        HistorySection(id: "smoking", title: "Smoking", base: nil, members: []),
+        HistorySection(id: "alcohol", title: "Alcohol", base: nil, members: ["alcohol-social", "alcohol-abuse", "alcohol-abuse-former"]),
+        HistorySection(id: "drugs", title: "Illicit drug use", base: "substance", members: ["substance", "cocaine", "opioid-use", "marijuana", "methamphetamine"]),
+    ] + closing("social")
+
+    /// The two items every page ends with (1.9): Other [system] disorders (PatientRecord.systemOther) and Other details
+    /// (PatientRecord.systemNotes, the 1.8 "Other"), both free text, capitalized when left.
+    static func closing(_ system: String) -> [HistorySection] {
+        [HistorySection(id: "other-disorders", title: otherTitle(system), base: nil, members: []),
+         HistorySection(id: "other", title: "Other details", base: nil, members: [])]
+    }
+
+    /// The first closing item's title, in Ben's words where his list gives them.
+    static func otherTitle(_ system: String) -> String {
+        switch system {
+        case "cv": return "Other cardiovascular disorders"
+        case "resp": return "Other respiratory disorders"
+        case "neuro": return "Other neurological disorders"
+        case "renal": return "Other renal disease"
+        case "gi": return "Other GI & liver disease"
+        case "endo": return "Other endocrine disorders"
+        case "heme": return "Other hematologic disorders"
+        case "infectious": return "Other infectious disorders"
+        case "acute": return "Other acute illnesses"
+        case "ob": return "Other obstetric disorders or concerns"
+        case "msk": return "Other musculoskeletal disorders"
+        case "social": return "Other substance use"
+        default: return "Other disorders"
+        }
+    }
+
+    /// Items shown on a page whose ids are another system's (one record, two pages): Sepsis, URI and pneumonia on
+    /// Infectious, endocarditis on Cardiovascular, the dissections on Acute illness, the unstable cervical spine on
+    /// Neurologic, Thrombophilia on Obstetric. The summary lists each under its own system only.
+    static func isShared(_ s: HistorySection, on system: String) -> Bool {
+        guard let first = (s.base ?? s.members.first), let home = PatientCatalog.system(of: first)?.id else { return false }
+        return home != system
+    }
 
     /// The systems drawn as expanding sections.
     static func sections(_ system: String) -> [HistorySection]? {
@@ -346,6 +717,15 @@ enum HistorySections {
         case "cv": return cv
         case "resp": return resp
         case "neuro": return neuro
+        case "renal": return renal
+        case "gi": return gi
+        case "endo": return endo
+        case "heme": return heme
+        case "infectious": return infectious
+        case "acute": return acute
+        case "ob": return ob
+        case "msk": return msk
+        case "social": return social
         default: return nil
         }
     }
@@ -361,6 +741,15 @@ enum HistorySections {
         case "aorta": return !d.aneurysms.isEmpty || !d.repairDetails.isEmpty
         case "cardiac-surgery": return !PatientHistoryDetails.cardiacSurgeryText(r).isEmpty
         case "other": return !(r.systemNotes[system] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case "other-disorders": return !(r.systemOther[system] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case "esophageal": return !trimmed(d.esophagealDisorderType).isEmpty || d.esophagealProcedure != nil
+        case "preeclampsia": return !d.preeclampsiaFeatures.isEmpty
+        case "trauma": return !trimmed(d.traumaDetails).isEmpty
+        case "smoking": return r.smoking != nil || d.smokingQuitYear != nil || d.packYears != nil
+        case "alcohol": return d.alcoholNone
+        case "pleural": return d.pleuralSide != nil || d.pleuralDrained != nil
+        case "arthritis": return !trimmed(d.arthritisLocation).isEmpty
+        case "ctd": return d.ctdCardiovascular != nil
         default: return false
         }
     }
@@ -377,8 +766,8 @@ enum HistorySections {
         switch s.id {
         case "hf": r.hx.hfCompensated = false
         case "valves": r.hx.valves = [:]; r.hx.prosthesisUnplaced = false; r.hx.severeUnplaced = false
-        case "arrhythmia": r.hx.arrhythmiaType = ""
-        case "device": r.hx.deviceDetails = ""
+        case "arrhythmia": r.hx.arrhythmiaType = ""; r.hx.afType = nil
+        case "device": r.hx.deviceDetails = ""; r.hx.pacerDependent = false; r.hx.ciedSide = nil
         case "pulm-htn": r.hx.pulmHtnSeverity = nil
         case "aorta": r.hx.aneurysms = [:]; r.hx.repairDetails = ""
         case "pvd": r.hx.pvdDetails = ""
@@ -389,6 +778,53 @@ enum HistorySections {
         case "osa": r.hx.osaNoCPAP = false; r.hx.cpapSettings = ""
         case "resp-infection": r.hx.respInfectionType = ""
         case "home-o2": r.hx.homeO2Flow = nil
+        case "other-disorders": r.systemOther[system] = nil
+        // 1.9
+        case "endocarditis": r.hx.endocarditisDetails = ""
+        case "pleural": r.hx.pleuralSide = nil; r.hx.pleuralFluid = nil; r.hx.pleuralDrained = nil; r.hx.chestTube = nil; r.hx.chestTubeSides = []
+        case "visual": r.hx.visualImpairment = nil
+        case "psych": r.hx.psychOther = ""
+        case "ckd": r.hx.ckdStage = nil
+        case "hemodialysis":
+            r.hx.dialysisSchedule = nil; r.hx.dialysisScheduleOther = ""; r.hx.dialysisAccess = []
+            r.hx.fistulaSite = ""; r.hx.dialysisCatheterSite = ""
+        case "gastric-bypass": r.hx.gastricBypassDetails = ""
+        case "esophageal": r.hx.esophagealDisorderType = ""; r.hx.esophagealProcedure = nil; r.hx.esophagealProcedureDetails = ""
+        case "gi-bleed": r.hx.giBleedStatus = nil; r.hx.giBleedSite = nil; r.hx.giBleedDetails = ""
+        case "dm": r.hx.dmNoInsulin = false
+        case "thyroid": r.hx.thyroidType = nil
+        case "adrenal": r.hx.adrenalKinds = []; r.hx.steroidDrug = ""; r.hx.steroidDailyMg = nil; r.hx.steroidDuration = nil
+        case "bleeding": r.hx.bleedingOther = ""
+        case "thrombophilia":
+            // One disease on two pages: cleared on either, it goes with its Factor V Leiden and its anticoagulation in
+            // pregnancy.
+            r.problems.subtract(["thrombophilia-heme", "fvl", "thrombophilia"])
+            r.hx.thrombophiliaOther = ""; r.hx.obThrombophiliaAnticoag = nil
+        case "anticoagulation": r.hx.anticoagulants = [:]
+        case "declines-blood": r.hx.declinesBloodDetails = ""
+        case "vte": r.hx.vteTiming = nil; r.hx.vteDate = ""
+        case "sepsis": r.hx.sepsisSource = ""; r.hx.sepsisAntibiotic = ""
+        case "hiv": r.hx.hivViralLoad = ""
+        case "hepatitis": r.hx.hepatitisTypes = []
+        case "covid": r.hx.covidStatus = nil; r.hx.covidTestDate = ""
+        case "tb": r.hx.tbStatus = nil
+        case "isolation": r.hx.precautions = []
+        case "shock": r.hx.shockTypes = []
+        case "trauma": r.hx.traumaDetails = ""
+        case "pregnant":
+            r.hx.gravida = nil; r.hx.para = nil; r.hx.abortus = nil; r.hx.living = nil; r.hx.gestationWeeks = nil; r.hx.gestationDays = nil
+            r.hx.priorCesarean = nil; r.hx.cesareanLastBirth = nil
+        case "preeclampsia": r.hx.preeclampsiaFeatures = []
+        case "gdm": r.hx.gdmControl = nil; r.hx.gdmInsulin = false
+        case "ppcm": r.hx.ppcmEF = nil
+        case "placenta": r.hx.placenta = []
+        case "arthritis": r.hx.arthritisLocation = ""
+        case "fracture": r.hx.fractureLocation = ""
+        case "ctd": r.hx.ctdCardiovascular = nil
+        case "compartment": r.hx.compartmentLocation = ""
+        case "smoking": r.smoking = nil; r.hx.smokingQuitYear = nil; r.hx.packYears = nil
+        case "alcohol": r.hx.alcoholNone = false
+        case "drugs": r.hx.drugsOther = ""
         default: break
         }
         PatientHistoryDetails.sync(&r)

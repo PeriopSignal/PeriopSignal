@@ -155,6 +155,8 @@ enum PatientSummary {
         for sys in PatientCatalog.allSystems {
             var items = HistorySections.items(sys, r)
             if sys.id == "social", let s = r.smoking { items.insert(smokingText(s), at: 0) }
+            // Other [system] disorders, then Other details (1.9).
+            if let o = r.systemOther[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !o.isEmpty { items.append(o) }
             if let n = r.systemNotes[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty { items.append(n) }
             if !items.isEmpty { out.append(Line(sys.name, items.joined(separator: "; "))) }
         }

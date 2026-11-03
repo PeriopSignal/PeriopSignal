@@ -149,6 +149,9 @@ struct PatientHistorySectionsView: View {
         case "other":
             HistoryInlineField(prompt: "Anything else", capitalizes: true, text: Binding(get: { patient.record.systemNotes[system.id] ?? "" },
                                                                      set: { v in edit { $0.systemNotes[system.id] = v.isEmpty ? nil : v } }))
+        case "other-disorders":
+            HistoryInlineField(prompt: s.title, capitalizes: true, text: Binding(get: { patient.record.systemOther[system.id] ?? "" },
+                                                                 set: { v in edit { $0.systemOther[system.id] = v.isEmpty ? nil : v } }))
         case "stroke":
             PatientChoice(options: [(id: "cva-recent", label: "Within 3 months"), (id: "cva", label: "Over 3 months")], selection: choice(["cva-recent", "cva"], s))
         case "ich":

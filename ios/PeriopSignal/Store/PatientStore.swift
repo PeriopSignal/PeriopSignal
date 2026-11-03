@@ -88,6 +88,8 @@ final class PatientStore {
         if !loaded { reload() }
         var r = record
         change(&r)
+        // Fills follow their sources whatever made the change (1.9).
+        PatientCrossFill.apply(before: record, after: &r)
         guard r != record else { return }
         history.willChange(record, case: book.currentID, discrete: discrete || takeDiscreteMark(now), now: now)
         r.updated = now
