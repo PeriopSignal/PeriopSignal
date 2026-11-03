@@ -66,7 +66,8 @@ enum PatientRules {
         for p in PatientCatalog.allProblems where r.problems.contains(p.id) {
             guard let a = asaLevel(p, r) else { continue }
             let ex = child && p.peds != nil ? p.pedsExample : p.asaExample
-            found.append(AsaReason(finding: p.label, level: a, example: example(p.label, ex)))
+            let finding = asaFinding(p, r)
+            found.append(AsaReason(finding: finding, level: a, example: example(finding, ex)))
         }
         if child {
             if let a = r.ageYears, a < sixWeeksInYears, !r.problems.contains("p-infant6wk"), !r.problems.contains("p-premature60") {
@@ -93,6 +94,20 @@ enum PatientRules {
         return AsaSuggestion(level: top, reasons: reasons, emergency: r.emergency)
     }
 
+    /// What the ASA table calls a recorded problem: its label, except severe valve disease, named by its lesions
+    /// ("Aortic stenosis, severe") or, saved before 1.8.1 without its valve, "Severe valve disease, valve not recorded".
+    static func asaFinding(_ p: PatientProblem, _ r: PatientRecord) -> String {
+        guard p.id == "valve-severe" else { return p.label }
+        var lesions: [String] = []
+        for (v, name) in PatientHistoryDetails.valveNames {
+            let x = r.hx.valve(v)
+            if x.stenosis, x.stenosisGrade == "severe" { lesions.append(name + " stenosis, severe") }
+            if x.regurgitation, x.regurgitationGrade == "severe" { lesions.append(name + " regurgitation, severe") }
+        }
+        if lesions.isEmpty { return p.label + ", valve not recorded" }
+        return lesions.joined(separator: "; ")
+    }
+
     /// The class to show: the clinician's choice, with E from their choice or from the urgency.
     static func asaText(_ r: PatientRecord) -> String? {
         guard let c = r.asaClass else { return nil }
@@ -117,8 +132,9 @@ enum PatientRules {
         case "ariscat":
             if let a = r.ageYears { s.choices["age"] = a <= 50 ? "≤ 50" : (a <= 80 ? "51–80" : "> 80") }
             if let o = r.vitals["spo2"] { s.choices["spo2"] = o >= 96 ? "≥ 96%" : (o > 90 ? "91–95%" : "≤ 90%") }
-            // A recent COVID-19 (Infectious) is a respiratory infection in the last month for ARISCAT, without a second chip.
-            if r.has("uri") || r.has("covid-recent") { s.on.insert("infection") }
+            // Any respiratory infection (URI, pneumonia, other) and a recent COVID-19 (Infectious) are ARISCAT's respiratory
+            // infection in the last month.
+            if !r.problems.isDisjoint(with: respiratoryInfections) || r.has("covid-recent") { s.on.insert("infection") }
             if let hb = r.labs["hb"], hb <= 10 { s.on.insert("anemia") }
             if let i = r.incision { s.choices["incision"] = i }
             if let d = r.duration { s.choices["duration"] = d }
@@ -137,6 +153,9 @@ enum PatientRules {
         }
         return s
     }
+
+    /// The Respiratory page's infections (1.8.1).
+    static let respiratoryInfections: Set<String> = ["uri", "pneumonia", "resp-infection-other"]
 
     /// "RCRI 1 · Class II · 1 predictor": a saved result in one line.
     static func scoreLine(_ id: String, _ sc: PatientScore) -> String {
@@ -173,7 +192,7 @@ enum PatientRules {
         if r.anesthesiaHistory.contains("mh") {
             out.append(PatientPrompt(id: "mh", title: "Malignant hyperthermia", why: "Personal or family history: plan a trigger-free anesthetic", route: "quickref:mhaus-mh", done: nil))
         }
-        if r.has("as") || r.has("mr") || r.has("valve-severe") || r.has("prosthetic-valve") {
+        if r.hx.hasValveDisease || r.has("valve-severe") {
             out.append(PatientPrompt(id: "valves", title: "Valve grading", why: "Valve disease recorded", route: "valves", done: nil))
         }
         return out
@@ -249,7 +268,8 @@ enum PatientAirway {
         if let b = r.bmi, b > 26 { out.append("BMI over 26") }
         if r.airwaySigns.contains("beard") { out.append("beard") }
         if r.airwaySigns.contains("edentulous") { out.append("no teeth") }
-        if r.has("snoring") { out.append("snoring") }
+        // Snoring is a STOP-BANG answer since 1.8.1 (no longer a History item): the saved STOP-BANG's.
+        if r.scores["stopbang"]?.on?.contains("snoring") == true { out.append("snoring") }
         return out
     }
 
