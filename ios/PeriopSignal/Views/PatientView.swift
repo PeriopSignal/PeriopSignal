@@ -127,6 +127,9 @@ struct PatientView: View {
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
                         if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 2.6, execute: go) }
+                        // Once more, for a target that appears only when the reference data has loaded (the handoff's
+                        // lines figure) on a slow simulator.
+                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: go) }
                     }
                     #endif
                     // The first time (not in screenshot runs unless -ps.tips 1), once the tab has settled.

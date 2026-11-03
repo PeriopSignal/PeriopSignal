@@ -434,6 +434,7 @@ struct PatientDevicesEditor: View {
                 .padding(.horizontal, 14).padding(.bottom, 10)
             }
         }
+        .id("devicetype")
     }
 
     private func addTyped() {
