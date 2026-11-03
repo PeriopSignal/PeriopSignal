@@ -52,7 +52,9 @@ final class MedAbbreviationsTests: XCTestCase {
         XCTAssertFalse(found.contains("problem:prosthetic-valve-aortic"), "AVr is a repair")
         XCTAssertFalse(found.contains("problem:cad"), "CAD with a CABG files the CABG under CAD (1.8.1)")
         XCTAssertEqual(change(r, "cardiac-surgery"), .cardiacSurgery("CABG x3 2015"))
-        XCTAssertEqual(r.previous, "AVr 2020", "a valve repair is a past operation")
+        // 1.8.3 (Ben): a valve repair listed after an s/p is a past operation, so it goes to Past surgical history.
+        XCTAssertEqual(r.previous, "")
+        XCTAssertEqual(change(r, "psh:avr|2020"), .pastSurgery("AVr", PatientMonthYear(year: 2020)))
         XCTAssertEqual(r.other, "")
         XCTAssertTrue(r.ambiguous.isEmpty)
         XCTAssertTrue(r.unknown.isEmpty)

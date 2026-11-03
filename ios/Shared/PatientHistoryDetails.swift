@@ -248,6 +248,12 @@ struct PatientHistoryDetails: Codable, Hashable {
         return s.name
     }
 
+    /// The same operation for a summary: with its date when the entry has one ("Aortic valve replacement (06/2025)").
+    static func cardiacSurgeryDisplay(_ r: PatientRecord) -> String {
+        guard let id = r.hx.cardiacSurgeryID, let s = r.surgeries.first(where: { $0.id == id }) else { return "" }
+        return s.text
+    }
+
     /// Sets Previous cardiac surgery: its entry in the past surgical history is added (or an entry with the same words
     /// is used, so nothing is listed twice), renamed as it is edited, and removed when it is cleared. The entry is marked
     /// cardiac or thoracic, so it shows under Previous intrathoracic surgery too.
@@ -467,7 +473,7 @@ enum HistorySections {
         if p.contains("chd") || p.contains("chd-elevated") {
             out.append("congenital heart disease" + (p.contains("chd-elevated") ? ", complex lesion" : "") + paren(d.chdDetails))
         }
-        let surgery = PatientHistoryDetails.cardiacSurgeryText(r)
+        let surgery = PatientHistoryDetails.cardiacSurgeryDisplay(r)
         if !trimmed(surgery).isEmpty { out.append("previous cardiac surgery: " + trimmed(surgery)) }
         return out
     }

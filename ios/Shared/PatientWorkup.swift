@@ -20,23 +20,130 @@ struct PatientMonthYear: Codable, Hashable {
         return String(format: "%02d/%d", m, y)
     }
 
-    /// Reads "03/2019", "3/19", "2019" or "Mar 2019".
-    static func parse(_ s: String) -> PatientMonthYear? {
-        let t = s.trimmingCharacters(in: .whitespaces).lowercased()
+    private static let monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+
+    /// A two-digit year: 20YY when that is no later than next year, else 19YY ("26" is 2026 and "28" is 1928 in 2026).
+    static func fullYear(twoDigit yy: Int, now: Date = Date()) -> Int {
+        let this = Calendar.current.component(.year, from: now)
+        return 2000 + yy <= this + 1 ? 2000 + yy : 1900 + yy
+    }
+
+    private static func isDigits(_ s: String) -> Bool { !s.isEmpty && s.allSatisfy { $0.isASCII && $0.isWholeNumber } }
+
+    private static func separator(_ c: Character) -> Bool { c == "/" || c == "-" || c == "." || c == " " || c == "," }
+
+    /// Reads a month and year however it is typed (1.8.3, Ben: no "/" needed): "03/2019", "3/19", "6 2026", "6-2026",
+    /// "6.2026", "2026-06", "2019", "Mar 2019", "June 26", and digits alone: "0626" and "062026" (MMYY, MMYYYY), "626"
+    /// and "62026" (M YY, M YYYY). A two-digit year is 20YY when that is no later than next year, else 19YY.
+    static func parse(_ s: String, now: Date = Date()) -> PatientMonthYear? {
+        let t = s.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !t.isEmpty else { return nil }
-        func year(_ y: Int) -> Int? {
-            if y >= 1900 && y <= 2100 { return y }
-            if y >= 0 && y < 100 { return y + (y <= (Calendar.current.component(.year, from: Date()) % 100) ? 2000 : 1900) }
-            return nil
+        func year(_ digits: String) -> Int? {
+            guard let y = Int(digits) else { return nil }
+            switch digits.count {
+            case 4: return (1900...2100).contains(y) ? y : nil
+            case 2: return fullYear(twoDigit: y, now: now)
+            default: return nil
+            }
         }
-        let parts = t.split(whereSeparator: { $0 == "/" || $0 == "-" || $0 == " " || $0 == "." }).map(String.init)
-        if parts.count == 1, let y = Int(parts[0]).flatMap(year) { return PatientMonthYear(year: y) }
-        if parts.count == 2, let y = Int(parts[1]).flatMap(year) {
-            if let m = Int(parts[0]), (1...12).contains(m) { return PatientMonthYear(month: m, year: y) }
-            let months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-            if let m = months.firstIndex(where: { parts[0].hasPrefix($0) }) { return PatientMonthYear(month: m + 1, year: y) }
+        func month(_ digits: String) -> Int? {
+            guard digits.count <= 2, let m = Int(digits), (1...12).contains(m) else { return nil }
+            return m
+        }
+        let parts = t.split(whereSeparator: { separator($0) }).map(String.init)
+        if parts.count == 1 {
+            let p = parts[0]
+            guard isDigits(p) else { return nil }
+            switch p.count {
+            case 2: return year(p).map { PatientMonthYear(year: $0) }
+            case 4:
+                if let y = year(p) { return PatientMonthYear(year: y) }
+                if let m = month(String(p.prefix(2))), let y = year(String(p.suffix(2))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            case 3:
+                if let m = month(String(p.prefix(1))), let y = year(String(p.suffix(2))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            case 5:
+                if let m = month(String(p.prefix(1))), let y = year(String(p.suffix(4))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            case 6:
+                if let m = month(String(p.prefix(2))), let y = year(String(p.suffix(4))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            default: return nil
+            }
+        }
+        if parts.count == 2 {
+            let a = parts[0], b = parts[1]
+            if isDigits(a), isDigits(b) {
+                if let m = month(a), let y = year(b) { return PatientMonthYear(month: m, year: y) }
+                // "2026-06"
+                if a.count == 4, let y = year(a), let m = month(b) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            }
+            if a.count >= 3, a.allSatisfy({ $0.isLetter }), isDigits(b), let y = year(b),
+               let m = monthNames.firstIndex(where: { $0.hasPrefix(a) }) {
+                return PatientMonthYear(month: m + 1, year: y)
+            }
         }
         return nil
+    }
+
+    /// The text as it is typed into a month and year field: a "/" goes in by itself after the month ("06" becomes "06/",
+    /// "6" becomes "06/", "062026" becomes "06/2026"), and a "-", "." or space typed after the month becomes it. A year
+    /// alone ("2019", "1999") is left to be typed. Deleting from the end never adds anything, so Backspace goes back through the "/".
+    /// `old` is the text before the change.
+    static func typing(_ new: String, was old: String) -> String {
+        // Deleting from the end (or nothing changed): as it is. Replacing a selection is typing.
+        if old.hasPrefix(new) { return new }
+        guard new.allSatisfy({ ($0.isASCII && $0.isWholeNumber) || separator($0) }) else { return new }
+        let trimmed = new.trimmingCharacters(in: .whitespaces)
+        // Pasted digits that read as a whole date ("62026", "0626"): the date.
+        if isDigits(trimmed), new.count - old.count > 1, let v = parse(trimmed) { return v.text }
+        func pad(_ m: String) -> String { m.count == 1 ? "0" + m : m }
+        let chars = Array(new)
+        var head = ""
+        var i = 0
+        while i < chars.count, chars[i].isASCII, chars[i].isWholeNumber { head.append(chars[i]); i += 1 }
+        let rest = chars[i...]
+        if !rest.isEmpty {
+            // A separator after the month's digits.
+            guard !head.isEmpty, head.count <= 2, let m = Int(head), (1...12).contains(m) else { return new }
+            let year = String(rest.filter { $0.isASCII && $0.isWholeNumber }.prefix(4))
+            return pad(head) + "/" + year
+        }
+        let d = Array(head)
+        guard let d0 = d.first else { return new }
+        // How many leading digits are the month; nil: still a year being typed ("1", "19", "20", "2026").
+        var k: Int?
+        switch d0 {
+        case "0":
+            guard d.count >= 2 else { return new }
+            if d[1] == "0" { return new }
+            k = 2
+        case "1":
+            if d.count == 1 { return new }
+            if d[1] == "9" { k = nil } else if d[1] == "0" || d[1] == "1" || d[1] == "2" { k = 2 } else { k = 1 }
+        case "2":
+            if d.count == 1 { return new }
+            k = d[1] == "0" ? nil : 1
+        default:
+            k = 1
+        }
+        guard let k else { return d.count > 4 ? String(d.prefix(4)) : new }
+        let month = String(d.prefix(k))
+        let year = String(d.dropFirst(k).prefix(4))
+        return pad(month) + "/" + year
+    }
+
+    /// The date a field being typed holds once it is settled; nil while it is still being typed (a trailing "/", a year
+    /// of one or three digits, "20"), so a half-typed text never changes the value.
+    static func parseTyped(_ s: String, now: Date = Date()) -> PatientMonthYear? {
+        let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let last = t.last, last.isLetter || last.isWholeNumber else { return nil }
+        let parts = t.split(whereSeparator: { separator($0) }).map(String.init)
+        if parts.count == 1, isDigits(parts[0]), parts[0].count != 4 { return nil }
+        if parts.count == 2, isDigits(parts[1]), parts[1].count != 2, parts[1].count != 4 { return nil }
+        return parse(t, now: now)
     }
 }
 
@@ -464,10 +571,15 @@ struct PatientLHC: Codable, Hashable {
     var stenosis: [String: Double] = [:]
     var notes = ""
     var date = PatientMonthYear()
+    /// The cath's result in a word (1.8.3, Ben): "non-obstructive" or "no-cad", one at a time. Nothing derives from it: it
+    /// sets no CAD history and changes no score; the vessel percentages stay (a non-obstructive cath can list a 30% LAD).
+    var result: String?
+    static let resultOptions: [(id: String, label: String)] = [("non-obstructive", "Non-obstructive"), ("no-cad", "No CAD")]
 
     init() {}
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
+        result = try? c.decodeIfPresent(String.self, forKey: .result)
         dominance = try? c.decodeIfPresent(String.self, forKey: .dominance)
         stenosis = (try? c.decodeIfPresent([String: Double].self, forKey: .stenosis)) ?? [:]
         notes = (try? c.decodeIfPresent(String.self, forKey: .notes)) ?? ""
@@ -478,7 +590,13 @@ struct PatientLHC: Codable, Hashable {
 
     var isEmpty: Bool { self == PatientLHC() }
 
-    /// "LHC 05/2026, right dominant: LAD 90%, RCA 70%; LM, LCx, PDA no significant disease".
+    /// Words in the notes that already say the cath's result.
+    static let nonObstructiveWords = NoteRx(#"non[- ]?obstructive|no obstructive"#)
+    static let noCADWords = NoteRx(#"\bno[- ]?cad\b|\bno coronary (?:artery )?disease|\b(?:normal|clean) coronar"#)
+
+    /// "LHC 05/2026, right dominant: LAD 90%, RCA 70%; LM, LCx, PDA no significant disease". Non-obstructive reads first
+    /// ("LHC 06/2026, right dominant: non-obstructive CAD", or "...: no CAD"; then the vessels and the notes), unless the
+    /// notes say it already.
     var summary: String {
         var head = "LHC"
         if !date.isEmpty { head += " " + date.text }
@@ -487,6 +605,8 @@ struct PatientLHC: Codable, Hashable {
         let severe = named.filter { (stenosis[$0.id] ?? 0) >= 50 }.map { "\($0.label) \(NumText.short(stenosis[$0.id] ?? 0))%" }
         let mild = named.filter { (stenosis[$0.id] ?? 0) < 50 }
         var parts: [String] = []
+        if result == "non-obstructive", PatientLHC.nonObstructiveWords.first(notes) == nil { parts.append("non-obstructive CAD") }
+        if result == "no-cad", PatientLHC.noCADWords.first(notes) == nil { parts.append("no CAD") }
         if !severe.isEmpty { parts.append(severe.joined(separator: ", ")) }
         if !mild.isEmpty { parts.append(mild.map { "\($0.label) \(NumText.short(stenosis[$0.id] ?? 0))%" }.joined(separator: ", ")) }
         if !notes.isEmpty { parts.append(notes) }
@@ -678,4 +798,44 @@ extension PatientDevice {
     /// The handoff's Lines: the Foley goes with them (1.8.1).
     static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .other]
     static let supportKinds: Set<DeviceKind> = [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella, .protekDuo]
+}
+
+// MARK: - The cath's result, from a typed note (1.8.3)
+
+extension PatientLHC {
+    private static let nonObstructiveRx = NoteRx(#"\b(?:non[- ]?obstructive|no obstructive)\b"#)
+    private static let noCADRx = NoteRx(#"\b(?:(?:angiographically |grossly )?normal coronar(?:y|ies)(?: arter(?:y|ies))?|clean coronar(?:y|ies)|no (?:cad|coronary (?:artery )?disease))\b"#)
+    /// A coronary cath: "LHC" or "left heart cath" (coronary by themselves), "cath" (not a PA, arterial or central catheter),
+    /// or a coronary angiogram, which is not a CT or MR one. A mesenteric, leg or cerebral angiogram is none of these.
+    private static let lhcRx = NoteRx(#"\b(?:lhc|left heart cath(?:eterization|eterisation)?)\b"#)
+    private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )(?<!\bpa )\bcath(?:eterization|eterisation)?\b|(?<!\bct )(?<!\bcta )(?<!\bccta )(?<!\bmr )(?<!\bmra )\bcoronary angiogra(?:m|phy)\b"#)
+    private static let coronaryWordsRx = NoteRx(#"\b(?:cad|coronar(?:y|ies)|coronary artery disease)\b"#)
+    /// Not coronary disease.
+    private static let notCoronaryRx = NoteRx(#"\b(?:hcm|hocm|hypertrophic|cardiomyopath\w*|lvot)\b"#)
+    /// "CAD" or "coronary (artery) disease" right after "non-obstructive".
+    private static let cadAfterRx = NoteRx(#"^\s*(?:cad|coronary (?:artery )?disease)\b"#)
+    static var patterns: [NoteRx] { [nonObstructiveRx, noCADRx, lhcRx, cathRx, coronaryWordsRx, notCoronaryRx, cadAfterRx] }
+
+    /// The cath's result as typed, when a cath word is in the same sentence (without one it may be a CT result, so nothing
+    /// is read): "LHC non-obstructive", "cath: nonobstructive CAD", "non-obstructive coronary disease on cath" are
+    /// "non-obstructive"; "normal coronaries", "clean coronaries", "no CAD" on a cath are "no-cad". A cath that is not
+    /// "LHC" or "left heart cath" also needs a CAD or coronary word ("cath: non-obstructive" alone is not read), and a
+    /// sentence about HCM or a cardiomyopathy is not read. "No significant CAD" says neither; a sentence that says both is
+    /// not read. `cadWords`: the "CAD" right after "non-obstructive", which belongs to the result.
+    static func readResult(_ c: String) -> (result: String, phrase: NSRange, cath: NSRange, cadWords: NSRange?)? {
+        let ns = c as NSString
+        guard notCoronaryRx.first(c) == nil else { return nil }
+        let lhc = lhcRx.first(c)
+        guard let k = lhc ?? cathRx.first(c) else { return nil }
+        let non = nonObstructiveRx.first(c), none = noCADRx.first(c)
+        if let m = non, none == nil {
+            guard lhc != nil || coronaryWordsRx.first(c) != nil else { return nil }
+            let end = m.range.location + m.range.length
+            let after = ns.substring(from: end)
+            let cad = cadAfterRx.first(after).map { NSRange(location: end + $0.range.location, length: $0.range.length) }
+            return ("non-obstructive", m.range, k.range, cad)
+        }
+        if let m = none, non == nil { return ("no-cad", m.range, k.range, nil) }
+        return nil
+    }
 }

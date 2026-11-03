@@ -336,12 +336,15 @@ final class PatientCardio181Tests: XCTestCase {
         XCTAssertEqual(r.hx.deviceDetails, "dependent")
         XCTAssertEqual(r.hx.pulmHtnSeverity, "moderate")
         XCTAssertEqual(r.hx.aneurysms["root"], PatientAneurysm(cm: 4.8))
-        XCTAssertEqual(PatientHistoryDetails.cardiacSurgeryText(r), "CABG 2019; mechanical MVR", "both operations, in one entry")
-        XCTAssertEqual(r.surgeries.count, 1)
+        // 1.8.3 (Ben): each operation its own entry in Past surgical history, with its date (it was one entry, "CABG 2019; mechanical MVR").
+        XCTAssertEqual(r.surgeries.count, 2, "each operation its own entry")
+        XCTAssertEqual(r.surgeries[0].date, PatientMonthYear(year: 2019))
+        XCTAssertTrue(r.surgeries.allSatisfy(\.intrathoracic))
+        XCTAssertEqual(PatientHistoryDetails.cardiacSurgeryText(r), "Coronary artery bypass grafting", "the cardiac page shows the first")
         XCTAssertEqual(PatientRules.asaSuggestion(r)?.level, 4)
         // The same note again: nothing doubles.
         let again = applied("s/p CABG 2019, severe AS", to: r)
-        XCTAssertEqual(again.surgeries.count, 1)
+        XCTAssertEqual(again.surgeries.count, 2)
         XCTAssertEqual(again.hx.valves, r.hx.valves)
         // Statuses against the record.
         for f in read("severe AS, 4.8 cm ascending aneurysm, moderate pulmonary hypertension, s/p CABG 2019").findings where f.section == PatientNote.Part.history {
