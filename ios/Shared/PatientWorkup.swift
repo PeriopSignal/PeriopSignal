@@ -20,23 +20,129 @@ struct PatientMonthYear: Codable, Hashable {
         return String(format: "%02d/%d", m, y)
     }
 
-    /// Reads "03/2019", "3/19", "2019" or "Mar 2019".
-    static func parse(_ s: String) -> PatientMonthYear? {
-        let t = s.trimmingCharacters(in: .whitespaces).lowercased()
+    private static let monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+
+    /// A two-digit year: 20YY when that is no later than next year, else 19YY ("26" is 2026 and "28" is 1928 in 2026).
+    static func fullYear(twoDigit yy: Int, now: Date = Date()) -> Int {
+        let this = Calendar.current.component(.year, from: now)
+        return 2000 + yy <= this + 1 ? 2000 + yy : 1900 + yy
+    }
+
+    private static func isDigits(_ s: String) -> Bool { !s.isEmpty && s.allSatisfy { $0.isASCII && $0.isWholeNumber } }
+
+    private static func separator(_ c: Character) -> Bool { c == "/" || c == "-" || c == "." || c == " " || c == "," }
+
+    /// Reads a month and year however it is typed (1.8.3, Ben: no "/" needed): "03/2019", "3/19", "6 2026", "6-2026",
+    /// "6.2026", "2026-06", "2019", "Mar 2019", "June 26", and digits alone: "0626" and "062026" (MMYY, MMYYYY), "626"
+    /// and "62026" (M YY, M YYYY). A two-digit year is 20YY when that is no later than next year, else 19YY.
+    static func parse(_ s: String, now: Date = Date()) -> PatientMonthYear? {
+        let t = s.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !t.isEmpty else { return nil }
-        func year(_ y: Int) -> Int? {
-            if y >= 1900 && y <= 2100 { return y }
-            if y >= 0 && y < 100 { return y + (y <= (Calendar.current.component(.year, from: Date()) % 100) ? 2000 : 1900) }
-            return nil
+        func year(_ digits: String) -> Int? {
+            guard let y = Int(digits) else { return nil }
+            switch digits.count {
+            case 4: return (1900...2100).contains(y) ? y : nil
+            case 2: return fullYear(twoDigit: y, now: now)
+            default: return nil
+            }
         }
-        let parts = t.split(whereSeparator: { $0 == "/" || $0 == "-" || $0 == " " || $0 == "." }).map(String.init)
-        if parts.count == 1, let y = Int(parts[0]).flatMap(year) { return PatientMonthYear(year: y) }
-        if parts.count == 2, let y = Int(parts[1]).flatMap(year) {
-            if let m = Int(parts[0]), (1...12).contains(m) { return PatientMonthYear(month: m, year: y) }
-            let months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-            if let m = months.firstIndex(where: { parts[0].hasPrefix($0) }) { return PatientMonthYear(month: m + 1, year: y) }
+        func month(_ digits: String) -> Int? {
+            guard digits.count <= 2, let m = Int(digits), (1...12).contains(m) else { return nil }
+            return m
+        }
+        let parts = t.split(whereSeparator: { separator($0) }).map(String.init)
+        if parts.count == 1 {
+            let p = parts[0]
+            guard isDigits(p) else { return nil }
+            switch p.count {
+            case 2: return year(p).map { PatientMonthYear(year: $0) }
+            case 4:
+                if let y = year(p) { return PatientMonthYear(year: y) }
+                if let m = month(String(p.prefix(2))), let y = year(String(p.suffix(2))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            case 3:
+                if let m = month(String(p.prefix(1))), let y = year(String(p.suffix(2))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            case 5:
+                if let m = month(String(p.prefix(1))), let y = year(String(p.suffix(4))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            case 6:
+                if let m = month(String(p.prefix(2))), let y = year(String(p.suffix(4))) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            default: return nil
+            }
+        }
+        if parts.count == 2 {
+            let a = parts[0], b = parts[1]
+            if isDigits(a), isDigits(b) {
+                if let m = month(a), let y = year(b) { return PatientMonthYear(month: m, year: y) }
+                // "2026-06"
+                if a.count == 4, let y = year(a), let m = month(b) { return PatientMonthYear(month: m, year: y) }
+                return nil
+            }
+            if a.count >= 3, a.allSatisfy({ $0.isLetter }), isDigits(b), let y = year(b),
+               let m = monthNames.firstIndex(where: { $0.hasPrefix(a) }) {
+                return PatientMonthYear(month: m + 1, year: y)
+            }
         }
         return nil
+    }
+
+    /// The text as it is typed into a month and year field: a "/" goes in by itself after the month ("06" becomes "06/",
+    /// "6" becomes "06/", "062026" becomes "06/2026"), and a "-", "." or space typed after the month becomes it. A year
+    /// alone ("2019", "1999") is left to be typed. Deleting never adds anything, so Backspace goes back through the "/".
+    /// `old` is the text before the change.
+    static func typing(_ new: String, was old: String) -> String {
+        if new.count <= old.count { return new }
+        guard new.allSatisfy({ ($0.isASCII && $0.isWholeNumber) || separator($0) }) else { return new }
+        let trimmed = new.trimmingCharacters(in: .whitespaces)
+        // Pasted digits that read as a whole date ("62026", "0626"): the date.
+        if isDigits(trimmed), new.count - old.count > 1, let v = parse(trimmed) { return v.text }
+        func pad(_ m: String) -> String { m.count == 1 ? "0" + m : m }
+        let chars = Array(new)
+        var head = ""
+        var i = 0
+        while i < chars.count, chars[i].isASCII, chars[i].isWholeNumber { head.append(chars[i]); i += 1 }
+        let rest = chars[i...]
+        if !rest.isEmpty {
+            // A separator after the month's digits.
+            guard !head.isEmpty, head.count <= 2, let m = Int(head), (1...12).contains(m) else { return new }
+            let year = String(rest.filter { $0.isASCII && $0.isWholeNumber }.prefix(4))
+            return pad(head) + "/" + year
+        }
+        let d = Array(head)
+        guard let d0 = d.first else { return new }
+        // How many leading digits are the month; nil: still a year being typed ("1", "19", "20", "2026").
+        var k: Int?
+        switch d0 {
+        case "0":
+            guard d.count >= 2 else { return new }
+            if d[1] == "0" { return new }
+            k = 2
+        case "1":
+            if d.count == 1 { return new }
+            if d[1] == "9" { k = nil } else if d[1] == "0" || d[1] == "1" || d[1] == "2" { k = 2 } else { k = 1 }
+        case "2":
+            if d.count == 1 { return new }
+            k = d[1] == "0" ? nil : 1
+        default:
+            k = 1
+        }
+        guard let k else { return d.count > 4 ? String(d.prefix(4)) : new }
+        let month = String(d.prefix(k))
+        let year = String(d.dropFirst(k).prefix(4))
+        return pad(month) + "/" + year
+    }
+
+    /// The date a field being typed holds once it is settled; nil while it is still being typed (a trailing "/", a year
+    /// of one or three digits, "20"), so a half-typed text never changes the value.
+    static func parseTyped(_ s: String, now: Date = Date()) -> PatientMonthYear? {
+        let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let last = t.last, last.isLetter || last.isWholeNumber else { return nil }
+        let parts = t.split(whereSeparator: { separator($0) }).map(String.init)
+        if parts.count == 1, isDigits(parts[0]), parts[0].count != 4 { return nil }
+        if parts.count == 2, isDigits(parts[1]), parts[1].count != 2, parts[1].count != 4 { return nil }
+        return parse(t, now: now)
     }
 }
 

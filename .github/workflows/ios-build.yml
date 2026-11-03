@@ -272,6 +272,10 @@ jobs:
           shot 277-quickadd-history-light 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M, DM2, h/o stroke, HCV, MRSA, contact precautions"
           shot 278-asa-history 18 -ps.tab patient -ps.patient demo-history -ps.patient.open assessment -ps.forceAppearance light
           shot 279-endocrine-diabetes-info-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:endo -ps.evidence.open 1 -ps.forceAppearance light
+          shot 420-date-autoslash 14 -ps.tab patient -ps.patient empty -ps.patient.open workup:echo -ps.monthyear 062 -ps.forceAppearance light
+          shot 421-psh-chips 16 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA"
+          shot 423-psh-note-review 16 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.forceAppearance light -ps.patient.note "68M for AVR. HTN. PSH: CABG x3 2019, TEVAR 08/2022, Ascending aorta replacement + LM and RCA endarterectomy + AV repair 06/2025, appendectomy 2010 under GA, uneventful."
+          shot 424-psh-filled 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA" -ps.quickadd.add 1
           # 1.8.1 Cardiovascular and Respiratory as expanding sections (280-292): the collapsed list, each section opened,
           # the studies rows, and quick-add lines read into the new structure.
           shot 280-cv-collapsed 14 -ps.tab patient -ps.patient empty -ps.patient.open system:cv -ps.forceAppearance light

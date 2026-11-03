@@ -412,7 +412,8 @@ struct RemovableChip: View {
     }
 }
 
-/// Month and year typed as "03/2019" (or "2019").
+/// Month and year typed as "03/2019" (or "2019"). The "/" goes in by itself ("06" becomes "06/"), and the date can be
+/// typed as "0626", "6 2026" or "Jun 2026" too (PatientMonthYear.typing, .parse). What is stored is unchanged.
 struct MonthYearField: View {
     var label: String
     @Binding var value: PatientMonthYear
@@ -429,16 +430,41 @@ struct MonthYearField: View {
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 15, design: .monospaced))
                 .frame(maxWidth: 110)
-                .onChange(of: text) { _, t in
-                    if let v = PatientMonthYear.parse(t) { value = v } else if t.isEmpty { value = PatientMonthYear() }
+                .onChange(of: text) { old, t in
+                    let shown = PatientMonthYear.typing(t, was: old)
+                    // The formatted text comes back through here once more.
+                    if shown != t { text = shown; return }
+                    if t.trimmingCharacters(in: .whitespaces).isEmpty {
+                        if !value.isEmpty { value = PatientMonthYear() }
+                    } else if let v = PatientMonthYear.parseTyped(t), v != value {
+                        value = v
+                    }
+                }
+                .onChange(of: focused) { _, on in
+                    // Leaving the field: the text a half-typed date left is shown as the date it holds.
+                    if !on, text != value.text { text = value.text }
                 }
         }
         .padding(.horizontal, 14).padding(.vertical, 9)
-        .onAppear { text = value.text }
+        .onAppear {
+            text = value.text
+            #if DEBUG
+            // Screenshot runs: -ps.monthyear 062 types those digits into an empty month and year field.
+            let seed = LaunchSeed.string("ps.monthyear")
+            if !seed.isEmpty, value.isEmpty {
+                var typed = ""
+                for ch in seed { typed = PatientMonthYear.typing(typed + String(ch), was: typed) }
+                text = typed
+            }
+            #endif
+        }
         // A change from elsewhere (Undo): show it, unless the text typed already reads as it.
         .onChange(of: value) { _, v in
-            let shown = PatientMonthYear.parse(text) ?? PatientMonthYear()
-            if shown != v { text = v.text }
+            if let shown = PatientMonthYear.parseTyped(text) {
+                if shown != v { text = v.text }
+            } else if !focused {
+                text = v.text
+            }
         }
     }
 }

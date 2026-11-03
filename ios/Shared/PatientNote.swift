@@ -33,6 +33,9 @@ enum PatientNoteChange: Hashable {
     case pulmHtn(String)
     /// Previous cardiac surgery, as written ("AVR 2015", "CABG"): it goes to the past surgical history too.
     case cardiacSurgery(String)
+    /// One past operation (1.8.3): the operation as written, without its date, and its month and year when the note gives
+    /// them. It becomes an entry in Past surgical history (PastSurgeryNote).
+    case pastSurgery(String, PatientMonthYear)
     /// Home oxygen with its flow, L/min.
     case homeO2(Double)
     /// A problem, and the words to add to its details ("evar", "FEVAR 2021": a complex EVAR files as Prior EVAR, and its
@@ -583,6 +586,7 @@ enum PatientNote {
         out += [infectionNotPositive, hivPrevention]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
+        out += PastSurgeryNote.allPatterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
@@ -647,6 +651,7 @@ enum PatientNote {
         var unknown: [UnknownAbbreviation] = []
         var labFlags: [String: (current: Bool, earlier: Bool)] = [:]
         var labConflicts: [String: [Double]] = [:]
+        var surgeryState = PastSurgeryNote.State()
         func put(_ f: PatientNoteFinding, _ flag: (current: Bool, earlier: Bool)? = nil) {
             if let old = found[f.id] {
                 // Two values of a test in different sentences: the one marked current, if exactly one is; otherwise
@@ -730,6 +735,14 @@ enum PatientNote {
                         && NSIntersectionRange(meant.target(a.range), h.at[i]).length > 0
                 }), let meaning = a.meaning else { continue }
                 h.findings[i].note = "Read “" + a.token + "” as " + meaning.text + "; change it under Abbreviations if not."
+            }
+            // Past surgical history: a "PSH:" section, "s/p ...", "h/o ..." (1.8.3). What the cardiac reader took is its own.
+            let taken = zip(h.findings, h.at).filter { $0.0.id == "cardiac-surgery" }.map { $0.1 }
+            for op in PastSurgeryNote.read(c, state: &surgeryState, skip: taken).operations {
+                let entry = PastSurgeryNote.surgery(op.text, op.date)
+                h.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: Part.history,
+                                         label: "Past surgical history: " + entry.text, change: .pastSurgery(op.text, op.date)), at: op.range)
+                if !op.aside.isEmpty, !previous.contains(where: { $0.caseInsensitiveCompare(op.aside) == .orderedSame }) { previous.append(op.aside) }
             }
             for f in h.findings { put(f, h.labFlags[f.id]) }
             for q in h.questions where !ambiguous.contains(where: { $0.id == q.id }) { ambiguous.append(q) }
@@ -1120,7 +1133,7 @@ enum PatientNote {
     /// "prior cardiac surgery", or a redo sternotomy (which means there was one). Transcatheter procedures are not.
     static let cardiacOpWords = #"(?:(?:mechanical|bioprosthetic|tissue)\s+)?(?:(?-i:SAVR|AVR|MVR|TVR|CABG|OPCAB|AVr|MVr|TVr)|aortic valve (?:replacement|repair)|mitral valve (?:replacement|repair)|tricuspid valve (?:replacement|repair)|valve (?:replacement|repair|surgery)|coronary (?:artery )?bypass(?: graft(?:ing)?)?|(?:bio-?)?bentall|ross procedure|maze procedure|myectomy|(?-i:ASD|VSD) (?:repair|closure)|heart transplant(?:ation)?|(?-i:OHT)|cardiac surgery|heart surgery|open[- ]heart surgery|sternotomy)(?:\s*(?:x|×)\s*\d)?"#
     static let cardiacSurgeryRx = NoteRx(#"\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old|remote)\s+(?:an?\s+)?("# + cardiacOpWords + #")(?:\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\)?)?"#)
-    static let cardiacSurgeryYearRx = NoteRx(#"(?-i:\b(SAVR|AVR|MVR|CABG|Bentall)\b)(?:\s*(?:x|×)\s*\d)?\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\b"#)
+    static let cardiacSurgeryYearRx = NoteRx(#"(?-i:\b((?:SAVR|AVR|MVR|CABG|Bentall)\b(?:\s*(?:x|×)\s*\d)?))\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\b"#)
     static let redoSternotomyRx = NoteRx(#"\bredo\s+(?:median\s+)?sternotomy\b|\bre-?(?:do\s+)?sternotomy\b"#)
 
     private static func readCardiacSurgery(_ c: String, _ h: inout Hits) {
@@ -2435,7 +2448,10 @@ enum PatientNote {
             guard let o = r.hx.pulmHtnSeverity else { return .new }
             return o == g ? .recorded : .replaces(o)
         case .cardiacSurgery(let t):
-            return mentions(PatientHistoryDetails.cardiacSurgeryText(r), t) || r.surgeries.contains(where: { mentions($0.name, t) }) ? .recorded : .new
+            return mentions(PatientHistoryDetails.cardiacSurgeryText(r), t) || r.surgeries.contains(where: { mentions($0.name, t) })
+                || PastSurgeryNote.cardiacRecorded(t, in: r) ? .recorded : .new
+        case .pastSurgery(let t, let d):
+            return PastSurgeryNote.isRecorded(t, d, in: r) ? .recorded : .new
         case .homeO2(let flow):
             guard r.has("home-o2"), let o = r.hx.homeO2Flow else { return .new }
             return same(o, flow) ? .recorded : .replaces(NumText.short(o) + " L/min")
@@ -2640,9 +2656,10 @@ enum PatientNote {
                 r.hx.pulmHtnSeverity = g
             case .cardiacSurgery(let t):
                 r.noHistory = false
-                let old = PatientHistoryDetails.cardiacSurgeryText(r)
-                if mentions(old, t) { continue }
-                PatientHistoryDetails.setCardiacSurgery(old.isEmpty ? t : old + "; " + t, &r)
+                // Each operation its own entry in Past surgical history, with its date (1.8.3).
+                PastSurgeryNote.addCardiac(t, to: &r)
+            case .pastSurgery(let t, let d):
+                PastSurgeryNote.add(t, d, to: &r)
             case .homeO2(let flow):
                 r.noHistory = false
                 r.problems.insert("home-o2")
