@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - My Patient's first-time tips (PatientTips), drawn
 //
 // A dimmed layer over the whole tab with a rounded spotlight cut out around the target, a short arrow from a card to
-// it, the card's text, and Next (Done on the last) and Skip. The quick-add bar and the tab bar are found where they
+// it, the card's text, and Next (Done on the last) and Skip: TipLayer (TipsView.swift), shared with the app's tips. The quick-add bar and the tab bar are found where they
 // are drawn (anchor preferences, read inside the navigation stack, which preferences don't cross). The ⋯ menu and the
 // shield are navigation bar items, which anchors don't reach: each reports its own frame (onGeometryChange) into
 // PatientTipBarFrames, which the overlay reads; until a frame comes in, or if one lies off the bar's row, the spotlight
@@ -73,11 +73,8 @@ struct PatientTipFrameSink: View {
     }
 }
 
-/// A spotlight: the hole cut out of the dimmed layer, in the overlay's coordinates.
-struct PatientTipSpot: Equatable {
-    var rect: CGRect
-    var radius: CGFloat
-}
+/// A spotlight: the hole cut out of the dimmed layer (TipsView.swift's TipSpot, shared with the app's tips).
+typealias PatientTipSpot = TipSpot
 
 /// The tips over My Patient: on the navigation stack, full screen, blocking touches underneath until Done or Skip.
 struct PatientTipsOverlay: View {
@@ -86,8 +83,6 @@ struct PatientTipsOverlay: View {
     var frames: [PatientTipTarget: CGRect]
     /// The navigation bar items' frames, as they report them.
     var bar: PatientTipBarFrames
-    @Environment(\.colorScheme) private var scheme
-    @AccessibilityFocusState private var textFocused: Bool
 
     /// The inline navigation bar, right under the safe area's top, and its round buttons (iOS 26, iPhone 16 Pro): 44 pt
     /// across, their centres 38.5 pt in from the screen's leading edge and 39.5 pt from its trailing edge, on the bar's
@@ -98,10 +93,7 @@ struct PatientTipsOverlay: View {
     /// Around a bar button: 5 pt clear of its 44 pt glass circle.
     static let barItemRadius: CGFloat = 27
     /// Around a target in the scroll view.
-    static let padding: CGFloat = 6
-    /// The arrow, and the gap between it and the spotlight.
-    static let arrowLength: CGFloat = 34
-    static let gap: CGFloat = 6
+    static let padding: CGFloat = TipLayer.padding
 
     var body: some View {
         GeometryReader { outer in
@@ -162,134 +154,20 @@ struct PatientTipsOverlay: View {
 
     @ViewBuilder private func layer(size: CGSize, origin: CGPoint, safeTop: CGFloat, screen: CGRect) -> some View {
         if let tip = tips.current {
-            let hole = self.spotlight(for: tip.target, origin: origin, safeTop: safeTop, screen: screen)
-            let cardWidth = min(size.width - 32, 380)
-            ZStack(alignment: .topLeading) {
-                dim(size: size, spot: hole)
-                if let hole {
-                    ring(hole)
-                    arrow(spot: hole, size: size, cardWidth: cardWidth)
-                }
-                placed(card(tip), spot: hole, size: size, cardWidth: cardWidth)
-            }
-            .frame(width: size.width, height: size.height, alignment: .topLeading)
-            .contentShape(Rectangle())
-            .onTapGesture {}   // nothing underneath takes a touch while the tips show
-            .animation(.snappy, value: hole)
-            .accessibilityElement(children: .contain)
-            .accessibilityAddTraits(.isModal)
+            TipLayer(size: size,
+                     spot: self.spotlight(for: tip.target, origin: origin, safeTop: safeTop, screen: screen),
+                     text: tip.text,
+                     progress: tips.progress,
+                     isLast: tips.isLast,
+                     step: tips.step ?? 0,
+                     onNext: next,
+                     onSkip: skip)
         }
     }
 
-    // MARK: Parts
-
-    /// The dimmed layer, with the spotlight cut out.
-    private func dim(size: CGSize, spot: PatientTipSpot?) -> some View {
-        Path { p in
-            p.addRect(CGRect(origin: .zero, size: size))
-            if let s = spot {
-                p.addRoundedRect(in: s.rect, cornerSize: CGSize(width: s.radius, height: s.radius), style: .continuous)
-            }
-        }
-        .fill(Color.black.opacity(scheme == .dark ? 0.62 : 0.48), style: FillStyle(eoFill: true))
-        .accessibilityHidden(true)
-    }
-
-    private func ring(_ s: PatientTipSpot) -> some View {
-        RoundedRectangle(cornerRadius: s.radius, style: .continuous)
-            .stroke(Color.white.opacity(0.92), lineWidth: 2)
-            .frame(width: s.rect.width, height: s.rect.height)
-            .offset(x: s.rect.minX, y: s.rect.minY)
-            .accessibilityHidden(true)
-    }
-
-    /// The card goes below a target in the top part of the screen and above one lower down.
-    private static func below(_ s: PatientTipSpot, size: CGSize) -> Bool { s.rect.midY < size.height * 0.55 }
-
-    /// From the card's edge to the spotlight's, kept over the card at its ends.
-    private func arrow(spot s: PatientTipSpot, size: CGSize, cardWidth: CGFloat) -> some View {
-        let cardX = (size.width - cardWidth) / 2
-        let fromX = min(max(s.rect.midX, cardX + 30), cardX + cardWidth - 30)
-        let down = Self.below(s, size: size)
-        let tipY = down ? s.rect.maxY + Self.gap : s.rect.minY - Self.gap
-        let fromY = down ? tipY + Self.arrowLength : tipY - Self.arrowLength
-        return Self.arrowPath(from: CGPoint(x: fromX, y: fromY), to: CGPoint(x: s.rect.midX, y: tipY))
-            .stroke(Color.white.opacity(0.95), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-            .accessibilityHidden(true)
-    }
-
-    /// A line with an open head at `b`.
+    /// A line with an open head at `b` (TipLayer draws it).
     static func arrowPath(from a: CGPoint, to b: CGPoint, head: CGFloat = 9) -> Path {
-        var p = Path()
-        p.move(to: a)
-        p.addLine(to: b)
-        let angle: Double = atan2(Double(b.y - a.y), Double(b.x - a.x))
-        let spread: Double = Double.pi * 0.78
-        let h = Double(head)
-        let left = CGPoint(x: b.x + CGFloat(h * cos(angle + spread)), y: b.y + CGFloat(h * sin(angle + spread)))
-        let right = CGPoint(x: b.x + CGFloat(h * cos(angle - spread)), y: b.y + CGFloat(h * sin(angle - spread)))
-        p.move(to: left)
-        p.addLine(to: b)
-        p.addLine(to: right)
-        return p
-    }
-
-    /// The card under (or over) its spotlight, with room for the arrow; in the middle when there is no spotlight.
-    @ViewBuilder private func placed<Card: View>(_ card: Card, spot: PatientTipSpot?, size: CGSize, cardWidth: CGFloat) -> some View {
-        if let s = spot, Self.below(s, size: size) {
-            VStack(spacing: 0) {
-                Color.clear.frame(height: max(0, s.rect.maxY + Self.gap + Self.arrowLength))
-                card.frame(width: cardWidth)
-                Spacer(minLength: 0)
-            }
-            .frame(width: size.width, height: size.height)
-        } else if let s = spot {
-            VStack(spacing: 0) {
-                Spacer(minLength: 0)
-                card.frame(width: cardWidth)
-                Color.clear.frame(height: max(0, size.height - (s.rect.minY - Self.gap - Self.arrowLength)))
-            }
-            .frame(width: size.width, height: size.height)
-        } else {
-            card.frame(width: cardWidth)
-                .frame(width: size.width, height: size.height)
-        }
-    }
-
-    private func card(_ tip: PatientTip) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "Tip " + tips.progress, color: PS.accent)
-            Text(tip.text)
-                .font(PS.sys(size: 15.5))
-                .foregroundStyle(PS.fg)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityFocused($textFocused)
-            HStack(spacing: 10) {
-                if !tips.isLast {
-                    Button { skip() } label: {
-                        Text("Skip")
-                            .font(PS.sys(size: 14, weight: .semibold))
-                            .foregroundStyle(PS.fg2)
-                            .padding(.vertical, 8)
-                            .padding(.trailing, 12)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Closes the tips")
-                }
-                Spacer(minLength: 0)
-                Button { next() } label: { Text(tips.isLast ? "Done" : "Next") }
-                    .buttonStyle(CapsuleButtonStyle())
-            }
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(PS.line2, lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.28), radius: 18, x: 0, y: 8)
-        .onAppear { focusText() }
-        .onChange(of: tips.step) { _, _ in focusText() }
+        TipLayer.arrowPath(from: a, to: b, head: head)
     }
 
     // MARK: Actions
@@ -301,10 +179,5 @@ struct PatientTipsOverlay: View {
 
     private func skip() {
         withAnimation(.snappy) { tips.skip() }
-    }
-
-    /// VoiceOver reads each step's text as it shows.
-    private func focusText() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { textFocused = true }
     }
 }

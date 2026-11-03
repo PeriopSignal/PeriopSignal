@@ -117,7 +117,7 @@ struct MoreView: View {
     @ViewBuilder
     private var questionCard: some View {
         @Bindable var p = prefs
-        SettingsCard(title: "Question of the day") {
+        SettingsCard(title: "Question of the day", info: "One question each morning, written from that post’s own text. Answers and the streak sync through iCloud.") {
             if let post = quiz.todaysQuestion(from: store.posts), post.quiz != nil {
                 HStack(spacing: 6) {
                     Circle().fill(Topics.info(post.primaryTopic).fg).frame(width: 7, height: 7)
@@ -149,8 +149,6 @@ struct MoreView: View {
                 }
             }
             .tint(PS.accent)
-            Text("One question each morning, written from that post’s own text. Answers and the streak sync through iCloud.")
-                .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
         }
     }
 
@@ -256,10 +254,7 @@ struct MoreView: View {
     private func answersCard(p: Bindable<Preferences>) -> some View {
         let onDevice = AskEngine.onDeviceAvailable
         let cloud = refs.askEndpoint != nil
-        return SettingsCard(title: "Answers") {
-            Text("When a search finds nothing in the references or the feed, you can ask the question instead. The answer is written from the best-matching posts and references, with the sources listed.")
-                .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
+        return SettingsCard(title: "Answers", info: "When a search finds nothing in the references or the feed, you can ask the question instead. The answer is written from the best-matching posts and references, with the sources listed.") {
             Toggle(isOn: p.askOnDevice) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Answer on this phone when possible").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
@@ -302,11 +297,13 @@ struct MoreView: View {
 
     private var about: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "How it works")
-            Text("Every morning the feed sweeps about 60 journals plus the ASA, SCA, ASE, STS, ELSO, APSF and FDA pages, keeps only the papers that clear a high bar, and writes a short post for each: the authors’ own key points as the take-home, an overview, the limitations the authors state, and one question to check what stuck. Summaries are reading aids, not clinical advice. Read the source before acting on it.")
+            // How the feed is made sits behind the ⓘ; the caution stays in view at the foot (1.8.1).
+            SectionHeader(title: "How it works", info: "Every morning the feed sweeps about 60 journals plus the ASA, SCA, ASE, STS, ELSO, APSF and FDA pages, keeps only the papers that clear a high bar, and writes a short post for each: the authors’ own key points as the take-home, an overview, the limitations the authors state, and one question to check what stuck.")
+            Text("Reading aids, not clinical advice. Read the source before acting.")
                 .font(PS.sys(size: 13.5))
                 .foregroundStyle(PS.fg2)
                 .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
             Button { path.append(MoreRoute.terms) } label: { Label("Terms & privacy", systemImage: "doc.text") }
                 .font(PS.sys(size: 14, weight: .semibold))
                 .buttonStyle(.borderless)
@@ -347,14 +344,16 @@ struct MoreView: View {
     }
 }
 
-/// A settings group: eyebrow title above a surface card with its rows stacked inside.
+/// A settings group: eyebrow title above a surface card with its rows stacked inside. What the group does, when it
+/// needs saying, sits behind an ⓘ on the title (`info`, SectionHeader), not in the card.
 struct SettingsCard<Content: View>: View {
     var title: String
+    var info: String? = nil
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: title).padding(.leading, 2)
+            SectionHeader(title: title, info: info).padding(.leading, 2)
             VStack(alignment: .leading, spacing: 14) {
                 content()
             }

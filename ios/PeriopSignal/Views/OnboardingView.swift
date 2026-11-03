@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Welcome screen, opened from More (or a periopsignal://welcome link): what the app is, a choice of
-/// topics, and the alerts prompt. New installs open straight to the feed.
+/// Welcome screen, opened from More (or a periopsignal://welcome link): the three tabs, a choice of topics, and the
+/// alerts prompt. New installs open straight to the feed (after the terms), where the first-open tour of the tabs runs.
 struct OnboardingView: View {
     @Environment(Preferences.self) private var prefs
     @Environment(\.dismiss) private var dismiss
@@ -9,6 +9,8 @@ struct OnboardingView: View {
     @State private var step = 0
     @State private var topics: Set<String> = []
     @State private var busy = false
+    /// "Pick your areas" ⓘ: what the topics do, behind it (open in screenshots with -ps.evidence.open 1).
+    @State private var areasInfo = LaunchSeed.bool("ps.evidence.open")
 
     var body: some View {
         VStack(spacing: 0) {
@@ -39,15 +41,17 @@ struct OnboardingView: View {
                     Text("Curated research for anesthesiologists").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
                 }
             }
+            // The three tabs, with the same icons as the tab bar (1.8.1: the rows described only the feed).
             VStack(alignment: .leading, spacing: 12) {
-                point("waveform.path.ecg", "The practice-changing papers", "From about 60 journals and the society and FDA pages, every morning. Only what clears a high bar.")
-                point("diamond.fill", "The authors’ own key points", "Take-home bullets as the authors state them, an overview, and the limitations they acknowledge.")
-                point("brain.head.profile", "One question a day", "A board-style question from a recent post, so what you read sticks.")
+                point("waveform.path.ecg", "Feed", "Practice-changing papers every morning.")
+                point("person.text.rectangle", "My Patient", "Enter a patient once; scores and the handoff fill in.")
+                point("books.vertical", "Reference", "Calculators, emergency checklists, echo grading.")
             }
             VStack(alignment: .leading, spacing: 8) {
-                Text("Pick your areas").font(PS.sys(size: 17, weight: .bold)).foregroundStyle(PS.fg)
-                Text("Optional. The feed opens on these and alerts cover only these; everything stays one tap away. You can change them any time under More.")
-                    .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                InfoTitle(caption: "Optional. The feed opens on these and alerts cover only these; everything stays one tap away. You can change them any time under More.",
+                          open: $areasInfo, captionFont: PS.sys(size: 13.5), spacing: 6) {
+                    Text("Pick your areas").font(PS.sys(size: 17, weight: .bold)).foregroundStyle(PS.fg)
+                }
                 TopicChipGrid(selection: $topics).padding(.top, 2)
             }
         }
