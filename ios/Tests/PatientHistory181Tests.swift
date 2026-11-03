@@ -149,8 +149,9 @@ final class PatientHistory181Tests: XCTestCase {
         }
         let thisYear = Calendar(identifier: .gregorian).component(.year, from: Date())
         XCTAssertEqual(ids("stroke " + String(thisYear)), ["problem:cva-unspec"], "this year may be within 3 months")
-        XCTAssertEqual(ids("TIA"), ["problem:cva"], "TIA as before")
-        XCTAssertEqual(PatientNote.read("TIA", now: now).findings.first { $0.id == "problem:cva" }?.note, "Added as over 3 months ago; choose within 3 months in History if recent.")
+        // 1.8.2: a TIA with no time is "Stroke or TIA, unspecified", as a stroke is, not over 3 months with a caution.
+        XCTAssertEqual(ids("TIA"), ["problem:cva-unspec"], "TIA reads like a stroke (1.8.2)")
+        XCTAssertNil(PatientNote.read("TIA", now: now).findings.first { $0.id == "problem:cva" })
         XCTAssertNil(PatientNote.read("stroke 5 years ago", now: now).findings.first { $0.id == "problem:cva" }?.note, "the time is given")
         for t in ["heat stroke", "stroke volume 60 mL", "on apixaban for stroke prevention", "No history of stroke"] {
             XCTAssertEqual(ids(t), [], t)

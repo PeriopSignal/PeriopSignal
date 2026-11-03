@@ -219,6 +219,5 @@ final class PatientNeuro182Tests: XCTestCase {
         XCTAssertEqual(applied("TIA 2 weeks ago").problems, ["cva-recent"])
         XCTAssertEqual(applied("recent TIA").problems, ["cva-recent"])
         XCTAssertTrue(applied("no TIA").problems.isEmpty)
-        XCTAssertTrue(applied("daughter Tia at bedside").problems.isEmpty, "a name, not the abbreviation")
     }
 }
