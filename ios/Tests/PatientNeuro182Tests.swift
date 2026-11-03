@@ -157,7 +157,7 @@ final class PatientNeuro182Tests: XCTestCase {
     // MARK: The readers
 
     func testNoteFilesPlainBleed() {
-        for text in ["intracranial hemorrhage", "Subdural hematoma", "subarachnoid haemorrhage", "epidural bleed", "intracerebral hemorrhage 2 years ago",
+        for text in ["intracranial hemorrhage", "Subdural hematoma", "subarachnoid haemorrhage", "intracerebral bleed", "intracerebral hemorrhage 2 years ago",
                      "h/o intracranial bleed", "subdural haematoma"] {
             XCTAssertTrue(ids(text).contains("problem:ich"), text + " in " + ids(text).joined(separator: ","))
             XCTAssertFalse(ids(text).contains("problem:ich-mass"), text)
@@ -166,7 +166,8 @@ final class PatientNeuro182Tests: XCTestCase {
     }
 
     func testNoteBleedWithMassEffectFilesOnlyThat() {
-        for text in ["subdural hematoma with midline shift", "intracerebral hemorrhage with mass effect", "subarachnoid hemorrhage with mass effect"] {
+        for text in ["subdural hematoma with midline shift", "intracerebral hemorrhage with mass effect", "subarachnoid hemorrhage with mass effect",
+                     "epidural hematoma with midline shift"] {
             let found = ids(text)
             XCTAssertTrue(found.contains("problem:ich-mass"), text)
             XCTAssertFalse(found.contains("problem:ich"), text + ": the plain bleed is replaced")
@@ -182,7 +183,7 @@ final class PatientNeuro182Tests: XCTestCase {
     func testNoteBleedNegatedOrNotAboutThePatient() {
         for text in ["no intracranial hemorrhage", "denies subdural hematoma", "CT negative for intracranial bleed", "without intracranial hemorrhage",
                      "intracranial hemorrhage risk", "risk of intracranial hemorrhage", "risk of subdural hematoma", "spinal epidural hematoma",
-                     "neuraxial epidural hematoma", "father had a subdural hematoma"] {
+                     "neuraxial epidural hematoma", "father had a subdural hematoma", "epidural bleed", "h/o epidural hematoma after epidural catheter removal"] {
             XCTAssertFalse(ids(text).contains("problem:ich"), text)
             XCTAssertFalse(ids(text).contains("problem:ich-mass"), text)
         }
@@ -205,5 +206,19 @@ final class PatientNeuro182Tests: XCTestCase {
         var u = PatientRecord(); u.problems = ["cva-unspec"]
         PatientNote.apply([.problem("cva-recent")], to: &u)
         XCTAssertEqual(u.problems, ["cva-recent"])
+    }
+
+    /// A TIA reads like a stroke: no time is "Stroke or TIA, unspecified", a past time is over 3 months, a recent one within.
+    func testTIAReadsLikeStroke() {
+        for text in ["h/o TIA", "TIA", "prior transient ischemic attack"] {
+            XCTAssertEqual(applied(text).problems, ["cva-unspec"], text)
+        }
+        for text in ["TIA 2019", "TIA 5 years ago", "TIA in 2015", "2018 TIA"] {
+            XCTAssertEqual(applied(text).problems, ["cva"], text)
+        }
+        XCTAssertEqual(applied("TIA 2 weeks ago").problems, ["cva-recent"])
+        XCTAssertEqual(applied("recent TIA").problems, ["cva-recent"])
+        XCTAssertTrue(applied("no TIA").problems.isEmpty)
+        XCTAssertTrue(applied("daughter Tia at bedside").problems.isEmpty, "a name, not the abbreviation")
     }
 }
