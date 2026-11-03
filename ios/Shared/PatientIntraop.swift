@@ -198,6 +198,7 @@ extension HandoffWriter {
     /// The parts of the handoff to show in bold red on the screen: abnormal labs, before and during the case, and the
     /// liver scores.
     static func marks(_ r: PatientRecord) -> [String] {
+        let r = r.capitalized
         var out = PatientSummary.labsLine(r)?.marks ?? []
         out += PatientSummary.liverLine(r)?.marks ?? []
         out += IntraopLabs.lastLine(r)?.marks ?? []

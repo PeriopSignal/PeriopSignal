@@ -102,7 +102,7 @@ final class PatientWorkupTests: XCTestCase {
         r.ecg = ["Atrial fibrillation"]; r.ecgNotes = "rate 88"
         r.echoFindings.lvef = 55
         let a = PatientSummary.assessmentLines(r)
-        XCTAssertEqual(a.first { $0.label == "ECG" }?.text, "Atrial fibrillation; rate 88")
+        XCTAssertEqual(a.first { $0.label == "ECG" }?.text, "Atrial fibrillation; Rate 88")
         XCTAssertEqual(a.first { $0.label == "Echo" }?.text, "LV EF 55%")
     }
 
