@@ -42,16 +42,28 @@ enum PastSurgeryNote {
     static let bulletRx = NoteRx(#"^\s*(?:[-•*–·]|\d+[.)])\s*"#)
     /// Another section's header at the start of a line closes the surgical history.
     static let otherHeaderRx = NoteRx(#"^\s*[A-Za-z][A-Za-z/&\s]{1,28}:"#)
-    static let andAfterDateRx = NoteRx(#"((?:19|20)\d\d|\d{1,2}/\d\d)\)?\s+(?:and|&)\s+"#)
-    /// What ends an item that runs on into the rest of the sentence ("s/p CABG 2019 now presenting for ...").
-    static let cutRx = NoteRx(#"\s+(?:presents?|presenting|presented|now|here|who|scheduled|booked|planned|admitted|but|which|that|due to|secondary to|c/b|complicated|undergoing|to have|will)\b"#)
-    static let plannedRx = NoteRx(#"\b(?:scheduled|booked|planned|presents?|presenting|presented|here for|admitted|undergoing|candidate|now for|to have|will)\b"#)
+    static let andAfterDateRx = NoteRx(#"((?:19|20)\d\d|\d{1,2}/(?:19|20)\d\d|['’]\d\d)\)?\s+(?:and|&)\s+"#)
+    /// What ends an item that runs on into the rest of the sentence ("s/p CABG 2019, now doing well").
+    static let cutRx = NoteRx(#"\s+(?:now|here|who|but|which|that|due to|secondary to|c/b|complicated)\b"#)
+    /// The planned procedure (1.8.3 review): an item next to one of these words is dropped, not trimmed to its head, and
+    /// nothing after it is read. A bare "for" counts after "s/p", "h/o" and the like ("s/p repair for hernia" is not filed
+    /// either); a "PSH:" section may say what an operation was for.
+    static let planningRx = NoteRx(#"\b(?:scheduled|planned|booked|pending|awaiting|needs?|candidate|referred|(?:presents?|presenting|presented|here|admitted|now|plans?|planning) (?:for|to)|presents?|presenting|presented|undergoing|will (?:undergo|have)|to have)\b"#)
+    static let forRx = NoteRx(#"\bfor\b"#)
     static let asideRx = NoteRx(#"\s+(?:under|with|w/|using|via|had|received)\s+(?:general|ga\b|spinal|epidural|mac\b|local|regional|sedation|an(?:a)?esthesia|nerve block)[^,;]*$"#)
     static let commentaryRx = NoteRx(#"^(?:no|none|nil|denies|denied|negative|neg|n/a|na|noncontributory|non-contributory|unremarkable|noted|see|per|otherwise|unknown|unsure|not|ga|mac)\b|\b(?:complications?|an(?:a)?esthe\w*|difficult (?:airway|intubation)|ponv|malignant hyperthermia|uneventful|tolerated|problems?|issues?|reactions?)\b"#)
-    static let surgicalRx = NoteRx(#"(?:ectomy|otomy|ostomy|plasty|oscopy|pexy|orrhaphy|desis)\b|\b(?:repair|surgery|resection|replacement|bypass|fusion|transplant\w*|fixation|orif|graft(?:ing)?|implant\w*|excision|c-?section|cesarean|ligation|amputation|biopsy|decompression|reconstruction|ablation|tka|tha|tkr|thr)\b"#)
+    /// An operative word: the text says an operation was done ("repair", "-ectomy", "bypass", "replacement", "ORIF", "surgery"),
+    /// or is an abbreviation that only names one (CABG, AVR, TAVR, EVAR).
+    static let surgicalRx = NoteRx(#"(?:ectomy|otomy|ostomy|plasty|oscopy|pexy|orrhaphy|desis)\b|\b(?:repair|surgery|operation|resection|replacement|bypass|fusion|transplant\w*|fixation|orif|graft(?:ing)?|implant\w*|excision|c-?section|cesarean|ligation|amputation|biopsy|decompression|reconstruction|ablation|tka|tha|tkr|thr)\b|(?-i:\b(?:CABG|OPCAB|SAVR|AVR|MVR|TVR|AVr|MVr|TVr|TAVR|TAVI|TEER|EVAR|TEVAR|FEVAR|BEVAR|PCI|TURP)\b)"#)
+    /// A diagnosis, which a procedure-list alias can also be ("AAA" is the open repair's, "dissection" a cardiac repair's):
+    /// with no operative word it is not an operation, after "h/o" or in a "PSH:" section.
+    static let diagnosisRx = NoteRx(#"\b(?:aaa|taaa?|taad|aod|aneurysms?|dissections?|hernias?|ectopic|fractures?|appendicitis|cholecystitis|cholelithiasis|gallstones?|obstruction|sbo|cancer|carcinoma|tumou?rs?|mass|stones?|stenosis|regurgitation|insufficiency|pregnancy|pneumothorax|empyema|abscess|torsion|bleed(?:ing)?|perforation|ulcers?|polyps?|cysts?)\b"#)
     static let chestRx = NoteRx(#"\b(?:thoracotomy|sternotomy|vats|thoracoscopic|lobectomy|pneumonectomy|segmentectomy|esophagectomy|open[- ]heart|cardiac surgery|heart surgery)\b"#)
     static let monthYearRx = NoteRx(#"(?:\bin\s+|\(\s*|\b(?:on|dated|at)\s+)?\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?,?\s+(?:19|20)\d\d)\b\s*\)?"#)
-    static let numericRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])((?:0?[1-9]|1[0-2])\s*(?:[/.\-]\s*(?:19|20)\d\d|/\s*\d\d))(?![\d/])\s*\)?"#)
+    /// Dates in a note: MM/YYYY, a year, a month name and year, and "'19" (with or without a month before it). Never M/D
+    /// ("appy 6/30"), nor MM/YY with no apostrophe, nor a 19xx year from two digits.
+    static let numericRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])((?:0?[1-9]|1[0-2])\s*[/.\-]\s*(?:19|20)\d\d)(?![\d/])\s*\)?"#)
+    static let apostropheRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])(?:(0?[1-9]|1[0-2])\s*/\s*)?['’](\d\d)(?!\d)\s*\)?"#)
     static let yearRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])((?:19|20)\d\d)(?![\w/])\s*\)?"#)
 
     static let cardiacWordsRx = NoteRx(PatientNote.cardiacOpWords)
@@ -60,7 +72,7 @@ enum PastSurgeryNote {
     private static let generic: Set<String> = ["surgery", "surgeries", "operation", "operations", "procedure", "procedures", "surgical", "history"]
 
     static var allPatterns: [NoteRx] {
-        [cardiacWordsRx, headerRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, plannedRx, asideRx, commentaryRx, surgicalRx, chestRx, monthYearRx, numericRx, yearRx]
+        [cardiacWordsRx, headerRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, chestRx, monthYearRx, numericRx, apostropheRx, yearRx]
     }
 
     // MARK: Reading a sentence
@@ -206,12 +218,14 @@ enum PastSurgeryNote {
         var t = ns.substring(with: range)
         if let b = bulletRx.first(t) { t = (t as NSString).substring(from: b.range.length) }
         if let l = leadRx.first(t), l.range.location == 0 { t = (t as NSString).substring(from: l.range.length) }
+        // The planned procedure: the item is dropped, whole, and nothing after it is read.
+        if planningRx.first(t) != nil || (strict && forRx.first(t) != nil) {
+            stopped = true
+            return nil
+        }
         if let cut = cutRx.first(t), cut.range.location > 0 {
             t = (t as NSString).substring(to: cut.range.location)
             stopped = true
-        } else if plannedRx.first(t) != nil {
-            stopped = true
-            return nil
         }
         t = tidy(t)
         guard !t.isEmpty else { return nil }
@@ -227,7 +241,7 @@ enum PastSurgeryNote {
         if strict {
             guard isOperation(t) else { return nil }
         } else {
-            guard t.filter(\.isLetter).count >= 3 else { return nil }
+            guard t.filter(\.isLetter).count >= 3, !diagnosisLike(t) else { return nil }
         }
         return Operation(text: t, date: date, aside: aside, range: range)
     }
@@ -242,6 +256,16 @@ enum PastSurgeryNote {
 
     /// The text without its (first) date, and the date: "TEVAR 08/2022", "CABG x3 in 2019", "(June 2015)".
     static func extractDate(_ text: String) -> (String, PatientMonthYear) {
+        if let m = apostropheRx.first(text) {
+            let ns = text as NSString
+            let yy = m.range(at: 2).location != NSNotFound ? Int(ns.substring(with: m.range(at: 2))) : nil
+            let month = m.range(at: 1).location != NSNotFound ? Int(ns.substring(with: m.range(at: 1))) : nil
+            // 20YY only, and never later than next year: no 19xx from two digits.
+            let thisYear = Calendar.current.component(.year, from: Date())
+            if let yy, 2000 + yy <= thisYear + 1 {
+                return (tidy(ns.replacingCharacters(in: m.range, with: " ")), PatientMonthYear(month: month, year: 2000 + yy))
+            }
+        }
         for rx in [monthYearRx, numericRx, yearRx] {
             guard let m = rx.first(text), m.numberOfRanges > 1, m.range(at: 1).location != NSNotFound else { continue }
             let ns = text as NSString
@@ -254,7 +278,18 @@ enum PastSurgeryNote {
 
     /// A recognized operation: in the procedure list, or named like one.
     static func isOperation(_ t: String) -> Bool {
-        PlannedProcedure.parse(t).contains { $0.catalogID != nil } || surgicalRx.first(t) != nil || chestRx.first(t) != nil
+        if surgicalRx.first(t) != nil || chestRx.first(t) != nil { return true }
+        if diagnosisLike(t) { return false }
+        return PlannedProcedure.parse(t).contains { $0.catalogID != nil }
+    }
+
+    /// A diagnosis with no operative word: the words are one ("AAA 4.5 cm", "type A dissection", "hiatal hernia",
+    /// "ectopic pregnancy"), or what the procedure list matched in them is one (its alias "AAA" is the open repair's). A
+    /// diagnosis beside a recognized operation ("lap chole for gallstones") is that operation's reason, not a diagnosis.
+    static func diagnosisLike(_ t: String) -> Bool {
+        guard diagnosisRx.first(t) != nil, surgicalRx.first(t) == nil, chestRx.first(t) == nil else { return false }
+        let matches = ProcedureCatalog.parse(t)
+        return matches.isEmpty || matches.contains { diagnosisRx.first($0.text) != nil && surgicalRx.first($0.text) == nil }
     }
 
     // MARK: Entries

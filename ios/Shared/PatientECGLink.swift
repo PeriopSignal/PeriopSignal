@@ -3,18 +3,17 @@ import Foundation
 // MARK: - The ECG and the Cardiovascular history, linked (1.8.3, Ben)
 //
 // "ECG should integrate between pages (systems and assessment)." Rhythm and conduction findings that have a matching
-// Cardiovascular history item fill both ways, with a guard on the way from history to ECG:
+// Cardiovascular history item are linked, with a guard on the way from history to ECG:
 //
-//   ECG → history, always. An ECG finding establishes the diagnosis: adding "Atrial fibrillation" to the ECG adds AF/flutter
-//   to the history when it is absent (add(_:to:)). Taking the finding off the ECG never takes the diagnosis off the history.
+//   ECG → history, automatic. An ECG finding establishes the diagnosis: adding "Atrial fibrillation" to the ECG adds
+//   AF/flutter to the history when it is absent (add(_:to:)). Taking the finding off the ECG never takes the diagnosis off
+//   the history. A paced rhythm adds the pacemaker only where it is surely one: not with temporary or epicardial wires, and
+//   not beside an ICD or CRT (pacemakerBlocked); there it is a one-tap suggestion (pacemakerSuggested).
 //
-//   History → ECG, only when the history says the rhythm is happening now (ongoing(_:)): a pacemaker-dependent patient is
-//   paced. That finding is filed on the ECG by itself and remembered as the history's (ecgFromHistory), so taking the
-//   history off takes only that finding off. Every other history item is a one-tap suggestion in the ECG editor
-//   (suggestions(_:)), never filed: paroxysmal AF in sinus rhythm, or a pacemaker that is not pacing, must not appear in a
-//   handoff as an ECG finding nobody saw.
-//
-// The guard is in `ongoing` alone. If Ben asks for it fully automatic, the suggestions move there.
+//   History → ECG, never automatic (decided with the independent review): the ECG editor offers a one-tap suggestion for
+//   each history item (suggestions(_:)), and nothing is filed on the ECG until it is tapped. Paroxysmal AF in sinus rhythm,
+//   or a pacemaker that is not pacing, must not appear in a handoff as an ECG finding nobody saw, and free text such as
+//   "not PPM dependent" is not read. If Ben asks for it fully automatic, the filing goes in one place: suggestions.
 enum PatientECGLink {
     // MARK: The mapping
 
@@ -38,50 +37,12 @@ enum PatientECGLink {
         "Complete heart block": Established(problem: "arrhythmia", type: "complete heart block", aliases: ["complete heart block", "third-degree", "third degree", "3rd degree", "chb"]),
     ]
 
+    static let pacedFindings = ["Paced rhythm (atrial)", "Paced rhythm (ventricular)", "Paced rhythm (AV)"]
+
     /// Conduction findings with no Cardiovascular item of their own, so none is filed from them: first-degree AV block,
     /// Mobitz I, bundle branch and fascicular blocks.
     static let notLinked: [String] = ["First-degree AV block", "Mobitz I (Wenckebach)", "Right bundle branch block", "Left bundle branch block",
                                       "Left anterior fascicular block", "Bifascicular block"]
-
-    // MARK: The guard: history → ECG
-
-    private static let notDependent = NoteRx(#"\b(?:not|non-?|no|never|in)\s*(?:pacemaker\s*|pacer\s*|pacing\s*)?-?\s*dependent"#)
-    private static let dependentWord = NoteRx(#"\bdependent\b"#)
-
-    /// The details of the pacemaker say the patient depends on it ("dependent", not "not dependent").
-    static func dependent(_ details: String) -> Bool {
-        var t = details.lowercased()
-        for m in notDependent.all(t).reversed() { t = (t as NSString).replacingCharacters(in: m.range, with: " ") }
-        return dependentWord.first(t) != nil
-    }
-
-    /// The ECG findings the history says are present now. Only these are filed on the ECG by themselves.
-    static func ongoing(_ r: PatientRecord) -> [String] {
-        var out: [String] = []
-        // Pacemaker dependence is paced rhythm all the time; dependence is on ventricular pacing.
-        if r.has("pacemaker"), dependent(r.hx.deviceDetails) { out.append("Paced rhythm (ventricular)") }
-        return out
-    }
-
-    /// Keeps the ECG in step with the history: a finding the history newly implies is added (and remembered as the
-    /// history's), and one it implied and no longer does is taken off when the history put it there. An ECG finding taken
-    /// off by hand stays off while the history stays as it is.
-    static func sync(_ r: inout PatientRecord) {
-        let seen = r.ecg
-        r.ecgFromHistory.removeAll { !seen.contains($0) }
-        let now = ongoing(r)
-        let before = r.ecgHistoryImplied
-        guard now != before else { return }
-        for f in now where !before.contains(f) && !r.ecg.contains(f) {
-            r.ecg = PatientECG.adding(f, to: r.ecg)
-            r.ecgFromHistory.append(f)
-        }
-        for f in before where !now.contains(f) && r.ecgFromHistory.contains(f) {
-            r.ecg.removeAll { $0 == f }
-            r.ecgFromHistory.removeAll { $0 == f }
-        }
-        r.ecgHistoryImplied = now
-    }
 
     // MARK: Suggestions: history → ECG, one tap
 
@@ -103,7 +64,7 @@ enum PatientECGLink {
             out.append(Suggestion(from: from, findings: findings))
         }
         if r.has("af") { offer("AF/flutter", ["Atrial fibrillation", "Atrial flutter"]) }
-        if r.has("pacemaker") { offer("pacemaker", ["Paced rhythm (atrial)", "Paced rhythm (ventricular)", "Paced rhythm (AV)"]) }
+        if r.has("pacemaker") { offer("pacemaker", pacedFindings) }
         if r.has("arrhythmia") {
             // The type typed under Other arrhythmia, where a finding of the ECG list is named in it.
             let type = r.hx.arrhythmiaType.lowercased()
@@ -117,17 +78,47 @@ enum PatientECGLink {
 
     // MARK: ECG → history
 
+    private static let temporaryPacing = NoteRx(#"\b(?:epicardial|temporary|temp\.?\s*(?:pac\w*|wires?)|pacing wires?|pacer wires?|transvenous|external pac\w*|transcutaneous|post-?op(?:erative)? pac\w*)\b"#)
+    private static let resynchronizationOrICD = NoteRx(#"\b(?:crt(?:-?[dp])?|biventricular|bi-?v|resynchroni[sz]ation|icd|aicd|defibrillator)\b"#)
+    static var patterns: [NoteRx] { [temporaryPacing, resynchronizationOrICD] }
+
+    /// Temporary or epicardial pacing wires are in the record's words (the ECG's notes, device details, the procedure, other
+    /// history): a paced rhythm there is not a permanent pacemaker.
+    static func temporaryPacingContext(_ r: PatientRecord) -> Bool {
+        let texts = [r.ecgNotes, r.hx.deviceDetails, r.procedure, r.otherHistory, r.anesthesiaNotes, r.systemNotes["cv"] ?? ""]
+            + r.devices.map { $0.detail + " " + $0.settings.values.joined(separator: " ") }
+        return texts.contains { temporaryPacing.first($0) != nil }
+    }
+
+    /// An ICD or CRT is in the history already, so a paced rhythm may be its own.
+    static func deviceAlready(_ r: PatientRecord) -> Bool {
+        r.has("icd") || resynchronizationOrICD.first(r.hx.deviceDetails) != nil
+    }
+
+    /// A paced rhythm does not add a pacemaker to the history here.
+    static func pacemakerBlocked(_ r: PatientRecord) -> Bool { temporaryPacingContext(r) || deviceAlready(r) }
+
+    /// The ECG says paced, the history has no pacemaker, and none was added by itself: offered, one tap
+    /// ("From ECG: paced rhythm — add pacemaker to the history?").
+    static func pacemakerSuggested(_ r: PatientRecord) -> Bool {
+        !r.has("pacemaker") && r.ecg.contains(where: { pacedFindings.contains($0) }) && pacemakerBlocked(r)
+    }
+
+    static func addPacemaker(to r: inout PatientRecord) {
+        r.noHistory = false
+        r.problems.insert("pacemaker")
+    }
+
     /// Adds an ECG finding (PatientECG.adding) and files what it establishes in the Cardiovascular history, whether or not
-    /// the history says so already. A pacemaker is not added to a patient with an ICD.
+    /// the history says so already.
     static func add(_ finding: String, to r: inout PatientRecord) {
+        let before = r
         r.ecg = PatientECG.adding(finding, to: r.ecg)
-        // Someone saw it now, whatever suggested it.
-        r.ecgFromHistory.removeAll { $0 == finding }
         guard let e = establishes[finding] else { return }
         r.noHistory = false
         switch e.problem {
         case "pacemaker":
-            if !r.has("pacemaker"), !r.has("icd") { r.problems.insert("pacemaker") }
+            if !r.has("pacemaker"), !pacemakerBlocked(before) { r.problems.insert("pacemaker") }
         case "arrhythmia":
             r.problems.insert("arrhythmia")
             let old = r.hx.arrhythmiaType.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -137,6 +128,5 @@ enum PatientECGLink {
         default:
             r.problems.insert(e.problem)
         }
-        sync(&r)
     }
 }

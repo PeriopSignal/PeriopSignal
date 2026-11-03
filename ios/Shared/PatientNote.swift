@@ -702,7 +702,13 @@ enum PatientNote {
             })
             let c = meant.text
             var h = Hits()
-            readRules(c, &h)
+            // The cath's result (1.8.3): in "non-obstructive CAD" the words "CAD" belong to it. They are blanked for the rules,
+            // so that phrase does not file the CAD history item (and the ASA class that follows); a CAD told anywhere else in
+            // the note still does, and nothing already in the record is ever taken out.
+            let lhcResult = PatientLHC.readResult(c)
+            var ruleText = c
+            if let k = lhcResult?.cadWords { ruleText = (c as NSString).replacingCharacters(in: k, with: String(repeating: " ", count: k.length)) }
+            readRules(ruleText, &h)
             readPatient(c, &h)
             readProcedure(c, choices, &h)
             readInfusions(c, &h)
@@ -738,17 +744,10 @@ enum PatientNote {
                 }), let meaning = a.meaning else { continue }
                 h.findings[i].note = "Read “" + a.token + "” as " + meaning.text + "; change it under Abbreviations if not."
             }
-            if let m = PatientLHC.readResult(c) {
+            if let m = lhcResult {
                 h.add(PatientNoteFinding(id: "lhc:result", section: Part.assessment, label: "Left heart cath: " + (m.result == "no-cad" ? "no CAD" : "non-obstructive"),
-                                         change: .lhcResult(m.result)), at: m.phrase)
+                                         change: .lhcResult(m.result)), at: m.cadWords.map { NSUnionRange(m.phrase, $0) } ?? m.phrase)
                 h.seen(m.cath)
-                // "nonobstructive CAD" is the cath's result, not coronary artery disease for the history (and the ASA class
-                // that follows from it): the CAD item read from the words right after it is not filed.
-                let end = m.phrase.location + m.phrase.length
-                if let i = h.findings.indices.first(where: { h.findings[$0].id == "problem:cad" && h.at[$0].location >= end && h.at[$0].location - end <= 20 }) {
-                    h.findings.remove(at: i)
-                    h.at.remove(at: i)
-                }
             }
             // Past surgical history: a "PSH:" section, "s/p ...", "h/o ..." (1.8.3). What the cardiac reader took is its own.
             let taken = zip(h.findings, h.at).filter { $0.0.id == "cardiac-surgery" }.map { $0.1 }

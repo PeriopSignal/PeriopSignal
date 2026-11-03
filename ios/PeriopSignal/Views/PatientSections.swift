@@ -181,6 +181,21 @@ extension PatientEditorView {
                 }
                 .padding(.horizontal, 14).padding(.top, 10)
             }
+            // A paced rhythm that did not add a pacemaker by itself (temporary wires, an ICD or CRT): offered for the history.
+            if PatientECGLink.pacemakerSuggested(r) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("From ECG: paced rhythm — add pacemaker to the history?").font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg2)
+                    Button {
+                        Haptics.light()
+                        patient.update(discrete: true) { PatientECGLink.addPacemaker(to: &$0) }
+                    } label: {
+                        Label("Pacemaker", systemImage: "plus").font(PS.sys(size: 14, weight: .semibold))
+                    }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+                    .accessibilityLabel("Add a pacemaker to the history, from the ECG")
+                }
+                .padding(.horizontal, 14).padding(.top, 10)
+            }
             PatientTypeahead(label: "Add a finding", prompt: "Type: afib, LBBB, paced, Q waves…", options: PatientECG.findings.filter { !r.ecg.contains($0) }) { pick in
                 patient.update(discrete: true) { PatientECGLink.add(pick, to: &$0) }
             }

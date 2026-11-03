@@ -261,9 +261,9 @@ struct PatientView: View {
                     r.echoFindings.aortic.regurgitation = .trivial
                 case "harvest-both": r.radial.harvest = "both"
                 // 1.8.3 (the ECG and the history linked): an AF found on the ECG, which the history then holds too; the ECG
-                // cleared, so the history's AF is offered as a suggestion and a dependent pacemaker's paced rhythm is filed.
+                // cleared, so the history's AF and pacemaker are offered as suggestions.
                 case "ecg-af": PatientECGLink.add("Atrial fibrillation", to: &r)
-                case "ecg-none": r.ecg = []; r.ecgFromHistory = []
+                case "ecg-none": r.ecg = []
                 // 1.8.3: a non-obstructive cath, right dominant, with a date.
                 case "lhc-nonobstructive":
                     r.lhc.dominance = "right"; r.lhc.result = "non-obstructive"; r.lhc.date = PatientMonthYear(month: 6, year: 2026)

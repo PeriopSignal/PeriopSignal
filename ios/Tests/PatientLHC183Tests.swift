@@ -138,7 +138,7 @@ final class PatientLHC183Tests: XCTestCase {
     func testNonObstructiveWithACathWord() {
         for s in ["LHC non-obstructive", "cath: nonobstructive CAD", "non-obstructive coronary disease on cath", "LHC 06/2026 right dominant, non obstructive",
                   "Coronary angiogram showed nonobstructive disease", "Left heart cath: non-obstructive", "cath showed no obstructive CAD",
-                  "LHC: mild non-obstructive disease"] {
+                  "LHC: mild non-obstructive disease", "left heart cath nonobstructive"] {
             XCTAssertEqual(typed(s), "non-obstructive", s)
         }
     }
@@ -156,23 +156,41 @@ final class PatientLHC183Tests: XCTestCase {
         XCTAssertNil(typed("cath: normal coronaries, nonobstructive plaque"), "a sentence that says both")
     }
 
-    func testNeverWithoutACathWord() {
+    func testNeverWithoutACoronaryCath() {
         for s in ["non-obstructive CAD", "CCTA: nonobstructive CAD", "CT showed non-obstructive plaque", "PA cath in place, nonobstructive CAD on CT",
-                  "Cath done. Non-obstructive CAD on CT.", "normal coronaries", "no CAD", "CTA: normal coronary arteries", "Coronary CT angiography: normal coronaries", "MR angiography: no CAD", "No coronary artery disease on CT"] {
+                  "Cath done. Non-obstructive CAD on CT.", "normal coronaries", "no CAD", "CTA: normal coronary arteries", "No coronary artery disease on CT",
+                  "Coronary CT angiography: normal coronaries", "MR angiography: no CAD",
+                  // Not a coronary angiogram:
+                  "mesenteric angiogram: non-obstructive disease", "leg angiogram nonobstructive CAD", "cerebral angiogram: normal coronaries", "angiogram: no CAD",
+                  "CT coronary angiogram nonobstructive CAD",
+                  // Not coronary disease:
+                  "cath: non-obstructive HCM", "LHC non-obstructive hypertrophic cardiomyopathy", "cath showed non-obstructive cardiomyopathy",
+                  // A cath that is not the LHC needs a coronary word:
+                  "cath: non-obstructive"] {
             XCTAssertNil(typed(s), s)
         }
     }
 
-    func testTheCADItemIsNotFiledFromIt() {
+    /// "Non-obstructive CAD" is the cath's result and files no CAD item; a CAD told elsewhere still does.
+    func testTheCADItemIsNotFiledFromThePhraseAlone() {
         let r = read("cath: nonobstructive CAD")
-        XCTAssertFalse(r.findings.contains { $0.id == "problem:cad" }, "the cath's result is not the history item")
+        XCTAssertFalse(r.findings.contains { $0.id == "problem:cad" }, "the phrase is the cath's result")
         XCTAssertEqual(typed("cath: nonobstructive CAD"), "non-obstructive")
         XCTAssertTrue(r.other.isEmpty, "and nothing is left over: " + r.other)
-        for s in ["cath: no CAD", "LHC normal coronaries"] {
+        for s in ["cath: no CAD", "LHC normal coronaries", "non-obstructive coronary disease on cath"] {
             XCTAssertFalse(read(s).findings.contains { $0.id.hasPrefix("problem:") }, s)
         }
-        // A CAD told apart from it is still read.
-        XCTAssertTrue(read("CAD with stents. LHC non-obstructive.").findings.contains { $0.id == "problem:cad" || $0.id == "problem:pci" })
+        // A separate CAD mention still files it, before or after the phrase, or in another sentence.
+        for s in ["known CAD, LHC: nonobstructive CAD", "LHC nonobstructive CAD, h/o CAD", "CAD with stents. LHC non-obstructive."] {
+            XCTAssertTrue(read(s).findings.contains { $0.id == "problem:cad" || $0.id == "problem:pci" }, s)
+            XCTAssertEqual(typed(s), "non-obstructive", s)
+        }
+        // A record's CAD is never taken out by it.
+        var rec = PatientRecord()
+        rec.problems = ["cad", "htn"]
+        PatientNote.apply(read("cath: nonobstructive CAD").findings.map(\.change), to: &rec)
+        XCTAssertEqual(rec.problems, ["cad", "htn"])
+        XCTAssertEqual(rec.lhc.result, "non-obstructive")
     }
 
     func testFilesThroughTheNoteAndTheBar() {

@@ -188,12 +188,6 @@ struct PatientRecord: Codable, Equatable {
     /// ECG findings from the typeable list, and anything else.
     var ecg: [String] = []
     var ecgNotes = ""
-    /// ECG findings the history put there itself (a pacemaker-dependent patient is paced), so that removing that history
-    /// removes them and a finding someone saw never is. See PatientECGLink.
-    var ecgFromHistory: [String] = []
-    /// The ECG findings the history implied when it was last looked at, so that a change in the history is seen as a change
-    /// (an ECG finding taken off by hand stays off while the history stays as it is).
-    var ecgHistoryImplied: [String] = []
     var echoFindings = PatientEcho()
     var lhc = PatientLHC()
     var rhc = PatientRHC()
@@ -343,8 +337,6 @@ struct PatientRecord: Codable, Equatable {
         intrathoracic = v(.intrathoracic, [])
         ecg = v(.ecg, [])
         ecgNotes = v(.ecgNotes, "")
-        ecgFromHistory = v(.ecgFromHistory, [])
-        let implied = try? c.decodeIfPresent([String].self, forKey: .ecgHistoryImplied)
         echoFindings = v(.echoFindings, PatientEcho())
         lhc = v(.lhc, PatientLHC())
         rhc = v(.rhc, PatientRHC())
@@ -410,8 +402,6 @@ struct PatientRecord: Codable, Equatable {
         callIf = v(.callIf, "")
         todos = v(.todos, "")
         PatientHistoryDetails.migrate(&self)
-        // A record saved before the ECG link: what its history implies now is what it implied, so nothing new appears.
-        ecgHistoryImplied = implied ?? PatientECGLink.ongoing(self)
     }
 
     /// Nothing entered (the time stamp alone does not count).

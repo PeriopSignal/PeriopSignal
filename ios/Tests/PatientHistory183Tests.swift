@@ -347,7 +347,76 @@ final class PatientHistory183Tests: XCTestCase {
         XCTAssertEqual(PastSurgeryNote.extractDate("TEVAR 08/2022").1, m(8, 2022))
         XCTAssertEqual(PastSurgeryNote.extractDate("TEVAR (June 2015)").1, m(6, 2015))
         XCTAssertEqual(PastSurgeryNote.extractDate("lap chole in 2012").0, "lap chole")
-        XCTAssertEqual(PastSurgeryNote.extractDate("L4-5 laminectomy 3/22").1, m(3, 2022))
         XCTAssertTrue(PastSurgeryNote.extractDate("T10-11 fusion").1.isEmpty, "a spinal level is not a date")
+    }
+
+    // MARK: Review fixes (1.8.3)
+
+    /// The dates a note may give: MM/YYYY, a year, a month and year, and an apostrophe year. Never M/D or MM/YY.
+    func testNotesNeverReadADayOrTwoDigitsAsAYear() {
+        for text in ["appy 6/30", "L4-5 laminectomy 3/22", "TKA 6/19", "cholecystectomy 12/95", "TKA 6.19", "hernia repair 10/28"] {
+            XCTAssertTrue(PastSurgeryNote.extractDate(text).1.isEmpty, text)
+        }
+        XCTAssertEqual(PastSurgeryNote.extractDate("TKA 6/'19").1, m(6, 2019))
+        XCTAssertEqual(PastSurgeryNote.extractDate("TKA 6/'19").0, "TKA")
+        XCTAssertEqual(PastSurgeryNote.extractDate("cholecystectomy '15").1, PatientMonthYear(year: 2015))
+        XCTAssertEqual(PastSurgeryNote.extractDate("cholecystectomy ’15").1, PatientMonthYear(year: 2015), "a typographic apostrophe")
+        XCTAssertTrue(PastSurgeryNote.extractDate("cholecystectomy '95").1.isEmpty, "never a 19xx year from two digits (and 2095 is not a date)")
+        XCTAssertEqual(PastSurgeryNote.extractDate("TKA 06/2019").1, m(6, 2019))
+        XCTAssertEqual(PastSurgeryNote.extractDate("TKA 6/2019").1, m(6, 2019))
+        XCTAssertEqual(PastSurgeryNote.extractDate("TKA March 2019").1, m(3, 2019))
+        let r = applied("s/p appy 6/30")
+        XCTAssertEqual(r.surgeries.count, 1)
+        XCTAssertTrue(r.surgeries[0].date.isEmpty, "not June 1930")
+        XCTAssertEqual(applied("s/p TKA 6/'19").surgeries.first?.date, m(6, 2019))
+        XCTAssertEqual(applied("PSH: cholecystectomy '15, TKA 6/19").surgeries.map(\.date.year), [2015, nil])
+    }
+
+    func testADiagnosisThatIsAlsoAnAliasIsNotAnOperation() {
+        for note in ["h/o AAA 4.5 cm", "h/o type A dissection", "history of hiatal hernia", "h/o ectopic pregnancy", "history of hip fracture", "prior AAA",
+                     "s/p aortic dissection", "hx of ovarian cyst", "h/o hernia", "PSH: AAA 4.5 cm", "PSH: hiatal hernia", "PSH: ectopic pregnancy"] {
+            let r = applied(note)
+            XCTAssertTrue(r.surgeries.isEmpty, note + " → " + r.surgeries.map(\.text).joined(separator: "; "))
+            XCTAssertNil(r.hx.cardiacSurgeryID, note)
+            XCTAssertTrue(psh(note).isEmpty, note)
+        }
+    }
+
+    func testTheOperationIsStillReadWhenItSaysSo() {
+        for note in ["h/o AAA repair 2018", "s/p CABG", "prior TAVR 2020", "h/o EVAR 2017", "history of hip fracture ORIF 2019", "h/o hiatal hernia repair 2015",
+                     "s/p type A dissection repair 2021", "PSH: AAA repair 2018", "PSH: lap chole for gallstones 2015"] {
+            XCTAssertEqual(applied(note).surgeries.count, 1, note)
+        }
+        XCTAssertEqual(applied("s/p CABG").surgeries.first?.procedures.first?.catalogID, "cabg")
+        XCTAssertEqual(applied("PSH: lap chole for gallstones 2015").surgeries.first?.procedures.first?.catalogID, "lap-chole")
+        XCTAssertEqual(applied("s/p lap chole 2015, appendectomy 2010, ORIF R ankle").surgeries.count, 3)
+    }
+
+    func testAPlanningWordDropsTheItemWhole() {
+        for note in ["s/p PCI 2020, CABG scheduled 11/4", "s/p LHC 10/28 showing 3VD, referred for CABG", "s/p appendectomy 2010, awaiting CABG",
+                     "s/p CABG 2019, needs AVR", "s/p PCI 2020; candidate for CABG", "s/p lap chole 2015, booked for redo sternotomy",
+                     "s/p PCI 2020, CABG planned", "s/p PCI 2020, CABG pending", "h/o PCI 2018, presents for CABG", "s/p PCI 2020, CABG for 3VD next week"] {
+            let r = applied(note)
+            for s in r.surgeries {
+                XCTAssertFalse(s.text.lowercased().contains("bypass") && !note.contains("CABG 2019"), note + " → " + s.text)
+                XCTAssertFalse(s.text.contains("Aortic valve") || s.text.lowercased().contains("sternotomy"), note + " → " + s.text)
+            }
+        }
+        let a = applied("s/p PCI 2020, CABG scheduled 11/4")
+        XCTAssertEqual(a.surgeries.count, 1, "PCI only: " + a.surgeries.map(\.text).joined(separator: "; "))
+        XCTAssertEqual(a.surgeries.first?.date, PatientMonthYear(year: 2020))
+        XCTAssertNil(a.surgeries.first { $0.text.lowercased().contains("bypass") })
+        let b = applied("s/p LHC 10/28 showing 3VD, referred for CABG")
+        XCTAssertFalse(b.surgeries.contains { $0.text.lowercased().contains("bypass") || $0.text.contains("CABG") })
+        XCTAssertTrue(b.surgeries.allSatisfy { $0.date.year != 1928 })
+        // A list stops at a planning word: what follows it is not read.
+        let c = applied("s/p appendectomy 2010, needs AVR, cholecystectomy 2015")
+        XCTAssertEqual(c.surgeries.count, 1)
+    }
+
+    func testASectionMayStateWhatAnOperationWasFor() {
+        let r = applied("PSH: lap chole for gallstones 2015, appendectomy for appendicitis")
+        XCTAssertEqual(r.surgeries.count, 2)
+        XCTAssertTrue(applied("s/p repair for hernia").surgeries.isEmpty, "after s/p a bare for is a planning word")
     }
 }

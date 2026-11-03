@@ -88,8 +88,6 @@ final class PatientStore {
         if !loaded { reload() }
         var r = record
         change(&r)
-        // The ECG follows the history where the history says the finding is ongoing (PatientECGLink).
-        PatientECGLink.sync(&r)
         guard r != record else { return }
         history.willChange(record, case: book.currentID, discrete: discrete || takeDiscreteMark(now), now: now)
         r.updated = now

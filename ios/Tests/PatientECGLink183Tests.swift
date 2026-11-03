@@ -1,9 +1,9 @@
 import XCTest
 @testable import PeriopSignal
 
-/// 1.8.3, Ben: the ECG findings and the Cardiovascular history fill each other. ECG → history always; history → ECG only
-/// where the history says the rhythm is ongoing, else a suggestion; taking one off never takes the other off, except a
-/// finding the history put on the ECG itself.
+/// 1.8.3, Ben: the ECG findings and the Cardiovascular history are linked. ECG → history is automatic (a paced rhythm adds a
+/// pacemaker only where it surely is one); history → ECG is never automatic, only a one-tap suggestion; taking one off never
+/// takes the other off.
 final class PatientECGLink183Tests: XCTestCase {
     private func empty() -> PatientRecord { PatientRecord() }
 
@@ -16,10 +16,12 @@ final class PatientECGLink183Tests: XCTestCase {
             XCTAssertTrue(PatientECG.findings.contains(finding), finding + " is an ECG finding")
             XCTAssertTrue(ids.contains(e.problem), e.problem + " is a Cardiovascular item")
         }
+        for f in PatientECGLink.pacedFindings { XCTAssertTrue(PatientECG.findings.contains(f), f) }
         for f in PatientECGLink.notLinked {
             XCTAssertTrue(PatientECG.findings.contains(f), f)
             XCTAssertNil(PatientECGLink.establishes[f], f + " has no item of its own")
         }
+        for rx in PatientECGLink.patterns { XCTAssertNotNil(rx.re, rx.pattern) }
     }
 
     // MARK: ECG → history, always
@@ -34,7 +36,7 @@ final class PatientECGLink183Tests: XCTestCase {
         var flutter = empty()
         PatientECGLink.add("Atrial flutter", to: &flutter)
         XCTAssertTrue(flutter.has("af"), "AF/flutter is one item")
-        for f in ["Paced rhythm (atrial)", "Paced rhythm (ventricular)", "Paced rhythm (AV)"] {
+        for f in PatientECGLink.pacedFindings {
             var p = empty()
             PatientECGLink.add(f, to: &p)
             XCTAssertTrue(p.has("pacemaker"), f)
@@ -62,14 +64,6 @@ final class PatientECGLink183Tests: XCTestCase {
         XCTAssertEqual(r.problems, ["af", "htn"])
     }
 
-    func testAPacemakerIsNotAddedBesideAnICD() {
-        var r = empty()
-        r.problems = ["icd"]
-        PatientECGLink.add("Paced rhythm (ventricular)", to: &r)
-        XCTAssertFalse(r.has("pacemaker"))
-        XCTAssertEqual(r.ecg, ["Paced rhythm (ventricular)"])
-    }
-
     func testConductionFindingsWithoutAnItemFileNothing() {
         for f in PatientECGLink.notLinked {
             var r = empty()
@@ -88,21 +82,82 @@ final class PatientECGLink183Tests: XCTestCase {
         PatientECGLink.add("Atrial fibrillation", to: &r)
         PatientECGLink.add("Paced rhythm (AV)", to: &r)
         r.ecg.removeAll()
-        PatientECGLink.sync(&r)
         XCTAssertTrue(r.has("af"))
         XCTAssertTrue(r.has("pacemaker"))
     }
 
-    // MARK: History → ECG, only when ongoing
+    // MARK: A paced rhythm and the pacemaker
 
-    func testHistoryAloneFilesNothingOnTheECG() {
+    func testTemporaryOrEpicardialWiresAreNotAPermanentPacemaker() {
+        for words in ["epicardial wires, paced", "temporary pacing wires", "temp wires in place", "transvenous pacing", "external pacing", "post-op pacing"] {
+            var r = empty()
+            r.ecgNotes = words
+            PatientECGLink.add("Paced rhythm (ventricular)", to: &r)
+            XCTAssertEqual(r.ecg, ["Paced rhythm (ventricular)"], words)
+            XCTAssertFalse(r.has("pacemaker"), words)
+            XCTAssertTrue(PatientECGLink.pacemakerSuggested(r), words + ": offered instead")
+        }
+        // The wires named elsewhere in the record.
+        var viaProcedure = empty()
+        viaProcedure.procedure = "CABG, epicardial pacing wires"
+        PatientECGLink.add("Paced rhythm (AV)", to: &viaProcedure)
+        XCTAssertFalse(viaProcedure.has("pacemaker"))
+        var viaDevice = empty()
+        viaDevice.devices = [PatientDevice(kind: .other, detail: "temporary pacing wire")]
+        PatientECGLink.add("Paced rhythm (atrial)", to: &viaDevice)
+        XCTAssertFalse(viaDevice.has("pacemaker"))
+        var viaHistory = empty()
+        viaHistory.otherHistory = "Epicardial wires after the valve"
+        PatientECGLink.add("Paced rhythm (ventricular)", to: &viaHistory)
+        XCTAssertFalse(viaHistory.has("pacemaker"))
+    }
+
+    func testAnICDOrCRTIsNotGivenASecondDevice() {
+        var icd = empty()
+        icd.problems = ["icd"]
+        PatientECGLink.add("Paced rhythm (ventricular)", to: &icd)
+        XCTAssertFalse(icd.has("pacemaker"))
+        XCTAssertTrue(PatientECGLink.pacemakerSuggested(icd))
+        for details in ["CRT-D", "CRT-P, Medtronic", "biventricular pacemaker", "resynchronization", "AICD"] {
+            var r = empty()
+            r.hx.deviceDetails = details
+            PatientECGLink.add("Paced rhythm (ventricular)", to: &r)
+            XCTAssertFalse(r.has("pacemaker"), details)
+        }
+    }
+
+    func testThePacemakerSuggestionAddsIt() {
+        var r = empty()
+        r.problems = ["icd"]
+        PatientECGLink.add("Paced rhythm (ventricular)", to: &r)
+        XCTAssertTrue(PatientECGLink.pacemakerSuggested(r))
+        PatientECGLink.addPacemaker(to: &r)
+        XCTAssertTrue(r.has("pacemaker"))
+        XCTAssertFalse(PatientECGLink.pacemakerSuggested(r), "added: nothing more to offer")
+        // Nothing offered without a paced rhythm, or when it was added by itself.
+        var plain = empty()
+        plain.ecgNotes = "epicardial wires"
+        XCTAssertFalse(PatientECGLink.pacemakerSuggested(plain))
+        var added = empty()
+        PatientECGLink.add("Paced rhythm (AV)", to: &added)
+        XCTAssertFalse(PatientECGLink.pacemakerSuggested(added))
+    }
+
+    // MARK: History → ECG: a suggestion, never filed
+
+    func testHistoryNeverFilesAnythingOnTheECG() {
         var r = empty()
         r.problems = ["af", "pacemaker", "icd", "arrhythmia"]
         r.hx.arrhythmiaType = "SVT, heart block"
-        PatientECGLink.sync(&r)
-        XCTAssertTrue(r.ecg.isEmpty, "paroxysmal AF in sinus rhythm, or a pacemaker not pacing, is not an ECG finding")
-        XCTAssertNil(PatientSummary.ecgText(r), "and the handoff says nothing of it")
-        XCTAssertTrue(PatientECGLink.ongoing(r).isEmpty)
+        r.hx.deviceDetails = "dependent"
+        XCTAssertTrue(r.ecg.isEmpty)
+        XCTAssertNil(PatientSummary.ecgText(r), "the handoff says nothing of it")
+        for text in ["dependent", "not PPM dependent", "not device dependent", "pacer dependent: no", "pacemaker dependent"] {
+            var p = empty()
+            p.problems = ["pacemaker"]; p.hx.deviceDetails = text
+            XCTAssertTrue(p.ecg.isEmpty, text)
+            XCTAssertEqual(PatientECGLink.suggestions(p).map(\.from), ["pacemaker"], text + ": the same one-tap suggestion; the words are not read")
+        }
     }
 
     func testSuggestionsOfferWhatTheHistoryHolds() {
@@ -116,7 +171,6 @@ final class PatientECGLink183Tests: XCTestCase {
         // Tapping one files it as seen, and the suggestion goes.
         PatientECGLink.add("Atrial flutter", to: &r)
         XCTAssertEqual(PatientECGLink.suggestions(r).map(\.from), ["pacemaker"])
-        XCTAssertTrue(r.ecgFromHistory.isEmpty, "chosen by hand, so not the history's")
         // Other arrhythmia names a finding in its type.
         var o = empty()
         o.problems = ["arrhythmia"]; o.hx.arrhythmiaType = "SVT, heart block"
@@ -133,121 +187,23 @@ final class PatientECGLink183Tests: XCTestCase {
         XCTAssertEqual(q, before)
     }
 
-    func testPacemakerDependenceIsOngoing() {
-        for text in ["dependent", "Pacemaker dependent, Medtronic", "dependent; magnet response unknown", "PM-dependent"] {
-            XCTAssertTrue(PatientECGLink.dependent(text), text)
-        }
-        for text in ["not dependent", "non-dependent", "nondependent", "independent", "not pacemaker dependent", "Medtronic", "", "magnet response"] {
-            XCTAssertFalse(PatientECGLink.dependent(text), text)
-        }
-        var r = empty()
-        r.problems = ["pacemaker"]; r.hx.deviceDetails = "dependent"
-        XCTAssertEqual(PatientECGLink.ongoing(r), ["Paced rhythm (ventricular)"])
-        r.problems = ["icd"]
-        XCTAssertTrue(PatientECGLink.ongoing(r).isEmpty, "details of an ICD say nothing of pacing")
-    }
-
-    func testOngoingHistoryFilesOnTheECGAndTheHistoryTakesItOff() {
-        var r = empty()
-        r.problems = ["pacemaker"]
-        PatientECGLink.sync(&r)
-        XCTAssertTrue(r.ecg.isEmpty, "a pacemaker alone")
-        r.hx.deviceDetails = "dependent"
-        PatientECGLink.sync(&r)
-        XCTAssertEqual(r.ecg, ["Paced rhythm (ventricular)"])
-        XCTAssertEqual(r.ecgFromHistory, ["Paced rhythm (ventricular)"])
-        XCTAssertNotNil(PatientSummary.ecgText(r))
-        // Syncing again changes nothing.
-        let once = r
-        PatientECGLink.sync(&r)
-        XCTAssertEqual(r, once)
-        // The history goes: the finding it put there goes.
-        r.hx.deviceDetails = ""
-        PatientECGLink.sync(&r)
-        XCTAssertTrue(r.ecg.isEmpty)
-        XCTAssertTrue(r.ecgFromHistory.isEmpty)
-        // Or the pacemaker is taken off.
-        r.hx.deviceDetails = "dependent"
-        PatientECGLink.sync(&r)
-        XCTAssertEqual(r.ecg, ["Paced rhythm (ventricular)"])
-        r.problems.remove("pacemaker")
-        PatientECGLink.sync(&r)
-        XCTAssertTrue(r.ecg.isEmpty)
-    }
-
-    func testAFindingSomeoneSawIsNeverTakenOffWithTheHistory() {
-        var r = empty()
-        r.problems = ["pacemaker"]
-        PatientECGLink.add("Paced rhythm (ventricular)", to: &r)
-        r.hx.deviceDetails = "dependent"
-        PatientECGLink.sync(&r)
-        XCTAssertEqual(r.ecg, ["Paced rhythm (ventricular)"])
-        XCTAssertTrue(r.ecgFromHistory.isEmpty, "it was there already: not the history's")
-        r.hx.deviceDetails = ""
-        r.problems.remove("pacemaker")
-        PatientECGLink.sync(&r)
-        XCTAssertEqual(r.ecg, ["Paced rhythm (ventricular)"], "removing the history removes only what the history added")
-        // Added by hand after the history put one there: it is the reader's now.
-        var s = empty()
-        s.problems = ["pacemaker"]; s.hx.deviceDetails = "dependent"
-        PatientECGLink.sync(&s)
-        XCTAssertEqual(s.ecgFromHistory.count, 1)
-        PatientECGLink.add("Paced rhythm (ventricular)", to: &s)
-        XCTAssertTrue(s.ecgFromHistory.isEmpty)
-        s.problems.remove("pacemaker")
-        PatientECGLink.sync(&s)
-        XCTAssertEqual(s.ecg, ["Paced rhythm (ventricular)"])
-    }
-
-    func testAFindingTakenOffByHandStaysOff() {
-        var r = empty()
-        r.problems = ["pacemaker"]; r.hx.deviceDetails = "dependent"
-        PatientECGLink.sync(&r)
-        r.ecg.removeAll()
-        PatientECGLink.sync(&r)
-        XCTAssertTrue(r.ecg.isEmpty, "the history is as it was: it is not put back")
-        XCTAssertTrue(r.ecgFromHistory.isEmpty)
-        // A change in the history is a new reading.
-        r.hx.deviceDetails = ""
-        PatientECGLink.sync(&r)
-        r.hx.deviceDetails = "dependent"
-        PatientECGLink.sync(&r)
-        XCTAssertEqual(r.ecg, ["Paced rhythm (ventricular)"])
-    }
-
-    func testAnAutoAddedRhythmDoesNotReplaceAnotherRhythm() {
+    func testRemovingTheHistoryNeverTouchesTheECG() {
         var r = empty()
         PatientECGLink.add("Atrial fibrillation", to: &r)
-        r.problems.insert("pacemaker"); r.hx.deviceDetails = "dependent"
-        PatientECGLink.sync(&r)
-        XCTAssertEqual(Set(r.ecg), ["Atrial fibrillation", "Paced rhythm (ventricular)"], "ventricular pacing sits beside the atrial rhythm")
+        PatientECGLink.add("Paced rhythm (AV)", to: &r)
+        r.problems.removeAll()
+        XCTAssertEqual(Set(r.ecg), ["Atrial fibrillation", "Paced rhythm (AV)"], "what someone saw stays")
     }
 
     // MARK: Saved records
 
-    func testARecordSavedBeforeTheLinkOpensUnchanged() throws {
+    func testRecordsRoundTripWithNoNewFields() throws {
         var r = empty()
-        r.problems = ["pacemaker", "af"]; r.hx.deviceDetails = "dependent"
-        let data = try JSONEncoder().encode(r)
-        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-        json.removeValue(forKey: "ecgFromHistory")
-        json.removeValue(forKey: "ecgHistoryImplied")
-        let old = try JSONSerialization.data(withJSONObject: json)
-        var back = try JSONDecoder().decode(PatientRecord.self, from: old)
-        XCTAssertTrue(back.ecg.isEmpty)
-        let before = back
-        PatientECGLink.sync(&back)
-        XCTAssertEqual(back, before, "nothing appears on the ECG of an existing patient")
-        // And a current record round-trips.
-        PatientECGLink.sync(&r)
+        PatientECGLink.add("Atrial fibrillation", to: &r)
         let again = try JSONDecoder().decode(PatientRecord.self, from: JSONEncoder().encode(r))
         XCTAssertEqual(again, r)
-        XCTAssertEqual(again.ecgFromHistory, ["Paced rhythm (ventricular)"])
-    }
-
-    func testAnEmptyPatientStaysEmpty() {
-        var r = empty()
-        PatientECGLink.sync(&r)
-        XCTAssertTrue(r.isEmpty)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(r)) as? [String: Any])
+        XCTAssertNil(json["ecgFromHistory"])
+        XCTAssertNil(json["ecgHistoryImplied"])
     }
 }

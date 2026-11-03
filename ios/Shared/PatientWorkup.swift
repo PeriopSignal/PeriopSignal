@@ -805,19 +805,37 @@ extension PatientDevice {
 extension PatientLHC {
     private static let nonObstructiveRx = NoteRx(#"\b(?:non[- ]?obstructive|no obstructive)\b"#)
     private static let noCADRx = NoteRx(#"\b(?:(?:angiographically |grossly )?normal coronar(?:y|ies)(?: arter(?:y|ies))?|clean coronar(?:y|ies)|no (?:cad|coronary (?:artery )?disease))\b"#)
-    /// A cath, LHC or angiogram word (not a PA, arterial or central catheter, nor a CT or MR angiogram: "CTA" is read as one).
-    private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )(?<!\bct )(?<!\bmr )(?<!\bcta )\b(?:lhc|cath(?:eterization|eterisation)?|angiogra(?:m|phy)|angio)\b"#)
-    static var patterns: [NoteRx] { [nonObstructiveRx, noCADRx, cathRx] }
+    /// A coronary cath: "LHC" or "left heart cath" (coronary by themselves), "cath" (not a PA, arterial or central catheter),
+    /// or a coronary angiogram, which is not a CT or MR one. A mesenteric, leg or cerebral angiogram is none of these.
+    private static let lhcRx = NoteRx(#"\b(?:lhc|left heart cath(?:eterization|eterisation)?)\b"#)
+    private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )(?<!\bpa )\bcath(?:eterization|eterisation)?\b|(?<!\bct )(?<!\bcta )(?<!\bccta )(?<!\bmr )(?<!\bmra )\bcoronary angiogra(?:m|phy)\b"#)
+    private static let coronaryWordsRx = NoteRx(#"\b(?:cad|coronar(?:y|ies)|coronary artery disease)\b"#)
+    /// Not coronary disease.
+    private static let notCoronaryRx = NoteRx(#"\b(?:hcm|hocm|hypertrophic|cardiomyopath\w*|lvot)\b"#)
+    /// "CAD" or "coronary (artery) disease" right after "non-obstructive".
+    private static let cadAfterRx = NoteRx(#"^\s*(?:cad|coronary (?:artery )?disease)\b"#)
+    static var patterns: [NoteRx] { [nonObstructiveRx, noCADRx, lhcRx, cathRx, coronaryWordsRx, notCoronaryRx, cadAfterRx] }
 
-    /// The cath's result as typed, when a cath, LHC or angiogram word is in the same sentence (without one it may be a CT
-    /// result, so nothing is read): "LHC non-obstructive", "cath: nonobstructive CAD", "mild non-obstructive disease on
-    /// cath" are "non-obstructive"; "normal coronaries", "clean coronaries", "no CAD" on a cath are "no-cad". "No
-    /// significant CAD" says neither, and a sentence that says both is not read.
-    static func readResult(_ c: String) -> (result: String, phrase: NSRange, cath: NSRange)? {
-        guard let k = cathRx.first(c) else { return nil }
+    /// The cath's result as typed, when a cath word is in the same sentence (without one it may be a CT result, so nothing
+    /// is read): "LHC non-obstructive", "cath: nonobstructive CAD", "non-obstructive coronary disease on cath" are
+    /// "non-obstructive"; "normal coronaries", "clean coronaries", "no CAD" on a cath are "no-cad". A cath that is not
+    /// "LHC" or "left heart cath" also needs a CAD or coronary word ("cath: non-obstructive" alone is not read), and a
+    /// sentence about HCM or a cardiomyopathy is not read. "No significant CAD" says neither; a sentence that says both is
+    /// not read. `cadWords`: the "CAD" right after "non-obstructive", which belongs to the result.
+    static func readResult(_ c: String) -> (result: String, phrase: NSRange, cath: NSRange, cadWords: NSRange?)? {
+        let ns = c as NSString
+        guard notCoronaryRx.first(c) == nil else { return nil }
+        let lhc = lhcRx.first(c)
+        guard let k = lhc ?? cathRx.first(c) else { return nil }
         let non = nonObstructiveRx.first(c), none = noCADRx.first(c)
-        if let m = non, none == nil { return ("non-obstructive", m.range, k.range) }
-        if let m = none, non == nil { return ("no-cad", m.range, k.range) }
+        if let m = non, none == nil {
+            guard lhc != nil || coronaryWordsRx.first(c) != nil else { return nil }
+            let end = m.range.location + m.range.length
+            let after = ns.substring(from: end)
+            let cad = cadAfterRx.first(after).map { NSRange(location: end + $0.range.location, length: $0.range.length) }
+            return ("non-obstructive", m.range, k.range, cad)
+        }
+        if let m = none, non == nil { return ("no-cad", m.range, k.range, nil) }
         return nil
     }
 }
