@@ -136,9 +136,9 @@ final class ProcedureCatalog183Tests: XCTestCase {
             // Vascular
             ("open iliac aneurysm repair", "open-iliac-aneurysm"), ("IBE", "endo-iliac-aneurysm"),
             ("iliac branch endoprosthesis", "endo-iliac-aneurysm"), ("juxtarenal AAA repair", "juxtarenal-aaa"),
-            ("EVAR explant", "aortic-graft-explant"), ("type II endoleak embolization", "endoleak-repair"),
+            ("EVAR explant", "aortic-graft-explant"), ("type II endoleak embolization", "endoleak-embolization"),
             ("branched TEVAR", "branched-tevar"), ("arch debranching", "arch-debranching"), ("ax-fem", "axillobifemoral"),
-            ("aorto-bifem", "aortobifemoral"), ("fem-pop", "fem-pop"), ("TCAR", "tcar"), ("CEA", "cea"), ("AAA", "open-aaa"),
+            ("aorto-bifem", "aortobifemoral"), ("fem-pop", "fem-pop"), ("TCAR", "tcar"), ("CEA", "cea"), ("AAA repair", "open-aaa"),
             ("EVAR", "evar"), ("AVF", "av-fistula"), ("BKA", "bka"), ("pAVF", "perc-avf"), ("HeRO graft insertion", "hero-graft"),
             ("fistulagram", "fistulagram"), ("BKA revision", "amputation-revision"), ("carotid subclavian bypass", "carotid-subclavian"),
             ("PD catheter placement", "pd-catheter"), ("SMA embolectomy", "sma-embolectomy"),
@@ -209,7 +209,7 @@ final class ProcedureCatalog183Tests: XCTestCase {
         }
         check("axillary-impella", high: false, "Peripheral")
         XCTAssertTrue(proc("axillary-impella").cardiac)
-        check("coarctation-stent", high: true, "Peripheral")             // endovascular, on the aorta
+        check("coarctation-stent", high: false, "Peripheral")            // percutaneous stenting does not count
         check("pa-stent", high: false, "Peripheral")
         check("bilobectomy", high: true, "Intrathoracic")
         check("medical-thoracoscopy", high: true, "Intrathoracic")       // thoracoscopy opens the chest, under MAC or not
@@ -257,6 +257,114 @@ final class ProcedureCatalog183Tests: XCTestCase {
         XCTAssertEqual(proc("ect").anesthetic, ["ga"])
         XCTAssertEqual(proc("esi").anesthetic, ["mac"])
         XCTAssertEqual(proc("major-burn-excision").duration, "> 3 h")
+    }
+
+    /// The review's fixes (1.8.3): each entry decided by the header's rules, and the aliases that misled moved or gone.
+    func testReviewFixes() {
+        // Percutaneous stenting does not count, the aorta's coarctation included.
+        XCTAssertFalse(proc("coarctation-stent").highRisk)
+        // Pyelolithotomy: open through the flank (as an open nephrectomy), laparoscopic or robotic transperitoneal.
+        check("open-pyelolithotomy", high: false, "Upper abdominal")
+        check("pyelolithotomy", high: true, "Upper abdominal")
+        XCTAssertEqual(ids("anatrophic nephrolithotomy"), ["open-pyelolithotomy"])
+        XCTAssertEqual(ids("robotic pyelolithotomy"), ["pyelolithotomy"])
+        XCTAssertEqual(proc("open-nephrectomy").highRisk, proc("open-pyelolithotomy").highRisk)
+        // Vaginoplasty into the peritoneum, and an orchiectomy that takes under 2 h.
+        XCTAssertEqual(ids("robotic vaginoplasty"), ["peritoneal-vaginoplasty"])
+        XCTAssertTrue(proc("peritoneal-vaginoplasty").highRisk)
+        XCTAssertFalse(proc("gender-affirming").highRisk)
+        XCTAssertEqual(ids("orchiectomy for gender affirmation"), ["gender-orchiectomy"])
+        XCTAssertEqual(proc("gender-orchiectomy").duration, "≤ 2 h")
+        // PIPAC is a short laparoscopy, not cytoreduction.
+        XCTAssertEqual(ids("PIPAC"), ["pipac"])
+        check("pipac", high: true, "Upper abdominal")
+        XCTAssertEqual(proc("pipac").duration, "≤ 2 h")
+        XCTAssertEqual(proc("hipec").duration, "> 3 h")
+        // Sequential single lung transplant is both lungs.
+        XCTAssertEqual(ids("SSLT"), ["bilateral-lung-transplant"])
+        XCTAssertFalse(proc("single-lung-transplant").synonyms.contains("SSLT"))
+        // Debranching in the neck is carotid and neck vascular surgery; through the sternum it is the chest.
+        XCTAssertEqual(ids("debranching TEVAR"), ["cervical-debranching"])
+        XCTAssertEqual(ids("supra-aortic debranching"), ["cervical-debranching"])
+        check("cervical-debranching", high: false, "Peripheral")
+        check("arch-debranching", high: true, "Intrathoracic")
+        // A type II endoleak is closed by embolizing a branch, not by repairing the aorta; extensions stay aortic repair.
+        XCTAssertEqual(ids("type II endoleak embolization"), ["endoleak-embolization"])
+        XCTAssertEqual(ids("translumbar embolization"), ["endoleak-embolization"])
+        check("endoleak-embolization", high: false, "Peripheral")
+        XCTAssertEqual(ids("proximal cuff extension"), ["endoleak-repair"])
+        XCTAssertEqual(ids("iliac limb extension"), ["endoleak-repair"])
+        check("endoleak-repair", high: true, "Peripheral")
+        // Names and durations.
+        XCTAssertEqual(proc("colonic-volvulus").name, "Colonic volvulus resection")
+        XCTAssertEqual(ids("cecopexy"), ["colonic-volvulus"])
+        XCTAssertEqual(ids("hemipelvectomy"), ["hemipelvectomy"])
+        XCTAssertEqual(proc("hemipelvectomy").duration, "> 3 h")
+        XCTAssertEqual(ids("maxillomandibular advancement"), ["mma-sleep"])
+        XCTAssertEqual(proc("mma-sleep").duration, "> 3 h")
+        // A crash or STAT cesarean is usually under general anesthesia; the planned and urgent ones keep neuraxial.
+        for t in ["STAT cesarean", "emergency cesarean section", "emergency C-section", "crash cesarean"] {
+            XCTAssertEqual(ids(t), ["emergency-cesarean"], t)
+        }
+        XCTAssertEqual(proc("emergency-cesarean").anesthetic, ["ga"])
+        XCTAssertTrue(proc("emergency-cesarean").highRisk)
+        XCTAssertEqual(proc("cesarean").anesthetic, ["neuraxial"])
+        XCTAssertEqual(ids("repeat C-section"), ["cesarean"])
+        // Aliases that read as something else are gone.
+        XCTAssertEqual(ids("PRC"), [], "packed red cells")
+        XCTAssertEqual(ids("LVA"), [])
+        XCTAssertEqual(ids("AVS"), [])
+        XCTAssertEqual(ids("jump graft"), [])
+        XCTAssertEqual(ids("pouch revision"), [])
+        XCTAssertEqual(ids("minimally invasive lumbar decompression"), ["lumbar-laminectomy"], "an operation under GA, not MILD")
+        XCTAssertFalse(proc("tracheostomy").synonyms.contains("tracheostomy decannulation"))
+        XCTAssertFalse(proc("tracheostomy").synonyms.contains("trach change"))
+        // A tracheostomy decannulation or tube change is a bedside procedure of its own, not a tracheostomy under GA
+        // and an ECMO decannulation; a bare "decannulation" stays the ECMO one.
+        for t in ["tracheostomy decannulation", "trach decannulation", "trach change", "tracheostomy tube change"] {
+            XCTAssertEqual(ids(t), ["trach-decannulation"], t)
+            XCTAssertEqual(ProcedureCatalog.search(t).first?.id, "trach-decannulation", t)
+        }
+        let decannulation = proc("trach-decannulation")
+        XCTAssertEqual(decannulation.anesthetic, ["mac"])
+        XCTAssertEqual(decannulation.incision, "Peripheral")
+        XCTAssertEqual(decannulation.duration, "≤ 2 h")
+        XCTAssertFalse(decannulation.highRisk)
+        XCTAssertEqual(ids("decannulation"), ["ecmo-decannulation"])
+        // Taking down an esophageal conduit is mediastinal surgery; a cervical esophagostomy is the neck.
+        XCTAssertEqual(ids("esophagectomy takedown"), ["conduit-takedown"])
+        check("conduit-takedown", high: true, "Intrathoracic")
+        check("esophageal-diversion", high: false, "Peripheral")
+    }
+
+    /// "AAA" is the aneurysm, the diagnosis (Ben, 1.8.3): typed alone it names neither open repair nor EVAR, so it adds
+    /// no repair by itself; the search may still list the repairs to pick from.
+    func testBareAAAIsTheDiagnosis() {
+        for t in ["AAA", "aaa", "rAAA", "ruptured AAA", "TAAA", "thoracoabdominal aneurysm"] {
+            XCTAssertEqual(ids(t), [], t)
+            XCTAssertTrue(PlannedProcedure.parse(t).allSatisfy { $0.catalogID == nil }, t)
+        }
+        for p in ProcedureCatalog.all {
+            for s in [p.name] + p.synonyms {
+                XCTAssertFalse(["aaa", "raaa", "taaa", "ruptured aaa", "thoracoabdominal aneurysm"].contains(folded(s)), "\(p.id): \(s)")
+            }
+        }
+        // The type-ahead still offers the repairs, and a repair written out reads as one.
+        let listed = ProcedureCatalog.search("AAA").map(\.id)
+        XCTAssertTrue(listed.contains("open-aaa") && listed.contains("evar"), listed.joined(separator: ", "))
+        XCTAssertEqual(ids("AAA repair"), ["open-aaa"])
+        XCTAssertEqual(ids("open AAA"), ["open-aaa"])
+        XCTAssertEqual(ids("ruptured AAA repair"), ["open-aaa"])
+        XCTAssertEqual(ids("TAAA repair"), ["taaa"])
+        XCTAssertEqual(ids("thoracoabdominal aneurysm repair"), ["taaa"])
+        XCTAssertEqual(ids("thoracoabdominal aortic aneurysm repair"), ["taaa"])
+        XCTAssertEqual(ids("EVAR for ruptured AAA"), ["evar"])
+        // In the quick-add bar, "for AAA" plans no repair from the list.
+        let q = QuickAdd.read("for AAA", record: PatientRecord(), tab: .preop, now: now)
+        var r = PatientRecord()
+        PatientNote.apply(q.findings.map(\.change), to: &r)
+        XCTAssertFalse(r.procedures.contains { $0.catalogID == "open-aaa" })
+        XCTAssertFalse(r.highRiskSurgery)
     }
 
     func testRiskOfSeveralNewProcedures() {

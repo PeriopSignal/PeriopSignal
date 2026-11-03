@@ -1733,10 +1733,10 @@ enum QuickAdd {
     /// The start of the line, past the age and sex ("68M", "72 yo F").
     private static let lineLead = NoteRx(#"^\s*(?:\d{1,3}\s*(?:yo|y/o|y\.o\.?|-?year-old|yrs?)?\s*(?:M|F|male|female|man|woman)\b\s*[,:\-–]?\s*)?"#)
     private static let lastFor = NoteRx(#"\bfor\b"#)
-    /// An aneurysm opening the line is history ("AAA 5.2 cm, HTN"), not the planned repair the procedure list's "AAA"
-    /// would read: only "AAA repair" and the like are planned without "for". A rupture opening the line ("rAAA",
-    /// "ruptured AAA") is tonight's repair (the procedure list's open AAA repair lists them), and the rupture is filed in
-    /// the history as well (take).
+    /// An aneurysm opening the line is history ("AAA 5.2 cm, HTN"): only "AAA repair" and the like are planned without
+    /// "for". Since 1.8.3 the procedure list reads neither "AAA" nor a rupture alone ("rAAA", "ruptured AAA") as a repair
+    /// (Ben: AAA is the diagnosis, and it says neither open nor EVAR), so a rupture opening the line is filed in the
+    /// history only; "ruptured AAA repair" is tonight's repair, with the rupture filed as well (take).
     private static let aortaHistoryLead = NoteRx(#"^(?-i:AAA)\b(?!\s*(?:repair|open|graft|resection))"#)
     /// A ruptured AAA named in the planned procedure: the ASA V history item goes in with it.
     private static let rupturedAAA = NoteRx(#"(?-i:\brAAA\b)|\bruptured (?:(?-i:AAA)\b|abdominal aortic aneurysm)"#)
