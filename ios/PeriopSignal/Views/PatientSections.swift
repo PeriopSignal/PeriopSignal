@@ -13,15 +13,8 @@ extension PatientEditorView {
             ForEach(r.procedures) { p in
                 PlannedProcedureRow(item: plannedBinding(p.id)) { patient.update(discrete: true) { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
                     .wobbleDelete($wobbling, label: p.title) { patient.update(discrete: true) { $0.setProcedures($0.procedures.filter { $0.id != p.id }) } }
-                // Laterality is a safety item: the prompt stays in view under the procedure that has no side (Ben, Nov 2),
-                // not behind the group title's ⓘ.
-                if p.needsSide {
-                    Text("Pick the side for " + ProcedureCatalog.lowerFirst(p.title) + ".")
-                        .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.red)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 14).padding(.bottom, 10)
-                }
+                // Laterality: the row's own red "Which side?" with its side chips is the one prompt (Ben, Nov 2: the
+                // second "Pick the side for …" line was a duplicate and is gone).
                 Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
