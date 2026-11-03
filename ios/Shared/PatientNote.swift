@@ -1162,7 +1162,7 @@ enum PatientNote {
         }
         guard let r = at, !parts.isEmpty else { return }
         let text = parts.joined(separator: "; ")
-        h.add(PatientNoteFinding(id: "cardiac-surgery", section: Part.history, label: "Previous cardiac surgery: " + text, change: .cardiacSurgery(text)), at: r)
+        h.add(PatientNoteFinding(id: "cardiac-surgery", section: Part.history, label: "Past surgical history: " + text, change: .cardiacSurgery(text)), at: r)
     }
 
     /// Abbreviations never read through their meaning: "IE" (infective endocarditis) is also "i.e.".
@@ -2346,7 +2346,7 @@ enum PatientNote {
         case (.cardiacSurgery(let x), .cardiacSurgery(let y)):
             // Operations told in several places of the note: one entry.
             let t = mentions(x, y) ? x : x + "; " + y
-            return PatientNoteFinding(id: a.id, section: a.section, label: "Previous cardiac surgery: " + t, change: .cardiacSurgery(t))
+            return PatientNoteFinding(id: a.id, section: a.section, label: "Past surgical history: " + t, change: .cardiacSurgery(t))
         default:
             return nil
         }
