@@ -14,6 +14,8 @@ struct DiastolicView: View {
     @State private var values: [String: String] = Self.seededValues()
     @State private var showMore = LaunchSeed.bool("ps.dd.more")
     @State private var copied = false
+    /// The lung-disease switch's caption, behind its ⓘ (1.8.1).
+    @State private var lungInfoOpen = LaunchSeed.bool("ps.evidence.open")
 
     private var data: DiastolicData? { refs.bundle?.diastolic }
 
@@ -167,13 +169,15 @@ struct DiastolicView: View {
                     Text(DiastolicCalc.cutoffCaption(ageBand.isEmpty ? nil : ageBand))
                         .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 }
-                Toggle(isOn: $lungDisease) {
-                    VStack(alignment: .leading, spacing: 2) {
+                // The caption sits behind ⓘ; the switch stands apart so the ⓘ is its own button.
+                HStack(spacing: 10) {
+                    InfoTitle(caption: "TR velocity and PASP then stop standing in for LAP", open: $lungInfoOpen, captionFont: PS.sys(size: 12)) {
                         Text("Lung or pulmonary vascular disease").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
-                        Text("TR velocity and PASP then stop standing in for LAP").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    Spacer(minLength: 8)
+                    Toggle("Lung or pulmonary vascular disease", isOn: $lungDisease).labelsHidden().tint(PS.accent)
                 }
-                .tint(PS.accent)
             }
         }
         .padding(16)

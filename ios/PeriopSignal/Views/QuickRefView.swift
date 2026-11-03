@@ -70,31 +70,59 @@ struct QuickRefView: View {
         .sensoryFeedback(.success, trigger: copied)
     }
 
+    /// The head of the card (1.8.1): a one- or two-word eyebrow and a short title on one line. The society and year
+    /// moved to the sources at the foot. Emergency checklists keep their summary in view; the others put it behind the
+    /// title's ⓘ. No decorative ECG line.
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                if ref.isEmergency { Eyebrow(text: "Emergency checklist", color: PS.accent) }
-                Eyebrow(text: [ref.society, ref.year.map { String($0) }].compactMap { $0 }.joined(separator: " · "), color: ref.isEmergency ? PS.fg3 : tint)
+        let h = Self.header(for: ref)
+        return VStack(alignment: .leading, spacing: 8) {
+            ToolHeader(eyebrow: h.eyebrow, title: h.title, summary: ref.summary, infoSummary: !Self.summaryInView(ref),
+                       tint: ref.isEmergency ? PS.accent : tint)
+            if let scope = Self.scopeLines[ref.id] {
+                // Who the reference is written for: a population caution, so it stays in view as one line.
+                HStack(alignment: .firstTextBaseline, spacing: 7) {
+                    Image(systemName: "exclamationmark.triangle.fill").font(PS.sys(size: 11)).foregroundStyle(PS.accent)
+                    Text(scope).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
             }
-            Text(ref.title.titleCased)
-                .font(PS.serif(size: 25, weight: .semibold))
-                .foregroundStyle(PS.fg)
-                .lineSpacing(1)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(ref.summary)
-                .font(PS.sys(size: 15))
-                .foregroundStyle(PS.fg2)
-                .lineSpacing(2.5)
-                .fixedSize(horizontal: false, vertical: true)
-            ECGLine().stroke(tint.opacity(0.7), style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round)).frame(height: 20).padding(.top, 2)
         }
+    }
+
+    /// Emergency references keep the summary in view: the emergency checklists, and the difficult-airway brief, which is
+    /// an emergency reference without being a tick-box checklist. (Its data stays `emergency: false`: that flag also
+    /// turns the steps into checklists, tints the card coral, sorts it first and changes the website and installed
+    /// apps, which download reference.json.)
+    static let summaryInViewIDs: Set<String> = ["asa-difficult-airway"]
+    static func summaryInView(_ ref: QuickRef) -> Bool { ref.isEmergency || summaryInViewIDs.contains(ref.id) }
+
+    /// One-line scope cautions, kept in view when the summary that holds them goes behind ⓘ (wording from the summary).
+    static let scopeLines: [String: String] = [
+        "asa-fasting": "For healthy patients having elective procedures.",
+    ]
+
+    /// Short headers by quick-reference id. A reference without one keeps its own title, under its topic's name.
+    static let headers: [String: (eyebrow: String, title: String)] = [
+        "asra-last": ("Emergency checklist", "LAST"),
+        "mhaus-mh": ("Emergency checklist", "Malignant Hyperthermia"),
+        "ponv-consensus": ("Antiemetics", "PONV Prophylaxis"),
+        "acc-aha-valve-intervention": ("Cardiac surgery", "Valve Intervention"),
+        "asra-anticoagulation": ("Regional", "Anticoagulation"),
+        "ase-valve-severity": ("Echo", "Valve Severity"),
+        "asa-fasting": ("Preoperative", "Fasting"),
+        "asa-difficult-airway": ("Airway", "Difficult Airway"),
+    ]
+
+    static func header(for ref: QuickRef) -> (eyebrow: String, title: String) {
+        if let h = headers[ref.id] { return h }
+        return (ref.isEmergency ? "Emergency checklist" : Topics.name(ref.topic ?? "general"), ref.title.titleCased)
     }
 
     /// Weight in, the regimen's doses out (lipid volumes and rates, dantrolene with vial counts…).
     private func weightCard(_ doses: [WeightDose]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Doses for this patient", color: tint)
-            WeightField(text: $weightText, focus: $focused, prompt: "Enter the weight: the doses below are per kilogram until you do.", patientWeight: myPatient.weightKg)
+            WeightField(text: $weightText, focus: $focused, prompt: WeightField.perKgPrompt, patientWeight: myPatient.weightKg)
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(doses.enumerated()), id: \.element.id) { i, d in
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
@@ -144,6 +172,13 @@ struct QuickRefView: View {
             Hairline()
             EvidenceDisclosure {
                 Eyebrow(text: "Source")
+                // The full title, society and year, which the short header leaves out.
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(ref.title.titleCased).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+                    Text([ref.society, ref.year.map { String($0) }].compactMap { $0 }.joined(separator: " · "))
+                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
+                }
+                .fixedSize(horizontal: false, vertical: true)
                 Text(ref.source.citation ?? ref.source.title)
                     .font(PS.sys(size: 13))
                     .foregroundStyle(PS.fg2)
