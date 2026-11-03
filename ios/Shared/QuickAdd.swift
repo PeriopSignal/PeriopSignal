@@ -2064,7 +2064,10 @@ enum QuickAdd {
                     continue
                 }
             }
-            if context { views.append((value: grades[g], range: m.range)) }
+            // "grade 1 view": the word "view" goes with the grade, so it is not left as unread text (1.8.1).
+            var gr = m.range
+            if let va = viewAfter.first(p.after) { gr.length += va.range.location + va.range.length }
+            if context { views.append((value: grades[g], range: gr)) }
         }
         if let mg = maskGrade {
             put("maskGrade", mg.value, "Mask grade " + mg.value, mg.range)

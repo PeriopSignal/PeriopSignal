@@ -173,6 +173,7 @@ final class QuickBar181fTests: XCTestCase {
         let view = applied(read("VL, grade 1 view, 7.0 ETT"))
         XCTAssertEqual(view.airwayDevice, "Video laryngoscope")
         XCTAssertEqual(view.laryngoscopyGrade, "1")
+        XCTAssertEqual(read("VL, grade 1 view, 7.0 ETT").unread, "", "the word view goes with the grade")
 
         let lma = applied(read("LMA 4, easy mask"))
         XCTAssertEqual(lma.tube, "LMA 4")
@@ -270,6 +271,7 @@ final class QuickBar181fTests: XCTestCase {
         let airway = read("ETT 7.5 @ 22, Glidescope Mac 3, grade 1 view, easy mask")
         XCTAssertEqual(applied(airway).tube, "7.5 ETT, 22 cm")
         XCTAssertEqual(applied(airway).airwayDevice, "Video laryngoscope")
+        XCTAssertEqual(airway.unread, "")
         XCTAssertEqual(read(QuickAdd.placeholder(QuickAddPlace.summaryTab), .preop, record: demo).unread, "")
     }
 }
