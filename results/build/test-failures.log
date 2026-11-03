@@ -1,2 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/ZZTimingTests.swift:22: error: -[PeriopSignalTests.ZZTimingTests testTiming] : failed - timings: planned.parse=0.00, planned.parse2=0.00, planned.parse3=0.00, surgery=0.00, psh.read=0.00, note.read=0.03, note.read.noPSH=0.02, note.read.short=0.01, abbr=0.01, identifiers=0.00
-Test Case '-[PeriopSignalTests.ZZTimingTests testTiming]' failed (2.116 seconds).
