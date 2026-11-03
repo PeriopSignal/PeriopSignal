@@ -900,7 +900,7 @@ extension ProcedureCatalog {
 
     // MARK: Vascular
 
-    // "AAA", "rAAA" and "TAAA" alone name the aneurysm, the diagnosis, and say neither open nor endovascular repair
+    // "AAA", "rAAA", "TAAA" and "thoracoabdominal aneurysm" alone name the aneurysm, the diagnosis, and say neither open nor endovascular repair
     // (Ben, 1.8.3): only a repair written out reads as one ("AAA repair", "ruptured AAA repair", "TAAA repair").
     fileprivate static let vascular: [Procedure] = [
         p("cea", "Carotid endarterectomy", ["CEA", "carotid endarterectomy with patch", "redo CEA", "carotid surgery", "eversion carotid endarterectomy", "eversion CEA", "carotid endarterectomy with shunt"], ga, per, mid, side: true),
@@ -910,7 +910,7 @@ extension ProcedureCatalog {
         p("evar", "Endovascular aneurysm repair", ["EVAR", "endovascular AAA repair", "endovascular aortic aneurysm repair", "percutaneous EVAR", "PEVAR", "aortic endograft", "EVAR for ruptured AAA", "EVAR with iliac branch", "infrarenal EVAR"], ga, per, mid, risk: true, echo: true),
         p("fevar", "Fenestrated or branched EVAR", ["FEVAR", "BEVAR", "FBEVAR", "fenestrated EVAR", "branched EVAR", "complex EVAR", "chimney EVAR", "ChEVAR", "physician modified endograft"], ga, per, long, risk: true, echo: true),
         p("tevar", "Thoracic endovascular aortic repair", ["TEVAR", "thoracic EVAR", "thoracic stent graft", "TEVAR for dissection", "type B dissection TEVAR", "endovascular repair of thoracic aorta", "TEVAR for aneurysm", "blunt aortic injury TEVAR", "TEVAR for traumatic aortic injury"], ga, per, mid, risk: true, echo: true),
-        p("taaa", "Open thoracoabdominal aortic aneurysm repair", ["TAAA repair", "thoracoabdominal aneurysm repair", "thoracoabdominal aortic aneurysm repair", "thoracoabdominal aneurysm", "Crawford extent II"], gaNx, chest, long, risk: true, echo: true),
+        p("taaa", "Open thoracoabdominal aortic aneurysm repair", ["TAAA repair", "thoracoabdominal aneurysm repair", "thoracoabdominal aortic aneurysm repair", "Crawford extent II"], gaNx, chest, long, risk: true, echo: true),
         p("open-dtaa", "Open descending thoracic aortic repair", ["DTAA repair", "descending thoracic aneurysm repair", "open descending aortic repair", "descending thoracic aortic aneurysm repair"], gaNx, chest, long, risk: true, echo: true),
         p("aortobifemoral", "Aortobifemoral bypass", ["ABF", "aortobifemoral", "aorto bifem", "aortobifem bypass", "aortofemoral bypass", "aortoiliac bypass", "aortoiliac endarterectomy", "aortic bypass"], gaNx, upper, long, risk: true),
         p("mesenteric-bypass", "Mesenteric bypass", ["mesenteric revascularization", "SMA bypass", "aortomesenteric bypass", "celiac bypass", "open mesenteric revascularization", "renal artery bypass", "aortorenal bypass", "renal bypass", "aortoceliac bypass", "visceral bypass"], gaNx, upper, long, risk: true),
@@ -1467,6 +1467,7 @@ extension ProcedureCatalog {
         p("dlb", "Direct laryngoscopy and bronchoscopy", ["DLB", "DL&B", "DL and B", "direct laryngoscopy", "microlaryngoscopy", "MLB", "microlaryngoscopy and bronchoscopy", "suspension laryngoscopy", "laryngoscopy with biopsy", "vocal cord biopsy", "panendoscopy", "triple endoscopy", "vocal fold injection", "direct laryngoscopy and biopsy", "DL with biopsy"], ga, per, short),
         p("laryngeal-laser", "Laser airway surgery", ["CO2 laser larynx", "laryngeal laser surgery", "laser excision of vocal cord lesion", "laryngeal papilloma laser", "papilloma debridement", "subglottic stenosis laser", "subglottic stenosis dilation", "airway dilation", "jet ventilation laryngoscopy"], ga, per, short),
         p("tracheostomy", "Tracheostomy", ["trach", "open tracheostomy", "surgical tracheostomy", "percutaneous tracheostomy", "perc trach", "PDT", "awake tracheostomy", "cricothyrotomy", "trach revision", "tracheostomy revision"], ga, per, short),
+        p("trach-decannulation", "Tracheostomy decannulation or tube change", ["tracheostomy decannulation", "trach decannulation", "trach change", "tracheostomy tube change"], mac, per, short),
         p("parotidectomy", "Parotidectomy", ["superficial parotidectomy", "total parotidectomy", "parotid tumor excision", "parotid gland excision", "parotid mass"], ga, per, mid, side: true),
         p("submandibular-gland", "Submandibular gland excision", ["submandibular gland", "submandibular gland resection", "sialadenectomy", "sialendoscopy"], ga, per, short, side: true),
         p("neck-dissection", "Neck dissection", ["radical neck dissection", "modified radical neck dissection", "MRND", "selective neck dissection", "SND", "lateral neck dissection", "bilateral neck dissection", "modified radical neck dissection with parotidectomy"], ga, per, mid, side: true),

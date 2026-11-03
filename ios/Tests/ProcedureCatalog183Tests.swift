@@ -319,6 +319,18 @@ final class ProcedureCatalog183Tests: XCTestCase {
         XCTAssertEqual(ids("minimally invasive lumbar decompression"), ["lumbar-laminectomy"], "an operation under GA, not MILD")
         XCTAssertFalse(proc("tracheostomy").synonyms.contains("tracheostomy decannulation"))
         XCTAssertFalse(proc("tracheostomy").synonyms.contains("trach change"))
+        // A tracheostomy decannulation or tube change is a bedside procedure of its own, not a tracheostomy under GA
+        // and an ECMO decannulation; a bare "decannulation" stays the ECMO one.
+        for t in ["tracheostomy decannulation", "trach decannulation", "trach change", "tracheostomy tube change"] {
+            XCTAssertEqual(ids(t), ["trach-decannulation"], t)
+            XCTAssertEqual(ProcedureCatalog.search(t).first?.id, "trach-decannulation", t)
+        }
+        let decannulation = proc("trach-decannulation")
+        XCTAssertEqual(decannulation.anesthetic, ["mac"])
+        XCTAssertEqual(decannulation.incision, "Peripheral")
+        XCTAssertEqual(decannulation.duration, "≤ 2 h")
+        XCTAssertFalse(decannulation.highRisk)
+        XCTAssertEqual(ids("decannulation"), ["ecmo-decannulation"])
         // Taking down an esophageal conduit is mediastinal surgery; a cervical esophagostomy is the neck.
         XCTAssertEqual(ids("esophagectomy takedown"), ["conduit-takedown"])
         check("conduit-takedown", high: true, "Intrathoracic")
@@ -328,13 +340,13 @@ final class ProcedureCatalog183Tests: XCTestCase {
     /// "AAA" is the aneurysm, the diagnosis (Ben, 1.8.3): typed alone it names neither open repair nor EVAR, so it adds
     /// no repair by itself; the search may still list the repairs to pick from.
     func testBareAAAIsTheDiagnosis() {
-        for t in ["AAA", "aaa", "rAAA", "ruptured AAA", "TAAA"] {
+        for t in ["AAA", "aaa", "rAAA", "ruptured AAA", "TAAA", "thoracoabdominal aneurysm"] {
             XCTAssertEqual(ids(t), [], t)
             XCTAssertTrue(PlannedProcedure.parse(t).allSatisfy { $0.catalogID == nil }, t)
         }
         for p in ProcedureCatalog.all {
             for s in [p.name] + p.synonyms {
-                XCTAssertFalse(["aaa", "raaa", "taaa", "ruptured aaa"].contains(folded(s)), "\(p.id): \(s)")
+                XCTAssertFalse(["aaa", "raaa", "taaa", "ruptured aaa", "thoracoabdominal aneurysm"].contains(folded(s)), "\(p.id): \(s)")
             }
         }
         // The type-ahead still offers the repairs, and a repair written out reads as one.
@@ -344,6 +356,8 @@ final class ProcedureCatalog183Tests: XCTestCase {
         XCTAssertEqual(ids("open AAA"), ["open-aaa"])
         XCTAssertEqual(ids("ruptured AAA repair"), ["open-aaa"])
         XCTAssertEqual(ids("TAAA repair"), ["taaa"])
+        XCTAssertEqual(ids("thoracoabdominal aneurysm repair"), ["taaa"])
+        XCTAssertEqual(ids("thoracoabdominal aortic aneurysm repair"), ["taaa"])
         XCTAssertEqual(ids("EVAR for ruptured AAA"), ["evar"])
         // In the quick-add bar, "for AAA" plans no repair from the list.
         let q = QuickAdd.read("for AAA", record: PatientRecord(), tab: .preop, now: now)
