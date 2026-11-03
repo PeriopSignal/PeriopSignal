@@ -178,13 +178,16 @@ enum ProcedureCatalog {
         let qOrig = q.map(\.original)
         let words = q.filter { !stopWords.contains($0.raw) }
         let qRaw = words.map(\.raw)
-        // Only procedures with a word starting with each typed word (as typed or by its alias) can match by prefix.
-        var candidates: Set<Int>?
+        // Only phrases with a word starting with each typed word (as typed or by its alias) can match by prefix. Kept
+        // by phrase, not by procedure (1.8.3: the list about doubled, and a short prefix had every phrase of several
+        // hundred procedures checked).
+        var candidates: [Int]?
         for w in words {
-            let hit = Set(prefixIndex[w.raw] ?? []).union(prefixIndex[w.key] ?? [])
-            candidates = candidates.map { $0.intersection(hit) } ?? hit
+            let typed = prefixIndex[w.raw] ?? []
+            let hit = w.key == w.raw ? typed : merged(typed, prefixIndex[w.key] ?? [])
+            candidates = candidates.map { common($0, hit) } ?? hit
         }
-        let procs = candidates.map { $0.sorted() } ?? Array(all.indices)
+        let checked: [Int] = candidates ?? Array(phrases.indices)
 
         var best: [Int: (score: Int, pos: Int, name: Bool)] = [:]
         func keep(_ ph: ProcPhrase, _ score: Int, _ pos: Int) {
@@ -197,19 +200,17 @@ enum ProcedureCatalog {
             }
         }
         // A general procedure that asks one more thing (a bare Bentall) is not offered: its choices are.
-        for i in procs where all[i].ask == nil {
-            for pi in phrasesByProc[i] {
-                let ph = phrases[pi]
-                if let ex = ph.exact {
-                    if ex == qOrig { keep(ph, 1000, 0) }
-                } else if ph.key == qKey {
-                    keep(ph, 900, 0)
-                } else if !qRaw.isEmpty, startsWith(qRaw, ph.raw) {
-                    // A whole word ("hip replacement") before a longer one that starts the same ("HIPEC").
-                    keep(ph, ph.raw[qRaw.count - 1] == qRaw[qRaw.count - 1] ? 750 : 700, 0)
-                } else if !qRaw.isEmpty, let p = wordPosition(qRaw, ph.raw, prefix: true) {
-                    keep(ph, qRaw.allSatisfy { ph.raw.contains($0) } ? 550 : 500, p)
-                }
+        for pi in checked where all[phrases[pi].proc].ask == nil {
+            let ph = phrases[pi]
+            if let ex = ph.exact {
+                if ex == qOrig { keep(ph, 1000, 0) }
+            } else if ph.key == qKey {
+                keep(ph, 900, 0)
+            } else if !qRaw.isEmpty, startsWith(qRaw, ph.raw) {
+                // A whole word ("hip replacement") before a longer one that starts the same ("HIPEC").
+                keep(ph, ph.raw[qRaw.count - 1] == qRaw[qRaw.count - 1] ? 750 : 700, 0)
+            } else if !qRaw.isEmpty, let p = wordPosition(qRaw, ph.raw, prefix: true) {
+                keep(ph, qRaw.allSatisfy { ph.raw.contains($0) } ? 550 : 500, p)
             }
         }
         if best.isEmpty && !qRaw.isEmpty {
@@ -226,6 +227,33 @@ enum ProcedureCatalog {
     }
 
     private static let stopWords: Set<String> = ["of", "the", "with", "for", "to", "in", "on", "under"]
+
+    /// Two sorted lists of indices as one, sorted, without repeats.
+    private static func merged(_ a: [Int], _ b: [Int]) -> [Int] {
+        var out: [Int] = []
+        out.reserveCapacity(a.count + b.count)
+        var i = 0, j = 0
+        while i < a.count || j < b.count {
+            if j == b.count || (i < a.count && a[i] < b[j]) {
+                out.append(a[i]); i += 1
+            } else if i == a.count || b[j] < a[i] {
+                out.append(b[j]); j += 1
+            } else {
+                out.append(a[i]); i += 1; j += 1
+            }
+        }
+        return out
+    }
+
+    /// The indices in both sorted lists.
+    private static func common(_ a: [Int], _ b: [Int]) -> [Int] {
+        var out: [Int] = []
+        var i = 0, j = 0
+        while i < a.count && j < b.count {
+            if a[i] < b[j] { i += 1 } else if b[j] < a[i] { j += 1 } else { out.append(a[i]); i += 1; j += 1 }
+        }
+        return out
+    }
 
     /// Each typed word starts the phrase word at the same place, from the first.
     private static func startsWith(_ q: [String], _ p: [String]) -> Bool {
@@ -256,28 +284,43 @@ enum ProcedureCatalog {
         guard !toks.isEmpty else { return [] }
 
         // Longest phrase at each position; a case-sensitive form beats a case-insensitive one of the same length.
-        var hits: [(phrase: Int, start: Int, end: Int)] = []
+        // A procedure with a side may have the side written inside its name, once ("open left iliac aneurysm
+        // repair", 1.8.3), and a form that reads without it wins a tie.
+        var hits: [(phrase: Int, start: Int, end: Int, side: String?)] = []
         var i = 0
         while i < toks.count {
-            var best: (phrase: Int, len: Int, exact: Bool)?
+            var best: (phrase: Int, len: Int, exact: Bool, side: String?)?
             for pi in firstToken[toks[i].key] ?? [] {
                 let ph = phrases[pi]
                 let n = ph.key.count
                 guard i + n <= toks.count else { continue }
                 var ok = true
-                for k in 0..<n {
-                    if let ex = ph.exact {
-                        if toks[i + k].original != ex[k] { ok = false; break }
-                    } else if toks[i + k].key != ph.key[k] {
+                var j = i
+                var inner: String?
+                var k = 0
+                while k < n {
+                    guard j < toks.count else { ok = false; break }
+                    let same: Bool
+                    if let ex = ph.exact { same = toks[j].original == ex[k] } else { same = toks[j].key == ph.key[k] }
+                    if same {
+                        k += 1
+                        j += 1
+                    } else if k > 0, inner == nil, all[ph.proc].lateral, let s = sideWords[toks[j].key] {
+                        inner = s
+                        j += 1
+                    } else {
                         ok = false; break
                     }
                 }
                 guard ok else { continue }
+                let len = j - i
                 let isExact = ph.exact != nil
                 if let b = best {
-                    if n > b.len || (n == b.len && isExact && !b.exact) { best = (pi, n, isExact) }
+                    if len > b.len || (len == b.len && ((isExact && !b.exact) || (isExact == b.exact && inner == nil && b.side != nil))) {
+                        best = (pi, len, isExact, inner)
+                    }
                 } else {
-                    best = (pi, n, isExact)
+                    best = (pi, len, isExact, inner)
                 }
             }
             if let b = best {
@@ -286,7 +329,7 @@ enum ProcedureCatalog {
                    text[toks[i - 1].range.upperBound..<toks[i].range.lowerBound].allSatisfy({ $0.isWhitespace || $0 == "/" }) {
                     hits[hits.count - 1].end = i + b.len
                 } else {
-                    hits.append((b.phrase, i, i + b.len))
+                    hits.append((b.phrase, i, i + b.len, b.side))
                 }
                 i += b.len
             } else {
@@ -311,6 +354,8 @@ enum ProcedureCatalog {
         var lo = hits.map(\.start)
         var hi = hits.map { $0.end - 1 }
         var claimed = Set<Int>()
+        // One written inside the name.
+        for (h, hit) in hits.enumerated() { if let s = hit.side { found[h].insert(s) } }
         // A side word just before a procedure belongs to it ("left TKA", "R. THA", "left and right TKA").
         for (h, hit) in hits.enumerated() {
             let k = hit.start - 1
@@ -467,27 +512,21 @@ enum ProcedureCatalog {
         return out
     }()
 
-    fileprivate static let phrasesByProc: [[Int]] = {
-        var out = [[Int]](repeating: [], count: all.count)
-        for (i, p) in phrases.enumerated() { out[p.proc].append(i) }
-        return out
-    }()
-
-    /// Every beginning of every word (as typed and by its alias) → the procedures with such a word, sorted.
+    /// Every beginning of every word (as typed and by its alias) → the phrases with such a word, sorted.
     private static let prefixIndex: [String: [Int]] = {
-        var byWord: [String: Set<Int>] = [:]
-        for p in phrases {
-            for w in p.raw + p.key { byWord[w, default: []].insert(p.proc) }
+        var byWord: [String: [Int]] = [:]
+        for (pi, p) in phrases.enumerated() {
+            for w in Set(p.raw + p.key) { byWord[w, default: []].append(pi) }
         }
-        var byPrefix: [String: Set<Int>] = [:]
-        for (w, procs) in byWord {
+        var byPrefix: [String: [Int]] = [:]
+        for (w, list) in byWord {
             var prefix = ""
             for c in w {
                 prefix.append(c)
-                byPrefix[prefix, default: []].formUnion(procs)
+                byPrefix[prefix, default: []].append(contentsOf: list)
             }
         }
-        return byPrefix.mapValues { $0.sorted() }
+        return byPrefix.mapValues { Array(Set($0)).sorted() }
     }()
 
     fileprivate static let firstToken: [String: [Int]] = {

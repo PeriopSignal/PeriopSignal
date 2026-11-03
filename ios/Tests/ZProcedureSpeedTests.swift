@@ -39,6 +39,12 @@ final class ZProcedureSpeedTests: XCTestCase {
         }
         print("PROCEDURE SPEED TEST type-ahead: \(calls) keystrokes (search + parse) in \(ms(t)) ms, \(ms(t / Double(calls))) ms each, \(ProcedureCatalog.all.count) procedures")
         XCTAssertLessThan(t / Double(calls), 0.02, "a keystroke in the procedure field")
+        // Each half on its own.
+        let prefixes = typed.flatMap { q in (2...q.count).map { String(q.prefix($0)) } }
+        let s = seconds { for _ in 0..<5 { for p in prefixes { _ = ProcedureCatalog.search(p, limit: 6) } } }
+        let r = seconds { for _ in 0..<5 { for p in prefixes { _ = ProcedureCatalog.parse(p) } } }
+        let n = Double(prefixes.count * 5)
+        print("PROCEDURE SPEED TEST search \(ms(s / n)) ms, parse \(ms(r / n)) ms per keystroke")
     }
 
     private let note = """
