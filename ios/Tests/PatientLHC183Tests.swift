@@ -158,7 +158,7 @@ final class PatientLHC183Tests: XCTestCase {
 
     func testNeverWithoutACathWord() {
         for s in ["non-obstructive CAD", "CCTA: nonobstructive CAD", "CT showed non-obstructive plaque", "PA cath in place, nonobstructive CAD on CT",
-                  "Cath done. Non-obstructive CAD on CT.", "normal coronaries", "no CAD", "CTA: normal coronary arteries", "No coronary artery disease on CT"] {
+                  "Cath done. Non-obstructive CAD on CT.", "normal coronaries", "no CAD", "CTA: normal coronary arteries", "Coronary CT angiography: normal coronaries", "MR angiography: no CAD", "No coronary artery disease on CT"] {
             XCTAssertNil(typed(s), s)
         }
     }

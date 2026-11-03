@@ -805,8 +805,8 @@ extension PatientDevice {
 extension PatientLHC {
     private static let nonObstructiveRx = NoteRx(#"\b(?:non[- ]?obstructive|no obstructive)\b"#)
     private static let noCADRx = NoteRx(#"\b(?:(?:angiographically |grossly )?normal coronar(?:y|ies)(?: arter(?:y|ies))?|clean coronar(?:y|ies)|no (?:cad|coronary (?:artery )?disease))\b"#)
-    /// A cath, LHC or angiogram word (not a PA, arterial or central catheter).
-    private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )\b(?:lhc|cath(?:eterization|eterisation)?|angiogra(?:m|phy)|angio)\b"#)
+    /// A cath, LHC or angiogram word (not a PA, arterial or central catheter, nor a CT or MR angiogram: "CTA" is read as one).
+    private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )(?<!\bct )(?<!\bmr )(?<!\bcta )\b(?:lhc|cath(?:eterization|eterisation)?|angiogra(?:m|phy)|angio)\b"#)
     static var patterns: [NoteRx] { [nonObstructiveRx, noCADRx, cathRx] }
 
     /// The cath's result as typed, when a cath, LHC or angiogram word is in the same sentence (without one it may be a CT
