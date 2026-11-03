@@ -247,11 +247,11 @@ jobs:
           shot 262-f181-infusion-type 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:infusions -ps.infusion.type "norepi 0.05, vaso 0.04, levo 0.1" -ps.forceAppearance light
           shot 263-f181-infusion-type-dark 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:infusions -ps.infusion.type "epi 1, milri 0.25, insulin 4 u/hr" -ps.forceAppearance dark
           shot 264-f181-devices-foley 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open devices:preop -ps.forceAppearance light
-          shot 265-f181-devices-foley-typed 16 -ps.tab patient -ps.patient demo -ps.patient.open intraop:lines -ps.devices.type "foley 16 Fr" -ps.forceAppearance dark
+          shot 265-f181-devices-foley-typed 20 -ps.tab patient -ps.patient demo -ps.patient.open intraop:lines -ps.devices.type "foley 16 Fr" -ps.forceAppearance dark
           shot 266-f181-bentall-procedure 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open procedure -ps.patient.addproc Bentall -ps.forceAppearance light
           shot 267-f181-bentall-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "64M for Bentall" -ps.forceAppearance dark
-          shot 268-f181-handoff-figure 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.patient.jump handofffigure -ps.forceAppearance light
-          shot 269-f181-handoff-figure-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.patient.jump handofffigure -ps.forceAppearance dark
+          shot 268-f181-handoff-figure 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance light
+          shot 269-f181-handoff-figure-dark 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance dark
           # 1.8.1 History (270-279): plain Diabetes, Stroke, unspecified, the Infectious system; the group notes opened.
           shot 270-history-infectious 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance dark
           shot 271-history-infectious-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance light
