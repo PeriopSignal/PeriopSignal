@@ -38,8 +38,13 @@ enum PastSurgeryNote {
     // MARK: Patterns
 
     static let headerRx = NoteRx(#"\b(?:(?:psh|pshx)\b\s*[:\-–]?|(?:past surgical (?:history|hx)|surgical (?:history|hx)|prior surgeries|previous surgeries|past surgeries)\s*[:\-–])\s*"#)
-    static let leadRx = NoteRx(#"\b(?:s/p|status post|h/o|hx of|history of|prior|previous)\s+(?!to\b|admissions?\b|hospitali[sz]ations?\b|visits?\b|episodes?\b)(?:an?\s+|the\s+)?"#)
+    static let leadRx = NoteRx(#"\b(?:s/p|status post|h/o|hx(?: of)?:?|history of|prior|previous)\s+(?!to\b|admissions?\b|hospitali[sz]ations?\b|visits?\b|episodes?\b)(?:an?\s+|the\s+)?"#)
+    static let familyHxRx = NoteRx(#"\b(?:family|fam|maternal|paternal)\s*$"#)
     static let bulletRx = NoteRx(#"^\s*(?:[-•*–·]|\d+[.)])\s*"#)
+    /// Another section's header inside a section's text ends it: "PSH: appendectomy 2010, PMH: HTN, AAA". What follows a
+    /// PMH header is diagnoses, which are never past surgery (only an "s/p", an operative word or an operation abbreviation
+    /// such as CABG makes one an operation, and that is read on its own). "FHx" is never a lead.
+    static let sectionEndRx = NoteRx(#"\b(?:pmh|pmhx|past medical (?:history|hx)|medical history|fhx|shx|family history|social history|hpi|meds|medications|allergies|ros|exam|plan|a/p|assessment|labs|vitals)\b\s*[:\-–]"#)
     /// Another section's header at the start of a line closes the surgical history.
     static let otherHeaderRx = NoteRx(#"^\s*[A-Za-z][A-Za-z/&\s]{1,28}:"#)
     static let andAfterDateRx = NoteRx(#"((?:19|20)\d\d|\d{1,2}/(?:19|20)\d\d|['’]\d\d)\)?\s+(?:and|&)\s+"#)
@@ -72,7 +77,7 @@ enum PastSurgeryNote {
     private static let generic: Set<String> = ["surgery", "surgeries", "operation", "operations", "procedure", "procedures", "surgical", "history"]
 
     static var allPatterns: [NoteRx] {
-        [cardiacWordsRx, headerRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, chestRx, monthYearRx, numericRx, apostropheRx, yearRx]
+        [cardiacWordsRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, chestRx, monthYearRx, numericRx, apostropheRx, yearRx]
     }
 
     // MARK: Reading a sentence
@@ -106,22 +111,27 @@ enum PastSurgeryNote {
         }
 
         var sectionStart = ns.length
+        var sectionEnd = ns.length
         if let h = headerRx.first(c) {
             sectionStart = h.range.location
             let start = h.range.location + h.range.length
-            let body = NSRange(location: start, length: ns.length - start)
+            var body = NSRange(location: start, length: ns.length - start)
+            if let end = sectionEndRx.first(ns.substring(with: body)) { body.length = end.range.location }
             let text = ns.substring(with: body).trimmingCharacters(in: .whitespacesAndNewlines)
             state.open = true
             state.bodyEmpty = text.isEmpty
+            sectionEnd = body.location + body.length
             out.operations += items(ns, body, strict: false).filter { clear($0.range) }
         }
 
         // "s/p ...", "h/o ...": the operation after it, and the operations listed after that.
         var covered = NSRange(location: 0, length: 0)
-        for m in leadRx.all(c) where m.range.location < sectionStart && m.range.location >= covered.location + covered.length {
+        for m in leadRx.all(c) where (m.range.location < sectionStart || m.range.location >= sectionEnd) && m.range.location >= covered.location + covered.length {
             if PatientNote.negated(c, at: m.range.location) || PatientNote.familyContext(c, at: m.range.location) { continue }
+            // "Family hx: ..." (not "FHx", which \b already refuses) is the family's.
+            if familyHxRx.first(ns.substring(to: m.range.location)) != nil { continue }
             let start = m.range.location + m.range.length
-            let end = min(sectionStart, ns.length)
+            let end = m.range.location < sectionStart ? sectionStart : ns.length
             guard start < end else { continue }
             let found = leadItems(ns, NSRange(location: start, length: end - start))
             if found.isEmpty { continue }

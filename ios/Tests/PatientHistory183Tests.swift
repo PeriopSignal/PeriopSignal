@@ -419,4 +419,96 @@ final class PatientHistory183Tests: XCTestCase {
         XCTAssertEqual(r.surgeries.count, 2)
         XCTAssertTrue(applied("s/p repair for hernia").surgeries.isEmpty, "after s/p a bare for is a planning word")
     }
+
+    // MARK: Ben's abbreviations: Hx, PSHx, PMH, AAA, AKI
+
+    private func ids(_ s: String) -> Set<String> { Set(read(s).findings.map(\.id)) }
+
+    func testTheAbbreviationsAreInTheList() {
+        for (key, meaning) in [("Hx", "history"), ("hx", "history"), ("PSH", "past surgical history"), ("PSHx", "past surgical history"),
+                               ("PMH", "past medical history"), ("PMHx", "past medical history"), ("AAA", "abdominal aortic aneurysm"),
+                               ("AKI", "acute kidney injury"), ("FHx", "family history")] {
+            let a = MedAbbreviations.lookup(key)
+            XCTAssertEqual(a?.meanings.first?.text, meaning, key)
+            XCTAssertEqual(a?.isAmbiguous, false, key + " has one meaning, so it is read as written and a header is still a header")
+        }
+    }
+
+    func testHxIsAHistoryLead() {
+        XCTAssertEqual(applied("Hx CABG 2015").surgeries.count, 1)
+        XCTAssertEqual(applied("Hx CABG 2015").surgeries.first?.date, PatientMonthYear(year: 2015))
+        XCTAssertEqual(applied("Hx of appendectomy 2010").surgeries.first?.date, PatientMonthYear(year: 2010))
+        XCTAssertEqual(applied("Hx: cholecystectomy 2012, appendectomy 2010").surgeries.count, 2)
+        XCTAssertEqual(applied("hx lap chole").surgeries.count, 1)
+        XCTAssertEqual(applied("Hx CABG").surgeries.first?.procedures.first?.catalogID, "cabg")
+        // The diagnosis rule applies to it as to h/o.
+        for note in ["Hx of AAA", "Hx AAA 4.5 cm", "Hx: type A dissection", "Hx of hiatal hernia", "Hx of ectopic pregnancy"] {
+            XCTAssertTrue(applied(note).surgeries.isEmpty, note)
+        }
+        XCTAssertEqual(applied("Hx of AAA repair 2018").surgeries.count, 1)
+        // And the planning rule.
+        XCTAssertTrue(applied("Hx of PCI, CABG scheduled").surgeries.allSatisfy { !$0.text.lowercased().contains("bypass") })
+    }
+
+    func testFHxIsNeverAHistoryLead() {
+        for note in ["FHx: CABG 2015", "FHx CABG", "FHx: appendectomy 2010", "FHx of AAA repair", "Family hx: appendectomy 2010", "SHx: tobacco, appendectomy"] {
+            let r = applied(note)
+            XCTAssertTrue(r.surgeries.isEmpty, note + " → " + r.surgeries.map(\.text).joined(separator: "; "))
+        }
+    }
+
+    func testPSHxWithAndWithoutAColon() {
+        for note in ["PSHx: appendectomy 2010", "PSHx appendectomy 2010", "PSH: appendectomy 2010", "PSH appendectomy 2010", "pshx - appendectomy 2010",
+                     "Past surgical history: appendectomy 2010", "Surgical history: appendectomy 2010"] {
+            let r = applied(note)
+            XCTAssertEqual(r.surgeries.count, 1, note)
+            XCTAssertEqual(r.surgeries.first?.date, PatientMonthYear(year: 2010), note)
+        }
+        XCTAssertEqual(applied("PSHx CABG 2015, TEVAR 08/2022").surgeries.count, 2)
+    }
+
+    func testAPMHHeaderEndsASurgicalHistoryAndItsItemsAreDiagnoses() {
+        // The same sentence.
+        let a = applied("PSH: appendectomy 2010, PMH: HTN, AAA 4.8 cm, hernia, AKI 2024")
+        XCTAssertEqual(a.surgeries.map(\.text), ["Appendectomy (2010)"])
+        // Another sentence, and another line.
+        XCTAssertEqual(applied("PSH: appendectomy 2010. PMH: HTN, hernia, hiatal hernia").surgeries.count, 1)
+        XCTAssertEqual(applied("PSH:\n- appendectomy 2010\nPMH:\n- HTN\n- AAA 4.8 cm\n- hernia").surgeries.count, 1)
+        XCTAssertEqual(applied("PSHx: appendectomy 2010\nPMHx: HTN, AAA").surgeries.count, 1)
+        XCTAssertEqual(applied("PSH: appendectomy 2010. Past medical history: HTN, ectopic pregnancy").surgeries.count, 1)
+        // After a PMH header: diagnoses are not operations.
+        for note in ["PMH: HTN, AAA 4.8 cm, hernia, hip fracture, ectopic pregnancy", "PMHx: DM2, hiatal hernia", "Past medical history: HTN, AAA"] {
+            XCTAssertTrue(applied(note).surgeries.isEmpty, note)
+        }
+        // An s/p after it is still read, in the same sentence as the surgical history or not.
+        XCTAssertEqual(applied("PSH: appendectomy 2010, PMH: HTN, s/p cholecystectomy 2012").surgeries.count, 2)
+    }
+
+    func testBensExamplePMHSentence() {
+        let note = "PMH: HTN, AAA 4.8 cm, AKI 2024, s/p CABG 2015"
+        let found = ids(note)
+        XCTAssertTrue(found.contains("problem:htn"))
+        XCTAssertTrue(found.contains("problem:aaa"), "AAA is the history item")
+        XCTAssertTrue(found.contains("problem:aki"), "AKI is the history item")
+        let r = applied(note)
+        XCTAssertEqual(r.surgeries.count, 1, "past surgery for the CABG 2015 only: " + r.surgeries.map(\.text).joined(separator: "; "))
+        XCTAssertEqual(r.surgeries.first?.procedures.first?.catalogID, "cabg")
+        XCTAssertEqual(r.surgeries.first?.date, PatientMonthYear(year: 2015))
+        XCTAssertTrue(r.has("aaa"))
+        XCTAssertTrue(r.has("aki"))
+    }
+
+    func testAAAAndAKIFileTheHistoryItemNeverASurgery() {
+        for note in ["AAA 4.8 cm", "AAA", "known AAA", "h/o AAA", "Hx of AAA 5.2 cm", "PMH: AAA", "PSH: none. PMH: AAA 4.8 cm", "AKI", "AKI 2024", "h/o AKI",
+                     "PMH: AKI 2024", "Hx AKI"] {
+            let r = applied(note)
+            XCTAssertTrue(r.surgeries.isEmpty, note + " → " + r.surgeries.map(\.text).joined(separator: "; "))
+            XCTAssertNil(r.hx.cardiacSurgeryID, note)
+        }
+        XCTAssertTrue(ids("AAA 4.8 cm").contains("problem:aaa"))
+        XCTAssertTrue(ids("h/o AAA").contains("problem:aaa") || applied("h/o AAA").has("aaa"), "the history item")
+        XCTAssertTrue(ids("AKI 2024").contains("problem:aki"))
+        XCTAssertTrue(applied("AAA 4.8 cm").has("aaa"))
+        XCTAssertTrue(applied("AKI").has("aki"))
+    }
 }
