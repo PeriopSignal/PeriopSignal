@@ -60,6 +60,21 @@ enum CodeStatusPlan: String, Codable, CaseIterable, Hashable {
         case .suspended: return "A full attempt at resuscitation during the anesthetic and the immediate postoperative period (ASA option 1). Write down when the original orders resume."
         }
     }
+
+    /// The end of `detail` that stays in view under the chips when this plan is chosen: Maintained's instruction to the
+    /// clinician (review 1.8.1 row 32). Nil when the whole definition sits behind the ⓘ.
+    var inView: String? {
+        switch self {
+        case .maintained: return "Tell the patient which procedures are essential to the anesthetic and the operation (for example intubation for a general anesthetic in someone who is DNI); if any is refused, the plan is a modified one."
+        case .modified, .suspended: return nil
+        }
+    }
+
+    /// The rest of `detail`, behind the ⓘ on "For the procedure".
+    var info: String {
+        guard let v = inView, detail.hasSuffix(v) else { return detail }
+        return String(detail.dropLast(v.count)).trimmingCharacters(in: .whitespaces)
+    }
 }
 
 /// What a note says about code status (PatientNote).

@@ -86,7 +86,9 @@ enum PatientDiagramModel {
         }
 
         // Lines and devices.
-        let devices = r.devices.filter { !$0.removed && (phase != .preop || !$0.placedIntraop) }
+        // What is in place now (PatientRecord.currentDevices): on arrival only for the preoperative picture; for the
+        // others, on arrival and placed in the room, the same set as the handoff's Lines and Support.
+        let devices = r.currentDevices(arrivalOnly: phase == .preop)
         var ecmo = false
         for d in devices {
             guard let f = d.position else { continue }
@@ -98,7 +100,7 @@ enum PatientDiagramModel {
             var item = DiagramItem(id: d.id.uuidString, anchor: a, color: c, label: tag(d), labelLeft: left)
             item.labelDY = labelDY(d.site)
             switch d.kind {
-            case .piv, .other:
+            case .piv, .foley, .other:
                 item.marker = .dot
             case .arterial:
                 item.marker = .dot
@@ -263,7 +265,7 @@ struct PatientDiagramCard: View {
     var body: some View {
         if let fig = refs.bundle?.regional?.figure {
             let m = PatientDiagramModel.items(record, phase: phase)
-            PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart)
+            PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
                 .frame(height: height)
                 .frame(maxWidth: .infinity)
                 .allowsHitTesting(false)
@@ -354,6 +356,13 @@ struct PatientDevicesEditor: View {
                 list
             }
         }
+        .onAppear {
+            #if DEBUG
+            // Screenshot runs: -ps.devices.type "<shorthand>" types it into the field (1.8.1).
+            let t = LaunchSeed.string("ps.devices.type")
+            if !t.isEmpty, typed.isEmpty, !supportOnly { typed = t }
+            #endif
+        }
         .sheet(item: Binding(get: { editingID.map { IDBox(id: $0) } }, set: { editingID = $0?.id })) { box in
             DeviceDetailSheet(deviceID: box.id)
                 .environment(patient)
@@ -425,6 +434,7 @@ struct PatientDevicesEditor: View {
                 .padding(.horizontal, 14).padding(.bottom, 10)
             }
         }
+        .id("devicetype")
     }
 
     private func addTyped() {

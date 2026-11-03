@@ -69,12 +69,14 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     /// support, with an oxygenator when spliced in (oxyRVAD); not VV ECMO, as the return is in the PA.
     case protekDuo
     case epidural, spinal, block, perineuralCatheter
+    /// A urinary catheter, urethral or suprapubic (1.8.1): with the lines in the handoff, never an arm line.
+    case foley
     case other
 
     /// The type buttons, in order; "Other" opens `more`.
     static let buttons: [DeviceKind] = [.piv, .arterial, .cvc, .pac, .ett]
     static let more: [DeviceKind] = [.ecmoDrainage, .ecmoReturn, .trach, .picc, .intraosseous, .lvad, .iabp, .impella, .protekDuo,
-                                     .epidural, .spinal, .block, .perineuralCatheter, .other]
+                                     .epidural, .spinal, .block, .perineuralCatheter, .foley, .other]
 
     /// Short label for buttons, the legend and the handoff.
     var label: String {
@@ -97,6 +99,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .spinal: return "Spinal"
         case .block: return "Block"
         case .perineuralCatheter: return "Catheter"
+        case .foley: return "Foley"
         case .other: return "Other"
         }
     }
@@ -122,13 +125,14 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .spinal: return "Spinal"
         case .block: return "Single-shot block"
         case .perineuralCatheter: return "Perineural catheter"
+        case .foley: return "Foley (urinary catheter)"
         case .other: return "Other"
         }
     }
 
     var colorRole: DeviceColorRole {
         switch self {
-        case .piv, .arterial, .intraosseous, .other: return .line
+        case .piv, .arterial, .intraosseous, .foley, .other: return .line
         case .cvc, .picc: return .central
         case .pac: return .pac
         case .ecmoDrainage: return .venousECMO
@@ -144,7 +148,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     var sizeUnit: String {
         switch self {
         case .piv, .arterial, .intraosseous, .epidural, .spinal, .block, .perineuralCatheter: return "G"
-        case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella, .protekDuo: return "Fr"
+        case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella, .protekDuo, .foley: return "Fr"
         case .ett, .trach: return "mm ID"
         case .lvad, .other: return ""
         }
@@ -214,8 +218,10 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
             return [detail("Drug and volume")]
         case .perineuralCatheter:
             return [detail("Notes")]
+        case .foley:
+            return [size(["12", "14", "16", "18", "20"]), detail("Notes", ["temperature probe", "coudé", "3-way"])]
         case .other:
-            return [detail("Device", ["LMA", "chest tube", "pacing wires", "NG tube", "Foley"]), DeviceField("size", "Size")]
+            return [detail("Device", ["LMA", "chest tube", "pacing wires", "NG tube"]), DeviceField("size", "Size")]
         }
     }
 
@@ -374,7 +380,7 @@ struct DeviceSite: Hashable, Identifiable {
     var short: String
     /// Handoff form when the device already says which vessel: "R femoral" for an A-line, IABP or Impella.
     var brief: String
-    /// "head", "neck", "chest", "arm", "abdomen", "back", "groin" or "leg".
+    /// "head", "neck", "chest", "arm", "abdomen", "back", "groin", "pelvis" or "leg".
     var region: String
     /// "right", "left", or nil for a midline site.
     var side: String?
@@ -453,6 +459,9 @@ extension DeviceSite {
         Spec("femoral-block", "femoral nerve", "femoral", nil, "groin", 73.5, 194, true, false, [.block, .perineuralCatheter]),
         Spec("femoral-artery", "femoral artery", "femoral artery", "femoral", "groin", 79, 199, true, false, [.arterial, .iabp, .impella, .ecmoReturn]),
         Spec("femoral-vein", "femoral vein", "femoral vein", "femoral", "groin", 84, 202, true, false, [.cvc, .ecmoDrainage, .pac, .impella]),
+        // The bladder, midline at the pelvis: suprapubic above the symphysis, urethral below it (1.8.1).
+        Spec("suprapubic", "suprapubic", "suprapubic", nil, "pelvis", 100, 194, false, false, [.foley]),
+        Spec("urethral", "urethral", "urethral", nil, "pelvis", 100, 213, false, false, [.foley]),
         Spec("adductor-canal", "adductor canal", "adductor canal", nil, "leg", 90, 262, true, false, [.block, .perineuralCatheter]),
         Spec("popliteal", "popliteal (back of the knee)", "popliteal", nil, "leg", 73, 293, true, true, [.block, .perineuralCatheter]),
         Spec("tibial-io", "proximal tibia (IO)", "tibia", nil, "leg", 86, 321, true, false, [.intraosseous]),
@@ -665,6 +674,7 @@ enum PatientDevices {
         case .ett: return ("mouth", true)
         case .trach: return ("trach", true)
         case .lvad: return ("heart", true)
+        case .foley: return ("urethral", true)
         case .protekDuo: return ("ij", false)
         case .epidural, .spinal:
             if let l = level?.uppercased().first, l == "C" || l == "T" { return ("thoracic-spine", true) }
@@ -745,6 +755,9 @@ enum PatientDevices {
         case .block, .perineuralCatheter:
             let word = d.kind == .block ? "block" : "catheter"
             return (brief.isEmpty ? d.kind.name : brief + " " + word) + paren(detail, gone)
+        case .foley:
+            // "Foley 16 Fr"; a suprapubic catheter says so.
+            return spaced("Foley", sized, site?.base == "suprapubic" ? "suprapubic" : "") + paren(detail, gone)
         case .other:
             let airway = ["mouth", "nose", "trach"].contains(site?.base ?? "")
             return spaced(detail.isEmpty ? "Other" : detail, size, airway ? "" : brief) + paren(gone)
@@ -891,7 +904,7 @@ extension PatientDevices {
     private static let arterialKinds: Set<DeviceKind> = [.arterial, .iabp, .impella, .ecmoReturn]
     private static let venousKinds: Set<DeviceKind> = [.cvc, .pac, .picc, .ecmoDrainage, .protekDuo]
     private static let priority: [DeviceKind] = [.protekDuo, .pac, .impella, .iabp, .lvad, .ett, .trach, .epidural, .spinal, .picc,
-                                                 .intraosseous, .cvc, .arterial, .piv, .ecmoDrainage, .ecmoReturn, .other]
+                                                 .intraosseous, .cvc, .arterial, .piv, .ecmoDrainage, .ecmoReturn, .foley, .other]
     private static let textSettings: Set<String> = ["timing", "issues", "position"]
     private static let unitSettings: [String: String] = ["rpm": "rpm", "L/min": "flow", "W": "power", "mmHg": "augmentation",
                                                          "%": "fdo2", "cm": "depth"]
@@ -1681,6 +1694,11 @@ private enum Lexicon {
         v("hm2|hmii", .kind(.lvad, nil), .model("HeartMate II"))
         v("hvad", .kind(.lvad, nil), .model("HVAD"))
         v("iabp|balloon", .kind(.iabp, nil))
+        v("foley|foleys|ifc", .kind(.foley, nil))
+        v("spc", .kind(.foley, nil), .site("suprapubic", nil))
+        v("suprapubic", .site("suprapubic", nil))
+        v("urethral", .site("urethral", nil))
+        v("coude|coudé", .detail("coudé"))
         v("protekduo|protek|oxyrvad", .kind(.protekDuo, nil))
         v("epidural|epi", .kind(.epidural, nil))
         v("tea|tec", .kind(.epidural, nil), .site("thoracic-spine", nil))
@@ -1774,6 +1792,8 @@ private enum Lexicon {
         v("at teeth", .depthAt("teeth"))
         v("at lip|at lips", .depthAt("lip"))
         v("chest tube", .kind(.other, "chest tube"))
+        v("urinary catheter|bladder catheter|foley catheter|indwelling urinary", .kind(.foley, nil))
+        v("suprapubic catheter", .kind(.foley, nil), .site("suprapubic", nil))
         v("on arrival")
         v("right atrium", .site("right-atrium", nil))
         return d

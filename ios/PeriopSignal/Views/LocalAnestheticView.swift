@@ -74,7 +74,7 @@ struct LocalAnestheticView: View {
 
     private var patient: some View {
         VStack(alignment: .leading, spacing: 12) {
-            WeightField(text: $weightText, focus: $focused, prompt: WeightField.perKgPrompt, patientWeight: myPatient.weightKg)
+            WeightField(text: $weightText, focus: $focused, prompt: WeightField.maxPerKgPrompt, patientWeight: myPatient.weightKg)
             HStack(spacing: 14) {
                 Text("Patient").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
                 Spacer()

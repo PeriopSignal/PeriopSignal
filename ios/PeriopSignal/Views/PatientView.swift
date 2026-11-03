@@ -25,6 +25,14 @@ enum PatientTab: String, CaseIterable, Identifiable {
         case .summary: return "arrow.left.arrow.right.square"
         }
     }
+    /// The quick-add bar at the top of the tab (every tab has one, 1.8.1).
+    var quickAddPlace: QuickAddPlace {
+        switch self {
+        case .preop: return .preopTab
+        case .intraop: return .intraopTab
+        case .summary: return .summaryTab
+        }
+    }
 }
 
 /// My Patient: one patient, in three tabs. Preoperative is the history and physical (procedure, demographics,
@@ -128,6 +136,9 @@ struct PatientView: View {
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
                         if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 2.6, execute: go) }
+                        // Once more, for a target that appears only when the reference data has loaded (the handoff's
+                        // lines figure) on a slow simulator.
+                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: go) }
                     }
                     #endif
                     // The first time (not in screenshot runs unless -ps.tips 1), once the tab has settled.
@@ -234,8 +245,8 @@ struct PatientView: View {
 
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
     /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
-    /// intraop:<part> | system:<id> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo makes that
-    /// change first (one-tap normals; harvest-both plans both radials), so Undo shows.
+    /// intraop:<part> | system:<id> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo | echo-trivial makes that
+    /// change first (one-tap normals; harvest-both plans both radials; echo-trivial grades TR and AR trivial), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
         let edit = LaunchSeed.string("ps.patient.edit")
@@ -245,6 +256,10 @@ struct PatientView: View {
                 switch edit {
                 case "echo": r.echoFindings.applyNormal()
                 case "intraop-echo": r.intraopEcho.applyNormal()
+                // Trivial regurgitation (1.8.1) on the preoperative echo, for its screenshots.
+                case "echo-trivial":
+                    r.echoFindings.tricuspid.regurgitation = .trivial
+                    r.echoFindings.aortic.regurgitation = .trivial
                 case "harvest-both": r.radial.harvest = "both"
                 default: PatientAirway.applyNormalExam(&r)
                 }
@@ -417,6 +432,7 @@ struct PatientView: View {
     ]
 
     @ViewBuilder private var summary: some View {
+        QuickAddBar(place: .summaryTab)
         PatientSectionCard(editor: .plan, lines: PatientSummary.planLines(r), empty: "Disposition, pain plan and what the next team should do.")
             .id(PatientEditor.plan)
         if patient.isEmpty {
@@ -424,14 +440,8 @@ struct PatientView: View {
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
         } else {
+            // The lines and devices figure sits in the handoff, under its text (HandoffLinesFigure, 1.8.1).
             HandoffPanel(record: r).id("handoff")
-            VStack(alignment: .leading, spacing: 8) {
-                Eyebrow(text: "Lines & devices now")
-                PatientDiagramCard(record: r, phase: .all, height: 380)
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         }
     }
 
@@ -440,7 +450,7 @@ struct PatientView: View {
     /// The quick-add bar (1.8), in place of the Fill from a note card; its pencil opens the full note. The first tip
     /// points at it.
     private var noteButton: some View {
-        QuickAddBar(tab: tab == .intraop ? .intraop : .preop)
+        QuickAddBar(place: tab.quickAddPlace)
             .patientTipTarget(.quickAdd)
     }
 
@@ -680,6 +690,7 @@ struct HandoffPanel: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            HandoffLinesFigure(record: record)
             HStack(spacing: 10) {
                 Button { sharing = [text] + (diagramImage().map { [$0] } ?? []) } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
                     .buttonStyle(BigButtonStyle(prominent: true))
@@ -747,6 +758,41 @@ struct HandoffPanel: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+    }
+}
+
+/// Every line and device in place now, on arrival and placed in the room (the handoff's Lines and Support, the Foley
+/// with them), drawn on the patient under the handoff text (1.8.1, Ben): read-only and compact, the editor's own figure
+/// without its touch handlers (PatientDiagramCard). A tap opens the Lines editor. The shared handoff carries the same
+/// picture (HandoffPanel.diagramImage); the copied text stays text.
+struct HandoffLinesFigure: View {
+    @Environment(ReferenceStore.self) private var refs
+    var record: PatientRecord
+
+    var body: some View {
+        if refs.bundle?.regional?.figure != nil, !PatientDiagramModel.items(record, phase: .all).items.isEmpty {
+            NavigationLink(value: PatientEditor.intraopPart("lines")) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Eyebrow(text: "Lines & devices now")
+                        Spacer()
+                        Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+                    }
+                    // 350: the smallest height whose label columns (8.4 figure units apart) clear the 7-point labels.
+                    PatientDiagramCard(record: record, phase: .all, height: 350)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Lines and devices now: " + PatientDevices.labels(record.currentDevices()).joined(separator: "; "))
+            .accessibilityHint("Opens the Lines editor")
+            .accessibilityAddTraits(.isButton)
+            .id("handofffigure")
+        }
     }
 }
 

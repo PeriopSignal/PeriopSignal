@@ -23,6 +23,10 @@ struct WeightField: View {
 
     /// The one-line prompt for tools whose doses show per kilogram until the weight is entered.
     static let perKgPrompt = "Doses show per kg until you enter the weight."
+    /// ACLS child: the shock energies are per kg too, not only the doses.
+    static let aclsPerKgPrompt = "Doses and energies show per kg until you enter the weight."
+    /// Local anesthetic: the tool shows each agent's maximum, not a dose.
+    static let maxPerKgPrompt = "Maximums show per kg until you enter the weight."
     /// How long the weight is kept (it was a permanent "Cleared when you leave" beside the field before 1.8.1).
     static let clearNote = "Cleared when you leave."
 

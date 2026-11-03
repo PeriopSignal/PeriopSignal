@@ -23,7 +23,7 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertEqual(back.carotid.left.stenosis, "ge70")
         XCTAssertEqual(back.radial.harvest, "left")
         XCTAssertEqual(back.pft.fev1Pct, 58)
-        XCTAssertEqual(back.aortaSizes["aaa"], 4.8)
+        XCTAssertEqual(back.hx.aneurysms["abdominal"]?.cm, 4.8)
 
         // A record from before 1.8.1 has none of the fields: it opens with them empty.
         let old = try JSONDecoder().decode(PatientRecord.self, from: Data("{\"ageYears\":70,\"problems\":[\"htn\"]}".utf8))
@@ -291,21 +291,23 @@ final class PatientStudiesTests: XCTestCase {
     // MARK: The aorta
 
     func testAortaItemsAndSizes() {
-        let cv = PatientCatalog.systems.first { $0.id == "cv" }
-        XCTAssertEqual(cv?.problems.filter { PatientCatalog.aortaIDs.contains($0.id) }.map(\.id), PatientCatalog.aortaIDs, "in the Aorta group's order")
-        XCTAssertEqual(PatientCatalog.aortaIDs.compactMap { PatientCatalog.problem($0)?.label }, [
+        let aortaIDs = ["aaa", "aaa-ruptured", "taa", "taa-ruptured", "taaa", "taaa-ruptured", "dissection-a", "dissection-b", "aortic-repair-open", "evar", "tevar"]
+        XCTAssertEqual(aortaIDs.compactMap { PatientCatalog.problem($0)?.label }, [
             "Abdominal aortic aneurysm", "Ruptured abdominal aortic aneurysm", "Thoracic aortic aneurysm", "Ruptured thoracic aortic aneurysm",
             "Thoracoabdominal aortic aneurysm", "Ruptured thoracoabdominal aortic aneurysm", "Aortic dissection, type A", "Aortic dissection, type B",
             "Prior open aortic repair", "Prior EVAR", "Prior TEVAR",
         ])
         var r = PatientRecord()
-        r.problems = ["aaa", "taa"]
-        r.aortaSizes = ["aaa": 5.2]
+        r.hx.aneurysms = ["abdominal": PatientAneurysm(cm: 5.2), "thoracic": PatientAneurysm()]
+        PatientHistoryDetails.sync(&r)
+        XCTAssertEqual(r.problems, ["aaa", "taa"])
         let cvLine = PatientSummary.historyLines(r).first { $0.label == "Cardiovascular" }
-        XCTAssertEqual(cvLine?.text, "Abdominal aortic aneurysm, 5.2 cm; Thoracic aortic aneurysm")
-        XCTAssertTrue(HandoffWriter.text(r).contains("Abdominal aortic aneurysm, 5.2 cm"))
-        // A size kept for an item no longer ticked is not shown.
-        r.problems = ["taa"]
+        XCTAssertEqual(cvLine?.text, "aortopathy: abdominal aneurysm 5.2 cm, thoracic aneurysm")
+        XCTAssertTrue(HandoffWriter.text(r).contains("abdominal aneurysm 5.2 cm"))
+        // An aneurysm taken off takes its size with it.
+        r.hx.aneurysms["abdominal"] = nil
+        PatientHistoryDetails.sync(&r)
+        XCTAssertEqual(r.problems, ["taa"])
         XCTAssertFalse(PatientSummary.historyLines(r).contains { $0.text.contains("5.2") })
     }
 
@@ -376,7 +378,7 @@ final class PatientStudiesTests: XCTestCase {
 
     func testAneurysmSizes() {
         func size(_ s: String) -> (String, Double)? {
-            for f in note(s).findings { if case .aortaSize(let id, let cm) = f.change { return (id, cm) } }
+            for f in note(s).findings { if case .aneurysm(_, let cm?, _) = f.change { return (String(f.id.dropFirst("problem:".count)), cm) } }
             return nil
         }
         XCTAssertEqual(size("5.2 cm AAA")?.1, 5.2)
@@ -396,16 +398,16 @@ final class PatientStudiesTests: XCTestCase {
 
         // Added: the item and its size; again with another size: replaces it.
         var r = PatientRecord()
-        let change = PatientNoteChange.aortaSize("aaa", 5.2)
+        let change = PatientNoteChange.aneurysm("abdominal", 5.2, false)
         let finding = PatientNoteFinding(id: "problem:aaa", section: PatientNote.Part.history, label: "", change: change)
         XCTAssertEqual(PatientNote.status(finding, in: r), .new)
         PatientNote.apply([change], to: &r)
         XCTAssertTrue(r.problems.contains("aaa"))
-        XCTAssertEqual(r.aortaSizes["aaa"], 5.2)
+        XCTAssertEqual(r.hx.aneurysms["abdominal"]?.cm, 5.2)
         XCTAssertEqual(PatientNote.status(finding, in: r), .recorded)
-        let bigger = PatientNoteFinding(id: "problem:aaa", section: PatientNote.Part.history, label: "", change: .aortaSize("aaa", 5.8))
+        let bigger = PatientNoteFinding(id: "problem:aaa", section: PatientNote.Part.history, label: "", change: .aneurysm("abdominal", 5.8, false))
         XCTAssertEqual(PatientNote.status(bigger, in: r), .replaces("5.2 cm"))
-        r.problems.insert("aaa-ruptured")
+        r.hx.aneurysms["abdominal"]?.ruptured = true
         XCTAssertEqual(PatientNote.status(bigger, in: r), .recorded, "the rupture says more")
     }
 
@@ -458,7 +460,7 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(found.contains("problem:taa"))
         XCTAssertFalse(found.contains("procedure"), "no procedure in the line")
         XCTAssertTrue(q.ambiguous.contains { $0.id == PatientNote.dissectionQuestion }, "the dissection is asked about")
-        if case .aortaSize(_, let cm)? = q.findings.first(where: { $0.id == "problem:taa" })?.change { XCTAssertEqual(cm, 4.8) } else { XCTFail("TAA size") }
+        if case .aneurysm(_, let cm, _)? = q.findings.first(where: { $0.id == "problem:taa" })?.change { XCTAssertEqual(cm, 4.8) } else { XCTFail("TAA size") }
         let chips = QuickAdd.chips(q, record: PatientRecord())
         XCTAssertTrue(chips.contains { $0.value == "Abdominal aortic aneurysm, 5.2 cm" }, chips.map(\.text).joined(separator: " | "))
 
@@ -482,7 +484,7 @@ final class PatientStudiesTests: XCTestCase {
 
     func testTAAWrittenOutAndBesideOtherWords() {
         func size(_ s: String) -> Double? {
-            for f in note(s).findings { if case .aortaSize("taa", let cm) = f.change { return cm } }
+            for f in note(s).findings where f.id == "problem:taa" { if case .aneurysm(_, let cm, _) = f.change { return cm } }
             return nil
         }
         // Written out: always read, whatever else the sentence holds.
@@ -494,7 +496,7 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertFalse(ids(both).contains("problem:taa"))
         XCTAssertTrue(both.ambiguous.contains { $0.id == PatientNote.taaQuestion })
         XCTAssertEqual(PatientNote.read("TAA 4.8 cm, s/p R ankle arthroplasty", now: now, choices: [PatientNote.taaQuestion: "taa"]).findings
-            .compactMap { f -> Double? in if case .aortaSize("taa", let cm) = f.change { return cm }; return nil }, [4.8], "answered: with its size")
+            .compactMap { f -> Double? in if case .aneurysm("thoracic", let cm, _) = f.change { return cm }; return nil }, [4.8], "answered: with its size")
         // Ankle words alone: not read and not asked.
         let ankle = note("s/p L TAA by orthopedics")
         XCTAssertFalse(ids(ankle).contains("problem:taa"))
@@ -598,15 +600,17 @@ final class PatientStudiesTests: XCTestCase {
         // Added: the chip and the words, once.
         var r = PatientRecord()
         r.systemNotes["cv"] = "On apixaban"
+        r.hx.repairDetails = "Bifurcated graft"
         let change = PatientNoteChange.problemNote("evar", "FEVAR 2021")
         let finding = PatientNoteFinding(id: "problem:evar", section: PatientNote.Part.history, label: "", change: change)
         XCTAssertEqual(PatientNote.status(finding, in: r), .new)
         PatientNote.apply([change], to: &r)
         XCTAssertTrue(r.problems.contains("evar"))
-        XCTAssertEqual(r.systemNotes["cv"], "On apixaban; FEVAR 2021")
+        XCTAssertEqual(r.hx.repairDetails, "Bifurcated graft; FEVAR 2021", "to the repair details (1.8.1)")
+        XCTAssertEqual(r.systemNotes["cv"], "On apixaban", "Other is untouched")
         XCTAssertEqual(PatientNote.status(finding, in: r), .recorded)
         PatientNote.apply([change], to: &r)
-        XCTAssertEqual(r.systemNotes["cv"], "On apixaban; FEVAR 2021", "not twice")
+        XCTAssertEqual(r.hx.repairDetails, "Bifurcated graft; FEVAR 2021", "not twice")
         // Quick add: one chip, Prior EVAR.
         let q = quick("74M, HTN, s/p FEVAR 2021")
         XCTAssertTrue(QuickAdd.chips(q, record: PatientRecord()).contains { $0.value == "Prior EVAR" }, q.findings.map(\.label).joined(separator: " | "))
