@@ -89,13 +89,15 @@ enum PatientSummary {
         return out
     }
 
-    /// "Hb 9.8 L · Plt 98 L · INR 1.6 H · …", the abnormal values marked for bold red, with the other results after.
+    /// "Hb 9.8 L · Hct ~29 (est.) · … · Lactate 1.4 · T&S A−, screen neg · MRSA neg", the abnormal values and
+    /// positive results marked for bold red, with the other results typed after.
     static func labsLine(_ r: PatientRecord) -> Line? {
         let sum = PatientLabs.summary(r)
+        let more = LabResults.lineParts(r)
         let note = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !sum.isEmpty || !note.isEmpty else { return nil }
-        let text = ([sum.line].filter { !$0.isEmpty } + (note.isEmpty ? [] : [note])).joined(separator: " · ")
-        return Line("Labs", text, marks: sum.abnormal.map(\.compact))
+        guard !sum.isEmpty || !more.parts.isEmpty || !note.isEmpty else { return nil }
+        let text = ([sum.line].filter { !$0.isEmpty } + more.parts + (note.isEmpty ? [] : [note])).joined(separator: " · ")
+        return Line("Labs", text, marks: sum.abnormal.map(\.compact) + more.marks)
     }
 
     /// "MELD 3.0 18 · MELD-Na 17 · Child-Pugh B (8)", when the liver section has what it needs.
@@ -477,6 +479,8 @@ enum HandoffWriter {
         line("Code status", PatientCodeStatus.text(r) ?? "")
         line("Key considerations", IntraopConsiderations.text(r) ?? "")
         line("Allergies", r.nkda ? "No known drug allergies" : r.allergies)
+        // Positive and pending infectious results only (Ben, Nov 3); the full handoff lists every one entered.
+        line("Infectious results", LabResults.shortInfectious(r))
         if r.arrivesWithAirway, let a = r.currentAirwayText {
             var t = a + " on arrival"
             if !r.vent.isEmpty && r.oxygen.device != "trachCollar" { t += "; " + r.vent.text }

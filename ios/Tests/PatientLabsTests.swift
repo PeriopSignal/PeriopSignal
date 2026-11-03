@@ -12,8 +12,8 @@ final class PatientLabsTests: XCTestCase {
         XCTAssertEqual(Set(keys).count, keys.count, "no key twice")
         XCTAssertEqual(PatientLabs.tests(.main).map(\.key),
                        ["hb", "hct", "wbc", "plt", "inr", "fibrinogen", "na", "k", "cl", "hco3", "bun", "cr", "gfr",
-                        "glucose", "a1c", "albumin", "tbili"],
-                       "fibrinogen under INR, GFR under creatinine")
+                        "glucose", "a1c", "albumin", "tbili", "lactate"],
+                       "fibrinogen under INR, GFR under creatinine; lactate last (1.8.3)")
         XCTAssertEqual(PatientLabs.tests(.cardiac).map(\.key), ["bnp", "ntprobnp", "troponin", "troponin99"])
         XCTAssertEqual(PatientLabs.tests(.liver).map(\.key), ["ast", "alt", "alp"])
         XCTAssertEqual(PatientLabs.tests(.thyroid).map(\.key), ["tsh", "ft4", "ft3"])
@@ -99,7 +99,8 @@ final class PatientLabsTests: XCTestCase {
         let s = PatientLabs.summary(r)
         XCTAssertEqual(s.items.map(\.key), ["hb", "wbc", "plt", "inr", "fibrinogen", "na", "k", "cr", "glucose", "troponin", "tsh"],
                        "catalog order; the 99th percentile and unknown keys are not items")
-        XCTAssertEqual(s.line, "Hb 9.8 L · WBC 7.2 · Plt 98 L · INR 1.6 H · Fib 180 L · Na 131 L · K 4.1 · Cr 1.42 H · Glu 212 H · Troponin 20 H · TSH 2.1")
+        // 1.8.3: the hematocrit estimated from the hemoglobin follows it (Ben, Nov 3).
+        XCTAssertEqual(s.line, "Hb 9.8 L · Hct ~29 (est.) · WBC 7.2 · Plt 98 L · INR 1.6 H · Fib 180 L · Na 131 L · K 4.1 · Cr 1.42 H · Glu 212 H · Troponin 20 H · TSH 2.1")
         XCTAssertEqual(s.abnormal.map(\.key), ["hb", "plt", "inr", "fibrinogen", "na", "cr", "glucose", "troponin"])
         let trop = s.items.first { $0.key == "troponin" }
         XCTAssertEqual(trop?.note, "assay's 99th percentile 14 ng/L")

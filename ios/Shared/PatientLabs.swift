@@ -93,8 +93,11 @@ struct LabTest: Hashable, Identifiable {
     var range: LabRange?
     var female: LabRange?
     var male: LabRange?
-    /// The most decimals shown; trailing zeros are dropped, as NumText.short does.
+    /// The most decimals shown; trailing zeros are dropped, as NumText.short does, down to `minimumDecimals`.
     var decimals: Int
+    /// The fewest decimals shown, padded with zeros: creatinine "1.00", INR "1.0" (Ben, Nov 3). A value typed with more
+    /// decimals keeps them, up to `decimals`.
+    var minimumDecimals: Int
     /// Values outside this are almost certainly a typing error (input validation, not a clinical limit).
     var plausible: ClosedRange<Double>
     var note: String?
@@ -102,7 +105,8 @@ struct LabTest: Hashable, Identifiable {
     var id: String { key }
 
     init(_ key: String, _ label: String, short: String, unit: String, group: LabGroup, range: LabRange? = nil,
-         female: LabRange? = nil, male: LabRange? = nil, decimals: Int, plausible: ClosedRange<Double>, note: String? = nil) {
+         female: LabRange? = nil, male: LabRange? = nil, decimals: Int, minimumDecimals: Int = 0, plausible: ClosedRange<Double>,
+         note: String? = nil) {
         self.key = key
         self.label = label
         self.short = short
@@ -112,6 +116,7 @@ struct LabTest: Hashable, Identifiable {
         self.female = female
         self.male = male
         self.decimals = decimals
+        self.minimumDecimals = minimumDecimals
         self.plausible = plausible
         self.note = note
     }
@@ -136,8 +141,9 @@ struct LabTest: Hashable, Identifiable {
     /// Has a fixed range to flag against.
     var isRated: Bool { range != nil || female != nil || male != nil }
 
-    /// The value for reading: at most `decimals` places, trailing zeros dropped ("9.8", "1.42", "142").
-    func format(_ v: Double) -> String { NumText.short(v, places: decimals) }
+    /// The value for reading: at most `decimals` places, trailing zeros dropped ("9.8", "1.42", "142"), then padded to
+    /// `minimumDecimals` ("Cr 1.00", "INR 1.0").
+    func format(_ v: Double) -> String { NumText.padded(NumText.short(v, places: decimals), minimumDecimals) }
 
     /// The existing number-field type, for screens built on it.
     var field: PatientField { PatientField(key, label, unit) }
@@ -157,11 +163,17 @@ struct LabValue: Hashable, Identifiable {
     var rated: Bool
     var group: LabGroup
     var note: String?
+    /// Estimated from the other of hemoglobin and hematocrit (PatientLabs.estimate): shown, never saved, flagged or
+    /// read by a rule.
+    var estimated = false
 
     var id: String { key }
 
-    /// "Hb 9.8 L", "K 4.1".
-    var compact: String { label + " " + text + (flag.mark.isEmpty ? "" : " " + flag.mark) }
+    /// "Hb 9.8 L", "K 4.1", "Hct ~29 (est.)".
+    var compact: String {
+        if estimated { return label + " ~" + text + " (est.)" }
+        return label + " " + text + (flag.mark.isEmpty ? "" : " " + flag.mark)
+    }
 }
 
 /// The classic lab shorthand: CBC (WBC, Hb, Hct, Plt), BMP (Na, K, Cl, HCO₃, BUN, Cr, glucose) and coagulation
@@ -180,6 +192,8 @@ struct LabFishbone: Hashable {
     var glucose: LabValue?
     var inr: LabValue?
     var fibrinogen: LabValue?
+    /// Hemoglobin or hematocrit estimated from the other, for the cell left empty (LabValue.estimated).
+    var estimate: LabValue?
 
     /// WBC, Hb, Hct, Plt.
     var cbc: [LabValue?] { [wbc, hb, hct, plt] }
@@ -198,12 +212,23 @@ struct LabSummary: Hashable {
     /// in the troponin's note rather than as an item.
     var items: [LabValue]
     var fishbone: LabFishbone
+    /// Hemoglobin or hematocrit estimated from the other when only one was entered; not among the items.
+    var estimate: LabValue? = nil
 
     var abnormal: [LabValue] { items.filter { $0.flag.isAbnormal } }
     var isEmpty: Bool { items.isEmpty }
 
-    /// "Hb 9.8 L · Plt 98 L · INR 1.6 H · Na 131 L": the condensed line, for the handoff and a compact view.
-    var line: String { items.map(\.compact).joined(separator: " · ") }
+    /// The items with the estimate in its catalog place (Hct after Hb; Hb before Hct).
+    var shown: [LabValue] {
+        guard let e = estimate else { return items }
+        var out = items
+        if e.key == "hct", let i = out.firstIndex(where: { $0.key == "hb" }) { out.insert(e, at: i + 1) }
+        else if e.key == "hb", let i = out.firstIndex(where: { $0.key == "hct" }) { out.insert(e, at: i) }
+        return out
+    }
+
+    /// "Hb 9.8 L · Hct ~29 (est.) · Plt 98 L · INR 1.6 H · Na 131 L": the condensed line, for the handoff and a compact view.
+    var line: String { shown.map(\.compact).joined(separator: " · ") }
 }
 
 // MARK: - Liver function testing (MELD & CTP)
@@ -474,7 +499,7 @@ enum PatientLabs {
         LabTest("plt", "Platelets", short: "Plt", unit: "×10³/µL", group: .main,
                 range: LabRange(150, 450), decimals: 0, plausible: 1...3000),
         LabTest("inr", "INR", short: "INR", unit: "", group: .main,
-                range: LabRange(0.8, 1.1), decimals: 2, plausible: 0.5...20,
+                range: LabRange(0.8, 1.1), decimals: 2, minimumDecimals: 1, plausible: 0.5...20,
                 note: "Range without anticoagulants (MedlinePlus)."),
         LabTest("fibrinogen", "Fibrinogen", short: "Fib", unit: "mg/dL", group: .main,
                 range: LabRange(200, 400), decimals: 0, plausible: 10...2000),
@@ -489,7 +514,8 @@ enum PatientLabs {
         LabTest("bun", "BUN", short: "BUN", unit: "mg/dL", group: .main,
                 range: LabRange(8, 20), decimals: 0, plausible: 1...300),
         LabTest("cr", "Creatinine", short: "Cr", unit: "mg/dL", group: .main,
-                female: LabRange(0.5, 1.1), male: LabRange(0.7, 1.3), decimals: 2, plausible: 0.1...30),
+                female: LabRange(0.5, 1.1), male: LabRange(0.7, 1.3), decimals: 3, minimumDecimals: 2,
+                plausible: 0.1...30),
         // KDIGO's decreased GFR is under 60 (with more than 3 months, a CKD criterion); no upper limit is flagged.
         LabTest("gfr", "GFR", short: "GFR", unit: "mL/min/1.73 m²", group: .main,
                 range: LabRange(60, nil), decimals: 0, plausible: 1...200,
@@ -533,10 +559,21 @@ enum PatientLabs {
                 range: LabRange(0.8, 1.8), decimals: 2, plausible: 0.05...15),
         LabTest("ft3", "Free T3", short: "Free T3", unit: "pg/mL", group: .thyroid,
                 range: LabRange(2.3, 4.2), decimals: 1, plausible: 0.5...50),
+
+        // Lactate (1.8.3), last on the labs line and at the foot of the main labs: the intraoperative gas's own entry
+        // (unit, range and source note), named without "arterial" because a preoperative sample may be venous.
+        LabTest("lactate", "Lactate", short: IntraopLabs.lactate.short, unit: IntraopLabs.lactate.unit, group: .main,
+                range: IntraopLabs.lactate.range, decimals: IntraopLabs.lactate.decimals, plausible: IntraopLabs.lactate.plausible,
+                note: IntraopLabs.lactate.note),
     ]
 
     /// The catalog and the intraoperative tests (IntraopLabs.added), which the preoperative screens do not list.
-    private static let byKey: [String: LabTest] = Dictionary(uniqueKeysWithValues: (catalog + IntraopLabs.added).map { ($0.key, $0) })
+    /// Lactate is in both: the catalog's entry (named "Lactate") wins here; IntraopLabs.tests keeps "Lactate, arterial".
+    private static let byKey: [String: LabTest] = {
+        var out = Dictionary(uniqueKeysWithValues: catalog.map { ($0.key, $0) })
+        for t in IntraopLabs.added where out[t.key] == nil { out[t.key] = t }
+        return out
+    }()
 
     static func test(_ key: String) -> LabTest? { byKey[key] }
 
@@ -613,7 +650,39 @@ enum PatientLabs {
         fb.glucose = cell("glucose")
         fb.inr = cell("inr")
         fb.fibrinogen = cell("fibrinogen")
-        return LabSummary(items: items, fishbone: fb)
+        let est = estimate(labs)
+        fb.estimate = est
+        return LabSummary(items: items, fishbone: fb, estimate: est)
+    }
+
+    // MARK: Hemoglobin and hematocrit, one from the other
+
+    // Hct (%) ≈ 3 × Hb (g/dL), and Hb ≈ Hct ÷ 3 (Ben, Nov 3: "HCT and hb can be calculated from either variable"). The
+    // ratio is 100 ÷ MCHC, so 3 assumes an MCHC near 33 g/dL. Lee SJ, Stepniewska K, Anstey N, et al. The relationship
+    // between the haemoglobin concentration and the haematocrit in Plasmodium falciparum malaria. Malar J 2008;7:149
+    // (doi:10.1186/1475-2875-7-149; PMID 18673575): 3,254 paired measurements from 1,810 patients in 85 trials, best
+    // fit Hct = 5.62 + 2.60 × Hb, and "the commonly used threefold conversion is also valid" (abstract). Its limits:
+    // Quintó L, Aponte JJ, Menéndez C, et al. Trop Med Int Health 2006;11:1295–1302 (doi:10.1111/j.1365-3156.2006.01679.x;
+    // PMID 16903892): in young children the ratio differed from 3 and varied with age, tending to 3, too loose to derive
+    // one from the other for defining anemia. So the estimate is only shown, marked as such: never saved, never in
+    // place of a measured value, never flagged and never read by a rule (the anemia rule reads the measured Hb).
+    static let estimateCaption = "Estimated as Hct ≈ 3 × Hb (Hb ≈ Hct ÷ 3), which assumes an MCHC near 33 g/dL; only measured values are saved (Lee SJ et al., Malar J 2008)."
+
+    /// The other of hemoglobin and hematocrit when only one is entered: Hct to the whole %, Hb to 0.1 g/dL.
+    static func estimate(_ labs: [String: Double]) -> LabValue? {
+        func valid(_ k: String) -> Double? { labs[k].flatMap { $0.isFinite && $0 > 0 ? $0 : nil } }
+        let hb = valid("hb"), hct = valid("hct")
+        if let b = hb, hct == nil, let t = test("hct") {
+            let v = (3 * b).rounded()
+            return LabValue(key: "hct", label: t.short, value: v, text: NumText.short(v, places: 0), unit: t.unit, flag: .normal,
+                            rated: false, group: t.group, note: nil, estimated: true)
+        }
+        if let h = hct, hb == nil, let t = test("hb") {
+            let v = (h / 3 * 10).rounded() / 10
+            return LabValue(key: "hb", label: t.short, value: v, text: NumText.short(v, places: 1), unit: t.unit, flag: .normal,
+                            rated: false, group: t.group, note: nil, estimated: true)
+        }
+        return nil
     }
 
     // MARK: MELD 3.0

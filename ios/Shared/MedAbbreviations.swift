@@ -669,7 +669,7 @@ extension MedAbbreviations {
         ("IDDM", "insulin-dependent diabetes mellitus"), ("NIDDM", "non-insulin-dependent diabetes mellitus"), ("GDM", "gestational diabetes mellitus"),
         ("DKA", "diabetic ketoacidosis"), ("HHS", "hyperosmolar hyperglycemic state"), ("A1c|HbA1c|HgbA1c", "hemoglobin A1c"), ("TSH", "thyroid-stimulating hormone"),
         ("BMI", "body mass index"), ("SIADH", "syndrome of inappropriate antidiuretic hormone"), ("PCOS", "polycystic ovary syndrome"),
-        ("Hgb|Hb", "hemoglobin"), ("Hct", "hematocrit"), ("plt|plts", "platelets"), ("WBC", "white blood cell count"), ("INR", "international normalized ratio"),
+        ("Hgb|Hbg|Hb", "hemoglobin"), ("Hct", "hematocrit"), ("plt|plts", "platelets"), ("WBC", "white blood cell count"), ("INR", "international normalized ratio"),
         ("PTT|aPTT", "partial thromboplastin time"), ("PT/INR", "prothrombin time and INR"), ("ITP", "immune thrombocytopenia"),
         ("TTP", "thrombotic thrombocytopenic purpura"), ("vWD", "von Willebrand disease"), ("vWF", "von Willebrand factor"), ("DIC", "disseminated intravascular coagulation"),
         ("HbSS", "sickle cell disease"), ("G6PD", "glucose-6-phosphate dehydrogenase deficiency"), ("APLS", "antiphospholipid syndrome"), ("FVL", "factor V Leiden"),

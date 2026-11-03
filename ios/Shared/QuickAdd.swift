@@ -601,7 +601,7 @@ enum QuickAdd {
 
     private static let labAliasList: [(String, String)] = [
         ("ntprobnp", #"nt[- ]?pro[- ]?bnp"#), ("bnp", #"bnp"#), ("a1c", #"hba1c|hgba1c|a1c|h(?:a)?emoglobin a1c"#),
-        ("hb", #"hgb|hb|h(?:a)?emoglobin"#), ("hct", #"hct|h(?:a)?ematocrit"#), ("wbc", #"wbc|wcc|white (?:blood )?(?:cell )?count"#),
+        ("hb", #"hgb|hbg|hb|h(?:a)?emoglobin"#), ("hct", #"hct|h(?:a)?ematocrit"#), ("wbc", #"wbc|wcc|white (?:blood )?(?:cell )?count"#),
         ("plt", #"platelet count|platelets?|plts?"#), ("inr", #"inr"#), ("fibrinogen", #"fibrinogen|fib|fbg"#),
         ("na", #"(?-i:Na)\+?|sodium"#), ("k", #"(?-i:K)\+?|potassium"#), ("cl", #"(?-i:Cl|CL)-?|chloride"#),
         ("hco3", #"hco3-?|hco₃|bicarbonate|bicarb|tco2"#), ("bun", #"bun"#), ("cr", #"creatinine|creat|scr|cr"#), ("gfr", #"e?gfr"#),
@@ -837,7 +837,7 @@ enum QuickAdd {
     static let venousGas = NoteRx(#"\b(?:vbg|venous (?:blood )?gas|capillary (?:blood )?gas|mixed venous)\b"#)
     private static let gasLabel = NoteRx(#"(?:\babg|\barterial (?:blood )?gas|\bblood gas|\bgas)\s*[:\-]?\s*$"#)
     /// A slashed count panel ("CBC 7.4/11/180") is not a gas.
-    private static let cbcLabel = NoteRx(#"\b(?:cbc|h/h|h&h|hgb/hct|hb/hct|wbc)\b"#)
+    private static let cbcLabel = NoteRx(#"\b(?:cbc|h/h|h&h|hgb/hct|hbg/hct|hb/hct|wbc)\b"#)
     /// Between two gases in a trend ("7.21/55/68 → 7.32/42/180"): the later one is the current one.
     private static let gasTrend = NoteRx(#"^\s*,?\s*(?:-+>|→|⟶|➝|=>|\bto\b|\bthen\b|\bnow\b|\brepeat(?:ed)?\b)\s*:?\s*(?:(?:abg|gas)\s*:?\s*)?$"#)
 

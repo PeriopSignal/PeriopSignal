@@ -138,7 +138,10 @@ struct PatientRecord: Codable, Equatable {
 
     // History
     var noHistory = false
-    var problems: Set<String> = []
+    var problems: Set<String> = [] {
+        // An item taken off, by any path, is no longer the labs' to take off later (LabResults.edit).
+        didSet { if !labProblems.isSubset(of: problems) { labProblems.formIntersection(problems) } }
+    }
     /// The diameter (cm) of each unruptured aortic aneurysm, by problem id ("aaa", "taa", "taaa"), as saved before the
     /// aneurysms were kept by location (PatientHistoryDetails.aneurysms); read once and moved there.
     var aortaSizes: [String: Double] = [:]
@@ -157,9 +160,15 @@ struct PatientRecord: Codable, Equatable {
     var lastSolids: Date?
     var lastClears: Date?
     /// "hb", "plt", "inr", "k", "na", "cr", "glucose", "a1c", "bnp", "ntprobnp", "troponin", "troponin99" (the assay's
-    /// 99th percentile).
+    /// 99th percentile), "lactate" (1.8.3) and the rest of PatientLabs.catalog.
     var labs: [String: Double] = [:]
     var labNotes = ""
+    /// Type and screen, and the infectious results (LabResults, 1.8.3).
+    var typeScreen = PatientTypeScreen()
+    var infections = PatientInfections()
+    /// Infectious history items a positive result added (LabResults.edit), so only those are taken off when the result
+    /// changes; never one the user entered.
+    var labProblems: Set<String> = []
     /// Past surgical history (PatientWorkup), in the order entered.
     var surgeries: [PatientSurgery] = []
     /// Infusions running before the case, with their rates (Medications & Allergies).
@@ -322,6 +331,9 @@ struct PatientRecord: Codable, Equatable {
         lastClears = try? c.decodeIfPresent(Date.self, forKey: .lastClears)
         labs = v(.labs, [:])
         labNotes = v(.labNotes, "")
+        typeScreen = v(.typeScreen, PatientTypeScreen())
+        infections = v(.infections, PatientInfections())
+        labProblems = v(.labProblems, Set<String>()).intersection(problems)
         surgeries = v(.surgeries, [])
         homeInfusions = v(.homeInfusions, [])
         ascites = try? c.decodeIfPresent(LiverAscites.self, forKey: .ascites)

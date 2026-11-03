@@ -69,6 +69,11 @@ enum PatientNoteChange: Hashable {
     case intraopInfusion(String, String)
     /// One field of the intraoperative airway course, by QuickAdd.airwayFields' name, and its value.
     case intraopAirway(String, String)
+    // Labs that are not numbers (LabResults, 1.8.3):
+    /// Type and screen: only the parts written are set.
+    case typeScreen(PatientTypeScreen)
+    /// An infectious result: the test id ("mrsa", or "other" with its name) and the result.
+    case infectious(String, String, LabResult)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -586,6 +591,7 @@ enum PatientNote {
         out += [infectionNotPositive, hivPrevention]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
+        out += LabResults.patterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
@@ -705,6 +711,11 @@ enum PatientNote {
             readMeds(c, &h, names: &names)
             readAllergies(c, &h)
             readNumbers(c, &h, choices)
+            for x in LabResults.read(c) {
+                guard let first = x.ranges.first else { continue }
+                h.add(x.finding, at: first)
+                for r in x.ranges.dropFirst() { h.seen(r) }
+            }
             readDissection(c, choices, &h)
             readTAA(c, choices, &h)
             readAssessment(c, now: now, &h)
@@ -1165,6 +1176,9 @@ enum PatientNote {
         return y >= Calendar(identifier: .gregorian).component(.year, from: Date())
     }
 
+    /// A problem's own note-reader pattern (LabResults.otherLink asks whether "VRE" reads as MRSA or VRE).
+    static func problemRule(_ id: String) -> NoteRx? { problemRules.first { $0.id == id }?.rx }
+
     private static let problemLabels: [String: String] = Dictionary(PatientCatalog.allProblems.map { ($0.id, $0.label) }, uniquingKeysWith: { a, _ in a })
 
     private static func readRules(_ c: String, _ h: inout Hits) {
@@ -1583,7 +1597,7 @@ enum PatientNote {
     static let labNow = NoteRx(#"^[\s,;()\[\]]*(?:now|currently|current|today|repeat|latest|new)\b[\s:()\[\]]*(\d+(?:\.\d+)?)(?!\d|\.\d|\s*/\s*\d)"#)
     static let hemolyzedRx = NoteRx(#"\bh(?:a)?emoly[sz](?:ed|is)\b"#)
     private static let labRules: [(id: String, rx: NoteRx, min: Double, max: Double)] = [
-        ("hb", NoteRx(#"\b(?:hb|hgb|hemoglobin|haemoglobin)\s*(?:of|is|was|:|=)?\s*(\d{1,2}(?:\.\d)?)\b"#), 3, 25),
+        ("hb", NoteRx(#"\b(?:hb|hgb|hbg|hemoglobin|haemoglobin)\s*(?:of|is|was|:|=)?\s*(\d{1,2}(?:\.\d)?)\b"#), 3, 25),
         ("plt", NoteRx(#"\b(?:plt|plts|platelets?)\s*(?:of|is|was|:|=)?\s*"# + value + #"\s*k?\b"#), 5, 2000),
         ("inr", NoteRx(#"\binr\s*(?:of|is|was|:|=)?\s*(\d(?:\.\d{1,2})?)\b"#), 0.5, 15),
         ("k", NoteRx(#"(?-i:\bK\+?)\s*(?:of|is|was|:|=)?\s*(\d(?:\.\d)?)\b|\bpotassium\s*(?:of|is|was|:|=)?\s*(\d(?:\.\d)?)\b"#), 1.5, 9),
@@ -1720,7 +1734,8 @@ enum PatientNote {
     /// "Hemoglobin 9.1 g/dL": a lab finding's label.
     static func labLabel(_ id: String, _ v: Double) -> String {
         guard let f = PatientCatalog.labs.first(where: { $0.id == id }) else { return id + " " + NumText.short(v) }
-        return f.label + " " + NumText.short(v) + (f.unit.isEmpty ? "" : (f.unit == "%" ? "%" : " " + f.unit))
+        let text = PatientLabs.test(id)?.format(v) ?? NumText.short(v)
+        return f.label + " " + text + (f.unit.isEmpty ? "" : (f.unit == "%" ? "%" : " " + f.unit))
     }
 
     /// Two values of a test, neither marked current: "Cr: 0.9 or 1.6?", nothing read until one is chosen.
@@ -2333,6 +2348,9 @@ enum PatientNote {
             return nil
         case (.codeStatus, .codeStatus):
             return PatientCodeStatus.merged(a.change, b.change)
+        case (.typeScreen(let x), .typeScreen(let y)):
+            // "T&S A neg." then "Antibody screen negative.": one item.
+            return LabResults.typeScreenFinding(y.merged(over: x))
         case (.cardiacSurgery(let x), .cardiacSurgery(let y)):
             // Operations told in several places of the note: one entry.
             let t = mentions(x, y) ? x : x + "; " + y
@@ -2476,7 +2494,7 @@ enum PatientNote {
             return same(o, v) ? .recorded : .replaces(NumText.short(o))
         case .lab(let k, let v):
             guard let o = r.labs[k] else { return .new }
-            return same(o, v) ? .recorded : .replaces(NumText.short(o))
+            return same(o, v) ? .recorded : .replaces(PatientLabs.test(k)?.format(o) ?? NumText.short(o))
         case .lastSolids(let d):
             guard let o = r.lastSolids else { return .new }
             return o == d ? .recorded : .replaces(PatientSummary.time(o))
@@ -2547,6 +2565,10 @@ enum PatientNote {
             guard let o = r.infusions.first(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) else { return .new }
             if rate.isEmpty || o.rate.caseInsensitiveCompare(rate) == .orderedSame { return .recorded }
             return o.rate.isEmpty ? .new : .replaces(o.rate)
+        case .typeScreen(let ts):
+            return LabResults.status(ts, in: r)
+        case .infectious(let id, let name, let v):
+            return LabResults.status(id, name: name, v, in: r)
         case .intraopAirway(let key, let value):
             guard let o = r.intraopAirway(key) else { return .new }
             // A tube written with less than the record has ("7.5 ETT, 23 cm" for "… at the lip") is already there.
@@ -2610,6 +2632,8 @@ enum PatientNote {
                 r.noHistory = false
                 if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { continue }
                 r.problems.insert(p)
+                // Filed from the note's history: the user's now, whatever a lab result linked (LabResults.edit).
+                r.labProblems.remove(p)
                 for general in supersededBy.keys where (supersededBy[general] ?? []).contains(p) { r.problems.remove(general) }
             case .aneurysm(let site, let cm, let ruptured):
                 r.noHistory = false
@@ -2716,6 +2740,8 @@ enum PatientNote {
                     r.infusions.append(PatientInfusion(drug: drug.prefix(1).uppercased() + drug.dropFirst(), rate: rate))
                 }
             case .intraopAirway(let key, let value): r.setIntraopAirway(key, value)
+            case .typeScreen(let ts): r.typeScreen = ts.merged(over: r.typeScreen)
+            case .infectious(let id, let name, let v): LabResults.set(id, name: name, v, in: &r)
             }
         }
         // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.

@@ -170,10 +170,12 @@ final class QuickAddTests: XCTestCase {
         XCTAssertTrue(q.skipped.contains { $0.hasPrefix("Cr 1.6") }, "creatinine has no intraoperative field")
         XCTAssertTrue(q.findings.allSatisfy { $0.section == QuickAdd.intraop })
 
-        // An intraoperative-only test on the Preoperative tab is shown, not filed.
-        let pre = read("lactate 4.2")
+        // An intraoperative-only test on the Preoperative tab is shown, not filed. (Lactate was the example until 1.8.3,
+        // when Ben asked for a preoperative lactate: it now fills the preoperative labs.)
+        let pre = read("iCa 1.02")
         XCTAssertTrue(pre.findings.isEmpty)
-        XCTAssertTrue(pre.skipped.contains { $0.hasPrefix("Lactate 4.2") })
+        XCTAssertTrue(pre.skipped.contains { $0.hasPrefix("iCa 1.02") })
+        XCTAssertEqual(change(read("lactate 4.2"), "lab:lactate"), .lab("lactate", 4.2))
     }
 
     func testBloodGas() {
@@ -828,8 +830,9 @@ final class QuickAddTests: XCTestCase {
         var r = PatientRecord()
         r.labs["cr"] = 1.1
         let labs = QuickAdd.chips(read("K 5.4 Cr 1.6", record: r), record: r)
-        XCTAssertEqual(labs.map(\.text), ["Labs · K 5.4 H", "Labs · Cr 1.6 H"])
-        XCTAssertEqual(labs.last?.statusText, "replaces 1.1")
+        // Creatinine shows two decimals (Ben, Nov 3, 1.8.3): "1.60", "1.10".
+        XCTAssertEqual(labs.map(\.text), ["Labs · K 5.4 H", "Labs · Cr 1.60 H"])
+        XCTAssertEqual(labs.last?.statusText, "replaces 1.10")
         XCTAssertNil(labs.first?.statusText)
         XCTAssertEqual(QuickAdd.changes(labs, dropped: [labs[0].id]), [.lab("cr", 1.6)], "a dropped chip is not filed")
 

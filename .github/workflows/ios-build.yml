@@ -238,6 +238,12 @@ jobs:
           shot 237-wave2a-neuraxial-info 12 -ps.ref neuraxial-guide -ps.nx.proc cesarean -ps.evidence.open 1 -ps.forceAppearance dark
           shot 238-wave2a-abg-normal 12 -ps.ref abg -ps.abg.values "ph=7.40,paco2=40,hco3=24" -ps.forceAppearance light
           shot 239-wave2a-ponv-info 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,opioids" -ps.ponv.agents "ondansetron,dexamethasone" -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 400-labs-results-light 20 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance light
+          shot 401-labs-results-dark 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance dark
+          shot 402-labs-handoff 16 -ps.tab patient -ps.patient demo-labs -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 403-labs-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "Hbg 12.1, Cr 1, lac 1.4, T&S A-/-, 2u xm, staph neg, MRSA screen negative, covid negative, C diff pending, VRE positive"
+          shot 404-labs-estimate 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.evidence.open 1 -ps.forceAppearance light
+          shot 405-labs-handoff-short-dark 16 -ps.tab patient -ps.patient demo-labs -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance dark
           # 1.8.1 wave 3 (My Patient editors, 250-259): each moved explanation opened (-ps.evidence.open 1).
           shot 250-wave3-assessment-info 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1 -ps.forceAppearance dark
           shot 251-wave3-code-status-info 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.open assessment -ps.patient.scroll codestatus -ps.evidence.open 1 -ps.forceAppearance light
