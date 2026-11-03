@@ -69,6 +69,18 @@ struct PlannedProcedure: Codable, Hashable, Identifiable {
     }
 
     var catalog: Procedure? { catalogID.flatMap { ProcedureCatalog.byID($0) } }
+    /// The one more choice its procedure asks (a bare Bentall: which valve), while unanswered.
+    var ask: ProcedureAsk? { catalog?.ask }
+
+    /// This item as the chosen procedure (an option of `ask`), with its side and details; nil for another id.
+    func answering(_ id: String) -> PlannedProcedure? {
+        guard let ask, ask.options.contains(where: { $0.id == id }), let p = ProcedureCatalog.byID(id) else { return nil }
+        var x = self
+        x.catalogID = p.id
+        x.name = p.name
+        x.side = p.lateral ? side : nil
+        return x
+    }
     /// The procedure has a side and none was picked.
     var needsSide: Bool { catalog?.needsSide(side) ?? false }
 
@@ -281,10 +293,16 @@ extension String {
     }
 }
 
-/// Grades for chamber function and valve lesions, as the ASE tools name them.
+/// Grades for chamber function and valve lesions, as the ASE tools name them. Trivial (trace) is for regurgitation
+/// only (1.8.1, Ben): chamber function and stenosis are graded without it (`severities`).
 enum EchoGrade: String, Codable, CaseIterable, Hashable {
-    case normal, mild, moderate, severe
+    case normal, trivial, mild, moderate, severe
     var label: String { rawValue.prefix(1).uppercased() + rawValue.dropFirst() }
+
+    /// The grades for regurgitation: none, trivial, mild, moderate, severe.
+    static let regurgitation: [EchoGrade] = allCases
+    /// The grades for chamber function and stenosis: without trivial.
+    static let severities: [EchoGrade] = allCases.filter { $0 != .trivial }
 }
 
 /// One valve: regurgitation and stenosis grades (nil = not recorded; .normal = none) and any prosthesis or repair.
@@ -397,7 +415,7 @@ struct PatientEcho: Codable, Hashable {
     /// Function words for a chamber grade: "normal", "mildly reduced"…
     static func function(_ g: EchoGrade) -> String {
         switch g {
-        case .normal: return "normal"
+        case .normal, .trivial: return "normal"
         case .mild: return "mildly reduced"
         case .moderate: return "moderately reduced"
         case .severe: return "severely reduced"
@@ -657,6 +675,7 @@ extension PatientEcho {
 // MARK: - Device groups
 
 extension PatientDevice {
-    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .other]
+    /// The handoff's Lines: the Foley goes with them (1.8.1).
+    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .other]
     static let supportKinds: Set<DeviceKind> = [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella, .protekDuo]
 }

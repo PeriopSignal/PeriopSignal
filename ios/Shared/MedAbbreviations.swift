@@ -523,6 +523,8 @@ extension MedAbbreviations {
             near("ps-support", #"\b(?:peep|vent\w*|cpap|fio2|sbt|extubat\w*|intubat\w*|psv|trach\w*)\b"#),
         ], skip: [AbbreviationContext(before: NoteRx(#"\basa\s*(?:class\s*)?$"#))]),
         entry("PR", [m("pulmonic regurgitation", "pr-pulmonic"), m("PR interval", "pr-interval"), m("per rectum", "pr-rectal")], hints: [
+            // "trivial PR", "trace PR", "mild PR": a grade before it is the valve (1.8.1).
+            before("pr-pulmonic", severity),
             near("pr-interval", #"\b(?:interval|msec|ms|prolonged|ecg|ekg|qrs|qtc|av block|first[- ]degree|1st degree)\b"#),
             near("pr-rectal", #"\b(?:suppositor\w*|tylenol|acetaminophen|rectal\w*|mg)\b"#),
         ]),

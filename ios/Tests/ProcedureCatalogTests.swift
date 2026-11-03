@@ -340,7 +340,13 @@ final class ProcedureCatalogTests: XCTestCase {
         for p in ProcedureCatalog.all {
             for s in [p.name] + p.synonyms {
                 XCTAssertEqual(ids(s), [p.id], "parse \"\(s)\"")
-                XCTAssertEqual(ProcedureCatalog.search(s, limit: 1).first?.id, p.id, "search \"\(s)\"")
+                if p.ask != nil {
+                    // A general procedure that asks (a bare Bentall) is not offered in the list: its choices are.
+                    let found = ProcedureCatalog.search(s, limit: 12).map(\.id)
+                    XCTAssertFalse(found.contains(p.id), "search \"\(s)\" hides \(p.id)")
+                } else {
+                    XCTAssertEqual(ProcedureCatalog.search(s, limit: 1).first?.id, p.id, "search \"\(s)\"")
+                }
             }
         }
     }

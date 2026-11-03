@@ -61,6 +61,14 @@ enum DiagramColor {
     static let airway = Color.dynamic(dark: "4FD1C5", light: "0E8A80")
 }
 
+/// The figure's long press (the editor's edit mode), only where there is one: a read-only figure has no gesture.
+private struct DiagramLongPress: ViewModifier {
+    var action: (() -> Void)?
+    func body(content: Content) -> some View {
+        if let action { content.onLongPressGesture(minimumDuration: 0.4, perform: action) } else { content }
+    }
+}
+
 struct PatientDiagramCanvas: View {
     var figure: RegionalFigure
     var items: [DiagramItem]
@@ -74,6 +82,15 @@ struct PatientDiagramCanvas: View {
     var onDelete: ((String) -> Void)? = nil
     /// An item held and let go without moving: the editor offers its actions (details, delete).
     var onHold: ((String) -> Void)? = nil
+    /// The read-only cards (1.8.1): the drawing takes the card's whole width at its height, so the labels beside a
+    /// small figure have room instead of being cut off at the figure's own margins.
+    var fillsWidth = false
+
+    /// No handler given: a picture only, with no touch targets or gestures at all (the handoff, the tab cards, the
+    /// shared image).
+    private var readOnly: Bool {
+        onTapFigure == nil && onTapItem == nil && onLongPress == nil && onMove == nil && onDelete == nil && onHold == nil
+    }
 
     /// Figure units of margin on each side for labels and the cart.
     static let margin: CGFloat = 48
@@ -86,6 +103,15 @@ struct PatientDiagramCanvas: View {
     private var bh: CGFloat { CGFloat(figure.box.count > 1 ? figure.box[1] : 420) }
 
     var body: some View {
+        Group {
+            if fillsWidth { drawing } else { drawing.aspectRatio((bw + 2 * Self.margin) / bh, contentMode: .fit) }
+        }
+        .onChange(of: editing) { _, on in wiggle = on }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Patient diagram: " + (items.isEmpty ? "no lines or devices" : items.map(\.label).joined(separator: ", ")))
+    }
+
+    private var drawing: some View {
         GeometryReader { geo in
             let k = min(geo.size.width / (bw + 2 * Self.margin), geo.size.height / bh)
             let ox = (geo.size.width - (bw + 2 * Self.margin) * k) / 2 + Self.margin * k
@@ -96,16 +122,14 @@ struct PatientDiagramCanvas: View {
                         guard !editing else { return }
                         onTapFigure?(CGPoint(x: (g.location.x - ox) / k, y: g.location.y / k))
                     }, including: onTapFigure == nil ? .none : .all)
-                    .onLongPressGesture(minimumDuration: 0.4) { onLongPress?() }
-                ForEach(items.filter(\.movable)) { item in
-                    marker(item, k: k, ox: ox)
+                    .modifier(DiagramLongPress(action: onLongPress))
+                if !readOnly {
+                    ForEach(items.filter(\.movable)) { item in
+                        marker(item, k: k, ox: ox)
+                    }
                 }
             }
         }
-        .aspectRatio((bw + 2 * Self.margin) / bh, contentMode: .fit)
-        .onChange(of: editing) { _, on in wiggle = on }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Patient diagram: " + (items.isEmpty ? "no lines or devices" : items.map(\.label).joined(separator: ", ")))
     }
 
     // MARK: Markers (the touch targets)

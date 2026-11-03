@@ -824,10 +824,20 @@ struct PatientEditorView: View {
         if !r.homeInfusions.isEmpty && r.infusions.isEmpty {
             Button { patient.update(discrete: true) { $0.infusions = $0.homeInfusions.map { PatientInfusion(drug: $0.drug, rate: $0.rate) } } } label: {
                 Label("Carry over the current infusions (" + r.homeInfusions.map(\.drug).filter { !$0.isEmpty }.joined(separator: ", ") + ")", systemImage: "arrow.down.circle")
+                    // Wraps, unlike GhostButtonStyle's one line: two drug names ran the page wider than the screen (1.8.1).
+                    .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 15).padding(.vertical, 9)
+                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(PS.line2, lineWidth: 1))
+                    .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
-            .buttonStyle(GhostButtonStyle())
+            .buttonStyle(.plain)
         }
         PatientGroup(title: "Infusions") {
+            // Typed in one line, as the quick-add bar takes them (1.8.1).
+            InfusionTypeField(list: \.infusions)
+            Hairline().padding(.leading, 14)
             ForEach(r.infusions) { inf in
                 infusionEditor(inf)
                     .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.infusions.removeAll { $0.id == inf.id } } }

@@ -400,7 +400,7 @@ enum PatientDemo {
         r.currentAirway = "ett"; r.ettSize = "8.0"; r.ettDepth = "23 cm at the lip"
         r.vent.mode = "AC/VC"; r.vent.vt = 450; r.vent.rr = 18; r.vent.peep = 8; r.vent.fio2 = 60
         r.homeInfusions = [PatientInfusion(drug: "Epinephrine", rate: "0.05 mcg/kg/min"), PatientInfusion(drug: "Norepinephrine", rate: "0.1 mcg/kg/min")]
-        r.devices = ["20 lue", "R radial art line 20g", "swan RIJ 8.5 Fr introducer", "VA ECMO 25F RFV drainage / 17F LFA return flow 4.2 sweep 3", "L fem IABP 7.5 Fr 1:1"]
+        r.devices = ["20 lue", "R radial art line 20g", "swan RIJ 8.5 Fr introducer", "VA ECMO 25F RFV drainage / 17F LFA return flow 4.2 sweep 3", "L fem IABP 7.5 Fr 1:1", "foley 16 Fr"]
             .flatMap { PatientDevices.parse($0)?.devices(placedIntraop: false) ?? [] }
         var echo = PatientEcho()
         echo.study = "TEE"; echo.lv = .severe; echo.lvef = 15; echo.rv = .moderate
