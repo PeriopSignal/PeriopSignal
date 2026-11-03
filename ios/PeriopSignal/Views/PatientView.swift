@@ -25,6 +25,14 @@ enum PatientTab: String, CaseIterable, Identifiable {
         case .summary: return "arrow.left.arrow.right.square"
         }
     }
+    /// The quick-add bar at the top of the tab (every tab has one, 1.8.1).
+    var quickAddPlace: QuickAddPlace {
+        switch self {
+        case .preop: return .preopTab
+        case .intraop: return .intraopTab
+        case .summary: return .summaryTab
+        }
+    }
 }
 
 /// My Patient: one patient, in three tabs. Preoperative is the history and physical (procedure, demographics,
@@ -422,6 +430,7 @@ struct PatientView: View {
     ]
 
     @ViewBuilder private var summary: some View {
+        QuickAddBar(place: .summaryTab)
         PatientSectionCard(editor: .plan, lines: PatientSummary.planLines(r), empty: "Disposition, pain plan and what the next team should do.")
             .id(PatientEditor.plan)
         if patient.isEmpty {
@@ -439,7 +448,7 @@ struct PatientView: View {
     /// The quick-add bar (1.8), in place of the Fill from a note card; its pencil opens the full note. The first tip
     /// points at it.
     private var noteButton: some View {
-        QuickAddBar(tab: tab == .intraop ? .intraop : .preop)
+        QuickAddBar(place: tab.quickAddPlace)
             .patientTipTarget(.quickAdd)
     }
 

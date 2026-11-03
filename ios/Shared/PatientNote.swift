@@ -2449,6 +2449,7 @@ enum PatientNote {
         case .medications(let m):
             return mentions(r.medications, m) ? .recorded : .new
         case .infusion(let drug, let rate):
+            if let it = infusionItem(drug, rate) { return InfusionEntry.status(it, in: r.homeInfusions) }
             guard let o = r.homeInfusions.first(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) else { return .new }
             if rate.isEmpty || o.rate.caseInsensitiveCompare(rate) == .orderedSame { return .recorded }
             return o.rate.isEmpty ? .new : .replaces(o.rate)
@@ -2535,6 +2536,7 @@ enum PatientNote {
         case .blood:
             return .new
         case .intraopInfusion(let drug, let rate):
+            if let it = infusionItem(drug, rate) { return InfusionEntry.status(it, in: r.infusions) }
             guard let o = r.infusions.first(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) else { return .new }
             if rate.isEmpty || o.rate.caseInsensitiveCompare(rate) == .orderedSame { return .recorded }
             return o.rate.isEmpty ? .new : .replaces(o.rate)
@@ -2651,7 +2653,9 @@ enum PatientNote {
             case .medFlag(let f): r.medFlags.insert(f)
             case .medications(let m): r.medications = joined(r.medications, m)
             case .infusion(let drug, let rate):
-                if let i = r.homeInfusions.firstIndex(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) {
+                if let it = infusionItem(drug, rate) {
+                    InfusionEntry.apply([it], to: &r.homeInfusions)
+                } else if let i = r.homeInfusions.firstIndex(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) {
                     if !rate.isEmpty { r.homeInfusions[i].rate = rate }
                 } else {
                     r.homeInfusions.append(PatientInfusion(drug: drug.prefix(1).uppercased() + drug.dropFirst(), rate: rate))
@@ -2697,7 +2701,9 @@ enum PatientNote {
                 }
             case .blood(let k, let n): r.fluids[k] = (r.fluids[k] ?? 0) + n
             case .intraopInfusion(let drug, let rate):
-                if let i = r.infusions.firstIndex(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) {
+                if let it = infusionItem(drug, rate) {
+                    InfusionEntry.apply([it], to: &r.infusions)
+                } else if let i = r.infusions.firstIndex(where: { $0.drug.caseInsensitiveCompare(drug) == .orderedSame }) {
                     if !rate.isEmpty { r.infusions[i].rate = rate }
                 } else {
                     r.infusions.append(PatientInfusion(drug: drug.prefix(1).uppercased() + drug.dropFirst(), rate: rate))
@@ -2731,6 +2737,14 @@ enum PatientNote {
     }
 
     private static func same(_ a: Double, _ b: Double) -> Bool { Swift.abs(a - b) < 0.05 }
+
+    /// A drip on the infusion list, as the Infusions groups' reader holds it (1.8.1): filed and compared by the drug, so
+    /// "norepinephrine" updates a row written "Norepinephrine (Levophed)" instead of adding a second. Nil for a drug not
+    /// on the list, which is matched by its name as before.
+    private static func infusionItem(_ drug: String, _ rate: String) -> InfusionEntry.Item? {
+        guard let id = InfusionEntry.drugID(of: drug) else { return nil }
+        return InfusionEntry.Item(drugID: id, drug: drug.prefix(1).uppercased() + drug.dropFirst(), rate: rate, typed: drug)
+    }
 
     private static func blank(_ s: String) -> Bool { s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 

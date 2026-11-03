@@ -278,6 +278,16 @@ jobs:
           shot 290-resp-expanded-dark 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance dark
           shot 291-history-cardio 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open history -ps.forceAppearance light
           shot 292-cv-info 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.evidence.open 1 -ps.forceAppearance light
+          # 1.8.1 type-to-fill on every tab and editor page (293-299): the bar on Intraoperative with intraop chips (totals,
+          # "+", fluids, questions), on Summary & Handoff, and the compact bar on a History system page and an intraop
+          # editor (-ps.quickadd.editor types into an editor page's bar only).
+          shot 293-quickbar-intraop 16 -ps.tab patient -ps.patient demo -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "norepi 0.05, PRBC 2, +1 FFP, LR 2 L, EBL 500, UOP 400"
+          shot 294-quickbar-intraop-dark 16 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "LR 2, amio gtt 1, Cormack-Lehane 2, LMA 4, cell saver +300"
+          shot 295-quickbar-handoff 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.forceAppearance light -ps.quickadd "K 5.4, norepi 0.05, A-line R radial"
+          shot 296-quickbar-system 16 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.forceAppearance light -ps.quickadd.editor "HTN, severe AS, EF 35%"
+          shot 297-quickbar-system-dark 16 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.forceAppearance dark -ps.quickadd.editor "HTN, severe AS, EF 35%"
+          shot 298-quickbar-fluids 16 -ps.tab patient -ps.patient demo -ps.patient.open intraop:fluids -ps.forceAppearance light -ps.quickadd.editor "+2 PRBC, EBL 900, UOP 450"
+          shot 299-quickbar-airway-dark 16 -ps.tab patient -ps.patient empty -ps.patient.open intraop:airway -ps.forceAppearance dark -ps.quickadd.editor "ETT 7.5 @ 22, Glidescope Mac 3, grade 1 view, easy mask"
           shot 43-acls 12 -ps.ref acls
           shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals

@@ -47,6 +47,17 @@ enum PatientEditor: Hashable {
         }
     }
 
+    /// The compact quick-add bar at the top of the page (1.8.1): the intraoperative pages read the line as the
+    /// Intraoperative tab does (drips to the case's infusions, blood, fluids, the airway course); the others as the
+    /// Preoperative tab.
+    var quickAddPlace: QuickAddPlace {
+        switch self {
+        case .intraop, .intraopPart: return .editor(intraop: true)
+        case .devices(let p): return .editor(intraop: p == "intraop")
+        default: return .editor(intraop: false)
+        }
+    }
+
     static let intraopParts: [(id: String, title: String, icon: String)] = [
         ("airway", "Airway", "mouth"), ("lines", "Lines", "syringe"), ("regional", "Regional & Neuraxial", "figure.flexibility"),
         ("infusions", "Infusions", "ivfluid.bag"), ("fluids", "Fluids & Blood", "drop"), ("labs", "Labs", "testtube.2"),
@@ -80,6 +91,8 @@ struct PatientEditorView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    // Type-to-fill on every page (1.8.1): the same bar as the tabs', compact, filling the whole record.
+                    QuickAddBar(place: editor.quickAddPlace)
                     switch editor {
                     case .details: details
                     case .procedure: procedureEditor
