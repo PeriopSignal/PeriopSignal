@@ -53,6 +53,26 @@
     "seconds": 185,
     "bytes": 1479405,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "TAVR in Patients with Moderate Aortic Stenosis with At-Risk Features",
+    "authors": [
+     "Généreux P",
+     "Makkar RR",
+     "Pibarot P",
+     "Bax JJ",
+     "Lindman BR",
+     "Muhammad K",
+     "Oldemeyer JB",
+     "Pirwitz M",
+     "Barker CM",
+     "Thourani VH",
+     "Yadav PK",
+     "Rodriguez R"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2607326",
+    "year": 2026
    }
   },
   {
@@ -93,6 +113,24 @@
     "seconds": 184,
     "bytes": 1471149,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Sodium bicarbonate therapy for metabolic acidosis in critically ill patients: a Bayesian systematic review and meta-analysis of randomised controlled trials",
+    "authors": [
+     "Kitisin N",
+     "Walker HGM",
+     "Jung B",
+     "Jaber S",
+     "Mouncey P",
+     "Ke L",
+     "Raykateeraroj N",
+     "Hikasa Y",
+     "Caroli A",
+     "Serpa Neto A"
+    ],
+    "journal": "Intensive Care Med",
+    "doi": "10.1007/s00134-026-08602-3",
+    "year": 2026
    }
   },
   {
