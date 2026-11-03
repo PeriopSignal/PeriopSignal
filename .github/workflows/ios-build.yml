@@ -398,10 +398,16 @@ jobs:
             rm -rf results/build && mkdir -p results/build && cp -R "$GITHUB_WORKSPACE/ci-out/." results/build/ || return 1
             git add -f results/build || return 1
             git commit -q -m "Build results for run ${{ github.run_number }}" || true
-            for attempt in 1 2 3; do
+            # Parallel runs all replace results/build, so a rebase onto another run's results always conflicts.
+            # On a rejected push, start again from the newest results commit and copy this run's results over it.
+            for attempt in 1 2 3 4 5 6; do
               git push origin "HEAD:$RESULTS_BRANCH" && return 0
-              sleep 5
-              git fetch origin "$RESULTS_BRANCH" && git rebase "origin/$RESULTS_BRANCH" || git rebase --abort || true
+              sleep $(( attempt * 4 + RANDOM % 7 ))
+              git fetch origin "$RESULTS_BRANCH" || continue
+              git reset -q --hard "origin/$RESULTS_BRANCH" || return 1
+              rm -rf results/build && mkdir -p results/build && cp -R "$GITHUB_WORKSPACE/ci-out/." results/build/ || return 1
+              git add -f results/build || return 1
+              git commit -q -m "Build results for run ${{ github.run_number }}" || true
             done
             return 1
           }
