@@ -205,14 +205,20 @@ enum PatientTEE {
 
     // MARK: The record
 
-    /// Esophagectomy in the procedure list.
-    static let esophagectomyIDs: Set<String> = ["ivor-lewis", "mie", "transhiatal-esophagectomy", "mckeown"]
-    /// Esophageal and gastric operations in the procedure list (not endoscopy, gastrostomy or a perforated ulcer
-    /// patch). A tracheoesophageal fistula repair and a Zenker diverticulectomy are esophageal surgery here; the
-    /// fistula or the diverticulum itself is asked on the checklist.
+    /// Esophagectomy in the procedure list, and an esophageal replacement with colon, which follows one (1.8.3).
+    static let esophagectomyIDs: Set<String> = ["ivor-lewis", "mie", "transhiatal-esophagectomy", "mckeown", "colon-interposition"]
+    /// Esophageal and gastric operations in the procedure list (not endoscopy, gastrostomy, a gastric stimulator or a
+    /// perforated or bleeding ulcer patch). A tracheoesophageal fistula repair, a tracheoesophageal puncture for a voice
+    /// prosthesis and a Zenker or other esophageal diverticulectomy are esophageal surgery here; the fistula or the
+    /// diverticulum itself is asked on the checklist. Endoscopic operations that change the anatomy (POEM, endoscopic
+    /// bariatric procedures, transoral fundoplication) count. 1.8.3 adds the ids from "esophageal-diversion" on.
     static let upperGIIDs: Set<String> = ["sleeve", "rygb", "lap-band", "duodenal-switch", "bariatric-revision", "nissen", "heller", "linx",
                                           "total-gastrectomy", "partial-gastrectomy", "lap-gastrectomy", "gastric-wedge", "gastrojejunostomy",
-                                          "hiatal-hernia", "whipple", "robotic-whipple", "zenker", "poem", "endoscopic-bariatric", "tef"]
+                                          "hiatal-hernia", "whipple", "robotic-whipple", "zenker", "poem", "endoscopic-bariatric", "tef",
+                                          "esophageal-diversion", "esophageal-diverticulum", "esophageal-perforation", "esophageal-enucleation",
+                                          "tif", "oagb", "bypass-reversal", "sleeve-conversion", "gastric-band-removal-open",
+                                          "lap-gastrojejunostomy-revision", "pyloroplasty", "peds-gastrostomy-fundoplication", "tep-voice",
+                                          "surgical-cystgastrostomy"]
     static let esophagectomyWords = ["esophagectomy", "esophagogastrectomy", "ivor lewis", "mckeown", "colonic interposition", "colon interposition"]
     static let upperGIWords = ["fundoplication", "nissen", "toupet", "hiatal hernia repair", "hiatus hernia repair", "paraesophageal hernia",
                                "heller", "esophageal myotomy", "poem", "gastrectomy", "gastric bypass", "roux-en-y gastric", "rygb", "gastric sleeve",
