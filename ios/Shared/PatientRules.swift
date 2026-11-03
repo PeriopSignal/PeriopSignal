@@ -111,7 +111,7 @@ enum PatientRules {
         case "rcri":
             var on = fromProblems(\.rcri)
             if r.highRiskSurgery { on.insert("surgery") }
-            if r.medFlags.contains("insulin") && (r.has("dm") || r.has("dm-poor") || r.has("insulin")) { on.insert("insulin") }
+            if r.medFlags.contains("insulin") && (r.has("dm") || r.has("insulin")) { on.insert("insulin") }
             if let cr = r.labs["cr"], cr > 2.0 { on.insert("creatinine") }
             s.on = on
         case "ariscat":
