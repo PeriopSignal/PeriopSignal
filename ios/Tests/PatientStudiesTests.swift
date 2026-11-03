@@ -232,8 +232,8 @@ final class PatientStudiesTests: XCTestCase {
         XCTAssertTrue(PatientStudies.linesOnHarvestArm(r).isEmpty, "the other arm")
         r.devices += devices(["L radial art line 20g"])
         var c = PatientStudies.cautions(r)
-        XCTAssertEqual(c.first { $0.id == "harvest-radial" }?.text, "Radial arterial line in the left (harvest) arm: tell the surgeon; a radial artery that has been catheterized should not be used as a graft.")
-        XCTAssertFalse(c.contains { $0.id == "harvest-arm" })
+        XCTAssertEqual(c.first { $0.id.hasPrefix("harvest-radial") }?.text, "Radial arterial line in the left (harvest) arm: tell the surgeon; a radial artery that has been catheterized should not be used as a graft.")
+        XCTAssertFalse(c.contains { $0.id.hasPrefix("harvest-arm") })
         // Removed, it no longer counts.
         let i = try XCTUnwrap(r.devices.lastIndex { $0.kind == .arterial })
         r.devices[i].removed = true
@@ -241,10 +241,10 @@ final class PatientStudiesTests: XCTestCase {
         // A peripheral IV on the harvest arm.
         r.devices = devices(["18g lfa"])
         c = PatientStudies.cautions(r)
-        let piv = try XCTUnwrap(c.first { $0.id == "harvest-arm" })
+        let piv = try XCTUnwrap(c.first { $0.id.hasPrefix("harvest-arm") })
         XCTAssertTrue(piv.text.hasPrefix("On the left (harvest) arm: "), piv.text)
         XCTAssertTrue(piv.text.hasSuffix(". Move it to the other arm if you can."), piv.text)
-        XCTAssertFalse(c.contains { $0.id == "harvest-radial" })
+        XCTAssertFalse(c.contains { $0.id.hasPrefix("harvest-radial") })
         XCTAssertTrue(PatientSummary.intraopPartLines(r, "lines").contains { $0.label == "Arms" && $0.text.hasPrefix("On the left (harvest) arm") })
     }
 
@@ -283,7 +283,7 @@ final class PatientStudiesTests: XCTestCase {
     func testEveryCautionHasASource() {
         let r = PatientDemo.cardiac
         let ids = Set(PatientStudies.cautions(r).map(\.id))
-        XCTAssertEqual(ids, ["harvest", "harvest-arm", "carotid", "vertebral-left"], "the demo shows every caution")
+        XCTAssertEqual(ids, ["harvest", "harvest-arm-left", "carotid", "vertebral-left"], "the demo shows every caution")
         XCTAssertEqual(r.pft.gold, 2, "and a GOLD grade")
         for c in PatientStudies.cautions(r) { XCTAssertFalse(c.source.isEmpty, c.id) }
     }
@@ -540,6 +540,76 @@ final class PatientStudiesTests: XCTestCase {
             XCTAssertFalse(note(s).ambiguous.contains { $0.id == PatientNote.dissectionQuestion }, s)
         }
         XCTAssertTrue(note("HTN, dissection").ambiguous.contains { $0.id == PatientNote.dissectionQuestion })
+    }
+
+    // MARK: 181b: both radials, complex EVAR
+
+    func testBothRadialsPlanned() {
+        var r = PatientRecord()
+        r.radial.harvest = "both"
+        XCTAssertNil(r.radial.harvestSide)
+        XCTAssertEqual(r.radial.harvestArms, ["right", "left"])
+        XCTAssertTrue(r.radial.summary.contains("planned harvest of both radials"), r.radial.summary)
+        let both = "Both radials planned for harvest: keep lines and the cuff off both arms; consider femoral arterial access."
+        var c = PatientStudies.cautions(r)
+        XCTAssertEqual(c.map(\.text), [both])
+        XCTAssertEqual(c[0].mark, "Consider femoral arterial access")
+        XCTAssertTrue(PatientSummary.intraopPartLines(r, "lines").contains { $0.label == "Arms" && $0.text == both })
+
+        // Steal on one side: no arm offered for the arterial line.
+        r.carotid.left.vertebral = "reversed"
+        c = PatientStudies.cautions(r)
+        XCTAssertEqual(c.first { $0.id == "vertebral-left" }?.text,
+                       "Reversed left vertebral flow: suggests left subclavian stenosis. Left-arm BP may read low. Tell the surgeon: a left internal mammary graft may have poor inflow.")
+        r.carotid.left.vertebral = "partial"
+        XCTAssertFalse(PatientStudies.cautions(r).contains { $0.text.contains("arm for the arterial line") })
+        // Steal on both sides: the approved both-sides caution.
+        r.carotid.right.vertebral = "reversed"
+        c = PatientStudies.cautions(r)
+        XCTAssertEqual(c.map(\.id), ["harvest", "vertebral-both"])
+        XCTAssertEqual(c[0].text, both)
+        XCTAssertFalse(c.contains { $0.text.contains("arm for the arterial line") })
+    }
+
+    func testBothRadialsWithLines() {
+        var r = PatientRecord()
+        r.radial.harvest = "both"
+        r.devices = devices(["R radial art line 20g", "L radial art line 20g", "18g lfa"])
+        let c = PatientStudies.cautions(r)
+        for side in ["right", "left"] {
+            XCTAssertTrue(c.contains { $0.text == "Radial arterial line in the " + side + " (harvest) arm: tell the surgeon; a radial artery that has been catheterized should not be used as a graft." }, side)
+        }
+        let piv = c.first { $0.id == "harvest-arm-left" }
+        XCTAssertTrue(piv?.text.hasPrefix("On the left (harvest) arm: ") ?? false, piv?.text ?? "none")
+        XCTAssertTrue(piv?.text.hasSuffix(". Move it if you can.") ?? false, piv?.text ?? "none")
+        XCTAssertFalse(c.contains { $0.text.contains("to the other arm") })
+        XCTAssertEqual(Set(c.map(\.id)).count, c.count, "ids are unique")
+    }
+
+    func testComplexEVARGoesToTheNotes() {
+        for (line, term) in [("s/p FEVAR 2021", "FEVAR 2021"), ("prior BEVAR", "BEVAR"), ("s/p F/BEVAR (2019)", "F/BEVAR 2019"),
+                             ("history of fenestrated endovascular repair", "fenestrated endovascular repair")] {
+            let f = note(line).findings.first { $0.id == "problem:evar" }
+            guard case .problemNote("evar", let t)? = f?.change else { XCTFail(line); continue }
+            XCTAssertEqual(t, term, line)
+        }
+        // Plain EVAR files as before.
+        if case .problem("evar")? = note("s/p EVAR 2018").findings.first(where: { $0.id == "problem:evar" })?.change {} else { XCTFail("plain EVAR") }
+        // Added: the chip and the words, once.
+        var r = PatientRecord()
+        r.systemNotes["cv"] = "On apixaban"
+        let change = PatientNoteChange.problemNote("evar", "FEVAR 2021")
+        let finding = PatientNoteFinding(id: "problem:evar", section: PatientNote.Part.history, label: "", change: change)
+        XCTAssertEqual(PatientNote.status(finding, in: r), .new)
+        PatientNote.apply([change], to: &r)
+        XCTAssertTrue(r.problems.contains("evar"))
+        XCTAssertEqual(r.systemNotes["cv"], "On apixaban; FEVAR 2021")
+        XCTAssertEqual(PatientNote.status(finding, in: r), .recorded)
+        PatientNote.apply([change], to: &r)
+        XCTAssertEqual(r.systemNotes["cv"], "On apixaban; FEVAR 2021", "not twice")
+        // Quick add: one chip, Prior EVAR.
+        let q = quick("74M, HTN, s/p FEVAR 2021")
+        XCTAssertTrue(QuickAdd.chips(q, record: PatientRecord()).contains { $0.value == "Prior EVAR" }, q.findings.map(\.label).joined(separator: " | "))
     }
 
     func testPatternsCompile() {
