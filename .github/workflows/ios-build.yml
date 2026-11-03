@@ -360,19 +360,19 @@ jobs:
           shot 215-studies-radial-both 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open workup:radial -ps.patient.scroll done -ps.forceAppearance dark
           shot 216-intraop-lines-both 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open intraop:lines -ps.forceAppearance light
           # 1.9 drafts (300+): case timers, MTP, TEE companion, mechanical support.
-          shot 300-timers-strip 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.forceAppearance dark
-          shot 301-timers-sheet 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.forceAppearance dark
-          shot 302-timers-sheet-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.evidence.open 1 -ps.forceAppearance light
-          shot 303-timers-empty 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.open 1 -ps.forceAppearance dark
-          shot 304-mtp-start 12 -ps.ref mtp -ps.forceAppearance dark
-          shot 305-mtp-running 12 -ps.ref mtp -ps.mtp.seed 1 -ps.forceAppearance dark
-          shot 306-mtp-running-light 12 -ps.ref mtp -ps.mtp.seed 1 -ps.forceAppearance light
-          shot 307-tee-pre 12 -ps.ref tee -ps.tee.surgery mv -ps.forceAppearance dark
-          shot 308-tee-post 12 -ps.ref tee -ps.tee.surgery mv -ps.tee.post 1 -ps.forceAppearance light
-          shot 309-mcs-impella 12 -ps.ref mcs -ps.mcs.device impella -ps.forceAppearance dark
-          shot 310-mcs-ecmo-evidence 12 -ps.ref mcs -ps.mcs.device ecmo -ps.evidence.open 1 -ps.forceAppearance light
-          shot 311-folder-cardiothoracic 12 -ps.ref folder:cardiothoracic -ps.forceAppearance dark
-          shot 312-folder-emergency 12 -ps.ref folder:emergency -ps.forceAppearance dark
+          shot 300-timers-strip 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.forceAppearance dark
+          shot 301-timers-sheet 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.forceAppearance dark
+          shot 302-timers-sheet-light 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.evidence.open 1 -ps.forceAppearance light
+          shot 303-timers-empty 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.open 1 -ps.forceAppearance dark
+          shot 304-mtp-start 18 -ps.ref mtp -ps.forceAppearance dark
+          shot 305-mtp-running 18 -ps.ref mtp -ps.mtp.seed 1 -ps.forceAppearance dark
+          shot 306-mtp-running-light 18 -ps.ref mtp -ps.mtp.seed 1 -ps.forceAppearance light
+          shot 307-tee-pre 18 -ps.ref tee -ps.tee.surgery mv -ps.forceAppearance dark
+          shot 308-tee-post 18 -ps.ref tee -ps.tee.surgery mv -ps.tee.post 1 -ps.forceAppearance light
+          shot 309-mcs-impella 18 -ps.ref mcs -ps.mcs.device impella -ps.forceAppearance dark
+          shot 310-mcs-ecmo-evidence 18 -ps.ref mcs -ps.mcs.device ecmo -ps.evidence.open 1 -ps.forceAppearance light
+          shot 311-folder-cardiothoracic 18 -ps.ref folder:cardiothoracic -ps.forceAppearance dark
+          shot 312-folder-emergency 18 -ps.ref folder:emergency -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

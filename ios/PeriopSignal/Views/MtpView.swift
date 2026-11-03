@@ -87,10 +87,13 @@ struct MtpView: View {
         }
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
-            #if DEBUG
-            if LaunchSeed.bool("ps.mtp.seed"), let d = refs.mtp { state = MtpDemo.state(d) }
-            #endif
         }
+        #if DEBUG
+        // Screenshot runs: -ps.mtp.seed 1 starts a made-up tally once the content has loaded.
+        .task(id: refs.mtp != nil) {
+            if LaunchSeed.bool("ps.mtp.seed"), state == nil, let d = refs.mtp { state = MtpDemo.state(d) }
+        }
+        #endif
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .onChange(of: state) { _, s in MtpSaved.save(s) }
     }
