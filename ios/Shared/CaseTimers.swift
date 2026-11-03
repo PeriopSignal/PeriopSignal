@@ -434,10 +434,6 @@ enum CaseTimerEngine {
     static func round10(_ v: Double) -> Double { (v / 10).rounded() * 10 }
 }
 
-private extension String {
-    var lowercasedFirst: String { prefix(1).lowercased() + dropFirst() }
-}
-
 // MARK: - Every case's reminders, for notifications and the lock screen
 
 struct CaseTimerItem: Hashable, Identifiable {

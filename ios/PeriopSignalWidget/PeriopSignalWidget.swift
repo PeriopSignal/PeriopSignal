@@ -51,6 +51,7 @@ struct PeriopSignalWidget: Widget {
 struct PeriopSignalWidgetBundle: WidgetBundle {
     var body: some Widget {
         PeriopSignalWidget()
+        CaseTimerLiveActivity()
     }
 }
 

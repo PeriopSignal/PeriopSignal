@@ -290,6 +290,9 @@ struct PatientCaseMenu: View {
             Button { ui.archive = PatientRoomsUI.Archive() } label: {
                 Label(PatientRoomsUI.archiveTitle(patient.archive), systemImage: "archivebox")
             }
+            if DraftGate.shows("caseTimers") {
+                Button { CaseTimersUI.shared.open = true } label: { Label("Case Timers", systemImage: "timer") }
+            }
             Divider()
             Button(role: .destructive) { onClear() } label: { Label("Clear Patient", systemImage: "trash") }
                 .disabled(patient.isEmpty)
@@ -299,7 +302,7 @@ struct PatientCaseMenu: View {
             Label("More", systemImage: "ellipsis")
         }
         .accessibilityLabel("More")
-        .accessibilityHint("Add a case, room and phone, end the case, the case archive, clear the patient and tips")
+        .accessibilityHint("Add a case, room and phone, end the case, the case archive, case timers, clear the patient and tips")
     }
 
     /// The current case's items; End case needs something to end (not one empty case without a room).
