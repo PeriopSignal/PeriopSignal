@@ -1,4 +1,5 @@
-[0;93m2026-11-02 09:18:06.109220802 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-1 post(s) to synthesize with kokoro:af_heart
-  tct26-2026-travel-iii-lux-valve-ttvr: 204 s, 1596 KB, 45 s to make
-synthesized 1, failed 0, 2419 characters, 1 min
+[0;93m2026-11-03 09:19:06.088670396 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+2 post(s) to synthesize with kokoro:af_heart
+  nejm-2026-progress-tavr-moderate-as: 185 s, 1444 KB, 60 s to make
+  icm-2026-bicarbonate-bayesian-meta-analysis: 184 s, 1436 KB, 58 s to make
+synthesized 2, failed 0, 4355 characters, 2 min
