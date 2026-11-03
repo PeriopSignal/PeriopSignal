@@ -70,57 +70,28 @@ extension PatientEditorView {
 
     // MARK: Type and screen, infectious results (1.8.3)
 
-    /// "+ Type & Screen" until added (Ben, Nov 3), then ABO, Rh and the antibody screen as chips, the antibody when the
-    /// screen is positive, the units crossmatched, and a row to take the group off again.
     @ViewBuilder private var typeScreenGroup: some View {
         let ts = r.typeScreen
-        Group {
-            if LabResults.typeScreenShown(r) {
-                PatientGroup(title: "Type & Screen") {
-                    PatientChipRow(label: "ABO") {
-                        PatientChoice(options: PatientTypeScreen.aboGroups.map { (id: $0, label: $0) },
-                                      selection: Binding(get: { patient.record.typeScreen.abo }, set: { v in patient.update { $0.typeScreen.abo = v } }))
-                    }
-                    Hairline().padding(.leading, 14)
-                    PatientChipRow(label: "Rh") {
-                        PatientChoice(options: [(id: "+", label: "+"), (id: "-", label: "−")],
-                                      selection: Binding(get: { patient.record.typeScreen.rh }, set: { v in patient.update { $0.typeScreen.rh = v } }),
-                                      spoken: ["+": "Rh positive", "-": "Rh negative"])
-                    }
-                    Hairline().padding(.leading, 14)
-                    PatientChipRow(label: "Antibody screen") {
-                        PatientChoice(options: [(id: LabResult.negative.rawValue, label: "−"), (id: LabResult.positive.rawValue, label: "+"),
-                                                (id: LabResult.pending.rawValue, label: LabResult.pending.label)],
-                                      selection: Binding(get: { patient.record.typeScreen.screen?.rawValue },
-                                                         set: { v in patient.update { $0.typeScreen.screen = v.flatMap { LabResult(rawValue: $0) } } }),
-                                      spoken: [LabResult.negative.rawValue: "negative", LabResult.positive.rawValue: "positive"])
-                    }
-                    if ts.screen == .positive || !ts.antibodyText.isEmpty {
-                        LabInlineText(label: "Antibody", prompt: "e.g. anti-K",
-                                      text: Binding(get: { patient.record.typeScreen.antibody }, set: { v in patient.update { $0.typeScreen.antibody = v } }))
-                    }
-                    Hairline().padding(.leading, 14)
-                    BloodStepperRow(label: "Crossmatched", unit: "units", step: 1, limit: Double(PatientTypeScreen.unitLimit),
-                                    value: Binding(get: { patient.record.typeScreen.crossmatched.map { Double($0) } },
-                                                   set: { v in patient.update { $0.typeScreen.crossmatched = v.map { Int($0.rounded()) }.flatMap { $0 > 0 ? $0 : nil } } }))
-                    Hairline().padding(.leading, 14)
-                    Button { withAnimation(.snappy) { patient.update(discrete: true) { LabResults.removeTypeScreen(&$0) } } } label: {
-                        Label("Remove Type & Screen", systemImage: "minus.circle")
-                    }
-                    .font(PS.sys(size: 14, weight: .medium))
-                    .buttonStyle(.borderless)
-                    .tint(PS.fg3)
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                }
-            } else {
-                Button { withAnimation(.snappy) { patient.update(discrete: true) { LabResults.addTypeScreen(&$0) } } } label: {
-                    Label("Type & Screen", systemImage: "plus.circle")
-                }
-                .font(PS.sys(size: 14.5, weight: .semibold))
-                .buttonStyle(.borderless)
-                .tint(PS.accent)
-                .padding(.horizontal, 4)
+        PatientGroup(title: "Type & screen") {
+            PatientChipRow(label: "ABO/Rh") {
+                PatientChoice(options: PatientTypeScreen.types.map { (id: $0, label: PatientTypeScreen.display($0)) },
+                              selection: Binding(get: { patient.record.typeScreen.type }, set: { v in patient.update { $0.typeScreen.type = v } }))
             }
+            Hairline().padding(.leading, 14)
+            PatientChipRow(label: "Antibody screen") {
+                PatientChoice(options: LabResult.allCases.map { (id: $0.rawValue, label: $0.label) },
+                              selection: Binding(get: { patient.record.typeScreen.screen?.rawValue },
+                                                 set: { v in patient.update { $0.typeScreen.screen = v.flatMap { LabResult(rawValue: $0) } } }),
+                              tint: PS.red)
+            }
+            if ts.screen == .positive || !ts.antibodyText.isEmpty {
+                LabInlineText(label: "Antibody", prompt: "e.g. anti-K",
+                              text: Binding(get: { patient.record.typeScreen.antibody }, set: { v in patient.update { $0.typeScreen.antibody = v } }))
+            }
+            Hairline().padding(.leading, 14)
+            BloodStepperRow(label: "Crossmatched", unit: "units", step: 1, limit: Double(PatientTypeScreen.unitLimit),
+                            value: Binding(get: { patient.record.typeScreen.crossmatched.map { Double($0) } },
+                                           set: { v in patient.update { $0.typeScreen.crossmatched = v.map { Int($0.rounded()) }.flatMap { $0 > 0 ? $0 : nil } } }))
         }
         // Screenshot runs: -ps.patient.scroll labs-results.
         .id("labs-results")

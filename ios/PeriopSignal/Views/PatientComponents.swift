@@ -156,8 +156,6 @@ struct PatientChoice: View {
     var options: [(id: String, label: String)]
     @Binding var selection: String?
     var tint: Color = PS.accent
-    /// What VoiceOver says for a chip whose label is a symbol ("−" is "negative"), by option id.
-    var spoken: [String: String] = [:]
     @Environment(PatientStore.self) private var store: PatientStore?
 
     var body: some View {
@@ -177,7 +175,6 @@ struct PatientChoice: View {
                         .overlay(Capsule().stroke(on ? Color.clear : PS.line2, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(spoken[o.id] ?? o.label)
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
