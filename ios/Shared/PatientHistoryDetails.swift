@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - History details beside the problem ids (1.8.1)
 //
-// The Cardiovascular and Respiratory pages are expanding sections: a top item, and its options under it once chosen.
+// The Cardiovascular, Respiratory and (1.8.2) Neurologic pages are expanding sections: a top item, and its options under it once chosen.
 // The problem ids stay the record of what the patient has (PatientRecord.problems), so the ASA suggestion, the RCRI,
 // STOP-BANG, ARISCAT and the AHA/ACC evaluation read them as before. What the ids cannot hold sits here: each valve's
 // lesions and grades, each aneurysm by its location, the typed details. A few ids follow from these details and are
@@ -318,11 +318,28 @@ enum HistorySections {
         HistorySection(id: "other", title: "Other", base: nil, members: []),
     ]
 
+    /// Neurologic (1.8.2). Stroke or TIA keeps "Stroke or TIA, unspecified" (cva-unspec) as the item chosen alone, whose timing
+    /// is not recorded; Within 3 months (cva-recent) or Over 3 months (cva) replaces it. An intracranial bleed alone is "ich";
+    /// With mass effect (ich-mass) replaces it.
+    static let neuro: [HistorySection] = [
+        HistorySection(id: "stroke", title: "Stroke or TIA", base: "cva-unspec", members: ["cva-unspec", "cva", "cva-recent"], replacesBase: ["cva", "cva-recent"]),
+        HistorySection(id: "ich", title: "Intracranial bleed", base: "ich", members: ["ich", "ich-mass"], replacesBase: ["ich-mass"]),
+        HistorySection(id: "raised-icp", title: "Intracranial mass or raised ICP", base: "raised-icp", members: ["raised-icp"]),
+        HistorySection(id: "seizure", title: "Seizure disorder", base: "seizure", members: ["seizure"]),
+        HistorySection(id: "dementia", title: "Dementia or cognitive impairment", base: "dementia", members: ["dementia"]),
+        HistorySection(id: "parkinson", title: "Parkinson disease", base: "parkinson", members: ["parkinson"]),
+        HistorySection(id: "neuromuscular", title: "Neuromuscular disease", base: "neuromuscular", members: ["neuromuscular"]),
+        HistorySection(id: "sci", title: "Spinal cord injury", base: "sci", members: ["sci"]),
+        HistorySection(id: "chronic-pain", title: "Chronic pain or opioid tolerance", base: "chronic-pain", members: ["chronic-pain"]),
+        HistorySection(id: "other", title: "Other", base: nil, members: []),
+    ]
+
     /// The systems drawn as expanding sections.
     static func sections(_ system: String) -> [HistorySection]? {
         switch system {
         case "cv": return cv
         case "resp": return resp
+        case "neuro": return neuro
         default: return nil
         }
     }
@@ -474,11 +491,31 @@ enum HistorySections {
         return out
     }
 
+    /// The Neurologic page in a few words: "stroke or TIA within 3 months; intracranial bleed with mass effect; seizure disorder".
+    static func neuroItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems
+        var out: [String] = []
+        if p.contains("cva-recent") { out.append("stroke or TIA within 3 months") }
+        else if p.contains("cva") { out.append("stroke or TIA over 3 months") }
+        else if p.contains("cva-unspec") { out.append("stroke or TIA") }
+        if p.contains("ich-mass") { out.append("intracranial bleed with mass effect") }
+        else if p.contains("ich") { out.append("intracranial bleed") }
+        if p.contains("raised-icp") { out.append("intracranial mass or raised ICP") }
+        if p.contains("seizure") { out.append("seizure disorder") }
+        if p.contains("dementia") { out.append("dementia or cognitive impairment") }
+        if p.contains("parkinson") { out.append("Parkinson disease") }
+        if p.contains("neuromuscular") { out.append("neuromuscular disease") }
+        if p.contains("sci") { out.append("spinal cord injury") }
+        if p.contains("chronic-pain") { out.append("chronic pain or opioid tolerance") }
+        return out
+    }
+
     /// The items a summary lists for a system: the expanding pages' own words, else the problems' labels.
     static func items(_ sys: PatientSystem, _ r: PatientRecord) -> [String] {
         switch sys.id {
         case "cv": return cvItems(r)
         case "resp": return respItems(r)
+        case "neuro": return neuroItems(r)
         default: return sys.problems.filter { r.problems.contains($0.id) }.map(\.label)
         }
     }

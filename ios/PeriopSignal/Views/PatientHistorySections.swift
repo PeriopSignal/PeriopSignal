@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - The expanding History pages (Cardiovascular, Respiratory; 1.8.1)
+// MARK: - The expanding History pages (Cardiovascular, Respiratory; 1.8.1; Neurologic, 1.8.2)
 //
 // A list of top items: tapping one chooses it and opens its options under it; tapping it again clears it and its
 // details (Undo steps it back). The options are chips and short typed fields, with no explanation on the page: how an
@@ -149,6 +149,10 @@ struct PatientHistorySectionsView: View {
         case "other":
             HistoryInlineField(prompt: "Anything else", text: Binding(get: { patient.record.systemNotes[system.id] ?? "" },
                                                                      set: { v in edit { $0.systemNotes[system.id] = v.isEmpty ? nil : v } }))
+        case "stroke":
+            PatientChoice(options: [(id: "cva-recent", label: "Within 3 months"), (id: "cva", label: "Over 3 months")], selection: choice(["cva-recent", "cva"], s))
+        case "ich":
+            PatientChips(options: [PatientFlag("ich-mass", "With mass effect")], selection: options(["ich-mass"], s))
         case "asthma":
             PatientChoice(options: [(id: "controlled", label: "Controlled"), (id: "uncontrolled", label: "Uncontrolled")], selection: asthmaControl(s))
         case "osa":

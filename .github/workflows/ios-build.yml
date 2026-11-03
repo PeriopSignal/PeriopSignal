@@ -217,6 +217,15 @@ jobs:
           # 220-229 are the UX waves' shots (200-214 are Studies).
           shot 220-wave1-airway-info 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open airway -ps.evidence.open 1 -ps.forceAppearance dark
           shot 221-wave1-weight-info 12 -ps.ref quickref:asra-last -ps.la.weight 70 -ps.evidence.open 1 -ps.forceAppearance light
+          # 1.8.2 Neurologic as an expanding page (222-229): the collapsed list, Stroke or TIA within 3 months and an
+          # intracranial bleed with mass effect opened (light and dark), the History list, the Summary and Handoff lines, and a quick-add line.
+          shot 222-neuro-collapsed 14 -ps.tab patient -ps.patient empty -ps.patient.open system:neuro -ps.forceAppearance light
+          shot 223-neuro-stroke-ich-light 15 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance light
+          shot 224-neuro-stroke-ich-dark 15 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance dark
+          shot 225-neuro-history-list 14 -ps.tab patient -ps.patient demo-neuro -ps.patient.open history -ps.forceAppearance light
+          shot 226-neuro-summary 16 -ps.tab patient -ps.patient demo-neuro -ps.patient.tab summary -ps.forceAppearance light
+          shot 227-neuro-handoff 14 -ps.tab patient -ps.patient demo-neuro -ps.patient.open handoff -ps.handoff.format short -ps.forceAppearance dark
+          shot 228-neuro-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "62M, subdural hematoma with midline shift, seizure, stroke 2 weeks ago"
           # 1.8.1 wave 2a (Reference tools, 230-239): short one-line headers, summaries and captions behind ⓘ (opened with
           # -ps.evidence.open 1), the ACLS protocol note with its not-recommended lines kept in view, the finder's empty state.
           shot 230-wave2a-airway-ref 12 -ps.ref quickref:asa-difficult-airway -ps.forceAppearance dark

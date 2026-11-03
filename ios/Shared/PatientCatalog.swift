@@ -127,8 +127,11 @@ enum PatientCatalog {
             PatientProblem("cva-recent", "Stroke or TIA within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "cva"),
             // A stroke whose timing the record does not give (1.8.1). Confirmed by Ben, Nov 2: the lowest class the ASA's
             // examples give a stroke, history (>3 months), class III; within 3 months is class IV.
-            PatientProblem("cva-unspec", "Stroke, unspecified", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva",
+            PatientProblem("cva-unspec", "Stroke or TIA, unspecified", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva",
                            note: "ASA IV if within 3 months."),
+            // The bleed itself, with no class of its own (the ASA's examples give only a bleed with mass effect); the Intracranial
+            // bleed page's "With mass effect" option is ich-mass (1.8.2).
+            PatientProblem("ich", "Intracranial bleed"),
             PatientProblem("ich-mass", "Intracranial bleed with mass effect", asa: 5, asaExample: "intracranial bleed with mass effect", peds: 5, pedsExample: "intracranial hemorrhage with mass effect"),
             PatientProblem("raised-icp", "Intracranial mass or raised ICP"),
             PatientProblem("seizure", "Seizure disorder", peds: 2, pedsExample: "well-controlled epilepsy"),

@@ -40,7 +40,7 @@ final class PatientHistory181Tests: XCTestCase {
 
     func testStrokeUnspecified() throws {
         let neuro = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "neuro" })
-        XCTAssertEqual(Array(neuro.problems.prefix(3).map(\.label)), ["Stroke or TIA, over 3 months", "Stroke or TIA within 3 months", "Stroke, unspecified"])
+        XCTAssertEqual(Array(neuro.problems.prefix(3).map(\.label)), ["Stroke or TIA, over 3 months", "Stroke or TIA within 3 months", "Stroke or TIA, unspecified"])
         let s = try XCTUnwrap(PatientCatalog.problem("cva-unspec"))
         XCTAssertEqual(s.asa, 3)
         XCTAssertEqual(s.asaExample, "history (>3 months) of MI, CVA, TIA, or CAD/stents")
@@ -76,7 +76,7 @@ final class PatientHistory181Tests: XCTestCase {
         let endo = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "endo" })
         XCTAssertTrue(PatientCatalog.systemNote(endo).hasPrefix("Diabetes: ASA III if poorly controlled; change the class by hand.\n\n"))
         let neuro = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "neuro" })
-        XCTAssertTrue(PatientCatalog.systemNote(neuro).hasPrefix("Stroke, unspecified: ASA IV if within 3 months.\n\n"))
+        XCTAssertTrue(PatientCatalog.systemNote(neuro).hasPrefix("Stroke or TIA, unspecified: ASA IV if within 3 months.\n\n"))
         let resp = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "resp" })
         XCTAssertTrue(PatientCatalog.systemNote(resp).hasPrefix("Problems the ASA's own examples"), "no item lines: only the usual note")
     }
