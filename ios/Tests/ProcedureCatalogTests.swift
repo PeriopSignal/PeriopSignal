@@ -57,7 +57,7 @@ final class ProcedureCatalogTests: XCTestCase {
             ("TKA", "tka"), ("TKR", "tka"), ("THA", "tha"), ("THR", "tha"), ("ORIF ankle", "ankle-orif"),
             ("ORIF distal radius", "distal-radius-orif"), ("ACDF", "acdf"), ("TLIF", "tlif"), ("PLIF", "plif"), ("XLIF", "xlif"),
             ("TURP", "turp"), ("TURBT", "turbt"), ("PCNL", "pcnl"), ("URS", "ureteroscopy"), ("RALP", "ralp"), ("CEA", "cea"),
-            ("EVAR", "evar"), ("TEVAR", "tevar"), ("FEVAR", "fevar"), ("AAA", "open-aaa"), ("ex lap", "ex-lap"),
+            ("EVAR", "evar"), ("TEVAR", "tevar"), ("FEVAR", "fevar"), ("AAA repair", "open-aaa"), ("ex lap", "ex-lap"),
             ("lap chole", "lap-chole"), ("lap appy", "lap-appy"), ("lap band", "lap-band"), ("RYGB", "rygb"), ("sleeve", "sleeve"),
             ("Whipple", "whipple"), ("LAR", "open-lar"), ("APR", "apr"), ("ESS", "fess"), ("FESS", "fess"),
             ("T&A", "tonsillectomy-adenoidectomy"), ("BMT", "myringotomy-tubes"), ("PE tubes", "myringotomy-tubes"),

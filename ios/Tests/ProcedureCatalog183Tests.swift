@@ -138,7 +138,7 @@ final class ProcedureCatalog183Tests: XCTestCase {
             ("iliac branch endoprosthesis", "endo-iliac-aneurysm"), ("juxtarenal AAA repair", "juxtarenal-aaa"),
             ("EVAR explant", "aortic-graft-explant"), ("type II endoleak embolization", "endoleak-embolization"),
             ("branched TEVAR", "branched-tevar"), ("arch debranching", "arch-debranching"), ("ax-fem", "axillobifemoral"),
-            ("aorto-bifem", "aortobifemoral"), ("fem-pop", "fem-pop"), ("TCAR", "tcar"), ("CEA", "cea"), ("AAA", "open-aaa"),
+            ("aorto-bifem", "aortobifemoral"), ("fem-pop", "fem-pop"), ("TCAR", "tcar"), ("CEA", "cea"), ("AAA repair", "open-aaa"),
             ("EVAR", "evar"), ("AVF", "av-fistula"), ("BKA", "bka"), ("pAVF", "perc-avf"), ("HeRO graft insertion", "hero-graft"),
             ("fistulagram", "fistulagram"), ("BKA revision", "amputation-revision"), ("carotid subclavian bypass", "carotid-subclavian"),
             ("PD catheter placement", "pd-catheter"), ("SMA embolectomy", "sma-embolectomy"),
@@ -323,6 +323,34 @@ final class ProcedureCatalog183Tests: XCTestCase {
         XCTAssertEqual(ids("esophagectomy takedown"), ["conduit-takedown"])
         check("conduit-takedown", high: true, "Intrathoracic")
         check("esophageal-diversion", high: false, "Peripheral")
+    }
+
+    /// "AAA" is the aneurysm, the diagnosis (Ben, 1.8.3): typed alone it names neither open repair nor EVAR, so it adds
+    /// no repair by itself; the search may still list the repairs to pick from.
+    func testBareAAAIsTheDiagnosis() {
+        for t in ["AAA", "aaa", "rAAA", "ruptured AAA", "TAAA"] {
+            XCTAssertEqual(ids(t), [], t)
+            XCTAssertTrue(PlannedProcedure.parse(t).allSatisfy { $0.catalogID == nil }, t)
+        }
+        for p in ProcedureCatalog.all {
+            for s in [p.name] + p.synonyms {
+                XCTAssertFalse(["aaa", "raaa", "taaa", "ruptured aaa"].contains(folded(s)), "\(p.id): \(s)")
+            }
+        }
+        // The type-ahead still offers the repairs, and a repair written out reads as one.
+        let listed = ProcedureCatalog.search("AAA").map(\.id)
+        XCTAssertTrue(listed.contains("open-aaa") && listed.contains("evar"), listed.joined(separator: ", "))
+        XCTAssertEqual(ids("AAA repair"), ["open-aaa"])
+        XCTAssertEqual(ids("open AAA"), ["open-aaa"])
+        XCTAssertEqual(ids("ruptured AAA repair"), ["open-aaa"])
+        XCTAssertEqual(ids("TAAA repair"), ["taaa"])
+        XCTAssertEqual(ids("EVAR for ruptured AAA"), ["evar"])
+        // In the quick-add bar, "for AAA" plans no repair from the list.
+        let q = QuickAdd.read("for AAA", record: PatientRecord(), tab: .preop, now: now)
+        var r = PatientRecord()
+        PatientNote.apply(q.findings.map(\.change), to: &r)
+        XCTAssertFalse(r.procedures.contains { $0.catalogID == "open-aaa" })
+        XCTAssertFalse(r.highRiskSurgery)
     }
 
     func testRiskOfSeveralNewProcedures() {

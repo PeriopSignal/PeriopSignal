@@ -900,15 +900,17 @@ extension ProcedureCatalog {
 
     // MARK: Vascular
 
+    // "AAA", "rAAA" and "TAAA" alone name the aneurysm, the diagnosis, and say neither open nor endovascular repair
+    // (Ben, 1.8.3): only a repair written out reads as one ("AAA repair", "ruptured AAA repair", "TAAA repair").
     fileprivate static let vascular: [Procedure] = [
         p("cea", "Carotid endarterectomy", ["CEA", "carotid endarterectomy with patch", "redo CEA", "carotid surgery", "eversion carotid endarterectomy", "eversion CEA", "carotid endarterectomy with shunt"], ga, per, mid, side: true),
         p("tcar", "Transcarotid artery revascularization", ["TCAR", "transcarotid stenting", "transcarotid artery stent"], ga, per, short, side: true),
         p("carotid-stent", "Carotid artery stenting", ["CAS", "carotid stent", "carotid stenting", "transfemoral carotid stenting", "TF-CAS", "carotid angioplasty", "carotid angioplasty and stenting", "CAS with embolic protection"], mac, per, short, side: true),
-        p("open-aaa", "Open abdominal aortic aneurysm repair", ["open AAA", "open AAA repair", "AAA repair", "AAA", "abdominal aortic aneurysm repair", "aortic aneurysm repair", "ruptured AAA", "rAAA", "aortic tube graft", "aortobiiliac graft"], gaNx, upper, long, risk: true, echo: true),
+        p("open-aaa", "Open abdominal aortic aneurysm repair", ["open AAA", "open AAA repair", "AAA repair", "abdominal aortic aneurysm repair", "aortic aneurysm repair", "ruptured AAA repair", "rAAA repair", "aortic tube graft", "aortobiiliac graft"], gaNx, upper, long, risk: true, echo: true),
         p("evar", "Endovascular aneurysm repair", ["EVAR", "endovascular AAA repair", "endovascular aortic aneurysm repair", "percutaneous EVAR", "PEVAR", "aortic endograft", "EVAR for ruptured AAA", "EVAR with iliac branch", "infrarenal EVAR"], ga, per, mid, risk: true, echo: true),
         p("fevar", "Fenestrated or branched EVAR", ["FEVAR", "BEVAR", "FBEVAR", "fenestrated EVAR", "branched EVAR", "complex EVAR", "chimney EVAR", "ChEVAR", "physician modified endograft"], ga, per, long, risk: true, echo: true),
         p("tevar", "Thoracic endovascular aortic repair", ["TEVAR", "thoracic EVAR", "thoracic stent graft", "TEVAR for dissection", "type B dissection TEVAR", "endovascular repair of thoracic aorta", "TEVAR for aneurysm", "blunt aortic injury TEVAR", "TEVAR for traumatic aortic injury"], ga, per, mid, risk: true, echo: true),
-        p("taaa", "Open thoracoabdominal aortic aneurysm repair", ["TAAA", "TAAA repair", "thoracoabdominal aneurysm repair", "thoracoabdominal aortic aneurysm repair", "thoracoabdominal aneurysm", "Crawford extent II"], gaNx, chest, long, risk: true, echo: true),
+        p("taaa", "Open thoracoabdominal aortic aneurysm repair", ["TAAA repair", "thoracoabdominal aneurysm repair", "thoracoabdominal aortic aneurysm repair", "thoracoabdominal aneurysm", "Crawford extent II"], gaNx, chest, long, risk: true, echo: true),
         p("open-dtaa", "Open descending thoracic aortic repair", ["DTAA repair", "descending thoracic aneurysm repair", "open descending aortic repair", "descending thoracic aortic aneurysm repair"], gaNx, chest, long, risk: true, echo: true),
         p("aortobifemoral", "Aortobifemoral bypass", ["ABF", "aortobifemoral", "aorto bifem", "aortobifem bypass", "aortofemoral bypass", "aortoiliac bypass", "aortoiliac endarterectomy", "aortic bypass"], gaNx, upper, long, risk: true),
         p("mesenteric-bypass", "Mesenteric bypass", ["mesenteric revascularization", "SMA bypass", "aortomesenteric bypass", "celiac bypass", "open mesenteric revascularization", "renal artery bypass", "aortorenal bypass", "renal bypass", "aortoceliac bypass", "visceral bypass"], gaNx, upper, long, risk: true),
