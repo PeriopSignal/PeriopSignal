@@ -23,6 +23,9 @@ enum PatientNoteChange: Hashable {
     case problem(String), noHistory, smoking(String)
     /// An unruptured aortic aneurysm ("aaa", "taa", "taaa") with its diameter in cm: the problem, and its size.
     case aortaSize(String, Double)
+    /// A problem, and the words to add to its system's details ("evar", "FEVAR 2021": a complex EVAR files as Prior EVAR,
+    /// and its type goes to the cardiovascular details so it is not lost).
+    case problemNote(String, String)
     case medFlag(String), medications(String)
     /// A running infusion: the drug and its rate as written ("0.1 mcg/kg/min", or "" when none was given).
     case infusion(String, String)
@@ -558,7 +561,7 @@ enum PatientNote {
     static var allPatterns: [NoteRx] {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
         out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA,
-                intracranialAneurysm, rupturedAorticRx, notAorticDissection]
+                intracranialAneurysm, rupturedAorticRx, notAorticDissection, complexEVARRx, complexEVARTail]
         out += [infectionNotPositive, hivPrevention]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
@@ -884,6 +887,21 @@ enum PatientNote {
         }
     }
 
+    /// FEVAR, BEVAR, F/BEVAR and fenestrated or branched repairs file as Prior EVAR (Ben's decision) [P]; the term as
+    /// typed, with the words of the repair and a year after it ("FEVAR 2021", "fenestrated endovascular repair"), goes to
+    /// the cardiovascular details.
+    static let complexEVARRx = NoteRx(#"(?-i:\b(?:F/?B?|B)EVAR\b)|\b(?:fenestrated|branched)\b"#)
+    static let complexEVARTail = NoteRx(#"^((?:\s+(?:endovascular|aortic|aneurysm|repair|(?-i:EVAR|AAA)))*)(?:,?\s*\(?(?:in\s+)?((?:19|20)\d\d)\)?)?"#)
+
+    private static func complexEVAR(_ c: String, _ m: NSTextCheckingResult) -> String? {
+        let ns = c as NSString
+        let hit = ns.substring(with: m.range)
+        guard complexEVARRx.first(hit) != nil else { return nil }
+        let after = ns.substring(from: m.range.location + m.range.length)
+        guard let t = complexEVARTail.first(after) else { return hit }
+        return hit + (t.text(1, in: after) ?? "") + (t.text(2, in: after).map { " " + $0 } ?? "")
+    }
+
     private static func rupturePast(_ c: String, _ m: NSTextCheckingResult) -> Bool {
         let ns = c as NSString
         return rupturePastBefore.first(ns.substring(to: m.range.location)) != nil || pastAfter.first(ns.substring(from: m.range.location + m.range.length)) != nil
@@ -957,6 +975,11 @@ enum PatientNote {
             if repairIDs.contains(rule.id), !repairPast(c, m) { continue }
             // "Stroke 2026": a year that may be within 3 months is read as unspecified.
             if rule.id == "cva", rule.quiet, strokeYearNotPast(c, m) { continue }
+            if rule.id == "evar", let term = complexEVAR(c, m) {
+                h.add(PatientNoteFinding(id: "problem:evar", section: Part.history, label: label, change: .problemNote("evar", term),
+                                         note: "Adds “" + term + "” to the cardiovascular details."), at: m.range)
+                continue
+            }
             if PatientCatalog.aneurysmIDs.contains(rule.id), let size = aortaSize(c, m) {
                 h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label + ", " + NumText.short(size.cm) + " cm",
                                          change: .aortaSize(rule.id, size.cm)), at: size.range)
@@ -2152,6 +2175,10 @@ enum PatientNote {
             guard r.problems.contains(p) else { return .new }
             guard let o = r.aortaSizes[p] else { return .new }
             return same(o, cm) ? .recorded : .replaces(NumText.short(o) + " cm")
+        case .problemNote(let p, let t):
+            let has = r.problems.contains(p)
+            let sys = PatientCatalog.system(of: p)?.id ?? "cv"
+            return has && mentions(r.systemNotes[sys] ?? "", t) ? .recorded : .new
         case .noHistory:
             if r.noHistory { return .recorded }
             return r.problems.isEmpty ? .new : .conflicts("Problems are already recorded.")
@@ -2288,6 +2315,11 @@ enum PatientNote {
                 if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { continue }
                 r.problems.insert(p)
                 r.aortaSizes[p] = cm
+            case .problemNote(let p, let t):
+                r.noHistory = false
+                r.problems.insert(p)
+                let sys = PatientCatalog.system(of: p)?.id ?? "cv"
+                r.systemNotes[sys] = joined(r.systemNotes[sys] ?? "", t)
             case .noHistory:
                 if r.problems.isEmpty { r.noHistory = true }
             case .smoking(let s): r.smoking = s
