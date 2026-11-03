@@ -66,6 +66,8 @@ struct ProcedureSearchField: View {
     var prompt = "Add a procedure, e.g. lap chole, L TKA"
     /// The caption of the "add as typed" row.
     var typedCaption = "Not in the list: the risk-score inputs stay as set"
+    /// Screenshot runs: the launch argument of this name is typed into the field ("-ps.procsearch iliac", 1.8.3).
+    var seedKey = ""
     var onAdd: ([PlannedProcedure]) -> Void
     @State private var text = ""
     @FocusState private var focused: Bool
@@ -119,6 +121,11 @@ struct ProcedureSearchField: View {
                     add([PlannedProcedure(name: query)])
                 }
             }
+        }
+        .onAppear {
+            #if DEBUG
+            if !seedKey.isEmpty, text.isEmpty { text = LaunchSeed.string(seedKey) }
+            #endif
         }
     }
 

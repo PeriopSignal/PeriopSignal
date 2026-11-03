@@ -284,6 +284,12 @@ jobs:
           shot 287-quickadd-cardio 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M, NSTEMI 2 weeks ago, s/p CABG, severe AS, s/p mechanical AVR 2015, AICD, moderate pulmonary hypertension, 4.8 cm ascending aneurysm"
           shot 288-quickadd-cardio-dark 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "HFrEF, EF 25%, PPM dependent, DES to LAD last month, moderate MR, MI 2019, poorly controlled asthma, home O2 2 L"
           shot 289-resp-expanded-light 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance light
+          # 1.8.3 procedure list about doubled (430-439): the type-ahead with new entries, Ben's open iliac case filled in, and
+          # the quick-add bar reading it.
+          shot 430-proc-typeahead-iliac 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch iliac -ps.forceAppearance light
+          shot 431-proc-iliac-filled 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.patient.addproc "open left iliac aneurysm repair" -ps.forceAppearance light
+          shot 432-proc-typeahead-tevar 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch TEVAR -ps.forceAppearance dark
+          shot 433-proc-quickadd-iliac 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "72M for open left iliac aneurysm repair (infrarenal clamp), HTN, CKD 3a"
           shot 290-resp-expanded-dark 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance dark
           shot 291-history-cardio 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open history -ps.forceAppearance light
           shot 292-cv-info 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.evidence.open 1 -ps.forceAppearance light

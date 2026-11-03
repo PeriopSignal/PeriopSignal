@@ -18,7 +18,7 @@ extension PatientEditorView {
                 Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
-            ProcedureSearchField { items in patient.update(discrete: true) { $0.setProcedures($0.procedures + items) } }
+            ProcedureSearchField(seedKey: "ps.procsearch") { items in patient.update(discrete: true) { $0.setProcedures($0.procedures + items) } }
         }
         .onAppear(perform: readOldProcedureText)
         // The chosen urgency's definition: behind the group title's ⓘ (1.8.1), not on a row of its own in the card.
