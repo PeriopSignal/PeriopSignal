@@ -117,7 +117,8 @@ enum PatientRules {
         case "ariscat":
             if let a = r.ageYears { s.choices["age"] = a <= 50 ? "≤ 50" : (a <= 80 ? "51–80" : "> 80") }
             if let o = r.vitals["spo2"] { s.choices["spo2"] = o >= 96 ? "≥ 96%" : (o > 90 ? "91–95%" : "≤ 90%") }
-            if r.has("uri") { s.on.insert("infection") }
+            // A recent COVID-19 (Infectious) is a respiratory infection in the last month for ARISCAT, without a second chip.
+            if r.has("uri") || r.has("covid-recent") { s.on.insert("infection") }
             if let hb = r.labs["hb"], hb <= 10 { s.on.insert("anemia") }
             if let i = r.incision { s.choices["incision"] = i }
             if let d = r.duration { s.choices["duration"] = d }

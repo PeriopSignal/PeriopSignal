@@ -303,7 +303,8 @@ enum PatientNote {
         Rule("snoring", #"\bsnor(?:e|es|ed|er|ing)\b"#),
         Rule("tired", #"daytime (?:sleepiness|somnolence|fatigue|tiredness)"#),
         Rule("observed-apnea", #"(?:observed|witnessed) (?:apn(?:o)?eas?|choking)|stops breathing (?:at night|in (?:his|her|their) sleep)"#),
-        // A recent COVID-19 files Recent COVID-19 (Infectious, 1.8.1), not this as well.
+        // A recent COVID-19 files Recent COVID-19 (Infectious, 1.8.1), not this as well; ARISCAT reads it as a respiratory
+        // infection (PatientRules.prefill).
         Rule("uri", #"(?-i:\bURI\b)|upper respiratory (?:tract )?infection|(?:recent|current) (?:cold|cough|chest infection|bronchitis|pneumonia|respiratory infection|flu)"#),
         Rule("home-o2", #"home (?:oxygen|o2)|oxygen at home|o2 at home|\d+(?:\.\d+)? ?l(?:pm)? (?:nc )?at home"#),
         Rule("ild", #"(?-i:\b(?:ILD|IPF)\b)|interstitial lung disease|pulmonary fibrosis"#),

@@ -206,6 +206,20 @@ final class PatientHistory181Tests: XCTestCase {
         XCTAssertEqual(ids("septic shock"), ["problem:sepsis", "problem:shock"], "sepsis files under Acute illness")
     }
 
+    /// A recent COVID-19 still ticks ARISCAT's respiratory infection, with one chip (Recent COVID-19) in History.
+    func testRecentCovidCountsForAriscat() {
+        for t in ["COVID last week", "recent COVID"] {
+            let found = PatientNote.read(t, now: now).findings
+            XCTAssertEqual(Set(found.map(\.id).filter { $0.hasPrefix("problem:") }), ["problem:covid-recent"], t)
+            var r = adult([])
+            PatientNote.apply(found.map(\.change), to: &r)
+            XCTAssertTrue(PatientRules.prefill("ariscat", r).on.contains("infection"), t)
+        }
+        XCTAssertTrue(PatientRules.prefill("ariscat", adult(["uri"])).on.contains("infection"), "as before")
+        XCTAssertFalse(PatientRules.prefill("ariscat", adult(["hiv", "mdro"])).on.contains("infection"))
+        XCTAssertFalse(PatientRules.prefill("ariscat", adult([])).on.contains("infection"))
+    }
+
     // MARK: Quick add
 
     func testQuickAddLine() {
