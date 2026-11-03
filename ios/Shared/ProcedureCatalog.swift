@@ -213,8 +213,18 @@ enum ProcedureCatalog {
                 keep(ph, qRaw.allSatisfy { ph.raw.contains($0) } ? 550 : 500, p)
             }
         }
-        if best.isEmpty && !qRaw.isEmpty {
-            for ph in phrases where ph.exact == nil && all[ph.proc].ask == nil {
+        // Every typed word of 3 letters or more inside some word of one phrase (1.8.3: only the phrases that have such a
+        // word for each are checked; scanning every phrase was most of a keystroke's time once the list doubled).
+        if best.isEmpty && !qRaw.isEmpty && qRaw.allSatisfy({ $0.count >= 3 }) {
+            var inside: [Int]?
+            for w in qRaw {
+                var hit = Set<Int>()
+                for (word, list) in wordIndex where word.contains(w) { hit.formUnion(list) }
+                let sorted = hit.sorted()
+                inside = inside.map { common($0, sorted) } ?? sorted
+            }
+            for pi in inside ?? [] where phrases[pi].exact == nil && all[phrases[pi].proc].ask == nil {
+                let ph = phrases[pi]
                 if let p = wordPosition(qRaw, ph.raw, prefix: false) { keep(ph, 200, p) }
             }
         }
@@ -527,6 +537,15 @@ enum ProcedureCatalog {
             }
         }
         return byPrefix.mapValues { Array(Set($0)).sorted() }
+    }()
+
+    /// Every word of every phrase, as typed → the phrases with it, sorted.
+    private static let wordIndex: [String: [Int]] = {
+        var d: [String: [Int]] = [:]
+        for (pi, p) in phrases.enumerated() {
+            for w in Set(p.raw) { d[w, default: []].append(pi) }
+        }
+        return d
     }()
 
     fileprivate static let firstToken: [String: [Int]] = {
