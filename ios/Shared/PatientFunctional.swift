@@ -144,7 +144,7 @@ enum PatientFunctional {
         var out: [String] = []
         if r.has("htn") || r.has("htn-180") || (r.vitals["sbp"] ?? 0) >= 140 || (r.vitals["dbp"] ?? 0) >= 90 { out.append("hypertension") }
         if r.smoking == "current" { out.append("smoking") }
-        if r.has("hyperlipidemia") { out.append("high cholesterol") }
+        if r.has("hyperlipidemia") { out.append("hyperlipidemia") }
         if r.has("dm") || r.has("insulin") { out.append("diabetes") }
         if let age = r.ageYears, age > (r.sex == .female ? 65 : 55) {
             out.append(r.sex == .female ? "woman over 65" : (r.sex == .male ? "man over 55" : "over 55"))
@@ -255,7 +255,7 @@ enum PatientFunctional {
         }
         if r.has("cva-recent") { out.append("Stroke or TIA within 3 months: delaying elective surgery until 3 months or more after it is reasonable (class 2a).") }
         if r.has("valve-severe") { out.append("Severe valve disease: severe aortic or mitral stenosis should be evaluated for valve intervention before elective surgery (class 1).") }
-        if r.hx.hasNonsevereNativeLesion && !r.has("valve-severe") { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
+        if r.hx.hasUngradedOrModerateLesion && !r.has("valve-severe") { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
         if r.has("chd") || r.has("chd-elevated") { out.append("Congenital heart disease: for intermediate- or elevated-risk lesions, an adult congenital heart disease specialist consult before elective surgery is recommended (class 1).") }
         if r.has("pulm-htn-severe") { out.append("Severe pulmonary hypertension: continue targeted therapy (class 1); before elevated-risk surgery, referral to a pulmonary hypertension center is reasonable (class 2a).") }
         if r.has("pacemaker") || r.has("icd") { out.append("Pacemaker or ICD: a device management plan before surgery when electromagnetic interference is expected (class 1).") }
@@ -347,7 +347,7 @@ enum PatientFunctional {
 
     private static func stepBeforeSurgery(_ r: PatientRecord) -> CardiacStep {
         if noCardiacRisk(r) {
-            return CardiacStep(title: "No cardiovascular risk factors, disease or symptoms: proceed", detail: "None recorded: hypertension, smoking, high cholesterol, diabetes, age over 65 in women or 55 in men, obesity, a family history of premature coronary disease, known heart or vascular disease, or cardiac symptoms.", alert: false)
+            return CardiacStep(title: "No cardiovascular risk factors, disease or symptoms: proceed", detail: "None recorded: hypertension, smoking, hyperlipidemia, diabetes, age over 65 in women or 55 in men, obesity, a family history of premature coronary disease, known heart or vascular disease, or cardiac symptoms.", alert: false)
         }
         let active = acuteConditions(r)
         if !active.isEmpty {

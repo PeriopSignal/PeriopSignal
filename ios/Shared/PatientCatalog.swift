@@ -66,7 +66,7 @@ enum PatientCatalog {
             // 2024 AHA/ACC §6.2 (p e373): "recent history of poorly controlled hypertension (SBP ≥180 mm Hg or DBP ≥110
             // mm Hg before the day of surgery)".
             PatientProblem("htn-180", "BP ≥ 180/110 before the day of surgery", asa: 3, asaExample: "poorly controlled DM or HTN", stopBang: "pressure"),
-            PatientProblem("hyperlipidemia", "High cholesterol"),
+            PatientProblem("hyperlipidemia", "Hyperlipidemia"),
             // CAD chosen alone is coronary disease of unrecorded timing: the ASA's ">3 months … CAD/stents" example.
             PatientProblem("cad", "Coronary artery disease", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),
             PatientProblem("mi", "MI over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "ihd"),

@@ -57,6 +57,10 @@ final class PatientCardio181Tests: XCTestCase {
         XCTAssertEqual(PatientCatalog.problem("cad")?.asaExample, "history (>3 months) of MI, CVA, TIA, or CAD/stents", "CAD alone: the >3 months example")
         XCTAssertEqual(PatientCatalog.problem("asthma-uncontrolled")?.pedsExample, "asthma with exacerbation")
         XCTAssertEqual(PatientCatalog.problem("htn")?.asaExample, "well-controlled DM/HTN")
+        XCTAssertEqual(PatientCatalog.problem("hyperlipidemia")?.label, "Hyperlipidemia")
+        XCTAssertEqual(HistorySections.cv.first { $0.id == "hyperlipidemia" }?.title, "Hyperlipidemia")
+        var lipids = adult(["hyperlipidemia"]); lipids.sex = .female
+        XCTAssertEqual(PatientFunctional.riskFactors(lipids), ["hyperlipidemia"])
         let cv = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "cv" })
         XCTAssertTrue(PatientCatalog.systemNote(cv).hasPrefix("Hypertension: ASA III if poorly controlled; change the class by hand."))
         for gone in ["htn-poor", "as", "mr", "prosthetic-valve", "fh-cad", "snoring", "tired", "observed-apnea", "lung-mild"] {
@@ -91,6 +95,17 @@ final class PatientCardio181Tests: XCTestCase {
         XCTAssertTrue(PatientFunctional.knownCVD(valve))
         XCTAssertTrue(PatientFunctional.conditionAdvice(valve).contains { $0.hasPrefix("Valve disease: echo before surgery") })
         XCTAssertTrue(PatientRules.prompts(valve).contains { $0.id == "valves" })
+        // The echo reminder: ungraded or moderate lesions, not one documented as mild.
+        let echoLine = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.hasPrefix("Valve disease: echo before surgery") } }
+        var mild = adult([]); mild.hx.valves = ["aortic": PatientValve(stenosis: true, stenosisGrade: "mild"), "mitral": PatientValve(regurgitation: true, regurgitationGrade: "mild")]
+        XCTAssertFalse(echoLine(mild), "every lesion mild: no reminder")
+        XCTAssertTrue(PatientFunctional.knownCVD(mild), "still known valve disease")
+        var moderate = mild; moderate.hx.valves["mitral"]?.regurgitationGrade = "moderate"
+        XCTAssertTrue(echoLine(moderate), "a moderate lesion")
+        var ungraded = mild; ungraded.hx.valves["tricuspid"] = PatientValve(regurgitation: true)
+        XCTAssertTrue(echoLine(ungraded), "an ungraded lesion")
+        var prosthesisOnly = adult([]); prosthesisOnly.hx.valves = ["aortic": PatientValve(prosthetic: true)]
+        XCTAssertFalse(echoLine(prosthesisOnly), "a prosthesis alone, as before")
         var severe = valve; severe.hx.valves["aortic"]?.stenosisGrade = "severe"; PatientHistoryDetails.sync(&severe)
         XCTAssertTrue(severe.has("valve-severe"))
         XCTAssertTrue(PatientFunctional.conditionAdvice(severe).contains { $0.hasPrefix("Severe valve disease:") })
@@ -240,7 +255,7 @@ final class PatientCardio181Tests: XCTestCase {
 
     func testSummaryAndHandoffText() {
         let r = PatientDemo.cardio
-        XCTAssertEqual(cvLine(r), "hypertension; high cholesterol; CAD: MI within 3 months, prior CABG; HF, decompensated, EF severely reduced; "
+        XCTAssertEqual(cvLine(r), "hypertension; hyperlipidemia; CAD: MI within 3 months, prior CABG; HF, decompensated, EF severely reduced; "
                        + "aortic stenosis severe; mitral prosthetic (mechanical 27 mm); AF; pacemaker (dependent); pulmonary hypertension, moderate; "
                        + "aortopathy: ascending aneurysm 4.8 cm, type B dissection, prior TEVAR (2021); previous cardiac surgery: CABG ×3 2019; Followed by cardiology")
         XCTAssertEqual(respLine(r), "COPD; OSA on CPAP/BiPAP (BiPAP 14/8); respiratory infection: pneumonia; home oxygen 2 L/min")

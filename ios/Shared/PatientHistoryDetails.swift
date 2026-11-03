@@ -180,8 +180,14 @@ struct PatientHistoryDetails: Codable, Hashable {
 
     /// A valve lesion or prosthesis recorded, or one saved before 1.8.1 without its valve.
     var hasValveDisease: Bool { valves.values.contains { !$0.isEmpty } || prosthesisUnplaced || severeUnplaced }
-    /// A native stenosis or regurgitation that is not severe (the AHA/ACC "echo if suspected moderate or severe" line).
-    var hasNonsevereNativeLesion: Bool { valves.values.contains { ($0.stenosis || $0.regurgitation) && !$0.severe } }
+    /// A native stenosis or regurgitation that is ungraded or moderate: the AHA/ACC "echo if moderate or severe is
+    /// suspected" line. A lesion documented as mild does not need the reminder; a severe one has its own line.
+    var hasUngradedOrModerateLesion: Bool {
+        valves.values.contains { v in
+            (v.stenosis && v.stenosisGrade != "mild" && v.stenosisGrade != "severe")
+                || (v.regurgitation && v.regurgitationGrade != "mild" && v.regurgitationGrade != "severe")
+        }
+    }
     var anySevereLesion: Bool { valves.values.contains(where: \.severe) }
 
     func valve(_ id: String) -> PatientValve { valves[id] ?? PatientValve() }
@@ -286,7 +292,7 @@ struct HistorySection: Hashable, Identifiable {
 enum HistorySections {
     static let cv: [HistorySection] = [
         HistorySection(id: "htn", title: "Hypertension", base: "htn", members: ["htn", "htn-180"], replacesBase: ["htn-180"]),
-        HistorySection(id: "hyperlipidemia", title: "High cholesterol", base: "hyperlipidemia", members: ["hyperlipidemia"]),
+        HistorySection(id: "hyperlipidemia", title: "Hyperlipidemia", base: "hyperlipidemia", members: ["hyperlipidemia"]),
         HistorySection(id: "cad", title: "CAD", base: "cad", members: ["cad", "mi", "cad-recent", "pci", "pci-recent", "ischemia", "cabg"],
                        replacesBase: ["mi", "cad-recent", "pci", "pci-recent", "ischemia", "cabg"]),
         HistorySection(id: "hf", title: "Heart failure", base: "hf", members: ["hf", "hf-decomp", "ef-moderate", "ef-severe"], replacesBase: ["hf-decomp"]),
@@ -398,7 +404,7 @@ enum HistorySections {
         if p.contains("htn") || p.contains("htn-180") {
             out.append("hypertension" + (p.contains("htn-180") ? ", BP ≥ 180/110 before the day of surgery" : ""))
         }
-        if p.contains("hyperlipidemia") { out.append("high cholesterol") }
+        if p.contains("hyperlipidemia") { out.append("hyperlipidemia") }
         var cad: [String] = []
         if p.contains("cad-recent") { cad.append("MI within 3 months") }
         if p.contains("mi") { cad.append("MI over 3 months") }
