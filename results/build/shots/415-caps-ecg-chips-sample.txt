@@ -1,258 +1,141 @@
-Analysis of sampling PeriopSignal (pid 32351) every 1 millisecond
-Process:         PeriopSignal [32351]
-Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/A7B15DE5-EEA3-4818-9C72-5F02F0D3B08A/PeriopSignal.app/PeriopSignal
-Load Address:    0x101843000
+Analysis of sampling PeriopSignal (pid 23771) every 1 millisecond
+Process:         PeriopSignal [23771]
+Path:            /Users/USER/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/552AE196-A1D1-4BE9-863E-AAD0B77B54F0/PeriopSignal.app/PeriopSignal
+Load Address:    0x10ee9f000
 Identifier:      PeriopSignal
 Version:         ???
 Code Type:       X86-64
 Platform:        iOS Simulator
-Parent Process:  launchd_sim [24636]
+Parent Process:  launchd_sim [22165]
 Target Type:     live task
 
-Date/Time:       2026-11-03 19:34:33.830 +0000
-Launch Time:     2026-11-03 19:34:14.564 +0000
+Date/Time:       2026-11-03 19:58:04.006 +0000
+Launch Time:     2026-11-03 19:57:34.494 +0000
 OS Version:      macOS 15.7.9 (24G830)
 Report Version:  7
 Analysis Tool:   /usr/bin/sample
 
-Physical footprint:         46.8M
-Physical footprint (peak):  48.2M
+Physical footprint:         44.5M
+Physical footprint (peak):  51.6M
 Idle exit:                  untracked
 ----
 
 Call graph:
-    2 Thread_92410: Main Thread
-    + 2 partial apply for implicit closure #1 in RootView.launch()  (in PeriopSignal.debug.dylib) + 1  [0x106050c31]  /<compiler-generated>:0
-    +   2 implicit closure #1 in RootView.launch()  (in PeriopSignal.debug.dylib) + 1  [0x10604f881]  RootView.swift:126
-    +     2 ReferenceStore.load()  (in PeriopSignal.debug.dylib) + 487  [0x105f6c4a7]  ReferenceStore.swift:29
-    +       2 static ReferenceLoader.loadBundled(bundle:)  (in PeriopSignal.debug.dylib) + 1032  [0x105f242e8]  Reference.swift:1093
-    +         2 static ReferenceLoader.decode(_:)  (in PeriopSignal.debug.dylib) + 130  [0x105f209b2]  Reference.swift:1064
-    +           2 dispatch thunk of JSONDecoder.decode<A>(_:from:)  (in Foundation) + 15  [0x7ff8031bdc6f]
-    +             2 JSONDecoder.decode<A>(_:from:)  (in Foundation) + 261  [0x7ff80318f275]
-    +               2 Data._Representation.withUnsafeBytes<A>(_:)  (in Foundation) + 321  [0x7ff8030b2511]
-    +                 2 __DataStorage.withUnsafeBytes<A>(in:apply:)  (in Foundation) + 62  [0x7ff8030ac45e]
-    +                   2 partial apply for closure #1 in Data.withBufferView<A>(_:)  (in Foundation) + 21  [0x7ff8031bd605]
-    +                     2 closure #1 in Data.withBufferView<A>(_:)  (in Foundation) + 22  [0x7ff803186846]
-    +                       2 partial apply for closure #1 in static JSONDecoder.withUTF8Representation<A>(of:_:)  (in Foundation) + 25  [0x7ff8031bd5e9]
-    +                         2 closure #1 in static JSONDecoder.withUTF8Representation<A>(of:_:)  (in Foundation) + 1095  [0x7ff803192577]
-    +                           2 partial apply for closure #1 in JSONDecoder._decode<A>(_:from:)  (in Foundation) + 25  [0x7ff8031bd5c9]
-    +                             2 closure #1 in JSONDecoder._decode<A>(_:from:)  (in Foundation) + 2236  [0x7ff803191fec]
-    +                               2 partial apply for closure #1 in JSONDecoder.decode<A>(_:from:)  (in Foundation) + 74  [0x7ff8031bd59a]
-    +                                 2 specialized JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1050  [0x7ff8031900aa]
-    +                                   2 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                     2 protocol witness for Decodable.init(from:) in conformance ReferenceBundle  (in PeriopSignal.debug.dylib) + 32  [0x105e42e70]  /<compiler-generated>:0
-    +                                       2 ReferenceBundle.init(from:)  (in PeriopSignal.debug.dylib) + 3535  [0x105e41b1f]  /<compiler-generated>:0
-    +                                         2 KeyedDecodingContainer.decodeIfPresent<A>(_:forKey:)  (in libswiftCore.dylib) + 39  [0x7ff81c987877]
-    +                                           2 _KeyedDecodingContainerBox.decodeIfPresent<A, B>(_:forKey:)  (in libswiftCore.dylib) + 245  [0x7ff81c993265]
-    +                                             2 protocol witness for KeyedDecodingContainerProtocol.decodeIfPresent<A>(_:forKey:) in conformance JSONDecoderImpl.KeyedContainer<A>  (in Foundation) + 24  [0x7ff8031b8968]
-    +                                               2 <deduplicated_symbol>  (in Foundation) + 45  [0x7ff8031b89bd]
-    +                                                 2 JSONDecoderImpl.KeyedContainer.decodeIfPresent<A>(_:forKey:)  (in Foundation) + 324  [0x7ff8031b69d4]
-    +                                                   2 JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1298  [0x7ff803190722]
-    +                                                     2 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                                       2 protocol witness for Decodable.init(from:) in conformance AclsData  (in PeriopSignal.debug.dylib) + 23  [0x105e88627]  /<compiler-generated>:0
-    +                                                         1 AclsData.init(from:)  (in PeriopSignal.debug.dylib) + 670  [0x105e8806e]  /<compiler-generated>:0
-    +                                                         ! 1 KeyedDecodingContainer.decode<A>(_:forKey:)  (in libswiftCore.dylib) + 39  [0x7ff81c9874a7]
-    +                                                         !   1 _KeyedDecodingContainerBox.decode<A, B>(_:forKey:)  (in libswiftCore.dylib) + 245  [0x7ff81c991945]
-    +                                                         !     1 protocol witness for KeyedDecodingContainerProtocol.decode<A>(_:forKey:) in conformance JSONDecoderImpl.KeyedContainer<A>  (in Foundation) + 24  [0x7ff8031b85c8]
-    +                                                         !       1 <deduplicated_symbol>  (in Foundation) + 45  [0x7ff8031b89bd]
-    +                                                         !         1 JSONDecoderImpl.KeyedContainer.decode<A>(_:forKey:)  (in Foundation) + 288  [0x7ff8031b66d0]
-    +                                                         !           1 JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 880  [0x7ff803190580]
-    +                                                         !             1 JSONDecoderImpl.unwrapDictionary<A, B>(from:as:for:_:)  (in Foundation) + 2610  [0x7ff8031a0872]
-    +                                                         !               1 swift_conformsToProtocol2  (in libswiftCore.dylib) + 47  [0x7ff81c8c4dcf]
-    +                                                         !                 1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
-    +                                                         !                   1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 23  [0x7ff81c8c8287]
-    +                                                         1 AclsData.init(from:)  (in PeriopSignal.debug.dylib) + 798  [0x105e880ee]  /<compiler-generated>:0
-    +                                                           1 KeyedDecodingContainer.decode<A>(_:forKey:)  (in libswiftCore.dylib) + 39  [0x7ff81c9874a7]
-    +                                                             1 _KeyedDecodingContainerBox.decode<A, B>(_:forKey:)  (in libswiftCore.dylib) + 245  [0x7ff81c991945]
-    +                                                               1 protocol witness for KeyedDecodingContainerProtocol.decode<A>(_:forKey:) in conformance JSONDecoderImpl.KeyedContainer<A>  (in Foundation) + 24  [0x7ff8031b85c8]
-    +                                                                 1 <deduplicated_symbol>  (in Foundation) + 45  [0x7ff8031b89bd]
-    +                                                                   1 JSONDecoderImpl.KeyedContainer.decode<A>(_:forKey:)  (in Foundation) + 288  [0x7ff8031b66d0]
-    +                                                                     1 JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1298  [0x7ff803190722]
-    +                                                                       1 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                                                         1 protocol witness for Decodable.init(from:) in conformance <A> [A]  (in libswiftCore.dylib) + 22  [0x7ff81c9a04f6]
-    +                                                                           1 Array<A>.init(from:)  (in libswiftCore.dylib) + 296  [0x7ff81c9a0428]
-    +                                                                             1 protocol witness for UnkeyedDecodingContainer.decode<A>(_:) in conformance JSONDecoderImpl.UnkeyedContainer  (in Foundation) + 9  [0x7ff8031ba239]
-    +                                                                               1 JSONDecoderImpl.UnkeyedContainer.decode<A>(_:)  (in Foundation) + 303  [0x7ff8031b8e0f]
-    +                                                                                 1 specialized JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1050  [0x7ff8031900aa]
-    +                                                                                   1 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                                                                     1 protocol witness for Decodable.init(from:) in conformance AclsMode  (in PeriopSignal.debug.dylib) + 32  [0x105ea6ec0]  /<compiler-generated>:0
-    +                                                                                       1 AclsMode.init(from:)  (in PeriopSignal.debug.dylib) + 1551  [0x105ea604f]  /<compiler-generated>:0
-    +                                                                                         1 KeyedDecodingContainer.decodeIfPresent<A>(_:forKey:)  (in libswiftCore.dylib) + 39  [0x7ff81c987877]
-    +                                                                                           1 _KeyedDecodingContainerBox.decodeIfPresent<A, B>(_:forKey:)  (in libswiftCore.dylib) + 245  [0x7ff81c993265]
-    +                                                                                             1 protocol witness for KeyedDecodingContainerProtocol.decodeIfPresent<A>(_:forKey:) in conformance JSONDecoderImpl.KeyedContainer<A>  (in Foundation) + 24  [0x7ff8031b8968]
-    +                                                                                               1 <deduplicated_symbol>  (in Foundation) + 45  [0x7ff8031b89bd]
-    +                                                                                                 1 JSONDecoderImpl.KeyedContainer.decodeIfPresent<A>(_:forKey:)  (in Foundation) + 324  [0x7ff8031b69d4]
-    +                                                                                                   1 JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1298  [0x7ff803190722]
-    +                                                                                                     1 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                                                                                       1 protocol witness for Decodable.init(from:) in conformance <A> [A]  (in libswiftCore.dylib) + 22  [0x7ff81c9a04f6]
-    +                                                                                                         1 Array<A>.init(from:)  (in libswiftCore.dylib) + 296  [0x7ff81c9a0428]
-    +                                                                                                           1 protocol witness for UnkeyedDecodingContainer.decode<A>(_:) in conformance JSONDecoderImpl.UnkeyedContainer  (in Foundation) + 9  [0x7ff8031ba239]
-    +                                                                                                             1 JSONDecoderImpl.UnkeyedContainer.decode<A>(_:)  (in Foundation) + 303  [0x7ff8031b8e0f]
-    +                                                                                                               1 specialized JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1050  [0x7ff8031900aa]
-    +                                                                                                                 1 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                                                                                                   1 protocol witness for Decodable.init(from:) in conformance AclsPrompt  (in PeriopSignal.debug.dylib) + 23  [0x105eab9f7]  /<compiler-generated>:0
-    +                                                                                                                     1 AclsPrompt.init(from:)  (in PeriopSignal.debug.dylib) + 986  [0x105eab2da]  /<compiler-generated>:0
-    +                                                                                                                       1 KeyedDecodingContainer.decodeIfPresent<A>(_:forKey:)  (in libswiftCore.dylib) + 39  [0x7ff81c987877]
-    +                                                                                                                         1 _KeyedDecodingContainerBox.decodeIfPresent<A, B>(_:forKey:)  (in libswiftCore.dylib) + 245  [0x7ff81c993265]
-    +                                                                                                                           1 protocol witness for KeyedDecodingContainerProtocol.decodeIfPresent<A>(_:forKey:) in conformance JSONDecoderImpl.KeyedContainer<A>  (in Foundation) + 24  [0x7ff8031b8968]
-    +                                                                                                                             1 <deduplicated_symbol>  (in Foundation) + 45  [0x7ff8031b89bd]
-    +                                                                                                                               1 JSONDecoderImpl.KeyedContainer.decodeIfPresent<A>(_:forKey:)  (in Foundation) + 324  [0x7ff8031b69d4]
-    +                                                                                                                                 1 JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1298  [0x7ff803190722]
-    +                                                                                                                                   1 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                                                                                                                     1 protocol witness for Decodable.init(from:) in conformance <A> [A]  (in libswiftCore.dylib) + 22  [0x7ff81c9a04f6]
-    +                                                                                                                                       1 Array<A>.init(from:)  (in libswiftCore.dylib) + 296  [0x7ff81c9a0428]
-    +                                                                                                                                         1 protocol witness for UnkeyedDecodingContainer.decode<A>(_:) in conformance JSONDecoderImpl.UnkeyedContainer  (in Foundation) + 9  [0x7ff8031ba239]
-    +                                                                                                                                           1 JSONDecoderImpl.UnkeyedContainer.decode<A>(_:)  (in Foundation) + 303  [0x7ff8031b8e0f]
-    +                                                                                                                                             1 specialized JSONDecoderImpl.unwrap<A, B>(_:as:for:_:)  (in Foundation) + 1050  [0x7ff8031900aa]
-    +                                                                                                                                               1 dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-    +                                                                                                                                                 1 protocol witness for Decodable.init(from:) in conformance AclsCond  (in PeriopSignal.debug.dylib) + 32  [0x105eb1fc0]  /<compiler-generated>:0
-    +                                                                                                                                                   1 AclsCond.init(from:)  (in PeriopSignal.debug.dylib) + 69  [0x105eb0e85]  /<compiler-generated>:0
-    +                                                                                                                                                     1 __swift_instantiateConcreteTypeFromMangledNameV2  (in PeriopSignal.debug.dylib) + 92  [0x104d8841c]  /<compiler-generated>:0
-    +                                                                                                                                                       1 swift_getTypeByMangledNameInContextImpl(char const*, unsigned long, swift::TargetContextDescriptor<swift::InProcess> const*, void const* const*)  (in libswiftCore.dylib) + 209  [0x7ff81c8a7f01]
-    +                                                                                                                                                         1 swift_getTypeByMangledName  (in libswiftCore.dylib) + 225  [0x7ff81c8a7a71]
-    +                                                                                                                                                           1 swift_getTypeByMangledNameImpl(swift::MetadataRequest, __swift::__runtime::llvm::StringRef, void const* const*, std::function<void const* (unsigned int, unsigned int)>, std::function<swift::TargetWitnessTable<swift::InProcess> const* (swift::TargetMetadata<swift::InProcess> const*, unsigned int)>)  (in libswiftCore.dylib) + 1091  [0x7ff81c8ad993]
-    +                                                                                                                                                             1 swift_getTypeByMangledNode  (in libswiftCore.dylib) + 225  [0x7ff81c8a9491]
-    +                                                                                                                                                               1 swift_getTypeByMangledNodeImpl(swift::MetadataRequest, swift::Demangle::__runtime::Demangler&, swift::Demangle::__runtime::Node*, void const* const*, std::function<void const* (unsigned int, unsigned int)>, std::function<swift::TargetWitnessTable<swift::InProcess> const* (swift::TargetMetadata<swift::InProcess> const*, unsigned int)>)  (in libswiftCore.dylib) + 558  [0x7ff81c8ad15e]
-    +                                                                                                                                                                 1 swift::Demangle::__runtime::TypeDecoder<(anonymous namespace)::DecodedMetadataBuilder>::decodeMangledType(swift::Demangle::__runtime::Node*, unsigned int, bool)  (in libswiftCore.dylib) + 8890  [0x7ff81c8b3d7a]
-    +                                                                                                                                                                   1 (anonymous namespace)::DecodedMetadataBuilder::createBoundGenericType(swift::TargetContextDescriptor<swift::InProcess> const*, __swift::__runtime::llvm::ArrayRef<swift::MetadataPackOrValue>, swift::MetadataPackOrValue) const  (in libswiftCore.dylib) + 211  [0x7ff81c8b8633]
-    +                                                                                                                                                                     1 _gatherGenericParameters(swift::TargetContextDescriptor<swift::InProcess> const*, __swift::__runtime::llvm::ArrayRef<swift::MetadataPackOrValue>, swift::TargetMetadata<swift::InProcess> const*, __swift::__runtime::llvm::SmallVectorImpl<unsigned int>&, __swift::__runtime::llvm::SmallVectorImpl<void const*>&, swift::Demangle::__runtime::Demangler&)  (in libswiftCore.dylib) + 1637  [0x7ff81c8aaec5]
-    +                                                                                                                                                                       1 swift::_checkGenericRequirements(__swift::__runtime::llvm::ArrayRef<swift::GenericParamDescriptor>, __swift::__runtime::llvm::ArrayRef<swift::TargetGenericRequirementDescriptor<swift::InProcess>>, __swift::__runtime::llvm::SmallVectorImpl<void const*>&, std::function<void const* (unsigned int, unsigned int)>, std::function<void const* (unsigned int, unsigned int)>, std::function<swift::TargetWitnessTable<swift::InProcess> const* (swift::TargetMetadata<swift::InProcess> const*, unsigned int)>, swift::ConformanceExecutionContext*)  (in libswiftCore.dylib) + 6625  [0x7ff81c8c2f81]
-    +                                                                                                                                                                         1 swift::_conformsToProtocol(swift::OpaqueValue const*, swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptorRef<swift::InProcess>, swift::TargetWitnessTable<swift::InProcess> const**, swift::ConformanceExecutionContext*)  (in libswiftCore.dylib) + 40  [0x7ff81c8666e8]
-    +                                                                                                                                                                           1 swift_conformsToProtocolWithExecutionContext  (in libswiftCore.dylib) + 52  [0x7ff81c8c50f4]
-    +                                                                                                                                                                             1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
-    +                                                                                                                                                                               1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 23  [0x7ff81c8c8287]
-    2 Thread_92472   DispatchQueue_10: com.apple.root.utility-qos  (concurrent)
-    + 2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10184d843]
-    +   2 _pthread_wqthread  (in libsystem_pthread.dylib) + 233  [0x10184e820]
-    +     2 _dispatch_worker_thread2  (in libdispatch.dylib) + 266  [0x7ff8026a5dc5]
-    +       2 _dispatch_root_queue_drain  (in libdispatch.dylib) + 1299  [0x7ff8026a57a6]
-    +         2 _dispatch_root_queue_drain.cold.4  (in libdispatch.dylib) + 34  [0x7ff8026c7df7]
-    +           2 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-    +             2 AG::(anonymous namespace)::TypeDescriptorCache::drain_queue(void*)  (in AttributeGraph) + 383  [0x7ffa0cd8384f]
-    +               2 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 188  [0x7ffa0cd81c13]
-    +                 2 AG::swift::metadata::visit_heap_locals(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 338  [0x7ffa0cd6abb6]
-    +                   2 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
-    +                     2 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
-    +                       2 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
-    +                         1 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 95  [0x7ffa0cd81bb6]
-    +                         ! 1 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 308  [0x7ffa0cd81028]
-    +                         !   1 swift_conformsToProtocol  (in libswiftCore.dylib) + 47  [0x7ff81c8c4c3f]
-    +                         !     1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
-    +                         1 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 111  [0x7ffa0cd81bc6]
-    +                           1 AG::swift::metadata::visit(AG::swift::metadata_visitor&) const  (in AttributeGraph) + 775  [0x7ffa0cd6a493]
-    +                             1 AG::swift::metadata_visitor::visit_field(AG::swift::metadata const*, AG::swift::field_record const&, unsigned long, unsigned long)  (in AttributeGraph) + 119  [0x7ffa0cd6ac81]
-    +                               1 AG::LayoutDescriptor::Builder::visit_element(AG::swift::metadata const*, AG::swift::metadata::ref_kind, unsigned long, unsigned long)  (in AttributeGraph) + 92  [0x7ffa0cd80dc2]
-    +                                 1 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 45  [0x7ffa0cd80f21]
-    +                                   1 AG::(anonymous namespace)::TypeDescriptorCache::fetch(AG::swift::metadata const*, unsigned int, AG::LayoutDescriptor::HeapMode, int)  (in AttributeGraph) + 401  [0x7ffa0cd81f13]
-    +                                     1 AG::LayoutDescriptor::make_layout(AG::swift::metadata const*, AGComparisonMode, AG::LayoutDescriptor::HeapMode)  (in AttributeGraph) + 95  [0x7ffa0cd81bb6]
-    +                                       1 AG::LayoutDescriptor::Builder::should_visit_fields(AG::swift::metadata const*, bool)  (in AttributeGraph) + 308  [0x7ffa0cd81028]
-    +                                         1 swift_conformsToProtocol  (in libswiftCore.dylib) + 47  [0x7ff81c8c4c3f]
-    +                                           1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)  (in libswiftCore.dylib) + 3743  [0x7ff81c8c73af]
-    +                                             1 swift_conformsToProtocolMaybeInstantiateSuperclasses(swift::TargetMetadata<swift::InProcess> const*, swift::TargetProtocolDescriptor<swift::InProcess> const*, bool)::$_1::operator()((anonymous namespace)::ConformanceSection const&) const::'lambda'(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&)::operator()(swift::TargetProtocolConformanceDescriptor<swift::InProcess> const&) const  (in libswiftCore.dylib) + 183  [0x7ff81c8c8327]
-    +                                               1 (anonymous namespace)::ConformanceCandidate::getMatchingType(swift::TargetMetadata<swift::InProcess> const*, bool) const  (in libswiftCore.dylib) + 119  [0x7ff81c8c4b57]
-    +                                                 1 getSuperclassForMaybeIncompleteMetadata(swift::TargetMetadata<swift::InProcess> const*, std::optional<swift::MetadataState>, bool)  (in libswiftCore.dylib) + 103  [0x7ff81c8c5807]
-    2 Thread_92473: com.apple.uikit.eventfetch-thread
-    + 2 thread_start  (in libsystem_pthread.dylib) + 15  [0x10184d857]
-    +   2 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x101851e05]
-    +     2 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
-    +       2 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
-    +         2 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
-    +           2 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
-    +             2 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
-    +               2 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
-    +                 2 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
-    +                   2 mach_msg  (in libsystem_kernel.dylib) + 19  [0x1018c3e3b]
-    +                     2 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x1018cabc3]
-    +                       2 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x1018d26bc]
-    +                         2 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x1018c3b4a]
-    2 Thread_92477
-    + 2 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10184d843]
-    +   2 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10184e8ba]
-    +     2 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x1018c5286]
-    1 Thread_92469   DispatchQueue_207: com.apple.CFNetwork.Connection  (serial)
-    + 1 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10184d843]
-    +   1 _pthread_wqthread  (in libsystem_pthread.dylib) + 298  [0x10184e861]
-    +     1 _dispatch_workloop_worker_thread  (in libdispatch.dylib) + 814  [0x7ff8026a6606]
-    +       1 _dispatch_root_queue_drain_deferred_wlh  (in libdispatch.dylib) + 290  [0x7ff8026a6ee6]
-    +         1 _dispatch_workloop_invoke  (in libdispatch.dylib) + 800  [0x7ff80269c7c4]
-    +           1 _dispatch_lane_invoke  (in libdispatch.dylib) + 413  [0x7ff80269baa6]
-    +             1 _dispatch_lane_serial_drain  (in libdispatch.dylib) + 1170  [0x7ff80269afb7]
-    +               1 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-    +                 1 _dispatch_call_block_and_release  (in libdispatch.dylib) + 12  [0x7ff802692644]
-    +                   1 invocation function for block in Tube::_onqueue_prepConnection(void () block_pointer, void (int) block_pointer)  (in CFNetwork) + 21  [0x7ff80781299a]
-    +                     1 invocation function for block in Tube::_onqueue_prepConnection(void () block_pointer, void (int) block_pointer)  (in CFNetwork) + 1100  [0x7ff807812710]
-    +                       1 Tube::_onqueue_startConnection()  (in CFNetwork) + 277  [0x7ff80780ec73]
-    +                         1 NWIOConnection::open()  (in CFNetwork) + 1045  [0x7ff807786e29]
-    +                           1 _os_log_impl  (in libsystem_trace.dylib) + 14  [0x7ff8025ba88b]
-    +                             1 _os_log  (in libsystem_trace.dylib) + 153  [0x7ff8025b6b9b]
-    +                               1 _os_log_impl_flatten_and_send  (in libsystem_trace.dylib) + 12329  [0x7ff8025b9bef]
-    +                                 1 _os_log_impl_stream  (in libsystem_trace.dylib) + 611  [0x7ff8025ba21a]
-    +                                   1 _os_activity_stream_reflect  (in libsystem_trace.dylib) + 510  [0x7ff8025a9077]
-    +                                     1 dispatch_block_perform  (in libdispatch.dylib) + 137  [0x7ff802696e7b]
-    +                                       1 _dispatch_block_invoke_direct  (in libdispatch.dylib) + 473  [0x7ff80269705f]
-    +                                         1 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-    +                                           1 ___os_activity_stream_reflect_block_invoke_2  (in libsystem_trace.dylib) + 29  [0x7ff8025a982e]
-    +                                             1 _xpc_pipe_simpleroutine  (in libxpc.dylib) + 122  [0x7ff8025e5c0b]
-    +                                               1 _xpc_send_serializer  (in libxpc.dylib) + 97  [0x7ff8025e5e53]
-    +                                                 1 _xpc_pipe_mach_msg  (in libxpc.dylib) + 49  [0x7ff8025e63be]
-    +                                                   1 mach_msg  (in libsystem_kernel.dylib) + 19  [0x1018c3e3b]
-    +                                                     1 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x1018cabc3]
-    +                                                       1 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x1018d26bc]
-    +                                                         1 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x1018c3b4a]
-    1 Thread_92469
-    + 1 <deduplicated_symbol>  (in SwiftUI) + 1  [0x7ffb04b7f6a1]
-    +   1 <deduplicated_symbol>  (in SwiftUI) + 1  [0x7ffb04c46f31]
-    +     1 <deduplicated_symbol>  (in SwiftUI) + 1  [0x7ffb049f4cf1]
-    +       1 <deduplicated_symbol>  (in SwiftUI) + 1  [0x7ffb049f4cf1]
-    +         1 partial apply for closure #7 in RootView.main.getter  (in PeriopSignal.debug.dylib) + 1  [0x1060505e1]  /<compiler-generated>:0
-    +           1 closure #7 in RootView.main.getter  (in PeriopSignal.debug.dylib) + 1  [0x106049ba1]  RootView.swift:58
-    +             1 RootView.launch()  (in PeriopSignal.debug.dylib) + 1  [0x10604bd81]  RootView.swift:127
-    +               1 PostStore.loadInitial()  (in PeriopSignal.debug.dylib) + 1  [0x105bb8cc1]  PostStore.swift:71
-    +                 1 PostStore.refresh()  (in PeriopSignal.debug.dylib) + 1  [0x105bb95b1]  PostStore.swift:80
-    +                   1 static FeedLoader.fetch()  (in PeriopSignal.debug.dylib) + 1491  [0x1050ffdd3]  FeedLoader.swift:21
-    +                     1 +[NSURLSession _sharedSession]  (in CFNetwork) + 31  [0x7ff8078b40ee]
-    +                       1 +[NSURLSession class]  (in CFNetwork) + 28  [0x7ff8078b27d3]
-    +                         1 _os_feature_enabled_SLOWPATH  (in libsystem_featureflags.dylib) + 1256  [0x7ffa1bfd7f2f]
-    +                           1 _os_feature_enabled_load  (in libsystem_featureflags.dylib) + 170  [0x7ffa1bfd84fe]
-    +                             1 open  (in libsystem_kernel.dylib) + 202  [0x1018cd313]
-    +                               1 __open  (in libsystem_kernel.dylib) + 10  [0x1018c4316]
-    1 Thread_92471
-    + 1 start_wqthread  (in libsystem_pthread.dylib) + 0  [0x10184d834]
-    1 Thread_92471   DispatchQueue_13: com.apple.root.default-qos  (concurrent)
-      1 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10184d843]
-        1 _pthread_wqthread  (in libsystem_pthread.dylib) + 233  [0x10184e820]
-          1 _dispatch_worker_thread2  (in libdispatch.dylib) + 266  [0x7ff8026a5dc5]
-            1 _dispatch_root_queue_drain  (in libdispatch.dylib) + 352  [0x7ff8026a53f3]
-              1 _dispatch_queue_override_invoke  (in libdispatch.dylib) + 1700  [0x7ff80269670c]
-                1 _dispatch_queue_override_invoke.cold.3  (in libdispatch.dylib) + 34  [0x7ff8026c6d94]
-                  1 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
-                    1 _dispatch_call_block_and_release  (in libdispatch.dylib) + 12  [0x7ff802692644]
-                      1 __31+[FBSSceneExtension initialize]_block_invoke  (in FrontBoardServices) + 26  [0x7ff80b81c189]
-                        1 +[FBSSceneExtension _frameworkNameLoadingIfNeeded:]  (in FrontBoardServices) + 153  [0x7ff80b81c3b1]
-                          1 -[NSBundle executablePath]  (in Foundation) + 20  [0x7ff8035d2b97]
-                            1 -[NSBundle _cfBundle]  (in Foundation) + 55  [0x7ff8035d0103]
-                              1 _CFBundleCreate  (in CoreFoundation) + 357  [0x7ff8028c96aa]
-                                1 _CFBundleGetBundleVersionForURL  (in CoreFoundation) + 443  [0x7ff8028ccefd]
-                                  1 _CFIterateDirectory  (in CoreFoundation) + 104  [0x7ff8028f7baa]
-                                    1 readdir  (in libsystem_c.dylib) + 35  [0x7ff8026336a5]
-                                      1 _readdir_unlocked  (in libsystem_c.dylib) + 210  [0x7ff8026335d9]
-                                        1 __getdirentries64  (in libsystem_kernel.dylib) + 10  [0x1018c526e]
+    1422 Thread_72197   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 1422 start  (in dyld) + 3056  [0x11a0d7530]
+    +   1422 start_sim  (in dyld_sim) + 10  [0x10efe73dc]
+    +     1422 __debug_main_executable_dylib_entry_point  (in PeriopSignal.debug.dylib) + 9  [0x1132e5239]  PeriopSignalApp.swift:0
+    +       1422 static PeriopSignalApp.$main()  (in PeriopSignal.debug.dylib) + 35  [0x1132ddf03]  /<compiler-generated>:0
+    +         1422 static App.main()  (in SwiftUI) + 137  [0x7ffb04dd8259]
+    +           1422 runApp<A>(_:)  (in SwiftUI) + 166  [0x7ffb05050ab6]
+    +             1422 closure #1 in KitRendererCommon(_:)  (in SwiftUI) + 183  [0x7ffb05050d77]
+    +               1422 UIApplicationMain  (in UIKitCore) + 123  [0x7ff809311f29]
+    +                 1422 -[UIApplication _run]  (in UIKitCore) + 842  [0x7ff80930cf4a]
+    +                   1422 GSEventRunModal  (in GraphicsServices) + 94  [0x7ff816b8d918]
+    +                     1422 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +                       1421 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                       ! 1421 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                       !   1421 mach_msg  (in libsystem_kernel.dylib) + 19  [0x10ef1fe3b]
+    +                       !     1421 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10ef26bc3]
+    +                       !       1421 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10ef2e6bc]
+    +                       !         1421 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10ef1fb4a]
+    +                       1 __CFRunLoopRun  (in CoreFoundation) + 916  [0x7ff80293ab5b]
+    +                         1 __CFRunLoopDoSources0  (in CoreFoundation) + 203  [0x7ff80293b9eb]
+    +                           1 __CFRunLoopDoSource0  (in CoreFoundation) + 157  [0x7ff80293c20e]
+    +                             1 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__  (in CoreFoundation) + 17  [0x7ff80293c2cc]
+    +                               1 UC::DriverCore::continueProcessing()  (in UpdateCycle) + 68  [0x7ffc1ec2d2fe]
+    +                                 1 schedulerStepScheduledMainSectionContinue  (in UIKitCore) + 57  [0x7ff8091d9cc5]
+    +                                   1 _UIUpdateSequenceRunNext  (in UIKitCore) + 95  [0x7ff8083dedc1]
+    +                                     1 __setupUpdateSequence_block_invoke_2  (in UIKitCore) + 437  [0x7ff8091d98a6]
+    +                                       1 _UIApplicationFlushCATransaction  (in UIKitCore) + 57  [0x7ff80930b4cf]
+    +                                         1 CA::Transaction::flush_as_runloop_observer(bool)  (in QuartzCore) + 60  [0x7ff81016d776]
+    +                                           1 CA::Transaction::commit()  (in QuartzCore) + 748  [0x7ff81016bede]
+    +                                             1 CA::Context::commit_transaction(CA::Transaction*, double, double*)  (in QuartzCore) + 13344  [0x7ff8101317d6]
+    +                                               1 CA::Render::Encoder::set_object_cache(CA::Render::Encoder::ObjectCache*, bool)  (in QuartzCore) + 200  [0x7ff810240356]
+    1422 Thread_72303: com.apple.uikit.eventfetch-thread
+    + 1422 thread_start  (in libsystem_pthread.dylib) + 15  [0x10eea9857]
+    +   1422 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10eeade05]
+    +     1422 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       1422 -[UIEventFetcher threadMain]  (in UIKitCore) + 506  [0x7ff808f626de]
+    +         1422 -[NSRunLoop(NSRunLoop) runUntilDate:]  (in Foundation) + 72  [0x7ff8036e168e]
+    +           1422 -[NSRunLoop(NSRunLoop) runMode:beforeDate:]  (in Foundation) + 213  [0x7ff8036e141b]
+    +             1422 _CFRunLoopRunSpecificWithOptions  (in CoreFoundation) + 496  [0x7ff802935aa7]
+    +               1422 __CFRunLoopRun  (in CoreFoundation) + 1354  [0x7ff80293ad11]
+    +                 1422 __CFRunLoopServiceMachPort  (in CoreFoundation) + 145  [0x7ff80293bb70]
+    +                   1422 mach_msg  (in libsystem_kernel.dylib) + 19  [0x10ef1fe3b]
+    +                     1422 mach_msg_overwrite  (in libsystem_kernel.dylib) + 574  [0x10ef26bc3]
+    +                       1422 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10ef2e6bc]
+    +                         1422 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10ef1fb4a]
+    1422 Thread_73557
+    + 1422 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10eea9843]
+    +   1422 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10eeaa8ba]
+    +     1422 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10ef21286]
+    1422 Thread_73641: com.apple.UIKit.inProcessAnimationManager
+    + 1422 thread_start  (in libsystem_pthread.dylib) + 15  [0x10eea9857]
+    +   1422 _pthread_start  (in libsystem_pthread.dylib) + 115  [0x10eeade05]
+    +     1422 __NSThread__start__  (in Foundation) + 1014  [0x7ff80370c3c1]
+    +       1422 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x192209  [0x7ff807da0209]
+    +         1422 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x577ce5  [0x7ff808185ce5]
+    +           1422 ???  (in UIKitCore)  load address 0x7ff807c0e000 + 0x572f3f  [0x7ff808180f3f]
+    +             1422 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 98  [0x7ff802693ff0]
+    +               1422 _dispatch_sema4_wait  (in libdispatch.dylib) + 16  [0x7ff802693b82]
+    +                 1422 semaphore_wait_trap  (in libsystem_kernel.dylib) + 10  [0x10ef1fac6]
+    1422 Thread_73644
+    + 1422 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10eea9843]
+    +   1422 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10eeaa8ba]
+    +     1422 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10ef21286]
+    1421 Thread_72306
+    + 1421 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10eea9843]
+    +   1421 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10eeaa8ba]
+    +     1421 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10ef21286]
+    449 Thread_73566
+    + 449 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10eea9843]
+    +   449 _pthread_wqthread  (in libsystem_pthread.dylib) + 387  [0x10eeaa8ba]
+    +     449 __workq_kernreturn  (in libsystem_kernel.dylib) + 10  [0x10ef21286]
+    1 Thread_72306   DispatchQueue_183: com.apple.RenderBox.Device  (serial)
+      1 start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10eea9843]
+        1 _pthread_wqthread  (in libsystem_pthread.dylib) + 298  [0x10eeaa861]
+          1 _dispatch_workloop_worker_thread  (in libdispatch.dylib) + 814  [0x7ff8026a6606]
+            1 _dispatch_root_queue_drain_deferred_wlh  (in libdispatch.dylib) + 290  [0x7ff8026a6ee6]
+              1 _dispatch_lane_invoke  (in libdispatch.dylib) + 413  [0x7ff80269baa6]
+                1 _dispatch_lane_serial_drain  (in libdispatch.dylib) + 355  [0x7ff80269ac88]
+                  1 _dispatch_source_invoke  (in libdispatch.dylib) + 2178  [0x7ff8026a9c5a]
+                    1 _dispatch_continuation_pop  (in libdispatch.dylib) + 859  [0x7ff802696adb]
+                      1 _dispatch_client_callout  (in libdispatch.dylib) + 6  [0x7ff8026ac7ce]
+                        1 collectResources]::$_4::__invoke(void*)  (in RenderBox) + 79  [0x7ffa16ded337]
+                          1 RB::Device::prune_caches(unsigned int)  (in RenderBox) + 229  [0x7ffa16e92635]
+                            1 <deduplicated_symbol>  (in RenderBox) + 29  [0x7ffa16e97bc3]
+                              1 RB::Buffer::~Buffer()  (in RenderBox) + 48  [0x7ffa16e8efc6]
+                                1 objc_object::sidetable_release(bool, bool)  (in libobjc.A.dylib) + 204  [0x7ff80256060c]
+                                  1 -[MTLSimBuffer dealloc]  (in MTLSimDriver) + 88  [0x7ffc01558fa8]
+                                    1 _MTLDeleteObject(MTLSimDevice*, void (id<MTLSerializerAllocator>) block_pointer)  (in MTLSimDriver) + 164  [0x7ffc01551ad4]
+                                      1 sendXPCMessage(NSObject<OS_xpc_object>*, NSObject<OS_xpc_object>*&)  (in MTLSimDriver) + 17  [0x7ffc015527ae]
+                                        1 xpc_connection_send_message  (in libxpc.dylib) + 89  [0x7ff8025cfae3]
+                                          1 _xpc_connection_enqueue  (in libxpc.dylib) + 216  [0x7ff8025cedaf]
+                                            1 dispatch_mach_send_with_result  (in libdispatch.dylib) + 48  [0x7ff8026adb4c]
+                                              1 _dispatch_mach_send_msg  (in libdispatch.dylib) + 430  [0x7ff8026ada8a]
+                                                1 _dispatch_mach_send_drain  (in libdispatch.dylib) + 311  [0x7ff8026b190e]
+                                                  1 _dispatch_mach_msg_send  (in libdispatch.dylib) + 956  [0x7ff8026b20eb]
+                                                    1 mach_msg2_internal  (in libsystem_kernel.dylib) + 83  [0x10ef2e6bc]
+                                                      1 mach_msg2_trap  (in libsystem_kernel.dylib) + 10  [0x10ef1fb4a]
 
 Total number in stack (recursive counted multiple, when >=5):
-        8       dispatch thunk of Decodable.init(from:)  (in libswiftCore.dylib) + 7  [0x7ff81cc32c17]
-        5       <deduplicated_symbol>  (in Foundation) + 45  [0x7ff8031b89bd]
+        5       start_wqthread  (in libsystem_pthread.dylib) + 15  [0x10eea9843]
 
 Sort by top of stack, same collapsed (when >= 5):
+        __workq_kernreturn  (in libsystem_kernel.dylib)        4714
+        mach_msg2_trap  (in libsystem_kernel.dylib)        2844
+        semaphore_wait_trap  (in libsystem_kernel.dylib)        1422
 
 Binary Images:
-       0x101843000 -        0x101846dfb +org.periopsignal.app (1.8.1 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/A7B15DE5-EEA3-4818-9C72-5F02F0D3B08A/PeriopSignal.app/PeriopSignal
-       0x10184c000 -        0x101857fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
-       0x1018aa000 -        0x1018b393f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
-       0x1018c3000 -        0x1018ffb1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
-       0x10198a000 -        0x1019ec1b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
-       0x101d86000 -        0x101d9203f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
-       0x104d86000 -        0x1064057a7 +PeriopSignal.debug.dylib (0) <C10135E2-1078-3053-9ED3-669E4481AA3D> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/A7B15DE5-EEA3-4818-9C72-5F02F0D3B08A/PeriopSignal.app/PeriopSignal.debug.dylib
-       0x10dea0000 -        0x10df3a6c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
+       0x10ee9f000 -        0x10eea2dfb +org.periopsignal.app (1.8.2 - 1) <2EF513B2-3903-3A0B-B0A3-8F4586296DD5> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/552AE196-A1D1-4BE9-863E-AAD0B77B54F0/PeriopSignal.app/PeriopSignal
+       0x10eea8000 -        0x10eeb3fd7  libsystem_pthread.dylib (536.0.0.702.1) <FA0539B0-B910-38EC-9406-18F7FB96AB75> /usr/lib/system/libsystem_pthread.dylib
+       0x10ef06000 -        0x10ef0f93f  libsystem_platform.dylib (349.140.6) <78C9DCC0-2FBA-3BE4-A1DD-DA618362AE68> /usr/lib/system/libsystem_platform.dylib
+       0x10ef1f000 -        0x10ef5bb1f  libsystem_kernel.dylib (11417.140.69.711.44) <7E438D0A-AC23-3ADA-BAE3-99FB51F2D898> /usr/lib/system/libsystem_kernel.dylib
+       0x10efe6000 -        0x10f0481b7 +dyld_sim (1335) <95D56A6F-2DEC-3CC9-96C6-F03863B0BDB0> /Volumes/*/dyld_sim
+       0x10f3b9000 -        0x10f3c503f +libobjc-trampolines.dylib (951.1) <E342B54B-F579-3233-A2BD-05FCBE29449C> /Volumes/*/libobjc-trampolines.dylib
+       0x1124a6000 -        0x113b86cd7 +PeriopSignal.debug.dylib (0) <9DCF7D17-8A0B-3065-BF4E-3022E486838E> /Users/*/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Bundle/Application/552AE196-A1D1-4BE9-863E-AAD0B77B54F0/PeriopSignal.app/PeriopSignal.debug.dylib
+       0x11a0d1000 -        0x11a16b6c7  dyld (1.0.0 - 1286.10) <BA070062-52CF-31DD-9A27-D3AB5E4401CD> /usr/lib/dyld
     0x7ff802539000 -     0x7ff8025741a0 +libobjc.A.dylib (951.1) <B6C5F541-EB9A-30FA-8B48-5A06501D5867> /Volumes/*/libobjc.A.dylib
     0x7ff802575000 -     0x7ff8025a3903 +libdyld.dylib (1335) <D605623A-F7E5-3FCA-9A89-D78CFB0DF709> /Volumes/*/libdyld.dylib
     0x7ff8025a4000 -     0x7ff8025c168d +libsystem_trace.dylib (1815.62.1) <AB003E68-00D3-3735-AB7F-DFC9213DC12D> /Volumes/*/libsystem_trace.dylib
@@ -980,6 +863,7 @@ Binary Images:
     0x7ffb1fd02000 -     0x7ffb1fd7b38d  com.apple.CoreML.MLAssetIO (1.0 - 3505.4.1) <D25BA44F-1E69-3D42-BC93-5F1468CDA92E> /Volumes/*/MLAssetIO.framework/MLAssetIO
     0x7ffb1fd7c000 -     0x7ffb1fdd6c6f  com.apple.mlcompiler.runtime (3404.3.1 - 3404.3.1) <DF0FF09D-CCD3-3679-BC38-294638EFA55C> /Volumes/*/MLCompilerRuntime.framework/MLCompilerRuntime
     0x7ffb1fdd7000 -     0x7ffb1fdf1123  com.apple.mlcompiler.services (3404.3.1 - 3404.3.1) <F5C90754-6CCE-35B3-8D24-D932A9EA3CA9> /Volumes/*/MLCompilerServices.framework/MLCompilerServices
+    0x7ffc01550000 -     0x7ffc0158aa8f  com.apple.MTLSimDriver (370.64.2 - 370.64.2) <FBD4B934-7FA4-3EC9-ACDD-933AB08F5A19> /Volumes/*/MTLSimDriver.framework/MTLSimDriver
     0x7ffc01591000 -     0x7ffc0160769a  com.apple.mxi (1.0 - 1) <671D51B1-4A26-3BDA-8B8D-9BA6A78942D3> /Volumes/*/MXI.framework/MXI
     0x7ffc016a0000 -     0x7ffc016c75fe  com.apple.MailKit (1.0 - 3864.300.41.2.1) <F06EE6E8-12BD-375E-8CA7-213BD734EF40> /Volumes/*/MailKit.framework/MailKit
     0x7ffc01a6d000 -     0x7ffc01a84b85  com.apple.backgroundassets.managed (1.0 - 1.2.1) <8B27DE8E-14C9-38D7-9331-2E439035EB0D> /Volumes/*/ManagedBackgroundAssets.framework/ManagedBackgroundAssets
@@ -993,6 +877,7 @@ Binary Images:
     0x7ffc02938000 -     0x7ffc0293a64e  com.apple.MediaAnalysisGeneration (1.0 - 1) <3257CEDB-89EC-3995-A06B-4773FD71809C> /Volumes/*/MediaAnalysisGeneration.framework/MediaAnalysisGeneration
     0x7ffc0293b000 -     0x7ffc0293e921  com.apple.MediaAnalysisPhotosServices (1.0 - 1) <E1AF1452-5373-3AD4-8377-63948C656AD4> /Volumes/*/MediaAnalysisPhotosServices.framework/MediaAnalysisPhotosServices
     0x7ffc0293f000 -     0x7ffc0299e606  com.apple.MediaAnalysisServices (1.0 - 1) <71120162-FEBC-3A21-A997-2F8FFADFDEC2> /Volumes/*/MediaAnalysisServices.framework/MediaAnalysisServices
+    0x7ffc03299000 -     0x7ffc032c63b9  com.apple.gpusw.MetalSerializer (1.0 - 1) <D610DD32-31CD-38F5-B227-9A30619556A6> /Volumes/*/MetalSerializer.framework/MetalSerializer
     0x7ffc032d6000 -     0x7ffc0381ee57  com.apple.mobilesafari.framework (26.2 - 8623.1.14.10.9) <DFD70813-D71C-3F0C-B7C9-5F8341F7A608> /Volumes/*/MobileSafari.framework/MobileSafari
     0x7ffc041c1000 -     0x7ffc04533306  com.apple.ModelCatalog.ModelCatalog (1.0 - 218.25) <AA137DF4-9E73-3072-9671-37DB27FF6CDA> /Volumes/*/ModelCatalog.framework/ModelCatalog
     0x7ffc045a0000 -     0x7ffc046f43f6  com.apple.ModelManagerServices (1.0 - 1) <4D0D55B1-724D-3DA0-BB21-2A4758D4B738> /Volumes/*/ModelManagerServices.framework/ModelManagerServices
