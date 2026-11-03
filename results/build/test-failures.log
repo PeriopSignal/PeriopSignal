@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientWorkupTests.swift:105: error: -[PeriopSignalTests.PatientWorkupTests testHistoryAndAssessmentLines] : XCTAssertEqual failed: ("Optional("Atrial fibrillation; Rate 88")") is not equal to ("Optional("Atrial fibrillation; rate 88")")
+Test Case '-[PeriopSignalTests.PatientWorkupTests testHistoryAndAssessmentLines]' failed (6.900 seconds).
