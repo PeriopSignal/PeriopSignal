@@ -165,17 +165,23 @@ struct PatientRadial: Codable, Hashable {
 
     var isEmpty: Bool { self == PatientRadial() }
 
-    static let harvestOptions: [(id: String, label: String)] = [("none", "None"), ("right", "Right"), ("left", "Left")]
+    /// "both": bilateral radial artery grafts.
+    static let harvestOptions: [(id: String, label: String)] = [("none", "None"), ("right", "Right"), ("left", "Left"), ("both", "Both")]
 
-    /// "right" or "left" when a harvest side is planned.
+    /// "right" or "left" when one side is planned for harvest (nil for both).
     var harvestSide: String? { harvest == "right" || harvest == "left" ? harvest : nil }
+    /// Both radials planned for harvest.
+    var harvestBoth: Bool { harvest == "both" }
+    /// The arms planned for harvest, right then left.
+    var harvestArms: [String] { harvestBoth ? ["right", "left"] : (harvestSide.map { [$0] } ?? []) }
 
     /// "Radial US 04/2026: planned left harvest; R 2.4 mm, …; L 2.8 mm, …".
     var summary: String {
         var head = "Radial US"
         if !date.isEmpty { head += " " + date.text }
         var parts: [String] = []
-        if let h = harvestSide { parts.append("planned " + h + " harvest") } else if harvest == "none" { parts.append("no harvest planned") }
+        if harvestBoth { parts.append("planned harvest of both radials") }
+        else if let h = harvestSide { parts.append("planned " + h + " harvest") } else if harvest == "none" { parts.append("no harvest planned") }
         if !right.text.isEmpty { parts.append("R " + right.text) }
         if !left.text.isEmpty { parts.append("L " + left.text) }
         let n = notes.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -302,7 +308,7 @@ struct PatientPFT: Codable, Hashable {
 
 /// A caution a study raises: one short line, and the details and sources behind its ⓘ.
 struct StudyCaution: Hashable, Identifiable {
-    /// "harvest", "harvest-radial", "harvest-arm", "carotid", "vertebral-left", "vertebral-right", "vertebral-both".
+    /// "harvest", "harvest-radial-<side>-<device>", "harvest-arm-<side>", "carotid", "vertebral-left", "vertebral-right", "vertebral-both".
     var id: String
     var text: String
     var source: String
@@ -347,7 +353,10 @@ enum PatientStudies {
     /// - no steal on the other arm: "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm."
     /// - steal on the other arm only: it may read low, so femoral access.
     /// - steal on both arms: only "keep lines and the cuff off the left arm" (the vertebral caution gives the rest).
+    /// Both radials planned: lines and the cuff off both arms, femoral access [P, as for one harvest with steal on the
+    /// other arm: neither radial is available; approved wording].
     static func harvestReminder(_ r: PatientRecord) -> String? {
+        if r.radial.harvestBoth { return "Both radials planned for harvest: keep lines and the cuff off both arms; consider femoral arterial access." }
         guard let h = r.radial.harvestSide else { return nil }
         let o = otherSide(h)
         let steal = stealSides(r)
@@ -360,12 +369,16 @@ enum PatientStudies {
 
     /// Arterial lines, IVs and PICCs in place on the arm planned for harvest.
     static func linesOnHarvestArm(_ r: PatientRecord) -> [PatientDevice] {
-        guard let h = r.radial.harvestSide else { return [] }
+        let arms = r.radial.harvestArms
+        guard !arms.isEmpty else { return [] }
         return r.currentDevices().filter { d in
-            guard armLineKinds.contains(d.kind), let site = DeviceSite.site(id: d.site) else { return false }
-            return site.region == "arm" && site.side == h
+            guard armLineKinds.contains(d.kind), let site = DeviceSite.site(id: d.site), let side = site.side else { return false }
+            return site.region == "arm" && arms.contains(side)
         }
     }
+
+    /// The side of a device's site ("left", "right"), if it has one.
+    static func side(_ d: PatientDevice) -> String? { DeviceSite.site(id: d.site)?.side }
 
     /// An arterial line in the radial artery planned for harvest.
     static func isRadialArterialLine(_ d: PatientDevice) -> Bool {
@@ -407,21 +420,24 @@ enum PatientStudies {
     static func cautions(_ r: PatientRecord) -> [StudyCaution] {
         var out: [StudyCaution] = []
         let h = r.radial.harvestSide
+        let both = r.radial.harvestBoth
         let steal = stealSides(r)
-        if let h, let text = harvestReminder(r) {
-            let femoral = steal.count == 1 && steal.contains(otherSide(h))
+        if let text = harvestReminder(r) {
+            let femoral = both || (h.map { steal.count == 1 && steal.contains(otherSide($0)) } ?? false)
             out.append(StudyCaution(id: "harvest", text: text, source: femoral ? harvestSource + " " + femoralSource : harvestSource,
                                     mark: femoral ? "Consider femoral arterial access" : nil))
         }
-        if let h {
-            let onArm = linesOnHarvestArm(r)
-            for d in onArm where isRadialArterialLine(d) {
-                out.append(StudyCaution(id: "harvest-radial", text: "Radial arterial line in the " + h + " (harvest) arm: tell the surgeon; a radial artery that has been catheterized should not be used as a graft.",
-                                        source: harvestSource, mark: "Radial arterial line in the " + h + " (harvest) arm"))
+        let onArm = linesOnHarvestArm(r)
+        for arm in r.radial.harvestArms {
+            let here = onArm.filter { side($0) == arm }
+            for d in here where isRadialArterialLine(d) {
+                out.append(StudyCaution(id: "harvest-radial-" + arm + "-" + d.id.uuidString, text: "Radial arterial line in the " + arm + " (harvest) arm: tell the surgeon; a radial artery that has been catheterized should not be used as a graft.",
+                                        source: harvestSource, mark: "Radial arterial line in the " + arm + " (harvest) arm"))
             }
-            let others = onArm.filter { !isRadialArterialLine($0) }
+            let others = here.filter { !isRadialArterialLine($0) }
             if !others.isEmpty {
-                out.append(StudyCaution(id: "harvest-arm", text: "On the " + h + " (harvest) arm: " + PatientDevices.labels(others).joined(separator: "; ") + ". Move it to the other arm if you can.", source: harvestSource))
+                // With both arms planned there is no other arm to move it to [P; wording for Ben to see].
+                out.append(StudyCaution(id: "harvest-arm-" + arm, text: "On the " + arm + " (harvest) arm: " + PatientDevices.labels(others).joined(separator: "; ") + (both ? ". Move it if you can." : ". Move it to the other arm if you can."), source: harvestSource))
             }
         }
         let severe = r.carotid.severeSides
@@ -435,7 +451,7 @@ enum PatientStudies {
         } else {
             for s in r.carotid.reversedSides {
                 let partial = (s == "right" ? r.carotid.right : r.carotid.left).vertebral == "partial"
-                out.append(StudyCaution(id: "vertebral-" + s, text: vertebralText(s, partial: partial, noLineAdvice: h == otherSide(s)), source: vertebralSource))
+                out.append(StudyCaution(id: "vertebral-" + s, text: vertebralText(s, partial: partial, noLineAdvice: both || h == otherSide(s)), source: vertebralSource))
             }
         }
         return out

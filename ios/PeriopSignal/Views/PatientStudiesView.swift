@@ -151,10 +151,10 @@ struct StudyCautionRow: View {
     }
 }
 
-/// A chip row whose title has a caption behind ⓘ; the chips go under the title.
+/// A chip row whose title has a caption behind ⓘ (no ⓘ while `info` is nil); the chips go under the title.
 struct InfoChipRow<Content: View>: View {
     var label: String
-    var info: String
+    var info: String?
     @ViewBuilder var content: () -> Content
     @State private var open = LaunchSeed.bool("ps.evidence.open")
 

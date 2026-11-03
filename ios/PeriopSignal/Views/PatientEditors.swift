@@ -109,6 +109,11 @@ struct PatientEditorView: View {
                 if !a.isEmpty {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { proxy.scrollTo(a, anchor: .top) }
                 }
+                // -ps.patient.addproc "TKA" adds that procedure on the Procedure page (a sided one without its side).
+                let add = LaunchSeed.string("ps.patient.addproc")
+                if editor == .procedure, !add.isEmpty, !patient.record.procedures.contains(where: \.needsSide) {
+                    patient.update(discrete: true) { $0.setProcedures($0.procedures + PlannedProcedure.parse(add)) }
+                }
                 let f = LaunchSeed.string("ps.patient.focus")
                 if !f.isEmpty {
                     // Again, from scratch, in case a slow launch's push dropped it while the focus still reads as set
@@ -262,7 +267,7 @@ struct PatientEditorView: View {
     // MARK: Patient
 
     @ViewBuilder private var details: some View {
-        PatientGroup(title: "Patient") {
+        PatientGroup(title: "Patient", note: bodySizeNote) {
             PatientNumberField(label: "Age", unit: PatientRecord.ageFieldUnit(r.ageYears), value: bind(\.ageYears), chain: chain("age"))
             Hairline().padding(.leading, 14)
             PatientChipRow(label: "Sex") { PatientChoice(options: [(id: "male", label: "Male"), (id: "female", label: "Female")], selection: sexChoice) }
@@ -278,17 +283,10 @@ struct PatientEditorView: View {
                     .background(PS.surface2.opacity(0.5))
             }
         }
-        if r.bmi != nil {
-            EvidenceNote("BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian.")
-        }
-        PatientGroup(title: "Procedure") {
+        PatientGroup(title: "Procedure", note: urgencyNote) {
             PatientTextField(label: "Procedure", prompt: "e.g. laparoscopic colectomy", text: bind(\.procedure))
             PatientChipRow(label: "Urgency") {
                 PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
-            }
-            if let u = r.urgency {
-                EvidenceNote(u.detail + " (2024 AHA/ACC)")
-                    .padding(.horizontal, 14).padding(.bottom, 8)
             }
             PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
             Hairline().padding(.leading, 14)
@@ -383,7 +381,7 @@ struct PatientEditorView: View {
                 }
             }
             let aorta = Set(PatientCatalog.aortaIDs)
-            PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-BANG and other scores open with them ticked.") {
+            PatientGroup(title: s.name, note: PatientCatalog.systemNote(s)) {
                 PatientChipRow(label: nil) {
                     PatientChips(options: s.problems.filter { !aorta.contains($0.id) }.map(problemFlag), selection: bind(\.problems))
                 }
@@ -452,7 +450,8 @@ struct PatientEditorView: View {
     // MARK: Assessment
 
     @ViewBuilder private var assessment: some View {
-        PatientGroup(title: "ASA physical status", note: "The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it.") {
+        // One ⓘ on the group title holds what used to be the card's own "Explanation & Evidence" rows too (1.8.1).
+        PatientGroup(title: "ASA physical status", note: asaNote) {
             if let s = PatientRules.asaSuggestion(r) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Suggested: " + s.label).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
@@ -465,19 +464,14 @@ struct PatientEditorView: View {
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 Hairline().padding(.leading, 14)
-            } else if r.isChild {
-                EvidenceNote("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
-                    .padding(.horizontal, 14).padding(.vertical, 10)
             }
             PatientChipRow(label: "Class") {
                 PatientChoice(options: (1...6).map { (id: String($0), label: "ASA " + PatientRules.roman($0)) },
                               selection: Binding(get: { patient.record.asaClass.map { String($0) } }, set: { v in patient.update { $0.asaClass = v.flatMap { Int($0) } } }))
             }
-            toggleRow("Emergency (E)", "Delay would significantly increase the threat to life or body part", Binding(get: { patient.record.asaE ?? patient.record.emergency }, set: { v in patient.update { $0.asaE = v } }))
-            if let c = r.asaClass {
-                EvidenceNote(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))
-                    .padding(.horizontal, 14).padding(.bottom, 10)
-            }
+            PatientInfoToggle(title: "Emergency (E)", info: "Delay would significantly increase the threat to life or body part",
+                              isOn: Binding(get: { patient.record.asaE ?? patient.record.emergency }, set: { v in patient.update { $0.asaE = v } }))
+                .padding(.bottom, 4)
         }
         PatientCodeStatusGroup()
         PatientGroup(title: "Functional capacity", note: PatientFunctional.metsNote) {
@@ -494,8 +488,9 @@ struct PatientEditorView: View {
                         .padding(.vertical, 6)
                     }
                     if let d = PatientFunctional.dasi(r) {
-                        Text(PatientFunctional.dasiText(d)).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(d > PatientFunctional.dasiCutoff ? PS.fg : PS.accent).padding(.top, 6)
-                        EvidenceNote(PatientFunctional.dasiNote)
+                        PatientInfoLine(text: PatientFunctional.dasiText(d), info: PatientFunctional.dasiNote,
+                                        font: PS.sys(size: 14, weight: .semibold), color: d > PatientFunctional.dasiCutoff ? PS.fg : PS.accent)
+                            .padding(.top, 6)
                     }
                 }
             } label: {
@@ -504,9 +499,10 @@ struct PatientEditorView: View {
             .tint(PS.fg2)
             .padding(.horizontal, 14).padding(.vertical, 10)
             Hairline().padding(.leading, 14)
-            toggleRow("Frail", "By a validated tool", bind(\.frail))
-            EvidenceNote("Use a validated tool, such as the Clinical Frailty Scale. Assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a).")
-                .padding(.horizontal, 14).padding(.bottom, 8)
+            PatientInfoToggle(title: "Frail", detail: "By a validated tool",
+                              info: "Use a validated tool, such as the Clinical Frailty Scale. Assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a).",
+                              isOn: bind(\.frail))
+                .padding(.bottom, 4)
         }
         // The guideline is for adults (2024 AHA/ACC §1.4, p e355): under 18 the symptoms and acute conditions are still
         // recorded, without the stepwise evaluation or its advice, as in the H&P (PatientSummary).
@@ -571,6 +567,19 @@ struct PatientEditorView: View {
         }
     }
 
+    /// The ASA card's explanations, for its title's ⓘ: how the suggestion works, then (a child with nothing to suggest
+    /// from) where to tick problems, then the chosen class's definition; each was a row of its own before 1.8.1.
+    var asaNote: String {
+        var parts = ["The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it."]
+        if PatientRules.asaSuggestion(r) == nil && r.isChild {
+            parts.append("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
+        }
+        if let c = r.asaClass {
+            parts.append(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))
+        }
+        return parts.joined(separator: "\n\n")
+    }
+
     /// The tests on file: the cardiac studies (unchanged from the cardiac evaluation, in its order), then the carotid
     /// and radial artery ultrasound and the pulmonary function tests.
     @ViewBuilder private var studiesGroup: some View {
@@ -599,8 +608,8 @@ struct PatientEditorView: View {
     @ViewBuilder private var airway: some View {
         currentAirwayGroup
         if r.arrivesWithAirway {
-            EvidenceNote("With an ETT or a tracheostomy in place, the airway examination and the intraoperative airway course are not asked; record the previous intubation grade under Airway notes if you know it.", title: "Airway already secured")
-            PatientGroup(title: "Airway notes") {
+            // Why there is no exam here: behind the group title's ⓘ (1.8.1), not on a row between the cards.
+            PatientGroup(title: "Airway notes", note: "With an ETT or a tracheostomy in place, the airway examination and the intraoperative airway course are not asked; record the previous intubation grade under Airway notes if you know it.") {
                 PatientTextField(label: "Airway notes", prompt: "Previous intubation grade, how the ETT was placed, plan for extubation", text: bind(\.airwayNotes))
             }
         } else {
@@ -672,8 +681,8 @@ struct PatientEditorView: View {
             .id("mask")
         }
         if !predictors.isEmpty {
-            line("Recorded predictors: " + predictors.joined(separator: "; ") + ".")
-            EvidenceNote("The ASA's 2022 guideline finds no single sign consistently more predictive than another.")
+            PatientInfoLine(text: "Recorded predictors: " + predictors.joined(separator: "; ") + ".",
+                            info: "The ASA's 2022 guideline finds no single sign consistently more predictive than another.")
             toolButton("Open the airway guide", route: "airway")
         }
     }
@@ -717,14 +726,11 @@ struct PatientEditorView: View {
             PatientChipRow(label: "Mask ventilation") {
                 PatientChoice(options: [(id: "easy", label: "Easy"), (id: "difficult", label: "Difficult"), (id: "none", label: "Not used")], selection: bind(\.mask))
             }
+            // Each grade's definition: behind an ⓘ on its row's label (1.8.1), not on a row of its own.
             if r.mask != nil && r.mask != "none" {
-                PatientChipRow(label: "Grade (Han)") {
+                InfoChipRow(label: "Grade (Han)", info: maskGradeNote) {
                     PatientChoice(options: PatientAirway.maskGrades.map { (id: $0.id, label: $0.label) },
                                   selection: Binding(get: { patient.record.maskGrade.map { String($0) } }, set: { v in patient.update { $0.maskGrade = v.flatMap { Int($0) } } }))
-                }
-                if let g = r.maskGrade, let d = PatientAirway.maskGrades.first(where: { $0.id == String(g) }) {
-                    EvidenceNote("Grade " + d.label + ": " + d.detail.lowercased() + ".")
-                        .padding(.horizontal, 14).padding(.bottom, 6)
                 }
             }
             if r.mask == "difficult" {
@@ -745,12 +751,8 @@ struct PatientEditorView: View {
             PatientChipRow(label: "Device") {
                 PatientChoice(options: PatientCatalog.devices.map { (id: $0, label: $0) }, selection: bind(\.airwayDevice))
             }
-            PatientChipRow(label: "Laryngeal view (Cormack–Lehane)") {
+            InfoChipRow(label: "Laryngeal view (Cormack–Lehane)", info: laryngealGradeNote) {
                 PatientChoice(options: PatientCatalog.grades.map { (id: $0, label: $0) }, selection: bind(\.laryngoscopyGrade))
-            }
-            if let g = r.laryngoscopyGrade, let d = PatientCatalog.gradeDetail(g) {
-                EvidenceNote("Grade " + g + ": " + d.lowercased() + (g == "3" || g == "4" ? " (difficult laryngoscopy)." : "."))
-                    .padding(.horizontal, 14).padding(.bottom, 6)
             }
             Stepper(value: Binding(get: { patient.record.attempts ?? 0 }, set: { v in patient.update(discrete: true) { $0.attempts = v > 0 ? v : nil } }), in: 0...9) {
                 Text("Attempts: " + (r.attempts.map { String($0) } ?? "not recorded")).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
@@ -769,6 +771,18 @@ struct PatientEditorView: View {
                 }
             }
         }
+    }
+
+    /// The chosen mask grade's definition, for the ⓘ on "Grade (Han)".
+    var maskGradeNote: String? {
+        guard let g = r.maskGrade, let d = PatientAirway.maskGrades.first(where: { $0.id == String(g) }) else { return nil }
+        return "Grade " + d.label + ": " + d.detail.lowercased() + "."
+    }
+
+    /// The chosen laryngeal view's definition, for the ⓘ on "Laryngeal view (Cormack–Lehane)".
+    var laryngealGradeNote: String? {
+        guard let g = r.laryngoscopyGrade, let d = PatientCatalog.gradeDetail(g) else { return nil }
+        return "Grade " + g + ": " + d.lowercased() + (g == "3" || g == "4" ? " (difficult laryngoscopy)." : ".")
     }
 
     @ViewBuilder private var intraopLines: some View {

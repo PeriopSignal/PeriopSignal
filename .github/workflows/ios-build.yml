@@ -217,6 +217,40 @@ jobs:
           # 220-229 are the UX waves' shots (200-214 are Studies).
           shot 220-wave1-airway-info 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 3 -ps.patient.open airway -ps.evidence.open 1 -ps.forceAppearance dark
           shot 221-wave1-weight-info 12 -ps.ref quickref:asra-last -ps.la.weight 70 -ps.evidence.open 1 -ps.forceAppearance light
+          # 1.8.1 wave 2a (Reference tools, 230-239): short one-line headers, summaries and captions behind ⓘ (opened with
+          # -ps.evidence.open 1), the ACLS protocol note with its not-recommended lines kept in view, the finder's empty state.
+          shot 230-wave2a-airway-ref 12 -ps.ref quickref:asa-difficult-airway -ps.forceAppearance dark
+          shot 231-wave2a-fasting-ref 12 -ps.ref quickref:asa-fasting -ps.forceAppearance light
+          shot 232-wave2a-acls-info 12 -ps.ref acls -ps.evidence.open 1 -ps.forceAppearance light
+          shot 233-wave2a-regional-empty 12 -ps.ref regional-finder -ps.forceAppearance dark
+          shot 234-wave2a-ob-hypertension 12 -ps.ref ob -ps.ob.event hypertension -ps.forceAppearance light
+          shot 235-wave2a-chamber-info 18 -ps.ref chamber -ps.echo.group rvf -ps.echo.values "tapse=1.5" -ps.echo.pasp 45 -ps.echo.scroll coupling -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 236-wave2a-local-info 12 -ps.ref local -ps.la.weight 70 -ps.evidence.open 1 -ps.forceAppearance light
+          shot 237-wave2a-neuraxial-info 12 -ps.ref neuraxial-guide -ps.nx.proc cesarean -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 238-wave2a-abg-normal 12 -ps.ref abg -ps.abg.values "ph=7.40,paco2=40,hco3=24" -ps.forceAppearance light
+          shot 239-wave2a-ponv-info 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,opioids" -ps.ponv.agents "ondansetron,dexamethasone" -ps.evidence.open 1 -ps.forceAppearance dark
+          # 1.8.1 wave 3 (My Patient editors, 250-259): each moved explanation opened (-ps.evidence.open 1).
+          shot 250-wave3-assessment-info 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 251-wave3-code-status-info 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.open assessment -ps.patient.scroll codestatus -ps.evidence.open 1 -ps.forceAppearance light
+          shot 252-wave3-intraop-airway-info 16 -ps.tab patient -ps.patient demo -ps.patient.open intraop:airway -ps.evidence.open 1 -ps.forceAppearance light
+          shot 253-wave3-tee-info 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.evidence.open 1 -ps.forceAppearance light
+          shot 254-wave3-note-compose-info 14 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 255-wave3-note-check-info 16 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.patient.note example -ps.evidence.open 1 -ps.forceAppearance light
+          shot 256-wave3-end-case-info 16 -ps.tab patient -ps.patient demo-rooms -ps.patient.open end-case -ps.evidence.open 1 -ps.forceAppearance light
+          shot 257-wave3-airway-secured-info 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open airway -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 258-wave3-procedure-info 14 -ps.tab patient -ps.patient demo -ps.patient.open procedure -ps.patient.addproc TKA -ps.evidence.open 1 -ps.forceAppearance light
+          shot 259-wave3-support-empty-info 18 -ps.tab patient -ps.patient demo -ps.patient.open devices:support -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
+          # 1.8.1 History (270-279): plain Diabetes, Stroke, unspecified, the Infectious system; the group notes opened.
+          shot 270-history-infectious 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance dark
+          shot 271-history-infectious-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance light
+          shot 272-infectious-items 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:infectious -ps.forceAppearance dark
+          shot 273-infectious-items-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:infectious -ps.forceAppearance light
+          shot 274-endocrine-diabetes-info 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:endo -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 275-neuro-stroke-info 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:neuro -ps.evidence.open 1 -ps.forceAppearance light
+          shot 276-quickadd-history 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M, DM2, h/o stroke, HCV, MRSA, contact precautions"
+          shot 277-quickadd-history-light 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M, DM2, h/o stroke, HCV, MRSA, contact precautions"
+          shot 278-asa-history 18 -ps.tab patient -ps.patient demo-history -ps.patient.open assessment -ps.forceAppearance light
+          shot 279-endocrine-diabetes-info-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:endo -ps.evidence.open 1 -ps.forceAppearance light
           shot 43-acls 12 -ps.ref acls
           shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals
@@ -370,6 +404,8 @@ jobs:
           shot 212-cardiac-handoff-full-cautions 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format full -ps.patient.jump handoff -ps.forceAppearance light
           shot 213-quickadd-aorta 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "74M, HTN, 5.2 cm AAA, s/p TEVAR 2019, dissection, TAA 48 mm, CKD"
           shot 214-history-aorta 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open history -ps.forceAppearance light
+          shot 215-studies-radial-both 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open workup:radial -ps.patient.scroll done -ps.forceAppearance dark
+          shot 216-intraop-lines-both 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open intraop:lines -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
