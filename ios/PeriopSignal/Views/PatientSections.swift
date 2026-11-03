@@ -162,8 +162,27 @@ extension PatientEditorView {
                 .padding(.horizontal, 14).padding(.top, 10)
             }
             ECGQuickRow(ecg: bind(\.ecg))
+            // The history could say more than the ECG does: offered, never filed (PatientECGLink.suggestions).
+            ForEach(PatientECGLink.suggestions(r)) { s in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(s.prompt).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg2)
+                    WrapLayout(spacing: 7) {
+                        ForEach(s.findings, id: \.self) { f in
+                            Button {
+                                Haptics.light()
+                                patient.update(discrete: true) { PatientECGLink.add(f, to: &$0) }
+                            } label: {
+                                Label(f, systemImage: "plus").font(PS.sys(size: 14, weight: .semibold))
+                            }
+                            .buttonStyle(CapsuleButtonStyle(prominent: false))
+                            .accessibilityLabel("Add " + f + " to the ECG, from the history")
+                        }
+                    }
+                }
+                .padding(.horizontal, 14).padding(.top, 10)
+            }
             PatientTypeahead(label: "Add a finding", prompt: "Type: afib, LBBB, paced, Q waves…", options: PatientECG.findings.filter { !r.ecg.contains($0) }) { pick in
-                patient.update(discrete: true) { $0.ecg = PatientECG.adding(pick, to: $0.ecg) }
+                patient.update(discrete: true) { PatientECGLink.add(pick, to: &$0) }
             }
             PatientTextField(label: "Other", prompt: "Rate, axis, intervals, comparison", text: bind(\.ecgNotes))
         }

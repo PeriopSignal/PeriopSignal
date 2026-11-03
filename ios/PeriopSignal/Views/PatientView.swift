@@ -245,7 +245,7 @@ struct PatientView: View {
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
     /// history | medications | assessment | airway | intraop | plan | handoff | note | receive | workup:<id> |
     /// intraop:<part> | system:<id> | a reference route such as score:rcri; -ps.patient.edit exam | echo | intraop-echo | echo-trivial makes that
-    /// change first (one-tap normals; harvest-both plans both radials; echo-trivial grades TR and AR trivial), so Undo shows.
+    /// change first (one-tap normals; harvest-both plans both radials; echo-trivial grades TR and AR trivial; ecg-af, ecg-none for the ECG link), so Undo shows.
     private func openForScreenshot() async {
         #if DEBUG
         let edit = LaunchSeed.string("ps.patient.edit")
@@ -260,6 +260,10 @@ struct PatientView: View {
                     r.echoFindings.tricuspid.regurgitation = .trivial
                     r.echoFindings.aortic.regurgitation = .trivial
                 case "harvest-both": r.radial.harvest = "both"
+                // 1.8.3 (the ECG and the history linked): an AF found on the ECG, which the history then holds too; the ECG
+                // cleared, so the history's AF is offered as a suggestion and a dependent pacemaker's paced rhythm is filed.
+                case "ecg-af": PatientECGLink.add("Atrial fibrillation", to: &r)
+                case "ecg-none": r.ecg = []; r.ecgFromHistory = []
                 default: PatientAirway.applyNormalExam(&r)
                 }
             }

@@ -38,7 +38,7 @@ enum PastSurgeryNote {
     // MARK: Patterns
 
     static let headerRx = NoteRx(#"\b(?:(?:psh|pshx)\b\s*[:\-–]?|(?:past surgical (?:history|hx)|surgical (?:history|hx)|prior surgeries|previous surgeries|past surgeries)\s*[:\-–])\s*"#)
-    static let leadRx = NoteRx(#"\b(?:s/p|status post|h/o|hx of|history of|prior|previous)\s+(?:an?\s+|the\s+)?"#)
+    static let leadRx = NoteRx(#"\b(?:s/p|status post|h/o|hx of|history of|prior|previous)\s+(?!to\b|admissions?\b|hospitali[sz]ations?\b|visits?\b|episodes?\b)(?:an?\s+|the\s+)?"#)
     static let bulletRx = NoteRx(#"^\s*(?:[-•*–·]|\d+[.)])\s*"#)
     /// Another section's header at the start of a line closes the surgical history.
     static let otherHeaderRx = NoteRx(#"^\s*[A-Za-z][A-Za-z/&\s]{1,28}:"#)
@@ -55,6 +55,9 @@ enum PastSurgeryNote {
     static let yearRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])((?:19|20)\d\d)(?![\w/])\s*\)?"#)
 
     static let cardiacWordsRx = NoteRx(PatientNote.cardiacOpWords)
+
+    /// Words that name no operation.
+    private static let generic: Set<String> = ["surgery", "surgeries", "operation", "operations", "procedure", "procedures", "surgical", "history"]
 
     static var allPatterns: [NoteRx] {
         [cardiacWordsRx, headerRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, plannedRx, asideRx, commentaryRx, surgicalRx, chestRx, monthYearRx, numericRx, yearRx]
@@ -220,7 +223,7 @@ enum PastSurgeryNote {
         let (rest, date) = extractDate(t)
         t = rest
         if t.isEmpty { return date.isEmpty ? nil : Operation(text: "", date: date, aside: aside, range: range) }
-        if commentaryRx.first(t) != nil { return nil }
+        if commentaryRx.first(t) != nil || generic.contains(t.lowercased()) { return nil }
         if strict {
             guard isOperation(t) else { return nil }
         } else {
