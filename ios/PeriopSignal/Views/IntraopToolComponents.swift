@@ -251,6 +251,7 @@ struct FlagTable: View {
 /// A one-time tip that points at a control with a popover arrow, instead of a permanent explainer box. Shown once on
 /// this phone (`key`), never on its own in a screenshot run (CI asks for it with -ps.tips 1).
 struct OnceTip: ViewModifier {
+    nonisolated(unsafe) static var busy = false
     var key: String
     var text: String
     var arrowEdge: Edge = .top
@@ -280,13 +281,19 @@ struct OnceTip: ViewModifier {
                 .presentationCompactAdaptation(.popover)
                 .presentationBackground(PS.surface)
             }
-            .task {
+            .task { @MainActor in
                 guard shouldShow else { return }
                 try? await Task.sleep(nanoseconds: 700_000_000)
+                // One tip at a time: a second waits for the next visit.
+                guard !OnceTip.busy else { return }
+                OnceTip.busy = true
                 show = true
             }
             .onChange(of: show) { _, now in
-                if !now { UserDefaults.standard.set(true, forKey: key) }
+                if !now {
+                    UserDefaults.standard.set(true, forKey: key)
+                    OnceTip.busy = false
+                }
             }
     }
 }

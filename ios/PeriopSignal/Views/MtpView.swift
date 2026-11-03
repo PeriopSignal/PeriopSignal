@@ -138,11 +138,10 @@ struct MtpView: View {
         let blood = d.products.filter(\.citrated)
         let factors = d.products.filter { !$0.citrated }
         return VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "Tap as it goes up").padding(.leading, 2)
+            Eyebrow(text: "Tap as it goes up · hold to take one back").padding(.leading, 2)
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(blood) { p in tallyButton(p, s, big: true) }
             }
-            .onceTip("ps.tips.mtp.tally", "One tap per unit. Hold a button to take one back.", arrowEdge: .bottom)
             HStack(spacing: 10) {
                 ForEach(factors) { p in tallyButton(p, s, big: false) }
             }
