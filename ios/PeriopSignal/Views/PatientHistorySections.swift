@@ -296,7 +296,8 @@ struct PatientHistorySectionsView: View {
         }
         let ruptured = field(\.ruptured, false)
         return VStack(alignment: .leading, spacing: 6) {
-            PatientNumberField(label: label, unit: "cm", value: field(\.cm, nil)).padding(.horizontal, -14)
+            Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+            PatientNumberField(label: "Size", unit: "cm", value: field(\.cm, nil)).padding(.horizontal, -14)
             Toggle(isOn: Binding(get: { ruptured.wrappedValue }, set: { v in patient.markDiscrete(); ruptured.wrappedValue = v })) {
                 Text("Ruptured").font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg)
             }

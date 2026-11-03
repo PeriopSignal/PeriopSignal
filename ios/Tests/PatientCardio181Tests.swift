@@ -289,7 +289,9 @@ final class PatientCardio181Tests: XCTestCase {
         XCTAssertEqual(change("prior cardiac surgery", "cardiac-surgery"), .cardiacSurgery("Cardiac surgery"))
         XCTAssertEqual(change("s/p AVR 2015", "cardiac-surgery"), .cardiacSurgery("AVR 2015"))
         XCTAssertNil(change("s/p TAVR 2019", "cardiac-surgery"), "a transcatheter valve is not cardiac surgery")
-        XCTAssertNotNil(change("s/p TAVR 2019", "problem:prosthetic-valve-aortic"))
+        XCTAssertEqual(change("s/p TAVR 2019", "problem:prosthetic-valve-aortic"), .prosthesis("aortic", "TAVR"))
+        XCTAssertEqual(change("s/p mechanical AVR 2015", "cardiac-surgery"), .cardiacSurgery("mechanical AVR 2015"), "once, with its year")
+        XCTAssertEqual(change("s/p mechanical AVR 2015", "problem:prosthetic-valve-aortic"), .prosthesis("aortic", "mechanical"), "the year is the operation's")
         // Respiratory.
         XCTAssertEqual(ids("poorly controlled asthma").filter { $0.hasPrefix("problem:") }, ["problem:asthma-uncontrolled"])
         XCTAssertTrue(ids("recent pneumonia").contains("problem:pneumonia"))

@@ -36,7 +36,7 @@ final class MedAbbreviationsTests: XCTestCase {
         XCTAssertEqual(MedAbbreviations.lookup("MG")?.meanings.first?.text, "myasthenia gravis")
         XCTAssertNil(MedAbbreviations.lookup("mg"), "a milligram")
 
-        XCTAssertEqual(change(read("s/p AVR 2018"), "problem:prosthetic-valve-aortic"), .prosthesis("aortic", "2018"))
+        XCTAssertEqual(change(read("s/p AVR 2018"), "problem:prosthetic-valve-aortic"), .prosthesis("aortic", ""))
         let repaired = read("s/p AVr 2018")
         XCTAssertNil(change(repaired, "problem:prosthetic-valve-aortic"), "a repair is not a prosthetic valve")
         XCTAssertEqual(change(repaired, "cardiac-surgery"), .cardiacSurgery("AVr 2018"), "a valve repair is previous cardiac surgery")

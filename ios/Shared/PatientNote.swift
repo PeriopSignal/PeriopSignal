@@ -1073,12 +1073,10 @@ enum PatientNote {
             let after = ns.substring(from: r.location + r.length)
             var parts = words.filter { !$0.isEmpty }
             var range = r
+            // The size goes with the prosthesis; a year is the operation's (Previous cardiac surgery).
             if let s = prosthesisSizeAfter.first(after), let mm = s.text(1, in: after) {
                 parts.append(mm + " mm")
                 range.length += s.range.length
-            }
-            if let y = yearAfter.first(ns.substring(from: range.location + range.length)), let yr = y.text(1, in: ns.substring(from: range.location + range.length)) {
-                parts.append(yr)
             }
             let text = parts.joined(separator: " ")
             let id = "problem:prosthetic-valve" + (valve.isEmpty ? "" : "-" + valve)
@@ -1120,7 +1118,9 @@ enum PatientNote {
     private static func readCardiacSurgery(_ c: String, _ h: inout Hits) {
         var parts: [String] = []
         var at: NSRange?
+        var read: [NSRange] = []
         func note(_ t: String, _ r: NSRange) {
+            read.append(r)
             let t = t.trimmingCharacters(in: .whitespaces)
             if !parts.contains(where: { $0.caseInsensitiveCompare(t) == .orderedSame }) { parts.append(t) }
             at = at.map { NSUnionRange($0, r) } ?? r
@@ -1133,7 +1133,7 @@ enum PatientNote {
         }
         for m in cardiacSurgeryYearRx.all(c) where !negated(c, at: m.range.location) && !familyContext(c, at: m.range.location) {
             guard let op = m.text(1, in: c), let y = m.text(2, in: c) else { continue }
-            if parts.contains(where: { $0.hasPrefix(op) }) { continue }
+            if read.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) { continue }
             note(op + " " + y, m.range)
         }
         if let m = redoSternotomyRx.first(c), !negated(c, at: m.range.location), !parts.contains(where: { $0.lowercased().contains("sternotomy") }) {
