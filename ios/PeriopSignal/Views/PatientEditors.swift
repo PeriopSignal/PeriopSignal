@@ -381,7 +381,7 @@ struct PatientEditorView: View {
                 }
             }
             let aorta = Set(PatientCatalog.aortaIDs)
-            PatientGroup(title: s.name, note: "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-BANG and other scores open with them ticked.") {
+            PatientGroup(title: s.name, note: PatientCatalog.systemNote(s)) {
                 PatientChipRow(label: nil) {
                     PatientChips(options: s.problems.filter { !aorta.contains($0.id) }.map(problemFlag), selection: bind(\.problems))
                 }

@@ -269,6 +269,7 @@ final class PatientStore {
         case "demo": return PatientDemo.record
         case "demo-cardiac": return PatientDemo.cardiac
         case "demo-dnr": return PatientDemo.dnr
+        case "demo-history": return PatientDemo.history
         default: return nil
         }
     }
@@ -277,6 +278,15 @@ final class PatientStore {
 
 /// A made-up patient for screenshots and previews.
 enum PatientDemo {
+    /// The demo patient with the 1.8.1 History items: plain Diabetes, Stroke, unspecified, and Infectious problems.
+    static var history: PatientRecord {
+        var r = record
+        r.problems = ["htn", "dm", "cva-unspec", "copd", "hepatitis-viral", "mdro", "isolation"]
+        r.medFlags.remove("insulin")
+        r.asaClass = nil
+        return r
+    }
+
     static var record: PatientRecord {
         var r = PatientRecord()
         r.ageYears = 67; r.sex = .male; r.heightCm = 178; r.weightKg = 96
