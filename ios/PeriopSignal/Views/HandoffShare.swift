@@ -76,7 +76,7 @@ enum HandoffShare {
         let m = PatientDiagramModel.items(record, phase: .all)
         guard !m.items.isEmpty else { return nil }
         let view = PatientDiagramCanvas(figure: figure, items: m.items, cart: m.cart)
-            .frame(width: 360, height: 560)
+            .frame(width: 360)
             .padding(12)
             .background(Color.white)
             .environment(\.colorScheme, .light)

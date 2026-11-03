@@ -179,7 +179,7 @@ final class Handoff183Tests: XCTestCase {
         XCTAssertNil(HandoffShare.diagramImage(PatientDemo.cardiac, figure: nil), "no figure loaded: no picture")
         let image = try XCTUnwrap(HandoffShare.diagramImage(PatientDemo.cardiac, figure: fig))
         XCTAssertEqual(image.size.width, 384, accuracy: 0.5)
-        XCTAssertEqual(image.size.height, 584, accuracy: 0.5)
+        XCTAssertEqual(image.size.height, 360 * 420 / 296 + 24, accuracy: 1.5, "the figure's own proportions, no empty bands")
         // White at the edge, whatever the phone's appearance.
         let cg = try XCTUnwrap(image.cgImage)
         let data = try XCTUnwrap(cg.dataProvider?.data)
