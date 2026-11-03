@@ -32,36 +32,77 @@ enum LabResult: String, Codable, CaseIterable, Hashable {
     var needsTelling: Bool { self != .negative }
 }
 
-/// Type and screen: ABO/Rh, the antibody screen and the units crossmatched.
+/// Type and screen: ABO and Rh (chosen separately, Ben, Nov 3: "A/B/AB/O Rh +/-"), the antibody screen and the units
+/// crossmatched.
 struct PatientTypeScreen: Codable, Hashable {
-    /// "A+", "A-", … "O-" (ASCII); shown with a minus sign ("A−").
-    var type: String?
+    /// "A", "B", "AB", "O".
+    var abo: String?
+    /// "+" or "-" (ASCII); shown with a minus sign ("A−").
+    var rh: String?
     var screen: LabResult?
     /// The antibody a positive screen found, as typed ("anti-K").
     var antibody = ""
     var crossmatched: Int?
 
-    static let types = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+    static let aboGroups = ["A", "B", "AB", "O"]
+    static let rhFactors = ["+", "-"]
     static let unitLimit = 40
 
-    init(type: String? = nil, screen: LabResult? = nil, antibody: String = "", crossmatched: Int? = nil) {
-        self.type = type; self.screen = screen; self.antibody = antibody; self.crossmatched = crossmatched
+    /// "A+", "A-", … "O-" (ASCII) with both chosen; nil otherwise. Setting it sets both (nil clears both).
+    var type: String? {
+        get { abo.flatMap { a in rh.map { a + $0 } } }
+        set {
+            guard let t = newValue, let r = t.last.map({ String($0) }), Self.rhFactors.contains(r), Self.aboGroups.contains(String(t.dropLast())) else {
+                abo = nil; rh = nil
+                return
+            }
+            abo = String(t.dropLast()); rh = r
+        }
     }
+
+    init(type: String? = nil, screen: LabResult? = nil, antibody: String = "", crossmatched: Int? = nil) {
+        self.screen = screen; self.antibody = antibody; self.crossmatched = crossmatched
+        self.type = type
+    }
+
+    private enum CodingKeys: String, CodingKey { case abo, rh, type, screen, antibody, crossmatched }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        type = (try? c.decodeIfPresent(String.self, forKey: .type)).flatMap { Self.types.contains($0) ? $0 : nil }
+        abo = (try? c.decodeIfPresent(String.self, forKey: .abo)).flatMap { Self.aboGroups.contains($0) ? $0 : nil }
+        rh = (try? c.decodeIfPresent(String.self, forKey: .rh)).flatMap { Self.rhFactors.contains($0) ? $0 : nil }
         screen = try? c.decodeIfPresent(LabResult.self, forKey: .screen)
         antibody = (try? c.decodeIfPresent(String.self, forKey: .antibody)) ?? ""
         crossmatched = try? c.decodeIfPresent(Int.self, forKey: .crossmatched)
+        // Saved before ABO and Rh were separate: "A-".
+        if abo == nil, rh == nil, let t = try? c.decodeIfPresent(String.self, forKey: .type) { type = t }
     }
 
-    var isEmpty: Bool { type == nil && screen == nil && antibodyText.isEmpty && crossmatched == nil }
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(abo, forKey: .abo)
+        try c.encodeIfPresent(rh, forKey: .rh)
+        try c.encodeIfPresent(screen, forKey: .screen)
+        try c.encode(antibody, forKey: .antibody)
+        try c.encodeIfPresent(crossmatched, forKey: .crossmatched)
+    }
+
+    var isEmpty: Bool { abo == nil && rh == nil && screen == nil && antibodyText.isEmpty && crossmatched == nil }
 
     var antibodyText: String { antibody.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     /// "A−".
     static func display(_ t: String) -> String { t.replacingOccurrences(of: "-", with: "−") }
+
+    /// "A−"; with one of them chosen, what is known: "A, Rh not set", "ABO not set, Rh−".
+    var typeText: String? {
+        switch (abo, rh) {
+        case let (a?, r?): return Self.display(a + r)
+        case let (a?, nil): return a + ", Rh not set"
+        case let (nil, r?): return "ABO not set, Rh" + Self.display(r)
+        default: return nil
+        }
+    }
 
     /// "screen neg", "screen pos (anti-K)", "screen pending".
     var screenText: String? {
@@ -71,7 +112,7 @@ struct PatientTypeScreen: Codable, Hashable {
 
     /// "T&S A−, screen neg"; nil with neither.
     var head: String? {
-        let parts = [type.map(Self.display), screenText].compactMap { $0 }
+        let parts = [typeText, screenText].compactMap { $0 }
         return parts.isEmpty ? nil : "T&S " + parts.joined(separator: ", ")
     }
 
@@ -84,7 +125,8 @@ struct PatientTypeScreen: Codable, Hashable {
     /// What a note gave, over what the record holds: only the parts the note said.
     func merged(over o: PatientTypeScreen) -> PatientTypeScreen {
         var r = o
-        if let t = type { r.type = t }
+        if let a = abo { r.abo = a }
+        if let x = rh { r.rh = x }
         if let s = screen { r.screen = s }
         if !antibodyText.isEmpty { r.antibody = antibodyText }
         if let x = crossmatched { r.crossmatched = x }
@@ -146,6 +188,22 @@ enum LabResults {
     ]
 
     static func test(_ id: String) -> InfectiousTest? { infectious.first { $0.id == id } }
+
+    // MARK: The Type & Screen group (added with "+ Type & Screen", Ben, Nov 3)
+
+    /// PatientRecord.labSections' id for the group.
+    static let typeScreenSection = "typescreen"
+
+    /// Shown once added, or whenever the record holds anything of it (typed, or saved before the add row).
+    static func typeScreenShown(_ r: PatientRecord) -> Bool { r.labSections.contains(typeScreenSection) || !r.typeScreen.isEmpty }
+
+    static func addTypeScreen(_ r: inout PatientRecord) { r.labSections.insert(typeScreenSection) }
+
+    /// Takes the group off: its values are cleared, so it shows as the add row again.
+    static func removeTypeScreen(_ r: inout PatientRecord) {
+        r.labSections.remove(typeScreenSection)
+        r.typeScreen = PatientTypeScreen()
+    }
 
     /// The history item an Other result named so would mark when positive: "mdro" for a name the MRSA/VRE rule reads.
     static func otherLink(_ name: String) -> String? {
@@ -371,7 +429,7 @@ enum LabResults {
 
     static func typeScreenFinding(_ ts: PatientTypeScreen) -> PatientNoteFinding {
         var parts: [String] = []
-        if let t = ts.type { parts.append(PatientTypeScreen.display(t)) }
+        if let t = ts.typeText { parts.append(t) }
         if let s = ts.screen { parts.append("antibody screen " + s.label.lowercased() + (ts.antibodyText.isEmpty ? "" : " (" + ts.antibodyText + ")")) }
         if let x = ts.crossmatched { parts.append("\(x) unit" + (x == 1 ? "" : "s") + " crossmatched") }
         return PatientNoteFinding(id: "typeScreen", section: PatientNote.Part.labs, label: "Type & screen: " + parts.joined(separator: ", "),
@@ -384,7 +442,7 @@ enum LabResults {
         let o = r.typeScreen
         let merged = ts.merged(over: o)
         if merged == o { return .recorded }
-        let clash = (ts.type != nil && o.type != nil && ts.type != o.type) || (ts.screen != nil && o.screen != nil && ts.screen != o.screen)
+        let clash = (ts.abo != nil && o.abo != nil && ts.abo != o.abo) || (ts.rh != nil && o.rh != nil && ts.rh != o.rh) || (ts.screen != nil && o.screen != nil && ts.screen != o.screen)
             || (ts.crossmatched != nil && o.crossmatched != nil && ts.crossmatched != o.crossmatched)
         return clash ? .replaces(o.parts.joined(separator: ", ")) : .new
     }

@@ -431,4 +431,57 @@ final class PatientLabs183Tests: XCTestCase {
         XCTAssertTrue(c.contains("pooled malaria cohort (Lee SJ et al., Malar J 2008)"), c)
         XCTAssertTrue(c.hasSuffix("Only measured values are saved."), c)
     }
+
+    // MARK: Type & Screen layout (Ben, Nov 3: "+Type & Screen -> A/B/AB/O Rh +/- Antibody screen +/-")
+
+    func testTypeScreenAddAndRemove() {
+        var r = PatientRecord()
+        XCTAssertFalse(LabResults.typeScreenShown(r), "an add row until added")
+        LabResults.addTypeScreen(&r)
+        XCTAssertTrue(LabResults.typeScreenShown(r))
+        XCTAssertTrue(r.typeScreen.isEmpty, "adding sets nothing")
+        XCTAssertNil(PatientSummary.labsLine(r), "an empty group says nothing")
+        r.typeScreen.abo = "O"
+        r.typeScreen.screen = .pending
+        r.typeScreen.crossmatched = 2
+        LabResults.removeTypeScreen(&r)
+        XCTAssertFalse(LabResults.typeScreenShown(r), "removed: the add row again")
+        XCTAssertTrue(r.typeScreen.isEmpty, "its values go with it")
+        XCTAssertFalse(r.labSections.contains(LabResults.typeScreenSection))
+        // A record that already has values shows the group open, without the add row being tapped.
+        let typed = applied(quick("T&S A-/-").findings)
+        XCTAssertFalse(typed.labSections.contains(LabResults.typeScreenSection))
+        XCTAssertTrue(LabResults.typeScreenShown(typed))
+        XCTAssertTrue(LabResults.typeScreenShown(PatientDemo.labs))
+        XCTAssertFalse(LabResults.typeScreenShown(PatientDemo.record))
+    }
+
+    func testABOAndRhChosenSeparately() {
+        var t = PatientTypeScreen()
+        t.abo = "A"
+        XCTAssertNil(t.type, "not a full type yet")
+        XCTAssertEqual(t.head, "T&S A, Rh not set")
+        t.rh = "-"
+        XCTAssertEqual(t.type, "A-")
+        XCTAssertEqual(t.head, "T&S A−")
+        t.screen = .negative
+        t.crossmatched = 2
+        XCTAssertEqual(t.parts, ["T&S A−, screen neg", "2 u crossmatched"], "the display wording is unchanged")
+        var u = PatientTypeScreen()
+        u.rh = "+"
+        XCTAssertEqual(u.head, "T&S ABO not set, Rh+")
+        XCTAssertEqual(PatientTypeScreen(type: "AB+"), { var x = PatientTypeScreen(); x.abo = "AB"; x.rh = "+"; return x }())
+        // Typed parts add to what is chosen: an ABO typed over a chosen Rh.
+        var r = PatientRecord()
+        r.typeScreen.rh = "-"
+        PatientNote.apply([.typeScreen({ var x = PatientTypeScreen(); x.abo = "B"; return x }())], to: &r)
+        XCTAssertEqual(r.typeScreen.type, "B-")
+        // Saved as one "type" before ABO and Rh were separate: still read.
+        let old = try? JSONDecoder().decode(PatientTypeScreen.self, from: Data(#"{"type":"O-","screen":"neg","antibody":""}"#.utf8))
+        XCTAssertEqual(old, PatientTypeScreen(type: "O-", screen: .negative))
+        var half = PatientTypeScreen()
+        half.abo = "O"
+        let back = try? JSONDecoder().decode(PatientTypeScreen.self, from: JSONEncoder().encode(half))
+        XCTAssertEqual(back, half, "one of the two is kept on its own")
+    }
 }

@@ -242,8 +242,9 @@ jobs:
           shot 401-labs-results-dark 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance dark
           shot 402-labs-handoff 16 -ps.tab patient -ps.patient demo-labs -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
           shot 403-labs-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "Hbg 12.1, Cr 1, lac 1.4, T&S A-/-, 2u xm, staph neg, MRSA screen negative, covid negative, C diff pending, VRE positive"
-          shot 404-labs-estimate 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.evidence.open 1 -ps.forceAppearance light
+          shot 404-labs-estimate 20 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.evidence.open 1 -ps.forceAppearance light
           shot 405-labs-handoff-short-dark 16 -ps.tab patient -ps.patient demo-labs -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 406-labs-typescreen-add 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance light
           # 1.8.1 wave 3 (My Patient editors, 250-259): each moved explanation opened (-ps.evidence.open 1).
           shot 250-wave3-assessment-info 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1 -ps.forceAppearance dark
           shot 251-wave3-code-status-info 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.open assessment -ps.patient.scroll codestatus -ps.evidence.open 1 -ps.forceAppearance light
