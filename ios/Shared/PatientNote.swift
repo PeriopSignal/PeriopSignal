@@ -36,8 +36,8 @@ enum PatientNoteChange: Hashable {
     /// One past operation (1.8.3): the operation as written, without its date, and its month and year when the note gives
     /// them. It becomes an entry in Past surgical history (PastSurgeryNote).
     case pastSurgery(String, PatientMonthYear)
-    /// The cath was non-obstructive (1.8.3): the Left heart cath's option. Read only beside a cath word.
-    case lhcNonObstructive
+    /// The Left heart cath's result (1.8.3): PatientLHC.result, "non-obstructive" or "no-cad". Read only beside a cath word.
+    case lhcResult(String)
     /// Home oxygen with its flow, L/min.
     case homeO2(Double)
     /// A problem, and the words to add to its details ("evar", "FEVAR 2021": a complex EVAR files as Prior EVAR, and its
@@ -738,8 +738,9 @@ enum PatientNote {
                 }), let meaning = a.meaning else { continue }
                 h.findings[i].note = "Read “" + a.token + "” as " + meaning.text + "; change it under Abbreviations if not."
             }
-            if let m = PatientLHC.readNonObstructive(c) {
-                h.add(PatientNoteFinding(id: "lhc:nonobstructive", section: Part.assessment, label: "Left heart cath: non-obstructive", change: .lhcNonObstructive), at: m.phrase)
+            if let m = PatientLHC.readResult(c) {
+                h.add(PatientNoteFinding(id: "lhc:result", section: Part.assessment, label: "Left heart cath: " + (m.result == "no-cad" ? "no CAD" : "non-obstructive"),
+                                         change: .lhcResult(m.result)), at: m.phrase)
                 h.seen(m.cath)
                 // "nonobstructive CAD" is the cath's result, not coronary artery disease for the history (and the ASA class
                 // that follows from it): the CAD item read from the words right after it is not filed.
@@ -2465,8 +2466,9 @@ enum PatientNote {
                 || PastSurgeryNote.cardiacRecorded(t, in: r) ? .recorded : .new
         case .pastSurgery(let t, let d):
             return PastSurgeryNote.isRecorded(t, d, in: r) ? .recorded : .new
-        case .lhcNonObstructive:
-            return r.lhc.nonObstructive ? .recorded : .new
+        case .lhcResult(let v):
+            guard let o = r.lhc.result else { return .new }
+            return o == v ? .recorded : .replaces(o == "no-cad" ? "no CAD" : "non-obstructive")
         case .homeO2(let flow):
             guard r.has("home-o2"), let o = r.hx.homeO2Flow else { return .new }
             return same(o, flow) ? .recorded : .replaces(NumText.short(o) + " L/min")
@@ -2675,8 +2677,8 @@ enum PatientNote {
                 PastSurgeryNote.addCardiac(t, to: &r)
             case .pastSurgery(let t, let d):
                 PastSurgeryNote.add(t, d, to: &r)
-            case .lhcNonObstructive:
-                r.lhc.nonObstructive = true
+            case .lhcResult(let v):
+                r.lhc.result = v
             case .homeO2(let flow):
                 r.noHistory = false
                 r.problems.insert("home-o2")

@@ -571,14 +571,15 @@ struct PatientLHC: Codable, Hashable {
     var stenosis: [String: Double] = [:]
     var notes = ""
     var date = PatientMonthYear()
-    /// The cath showed no obstructive coronary disease (1.8.3, Ben). Nothing derives from it: it sets no CAD history and
-    /// changes no score; the vessel percentages stay (a non-obstructive cath can list a 30% LAD).
-    var nonObstructive = false
+    /// The cath's result in a word (1.8.3, Ben): "non-obstructive" or "no-cad", one at a time. Nothing derives from it: it
+    /// sets no CAD history and changes no score; the vessel percentages stay (a non-obstructive cath can list a 30% LAD).
+    var result: String?
+    static let resultOptions: [(id: String, label: String)] = [("non-obstructive", "Non-obstructive"), ("no-cad", "No CAD")]
 
     init() {}
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        nonObstructive = (try? c.decodeIfPresent(Bool.self, forKey: .nonObstructive)) ?? false
+        result = try? c.decodeIfPresent(String.self, forKey: .result)
         dominance = try? c.decodeIfPresent(String.self, forKey: .dominance)
         stenosis = (try? c.decodeIfPresent([String: Double].self, forKey: .stenosis)) ?? [:]
         notes = (try? c.decodeIfPresent(String.self, forKey: .notes)) ?? ""
@@ -589,11 +590,13 @@ struct PatientLHC: Codable, Hashable {
 
     var isEmpty: Bool { self == PatientLHC() }
 
-    /// Words in the notes that say the cath was non-obstructive.
-    static let nonObstructiveWords = NoteRx(#"non[- ]?obstructive"#)
+    /// Words in the notes that already say the cath's result.
+    static let nonObstructiveWords = NoteRx(#"non[- ]?obstructive|no obstructive"#)
+    static let noCADWords = NoteRx(#"\bno[- ]?cad\b|\bno coronary (?:artery )?disease|\b(?:normal|clean) coronar"#)
 
     /// "LHC 05/2026, right dominant: LAD 90%, RCA 70%; LM, LCx, PDA no significant disease". Non-obstructive reads first
-    /// ("LHC 06/2026, right dominant: non-obstructive CAD", then the vessels and the notes), unless the notes say it already.
+    /// ("LHC 06/2026, right dominant: non-obstructive CAD", or "...: no CAD"; then the vessels and the notes), unless the
+    /// notes say it already.
     var summary: String {
         var head = "LHC"
         if !date.isEmpty { head += " " + date.text }
@@ -602,7 +605,8 @@ struct PatientLHC: Codable, Hashable {
         let severe = named.filter { (stenosis[$0.id] ?? 0) >= 50 }.map { "\($0.label) \(NumText.short(stenosis[$0.id] ?? 0))%" }
         let mild = named.filter { (stenosis[$0.id] ?? 0) < 50 }
         var parts: [String] = []
-        if nonObstructive, PatientLHC.nonObstructiveWords.first(notes) == nil { parts.append("non-obstructive CAD") }
+        if result == "non-obstructive", PatientLHC.nonObstructiveWords.first(notes) == nil { parts.append("non-obstructive CAD") }
+        if result == "no-cad", PatientLHC.noCADWords.first(notes) == nil { parts.append("no CAD") }
         if !severe.isEmpty { parts.append(severe.joined(separator: ", ")) }
         if !mild.isEmpty { parts.append(mild.map { "\($0.label) \(NumText.short(stenosis[$0.id] ?? 0))%" }.joined(separator: ", ")) }
         if !notes.isEmpty { parts.append(notes) }
@@ -796,18 +800,24 @@ extension PatientDevice {
     static let supportKinds: Set<DeviceKind> = [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella, .protekDuo]
 }
 
-// MARK: - Non-obstructive cath, from a typed note (1.8.3)
+// MARK: - The cath's result, from a typed note (1.8.3)
 
 extension PatientLHC {
-    private static let nonObstructiveRx = NoteRx(#"\bnon[- ]?obstructive\b"#)
+    private static let nonObstructiveRx = NoteRx(#"\b(?:non[- ]?obstructive|no obstructive)\b"#)
+    private static let noCADRx = NoteRx(#"\b(?:(?:angiographically |grossly )?normal coronar(?:y|ies)(?: arter(?:y|ies))?|clean coronar(?:y|ies)|no (?:cad|coronary (?:artery )?disease))\b"#)
     /// A cath, LHC or angiogram word (not a PA, arterial or central catheter).
     private static let cathRx = NoteRx(#"(?<!\bpa )(?<!\bart )(?<!arterial )(?<!venous )(?<!central )(?<!foley )(?<!urinary )\b(?:lhc|cath(?:eterization|eterisation)?|angiogra(?:m|phy)|angio)\b"#)
-    static var patterns: [NoteRx] { [nonObstructiveRx, cathRx] }
+    static var patterns: [NoteRx] { [nonObstructiveRx, noCADRx, cathRx] }
 
-    /// "LHC non-obstructive", "cath: nonobstructive CAD", "non-obstructive coronary disease on cath": where the words are,
-    /// when a cath word is in the same sentence. Without one it may be a CT result, so nothing is read.
-    static func readNonObstructive(_ c: String) -> (phrase: NSRange, cath: NSRange)? {
-        guard let m = nonObstructiveRx.first(c), let k = cathRx.first(c) else { return nil }
-        return (m.range, k.range)
+    /// The cath's result as typed, when a cath, LHC or angiogram word is in the same sentence (without one it may be a CT
+    /// result, so nothing is read): "LHC non-obstructive", "cath: nonobstructive CAD", "mild non-obstructive disease on
+    /// cath" are "non-obstructive"; "normal coronaries", "clean coronaries", "no CAD" on a cath are "no-cad". "No
+    /// significant CAD" says neither, and a sentence that says both is not read.
+    static func readResult(_ c: String) -> (result: String, phrase: NSRange, cath: NSRange)? {
+        guard let k = cathRx.first(c) else { return nil }
+        let non = nonObstructiveRx.first(c), none = noCADRx.first(c)
+        if let m = non, none == nil { return ("non-obstructive", m.range, k.range) }
+        if let m = none, non == nil { return ("no-cad", m.range, k.range) }
+        return nil
     }
 }

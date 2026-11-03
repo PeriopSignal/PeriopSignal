@@ -194,12 +194,10 @@ extension PatientEditorView {
                 PatientChoice(options: [(id: "right", label: "Right"), (id: "left", label: "Left"), (id: "codominant", label: "Codominant")], selection: bind(\.lhc.dominance))
             }
             Hairline().padding(.leading, 14)
-            // Non-obstructive disease on the cath: a row of its own, a chip like the dominance's (one tap on, one off). It
-            // sets no history and no score, and the vessels below stay.
+            // The cath's result: Non-obstructive or No CAD, a row of its own with chips like the dominance's (one at a time,
+            // one tap on, one off). It sets no history and no score, and the vessels below stay.
             PatientChipRow(label: nil) {
-                PatientChoice(options: [(id: "non-obstructive", label: "Non-obstructive")],
-                              selection: Binding(get: { patient.record.lhc.nonObstructive ? "non-obstructive" : nil },
-                                                 set: { v in patient.update { $0.lhc.nonObstructive = v != nil } }))
+                PatientChoice(options: PatientLHC.resultOptions, selection: bind(\.lhc.result))
             }
             Hairline().padding(.leading, 14)
             ForEach(Array(PatientLHC.vessels.enumerated()), id: \.element.id) { i, v in

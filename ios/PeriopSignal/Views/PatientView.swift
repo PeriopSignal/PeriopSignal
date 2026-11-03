@@ -266,7 +266,7 @@ struct PatientView: View {
                 case "ecg-none": r.ecg = []; r.ecgFromHistory = []
                 // 1.8.3: a non-obstructive cath, right dominant, with a date.
                 case "lhc-nonobstructive":
-                    r.lhc.dominance = "right"; r.lhc.nonObstructive = true; r.lhc.date = PatientMonthYear(month: 6, year: 2026)
+                    r.lhc.dominance = "right"; r.lhc.result = "non-obstructive"; r.lhc.date = PatientMonthYear(month: 6, year: 2026)
                 default: PatientAirway.applyNormalExam(&r)
                 }
             }
