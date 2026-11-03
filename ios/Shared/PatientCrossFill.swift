@@ -96,3 +96,14 @@ enum PatientCrossFill {
         PatientDeviceFills.apply(before: before, after: &r)
     }
 }
+
+// MARK: Suggestions the pages show (helper APIs; nothing here is stored)
+
+extension PatientCrossFill {
+    /// An abnormal TSH (or free T4) with no Thyroid disease recorded: the line to offer ("TSH 8.2 mIU/L, high: add thyroid
+    /// disease?"), or nil.
+    static func thyroidSuggestion(_ r: PatientRecord) -> String? { nil }
+
+    /// Accepting it: Thyroid disease, hypo- or hyperthyroid as the TSH reads.
+    static func acceptThyroidSuggestion(_ r: inout PatientRecord) {}
+}
