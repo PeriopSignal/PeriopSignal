@@ -40,7 +40,7 @@ final class PatientHistory181Tests: XCTestCase {
 
     func testStrokeUnspecified() throws {
         let neuro = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "neuro" })
-        XCTAssertEqual(Array(neuro.problems.prefix(3).map(\.label)), ["Stroke or TIA, over 3 months", "Stroke or TIA within 3 months", "Stroke, unspecified"])
+        XCTAssertEqual(Array(neuro.problems.prefix(3).map(\.label)), ["Stroke or TIA, over 3 months", "Stroke or TIA within 3 months", "Stroke or TIA, unspecified"])
         let s = try XCTUnwrap(PatientCatalog.problem("cva-unspec"))
         XCTAssertEqual(s.asa, 3)
         XCTAssertEqual(s.asaExample, "history (>3 months) of MI, CVA, TIA, or CAD/stents")
@@ -76,7 +76,7 @@ final class PatientHistory181Tests: XCTestCase {
         let endo = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "endo" })
         XCTAssertTrue(PatientCatalog.systemNote(endo).hasPrefix("Diabetes: ASA III if poorly controlled; change the class by hand.\n\n"))
         let neuro = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "neuro" })
-        XCTAssertTrue(PatientCatalog.systemNote(neuro).hasPrefix("Stroke, unspecified: ASA IV if within 3 months.\n\n"))
+        XCTAssertTrue(PatientCatalog.systemNote(neuro).hasPrefix("Stroke or TIA, unspecified: ASA IV if within 3 months.\n\n"))
         let resp = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "resp" })
         XCTAssertTrue(PatientCatalog.systemNote(resp).hasPrefix("Problems the ASA's own examples"), "no item lines: only the usual note")
     }
@@ -149,8 +149,9 @@ final class PatientHistory181Tests: XCTestCase {
         }
         let thisYear = Calendar(identifier: .gregorian).component(.year, from: Date())
         XCTAssertEqual(ids("stroke " + String(thisYear)), ["problem:cva-unspec"], "this year may be within 3 months")
-        XCTAssertEqual(ids("TIA"), ["problem:cva"], "TIA as before")
-        XCTAssertEqual(PatientNote.read("TIA", now: now).findings.first { $0.id == "problem:cva" }?.note, "Added as over 3 months ago; choose within 3 months in History if recent.")
+        // 1.8.2: a TIA with no time is "Stroke or TIA, unspecified", as a stroke is, not over 3 months with a caution.
+        XCTAssertEqual(ids("TIA"), ["problem:cva-unspec"], "TIA reads like a stroke (1.8.2)")
+        XCTAssertNil(PatientNote.read("TIA", now: now).findings.first { $0.id == "problem:cva" })
         XCTAssertNil(PatientNote.read("stroke 5 years ago", now: now).findings.first { $0.id == "problem:cva" }?.note, "the time is given")
         for t in ["heat stroke", "stroke volume 60 mL", "on apixaban for stroke prevention", "No history of stroke"] {
             XCTAssertEqual(ids(t), [], t)

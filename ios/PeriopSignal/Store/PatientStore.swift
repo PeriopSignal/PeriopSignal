@@ -271,6 +271,7 @@ final class PatientStore {
         case "demo-dnr": return PatientDemo.dnr
         case "demo-history": return PatientDemo.history
         case "demo-cardio": return PatientDemo.cardio
+        case "demo-neuro": return PatientDemo.neuro
         default: return nil
         }
     }
@@ -284,6 +285,17 @@ enum PatientDemo {
         var r = record
         r.problems = ["htn", "dm", "cva-unspec", "copd", "hepatitis-viral", "mdro", "isolation"]
         r.medFlags.remove("insulin")
+        r.asaClass = nil
+        return r
+    }
+
+    /// The demo patient with the 1.8.2 Neurologic page filled in: a stroke within 3 months, an intracranial bleed with mass
+    /// effect, and a few other items.
+    static var neuro: PatientRecord {
+        var r = record
+        r.problems = ["htn", "dm", "cva-recent", "ich-mass", "seizure", "dementia", "chronic-pain"]
+        r.medFlags.remove("insulin")
+        r.systemNotes = ["neuro": "On levetiracetam"]
         r.asaClass = nil
         return r
     }

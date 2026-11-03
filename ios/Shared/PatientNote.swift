@@ -228,6 +228,7 @@ enum PatientNote {
 
     private static let stentCardiac = NoteRx(#"\b(?:cad|coronary|cardiac|heart|lad|rca|lcx|circumflex|mi|cath|angina|n?stemi|des|bms|pci)\b"#)
     private static let stentOther = NoteRx(#"\b(?:ureter|ureteral|ureteric|jj|double[- ]j|biliary|cbd|bile duct|pancrea|esophag|oesophag|trache|airway|bronch|carotid|renal|iliac|femoral|sfa|popliteal|colonic|duodenal|venous|svc|ivc|tips)"#)
+    private static let ichWords = #"(?<!risk of )(?<!risk for )(?<!spinal )(?<!neuraxial )\b(?:intracranial|intracerebral|subarachnoid|subdural|epidural) (?:hemorrhages?|haemorrhages?|bleeds?|bleeding|hematomas?|haematomas?)\b"#
     private static let within3Months = #"(?:\d{1,2} days? ago|(?:[1-9]|1[0-2]) weeks? ago|last (?:week|month)|this month|(?:1|2|one|two) months? ago)"#
     /// A time over 3 months ago: a year ("2019"; the current year or later is not, see strokeYearNotPast), "5 years
     /// ago", "6 months ago".
@@ -321,14 +322,20 @@ enum PatientNote {
         Rule("uri", #"(?-i:\bURI\b)|upper respiratory (?:tract )?infection|(?:recent|current) (?:cold|cough|chest infection|bronchitis|respiratory infection|flu)"#),
         Rule("home-o2", #"home (?:oxygen|o2)|oxygen at home|o2 at home|\d+(?:\.\d+)? ?l(?:pm)? (?:nc )?at home"#),
         Rule("ild", #"(?-i:\b(?:ILD|IPF)\b)|interstitial lung disease|pulmonary fibrosis"#),
-        // A stroke within 3 months, over 3 months (a time given: "CVA 2019", "stroke 5 years ago"), or unspecified (no
-        // time: "h/o stroke", "CVA", "prior stroke"); the timed items replace the unspecified one (1.8.1). A TIA keeps
-        // the over-3-months item with its caution. Not "heat stroke" or "stroke volume".
+        // A stroke or TIA within 3 months, over 3 months (a time given: "CVA 2019", "TIA 5 years ago"), or unspecified (no
+        // time: "h/o stroke", "CVA", "prior stroke", "TIA"); the timed items replace the unspecified one (1.8.1). Since 1.8.2
+        // the unspecified item reads "Stroke or TIA, unspecified", so a TIA with no time files it too, as a stroke does,
+        // instead of claiming over 3 months. Not "heat stroke" or "stroke volume".
         Rule("cva-recent", #"\b(?:recent|new) (?:stroke|cva|tia)\b|\b(?:stroke|cva|tia)\s+"# + within3Months),
-        Rule("cva", #"\b(?:stroke|cva)\s+(?:in\s+|\(\s*)?"# + over3Months + #"|\b(?:19|20)\d\d\s+(?:stroke|cva)\b"#, quiet: true),
-        Rule("cva", #"(?-i:\bTIA\b)|transient ischemic attack"#),
+        Rule("cva", #"\b(?:stroke|cva|(?-i:TIA)|transient ischemic attack)\s+(?:in\s+|\(\s*)?"# + over3Months + #"|\b(?:19|20)\d\d\s+(?:stroke|cva|(?-i:TIA))\b"#, quiet: true),
+        Rule("cva-unspec", #"(?-i:\bTIA\b)|transient ischemic attack"#),
         Rule("cva-unspec", #"(?<!heat )(?<!sun )\b(?:stroke|cva)\b(?!\s+(?:volume|work|index|risk|prevention|prophylaxis|distance|scale))(?!-like)"#),
-        Rule("ich-mass", #"(?:intracranial|intracerebral|subdural|epidural) (?:hemorrhage|haemorrhage|bleed|hematoma) with (?:mass effect|midline shift)"#),
+        // An intracranial bleed (1.8.2): plain files "ich"; with mass effect or midline shift, "ich-mass", which replaces it. Not
+        // a spinal or neuraxial epidural hematoma, nor a risk ("intracranial hemorrhage risk", "risk of subdural hematoma").
+        // A bare "epidural hematoma" or "epidural bleed" is left out of the plain item: in an anesthesia note it is usually
+        // the neuraxial complication. With mass effect or midline shift it is intracranial and files ich-mass.
+        Rule("ich-mass", ichWords + #" with (?:mass effect|midline shift)"#),
+        Rule("ich", #"(?!epidural\b)"# + ichWords + #"(?!\s+(?:risk|precautions?|prophylaxis|prevention)\b)"#),
         Rule("raised-icp", #"(?:raised|elevated|increased|high) (?:icp|intracranial pressure)|brain (?:tumou?r|mass)|intracranial mass"#),
         Rule("seizure", #"\bseizures?\b|epilepsy"#),
         Rule("dementia", #"dementia|alzheimer|cognitive impairment"#),
@@ -400,7 +407,7 @@ enum PatientNote {
     /// A general item and the more specific ones that replace it ("hypertension, well controlled" by "poorly
     /// controlled").
     static let supersededBy: [String: [String]] = [
-        "htn": ["htn-180"], "cad": ["mi", "cad-recent", "pci", "pci-recent", "ischemia", "cabg"], "mi": ["cad-recent"], "pci": ["pci-recent"], "cva": ["cva-recent"], "cva-unspec": ["cva", "cva-recent"],
+        "htn": ["htn-180"], "cad": ["mi", "cad-recent", "pci", "pci-recent", "ischemia", "cabg"], "mi": ["cad-recent"], "pci": ["pci-recent"], "cva": ["cva-recent"], "cva-unspec": ["cva", "cva-recent"], "ich": ["ich-mass"],
         "hf": ["hf-decomp"], "ef-moderate": ["ef-severe"], "pulm-htn": ["pulm-htn-severe"], "chd": ["chd-elevated"],
         "asthma": ["asthma-uncontrolled"], "ckd": ["esrd-dialysis"], "gdm-diet": ["gdm-complex"], "alcohol-social": ["alcohol-abuse"],
         "aaa": ["aaa-ruptured"], "taa": ["taa-ruptured"], "taaa": ["taaa-ruptured"],
