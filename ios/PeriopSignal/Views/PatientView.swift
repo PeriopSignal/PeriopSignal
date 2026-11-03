@@ -767,7 +767,8 @@ struct HandoffLinesFigure: View {
                         Spacer()
                         Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                     }
-                    PatientDiagramCard(record: record, phase: .all, height: 260)
+                    // 350: the smallest height whose label columns (8.4 figure units apart) clear the 7-point labels.
+                    PatientDiagramCard(record: record, phase: .all, height: 350)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
