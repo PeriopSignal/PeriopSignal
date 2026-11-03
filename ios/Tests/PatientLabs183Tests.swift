@@ -336,4 +336,99 @@ final class PatientLabs183Tests: XCTestCase {
         XCTAssertEqual(PatientLabs.summary(r).estimate?.flag, .normal)
         XCTAssertFalse(PatientSummary.labsLine(r)?.marks.contains { $0.hasPrefix("Hb") } ?? true)
     }
+
+    // MARK: 1.8.3 review fixes
+
+    /// The antibody screen is the blood bank's only with a T&S, type-and-screen or blood-bank lead, or an ABO/Rh type in
+    /// the clause, and never a screen named for something else.
+    func testAntibodyScreenOnlyForTheBloodBank() {
+        for line in ["HIT antibody screen positive", "HCV Ab screen neg", "HLA antibody screen positive", "antibody screen negative",
+                     "T&S A neg, HIT antibody screen positive", "T&S O pos, drug/tox screen positive", "T&S O pos, HCV Ab screen neg",
+                     "T&S B+, HLA antibody screen positive", "T&S A neg, urine drug screen positive", "T&S A neg, PF4 antibody screen positive",
+                     "T&S O pos, heparin antibody screen positive", "T&S O pos, ANA screen positive", "T&S O pos, PRA screen positive"] {
+            XCTAssertNil(ts(note(line).findings)?.screen, "note: " + line)
+            XCTAssertNil(ts(quick(line).findings)?.screen, "bar: " + line)
+            XCTAssertNil(applied(quick(line).findings).typeScreen.screen, "filed: " + line)
+        }
+        XCTAssertEqual(ts(note("Blood bank: antibody screen negative").findings)?.screen, .negative, "a blood-bank lead")
+        XCTAssertEqual(ts(note("O neg, antibody screen positive, anti-E").findings), PatientTypeScreen(screen: .positive, antibody: "anti-E"),
+                       "an ABO/Rh type in the clause")
+        XCTAssertEqual(ts(quick("T&S A neg, HIT antibody screen positive").findings), PatientTypeScreen(type: "A-"), "the type is still read")
+    }
+
+    /// Only red-cell alloantibody names, and a name never makes the screen positive.
+    func testOnlyRedCellAntibodies() {
+        for line in ["T&S A neg, on heparin, anti-Xa 0.4", "T&S A neg, anti-PF4 positive", "T&S O pos, anti-coagulated", "T&S O pos, on anticoagulants",
+                     "T&S O pos, anti-coagulant held"] {
+            let t = ts(note(line).findings)
+            XCTAssertEqual(t?.antibody ?? "", "", "note: " + line)
+            XCTAssertNil(t?.screen, "note: " + line)
+            XCTAssertEqual(applied(quick(line).findings).typeScreen.antibody, "", "bar: " + line)
+            XCTAssertNil(applied(quick(line).findings).typeScreen.screen, "bar: " + line)
+        }
+        XCTAssertEqual(ts(note("T&S O neg, screen pos, anti-K").findings), PatientTypeScreen(type: "O-", screen: .positive, antibody: "anti-K"))
+        XCTAssertEqual(ts(quick("T&S A pos, antibody screen positive (anti-Fya and anti-Jkb)").findings)?.antibody, "anti-Fya, anti-Jkb")
+        XCTAssertEqual(ts(note("T&S A pos, anti-K").findings), PatientTypeScreen(type: "A+", antibody: "anti-K"), "the screen is not inferred")
+    }
+
+    /// One vocabulary for "not positive": what the lab reader reads as negative or pending, the history never files.
+    func testNotPositiveWordsAgreeOnBothPaths() {
+        let cases: [(line: String, id: String, name: String, problem: String, result: LabResult)] = [
+            ("MRSA PCR not detected", "mrsa", "", "mdro", .negative),
+            ("MRSA nasal swab PCR not detected", "mrsa", "", "mdro", .negative),
+            ("MRSA swab non-detected", "mrsa", "", "mdro", .negative),
+            ("MRSA nondetected", "mrsa", "", "mdro", .negative),
+            ("MRSA −", "mrsa", "", "mdro", .negative),
+            ("MRSA screen -", "mrsa", "", "mdro", .negative),
+            ("C diff toxin undetected", "cdiff", "", "c-diff", .negative),
+            ("C diff in process", "cdiff", "", "c-diff", .pending),
+            ("C diff toxin in progress", "cdiff", "", "c-diff", .pending),
+            ("VRE not detected", "other", "VRE", "mdro", .negative),
+            ("COVID PCR not detected", "covid", "", "covid-recent", .negative),
+            ("COVID rapid antigen in process", "covid", "", "covid-recent", .pending),
+        ]
+        for x in cases {
+            let fid = "infectious:" + (x.id == "other" ? "other:" + x.name.lowercased() : x.id)
+            let n = note(x.line).findings
+            let q = quick(x.line).findings
+            XCTAssertEqual(change(n, fid), .infectious(x.id, x.name, x.result), "note result: " + x.line)
+            XCTAssertEqual(change(q, fid), .infectious(x.id, x.name, x.result), "bar result: " + x.line)
+            XCTAssertFalse(n.contains { $0.id == "problem:" + x.problem }, "note history: " + x.line)
+            XCTAssertFalse(q.contains { $0.id == "problem:" + x.problem }, "bar history: " + x.line)
+            XCTAssertTrue(applied(q).problems.isEmpty, "filed: " + x.line)
+        }
+        // A spaced dash before more words is a separator, not a result: the history item is filed as before.
+        let sep = quick("MRSA - on contact precautions")
+        XCTAssertTrue(sep.findings.contains { $0.id == "problem:mdro" })
+        XCTAssertNil(change(sep.findings, "infectious:mrsa"))
+        XCTAssertTrue(note("MRSA positive").findings.contains { $0.id == "problem:mdro" }, "a positive still files it")
+    }
+
+    /// A positive COVID-19 is read only where Recent COVID-19 would be filed: not old, not an exposure.
+    func testCovidPositiveOnlyWhenRecent() {
+        for line in ["COVID+ 2021", "exposure to COVID positive coworker", "COVID positive in 2020", "COVID positive 6 months ago",
+                     "2019 COVID positive", "close contact with COVID+ family member"] {
+            let n = note(line).findings
+            let q = quick(line).findings
+            XCTAssertFalse(n.contains { $0.id == "problem:covid-recent" }, "note history: " + line)
+            XCTAssertNil(change(n, "infectious:covid"), "note result: " + line)
+            XCTAssertNil(change(q, "infectious:covid"), "bar result: " + line)
+            let r = applied(q)
+            XCTAssertFalse(r.problems.contains("covid-recent"), "filed: " + line)
+            XCTAssertFalse(PatientRules.prefill("ariscat", r).on.contains("infection"), "ARISCAT: " + line)
+        }
+        for line in ["COVID positive", "COVID-19 PCR detected", "COVID+ last week"] {
+            let q = quick(line).findings
+            XCTAssertEqual(change(q, "infectious:covid"), .infectious("covid", "", .positive), line)
+            XCTAssertTrue(q.contains { $0.id == "problem:covid-recent" }, line)
+            XCTAssertTrue(PatientRules.prefill("ariscat", applied(q)).on.contains("infection"), line)
+        }
+    }
+
+    func testEstimateCaption() {
+        let c = PatientLabs.estimateCaption
+        XCTAssertTrue(c.contains("Hct ÷ Hb = 100 ÷ MCHC"), c)
+        XCTAssertTrue(c.contains("pooled malaria cohort (Lee SJ et al., Malar J 2008)"), c)
+        XCTAssertTrue(c.hasSuffix("Only measured values are saved."), c)
+    }
 }

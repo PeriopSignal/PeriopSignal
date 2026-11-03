@@ -238,9 +238,11 @@ enum LabResults {
 
     // MARK: Reading typed shorthand
 
-    private static let negWord = #"neg(?:ative)?\b|-ve\b|\(-\)|not detected\b|non-?detected\b|undetected\b|-(?=[\s,;.)/]|$)|−(?=[\s,;.)/]|$)"#
+    /// Negative and pending: the note reader's own words (PatientNote.resultNegative, resultPending), so a result read
+    /// here as not positive is never filed as a history item there.
+    private static let negWord = PatientNote.resultNegative
     private static let posWord = #"pos(?:itive)?\b|\+ve\b|\(\+\)|detected\b|\+(?=[\s,;.)/]|$)"#
-    private static let pendingWord = #"pending\b|sent\b|in process\b|in progress\b"#
+    private static let pendingWord = PatientNote.resultPending
 
     static func resultOf(_ word: String) -> LabResult? {
         let w = word.lowercased()
@@ -266,7 +268,7 @@ enum LabResults {
 
     private static let nameAlt = names.map(\.rx).joined(separator: "|")
     /// Names (one, or several joined by "/" or "and"), the words a result is written with, then the result.
-    static let infectiousRx = NoteRx(#"(?<![A-Za-z0-9])((?:"# + nameAlt + #")(?:\s*(?:/|&|\band\b)\s*(?:"# + nameAlt + #"))*)(?![A-Za-z0-9])(?:\s+(?:aureus|nares|nasal|screen(?:ing)?|swab|pcr|naat|test(?:ing)?|antigen|ag|toxin|culture|status|result|rapid|colonization))*\s*(?:(?:is|was|were|came back|returned)\s+)?[:=]?\s*("# + negWord + "|" + posWord + "|" + pendingWord + ")")
+    static let infectiousRx = NoteRx(#"(?<![A-Za-z0-9])((?:"# + nameAlt + #")(?:\s*(?:/|&|\band\b)\s*(?:"# + nameAlt + #"))*)(?![A-Za-z0-9])(?:\s*\(?\s*(?:"# + PatientNote.resultQualifiers + #")\)?){0,4}\s*(?:(?:is|was|were|came back|returned)\s+)?[:=]?\s*("# + negWord + "|" + posWord + "|" + pendingWord + ")")
     private static let nameSplit = NoteRx(#"\s*(?:/|&|\band\b)\s*"#)
 
     private static func nameID(_ s: String) -> (id: String, show: String)? {
@@ -277,16 +279,22 @@ enum LabResults {
     }
 
     // Type and screen.
-    static let tsLead = NoteRx(#"\bt\s*&\s*s\b|\bt\s+and\s+s\b|\btype\s*(?:&|and)\s*(?:screen|cross(?:match)?)\b|\bt\s*&\s*c\b|\babo(?:\s*/\s*rh)?\b|\bblood\s+(?:type|group)\b"#)
+    static let tsLead = NoteRx(#"\bt\s*&\s*s\b|\bt\s+and\s+s\b|\btype\s*(?:&|and)\s*(?:screen|cross(?:match)?)\b|\bt\s*&\s*c\b|\babo(?:\s*/\s*rh)?\b|\bblood\s+(?:type|group|bank)\b|(?-i:\bBB\b)"#)
     private static let rhWord = #"\+|-|−|pos(?:itive)?\b|neg(?:ative)?\b"#
     static let tsType = NoteRx(#"^\s*[:=]?\s*(?:is\s+)?(ab|a|b|o)\s*(?:rh\s*(?:\(d\)\s*)?)?("# + rhWord + #")(?:\s*/\s*("# + rhWord + #"))?"#)
     static let tsScreen = NoteRx(#"\b((?:antibody|ab|abs)\s+)?screen(?:ing)?\s*(?:is\s+|was\s+)?[:=]?\s*(neg(?:ative)?\b|pos(?:itive)?\b|pending\b|-(?=[\s,;.)]|$)|\+)"#)
-    private static let infectiousBefore = NoteRx(#"(?:mrsa|mssa|staph\w*|aureus|covid\S*|vre|nares|nasal|diff\w*|esbl|cre|gbs|flu|influenza|rsv|swab)\s*$"#)
-    static let tsAntibody = NoteRx(#"\banti-\s?([A-Za-z]{1,3}[a-z0-9]?)\b"#)
+    /// Screens that are not the blood bank's, said just before "screen": infectious (MRSA, COVID), HIT (PF4, heparin),
+    /// viral serologies (HIV, HCV, HBs), transplant (HLA, PRA), ANA, drug, tox and urine screens.
+    private static let notBloodBankBefore = NoteRx(#"\b(?:mrsa|mssa|staph\w*|aureus|covid\S*|vre|nares|nasal|diff\w*|esbl|cre|gbs|flu|influenza|rsv|swab|hit|pf4|heparin|hiv(?:[- ]?1\s*/\s*2)?|hcv|hbs\w*|hbv|hla|pra|ana|drugs?|tox\w*|urine|uds)\s*(?:[/&]\s*\w+\s*)?(?:(?:antibody|ab|abs)\s+)?$"#)
+    /// An ABO/Rh type written without a lead ("O neg, antibody screen negative"): lets the clause's antibody screen be read.
+    static let aboType = NoteRx(#"(?<![A-Za-z])(?:AB|A|B|O)\s*(?:Rh\s*)?(?:\+|[-−](?![A-Za-z])|pos(?:itive)?\b|neg(?:ative)?\b)"#, caseSensitive: true)
+    /// Red-cell alloantibodies only ("anti-K", "anti-Fya", "anti-Jk(a)"), case as written: not anti-Xa, anti-PF4 or an
+    /// anticoagulant.
+    static let tsAntibody = NoteRx(#"(?<![A-Za-z])[Aa]nti-?\s?(D|C|c|E|e|K|k|Cw|Kp(?:a|b|\([ab]\))|Js(?:a|b|\([ab]\))|Fy(?:a|b|\([ab]\))|Jk(?:a|b|\([ab]\))|Le(?:a|b|\([ab]\))|Lu(?:a|b|\([ab]\))|Di(?:a|b|\([ab]\))|M|N|S|s|U|P1|Wra)(?![A-Za-z0-9(])"#, caseSensitive: true)
     static let xmBefore = NoteRx(#"\b(\d{1,2})\s*(?:u\b|units?\b|uprbc\b)?\s*(?:(?:of\s+)?(?:prbcs?|rbcs?|red cells)\s+)?(?:x-?m(?:atch(?:ed)?)?|xm'?d|cross-?match(?:ed)?)\b"#)
     static let xmAfter = NoteRx(#"\b(?:x-?m(?:atch(?:ed)?)?|xm'?d|cross-?match(?:ed)?)\s*(?:for\s+|x\s*)?(\d{1,2})\s*(?:u\b|units?\b)"#)
 
-    static var patterns: [NoteRx] { [infectiousRx, nameSplit, tsLead, tsType, tsScreen, infectiousBefore, tsAntibody, xmBefore, xmAfter] }
+    static var patterns: [NoteRx] { [infectiousRx, nameSplit, tsLead, tsType, tsScreen, notBloodBankBefore, aboType, tsAntibody, xmBefore, xmAfter] }
 
     /// What one clause says of type and screen and infectious results, with where.
     static func read(_ c: String) -> [(finding: PatientNoteFinding, ranges: [NSRange])] {
@@ -301,6 +309,9 @@ enum LabResults {
                 .flatMap { $0.components(separatedBy: " and ") }.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
             for p in pieces {
                 guard let n = nameID(p) else { continue }
+                // A positive COVID-19 only where the history would file Recent COVID-19: not old ("COVID+ 2021"), not an
+                // exposure, vaccine or screen (1.8.3 review).
+                if n.id == "covid", v == .positive, !PatientNote.problemRuleAccepts("covid-recent", c) { continue }
                 out.append((infectiousFinding(n.id, name: n.show, v), [m.range]))
             }
             taken.append(m.range)
@@ -324,20 +335,25 @@ enum LabResults {
                 ranges.append(NSRange(location: l.range.location + l.range.length + t.range.location, length: t.range.length))
             }
         }
-        for m in tsScreen.all(c) where !taken.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) {
-            let named = m.range(at: 1).location != NSNotFound
+        // The antibody screen only with a T&S, type-and-screen or blood-bank lead, or an ABO/Rh type in the same clause,
+        // and never another screen's ("HIT antibody screen", "HCV Ab screen", "drug/tox screen") (1.8.3 review).
+        let bloodBank = lead != nil || aboType.first(c) != nil
+        for m in tsScreen.all(c) where bloodBank && !taken.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) {
             let before = ns.substring(to: m.range.location)
-            guard named || (lead != nil && infectiousBefore.first(before) == nil) else { continue }
+            guard notBloodBankBefore.first(before) == nil else { continue }
             if let s = resultOf(ns.substring(with: m.range(at: 2)).replacingOccurrences(of: "+", with: "pos")) {
                 ts.screen = s
                 ranges.append(m.range)
                 break
             }
         }
-        if lead != nil || ts.screen != nil, let a = tsAntibody.first(c) {
-            ts.antibody = "anti-" + ns.substring(with: a.range(at: 1))
-            if ts.screen == nil { ts.screen = .positive }
-            ranges.append(a.range)
+        // The antibody named, as written; a name alone never makes the screen positive.
+        if bloodBank {
+            let found = tsAntibody.all(c)
+            if !found.isEmpty {
+                ts.antibody = found.map { "anti-" + ns.substring(with: $0.range(at: 1)) }.joined(separator: ", ")
+                ranges += found.map(\.range)
+            }
         }
         if let x = xmBefore.first(c) ?? xmAfter.first(c), let n = Int(ns.substring(with: x.range(at: 1))), (1...PatientTypeScreen.unitLimit).contains(n) {
             ts.crossmatched = n
