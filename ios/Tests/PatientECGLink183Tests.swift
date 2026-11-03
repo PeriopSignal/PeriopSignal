@@ -190,9 +190,9 @@ final class PatientECGLink183Tests: XCTestCase {
     func testRemovingTheHistoryNeverTouchesTheECG() {
         var r = empty()
         PatientECGLink.add("Atrial fibrillation", to: &r)
-        PatientECGLink.add("Paced rhythm (AV)", to: &r)
+        PatientECGLink.add("Paced rhythm (ventricular)", to: &r)
         r.problems.removeAll()
-        XCTAssertEqual(Set(r.ecg), ["Atrial fibrillation", "Paced rhythm (AV)"], "what someone saw stays")
+        XCTAssertEqual(Set(r.ecg), ["Atrial fibrillation", "Paced rhythm (ventricular)"], "what someone saw stays")
     }
 
     // MARK: Saved records

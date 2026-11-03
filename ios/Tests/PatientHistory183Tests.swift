@@ -394,7 +394,7 @@ final class PatientHistory183Tests: XCTestCase {
 
     func testAPlanningWordDropsTheItemWhole() {
         for note in ["s/p PCI 2020, CABG scheduled 11/4", "s/p LHC 10/28 showing 3VD, referred for CABG", "s/p appendectomy 2010, awaiting CABG",
-                     "s/p CABG 2019, needs AVR", "s/p PCI 2020; candidate for CABG", "s/p lap chole 2015, booked for redo sternotomy",
+                     "s/p CABG 2019, needs AVR", "s/p PCI 2020; candidate for CABG", "s/p lap chole 2015, booked for AVR",
                      "s/p PCI 2020, CABG planned", "s/p PCI 2020, CABG pending", "h/o PCI 2018, presents for CABG", "s/p PCI 2020, CABG for 3VD next week"] {
             let r = applied(note)
             for s in r.surgeries {

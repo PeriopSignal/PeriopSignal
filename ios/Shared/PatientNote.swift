@@ -709,6 +709,12 @@ enum PatientNote {
             var ruleText = c
             if let k = lhcResult?.cadWords { ruleText = (c as NSString).replacingCharacters(in: k, with: String(repeating: " ", count: k.length)) }
             readRules(ruleText, &h)
+            // Read here, before the abbreviations are read through their meanings, so the "CAD" in it is already read.
+            if let m = lhcResult {
+                h.add(PatientNoteFinding(id: "lhc:result", section: Part.assessment, label: "Left heart cath: " + (m.result == "no-cad" ? "no CAD" : "non-obstructive"),
+                                         change: .lhcResult(m.result)), at: m.cadWords.map { NSUnionRange(m.phrase, $0) } ?? m.phrase)
+                h.seen(m.cath)
+            }
             readPatient(c, &h)
             readProcedure(c, choices, &h)
             readInfusions(c, &h)
@@ -743,11 +749,6 @@ enum PatientNote {
                         && NSIntersectionRange(meant.target(a.range), h.at[i]).length > 0
                 }), let meaning = a.meaning else { continue }
                 h.findings[i].note = "Read “" + a.token + "” as " + meaning.text + "; change it under Abbreviations if not."
-            }
-            if let m = lhcResult {
-                h.add(PatientNoteFinding(id: "lhc:result", section: Part.assessment, label: "Left heart cath: " + (m.result == "no-cad" ? "no CAD" : "non-obstructive"),
-                                         change: .lhcResult(m.result)), at: m.cadWords.map { NSUnionRange(m.phrase, $0) } ?? m.phrase)
-                h.seen(m.cath)
             }
             // Past surgical history: a "PSH:" section, "s/p ...", "h/o ..." (1.8.3). What the cardiac reader took is its own.
             let taken = zip(h.findings, h.at).filter { $0.0.id == "cardiac-surgery" }.map { $0.1 }
