@@ -5,6 +5,12 @@ import Foundation
 enum Terms {
     static let version = "2026-10-31"
 
+    /// Whether accepting the terms should open the welcome (topics and alerts): only on a new install, where no earlier
+    /// version was accepted and the welcome was never finished. Someone accepting a new version is an existing user.
+    static func showsWelcome(afterAccepting previous: String, onboardingDone: Bool) -> Bool {
+        previous.isEmpty && !onboardingDone
+    }
+
     /// The first-launch screen's points (title, body).
     static let points: [(icon: String, title: String, body: String)] = [
         ("stethoscope", "For licensed clinicians",

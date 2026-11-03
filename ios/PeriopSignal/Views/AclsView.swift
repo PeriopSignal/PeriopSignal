@@ -149,7 +149,7 @@ struct AclsView: View {
                     WeightField(text: Binding(get: { store.weightText }, set: { v in
                         store.weightText = v
                         store.state?.weight = WeightField.value(v)
-                    }), focus: $focused, prompt: WeightField.perKgPrompt,
+                    }), focus: $focused, prompt: WeightField.aclsPerKgPrompt,
                         patientWeight: myPatient.record.isChild ? myPatient.weightKg : nil, clearNote: Self.weightClearNote)
                 }
                 modeTabs(d, m)

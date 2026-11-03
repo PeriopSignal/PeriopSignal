@@ -71,4 +71,29 @@ final class SharedComponentsTests: XCTestCase {
         XCTAssertTrue(WeightField.perKgPrompt.contains("per kg"))
         XCTAssertFalse(WeightField.clearNote.isEmpty)
     }
+
+    func testToolSpecificPerKgPrompts() {
+        // Review 1.8.1 rows 6 and 7: ACLS names the energies too; Local anesthetic shows maximums, not doses.
+        XCTAssertEqual(WeightField.aclsPerKgPrompt, "Doses and energies show per kg until you enter the weight.")
+        XCTAssertEqual(WeightField.maxPerKgPrompt, "Maximums show per kg until you enter the weight.")
+    }
+
+    // MARK: Welcome on first install (review 1.8.1 row 26)
+
+    func testWelcomeFollowsTermsOnlyOnNewInstall() {
+        XCTAssertTrue(Terms.showsWelcome(afterAccepting: "", onboardingDone: false), "a new install sees the welcome after the terms")
+        XCTAssertFalse(Terms.showsWelcome(afterAccepting: "2026-01-01", onboardingDone: false), "an existing user accepting new terms does not")
+        XCTAssertFalse(Terms.showsWelcome(afterAccepting: Terms.version, onboardingDone: false))
+        XCTAssertFalse(Terms.showsWelcome(afterAccepting: "", onboardingDone: true), "a finished welcome is not shown again")
+    }
+
+    // MARK: Code status plan (review 1.8.1 row 32)
+
+    func testMaintainedInstructionStaysInViewWordForWord() {
+        let m = CodeStatusPlan.maintained
+        XCTAssertTrue(m.inView?.hasPrefix("Tell the patient which procedures are essential") == true)
+        XCTAssertEqual(m.info + " " + (m.inView ?? ""), m.detail, "the split keeps the wording exact")
+        XCTAssertNil(CodeStatusPlan.modified.inView)
+        XCTAssertEqual(CodeStatusPlan.suspended.info, CodeStatusPlan.suspended.detail)
+    }
 }

@@ -99,16 +99,18 @@ extension PatientEditorView {
 
 /// An item's label, with its definition behind an ⓘ at the end of the label (1.8.1). Captions that say how an item is
 /// graded stay in view: Zenker's (Ben, Nov 2) and, like it, the ones that say a class rests on survey opinion or on
-/// severity.
+/// severity. Dysphagia's "Now or in the past" stays in view too: it sets the question's scope (review 1.8.1 row 33).
 struct TEEItemTitle: View {
     var item: TEEItem
     @State private var open = LaunchSeed.bool("ps.evidence.open")
 
     /// The items whose caption is about the grading, so it stays in view.
     static let gradingCaptions: Set<String> = ["diverticulum", "esophagectomy", "te-fistula", "motility"]
+    /// The items whose caption sets the question's scope, so it stays in view.
+    static let scopeCaptions: Set<String> = ["dysphagia"]
 
     var body: some View {
-        InfoTitle(caption: item.detail, collapsible: !Self.gradingCaptions.contains(item.id), open: $open, captionFont: PS.sys(size: 12), spacing: 2) {
+        InfoTitle(caption: item.detail, collapsible: !Self.gradingCaptions.union(Self.scopeCaptions).contains(item.id), open: $open, captionFont: PS.sys(size: 12), spacing: 2) {
             Text(item.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
         }
     }
