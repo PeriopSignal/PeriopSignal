@@ -129,7 +129,7 @@ enum PatientFunctional {
     static let cvdProblems: Set<String> = [
         "cad", "pci", "pci-recent", "cad-recent", "cabg", "ischemia", "hf", "hf-decomp", "ef-moderate", "ef-severe",
         "valve-severe", "as", "mr", "prosthetic-valve", "af", "arrhythmia", "pacemaker", "icd", "pulm-htn", "pulm-htn-severe",
-        "pvd", "chd", "chd-elevated", "cva", "cva-recent", "peripartum-cm",
+        "pvd", "chd", "chd-elevated", "cva", "cva-recent", "cva-unspec", "peripartum-cm",
     ]
 
     static func knownCVD(_ r: PatientRecord) -> Bool { !r.problems.isDisjoint(with: cvdProblems) }
@@ -142,7 +142,7 @@ enum PatientFunctional {
         if r.has("htn") || r.has("htn-poor") || r.has("htn-180") || (r.vitals["sbp"] ?? 0) >= 140 || (r.vitals["dbp"] ?? 0) >= 90 { out.append("hypertension") }
         if r.smoking == "current" { out.append("smoking") }
         if r.has("hyperlipidemia") { out.append("high cholesterol") }
-        if r.has("dm") || r.has("dm-poor") || r.has("insulin") { out.append("diabetes") }
+        if r.has("dm") || r.has("insulin") { out.append("diabetes") }
         if let age = r.ageYears, age > (r.sex == .female ? 65 : 55) {
             out.append(r.sex == .female ? "woman over 65" : (r.sex == .male ? "man over 55" : "over 55"))
         }
@@ -174,7 +174,7 @@ enum PatientFunctional {
 
     /// Atherosclerotic disease recorded (coronary, cerebrovascular, peripheral): the ASCVD history among §7.1's
     /// criteria for starting a statin (p e390).
-    static let ascvdProblems: Set<String> = ["cad", "cad-recent", "pci", "pci-recent", "cabg", "ischemia", "cva", "cva-recent", "pvd"]
+    static let ascvdProblems: Set<String> = ["cad", "cad-recent", "pci", "pci-recent", "cabg", "ischemia", "cva", "cva-recent", "cva-unspec", "pvd"]
 
     /// Statins by generic and brand name (the note reader uses the same list): one named under Medications counts as
     /// taken, so that a record saved before the Statin flag existed does not read as statin-naive.

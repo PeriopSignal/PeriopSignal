@@ -21,10 +21,13 @@ struct PatientProblem: Hashable, Identifiable {
     var rcri: String?
     /// The STOP-BANG item it answers ("snoring", "tired", "observed", "pressure").
     var stopBang: String?
+    /// A line for the system page's ⓘ (its group note), when the item's class can be higher than its example gives.
+    var note: String?
 
-    init(_ id: String, _ label: String, asa: Int? = nil, asaExample: String? = nil, peds: Int? = nil, pedsExample: String? = nil, rcri: String? = nil, stopBang: String? = nil) {
+    init(_ id: String, _ label: String, asa: Int? = nil, asaExample: String? = nil, peds: Int? = nil, pedsExample: String? = nil, rcri: String? = nil, stopBang: String? = nil,
+         note: String? = nil) {
         self.id = id; self.label = label; self.asa = asa; self.asaExample = asaExample; self.peds = peds; self.pedsExample = pedsExample
-        self.rcri = rcri; self.stopBang = stopBang
+        self.rcri = rcri; self.stopBang = stopBang; self.note = note
     }
 }
 
@@ -116,6 +119,10 @@ enum PatientCatalog {
         PatientSystem(id: "neuro", name: "Neurologic", icon: "brain.head.profile", problems: [
             PatientProblem("cva", "Stroke or TIA, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva"),
             PatientProblem("cva-recent", "Stroke or TIA within 3 months", asa: 4, asaExample: "recent (<3 months) MI, CVA, TIA or CAD/stents", rcri: "cva"),
+            // A stroke whose timing the record does not give (1.8.1). Choice for Ben to confirm (*): the lowest class the
+            // ASA's examples give a stroke, history (>3 months), class III; within 3 months is class IV.
+            PatientProblem("cva-unspec", "Stroke, unspecified", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva",
+                           note: "ASA IV if within 3 months."),
             PatientProblem("ich-mass", "Intracranial bleed with mass effect", asa: 5, asaExample: "intracranial bleed with mass effect", peds: 5, pedsExample: "intracranial hemorrhage with mass effect"),
             PatientProblem("raised-icp", "Intracranial mass or raised ICP"),
             PatientProblem("seizure", "Seizure disorder", peds: 2, pedsExample: "well-controlled epilepsy"),
@@ -140,8 +147,11 @@ enum PatientCatalog {
             PatientProblem("varices", "Esophageal varices"),
         ]),
         PatientSystem(id: "endo", name: "Endocrine", icon: "flask", problems: [
-            PatientProblem("dm", "Diabetes, well controlled", asa: 2, asaExample: "well-controlled DM/HTN", peds: 2, pedsExample: "non-insulin-dependent diabetes mellitus"),
-            PatientProblem("dm-poor", "Diabetes, poorly controlled", asa: 3, asaExample: "poorly controlled DM or HTN"),
+            // One item since 1.8.1 ("dm-poor", Diabetes, poorly controlled, loads as this one: migratedProblems). Choice for
+            // Ben to confirm (*): the lowest class the ASA's examples give a diabetic, "well-controlled DM/HTN", class II;
+            // "poorly controlled DM or HTN" is class III, set by hand.
+            PatientProblem("dm", "Diabetes", asa: 2, asaExample: "well-controlled DM/HTN", peds: 2, pedsExample: "non-insulin-dependent diabetes mellitus",
+                           note: "ASA III if poorly controlled; change the class by hand."),
             PatientProblem("insulin", "Diabetes treated with insulin", peds: 3, pedsExample: "insulin-dependent diabetes mellitus", rcri: "insulin"),
             PatientProblem("thyroid", "Thyroid disease"),
             PatientProblem("adrenal", "Adrenal insufficiency or chronic steroids"),
@@ -153,6 +163,18 @@ enum PatientCatalog {
             PatientProblem("sickle", "Sickle cell disease"),
             PatientProblem("dic", "DIC", asa: 4, asaExample: "DIC", peds: 4, pedsExample: "disseminated intravascular coagulation"),
             PatientProblem("declines-blood", "Declines blood products"),
+        ]),
+        // 1.8.1. None is among the ASA's examples (sepsis stays under Acute illness, with shock).
+        PatientSystem(id: "infectious", name: "Infectious", icon: "facemask", problems: [
+            PatientProblem("infection-active", "Active infection"),
+            PatientProblem("endocarditis", "Endocarditis"),
+            PatientProblem("hiv", "HIV"),
+            PatientProblem("hepatitis-viral", "Hepatitis B or C"),
+            PatientProblem("mdro", "MRSA or VRE"),
+            PatientProblem("c-diff", "C. difficile"),
+            PatientProblem("tb", "Tuberculosis"),
+            PatientProblem("covid-recent", "Recent COVID-19"),
+            PatientProblem("isolation", "Isolation precautions"),
         ]),
         PatientSystem(id: "acute", name: "Acute illness", icon: "waveform.path.ecg", problems: [
             PatientProblem("sepsis", "Sepsis", asa: 4, asaExample: "sepsis", peds: 4, pedsExample: "sepsis"),
@@ -247,6 +269,21 @@ enum PatientCatalog {
         return p.label + ", " + NumText.short(d) + " cm"
     }
     static func problem(_ id: String) -> PatientProblem? { allProblems.first { $0.id == id } }
+
+    /// Problem ids that are no longer offered, and the item a saved record's id now loads as (1.8.1: diabetes is one
+    /// item).
+    static let renamedProblems: [String: String] = ["dm-poor": "dm"]
+
+    /// A saved record's problems with retired ids moved to their current item.
+    static func migratedProblems(_ ids: Set<String>) -> Set<String> { Set(ids.map { renamedProblems[$0] ?? $0 }) }
+
+    /// The system page's ⓘ: each item's own line first ("Diabetes: ASA III if poorly controlled; change the class by
+    /// hand."), then how the page's problems feed the scores.
+    static func systemNote(_ s: PatientSystem) -> String {
+        let base = "Problems the ASA's own examples place in a class (adult or pediatric, by the age recorded) feed the ASA suggestion; the RCRI, STOP-BANG and other scores open with them ticked."
+        let items = s.problems.compactMap { p in p.note.map { p.label + ": " + $0 } }
+        return (items + [base]).joined(separator: "\n\n")
+    }
     static func system(of problemId: String) -> PatientSystem? { allSystems.first { s in s.problems.contains { $0.id == problemId } } }
 
     static let medFlags: [PatientFlag] = [
