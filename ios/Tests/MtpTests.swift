@@ -10,10 +10,11 @@ final class MtpTests: XCTestCase {
 
     private let t0 = Date(timeIntervalSince1970: 1_800_000_000)
 
-    func testDraftUntilReviewed() throws {
+    func testSignedOff() throws {
         let d = try data()
-        XCTAssertNil(d.reviewed)
+        XCTAssertEqual(d.reviewed, "2026-11-03")
         XCTAssertEqual(d.cryoPool.default, 5)
+        XCTAssertTrue(MtpState(started: t0, data: d).addToCase, "signed off: adds to the open case by default")
         XCTAssertFalse(d.product("fibrinogen")?.citrated ?? true, "factor concentrates don't count toward calcium")
         XCTAssertTrue(d.product("cryo")?.citrated ?? false)
     }

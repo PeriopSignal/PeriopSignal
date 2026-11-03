@@ -405,7 +405,7 @@ struct MtpView: View {
                 if let n = d.cryoPool.note { InfoCaptionText(text: n, font: PS.sys(size: 12)) }
                 Toggle(isOn: Binding(get: { s.addToCase }, set: { state?.addToCase = $0 })) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Also add to the My Patient case").font(PS.sys(size: 14)).foregroundStyle(PS.fg)
+                        Text("Also add to \(patient.currentCase.label) in My Patient").font(PS.sys(size: 14)).foregroundStyle(PS.fg)
                         Text("Taps are not verified doses; taking one back takes it off the case too.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                     }
                 }

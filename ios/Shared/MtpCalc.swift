@@ -43,6 +43,7 @@ struct MtpState: Codable, Equatable {
         self.started = started
         plateletUnits = data.plateletUnits.default
         cryoPool = data.cryoPool.default
+        addToCase = data.addToCaseDefault ?? false
     }
 
     init(from decoder: Decoder) throws {

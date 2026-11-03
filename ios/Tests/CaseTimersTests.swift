@@ -19,9 +19,13 @@ final class CaseTimersTests: XCTestCase {
 
     // MARK: Data
 
-    func testDraftUntilReviewed() throws {
+    func testSignedOffAndReleased() throws {
         let d = try data()
-        XCTAssertNil(d.reviewed, "caseTimers stays a draft until the review doc is signed off")
+        XCTAssertEqual(d.reviewed, "2026-11-03", "signed off in the review doc")
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "reference", withExtension: "json"))
+        DraftGate.update(from: try ReferenceLoader.decode(try Data(contentsOf: url)))
+        XCTAssertEqual(DraftGate.released, ["caseTimers", "mtp", "mcs", "tee"])
+        XCTAssertFalse(DraftGate.isDraft("caseTimers"))
         XCTAssertFalse(d.sources.isEmpty)
         for s in d.sources { XCTAssertTrue(s.url.hasPrefix("https://"), s.id) }
         for p in d.heparinPurposes { for id in p.sources ?? [] { XCTAssertNotNil(d.sources.first { $0.id == id }, "\(p.id) cites \(id)") } }

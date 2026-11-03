@@ -201,6 +201,8 @@ struct MtpData: Codable, Hashable {
     var reviewed: String?
     var reviewDoc: String?
     var adultOnly: Bool?
+    /// Whether a new tally also adds products to the open My Patient case (signed off: on).
+    var addToCaseDefault: Bool?
     var products: [Product]
     var plateletUnits: Setting
     var cryoPool: Setting

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-01",
+  "updated": "2026-11-03",
   "revision": 1793499859,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
@@ -14719,7 +14719,7 @@
     ]
   },
   "caseTimers": {
-    "reviewed": null,
+    "reviewed": "2026-11-03",
     "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
     "adultOnly": true,
     "weightFlag": [
@@ -15172,7 +15172,7 @@
     ]
   },
   "mtp": {
-    "reviewed": null,
+    "reviewed": "2026-11-03",
     "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
     "adultOnly": true,
     "products": [
@@ -15469,10 +15469,11 @@
         "label": "RhD and whole blood, Obstet Gynecol 2026",
         "url": "https://pubmed.ncbi.nlm.nih.gov/42743435/"
       }
-    ]
+    ],
+    "addToCaseDefault": true
   },
   "mcs": {
-    "reviewed": null,
+    "reviewed": "2026-11-03",
     "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
     "legend": "Mfr = from the manufacturer only. Per your team = varies by institution. Review = from a review article. Verify = not yet checked against the source. G = guideline.",
     "devices": [
@@ -15948,7 +15949,7 @@
     ]
   },
   "tee": {
-    "reviewed": null,
+    "reviewed": "2026-11-03",
     "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
     "views": [
       {

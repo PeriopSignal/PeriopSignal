@@ -142,6 +142,8 @@ struct CaseReminderLine: View {
 // MARK: - The timers
 
 struct CaseTimersView: View {
+    /// A sheet from My Patient (its own navigation bar and Done); false: pushed from Reference → Preoperative & General.
+    var inSheet = true
     @Environment(PatientStore.self) private var patient
     @Environment(ReferenceStore.self) private var refs
     @Environment(\.dismiss) private var dismiss
@@ -166,12 +168,29 @@ struct CaseTimersView: View {
     private var t: CaseTimers { patient.record.timers }
 
     var body: some View {
-        NavigationStack {
+        Group {
+            if inSheet { NavigationStack { page } } else { page }
+        }
+        .fullScreenCover(item: $webLink) { link in SafariView(url: link.url).ignoresSafeArea() }
+        .onAppear {
+            #if DEBUG
+            // Screenshot runs from Reference (-ps.ref case-timers): the made-up timers start here.
+            if !inSheet, LaunchSeed.bool("ps.timers.seed"), patient.record.timers.isEmpty { CaseTimersDemo.seed(patient) }
+            #endif
+        }
+    }
+
+    private var page: some View {
             ScrollView {
                 if let d = refs.caseTimers {
                     TimelineView(.periodic(from: .now, by: 15)) { ctx in
                         VStack(alignment: .leading, spacing: 18) {
                             DraftBanner(section: "caseTimers")
+                            if !inSheet {
+                                // From Reference: the timers belong to My Patient's open case.
+                                Label("For \(patient.currentCase.label), the open case in My Patient", systemImage: "person.text.rectangle")
+                                    .font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2)
+                            }
                             nextCard(d, now: ctx.date)
                             if CaseTimerEngine.isChild(r) {
                                 ToolCard(tint: PS.red) {
@@ -200,14 +219,14 @@ struct CaseTimersView: View {
             .navigationTitle("Case Timers")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.fontWeight(.semibold) }
+                if inSheet {
+                    ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.fontWeight(.semibold) }
+                }
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { Keyboard.dismiss() }
                 }
             }
-        }
-        .fullScreenCover(item: $webLink) { link in SafariView(url: link.url).ignoresSafeArea() }
     }
 
     private func edit(_ change: (inout CaseTimers) -> Void) {

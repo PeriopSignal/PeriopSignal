@@ -459,6 +459,7 @@ jobs:
           shot 312-folder-emergency 18 -ps.ref folder:emergency -ps.forceAppearance dark
           shot 313-tee-tip 18 -ps.ref tee -ps.tee.surgery cabg -ps.tips 1 -ps.tips.set tee -ps.forceAppearance dark
           shot 314-mcs-tip 18 -ps.ref mcs -ps.mcs.device lvad -ps.tips 1 -ps.tips.set mcs -ps.forceAppearance light
+          shot 315-timers-from-reference 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

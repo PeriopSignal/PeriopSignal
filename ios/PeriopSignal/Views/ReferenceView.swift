@@ -24,6 +24,7 @@ enum RefRoute: Hashable {
     case mtp
     case tee
     case mcs
+    case caseTimers
     case folder(RefFolder)
 
     /// Stable string for favorites and links ("score:rcri", "quickref:asra-last", "peds").
@@ -51,6 +52,7 @@ enum RefRoute: Hashable {
         case .mtp: return "mtp"
         case .tee: return "tee"
         case .mcs: return "mcs"
+        case .caseTimers: return "case-timers"
         case .folder(let f): return "folder:" + f.rawValue
         }
     }
@@ -79,6 +81,7 @@ enum RefRoute: Hashable {
         case "mtp": self = .mtp
         case "tee": self = .tee
         case "mcs": self = .mcs
+        case "case-timers": self = .caseTimers
         case "folder" where parts.count == 2:
             // General Anesthesia joined Preoperative ("Preoperative & General"); old favorites and links land there.
             if parts[1] == "generalAnesthesia" { self = .folder(.preoperative); return }
@@ -145,7 +148,9 @@ enum RefFolder: String, CaseIterable, Identifiable, Hashable {
             RefItem(route: .ponv, icon: "pills", title: "PONV", blurb: "APFEL score, how many agents, rescue"),
             RefItem(route: .abg, icon: "testtube.2", title: "ABG Interpretation", blurb: "Primary disorder, compensation, mixed disorders"),
             RefItem(route: .score("aldrete"), icon: "bed.double", title: "Modified Aldrete", blurb: "Ready to leave recovery?"),
-        ]
+        ] + (DraftGate.shows("caseTimers") ? [
+            RefItem(route: .caseTimers, icon: "timer", title: "Case Timers", blurb: "Antibiotic redose, heparin and ACT, lab checks"),
+        ] : [])
         case .regional: return [
             RefItem(route: .regionalFinder, icon: "figure.stand", title: "Regional Technique Finder", blurb: "Mark the operative area, get neuraxial and block options"),
             RefItem(route: .blocks, icon: "dot.radiowaves.left.and.right", title: "Peripheral Nerve Blocks", blurb: "Placement, ultrasound view and volumes by block"),
@@ -549,6 +554,7 @@ struct ReferenceSearchResults: View {
         case .mtp: return ["mtp", "massive transfusion", "transfusion", "hemorrhage", "haemorrhage", "bleeding", "trauma", "blood product", "ratio", "1:1:1", "calcium", "ionized calcium", "cryo", "fibrinogen", "txa", "tranexamic", "pcc", "kcentra", "whole blood", "damage control"]
         case .tee: return ["cardiothoracic", "cardiac", "tee", "transesophageal", "echo", "views", "probe", "midesophageal", "transgastric", "pre-bypass", "post-bypass", "cpb", "rwma", "sam", "paravalvular", "dvi", "cabg", "mitral repair", "avr"]
         case .mcs: return ["cardiothoracic", "cardiac", "mcs", "mechanical support", "lvad", "heartmate", "vad", "impella", "ecmo", "ecls", "va ecmo", "vv ecmo", "iabp", "balloon pump", "protekduo", "rvad", "purge", "suction event", "pulsatility"]
+        case .caseTimers: return ["timer", "case timer", "redose", "antibiotic", "cefazolin", "heparin", "act", "protamine", "bypass", "cpb", "glucose", "abg", "reminder"]
         case .quickref, .score, .folder: return []
         }
     }
@@ -566,7 +572,7 @@ struct ReferenceSearchResults: View {
         case .infusions:
             guard let data = refs.bundle?.infusions else { return false }
             return wordsMatch(item.route) || data.groups.contains { g in g.drugs.contains { ($0.name + " " + $0.use + " " + ($0.role ?? "")).lowercased().contains(q) } }
-        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg, .regionalFinder, .neuraxialGuide, .obEmergency, .mtp, .tee, .mcs:
+        case .neuraxial, .fasting, .airway, .valves, .intervention, .ponv, .chamber, .diastolic, .acls, .abg, .regionalFinder, .neuraxialGuide, .obEmergency, .mtp, .tee, .mcs, .caseTimers:
             return wordsMatch(item.route)
         case .blocks:
             guard let data = refs.bundle?.regional else { return wordsMatch(item.route) }
@@ -736,6 +742,8 @@ struct RefDestination: View {
                     TeeCompanionView(onOpen: { openURL($0) }, onOpenTool: { push($0) })
                 case .mcs:
                     McsView(onOpen: { openURL($0) })
+                case .caseTimers:
+                    CaseTimersView(inSheet: false)
                 case .folder(let f):
                     if let path { FolderView(folder: f, path: path) }
                 }
