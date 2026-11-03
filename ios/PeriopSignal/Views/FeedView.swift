@@ -115,7 +115,10 @@ struct FeedView: View {
                 Eyebrow(text: monthEyebrow)
             }
             Spacer()
-            Text(countText).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineLimit(1)
+            // Only with filters on: how many of the posts they keep. The plain feed shows no count (1.8.1).
+            if let count = filterCount {
+                Text(count).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineLimit(1)
+            }
         }
         .padding(.bottom, 10)
     }
@@ -126,11 +129,10 @@ struct FeedView: View {
         return PSDate.monthTitle(first.monthKey)
     }
 
-    private var countText: String {
-        let n = store.filtered.count
+    private var filterCount: String? {
+        guard store.hasFilters else { return nil }
         let hidden = store.hiddenTopics.count
-        if store.hasFilters { return "\(n) of \(store.posts.count) posts" + (hidden > 0 ? " · \(hidden) hidden" : "") }
-        return "\(store.posts.count) posts · \(store.landmarkCount) landmark"
+        return "\(store.filtered.count) of \(store.posts.count) posts" + (hidden > 0 ? " · \(hidden) hidden" : "")
     }
 
     @ViewBuilder
@@ -315,16 +317,26 @@ struct FilterChip: View {
     }
 }
 
-// MARK: - One-time invitation to turn on alerts (shown from the second launch)
+// MARK: - One-time invitation to turn on alerts
+//
+// Not in the first session (the welcome already asks), not while a first-time tip shows or the first-open tour is still
+// to come (the banner waits; the two never stack), and never again once × or Turn on is tapped.
 
 struct NotifyBanner: View {
     @AppStorage("ps.notifyBannerDismissed") private var dismissed = false
     @AppStorage("ps.launchCount") private var launchCount = 0
+    @Environment(TipCenter.self) private var tips
     @ObservedObject private var notifications = NotificationManager.shared
     @State private var busy = false
 
     private var visible: Bool {
-        !dismissed && launchCount >= 2 && !notifications.enabled && notifications.authorization != .denied
+        Self.shows(dismissed: dismissed, launchCount: launchCount, tipsHold: tips.holdsBanner,
+                   alertsOn: notifications.enabled, denied: notifications.authorization == .denied)
+    }
+
+    /// From the second launch, with alerts off and not refused, until dismissed; never while tips hold it back.
+    static func shows(dismissed: Bool, launchCount: Int, tipsHold: Bool, alertsOn: Bool, denied: Bool) -> Bool {
+        !dismissed && launchCount >= 2 && !tipsHold && !alertsOn && !denied
     }
 
     var body: some View {
