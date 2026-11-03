@@ -21,10 +21,22 @@ enum PatientNoteChange: Hashable {
     case age(Double), sex(PatientSex), height(Double), weight(Double)
     case procedure(String), urgency(PatientUrgency), anesthetic(String), asa(Int, Bool)
     case problem(String), noHistory, smoking(String)
-    /// An unruptured aortic aneurysm ("aaa", "taa", "taaa") with its diameter in cm: the problem, and its size.
-    case aortaSize(String, Double)
-    /// A problem, and the words to add to its system's details ("evar", "FEVAR 2021": a complex EVAR files as Prior EVAR,
-    /// and its type goes to the cardiovascular details so it is not lost).
+    /// An aortic aneurysm at a location (PatientHistoryDetails.aneurysmSites; "thoracic" when the note does not say
+    /// where), with its diameter in cm when written, and whether it has ruptured.
+    case aneurysm(String, Double?, Bool)
+    /// A valve lesion: the valve ("aortic", "mitral", "tricuspid"), "stenosis" or "regurgitation", and its grade ("mild",
+    /// "moderate", "severe"; nil when not written).
+    case valve(String, String, String?)
+    /// A prosthetic valve: its position ("" when not written) and what the note says of it ("mechanical", "TAVR 2019").
+    case prosthesis(String, String)
+    /// Pulmonary hypertension graded mild or moderate (severe is the "pulm-htn-severe" problem).
+    case pulmHtn(String)
+    /// Previous cardiac surgery, as written ("AVR 2015", "CABG"): it goes to the past surgical history too.
+    case cardiacSurgery(String)
+    /// Home oxygen with its flow, L/min.
+    case homeO2(Double)
+    /// A problem, and the words to add to its details ("evar", "FEVAR 2021": a complex EVAR files as Prior EVAR, and its
+    /// type goes to the repair details so it is not lost; "arrhythmia", "SVT"; "pacemaker", "dependent").
     case problemNote(String, String)
     case medFlag(String), medications(String)
     /// A running infusion: the drug and its rate as written ("0.1 mcg/kg/min", or "" when none was given).
@@ -236,22 +248,23 @@ enum PatientNote {
 
     /// Problem-list items, by the catalog's ids. Abbreviations that are also words are matched in capitals only.
     private static let problemRules: [Rule] = [
-        Rule("htn-poor", #"\b(?:poorly|badly|not well|sub-?optimally)[- ]controlled (?:hypertension|htn|blood pressure|bp)\b|\buncontrolled (?:hypertension|htn)\b|\b(?:hypertension|htn),? (?:poorly|badly|not well|sub-?optimally) controlled"#),
+        // Hypertension has no control qualifier (1.8.1): "poorly controlled HTN" files Hypertension, as diabetes does.
         Rule("htn", #"(?<!pulmonary )(?<!arterial )(?<!gestational )(?<!induced )(?<!portal )(?<!intracranial )\b(?:hypertension|htn)\b|high blood pressure"#),
         Rule("hyperlipidemia", #"hyperlipid(?:a)?emia|(?-i:\bHLD\b)|dyslipid(?:a)?emia|hypercholesterol(?:a)?emia|high cholesterol"#),
+        // CAD (1.8.1): coronary disease with no MI or PCI timing is CAD, unspecified; an MI within 3 months, over 3 months
+        // (a time given: "MI 2019", quiet), or with no time ("h/o MI", "NSTEMI": over 3 months, with its caution).
         Rule("cad-recent", #"\b(?:recent|new) (?:mi|myocardial infarction|n?stemi|acs|acute coronary syndrome|heart attack)\b|\b(?:mi|n?stemi|myocardial infarction|heart attack|acs)\s+"# + within3Months),
-        Rule("cad", #"\bcad\b|coronary artery disease|coronary (?:heart )?disease|ischemic heart disease|(?-i:\bIHD\b)|\b(?:prior|previous|old|remote|history of|hx of|h/o|s/p) (?:mi|myocardial infarction|n?stemi|heart attack|acs)\b|\bn?stemi\b|\bmyocardial infarction\b|(?<!mild )(?<!trace )(?<!moderate )(?<!severe )(?-i:\bMI\b)"#),
-        Rule("pci-recent", #"\b(?:recent|new) (?:coronary )?(?:stents?|(?-i:DES|PCI))\b|\b(?:stents?|(?-i:DES|PCI))(?: placed| to the [a-z]+)?\s+"# + within3Months, notIf: stentOther),
+        Rule("mi", #"\b(?:mi|n?stemi|myocardial infarction|heart attack)\s+(?:in\s+|\(\s*)?"# + over3Months + #"|\b(?:19|20)\d\d\s+(?:(?-i:MI)|n?stemi|myocardial infarction)\b"#, quiet: true),
+        Rule("mi", #"\b(?:prior|previous|old|remote|history of|hx of|h/o|s/p) (?:mi|myocardial infarction|n?stemi|heart attack|acs)\b|\bn?stemi\b|\bmyocardial infarction\b|(?<!mild )(?<!trace )(?<!moderate )(?<!severe )(?-i:\bMI\b)"#),
+        Rule("cad", #"\bcad\b|coronary artery disease|coronary (?:heart )?disease|ischemic heart disease|(?-i:\bIHD\b)"#),
+        Rule("pci-recent", #"\b(?:recent|new) (?:coronary )?(?:stents?|(?-i:DES|PCI))\b|\b(?:stents?|(?-i:DES|PCI))(?: placed| to (?:the )?[a-z]+)?\s+"# + within3Months, notIf: stentOther),
         Rule("pci", #"(?-i:\b(?:DES|BMS|PCI)\b)|percutaneous coronary|coronary stents?|cardiac stents?|\b(?:LAD|RCA|LCx|circumflex) stents?\b"#),
         Rule("pci", #"\bstents?(?:ed)?\b"#, onlyIf: stentCardiac, notIf: stentOther),
         Rule("cabg", #"\bcabg|coronary (?:artery )?bypass|\b(?:cardiac|heart|triple|quadruple|double) bypass"#),
         Rule("ischemia", #"(?:ongoing|active|current) (?:myocardial |cardiac )?ischemia"#),
         Rule("hf-decomp", #"decompensated (?:heart failure|hf|chf)|(?:chf|heart failure|hf) exacerbation|acute (?:on chronic )?(?:(?:systolic|diastolic) )?(?:heart failure|chf)|(?-i:\bADHF\b)"#),
         Rule("hf", #"heart failure|\bchf\b|\bhf[rpm]?ef\b|(?-i:\bHF\b)"#),
-        Rule("valve-severe", #"\b(?:severe|critical) (?:aortic|mitral|tricuspid|pulmonic) (?:valve )?(?:stenosis|regurgitation|insufficiency)\b|\b(?:severe|critical) (?-i:(?:AS|MR|MS|AR|TR|AI))\b"#),
-        Rule("as", #"aortic (?:valve )?stenosis|\b(?:mild|moderate|severe|critical)\s+(?-i:AS)\b"#),
-        Rule("mr", #"mitral (?:valve )?(?:regurgitation|insufficiency)|\b(?:mild|moderate|severe|trace)\s+(?-i:MR)\b"#),
-        Rule("prosthetic-valve", #"mechanical (?:aortic |mitral )?valve|prosthetic (?:heart )?valve|bioprosthetic|\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old)\s+(?:(?-i:AVR|MVR|SAVR|TAVR|TAVI|TMVR)|valve replacement)\b|(?-i:\b(?:AVR|MVR|SAVR|TAVR|TAVI|TMVR))\s+(?:in\s+)?(?:19|20)\d\d\b"#),
+        // Valve lesions and prosthetic valves are read by readValves (1.8.1), each into its valve.
         Rule("af", #"atrial fibrillation|atrial flutter|\ba[-. ]?fib\b|(?-i:\b(?:AF|AFL|PAF)\b)"#),
         Rule("arrhythmia", #"(?-i:\b(?:SVT|WPW|VT)\b)|ventricular tachycardia|heart block|long qt|\barrhythmias?\b|bradyarrhythmia|sick sinus"#),
         Rule("pacemaker", #"pacemaker|(?-i:\bPPM\b)"#),
@@ -295,17 +308,17 @@ enum PatientNote {
         Rule("tevar", #"(?-i:\bTEVAR\b)|\bthoracic endovascular (?:aortic )?repair"#),
         Rule("chd-elevated", #"\bfontan\b|single ventricle|cyanotic (?:congenital|heart)|transposition of the great|(?-i:\b(?:TGA|HLHS)\b)|truncus arteriosus|eisenmenger|hypoplastic left heart"#),
         Rule("chd", #"congenital heart|atrial septal defect|ventricular septal defect|(?-i:\b(?:VSD|TOF)\b)|tetralogy|coarctation|ebstein"#),
-        Rule("fh-cad", #"(?:family history|fhx|(?-i:\bFH\b))(?: of|:)? (?:premature )?(?:cad|coronary|mi\b|heart attack|heart disease)|\b(?:father|mother|brother|sister|parent)s? (?:had|has|with|died of|died from) (?:an? )?(?:mi\b|heart attack|cad\b|coronary)"#, family: true),
+        // A family history of premature coronary disease is no longer recorded (1.8.1); it reads as family history.
+        Rule("asthma-uncontrolled", #"\b(?:uncontrolled|poorly controlled|not well controlled|badly controlled|severe persistent) asthma\b|\basthma exacerbation|\bexacerbation of (?:(?:his|her|their) )?asthma|status asthmaticus"#),
         Rule("asthma", #"\basthma|reactive airway"#),
         Rule("copd", #"\bcopd\b|emphysema|chronic bronchitis"#),
         Rule("cpap", #"\bc-?pap\b|\bbi-?pap\b|\bapap\b"#),
         Rule("osa", #"(?-i:\bOSA\b)|obstructive sleep apn(?:o)?ea|sleep apn(?:o)?ea"#),
-        Rule("snoring", #"\bsnor(?:e|es|ed|er|ing)\b"#),
-        Rule("tired", #"daytime (?:sleepiness|somnolence|fatigue|tiredness)"#),
-        Rule("observed-apnea", #"(?:observed|witnessed) (?:apn(?:o)?eas?|choking)|stops breathing (?:at night|in (?:his|her|their) sleep)"#),
+        // Snoring, tiredness and observed apnea are the STOP-BANG tool's own questions (1.8.1): not read here.
         // A recent COVID-19 files Recent COVID-19 (Infectious, 1.8.1), not this as well; ARISCAT reads it as a respiratory
         // infection (PatientRules.prefill).
-        Rule("uri", #"(?-i:\bURI\b)|upper respiratory (?:tract )?infection|(?:recent|current) (?:cold|cough|chest infection|bronchitis|pneumonia|respiratory infection|flu)"#),
+        Rule("pneumonia", #"\b(?:recent|current|active|ongoing|resolving|being treated for|treated for|on (?:antibiotics|abx) for) (?:(?:aspiration|community[- ]acquired|bacterial|viral|multifocal|lobar) )?pneumonia\b|\bpneumonia (?:last|this) (?:week|month)\b|\bpneumonia\s+"# + within3Months),
+        Rule("uri", #"(?-i:\bURI\b)|upper respiratory (?:tract )?infection|(?:recent|current) (?:cold|cough|chest infection|bronchitis|respiratory infection|flu)"#),
         Rule("home-o2", #"home (?:oxygen|o2)|oxygen at home|o2 at home|\d+(?:\.\d+)? ?l(?:pm)? (?:nc )?at home"#),
         Rule("ild", #"(?-i:\b(?:ILD|IPF)\b)|interstitial lung disease|pulmonary fibrosis"#),
         // A stroke within 3 months, over 3 months (a time given: "CVA 2019", "stroke 5 years ago"), or unspecified (no
@@ -387,9 +400,9 @@ enum PatientNote {
     /// A general item and the more specific ones that replace it ("hypertension, well controlled" by "poorly
     /// controlled").
     static let supersededBy: [String: [String]] = [
-        "htn": ["htn-poor", "htn-180"], "cad": ["cad-recent"], "pci": ["pci-recent"], "cva": ["cva-recent"], "cva-unspec": ["cva", "cva-recent"],
+        "htn": ["htn-180"], "cad": ["mi", "cad-recent", "pci", "pci-recent", "ischemia", "cabg"], "mi": ["cad-recent"], "pci": ["pci-recent"], "cva": ["cva-recent"], "cva-unspec": ["cva", "cva-recent"],
         "hf": ["hf-decomp"], "ef-moderate": ["ef-severe"], "pulm-htn": ["pulm-htn-severe"], "chd": ["chd-elevated"],
-        "ckd": ["esrd-dialysis"], "gdm-diet": ["gdm-complex"], "alcohol-social": ["alcohol-abuse"],
+        "asthma": ["asthma-uncontrolled"], "ckd": ["esrd-dialysis"], "gdm-diet": ["gdm-complex"], "alcohol-social": ["alcohol-abuse"],
         "aaa": ["aaa-ruptured"], "taa": ["taa-ruptured"], "taaa": ["taaa-ruptured"],
         "ruptured-aneurysm": ["aaa-ruptured", "taa-ruptured", "taaa-ruptured"],
         "preeclampsia": ["preeclampsia-severe", "hellp"], "gest-htn": ["preeclampsia", "preeclampsia-severe", "hellp"],
@@ -397,11 +410,9 @@ enum PatientNote {
 
     /// Items whose catalog wording says more than a note usually does.
     private static let cautions: [String: String] = [
-        "htn": "Added as well controlled; choose poorly controlled in History if not.",
-        "cad": "Added as over 3 months ago; choose within 3 months in History if recent.",
+        "mi": "Added as over 3 months ago; choose within 3 months in History if recent.",
         "pci": "Added as over 3 months ago; choose within 3 months in History if recent.",
         "cva": "Added as over 3 months ago; choose within 3 months in History if recent.",
-        "fh-cad": "Counts if premature: a male relative under 55 or a female relative under 65.",
     ]
 
     private static let anesthesiaRules: [Rule] = [
@@ -563,6 +574,8 @@ enum PatientNote {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
         out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA,
                 intracranialAneurysm, rupturedAorticRx, notAorticDissection, complexEVARRx, complexEVARTail]
+        out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
+                prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx]
         out += [infectionNotPositive, hivPrevention]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
@@ -879,9 +892,9 @@ enum PatientNote {
         h.questions.append(asked.question)
         if asked.answer == "taa", let label = problemLabels["taa"] {
             if let size = aortaSize(c, m) {
-                h.add(PatientNoteFinding(id: "problem:taa", section: Part.history, label: label + ", " + NumText.short(size.cm) + " cm", change: .aortaSize("taa", size.cm)), at: size.range)
+                h.add(PatientNoteFinding(id: "problem:taa", section: Part.history, label: label + ", " + NumText.short(size.cm) + " cm", change: .aneurysm("thoracic", size.cm, false)), at: size.range)
             } else {
-                h.add(PatientNoteFinding(id: "problem:taa", section: Part.history, label: label, change: .problem("taa")), at: m.range)
+                h.add(PatientNoteFinding(id: "problem:taa", section: Part.history, label: label, change: .aneurysm("thoracic", nil, false)), at: m.range)
             }
         } else {
             h.seen(m.range)
@@ -954,6 +967,183 @@ enum PatientNote {
         }
     }
 
+    // MARK: Aneurysm location, grades, valves, cardiac surgery (1.8.1)
+
+    /// Where a thoracic aneurysm is, from the words that named it: root or ascending, arch, descending; "thoracic" when
+    /// they do not say.
+    static func aneurysmSite(_ id: String, _ words: String) -> String {
+        if id.hasPrefix("aaa") { return "abdominal" }
+        if id.hasPrefix("taaa") { return "thoracoabdominal" }
+        let w = words.lowercased()
+        if w.contains("ascending") || w.contains("root") { return "root" }
+        if w.contains("arch") { return "arch" }
+        if w.contains("descending") { return "descending" }
+        return "thoracic"
+    }
+
+    /// A grade written just before a finding ("moderate pulmonary hypertension", "mild to moderate"): the highest named.
+    static let gradeBeforeRx = NoteRx(#"\b(trace|trivial|mild|moderate|severe|critical)(?:\s*(?:-|–|to|/)\s*(mild|moderate|severe|critical))?\s*$"#)
+
+    private static func gradeBefore(_ c: String, _ m: NSTextCheckingResult) -> String? {
+        let before = (c as NSString).substring(to: m.range.location)
+        guard let g = gradeBeforeRx.first(before) else { return nil }
+        return grade([g.text(1, in: before), g.text(2, in: before)].compactMap { $0 })
+    }
+
+    /// The highest of the grades written, as the page grades: "critical" is severe; trace and trivial are not a grade
+    /// of disease (nil, and the lesion is not read).
+    static func grade(_ words: [String]) -> String? {
+        let order = ["mild", "moderate", "severe"]
+        let read = words.map { $0.lowercased() == "critical" ? "severe" : $0.lowercased() }.filter(order.contains)
+        return read.max { order.firstIndex(of: $0)! < order.firstIndex(of: $1)! }
+    }
+
+    static let pacerDependent = NoteRx(#"\b(?:pacer|pacemaker|(?-i:PPM))[- ]dependent\b|\bdependent on (?:(?:the|a|his|her|their) )?(?:pacer|pacemaker)\b"#)
+    static let homeO2FlowRx = NoteRx(#"(\d{1,2}(?:\.\d)?)\s?(?:l|lpm|l/min|liters?)\b(?:\s*(?:nc|per minute|/min))?"#)
+
+    /// The flow written within a few words of "home oxygen".
+    private static func homeO2Flow(_ c: String, near r: NSRange) -> (value: Double, range: NSRange)? {
+        let ns = c as NSString
+        let lo = max(0, r.location - 16), hi = min(ns.length, r.location + r.length + 16)
+        let window = NSRange(location: lo, length: hi - lo)
+        guard let m = homeO2FlowRx.re?.firstMatch(in: c, range: window), let v = number(m, [1], c), v > 0, v <= 15 else { return nil }
+        return (v, m.range)
+    }
+
+    /// A lesion written out ("severe aortic stenosis", "moderate to severe mitral regurgitation", "aortic valve
+    /// stenosis") or abbreviated with a grade ("severe AS", "moderate MR", "mild TR"). Trace and trivial lesions are not
+    /// valve disease (the echo's Trivial grade) and are not read. A severe pulmonic lesion has no valve of its own on the
+    /// page: it files severe valve disease, valve not recorded (its ASA IV kept).
+    static let valveWrittenRx = NoteRx(#"(?:\b(trace|trivial|mild|moderate|severe|critical)(?:\s*(?:-|–|to|/)\s*(mild|moderate|severe|critical))?\s+)?\b(aortic|mitral|tricuspid|pulmonic|pulmonary)\s+(?:valve\s+)?(stenosis|regurgitation|insufficiency)\b"#)
+    static let valveShortRx = NoteRx(#"\b(trace|trivial|mild|moderate|severe|critical)(?:\s*(?:-|–|to|/)\s*(mild|moderate|severe|critical))?\s+((?-i:AS|AR|AI|MS|MR|TS|TR|TI|PS|PR|PI))\b"#)
+    /// A prosthetic valve in place: a type and "valve" ("mechanical mitral valve", "bioprosthetic valve"), a type and
+    /// the operation ("mechanical AVR", "tissue MVR"), or the operation told as past ("s/p TAVR", "AVR 2019"), with the
+    /// size after it ("23 mm"). Not a planned one ("for TAVR", "scheduled for a bioprosthetic Bentall").
+    static let prosthesisTypedRx = NoteRx(#"\b(mechanical|bioprosthetic|bio-?prosthetic|tissue|porcine|bovine|prosthetic)\s+(?:(aortic|mitral|tricuspid)\s+)?(?:heart\s+)?valve\b(?:\s+replacement)?"#)
+    static let prosthesisOpRx = NoteRx(#"(?:\b(mechanical|bioprosthetic|bio-?prosthetic|tissue|porcine|bovine)\s+)?(?-i:\b(SAVR|AVR|TAVR|TAVI|MVR|TMVR|TVR|TTVR)\b)"#)
+    static let prosthesisOpWrittenRx = NoteRx(#"\b(aortic|mitral|tricuspid)?\s*valve replacement\b"#)
+    static let prosthesisBare = NoteRx(#"\bbio-?prosthetic\b(?!\s+(?:aortic|mitral|tricuspid|heart)?\s*valve)"#)
+    static let prosthesisSizeAfter = NoteRx(#"^\s*(?:\(|,)?\s*(?:size\s+)?(\d{2})\s*-?\s*mm\b"#)
+    static let yearAfter = NoteRx(#"^\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\b"#)
+    static let plannedBefore = NoteRx(#"(?:\b(?:scheduled|planned|plan|planning|undergo|undergoing|presenting|presents|candidate|evaluation|eval|referred|consult|consulted|booked|listed|needs|will have)\b[^.;]{0,30}|\bfor\s+(?:an?\s+|the\s+|elective\s+|urgent\s+|emergent\s+|redo\s+)*)$"#)
+    /// "On warfarin for a mechanical AVR": the valve is in place, not planned.
+    static let anticoagulationWords = NoteRx(#"\b(?:warfarin|coumadin|anticoagulat\w*|inr|heparin|eliquis|apixaban|lovenox|enoxaparin|bridg\w*)\b"#)
+    static let bentallRx = NoteRx(#"\b(?:bio-?)?bentall\b"#)
+
+    private static func readValves(_ c: String, _ h: inout Hits) {
+        let ns = c as NSString
+        func free(_ r: NSRange) -> Bool { !negated(c, at: r.location) && !familyContext(c, at: r.location) }
+        func add(_ valve: String, _ lesion: String, _ words: [String], _ r: NSRange) {
+            let g = grade(words)
+            if !words.isEmpty, g == nil { h.seen(r); return }
+            if valve == "pulmonic" {
+                guard g == "severe" else { h.seen(r); return }
+                h.add(PatientNoteFinding(id: "problem:valve-severe", section: Part.history, label: "Severe valve disease (pulmonic), valve not recorded",
+                                         change: .problem("valve-severe")), at: r)
+                return
+            }
+            let id = valve == "aortic" && lesion == "stenosis" ? "problem:as" : (valve == "mitral" && lesion == "regurgitation" ? "problem:mr" : "valve:" + valve + ":" + lesion)
+            guard !h.findings.contains(where: { $0.id == id }) else { h.seen(r); return }
+            let name = valve.prefix(1).uppercased() + valve.dropFirst() + " " + lesion
+            h.add(PatientNoteFinding(id: id, section: Part.history, label: name + (g.map { ", " + $0 } ?? ""), change: .valve(valve, lesion, g)), at: r)
+        }
+        for m in valveWrittenRx.all(c) where free(m.range) {
+            let valve = (m.text(3, in: c) ?? "").lowercased().replacingOccurrences(of: "pulmonary", with: "pulmonic")
+            let lesion = (m.text(4, in: c) ?? "").lowercased() == "stenosis" ? "stenosis" : "regurgitation"
+            add(valve, lesion, [m.text(1, in: c), m.text(2, in: c)].compactMap { $0 }, m.range)
+        }
+        let valves: [Character: String] = ["A": "aortic", "M": "mitral", "T": "tricuspid", "P": "pulmonic"]
+        for m in valveShortRx.all(c) where free(m.range) {
+            guard let ab = m.text(3, in: c), let v = valves[ab.first ?? " "] else { continue }
+            add(v, ab.hasSuffix("S") ? "stenosis" : "regurgitation", [m.text(1, in: c), m.text(2, in: c)].compactMap { $0 }, m.range)
+        }
+        // Prosthetic valves.
+        let bentallPlanned: Bool = {
+            guard let b = bentallRx.first(c) else { return false }
+            let before = ns.substring(to: b.range.location)
+            return plannedBefore.first(before) != nil && pastBefore.first(before) == nil && pastCare.first(c) == nil
+        }()
+        let anticoagulated = anticoagulationWords.first(c) != nil
+        func past(_ r: NSRange) -> Bool {
+            pastBefore.first(ns.substring(to: r.location)) != nil || yearAfter.first(ns.substring(from: r.location + r.length)) != nil
+                || pastCare.first(c) != nil
+        }
+        func planned(_ r: NSRange) -> Bool { !past(r) && !anticoagulated && (plannedBefore.first(ns.substring(to: r.location)) != nil || bentallPlanned) }
+        func addProsthesis(_ valve: String, _ words: [String], _ r: NSRange) {
+            let after = ns.substring(from: r.location + r.length)
+            var parts = words.filter { !$0.isEmpty }
+            var range = r
+            if let s = prosthesisSizeAfter.first(after), let mm = s.text(1, in: after) {
+                parts.append(mm + " mm")
+                range.length += s.range.length
+            }
+            if let y = yearAfter.first(ns.substring(from: range.location + range.length)), let yr = y.text(1, in: ns.substring(from: range.location + range.length)) {
+                parts.append(yr)
+            }
+            let text = parts.joined(separator: " ")
+            let id = "problem:prosthetic-valve" + (valve.isEmpty ? "" : "-" + valve)
+            guard !h.findings.contains(where: { $0.id == id }) else { h.seen(range); return }
+            let label = (valve.isEmpty ? "Prosthetic valve" : valve.prefix(1).uppercased() + valve.dropFirst() + " prosthetic valve") + (text.isEmpty ? "" : " (" + text + ")")
+            h.add(PatientNoteFinding(id: id, section: Part.history, label: label, change: .prosthesis(valve, text)), at: range)
+        }
+        func typeWord(_ t: String?) -> String {
+            guard let t = t?.lowercased() else { return "" }
+            if t == "prosthetic" { return "" }
+            return t.hasPrefix("bio") ? "bioprosthetic" : t
+        }
+        for m in prosthesisTypedRx.all(c) where free(m.range) && !planned(m.range) {
+            addProsthesis((m.text(2, in: c) ?? "").lowercased(), [typeWord(m.text(1, in: c))], m.range)
+        }
+        for m in prosthesisOpRx.all(c) where free(m.range) && !planned(m.range) {
+            guard let op = m.text(2, in: c) else { continue }
+            let type = typeWord(m.text(1, in: c))
+            guard !type.isEmpty || past(m.range) else { continue }
+            let valve = op.contains("A") ? "aortic" : (op.contains("M") ? "mitral" : "tricuspid")
+            let transcatheter = ["TAVR", "TAVI", "TMVR", "TTVR"].contains(op) ? op : ""
+            addProsthesis(valve, [type, transcatheter], m.range)
+        }
+        for m in prosthesisOpWrittenRx.all(c) where free(m.range) && past(m.range) && !planned(m.range) {
+            addProsthesis((m.text(1, in: c) ?? "").lowercased(), [], m.range)
+        }
+        for m in prosthesisBare.all(c) where free(m.range) && !planned(m.range) {
+            addProsthesis("", ["bioprosthetic"], m.range)
+        }
+    }
+
+    /// Previous cardiac surgery, told as past: an operation on the heart ("s/p AVR 2015", "prior CABG", "h/o Bentall"),
+    /// "prior cardiac surgery", or a redo sternotomy (which means there was one). Transcatheter procedures are not.
+    static let cardiacOpWords = #"(?:(?:mechanical|bioprosthetic|tissue)\s+)?(?:(?-i:SAVR|AVR|MVR|TVR|CABG|OPCAB|AVr|MVr|TVr)|aortic valve (?:replacement|repair)|mitral valve (?:replacement|repair)|tricuspid valve (?:replacement|repair)|valve (?:replacement|repair|surgery)|coronary (?:artery )?bypass(?: graft(?:ing)?)?|(?:bio-?)?bentall|ross procedure|maze procedure|myectomy|(?-i:ASD|VSD) (?:repair|closure)|heart transplant(?:ation)?|(?-i:OHT)|cardiac surgery|heart surgery|open[- ]heart surgery|sternotomy)(?:\s*(?:x|×)\s*\d)?"#
+    static let cardiacSurgeryRx = NoteRx(#"\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old|remote)\s+(?:an?\s+)?("# + cardiacOpWords + #")(?:\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\)?)?"#)
+    static let cardiacSurgeryYearRx = NoteRx(#"(?-i:\b(SAVR|AVR|MVR|CABG|Bentall)\b)(?:\s*(?:x|×)\s*\d)?\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\b"#)
+    static let redoSternotomyRx = NoteRx(#"\bredo\s+(?:median\s+)?sternotomy\b|\bre-?(?:do\s+)?sternotomy\b"#)
+
+    private static func readCardiacSurgery(_ c: String, _ h: inout Hits) {
+        var parts: [String] = []
+        var at: NSRange?
+        func note(_ t: String, _ r: NSRange) {
+            let t = t.trimmingCharacters(in: .whitespaces)
+            if !parts.contains(where: { $0.caseInsensitiveCompare(t) == .orderedSame }) { parts.append(t) }
+            at = at.map { NSUnionRange($0, r) } ?? r
+        }
+        for m in cardiacSurgeryRx.all(c) where !negated(c, at: m.range.location) && !familyContext(c, at: m.range.location) {
+            guard var op = m.text(1, in: c) else { continue }
+            if ["cardiac surgery", "heart surgery", "open heart surgery", "open-heart surgery"].contains(op.lowercased()) { op = "Cardiac surgery" }
+            if op.lowercased() == "sternotomy" { op = "Sternotomy" }
+            note(op + (m.text(2, in: c).map { " " + $0 } ?? ""), m.range)
+        }
+        for m in cardiacSurgeryYearRx.all(c) where !negated(c, at: m.range.location) && !familyContext(c, at: m.range.location) {
+            guard let op = m.text(1, in: c), let y = m.text(2, in: c) else { continue }
+            if parts.contains(where: { $0.hasPrefix(op) }) { continue }
+            note(op + " " + y, m.range)
+        }
+        if let m = redoSternotomyRx.first(c), !negated(c, at: m.range.location), !parts.contains(where: { $0.lowercased().contains("sternotomy") }) {
+            note("Sternotomy", m.range)
+        }
+        guard let r = at, !parts.isEmpty else { return }
+        let text = parts.joined(separator: "; ")
+        h.add(PatientNoteFinding(id: "cardiac-surgery", section: Part.history, label: "Previous cardiac surgery: " + text, change: .cardiacSurgery(text)), at: r)
+    }
+
     /// Abbreviations never read through their meaning: "IE" (infective endocarditis) is also "i.e.".
     static let neverRead: Set<String> = ["IE"]
 
@@ -974,20 +1164,50 @@ enum PatientNote {
                 continue
             }
             if repairIDs.contains(rule.id), !repairPast(c, m) { continue }
-            // "Stroke 2026": a year that may be within 3 months is read as unspecified.
-            if rule.id == "cva", rule.quiet, strokeYearNotPast(c, m) { continue }
+            // "Stroke 2026": a year that may be within 3 months is read as unspecified ("MI 2026" as an MI with its caution).
+            if rule.id == "cva" || rule.id == "mi", rule.quiet, strokeYearNotPast(c, m) { continue }
             if rule.id == "evar", let term = complexEVAR(c, m) {
                 h.add(PatientNoteFinding(id: "problem:evar", section: Part.history, label: label, change: .problemNote("evar", term),
-                                         note: "Adds “" + term + "” to the cardiovascular details."), at: m.range)
+                                         note: "Adds “" + term + "” to the repair details."), at: m.range)
                 continue
             }
-            if PatientCatalog.aneurysmIDs.contains(rule.id), let size = aortaSize(c, m) {
-                h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label + ", " + NumText.short(size.cm) + " cm",
-                                         change: .aortaSize(rule.id, size.cm)), at: size.range)
+            // An aneurysm goes to its location, with its size when written beside it.
+            if PatientHistoryDetails.aneurysmProblems.contains(rule.id) {
+                let ruptured = rule.id.hasSuffix("-ruptured")
+                let site = aneurysmSite(rule.id, (c as NSString).substring(with: m.range))
+                let size = aortaSize(c, m)
+                let place = site == "thoracic" || site == "abdominal" || site == "thoracoabdominal" ? "" : " (" + PatientHistoryDetails.siteLabel(site).lowercased() + ")"
+                h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label + place + (size.map { ", " + NumText.short($0.cm) + " cm" } ?? ""),
+                                         change: .aneurysm(site, size?.cm, ruptured)), at: size?.range ?? m.range)
+                continue
+            }
+            // Mild or moderate pulmonary hypertension keeps its grade.
+            if rule.id == "pulm-htn", let g = gradeBefore(c, m), g != "severe" {
+                h.add(PatientNoteFinding(id: "problem:pulm-htn", section: Part.history, label: label + ", " + g, change: .pulmHtn(g)), at: m.range)
+                continue
+            }
+            // Another arrhythmia: its name goes to the type ("SVT", "heart block").
+            if rule.id == "arrhythmia" {
+                let t = (c as NSString).substring(with: m.range)
+                h.add(PatientNoteFinding(id: "problem:arrhythmia", section: Part.history, label: label + " (" + t + ")", change: .problemNote("arrhythmia", t)), at: m.range)
+                continue
+            }
+            // A pacemaker-dependent patient: "dependent" goes to the device details.
+            if rule.id == "pacemaker", let d = pacerDependent.first(c) {
+                h.add(PatientNoteFinding(id: "problem:pacemaker", section: Part.history, label: label + " (dependent)", change: .problemNote("pacemaker", "dependent")),
+                      at: NSUnionRange(m.range, d.range))
+                continue
+            }
+            // Home oxygen with a flow ("2 L at home", "home O2 3 L").
+            if rule.id == "home-o2", let flow = homeO2Flow(c, near: m.range) {
+                h.add(PatientNoteFinding(id: "problem:home-o2", section: Part.history, label: label + " " + NumText.short(flow.value) + " L/min", change: .homeO2(flow.value)),
+                      at: NSUnionRange(m.range, flow.range))
                 continue
             }
             h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label, change: .problem(rule.id), note: rule.quiet ? nil : cautions[rule.id]), at: m.range)
         }
+        readValves(c, &h)
+        readCardiacSurgery(c, &h)
         if let m = efRx.first(c), let a = number(m, [1], c) {
             h.seen(m.range)
             let ef = number(m, [2], c).map { ($0 + a) / 2 } ?? a
@@ -2098,6 +2318,10 @@ enum PatientNote {
             return nil
         case (.codeStatus, .codeStatus):
             return PatientCodeStatus.merged(a.change, b.change)
+        case (.cardiacSurgery(let x), .cardiacSurgery(let y)):
+            // Operations told in several places of the note: one entry.
+            let t = mentions(x, y) ? x : x + "; " + y
+            return PatientNoteFinding(id: a.id, section: a.section, label: "Previous cardiac surgery: " + t, change: .cardiacSurgery(t))
         default:
             return nil
         }
@@ -2171,15 +2395,41 @@ enum PatientNote {
             if r.problems.contains(p) || (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { return .recorded }
             let general = supersededBy.keys.filter { (supersededBy[$0] ?? []).contains(p) && r.problems.contains($0) }.compactMap { problemLabels[$0] }.sorted()
             return general.isEmpty ? .new : .replaces(general.joined(separator: "; "))
-        case .aortaSize(let p, let cm):
-            if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { return .recorded }
-            guard r.problems.contains(p) else { return .new }
-            guard let o = r.aortaSizes[p] else { return .new }
+        case .aneurysm(let site, let cm, let ruptured):
+            guard let key = aneurysmKey(site, in: r), let a = r.hx.aneurysms[key] else { return .new }
+            if ruptured && !a.ruptured { return .new }
+            if !ruptured && a.ruptured { return .recorded }
+            guard let cm else { return .recorded }
+            guard let o = a.cm else { return .new }
             return same(o, cm) ? .recorded : .replaces(NumText.short(o) + " cm")
+        case .valve(let v, let lesion, let g):
+            let x = r.hx.valve(v)
+            guard x.has(lesion) else { return .new }
+            guard let g else { return .recorded }
+            guard let o = x.grade(lesion) else { return .new }
+            return o == g ? .recorded : .replaces(o)
+        case .prosthesis(let v, let t):
+            if v.isEmpty {
+                let any = r.hx.prosthesisUnplaced || r.hx.valves.values.contains(where: \.prosthetic)
+                return any && (t.isEmpty || r.hx.valves.values.contains { mentions($0.prosthesis, t) }) ? .recorded : .new
+            }
+            let x = r.hx.valve(v)
+            guard x.prosthetic else { return .new }
+            if t.isEmpty || mentions(x.prosthesis, t) { return .recorded }
+            return x.prosthesis.isEmpty ? .new : .replaces(x.prosthesis)
+        case .pulmHtn(let g):
+            if r.has("pulm-htn-severe") { return .recorded }
+            guard r.has("pulm-htn") else { return .new }
+            guard let o = r.hx.pulmHtnSeverity else { return .new }
+            return o == g ? .recorded : .replaces(o)
+        case .cardiacSurgery(let t):
+            return mentions(PatientHistoryDetails.cardiacSurgeryText(r), t) || r.surgeries.contains(where: { mentions($0.name, t) }) ? .recorded : .new
+        case .homeO2(let flow):
+            guard r.has("home-o2"), let o = r.hx.homeO2Flow else { return .new }
+            return same(o, flow) ? .recorded : .replaces(NumText.short(o) + " L/min")
         case .problemNote(let p, let t):
             let has = r.problems.contains(p)
-            let sys = PatientCatalog.system(of: p)?.id ?? "cv"
-            return has && mentions(r.systemNotes[sys] ?? "", t) ? .recorded : .new
+            return has && mentions(problemNoteField(p, r), t) ? .recorded : .new
         case .noHistory:
             if r.noHistory { return .recorded }
             return r.problems.isEmpty ? .new : .conflicts("Problems are already recorded.")
@@ -2288,6 +2538,39 @@ enum PatientNote {
         }
     }
 
+    /// Which aneurysm a note's location means in this record: the location itself; for "thoracic" (no location written),
+    /// the record's one thoracic aneurysm if it has exactly one, else "thoracic".
+    static func aneurysmKey(_ site: String, in r: PatientRecord) -> String? {
+        guard site == "thoracic" else { return r.hx.aneurysms[site] != nil ? site : nil }
+        let thoracic = r.hx.aneurysms.keys.filter { PatientHistoryDetails.thoracicSites.contains($0) }
+        if thoracic.count == 1 { return thoracic[0] }
+        return r.hx.aneurysms["thoracic"] != nil ? "thoracic" : nil
+    }
+
+    /// Where a problem's words go: an aortic repair's to the repair details, an arrhythmia's to its type, a device's to
+    /// the device details, PVD's and congenital disease's to their details; any other to its system's details.
+    private static func problemNoteField(_ p: String, _ r: PatientRecord) -> String {
+        switch p {
+        case "evar", "tevar", "aortic-repair-open": return r.hx.repairDetails
+        case "arrhythmia": return r.hx.arrhythmiaType
+        case "pacemaker", "icd": return r.hx.deviceDetails
+        case "pvd": return r.hx.pvdDetails
+        case "chd", "chd-elevated": return r.hx.chdDetails
+        default: return r.systemNotes[PatientCatalog.system(of: p)?.id ?? "cv"] ?? ""
+        }
+    }
+
+    private static func setProblemNote(_ p: String, _ t: String, _ r: inout PatientRecord) {
+        switch p {
+        case "evar", "tevar", "aortic-repair-open": r.hx.repairDetails = t
+        case "arrhythmia": r.hx.arrhythmiaType = t
+        case "pacemaker", "icd": r.hx.deviceDetails = t
+        case "pvd": r.hx.pvdDetails = t
+        case "chd", "chd-elevated": r.hx.chdDetails = t
+        default: r.systemNotes[PatientCatalog.system(of: p)?.id ?? "cv"] = t
+        }
+    }
+
     /// Puts the chosen findings into the record: values are set, lists gain items, text is added after what is there.
     /// A general problem never goes in beside its more specific form, and NKDA never hides a recorded allergy.
     static func apply(_ changes: [PatientNoteChange], to r: inout PatientRecord) {
@@ -2311,16 +2594,49 @@ enum PatientNote {
                 if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { continue }
                 r.problems.insert(p)
                 for general in supersededBy.keys where (supersededBy[general] ?? []).contains(p) { r.problems.remove(general) }
-            case .aortaSize(let p, let cm):
+            case .aneurysm(let site, let cm, let ruptured):
                 r.noHistory = false
-                if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { continue }
-                r.problems.insert(p)
-                r.aortaSizes[p] = cm
+                let key = aneurysmKey(site, in: r) ?? site
+                var a = r.hx.aneurysms[key] ?? PatientAneurysm()
+                if let cm { a.cm = cm }
+                if ruptured { a.ruptured = true }
+                r.hx.aneurysms[key] = a
+                PatientHistoryDetails.sync(&r)
+            case .valve(let v, let lesion, let g):
+                r.noHistory = false
+                r.hx.editValve(v) { x in
+                    x.set(lesion, true)
+                    if let g { x.setGrade(lesion, g) }
+                }
+                PatientHistoryDetails.sync(&r)
+            case .prosthesis(let v, let t):
+                r.noHistory = false
+                if v.isEmpty {
+                    r.hx.prosthesisUnplaced = true
+                } else {
+                    r.hx.editValve(v) { x in
+                        x.prosthetic = true
+                        if !t.isEmpty, !mentions(x.prosthesis, t) { x.prosthesis = joined(x.prosthesis, t) }
+                    }
+                }
+            case .pulmHtn(let g):
+                r.noHistory = false
+                if r.has("pulm-htn-severe") { continue }
+                r.problems.insert("pulm-htn")
+                r.hx.pulmHtnSeverity = g
+            case .cardiacSurgery(let t):
+                r.noHistory = false
+                let old = PatientHistoryDetails.cardiacSurgeryText(r)
+                if mentions(old, t) { continue }
+                PatientHistoryDetails.setCardiacSurgery(old.isEmpty ? t : old + "; " + t, &r)
+            case .homeO2(let flow):
+                r.noHistory = false
+                r.problems.insert("home-o2")
+                r.hx.homeO2Flow = flow
             case .problemNote(let p, let t):
                 r.noHistory = false
                 r.problems.insert(p)
-                let sys = PatientCatalog.system(of: p)?.id ?? "cv"
-                r.systemNotes[sys] = joined(r.systemNotes[sys] ?? "", t)
+                setProblemNote(p, joined(problemNoteField(p, r), t), &r)
             case .noHistory:
                 if r.problems.isEmpty { r.noHistory = true }
             case .smoking(let s): r.smoking = s
@@ -2381,6 +2697,8 @@ enum PatientNote {
             case .intraopAirway(let key, let value): r.setIntraopAirway(key, value)
             }
         }
+        // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.
+        PatientHistoryDetails.migrate(&r)
     }
 
     /// What My Patient still lacks, in the order its editors ask for it.

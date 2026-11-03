@@ -139,8 +139,11 @@ struct PatientRecord: Codable, Equatable {
     // History
     var noHistory = false
     var problems: Set<String> = []
-    /// The diameter (cm) of each unruptured aortic aneurysm ticked, by problem id ("aaa", "taa", "taaa"; 1.8.1).
+    /// The diameter (cm) of each unruptured aortic aneurysm, by problem id ("aaa", "taa", "taaa"), as saved before the
+    /// aneurysms were kept by location (PatientHistoryDetails.aneurysms); read once and moved there.
     var aortaSizes: [String: Double] = [:]
+    /// What the expanding History pages hold beside the problem ids: valves, aneurysms by location, typed details (1.8.1).
+    var hx = PatientHistoryDetails()
     var systemNotes: [String: String] = [:]
     var otherHistory = ""
     /// "never", "former", "current".
@@ -305,6 +308,7 @@ struct PatientRecord: Codable, Equatable {
         noHistory = v(.noHistory, false)
         problems = PatientCatalog.migratedProblems(v(.problems, []))
         aortaSizes = v(.aortaSizes, [:])
+        hx = v(.hx, PatientHistoryDetails())
         systemNotes = v(.systemNotes, [:])
         otherHistory = v(.otherHistory, "")
         smoking = try? c.decodeIfPresent(String.self, forKey: .smoking)
@@ -397,6 +401,7 @@ struct PatientRecord: Codable, Equatable {
         painPlan = v(.painPlan, "")
         callIf = v(.callIf, "")
         todos = v(.todos, "")
+        PatientHistoryDetails.migrate(&self)
     }
 
     /// Nothing entered (the time stamp alone does not count).

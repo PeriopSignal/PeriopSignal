@@ -251,6 +251,21 @@ jobs:
           shot 277-quickadd-history-light 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M, DM2, h/o stroke, HCV, MRSA, contact precautions"
           shot 278-asa-history 18 -ps.tab patient -ps.patient demo-history -ps.patient.open assessment -ps.forceAppearance light
           shot 279-endocrine-diabetes-info-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:endo -ps.evidence.open 1 -ps.forceAppearance light
+          # 1.8.1 Cardiovascular and Respiratory as expanding sections (280-292): the collapsed list, each section opened,
+          # the studies rows, and quick-add lines read into the new structure.
+          shot 280-cv-collapsed 14 -ps.tab patient -ps.patient empty -ps.patient.open system:cv -ps.forceAppearance light
+          shot 281-cv-cad-hf-light 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.forceAppearance light
+          shot 282-cv-cad-hf-dark 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.forceAppearance dark
+          shot 283-cv-valves-light 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.forceAppearance light
+          shot 284-cv-valves-dark 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.forceAppearance dark
+          shot 285-cv-aortopathy 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.scroll hx-aorta -ps.forceAppearance light
+          shot 286-cv-studies 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.scroll hx-cardiac-surgery -ps.forceAppearance dark
+          shot 287-quickadd-cardio 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M, NSTEMI 2 weeks ago, s/p CABG, severe AS, s/p mechanical AVR 2015, AICD, moderate pulmonary hypertension, 4.8 cm ascending aneurysm"
+          shot 288-quickadd-cardio-dark 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "HFrEF, EF 25%, PPM dependent, DES to LAD last month, moderate MR, MI 2019, poorly controlled asthma, home O2 2 L"
+          shot 289-resp-expanded-light 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance light
+          shot 290-resp-expanded-dark 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance dark
+          shot 291-history-cardio 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open history -ps.forceAppearance light
+          shot 292-cv-info 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.evidence.open 1 -ps.forceAppearance light
           shot 43-acls 12 -ps.ref acls
           shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals
@@ -384,7 +399,7 @@ jobs:
           shot 205-studies-pft 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:pft -ps.forceAppearance dark
           shot 206-studies-pft-summary 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:pft -ps.patient.scroll done -ps.evidence.open 1 -ps.forceAppearance dark
           shot 207-studies-carotid-empty 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:carotid -ps.forceAppearance light
-          shot 208-aorta-cardiovascular 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open system:cv -ps.patient.scroll aorta -ps.forceAppearance dark
+          shot 208-aorta-cardiovascular 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open system:cv -ps.patient.scroll hx-aorta -ps.forceAppearance dark
           shot 209-intraop-lines-harvest 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open intraop:lines -ps.evidence.open 1 -ps.forceAppearance dark
           shot 210-cardiac-assessment-card 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.scroll assessment -ps.forceAppearance dark
           shot 211-cardiac-handoff-short-cautions 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open handoff -ps.handoff.format short -ps.patient.jump handoff -ps.forceAppearance dark

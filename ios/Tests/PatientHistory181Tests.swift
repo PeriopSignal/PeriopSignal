@@ -33,8 +33,8 @@ final class PatientHistory181Tests: XCTestCase {
         XCTAssertEqual(insulin.peds, 3)
         XCTAssertEqual(insulin.rcri, "insulin")
         let cv = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "cv" })
-        XCTAssertTrue(cv.problems.contains { $0.label == "Hypertension, well controlled" }, "hypertension keeps its qualifiers")
-        XCTAssertTrue(cv.problems.contains { $0.label == "Hypertension, poorly controlled" })
+        XCTAssertEqual(cv.problems.first { $0.id == "htn" }?.label, "Hypertension", "hypertension has no control qualifier since the cardiovascular redesign")
+        XCTAssertNil(PatientCatalog.problem("htn-poor"))
         XCTAssertEqual(PatientCatalog.problem("gdm-diet")?.label, "Gestational diabetes, diet-controlled", "gestational diabetes is untouched")
     }
 
@@ -110,7 +110,7 @@ final class PatientHistory181Tests: XCTestCase {
 
     func testSavedPoorlyControlledDiabetesLoadsAsDiabetes() throws {
         let old = try XCTUnwrap(try? JSONDecoder().decode(PatientRecord.self, from: Data(#"{"problems": ["dm-poor", "htn-poor"]}"#.utf8)))
-        XCTAssertEqual(old.problems, ["dm", "htn-poor"])
+        XCTAssertEqual(old.problems, ["dm", "htn"])
         let both = try XCTUnwrap(try? JSONDecoder().decode(PatientRecord.self, from: Data(#"{"problems": ["dm", "dm-poor", "insulin"]}"#.utf8)))
         XCTAssertEqual(both.problems, ["dm", "insulin"])
         XCTAssertEqual(PatientCatalog.migratedProblems(["dm-poor"]), ["dm"])

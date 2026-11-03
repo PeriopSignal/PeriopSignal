@@ -22,7 +22,7 @@ final class PatientNoteTests: XCTestCase {
         let r = read(PatientNote.example)
         let found = Set(r.findings.map(\.id))
         for id in ["age", "sex", "procedure", "urgency", "anesthetic:ga", "problem:htn", "problem:dm", "problem:insulin", "problem:osa",
-                   "problem:cpap", "problem:cad", "problem:pci", "flag:betablocker", "flag:acei", "flag:insulin", "flag:aspirin",
+                   "problem:cpap", "problem:pci", "flag:betablocker", "flag:acei", "flag:insulin", "flag:aspirin",
                    "flag:p2y12", "meds", "allergies:penicillin (rash)", "smoking", "height", "weight", "vital:sbp", "vital:dbp", "vital:hr",
                    "vital:spo2", "lab:hb", "lab:cr", "lab:k", "mallampati", "sign:thick-neck", "intake:solids", "intake:clears", "mets"] {
             XCTAssertTrue(found.contains(id), id)
@@ -53,12 +53,11 @@ final class PatientNoteTests: XCTestCase {
     func testNegationFamilyAndHistory() {
         let a = ids("No history of stroke. Father had an MI at 50. Denies chest pain, has HTN.")
         XCTAssertTrue(a.contains("problem:htn"))
-        XCTAssertTrue(a.contains("problem:fh-cad"))
         XCTAssertFalse(a.contains("problem:cva"))
         XCTAssertFalse(a.contains("problem:cad"), "the father's MI")
         XCTAssertFalse(a.contains("symptom:chest-pain"))
         XCTAssertEqual(ids("Denies chest pain, SOB, palpitations, syncope or orthopnea. No CAD, has DM."), ["problem:dm"])
-        XCTAssertEqual(ids("FHx: CAD, DM, HTN, stroke. Mother with diabetes, has HTN"), ["problem:fh-cad", "problem:htn"])
+        XCTAssertEqual(ids("FHx: CAD, DM, HTN, stroke. Mother with diabetes, has HTN"), ["problem:htn"], "a family history is not filed (1.8.1)")
         let d = read("History of ACS in 2019. Admitted with ACS. Recent NSTEMI 3 weeks ago")
         XCTAssertEqual(Set(d.findings.map(\.id)), ["acute:acs", "problem:cad-recent"], "a past ACS is history; the recent MI replaces the general CAD")
         XCTAssertEqual(d.other, "")
@@ -88,8 +87,8 @@ final class PatientNoteTests: XCTestCase {
         XCTAssertNotNil(change(b, "problem:pregnant"))
         let c = read("72F with severe AS and CKD stage 3 for TAVR under MAC.")
         XCTAssertEqual(change(c, "procedure"), .procedure("TAVR"))
-        XCTAssertNil(change(c, "problem:prosthetic-valve"), "a planned TAVR is not a prosthetic valve yet")
-        XCTAssertNotNil(change(c, "problem:valve-severe"))
+        XCTAssertNil(change(c, "problem:prosthetic-valve-aortic"), "a planned TAVR is not a prosthetic valve yet")
+        XCTAssertEqual(change(c, "problem:as"), .valve("aortic", "stenosis", "severe"))
         XCTAssertNotNil(change(c, "anesthetic:mac"))
         let d = read("Healthy 30 yo M for knee arthroscopy. PSH: tonsillectomy as child, no anesthetic complications.")
         XCTAssertEqual(change(d, "procedure"), .procedure("knee arthroscopy"))
@@ -140,14 +139,14 @@ final class PatientNoteTests: XCTestCase {
         var rec = PatientRecord()
         rec.problems = ["htn"]
         rec.weightKg = 80
-        let poor = PatientNoteFinding(id: "problem:htn-poor", section: PatientNote.Part.history, label: "", change: .problem("htn-poor"))
-        XCTAssertEqual(PatientNote.status(poor, in: rec), .replaces("Hypertension, well controlled"))
-        PatientNote.apply([poor.change], to: &rec)
-        XCTAssertEqual(rec.problems, ["htn-poor"], "the specific form replaces the general one")
+        let high = PatientNoteFinding(id: "problem:htn-180", section: PatientNote.Part.history, label: "", change: .problem("htn-180"))
+        XCTAssertEqual(PatientNote.status(high, in: rec), .replaces("Hypertension"))
+        PatientNote.apply([high.change], to: &rec)
+        XCTAssertEqual(rec.problems, ["htn-180"], "the specific form replaces the general one")
         let plain = PatientNoteFinding(id: "problem:htn", section: PatientNote.Part.history, label: "", change: .problem("htn"))
         XCTAssertEqual(PatientNote.status(plain, in: rec), .recorded)
         PatientNote.apply([plain.change], to: &rec)
-        XCTAssertEqual(rec.problems, ["htn-poor"])
+        XCTAssertEqual(rec.problems, ["htn-180"])
         let w = PatientNoteFinding(id: "weight", section: PatientNote.Part.patient, label: "", change: .weight(82))
         XCTAssertEqual(PatientNote.status(w, in: rec), .replaces("80 kg"))
         rec.allergies = "latex"
