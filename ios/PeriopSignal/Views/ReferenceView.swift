@@ -227,6 +227,9 @@ struct ReferenceView: View {
     @State private var ask: AskPrompt?
     /// Passes a child's weight and age from the pediatric calculator to the local anesthetic one, once.
     @State private var handoff = PatientHandoff()
+    @Environment(TipCenter.self) private var tips
+    /// The footer's ⓘ: how the tools work and when the content was reviewed (open in screenshots with -ps.evidence.open 1).
+    @State private var footerInfo = LaunchSeed.bool("ps.evidence.open")
 
     private var trimmed: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var searching: Bool { !trimmed.isEmpty }
@@ -240,15 +243,15 @@ struct ReferenceView: View {
                     } else {
                         if !favorites.keys.isEmpty { favoritesSection }
                         folders
-                        Text("A reference aid for licensed clinicians: confirm against the source and your institution's protocols before acting. Not reviewed or cleared by the FDA.")
-                            .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5)
-                            .fixedSize(horizontal: false, vertical: true)
+                        footer
                     }
                 }
+                .tipFrame(TipTarget.referenceTop, in: tips)
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
                 .padding(.bottom, 28)
             }
+            .readTipFrames(tips.isShowing, into: tips)
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Drug, score, society, procedure")
@@ -257,6 +260,8 @@ struct ReferenceView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .navigationDestination(for: RefRoute.self) { route in
                 destination(route).modifier(FavoriteToolbar(route: route))
+                    // No tip ever shows on an emergency tool (a first open may be a real emergency).
+                    .blocksTips(!TipSet.allowed(onRouteKey: route.key), id: "reference:" + route.key, in: tips)
             }
             .navigationDestination(for: Post.self) { post in
                 DeepDiveView(post: post, onOpenPaper: { webLink = WebLink(url: $0) })
@@ -274,9 +279,35 @@ struct ReferenceView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
-        .onAppear { consumePending() }
+        .onAppear { consumePending(); offerTips() }
         .onChange(of: router.pendingRefRoute) { _, _ in consumePending() }
         .onChange(of: refs.quickrefs.count) { _, _ in consumePending() }
+        .onChange(of: path.count) { _, _ in offerTips() }
+        .onChange(of: router.selectedTab) { _, _ in offerTips() }
+        .onChange(of: tips.isShowing) { _, _ in offerTips() }
+    }
+
+    /// The Reference home's first-visit tips: the search field, then the first folder while there are no favorites.
+    /// Only on the home itself (no tool open, not searching), once nothing else shows.
+    private func offerTips() {
+        guard !tips.isShowing, !tips.seen(TipSet.referenceHome(hasFavorites: false)) || Tips.launch(for: .referenceHome(hasFavorites: false)) != .normal else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            guard router.selectedTab == .reference, path.isEmpty, !searching, router.pendingRefRoute == nil else { return }
+            withAnimation(.easeOut(duration: 0.25)) { _ = tips.offer(.referenceHome(hasFavorites: !favorites.keys.isEmpty)) }
+        }
+    }
+
+    /// The disclaimer stays in view at the foot; how the tools work and the review date sit behind its ⓘ (1.8.1).
+    @ViewBuilder private var footer: some View {
+        let updated: String? = refs.bundle?.updated
+        let reviewed = updated.map { " Content reviewed \(PSDate.monthYear($0))." } ?? ""
+        InfoTitle(caption: "Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. Confirm against the source before acting." + reviewed,
+                  open: $footerInfo, captionFont: PS.sys(size: 12), spacing: 6) {
+            Text("A reference aid for licensed clinicians: confirm against the source and your institution's protocols before acting. Not reviewed or cleared by the FDA.")
+                .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).lineSpacing(1.5)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 2)
     }
 
     @ViewBuilder private func destination(_ route: RefRoute) -> some View {
@@ -330,13 +361,11 @@ struct ReferenceView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .tipFrame(i == 0 ? TipTarget.referenceFirstFolder : "reference.folder.\(f.rawValue)", in: tips)
                     if i < RefFolder.allCases.count - 1 { Hairline().padding(.leading, 70) }
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            EvidenceNote("Calculators ask for what they need and give the answer; the condensed references cite their society document and link to it. Confirm against the source before acting.")
-                .padding(.horizontal, 2)
-            if let updated = refs.bundle?.updated { Eyebrow(text: "Content reviewed \(PSDate.monthYear(updated))", size: 10).padding(.leading, 2) }
         }
     }
 }
