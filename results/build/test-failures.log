@@ -1,0 +1,6 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientECGLink183Tests.swift:195: error: -[PeriopSignalTests.PatientECGLink183Tests testRemovingTheHistoryNeverTouchesTheECG] : XCTAssertEqual failed: ("["Paced rhythm (AV)"]") is not equal to ("["Paced rhythm (AV)", "Atrial fibrillation"]") - what someone saw stays
+Test Case '-[PeriopSignalTests.PatientECGLink183Tests testRemovingTheHistoryNeverTouchesTheECG]' failed (2.682 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientHistory183Tests.swift:402: error: -[PeriopSignalTests.PatientHistory183Tests testAPlanningWordDropsTheItemWhole] : XCTAssertFalse failed - s/p lap chole 2015, booked for redo sternotomy → Sternotomy
+Test Case '-[PeriopSignalTests.PatientHistory183Tests testAPlanningWordDropsTheItemWhole]' failed (0.208 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientLHC183Tests.swift:177: error: -[PeriopSignalTests.PatientLHC183Tests testTheCADItemIsNotFiledFromThePhraseAlone] : XCTAssertFalse failed - the phrase is the cath's result
+Test Case '-[PeriopSignalTests.PatientLHC183Tests testTheCADItemIsNotFiledFromThePhraseAlone]' failed (0.188 seconds).
