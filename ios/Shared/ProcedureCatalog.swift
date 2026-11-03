@@ -641,6 +641,10 @@ extension ProcedureCatalog {
         section("Cardiac cath & EP", cathEP),
         section("Bronchoscopy", bronchoscopy),
         section("Pediatrics", pediatrics),
+        section("Trauma", trauma),
+        section("Burns", burns),
+        section("Pain medicine", pain),
+        section("Psychiatry", psychiatry),
     ]
 
     // MARK: General and colorectal
@@ -1729,5 +1733,69 @@ extension ProcedureCatalog {
         heart("pa-reconstruction", "Pulmonary artery reconstruction", ["pulmonary artery arterioplasty", "branch PA reconstruction", "unifocalization", "MAPCA unifocalization"]),
         heart("ccTGA-repair", "Congenitally corrected TGA repair", ["ccTGA repair", "L-TGA repair", "congenitally corrected transposition repair"]),
         heart("aortic-valve-peds", "Pediatric aortic valve surgery", ["Ross-Konno", "aortic valvotomy", "subaortic membrane resection", "subaortic stenosis resection"]),
+    ]
+
+    // MARK: Trauma
+
+    fileprivate static let trauma: [Procedure] = [
+        p("reboa", "REBOA placement", ["REBOA", "resuscitative endovascular balloon occlusion of the aorta", "aortic occlusion balloon placement"], ga, per, short),
+        p("splenorrhaphy", "Splenorrhaphy", ["splenic repair", "splenic laceration repair", "partial splenectomy"], ga, upper, mid, risk: true),
+        p("hepatorrhaphy", "Liver injury repair or packing", ["hepatorrhaphy", "liver laceration repair", "liver packing", "perihepatic packing", "liver injury repair"], ga, upper, mid, risk: true),
+        p("bowel-injury", "Bowel injury repair", ["enterorrhaphy", "colon injury repair", "small bowel injury repair", "primary repair of colon injury", "colorrhaphy"], ga, upper, mid, risk: true),
+        p("diaphragm-repair", "Diaphragm injury repair", ["traumatic diaphragm repair", "diaphragm rupture repair", "diaphragmatic laceration repair", "traumatic diaphragmatic hernia repair"], ga, upper, mid, risk: true),
+        p("extremity-vascular", "Extremity vascular injury repair", ["arterial injury repair", "vascular injury repair", "extremity vascular repair", "brachial artery repair", "femoral artery injury repair", "popliteal artery injury repair", "temporary vascular shunt", "vein interposition graft for injury"], ga, per, mid, side: true),
+        p("neck-exploration", "Neck exploration for injury", ["neck exploration", "penetrating neck injury exploration", "zone II neck exploration", "neck stab wound exploration"], ga, per, mid),
+        p("pelvic-packing", "Preperitoneal pelvic packing", ["pelvic packing", "preperitoneal packing", "pelvic packing removal"], ga, per, short),
+        p("laceration", "Complex laceration repair", ["facial laceration repair", "laceration repair", "layered closure of laceration", "scalp laceration repair"], mac, per, short),
+        p("open-fracture", "Open fracture irrigation and debridement", ["open fracture I&D", "open fracture washout", "open fracture debridement", "open fracture irrigation"], ga, per, short, side: true),
+        p("tracheal-injury", "Airway injury repair", ["tracheal injury repair", "tracheal laceration repair", "laryngeal fracture repair", "laryngeal trauma repair"], ga, per, mid),
+        p("renal-injury", "Trauma nephrectomy or renorrhaphy", ["trauma nephrectomy", "renorrhaphy", "renal injury repair", "kidney injury repair"], ga, upper, mid, risk: true, side: true),
+        p("bladder-injury", "Bladder injury repair", ["bladder rupture repair", "cystorrhaphy", "intraperitoneal bladder rupture repair"], ga, per, short, risk: true),
+        p("decompressive-laparotomy", "Decompressive laparotomy", ["abdominal compartment syndrome decompression", "decompressive laparotomy for abdominal compartment syndrome", "laparotomy for abdominal compartment syndrome"], ga, upper, short, risk: true),
+        p("pancreas-injury", "Pancreatic or duodenal injury repair", ["pancreatic injury repair", "duodenal injury repair", "pyloric exclusion", "trauma distal pancreatectomy"], ga, upper, long, risk: true),
+        p("vascular-abdominal-trauma", "Abdominal vascular injury repair", ["IVC injury repair", "iliac artery injury repair", "abdominal vascular injury", "retroperitoneal hematoma exploration", "mesenteric vessel injury repair"], ga, upper, long, risk: true),
+    ]
+
+    // MARK: Burns
+
+    fileprivate static let burns: [Procedure] = [
+        p("burn-dressing", "Burn dressing change under anesthesia", ["burn dressing change", "dressing change under anesthesia", "burn wound care under anesthesia", "burn hydrotherapy", "burn tanking"], mac, per, short),
+        p("major-burn-excision", "Major burn excision and grafting", ["large burn excision", "burn excision and autografting", "excision and grafting of burns", "early burn excision", "staged burn excision"], ga, per, long),
+        p("burn-allograft", "Burn wound coverage with allograft or substitute", ["cadaver allograft placement", "homograft skin placement", "xenograft placement", "skin substitute placement", "Integra placement", "dermal substitute placement", "biologic dressing placement"], ga, per, mid),
+        p("burn-cea", "Cultured epidermal autograft or spray skin", ["cultured epidermal autograft", "Epicel", "ReCell", "spray on skin", "autologous skin cell suspension", "cultured skin graft"], ga, per, mid),
+        p("burn-contracture", "Burn contracture release", ["burn scar contracture release", "scar contracture release", "Z-plasty", "contracture release with graft"], ga, per, mid),
+        p("burn-laser", "Burn scar laser", ["fractional CO2 laser burn scar", "laser for burn scars", "burn scar laser treatment", "fractional laser scar"], ga, per, short),
+        p("burn-debridement", "Burn wound debridement", ["burn debridement", "enzymatic debridement", "NexoBrid", "burn wound excision", "hydrosurgical debridement"], ga, per, short),
+        p("face-burn", "Facial burn excision and grafting", ["facial burn excision", "facial burn grafting", "face burn grafting", "facial burn sheet graft"], ga, per, mid),
+        p("hand-burn", "Hand burn excision and grafting", ["hand burn grafting", "hand burn excision", "burned hand grafting", "hand burn sheet graft"], ga, per, mid, side: true),
+        p("burn-reconstruction", "Burn reconstruction", ["burn scar excision", "burn reconstruction with flap", "burn tissue expansion", "burn alopecia reconstruction"], ga, per, mid),
+    ]
+
+    // MARK: Pain medicine
+
+    fileprivate static let pain: [Procedure] = [
+        p("esi", "Epidural steroid injection", ["ESI", "lumbar ESI", "cervical ESI", "thoracic ESI", "transforaminal ESI", "interlaminar ESI", "caudal ESI", "TFESI", "caudal epidural steroid injection"], mac, per, short),
+        p("facet", "Facet injection or medial branch block", ["facet injection", "facet joint injection", "medial branch block", "MBB", "lumbar facet injection", "cervical facet injection"], mac, per, short),
+        p("rf-neurotomy", "Radiofrequency neurotomy", ["medial branch RFA", "facet RFA", "genicular nerve RFA", "genicular RFA", "cooled RFA", "radiofrequency ablation of medial branch nerves"], mac, per, short),
+        p("si-injection", "Sacroiliac joint injection", ["SI joint injection", "sacroiliac injection", "SI joint RFA", "lateral branch RFA"], mac, per, short, side: true),
+        p("sgb", "Stellate ganglion block", ["SGB", "stellate block", "cervical sympathetic block"], mac, per, short, side: true),
+        p("lumbar-sympathetic", "Lumbar sympathetic block", ["lumbar sympathetic plexus block", "lumbar sympathetic neurolysis"], mac, per, short, side: true),
+        p("celiac-plexus", "Celiac plexus block or neurolysis", ["celiac plexus block", "celiac plexus neurolysis", "splanchnic nerve block", "superior hypogastric plexus block", "ganglion impar block", "splanchnic nerve RFA"], mac, per, short),
+        p("blood-patch", "Epidural blood patch", ["blood patch", "EBP", "lumbar blood patch", "targeted blood patch"], mac, per, short),
+        p("pump-revision", "Intrathecal pump replacement or revision", ["pain pump replacement", "intrathecal pump revision", "intrathecal pump explant", "intrathecal catheter revision", "baclofen pump replacement"], mac, per, short),
+        p("pns", "Peripheral nerve stimulator implant", ["PNS implant", "peripheral nerve stimulation implant", "occipital nerve stimulator implant"], mac, per, short),
+        p("basivertebral", "Basivertebral nerve ablation", ["Intracept", "basivertebral nerve RFA", "basivertebral ablation"], mac, per, short),
+        p("mild", "Percutaneous lumbar decompression", ["MILD procedure", "percutaneous image guided lumbar decompression", "minimally invasive lumbar decompression"], mac, per, short),
+        p("discography", "Discography", ["provocative discography", "lumbar discography", "discogram"], mac, per, short),
+        p("head-blocks", "Occipital or sphenopalatine nerve block", ["occipital nerve block", "greater occipital nerve block", "sphenopalatine ganglion block", "SPG block", "trigeminal nerve block"], mac, per, short),
+        p("trigger-point", "Trigger point or joint injection under fluoroscopy", ["trigger point injection", "hip joint injection", "shoulder joint injection", "piriformis injection", "fluoroscopic joint injection"], mac, per, short),
+        p("pain-pump-trial", "Intrathecal trial", ["intrathecal pump trial", "intrathecal ziconotide trial", "intrathecal morphine trial"], mac, per, short),
+    ]
+
+    // MARK: Psychiatry
+
+    fileprivate static let psychiatry: [Procedure] = [
+        p("ect", "Electroconvulsive therapy", ["ECT", "electroconvulsive treatment", "ECT treatment", "maintenance ECT"], ga, per, short),
+        p("mst", "Magnetic seizure therapy", ["magnetic seizure therapy treatment"], ga, per, short),
     ]
 }
