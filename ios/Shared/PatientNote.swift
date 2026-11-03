@@ -513,7 +513,7 @@ enum PatientNote {
     static var allPatterns: [NoteRx] {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
         out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA,
-                intracranialAneurysm, rupturedAorticRx, notAorticDissection, bentallWord]
+                intracranialAneurysm, rupturedAorticRx, notAorticDissection, bentallWord, gradedMI]
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
         out += [ageRx, ageMonthsRx, ageWeeksRx, ageSexRx, maleRx, femaleRx, heightFtRx, heightCtxRx, heightMRx, heightCmRx, weightKgRx, weightLbRx, lossCue, bmiRx]
@@ -639,6 +639,8 @@ enum PatientNote {
                 readTubesAndDevices(written, abbreviations, meant, &h)
                 readBreathing(c, &h)
             }
+            // "mild MI", "trivial MI": mitral insufficiency, so not read through MI's meaning as an infarction (1.8.1).
+            for m in gradedMI.all(c) { h.seen(m.range(at: 1)) }
             // The others, where no rule read them as written, are read through their meaning.
             var plain: [AbbreviationReplacement] = []
             var unread: [AbbreviationReplacement] = []
@@ -787,6 +789,8 @@ enum PatientNote {
     private static let rupturedIDs: Set<String> = ["aaa-ruptured", "taa-ruptured", "taaa-ruptured", "ruptured-aneurysm"]
     private static let repairIDs: Set<String> = ["aortic-repair-open", "evar", "tevar"]
     static let bentallWord = NoteRx(#"\b(?:bio-?)?bentall\b"#)
+    /// MI after a valve grade is mitral insufficiency.
+    static let gradedMI = NoteRx(#"\b(?:mild|trace|trivial|moderate|severe)\s+((?-i:MI))\b"#)
     /// A rupture told as past: repaired, or after a history cue.
     static let rupturePastBefore = NoteRx(#"\b(?:s/p|status post|history of|hx of|h/o|prior|previous|previously|old|remote|repaired|repair of)\b[^.;]{0,24}$"#)
     /// A repair told as done: after a history cue or "had", or with a year or "ago" after it.
