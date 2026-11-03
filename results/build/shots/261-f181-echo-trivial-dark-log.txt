@@ -1,0 +1,13 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-03 03:05:30.704 Df PeriopSignal[33641:17209] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-03 03:05:30.706 Df PeriopSignal[33641:17209] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-03 03:05:30.715 Df PeriopSignal[33641:170cf] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-03 03:05:30.718 Df PeriopSignal[33641:170cf] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-03 03:05:30.723 Sd PeriopSignal[33641:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+UAUserActivityManager supportsActivityContinuation=YES isEnabled=YES serverPid=0 PROJECT:UserActivity-551
+2026-11-03 03:05:30.724 Sd PeriopSignal[33641:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+[CB77F2F9-84D6-479D-B1B5-E43460CA445B userInfo.count=1 dirty 
+2026-11-03 03:05:30.764 Df PeriopSignal[33641:170cf] [com.apple.network:activity] <nw_activity 50:1 [D92FEBA6-B4A9-48EB-B5E8-BAE64A5F4B8F] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 58066ms
+2026-11-03 03:05:30.764 Df PeriopSignal[33641:170cf] [com.apple.network:activity] <nw_activity 50:2 [A5B8C478-908D-47FC-A8E2-9CFFBB8CCFC0] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 58065ms
+2026-11-03 03:05:30.764 Df PeriopSignal[33641:170cf] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [D92FEBA6-B4A9-48EB-B5E8-BAE64A5F4B8F] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-03 03:05:30.764 Df PeriopSignal[33641:170cf] [com.apple.network:activity] Unset the global parent activity
