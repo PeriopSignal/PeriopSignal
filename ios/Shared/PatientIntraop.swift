@@ -50,21 +50,25 @@ enum IntraopLabs {
         LabTest("hco3a", "Bicarbonate, arterial", short: "HCO₃", unit: "mmol/L", group: .main, range: LabRange(23, 26), decimals: 0, plausible: 1...60),
         LabTest("be", "Base excess", short: "BE", unit: "mmol/L", group: .main, decimals: 1, plausible: -40...40,
                 note: "Not flagged: the ABIM ranges give none; read it against your analyzer's range."),
-        LabTest("lactate", "Lactate, arterial", short: "Lactate", unit: "mmol/L", group: .main, range: LabRange(nil, 2.0),
-                decimals: 1, plausible: 0...40,
-                note: "High above 2 mmol/L, the Sepsis-3 septic-shock lactate criterion (Singer M, et al. JAMA 2016;315:801); the ABIM arterial reference limit is stricter (under 1.3)."),
+        lactate,
         LabTest("ica", "Ionized calcium", short: "iCa", unit: "mmol/L", group: .main, range: LabRange(1.16, 1.31), decimals: 2, plausible: 0.2...4),
         LabTest("ptt", "aPTT", short: "PTT", unit: "s", group: .main, range: LabRange(25, 35), decimals: 0, plausible: 10...300),
         LabTest("act", "ACT", short: "ACT", unit: "s", group: .main, decimals: 0, plausible: 30...1500,
                 note: "Not flagged: read against the target. During bypass, above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa), or above about 400 s on maximal-activation or microcuvette devices."),
     ]
 
+    /// The gas's lactate; the preoperative catalog's "Lactate" (1.8.3) reuses its unit, range and note.
+    static let lactate = LabTest("lactate", "Lactate, arterial", short: "Lactate", unit: "mmol/L", group: .main, range: LabRange(nil, 2.0),
+                                 decimals: 1, plausible: 0...40,
+                                 note: "High above 2 mmol/L, the Sepsis-3 septic-shock lactate criterion (Singer M, et al. JAMA 2016;315:801); the ABIM arterial reference limit is stricter (under 1.3).")
+
     /// Blood gas, in the order analyzers print it.
     static let abg = ["ph", "paco2", "pao2", "hco3a", "be", "lactate", "hb", "k", "na", "ica", "glucose"]
     static let coag = ["inr", "ptt", "fibrinogen", "plt", "act"]
     static var keys: [String] { abg + coag }
 
-    static func tests(_ keys: [String]) -> [LabTest] { keys.compactMap { PatientLabs.test($0) } }
+    /// The tests by key, this list's own entry first ("Lactate, arterial"), then the preoperative catalog's.
+    static func tests(_ keys: [String]) -> [LabTest] { keys.compactMap { k in added.first { $0.key == k } ?? PatientLabs.test(k) } }
 
     static let sources = "Reference ranges: ABIM Laboratory Test Reference Ranges, January 2026 (arterial pH 7.38–7.44, PaCO₂ 38–42 mmHg, PaO₂ 75–100 mmHg, bicarbonate 23–26 mEq/L, arterial lactate under 1.3 mmol/L (flagged here above 2, the Sepsis-3 criterion), ionized calcium 1.16–1.31 mmol/L, aPTT 25–35 s); hemoglobin, potassium, sodium, platelets and fibrinogen as in the preoperative labs; INR from MedlinePlus; glucose flagged above 180 mg/dL (ADA perioperative target 100–180 mg/dL) and below 70 (hypoglycemia). PaO₂ is flagged only when low. Base excess and ACT have no ABIM range and are not flagged; during bypass an ACT above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa). Your laboratory's ranges may differ."
 

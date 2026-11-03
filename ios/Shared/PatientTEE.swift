@@ -283,7 +283,7 @@ enum PatientTEE {
         if r.has("cirrhosis") { offer("varices", "Cirrhosis recorded: are there esophageal varices?") }
         var labs: [String] = []
         if let p = r.labs["plt"], PatientLabs.flag("plt", p, sex: r.sex) == .low { labs.append("platelets " + NumText.short(p) + " ×10³/µL") }
-        if let i = r.labs["inr"], PatientLabs.flag("inr", i, sex: r.sex) == .high { labs.append("INR " + NumText.short(i)) }
+        if let i = r.labs["inr"], PatientLabs.flag("inr", i, sex: r.sex) == .high { labs.append("INR " + (PatientLabs.test("inr")?.format(i) ?? NumText.short(i))) }
         if !labs.isEmpty { offer("coagulopathy", "Outside the reference range: " + labs.joined(separator: ", ") + ".") }
         // Operations the screen already counts are not read again as notes.
         var texts: [String] = r.systemNotes.keys.sorted().compactMap { r.systemNotes[$0] }
