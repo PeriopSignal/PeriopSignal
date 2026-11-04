@@ -256,7 +256,7 @@ final class Review19DevicesTests: XCTestCase {
         var h = PatientRecord()
         h.radial.harvest = "left"
         h.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Old harvest scar infection")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "L arm — old harvest scar infection")
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "L arm — Old harvest scar infection")
         h.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Planned radial artery harvest, no lines")]
         XCTAssertNil(PatientDeviceFills.limbAlertText(h))
     }

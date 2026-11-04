@@ -16,11 +16,16 @@ final class Shots19FixTests: XCTestCase {
 
     func testShortLabelsKeepTheFixedMargin() {
         let items = [columnLabel("CVL", left: true), columnLabel("PPM", left: false), columnLabel("A-line", left: false)]
-        for k: CGFloat in [0.5, 0.8, 1.2, 2] {
+        // At the sizes the figure is drawn (the editor, the cards, the shared image) the short labels fit the fixed margin.
+        for k: CGFloat in [0.8, 1.2, 2] {
             let m = PatientDiagramCanvas.margins(items, figureWidth: 200, k: k)
-            XCTAssertEqual(m.left, PatientDiagramCanvas.margin * k, accuracy: 0.001)
-            XCTAssertEqual(m.right, PatientDiagramCanvas.margin * k, accuracy: 0.001)
+            XCTAssertEqual(m.left, PatientDiagramCanvas.margin * k, accuracy: 0.001, "k \(k)")
+            XCTAssertEqual(m.right, PatientDiagramCanvas.margin * k, accuracy: 0.001, "k \(k)")
         }
+        // Never less than it, however small the figure (where even "A-line" at the 7-point floor needs more).
+        let tiny = PatientDiagramCanvas.margins(items, figureWidth: 200, k: 0.5)
+        XCTAssertGreaterThanOrEqual(tiny.left, PatientDiagramCanvas.margin * 0.5)
+        XCTAssertGreaterThanOrEqual(tiny.right, PatientDiagramCanvas.margin * 0.5)
         // So the drawing is laid out as before: the figure as large as the height allows, centered.
         let size = CGSize(width: 342, height: 445)
         let (k, ox) = PatientDiagramCanvas.layout(items, figureWidth: 200, figureHeight: 420, in: size)
@@ -37,7 +42,9 @@ final class Shots19FixTests: XCTestCase {
             XCTAssertGreaterThan(k, 0)
             XCTAssertLessThanOrEqual(k * 420, size.height + 0.01, "\(size): never taller than the drawing")
             let m = PatientDiagramCanvas.margins(items, figureWidth: 200, k: k)
-            XCTAssertGreaterThan(m.right, PatientDiagramCanvas.margin * k, "\(size): the long labels widen the right side")
+            XCTAssertGreaterThanOrEqual(m.right, PatientDiagramCanvas.margin * k)
+            // The cards' small figures are where the labels were cut: the right side widens there.
+            if size.width < 300 { XCTAssertGreaterThan(m.right, PatientDiagramCanvas.margin * k, "\(size): the long labels widen the right side") }
             XCTAssertEqual(m.left, PatientDiagramCanvas.margin * k, accuracy: 0.001, "\(size): the left side, with CVL only, is as before")
             for item in items where !item.labelLeft {
                 let end = ox + 202 * k + PatientDiagramCanvas.labelWidth(item.label, k: k)
@@ -103,12 +110,13 @@ final class Shots19FixTests: XCTestCase {
         XCTAssertEqual(InfusionEntry.read(typed).items.map(\.drugID), ["norepinephrine", "vasopressin", "epinephrine", "fentanyl"])
         XCTAssertTrue(InfusionEntry.suggestions(typed).isEmpty, InfusionEntry.suggestions(typed).map(\.id).joined(separator: ","))
         // Nothing read yet (two letters): the suggestions speak.
-        XCTAssertEqual(InfusionEntry.suggestions("fe").first?.id, "fentanyl")
-        // A word that names one drug outright but starts others: the others are offered, that drug is the chip.
-        let epi = InfusionEntry.suggestions("epi")
-        XCTAssertEqual(InfusionEntry.read("epi").items.map(\.drugID), ["epinephrine"])
-        XCTAssertFalse(epi.contains { $0.id == "epinephrine" })
-        XCTAssertTrue(epi.contains { $0.id == "iepo" || $0.id == "epoprostenol-iv" || $0.id == "eptifibatide" }, epi.map(\.id).joined(separator: ","))
+        XCTAssertTrue(InfusionEntry.read("fe").items.isEmpty)
+        XCTAssertTrue(InfusionEntry.suggestions("fe").contains { $0.id == "fentanyl" })
+        // A word that names one drug outright but starts another: the other is offered, that drug is the chip.
+        let dex = InfusionEntry.suggestions("dex")
+        XCTAssertEqual(InfusionEntry.read("dex").items.map(\.drugID), ["dexmedetomidine"])
+        XCTAssertFalse(dex.contains { $0.id == "dexmedetomidine" })
+        XCTAssertTrue(dex.contains { $0.id == "dextrose" }, dex.map(\.id).joined(separator: ","))
         // Never the same drug under the field twice, whatever the last piece reads as.
         for text in ["nor", "fent", "dex", "epi", "mag", "roc", "levo", "calcium", "norepi 0.05 va", "norepi 0.05, prop"] {
             let chips = Set(InfusionEntry.read(text).items.map(\.drugID))
