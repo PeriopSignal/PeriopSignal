@@ -191,7 +191,8 @@ enum InfusionEntry {
     // MARK: Reading
 
     /// Typeahead for the piece being typed (the last one, before its rate): drugs whose name or an alias starts with
-    /// what was typed, the name first.
+    /// what was typed, the name first. A drug the piece already reads as (`read` shows its chip: "fent" is fentanyl,
+    /// "nor" norepinephrine) is not offered again, so the same drug is never under the field twice.
     static func suggestions(_ text: String, limit: Int = 4) -> [InfusionEntryDrug] {
         guard let last = pieces(text).last else { return [] }
         let parts = split(last)
@@ -199,9 +200,11 @@ enum InfusionEntry {
         let w = fold(parts.drug)
         guard w.count >= 2 else { return [] }
         if drugs.contains(where: { fold($0.name) == w }) { return [] }
+        let already = matches(w)
+        let read: String? = already.count == 1 ? already[0].id : nil
         var out: [InfusionEntryDrug] = []
-        for x in drugs where fold(x.name).hasPrefix(w) && !out.contains(x) { out.append(x) }
-        for x in drugs where x.aliases.contains(where: { $0.hasPrefix(w) }) && !out.contains(x) { out.append(x) }
+        for x in drugs where fold(x.name).hasPrefix(w) && x.id != read && !out.contains(where: { $0.id == x.id }) { out.append(x) }
+        for x in drugs where x.aliases.contains(where: { $0.hasPrefix(w) }) && x.id != read && !out.contains(where: { $0.id == x.id }) { out.append(x) }
         return Array(out.prefix(limit))
     }
 
