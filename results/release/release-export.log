@@ -1,3 +1,7 @@
-2026-11-04 18:32:05.460 xcodebuild[14979:42969] Progress 0%: Upload failed.
-error: exportArchive Validation failed. SDK version issue. This app was built with the iOS 18.2 SDK. All iOS and iPadOS apps must be built with the iOS 26 SDK or later, included in Xcode 26 or later, in order to be uploaded to App Store Connect or submitted for distribution. (ID: 52c0d08e-e1b2-46c6-864d-fbc896794267).
-** EXPORT FAILED **
+2026-11-04 21:19:50.857 xcodebuild[14140:39096] Progress 0%: Uploading to App Store Connect…
+2026-11-04 21:19:50.931 xcodebuild[14140:39096] Progress 37%: Uploading to App Store Connect…
+2026-11-04 21:19:50.932 xcodebuild[14140:39096] Progress 37%: Uploading to App Store Connect…
+2026-11-04 21:19:52.634 xcodebuild[14140:39096] Progress 37%: Uploaded package is processing.
+2026-11-04 21:19:52.639 xcodebuild[14140:39096] Progress 37%: Upload succeeded.
+Uploaded PeriopSignal
+** EXPORT SUCCEEDED **
