@@ -299,7 +299,7 @@ struct MtpView: View {
     private func labsCard(_ s: MtpState, _ d: MtpData, now: Date) -> some View {
         let l = MtpCalc.labs(s, data: d, now: now)
         return VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: "Labs", info: d.labs.text + " " + d.fibrinogen.note)
+            SectionHeader(title: "Labs", info: d.labs.text + " " + d.fibrinogen.note + (d.viscoelastic.map { " " + $0.note } ?? ""))
             ToolCard(tint: l.due ? PS.accent : nil) {
                 HStack {
                     Text(l.due ? "Send labs" : "Next labs \(ClockText.relative(MtpCalc.labsDueAt(s, data: d), now: now))")
@@ -310,8 +310,7 @@ struct MtpView: View {
                 Text("\(MtpCalc.one(l.rbcSince)) RBC since the last set").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
                 if !calcium(s, d).due && calcium(s, d).action != .check { icaRow(s, d) }
                 labField("Fibrinogen (Clauss)", "g/L", \.fibrinogen)
-                labField("FIBTEM CA5", "mm", \.fibtem)
-                labField("TEG FF MA", "mm", \.tegFF)
+                viscoelastic(s, d)
                 if MtpCalc.fibrinogenLow(s, data: d) {
                     Text(d.fibrinogen.text + " At least \(MtpCalc.one(MtpCalc.cryoUnits(forGrams: 3, data: d))) single-donor units for 3 g (\(MtpCalc.one((MtpCalc.cryoUnits(forGrams: 3, data: d) / s.cryoPool).rounded(.up))) of your \(MtpCalc.one(s.cryoPool))-unit pools).")
                         .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.accent).fixedSize(horizontal: false, vertical: true)
@@ -322,6 +321,31 @@ struct MtpView: View {
                 }
                 labField("INR (warfarin reversal)", "", \.inr)
                 pccRow(s, d)
+            }
+        }
+    }
+
+    /// ROTEM or TEG values and their TACTIC prompts (fibrinogen is read with the other fibrinogen values below).
+    @ViewBuilder private func viscoelastic(_ s: MtpState, _ d: MtpData) -> some View {
+        Picker("Viscoelastic test", selection: Binding(get: { s.vha }, set: { state?.vha = $0 })) {
+            Text("ROTEM").tag("rotem")
+            Text("TEG").tag("teg")
+        }
+        .pickerStyle(.segmented)
+        if s.vha == "teg" {
+            labField("rTEG MA", "mm", \.rtegMa)
+            labField("TEG FF MA", "mm", \.tegFF)
+            labField("rTEG LY30", "%", \.rtegLy30)
+        } else {
+            labField("EXTEM CA5", "mm", \.extemCa5)
+            labField("FIBTEM CA5", "mm", \.fibtem)
+            labField("EXTEM LI30", "%", \.extemLi30)
+        }
+        ForEach(MtpCalc.vhaPrompts(s, data: d)) { p in
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(p.text).font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(p.info ? PS.fg2 : PS.accent)
+                    .fixedSize(horizontal: false, vertical: true)
+                EvidenceTag(text: "G", url: d.sources.first { $0.id == "tactic" }.flatMap { URL(string: $0.url) }, onOpen: onOpen)
             }
         }
     }

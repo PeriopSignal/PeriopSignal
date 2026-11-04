@@ -188,6 +188,18 @@ struct MtpData: Codable, Hashable {
         var note: String
     }
     /// INR 2 to <4, 4–6 (to inclusive), >6.
+    /// TACTIC viscoelastic thresholds (Baksaas-Aasen 2019) beyond fibrinogen.
+    struct Viscoelastic: Codable, Hashable {
+        struct Rotem: Codable, Hashable { var extemMinusFibtemCa5: Double; var extemCa5: Double; var extemLi30: Double }
+        struct Teg: Codable, Hashable { var rtegMinusFfMa: Double; var rtegMa: Double; var rtegLy30: Double }
+        var rotem: Rotem
+        var teg: Teg
+        var platelets: String
+        var coagulopathy: String
+        var fibrinolysis: String
+        var note: String
+        var sources: [String]?
+    }
     struct PccBand: Codable, Hashable { var from: Double; var to: Double?; var toInclusive: Bool?; var iuPerKg: Double }
     struct Pcc: Codable, Hashable { var bands: [PccBand]; var capKg: Double; var text: String; var boxed: String }
     struct Labs: Codable, Hashable {
@@ -210,6 +222,7 @@ struct MtpData: Codable, Hashable {
     var calcium: Calcium
     var txa: Txa
     var fibrinogen: Fibrinogen
+    var viscoelastic: Viscoelastic?
     var pcc: Pcc
     var labs: Labs
     /// [lab, target, source].
@@ -279,6 +292,10 @@ struct TeeData: Codable, Hashable {
     var required: [String]?
     struct Handoff: Codable, Hashable { var title: String; var note: String }
     var handoff: Handoff?
+    var avRepairNote: String?
+    /// Practice questions built from the sourced content (review doc, TEE row 12).
+    struct Practice: Codable, Hashable { var q: String; var a: String; var source: String }
+    var practice: [Practice]?
     var sources: [EvidenceSource]
 
     func surgery(_ id: String) -> Surgery? { surgeries.first { $0.id == id } }

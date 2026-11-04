@@ -99,6 +99,21 @@ final class MtpTests: XCTestCase {
         XCTAssertEqual(d.product("cellSaver")?.caseKey, "cellSaver")
     }
 
+    func testTacticViscoelasticPrompts() throws {
+        let d = try data()
+        var s = MtpState(started: t0, data: d)
+        XCTAssertTrue(MtpCalc.vhaPrompts(s, data: d).isEmpty)
+        s.extemCa5 = 38; s.fibtem = 12                     // EXTEM − FIBTEM 26 < 30; EXTEM 38 < 41
+        XCTAssertEqual(Set(MtpCalc.vhaPrompts(s, data: d).map(\.id)), ["platelets", "coagulopathy"])
+        XCTAssertTrue(MtpCalc.vhaPrompts(s, data: d).first { $0.id == "coagulopathy" }!.info, "information only, no product")
+        s.extemCa5 = 50; s.fibtem = 15; s.extemLi30 = 80   // 35 ≥ 30; LI30 80 < 85
+        XCTAssertEqual(MtpCalc.vhaPrompts(s, data: d).map(\.id), ["fibrinolysis"])
+        var t = MtpState(started: t0, data: d)
+        t.vha = "teg"; t.rtegMa = 60; t.tegFF = 18; t.rtegLy30 = 12   // 42 < 46; 60 < 64; 12 > 10
+        XCTAssertEqual(Set(MtpCalc.vhaPrompts(t, data: d).map(\.id)), ["platelets", "coagulopathy", "fibrinolysis"])
+        XCTAssertTrue(MtpCalc.fibrinogenLow(t, data: d), "TEG FF MA 18 < 19")
+    }
+
     func testLabsAfterFourRbcOrThirtyMinutes() throws {
         let d = try data()
         var s = MtpState(started: t0, data: d)

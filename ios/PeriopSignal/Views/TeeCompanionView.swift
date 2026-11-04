@@ -20,6 +20,7 @@ struct TeeCompanionView: View {
     @State private var found: Set<String> = []
     @State private var viewsOpen = false
     @State private var basicOnly = false
+    @State private var practiceOpen = false
 
     var body: some View {
         Group {
@@ -32,6 +33,12 @@ struct TeeCompanionView: View {
                         DraftBanner(section: "tee")
                         questions(d)
                         checklist(d)
+                        if surgery == "avRepair", let note = d.avRepairNote {
+                            VStack(alignment: .leading, spacing: 6) {
+                                InfoCaptionText(text: note, font: PS.sys(size: 12.5))
+                                EvidenceLinks(sources: d.sources.filter { $0.id == "bierbach2010" || $0.id == "lepolain2009" }, onOpen: onOpen)
+                            }
+                        }
                         if post { changes(d) }
                         handoff(d)
                         Text(d.rv).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
@@ -42,6 +49,7 @@ struct TeeCompanionView: View {
                     .padding(.bottom, 30)
                 }
                 .sheet(isPresented: $viewsOpen) { TeeViewsSheet(data: d, basicOnly: $basicOnly, onOpen: onOpen) }
+                .sheet(isPresented: $practiceOpen) { TeePracticeSheet(questions: d.practice ?? []) }
             } else {
                 ContentUnavailableView("Not available offline yet", systemImage: "wifi.slash", description: Text("This tool arrives with the next refresh."))
             }
@@ -63,6 +71,7 @@ struct TeeCompanionView: View {
         }
         .onAppear {
             #if DEBUG
+            if LaunchSeed.bool("ps.tee.practice") { DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { practiceOpen = true } }
             if !LaunchSeed.string("ps.tee.surgery").isEmpty { surgery = LaunchSeed.string("ps.tee.surgery") }
             if LaunchSeed.bool("ps.tee.post") { post = true }
             #endif
@@ -214,6 +223,9 @@ struct TeeCompanionView: View {
             Hairline()
             FlowLayout(spacing: 10) {
                 Button { viewsOpen = true } label: { Label("Views", systemImage: "tablecells") }.buttonStyle(GhostButtonStyle())
+                if !(d.practice ?? []).isEmpty {
+                    Button { practiceOpen = true } label: { Label("Practice", systemImage: "questionmark.bubble") }.buttonStyle(GhostButtonStyle())
+                }
                 if let s = d.sources.first(where: { $0.id == "hahn2013" }), let url = URL(string: s.url) {
                     Button { onOpen(url) } label: { Label("Guideline ↗", systemImage: "doc.text") }.buttonStyle(GhostButtonStyle())
                 }
@@ -274,6 +286,55 @@ struct TeeViewsSheet: View {
             }
             .background(FeedBackground())
             .navigationTitle("TEE Views")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+        }
+        .presentationDetents([.large])
+    }
+}
+
+/// Practice questions from the companion's own sourced content: tap one to see the answer and its source.
+struct TeePracticeSheet: View {
+    var questions: [TeeData.Practice]
+    @Environment(\.dismiss) private var dismiss
+    @State private var shown: Set<Int> = []
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Tap a question to see the answer.").font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
+                    ForEach(Array(questions.enumerated()), id: \.offset) { i, item in
+                        let open = shown.contains(i)
+                        Button {
+                            Haptics.light()
+                            withAnimation(.snappy) { if open { shown.remove(i) } else { shown.insert(i) } }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                                    Text("\(i + 1)").font(PS.mono(size: 12, weight: .bold)).foregroundStyle(PS.accent)
+                                    Text(item.q).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
+                                    Spacer(minLength: 0)
+                                }
+                                if open {
+                                    Text(item.a).font(PS.sys(size: 14.5)).foregroundStyle(PS.green).fixedSize(horizontal: false, vertical: true)
+                                        .padding(.leading, 22)
+                                    Text(item.source).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).padding(.leading, 22)
+                                }
+                            }
+                            .padding(14)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(PS.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(open ? "Hides the answer" : "Shows the answer")
+                    }
+                }
+                .padding(20)
+            }
+            .background(FeedBackground())
+            .navigationTitle("TEE Practice")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
         }

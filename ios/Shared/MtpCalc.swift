@@ -36,6 +36,12 @@ struct MtpState: Codable, Equatable {
     var fibrinogen: Double?
     var fibtem: Double?
     var tegFF: Double?
+    /// "rotem" or "teg": which viscoelastic fields the screen shows.
+    var vha = "rotem"
+    var extemCa5: Double?
+    var extemLi30: Double?
+    var rtegMa: Double?
+    var rtegLy30: Double?
     var potassium: Double?
     var inr: Double?
 
@@ -60,6 +66,11 @@ struct MtpState: Codable, Equatable {
         fibrinogen = try? c.decodeIfPresent(Double.self, forKey: .fibrinogen)
         fibtem = try? c.decodeIfPresent(Double.self, forKey: .fibtem)
         tegFF = try? c.decodeIfPresent(Double.self, forKey: .tegFF)
+        vha = (try? c.decodeIfPresent(String.self, forKey: .vha)) ?? "rotem"
+        extemCa5 = try? c.decodeIfPresent(Double.self, forKey: .extemCa5)
+        extemLi30 = try? c.decodeIfPresent(Double.self, forKey: .extemLi30)
+        rtegMa = try? c.decodeIfPresent(Double.self, forKey: .rtegMa)
+        rtegLy30 = try? c.decodeIfPresent(Double.self, forKey: .rtegLy30)
         potassium = try? c.decodeIfPresent(Double.self, forKey: .potassium)
         inr = try? c.decodeIfPresent(Double.self, forKey: .inr)
     }
@@ -235,6 +246,34 @@ enum MtpCalc {
         if let v = s.fibtem, v < d.fibrinogen.fibtem { return true }
         if let v = s.tegFF, v < d.fibrinogen.tegFF { return true }
         return false
+    }
+
+    // MARK: Viscoelastic (TACTIC, beyond fibrinogen)
+
+    struct VhaPrompt: Hashable, Identifiable {
+        /// "platelets", "coagulopathy", "fibrinolysis".
+        var id: String
+        var text: String
+        /// Information only: no product suggested (coagulopathy).
+        var info: Bool
+    }
+
+    /// Platelets low (EXTEM − FIBTEM CA5 <30 mm, or rTEG MA − FF MA <46 mm), coagulopathy likely (EXTEM CA5 <41 mm or
+    /// rTEG MA <64 mm, information only) and hyperfibrinolysis (EXTEM LI30 <85% or rTEG LY30 >10%), from whichever
+    /// device's values are entered.
+    static func vhaPrompts(_ s: MtpState, data d: MtpData) -> [VhaPrompt] {
+        guard let v = d.viscoelastic else { return [] }
+        var out: [VhaPrompt] = []
+        let plateletsLow = (s.extemCa5.flatMap { e in s.fibtem.map { e - $0 < v.rotem.extemMinusFibtemCa5 } } ?? false)
+            || (s.rtegMa.flatMap { m in s.tegFF.map { m - $0 < v.teg.rtegMinusFfMa } } ?? false)
+        if plateletsLow { out.append(VhaPrompt(id: "platelets", text: v.platelets, info: false)) }
+        if (s.extemCa5.map { $0 < v.rotem.extemCa5 } ?? false) || (s.rtegMa.map { $0 < v.teg.rtegMa } ?? false) {
+            out.append(VhaPrompt(id: "coagulopathy", text: v.coagulopathy, info: true))
+        }
+        if (s.extemLi30.map { $0 < v.rotem.extemLi30 } ?? false) || (s.rtegLy30.map { $0 > v.teg.rtegLy30 } ?? false) {
+            out.append(VhaPrompt(id: "fibrinolysis", text: v.fibrinolysis, info: false))
+        }
+        return out
     }
 
     // MARK: 4F-PCC (vitamin K antagonist reversal)

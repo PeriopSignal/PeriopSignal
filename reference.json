@@ -15437,12 +15437,12 @@
       {
         "id": "itactic",
         "label": "ITACTIC, Intensive Care Med 2021",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/33048195/"
+        "url": "https://doi.org/10.1007/s00134-020-06266-1"
       },
       {
         "id": "tactic",
-        "label": "TACTIC viscoelastic thresholds",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/29794847/"
+        "label": "Baksaas-Aasen 2019, TACTIC ROTEM and TEG algorithms, Ann Surg",
+        "url": "https://doi.org/10.1097/SLA.0000000000002825"
       },
       {
         "id": "kcentra",
@@ -15470,7 +15470,27 @@
         "url": "https://pubmed.ncbi.nlm.nih.gov/42743435/"
       }
     ],
-    "addToCaseDefault": true
+    "addToCaseDefault": true,
+    "viscoelastic": {
+      "rotem": {
+        "extemMinusFibtemCa5": 30,
+        "extemCa5": 41,
+        "extemLi30": 85
+      },
+      "teg": {
+        "rtegMinusFfMa": 46,
+        "rtegMa": 64,
+        "rtegLy30": 10
+      },
+      "platelets": "Platelets low on viscoelastic testing: consider a platelet dose.",
+      "coagulopathy": "Coagulopathy likely (80% sensitivity for an INR above 1.2): check the PT/INR.",
+      "fibrinolysis": "Hyperfibrinolysis: TXA, if not already given and within the time limit.",
+      "note": "TACTIC thresholds (Baksaas-Aasen 2019), each chosen for 70% sensitivity (coagulopathy 80%). The coagulopathy line is information only: the algorithm's plasma or PCC trigger was not verified. ITACTIC found no outcome gain over lab-guided care.",
+      "sources": [
+        "tactic",
+        "itactic"
+      ]
+    }
   },
   "mcs": {
     "reviewed": "2026-11-03",
@@ -16239,6 +16259,20 @@
           "Coronary flow",
           "Residual flap"
         ]
+      },
+      {
+        "id": "avRepair",
+        "name": "AV repair / valve-sparing root",
+        "pre": [
+          "Mechanism: El Khoury type (I dilation, II prolapse, III restriction)",
+          "Annulus and STJ diameters"
+        ],
+        "post": [
+          "Effective height ≥9 mm (annular plane to central coaptation)",
+          "Coaptation above the annulus",
+          "Coaptation length (longer is better)",
+          "Residual AR, with its vena contracta"
+        ]
       }
     ],
     "flags": [
@@ -16273,6 +16307,10 @@
       [
         "New flap",
         "At a cannulation or clamp site"
+      ],
+      [
+        "Low coaptation after AV repair",
+        "Coaptation below the annulus, or effective height under 9 mm"
       ],
       [
         "New AR",
@@ -16320,6 +16358,16 @@
         "id": "nagueh2025",
         "label": "Nagueh 2025, diastolic function",
         "url": "https://doi.org/10.1016/j.echo.2025.03.011"
+      },
+      {
+        "id": "bierbach2010",
+        "label": "Bierbach 2010, aortic root and cusp configuration, Eur J Cardiothorac Surg",
+        "url": "https://doi.org/10.1016/j.ejcts.2010.01.060"
+      },
+      {
+        "id": "lepolain2009",
+        "label": "le Polain de Waroux 2009, recurrent AR after repair, JACC Cardiovasc Imaging",
+        "url": "https://doi.org/10.1016/j.jcmg.2009.04.013"
       }
     ],
     "required": [
@@ -16328,6 +16376,49 @@
     "handoff": {
       "title": "TEE draft: confirm with the echocardiographer",
       "note": "Adds about 6 lines to the case's echo notes in My Patient, with the time. It does not replace the formal echo report (Nicoara 2020)."
-    }
+    },
+    "avRepairNote": "Effective height ≥9 mm made no or mild AR very likely (Bierbach 2010). Coaptation below the annulus (OR 7.9), a shorter coaptation length, a larger annulus and any residual AR predicted failure (le Polain de Waroux 2009); type III and Marfan recurred more. Applying these to valve-sparing root surgery is an extension.",
+    "practice": [
+      {
+        "q": "Which is one of Reeves' 11 basic views: ME commissural, ME AV LAX, ME LAX or ME LAA?",
+        "a": "ME LAX.",
+        "source": "Reeves 2013"
+      },
+      {
+        "q": "After AVR the DVI is 0.22. What does it suggest?",
+        "a": "Significant prosthetic obstruction (DVI under 0.25).",
+        "source": "Zoghbi 2024"
+      },
+      {
+        "q": "After bypass, TAPSE is 1.5 cm and FAC 32%. Is RV function normal?",
+        "a": "No: TAPSE under 1.7 cm and FAC under 35% are abnormal.",
+        "source": "Nicoara 2020, Table 1"
+      },
+      {
+        "q": "Where should an Impella CP inlet sit on the ME LAX view?",
+        "a": "About 3.5 cm below the aortic annulus.",
+        "source": "Impella CP IFU"
+      },
+      {
+        "q": "VA ECMO: pulse pressure 4 mmHg, the aortic valve stays shut, smoke in the LV. Next step?",
+        "a": "Vent the LV early.",
+        "source": "ELSO VA"
+      },
+      {
+        "q": "What ACT on bypass does STS 2018 find reasonable?",
+        "a": "Above 480 s (IIa). This app's default is above 450 s, set by your institution.",
+        "source": "STS/SCA/AmSECT 2018"
+      },
+      {
+        "q": "LVAD: low flows, a small LV and a CVP of 18. Most likely cause?",
+        "a": "RV failure (CVP above 15), not low volume.",
+        "source": "LVAD reviews 2023 and 2026"
+      },
+      {
+        "q": "Can the ASE diastolic algorithm grade function from intraoperative TEE values?",
+        "a": "No: Nagueh 2025 excludes intraoperative use and gives no TEE cut-offs.",
+        "source": "Nagueh 2025"
+      }
+    ]
   }
 }
