@@ -572,7 +572,7 @@ final class PatientDiagram19Tests: XCTestCase {
         XCTAssertTrue(text.contains("Arms: "), text)
         // A different reason on the harvest arm is kept, in its own line.
         h.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Lymphedema"), PatientLimbAlert(limb: "arm-right", reason: "Planned radial harvest")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "R arm — planned radial harvest; L arm — lymphedema",
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "R arm — Planned radial harvest; L arm — Lymphedema",
                        "a harvest is only dropped on the arm that is planned for it")
         XCTAssertEqual(PatientSummary.limbAlertLines(h).count, 1)
     }
