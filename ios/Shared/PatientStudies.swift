@@ -408,7 +408,7 @@ enum PatientStudies {
     // doi 10.1007/s00059-013-3925-9) [G?]; the arterial line on the other side [P].
     static let vertebralSource = "Reversed vertebral flow indicates subclavian steal, and partial (alternating) reversal early steal, from a stenosis of the subclavian (on the right, possibly the innominate) before the vertebral (Kliewer MA, et al. AJR 2000). A difference of 10 mmHg or more between the arms suggests it (Clark CE, et al. Lancet 2012); measure both arms (ESC 2024). The internal mammary arises beyond the stenosis, so a graft from it can steal from the heart (coronary–subclavian steal; Kilic ID, et al. Herz 2015). The arterial line on the other side is practice."
 
-    /// The vertebral caution for steal on one side. `noLineAdvice`: the other arm is the harvest arm, so it is not
+    /// The vertebral caution for steal on one side. `noLineAdvice`: the other arm is the harvest arm or has a limb alert, so it is not
     /// offered for the arterial line (the harvest caution suggests femoral access).
     static func vertebralText(_ s: String, partial: Bool, noLineAdvice: Bool) -> String {
         let o = otherSide(s)
@@ -457,7 +457,11 @@ enum PatientStudies {
         } else {
             for s in r.carotid.reversedSides {
                 let partial = (s == "right" ? r.carotid.right : r.carotid.left).vertebral == "partial"
-                out.append(StudyCaution(id: "vertebral-" + s, text: vertebralText(s, partial: partial, noLineAdvice: both || h == otherSide(s)), source: vertebralSource))
+                // The other arm is not offered for the arterial line and cuff when it is the harvest arm or has a limb
+                // alert (a fistula, a node dissection), as the harvest line does not send lines there either.
+                let o = otherSide(s)
+                let spared = PatientDeviceFills.limbAlerts(r).contains { $0.limb == "arm-" + o }
+                out.append(StudyCaution(id: "vertebral-" + s, text: vertebralText(s, partial: partial, noLineAdvice: both || h == o || spared), source: vertebralSource))
             }
         }
         return out

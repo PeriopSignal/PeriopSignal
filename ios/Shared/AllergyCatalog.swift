@@ -445,6 +445,23 @@ enum AllergyCatalog {
         }
     }
 
+    /// The words write an anaphylaxis that is not denied: "PCN - anaphylaxis", "hx of anaphylaxis to latex", but not
+    /// "rash, no anaphylaxis", "non-anaphylactic" or "denies anaphylaxis" (the denying words `read` uses, with the words
+    /// that may stand between: "no hx of anaphylaxis"). "Negative reaction: anaphylaxis" is a reaction, not a denial.
+    static func writesAnaphylaxis(_ text: String) -> Bool {
+        let ws = CatalogText.words(text)
+        let br = CatalogText.breaks(text, ws)
+        let between: Set<String> = lead.union(["had", "any", "true", "real", "an", "a"])
+        for (i, w) in ws.enumerated() where w.key.contains("anaphyla") || severity(w.key) == "anaphylaxis" {
+            var k = i - 1
+            while k >= 0, !br[k + 1], between.contains(ws[k].key) { k -= 1 }
+            let denied = k >= 0 && !br[k + 1] && negations.contains(ws[k].key)
+                && !(reactionQualifiers.contains(ws[k].key) && ["reaction", "reactions", "rxn"].contains(ws[k + 1].key))
+            if !denied { return true }
+        }
+        return false
+    }
+
     /// Every allergy typed before 1.9 is on the list already, with its severity and reaction: a typed "PCN -
     /// anaphylaxis" is not covered by a listed "Penicillin (mild)", so it still shows.
     static func covers(_ list: [PatientAllergy], legacy: String) -> Bool {
@@ -474,7 +491,7 @@ enum PatientAllergyText {
             .map { Item(text: $0.text, anaphylaxis: $0.severity == "anaphylaxis", legacy: false) }
         let typed = c.allergies.trimmingCharacters(in: .whitespacesAndNewlines)
         if !typed.isEmpty, out.isEmpty || !AllergyCatalog.covers(r.allergyList, legacy: r.allergies) {
-            out += pieces(typed).map { Item(text: $0, anaphylaxis: $0.range(of: "anaphyla", options: .caseInsensitive) != nil, legacy: true) }
+            out += pieces(typed).map { Item(text: $0, anaphylaxis: AllergyCatalog.writesAnaphylaxis($0), legacy: true) }
         }
         return out
     }
@@ -505,14 +522,14 @@ enum PatientAllergyText {
         if listed.isEmpty {
             if r.nkda { return PatientSummary.Line("Allergies", "No known drug allergies") }
             guard !typed.isEmpty else { return nil }
-            return PatientSummary.Line("Allergies", typed, alert: true, marks: pieces(typed).filter { $0.range(of: "anaphyla", options: .caseInsensitive) != nil })
+            return PatientSummary.Line("Allergies", typed, alert: true, marks: pieces(typed).filter(AllergyCatalog.writesAnaphylaxis))
         }
         var text = listed.map(\.text).joined(separator: "; ")
         var marks = listed.filter(\.anaphylaxis).map(\.text)
         if !typed.isEmpty, !AllergyCatalog.covers(r.allergyList, legacy: r.allergies) {
             text += "; " + typed
-            // An anaphylaxis in the typed text is in red too, as it is without a list.
-            marks += pieces(typed).filter { $0.range(of: "anaphyla", options: .caseInsensitive) != nil }
+            // An anaphylaxis in the typed text is in red too, as it is without a list; a denied one ("no anaphylaxis") is not.
+            marks += pieces(typed).filter(AllergyCatalog.writesAnaphylaxis)
         }
         return PatientSummary.Line("Allergies", text, alert: true, marks: marks)
     }
