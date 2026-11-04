@@ -16,8 +16,11 @@ struct PreopWorkupItem: Hashable, Identifiable {
     var key: String
     /// The one-line summary when it holds data, nil while empty (the chip then reads "+ ECG").
     var summary: String?
-    /// Needs attention (a contraindication on the TEE screen, mechanical support).
+    /// Needs attention (a contraindication on the TEE screen, mechanical support, a carotid or vertebral caution).
     var alert = false
+    /// A warning shown in red under the summary: the carotid and vertebral cautions (subclavian steal, femoral arterial
+    /// access), as the Assessment card listed them before 1.9.
+    var caution: String?
     var filled: Bool { summary != nil }
 }
 
@@ -56,12 +59,15 @@ enum PatientPreop {
         let c = r.capitalized
         let tee = PatientTEE.evaluate(r)
         let support = PatientSummary.supportLines(r).map(\.text)
+        // The radial-harvest cautions are told with the lines; the carotid and vertebral ones belong to this study.
+        let cautions = PatientStudies.cautions(r).filter { !$0.id.hasPrefix("harvest") }.map(\.text)
         return [
             PreopWorkupItem(id: "ecg", title: "ECG", icon: "waveform.path.ecg", key: "workup:ecg", summary: PatientSummary.ecgText(r)),
             PreopWorkupItem(id: "echo", title: "Echo", icon: "heart.text.square", key: "workup:echo", summary: r.echoFindings.isEmpty ? nil : c.echoFindings.summary),
             PreopWorkupItem(id: "lhc", title: "Left heart cath", icon: "heart", key: "workup:lhc", summary: r.lhc.isEmpty ? nil : c.lhc.summary),
             PreopWorkupItem(id: "rhc", title: "Right heart cath", icon: "heart.circle", key: "workup:rhc", summary: PatientSummary.rhcText(r)),
-            PreopWorkupItem(id: "carotid", title: "Carotid US", icon: "waveform.path", key: "workup:carotid", summary: r.carotid.isEmpty ? nil : c.carotid.summary),
+            PreopWorkupItem(id: "carotid", title: "Carotid US", icon: "waveform.path", key: "workup:carotid", summary: r.carotid.isEmpty ? nil : c.carotid.summary,
+                            alert: !cautions.isEmpty, caution: cautions.isEmpty ? nil : cautions.joined(separator: " ")),
             PreopWorkupItem(id: "radial", title: "Radial artery US", icon: "hand.raised", key: "workup:radial", summary: r.radial.isEmpty ? nil : c.radial.summary),
             PreopWorkupItem(id: "pft", title: "Pulmonary function tests", icon: "lungs", key: "workup:pft", summary: r.pft.isEmpty ? nil : c.pft.summary(copd: r.has("copd"))),
             PreopWorkupItem(id: "tee", title: "TEE screen", icon: tee.level == .none ? "checkmark.shield" : "exclamationmark.triangle", key: "workup:tee",
@@ -69,6 +75,23 @@ enum PatientPreop {
             PreopWorkupItem(id: "support", title: "Mechanical support", icon: "heart.circle", key: "devices:support",
                             summary: support.isEmpty ? nil : support.joined(separator: "; "), alert: !support.isEmpty),
         ]
+    }
+
+    /// The operations "Previous cardiac surgery" lists: the cardiac ones among those marked cardiac or thoracic (the CV
+    /// page's own entry, or one the catalog or its words make cardiac), so a lobectomy or a VATS wedge is not called
+    /// cardiac surgery.
+    static func previousCardiacSurgery(_ r: PatientRecord) -> [PatientSurgery] {
+        r.capitalized.allIntrathoracic.filter { $0.id == r.hx.cardiacSurgeryID || PastSurgeryNote.isCardiac($0) }
+    }
+
+    /// The small link under the code status chips to its page (the plan for the procedure and the POLST), for every
+    /// status: the plan when the status limits resuscitation (red while not discussed), else whether a POLST is on file.
+    static func codeStatusLink(_ r: PatientRecord) -> (text: String, alert: Bool) {
+        if r.codeStatus?.limits == true {
+            if let plan = r.codeStatusPlan { return ("Plan: " + plan.label + (r.polst ? " · POLST on file" : ""), false) }
+            return ("Perioperative plan not yet discussed", true)
+        }
+        return (r.polst ? "POLST on file" : "Plan details & POLST", false)
     }
 
     /// Once any is filled, the workup shows open.

@@ -125,6 +125,8 @@ struct PreopFilledRow: View {
     var icon: String
     var alert = false
     var chevron = true
+    /// A warning in red under the summary (the carotid and vertebral cautions).
+    var caution: String? = nil
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -133,6 +135,10 @@ struct PreopFilledRow: View {
                 Text(title).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(alert ? PS.accent : PS.fg3)
                 Text(summary).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg).lineLimit(3).multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
+                if let caution {
+                    Text(caution).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.red).multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer(minLength: 4)
             if chevron { Image(systemName: "chevron.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3).padding(.top, 4) }
@@ -152,6 +158,7 @@ struct PreopLink: Identifiable {
     var editor: PatientEditor
     var summary: String?
     var alert = false
+    var caution: String? = nil
 }
 
 /// Items that open an editor, in their order: a filled one is a row with its summary, a run of empty ones is chips that
@@ -175,7 +182,7 @@ struct PreopLinkList: View {
                 if run.filled {
                     ForEach(run.links) { l in
                         NavigationLink(value: l.editor) {
-                            PreopFilledRow(title: l.title, summary: l.summary ?? "", icon: l.icon, alert: l.alert)
+                            PreopFilledRow(title: l.title, summary: l.summary ?? "", icon: l.icon, alert: l.alert, caution: l.caution)
                         }
                         .buttonStyle(.plain)
                     }
@@ -266,22 +273,18 @@ struct PreopDemographicsBox: View {
             PatientChoice(options: CodeStatus.allCases.map { (id: $0.rawValue, label: $0.label) },
                           selection: Binding(get: { patient.record.codeStatus?.rawValue }, set: { v in patient.update { $0.codeStatus = v.flatMap { CodeStatus(rawValue: $0) } } }),
                           tint: PS.accent)
-            if r.codeStatus?.limits == true {
-                NavigationLink(value: PatientEditor.workup("codestatus")) {
-                    HStack(spacing: 6) {
-                        if let plan = r.codeStatusPlan {
-                            Text("Plan: " + plan.label).foregroundStyle(PS.fg2)
-                        } else {
-                            Text("Perioperative plan not yet discussed").foregroundStyle(PS.red)
-                        }
-                        Image(systemName: "chevron.right").font(PS.sys(size: 10.5, weight: .semibold)).foregroundStyle(PS.fg3)
-                    }
-                    .font(PS.sys(size: 13, weight: .semibold))
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
+            // For every status, so the POLST can be recorded or cleared from the tab too.
+            let link = PatientPreop.codeStatusLink(r)
+            NavigationLink(value: PatientEditor.workup("codestatus")) {
+                HStack(spacing: 6) {
+                    Text(link.text).foregroundStyle(link.alert ? PS.red : PS.fg2)
+                    Image(systemName: "chevron.right").font(PS.sys(size: 10.5, weight: .semibold)).foregroundStyle(PS.fg3)
                 }
-                .buttonStyle(.plain)
+                .font(PS.sys(size: 13, weight: .semibold))
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
             }
+            .buttonStyle(.plain)
         }
     }
 
@@ -331,6 +334,18 @@ struct PreopProblemsBox: View {
 
     private let columns = [GridItem(.flexible(), spacing: 10, alignment: .top), GridItem(.flexible(), spacing: 10, alignment: .top)]
 
+    /// The Other conditions field shows once opened or while it holds text.
+    static func showsOther(open: Bool, text: String) -> Bool { open || !text.isEmpty }
+
+    /// Typing in the field keeps it open: deleting the last letter to retype does not take it away mid-edit.
+    private var otherBinding: Binding<String> {
+        Binding(get: { patient.record.otherHistory },
+                set: { v in
+                    otherOpen = Self.showsOther(open: otherOpen, text: patient.record.otherHistory) || !v.isEmpty
+                    patient.update { $0.otherHistory = v }
+                })
+    }
+
     var body: some View {
         let r = patient.record
         PatientGroup(title: "Problems by system") {
@@ -343,8 +358,8 @@ struct PreopProblemsBox: View {
                 LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(PatientPreop.tileSystems(r)) { s in tile(s, r) }
                 }
-                if otherOpen || !r.otherHistory.isEmpty {
-                    PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: patient.preopBinding(\.otherHistory))
+                if Self.showsOther(open: otherOpen, text: r.otherHistory) {
+                    PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: otherBinding)
                         .padding(.horizontal, -14).padding(.vertical, -8)
                 } else {
                     Button { withAnimation(.snappy) { otherOpen = true } } label: {
@@ -491,7 +506,7 @@ struct PreopCardioBox: View {
                     if PatientRules.cardiacSurgery(r) {
                         Text(PatientRules.rcriHiddenNote).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
-                    let thoracic = r.capitalized.allIntrathoracic
+                    let thoracic = PatientPreop.previousCardiacSurgery(r)
                     let tee = PatientPreop.workup(r).first { $0.id == "tee" }
                     PreopLinkList(links: [
                         PreopLink(id: "cardiac-surgery", title: "Previous cardiac surgery", icon: "lungs", editor: .workup("intrathoracic"),
@@ -521,7 +536,8 @@ struct PreopCardioBox: View {
                     }
                 }
                 PreopLinkList(links: items.map { i in
-                    PreopLink(id: i.id, title: i.title, icon: i.icon, editor: PatientEditor(preopKey: i.key) ?? .workup(i.id), summary: i.summary, alert: i.alert)
+                    PreopLink(id: i.id, title: i.title, icon: i.icon, editor: PatientEditor(preopKey: i.key) ?? .workup(i.id), summary: i.summary, alert: i.alert,
+                              caution: i.caution)
                 })
             }
         } else {

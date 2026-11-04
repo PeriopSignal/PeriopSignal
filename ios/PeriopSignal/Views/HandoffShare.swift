@@ -41,8 +41,9 @@ enum HandoffShare {
     // MARK: The 1.9 briefs (preprocedure summary and handoff)
 
     /// The brief's rich text: the header line bold and underlined, each block's label (and the label of each line under
-    /// it) bold; the words are PatientBriefs.plainText's, unchanged.
-    static func richText(_ blocks: [SummaryBlock]) -> NSAttributedString {
+    /// it) bold; the words are PatientBriefs.plainText's, unchanged. With a footer (Copy, Share) it closes the text after
+    /// a blank line, as in PatientBriefs.sharedText.
+    static func richText(_ blocks: [SummaryBlock], footer: String? = nil) -> NSAttributedString {
         let out = NSMutableAttributedString()
         let regular = UIFont.systemFont(ofSize: size)
         let bold = UIFont.boldSystemFont(ofSize: size)
@@ -59,7 +60,12 @@ enum HandoffShare {
                     out.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: r)
                 } else {
                     let body = String(line.dropFirst(indent))
-                    if let r = HandoffStyle.labelRange(Substring(body)) {
+                    // The block's own label, also when it stands alone on its line above a block of several lines
+                    // ("Concerns/Considerations:"), where there is no ": " for HandoffStyle to find.
+                    let own = b.label.map { PatientBriefs.ascii($0) + ":" }
+                    if indent == 0, let own, body.hasPrefix(own) {
+                        out.addAttribute(.font, value: bold, range: NSRange(location: start, length: (own as NSString).length))
+                    } else if let r = HandoffStyle.labelRange(Substring(body)) {
                         let ns = NSRange(r, in: body)
                         out.addAttribute(.font, value: bold, range: NSRange(location: start + indent + ns.location, length: ns.length))
                     }
@@ -67,12 +73,16 @@ enum HandoffShare {
                 first = false
             }
         }
+        if let footer {
+            out.append(NSAttributedString(string: (first ? "" : "\n\n") + footer, attributes: [.font: regular]))
+        }
         return out
     }
 
-    /// Copy: the plain text (the fishbone as one line) with the rich text beside it.
-    static func copy(blocks: [SummaryBlock]) {
-        UIPasteboard.general.setItems([pasteboardItem(PatientBriefs.plainText(blocks), rich: richText(blocks))], options: [:])
+    /// Copy: the plain text (the fishbone as one line) with the rich text beside it, closed by the footer.
+    static func copy(blocks: [SummaryBlock], now: Date = Date()) {
+        let footer = PatientBriefs.footer(now)
+        UIPasteboard.general.setItems([pasteboardItem(PatientBriefs.sharedText(blocks, now: now), rich: richText(blocks, footer: footer))], options: [:])
     }
 
     static func pasteboardItem(_ text: String, rich: NSAttributedString) -> [String: Any] {
@@ -85,8 +95,8 @@ enum HandoffShare {
 
     /// What the share sheet is given for a brief: the text (rich for the apps that keep it), then the fishbone as a
     /// picture and the lines diagram with its list as a picture, when the brief has them.
-    @MainActor static func briefItems(_ blocks: [SummaryBlock], record: PatientRecord, figure: RegionalFigure?) -> [Any] {
-        var out: [Any] = [TextItem(plain: PatientBriefs.plainText(blocks), rich: richText(blocks))]
+    @MainActor static func briefItems(_ blocks: [SummaryBlock], record: PatientRecord, figure: RegionalFigure?, now: Date = Date()) -> [Any] {
+        var out: [Any] = [TextItem(plain: PatientBriefs.sharedText(blocks, now: now), rich: richText(blocks, footer: PatientBriefs.footer(now)))]
         out += briefImages(blocks, record: record, figure: figure) as [Any]
         return out
     }
