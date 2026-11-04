@@ -15,7 +15,9 @@ import Foundation
 // as typed. A brand reads as its generic name ("Eliquis 5 bid" is Apixaban, "5 bid"): the catalog id keeps the brand's
 // entry, so nothing is lost and the list reads one way. A word the list does not know becomes a typed item only where a
 // drug name would be (the start of an item, or a word with a drug's ending such as -pril or -olol after a dose); dose and
-// timing words ("daily", "mg", "prn") never do.
+// timing words ("daily", "mg", "prn") never do, nor a word after "last dose" or "held" ("last dose Sunday" is a remark
+// on the drug before). A drug after a denial ("no opioids", "denies anticoagulants") is kept as typed and raises no flag;
+// a stop ("stopped Plavix 5 days ago", "holding Eliquis") stays with its drug.
 
 /// One drug the list knows.
 struct MedEntry: Hashable, Identifiable {
