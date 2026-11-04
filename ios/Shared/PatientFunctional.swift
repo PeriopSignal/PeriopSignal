@@ -129,7 +129,7 @@ enum PatientFunctional {
     static let cvdProblems: Set<String> = [
         "cad", "mi", "pci", "pci-recent", "cad-recent", "cabg", "ischemia", "hf", "hf-decomp", "ef-moderate", "ef-severe",
         "valve-severe", "af", "arrhythmia", "pacemaker", "icd", "pulm-htn", "pulm-htn-severe",
-        "pvd", "chd", "chd-elevated", "cva", "cva-recent", "cva-unspec", "peripartum-cm",
+        "pvd", "chd", "chd-elevated", "cva", "cva-recent", "cva-unspec", "ppcm", "peripartum-cm",
     ]
 
     /// With the valve lesions and prostheses (PatientHistoryDetails), which were the "as", "mr" and "prosthetic-valve"
