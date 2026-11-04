@@ -214,7 +214,8 @@ struct PatientDiagramCanvas: View {
 
     private var drawing: some View {
         GeometryReader { geo in
-            let (k, ox) = Self.layout(items, figureWidth: bw, figureHeight: bh, in: geo.size)
+            let fit = Self.layout(items, figureWidth: bw, figureHeight: bh, in: geo.size)
+            let k = fit.k, ox = fit.ox
             ZStack(alignment: .topLeading) {
                 Canvas { ctx, _ in draw(&ctx, k: k, ox: ox) }
                     .contentShape(Rectangle())
