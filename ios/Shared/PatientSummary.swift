@@ -337,6 +337,7 @@ enum PatientSummary {
         let placed = PatientDevices.labels(r.devices.filter { $0.placedIntraop && PatientDevice.lineKinds.contains($0.kind) })
         let lines = placed + r.lines.map(\.text).filter { !$0.isEmpty }
         if !lines.isEmpty { out.append(Line("Lines", lines.joined(separator: "; "))) }
+        out += limbAlertLines(r)
         out += harvestLines(r)
         let blocks = r.regional.map(\.text).filter { !$0.isEmpty }
         if !blocks.isEmpty { out.append(Line("Regional", blocks.joined(separator: "; "))) }
@@ -363,6 +364,14 @@ enum PatientSummary {
         }
     }
 
+    /// Limbs to spare (1.9): "Limb alert: L arm — AV fistula; R arm — prior axillary lymph node dissection". A fistula or
+    /// graft on the diagram and the alerts the user added, by limb; a planned radial harvest stays in the Arms line, and an
+    /// alert that only says so is not repeated here (PatientDeviceFills.limbAlerts).
+    static func limbAlertLines(_ r: PatientRecord) -> [Line] {
+        guard let text = PatientDeviceFills.limbAlertText(r) else { return [] }
+        return [Line("Limb alert", text, alert: true, marks: PatientDeviceFills.limbAlertGroups(r).map(\.name))]
+    }
+
     /// The lines for one part of the intraoperative record (PatientEditor.intraopParts).
     static func intraopPartLines(_ r: PatientRecord, _ part: String) -> [Line] {
         let r = r.capitalized
@@ -373,7 +382,7 @@ enum PatientSummary {
             return out
         }
         let labels: [String: Set<String>] = [
-            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Arms"], "regional": ["Regional"], "infusions": ["Infusions"],
+            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Arms", "Limb alert"], "regional": ["Regional"], "infusions": ["Infusions"],
             "fluids": ["In", "Blood products", "Out", "Factor concentrates & other products"], "labs": ["Last labs"], "meds": ["Medications & interventions"],
             "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes"],
         ]
@@ -465,8 +474,8 @@ enum HandoffWriter {
         // Every line and device in place now, on arrival or placed in the room, with the mechanical support.
         let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
         let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
-        section("Lines & devices", PatientSummary.harvestLines(r) + lines + support)
-        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Arms"]
+        section("Lines & devices", PatientSummary.limbAlertLines(r) + PatientSummary.harvestLines(r) + lines + support)
+        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Arms", "Limb alert"]
         var intraop = PatientSummary.intraopLines(r).filter { !told.contains($0.label ?? "") }
         // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
         if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -509,6 +518,7 @@ enum HandoffWriter {
         } else if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
         if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
         line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
+        line("Limb alert", PatientDeviceFills.limbAlertText(r) ?? "")
         line("Arms", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))
         line("Cautions", PatientStudies.cautions(r).filter { !$0.id.hasPrefix("harvest") }.map(\.text).joined(separator: " "))
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))

@@ -528,6 +528,24 @@ jobs:
           shot 397-infusions-typing-light 16 -ps.tab patient -ps.patient empty -ps.patient.open medications -ps.patient.scroll infusions -ps.infusion.type "norepi 0.05 vaso 0.04 epi 0.02 mcg/kg/min fent" -ps.forceAppearance light
           shot 398-meds-handoff-light 16 -ps.tab patient -ps.patient demo-meds -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
           shot 399-meds-history-card-dark 15 -ps.tab patient -ps.patient demo-meds -ps.patient.tab preop -ps.patient.scroll history -ps.forceAppearance dark
+          # 1.9 line diagram (370-389): epicardial wires with a pacemaker generator, a dialysis patient with a left forearm
+          # fistula, a right IJ catheter and a limb alert, a chest tube, the limb-alert editor, the handoff and its pictures.
+          shot 370-diagram-wires-light 18 -ps.tab patient -ps.patient demo-wires -ps.patient.open devices:preop -ps.forceAppearance light
+          shot 371-diagram-wires-dark 18 -ps.tab patient -ps.patient demo-wires -ps.patient.open devices:preop -ps.forceAppearance dark
+          shot 372-diagram-dialysis-light 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.open devices:preop -ps.forceAppearance light
+          shot 373-diagram-dialysis-dark 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.open devices:preop -ps.forceAppearance dark
+          shot 374-limb-alerts-editor-light 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.open devices:preop -ps.patient.scroll limbalerts -ps.forceAppearance light
+          shot 375-limb-alerts-editor-dark 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.open devices:preop -ps.patient.scroll limbalerts -ps.forceAppearance dark
+          shot 376-diagram-chesttube-light 18 -ps.tab patient -ps.patient demo-chesttube -ps.patient.open devices:preop -ps.forceAppearance light
+          shot 377-diagram-chesttube-dark 18 -ps.tab patient -ps.patient demo-chesttube -ps.patient.open devices:preop -ps.forceAppearance dark
+          shot 378-preop-card-limb-alert 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab preop -ps.patient.scroll devices -ps.forceAppearance light
+          shot 379-handoff-limb-alert-full 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 380-handoff-limb-alert-short-dark 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 381-handoff-figure-dialysis-light 22 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance light
+          shot 382-handoff-figure-wires-dark 22 -ps.tab patient -ps.patient demo-wires -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance dark
+          shot 383-handoff-shared-image-dialysis 22 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab summary -ps.handoff.format short -ps.handoff.image 1 -ps.patient.scroll sharedimage -ps.forceAppearance dark
+          shot 384-typed-wires 20 -ps.tab patient -ps.patient demo-wires -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "epicardial wires A+V" -ps.forceAppearance light
+          shot 385-typed-chesttube 20 -ps.tab patient -ps.patient demo-chesttube -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "R chest tube 28 Fr" -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

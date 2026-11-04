@@ -75,7 +75,13 @@ enum HandoffShare {
         guard let figure else { return nil }
         let m = PatientDiagramModel.items(record, phase: .all)
         guard !m.items.isEmpty else { return nil }
-        let view = PatientDiagramCanvas(figure: figure, items: m.items, cart: m.cart)
+        // The limb alerts are written under the picture (1.9), so the mark on the figure can be read in any app; with
+        // none, the picture is the figure alone, as before.
+        let canvas = PatientDiagramCanvas(figure: figure, items: m.items, cart: m.cart)
+        let groups = PatientDeviceFills.limbAlertGroups(record)
+        let content: AnyView = groups.isEmpty ? AnyView(canvas)
+            : AnyView(VStack(alignment: .leading, spacing: 8) { canvas; LimbAlertCaption(groups: groups) })
+        let view = content
             .frame(width: 360)
             .padding(12)
             .background(Color.white)

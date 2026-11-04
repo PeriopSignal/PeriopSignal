@@ -9,7 +9,8 @@ import SwiftUI
 /// One thing drawn on the patient: a marker at its insertion point, an optional course (a central line to the cava,
 /// a cannula to the ECMO cart, a balloon up the aorta) and a label.
 struct DiagramItem: Identifiable, Hashable {
-    enum Marker: Hashable { case dot, square, pump, needle, stoma, none }
+    /// `generator`: a pacemaker or ICD can in its pocket; `alert`: the "!ⓘ" limb alert (1.9).
+    enum Marker: Hashable { case dot, square, pump, needle, stoma, generator, alert, none }
 
     var id: String
     /// Insertion point in figure units, the user's drag already added.
@@ -32,9 +33,15 @@ struct DiagramItem: Identifiable, Hashable {
     /// Where the label is drawn when the layout moved it to a column beside the figure (with a leader line back to
     /// the insertion point), so labels never overlap.
     var labelAt: CGPoint?
+    /// What VoiceOver says when the drawn label is not it: the limb alert's limb and reasons (1.9).
+    var spoken: String?
+
+    /// The marker's name for VoiceOver.
+    var caption: String { spoken ?? label }
 
     static func == (a: DiagramItem, b: DiagramItem) -> Bool {
         a.id == b.id && a.anchor == b.anchor && a.course == b.course && a.label == b.label && a.marker == b.marker && a.pumpAt == b.pumpAt
+            && a.spoken == b.spoken
     }
     func hash(into h: inout Hasher) { h.combine(id); h.combine(label) }
 }
@@ -59,6 +66,48 @@ enum DiagramColor {
     static let neuraxial = Color.dynamic(dark: "E6E9EF", light: "111111")
     static let needle = Color.dynamic(dark: "B5BFCC", light: "4B5666")
     static let airway = Color.dynamic(dark: "4FD1C5", light: "0E8A80")
+    /// 1.9: temporary and implanted pacing orange, dialysis access magenta, chest tubes brown, limb alerts amber with ink
+    /// that reads on it in light and dark.
+    static let pacing = Color.dynamic(dark: "FFA94D", light: "C2410C")
+    static let access = Color.dynamic(dark: "F472B6", light: "B1206B")
+    static let drain = Color.dynamic(dark: "D2A06B", light: "7A4A1E")
+    static let limbAlert = Color.dynamic(dark: "FFC247", light: "B45309")
+    static let limbAlertInk = Color.dynamic(dark: "1B1B1F", light: "FFFFFF")
+}
+
+/// The "!ⓘ" of a limb alert, for lists and captions (the figure draws the same mark itself).
+struct LimbAlertBadge: View {
+    var body: some View {
+        HStack(spacing: 1.5) {
+            Text("!").font(.system(size: 12, weight: .heavy))
+            Image(systemName: "info.circle").font(.system(size: 10, weight: .bold))
+        }
+        .foregroundStyle(DiagramColor.limbAlertInk)
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(DiagramColor.limbAlert, in: Capsule())
+        .accessibilityHidden(true)
+    }
+}
+
+/// The limb alerts under a figure: the mark, then "L arm — AV fistula" for each limb (1.9).
+struct LimbAlertCaption: View {
+    var groups: [PatientDeviceFills.LimbAlertGroup]
+    var body: some View {
+        if !groups.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(groups) { g in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        LimbAlertBadge()
+                        Text(g.text).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Limb alert: " + groups.map(\.text).joined(separator: "; "))
+        }
+    }
 }
 
 /// The figure's long press (the editor's edit mode), only where there is one: a read-only figure has no gesture.
@@ -108,7 +157,7 @@ struct PatientDiagramCanvas: View {
         }
         .onChange(of: editing) { _, on in wiggle = on }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Patient diagram: " + (items.isEmpty ? "no lines or devices" : items.map(\.label).joined(separator: ", ")))
+        .accessibilityLabel("Patient diagram: " + (items.isEmpty ? "no lines or devices" : items.map(\.caption).filter { !$0.isEmpty }.joined(separator: ", ")))
     }
 
     private var drawing: some View {
@@ -145,7 +194,9 @@ struct PatientDiagramCanvas: View {
         let at = point(moved(item), k: k, ox: ox)
         let size: CGFloat = 44
         let held = lifted == item.id
-        let interactive = onMove != nil || onHold != nil
+        // A limb alert is only tapped (it shows its reasons): no drag, no hold, no delete (1.9).
+        let isAlert = item.marker == .alert
+        let interactive = (onMove != nil || onHold != nil) && !isAlert
         // Hold briefly, then drag to move; let go without moving for the item's actions. In edit mode a drag moves at once.
         let hold = LongPressGesture(minimumDuration: editing ? 0.01 : 0.3)
             .sequenced(before: DragGesture(minimumDistance: 0))
@@ -171,7 +222,7 @@ struct PatientDiagramCanvas: View {
             Circle().fill(held ? item.color.opacity(0.16) : Color.clear)
                 .overlay(Circle().stroke(held ? item.color : Color.clear, lineWidth: 2))
                 .frame(width: size, height: size).contentShape(Circle())
-            if editing {
+            if editing && !isAlert {
                 Button { onDelete?(item.id) } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 22, weight: .bold))
@@ -187,15 +238,15 @@ struct PatientDiagramCanvas: View {
         }
         .scaleEffect(held ? 1.18 : 1)
         .animation(.snappy(duration: 0.15), value: held)
-        .rotationEffect(.degrees(editing && !held ? (wiggle ? 4 : -4) : 0))
+        .rotationEffect(.degrees(editing && !held && !isAlert ? (wiggle ? 4 : -4) : 0))
         .animation(editing ? .easeInOut(duration: 0.13).repeatForever(autoreverses: true) : .default, value: wiggle)
         .position(at)
         .onTapGesture { if !editing { onTapItem?(item.id) } }
         .gesture(hold, including: interactive ? .all : .none)
         .accessibilityElement()
-        .accessibilityLabel(item.label)
+        .accessibilityLabel(item.caption)
         .accessibilityAddTraits(.isButton)
-        .accessibilityAction(named: "Delete") { onDelete?(item.id) }
+        .accessibilityAction(named: "Delete") { if !isAlert { onDelete?(item.id) } }
     }
 
     // MARK: Drawing
@@ -256,6 +307,24 @@ struct PatientDiagramCanvas: View {
                 ctx.fill(Path(roundedRect: CGRect(x: c.x + 5 * k, y: c.y - 9 * k, width: 4 * k, height: 4 * k), cornerRadius: 1), with: .color(item.color))
             case .stoma:
                 ctx.stroke(Path(ellipseIn: CGRect(x: c.x - 3.5 * k, y: c.y - 2.2 * k, width: 7 * k, height: 4.4 * k)), with: .color(item.color), lineWidth: 1.4)
+            case .generator:
+                // The can of a pacemaker or ICD in its pocket.
+                let can = CGRect(x: c.x - 4.4 * k, y: c.y - 3 * k, width: 8.8 * k, height: 6 * k)
+                ctx.fill(Path(roundedRect: can, cornerRadius: 1.8 * k), with: .color(item.color))
+                ctx.stroke(Path(roundedRect: can, cornerRadius: 1.8 * k), with: .color(PS.surface), lineWidth: 0.8)
+                ctx.stroke(Path(roundedRect: can.insetBy(dx: 1.5 * k, dy: 1.4 * k), cornerRadius: 0.8 * k), with: .color(PS.surface), lineWidth: 0.7)
+            case .alert:
+                // "!" and a circled i on an amber pill, on the limb (1.9).
+                let w = 21 * k, h = 11.5 * k
+                let pill = Path(roundedRect: CGRect(x: c.x - w / 2, y: c.y - h / 2, width: w, height: h), cornerRadius: h / 2)
+                ctx.fill(pill, with: .color(item.color))
+                ctx.stroke(pill, with: .color(PS.surface), lineWidth: 1.2)
+                ctx.draw(Text("!").font(.system(size: max(8, 8.4 * k), weight: .heavy)).foregroundColor(DiagramColor.limbAlertInk),
+                         at: CGPoint(x: c.x - 5 * k, y: c.y))
+                var info = ctx.resolve(Image(systemName: "info.circle"))
+                info.shading = .color(DiagramColor.limbAlertInk)
+                let d = max(6.4, 7.2 * k)
+                ctx.draw(info, in: CGRect(x: c.x + 1.4 * k, y: c.y - d / 2, width: d, height: d))
             case .none:
                 break
             }

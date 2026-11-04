@@ -268,6 +268,9 @@ final class PatientStore {
     /// Screenshot runs: -ps.patient demo fills a made-up patient (never written to disk).
     static func debugSeed(_ seed: String = LaunchSeed.string("ps.patient")) -> PatientRecord? {
         switch seed {
+        case "demo-wires": return PatientDemo.wires
+        case "demo-dialysis": return PatientDemo.dialysis
+        case "demo-chesttube": return PatientDemo.chestTube
         case "demo": return PatientDemo.record
         case "demo-cardiac": return PatientDemo.cardiac
         case "demo-dnr": return PatientDemo.dnr
