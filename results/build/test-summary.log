@@ -1,0 +1,53 @@
+2026-11-04 00:30:12.986 xcodebuild[10833:45709]  iOSSimulator: 📱<DVTiPhoneSimulator (0x7fb67287a850), iPhone 16 Pro, unknown class, 26.2 (23C54), E3312CA2-0242-435C-AF8C-49E295DEC90A> unable to connect to "com.apple.instruments.deviceservice.lockdown" (Error Domain=DVTiPhoneSimulatorErrorDomain Code=-1 "DTServiceHubClient failed to bless service hub for simulator iPhone 16 Pro (E3312CA2-0242-435C-AF8C-49E295DEC90A)" UserInfo={NSLocalizedDescription=DTServiceHubClient failed to bless service hub for simulator iPhone 16 Pro (E3312CA2-0242-435C-AF8C-49E295DEC90A), NSUnderlyingError=0x6000002de100 {Error Domain=DTServiceHubClient Code=2 "Connection to Simulator service hub (18700) interrupted. Simulator service hub IS still alive." UserInfo={NSLocalizedDescription=Connection to Simulator service hub (18700) interrupted. Simulator service hub IS still alive.}}})
+2026-11-04 00:30:42.284879+0000 PeriopSignal[18684:55932] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-04 00:30:42.359011+0000 PeriopSignal[18684:55932] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-04 00:30:43.943340+0000 PeriopSignal[18684:55792] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-04 00:30:43.992212+0000 PeriopSignal[18684:55932] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+Test Case '-[PeriopSignalTests.AppTipsTests testAnEmergencyScreenPutsTheTipsAwayUnseen]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testAnEmergencyScreenPutsTheTipsAwayUnseen]' passed (0.010 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testATapStepsThroughToDoneAndASetOfOneSaysTip]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testATapStepsThroughToDoneAndASetOfOneSaysTip]' passed (0.002 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testEachSetHasItsOwnSeenKey]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testEachSetHasItsOwnSeenKey]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testNeverOnAnEmergencyTool]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testNeverOnAnEmergencyTool]' passed (0.399 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testScreenshotRunsForceASetOncePerLaunchAndNeverHoldTheBanner]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testScreenshotRunsForceASetOncePerLaunchAndNeverHoldTheBanner]' passed (0.007 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testScreenshotRunsShowASetOnlyWhenAsked]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testScreenshotRunsShowASetOnlyWhenAsked]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testTheAlertsBannerWaits]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testTheAlertsBannerWaits]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testTheCenterShowsOneSetAtATimeAndRemembersIt]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testTheCenterShowsOneSetAtATimeAndRemembersIt]' passed (1.512 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testTheReferenceHomeShowsTheFolderTipOnlyWithoutFavorites]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testTheReferenceHomeShowsTheFolderTipOnlyWithoutFavorites]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.AppTipsTests testTheTourPointsAtTheThreeTabs]' started.
+Test Case '-[PeriopSignalTests.AppTipsTests testTheTourPointsAtTheThreeTabs]' passed (0.003 seconds).
+	 Executed 10 tests, with 0 failures (0 unexpected) in 1.945 (1.966) seconds
+Test Case '-[PeriopSignalTests.Features181cTests testAbbreviationsAndUnitsBySize]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testAbbreviationsAndUnitsBySize]' passed (0.032 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testAddingUpdatesTheSameDrug]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testAddingUpdatesTheSameDrug]' passed (0.011 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testAmbiguousDrugsAndUnitsAsk]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testAmbiguousDrugsAndUnitsAsk]' passed (0.008 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testBareBentallAsks]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testBareBentallAsks]' passed (2.349 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testBentallEntries]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testBentallEntries]' passed (0.007 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testDrugsWithoutACatalogUnitAsk]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testDrugsWithoutACatalogUnitAsk]' passed (0.013 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testEchoNormalPresetUnchanged]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testEchoNormalPresetUnchanged]' passed (0.018 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testFoleyInTheHandoffNotOnTheHarvestArm]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testFoleyInTheHandoffNotOnTheHarvestArm]' passed (0.224 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testFoleyKindAndSites]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testFoleyKindAndSites]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testFoleyTyped]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testFoleyTyped]' passed (0.202 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testHandoffFigureShowsEveryCurrentDevice]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testHandoffFigureShowsEveryCurrentDevice]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testNoteReadsTrivialAndTraceAsNotValveDisease]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testNoteReadsTrivialAndTraceAsNotValveDisease]' passed (0.110 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testNothingInvented]' started.
+Test Case '-[PeriopSignalTests.Features181cTests testNothingInvented]' passed (0.334 seconds).
+Test Case '-[PeriopSignalTests.Features181cTests testQuickAddAsksTheValve]' started.
