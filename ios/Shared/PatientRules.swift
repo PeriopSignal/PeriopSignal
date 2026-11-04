@@ -362,6 +362,10 @@ extension PatientRules {
                                "oht", "cardiac", "sternotomy", "coronary", "myectomy", "maze", "ross", "asd", "vsd", "pericardiectomy",
                                "aortic root", "bentall", "arch replacement", "cardiopulmonary bypass"]
 
+    /// Why the RCRI is not shown for a cardiac operation (the Procedure page's risk inputs and the Preprocedure tab's
+    /// Cardiopulmonary Evaluation say it).
+    static let rcriHiddenNote = "Cardiac surgery: the RCRI is not shown, as it was derived for noncardiac surgery (Lee 1999)."
+
     /// The procedure list's flag for any recognized procedure, or a keyword in a typed procedure's name. Details and
     /// history ("lap chole s/p CABG", "EGD in an LVAD patient") never count: the RCRI is meant for exactly those
     /// patients having noncardiac surgery.

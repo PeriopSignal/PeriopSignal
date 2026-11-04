@@ -55,7 +55,7 @@ extension PatientEditorView {
             parts.append("Filled in from the planned procedures; change any that do not fit this case. Several procedures: high risk if any is, the most serious incision, and the longest duration (one step longer when two or more each take over 2 h).")
         }
         if PatientRules.cardiacSurgery(r) {
-            parts.append("Cardiac surgery: the RCRI is not shown, as it was derived for noncardiac surgery (Lee 1999).")
+            parts.append(PatientRules.rcriHiddenNote)
         }
         return parts.isEmpty ? nil : parts.joined(separator: " ")
     }
