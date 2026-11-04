@@ -528,11 +528,16 @@ final class PatientStudiesTests: XCTestCase {
     }
 
     func testRupturedAAAOpeningTheLineIsTonightsRepair() {
+        // 1.8.3 (Ben): "AAA" alone is the diagnosis, and a rupture alone says neither open nor EVAR, so the line files
+        // the rupture and plans no repair; a repair written out is still tonight's ("ruptured AAA repair").
         for line in ["rAAA, HTN", "ruptured AAA, HTN"] {
             let q = quick(line)
-            XCTAssertTrue(ids(q).contains("procedure"), line + ": " + q.findings.map(\.label).joined(separator: " | "))
+            XCTAssertFalse(ids(q).contains("procedure"), line + ": " + q.findings.map(\.label).joined(separator: " | "))
             XCTAssertTrue(ids(q).contains("problem:aaa-ruptured"), line)
         }
+        let repair = quick("ruptured AAA repair, HTN")
+        XCTAssertTrue(ids(repair).contains("procedure"), repair.findings.map(\.label).joined(separator: " | "))
+        XCTAssertTrue(ids(repair).contains("problem:aaa-ruptured"))
         XCTAssertTrue(ids(quick("78M for rAAA repair")).contains("problem:aaa-ruptured"))
         XCTAssertFalse(ids(quick("AAA 52 mm, HTN")).contains("procedure"), "an unruptured AAA opening the line stays history")
     }

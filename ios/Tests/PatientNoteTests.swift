@@ -35,7 +35,9 @@ final class PatientNoteTests: XCTestCase {
         XCTAssertEqual(change(r, "mets"), .mets("ge4"))
         XCTAssertEqual(change(r, "intake:solids"), .lastSolids(Calendar.current.startOfDay(for: now)))
         XCTAssertEqual(r.other, "hereditary angioedema", "what nothing was read from goes to Other conditions")
-        XCTAssertEqual(r.previous, "appendectomy 2010 under GA; uneventful")
+        // 1.8.3 (Ben): the operation goes to Past surgical history; what is left of the sentence is the anesthesia history.
+        XCTAssertEqual(r.previous, "under GA; uneventful")
+        XCTAssertEqual(change(r, "psh:appendectomy|2010"), .pastSurgery("appendectomy", PatientMonthYear(year: 2010)))
         XCTAssertTrue(r.identifiers.isEmpty)
         let order = r.findings.compactMap { PatientNote.sections.firstIndex(of: $0.section) }
         XCTAssertEqual(order, order.sorted(), "grouped in the order the editors ask")
@@ -94,7 +96,9 @@ final class PatientNoteTests: XCTestCase {
         XCTAssertEqual(change(d, "procedure"), .procedure("knee arthroscopy"))
         XCTAssertEqual(change(d, "sex"), .sex(.male))
         XCTAssertNotNil(change(d, "nohistory"))
-        XCTAssertEqual(d.previous, "tonsillectomy as child; no anesthetic complications")
+        // 1.8.3 (Ben): the tonsillectomy goes to Past surgical history.
+        XCTAssertEqual(d.previous, "no anesthetic complications")
+        XCTAssertEqual(change(d, "psh:tonsillectomy as child|"), .pastSurgery("tonsillectomy as child", PatientMonthYear()))
         let e = read("ASA 3E. ESRD, not on dialysis. EF 25-30%. AF with RVR.")
         XCTAssertEqual(change(e, "asa"), .asa(3, true))
         XCTAssertNotNil(change(e, "problem:aki"), "ESRD not on scheduled dialysis")

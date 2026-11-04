@@ -338,7 +338,7 @@ struct PatientEditorView: View {
             PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
-            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with the month and year" : r.surgeries.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
+            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with the month and year" : r.capitalized.surgeries.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
             Hairline().padding(.leading, 50)
             linkRow("Medications & allergies", medsSummary, icon: "pills", value: .medications)
             Hairline().padding(.leading, 50)
@@ -350,7 +350,7 @@ struct PatientEditorView: View {
             intakeRow("Clear fluids", bind(\.lastClears))
         }
         PatientGroup(title: nil) {
-            let labs = PatientSummary.labsLine(r)
+            let labs = PatientSummary.labsLine(r.capitalized)
             linkRow("Labs", labs?.text ?? "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", icon: labs == nil ? "plus.circle" : "testtube.2", value: .workup("labs"))
             if let liver = PatientSummary.liverLine(r) {
                 Hairline().padding(.leading, 50)
@@ -361,7 +361,8 @@ struct PatientEditorView: View {
 
     var medsSummary: String {
         if r.nkda && r.medications.isEmpty { return "No known drug allergies" }
-        let parts = [r.nkda ? "NKDA" : (r.allergies.isEmpty ? "" : "Allergies: " + r.allergies), r.medications].filter { !$0.isEmpty }
+        let c = r.capitalized
+        let parts = [r.nkda ? "NKDA" : (c.allergies.isEmpty ? "" : "Allergies: " + c.allergies), c.medications].filter { !$0.isEmpty }
         return parts.isEmpty ? "None recorded" : parts.joined(separator: " · ")
     }
 
@@ -415,9 +416,9 @@ struct PatientEditorView: View {
         PatientGroup(title: "Studies") {
             linkRow("ECG", PatientSummary.ecgText(r) ?? "Add findings", icon: r.ecg.isEmpty && r.ecgNotes.isEmpty ? "plus.circle" : "waveform.path.ecg", value: .workup("ecg"))
             Hairline().padding(.leading, 50)
-            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
+            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.capitalized.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
             Hairline().padding(.leading, 50)
-            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
+            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.capitalized.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
             Hairline().padding(.leading, 50)
             linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
         }
@@ -601,19 +602,19 @@ struct PatientEditorView: View {
         PatientGroup(title: "Studies") {
             linkRow("ECG", PatientSummary.ecgText(r) ?? "Add findings", icon: r.ecg.isEmpty && r.ecgNotes.isEmpty ? "plus.circle" : "waveform.path.ecg", value: .workup("ecg"))
             Hairline().padding(.leading, 50)
-            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
+            linkRow("Echo", r.echoFindings.isEmpty ? "Add findings" : r.capitalized.echoFindings.summary, icon: r.echoFindings.isEmpty ? "plus.circle" : "heart.text.square", value: .workup("echo"))
             Hairline().padding(.leading, 50)
             teeLinkRow
             Hairline().padding(.leading, 50)
-            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
+            linkRow("Left heart cath", r.lhc.isEmpty ? "Add dominance and stenoses" : r.capitalized.lhc.summary, icon: r.lhc.isEmpty ? "plus.circle" : "heart", value: .workup("lhc"))
             Hairline().padding(.leading, 50)
             linkRow("Right heart cath", PatientSummary.rhcText(r) ?? "Add pressures and cardiac output", icon: r.rhc.isEmpty ? "plus.circle" : "heart.circle", value: .workup("rhc"))
             Hairline().padding(.leading, 50)
-            linkRow("Carotid ultrasound", r.carotid.isEmpty ? "Add findings" : r.carotid.summary, icon: r.carotid.isEmpty ? "plus.circle" : "waveform.path", value: .workup("carotid"))
+            linkRow("Carotid ultrasound", r.carotid.isEmpty ? "Add findings" : r.capitalized.carotid.summary, icon: r.carotid.isEmpty ? "plus.circle" : "waveform.path", value: .workup("carotid"))
             Hairline().padding(.leading, 50)
-            linkRow("Radial artery ultrasound", r.radial.isEmpty ? "Add findings" : r.radial.summary, icon: r.radial.isEmpty ? "plus.circle" : "hand.raised", value: .workup("radial"))
+            linkRow("Radial artery ultrasound", r.radial.isEmpty ? "Add findings" : r.capitalized.radial.summary, icon: r.radial.isEmpty ? "plus.circle" : "hand.raised", value: .workup("radial"))
             Hairline().padding(.leading, 50)
-            linkRow("Pulmonary function tests", r.pft.isEmpty ? "Add results" : r.pft.summary(copd: r.has("copd")), icon: r.pft.isEmpty ? "plus.circle" : "lungs", value: .workup("pft"))
+            linkRow("Pulmonary function tests", r.pft.isEmpty ? "Add results" : r.capitalized.pft.summary(copd: r.has("copd")), icon: r.pft.isEmpty ? "plus.circle" : "lungs", value: .workup("pft"))
         }
         .id("studies")
     }

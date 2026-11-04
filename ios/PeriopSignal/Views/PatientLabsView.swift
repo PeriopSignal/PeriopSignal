@@ -9,11 +9,14 @@ extension PatientEditorView {
 
     @ViewBuilder var labsEditor: some View {
         let sum = PatientLabs.summary(r)
-        if !sum.isEmpty { LabFishboneView(summary: sum) }
-        PatientGroup(title: "Labs") {
-            labRows(PatientLabs.entryOrder(.main), section: "main")
+        if !sum.isEmpty { LabFishboneView(summary: sum, results: LabResults.lineParts(r)) }
+        // The ⓘ explains the Hb ↔ Hct estimate, only while one is shown.
+        PatientGroup(title: "Labs", note: sum.estimate == nil ? nil : PatientLabs.estimateCaption) {
+            labRows(PatientLabs.entryOrder(.main), section: "main", estimate: sum.estimate)
             PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.", text: bind(\.labNotes))
         }
+        typeScreenGroup
+        infectiousGroup
         labSection("cardiac", "Add cardiac labs", PatientLabs.tests(.cardiac))
         if r.labSections.contains("liver") {
             liverGroup
@@ -57,10 +60,85 @@ extension PatientEditorView {
             .padding(.horizontal, 4)
     }
 
-    @ViewBuilder private func labRows(_ tests: [LabTest], section: String) -> some View {
+    @ViewBuilder private func labRows(_ tests: [LabTest], section: String, estimate: LabValue? = nil) -> some View {
         ForEach(Array(tests.enumerated()), id: \.element.id) { i, t in
-            LabFieldRow(test: t, sex: r.sex, troponin99: r.labs["troponin99"], value: entry(\.labs, t.key), chain: chain(section + "." + t.key))
+            LabFieldRow(test: t, sex: r.sex, troponin99: r.labs["troponin99"], value: entry(\.labs, t.key), chain: chain(section + "." + t.key),
+                        estimate: estimate?.key == t.key ? estimate : nil)
             if i < tests.count - 1 { Hairline().padding(.leading, 14) }
+        }
+    }
+
+    // MARK: Type and screen, infectious results (1.8.3)
+
+    @ViewBuilder private var typeScreenGroup: some View {
+        let ts = r.typeScreen
+        PatientGroup(title: "Type & screen") {
+            PatientChipRow(label: "ABO/Rh") {
+                PatientChoice(options: PatientTypeScreen.types.map { (id: $0, label: PatientTypeScreen.display($0)) },
+                              selection: Binding(get: { patient.record.typeScreen.type }, set: { v in patient.update { $0.typeScreen.type = v } }))
+            }
+            Hairline().padding(.leading, 14)
+            PatientChipRow(label: "Antibody screen") {
+                PatientChoice(options: LabResult.allCases.map { (id: $0.rawValue, label: $0.label) },
+                              selection: Binding(get: { patient.record.typeScreen.screen?.rawValue },
+                                                 set: { v in patient.update { $0.typeScreen.screen = v.flatMap { LabResult(rawValue: $0) } } }),
+                              tint: PS.red)
+            }
+            if ts.screen == .positive || !ts.antibodyText.isEmpty {
+                LabInlineText(label: "Antibody", prompt: "e.g. anti-K",
+                              text: Binding(get: { patient.record.typeScreen.antibody }, set: { v in patient.update { $0.typeScreen.antibody = v } }))
+            }
+            Hairline().padding(.leading, 14)
+            BloodStepperRow(label: "Crossmatched", unit: "units", step: 1, limit: Double(PatientTypeScreen.unitLimit),
+                            value: Binding(get: { patient.record.typeScreen.crossmatched.map { Double($0) } },
+                                           set: { v in patient.update { $0.typeScreen.crossmatched = v.map { Int($0.rounded()) }.flatMap { $0 > 0 ? $0 : nil } } }))
+        }
+        // Screenshot runs: -ps.patient.scroll labs-results.
+        .id("labs-results")
+    }
+
+    @ViewBuilder private var infectiousGroup: some View {
+        let options = LabResult.allCases.map { (id: $0.rawValue, label: $0.label) }
+        PatientGroup(title: "Infectious results", note: "A positive MRSA, COVID-19 or C. difficile result, or an Other result read as VRE, also ticks its item under History › Infectious; a Staph aureus screen does not. Negative or pending adds nothing, and an item a result added goes again if the result changes.") {
+            ForEach(LabResults.infectious) { t in
+                PatientChipRow(label: t.label) {
+                    PatientChoice(options: options,
+                                  selection: Binding(get: { patient.record.infections.results[t.id]?.rawValue },
+                                                     set: { v in patient.update { LabResults.set(t.id, v.flatMap { LabResult(rawValue: $0) }, in: &$0) } }))
+                }
+                Hairline().padding(.leading, 14)
+            }
+            ForEach(r.infections.other) { o in
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        CapTextField(prompt: "Other test, e.g. VRE", text: Binding(get: { patient.record.infections.other.first { $0.id == o.id }?.name ?? "" },
+                                                                         set: { v in patient.update { r in LabResults.edit(&r) { x in
+                                                                             if let i = x.other.firstIndex(where: { $0.id == o.id }) { x.other[i].name = v } } } }))
+                            .font(PS.sys(size: 14.5, weight: .medium))
+                            .padding(.horizontal, 10).padding(.vertical, 7)
+                            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        Button {
+                            Haptics.light()
+                            patient.update(discrete: true) { r in LabResults.edit(&r) { x in x.other.removeAll { $0.id == o.id } } }
+                        } label: { Image(systemName: "xmark.circle.fill").font(PS.sys(size: 18)).foregroundStyle(PS.fg3) }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Remove this result")
+                    }
+                    PatientChoice(options: options,
+                                  selection: Binding(get: { patient.record.infections.other.first { $0.id == o.id }?.result?.rawValue },
+                                                     set: { v in patient.update { r in LabResults.edit(&r) { x in
+                                                         if let i = x.other.firstIndex(where: { $0.id == o.id }) { x.other[i].result = v.flatMap { LabResult(rawValue: $0) } } } } }))
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                Hairline().padding(.leading, 14)
+            }
+            Button {
+                patient.update(discrete: true) { $0.infections.other.append(PatientInfectiousOther()) }
+            } label: { Label("Add other result", systemImage: "plus.circle") }
+                .font(PS.sys(size: 14.5, weight: .semibold))
+                .buttonStyle(.borderless)
+                .tint(PS.accent)
+                .padding(.horizontal, 14).padding(.vertical, 10)
         }
     }
 
@@ -162,6 +240,8 @@ struct LabFieldRow: View {
     @Binding var value: Double?
     /// Its place in the page's Previous / Next order.
     var chain: PatientFieldChain? = nil
+    /// Hemoglobin or hematocrit estimated from the other, shown while this one is empty (never saved).
+    var estimate: LabValue? = nil
     @State private var text = ""
     @FocusState private var focused: Bool
 
@@ -174,12 +254,16 @@ struct LabFieldRow: View {
                 if let range = test.rangeText(for: sex) {
                     Text(range + (test.unit.isEmpty ? "" : " " + test.unit)).font(PS.sys(size: 11)).foregroundStyle(PS.fg3)
                 }
+                if value == nil, let e = estimate {
+                    Text("Est. ~" + e.text + (e.key == "hct" ? " (3 × Hb)" : " (Hct ÷ 3)"))
+                        .font(PS.sys(size: 11, weight: .medium)).italic().foregroundStyle(PS.fg3)
+                }
             }
             Spacer(minLength: 6)
             if flag.isAbnormal {
                 Text(flag.mark).font(PS.sys(size: 12, weight: .heavy)).foregroundStyle(PS.red)
             }
-            TextField("—", text: $text)
+            TextField(value == nil ? (estimate.map { "~" + $0.text } ?? "—") : "—", text: $text)
                 .modifier(PatientFieldFocus(chain: chain, local: $focused))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
@@ -209,28 +293,33 @@ struct LabFieldRow: View {
 /// The lab fishbones (CBC and BMP) and the coagulation values; abnormal values bold red.
 struct LabFishboneView: View {
     var summary: LabSummary
+    /// Type and screen and the infectious results, after the other values (LabResults.lineParts).
+    var results: (parts: [String], marks: [String]) = ([], [])
 
     private func cell(_ v: LabValue?, _ name: String) -> some View {
-        VStack(spacing: 0) {
-            Text(v?.text ?? "—")
+        let est = v?.estimated == true
+        return VStack(spacing: 0) {
+            Text(v.map { (est ? "~" : "") + $0.text } ?? "—")
                 .font(PS.sys(size: 15, weight: v?.flag.isAbnormal == true ? .heavy : .semibold, design: .monospaced))
-                .foregroundStyle(v == nil ? PS.fg3 : (v?.flag.isAbnormal == true ? PS.red : PS.fg))
-            Text(name).font(PS.sys(size: 9)).foregroundStyle(PS.fg3)
+                .italic(est)
+                .foregroundStyle(v == nil || est ? PS.fg3 : (v?.flag.isAbnormal == true ? PS.red : PS.fg))
+            Text(est ? name + " est." : name).font(PS.sys(size: 9)).foregroundStyle(PS.fg3)
         }
         .frame(minWidth: 40)
     }
 
     var body: some View {
         let f = summary.fishbone
+        let est = f.estimate
         VStack(alignment: .leading, spacing: 14) {
             if f.hasCBC {
                 HStack(spacing: 6) {
                     cell(f.wbc, "WBC")
                     Rectangle().fill(PS.line2).frame(width: 1.2, height: 34).rotationEffect(.degrees(25))
                     VStack(spacing: 2) {
-                        cell(f.hb, "Hb")
+                        cell(f.hb ?? (est?.key == "hb" ? est : nil), "Hb")
                         Rectangle().fill(PS.line2).frame(width: 46, height: 1.2)
-                        cell(f.hct, "Hct")
+                        cell(f.hct ?? (est?.key == "hct" ? est : nil), "Hct")
                     }
                     Rectangle().fill(PS.line2).frame(width: 1.2, height: 34).rotationEffect(.degrees(-25))
                     cell(f.plt, "Plt")
@@ -259,14 +348,34 @@ struct LabFishboneView: View {
                 }
             }
             let rest = summary.items.filter { !["wbc", "hb", "hct", "plt", "na", "k", "cl", "hco3", "bun", "cr", "glucose", "inr", "fibrinogen"].contains($0.key) }
-            if !rest.isEmpty {
-                PatientLineText(line: PatientSummary.Line(nil, rest.map(\.compact).joined(separator: " · "), marks: rest.filter { $0.flag.isAbnormal }.map(\.compact)))
+            if !rest.isEmpty || !results.parts.isEmpty {
+                PatientLineText(line: PatientSummary.Line(nil, (rest.map(\.compact) + results.parts).joined(separator: " · "),
+                                                          marks: rest.filter { $0.flag.isAbnormal }.map(\.compact) + results.marks))
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Labs: " + summary.line)
+        .accessibilityLabel("Labs: " + ([summary.line] + results.parts).joined(separator: " · "))
+    }
+}
+
+/// A one-line text entry inside a lab group ("Antibody: anti-K").
+struct LabInlineText: View {
+    var label: String
+    var prompt: String
+    @Binding var text: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+            TextField(prompt, text: $text)
+                .font(PS.sys(size: 15))
+                .foregroundStyle(PS.fg)
+                .padding(.horizontal, 10).padding(.vertical, 7)
+                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+        .padding(.horizontal, 14).padding(.vertical, 8)
     }
 }

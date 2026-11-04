@@ -238,6 +238,12 @@ jobs:
           shot 237-wave2a-neuraxial-info 12 -ps.ref neuraxial-guide -ps.nx.proc cesarean -ps.evidence.open 1 -ps.forceAppearance dark
           shot 238-wave2a-abg-normal 12 -ps.ref abg -ps.abg.values "ph=7.40,paco2=40,hco3=24" -ps.forceAppearance light
           shot 239-wave2a-ponv-info 12 -ps.ref ponv -ps.ponv.factors "female,nonsmoker,opioids" -ps.ponv.agents "ondansetron,dexamethasone" -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 400-labs-results-light 20 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance light
+          shot 401-labs-results-dark 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance dark
+          shot 402-labs-handoff 16 -ps.tab patient -ps.patient demo-labs -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 403-labs-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "Hbg 12.1, Cr 1, lac 1.4, T&S A-/-, 2u xm, staph neg, MRSA screen negative, covid negative, C diff pending, VRE positive"
+          shot 404-labs-estimate 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.evidence.open 1 -ps.forceAppearance light
+          shot 405-labs-handoff-short-dark 16 -ps.tab patient -ps.patient demo-labs -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance dark
           # 1.8.1 wave 3 (My Patient editors, 250-259): each moved explanation opened (-ps.evidence.open 1).
           shot 250-wave3-assessment-info 18 -ps.tab patient -ps.patient demo -ps.patient.open assessment -ps.evidence.open 1 -ps.forceAppearance dark
           shot 251-wave3-code-status-info 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.open assessment -ps.patient.scroll codestatus -ps.evidence.open 1 -ps.forceAppearance light
@@ -261,6 +267,16 @@ jobs:
           shot 267-f181-bentall-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "64M for Bentall" -ps.forceAppearance dark
           shot 268-f181-handoff-figure 24 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance light
           shot 269-f181-handoff-figure-dark 24 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance dark
+          # 1.8.3 handoff (410-419): headers bold and underlined, labels bold, no airway exam, the picture shared after the text.
+          shot 410-handoff-styled-full 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 411-handoff-styled-full-dark 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 412-handoff-styled-short 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 413-handoff-airway-course 16 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.handoff.format full -ps.handoff.from AIRWAY -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 414-handoff-shared-image 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.handoff.image 1 -ps.patient.scroll sharedimage -ps.forceAppearance dark
+          # 1.8.3 free text starts with a capital (415-419): typed chips in the ECG editor, typed entries on the handoff.
+          shot 415-caps-ecg-chips 16 -ps.tab patient -ps.patient demo-typed -ps.patient.open workup:ecg -ps.forceAppearance light
+          shot 416-caps-handoff 16 -ps.tab patient -ps.patient demo-typed -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 417-caps-handoff-dark 16 -ps.tab patient -ps.patient demo-typed -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance dark
           # 1.8.1 History (270-279): plain Diabetes, Stroke, unspecified, the Infectious system; the group notes opened.
           shot 270-history-infectious 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance dark
           shot 271-history-infectious-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open history -ps.forceAppearance light
@@ -272,6 +288,14 @@ jobs:
           shot 277-quickadd-history-light 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M, DM2, h/o stroke, HCV, MRSA, contact precautions"
           shot 278-asa-history 18 -ps.tab patient -ps.patient demo-history -ps.patient.open assessment -ps.forceAppearance light
           shot 279-endocrine-diabetes-info-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:endo -ps.evidence.open 1 -ps.forceAppearance light
+          shot 420-date-autoslash 14 -ps.tab patient -ps.patient empty -ps.patient.open workup:echo -ps.monthyear 062 -ps.forceAppearance light
+          shot 421-psh-chips 16 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA"
+          shot 428-psh-note-review 16 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.forceAppearance light -ps.patient.note "68M for AVR. HTN. PSH: CABG x3 2019, TEVAR 08/2022, Ascending aorta replacement + LM and RCA endarterectomy + AV repair 06/2025, appendectomy 2010 under GA, uneventful."
+          shot 424-psh-filled 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA" -ps.quickadd.add 1
+          shot 422-ecg-history-suggestion 16 -ps.tab patient -ps.patient demo-cardio -ps.patient.edit ecg-none -ps.patient.open workup:ecg -ps.forceAppearance light
+          shot 425-ecg-af-on-ecg 14 -ps.tab patient -ps.patient empty -ps.patient.edit ecg-af -ps.patient.open workup:ecg -ps.forceAppearance light
+          shot 426-ecg-af-in-cv-history 14 -ps.tab patient -ps.patient empty -ps.patient.edit ecg-af -ps.patient.open system:cv -ps.forceAppearance light
+          shot 423-lhc-nonobstructive 14 -ps.tab patient -ps.patient empty -ps.patient.edit lhc-nonobstructive -ps.patient.open workup:lhc -ps.forceAppearance light
           # 1.8.1 Cardiovascular and Respiratory as expanding sections (280-292): the collapsed list, each section opened,
           # the studies rows, and quick-add lines read into the new structure.
           shot 280-cv-collapsed 14 -ps.tab patient -ps.patient empty -ps.patient.open system:cv -ps.forceAppearance light
@@ -284,6 +308,12 @@ jobs:
           shot 287-quickadd-cardio 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "68M, NSTEMI 2 weeks ago, s/p CABG, severe AS, s/p mechanical AVR 2015, AICD, moderate pulmonary hypertension, 4.8 cm ascending aneurysm"
           shot 288-quickadd-cardio-dark 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "HFrEF, EF 25%, PPM dependent, DES to LAD last month, moderate MR, MI 2019, poorly controlled asthma, home O2 2 L"
           shot 289-resp-expanded-light 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance light
+          # 1.8.3 procedure list about doubled (430-439): the type-ahead with new entries, Ben's open iliac case filled in, and
+          # the quick-add bar reading it.
+          shot 430-proc-typeahead-iliac 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch iliac -ps.forceAppearance light
+          shot 431-proc-iliac-filled 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.patient.addproc "open left iliac aneurysm repair" -ps.forceAppearance light
+          shot 432-proc-typeahead-tevar 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch TEVAR -ps.forceAppearance dark
+          shot 433-proc-quickadd-iliac 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "72M for open left iliac aneurysm repair (infrarenal clamp), HTN, CKD 3a"
           shot 290-resp-expanded-dark 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance dark
           shot 291-history-cardio 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open history -ps.forceAppearance light
           shot 292-cv-info 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.evidence.open 1 -ps.forceAppearance light

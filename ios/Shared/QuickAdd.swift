@@ -383,7 +383,7 @@ enum QuickAdd {
     /// bypass", "metoprolol 5 mg IV").
     private static func preoperativeOnly(_ change: PatientNoteChange) -> Bool {
         switch change {
-        case .problem, .aneurysm, .valve, .prosthesis, .pulmHtn, .cardiacSurgery, .homeO2, .problemNote, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
+        case .problem, .aneurysm, .valve, .prosthesis, .pulmHtn, .cardiacSurgery, .pastSurgery, .lhcResult, .homeO2, .problemNote, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
              .anesthesiaNotes, .dentition, .airwaySign, .mallampati:
             return true
         default:
@@ -601,7 +601,7 @@ enum QuickAdd {
 
     private static let labAliasList: [(String, String)] = [
         ("ntprobnp", #"nt[- ]?pro[- ]?bnp"#), ("bnp", #"bnp"#), ("a1c", #"hba1c|hgba1c|a1c|h(?:a)?emoglobin a1c"#),
-        ("hb", #"hgb|hb|h(?:a)?emoglobin"#), ("hct", #"hct|h(?:a)?ematocrit"#), ("wbc", #"wbc|wcc|white (?:blood )?(?:cell )?count"#),
+        ("hb", #"hgb|hbg|hb|h(?:a)?emoglobin"#), ("hct", #"hct|h(?:a)?ematocrit"#), ("wbc", #"wbc|wcc|white (?:blood )?(?:cell )?count"#),
         ("plt", #"platelet count|platelets?|plts?"#), ("inr", #"inr"#), ("fibrinogen", #"fibrinogen|fib|fbg"#),
         ("na", #"(?-i:Na)\+?|sodium"#), ("k", #"(?-i:K)\+?|potassium"#), ("cl", #"(?-i:Cl|CL)-?|chloride"#),
         ("hco3", #"hco3-?|hco₃|bicarbonate|bicarb|tco2"#), ("bun", #"bun"#), ("cr", #"creatinine|creat|scr|cr"#), ("gfr", #"e?gfr"#),
@@ -837,7 +837,7 @@ enum QuickAdd {
     static let venousGas = NoteRx(#"\b(?:vbg|venous (?:blood )?gas|capillary (?:blood )?gas|mixed venous)\b"#)
     private static let gasLabel = NoteRx(#"(?:\babg|\barterial (?:blood )?gas|\bblood gas|\bgas)\s*[:\-]?\s*$"#)
     /// A slashed count panel ("CBC 7.4/11/180") is not a gas.
-    private static let cbcLabel = NoteRx(#"\b(?:cbc|h/h|h&h|hgb/hct|hb/hct|wbc)\b"#)
+    private static let cbcLabel = NoteRx(#"\b(?:cbc|h/h|h&h|hgb/hct|hbg/hct|hb/hct|wbc)\b"#)
     /// Between two gases in a trend ("7.21/55/68 → 7.32/42/180"): the later one is the current one.
     private static let gasTrend = NoteRx(#"^\s*,?\s*(?:-+>|→|⟶|➝|=>|\bto\b|\bthen\b|\bnow\b|\brepeat(?:ed)?\b)\s*:?\s*(?:(?:abg|gas)\s*:?\s*)?$"#)
 
@@ -1733,10 +1733,10 @@ enum QuickAdd {
     /// The start of the line, past the age and sex ("68M", "72 yo F").
     private static let lineLead = NoteRx(#"^\s*(?:\d{1,3}\s*(?:yo|y/o|y\.o\.?|-?year-old|yrs?)?\s*(?:M|F|male|female|man|woman)\b\s*[,:\-–]?\s*)?"#)
     private static let lastFor = NoteRx(#"\bfor\b"#)
-    /// An aneurysm opening the line is history ("AAA 5.2 cm, HTN"), not the planned repair the procedure list's "AAA"
-    /// would read: only "AAA repair" and the like are planned without "for". A rupture opening the line ("rAAA",
-    /// "ruptured AAA") is tonight's repair (the procedure list's open AAA repair lists them), and the rupture is filed in
-    /// the history as well (take).
+    /// An aneurysm opening the line is history ("AAA 5.2 cm, HTN"): only "AAA repair" and the like are planned without
+    /// "for". Since 1.8.3 the procedure list reads neither "AAA" nor a rupture alone ("rAAA", "ruptured AAA") as a repair
+    /// (Ben: AAA is the diagnosis, and it says neither open nor EVAR), so a rupture opening the line is filed in the
+    /// history only; "ruptured AAA repair" is tonight's repair, with the rupture filed as well (take).
     private static let aortaHistoryLead = NoteRx(#"^(?-i:AAA)\b(?!\s*(?:repair|open|graft|resection))"#)
     /// A ruptured AAA named in the planned procedure: the ASA V history item goes in with it.
     private static let rupturedAAA = NoteRx(#"(?-i:\brAAA\b)|\bruptured (?:(?-i:AAA)\b|abdominal aortic aneurysm)"#)

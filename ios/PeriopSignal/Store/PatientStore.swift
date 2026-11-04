@@ -272,6 +272,8 @@ final class PatientStore {
         case "demo-history": return PatientDemo.history
         case "demo-cardio": return PatientDemo.cardio
         case "demo-neuro": return PatientDemo.neuro
+        case "demo-typed": return PatientDemo.typed
+        case "demo-labs": return PatientDemo.labs
         default: return nil
         }
     }
@@ -286,6 +288,24 @@ enum PatientDemo {
         r.problems = ["htn", "dm", "cva-unspec", "copd", "hepatitis-viral", "mdro", "isolation"]
         r.medFlags.remove("insulin")
         r.asaClass = nil
+        return r
+    }
+
+    /// The demo patient with the 1.8.3 labs: Ben's screenshot's values (Hct left out, so it shows as an estimate), the
+    /// creatinine and INR typed as whole numbers, a lactate, type and screen, and the infectious results.
+    static var labs: PatientRecord {
+        var r = record
+        r.labs = ["hb": 15, "wbc": 6.8, "plt": 175, "inr": 1, "na": 139, "k": 4.8, "cl": 103, "hco3": 26, "bun": 16, "cr": 1,
+                  "glucose": 78, "lactate": 1.4]
+        r.typeScreen = PatientTypeScreen(type: "A-", screen: .negative, crossmatched: 2)
+        r.infections = PatientInfections(results: ["staph": .negative, "mrsa": .negative, "covid": .negative, "cdiff": .pending])
+        r.asaClass = nil
+        // A shorter history, so the handoff's labs line shows on the first screen of the handoff shot.
+        r.surgeries = []
+        r.considerations = []
+        r.considerationsNote = ""
+        r.anesthesiaHistory = []
+        r.anesthesiaNotes = ""
         return r
     }
 

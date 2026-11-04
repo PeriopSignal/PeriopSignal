@@ -17,7 +17,7 @@ struct PlannedProcedureRow: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
                     if item.catalogID == nil {
-                        TextField("Procedure", text: $item.name)
+                        CapTextField(prompt: "Procedure", text: $item.name)
                             .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
                     } else {
                         Text(item.title)
@@ -66,6 +66,8 @@ struct ProcedureSearchField: View {
     var prompt = "Add a procedure, e.g. lap chole, L TKA"
     /// The caption of the "add as typed" row.
     var typedCaption = "Not in the list: the risk-score inputs stay as set"
+    /// Screenshot runs: the launch argument of this name is typed into the field ("-ps.procsearch iliac", 1.8.3).
+    var seedKey = ""
     var onAdd: ([PlannedProcedure]) -> Void
     @State private var text = ""
     @FocusState private var focused: Bool
@@ -116,9 +118,14 @@ struct ProcedureSearchField: View {
             if query.count >= 2 {
                 Hairline().padding(.leading, 14)
                 suggestion("Add “\(query)” as typed", caption: typedCaption, typed: true) {
-                    add([PlannedProcedure(name: query)])
+                    add([PlannedProcedure(name: FreeText.cap(query))])
                 }
             }
+        }
+        .onAppear {
+            #if DEBUG
+            if !seedKey.isEmpty, text.isEmpty { text = LaunchSeed.string(seedKey) }
+            #endif
         }
     }
 
@@ -145,7 +152,7 @@ struct ProcedureSearchField: View {
         if parsed.contains(where: { $0.ask != nil }) { add(parsed) }
         else if !reading.isEmpty { add(reading) }
         else if let p = results.first { add([PlannedProcedure(p)]) }
-        else if !query.isEmpty { add([PlannedProcedure(name: query)]) }
+        else if !query.isEmpty { add([PlannedProcedure(name: FreeText.cap(query))]) }
     }
 
     private func add(_ items: [PlannedProcedure]) {

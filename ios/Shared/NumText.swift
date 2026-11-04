@@ -22,6 +22,15 @@ enum NumText {
         return trimmed(String(format: "%.\(max(0, places))f", r))
     }
 
+    /// A number as text with at least `places` decimals, zeros added: ("1", 2) "1.00", ("1.1", 2) "1.10", ("1.15", 1)
+    /// "1.15". Never removes a digit.
+    static func padded(_ s: String, _ places: Int) -> String {
+        guard places > 0, !s.isEmpty, s.allSatisfy({ $0.isNumber || $0 == "." || $0 == "-" }) else { return s }
+        let have = s.firstIndex(of: ".").map { s.distance(from: s.index(after: $0), to: s.endIndex) } ?? -1
+        if have >= places { return s }
+        return s + (have < 0 ? "." : "") + String(repeating: "0", count: places - max(have, 0))
+    }
+
     private static func trimmed(_ s: String) -> String {
         var s = s
         while s.contains("."), s.hasSuffix("0") { s.removeLast() }

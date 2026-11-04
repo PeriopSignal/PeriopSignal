@@ -18,7 +18,7 @@ extension PatientEditorView {
                 Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
-            ProcedureSearchField { items in patient.update(discrete: true) { $0.setProcedures($0.procedures + items) } }
+            ProcedureSearchField(seedKey: "ps.procsearch") { items in patient.update(discrete: true) { $0.setProcedures($0.procedures + items) } }
         }
         .onAppear(perform: readOldProcedureText)
         // The chosen urgency's definition: behind the group title's ⓘ (1.8.1), not on a row of its own in the card.
@@ -156,14 +156,48 @@ extension PatientEditorView {
             if !r.ecg.isEmpty {
                 WrapLayout(spacing: 7) {
                     ForEach(r.ecg, id: \.self) { f in
-                        RemovableChip(text: f) { patient.update(discrete: true) { $0.ecg.removeAll { $0 == f } } }
+                        RemovableChip(text: FreeText.cap(f)) { patient.update(discrete: true) { $0.ecg.removeAll { $0 == f } } }
                     }
                 }
                 .padding(.horizontal, 14).padding(.top, 10)
             }
             ECGQuickRow(ecg: bind(\.ecg))
+            // The history could say more than the ECG does: offered, never filed (PatientECGLink.suggestions).
+            ForEach(PatientECGLink.suggestions(r)) { s in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(s.prompt).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg2)
+                    WrapLayout(spacing: 7) {
+                        ForEach(s.findings, id: \.self) { f in
+                            Button {
+                                Haptics.light()
+                                patient.update(discrete: true) { PatientECGLink.add(f, to: &$0) }
+                            } label: {
+                                Label(f, systemImage: "plus").font(PS.sys(size: 14, weight: .semibold))
+                            }
+                            .buttonStyle(CapsuleButtonStyle(prominent: false))
+                            .accessibilityLabel("Add " + f + " to the ECG, from the history")
+                        }
+                    }
+                }
+                .padding(.horizontal, 14).padding(.top, 10)
+            }
+            // A paced rhythm that did not add a pacemaker by itself (temporary wires, an ICD or CRT): offered for the history.
+            if PatientECGLink.pacemakerSuggested(r) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("From ECG: paced rhythm — add pacemaker to the history?").font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg2)
+                    Button {
+                        Haptics.light()
+                        patient.update(discrete: true) { PatientECGLink.addPacemaker(to: &$0) }
+                    } label: {
+                        Label("Pacemaker", systemImage: "plus").font(PS.sys(size: 14, weight: .semibold))
+                    }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+                    .accessibilityLabel("Add a pacemaker to the history, from the ECG")
+                }
+                .padding(.horizontal, 14).padding(.top, 10)
+            }
             PatientTypeahead(label: "Add a finding", prompt: "Type: afib, LBBB, paced, Q waves…", options: PatientECG.findings.filter { !r.ecg.contains($0) }) { pick in
-                patient.update(discrete: true) { $0.ecg = PatientECG.adding(pick, to: $0.ecg) }
+                patient.update(discrete: true) { PatientECGLink.add(pick, to: &$0) }
             }
             PatientTextField(label: "Other", prompt: "Rate, axis, intervals, comparison", text: bind(\.ecgNotes))
         }
@@ -173,6 +207,12 @@ extension PatientEditorView {
         PatientGroup(title: "Left heart catheterization") {
             PatientChipRow(label: "Dominance") {
                 PatientChoice(options: [(id: "right", label: "Right"), (id: "left", label: "Left"), (id: "codominant", label: "Codominant")], selection: bind(\.lhc.dominance))
+            }
+            Hairline().padding(.leading, 14)
+            // The cath's result: Non-obstructive or No CAD, a row of its own with chips like the dominance's (one at a time,
+            // one tap on, one off). It sets no history and no score, and the vessels below stay.
+            PatientChipRow(label: nil) {
+                PatientChoice(options: PatientLHC.resultOptions, selection: bind(\.lhc.result))
             }
             Hairline().padding(.leading, 14)
             ForEach(Array(PatientLHC.vessels.enumerated()), id: \.element.id) { i, v in
@@ -391,7 +431,8 @@ struct PatientTypeahead: View {
         let v = value.trimmingCharacters(in: .whitespaces)
         guard !v.isEmpty else { return }
         Haptics.light()
-        onPick(v)
+        // A pick from the list stays as the list words it; anything typed starts with a capital.
+        onPick(FreeText.picked(v, from: options))
         text = ""
     }
 }
@@ -412,7 +453,8 @@ struct RemovableChip: View {
     }
 }
 
-/// Month and year typed as "03/2019" (or "2019").
+/// Month and year typed as "03/2019" (or "2019"). The "/" goes in by itself ("06" becomes "06/"), and the date can be
+/// typed as "0626", "6 2026" or "Jun 2026" too (PatientMonthYear.typing, .parse). What is stored is unchanged.
 struct MonthYearField: View {
     var label: String
     @Binding var value: PatientMonthYear
@@ -429,16 +471,41 @@ struct MonthYearField: View {
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 15, design: .monospaced))
                 .frame(maxWidth: 110)
-                .onChange(of: text) { _, t in
-                    if let v = PatientMonthYear.parse(t) { value = v } else if t.isEmpty { value = PatientMonthYear() }
+                .onChange(of: text) { old, t in
+                    let shown = PatientMonthYear.typing(t, was: old)
+                    // The formatted text comes back through here once more.
+                    if shown != t { text = shown; return }
+                    if t.trimmingCharacters(in: .whitespaces).isEmpty {
+                        if !value.isEmpty { value = PatientMonthYear() }
+                    } else if let v = PatientMonthYear.parseTyped(t), v != value {
+                        value = v
+                    }
+                }
+                .onChange(of: focused) { _, on in
+                    // Leaving the field: the text a half-typed date left is shown as the date it holds.
+                    if !on, text != value.text { text = value.text }
                 }
         }
         .padding(.horizontal, 14).padding(.vertical, 9)
-        .onAppear { text = value.text }
+        .onAppear {
+            text = value.text
+            #if DEBUG
+            // Screenshot runs: -ps.monthyear 062 types those digits into an empty month and year field.
+            let seed = LaunchSeed.string("ps.monthyear")
+            if !seed.isEmpty, value.isEmpty {
+                var typed = ""
+                for ch in seed { typed = PatientMonthYear.typing(typed + String(ch), was: typed) }
+                text = typed
+            }
+            #endif
+        }
         // A change from elsewhere (Undo): show it, unless the text typed already reads as it.
         .onChange(of: value) { _, v in
-            let shown = PatientMonthYear.parse(text) ?? PatientMonthYear()
-            if shown != v { text = v.text }
+            if let shown = PatientMonthYear.parseTyped(text) {
+                if shown != v { text = v.text }
+            } else if !focused {
+                text = v.text
+            }
         }
     }
 }
@@ -499,7 +566,7 @@ struct InfusionRow: View {
     var onDelete: () -> Void
     var body: some View {
         HStack(spacing: 10) {
-            TextField("Drug, e.g. norepinephrine", text: $infusion.drug)
+            CapTextField(prompt: "Drug, e.g. norepinephrine", text: $infusion.drug)
                 .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
             TextField("Rate, e.g. 0.05 mcg/kg/min", text: $infusion.rate)
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2)

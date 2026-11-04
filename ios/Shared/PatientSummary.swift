@@ -61,6 +61,7 @@ enum PatientSummary {
 
     /// The procedure card: what, how urgent, the planned anesthetic and the risk-score inputs it sets.
     static func procedureLines(_ r: PatientRecord) -> [Line] {
+        let r = r.capitalized
         var out: [Line] = []
         let what = r.procedure.trimmingCharacters(in: .whitespacesAndNewlines)
         if !what.isEmpty { out.append(Line(nil, what)) }
@@ -89,13 +90,15 @@ enum PatientSummary {
         return out
     }
 
-    /// "Hb 9.8 L · Plt 98 L · INR 1.6 H · …", the abnormal values marked for bold red, with the other results after.
+    /// "Hb 9.8 L · Hct ~29 (est.) · … · Lactate 1.4 · T&S A−, screen neg · MRSA neg", the abnormal values and
+    /// positive results marked for bold red, with the other results typed after.
     static func labsLine(_ r: PatientRecord) -> Line? {
         let sum = PatientLabs.summary(r)
+        let more = LabResults.lineParts(r)
         let note = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !sum.isEmpty || !note.isEmpty else { return nil }
-        let text = ([sum.line].filter { !$0.isEmpty } + (note.isEmpty ? [] : [note])).joined(separator: " · ")
-        return Line("Labs", text, marks: sum.abnormal.map(\.compact))
+        guard !sum.isEmpty || !more.parts.isEmpty || !note.isEmpty else { return nil }
+        let text = ([sum.line].filter { !$0.isEmpty } + more.parts + (note.isEmpty ? [] : [note])).joined(separator: " · ")
+        return Line("Labs", text, marks: sum.abnormal.map(\.compact) + more.marks)
     }
 
     /// "MELD 3.0 18 · MELD-Na 17 · Child-Pugh B (8)", when the liver section has what it needs.
@@ -116,6 +119,7 @@ enum PatientSummary {
 
     /// "Known difficult airway; PONV or motion sickness; …", flagged when it matters for this anesthetic.
     static func anestheticComplications(_ r: PatientRecord) -> Line? {
+        let r = r.capitalized
         let ah = PatientCatalog.anesthesiaHistory.filter { r.anesthesiaHistory.contains($0.id) }.map(\.label)
         let note = r.anesthesiaNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !ah.isEmpty || !note.isEmpty else { return nil }
@@ -124,6 +128,7 @@ enum PatientSummary {
     }
 
     static func ecgText(_ r: PatientRecord) -> String? {
+        let r = r.capitalized
         let note = r.ecgNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         let all = r.ecg + (note.isEmpty ? [] : [note])
         return all.isEmpty ? nil : all.joined(separator: "; ")
@@ -144,6 +149,7 @@ enum PatientSummary {
     }
 
     static func historyLines(_ r: PatientRecord, now: Date = Date()) -> [Line] {
+        let r = r.capitalized
         var out: [Line] = []
         if r.noHistory && r.problems.isEmpty { out.append(Line(nil, "No significant medical history")) }
         for sys in PatientCatalog.allSystems {
@@ -184,6 +190,7 @@ enum PatientSummary {
     static let watchFlags: Set<String> = ["anticoagulant", "p2y12", "glp1", "sglt2", "maoi", "steroid", "opioid"]
 
     static func assessmentLines(_ r: PatientRecord) -> [Line] {
+        let r = r.capitalized
         var out: [Line] = []
         if let a = PatientRules.asaText(r) {
             out.append(Line("ASA physical status", a))
@@ -228,6 +235,7 @@ enum PatientSummary {
     }
 
     static func airwayLines(_ r: PatientRecord) -> [Line] {
+        let r = r.capitalized
         var out: [Line] = []
         if let a = r.currentAirwayText {
             out.append(Line("Current airway", a, alert: r.arrivesWithAirway))
@@ -247,6 +255,7 @@ enum PatientSummary {
 
     /// "Mask ventilation easy. Intubation easy: video laryngoscope, grade 1, 1 attempt; 7.5 ETT, 23 cm at the lip."
     static func airwayCourse(_ r: PatientRecord) -> Line? {
+        let r = r.capitalized
         var parts: [String] = []
         let grade = r.maskGrade.map { " (grade \($0))" } ?? ""
         switch r.mask {
@@ -313,6 +322,7 @@ enum PatientSummary {
     }
 
     static func intraopLines(_ r: PatientRecord) -> [Line] {
+        let r = r.capitalized
         var out: [Line] = []
         if let a = airwayCourse(r) { out.append(a) }
         if let fu = followUpLine(r) { out.append(fu) }
@@ -347,6 +357,7 @@ enum PatientSummary {
 
     /// The lines for one part of the intraoperative record (PatientEditor.intraopParts).
     static func intraopPartLines(_ r: PatientRecord, _ part: String) -> [Line] {
+        let r = r.capitalized
         if part == "considerations" { return IntraopConsiderations.text(r).map { [Line(nil, $0, alert: true)] } ?? [] }
         if part == "airway" && r.arrivesWithAirway {
             var out = [Line(nil, (r.currentAirwayText ?? "Secured") + " on arrival")]
@@ -380,6 +391,7 @@ enum PatientSummary {
     }
 
     static func planLines(_ r: PatientRecord) -> [Line] {
+        let r = r.capitalized
         var out: [Line] = []
         if let d = r.disposition { out.append(Line("Disposition", d)) }
         if !r.painPlan.isEmpty { out.append(Line("Pain plan", r.painPlan)) }
@@ -404,6 +416,7 @@ enum HandoffWriter {
 
     /// The anesthesia handoff, section by section, leaving out what is not recorded.
     static func text(_ r: PatientRecord, now: Date = Date()) -> String {
+        let r = r.capitalized
         var out: [String] = ["ANESTHESIA HANDOFF"]
         var head: [String] = []
         if !r.oneLiner.isEmpty { head.append(r.oneLiner + (r.bmi.map { " · BMI " + String(format: "%.1f", $0) } ?? "")) }
@@ -436,13 +449,8 @@ enum HandoffWriter {
             assess.append(PatientSummary.Line(Scores.byID(id)?.name ?? id, PatientRules.scoreLine(id, sc) + (sc.detail.map { " (" + $0 + ")" } ?? "")))
         }
         section("Assessment", assess)
-        var airway = PatientSummary.airwayLines(r)
-        // An airway examination never touched says so, after the current airway and oxygen (none with an ETT or a
-        // tracheostomy in place, where the exam is not asked).
-        if !r.arrivesWithAirway && !r.airwayExamTouched {
-            let at = airway.firstIndex { !["Current airway", "Ventilator", "Oxygen"].contains($0.label ?? "") } ?? airway.count
-            airway.insert(PatientSummary.Line("Airway exam", PatientSummary.notAssessed), at: at)
-        }
+        // No preoperative airway examination in the handoff (1.8.3): the airway now, then the intraoperative course.
+        var airway = PatientSummary.handoffAirwayLines(r)
         if let c = PatientSummary.airwayCourse(r) { airway.append(PatientSummary.Line("Course", c.text, alert: c.alert)) }
         if let fu = PatientSummary.followUpLine(r) { airway.append(fu) }
         section("Airway", airway)
@@ -465,6 +473,7 @@ enum HandoffWriter {
     /// The short version, one screen: who and what, allergies, the airway, lines and drips, events, and where the
     /// patient goes with when to call.
     static func shortText(_ r: PatientRecord, now: Date = Date()) -> String {
+        let r = r.capitalized
         var out: [String] = ["ANESTHESIA HANDOFF (SHORT)"]
         if !r.oneLiner.isEmpty { out.append(r.oneLiner) }
         var proc: [String] = []
@@ -482,6 +491,8 @@ enum HandoffWriter {
         line("Code status", PatientCodeStatus.text(r) ?? "")
         line("Key considerations", IntraopConsiderations.text(r) ?? "")
         line("Allergies", r.nkda ? "No known drug allergies" : r.allergies)
+        // Positive and pending infectious results only (Ben, Nov 3); the full handoff lists every one entered.
+        line("Infectious results", LabResults.shortInfectious(r))
         if r.arrivesWithAirway, let a = r.currentAirwayText {
             var t = a + " on arrival"
             if !r.vent.isEmpty && r.oxygen.device != "trachCollar" { t += "; " + r.vent.text }
@@ -501,7 +512,7 @@ enum HandoffWriter {
         var plan: [String] = []
         if let d = r.disposition { plan.append(d + ".") }
         let call = r.callIf.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !call.isEmpty { plan.append("Call if " + call + (call.hasSuffix(".") ? "" : ".")) }
+        if !call.isEmpty { plan.append("Call if " + call.lowercasedFirst + (call.hasSuffix(".") ? "" : ".")) }
         line("Plan", plan.joined(separator: " "))
         out.append(footer(now))
         return out.joined(separator: "\n")

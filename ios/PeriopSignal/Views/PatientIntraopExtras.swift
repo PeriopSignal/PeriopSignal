@@ -303,9 +303,16 @@ struct PatientCodeStatusGroup: View {
 
 // MARK: Handoff
 
-/// The handoff text with its abnormal values in bold red (HandoffWriter.marks).
+/// The handoff text with its headers bold and underlined, its labels bold (HandoffStyle, 1.8.3) and its abnormal values
+/// in bold red (HandoffWriter.marks).
 func handoffStyled(_ text: String, marks: [String]) -> AttributedString {
     var a = AttributedString(text)
+    for s in HandoffStyle.spans(text) {
+        let lo = a.index(a.startIndex, offsetByCharacters: text.distance(from: text.startIndex, to: s.range.lowerBound))
+        let hi = a.index(lo, offsetByCharacters: text.distance(from: s.range.lowerBound, to: s.range.upperBound))
+        a[lo..<hi].font = PS.sys(size: 14.5, weight: .bold)
+        if s.kind == .header { a[lo..<hi].underlineStyle = .single }
+    }
     for m in marks where !m.isEmpty {
         var from = a.startIndex
         while let r = a[from...].range(of: m) {

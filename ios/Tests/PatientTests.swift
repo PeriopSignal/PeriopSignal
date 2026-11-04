@@ -380,11 +380,13 @@ final class PatientTests: XCTestCase {
 
     func testHandoffText() {
         let t = HandoffWriter.text(demo)
-        for s in ["ANESTHESIA HANDOFF", "67-year-old man", "Laparoscopic sigmoid colectomy", "ASA III", "Penicillin", "Mallampati III",
+        for s in ["ANESTHESIA HANDOFF", "67-year-old man", "Laparoscopic sigmoid colectomy", "ASA III", "Penicillin",
                   "Intubation easy", "PACU", "RCRI 3", "No notable events", "Crystalloid 1800 mL", "Hb 12.8", "Cr 1.1",
-                  "Medications: Metoprolol", "Langeron", "Call if: ", "At handoff: extubated."] {
+                  "Medications: Metoprolol", "Call if: ", "At handoff: extubated."] {
             XCTAssertTrue(t.contains(s), "handoff has \(s)")
         }
+        // 1.8.3: the preoperative airway examination (Mallampati, the difficult-mask predictors) stays out of the handoff.
+        for s in ["Mallampati", "Langeron"] { XCTAssertFalse(t.contains(s), "handoff leaves out \(s)") }
         XCTAssertFalse(t.contains("(Beta-blocker"), "the flags do not repeat the typed list")
         XCTAssertFalse(t.contains("Cardiac evaluation"), "the cardiac step stays out of the handoff")
         XCTAssertFalse(t.contains("Cardiac advice"), "and so does the preoperative advice")
