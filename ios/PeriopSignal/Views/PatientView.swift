@@ -112,6 +112,7 @@ struct PatientView: View {
                     .padding(.bottom, 32)
                     .id(Self.topID)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .overlay(alignment: .top) { pinnedJumpBar(proxy) }
                 .readPatientTipFrames(tips.isShowing, into: $tipFrames)
                 .noIdentifiersAlert(isPresented: $showIdentifiers)
@@ -130,7 +131,7 @@ struct PatientView: View {
                     if !a.isEmpty {
                         let go = {
                             if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(PatientEditor.intraopPart(String(a.dropFirst(8)))), anchor: .top) }
-                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(PatientJumpID(e), anchor: .top) }
+                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(e, anchor: .top) }
                             else { proxy.scrollTo(a, anchor: .top) }
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
@@ -260,6 +261,8 @@ struct PatientView: View {
                     r.echoFindings.tricuspid.regurgitation = .trivial
                     r.echoFindings.aortic.regurgitation = .trivial
                 case "harvest-both": r.radial.harvest = "both"
+                // 1.9 (the Preprocedure tab): Intrathoracic procedure answered Yes, as a tap would.
+                case "intrathoracic": PatientPreop.setIntrathoracic(true, &r)
                 // 1.8.3 (the ECG and the history linked): an AF found on the ECG, which the history then holds too; the ECG
                 // cleared, so the history's AF and pacemaker are offered as suggestions.
                 case "ecg-af": PatientECGLink.add("Atrial fibrillation", to: &r)
@@ -336,7 +339,7 @@ struct PatientView: View {
             noteButton
             // The empty patient's one hint, in place of an explainer card.
             if patient.isEmpty {
-                Text("Type the patient in one line, or open a section below.")
+                Text("Type the patient in one line, or fill in a box below.")
                     .font(PS.sys(size: 12.5))
                     .foregroundStyle(PS.fg3)
                     .fixedSize(horizontal: false, vertical: true)
@@ -344,26 +347,79 @@ struct PatientView: View {
             }
         }
         jumpBar(proxy, Self.preopJumps).background(jumpBarReader)
+        // 1. Procedure
         PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
-            .jumpTarget(PatientEditor.procedure)
-        PatientSectionCard(editor: .demographics, lines: PatientSummary.demographicsLines(r), empty: "Age, sex, height, weight and preprocedure vital signs.")
-            .jumpTarget(PatientEditor.demographics)
-        PatientSectionCard(editor: .history, lines: PatientSummary.historyLines(r), empty: "Problems by system, surgical history, medications, allergies, anesthetic complications, NPO and labs.")
-            .jumpTarget(PatientEditor.history)
-        PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity, the cardiac evaluation and the risk scores.")
-            .jumpTarget(PatientEditor.assessment)
-        airwayCard.jumpTarget(PatientEditor.airway)
-        devicesCard.jumpTarget(PatientEditor.devices("preop"))
-        PatientSectionCard(editor: .devices("support"), lines: PatientSummary.supportLines(r), empty: "IABP, Impella, LVAD or ECMO, with their settings.")
-            .jumpTarget(PatientEditor.devices("support"))
+            .jumpTarget(section: .procedure)
+        demographicsSection
+        workupSection
+        medicationsSection
+        riskSection
+        summarySection
     }
 
-    private static let preopJumps: [PatientEditor] = [.procedure, .demographics, .history, .assessment, .airway, .devices("preop"), .devices("support")]
+    // The 1.9 tab (Ben's Wanted Changes): six sections, each a jump-bar target, with the boxes' controls in place
+    // (PatientPreopViews.swift). The editors behind the old cards are still there for the boxes' links and deep links.
 
-    /// Screenshot runs: the names -ps.patient.jump and -ps.patient.scroll take for the preoperative cards.
-    private static let jumpKeys: [String: PatientEditor] = [
-        "procedure": .procedure, "demographics": .demographics, "history": .history, "assessment": .assessment,
-        "airway": .airway, "devices": .devices("preop"), "support": .devices("support"),
+    /// 2. Demographics & History: Demographics, Allergies, Problems by system, and the surgical history, complications
+    /// and last intake chips. (Labs moved to Examination & Workup.)
+    @ViewBuilder private var demographicsSection: some View {
+        PreopSectionTitle(text: PreopSection.demographics.title).jumpTarget(section: .demographics)
+        PreopDemographicsBox().jumpTarget(anchor: "demographics")
+        PatientGroup(title: "Allergies") { AllergiesBox() }.jumpTarget(anchor: "allergies")
+        PreopProblemsBox().jumpTarget(anchor: "problems")
+        PreopHistoryChipsBox().jumpTarget(anchor: "chips")
+    }
+
+    /// 3. Examination & Workup: ASA and functional capacity, Cardiopulmonary Evaluation (with the cardiac workup),
+    /// the airway examination, laboratory studies, lines and devices.
+    @ViewBuilder private var workupSection: some View {
+        PreopSectionTitle(text: PreopSection.workup.title).jumpTarget(section: .workup)
+        PreopAsaBox().jumpTarget(anchor: "asa")
+        PreopCardioBox().jumpTarget(anchor: "cardio")
+        airwayCard.jumpTarget(anchor: "airway")
+        PatientSectionCard(editor: .workup("labs"), lines: [PatientSummary.labsLine(r.capitalized), PatientSummary.liverLine(r)].compactMap { $0 },
+                           empty: "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", title: "Laboratory Studies")
+            .jumpTarget(anchor: "labs")
+        devicesCard.jumpTarget(anchor: "devices")
+    }
+
+    /// 4. Current Medications: home medications, current infusions, flagged medications.
+    @ViewBuilder private var medicationsSection: some View {
+        PreopSectionTitle(text: PreopSection.medications.title).jumpTarget(section: .medications)
+        PatientGroup(title: "Home medications") { HomeMedicationsBox() }.jumpTarget(anchor: "homemeds")
+        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
+            CurrentInfusionsBox()
+        }
+        .jumpTarget(anchor: "infusions")
+        PreopFlaggedBox(onOpenRoute: { open($0) }).jumpTarget(anchor: "flagged")
+    }
+
+    /// 5. Risk Scores & Checks: the warnings, then the prompts (no RCRI for cardiac surgery).
+    @ViewBuilder private var riskSection: some View {
+        PreopSectionTitle(text: PreopSection.risk.title).jumpTarget(section: .risk)
+        PreopRiskBox(onOpenRoute: { open($0) })
+    }
+
+    /// 6. Preprocedure Summary.
+    @ViewBuilder private var summarySection: some View {
+        PreopSectionTitle(text: PreopSection.summary.title).jumpTarget(section: .summary)
+        PreprocedureSummaryView()
+    }
+
+    private static let preopJumps: [PatientJumpItem] = PreopSection.allCases.map { PatientJumpItem(section: $0) }
+
+    /// Screenshot runs: the names -ps.patient.jump and -ps.patient.scroll take for the preoperative tab: its six sections
+    /// (procedure, demographics, workup, medications, risk) and the boxes in them; "preopsummary" is the summary view's own id. The cards of earlier
+    /// versions keep their names, pointing at the nearest new box: history -> problems, assessment -> asa, support -> cardio.
+    private static let jumpKeys: [String: PatientJumpID] = [
+        "procedure": PatientJumpID(section: .procedure), "demographics": PatientJumpID(anchor: "demographics"),
+        "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
+        "risk": PatientJumpID(section: .risk),
+        "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
+        "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
+        "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
+        "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "infusions"), "flagged": PatientJumpID(anchor: "flagged"),
+        "history": PatientJumpID(anchor: "problems"), "assessment": PatientJumpID(anchor: "asa"), "support": PatientJumpID(anchor: "cardio"),
     ]
 
     /// The intraoperative echo card shows when an echo is usual for the surgery, a TEE is planned, or one is recorded.
@@ -376,10 +432,10 @@ struct PatientView: View {
     }
 
     /// The jump bar's sections for the tab (none on Summary & Handoff).
-    private var jumpEditors: [PatientEditor]? {
+    private var jumpItems: [PatientJumpItem]? {
         switch tab {
         case .preop: return Self.preopJumps
-        case .intraop: return intraopCardParts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")]
+        case .intraop: return (intraopCardParts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")]).map { PatientJumpItem($0) }
         case .summary: return nil
         }
     }
@@ -408,7 +464,7 @@ struct PatientView: View {
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         let parts = intraopCardParts
-        jumpBar(proxy, jumpEditors ?? []).background(jumpBarReader)
+        jumpBar(proxy, jumpItems ?? []).background(jumpBarReader)
         ForEach(parts, id: \.id) { part in
             PatientSectionCard(editor: .intraopPart(part.id), lines: PatientSummary.intraopPartLines(r, part.id), empty: Self.intraopEmpty[part.id] ?? "")
                 .jumpTarget(PatientEditor.intraopPart(part.id))
@@ -546,7 +602,7 @@ struct PatientView: View {
     /// scrolled under it: any section is one tap away from anywhere on the tab. At rest only a point at the top is
     /// there, to measure where the chips pin; the bar and its material exist only while pinned.
     @ViewBuilder private func pinnedJumpBar(_ proxy: ScrollViewProxy) -> some View {
-        if let editors = jumpEditors {
+        if let items = jumpItems {
             ZStack(alignment: .top) {
                 Color.clear
                     .frame(height: 1)
@@ -558,7 +614,7 @@ struct PatientView: View {
                     })
                     .allowsHitTesting(false)
                 if jumpPinned {
-                    jumpBar(proxy, editors)
+                    jumpBar(proxy, items)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -575,12 +631,12 @@ struct PatientView: View {
         }
     }
 
-    private func jumpBar(_ proxy: ScrollViewProxy, _ editors: [PatientEditor]) -> some View {
+    private func jumpBar(_ proxy: ScrollViewProxy, _ items: [PatientJumpItem]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(editors, id: \.self) { e in
-                    Button { withAnimation(.snappy) { proxy.scrollTo(PatientJumpID(e), anchor: .top) } } label: {
-                        Text(e.title)
+                ForEach(items, id: \.self) { item in
+                    Button { withAnimation(.snappy) { proxy.scrollTo(item.id, anchor: .top) } } label: {
+                        Text(item.title)
                             .font(PS.sys(size: 13.5, weight: .semibold))
                             .foregroundStyle(PS.fg2)
                             .padding(.horizontal, 13).padding(.vertical, 7)
@@ -599,7 +655,7 @@ struct PatientView: View {
         NavigationLink(value: PatientEditor.airway) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader(.airway)
+                    sectionHeader(.airway, title: "Airway Examination")
                     let lines = PatientSummary.airwayLines(r)
                     if lines.isEmpty {
                         Text("Current airway and oxygen, Mallampati, difficult-airway signs and teeth.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
@@ -622,10 +678,10 @@ struct PatientView: View {
         .buttonStyle(.plain)
     }
 
-    private func sectionHeader(_ e: PatientEditor) -> some View {
+    private func sectionHeader(_ e: PatientEditor, title: String? = nil) -> some View {
         HStack(spacing: 8) {
             Image(systemName: e.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-            Text(e.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+            Text(title ?? e.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
             Spacer()
             Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
         }
@@ -639,13 +695,15 @@ struct PatientSectionCard: View {
     var editor: PatientEditor
     var lines: [PatientSummary.Line]
     var empty: String
+    /// The card's title when it is not the editor's own ("Laboratory Studies" for the Labs page).
+    var title: String? = nil
 
     var body: some View {
         NavigationLink(value: editor) {
             VStack(alignment: .leading, spacing: 9) {
                 HStack(spacing: 8) {
                     Image(systemName: editor.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                    Text(editor.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text(title ?? editor.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
                     Spacer()
                     Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                 }
@@ -792,8 +850,19 @@ final class PatientJumpGeometry {
 /// A card's scroll target, kept apart from the jump bar's own chips (identified by the same editors), so a jump
 /// scrolls the tab and never the row of chips.
 struct PatientJumpID: Hashable {
-    var editor: PatientEditor
-    init(_ editor: PatientEditor) { self.editor = editor }
+    var key: String
+    init(_ editor: PatientEditor) { key = "editor:\(editor)" }
+    /// A section of the Preprocedure tab, or a box in one.
+    init(section: PreopSection) { key = "preop:" + section.rawValue }
+    init(anchor: String) { key = "preop:" + anchor }
+}
+
+/// One chip of the jump bar: where it scrolls and its words.
+struct PatientJumpItem: Hashable {
+    var id: PatientJumpID
+    var title: String
+    init(_ editor: PatientEditor) { id = PatientJumpID(editor); title = editor.title }
+    init(section: PreopSection) { id = PatientJumpID(section: section); title = section.title }
 }
 
 extension View {
@@ -801,13 +870,19 @@ extension View {
     /// negative padding so the layout is unchanged: scrolling aligns the anchor with the top of the safe area, under
     /// the navigation bar, so 110 pt clears the inline title and the pinned jump bar and the card lands just under
     /// them. (An id in a background is not used by ScrollViewReader; a stacked child is.)
-    func jumpTarget(_ editor: PatientEditor) -> some View {
+    func jumpTarget(_ editor: PatientEditor) -> some View { jumpTarget(id: PatientJumpID(editor)) }
+    /// A section of the Preprocedure tab.
+    func jumpTarget(section: PreopSection) -> some View { jumpTarget(id: PatientJumpID(section: section)) }
+    /// A box in the Preprocedure tab.
+    func jumpTarget(anchor: String) -> some View { jumpTarget(id: PatientJumpID(anchor: anchor)) }
+
+    func jumpTarget(id: PatientJumpID) -> some View {
         VStack(spacing: 0) {
             Color.clear
                 .frame(height: 110)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
-                .id(PatientJumpID(editor))
+                .id(id)
             self
         }
         .padding(.top, -110)
