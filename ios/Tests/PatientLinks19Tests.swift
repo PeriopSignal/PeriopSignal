@@ -176,7 +176,7 @@ final class PatientLinks19Tests: XCTestCase {
     func testGIHistoryFindingsAndSuggestions() {
         let bypass = PatientTEE.evaluate(record(["gastric-bypass"]))
         XCTAssertEqual(bypass.findings.map(\.item.id), ["gi-surgery"])
-        XCTAssertEqual(bypass.findings.first?.from, ["History: History of gastric bypass"])
+        XCTAssertEqual(bypass.findings.first?.from, ["History: gastric bypass"])
         XCTAssertEqual(PatientTEE.evaluate(record(["dysphagia"])).findings.map(\.item.id), ["dysphagia"])
         let hernia = PatientTEE.evaluate(record(["hiatal-hernia"]))
         XCTAssertTrue(hernia.findings.isEmpty, "a suggestion only")
@@ -227,7 +227,7 @@ final class PatientLinks19Tests: XCTestCase {
         r.teeScreen.previousTEE = true; r.teeScreen.teeDate = "2023"
         XCTAssertEqual(r.teeScreen.egdText, "Previous EGD 03/2025: LA grade B esophagitis")
         XCTAssertEqual(r.teeScreen.teeText, "Previous TEE 2023")
-        XCTAssertEqual(ids(PatientTEE.evaluate(r).suggestions), ["esophagitis"], "the EGD's findings are read to confirm")
+        XCTAssertEqual(PatientTEE.evaluate(r).suggestions.map(\.why), ["Previous EGD: “esophagitis”."], "the EGD's findings are read to confirm")
         XCTAssertFalse(r.teeScreen.isEmpty)
         let again = try JSONDecoder().decode(PatientRecord.self, from: JSONEncoder().encode(r))
         XCTAssertEqual(again.teeScreen, r.teeScreen)

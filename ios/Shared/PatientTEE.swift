@@ -297,7 +297,10 @@ enum PatientTEE {
         // bypass is previous upper GI surgery; Dysphagia is Hahn's own item; an active upper GI bleed is Hahn's absolute
         // one. The Hematologic page's named bleeding disorders and Thrombocytopenia are Hahn's "coagulopathy or
         // thrombocytopenia", as a bleeding disorder was before.
-        problem("gastric-bypass", "gi-surgery")
+        if r.has("gastric-bypass") {
+            let d = r.hx.gastricBypassDetails.trimmingCharacters(in: .whitespacesAndNewlines)
+            add("gi-surgery", "History: gastric bypass" + (d.isEmpty ? "" : " (" + d + ")"))
+        }
         problem("dysphagia", "dysphagia")
         for p in ["vwd", "hemophilia-a", "hemophilia-b", "thrombocytopenia"] { problem(p, "coagulopathy") }
         if r.has("gi-bleed"), r.hx.giBleedStatus == "active", r.hx.giBleedSite == "upper" {
@@ -399,11 +402,16 @@ enum PatientTEE {
         // Operations the screen already counts are not read again as notes.
         var texts: [String] = r.systemNotes.keys.sorted().compactMap { r.systemNotes[$0] }
         texts.append(contentsOf: [r.otherHistory, r.airwayNotes, r.anesthesiaNotes])
-        // 1.9: Other GI & liver disease, a history of gastric bypass's details, an upper (or unplaced) GI bleed's details,
-        // and a previous EGD's findings.
+        // 1.9: Other GI & liver disease, a history of gastric bypass's details and an upper (or unplaced) GI bleed's
+        // details; a previous EGD's findings are read on their own, below.
         texts.append(contentsOf: [r.systemOther["gi"] ?? "", r.hx.gastricBypassDetails])
         if r.has("gi-bleed"), r.hx.giBleedSite != "lower" { texts.append(r.hx.giBleedDetails) }
-        if r.teeScreen.previousEGD != false { texts.append(r.teeScreen.egdFindings) }
+        let egd = r.teeScreen.previousEGD == false ? "" : r.teeScreen.egdFindings
+        if !egd.isEmpty {
+            for (id, words) in noteWords {
+                if let w = mention(egd, words) { offer(id, "Previous EGD: \u{201C}" + w + "\u{201D}.") }
+            }
+        }
         texts.append(contentsOf: r.surgeries.filter { surgeryItem($0) == nil }.map(\.name))
         for t in texts where !t.isEmpty {
             for (id, words) in noteWords {
