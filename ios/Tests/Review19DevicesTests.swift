@@ -59,6 +59,45 @@ final class Review19DevicesTests: XCTestCase {
         XCTAssertEqual(Set(devices(g, .avFistula).map(\.site)), ["forearm-left", "upper-arm-right"])
     }
 
+    /// A drawn device stood for the access chosen with no location yet; the location typed then names a place none of
+    /// the user's devices is: the new access is drawn there, with its limb alert.
+    func testAccessChosenBesideAnOldDrawnOneThenTypedElsewhereIsDrawn() {
+        var mine = PatientRecord()
+        let old = PatientDevice(kind: .avFistula, site: "forearm-right", side: "right", detail: "failed")
+        mine.devices = [old]
+        var r = change(mine) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["fistula"] }
+        XCTAssertEqual(devices(r, .avFistula).count, 1, "the chip alone: the drawn one stands for it")
+        r = change(r) { $0.hx.fistulaSite = "left upper arm" }
+        XCTAssertEqual(Set(devices(r, .avFistula).map(\.site)), ["forearm-right", "upper-arm-left"])
+        XCTAssertNotNil(r.fills.devices["hd-fistula"])
+        XCTAssertTrue(PatientDeviceFills.limbAlerts(r).contains { $0.limb == "arm-left" && $0.automatic })
+        r.radial.harvest = "right"
+        let reminder = PatientStudies.harvestReminder(r) ?? ""
+        XCTAssertFalse(reminder.contains("cuff in the left arm"), reminder)
+        // Typed then at the drawn one's place: still one there.
+        var same = change(mine) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["fistula"] }
+        same = change(same) { $0.hx.fistulaSite = "right forearm" }
+        XCTAssertEqual(devices(same, .avFistula).map(\.id), [old.id])
+
+        // A drawn R IJ HD catheter, then the Catheter chip and "L femoral": the femoral one is drawn too.
+        var cath = PatientRecord()
+        cath.devices = [PatientDevice(kind: .dialysisCatheter, site: "ij-right", side: "right")]
+        var c = change(cath) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["catheter"] }
+        XCTAssertEqual(devices(c, .dialysisCatheter).count, 1)
+        c = change(c) { $0.hx.dialysisCatheterSite = "L femoral" }
+        XCTAssertEqual(devices(c, .dialysisCatheter).count, 2)
+        XCTAssertTrue(devices(c, .dialysisCatheter).contains { $0.side == "left" && !$0.removed })
+
+        // An old catheter marked removed, then a new one chosen and typed elsewhere: the new one is drawn.
+        var gone = PatientRecord()
+        var pulled = PatientDevice(kind: .dialysisCatheter, site: "ij-right", side: "right")
+        pulled.removed = true
+        gone.devices = [pulled]
+        gone = change(gone) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["catheter"] }
+        gone = change(gone) { $0.hx.dialysisCatheterSite = "L IJ" }
+        XCTAssertEqual(devices(gone, .dialysisCatheter).filter { !$0.removed }.map(\.site), ["ij-left"])
+    }
+
     /// A hand-drawn device marked removed or deleted while its source holds: nothing is added in its place.
     func testRemovingOrDeletingAHandDrawnDeviceDoesNotBringAFillOne() {
         var mine = PatientRecord()
@@ -165,6 +204,22 @@ final class Review19DevicesTests: XCTestCase {
         XCTAssertEqual(try parse("pacing wires").kind, .epicardialWires)
         XCTAssertEqual(try parse("atrial and ventricular pacing wires DDD 80").settings["chambers"], "both")
         XCTAssertEqual(try parse("epicardial wires A+V").site, "epicardial-exit")
+    }
+
+    /// "epi" beside the wires is the epicardial wires (the diagram's own tag reads "Epi wires A+V"), not an epidural.
+    func testEpiWiresAreEpicardial() throws {
+        let plain = try parse("epi wires")
+        XCTAssertEqual(plain.kind, .epicardialWires)
+        XCTAssertEqual(plain.site, "epicardial-exit")
+        let av = try parse("epi wires A+V")
+        XCTAssertEqual(av.kind, .epicardialWires)
+        XCTAssertEqual(av.settings["chambers"], "both")
+        let ddd = try parse("epi pacing wires DDD 80")
+        XCTAssertEqual(ddd.kind, .epicardialWires)
+        XCTAssertEqual(ddd.settings["mode"], "DDD")
+        // The epidural is still the epidural.
+        XCTAssertEqual(try parse("T8 epidural cath").kind, .epidural)
+        XCTAssertEqual(try parse("L2-3 epi").kind, .epidural)
     }
 
     func testAGroinFistulaIsTheLeg() throws {

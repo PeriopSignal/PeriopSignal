@@ -551,6 +551,8 @@ extension PatientDemo {
         r.dialysis = true
         r.homeInfusions = [PatientInfusion(drug: "Norepinephrine", rate: "0.08 mcg/kg/min")]
         PatientHistoryDetails.sync(&r)
+        // Built the way the app builds it: the pacemaker, the left chest tube and the left forearm fistula drawn by the fills.
+        PatientDeviceFills.apply(before: PatientRecord(), after: &r)
         r.asaClass = nil
         return r
     }

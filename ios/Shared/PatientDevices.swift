@@ -1062,13 +1062,15 @@ extension PatientDevices {
     /// "epicardial wires A+V", "atrial and ventricular pacing wires DDD 80", "V wires 5 mA", "temp wires": always at the
     /// exit below the sternum. Chambers: the words atrial and ventricular, "A" and "V" beside each other or before
     /// "wires", and "AV", "dual" or "both" for both; the mode, a rate (bpm, "rate 80", "at 80") and an output (mA).
-    /// Without the word "epicardial", "wire" alone does not make them: an entry that names another device or a place
+    /// Without the word "epicardial" (or "epi" before the wires or leads), "wire" alone does not make them: an entry that names another device or a place
     /// ("R IJ transvenous pacing wire", "Swan R IJ with pacing wire", "CVL R IJ over wire"), or a transvenous wire, is
     /// read as any other.
     private static func parseEpicardial(_ text: String) -> DeviceParse? {
         let low = text.lowercased()
         guard low.range(of: #"\b(?:epicardial|wires?|pacing leads?|pacer leads?)\b"#, options: .regularExpression) != nil else { return nil }
-        if low.range(of: #"\bepicardial\b"#, options: .regularExpression) == nil {
+        // "epi" beside the wires or leads ("epi wires A+V", "epi pacing wires DDD 80") is epicardial, not the epidural.
+        let epicardial = #"\bepicardial\b|\bepi[\s-]+(?:(?:temp|temporary|pacing|pacer)\s+)?(?:wires?|leads?)\b"#
+        if low.range(of: epicardial, options: .regularExpression) == nil {
             if low.range(of: #"\b(?:transvenous|tvp|tvpw)\b"#, options: .regularExpression) != nil { return nil }
             let named = classify(lex(text)).contains { t in
                 switch t.tok {

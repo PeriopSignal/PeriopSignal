@@ -14,7 +14,10 @@ import CoreGraphics
 //     matching device the user already drew (`alreadyDrawn`) is theirs, so nothing is added and nothing is remembered;
 //   - the source's text changes (the fistula's location, the generator's side): the device follows it, its site and its
 //     detail, unless the user changed that part themselves; followed onto a place where the user drew one of their own,
-//     the fill's (still as the fill made it) is taken back and forgotten, so the place holds one;
+//     the fill's (still as the fill made it) is taken back and forgotten, so the place holds one; when no fill was made
+//     because a drawn device stood for it (the access chosen with no location yet) and the text now names a place none
+//     of the user's devices matches (a new left upper-arm fistula beside an old right forearm one), a device is added
+//     there as if the source had appeared;
 //   - the user deletes the device, or deletes or marks removed the one they drew: nothing is added while the source
 //     holds;
 //   - the source goes: the device is taken off if it is still the fill's, as the fill made it (the user having added a
@@ -53,7 +56,10 @@ enum PatientDeviceFills {
                             r.fills.devices[key] = nil
                         }
                     }
-                } else if was == nil, !alreadyDrawn(want, in: usersDevices(r, but: nil)) {
+                } else if !alreadyDrawn(want, in: usersDevices(r, but: nil)),
+                          was.map({ alreadyDrawn($0, in: usersDevices(r, but: nil)) }) ?? true {
+                    // The source appears, or it moves off a device the user drew (the chip matched any drawn fistula,
+                    // then the location typed is a place none of theirs is): a device is added there.
                     let d = PatientDevice(kind: want.kind, site: want.site, side: want.side, detail: want.detail, placedIntraop: false)
                     r.devices.append(d)
                     r.fills.devices[key] = d.id
