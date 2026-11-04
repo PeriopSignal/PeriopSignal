@@ -390,7 +390,7 @@ struct PatientView: View {
             VStack(alignment: .leading, spacing: 9) {
                 sectionHeader(.devices("preop"))
                 let lines = PatientSummary.arrivalDeviceLines(r)
-                if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty {
+                if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty && PatientDeviceFills.limbAlerts(r).isEmpty {
                     Text("Tap to draw the lines, airway and devices the patient arrives with.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
                     PatientDiagramCard(record: r, phase: .preop, height: 260)
@@ -795,7 +795,8 @@ struct HandoffLinesFigure: View {
                         Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                     }
                     // 350: the smallest height whose label columns (8.4 figure units apart) clear the 7-point labels.
-                    PatientDiagramCard(record: record, phase: .all, height: 350)
+                    // The limb alerts are in the handoff text above, so they are not listed again here.
+                    PatientDiagramCard(record: record, phase: .all, height: 350, listsLimbAlerts: false)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)

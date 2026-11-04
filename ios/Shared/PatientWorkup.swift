@@ -795,8 +795,8 @@ extension PatientEcho {
 // MARK: - Device groups
 
 extension PatientDevice {
-    /// The handoff's Lines: the Foley goes with them (1.8.1).
-    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .other]
+    /// The handoff's Lines: the Foley goes with them (1.8.1); so do the 1.9 kinds (epicardial wires, pacemaker/ICD generator, AV fistula, hemodialysis catheter, chest tube), which before were entered as "other".
+    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .epicardialWires, .cied, .avFistula, .dialysisCatheter, .chestTube, .other]
     static let supportKinds: Set<DeviceKind> = [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella, .protekDuo]
 }
 

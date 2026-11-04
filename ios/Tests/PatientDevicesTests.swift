@@ -337,7 +337,7 @@ final class PatientDevicesTests: XCTestCase {
 
     func testSiteCatalog() throws {
         let all = DeviceSite.all
-        XCTAssertEqual(all.count, 70, "40 sites, 30 of them on both sides")
+        XCTAssertEqual(all.count, 77, "44 sites, 33 of them on both sides (1.9 added the generator pocket, lateral chest and thigh, and the epicardial wire exit)")
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "ids are unique")
         for s in all {
             XCTAssertTrue((0...1).contains(s.anchor.x) && (0...1).contains(s.anchor.y), "\(s.id) sits inside the figure box")
@@ -429,10 +429,10 @@ final class PatientDevicesTests: XCTestCase {
     // MARK: Model
 
     func testKinds() {
-        XCTAssertEqual(DeviceKind.allCases.count, 20)
+        XCTAssertEqual(DeviceKind.allCases.count, 25)
         XCTAssertEqual(DeviceKind.allCases.map(\.label), ["PIV", "A-line", "CVL", "PAC", "PICC", "IO", "ETT", "Trach", "ECMO drainage",
                                                           "ECMO return", "LVAD", "IABP", "Impella", "ProtekDuo", "Epidural", "Spinal", "Block",
-                                                          "Catheter", "Foley", "Other"])
+                                                          "Catheter", "Foley", "Epicardial wires", "Pacemaker/ICD", "AV fistula", "HD catheter", "Chest tube", "Other"])
         XCTAssertEqual(DeviceKind.piv.colorRole, .line)
         XCTAssertEqual(DeviceKind.cvc.colorRole, .central)
         XCTAssertEqual(DeviceKind.picc.colorRole, .central)

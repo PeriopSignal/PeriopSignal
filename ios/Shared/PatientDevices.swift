@@ -19,6 +19,10 @@ import CoreGraphics
 //   lvad: rpm, pi, flow (L/min), power (W)                        iabp: ratio ("1:1"), augmentation (mmHg), timing
 //   impella: pLevel ("6"), flow (L/min), position                 epidural, spinal: level ("L2-3"); epidural: depth
 //     (cm), depthAt ("skin")
+//   epicardialWires (1.9): chambers ("atrial", "ventricular" or "both"), mode ("DDD"), rate (bpm), output (mA, as typed)
+//   cied (1.9): model (make, model, settings as typed); the type (pacemaker, ICD, CRT-P, CRT-D) is the device's detail
+//   avFistula (1.9): notes; the kind of access (radiocephalic, brachiocephalic, AV graft) is the detail
+//   dialysisCatheter (1.9): depth (cm); tunneled or non-tunneled is the detail      chestTube (1.9): none (side is the site's)
 
 /// The color a device is drawn in; the figure maps each role to a color.
 enum DeviceColorRole: String, Codable, CaseIterable, Hashable {
@@ -40,6 +44,12 @@ enum DeviceColorRole: String, Codable, CaseIterable, Hashable {
     case needle
     /// ETT, tracheostomy, supraglottic airway.
     case airway
+    /// Epicardial pacing wires and the implanted pacemaker or ICD (1.9): orange.
+    case pacing
+    /// Dialysis access, an AV fistula or graft and a hemodialysis catheter (1.9): magenta.
+    case access
+    /// Chest tubes (1.9): brown.
+    case drain
 }
 
 /// One thing a type button asks for. "size" and "detail" are the device's own fields; any other id is a key in
@@ -71,12 +81,24 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     case epidural, spinal, block, perineuralCatheter
     /// A urinary catheter, urethral or suprapubic (1.8.1): with the lines in the handoff, never an arm line.
     case foley
+    /// Temporary pacing wires sewn to the atrium and/or ventricle, out through the skin below the sternum (1.9); they
+    /// count as temporary pacing for the ECG link (`isTemporaryPacing`).
+    case epicardialWires
+    /// An implanted pacemaker or ICD generator (1.9): its type (pacemaker, ICD, CRT-P, CRT-D) is the device's detail.
+    case cied
+    /// An AV fistula or graft for dialysis (1.9): the arm (or leg) it is in gets a limb alert.
+    case avFistula
+    /// A hemodialysis catheter, tunneled or not (1.9).
+    case dialysisCatheter
+    /// A chest tube (1.9); before then one was entered as an "other" device.
+    case chestTube
     case other
 
     /// The type buttons, in order; "Other" opens `more`.
     static let buttons: [DeviceKind] = [.piv, .arterial, .cvc, .pac, .ett]
     static let more: [DeviceKind] = [.ecmoDrainage, .ecmoReturn, .trach, .picc, .intraosseous, .lvad, .iabp, .impella, .protekDuo,
-                                     .epidural, .spinal, .block, .perineuralCatheter, .foley, .other]
+                                     .epidural, .spinal, .block, .perineuralCatheter, .foley, .epicardialWires, .cied, .avFistula,
+                                     .dialysisCatheter, .chestTube, .other]
 
     /// Short label for buttons, the legend and the handoff.
     var label: String {
@@ -100,6 +122,11 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .block: return "Block"
         case .perineuralCatheter: return "Catheter"
         case .foley: return "Foley"
+        case .epicardialWires: return "Epicardial wires"
+        case .cied: return "Pacemaker/ICD"
+        case .avFistula: return "AV fistula"
+        case .dialysisCatheter: return "HD catheter"
+        case .chestTube: return "Chest tube"
         case .other: return "Other"
         }
     }
@@ -126,6 +153,11 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .block: return "Single-shot block"
         case .perineuralCatheter: return "Perineural catheter"
         case .foley: return "Foley (urinary catheter)"
+        case .epicardialWires: return "Epicardial pacing wires"
+        case .cied: return "Pacemaker or ICD (generator)"
+        case .avFistula: return "AV fistula or graft"
+        case .dialysisCatheter: return "Hemodialysis catheter"
+        case .chestTube: return "Chest tube"
         case .other: return "Other"
         }
     }
@@ -141,6 +173,9 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .epidural, .perineuralCatheter: return .neuraxial
         case .spinal, .block: return .needle
         case .ett, .trach: return .airway
+        case .epicardialWires, .cied: return .pacing
+        case .avFistula, .dialysisCatheter: return .access
+        case .chestTube: return .drain
         }
     }
 
@@ -148,13 +183,20 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     var sizeUnit: String {
         switch self {
         case .piv, .arterial, .intraosseous, .epidural, .spinal, .block, .perineuralCatheter: return "G"
-        case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella, .protekDuo, .foley: return "Fr"
+        case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella, .protekDuo, .foley, .dialysisCatheter, .chestTube: return "Fr"
         case .ett, .trach: return "mm ID"
-        case .lvad, .other: return ""
+        case .lvad, .other, .epicardialWires, .cied, .avFistula: return ""
         }
     }
 
     var isECMO: Bool { self == .ecmoDrainage || self == .ecmoReturn }
+
+    /// Temporary pacing (1.9): epicardial wires. The ECG link reads a paced rhythm with these in place as temporary
+    /// pacing, not a permanent pacemaker (PatientECGLink.temporaryPacingContext).
+    var isTemporaryPacing: Bool { self == .epicardialWires }
+
+    /// Dialysis access: a fistula or graft, or a hemodialysis catheter.
+    var isDialysisAccess: Bool { self == .avFistula || self == .dialysisCatheter }
 
     /// What the type button asks for, in order.
     var fields: [DeviceField] {
@@ -220,8 +262,22 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
             return [detail("Notes")]
         case .foley:
             return [size(["12", "14", "16", "18", "20"]), detail("Notes", ["temperature probe", "coudé", "3-way"])]
+        case .epicardialWires:
+            return [DeviceField("chambers", "Chambers", choices: ["atrial", "ventricular", "both"]),
+                    DeviceField("mode", "Mode", choices: ["AAI", "VVI", "DDD", "AOO", "VOO", "DOO"]),
+                    DeviceField("rate", "Rate", unit: "bpm", numeric: true),
+                    DeviceField("output", "Output", unit: "mA"),
+                    detail("Notes")]
+        case .cied:
+            return [detail("Type", ["pacemaker", "ICD", "CRT-P", "CRT-D"]), DeviceField("model", "Model and settings")]
+        case .avFistula:
+            return [detail("Type", ["radiocephalic", "brachiocephalic", "brachiobasilic", "AV graft"]), DeviceField("notes", "Notes")]
+        case .dialysisCatheter:
+            return [size(["12", "14", "15"]), detail("Type", ["tunneled", "non-tunneled", "Trialysis", "Quinton", "Mahurkar"]), depth]
+        case .chestTube:
+            return [size(["14", "20", "24", "28", "32", "36"]), detail("Notes", ["pigtail", "to suction", "water seal"])]
         case .other:
-            return [detail("Device", ["LMA", "chest tube", "pacing wires", "NG tube"]), DeviceField("size", "Size")]
+            return [detail("Device", ["LMA", "NG tube"]), DeviceField("size", "Size")]
         }
     }
 
@@ -432,24 +488,30 @@ extension DeviceSite {
         Spec("mouth", "mouth", "oral", nil, "head", 100, 42, false, false, [.ett]),
         Spec("interscalene", "interscalene", "interscalene", nil, "neck", 92, 54, true, false, [.block, .perineuralCatheter]),
         Spec("ej", "external jugular vein", "EJ", nil, "neck", 92.5, 57, true, false, [.piv, .cvc]),
-        Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage, .impella, .protekDuo]),
+        Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage, .impella, .protekDuo, .dialysisCatheter]),
         Spec("trach", "tracheostomy stoma", "stoma", nil, "neck", 100, 62, false, false, [.trach]),
         Spec("supraclavicular", "supraclavicular", "supraclavicular", nil, "chest", 84, 68.5, true, false, [.block, .perineuralCatheter]),
-        Spec("subclavian", "subclavian vein", "subclavian", nil, "chest", 88, 76, true, false, [.cvc, .pac]),
+        Spec("subclavian", "subclavian vein", "subclavian", nil, "chest", 88, 76, true, false, [.cvc, .pac, .dialysisCatheter]),
         Spec("infraclavicular", "infraclavicular", "infraclavicular", nil, "chest", 76, 80, true, false, [.block, .perineuralCatheter]),
+        // The pacemaker or ICD pocket (1.9), below the clavicle and medial to the infraclavicular block site.
+        Spec("generator", "pacemaker/ICD pocket (infraclavicular)", "pectoral", nil, "chest", 84, 88, true, false, [.cied]),
         Spec("aorta", "ascending aorta (central)", "aorta", nil, "chest", 101, 86, false, false, [.ecmoReturn]),
         Spec("parasternal", "parasternal (PIFB)", "parasternal", nil, "chest", 94, 90, true, false, [.block, .perineuralCatheter]),
         Spec("pecs", "PECS/serratus plane", "PECS", nil, "chest", 73, 100, true, false, [.block, .perineuralCatheter]),
+        // Chest tubes go in the lateral chest wall, about the fifth interspace (1.9).
+        Spec("lateral-chest", "lateral chest wall (chest tube)", "lateral chest", "chest", "chest", 71, 118, true, false, [.chestTube]),
         Spec("right-atrium", "right atrium (central)", "RA", nil, "chest", 95, 104, false, false, [.ecmoDrainage]),
         Spec("heart", "heart (LV apex)", "LV apex", nil, "chest", 112, 114, false, false, [.lvad]),
+        // Where epicardial pacing wires leave the chest, below the sternum (1.9).
+        Spec("epicardial-exit", "epicardial wire exit (below the sternum)", "subxiphoid", nil, "chest", 100, 134, false, false, [.epicardialWires]),
         Spec("humeral-io", "proximal humerus (IO)", "humerus", nil, "arm", 53, 92, true, false, [.intraosseous]),
         Spec("axillary-artery", "axillary artery", "axillary artery", "axillary", "arm", 64, 98, true, false, [.arterial, .impella, .ecmoReturn, .iabp]),
         Spec("axillary-block", "axillary brachial plexus", "axillary", nil, "arm", 57, 114, true, false, [.block, .perineuralCatheter]),
-        Spec("upper-arm", "upper arm", "upper arm", nil, "arm", 55, 128, true, false, [.picc, .piv]),
+        Spec("upper-arm", "upper arm", "upper arm", nil, "arm", 55, 128, true, false, [.picc, .piv, .avFistula]),
         Spec("brachial", "brachial artery", "brachial", nil, "arm", 51, 150, true, false, [.arterial]),
         Spec("antecubital", "antecubital fossa", "AC", nil, "arm", 46, 157, true, false, [.piv, .picc]),
-        Spec("forearm", "forearm", "forearm", nil, "arm", 42, 182, true, false, [.piv]),
-        Spec("wrist", "wrist", "wrist", nil, "arm", 40, 205, true, false, [.piv]),
+        Spec("forearm", "forearm", "forearm", nil, "arm", 42, 182, true, false, [.piv, .avFistula]),
+        Spec("wrist", "wrist", "wrist", nil, "arm", 40, 205, true, false, [.piv, .avFistula]),
         Spec("radial", "radial artery", "radial", nil, "arm", 32.5, 208, true, false, [.arterial]),
         Spec("hand", "hand (dorsum)", "hand", nil, "arm", 35, 229, true, false, [.piv]),
         Spec("tap", "transversus abdominis plane", "TAP", nil, "abdomen", 72, 162, true, false, [.block, .perineuralCatheter]),
@@ -458,7 +520,9 @@ extension DeviceSite {
         Spec("lumbar-spine", "lumbar spine (back)", "lumbar", nil, "back", 100, 180, false, true, [.epidural, .spinal]),
         Spec("femoral-block", "femoral nerve", "femoral", nil, "groin", 73.5, 194, true, false, [.block, .perineuralCatheter]),
         Spec("femoral-artery", "femoral artery", "femoral artery", "femoral", "groin", 79, 199, true, false, [.arterial, .iabp, .impella, .ecmoReturn]),
-        Spec("femoral-vein", "femoral vein", "femoral vein", "femoral", "groin", 84, 202, true, false, [.cvc, .ecmoDrainage, .pac, .impella]),
+        Spec("femoral-vein", "femoral vein", "femoral vein", "femoral", "groin", 84, 202, true, false, [.cvc, .ecmoDrainage, .pac, .impella, .dialysisCatheter]),
+        // A thigh graft for dialysis access (1.9).
+        Spec("thigh", "thigh", "thigh", nil, "leg", 84, 236, true, false, [.avFistula]),
         // The bladder, midline at the pelvis: suprapubic above the symphysis, urethral below it (1.8.1).
         Spec("suprapubic", "suprapubic", "suprapubic", nil, "pelvis", 100, 194, false, false, [.foley]),
         Spec("urethral", "urethral", "urethral", nil, "pelvis", 100, 213, false, false, [.foley]),
@@ -658,6 +722,8 @@ enum PatientDevices {
             case .arterial: return ("radial", true)
             case .intraosseous: return ("humeral-io", true)
             case .picc: return ("upper-arm", true)
+            // A fistula in "the arm" is drawn at the forearm, where most are made (1.9).
+            case .avFistula: return ("forearm", false)
             default: return nil
             }
         case .lower?:
@@ -665,6 +731,7 @@ enum PatientDevices {
             case .piv: return ("saphenous", true)
             case .arterial: return ("femoral-artery", true)
             case .intraosseous: return ("tibial-io", true)
+            case .avFistula: return ("thigh", false)
             default: return nil
             }
         case nil:
@@ -675,6 +742,14 @@ enum PatientDevices {
         case .trach: return ("trach", true)
         case .lvad: return ("heart", true)
         case .foley: return ("urethral", true)
+        // 1.9: wires leave below the sternum; the generator is in the infraclavicular pocket and a chest tube in the
+        // lateral chest wall (the side is what is left to ask); a hemodialysis catheter is most often in the IJ, a
+        // fistula in the forearm (guesses).
+        case .epicardialWires: return ("epicardial-exit", true)
+        case .cied: return ("generator", true)
+        case .chestTube: return ("lateral-chest", true)
+        case .dialysisCatheter: return ("ij", false)
+        case .avFistula: return ("forearm", false)
         case .protekDuo: return ("ij", false)
         case .epidural, .spinal:
             if let l = level?.uppercased().first, l == "C" || l == "T" { return ("thoracic-spine", true) }
@@ -758,10 +833,88 @@ enum PatientDevices {
         case .foley:
             // "Foley 16 Fr"; a suprapubic catheter says so.
             return spaced("Foley", sized, site?.base == "suprapubic" ? "suprapubic" : "") + paren(detail, gone)
+        case .epicardialWires:
+            // "Epicardial pacing wires (atrial + ventricular, DDD, 80 bpm, 5 mA)".
+            var s: [String] = []
+            let chambers = chamberWords(d)
+            if !chambers.isEmpty { s.append(chambers.joined(separator: " + ")) }
+            if !val("mode").isEmpty { s.append(val("mode")) }
+            if !val("rate").isEmpty { s.append(val("rate") + " bpm") }
+            if !val("output").isEmpty { s.append(val("output") + (Double(val("output")) != nil ? " mA" : "")) }
+            return "Epicardial pacing wires" + paren(s.joined(separator: ", "), detail, gone)
+        case .cied:
+            // "Pacemaker L pectoral", "ICD R pectoral (Medtronic, VVI 40)"; no type yet reads "Pacemaker/ICD".
+            let type = detail.isEmpty ? "Pacemaker/ICD" : detail.prefix(1).uppercased() + detail.dropFirst()
+            return spaced(type, brief) + paren(val("model"), gone)
+        case .avFistula:
+            // "AV fistula L forearm (radiocephalic)", "AV graft R upper arm".
+            let graft = detail.range(of: "graft", options: .caseInsensitive) != nil
+            let bare = ["av fistula", "avf", "fistula", "av graft", "avg", "graft"].contains(detail.lowercased())
+            return spaced(graft ? "AV graft" : "AV fistula", brief) + paren(bare ? "" : detail, val("notes"), gone)
+        case .dialysisCatheter:
+            return spaced("HD catheter", sized, brief, depth) + paren(detail, gone)
+        case .chestTube:
+            // "R chest tube 28 Fr", "Chest tube 28 Fr" before a side is known.
+            let side = site?.side ?? d.side
+            let pre = side == "right" ? "R" : (side == "left" ? "L" : "")
+            return spaced(pre, "chest tube", sized) + paren(detail, gone)
         case .other:
             let airway = ["mouth", "nose", "trach"].contains(site?.base ?? "")
             return spaced(detail.isEmpty ? "Other" : detail, size, airway ? "" : brief) + paren(gone)
         }
+    }
+
+    /// The chambers an epicardial wire set paces (1.9): "atrial", "ventricular", in that order; "both" is both. The
+    /// setting is read tolerantly ("A+V", "atrial, ventricular", "dual") so a hand-typed value still reads.
+    static func chamberWords(_ d: PatientDevice) -> [String] {
+        let v = (d.settings["chambers"] ?? "").lowercased()
+        if v.isEmpty { return [] }
+        let tokens = v.split(whereSeparator: { !$0.isLetter }).map(String.init)
+        let both = tokens.contains { ["both", "dual", "av", "biatrial"].contains($0) }
+        let atrial = both || tokens.contains { $0 == "atrial" || $0 == "a" }
+        let ventricular = both || tokens.contains { $0 == "ventricular" || $0 == "v" }
+        return (atrial ? ["atrial"] : []) + (ventricular ? ["ventricular"] : [])
+    }
+
+    /// Any epicardial pacing wires in place (not removed): temporary pacing for the ECG link (1.9).
+    static func temporaryPacingInPlace(_ devices: [PatientDevice]) -> Bool {
+        devices.contains { $0.kind.isTemporaryPacing && !$0.removed }
+    }
+
+    /// One current device's handoff text with when it went in (1.9, for the handoff Ben described).
+    struct PhaseLabel: Hashable {
+        var text: String
+        var placedIntraop: Bool
+        /// "Pre", "Intra" or "Pre and Intra".
+        var phase: String
+        /// "CVL R IJ (Pre)".
+        var lineText: String { text + " (" + phase + ")" }
+    }
+
+    /// Each current device's text with "(Pre)" for one there on arrival and "(Intra)" for one placed in the room. An ECMO
+    /// circuit is one line: "(Pre)" or "(Intra)" when all its cannulas agree, "(Pre and Intra)" when not.
+    static func phaseLabels(_ devices: [PatientDevice], includeRemoved: Bool = false) -> [PhaseLabel] {
+        var out: [PhaseLabel] = []
+        var circuitDone = false
+        for d in devices where includeRemoved || !d.removed {
+            if d.kind.isECMO && !d.removed {
+                if !circuitDone, let sys = ecmoSystem(devices) {
+                    let cannulas = devices.filter { $0.kind.isECMO && !$0.removed }
+                    let intra = cannulas.filter(\.placedIntraop).count
+                    let phase = intra == 0 ? "Pre" : (intra == cannulas.count ? "Intra" : "Pre and Intra")
+                    out.append(PhaseLabel(text: sys.label, placedIntraop: intra == cannulas.count, phase: phase))
+                }
+                circuitDone = true
+                continue
+            }
+            out.append(PhaseLabel(text: label(d), placedIntraop: d.placedIntraop, phase: d.placedIntraop ? "Intra" : "Pre"))
+        }
+        return out
+    }
+
+    /// `phaseLabels` as handoff lines: "PIV 20 G L forearm (Intra)", "CVL R IJ (Pre)".
+    static func labelsWithPhase(_ devices: [PatientDevice], includeRemoved: Bool = false) -> [String] {
+        phaseLabels(devices, includeRemoved: includeRemoved).map(\.lineText)
     }
 
     /// Handoff lines for a patient's devices in order, the ECMO cannulas as one circuit line where the first cannula
@@ -887,6 +1040,7 @@ extension PatientDevices {
     ///   artery returns), the mode (VA: venous cannulas drain) or, for VV, the larger or femoral cannula draining.
     /// - Words not understood are kept in `detail` and lower the confidence.
     static func parse(_ text: String) -> DeviceParse? {
+        if let wires = parseEpicardial(text) { return wires }
         let w = lex(text)
         guard !w.isEmpty else { return nil }
         let t = classify(w)
@@ -899,11 +1053,52 @@ extension PatientDevices {
         return ecmo ? parseECMO(t) : parseSingle(t)
     }
 
+    // MARK: Epicardial pacing wires (1.9)
+
+    /// Pacing modes the wires' entry reads ("DDD 80", "VVI").
+    private static let pacingModes: Set<String> = ["aai", "vvi", "ddd", "aoo", "voo", "doo", "ddi", "vdd", "aair", "vvir", "dddr"]
+
+    /// "epicardial wires A+V", "atrial and ventricular pacing wires DDD 80", "V wires 5 mA", "temp wires": always at the
+    /// exit below the sternum. Chambers: the words atrial and ventricular, "A" and "V" beside each other or before
+    /// "wires", and "AV", "dual" or "both" for both; the mode, a rate (bpm, "rate 80", "at 80") and an output (mA).
+    private static func parseEpicardial(_ text: String) -> DeviceParse? {
+        let low = text.lowercased()
+        guard low.range(of: #"\b(?:epicardial|wires?|pacing leads?|pacer leads?)\b"#, options: .regularExpression) != nil else { return nil }
+        let words = low.split(whereSeparator: { !($0.isLetter || $0.isNumber || $0 == ".") }).map(String.init).filter { $0 != "and" }
+        var atrial = false, ventricular = false
+        var settings: [String: String] = [:]
+        for (i, w) in words.enumerated() {
+            let prev = i > 0 ? words[i - 1] : "", next = i + 1 < words.count ? words[i + 1] : ""
+            let single = ["wire", "wires", "only", "lead", "leads"]
+            switch w {
+            case "atrial", "atria": atrial = true
+            case "ventricular", "vent": ventricular = true
+            case "av", "dual", "both": atrial = true; ventricular = true
+            case "a": if next == "v" || prev == "v" || single.contains(next) || ["wire", "wires"].contains(prev) { atrial = true }
+            case "v": if next == "a" || prev == "a" || single.contains(next) || ["wire", "wires"].contains(prev) { ventricular = true }
+            default:
+                if pacingModes.contains(w) { settings["mode"] = w.uppercased() }
+                else if Double(w) != nil {
+                    if next == "ma" || prev == "output" { settings["output"] = w }
+                    else if next == "bpm" || prev == "rate" || prev == "at" { settings["rate"] = w }
+                }
+            }
+        }
+        if atrial || ventricular { settings["chambers"] = atrial && ventricular ? "both" : (atrial ? "atrial" : "ventricular") }
+        var p = DeviceParse(kind: .epicardialWires)
+        p.site = "epicardial-exit"
+        p.baseSite = "epicardial-exit"
+        p.settings = settings
+        p.confidence = settings["chambers"] == nil ? 0.85 : 1
+        return p
+    }
+
     private static let gauges: Set<String> = ["14", "16", "18", "20", "22", "24"]
     private static let introducers: Set<String> = ["introducer", "MAC introducer", "Cordis", "sheath"]
     private static let arterialKinds: Set<DeviceKind> = [.arterial, .iabp, .impella, .ecmoReturn]
-    private static let venousKinds: Set<DeviceKind> = [.cvc, .pac, .picc, .ecmoDrainage, .protekDuo]
-    private static let priority: [DeviceKind] = [.protekDuo, .pac, .impella, .iabp, .lvad, .ett, .trach, .epidural, .spinal, .picc,
+    private static let venousKinds: Set<DeviceKind> = [.cvc, .pac, .picc, .ecmoDrainage, .protekDuo, .dialysisCatheter]
+    private static let priority: [DeviceKind] = [.protekDuo, .pac, .impella, .iabp, .lvad, .epicardialWires, .cied, .chestTube, .avFistula,
+                                                 .dialysisCatheter, .ett, .trach, .epidural, .spinal, .picc,
                                                  .intraosseous, .cvc, .arterial, .piv, .ecmoDrainage, .ecmoReturn, .foley, .other]
     private static let textSettings: Set<String> = ["timing", "issues", "position"]
     private static let unitSettings: [String: String] = ["rpm": "rpm", "L/min": "flow", "W": "power", "mmHg": "augmentation",
@@ -1167,6 +1362,10 @@ extension PatientDevices {
     private static func resolve(_ base: String, kind: DeviceKind?, unit: String?, art: Bool, block: Bool, model: String?) -> (String, Int) {
         let arterialDevice = art || (kind.map { arterialKinds.contains($0) } ?? false)
         let blockDevice = block || kind == .block || kind == .perineuralCatheter
+        // 1.9: "chest", "pectoral" and "pocket" mean the device's own place; a generator is under the clavicle.
+        if kind == .cied, ["chest", "infraclavicular", "subclavian"].contains(base) { return ("generator", 1) }
+        if kind == .chestTube, base == "chest" { return ("lateral-chest", 1) }
+        if kind == .epicardialWires, base == "chest" { return ("epicardial-exit", 1) }
         switch base {
         case "fa":
             if arterialDevice { return ("femoral-artery", 1) }
@@ -1419,7 +1618,8 @@ extension PatientDevices {
             }
         }
         if sideMissing, let b = base {
-            for s in ["right", "left"] {
+            // A generator is most often on the left.
+            for s in (kind == .cied ? ["left", "right"] : ["right", "left"]) {
                 var a = p
                 a.alternatives = []
                 a.companions = []
@@ -1678,8 +1878,29 @@ private enum Lexicon {
         v("introducer|intro", .kind(.cvc, "introducer"))
         v("cordis", .kind(.cvc, "Cordis"))
         v("sheath", .kind(.cvc, "sheath"))
-        v("trialysis", .kind(.cvc, "Trialysis"))
-        v("hd|dialysis|quinton|vascath|mahurkar", .kind(.cvc, "dialysis catheter"))
+        // Dialysis catheters are their own kind since 1.9 (they were a CVL "dialysis catheter").
+        v("trialysis", .kind(.dialysisCatheter, "Trialysis"))
+        v("hd|dialysis|hemodialysis|vascath", .kind(.dialysisCatheter, nil))
+        v("quinton", .kind(.dialysisCatheter, "Quinton"))
+        v("mahurkar", .kind(.dialysisCatheter, "Mahurkar"))
+        v("permcath|permacath", .kind(.dialysisCatheter, "tunneled"))
+        v("tunneled|tunnelled", .detail("tunneled"))
+        v("nontunneled|nontunnelled", .detail("non-tunneled"))
+        // 1.9: fistulas and grafts (the access types name their site), pacemakers and ICDs, chest tubes, the chest as a site.
+        v("avf|fistula", .kind(.avFistula, nil))
+        v("avg", .kind(.avFistula, "AV graft"))
+        v("radiocephalic|rcf|brescia", .kind(.avFistula, "radiocephalic"), .site("wrist", nil))
+        v("brachiocephalic|bcf", .kind(.avFistula, "brachiocephalic"), .site("upper-arm", nil))
+        v("brachiobasilic|bbf", .kind(.avFistula, "brachiobasilic"), .site("upper-arm", nil))
+        v("thigh", .site("thigh", nil))
+        v("ppm|pacemaker|ipg", .kind(.cied, "pacemaker"))
+        v("icd|aicd|defibrillator", .kind(.cied, "ICD"))
+        v("crtp", .kind(.cied, "CRT-P"))
+        v("crtd", .kind(.cied, "CRT-D"))
+        v("crt", .kind(.cied, "CRT"))
+        v("chest|pectoral|pocket", .site("chest", nil))
+        v("pigtail", .kind(.chestTube, "pigtail"))
+        v("lateral|midaxillary", .filler)
         v("swan|pac|swanganz", .kind(.pac, nil))
         v("picc", .kind(.picc, nil))
         v("io|ezio|intraosseous", .kind(.intraosseous, nil))
@@ -1771,7 +1992,10 @@ private enum Lexicon {
         v("triple lumen|3 lumen", .kind(.cvc, "triple lumen"))
         v("quad lumen", .kind(.cvc, "quad lumen"))
         v("double lumen|dual lumen", .detail("double lumen"))
-        v("hd cath|hd catheter|hd line|dialysis cath|dialysis catheter|dialysis line", .kind(.cvc, "dialysis catheter"))
+        v("hd cath|hd catheter|hd line|dialysis cath|dialysis catheter|dialysis line|hemodialysis catheter|hemodialysis line|hemodialysis cath", .kind(.dialysisCatheter, nil))
+        v("av fistula|arteriovenous fistula|dialysis fistula|hd fistula|hemodialysis fistula", .kind(.avFistula, nil))
+        v("av graft|arteriovenous graft|dialysis graft|hd graft", .kind(.avFistula, "AV graft"))
+        v("tunneled catheter|tunneled cath|tunneled line", .detail("tunneled"), .cathWord)
         v("fem art|femoral art|femoral artery|fem artery", .site("femoral-artery", nil))
         v("fem vein|femoral vein|fem v", .site("femoral-vein", nil))
         v("internal jugular", .site("ij", nil))
@@ -1791,7 +2015,8 @@ private enum Lexicon {
         v("a ecmo", .kind(.ecmoReturn, nil))
         v("at teeth", .depthAt("teeth"))
         v("at lip|at lips", .depthAt("lip"))
-        v("chest tube", .kind(.other, "chest tube"))
+        v("chest tube|chest drain|pleural drain|thoracic drain|thoracostomy tube|tube thoracostomy|pleural catheter", .kind(.chestTube, nil))
+        v("pigtail catheter|pigtail drain", .kind(.chestTube, "pigtail"))
         v("urinary catheter|bladder catheter|foley catheter|indwelling urinary", .kind(.foley, nil))
         v("suprapubic catheter", .kind(.foley, nil), .site("suprapubic", nil))
         v("on arrival")
@@ -1809,5 +2034,5 @@ private enum Lexicon {
 
     /// Hyphenated words read joined up ("a-line", "v-v", "i-gel", "hm-3"); other hyphens split words.
     static let joinable: Set<String> = ["aline", "vv", "va", "vav", "vva", "igel", "hm3", "hmii", "hmiii", "hm2", "pecsii",
-                                        "pecsi", "pecs1", "pecs2", "ezio", "rpflex", "swanganz"]
+                                        "pecsi", "pecs1", "pecs2", "ezio", "rpflex", "swanganz", "crtd", "crtp", "nontunneled", "nontunnelled"]
 }
