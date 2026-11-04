@@ -276,6 +276,8 @@ final class PatientStore {
         case "demo-neuro": return PatientDemo.neuro
         case "demo-typed": return PatientDemo.typed
         case "demo-labs": return PatientDemo.labs
+        case "demo-pages19": return PatientDemo.pages19
+        case "demo-ob19": return PatientDemo.ob19
         default: return nil
         }
     }
@@ -480,6 +482,94 @@ enum PatientDemo {
         r.considerations = ["pressors", "tee", "surgical"]
         r.considerationsNote = "Epinephrine and norepinephrine rising after bypass; severe LV dysfunction on TEE; diffuse coagulopathy, chest may stay open"
         r.codeStatus = .full
+        return r
+    }
+}
+
+// MARK: 1.9 system pages (screenshots 315–339)
+
+extension PatientDemo {
+    /// The demo patient with every 1.9 page but Obstetric filled in: the Cardiovascular, Respiratory and Neurologic
+    /// additions, hemodialysis with a fistula, cirrhosis with liver labs, chronic steroids, anemia and warfarin with
+    /// their labs, sepsis with mixed shock on norepinephrine, rheumatoid arthritis, Marfan syndrome with an aortic root
+    /// aneurysm, and a former smoker.
+    static var pages19: PatientRecord {
+        var r = record
+        r.problems = ["htn", "dm", "insulin", "af", "pacemaker", "endocarditis", "copd", "pneumonia", "pleural-effusion",
+                      "visual-impairment", "psych", "mdd", "ckd", "esrd-dialysis", "gerd", "hiatal-hernia", "cirrhosis", "gi-bleed",
+                      "thyroid", "adrenal", "anemia", "thrombocytopenia", "anticoagulation", "vte", "sepsis", "shock", "mdro",
+                      "covid-recent", "isolation", "ra", "cspine-unstable", "marfan", "alcohol-social", "substance", "cocaine"]
+        r.hx.cpapSettings = ""
+        r.hx.afType = "permanent"
+        r.hx.pacerDependent = true
+        r.hx.ciedSide = "left"
+        r.hx.deviceDetails = "Medtronic, magnet VOO"
+        r.hx.endocarditisDetails = "Mitral, MSSA, on cefazolin"
+        r.hx.aneurysms = ["root": PatientAneurysm(cm: 4.6)]
+        r.hx.pleuralSide = "left"
+        r.hx.pleuralFluid = "unspecified"
+        r.hx.pleuralDrained = true
+        r.hx.chestTube = true
+        r.hx.chestTubeSides = ["left"]
+        r.hx.visualImpairment = "chronic"
+        r.hx.ckdStage = "5"
+        r.hx.dialysisSchedule = "mwf"
+        r.hx.dialysisAccess = ["fistula"]
+        r.hx.fistulaSite = "Left forearm"
+        r.hx.giBleedStatus = "resolved"
+        r.hx.giBleedSite = "upper"
+        r.hx.giBleedDetails = "Duodenal ulcer 2024"
+        r.hx.thyroidType = "hypo"
+        r.hx.adrenalKinds = ["steroids"]
+        r.hx.steroidDrug = "Prednisolone"
+        r.hx.steroidDailyMg = 10
+        r.hx.steroidDuration = "ge1m"
+        r.hx.anticoagulants = ["warfarin": PatientAnticoagulant(lastDose: "11/02 18:00")]
+        r.hx.vteTiming = "chronic"
+        r.hx.vteDate = "2023"
+        r.hx.sepsisSource = "Pneumonia"
+        r.hx.sepsisAntibiotic = "Cefepime"
+        r.hx.shockTypes = ["cardiogenic", "distributive"]
+        r.hx.covidStatus = "recent"
+        r.hx.covidTestDate = "10/20"
+        r.hx.precautions = ["contact"]
+        r.hx.arthritisLocation = "Hands"
+        r.hx.ctdCardiovascular = true
+        r.smoking = "former"
+        r.hx.smokingQuitYear = 2015
+        r.hx.packYears = 20
+        r.systemOther = ["renal": "Renal artery stenosis"]
+        r.systemNotes = ["gi": "Last EGD 09/2026"]
+        r.labs = ["hb": 9.1, "hct": 27, "plt": 96, "inr": 2.3, "na": 131, "k": 5.1, "cr": 6.2, "tbili": 2.4, "albumin": 2.9,
+                  "glucose": 162, "tsh": 8.2, "ft4": 0.6]
+        r.labSections = ["liver", "thyroid"]
+        r.dialysis = true
+        r.homeInfusions = [PatientInfusion(drug: "Norepinephrine", rate: "0.08 mcg/kg/min")]
+        PatientHistoryDetails.sync(&r)
+        r.asaClass = nil
+        return r
+    }
+
+    /// A made-up obstetric patient for the Obstetric page and its cross-references: 32+4 weeks with a prior cesarean,
+    /// preeclampsia with severe features and HELLP, gestational diabetes on insulin, peripartum cardiomyopathy, and
+    /// factor V Leiden on enoxaparin.
+    static var ob19: PatientRecord {
+        var r = PatientRecord()
+        r.ageYears = 34; r.sex = .female; r.heightCm = 165; r.weightKg = 82
+        r.setProcedures(PlannedProcedure.parse("Repeat cesarean delivery"))
+        r.urgency = .urgent
+        r.problems = ["pregnant", "preeclampsia-severe", "hellp", "gdm", "ppcm", "previa-accreta", "thrombophilia-heme", "fvl", "thrombophilia",
+                      "anticoagulation"]
+        r.hx.gravida = 2; r.hx.para = 1; r.hx.abortus = 0; r.hx.living = 1
+        r.hx.gestationWeeks = 32; r.hx.gestationDays = 4
+        r.hx.priorCesarean = true; r.hx.cesareanLastBirth = true
+        r.hx.preeclampsiaFeatures = ["neuro", "thrombocytopenia", "hellp"]
+        r.hx.gdmControl = "controlled"; r.hx.gdmInsulin = true
+        r.hx.ppcmEF = 42
+        r.hx.placenta = ["previa"]
+        r.hx.anticoagulants = ["enoxaparin": PatientAnticoagulant(intensity: "prophylaxis", lastDose: "11/03 20:00")]
+        r.labs = ["hb": 10.9, "plt": 88, "inr": 1.0]
+        r.systemNotes = ["ob": "Maternal-fetal medicine following"]
         return r
     }
 }

@@ -883,7 +883,7 @@ enum HistorySections {
         let devices = [p.contains("pacemaker") ? "pacemaker" : nil, p.contains("icd") ? "ICD" : nil].compactMap { $0 }
         // 1.9: pacer dependence and the generator's side ("pacemaker, pacer dependent, left-sided generator").
         var device = devices.joined(separator: " and ")
-        if device.isEmpty && (d.pacerDependent || d.ciedSide != nil) { device = "pacemaker or ICD" }
+        if device.isEmpty && (d.pacerDependent || d.ciedSide != nil || !trimmed(d.deviceDetails).isEmpty) { device = "pacemaker or ICD" }
         if !device.isEmpty {
             if d.pacerDependent { device += ", pacer dependent" }
             if let side = d.ciedSide { device += ", " + side + "-sided generator" }
