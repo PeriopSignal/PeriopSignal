@@ -80,10 +80,15 @@ enum PatientSteroids {
         (["cortisone"], "cortisone", 25),
     ]
 
+    /// Names that hold a table drug's name but are not in the table: fludrocortisone (a mineralocorticoid whose
+    /// glucocorticoid potency is not cortisone's) would otherwise be read as cortisone.
+    static let notConverted: [String] = ["fludrocortisone", "fludrocort", "florinef"]
+
     /// The typed drug's daily dose as prednisolone (mg/day), or nil when the drug is not in the table.
     static func prednisoloneEquivalent(drug: String, mg: Double) -> Double? {
         let d = drug.lowercased()
-        guard mg.isFinite, mg >= 0, let e = equivalents.first(where: { $0.words.contains { d.contains($0) } }) else { return nil }
+        guard mg.isFinite, mg >= 0, !notConverted.contains(where: { d.contains($0) }),
+              let e = equivalents.first(where: { $0.words.contains { d.contains($0) } }) else { return nil }
         return mg * 5 / e.mg
     }
 
