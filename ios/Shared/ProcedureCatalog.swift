@@ -405,6 +405,31 @@ enum ProcedureCatalog {
         return out
     }
 
+    // MARK: Return in the search field (1.9)
+
+    /// An aortic aneurysm named alone, as the diagnosis: "AAA", "rAAA", "ruptured AAA", "TAAA", "TAA", "thoracoabdominal
+    /// aneurysm", "abdominal aortic aneurysm 5.5 cm". It names neither open repair nor EVAR (Ben, 1.8.3: the list reads no
+    /// repair from it), so Return does not pick one either.
+    static let diagnosisOnly = NoteRx(#"^\s*(?:(?:ruptured|leaking|known|large|enlarging|symptomatic)\s+)?(?:\d+(?:\.\d+)?\s*-?\s*(?:cm|mm)\s+)?(?:r?aaa|taaa|taa|dtaa|(?:(?:abdominal|infrarenal|juxtarenal|pararenal|suprarenal|thoracic|descending thoracic|descending|ascending|thoraco-?abdominal)\s+)?(?:aortic\s+)?aneurysm)s?(?:\s*,?\s*\d+(?:\.\d+)?\s*(?:cm|mm))?\s*$"#)
+
+    static func isDiagnosisOnly(_ text: String) -> Bool { diagnosisOnly.first(text) != nil }
+
+    /// What Return adds in the procedure search (ProcedureSearchField, 1.9): a bare Bentall as typed (asked which valve in
+    /// view), several procedures or a side read together, else the top search result, else the text as typed. A
+    /// diagnosis alone ("AAA") adds nothing: the text stays in the field with the repairs listed under it, so the choice
+    /// between open repair and EVAR is the user's (until 1.9 Return added the top result, the open repair).
+    static func onReturn(_ text: String) -> [PlannedProcedure] {
+        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return [] }
+        let parsed = query.count >= 2 ? PlannedProcedure.parse(query) : []
+        if parsed.contains(where: { $0.ask != nil }) { return parsed }
+        let simple = parsed.count == 1 && parsed[0].side == nil && parsed[0].detail.isEmpty
+        if parsed.contains(where: { $0.catalogID != nil }), !simple { return parsed }
+        if isDiagnosisOnly(query) { return [] }
+        if query.count >= 2, let p = search(query, limit: 1).first { return [PlannedProcedure(p)] }
+        return [PlannedProcedure(name: FreeText.cap(query))]
+    }
+
     // MARK: Risk
 
     /// The risk inputs for one or several procedures; empty (nil incision and duration) for none.

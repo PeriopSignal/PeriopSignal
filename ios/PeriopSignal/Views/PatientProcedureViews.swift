@@ -146,14 +146,9 @@ struct ProcedureSearchField: View {
         .buttonStyle(.plain)
     }
 
-    private func addBest() {
-        // A bare "Bentall" goes in as typed, to be asked which valve, rather than as the first of the two in the list.
-        let parsed = query.count >= 2 ? PlannedProcedure.parse(query) : []
-        if parsed.contains(where: { $0.ask != nil }) { add(parsed) }
-        else if !reading.isEmpty { add(reading) }
-        else if let p = results.first { add([PlannedProcedure(p)]) }
-        else if !query.isEmpty { add([PlannedProcedure(name: FreeText.cap(query))]) }
-    }
+    /// Return: a bare "Bentall" goes in as typed, to be asked which valve; a diagnosis alone ("AAA") adds nothing and stays
+    /// typed, for the list to choose the repair (1.9). The choice is ProcedureCatalog.onReturn, tested there.
+    private func addBest() { add(ProcedureCatalog.onReturn(query)) }
 
     private func add(_ items: [PlannedProcedure]) {
         guard !items.isEmpty else { return }
