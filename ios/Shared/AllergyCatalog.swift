@@ -9,7 +9,9 @@ import Foundation
 // (not inside parentheses), and so does a space before an allergen the list knows ("PCN sulfa latex" is three). What
 // follows an allergen is its reaction as typed ("PCN - rash", "sulfa (hives)"); a severity is read only when it is
 // written: "mild", "severe", "anaphylaxis" (or "anaphylactic", "anaphylactoid"). "Hives" and "rash" are reactions and set
-// no severity. Nothing here gives advice about an allergen.
+// no severity. A severity or an allergen after a word that denies it ("no anaphylaxis", "not allergic to latex",
+// "tolerated cefazolin") is not recorded: the words stay in the reaction as typed. Nothing here gives advice about an
+// allergen.
 
 /// One allergen the + Add field knows.
 struct AllergenEntry: Hashable, Identifiable {
@@ -234,6 +236,15 @@ enum AllergyCatalog {
         while i < ws.count {
             if br[i] { closeSegment() }
             let w = ws[i]
+            // "no anaphylaxis", "not allergic to latex", "tolerated cefazolin": neither a severity nor an allergy, but
+            // words of the reaction (or of the item before, at the start of a segment).
+            if negations.contains(w.key), let end = negatedEnd(ws, br, from: i) {
+                for k in i..<end {
+                    if inSegment > 0 { addReaction(k) } else { orphan.append(k) }
+                }
+                i = end
+                continue
+            }
             if let s = severity(w.key) {
                 if inSegment > 0 { out[out.count - 1].severity = s } else { pendingSeverity = s }
                 i += 1
@@ -270,7 +281,7 @@ enum AllergyCatalog {
                 // A typed allergen: this word and the next ones up to a reaction word, a dash or a parenthesis.
                 var j = i + 1
                 while j < ws.count, j - i < 4, !br[j], phrases.longest(ws, at: j) == nil, !reactionWords.contains(ws[j].key),
-                      severity(ws[j].key) == nil, !lead.contains(ws[j].key), ws[j].key != "and", ws[j].key != "or",
+                      severity(ws[j].key) == nil, !lead.contains(ws[j].key), !negations.contains(ws[j].key), ws[j].key != "and", ws[j].key != "or",
                       !line[ws[j - 1].range.upperBound..<ws[j].range.lowerBound].contains(where: { "-–—:(=".contains($0) }) {
                     j += 1
                 }
@@ -292,6 +303,31 @@ enum AllergyCatalog {
             let name = b.entry.map { entries[$0].name } ?? FreeText.cap(String(line[b.nameRange]))
             return ReadItem(allergy: PatientAllergy(name: name, severity: b.severity, reaction: reaction), typed: b.entry == nil, nameRange: b.nameRange)
         }
+    }
+
+    /// Words that deny the severity or the allergen after them: "no anaphylaxis", "not allergic to latex", "tolerated
+    /// cefazolin", "non-anaphylactic".
+    static let negations: Set<String> = ["no", "not", "never", "non", "nor", "without", "denies", "denied", "negative",
+                                         "tolerated", "tolerates", "tolerate", "tolerating", "tolerant"]
+
+    /// After a denying word at `i`: the end of the severity or the allergen it denies, with the words between ("not
+    /// allergic to", "never had") and an "allergy" after; nil when no severity or allergen follows in the same item.
+    private static func negatedEnd(_ ws: [CatalogWord], _ br: [Bool], from i: Int) -> Int? {
+        let between: Set<String> = lead.union(["had", "any", "true", "real", "an", "a"])
+        var k = i + 1
+        while k < ws.count, !br[k], between.contains(ws[k].key) { k += 1 }
+        guard k < ws.count, !br[k] else { return nil }
+        var end: Int
+        if severity(ws[k].key) != nil {
+            end = k + 1
+        } else if let m = phrases.longest(ws, at: k), !(k + 1..<k + m.count).contains(where: { br[$0] }) {
+            end = k + m.count
+        } else {
+            return nil
+        }
+        let after: Set<String> = ["allergy", "allergies", "allergic", "reaction", "reactions", "sensitivity"]
+        while end < ws.count, !br[end], after.contains(ws[end].key) { end += 1 }
+        return end
     }
 
     /// "mild", "severe", "anaphylaxis" as written.
@@ -358,10 +394,14 @@ enum AllergyCatalog {
         }
     }
 
-    /// Every allergen in the allergies typed before 1.9 is on the list already.
+    /// Every allergy typed before 1.9 is on the list already, with its severity and reaction: a typed "PCN -
+    /// anaphylaxis" is not covered by a listed "Penicillin (mild)", so it still shows.
     static func covers(_ list: [PatientAllergy], legacy: String) -> Bool {
         let items = parse(legacy)
-        return !items.isEmpty && items.allSatisfy { a in list.contains { same($0, a) } }
+        return !items.isEmpty && items.allSatisfy { a in
+            if case .recorded = status(a, in: list) { return true }
+            return false
+        }
     }
 }
 
