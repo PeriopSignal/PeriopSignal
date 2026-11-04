@@ -857,7 +857,7 @@ enum PatientDevices {
             // "R chest tube 28 Fr", "Chest tube 28 Fr" before a side is known.
             let side = site?.side ?? d.side
             let pre = side == "right" ? "R" : (side == "left" ? "L" : "")
-            return spaced(pre, "chest tube", sized) + paren(detail, gone)
+            return spaced(pre.isEmpty ? "Chest tube" : pre + " chest tube", sized) + paren(detail, gone)
         case .other:
             let airway = ["mouth", "nose", "trach"].contains(site?.base ?? "")
             return spaced(detail.isEmpty ? "Other" : detail, size, airway ? "" : brief) + paren(gone)
