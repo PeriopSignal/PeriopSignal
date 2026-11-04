@@ -276,6 +276,7 @@ final class PatientStore {
         case "demo-neuro": return PatientDemo.neuro
         case "demo-typed": return PatientDemo.typed
         case "demo-labs": return PatientDemo.labs
+        case "demo-links": return PatientDemo.links
         default: return nil
         }
     }
@@ -480,6 +481,36 @@ enum PatientDemo {
         r.considerations = ["pressors", "tee", "surgical"]
         r.considerationsNote = "Epinephrine and norepinephrine rising after bypass; severe LV dysfunction on TEE; diffuse coagulopathy, chest may stay open"
         r.codeStatus = .full
+        return r
+    }
+}
+
+// MARK: 1.9 links (helper 2): warnings, isolation suggestions, stress-dose steroids and the TEE screen's GI concerns
+
+extension PatientDemo {
+    /// A made-up patient for AVR whose history shows the 1.9 links: a gastric bypass, a hiatal hernia, achalasia with a
+    /// previous dilation and a resolved upper GI bleed (aspiration and heparin warnings, TEE concerns to confirm), chronic
+    /// prednisone 10 mg for over a month (stress-dose advice), C. difficile, a URI and active TB (isolation suggestions),
+    /// and a previous EGD and TEE on the TEE screen.
+    static var links: PatientRecord {
+        var r = PatientRecord()
+        r.ageYears = 64; r.sex = .female; r.heightCm = 165; r.weightKg = 71
+        r.setProcedures(PlannedProcedure.parse("Aortic valve replacement"))
+        r.anesthetic = ["ga"]
+        r.problems = ["htn", "gastric-bypass", "hiatal-hernia", "esophageal-disorder", "gi-bleed", "adrenal", "c-diff", "uri", "tb"]
+        r.hx.gastricBypassDetails = "Roux-en-Y 2015"
+        r.hx.esophagealDisorderType = "Achalasia"
+        r.hx.esophagealProcedure = true
+        r.hx.esophagealProcedureDetails = "Pneumatic dilation 2021"
+        r.hx.giBleedStatus = "resolved"; r.hx.giBleedSite = "upper"; r.hx.giBleedDetails = "Marginal ulcer 2024"
+        r.hx.adrenalKinds = ["steroids"]; r.hx.steroidDrug = "Prednisone"; r.hx.steroidDailyMg = 10; r.hx.steroidDuration = "ge1m"
+        r.medFlags = ["steroid"]
+        r.hx.tbStatus = "active"
+        r.teeScreen.previousEGD = true; r.teeScreen.egdDate = "03/2025"; r.teeScreen.egdFindings = "LA grade B esophagitis"
+        r.teeScreen.previousTEE = true; r.teeScreen.teeDate = "2023"
+        r.labs = ["hb": 11.4, "plt": 210, "inr": 1.0, "tsh": 7.8]
+        r.problems.insert("anemia"); r.labProblems = ["anemia"]
+        r.fills.medFlags = ["steroid"]
         return r
     }
 }
