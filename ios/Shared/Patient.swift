@@ -317,6 +317,16 @@ struct PatientRecord: Codable, Equatable {
     /// What one part of the record filled in another (1.9), so a link takes back only what it added.
     var fills = PatientFills()
 
+    // 1.9 Preprocedure tab and Summary & Handoff
+    /// Cardiopulmonary evaluation's "Intrathoracic procedure": nil not asked, false No, true Yes.
+    var intrathoracicProcedure: Bool?
+    /// The preprocedure summary was generated (its + Generate button); it then follows the record.
+    var preopSummaryOn = false
+    /// Text the user changed in the generated preprocedure summary and handoff, by block key; a block with an edit keeps
+    /// it until Regenerate.
+    var preopSummaryEdits: [String: String] = [:]
+    var handoffEdits: [String: String] = [:]
+
     init() {}
 
     /// Every field read with a fallback, so a record saved by an older version still opens after an update.
@@ -441,6 +451,10 @@ struct PatientRecord: Codable, Equatable {
         callIf = v(.callIf, "")
         todos = v(.todos, "")
         fills = v(.fills, PatientFills())
+        intrathoracicProcedure = try? c.decodeIfPresent(Bool.self, forKey: .intrathoracicProcedure)
+        preopSummaryOn = v(.preopSummaryOn, false)
+        preopSummaryEdits = v(.preopSummaryEdits, [:])
+        handoffEdits = v(.handoffEdits, [:])
         fills.problems.formIntersection(problems)
         fills.medFlags.formIntersection(medFlags)
         fills.ecg.formIntersection(Set(ecg))
