@@ -1,0 +1,4 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Handoff183Tests.swift:182: error: -[PeriopSignalTests.Handoff183Tests testDiagramImageOnlyWhenSomethingIsDrawn] : XCTAssertEqualWithAccuracy failed: ("528.0") is not equal to ("534.8108108108108") +/- ("1.5") - the figure's own proportions, no empty bands
+Test Case '-[PeriopSignalTests.Handoff183Tests testDiagramImageOnlyWhenSomethingIsDrawn]' failed (3.108 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientDiagram19Tests.swift:575: error: -[PeriopSignalTests.PatientDiagram19Tests testLimbAlertDoesNotRepeatTheFistulaOrTheHarvest] : XCTAssertEqual failed: ("Optional("R arm — Planned radial harvest; L arm — Lymphedema")") is not equal to ("Optional("R arm — planned radial harvest; L arm — lymphedema")") - a harvest is only dropped on the arm that is planned for it
+Test Case '-[PeriopSignalTests.PatientDiagram19Tests testLimbAlertDoesNotRepeatTheFistulaOrTheHarvest]' failed (0.016 seconds).
