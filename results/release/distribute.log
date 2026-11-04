@@ -1,5 +1,0 @@
-Periop Signal: build 1.9.0 (28) processed
-what to test: kept (1.9.0: My Patient — every system page expands, cross-fill between pages, the Pre)
-::warning::beta app review not submitted (422: Another build in the same train is already in beta review. Please submit it again once it gets completed.). Complete Test Information under TestFlight in App Store Connect, then run 'TestFlight distribute' with version=1.9.0 build=28.
-added to group 'Colleagues' (public link on)
-external testing: ready for beta submission · internal: in beta testing
