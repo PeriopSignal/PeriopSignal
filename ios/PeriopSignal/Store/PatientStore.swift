@@ -575,6 +575,10 @@ extension PatientDemo {
         r.hx.anticoagulants = ["enoxaparin": PatientAnticoagulant(intensity: "prophylaxis", lastDose: "11/03 20:00")]
         r.labs = ["hb": 10.9, "plt": 88, "inr": 1.0]
         r.systemNotes = ["ob": "Maternal-fetal medicine following"]
+        return r
+    }
+}
+
 // MARK: - 1.9 medication and allergy lists (the demo for their screenshots)
 
 extension PatientDemo {
@@ -588,6 +592,10 @@ extension PatientDemo {
                                              + "Eliquis 5 mg bid, Mounjaro 7.5 mg weekly, sertraline 100 mg")
         r.medFlags = MedicationCatalog.flags(for: r.homeMeds)
         r.allergyList = AllergyCatalog.parse("PCN mild rash, sulfa (hives), latex anaphylaxis")
+        return r
+    }
+}
+
 // MARK: 1.9 links (helper 2): warnings, isolation suggestions, stress-dose steroids and the TEE screen's GI concerns
 
 extension PatientDemo {
