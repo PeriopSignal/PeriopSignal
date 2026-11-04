@@ -94,6 +94,15 @@ enum PatientSteroids {
 
     private static func mgText(_ v: Double) -> String { NumText.short((v * 10).rounded() / 10) }
 
+    /// The typed drug is the reference drug (prednisolone) or its 1:1 equivalent prednisone: the equivalence line would
+    /// compare the dose with itself ("10 mg prednisolone a day ≈ 10 mg prednisolone a day"), so it is left out.
+    static func isReferenceDrug(_ drug: String) -> Bool {
+        let d = drug.lowercased()
+        guard !notConverted.contains(where: { d.contains($0) }),
+              let e = equivalents.first(where: { $0.words.contains { d.contains($0) } }) else { return false }
+        return e.name == "prednisolone" || e.name == "prednisone"
+    }
+
     /// nil when there is nothing to advise on yet (no adrenal insufficiency and no dose recorded).
     static func advice(_ r: PatientRecord) -> SteroidAdvice? {
         guard r.has("adrenal") else { return nil }
@@ -115,7 +124,8 @@ enum PatientSteroids {
                                  lines: [rule, ifInDoubt], source: source)
         }
         let reached: Bool
-        let doseLine: String
+        // The dose as the threshold's drug; none when the typed drug is that drug already (adults: prednisolone).
+        let doseLine: [String]
         if child {
             let hc = peq * 4
             guard let bsa = r.bsa, bsa > 0 else {
@@ -124,19 +134,19 @@ enum PatientSteroids {
             }
             let perM2 = hc / bsa
             reached = perM2 >= childThresholdMgM2
-            doseLine = mgText(mg) + " mg " + drug.lowercased() + " a day ≈ " + mgText(perM2) + " mg/m² of hydrocortisone a day (BSA " + String(format: "%.2f", bsa) + " m²)."
+            doseLine = [mgText(mg) + " mg " + drug.lowercased() + " a day ≈ " + mgText(perM2) + " mg/m² of hydrocortisone a day (BSA " + String(format: "%.2f", bsa) + " m²)."]
         } else {
             reached = peq >= thresholdMg
-            doseLine = mgText(mg) + " mg " + drug.lowercased() + " a day ≈ " + mgText(peq) + " mg prednisolone a day."
+            doseLine = isReferenceDrug(drug) ? [] : [mgText(mg) + " mg " + drug.lowercased() + " a day ≈ " + mgText(peq) + " mg prednisolone a day."]
         }
         let longEnough = duration == "ge1m"
         if reached && longEnough {
             return SteroidAdvice(atRisk: true, headline: "At risk of adrenal insufficiency: give stress-dose hydrocortisone, in addition to the usual dose",
-                                 lines: [doseLine] + (child ? childLines(r) : steroidLines(r)), source: source)
+                                 lines: doseLine + (child ? childLines(r) : steroidLines(r)), source: source)
         }
         let why = !reached ? "Below the guideline's threshold" : "Under 1 month, below the guideline's threshold"
         return SteroidAdvice(atRisk: false, headline: why + ": no stress dose by the dose and duration alone",
-                             lines: [doseLine, rule, ifInDoubt], source: source)
+                             lines: doseLine + [rule, ifInDoubt], source: source)
     }
 
     static let ifInDoubt = "If in doubt, give: there are no long-term adverse consequences of short-term glucocorticoid administration."

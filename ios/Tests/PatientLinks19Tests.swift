@@ -79,7 +79,9 @@ final class PatientLinks19Tests: XCTestCase {
 
     func testAdviceLinesFollowTheGuideline() throws {
         let a = try XCTUnwrap(PatientSteroids.advice(onSteroid("Prednisolone", 10, "ge1m")))
-        XCTAssertEqual(a.lines.first, "10 mg prednisolone a day ≈ 10 mg prednisolone a day.")
+        XCTAssertFalse(a.lines.contains { $0.contains("≈") }, "prednisolone is the reference drug: no line comparing it with itself")
+        let hc = try XCTUnwrap(PatientSteroids.advice(onSteroid("Hydrocortisone", 20, "ge1m")))
+        XCTAssertEqual(hc.lines.first, "20 mg hydrocortisone a day ≈ 5 mg prednisolone a day.")
         XCTAssertTrue(a.lines.contains { $0.contains("hydrocortisone 100 mg IV at induction, then 200 mg/24 h") })
         XCTAssertTrue(a.lines.contains { $0.contains("dexamethasone 6–8 mg IV") })
         XCTAssertTrue(a.source.contains("doi:10.1111/anae.14963"))
