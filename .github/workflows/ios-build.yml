@@ -31,7 +31,7 @@ env:
 jobs:
   build:
     name: Build, test and screenshot in the simulator
-    runs-on: macos-14   # third pool tried on Nov 4, 2026: macos-15-intel and macos-15 did not acquire the job six times
+    runs-on: macos-14   # the pool that acquires jobs reliably (Nov 2026); macos-15-intel and macos-15 queued for hours
     timeout-minutes: 240   # the full screenshot set (about 390 shots in 1.9) runs about two hours after the build and tests
     steps:
       - uses: actions/checkout@v4
