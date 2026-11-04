@@ -494,9 +494,9 @@ enum PatientNote {
         // others' names go to its details. The Obstetric example ("thrombophilia", ASA III) is filed only for a pregnant
         // patient on anticoagulation (PatientNote.read).
         Rule("thrombophilia-heme", #"\bthrombophilia\b|\bantiphospholipid(?: antibody)?(?: syndrome)?\b|(?-i:\bAPLS\b)|\bprothrombin (?:gene )?(?:mutation|g20210a)\b|\bprotein [cs] deficiency\b|\bantithrombin(?: iii)? deficiency\b|\bfactor (?:v|5) leiden\b|(?-i:\bFVL\b)"#,
-             guarded: true, negAfter: thrombophiliaNotPositive, notBefore: thrombophiliaNegativeBefore),
+             negAfter: thrombophiliaNotPositive, guarded: true, notBefore: thrombophiliaNegativeBefore),
         Rule("fvl", #"\bfactor (?:v|5) leiden\b|(?-i:\bFVL\b)|\bf5 leiden\b"#,
-             guarded: true, negAfter: thrombophiliaNotPositive, notBefore: thrombophiliaNegativeBefore),
+             negAfter: thrombophiliaNotPositive, guarded: true, notBefore: thrombophiliaNegativeBefore),
         // On anticoagulation, in general words; a named drug files it too, with the drug (readAnticoagulants).
         Rule("anticoagulation", #"\b(?:on|receiving|requires?|requiring|needs?|chronic|therapeutic|long[- ]term|lifelong|systemic|full)\s+(?:(?:chronic|therapeutic|full|long[- ]term|lifelong|systemic|oral)\s+)?anticoagula(?:tion|nts?)\b|\banticoagulated\b|\bon (?:a )?blood thinners?\b|\bon (?:a )?(?-i:DOAC|NOAC|VKA|OAC)\b"#,
              negAfter: NoteRx(#"^\s*[:\-–]?\s*(?:none|no|n/a|nil|stopped|discontinued)\b"#)),
