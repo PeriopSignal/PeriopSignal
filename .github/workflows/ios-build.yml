@@ -571,7 +571,7 @@ jobs:
           shot 471-brief-diagram-list-dark 22 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab summary -ps.patient.scroll handofffigure -ps.forceAppearance dark
           shot 472-brief-status-plan-light 16 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab summary -ps.forceAppearance light
           shot 473-brief-status-plan-dark 16 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab summary -ps.forceAppearance dark
-          shot 474-brief-handoff-edited-light 18 -ps.tab patient -ps.patient demo-briefs-edit -ps.patient.tab summary -ps.handoff.from Intraoperative -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 474-brief-handoff-edited-light 18 -ps.tab patient -ps.patient demo-briefs-edit -ps.patient.tab summary -ps.handoff.from "Intraoperative events" -ps.patient.scroll handoff -ps.forceAppearance light
           shot 475-brief-handoff-old-argument 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handoff -ps.forceAppearance light
           shot 476-brief-handoff-warnings-tee-dark 18 -ps.tab patient -ps.patient demo-links -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 477-brief-handoff-dnr-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light

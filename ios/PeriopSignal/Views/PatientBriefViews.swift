@@ -64,7 +64,7 @@ struct FishboneFigure: View {
                 hRule(cellWidth * 3 + 2)
                 HStack(spacing: 0) { cell("k", "K"); vRule(); cell("hco3", "HCO₃"); vRule(); cell("cr", "Cr") }
             }
-            FishboneWedge(pointsLeft: true).stroke(PS.line2, lineWidth: 1).frame(width: 12, height: 26)
+            FishboneWedge(pointsLeft: false).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
             cell("glucose", "Glu")
         }
     }
@@ -72,13 +72,13 @@ struct FishboneFigure: View {
     private var cbc: some View {
         HStack(spacing: 0) {
             cell("wbc", "WBC")
-            FishboneWedge(pointsLeft: false).stroke(PS.line2, lineWidth: 1).frame(width: 12, height: 26)
+            FishboneWedge(pointsLeft: true).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
             VStack(spacing: 0) {
                 cell("hb", "Hb")
                 hRule(cellWidth)
                 cell("hct", "Hct")
             }
-            FishboneWedge(pointsLeft: true).stroke(PS.line2, lineWidth: 1).frame(width: 12, height: 26)
+            FishboneWedge(pointsLeft: false).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
             cell("plt", "Plt")
         }
     }

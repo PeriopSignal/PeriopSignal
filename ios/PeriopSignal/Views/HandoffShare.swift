@@ -167,6 +167,13 @@ enum HandoffShare {
         return out
     }
 
+    /// The text, then every picture (1.9: the fishbone and the lines diagram with its list).
+    static func items(text: String, images: [UIImage]) -> [Any] {
+        var out: [Any] = [TextItem(text)]
+        for i in images { out.append(i) }
+        return out
+    }
+
     // MARK: The diagram
 
     /// The lines diagram as a picture, drawn in the light appearance on white so it reads in any app; nil when nothing

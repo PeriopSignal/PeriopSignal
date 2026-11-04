@@ -365,20 +365,20 @@ enum PatientBriefs {
     private static func pmhBlock(_ r: PatientRecord, hist: [PatientSummary.Line], assess: [PatientSummary.Line]) -> SummaryBlock {
         var parts: [String] = []
         var marks: [String] = []
-        var alert = false
         for l in hist where !notPMH.contains(l.label ?? "") {
             let t = joined(l)
             parts.append(t)
-            if l.alert { marks.append(t); alert = true }
+            if l.alert { marks.append(t) }
             marks += l.marks
         }
         for l in assess where assessmentHistory.contains(l.label ?? "") {
             let t = joined(l)
             parts.append(t)
-            if l.alert { marks.append(t); alert = true }
+            if l.alert { marks.append(t) }
         }
         let asa = PatientRules.asaText(r)
-        return SummaryBlock(key: "pmh", label: asa.map { "PMH (" + $0 + ")" } ?? "PMH", text: parts.joined(separator: " · "), alert: alert, marks: marks)
+        // The alerts inside it are in bold red; the label stays plain.
+        return SummaryBlock(key: "pmh", label: asa.map { "PMH (" + $0 + ")" } ?? "PMH", text: parts.joined(separator: " · "), marks: marks)
     }
 
     /// PSH: the past surgical history, with the cardiac or thoracic operations added in the cardiac evaluation.
@@ -487,7 +487,11 @@ enum PatientBriefs {
     private static func intraopTEEBlock(_ r: PatientRecord) -> SummaryBlock {
         let c = r.capitalized
         var parts: [String] = []
-        if !c.intraopEcho.isEmpty { parts.append(c.intraopEcho.summary) }
+        // The summary opens with the study ("TEE: LV EF 45%"); the block's label says it.
+        if !c.intraopEcho.isEmpty {
+            let s = c.intraopEcho.summary
+            parts.append(s.hasPrefix("TEE: ") ? String(s.dropFirst(5)) : s)
+        }
         if !trimmed(c.echo).isEmpty { parts.append(trimmed(c.echo)) }
         return SummaryBlock(key: "tee", label: "Intraoperative TEE", text: parts.joined(separator: "\n"))
     }
@@ -646,6 +650,6 @@ enum PatientBriefs {
         if !trimmed(c.todos).isEmpty { lines.append("To do & concerns: " + trimmed(c.todos)) }
         if !trimmed(c.painPlan).isEmpty { lines.append("Pain plan: " + trimmed(c.painPlan)) }
         if !trimmed(c.callIf).isEmpty { lines.append("Call if: " + trimmed(c.callIf)) }
-        return SummaryBlock(key: "concerns", label: "Concerns/Considerations", text: lines.joined(separator: "\n"), alert: !marks.isEmpty, marks: marks)
+        return SummaryBlock(key: "concerns", label: "Concerns/Considerations", text: lines.joined(separator: "\n"), alert: !marks.isEmpty, marks: marks.isEmpty ? [] : ["Considerations:"])
     }
 }

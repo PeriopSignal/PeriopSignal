@@ -104,6 +104,7 @@ final class Briefs19Tests: XCTestCase {
         echo.study = "TEE"; echo.lv = .mild; echo.lvef = 45
         r.intraopEcho = echo
         XCTAssertTrue(try block(PatientBriefs.handoff(r), "tee").text.contains("45"))
+        XCTAssertFalse(try block(PatientBriefs.handoff(r), "tee").text.hasPrefix("TEE: "), "the label says it")
         XCTAssertFalse(has(PatientBriefs.preop(r), "tee"), "the preprocedure summary has no intraoperative TEE")
         r.regional = [PatientRegional(technique: "TAP block", side: "Bilateral", drug: "ropivacaine 0.25% 20 mL each side")]
         XCTAssertTrue(try block(PatientBriefs.handoff(r), "regional").text.contains("TAP block"))
@@ -330,7 +331,6 @@ final class Briefs19Tests: XCTestCase {
         let pmh = try block(PatientBriefs.handoff(r), "pmh")
         XCTAssertTrue(pmh.text.contains(PatientWarnings.aspirationLabel), pmh.text)
         XCTAssertTrue(pmh.text.contains(PatientWarnings.heparinLabel), pmh.text)
-        XCTAssertTrue(pmh.alert)
         XCTAssertTrue(pmh.marks.contains { $0.hasPrefix(PatientWarnings.aspirationLabel) })
     }
 
@@ -534,6 +534,11 @@ final class Briefs19Tests: XCTestCase {
         let image = try XCTUnwrap(HandoffShare.fishboneImage(labs))
         XCTAssertGreaterThan(image.size.width, 100)
         XCTAssertNil(HandoffShare.fishboneImage(BriefLabs()), "no values, no picture")
+        let several = HandoffShare.items(text: "t", images: [image, image])
+        XCTAssertEqual(several.count, 3)
+        XCTAssertTrue(several[0] is HandoffShare.TextItem)
+        XCTAssertTrue(several[1] is UIImage && several[2] is UIImage)
+        XCTAssertEqual(HandoffShare.items(text: "t", images: []).count, 1)
         XCTAssertNil(HandoffShare.linesImage(PatientDemo.briefs, lines: [], marks: [], arrivalOnly: false, figure: nil), "no figure loaded, no picture")
     }
 
