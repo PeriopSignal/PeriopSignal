@@ -163,12 +163,16 @@ struct PatientDiagramCanvas: View {
         .accessibilityLabel("Patient diagram: " + (items.isEmpty ? "no lines or devices" : items.map(\.caption).filter { !$0.isEmpty }.joined(separator: ", ")))
     }
 
-    /// Width over height of the whole drawing, margins included; the margins are taken at scale 1 (the labels' smallest
-    /// font), close enough for the frame, and the drawing centers whatever is left.
+    /// Width over height of the whole drawing, margins included. The margins are taken at the scale from which the
+    /// label font grows with the figure (below it the 7-point floor makes a label wider in figure units), so the frame
+    /// keeps the figure's own proportions whenever the labels fit the fixed margin, and `layout` fits the rest inside.
     private var aspect: CGFloat {
-        let m = Self.margins(items, figureWidth: bw, k: 1)
-        return (bw + m.left + m.right) / bh
+        let m = Self.margins(items, figureWidth: bw, k: Self.fontFloorScale)
+        return (bw + (m.left + m.right) / Self.fontFloorScale) / bh
     }
+
+    /// The scale under which the label font stays at its 7-point floor.
+    static let fontFloorScale: CGFloat = 7 / 5.6
 
     /// The label font at scale k: the figure's 5.6 units, never under 7 points.
     static func fontSize(_ k: CGFloat) -> CGFloat { max(7, 5.6 * k) }
