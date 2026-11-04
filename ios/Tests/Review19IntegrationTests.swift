@@ -185,4 +185,35 @@ final class Review19IntegrationTests: XCTestCase {
         XCTAssertFalse(AllergyCatalog.writesAnaphylaxis("No hx of anaphylaxis"))
         XCTAssertFalse(AllergyCatalog.writesAnaphylaxis("Denies anaphylaxis"))
     }
+
+    // MARK: A smoker and "No significant medical history"
+
+    /// A current or former smoker clears "No significant medical history"; never smoking keeps it (ASA I's non-smoking).
+    func testACurrentOrFormerSmokerClearsNoSignificantHistory() throws {
+        let smoking = try XCTUnwrap(HistorySections.sections("social")?.first { $0.id == "smoking" })
+        for answer in ["current", "former"] {
+            var r = PatientRecord()
+            r.ageYears = 50; r.sex = .male; r.noHistory = true
+            HistorySections.select(smoking, &r)
+            HistorySections.setSmoking(answer, &r)
+            r.hx.packYears = 40
+            XCTAssertFalse(r.noHistory, answer)
+            XCTAssertFalse(PatientSummary.historyLines(r).contains { $0.text.contains("No significant medical history") }, answer)
+        }
+        var never = PatientRecord()
+        never.noHistory = true
+        HistorySections.select(smoking, &never)
+        HistorySections.setSmoking("never", &never)
+        XCTAssertTrue(never.noHistory)
+
+        // The Anemia fill does not give it back beside a smoker recorded meanwhile.
+        var a = PatientRecord()
+        a.ageYears = 40; a.sex = .female; a.noHistory = true
+        change(&a) { $0.labs["hb"] = 10 }
+        XCTAssertFalse(a.noHistory)
+        change(&a) { HistorySections.setSmoking("current", &$0) }
+        change(&a) { $0.labs["hb"] = 14 }
+        XCTAssertFalse(a.has("anemia"))
+        XCTAssertFalse(a.noHistory, "a current smoker: not given back")
+    }
 }

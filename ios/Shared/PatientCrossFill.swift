@@ -142,8 +142,8 @@ enum PatientCrossFill {
 
         // Anemia, as the labs' (LabResults.edit's bookkeeping). "No significant medical history" the fill turned off is
         // the fill's to give back only while nothing else has changed it: the user turned it on again, recorded another
-        // problem, or took the Anemia off.
-        if r.fills.noHistory && (r.noHistory || !r.labProblems.contains("anemia") || r.problems != ["anemia"]) {
+        // problem or a current or former smoker, or took the Anemia off.
+        if r.fills.noHistory && (r.noHistory || !r.labProblems.contains("anemia") || r.problems != ["anemia"] || HistorySections.smokingIsHistory(r.smoking)) {
             r.fills.noHistory = false
         }
         // A transition counts when the Hb itself changed or the cut-off applies both before and after. An age typed under

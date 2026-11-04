@@ -762,7 +762,8 @@ enum HistorySections {
 
     /// Choosing the item alone: its base problem, when it has one. Smoking and Alcohol are answered, not filed: never
     /// smoked and no alcohol are the ASA I example ("healthy, non-smoking, no or minimal alcohol use"), so opening them
-    /// leaves "No significant medical history" as it is (an alcohol answer that is a problem clears it: setAlcohol).
+    /// leaves "No significant medical history" as it is (an alcohol answer that is a problem clears it, setAlcohol, and so
+    /// does a current or former smoker, setSmoking).
     static func select(_ s: HistorySection, _ r: inout PatientRecord) {
         if s.id != "smoking" && s.id != "alcohol" { r.noHistory = false }
         if let b = s.base { r.problems.insert(b) }
@@ -1369,11 +1370,17 @@ extension HistorySections {
     static let drugs: [Option] = [("cocaine", "Cocaine"), ("opioid-use", "Opioids"), ("marijuana", "Marijuana"), ("methamphetamine", "Methamphetamine")]
 
     /// Smoking never, former or current (nil clears it): a quit year only for a former smoker, pack-years for either.
+    /// Never smoking is ASA I's "non-smoking" (select leaves No significant medical history on); a current or former
+    /// smoker is not, so choosing either clears it, as an alcohol answer that files a problem does.
     static func setSmoking(_ s: String?, _ r: inout PatientRecord) {
         r.smoking = s
         if s != "former" { r.hx.smokingQuitYear = nil }
         if s != "former" && s != "current" { r.hx.packYears = nil }
+        if smokingIsHistory(s) { r.noHistory = false }
     }
+
+    /// A current or former smoker: history that "No significant medical history" does not stand beside.
+    static func smokingIsHistory(_ s: String?) -> Bool { s == "current" || s == "former" }
 
     /// Alcohol, one answer: "none" (hx.alcoholNone), "social", "former", "current" (problem ids), nil not recorded.
     static func alcohol(_ r: PatientRecord) -> String? {
