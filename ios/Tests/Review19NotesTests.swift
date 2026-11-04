@@ -196,4 +196,74 @@ final class Review19NotesTests: XCTestCase {
         let empty = PatientNote.missing(PatientRecord())
         XCTAssertTrue(empty.contains("medications") && empty.contains("allergies"))
     }
+
+    // MARK: Second check of the fixes (regressions and variants left over)
+
+    /// A lowercase "hep a" or "hepatitis a" before an ordinary word is still hepatitis A; only a time phrase after it
+    /// makes the "a" the article.
+    func testLowercaseHepatitisAIsStillRead() {
+        for line in ["hepatitis a infection as a child", "h/o hep a in 1990", "hep a, resolved"] {
+            XCTAssertTrue(problems(line).contains("problem:hepatitis-viral"), line)
+            XCTAssertEqual(applied(line).hx.hepatitisTypes, ["a"], line)
+        }
+        XCTAssertFalse(problems("alcoholic hepatitis a long time ago").contains("problem:hepatitis-viral"))
+    }
+
+    /// "Reduced" after a bare fx is the fracture's closed reduction; after an organ word it is still function.
+    func testReducedFractureIsAFracture() {
+        for line in ["R distal radius fx reduced and splinted in ED", "L ankle fx improved alignment"] {
+            XCTAssertTrue(problems(line).contains("problem:fracture"), line)
+        }
+        for line in ["LV fx reduced, EF 35%", "renal fx decreased", "Echo: RV fx depressed"] {
+            XCTAssertFalse(problems(line).contains("problem:fracture"), line)
+        }
+    }
+
+    /// A "w" that is "with" ("w/", "w perineural invasion") is not weeks, so a Gleason score never files Pregnant.
+    func testGleasonWithIsNotWeeks() {
+        for line in ["Gleason 4+3 w/ PNI", "Gleason 4+4 w perineural invasion", "prostate adenocarcinoma 4+3 w/ PNI",
+                     "Gleason score 4+4, on ADT"] {
+            let r = applied(line)
+            XCTAssertFalse(r.has("pregnant"), line)
+            XCTAssertNil(r.hx.gestationWeeks, line)
+        }
+        XCTAssertEqual(applied("32+4w").hx.gestationWeeks, 32)
+        XCTAssertEqual(applied("32+4 w, BPP 8/8").hx.gestationWeeks, 32)
+    }
+
+    /// An allergy list with its heading on its own line: the reaction on the next line is not a shock now.
+    func testAnaphylacticShockInAnAllergyBlock() {
+        for note in ["Allergies:\nPenicillin - anaphylactic shock\nSulfa - rash", "Allergies:\r\nPenicillin - anaphylactic shock",
+                     "Drug allergies\nSulfa - rash\nPenicillin (anaphylactic shock)", "Allergies: sulfa - rash. Penicillin - anaphylactic shock."] {
+            XCTAssertFalse(problems(note).contains("problem:shock"), note)
+            let r = applied(note)
+            XCTAssertFalse(r.has("shock"), note)
+            XCTAssertTrue(r.hx.shockTypes.isEmpty, note)
+        }
+        // The list ends at a blank line or the next section's heading.
+        for note in ["Allergies:\nNKDA\n\nArrived in anaphylactic shock after a wasp sting, on epinephrine",
+                     "Allergies: NKDA\nHPI: anaphylactic shock after cefazolin, on epinephrine"] {
+            XCTAssertTrue(problems(note).contains("problem:shock"), note)
+        }
+        XCTAssertEqual(PatientNote.allergyBlockClauses("HPI: knee pain\nAllergies:\nPCN - hives\nMeds: none"), [1, 2])
+    }
+
+    /// The operation done for the hernia, written before it with "for", is the repair.
+    func testFundoplicationForHiatalHernia() {
+        for line in ["s/p Nissen fundoplication for hiatal hernia 2015", "PSH: Toupet for paraesophageal hernia"] {
+            XCTAssertFalse(problems(line).contains("problem:hiatal-hernia"), line)
+        }
+        XCTAssertTrue(problems("hiatal hernia on CT, for EGD").contains("problem:hiatal-hernia"))
+    }
+
+    /// Under a procedure heading, an operation done on the fistula (a fistulogram, a revision) is on an access already
+    /// there, which keeps its limb.
+    func testProcedureOnAnExistingFistula() {
+        for line in ["Procedure: Left brachiocephalic AVF fistulogram/revision", "Procedure: L brachiocephalic AVF angioplasty"] {
+            let r = applied(line)
+            XCTAssertTrue(r.hx.dialysisAccess.contains("fistula"), line)
+            XCTAssertTrue(r.hx.fistulaSite.lowercased().hasSuffix("brachiocephalic"), line + " → " + r.hx.fistulaSite)
+        }
+        XCTAssertTrue(applied("Procedure: Left brachiocephalic AV fistula").hx.dialysisAccess.isEmpty, "one made today is still not filed")
+    }
 }

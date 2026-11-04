@@ -451,9 +451,10 @@ enum PatientNote {
         Rule("gerd", #"\bgerd\b|(?-i:\bGORD\b)|(?<!vesicoureteral )(?<!vesicoureteric )\breflux\b|heartburn"#),
         // 1.9 (GI & liver, Ben's list). A repaired hiatal hernia is the repair (Past surgical history), not a hernia.
         // The repair may come first ("s/p laparoscopic repair of paraesophageal hernia") or after a comma, a bracket or
-        // "s/p" ("hiatal hernia, repaired 2019", "hiatal hernia s/p Nissen") (1.9 review).
+        // "s/p" ("hiatal hernia, repaired 2019", "hiatal hernia s/p Nissen"), or as the operation done for it ("s/p Nissen
+        // fundoplication for hiatal hernia 2015") (1.9 review).
         Rule("hiatal-hernia", #"\bhiatal hernia\b|\bhiatus hernia\b|\bpara-?o?esophageal hernia\b"#, guarded: true,
-             notBefore: NoteRx(#"\b(?:repair|repaired|reduction|reduced|fundoplication)\s+(?:of\s+)?(?:(?:an?|the|his|her|large|small|giant|recurrent|laparoscopic|lap|robotic|open|type\s+(?:i{1,3}|iv|[1-4]))\s+){0,3}$"#),
+             notBefore: NoteRx(#"\b(?:repair|repaired|reduction|reduced|fundoplication|nissen|toupet)\s+(?:(?:of|for)\s+)?(?:(?:an?|the|his|her|large|small|giant|recurrent|laparoscopic|lap|robotic|open|type\s+(?:i{1,3}|iv|[1-4]))\s+){0,3}$"#),
              notAfter: NoteRx(#"^\s*(?:[,(]\s*)?(?:(?:s/p|status post|now|was|is)\s+)?(?:(?:lap(?:aroscopic)?|robotic|open)\s+)?(?:repair(?:ed)?|surgery|reduction|reduced|fundoplication|nissen|toupet|dor)\b"#)),
         // History of: never the operation planned ("for laparoscopic RYGB").
         Rule("gastric-bypass", #"\bgastric bypass\b|(?-i:\bR(?:N|ou)?YGB\b)|\broux[- ]en[- ]y (?:gastric )?bypass\b|\broux[- ]en[- ]y gastric\b"#,
@@ -511,9 +512,10 @@ enum PatientNote {
         Rule("endocarditis", #"(?:\bendocarditis\b|(?-i:\bSBE\b))(?!\s+(?:prophylaxis|ppx|prevention))"#),
         Rule("hiv", #"\bhiv\b|\bhuman immunodeficiency virus\b|\bacquired immun(?:o)?deficiency syndrome\b"#, notIf: hivPrevention, negAfter: infectionNotPositive),
         // Hepatitis A as well since 1.9 (the type, A, B or C, to the details); an IgG or antibody to hepatitis A is immunity.
-        // A spaced lowercase "a" before a lowercase word is the article ("autoimmune hepatitis a few years ago"), and a
-        // vaccine or immunity may follow another type ("Hep A/B vaccinated") (1.9 review).
-        Rule("hepatitis-viral", #"(?:\bhep(?:atitis)?\.?[- ]?[bc]\b|(?-i:\b(?:HBV|HCV|HBsAg)\b))(?!(?:\s*/\s*(?:hep(?:atitis)?\.?\s*)?[abc]\b)*\s+(?:vaccin|immun|surface antibody|s\s*ab\b|core antibody))|(?:\bhep(?:atitis)?\.?(?:-?a|\s+(?-i:A)|\s+a(?!\s+(?-i:[a-z])))\b|(?-i:\bHAV\b))(?!\s+(?:few|year|month|week|day|while|long|couple|decade|number|lot|bit)s?\b)(?!(?:\s*/\s*(?:hep(?:atitis)?\.?\s*)?[abc]\b)*\s+(?:vaccin\w*|immun\w*|igg|ab|antibody|antibodies|total)\b)"#, negAfter: infectionNotPositive),
+        // An "a" that begins a time phrase is the article ("autoimmune hepatitis a few years ago", "alcoholic hepatitis a
+        // year ago"); any other "a", lowercase too, is the type ("hepatitis a infection as a child", "h/o hep a in 1990").
+        // A vaccine or immunity may follow another type ("Hep A/B vaccinated") (1.9 review).
+        Rule("hepatitis-viral", #"(?:\bhep(?:atitis)?\.?[- ]?[bc]\b|(?-i:\b(?:HBV|HCV|HBsAg)\b))(?!(?:\s*/\s*(?:hep(?:atitis)?\.?\s*)?[abc]\b)*\s+(?:vaccin|immun|surface antibody|s\s*ab\b|core antibody))|(?:\bhep(?:atitis)?\.?(?:-?|\s+)a\b|(?-i:\bHAV\b))(?!\s+(?:few|year|month|week|day|while|long|short|couple|decade|number|lot|bit|time|period)s?\b)(?!(?:\s*/\s*(?:hep(?:atitis)?\.?\s*)?[abc]\b)*\s+(?:vaccin\w*|immun\w*|igg|ab|antibody|antibodies|total)\b)"#, negAfter: infectionNotPositive),
         Rule("mdro", #"\b(?:mrsa|vre)\b|\bmethicillin[- ]resistant (?:staph(?:ylococcus)?|s\.)\s*(?:aureus)?|\bvancomycin[- ]resistant enterococc(?:us|i|al)\b"#, negAfter: infectionNotPositive),
         Rule("c-diff", #"\bc\.?\s?diff(?:icile)?\b|\bclostridi(?:um|oides) difficile\b|(?-i:\bCDI\b)"#, negAfter: infectionNotPositive),
         Rule("tb", #"(?:\btuberculosis\b|(?-i:\b(?:TB|LTBI)\b)|\blatent tb\b)(?!\s+exposure)|(?:\bpositive|\+)\s*(?:ppd|quantiferon|qft|igra|tst|tb test)\b|\b(?:ppd|quantiferon|qft|igra|tst)\s*(?:test\s*)?(?:\+|positive\b|pos\b)"#, negAfter: infectionNotPositive),
@@ -563,8 +565,10 @@ enum PatientNote {
         Rule("oa", #"\bosteoarthritis\b|\bosteoarthrosis\b|(?<!vertex )(?<!vtx )(?<!cephalic )(?<!direct )(?<!fetal )(?<!fetus )(?<!baby )(?<!head )(?<!position )(?<!presentation )(?-i:\bOA\b)(?!\s*(?:position|presentation|vertex|vtx)\b)(?!\s*/\s*(?:\d|[LR]?OP\b))|\bdegenerative joint disease\b|(?-i:\bDJD\b)"#),
         // A fracture there now, with its place (the location); not a risk ("fracture risk", "evaluate for fracture"), nor
         // one told as past ("h/o hip fracture", "s/p ORIF of a hip fracture"; "s/p fall with a hip fracture" is now).
-        // "fx" as function is not a fracture ("normal LV fx", "renal fx stable", "lung fx on PFTs") (1.9 review).
-        Rule("fracture", #"\bfractures?\b|(?<!lv )(?<!rv )(?<!la )(?<!bv )(?<!lvs )(?<!ventricular )(?<!biventricular )(?<!systolic )(?<!diastolic )(?<!cardiac )(?<!heart )(?<!valve )(?<!valvular )(?<!renal )(?<!kidney )(?<!liver )(?<!hepatic )(?<!lung )(?<!pulmonary )(?<!pulm )(?<!thyroid )(?<!adrenal )(?<!bowel )(?<!bladder )(?<!sexual )(?<!cognitive )(?<!neuro )(?<!motor )(?<!sensory )(?<!platelet )(?<!immune )(?<!synthetic )(?<!graft )(?<!nl )(?<!normal )(?<!baseline )(?<!organ )(?<!pump )(?<!marrow )(?<!ventilatory )(?<!respiratory )(?<!diaphragm )(?<!diaphragmatic )(?<!swallow )(?<!swallowing )(?<!pft )\bfx\b(?!\s+(?:tests?|testing|studies|study|panel|wnl|nl|normal|preserved|intact|impaired|reduced|decreased|depressed|improved|worsening|declin\w*)\b)"#, current: true, guarded: true, notAfter: NoteRx(#"^\s*(?:liaison|clinic|service|team|prevention)\b"#)),
+        // "fx" as function is not a fracture ("normal LV fx", "renal fx stable", "lung fx on PFTs") (1.9 review). After a
+        // bare "fx" only words a fracture never takes are refused: "reduced", "improved" and the like are a fracture's
+        // ("distal radius fx reduced and splinted") unless an organ or function word comes before.
+        Rule("fracture", #"\bfractures?\b|(?<!lv )(?<!rv )(?<!la )(?<!bv )(?<!lvs )(?<!ventricular )(?<!biventricular )(?<!systolic )(?<!diastolic )(?<!cardiac )(?<!heart )(?<!valve )(?<!valvular )(?<!renal )(?<!kidney )(?<!liver )(?<!hepatic )(?<!lung )(?<!pulmonary )(?<!pulm )(?<!thyroid )(?<!adrenal )(?<!bowel )(?<!bladder )(?<!sexual )(?<!cognitive )(?<!neuro )(?<!motor )(?<!sensory )(?<!platelet )(?<!immune )(?<!synthetic )(?<!graft )(?<!nl )(?<!normal )(?<!baseline )(?<!organ )(?<!pump )(?<!marrow )(?<!ventilatory )(?<!respiratory )(?<!diaphragm )(?<!diaphragmatic )(?<!swallow )(?<!swallowing )(?<!pft )\bfx\b(?!\s+(?:tests?|testing|studies|study|panel|wnl|nl|normal|preserved|intact|impaired|declin\w*)\b)"#, current: true, guarded: true, notAfter: NoteRx(#"^\s*(?:liaison|clinic|service|team|prevention)\b"#)),
         Rule("muscular-dystrophy", #"\bmuscular dystroph(?:y|ies)\b|\bduchenne(?:'s)?\b|\bbecker(?:'s)? (?:muscular )?dystrophy\b|(?-i:\bDMD\b)|\bmyotonic (?:muscular )?dystrophy\b|\bfacioscapulohumeral\b|(?-i:\bFSHD\b)|\blimb[- ]girdle\b"#),
         Rule("marfan", #"\bmarfan(?:'?s)?(?: syndrome)?\b"#),
         // A typed "EDS" is asked: Ehlers-Danlos or excessive daytime sleepiness (MedAbbreviations).
@@ -750,6 +754,12 @@ enum PatientNote {
     /// neurogenic and vasoplegic shock are distributive, hemorrhagic shock hypovolemic).
     static let shockKinds = #"septic|cardiogenic|h(?:a)?emorrhagic|hypovol(?:a)?emic|distributive|obstructive|anaphylactic|neurogenic|vasoplegic|vasodilatory|mixed"#
     /// An allergy sentence that names an anaphylactic shock: the reaction recorded, not a shock now.
+    static let anaphylacticShock = NoteRx(#"\banaphylactic\s+shock\b"#)
+    /// A line that begins an allergy list: "Allergies:", "Drug allergies -", "Allergies/Intolerances:", or the heading alone.
+    static let allergyHeading = NoteRx(#"^\s*(?:(?:drug|medication|med|known)\s+)?(?:allerg(?:y|ies)|adverse (?:drug )?reactions?|intolerances?)(?:\s*(?:/|and|&)\s*(?:allerg\w*|reactions?|intolerances?|adverse (?:drug )?reactions?))?\s*(?:[:\-–]|$)"#)
+    /// A line that begins another section, which ends an allergy list: a heading alone ("Home medications:"), or a
+    /// known section heading ("PMH: ...", "Meds: ...").
+    static let sectionHeading = NoteRx(#"^\s*(?:[a-z][a-z /&()]{0,40}:\s*$|(?:pmhx?|pshx?|hpi|history|past (?:medical|surgical) history|surgical history|medical history|ros|review of systems|social history|sh|fhx?|family history|physical exam|exam|pe|plan|assessment|a/p|impression|medications?|meds|home (?:meds|medications)|current (?:meds|medications)|vitals?|vs|labs?|imaging|ecg|ekg|echo|airway|procedure|planned procedure|diagnosis|dx|cc|chief complaint|anesthesia|an(?:a)?esthetic history|problem list|npo)\s*[:\-–])"#)
     static let allergyShock = NoteRx(#"^(?=.*(?:allerg|intoleran|reaction to|(?-i:\bNKDA\b)))(?=.*\banaphylactic\s+shock\b)"#)
     static let shockRx = #"\b(?:"# + shockKinds + #")(?:\s*(?:,|/|and|&|\+|or)?\s*(?:"# + shockKinds + #"))*\s+shock\b"#
 
@@ -855,7 +865,8 @@ enum PatientNote {
                 ventRateRx, peepRx, psRx, fio2Rx, roomAirRx, ncRx, hfncRx, nrbRx, venturiRx, faceMaskRx, nivRx, trachCollarRx, onLitersRx,
                 flowRx, percentRx, homeRx, currentRx, breathingPast, satBefore]
         out += ventModes.map { $0.0 }
-        out += [smokeNeverRx, smokeFormerRx, smokeCurrentRx, medsHeaderRx, aspirinDoseRx, allergyCue, nkdaRx, allergyRx, allergyAfterRx, allergySkipRx, allergyCut, noneRx]
+        out += [smokeNeverRx, smokeFormerRx, smokeCurrentRx, medsHeaderRx, aspirinDoseRx, allergyCue, nkdaRx, allergyRx, allergyAfterRx, allergySkipRx, allergyCut, noneRx,
+                anaphylacticShock, allergyHeading, sectionHeading]
         out += [bpRx, hrRx, spo2Rx, onOxygenRx, rrRx, tempRx, efRx, venousSatBefore, venousSatAfter, roomAirAfter, roomAirWords, labTrend, labTrendStop,
                 labEarlier, labNow, notAge, hemolyzedRx, devicePresent, deviceListPlanned, planWord, labEnd, labEarlierAfter, labCurrentBefore,
                 labPreop, labGoal, labCurrentAfter]
@@ -892,6 +903,29 @@ enum PatientNote {
             }
         }
         flush()
+        return out
+    }
+
+    /// The indices, among clauses(text), of the sentences of an allergy list: from a line that begins with an allergy
+    /// heading ("Allergies:" alone, then "Penicillin - anaphylactic shock" on the next line) to a blank line or the next
+    /// section's heading (1.9 review).
+    static func allergyBlockClauses(_ text: String) -> Set<Int> {
+        var out: Set<Int> = []
+        var index = 0
+        var inBlock = false
+        let lines = text.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n").components(separatedBy: "\n")
+        for line in lines {
+            let n = clauses(line).count
+            if line.trimmingCharacters(in: .whitespaces).isEmpty {
+                inBlock = false
+            } else if allergyHeading.first(line) != nil {
+                inBlock = true
+            } else if sectionHeading.first(line) != nil {
+                inBlock = false
+            }
+            if inBlock { out.formUnion(index..<(index + n)) }
+            index += n
+        }
         return out
     }
 
@@ -947,7 +981,8 @@ enum PatientNote {
             blanked = blanked.replacingCharacters(in: r, with: String(repeating: " ", count: r.length)) as NSString
         }
 
-        for written in clauses(blanked as String) {
+        let allergyBlock = allergyBlockClauses(blanked as String)
+        for (index, written) in clauses(blanked as String).enumerated() {
             let abbreviations = MedAbbreviations.scan(written, user: user, choices: choices)
             for a in MedAbbreviations.ambiguous(abbreviations, in: written) where !ambiguous.contains(where: { $0.id == a.id }) { ambiguous.append(a) }
             for u in MedAbbreviations.unknown(in: written, besides: abbreviations, user: user) where !unknown.contains(where: { $0.token == u.token }) {
@@ -966,6 +1001,13 @@ enum PatientNote {
             let lhcResult = PatientLHC.readResult(c)
             var ruleText = c
             if let k = lhcResult?.cadWords { ruleText = (c as NSString).replacingCharacters(in: k, with: String(repeating: " ", count: k.length)) }
+            // A line of an allergy list ("Allergies:" on its own line, then "Penicillin - anaphylactic shock"): the reaction
+            // recorded, not a shock now (1.9 review). The words are blanked for the rules, as the allergy sentence is.
+            if allergyBlock.contains(index) {
+                for m in anaphylacticShock.all(ruleText).reversed() {
+                    ruleText = (ruleText as NSString).replacingCharacters(in: m.range, with: String(repeating: " ", count: m.range.length))
+                }
+            }
             readRules(ruleText, &h)
             // Read here, before the abbreviations are read through their meanings, so the "CAD" in it is already read.
             if let m = lhcResult {
@@ -1179,7 +1221,7 @@ enum PatientNote {
     /// Letters a rule did not read because they mean something else here (1.9 review): occiput anterior ("vertex OA"),
     /// osteochondritis dissecans ("OCD lesion"), "fx" as function ("LV fx"). Marked read, so they are not read again
     /// through the list's meaning (osteoarthritis, obsessive-compulsive disorder, fracture).
-    static let otherMeaning = NoteRx(#"\b(?:vertex|vtx|cephalic|direct|fetal|fetus|baby|head|position|presentation)\s+(?-i:OA)\b|(?-i:\bOA\b)(?=\s*(?:position|presentation|vertex|vtx)\b)|\b(?:knee|talus|talar|elbow|capitellum|capitellar|ankle|femoral|condyle|condylar|patellar|trochlear|dome|shoulder|hip|joint)\s+(?-i:OCD)\b|(?-i:\bOCD\b)(?=\s+(?:lesions?|defects?|fragments?|of\s+(?:the\s+)?(?:\w+\s+)?(?:knee|talus|talar|elbow|capitellum|ankle|femoral|condyle|patella|hip|shoulder|dome)))|\b(?:lv|rv|la|bv|lvs|ventricular|biventricular|systolic|diastolic|cardiac|heart|valve|valvular|renal|kidney|liver|hepatic|lung|pulmonary|pulm|thyroid|adrenal|bowel|bladder|sexual|cognitive|neuro|motor|sensory|platelet|immune|synthetic|graft|nl|normal|baseline|organ|pump|marrow|ventilatory|respiratory|diaphragm|diaphragmatic|swallow|swallowing|pft)\s+fx\b|\bfx(?=\s+(?:tests?|testing|studies|study|panel|wnl|nl|normal|preserved|intact|impaired|reduced|decreased|depressed|improved|worsening|declin\w*)\b)"#)
+    static let otherMeaning = NoteRx(#"\b(?:vertex|vtx|cephalic|direct|fetal|fetus|baby|head|position|presentation)\s+(?-i:OA)\b|(?-i:\bOA\b)(?=\s*(?:position|presentation|vertex|vtx)\b)|\b(?:knee|talus|talar|elbow|capitellum|capitellar|ankle|femoral|condyle|condylar|patellar|trochlear|dome|shoulder|hip|joint)\s+(?-i:OCD)\b|(?-i:\bOCD\b)(?=\s+(?:lesions?|defects?|fragments?|of\s+(?:the\s+)?(?:\w+\s+)?(?:knee|talus|talar|elbow|capitellum|ankle|femoral|condyle|patella|hip|shoulder|dome)))|\b(?:lv|rv|la|bv|lvs|ventricular|biventricular|systolic|diastolic|cardiac|heart|valve|valvular|renal|kidney|liver|hepatic|lung|pulmonary|pulm|thyroid|adrenal|bowel|bladder|sexual|cognitive|neuro|motor|sensory|platelet|immune|synthetic|graft|nl|normal|baseline|organ|pump|marrow|ventilatory|respiratory|diaphragm|diaphragmatic|swallow|swallowing|pft)\s+fx\b|\bfx(?=\s+(?:tests?|testing|studies|study|panel|wnl|nl|normal|preserved|intact|impaired|declin\w*)\b)"#)
     static let gradedMI = NoteRx(#"\b(?:mild|trace|trivial|moderate|severe)\s+((?-i:MI))\b"#)
     /// A rupture told as past: repaired, or after a history cue.
     static let rupturePastBefore = NoteRx(#"\b(?:s/p|status post|history of|hx of|h/o|prior|previous|previously|old|remote|repaired|repair of)\b[^.;]{0,24}$"#)
@@ -1613,6 +1655,8 @@ enum PatientNote {
     static let catheterSiteAfter = NoteRx(#"^\s*(?:,|\(|in|via|at|through)?\s*(?:the\s+)?((?:(?:left|right|l|r)\.?\s*)?(?:ij|internal jugular|subclavian|femoral)|(?-i:[LR]IJ|[LR]SC|[LR]FV))\b"#)
     /// An access no longer there, or one to come ("AVF ligated", "failed AVF", "for AVF creation").
     static let accessGone = NoteRx(#"^\s*(?:ligat\w*|removed|pulled|excised|explant\w*|thrombosed|clotted|creation|placement|planned|pending|to be placed)\b"#)
+    /// An operation done on an access that is already there ("AVF fistulogram", "AVF revision", "AVG angioplasty").
+    static let accessWorkedOn = NoteRx(#"^\s*(?:(?:and|with|for)\s+)?(?:fistulo?gram\w*|fistulagram\w*|fistulography|angiogram\w*|angiography|angioplasty|venogram\w*|venography|(?-i:PTA)|revision\w*|stent\w*|superficiali[sz]ation|banding)\b"#)
     /// An arteriovenous fistula that is not a dialysis access (1.9 review): "spinal dural AVF", "coronary AV fistula".
     static let fistulaElsewhereBefore = NoteRx(#"\b(?:dural|spinal|cord|coronary|pulmonary|lung|cerebral|intracranial|brain|carotid[- ]cavernous|cavernous|vertebral|renal|kidney|hepatic|liver|portal|splenic|mesenteric|pelvic|uterine|scalp|facial|orbital|traumatic|congenital|iatrogenic)\s+(?:(?:av|a-v|arteriovenous)\s+)?$"#)
     static let accessGoneBefore = NoteRx(#"\b(?:ligated|thrombosed|failed|clotted|non-?functioning|non-?functional|abandoned|removed|old|planned|future|for|needs?|will need)\s+(?:an?\s+|the\s+)?$"#)
@@ -1659,7 +1703,9 @@ enum PatientNote {
     /// G and P: "G2P1", "G2 P1 A0", "G3P2012" (TPAL: term, preterm, abortus, living; P is term + preterm).
     static let gpalRx = NoteRx(#"(?-i:\bG(\d{1,2})\s?P(?:(\d)-?(\d)-?(\d)-?(\d)|(\d{1,2}))(?:\s?Ab?(\d{1,2}))?(?:\s?L(\d{1,2}))?\b)"#)
     /// Weeks of gestation: "32+4 weeks", "32 4/7", "32w4d", "28 weeks gestation", "IUP at 28 weeks", "GA 32+4".
-    static let gestationDaysRx = NoteRx(#"\b(\d{1,2})\s*(?:\+\s*(\d)(?:\s*/\s*7)?|\s+(\d)\s*/\s*7)\s*(?:(weeks?|wks?|w)\b)?"#)
+    /// Weeks and days ("32+4", "32 4/7", "32+4w"). A bare "w" counts as weeks only where it is not "with" ("w/", "w
+    /// perineural invasion"), and a Gleason score is never a gestation ("Gleason 4+3 w/ PNI") (1.9 review).
+    static let gestationDaysRx = NoteRx(#"(?<!gleason )(?<!gleason score )(?<!gleason score of )(?<!gleason: )(?<!gleason grade )(?<!gleason sum )\b(\d{1,2})\s*(?:\+\s*(\d)(?:\s*/\s*7)?|\s+(\d)\s*/\s*7)\s*(?:(weeks?\b|wks?\b|w\b(?!\s*/|\s+[a-z])))?"#)
     static let gestationWDRx = NoteRx(#"\b(\d{1,2})\s*w(?:ks?|eeks?)?\s*(\d)\s*d(?:ays?)?\b"#)
     static let gestationWeeksRx = NoteRx(#"\b(\d{1,2})\s*(?:weeks?|wks?)'?\s*(?:of\s+)?(?:gestation(?:al age)?|pregnant|pregnancy|(?-i:GA)|iup)\b|(?:(?-i:\bIUP|\bGA|\bEGA)|\bgestational age)\s*(?:at|of|:|=)?\s*(\d{1,2})\s*(?:\+\s*(\d)\s*)?(?:weeks?|wks?)\b"#)
     /// A sentence about a pregnancy. Not a bare "weeks" (1.9 review: "Gleason 4+3, diagnosed 6 weeks ago" is not 4+3 weeks).
@@ -1684,7 +1730,7 @@ enum PatientNote {
     static let sepsisSourceBefore = NoteRx(#"\b(pulmonary|urinary|abdominal|intra-?abdominal|biliary|line|catheter|skin|soft tissue|wound|pneumonia|uti|cholangitis|line-associated|catheter-related)[- ](?:source\s+)?$"#)
 
     static var detailPatterns: [NoteRx] {
-        [ckdStageRx, dialysisDaysRx, fistulaRx, fistulaElsewhereBefore, limbFistulaRx, limbBefore, limbAfter, dialysisWords, dialysisCatheterRx, catheterSiteAfter, accessGone,
+        [ckdStageRx, dialysisDaysRx, fistulaRx, fistulaElsewhereBefore, accessWorkedOn, limbFistulaRx, limbBefore, limbAfter, dialysisWords, dialysisCatheterRx, catheterSiteAfter, accessGone,
          accessGoneBefore, afTypeRx, pacerDependenceNo, pacerDependenceUnsure, temporaryPacing, tbLatentRx, tbActiveRx, tbTreated, covidRecentWords,
          covidActiveWords, covidDateRx, shockKindRx, bleedActiveBefore, bleedActiveAfter, bleedResolvedAfter, bleedUpper, bleedLower, gdmInsulinRx,
          poorControlRx, wellControlRx, visualAcuteRx, visualChronicRx, pleuralSideBefore, pleuralSideAfter, pleuralSideInside, chestTubeRx,
@@ -1757,7 +1803,10 @@ enum PatientNote {
         var accesses: [NSRange] = []
         for m in fistulaRx.all(c) + (dialysisWords.first(c) != nil ? limbFistulaRx.all(c) : []) where free(m.range) {
             guard !accesses.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) else { continue }
-            if accessGone.first(after(m.range)) != nil || accessGoneBefore.first(before(m.range)) != nil || plannedWide.first(before(m.range)) != nil
+            // Under a procedure heading the fistula is the one made today, unless today's operation is done on it
+            // ("Procedure: Left brachiocephalic AVF fistulogram/revision" is an access already there).
+            let planned = plannedWide.first(before(m.range)) != nil && accessWorkedOn.first(after(m.range)) == nil
+            if accessGone.first(after(m.range)) != nil || accessGoneBefore.first(before(m.range)) != nil || planned
                 || fistulaElsewhereBefore.first(before(m.range)) != nil {
                 h.seen(m.range)
                 continue
