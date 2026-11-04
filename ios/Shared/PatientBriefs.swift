@@ -161,10 +161,11 @@ struct SummaryBlock: Identifiable, Hashable {
     var lines: [String] { text.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
     /// The fishbone with a value in it, or the lines diagram (built only with a line or device to draw: before the case
     /// a patient with mechanical support alone has it in the workup's words and on this picture, with no list beside it).
+    /// A diagram block the user edited counts by its words alone, so one they emptied is left out, picture and all.
     var figureHasContent: Bool {
         switch figure {
         case .fishbone(let l)?: return !l.isEmpty
-        case .diagram?: return true
+        case .diagram?: return !edited
         case nil: return false
         }
     }

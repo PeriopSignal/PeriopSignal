@@ -216,4 +216,28 @@ final class Review19IntegrationTests: XCTestCase {
         XCTAssertFalse(a.has("anemia"))
         XCTAssertFalse(a.noHistory, "a current smoker: not given back")
     }
+
+    // MARK: An emptied Lines & devices block
+
+    /// The user empties Lines & devices: the block is left out of both briefs (so no diagram is shared with it), as
+    /// every emptied block is; edited to other words, it keeps its diagram.
+    func testAnEmptiedLinesBlockIsLeftOut() {
+        var r = PatientRecord()
+        r.devices = [PatientDevice(kind: .arterial, site: "radial-left", side: "left"),
+                     PatientDevice(kind: .avFistula, site: "forearm-right", side: "right")]
+        XCTAssertTrue(PatientBriefs.preop(r).contains { $0.key == "lines" })
+        XCTAssertTrue(PatientBriefs.handoff(r).contains { $0.key == "lines" })
+        PatientBriefs.setEdit(&r, .handoff, key: "lines", text: "")
+        PatientBriefs.setEdit(&r, .preop, key: "lines", text: "")
+        XCTAssertEqual(r.handoffEdits["lines"], "")
+        XCTAssertFalse(PatientBriefs.handoff(r).contains { $0.key == "lines" })
+        XCTAssertFalse(PatientBriefs.preop(r).contains { $0.key == "lines" })
+        // Edited to other words: kept, with its diagram.
+        PatientBriefs.setEdit(&r, .handoff, key: "lines", text: "A-line L radial")
+        let kept = PatientBriefs.handoff(r).first { $0.key == "lines" }
+        XCTAssertEqual(kept?.figure, .diagram(arrivalOnly: false))
+        // Regenerate brings it back.
+        PatientBriefs.regenerate(&r, .preop)
+        XCTAssertTrue(PatientBriefs.preop(r).contains { $0.key == "lines" })
+    }
 }
