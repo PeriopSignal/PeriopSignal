@@ -1,2 +1,1 @@
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/PatientNote.swift:499:29: error: argument 'negAfter' must precede argument 'guarded'
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/Shared/PatientNote.swift:497:29: error: argument 'negAfter' must precede argument 'guarded'
+   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift:411:37: warning: call to main actor-isolated static method 'parse' in a synchronous nonisolated context
