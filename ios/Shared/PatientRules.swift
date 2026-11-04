@@ -97,6 +97,8 @@ enum PatientRules {
     /// What the ASA table calls a recorded problem: its label, except severe valve disease, named by its lesions
     /// ("Aortic stenosis, severe") or, saved before 1.8.1 without its valve, "Severe valve disease, valve not recorded".
     static func asaFinding(_ p: PatientProblem, _ r: PatientRecord) -> String {
+        // "aki" saved before 1.9 keeps the label it had then (PatientHistoryDetails.akiBefore19).
+        if p.id == "aki", r.hx.akiBefore19 { return "Acute kidney injury, or ESRD not on scheduled dialysis" }
         guard p.id == "valve-severe" else { return p.label }
         var lesions: [String] = []
         for (v, name) in PatientHistoryDetails.valveNames {

@@ -35,6 +35,9 @@ struct PatientFills: Codable, Hashable {
     var labSections: Set<String> = []
     /// MELD's "dialysis at least twice in the past week" set from a hemodialysis schedule.
     var dialysis = false
+    /// "No significant medical history" that the Anemia fill turned off: given back when that Anemia is taken back with
+    /// nothing else recorded (a Hb typed digit by digit passes through a low "1" on its way to 14).
+    var noHistory = false
 
     init() {}
 
@@ -48,6 +51,7 @@ struct PatientFills: Codable, Hashable {
         meds = v(.meds, [:])
         labSections = v(.labSections, [])
         dialysis = v(.dialysis, false)
+        noHistory = v(.noHistory, false)
     }
 }
 
@@ -127,15 +131,34 @@ enum PatientCrossFill {
     /// Keeps every fill in step with its source after a change: `before` is the record as it was, `after` as changed.
     /// Runs on every change (every keystroke), so it only compares a few values.
     static func apply(before: PatientRecord, after r: inout PatientRecord) {
-        // Anemia, as the labs' (LabResults.edit's bookkeeping).
+        // "aki" saved before 1.9 keeps its old wording only while it stays: taken off and chosen again, it is 1.9's
+        // Acute kidney injury.
+        if r.hx.akiBefore19 && !r.problems.contains("aki") { r.hx.akiBefore19 = false }
+
+        // Anemia, as the labs' (LabResults.edit's bookkeeping). "No significant medical history" the fill turned off is
+        // the fill's to give back only while nothing else has changed it: the user turned it on again, recorded another
+        // problem, or took the Anemia off.
+        if r.fills.noHistory && (r.noHistory || !r.labProblems.contains("anemia") || r.problems != ["anemia"]) {
+            r.fills.noHistory = false
+        }
+        // A transition counts only when the Hb itself changed or the cut-off applies both before and after: an age typed
+        // digit by digit passes through one under 15 (no cut-off), which is not the low reading going and coming back.
         let lowBefore = PatientAnemia.isLow(before), lowNow = PatientAnemia.isLow(r)
-        if !lowBefore && lowNow && !r.has("anemia") {
-            r.noHistory = false
+        let judged = before.labs["hb"] != r.labs["hb"] || (PatientAnemia.cutoff(before) != nil && PatientAnemia.cutoff(r) != nil)
+        if judged && !lowBefore && lowNow && !r.has("anemia") {
+            if r.noHistory {
+                r.noHistory = false
+                r.fills.noHistory = r.problems.isEmpty
+            }
             r.problems.insert("anemia")
             r.labProblems.insert("anemia")
-        } else if lowBefore && !lowNow && r.labProblems.contains("anemia") {
+        } else if judged && lowBefore && !lowNow && r.labProblems.contains("anemia") {
             r.problems.remove("anemia")
             r.labProblems.remove("anemia")
+            if r.fills.noHistory {
+                if r.problems.isEmpty { r.noHistory = true }
+                r.fills.noHistory = false
+            }
         }
 
         // ECG.
@@ -240,25 +263,31 @@ enum PatientCrossFill {
         a.trimmingCharacters(in: .whitespacesAndNewlines).caseInsensitiveCompare(b.trimmingCharacters(in: .whitespacesAndNewlines)) == .orderedSame
     }
 
+    /// The same drug as the typed antibiotic (MedicationCatalog.same: "vanc" or "Zosyn" is the listed Vancomycin or
+    /// Piperacillin-tazobactam).
+    private static func sameDrug(_ m: PatientMed, _ typed: String) -> Bool { MedicationCatalog.same(m, PatientMed(name: typed)) }
+
     /// The medication a typed antibiotic put on the list: renamed as the antibiotic is typed, taken off when it is
-    /// cleared, while it is still the fill's (on the list, under the name the fill gave it). A medication of the same
-    /// name the user listed stands for it.
+    /// cleared, while it is still the fill's (on the list, under the name the fill gave it, with no dose and no catalog
+    /// entry: a dose typed, or the same drug added from the list or a note, which merges into it, makes it the user's). A
+    /// medication of the same drug the user listed stands for it.
     private static func sepsisAntibiotic(before: PatientRecord, _ r: inout PatientRecord) {
         let key = sepsisAntibioticKey
         let was = antibiotic(before), now = antibiotic(r)
-        // Deleted, or renamed by the user: theirs now.
+        // Deleted, renamed, given a dose or merged into by the user: theirs now.
         if let id = r.fills.meds[key] {
-            if let m = r.homeMeds.first(where: { $0.id == id }), same(m.name, was) {} else { r.fills.meds[key] = nil }
+            if let m = r.homeMeds.first(where: { $0.id == id }), same(m.name, was),
+               m.dose.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, m.catalogID == nil {} else { r.fills.meds[key] = nil }
         }
         guard was != now else { return }
         if let id = r.fills.meds[key], let i = r.homeMeds.firstIndex(where: { $0.id == id }) {
-            if now.isEmpty || r.homeMeds.contains(where: { $0.id != id && same($0.name, now) }) {
+            if now.isEmpty || r.homeMeds.contains(where: { $0.id != id && sameDrug($0, now) }) {
                 r.homeMeds.remove(at: i)
                 r.fills.meds[key] = nil
             } else {
                 r.homeMeds[i].name = now
             }
-        } else if was.isEmpty, !now.isEmpty, !r.homeMeds.contains(where: { same($0.name, now) }) {
+        } else if was.isEmpty, !now.isEmpty, !r.homeMeds.contains(where: { sameDrug($0, now) }) {
             let m = PatientMed(name: now)
             r.homeMeds.append(m)
             r.fills.meds[key] = m.id
