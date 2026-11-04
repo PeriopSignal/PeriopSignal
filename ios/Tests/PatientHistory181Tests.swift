@@ -155,7 +155,8 @@ final class PatientHistory181Tests: XCTestCase {
         XCTAssertNil(PatientNote.read("TIA", now: now).findings.first { $0.id == "problem:cva" })
         XCTAssertNil(PatientNote.read("stroke 5 years ago", now: now).findings.first { $0.id == "problem:cva" }?.note, "the time is given")
         for t in ["heat stroke", "stroke volume 60 mL", "on apixaban for stroke prevention", "No history of stroke"] {
-            XCTAssertEqual(ids(t), [], t)
+            // 1.9 (spec): a named anticoagulant files On anticoagulation (Hematologic); no stroke either way.
+            XCTAssertEqual(ids(t).subtracting(["problem:anticoagulation"]), [], t)
         }
     }
 

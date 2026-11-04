@@ -414,8 +414,9 @@ enum PatientNote {
         Rule("seizure", #"\bseizures?\b|epilepsy"#),
         Rule("dementia", #"dementia|alzheimer|cognitive impairment"#),
         Rule("parkinson", #"parkinson"#),
-        // A muscular dystrophy is the Musculoskeletal item since 1.9 ("muscular-dystrophy", the ASA's pediatric example).
-        Rule("neuromuscular", #"myasthenia|(?-i:\bALS\b)|amyotrophic|guillain|neuromuscular disease|myopathy|charcot-marie|myotonic(?! (?:muscular )?dystroph)"#),
+        // A muscular dystrophy is the Musculoskeletal item since 1.9 ("muscular-dystrophy", the ASA's pediatric example), and a
+        // cardiomyopathy is not a myopathy (1.9: "peripartum cardiomyopathy" filed Neuromuscular disease as well).
+        Rule("neuromuscular", #"myasthenia|(?-i:\bALS\b)|amyotrophic|guillain|neuromuscular disease|(?<!cardio)(?<!cardio-)myopathy|charcot-marie|myotonic(?! (?:muscular )?dystroph)"#),
         Rule("sci", #"spinal cord injury|paraplegi|quadriplegi|tetraplegi"#),
         Rule("chronic-pain", #"chronic (?:back )?pain|opioid[- ]tolerant|chronic opioids|fibromyalgia"#),
         // 1.9. Not "double-blind", a blind loop or a blind intubation; acute or chronic goes to the details.
@@ -678,7 +679,7 @@ enum PatientNote {
     private static let drugClasses: [(NoteRx, String)] = [
         (NoteRx(#"\bbeta[- ]?blockers?\b|β[- ]?blockers?"#), "betablocker"),
         (NoteRx(#"\bace[- ]?inhibitors?\b|angiotensin[- ]converting enzyme inhibitors?|angiotensin (?:ii )?receptor blockers?|angiotensin receptor-neprilysin"#), "acei"),
-        (NoteRx(#"\b(?:direct|novel) oral anticoagulants?|\bvitamin k antagonists?|low-molecular-weight heparin|unfractionated heparin|subcutaneous heparin|\b(?:oral )?anticoagulants?\b|\banticoagulat(?:ion|ed)\b"#), "anticoagulant"),
+        (NoteRx(#"\b(?:direct|novel) oral anticoagulants?|\bvitamin k antagonists?|low[- ]molecular[- ]weight heparin|unfractionated heparin|subcutaneous heparin|(?-i:\b(?:DOAC|NOAC|VKA|OAC|LMWH|UFH)\b)|\b(?:oral )?anticoagulants?\b|\banticoagulat(?:ion|ed)\b"#), "anticoagulant"),
         (NoteRx(#"\bp2y12 (?:inhibitors?|antagonists?)|\bdual antiplatelet"#), "p2y12"),
         (NoteRx(#"\bdual antiplatelet"#), "aspirin"),
         (NoteRx(#"\bsglt-?2 inhibitors?"#), "sglt2"),

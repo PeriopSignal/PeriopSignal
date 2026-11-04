@@ -52,6 +52,15 @@ final class PatientNote19Tests: XCTestCase {
         XCTAssertNotNil(ProcedureCatalog.diagnosisOnly.re)
     }
 
+    /// Items shown on two pages are one id each (spec): one finding, never a second id for the same thing.
+    func testSharedItemsAreOneIdEach() {
+        let r = read("septic, URI, recent pneumonia, endocarditis, unstable C-spine, type B dissection, factor V Leiden")
+        XCTAssertEqual(Set(r.findings.map(\.id).filter { $0.hasPrefix("problem:") }),
+                       ["problem:sepsis", "problem:uri", "problem:pneumonia", "problem:endocarditis", "problem:cspine-unstable",
+                        "problem:dissection-b", "problem:thrombophilia-heme", "problem:fvl"])
+        XCTAssertEqual(r.findings.count, Set(r.findings.map(\.id)).count)
+    }
+
     // MARK: Negation, family history, risk, past and current
 
     func testNegationFamilyAndRisk() {
@@ -235,6 +244,10 @@ final class PatientNote19Tests: XCTestCase {
         XCTAssertEqual(applied("enoxaparin 40 daily").hx.anticoagulants["enoxaparin"]?.intensity, "prophylaxis")
         XCTAssertEqual(applied("enoxaparin 1 mg/kg BID").hx.anticoagulants["enoxaparin"]?.intensity, "therapeutic")
         XCTAssertEqual(applied("Eliquis 5 mg BID").hx.anticoagulants["other"]?.name, "apixaban")
+        let doac = applied("on DOAC")
+        XCTAssertTrue(doac.has("anticoagulation") && doac.medFlags.contains("anticoagulant"), "the flag as well as the item")
+        XCTAssertTrue(applied("LMWH bridge").medFlags.contains("anticoagulant"))
+        XCTAssertFalse(problems("dilated cardiomyopathy").contains("problem:neuromuscular"), "a cardiomyopathy is not a myopathy")
         for line in ["allergic to heparin", "HIT, avoid heparin", "stopped warfarin last year", "heparin flush", "mother on warfarin", "no anticoagulants"] {
             let r = applied(line)
             XCTAssertFalse(r.has("anticoagulation"), line)
