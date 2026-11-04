@@ -314,6 +314,13 @@ jobs:
           shot 431-proc-iliac-filled 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.patient.addproc "open left iliac aneurysm repair" -ps.forceAppearance light
           shot 432-proc-typeahead-tevar 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch TEVAR -ps.forceAppearance dark
           shot 433-proc-quickadd-iliac 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "72M for open left iliac aneurysm repair (infrarenal clamp), HTN, CKD 3a"
+          # 1.9 note reader (helper 3): the new History chips read from the quick-add bar, and what is left unread.
+          shot 360-notes19-quickadd-renal 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "62M, ESRD on HD MWF via L arm AVF, paroxysmal AF, PPM dependent, on apixaban"
+          shot 361-notes19-quickadd-renal-dark 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "62M, ESRD on HD MWF via L arm AVF, paroxysmal AF, PPM dependent, on apixaban"
+          shot 362-notes19-quickadd-ob 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "31F G2P1 at 32+4 weeks, GDM on insulin, FVL on lovenox, PPCM EF 35%"
+          shot 363-notes19-quickadd-gi-heme 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "58M, hiatal hernia, h/o upper GI bleed, hep C, ITP, vWD, septic shock"
+          shot 364-notes19-quickadd-social-msk 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance light -ps.quickadd "45M, former smoker quit 2015, 40 pack-years, cocaine use, MDD, R hip fracture, Marfan"
+          shot 365-notes19-quickadd-negatives 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "Tia is 34F, denies cocaine, mother with FVL, at risk for compartment syndrome, h/o PTX 2015"
           shot 290-resp-expanded-dark 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:resp -ps.forceAppearance dark
           shot 291-history-cardio 14 -ps.tab patient -ps.patient demo-cardio -ps.patient.open history -ps.forceAppearance light
           shot 292-cv-info 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.evidence.open 1 -ps.forceAppearance light
