@@ -383,7 +383,7 @@ enum QuickAdd {
     /// bypass", "metoprolol 5 mg IV").
     private static func preoperativeOnly(_ change: PatientNoteChange) -> Bool {
         switch change {
-        case .problem, .aneurysm, .valve, .prosthesis, .pulmHtn, .cardiacSurgery, .pastSurgery, .lhcResult, .homeO2, .problemNote, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
+        case .problem, .aneurysm, .valve, .prosthesis, .pulmHtn, .cardiacSurgery, .pastSurgery, .lhcResult, .homeO2, .problemNote, .detail, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
              .anesthesiaNotes, .dentition, .airwaySign, .mallampati:
             return true
         default:
@@ -1737,7 +1737,9 @@ enum QuickAdd {
     /// "for". Since 1.8.3 the procedure list reads neither "AAA" nor a rupture alone ("rAAA", "ruptured AAA") as a repair
     /// (Ben: AAA is the diagnosis, and it says neither open nor EVAR), so a rupture opening the line is filed in the
     /// history only; "ruptured AAA repair" is tonight's repair, with the rupture filed as well (take).
-    private static let aortaHistoryLead = NoteRx(#"^(?-i:AAA)\b(?!\s*(?:repair|open|graft|resection))"#)
+    /// 1.9: a hiatal or paraesophageal hernia opening the line is the History item too (the note reader's "hiatal-hernia"); only
+    /// "hiatal hernia repair" and the like are planned without "for".
+    private static let aortaHistoryLead = NoteRx(#"^(?:(?-i:AAA)\b(?!\s*(?:repair|open|graft|resection))|(?:hiatal|hiatus|para-?o?esophageal) hernia\b(?!\s*(?:repair|surgery|reduction|fundoplication)))"#)
     /// A ruptured AAA named in the planned procedure: the ASA V history item goes in with it.
     private static let rupturedAAA = NoteRx(#"(?-i:\brAAA\b)|\bruptured (?:(?-i:AAA)\b|abdominal aortic aneurysm)"#)
     private static let urgencyWord = NoteRx(#"\b(?:elective|urgent|emergent|emergency|semi-?urgent|stat|time[- ]sensitive)\b"#)

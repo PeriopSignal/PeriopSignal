@@ -101,8 +101,11 @@ final class PatientNoteTests: XCTestCase {
         XCTAssertEqual(change(d, "psh:tonsillectomy as child|"), .pastSurgery("tonsillectomy as child", PatientMonthYear()))
         let e = read("ASA 3E. ESRD, not on dialysis. EF 25-30%. AF with RVR.")
         XCTAssertEqual(change(e, "asa"), .asa(3, true))
-        XCTAssertNotNil(change(e, "problem:aki"), "ESRD not on scheduled dialysis")
-        XCTAssertNil(change(e, "problem:ckd"))
+        // 1.9 (spec): ESRD not on scheduled dialysis is its own item ("esrd-no-dialysis", the ASA IV it had as "aki"), with
+        // CKD stage 5 beside it; it was "aki" with CKD left out.
+        XCTAssertNotNil(change(e, "problem:esrd-no-dialysis"), "ESRD not on scheduled dialysis")
+        XCTAssertNil(change(e, "problem:aki"))
+        XCTAssertEqual(change(e, "problem:ckd"), .detail("ckd", "ckdStage", "5"))
         XCTAssertNotNil(change(e, "problem:ef-severe"))
         XCTAssertNotNil(change(e, "acute:arrhythmia"))
     }

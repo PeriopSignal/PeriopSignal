@@ -129,7 +129,8 @@ final class PatientHistory181Tests: XCTestCase {
         XCTAssertEqual(ids("T2DM on insulin"), ["problem:dm", "problem:insulin"])
         XCTAssertEqual(ids("IDDM"), ["problem:dm", "problem:insulin"])
         XCTAssertEqual(ids("poorly controlled insulin-dependent diabetes"), ["problem:dm", "problem:insulin"])
-        XCTAssertEqual(ids("gestational diabetes"), ["problem:gdm-diet"], "untouched")
+        // 1.9 (spec): gestational diabetes alone is "gdm"; "gdm-diet" is the ASA's diet-controlled example only.
+        XCTAssertEqual(ids("gestational diabetes"), ["problem:gdm"], "its own item")
         XCTAssertEqual(ids("diabetes insipidus"), [])
         XCTAssertEqual(ids("pre-diabetes"), [])
         XCTAssertNil(PatientNote.read("DM2", now: now).findings.first { $0.id == "problem:dm" }?.note, "no well-controlled caution any more")

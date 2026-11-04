@@ -43,6 +43,10 @@ enum PatientNoteChange: Hashable {
     /// A problem, and the words to add to its details ("evar", "FEVAR 2021": a complex EVAR files as Prior EVAR, and its
     /// type goes to the repair details so it is not lost; "arrhythmia", "SVT"; "pacemaker", "dependent").
     case problemNote(String, String)
+    /// A detail the 1.9 History pages hold beside a problem (PatientHistoryDetails): the problem, filed with it ("" for
+    /// none: pack-years, a fistula before dialysis), the detail's key (PatientNote.setDetail) and its value as the field
+    /// stores it ("ckdStage", "3b"; "hepatitisTypes", "b,c"; "anticoagulant:heparin", "therapeutic").
+    case detail(String, String, String)
     case medFlag(String), medications(String)
     /// A running infusion: the drug and its rate as written ("0.1 mcg/kg/min", or "" when none was given).
     case infusion(String, String)
@@ -181,8 +185,20 @@ private struct Rule {
     var negAfter: NoteRx? = nil
     /// Filed without the item's caution (the note gave what the caution asks for: "CVA 2019").
     var quiet = false
+    /// 1.9. An item that is there now (a pneumothorax, a fracture): a mention told as past ("h/o", "s/p ORIF of", a year,
+    /// "PMH:") is not read. `pastOnly` is the reverse (a past uterine rupture).
+    var current = false
+    var pastOnly = false
+    /// 1.9. A risk, a suspicion or a screen is not the item: "at risk for compartment syndrome", "concern for GI bleed",
+    /// "possible PTX", "fracture risk" (PatientNote.riskBefore, riskAfter).
+    var guarded = false
+    /// 1.9. Skipped when the text just before (after) the mention matches ("former" alcohol dependence, "topical"
+    /// cocaine).
+    var notBefore: NoteRx? = nil
+    var notAfter: NoteRx? = nil
 
-    init(_ id: String, _ p: String, family: Bool = false, onlyIf: NoteRx? = nil, notIf: NoteRx? = nil, negAfter: NoteRx? = nil, quiet: Bool = false) {
+    init(_ id: String, _ p: String, family: Bool = false, onlyIf: NoteRx? = nil, notIf: NoteRx? = nil, negAfter: NoteRx? = nil, quiet: Bool = false,
+         current: Bool = false, pastOnly: Bool = false, guarded: Bool = false, notBefore: NoteRx? = nil, notAfter: NoteRx? = nil) {
         self.id = id
         rx = NoteRx(p)
         self.family = family
@@ -190,7 +206,20 @@ private struct Rule {
         self.notIf = notIf
         self.negAfter = negAfter
         self.quiet = quiet
+        self.current = current
+        self.pastOnly = pastOnly
+        self.guarded = guarded
+        self.notBefore = notBefore
+        self.notAfter = notAfter
     }
+}
+
+/// A detail read beside a problem (1.9), before it is placed on the problem's finding or one of its own.
+private struct NoteDetail {
+    var problem: String
+    var key: String
+    var value: String
+    var range: NSRange
 }
 
 /// What one sentence gave: findings, and every stretch of it that was read (findings, negations, family history),
@@ -208,6 +237,8 @@ private struct Hits {
     var labFlags: [String: (current: Bool, earlier: Bool)] = [:]
     /// Questions asked while reading (two values of a test, neither marked current).
     var questions: [AmbiguousAbbreviation] = []
+    /// History details read (1.9), placed on their problems' findings at the end of readRules.
+    var details: [NoteDetail] = []
 
     mutating func add(_ f: PatientNoteFinding, at r: NSRange) {
         findings.append(f)
@@ -359,6 +390,12 @@ enum PatientNote {
         Rule("uri", #"(?-i:\bURI\b)|upper respiratory (?:tract )?infection|(?:recent|current) (?:cold|cough|chest infection|bronchitis|respiratory infection|flu)"#),
         Rule("home-o2", #"home (?:oxygen|o2)|oxygen at home|o2 at home|\d+(?:\.\d+)? ?l(?:pm)? (?:nc )?at home"#),
         Rule("ild", #"(?-i:\b(?:ILD|IPF)\b)|interstitial lung disease|pulmonary fibrosis"#),
+        // 1.9. Read only when there now (not "h/o PTX", "s/p chest tube for effusion 2019"), never a risk or a
+        // differential; a bare "effusion" only with a side (not pericardial, nor a knee). The side, the fluid and a chest
+        // tube go to the details (readDetails19).
+        Rule("pleural-effusion", #"\bpleural effusions?\b|\b(?:hemo|haemo|chylo)thora(?:x|ces)\b|\b(?:left|right|bilateral|l|r|lt|rt|b/l|bilat)(?:[- ]sided)?\s+effusions?\b|\bparapneumonic effusions?\b|\bempyema\b"#,
+             current: true, guarded: true),
+        Rule("pneumothorax", #"\bpneumothora(?:x|ces)\b|\bhydropneumothorax\b|(?-i:\bPTX\b)"#, current: true, guarded: true),
         // A stroke or TIA within 3 months, over 3 months (a time given: "CVA 2019", "TIA 5 years ago"), or unspecified (no
         // time: "h/o stroke", "CVA", "prior stroke", "TIA"); the timed items replace the unspecified one (1.8.1). Since 1.8.2
         // the unspecified item reads "Stroke or TIA, unspecified", so a TIA with no time files it too, as a stroke does,
@@ -377,13 +414,49 @@ enum PatientNote {
         Rule("seizure", #"\bseizures?\b|epilepsy"#),
         Rule("dementia", #"dementia|alzheimer|cognitive impairment"#),
         Rule("parkinson", #"parkinson"#),
-        Rule("neuromuscular", #"myasthenia|muscular dystrophy|(?-i:\bALS\b)|amyotrophic|guillain|neuromuscular disease|myopathy|charcot-marie|myotonic"#),
+        // A muscular dystrophy is the Musculoskeletal item since 1.9 ("muscular-dystrophy", the ASA's pediatric example).
+        Rule("neuromuscular", #"myasthenia|(?-i:\bALS\b)|amyotrophic|guillain|neuromuscular disease|myopathy|charcot-marie|myotonic(?! (?:muscular )?dystroph)"#),
         Rule("sci", #"spinal cord injury|paraplegi|quadriplegi|tetraplegi"#),
         Rule("chronic-pain", #"chronic (?:back )?pain|opioid[- ]tolerant|chronic opioids|fibromyalgia"#),
-        Rule("esrd-dialysis", #"\b(?:on|receives?|getting|undergoes|undergoing) (?:hemo|peritoneal )?dialysis|\bon (?-i:(?:HD|PD|CAPD|CCPD))\b|\bdialysis (?:m/?w/?f|mwf|tts|t/?th/?s|three times)|(?-i:\bHD\b) (?:m/?w/?f|mwf|tts|t/?th/?s)|peritoneal dialysis|\bhemodialysis\b"#),
-        Rule("aki", #"(?-i:\bAKI\b)|acute kidney injury|acute renal failure|(?-i:\b(?:ESRD|ESKD)\b),? (?:not on|without|declines|refuses|no) (?:scheduled )?dialysis"#),
+        // 1.9. Not "double-blind", a blind loop or a blind intubation; acute or chronic goes to the details.
+        Rule("visual-impairment", #"\bvisual(?:ly)?[- ]impair(?:ment|ed)\b|\bvision (?:loss|impairment)\b|\bloss of vision\b|\bvisual loss\b|\b(?:low|poor|impaired|decreased|reduced) vision\b|\blegally blind\b|(?<!double[- ])(?<!single[- ])(?<!double )(?<!single )\bblind(?:ness)?\b(?![- ](?:spot|loop|pouch|nasal|intubation|insertion|placement|technique|study|trial|end(?:ed)?)\b)(?!-)"#,
+             guarded: true),
+        // Depression is major depressive disorder; not respiratory, ST-segment, CNS or myocardial depression, nor a
+        // depression screen. Anxiety about the operation is not an anxiety disorder. Both file Psychological disorder
+        // beside them (its base, readRules), as do the others, whose name goes to its details.
+        Rule("mdd", #"(?-i:\bMDD\b)|\bmajor depressi(?:ve|on)(?: disorder)?\b|\bdepressive disorder\b|(?<!respiratory )(?<!ventilatory )(?<!st )(?<!st-)(?<!segment )(?<!cns )(?<!myocardial )(?<!cardiac )(?<!marrow )(?<!pr )(?<!circulatory )(?<!neonatal )(?<!brainstem )(?<!bipolar )\bdepression\b(?!\s+(?:of\s+(?:the\s+)?(?:st|pr|j)\b|screen))"#,
+             guarded: true),
+        Rule("anxiety", #"\banxiety(?: disorder)?\b(?!\s+(?:about|regarding|re\b|before|prior|with|around|over|related|surrounding|due|for)\b)|(?-i:\bGAD\b)|\bgeneralized anxiety\b|\bpanic (?:disorder|attacks)\b"#,
+             guarded: true, notBefore: NoteRx(#"\b(?:pre-?op(?:erative)?|preoperative|perioperative|situational|procedural|periprocedural|anticipatory|some|mild|appropriate|expected|understandable)\s+$"#)),
+        Rule("psych", #"\bbipolar(?: (?:i|ii|1|2))?(?: (?:affective )?disorder)?\b(?!\s*(?:cautery|electrocautery|forceps|sealer|diathermy|energy|leads?|pacing|sensing|scissors|device|vessel))|\bschizo(?:phrenia|affective(?: disorder)?)\b|(?-i:\bPTSD\b)|\bpost-?traumatic stress(?: disorder)?\b|(?-i:\bOCD\b)|\bobsessive[- ]compulsive(?: disorder)?\b|\bpsychosis\b|\bpsychotic disorder\b|\bborderline personality(?: disorder)?\b|\banorexia nervosa\b|\bbulimia(?: nervosa)?\b|\beating disorder\b|(?-i:\bADHD\b)|\bpsychiatric (?:disorder|illness|disease)\b|\bmental illness\b"#,
+             guarded: true),
+        Rule("esrd-dialysis", #"\b(?:on|receives?|getting|undergoes|undergoing) (?:hemo|peritoneal )?dialysis|\bon (?-i:(?:HD|PD|CAPD|CCPD))\b|\bdialysis (?:m/?w/?f|mwf|tts|t/?th/?s|three times)|(?-i:\bHD\b) (?:m/?w/?f|mwf|tts|t/?th/?s)|peritoneal dialysis|\bhemodialysis\b"#,
+             // 1.9: dialysis declined or not started is ESRD not on dialysis ("ESRD, declines HD").
+             notBefore: NoteRx(#"\b(?:declin(?:es|ed|ing)|refus(?:es|ed|ing)|without|off|never on|not a candidate for|opts? against|elect(?:s|ed) against|not yet on|pre-?)\s*(?:(?:regularly|regular|scheduled|chronic|maintenance|any)\s+)*$"#)),
+        // ESRD not on regularly scheduled dialysis is its own item since 1.9 (it was part of "aki", whose ASA IV example it
+        // keeps), filed with CKD stage 5 (PatientNote.read). A typed "HD" reads as hemodialysis here.
+        Rule("esrd-no-dialysis", #"(?:(?-i:\b(?:ESRD|ESKD)\b)|\bend[- ]stage (?:renal|kidney) disease\b|(?-i:\bCKD\b)[ -]?(?:stage[ -]?)?(?:5|V|G5)\b),?\s+(?:not (?:yet )?(?:on|receiving|requiring|undergoing|started on)|without|declin(?:es|ed|ing)|refus(?:es|ed|ing)|no|off|never on|not a candidate for|opts? against|elect(?:s|ed) against)\s+(?:(?:regularly|regular|scheduled|chronic|maintenance|any|renal replacement|hemo|peritoneal)\s*)*(?:dialysis|(?-i:HD|RRT|PD)\b|therapy)|\bpre-?dialysis (?:(?-i:ESRD|ESKD|CKD)|end[- ]stage)"#),
+        Rule("aki", #"(?-i:\bAKI\b)|acute kidney injury|acute renal failure"#),
         Rule("ckd", #"(?-i:\b(?:CKD|CRI|CRF|ESRD|ESKD)\b)|chronic kidney disease|chronic renal (?:insufficiency|failure|disease)|renal insufficiency|end[- ]stage (?:renal|kidney)"#),
-        Rule("gerd", #"\bgerd\b|(?<!vesicoureteral )(?<!vesicoureteric )\breflux\b|hiatal hernia|heartburn"#),
+        Rule("bph", #"(?-i:\bBPH\b)|\bbenign prostatic (?:hyperplasia|hypertrophy|enlargement)\b|\bprostatic (?:hyperplasia|hypertrophy|enlargement)\b|\benlarged prostate\b|\bprostatomegaly\b"#, guarded: true),
+        Rule("prostate-cancer", #"\bprostate (?:cancer|carcinoma|adenocarcinoma|ca)\b|\bprostatic (?:adeno)?carcinoma\b|\bcancer of the prostate\b|\bgleason\b"#, guarded: true),
+        // A hiatal hernia is its own item since 1.9 ("gerd" was "Reflux or hiatal hernia").
+        Rule("gerd", #"\bgerd\b|(?-i:\bGORD\b)|(?<!vesicoureteral )(?<!vesicoureteric )\breflux\b|heartburn"#),
+        // 1.9 (GI & liver, Ben's list). A repaired hiatal hernia is the repair (Past surgical history), not a hernia.
+        Rule("hiatal-hernia", #"\bhiatal hernia\b|\bhiatus hernia\b|\bpara-?o?esophageal hernia\b"#, guarded: true,
+             notAfter: NoteRx(#"^\s*(?:repair|surgery|reduction|fundoplication)\b"#)),
+        // History of: never the operation planned ("for laparoscopic RYGB").
+        Rule("gastric-bypass", #"\bgastric bypass\b|(?-i:\bR(?:N|ou)?YGB\b)|\broux[- ]en[- ]y (?:gastric )?bypass\b|\broux[- ]en[- ]y gastric\b"#,
+             notBefore: plannedWide),
+        Rule("dysphagia", #"\bdysphagia\b|\bodynophagia\b|\b(?:difficulty|trouble|problems?) (?:with )?swallowing\b|\bswallowing (?:difficult(?:y|ies)|problems?)\b"#, guarded: true),
+        // Its name goes to the type (PatientHistoryDetails.esophagealDisorderType), which the TEE screen reads. Varices
+        // are their own item.
+        Rule("esophageal-disorder", #"\bachalasia\b|\besophageal (?:stricture|stenosis|cancer|carcinoma|adenocarcinoma|tumou?r|mass|web|ring|diverticulum|spasm|dysmotility|motility disorder|disorder|disease|perforation|atresia)\b|\bbarrett'?s(?: esophagus)?\b|\bzenker'?s(?: diverticulum)?\b|\beosinophilic esophagitis\b|(?-i:\bEoE\b)|\besophagitis\b|\bschatzki'?s? ring\b"#,
+             guarded: true),
+        // Active or resolved, upper or lower, to the details (readDetails19). Not a risk or prophylaxis ("GI bleed
+        // prophylaxis", "stress ulcer prophylaxis"). Hematochezia alone is not read (hemorrhoids).
+        Rule("gi-bleed", #"\b(?:upper |lower )?(?:gi|gastrointestinal)\s+(?:bleed(?:ing|s)?|h(?:a)?emorrhage)\b|(?-i:\b(?:GIB|UGIB|LGIB)\b)|\b(?:ugi|lgi)\s+bleed(?:ing|s)?\b|\bvariceal (?:bleed(?:ing)?|h(?:a)?emorrhage)\b|\bbleeding (?:peptic |duodenal |gastric )?ulcer\b|\bmelena\b|\bhematemesis\b"#,
+             guarded: true),
         Rule("full-stomach", #"(?:small |large )?bowel obstruction|(?-i:\b(?:SBO|LBO)\b)|full stomach|\bileus\b"#),
         Rule("gastroparesis", #"gastroparesis"#),
         Rule("hepatitis-active", #"(?:active|acute) hepatitis"#),
@@ -391,12 +464,30 @@ enum PatientNote {
         // Diabetes is one item (1.8.1): every mention files it, poorly controlled or not ("uncontrolled T2DM", "poorly
         // controlled sugars"); insulin mentions also file Diabetes treated with insulin. Not gestational diabetes,
         // prediabetes or diabetes insipidus.
-        Rule("insulin", #"insulin[- ](?:dependent|requiring|treated)|\bon insulin\b|(?-i:\b(?:IDDM|T1DM|DM1|T1D|DMT1)\b)|type (?:1|one|i) (?:diabetes|dm)"#),
+        // A gestational diabetes's insulin is its own detail (1.9), unless a diabetes from before the pregnancy is named too.
+        Rule("insulin", #"insulin[- ](?:dependent|requiring|treated)|\bon insulin\b|(?-i:\b(?:IDDM|T1DM|DM1|T1D|DMT1)\b)|type (?:1|one|i) (?:diabetes|dm)"#,
+             notIf: NoteRx(#"^(?=.*(?:gestational diabetes|(?-i:GDM)))(?!.*(?:type (?:1|one|i|2|two|ii) (?:diabetes|dm)|(?-i:T1DM|T2DM|DM1|DM2|IDDM|NIDDM|T1D|T2D|DMT1|DMT2)|pre-?gestational|pre-?existing diabetes))"#)),
         Rule("dm", #"(?<!gestational )(?<!pre-)(?<!pre )\bdiabet(?:es|ic)\b(?! insipidus)|(?-i:\b(?:DM|T2DM|T1DM|NIDDM|IDDM|DM2|DMII|DM1|T2D|T1D|DMT2|DMT1)\b)|(?:poorly|badly|not well|sub-?optimally)[- ]controlled (?:blood )?(?:sugars|glucose)"#),
         Rule("thyroid", #"hypothyroid|hyperthyroid|thyroid disease|hashimoto|graves"#),
         Rule("adrenal", #"adrenal insufficiency|addison|chronic (?:steroids|prednisone)|(?:on|takes) (?:daily |chronic )?(?:prednisone|steroids|hydrocortisone)"#),
         Rule("anemia", #"\ban(?:a)?emi(?:a|c)\b"#),
-        Rule("bleeding", #"bleeding disorder|von willebrand|(?-i:\b(?:vWD|VWD|ITP)\b)|h(?:a)?emophilia|coagulopathy|bleeding diathesis"#),
+        // ITP is Thrombocytopenia since 1.9, and a von Willebrand factor level is a lab, not the disease. The named
+        // disorders (vWD, hemophilia A or B) file this item beside them, its base.
+        Rule("bleeding", #"bleeding disorder|von willebrand(?!\s*(?:factor|antigen|panel|activity|level|testing)\b)|(?-i:\b(?:vWD|VWD)\b)|h(?:a)?emophilia(?!\s+(?:a\s+|b\s+)?carrier)|coagulopathy|bleeding diathesis"#),
+        Rule("vwd", #"\bvon willebrand(?:'?s)?(?: disease)?\b(?!\s*(?:factor|antigen|panel|activity|level|testing)\b)|(?-i:\b(?:vWD|VWD)\b)"#),
+        Rule("hemophilia-a", #"\bh(?:a)?emophilia\s+a\b(?!\s+carrier)|\bfactor (?:viii|8) deficiency\b"#),
+        Rule("hemophilia-b", #"\bh(?:a)?emophilia\s+b\b(?!\s+carrier)|\bfactor (?:ix|9) deficiency\b|\bchristmas disease\b"#),
+        // 1.9. Not heparin-induced thrombocytopenia (HIT: a heparin caution, not a low count of its own).
+        Rule("thrombocytopenia", #"(?<!heparin[- ]induced )(?<!heparin induced )\bthrombocytopeni(?:a|c)\b|(?-i:\bITP\b)|\blow platelets?\b|\bplatelets? (?:are |is |were )?low\b"#,
+             guarded: true),
+        // Factor V Leiden is a thrombophilia (Ben, Nov 3): "fvl" beside "thrombophilia-heme", the Hematologic item; the
+        // others' names go to its details. The Obstetric example ("thrombophilia", ASA III) is filed only for a pregnant
+        // patient on anticoagulation (PatientNote.read).
+        Rule("thrombophilia-heme", #"\bthrombophilia\b|\bantiphospholipid(?: antibody)?(?: syndrome)?\b|(?-i:\bAPLS\b)|\bprothrombin (?:gene )?(?:mutation|g20210a)\b|\bprotein [cs] deficiency\b|\bantithrombin(?: iii)? deficiency\b|\bfactor (?:v|5) leiden\b|(?-i:\bFVL\b)"#),
+        Rule("fvl", #"\bfactor (?:v|5) leiden\b|(?-i:\bFVL\b)|\bf5 leiden\b"#),
+        // On anticoagulation, in general words; a named drug files it too, with the drug (readAnticoagulants).
+        Rule("anticoagulation", #"\b(?:on|receiving|requires?|requiring|needs?|chronic|therapeutic|long[- ]term|lifelong|systemic|full)\s+(?:(?:chronic|therapeutic|full|long[- ]term|lifelong|systemic|oral)\s+)?anticoagula(?:tion|nts?)\b|\banticoagulated\b|\bon (?:a )?blood thinners?\b|\bon (?:a )?(?-i:DOAC|NOAC|VKA|OAC)\b"#,
+             negAfter: NoteRx(#"^\s*[:\-–]?\s*(?:none|no|n/a|nil|stopped|discontinued)\b"#)),
         Rule("vte", #"(?-i:\b(?:DVT|VTE)\b)|deep vein thrombosis|pulmonary embol"#),
         Rule("sickle", #"sickle cell(?! trait)|(?-i:\bHbSS\b)"#),
         Rule("dic", #"(?-i:\bDIC\b)|disseminated intravascular"#),
@@ -407,38 +498,84 @@ enum PatientNote {
         Rule("infection-active", #"\b(?:active|current|ongoing|untreated|systemic|uncontrolled)\s+(?:(?:bacterial|fungal|viral|wound|soft tissue)\s+)?infections?\b|\bbacter(?:a)?emi(?:a|c)\b|\bfung(?:a)?emia\b|\bcandid(?:a)?emia\b|\bpositive blood cultures?\b|\bblood cultures? (?:are |were )?positive\b|\binfected (?:hardware|graft|prosthesis|wound|joint|line|device|leads?|pacemaker|stent|mesh)\b"#),
         Rule("endocarditis", #"(?:\bendocarditis\b|(?-i:\bSBE\b))(?!\s+(?:prophylaxis|ppx|prevention))"#),
         Rule("hiv", #"\bhiv\b|\bhuman immunodeficiency virus\b|\bacquired immun(?:o)?deficiency syndrome\b"#, notIf: hivPrevention, negAfter: infectionNotPositive),
-        Rule("hepatitis-viral", #"(?:\bhep(?:atitis)?\.?[- ]?[bc]\b|(?-i:\b(?:HBV|HCV|HBsAg)\b))(?!\s+(?:vaccin|immun|surface antibody|s\s*ab\b|core antibody))"#, negAfter: infectionNotPositive),
+        // Hepatitis A as well since 1.9 (the type, A, B or C, to the details); an IgG or antibody to hepatitis A is immunity.
+        Rule("hepatitis-viral", #"(?:\bhep(?:atitis)?\.?[- ]?[bc]\b|(?-i:\b(?:HBV|HCV|HBsAg)\b))(?!\s+(?:vaccin|immun|surface antibody|s\s*ab\b|core antibody))|(?:\bhep(?:atitis)?\.?[- ]?a\b|(?-i:\bHAV\b))(?!\s+(?:vaccin\w*|immun\w*|igg|ab|antibody|antibodies|total)\b)"#, negAfter: infectionNotPositive),
         Rule("mdro", #"\b(?:mrsa|vre)\b|\bmethicillin[- ]resistant (?:staph(?:ylococcus)?|s\.)\s*(?:aureus)?|\bvancomycin[- ]resistant enterococc(?:us|i|al)\b"#, negAfter: infectionNotPositive),
         Rule("c-diff", #"\bc\.?\s?diff(?:icile)?\b|\bclostridi(?:um|oides) difficile\b|(?-i:\bCDI\b)"#, negAfter: infectionNotPositive),
         Rule("tb", #"(?:\btuberculosis\b|(?-i:\b(?:TB|LTBI)\b)|\blatent tb\b)(?!\s+exposure)|(?:\bpositive|\+)\s*(?:ppd|quantiferon|qft|igra|tst|tb test)\b|\b(?:ppd|quantiferon|qft|igra|tst)\s*(?:test\s*)?(?:\+|positive\b|pos\b)"#, negAfter: infectionNotPositive),
         Rule("covid-recent", covidRecent, notIf: covidNotRecent, negAfter: infectionNotPositive),
         Rule("isolation", #"\b(?:contact|droplet|airborne|enteric|respiratory|enhanced contact|special contact|contact plus)(?:\s*(?:/|and|&|\+|,)\s*(?:contact|droplet|airborne|enteric|respiratory))*\s+(?:isolation|precautions)\b|\b(?:on|in|under|requires?|requiring|needs?)\s+(?:strict\s+)?(?:contact\s+|droplet\s+|airborne\s+|respiratory\s+|reverse\s+|protective\s+|neutropenic\s+)?isolation\b|(?<!lung )(?<!vein )(?<!veins )(?<!wall )(?<!social )(?<!electrical )\bisolation\s+(?:precautions|room|status|for (?:mrsa|vre|c\.?\s?diff|covid|tb|flu|influenza|esbl|cre|mdro))\b|(?:^|[,;:(]\s*)isolation\b(?!\s+of\b)"#, negAfter: infectionNotPositive),
-        Rule("thrombophilia", #"thrombophilia|factor v leiden|antiphospholipid|prothrombin gene mutation|protein [cs] deficiency|antithrombin deficiency"#),
-        Rule("sepsis", #"\bsepsis\b|\bseptic\b(?!\s+(?:arthritis|joint|knee|hip|bursitis|emboli))"#),
-        Rule("shock", #"(?:septic|cardiogenic|hemorrhagic|haemorrhagic|hypovolemic|distributive) shock|\bin shock\b"#),
+        // Sepsis and shock are there now (1.9: "h/o septic shock 2019" is not today's ASA IV). The source of the sepsis and
+        // the kinds of shock ("septic" is distributive) go to the details.
+        Rule("sepsis", #"\bsepsis\b|\burosepsis\b|\bseptic\b(?!\s+(?:arthritis|joint|knee|hip|bursitis|emboli|technique|tank))"#, current: true),
+        Rule("shock", shockRx + #"|\bin shock\b"#, current: true),
         Rule("massive-trauma", #"massive trauma|polytrauma|multi-?trauma|multiple trauma"#),
+        // 1.9. A major burn: a burn in TBSA, a major, full-thickness, third-degree or inhalation burn, a burn injury or a
+        // burn unit; not a small burn, "burning", heartburn, nor a burn told as past.
+        Rule("burn", #"\b\d{1,2}(?:\.\d)?\s*%\s*(?:tbsa\b\s*)?(?:(?:full|partial|mixed|deep partial)[- ]thickness\s+)?burns?\b|\b(?:tbsa|total body surface area)\b[^.;]{0,24}\bburns?\b|\bburns?\b[^.;]{0,24}\b(?:tbsa|total body surface area)\b|\b(?:major|severe|extensive|massive|large|full[- ]thickness|third[- ]degree|3rd[- ]degree|inhalation(?:al)?)\s+burns?(?:\s+injur(?:y|ies))?\b|\bburn (?:injury|injuries|patient|victim|unit|icu|center)\b|\binhalation injury\b"#,
+             current: true, guarded: true),
         // Where the note does not say where (a specific site reads as the Aorta group's item). "Ruptured aortic aneurysm"
         // is always read; a bare "ruptured aneurysm" not when the note has intracranial words (a subarachnoid
         // hemorrhage: PatientNote.read drops it for the whole note) [P].
         Rule("ruptured-aneurysm", #"ruptured aortic aneurysm\b"#),
         Rule("ruptured-aneurysm", #"ruptured aneurysm\b"#, notIf: intracranialAneurysm),
-        Rule("pregnant", #"\bpregnant\b|(?-i:\bG\d{1,2} ?P\d)|\b\d{1,2}(?:\+\d/7| \d/7)? (?:weeks|wks)'? (?:gestation|pregnant|(?-i:GA)|gestational age)\b|(?-i:\bIUP\b)|\bparturient\b|\bin (?:active )?labou?r\b|\blabou?ring\b"#),
+        // G and P alone file Pregnant only when they leave a pregnancy uncounted (1.9: "G2P1" yes; "G2P2", "G3P2012" no:
+        // readObstetric); weeks of gestation, an IUP and labor do.
+        Rule("pregnant", #"\bpregnant\b|\b\d{1,2}(?:\s*\+\s*\d(?:/7)?| \d/7|\s*w(?:ks?|eeks?)?\s*\d\s*d(?:ays?)?)?\s*(?:weeks|wks|w)'?\s*(?:of\s+)?(?:gestation|pregnant|(?-i:GA)|gestational age|pregnancy)\b|(?-i:\bIUP\b)|\bparturient\b|\bin (?:active )?labou?r\b|\blabou?ring\b"#),
         Rule("gest-htn", #"gestational hypertension|(?-i:\b(?:gHTN|GHTN|PIH)\b)|pregnancy[- ]induced hypertension"#),
         Rule("preeclampsia-severe", #"pre-?eclampsia with severe features|severe pre-?eclampsia"#),
         Rule("preeclampsia", #"pre-?eclampsia"#),
         Rule("hellp", #"(?-i:\bHELLP\b)"#),
-        Rule("gdm-complex", #"(?:gestational diabetes|(?-i:GDM)) (?:on|requiring|treated with|managed with) insulin|(?-i:\b(?:A2GDM|GDMA2)\b)"#),
-        Rule("gdm-diet", #"gestational diabetes|(?-i:\b(?:GDM|A1GDM|GDMA1)\b)"#),
+        // Gestational diabetes (1.9) is "gdm", with controlled or uncontrolled and insulin in the details; only the ASA's
+        // own examples carry a class: diet-controlled ("gdm-diet", II) and with complications or high insulin needs
+        // ("gdm-complex", III), each filed beside "gdm". Until 1.9 any GDM on insulin was "gdm-complex". A gestational
+        // diabetes of an earlier pregnancy ("h/o GDM") is not this one's.
+        Rule("gdm-complex", #"(?:gestational diabetes|(?-i:\bA?[12]?GDM(?:A[12])?\b))[^.;]{0,30}?\b(?:with complications|complicated by|high insulin (?:requirements?|needs|doses?)|requiring high(?:[- ]dose)? insulin)|\bhigh insulin (?:requirements?|needs)\b[^.;]{0,24}?(?:gestational diabetes|(?-i:GDM))|\bcomplicated (?:gestational diabetes|(?-i:GDM))\b"#,
+             current: true),
+        Rule("gdm-diet", #"\bdiet[- ]controlled (?:gestational diabetes|(?-i:GDM))\b|(?:gestational diabetes|(?-i:\bGDM\b)),? (?:diet[- ]controlled|controlled (?:with|by|on) diet|on diet(?: alone)?)\b|(?-i:\b(?:A1GDM|GDMA1)\b)"#, current: true),
+        Rule("gdm", #"gestational diabetes|(?-i:\b(?:GDM|A1GDM|GDMA1|A2GDM|GDMA2)\b)"#, current: true),
         Rule("previa-accreta", #"placenta (?:previa|praevia|accreta|increta|percreta)|accreta spectrum"#),
-        Rule("peripartum-cm", #"peripartum cardiomyopathy|(?-i:\bPPCM\b)"#),
-        Rule("uterine-rupture", #"uterine rupture|ruptured uterus"#),
+        // Peripartum cardiomyopathy is "ppcm" (LVEF < 45%, ESC HFA: Bauersachs J, et al. Eur J Heart Fail 2019;21:827–843);
+        // with an EF below 40% written beside it, the ASA's class IV example "peripartum-cm" replaces it (readRules).
+        Rule("ppcm", #"\bperi-?partum cardiomyopathy\b|\bpost-?partum cardiomyopathy\b|\bpregnancy[- ]associated cardiomyopathy\b|(?-i:\bPPCM\b)"#),
+        // An active rupture is the ASA's class V example; one told as past ("h/o", "in a prior pregnancy", "PMH:") is
+        // "uterine-rupture-past" (1.9). Never the risk of one (VBAC counselling).
+        Rule("uterine-rupture", #"\buterine rupture\b|\bruptured uterus\b|\brupture of (?:the |her )?uterus\b"#, current: true, guarded: true),
+        Rule("uterine-rupture-past", #"\buterine rupture\b|\bruptured uterus\b|\brupture of (?:the |her )?uterus\b"#, pastOnly: true, guarded: true),
         Rule("ra", #"rheumatoid"#),
+        // 1.9 (Musculoskeletal, Ben's list). The joint goes to the arthritis location (readRules).
+        Rule("oa", #"\bosteoarthritis\b|\bosteoarthrosis\b|(?-i:\bOA\b)|\bdegenerative joint disease\b|(?-i:\bDJD\b)"#),
+        // A fracture there now, with its place (the location); not a risk ("fracture risk", "evaluate for fracture"), nor
+        // one told as past ("h/o hip fracture", "s/p ORIF of a hip fracture"; "s/p fall with a hip fracture" is now).
+        Rule("fracture", #"\bfractures?\b|\bfx\b"#, current: true, guarded: true, notAfter: NoteRx(#"^\s*(?:liaison|clinic|service|team|prevention)\b"#)),
+        Rule("muscular-dystrophy", #"\bmuscular dystroph(?:y|ies)\b|\bduchenne(?:'s)?\b|\bbecker(?:'s)? (?:muscular )?dystrophy\b|(?-i:\bDMD\b)|\bmyotonic (?:muscular )?dystrophy\b|\bfacioscapulohumeral\b|(?-i:\bFSHD\b)|\blimb[- ]girdle\b"#),
+        Rule("marfan", #"\bmarfan(?:'?s)?(?: syndrome)?\b"#),
+        // A typed "EDS" is asked: Ehlers-Danlos or excessive daytime sleepiness (MedAbbreviations).
+        Rule("eds", #"\behlers[- ]danlos(?: syndrome)?\b|(?-i:\b(?:hEDS|vEDS)\b)"#),
+        Rule("compartment-syndrome", #"\bcompartment syndrome\b"#, current: true, guarded: true),
         Rule("spine-fusion", #"ankylosing spondylitis|cervical (?:spine )?fusion|(?-i:\bACDF\b)|fused (?:cervical|neck)"#),
         Rule("cspine-unstable", #"unstable (?:c-?spine|cervical spine)"#),
         Rule("scoliosis", #"scoliosis"#),
-        Rule("alcohol-abuse", #"alcohol (?:abuse|use disorder|dependence)|alcoholism|\betoh (?:abuse|use disorder|dependence)|heavy (?:drinker|drinking|alcohol|etoh)|drinks (?:heavily|daily)|\b\d+ (?:beers|drinks) (?:a|per) day"#),
+        // A dependence told as former ("former alcohol abuse", "alcohol use disorder in remission", "sober 10 years") is
+        // "alcohol-abuse-former" since 1.9, with no ASA class; the ASA's class III example is a current one.
+        Rule("alcohol-abuse", #"alcohol (?:abuse|use disorder|dependence)|alcoholism|\betoh (?:abuse|use disorder|dependence)|heavy (?:drinker|drinking|alcohol|etoh)|drinks (?:heavily|daily)|\b\d+ (?:beers|drinks) (?:a|per) day"#,
+             notBefore: formerBefore, notAfter: formerAfter),
+        Rule("alcohol-abuse-former", #"\b(?:former|ex-?|past|previous|prior|remote|recovering|recovered)\s+(?:heavy\s+(?:drinker|drinking|alcohol(?: use)?|etoh(?: use)?)|alcoholic|alcoholism|(?:alcohol|etoh)\s+(?:abuse|use disorder|dependence|misuse))\b|\b(?:alcoholism|(?:alcohol|etoh)\s+(?:abuse|use disorder|dependence|misuse))\b[^.;]{0,30}?\b(?:in (?:sustained |early )?remission|sober|abstinent|quit|stopped)\b|\bsober (?:for|since|x)\b|\brecovering alcoholic\b"#),
         Rule("alcohol-social", #"(?:social|occasional|rare) (?:alcohol|drinker|etoh|drinking)|drinks (?:socially|occasionally)|etoh socially"#),
-        Rule("substance", #"cocaine|methamphetamine|\bmeth\b|heroin|(?-i:\b(?:IVDU|IVDA|OUD)\b)|opioid use disorder|substance (?:use|abuse)|stimulant use|on methadone|on buprenorphine|suboxone"#),
+        // Illicit drug use (1.9: "substance", in any drug), with the drugs beside it; methadone or buprenorphine treatment
+        // is not illicit use (its medicine flag, opioid, is set from the medicines), and neither is topical cocaine. A use
+        // told as former ("quit", "in remission", "clean 5 years") is not read.
+        Rule("substance", #"\bsubstance (?:use|abuse|misuse)(?: disorder)?\b|\bpolysubstance\b|\billicit (?:drugs?|drug use|substances?)\b|\brecreational drugs?(?: use)?\b|\bstimulant (?:use|abuse)\b|\bamphetamine (?:use|abuse|misuse)\b|(?-i:\b(?:IVDU|IVDA|PWID)\b)|\b(?:iv|intravenous|injection) drug (?:use|abuse|user)s?\b|\bdrug (?:abuse|addiction)\b"#,
+             negAfter: drugNegAfter, notBefore: formerBefore, notAfter: formerAfter),
+        Rule("cocaine", #"\bcocaine\b|\bcrack (?:cocaine|use|user|smoker|abuse)\b"#, negAfter: drugNegAfter,
+             notBefore: NoteRx(#"(?:\b(?:topical|nasal|intranasal)|\d+(?:\.\d+)?\s*%|\b(?:former|ex-?|past|previous|prior|remote|quit|stopped|recovering|recovered|clean|sober))\s+(?:(?:iv|intravenous|heavy|daily|occasional|crack)\s+)?$"#),
+             notAfter: NoteRx(#"^\s*(?:pledgets?|paste|solution|spray|topical|\d+\s*%|4\s*%)|"# + formerAfterText)),
+        Rule("opioid-use", #"\bheroin\b|(?-i:\bOUD\b)|\bopioid use disorder\b|\bopioid (?:abuse|misuse|addiction)\b|\b(?:illicit|street|non-?prescribed) (?:opioids?|fentanyl|pills)\b|\bfentanyl (?:use|abuse|misuse|smoking)\b"#,
+             negAfter: drugNegAfter, notBefore: formerBefore, notAfter: formerAfter),
+        Rule("marijuana", #"\bmarijuana\b|\bmarihuana\b|\bcannabis\b(?!\s+(?:oil|cbd))|(?-i:\bTHC\b)|\b(?:smokes?|smoking|uses?|using) (?:weed|pot)\b"#,
+             negAfter: drugNegAfter, notBefore: formerBefore, notAfter: formerAfter),
+        Rule("methamphetamine", #"\bmethamphetamines?\b|\bcrystal meth\b|\bmeth\b(?!\s*-?(?:hb|hgb|h(?:a)?emoglobin))"#,
+             negAfter: drugNegAfter, notBefore: formerBefore, notAfter: formerAfter),
     ]
 
     /// A general item and the more specific ones that replace it ("hypertension, well controlled" by "poorly
@@ -446,7 +583,10 @@ enum PatientNote {
     static let supersededBy: [String: [String]] = [
         "htn": ["htn-180"], "cad": ["mi", "cad-recent", "pci", "pci-recent", "ischemia", "cabg"], "mi": ["cad-recent"], "pci": ["pci-recent"], "cva": ["cva-recent"], "cva-unspec": ["cva", "cva-recent"], "ich": ["ich-mass"],
         "hf": ["hf-decomp"], "ef-moderate": ["ef-severe"], "pulm-htn": ["pulm-htn-severe"], "chd": ["chd-elevated"],
-        "asthma": ["asthma-uncontrolled"], "ckd": ["esrd-dialysis"], "gdm-diet": ["gdm-complex"], "alcohol-social": ["alcohol-abuse"],
+        "asthma": ["asthma-uncontrolled"], "ckd": ["esrd-dialysis"], "gdm-diet": ["gdm-complex"], "alcohol-social": ["alcohol-abuse", "alcohol-abuse-former"],
+        // 1.9: Alcohol is one answer (a current dependence over a former one); an EF below 40% makes the peripartum
+        // cardiomyopathy the ASA's class IV example.
+        "alcohol-abuse-former": ["alcohol-abuse"], "ppcm": ["peripartum-cm"],
         "aaa": ["aaa-ruptured"], "taa": ["taa-ruptured"], "taaa": ["taaa-ruptured"],
         "ruptured-aneurysm": ["aaa-ruptured", "taa-ruptured", "taaa-ruptured"],
         "preeclampsia": ["preeclampsia-severe", "hellp"], "gest-htn": ["preeclampsia", "preeclampsia-severe", "hellp"],
@@ -562,6 +702,41 @@ enum PatientNote {
     private static let famEnd = NoteRx(#"\b(?:patient|pt|he|she|they|himself|herself|personally|but|however|otherwise|whereas|own)\b|;|,\s*(?:has|have|had|is|was|also)\b"#)
     private static let pastBefore = NoteRx(#"\b(?:recent|recently|prior|previous|previously|history of|hx of|h/o|s/p|status post|old|remote|resolved)\b[^.;]{0,20}$"#)
     private static let pastAfter = NoteRx(#"^[^.;]{0,15}\b(?:in (?:19|20)\d\d|\d+ (?:years?|yrs?|months?) ago|last year)\b"#)
+    /// 1.9. Before a mention: a risk, a suspicion, a screen or a differential, not the diagnosis ("at risk for
+    /// compartment syndrome", "concern for GI bleed", "possible PTX", "evaluate for fracture", "vs pneumothorax").
+    static let riskBefore = NoteRx(#"\b(?:at (?:high |increased |low )?risk (?:of|for)|risks? (?:of|for|include|including)|high[- ]risk (?:of|for)|concern(?:ed|ing)? (?:for|about|of)|evaluat(?:e|ed|ion|ing) (?:for|of)|eval (?:for|of)|monitor(?:ed|ing)? for|watch(?:ing)? for|assess(?:ed|ing)? for|screen(?:ed|ing)? for|work-?up (?:for|of)|prevent(?:ion of|ing)?|prophylaxis (?:of|for|against)|counsel(?:l)?ed (?:on|about|regarding)|discussed|possible|possibly|probable|suspected|suspicion (?:of|for)|presumed|questionable|query|likely|unlikely|versus|vs\.?|\?)\s*(?:(?:an?|the|acute|new|recurrent|developing|impending|worsening|any|for|of|left|right|bilateral|l|r)\s+){0,3}$"#)
+    /// After a mention: "fracture risk", "compartment checks", "PTX?", "GI bleed was ruled out".
+    static let riskAfter = NoteRx(#"^\s*(?:risks?|precautions?|prophylaxis|ppx|prevention|protocol|checks?|screen(?:ing)?|work-?up|rule[- ]out|r/o|watch|monitoring|concerns?|education|counsel\w*|vs\.?|versus)\b|^\s*\?|^\s*(?:is|was)\s+(?:possible|suspected|likely|unlikely|ruled out|excluded)\b"#)
+    /// 1.9. A mention told as past, for an item that is there now: a history cue before it ("h/o", "s/p ORIF of", not "s/p
+    /// fall with": the event behind a current injury), a year before this one, "years ago" or "in a prior pregnancy"
+    /// after it, or a past-history heading before it ("PMH: …, hip fracture").
+    static let historyCueRx = NoteRx(#"\b(?:prior|previous|previously|history of|hx of|h/o|s/p|status post|old|remote|resolved|healed|childhood)\b([^.;,]{0,30})$"#)
+    /// Between a history cue and the mention: the event behind a current injury, or words that make it now ("h/o AF, now
+    /// with PTX" is cut at the comma; "h/o AF now with PTX" is read here).
+    static let causeWords = NoteRx(#"\b(?:falls?|fell|mvc|mva|accident|trauma|injur\w*|assault\w*|collision|crash|gsw|gunshot|stab\w*|glf|fire|explosion|ejection|struck|motorcycle|bicycle|now|currently|presents?|presenting|presented|admitted|new|acute)\b"#)
+    static let pastTailRx = NoteRx(#"^[^.;,]{0,30}?(?:\(?\b"# + pastYears + #"\b|\b\d+ (?:years?|yrs?|months?|mos?) ago\b|\blast year\b|\bas a (?:child|kid|teen\w*)\b|\bin (?:childhood|the past)\b|\b(?:resolved|healed)\b|\bin (?:a |her |the )?(?:prior|previous|last|first|1st|second|2nd) (?:pregnanc(?:y|ies)|deliver(?:y|ies)|labou?r)\b|\bwith (?:her )?(?:first|prior|previous|last) (?:pregnancy|delivery|child|baby)\b)"#)
+    static let pmhBefore = NoteRx(#"\b(?:pmh|pmhx|past medical history|medical history|ob(?:stetric)? (?:history|hx)|obhx|(?:prior|previous) pregnanc(?:y|ies))\b"#)
+
+    /// A dependence or a drug use told as over: "former", "ex-", "recovered" before it; "in remission", "quit", "sober",
+    /// "clean" or "years ago" after it.
+    static let formerBefore = NoteRx(#"\b(?:former|ex|past|previous|prior|remote|recovering|recovered|quit|stopped|clean|sober)(?:-|\s+)(?:(?:iv|intravenous|heavy|daily|occasional)\s+)?$"#)
+    static let formerAfterText = #"^[^.;]{0,30}?\b(?:in (?:sustained |early |full )?remission|sober|abstinent|quit|stopped|clean|no longer|(?:\d+|many|several) (?:years?|yrs?) ago)\b"#
+    static let formerAfter = NoteRx(formerAfterText)
+    /// After a drug: a negative screen ("cocaine negative", "UDS: neg").
+    static let drugNegAfter = NoteRx(#"^\s*(?:screen|tox|uds|use)?\s*[:=]?\s*(?:neg(?:ative)?\b|[-−](?=[\s,;.)]|$)|none\b|denied\b|no\b)"#)
+    /// Before an operation: the one planned, not one in the past ("for laparoscopic RYGB", "scheduled for gastric bypass").
+    static let plannedWide = NoteRx(#"\b(?:for|undergo(?:ing)?|to undergo|scheduled(?: for)?|planned|planning|booked(?: for)?|candidate for|evaluation for|eval for|consult(?:ed)? for|referred for|considering)\s+(?:(?:an?|the|elective|urgent|laparoscopic|lap|robotic|robot-assisted|open|revision(?: of)?|redo|possible|conversion to)\s+){0,4}$"#)
+    /// The kinds of shock (1.9: Ben's list, cardiogenic, distributive, obstructive, hypovolemic; septic, anaphylactic,
+    /// neurogenic and vasoplegic shock are distributive, hemorrhagic shock hypovolemic).
+    static let shockKinds = #"septic|cardiogenic|h(?:a)?emorrhagic|hypovol(?:a)?emic|distributive|obstructive|anaphylactic|neurogenic|vasoplegic|vasodilatory|mixed"#
+    static let shockRx = #"\b(?:"# + shockKinds + #")(?:\s*(?:,|/|and|&|\+|or)?\s*(?:"# + shockKinds + #"))*\s+shock\b"#
+
+    private static func toldAsPast(_ c: String, _ m: NSTextCheckingResult) -> Bool {
+        let ns = c as NSString
+        let before = ns.substring(to: m.range.location), after = ns.substring(from: m.range.location + m.range.length)
+        if let h = historyCueRx.first(before), causeWords.first(h.text(1, in: before) ?? "") == nil { return true }
+        return pastTailRx.first(after) != nil || pmhBefore.first(before) != nil
+    }
     /// A sentence about past surgery or anesthetics: its leftovers go to the anesthesia-history details, and a
     /// technique it names is not read as the planned one.
     private static let pastCare = NoteRx(#"\b(?:psh|pshx|past surgical history|surgical history|prior surger(?:y|ies)|previous surger(?:y|ies)|previous an(?:a)?esthe|prior an(?:a)?esthe|an(?:a)?esthetic history|uneventful|tolerated (?:ga|general|an(?:a)?esthesia))"#)
@@ -596,9 +771,15 @@ enum PatientNote {
     /// The first mention a sentence makes of a rule's item about the patient: negated and family mentions are skipped
     /// (but count as read).
     private static func accepted(_ rule: Rule, in c: String, _ h: inout Hits) -> NSTextCheckingResult? {
-        if let o = rule.onlyIf, o.first(c) == nil { return nil }
-        if let n = rule.notIf, n.first(c) != nil { return nil }
+        allAccepted(rule, in: c, &h, first: true).first
+    }
+
+    /// Every mention accepted (1.9: each type of hepatitis, each kind of shock), or only the first.
+    private static func allAccepted(_ rule: Rule, in c: String, _ h: inout Hits, first: Bool = false) -> [NSTextCheckingResult] {
+        if let o = rule.onlyIf, o.first(c) == nil { return [] }
+        if let n = rule.notIf, n.first(c) != nil { return [] }
         let ns = c as NSString
+        var out: [NSTextCheckingResult] = []
         for m in rule.rx.all(c) {
             if negated(c, at: m.range.location) || (!rule.family && familyContext(c, at: m.range.location)) {
                 h.seen(m.range)
@@ -608,9 +789,26 @@ enum PatientNote {
                 h.seen(NSRange(location: m.range.location, length: m.range.length + n.range.length))
                 continue
             }
-            return m
+            // 1.9: a risk or a suspicion, words that make it someone's past or another thing, past or current.
+            let before = ns.substring(to: m.range.location), after = ns.substring(from: m.range.location + m.range.length)
+            if rule.guarded && (riskBefore.first(before) != nil || riskAfter.first(after) != nil) {
+                h.seen(m.range)
+                continue
+            }
+            // Told as past (or, for a past item, as now), former, or another thing: left for Other conditions unless
+            // another rule reads it.
+            if (rule.notBefore?.first(before) != nil) || (rule.notAfter?.first(after) != nil)
+                || (rule.current && toldAsPast(c, m)) || (rule.pastOnly && !toldAsPast(c, m)) { continue }
+            out.append(m)
+            if first { break }
         }
-        return nil
+        return out
+    }
+
+    /// The accepted mentions of a problem's rules in a clause (1.9).
+    private static func acceptedMentions(_ id: String, in c: String) -> [NSTextCheckingResult] {
+        var h = Hits()
+        return problemRules.filter { $0.id == id }.flatMap { allAccepted($0, in: c, &h) }
     }
 
     /// Every pattern, for the test that each one compiles.
@@ -621,6 +819,8 @@ enum PatientNote {
         out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
                 prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI]
         out += [infectionNotPositive, hivPrevention, covidNotRecent]
+        out += detailPatterns
+        out += problemRules.flatMap { r -> [NoteRx] in [r.notBefore, r.notAfter, r.notIf, r.onlyIf, r.negAfter].compactMap { $0 } }
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
         out += PatientCodeStatus.patterns
         out += LabResults.patterns
@@ -840,7 +1040,9 @@ enum PatientNote {
             }
         }
         // Insulin means diabetes treated with insulin; CPAP means sleep apnea.
-        if has("flag:insulin"), !has("problem:insulin"), !has("problem:gdm-complex"), let l = problemLabels["insulin"] {
+        // Not a gestational diabetes's insulin (1.9: its own detail).
+        let gestational = ["problem:gdm", "problem:gdm-diet", "problem:gdm-complex"].contains(where: has)
+        if has("flag:insulin"), !has("problem:insulin"), !gestational, let l = problemLabels["insulin"] {
             put(PatientNoteFinding(id: "problem:insulin", section: Part.history, label: l, change: .problem("insulin"), note: "From the insulin in the medications."))
         }
         // CPAP or BiPAP running now (respiratory failure) is the oxygen support, not home therapy for sleep apnea.
@@ -873,14 +1075,38 @@ enum PatientNote {
         for (general, specific) in supersededBy where has("problem:" + general) && specific.contains(where: { has("problem:" + $0) }) {
             found["problem:" + general] = nil
         }
-        // ESRD: on dialysis, not on dialysis, or not said.
+        // ESRD: on dialysis (Hemodialysis replaces CKD), not on dialysis (1.9: CKD stage 5 with the ESRD-not-on-dialysis
+        // item, which keeps the ASA IV that "aki" gave it until 1.9), or not said (CKD stage 5, with a caution). ESRD is
+        // KDIGO's kidney failure, G5.
         if esrdRx.first(text) != nil {
-            if has("problem:aki") || has("problem:esrd-dialysis") {
+            if has("problem:esrd-dialysis") {
                 found["problem:ckd"] = nil
             } else if var ckd = found["problem:ckd"] {
-                ckd.note = "The note says ESRD: in History, choose on scheduled dialysis or not on scheduled dialysis instead."
+                if case .problem = ckd.change {
+                    ckd.change = .detail("ckd", "ckdStage", "5")
+                    ckd.label += " (" + detailText("ckdStage", "5") + ")"
+                }
+                if !has("problem:esrd-no-dialysis") {
+                    ckd.note = "The note says ESRD: in History, choose Hemodialysis or ESRD not on regularly scheduled dialysis as well."
+                }
                 found["problem:ckd"] = ckd
             }
+        }
+        // A dialysis access read apart from the hemodialysis (another sentence) goes with it.
+        if has("problem:esrd-dialysis") {
+            for id in order where id.hasPrefix("hx:fistula") || id.hasPrefix("hx:catheter") {
+                guard var f = found[id], case .detail("", let k, let v) = f.change else { continue }
+                f.change = .detail("esrd-dialysis", k, v)
+                found[id] = f
+            }
+        }
+        // A thrombophilia in a pregnant patient on anticoagulation is also the ASA's obstetric example (class III,
+        // "a thrombophilic disease requiring anticoagulation"; Ben, Nov 3).
+        if has("problem:thrombophilia-heme"), has("problem:pregnant"),
+           has("problem:anticoagulation") || order.contains(where: { $0.hasPrefix("hx:anticoagulant") && has($0) }),
+           !has("problem:thrombophilia"), let l = problemLabels["thrombophilia"] {
+            put(PatientNoteFinding(id: "problem:thrombophilia", section: Part.history, label: l, change: .problem("thrombophilia"),
+                                   note: "Pregnant, with a thrombophilia and on anticoagulation."))
         }
         if found.keys.contains(where: { $0.hasPrefix("problem:") }) { found["nohistory"] = nil }
         // NKDA beside a named allergy (often latex or a food): keep the allergy.
@@ -1074,7 +1300,9 @@ enum PatientNote {
         return read.max { order.firstIndex(of: $0)! < order.firstIndex(of: $1)! }
     }
 
-    static let pacerDependent = NoteRx(#"\b(?:pacer|pacemaker|(?-i:PPM))[- ]dependent\b|\bdependent on (?:(?:the|a|his|her|their) )?(?:pacer|pacemaker)\b"#)
+    /// Pacer dependence (1.9: PatientHistoryDetails.pacerDependent): "pacer dependent", "PPM-dependent", "dependent on
+    /// his pacemaker"; not "non-pacer-dependent".
+    static let pacerDependent = NoteRx(#"(?<!non-)(?<!non)\b(?:pacer|pacemaker|(?-i:PPM|CIED)|device)[- ]dependen(?:t|ce|cy)\b|\bdependent on (?:(?:the|a|his|her|their) )?(?:pacer|pacemaker|(?-i:PPM))\b"#)
     static let homeO2FlowRx = NoteRx(#"(\d{1,2}(?:\.\d)?)\s?(?:l|lpm|l/min|liters?)\b(?:\s*(?:nc|per minute|/min))?"#)
 
     /// The flow written within a few words of "home oxygen".
@@ -1279,10 +1507,11 @@ enum PatientNote {
                 h.add(PatientNoteFinding(id: "problem:arrhythmia", section: Part.history, label: label + " (" + t + ")", change: .problemNote("arrhythmia", t)), at: m.range)
                 continue
             }
-            // A pacemaker-dependent patient: "dependent" goes to the device details.
-            if rule.id == "pacemaker", let d = pacerDependent.first(c) {
-                h.add(PatientNoteFinding(id: "problem:pacemaker", section: Part.history, label: label + " (dependent)", change: .problemNote("pacemaker", "dependent")),
-                      at: NSUnionRange(m.range, d.range))
+            // 1.9: words that go to the problem's own detail field (a fracture's place, the esophageal disorder's type,
+            // the source of a sepsis). A pacemaker-dependent patient is read with the details (readDetails19).
+            if let t = detailWords(rule.id, c, m) {
+                h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label + " (" + t.text + ")", change: .problemNote(rule.id, t.text)),
+                      at: NSUnionRange(m.range, t.range))
                 continue
             }
             // Home oxygen with a flow ("2 L at home", "home O2 3 L").
@@ -1293,6 +1522,7 @@ enum PatientNote {
             }
             h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label, change: .problem(rule.id), note: rule.quiet ? nil : cautions[rule.id]), at: m.range)
         }
+        readDetails19(c, &h)
         readValves(c, &h)
         readCardiacSurgery(c, &h)
         if let m = efRx.first(c), let a = number(m, [1], c) {
@@ -1325,6 +1555,622 @@ enum PatientNote {
         for rule in signRules {
             guard let m = accepted(rule, in: c, &h), let f = PatientAirway.signs.first(where: { $0.id == rule.id }) else { continue }
             h.add(PatientNoteFinding(id: "sign:" + rule.id, section: Part.airway, label: f.label, change: .airwaySign(rule.id)), at: m.range)
+        }
+    }
+
+    // MARK: History details (1.9)
+    //
+    // What the 1.9 History pages hold beside a problem (PatientHistoryDetails), read where the note says it: the CKD
+    // stage, the dialysis days and access, the AF type, pacer dependence, the hepatitis types, latent or active TB,
+    // COVID-19 active or recent, pack-years and the quit year, G/P and weeks of gestation, the kinds of shock, a GI bleed
+    // active or resolved and upper or lower, the anticoagulants, a peripartum cardiomyopathy's LVEF, a gestational
+    // diabetes's insulin and control, the side and fluid of a pleural effusion or pneumothorax and a chest tube, and a
+    // previous esophageal procedure. Each is read only where its own words are not negated or a relative's; a detail
+    // goes on its problem's finding (one chip) when that finding has nothing else, else it is a finding of its own.
+
+    /// The CKD stage, KDIGO's GFR categories (G1–G5, 3a and 3b): "CKD 3b", "CKD stage IV", "CKD G4", "stage 4 CKD",
+    /// "CKD5D". A bare stage 3 is not a KDIGO category (3a or 3b) and is not read; "CKD 2/2 diabetes" is not a stage.
+    static let ckdStageRx = NoteRx(#"(?:(?-i:\b(?:CKD|CRI)\b)|\bchronic kidney disease\b)[\s-]*(?:stage|stg\.?)?[\s-]*(?-i:G)?(1|2|3a|3b|3|4|5|iiia|iiib|iii|ii|iv|v)(?:\s*d)?\b(?!\s*/\s*\d|\.\d|\s*(?:years?|yrs?|y\b|months?|mos?|weeks?|wks?|days?|x\b))|\bstage\s+(1|2|3a|3b|3|4|5|iiia|iiib|iii|ii|iv|v)\s+(?:(?-i:CKD)|chronic kidney disease)\b|(?:(?-i:CKD)|chronic kidney disease)[^.;]{0,12}?(?-i:\bG(1|2|3a|3b|4|5)\b)"#)
+    /// Hemodialysis days: Mon/Wed/Fri or Tue/Thu/Sat, after or before the dialysis words ("HD MWF", "TTS HD").
+    static let dialysisDaysRx = NoteRx(#"\b(?:hd|hemodialysis|dialysis|dialyzes|dialyses)\b[^.;]{0,24}?\b(?:(m/?w/?f|mwf|mon(?:day)?[,/ ]+wed(?:nesday)?[,/ ]+(?:and |& )?fri(?:day)?)|(t/?th/?s(?:at)?|tts|tths|tu(?:e(?:s(?:day)?)?)?[,/ ]+th(?:u(?:r(?:s(?:day)?)?)?)?[,/ ]+(?:and |& )?sat(?:urday)?))\b|\b(?:(m/?w/?f|mwf)|(t/?th/?s|tts|tths))\s+(?:hd|hemodialysis|dialysis)\b"#)
+    /// An AV fistula or graft: "AVF", "AV graft", "arteriovenous fistula", "radiocephalic", "brachiobasilic"; a bare
+    /// "fistula" or "graft" only after a limb ("L arm fistula") in a sentence about dialysis.
+    static let fistulaRx = NoteRx(#"\b(?:(?:av|a-v|arteriovenous)\s*(?:fistula|graft)|(?-i:AV[FG])s?|(?:brachio|radio)-?cephalic(?:\s+(?:av\s*)?(?:fistula|graft|avf|avg))?|brachio-?basilic(?:\s+(?:av\s*)?(?:fistula|graft|avf|avg))?)\b"#)
+    static let limb = #"(?:(?:left|right|l|r|lt|rt)\.?\s*)?(?:upper arm|forearm|arm|wrist|antecubital|upper extremity|thigh|leg|groin)|(?-i:[LR]UE|[LR]LE)"#
+    static let limbFistulaRx = NoteRx(#"\b("# + limb + #")\s+(?:dialysis\s+)?(?:fistula|graft)\b"#)
+    static let limbBefore = NoteRx(#"\b("# + limb + #"|(?:left|right|l|r|lt|rt)\.?)\s*$"#)
+    static let limbAfter = NoteRx(#"^\s*(?:,|\(|in|on|at|of|to)?\s*(?:the\s+)?("# + limb + #")\b"#)
+    static let dialysisWords = NoteRx(#"\b(?:hd|hemodialysis|dialysis|dialyzes|esrd|eskd)\b"#)
+    /// A dialysis catheter: "R IJ tunneled HD catheter", "permcath", "tunneled dialysis line", "trialysis", "Quinton".
+    static let dialysisCatheterRx = NoteRx(#"(?:((?:(?:left|right|l|r|lt|rt)\.?\s*)?(?:ij|internal jugular|subclavian|femoral|fem)|(?-i:[LR]IJ|[LR]SC|[LR]FV))\s+)?((?:non-?)?tunnel(?:l)?ed\s+)?(?:(?:hd|hemodialysis|dialysis)\s+(?:cath(?:eter)?|line|access catheter)|perm-?a?-?cath|quinton|trialysis|vas-?cath|mahurkar)\b"#)
+    static let catheterSiteAfter = NoteRx(#"^\s*(?:,|\(|in|via|at|through)?\s*(?:the\s+)?((?:(?:left|right|l|r)\.?\s*)?(?:ij|internal jugular|subclavian|femoral)|(?-i:[LR]IJ|[LR]SC|[LR]FV))\b"#)
+    /// An access no longer there, or one to come ("AVF ligated", "failed AVF", "for AVF creation").
+    static let accessGone = NoteRx(#"^\s*(?:ligat\w*|removed|pulled|excised|explant\w*|thrombosed|clotted|creation|placement|planned|pending|to be placed)\b"#)
+    static let accessGoneBefore = NoteRx(#"\b(?:ligated|thrombosed|failed|clotted|non-?functioning|non-?functional|abandoned|removed|old|planned|future|for|needs?|will need)\s+(?:an?\s+|the\s+)?$"#)
+    /// The AF type (2023 ACC/AHA/ACCP/HRS: paroxysmal, persistent, long-standing persistent, permanent).
+    static let afTypeRx = NoteRx(#"\b(paroxysmal|persistent|long[- ]?standing(?: persistent)?|permanent)\s+(?:atrial fibrillation|atrial flutter|a[-. ]?fib|a[-. ]?flutter|(?-i:AF|AFL|AFib|Afib))\b|(?-i:\b(PAF)\b)|\b(?:atrial fibrillation|a[-. ]?fib|(?-i:AF))\s*(?:,|\(|-|–)\s*(paroxysmal|persistent|long[- ]?standing persistent|permanent)\b"#)
+    /// Pacer dependence asked, unknown, or with temporary pacing: not read as a permanent device's.
+    static let pacerDependenceNo = NoteRx(#"^\s*(?:[:=\-–]\s*)?(?:no|none|negative|unknown|unclear|n)\b|^\s*\?"#)
+    static let pacerDependenceUnsure = NoteRx(#"\b(?:unknown|unclear|uncertain|unsure|whether|if|\?)\s+(?:(?:the|pt|patient|he|she)\s+)?(?:is\s+)?$"#)
+    static let temporaryPacing = NoteRx(#"\b(?:epicardial|temporary|transvenous|transcutaneous|external|pacing wires?|wires|pads|(?-i:TVP))\b"#)
+    /// Latent tuberculosis: "LTBI", "latent TB", a positive skin or blood test ("+PPD treated").
+    static let tbLatentRx = NoteRx(#"\blatent\b|(?-i:\bLTBI\b)|(?:\bpositive|\+)\s*(?:ppd|quantiferon|qft|igra|tst|tb test)\b|\b(?:ppd|quantiferon|qft|igra|tst)\s*(?:test\s*)?(?:\+|positive\b|pos\b)"#)
+    /// Active tuberculosis: pulmonary or laryngeal (the airborne kinds), cavitary, smear-positive, on treatment.
+    static let tbActiveRx = NoteRx(#"\b(?:active|pulmonary|laryngeal|cavitary|miliary)\s+(?:tb|tuberculosis)\b|\bsmear[- ]positive\b|\bafb (?:smear )?positive\b|\bon (?:ripe|rhze)\b|\b(?:tb|tuberculosis),?\s+(?:active|on treatment)\b"#)
+    static let tbTreated = NoteRx(#"\b(?:treated|completed|s/p treatment|cured)\b"#)
+    static let covidRecentWords = NoteRx(#"\b(?:recent|recently|recovered|resolved)\b|\b\d{1,2} (?:days?|weeks?) ago\b|\blast (?:week|month)\b|\b(?:1|2|one|two) months? ago\b"#)
+    static let covidActiveWords = NoteRx(#"\b(?:active|current|currently|acute|ongoing|symptomatic)\b|(?:\bpositive|\+|\bpos\b|\bdetected)\b"#)
+    static let covidDateRx = NoteRx(#"\bpositive\s+(?:test\s+)?(?:on\s+)?(\d{1,2}/\d{1,2}(?:/\d{2})?)(?![/\d])"#)
+    static let shockKindRx = NoteRx(#"\b("# + shockKinds + #")\b"#)
+    /// GI bleed: active or resolved, upper or lower.
+    static let bleedActiveBefore = NoteRx(#"\b(?:active|acute|ongoing|current|actively|brisk|massive|presenting with|presents with|admitted (?:with|for)|now with|new)\b[^.;,]{0,12}$"#)
+    static let bleedActiveAfter = NoteRx(#"^\s*[,(]?[^.;,]{0,20}\b(?:ongoing|active(?:ly)?|today|now|currently)\b"#)
+    static let bleedResolvedAfter = NoteRx(#"^\s*[,(]?[^.;,]{0,25}\b(?:resolved|healed|no recurrence|s/p (?:clips?|egd|banding|cautery|embolization))\b"#)
+    static let bleedUpper = NoteRx(#"\b(?:upper|ugi|ugib|variceal|varices|melena|hematemesis|peptic|ulcers?|duodenal|gastric|esophag\w*|egd)\b"#)
+    static let bleedLower = NoteRx(#"\b(?:lower|lgi|lgib|diverticul\w*|colonic|colonoscopy|rectal|hemorrhoidal)\b"#)
+    /// A gestational diabetes on insulin, and its control.
+    static let gdmInsulinRx = NoteRx(#"\b(?:on|requiring|requires|treated with|managed with|needs?|started on)\s+(?:basal\s+|nightly\s+|nph\s+)?insulin\b|\binsulin[- ](?:requiring|treated|dependent)\b"#)
+    static let poorControlRx = NoteRx(#"\b(?:poorly|badly|not well|sub-?optimally)[- ]controlled\b|\buncontrolled\b"#)
+    static let wellControlRx = NoteRx(#"(?<!diet[- ])(?<!poorly )(?<!badly )(?<!well )\b(?:well[- ])?controlled\b"#)
+    static let visualAcuteRx = NoteRx(#"\b(?:acute|sudden|new|acute-onset|new-onset)\b"#)
+    static let visualChronicRx = NoteRx(#"\b(?:chronic|longstanding|long-standing|congenital|legally|since (?:birth|childhood)|baseline)\b"#)
+    /// The side of a pleural effusion or a pneumothorax, before or after it.
+    static let pleuralSideBefore = NoteRx(#"\b(left|right|bilateral|l|r|lt|rt|b/l|bilat)\.?(?:[- ]sided)?\s+(?:(?:large|small|moderate|massive|tension|loculated|simple|complicated|traumatic|spontaneous|pleural|apical|persistent)\s+){0,2}$"#)
+    static let pleuralSideAfter = NoteRx(#"^\s*(?:,|\()?\s*(?:on the\s+)?(left|right|bilateral|l|r|b/l|bilat)\b"#)
+    static let pleuralSideInside = NoteRx(#"^(left|right|bilateral|l|r|lt|rt|b/l|bilat)\b"#)
+    static let chestTubeRx = NoteRx(#"\b(?:(left|right|l|r|lt|rt|bilateral|b/l)\.?\s+)?(?:chest tubes?|thoracostomy tubes?|pigtail(?: catheter)?|pleurx(?: catheter)?)\b(?:\s*(?:\(|,|on the|in the)?\s*(left|right|l|r|bilateral)\b)?"#)
+    static let chestTubeGone = NoteRx(#"^\s*(?:was\s+|were\s+)?(?:removed|pulled|out|d/c'?d|discontinued|planned|to be placed)\b"#)
+    static let chestTubeGoneBefore = NoteRx(#"\b(?:removed|pulled|removal of|planned|for|needs?|will need|consider(?:ing)?)\s+(?:an?\s+|the\s+)?$"#)
+    /// A previous esophageal procedure (the TEE screen asks): dilation, stent, myotomy, resection.
+    static let esophagealProcedureRx = NoteRx(#"\besophageal (?:dilation|dilatation|stent(?:ing)?|stent placement|resection|surgery|myotomy)\b|\b(?:pneumatic |balloon |savary )?dilation of (?:the )?esophagus\b|(?-i:\bPOEM\b)|\bper-?oral endoscopic myotomy\b|\bheller myotomy\b|\besophagectomy\b"#)
+    /// Smoking: pack-years and the year quit.
+    static let packYearsRx = NoteRx(#"\b(\d{1,3}(?:\.\d)?)\s*[- ]?\s*(?:pack[- ]?years?|pk[- ]?yrs?|pack[- ]?yrs?|pky|(?-i:PY|py))\b"#)
+    static let quitYearRx = NoteRx(#"\bquit(?:\s+(?:smoking|tobacco|cigarettes))?\s+(?:in\s+)?((?:19|20)\d\d)\b|\bquit(?:\s+(?:smoking|tobacco|cigarettes))?\s+(\d{1,2})\s+(?:years?|yrs?)\s+ago\b"#)
+    static let smokingWords = NoteRx(#"\b(?:smok\w*|tobacco|cig\w*|packs?|ppd|nicotine|vap\w*)\b|\bpack[- ]?years?\b"#)
+    /// G and P: "G2P1", "G2 P1 A0", "G3P2012" (TPAL: term, preterm, abortus, living; P is term + preterm).
+    static let gpalRx = NoteRx(#"(?-i:\bG(\d{1,2})\s?P(?:(\d)-?(\d)-?(\d)-?(\d)|(\d{1,2}))(?:\s?Ab?(\d{1,2}))?(?:\s?L(\d{1,2}))?\b)"#)
+    /// Weeks of gestation: "32+4 weeks", "32 4/7", "32w4d", "28 weeks gestation", "IUP at 28 weeks", "GA 32+4".
+    static let gestationDaysRx = NoteRx(#"\b(\d{1,2})\s*(?:\+\s*(\d)(?:\s*/\s*7)?|\s+(\d)\s*/\s*7)\s*(?:(weeks?|wks?|w)\b)?"#)
+    static let gestationWDRx = NoteRx(#"\b(\d{1,2})\s*w(?:ks?|eeks?)?\s*(\d)\s*d(?:ays?)?\b"#)
+    static let gestationWeeksRx = NoteRx(#"\b(\d{1,2})\s*(?:weeks?|wks?)'?\s*(?:of\s+)?(?:gestation(?:al age)?|pregnant|pregnancy|(?-i:GA)|iup)\b|(?:(?-i:\bIUP|\bGA|\bEGA)|\bgestational age)\s*(?:at|of|:|=)?\s*(\d{1,2})\s*(?:\+\s*(\d)\s*)?(?:weeks?|wks?)\b"#)
+    static let pregnancyWords = NoteRx(#"\b(?:pregnan\w*|gestation\w*|parturient|gravid\w*|labou?r|edd|lmp|weeks|wks)\b|(?-i:\b(?:IUP|GA|EGA|G\d{1,2}\s?P\d)\b)"#)
+    static let hivLoadRx = NoteRx(#"\b(?:viral load|(?-i:VL))\s*(?:is|of|was|:|=)?\s*(undetectable|suppressed|non-?detectable|<\s*\d+(?:\s*copies(?:\s*/\s*ml)?)?|\d[\d,]*(?:\s*copies(?:\s*/\s*ml)?)?)"#)
+    /// Anticoagulants, by name: heparin and enoxaparin with their intensity, warfarin (its INR is the lab), the others by
+    /// name. Not in an allergy sentence, not one to avoid, not heparin-induced thrombocytopenia, a heparin flush or lock,
+    /// nor one stopped or taken before.
+    static let anticoagulantRx = NoteRx(#"\b(unfractionated heparin|heparin|(?-i:UFH)|enoxaparin|lovenox|(?-i:LMWH)|low[- ]molecular[- ]weight heparin|warfarin|coumadin|jantoven|apixaban|eliquis|rivaroxaban|xarelto|dabigatran|pradaxa|edoxaban|savaysa|dalteparin|fragmin|fondaparinux|arixtra|bivalirudin|argatroban|(?-i:DOAC|NOAC))\b(?![- ](?:induced|flush(?:es)?|lock(?:ed|s)?|free|allergy|antibod\w*|pf4)\b)"#)
+    static let anticoagulantOff = NoteRx(#"\b(?:off|stopped|discontinued|d/c'?d|dc'?d|no longer|previously|formerly|was on|were on|used to (?:be on|take)|avoid\w*|contraindicat\w*|allergic to)\b[^.;,]{0,20}$"#)
+    static let anticoagulantOffAfter = NoteRx(#"^[^.;,]{0,25}?\b(?:stopped|discontinued|d/c'?d|dc'?d|no longer|contraindicated)\b"#)
+    static let therapeuticRx = NoteRx(#"\b(?:gtts?|drips?|infusion|therapeutic|treatment[- ]dose|full[- ]dose|weight[- ]based|nomogram|bridg\w*|ptt goal|anti-?xa goal|(?:1|1\.5)\s*mg\s*/\s*kg|\d[\d,]*\s*(?:units?|u)\s*/\s*(?:kg\s*/\s*)?(?:hr|h|hour))\b"#)
+    static let prophylaxisRx = NoteRx(#"\b(?:prophyla\w*|ppx|40\s*(?:mg)?\s*(?:(?:sq|subq|sc)\s+)?(?:daily|qd|once daily|q\s?24\s?h?|nightly)|30\s*(?:mg)?\s*(?:(?:sq|subq|sc)\s+)?(?:bid|q\s?12\s?h?))\b"#)
+    static let heparinSubcutaneousRx = NoteRx(#"\b(?:sq|subq|sc|subcut\w*|5,?000(?:\s*(?:units?|u))?|7,?500(?:\s*(?:units?|u))?|q\s?8\s?h?)\b"#)
+    static let fvlRx = NoteRx(#"\bfactor (?:v|5) leiden\b|(?-i:\bFVL\b)|\bf5 leiden\b"#)
+    /// A place in the body: an arthritis's joint, a fracture's bone, a compartment syndrome's limb.
+    static let anatomy = #"(?:distal radius|femoral neck|femoral shaft|tibial plateau|lumbar spine|cervical spine|thoracic spine|upper arm|lower leg|upper extremity|lower extremity|c-?spine|tib(?:ia)?[/-]fib(?:ula)?|knees?|hips?|shoulders?|hands?|wrists?|ankles?|elbows?|fingers?|thumbs?|toes?|feet|foot|spine|neck|back|tmj|jaw|femur|femoral|intertrochanteric|subtrochanteric|tibia|tibial|fibula|patella|humerus|humeral|clavicle|scapula|radius|ulna|olecranon|ribs?|sternum|sternal|pelvis|pelvic|acetabul(?:um|ar)|sacr(?:um|al)|coccyx|vertebral|vertebrae?|compression|skull|mandible|mandibular|orbital|nasal|facial|zygomatic|maxillary|calcaneus|calcaneal|metatarsals?|legs?|thigh|calf|forearm|arm|gluteal|abdominal|(?-i:[LR][UL]E)|(?-i:[CTL]\d{1,2}(?:-[CTL]?\d{1,2})?))"#
+    static let sideWord = #"(?:left|right|bilateral|both|l|r|lt|rt|b/l|bilat)\.?"#
+    static let placeBefore = NoteRx(#"((?:"# + sideWord + #"\s+)?(?:"# + anatomy + #"\s+){1,2})$"#)
+    static let placeAfter = NoteRx(#"^\s+(?:arthritis\s+)?(?:of|in|to|at|involving)\s+(?:the\s+|both\s+|his\s+|her\s+|their\s+)?((?:"# + sideWord + #"\s+)?"# + anatomy + #"(?:\s+"# + anatomy + #")?)\b"#)
+    static let sepsisSourceAfter = NoteRx(#"^\s*(?:shock\s+)?(?:from|due to|secondary to|2/2(?: to)?|d/t|in the setting of|with (?:a )?source(?: of)?|source\s*:?)\s+(?:an?\s+|the\s+|presumed\s+|likely\s+|probable\s+|suspected\s+)?([a-z][a-z /'-]{1,40}?)(?=\s*(?:[,.;)(]|$)|\s+(?:on|with|and|now|s/p|requiring|status|currently|in|who|but|for)\b)"#)
+    static let sepsisSourceBefore = NoteRx(#"\b(pulmonary|urinary|abdominal|intra-?abdominal|biliary|line|catheter|skin|soft tissue|wound|pneumonia|uti|cholangitis|line-associated|catheter-related)[- ](?:source\s+)?$"#)
+
+    static var detailPatterns: [NoteRx] {
+        [ckdStageRx, dialysisDaysRx, fistulaRx, limbFistulaRx, limbBefore, limbAfter, dialysisWords, dialysisCatheterRx, catheterSiteAfter, accessGone,
+         accessGoneBefore, afTypeRx, pacerDependenceNo, pacerDependenceUnsure, temporaryPacing, tbLatentRx, tbActiveRx, tbTreated, covidRecentWords,
+         covidActiveWords, covidDateRx, shockKindRx, bleedActiveBefore, bleedActiveAfter, bleedResolvedAfter, bleedUpper, bleedLower, gdmInsulinRx,
+         poorControlRx, wellControlRx, visualAcuteRx, visualChronicRx, pleuralSideBefore, pleuralSideAfter, pleuralSideInside, chestTubeRx,
+         chestTubeGone, chestTubeGoneBefore, esophagealProcedureRx, packYearsRx, quitYearRx, smokingWords, gpalRx, gestationDaysRx, gestationWDRx,
+         gestationWeeksRx, pregnancyWords, hivLoadRx, anticoagulantRx, anticoagulantOff, anticoagulantOffAfter, therapeuticRx, prophylaxisRx,
+         heparinSubcutaneousRx, fvlRx, placeBefore, placeAfter, sepsisSourceAfter, sepsisSourceBefore, riskBefore, riskAfter, historyCueRx,
+         causeWords, pastTailRx, pmhBefore, formerBefore, formerAfter, drugNegAfter, plannedWide, NoteRx(shockRx)]
+    }
+
+    /// The words of a problem's own detail field, read with it (problemNoteField): a fracture's place, an arthritis's
+    /// joint, the esophageal disorder's type, the psychological disorder's name, a thrombophilia other than FVL, the burn,
+    /// the source of a sepsis.
+    private static func detailWords(_ id: String, _ c: String, _ m: NSTextCheckingResult) -> (text: String, range: NSRange)? {
+        let ns = c as NSString
+        let hit = ns.substring(with: m.range)
+        let end = m.range.location + m.range.length
+        let before = ns.substring(to: m.range.location), after = ns.substring(from: end)
+        func place() -> (text: String, range: NSRange)? {
+            if let b = placeBefore.first(before), let t = b.text(1, in: before)?.trimmingCharacters(in: .whitespaces), !t.isEmpty {
+                return (t, b.range)
+            }
+            if let a = placeAfter.first(after), let t = a.text(1, in: after) {
+                return (t, NSRange(location: end, length: a.range.length))
+            }
+            return nil
+        }
+        switch id {
+        case "fracture", "compartment-syndrome", "ra", "oa":
+            return place()
+        case "esophageal-disorder", "psych", "burn":
+            return (hit, m.range)
+        case "thrombophilia-heme":
+            return fvlRx.first(hit) == nil ? (hit, m.range) : nil
+        case "sepsis":
+            if hit.lowercased() == "urosepsis" { return ("urinary", m.range) }
+            if let a = sepsisSourceAfter.first(after), let t = a.text(1, in: after) {
+                return (t.trimmingCharacters(in: .whitespaces), NSRange(location: end, length: a.range.length))
+            }
+            if let b = sepsisSourceBefore.first(before), let t = b.text(1, in: before) { return (t, b.range) }
+            return nil
+        default:
+            return nil
+        }
+    }
+
+    private static func kdigoStage(_ raw: String) -> String? {
+        let map = ["1": "1", "2": "2", "3a": "3a", "3b": "3b", "4": "4", "5": "5", "ii": "2", "iiia": "3a", "iiib": "3b", "iv": "4", "v": "5"]
+        return map[raw.lowercased()]
+    }
+
+    private static func readDetails19(_ c: String, _ h: inout Hits) {
+        let ns = c as NSString
+        func found(_ id: String) -> Bool { h.findings.contains { $0.id == "problem:" + id } }
+        func free(_ r: NSRange) -> Bool { !negated(c, at: r.location) && !familyContext(c, at: r.location) }
+        func before(_ r: NSRange) -> String { ns.substring(to: r.location) }
+        func after(_ r: NSRange) -> String { ns.substring(from: r.location + r.length) }
+        func add(_ problem: String, _ key: String, _ value: String, _ r: NSRange) {
+            h.details.append(NoteDetail(problem: problem, key: key, value: value, range: r))
+        }
+
+        // Renal: the CKD stage, the dialysis days and the access (with the hemodialysis when the sentence has it; a
+        // fistula before dialysis is a detail alone, and the note-wide reading joins one told apart: PatientNote.read).
+        if let m = ckdStageRx.all(c).first(where: { free($0.range) }) {
+            if let raw = m.text([1, 2, 3], in: c), let stage = kdigoStage(raw) { add("ckd", "ckdStage", stage, m.range) } else { h.seen(m.range) }
+        }
+        if let m = dialysisDaysRx.all(c).first(where: { free($0.range) }) {
+            add("esrd-dialysis", "dialysisSchedule", m.text([1, 3], in: c) != nil ? "mwf" : "tts", m.range)
+        }
+        let dialysis = found("esrd-dialysis") || h.details.contains(where: { $0.problem == "esrd-dialysis" }) ? "esrd-dialysis" : ""
+        var accesses: [NSRange] = []
+        for m in fistulaRx.all(c) + (dialysisWords.first(c) != nil ? limbFistulaRx.all(c) : []) where free(m.range) {
+            guard !accesses.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) else { continue }
+            if accessGone.first(after(m.range)) != nil || accessGoneBefore.first(before(m.range)) != nil || plannedWide.first(before(m.range)) != nil {
+                h.seen(m.range)
+                continue
+            }
+            accesses.append(m.range)
+            let word = ns.substring(with: m.range)
+            var site = m.numberOfRanges > 1 ? (m.text(1, in: c) ?? "") : ""
+            var r = m.range
+            if site.isEmpty, let b = limbBefore.first(before(m.range)), let t = b.text(1, in: before(m.range)) {
+                site = t.trimmingCharacters(in: .whitespaces)
+                r = NSUnionRange(r, b.range)
+            }
+            if word.lowercased().contains("cephalic") || word.lowercased().contains("basilic") {
+                let vein = word.split(separator: " ").first.map(String.init) ?? word
+                site = (site.isEmpty ? "" : site + " ") + vein
+            } else if site.isEmpty, let a = limbAfter.first(after(m.range)), let t = a.text(1, in: after(m.range)) {
+                site = t
+                r.length += a.range.length
+            }
+            add(dialysis, "fistula", site.trimmingCharacters(in: .whitespaces), r)
+        }
+        for m in dialysisCatheterRx.all(c) where free(m.range) {
+            if chestTubeGone.first(after(m.range)) != nil || accessGoneBefore.first(before(m.range)) != nil { h.seen(m.range); continue }
+            var site = [m.text(1, in: c), m.text(2, in: c)].compactMap { $0?.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: " ")
+            var r = m.range
+            if m.text(1, in: c) == nil, let a = catheterSiteAfter.first(after(m.range)), let t = a.text(1, in: after(m.range)) {
+                site = ([t] + (site.isEmpty ? [] : [site])).joined(separator: " ")
+                r.length += a.range.length
+            }
+            add(dialysis, "catheter", site, r)
+        }
+
+        // Cardiovascular: the AF type; pacer dependence on a permanent device ("not pacer dependent", "pacer dependent:
+        // no" and dependence on temporary wires are not read).
+        if found("af"), let m = afTypeRx.all(c).first(where: { free($0.range) }), let t = m.text([1, 2, 3], in: c)?.lowercased() {
+            let type = t == "paf" || t.hasPrefix("parox") ? "paroxysmal" : (t.hasPrefix("long") ? "longstanding" : t)
+            add("af", "afType", type, m.range)
+        }
+        if temporaryPacing.first(c) == nil,
+           let m = pacerDependent.all(c).first(where: { free($0.range) && pacerDependenceNo.first(after($0.range)) == nil && pacerDependenceUnsure.first(before($0.range)) == nil }) {
+            add(found("icd") && !found("pacemaker") ? "icd" : "pacemaker", "pacerDependent", "true", m.range)
+        } else {
+            for m in pacerDependent.all(c) { h.seen(m.range) }
+        }
+
+        // Infectious: the hepatitis types, TB latent or active, COVID-19 active or recent (and the date of the positive
+        // test), the HIV viral load.
+        for m in acceptedMentions("hepatitis-viral", in: c) {
+            let t = ns.substring(with: m.range).lowercased()
+            let type = t.contains("hbv") || t.contains("hbsag") ? "b" : (t.contains("hcv") ? "c" : (t.contains("hav") ? "a" : String(t.filter(\.isLetter).suffix(1))))
+            if ["a", "b", "c"].contains(type) { add("hepatitis-viral", "hepatitisTypes", type, m.range) }
+        }
+        if found("tb") {
+            if let m = tbLatentRx.all(c).first(where: { free($0.range) }) {
+                add("tb", "tbStatus", "latent", m.range)
+            } else if let m = tbActiveRx.all(c).first(where: { free($0.range) && !toldAsPast(c, $0) }), tbTreated.first(c) == nil {
+                add("tb", "tbStatus", "active", m.range)
+            }
+        }
+        if found("covid-recent") {
+            if let m = covidRecentWords.first(c) {
+                add("covid-recent", "covidStatus", "recent", m.range)
+            } else if let m = covidActiveWords.first(c) {
+                add("covid-recent", "covidStatus", "active", m.range)
+            }
+            if let m = covidDateRx.first(c), let d = m.text(1, in: c) { add("covid-recent", "note", d, m.range) }
+        }
+        if found("hiv"), let m = hivLoadRx.first(c), free(m.range), let v = m.text(1, in: c) { add("hiv", "note", "viral load " + v, m.range) }
+
+        // Acute illness: the kinds of shock ("septic" is distributive).
+        for m in acceptedMentions("shock", in: c) {
+            var kinds: [String] = []
+            for k in shockKindRx.all(ns.substring(with: m.range)) {
+                let w = (ns.substring(with: m.range) as NSString).substring(with: k.range).lowercased()
+                let kind: String?
+                if w == "cardiogenic" || w == "obstructive" { kind = w }
+                else if w.hasPrefix("h") { kind = "hypovolemic" }
+                else if w == "mixed" { kind = nil }
+                else { kind = "distributive" }
+                if let kind, !kinds.contains(kind) { kinds.append(kind) }
+            }
+            if !kinds.isEmpty { add("shock", "shockTypes", kinds.joined(separator: ","), m.range) }
+        }
+
+        // GI: a GI bleed active or resolved, upper or lower; a previous esophageal procedure.
+        if let m = acceptedMentions("gi-bleed", in: c).first {
+            let b = before(m.range), a = after(m.range)
+            let window = String(b.suffix(24)) + " " + ns.substring(with: m.range) + " " + String(a.prefix(24))
+            let status = toldAsPast(c, m) || bleedResolvedAfter.first(a) != nil ? "resolved"
+                : (bleedActiveBefore.first(b) != nil || bleedActiveAfter.first(a) != nil ? "active" : "")
+            let site = bleedLower.first(window) != nil ? "lower" : (bleedUpper.first(window) != nil ? "upper" : "")
+            if !status.isEmpty || !site.isEmpty { add("gi-bleed", "giBleed", status + "," + site, m.range) }
+        }
+        if let m = esophagealProcedureRx.all(c).first(where: { free($0.range) && toldAsPast(c, $0) }) {
+            add("esophageal-disorder", "esophagealProcedure", ns.substring(with: m.range), m.range)
+        }
+
+        // Hematologic: the anticoagulants.
+        readAnticoagulants(c, &h)
+
+        // Obstetric: a peripartum cardiomyopathy's LVEF (below 40%: the ASA's class IV example), a gestational
+        // diabetes's insulin and control, G and P, the weeks of gestation.
+        if found("ppcm"), let m = efRx.first(c), let a = number(m, [1], c) {
+            let ef = number(m, [2], c).map { ($0 + a) / 2 } ?? a
+            add(ef < 40 ? "peripartum-cm" : "ppcm", "ppcmEF", NumText.short(ef), m.range)
+        }
+        if found("gdm") {
+            if let m = gdmInsulinRx.all(c).first(where: { free($0.range) }) { add("gdm", "gdmInsulin", "true", m.range) }
+            if let m = poorControlRx.first(c) { add("gdm", "gdmControl", "uncontrolled", m.range) }
+            else if let m = wellControlRx.all(c).first(where: { free($0.range) }) { add("gdm", "gdmControl", "controlled", m.range) }
+        }
+        readObstetric(c, &h)
+
+        // Neurologic and respiratory: acute or chronic visual impairment; the side and fluid of an effusion or a
+        // pneumothorax, and a chest tube in place.
+        if let m = acceptedMentions("visual-impairment", in: c).first {
+            let window = String(before(m.range).suffix(24)) + " " + ns.substring(with: m.range) + " " + String(after(m.range).prefix(20))
+            if visualAcuteRx.first(window) != nil { add("visual-impairment", "visualImpairment", "acute", m.range) }
+            else if visualChronicRx.first(window) != nil { add("visual-impairment", "visualImpairment", "chronic", m.range) }
+        }
+        var pleuralSide = ""
+        for id in ["pleural-effusion", "pneumothorax"] {
+            guard let m = acceptedMentions(id, in: c).first else { continue }
+            defer { if pleuralSide.isEmpty, let d = h.details.last, d.key == "pleural" { pleuralSide = String(d.value.prefix { $0 != "," }) } }
+            let hit = ns.substring(with: m.range).lowercased()
+            let s = pleuralSideInside.first(hit).flatMap { $0.text(1, in: hit) } ?? pleuralSideBefore.first(before(m.range)).flatMap { $0.text(1, in: before(m.range)) }
+                ?? pleuralSideAfter.first(after(m.range)).flatMap { $0.text(1, in: after(m.range)) }
+            let side = s.map(sideName) ?? ""
+            let fluid = id == "pleural-effusion" ? (hit.contains("hemo") || hit.contains("haemo") ? "hemothorax" : (hit.contains("chylo") ? "chylothorax" : "")) : ""
+            if !side.isEmpty || !fluid.isEmpty { add(id, "pleural", side + "," + fluid, m.range) }
+        }
+        if found("pleural-effusion") || found("pneumothorax"),
+           let m = chestTubeRx.all(c).first(where: { free($0.range) && chestTubeGone.first(after($0.range)) == nil && chestTubeGoneBefore.first(before($0.range)) == nil }) {
+            // A tube with no side of its own is on the side of the one effusion or pneumothorax.
+            var sides = [m.text(1, in: c), m.text(2, in: c)].compactMap { $0 }.map(sideName)
+            if sides.isEmpty, pleuralSide == "left" || pleuralSide == "right" { sides = [pleuralSide] }
+            let list = sides.contains("bilateral") ? ["left", "right"] : sides
+            add(found("pneumothorax") ? "pneumothorax" : "pleural-effusion", "chestTube", list.joined(separator: ","), m.range)
+        }
+
+        // Smoking: pack-years and the year quit (with a smoking word in the sentence).
+        if let m = packYearsRx.all(c).first(where: { free($0.range) }), let v = number(m, [1], c), v > 0, v <= 300 {
+            add("", "packYears", NumText.short(v), m.range)
+        }
+        if smokingWords.first(c) != nil, let m = quitYearRx.first(c) {
+            let thisYear = Calendar(identifier: .gregorian).component(.year, from: Date())
+            let year = m.text(1, in: c).flatMap { Int($0) } ?? m.text(2, in: c).flatMap { Int($0) }.map { thisYear - $0 }
+            if let year, year >= 1930, year <= thisYear { add("", "smokingQuitYear", String(year), m.range) }
+        }
+
+        // Items that file their page's item beside them (the Psychological disorder for depression, Illicit drug use for
+        // cocaine, Bleeding disorder for vWD, Thrombophilia for FVL).
+        let bases: [(String, String)] = [("mdd", "psych"), ("anxiety", "psych"), ("vwd", "bleeding"), ("hemophilia-a", "bleeding"),
+                                         ("hemophilia-b", "bleeding"), ("fvl", "thrombophilia-heme"), ("cocaine", "substance"),
+                                         ("opioid-use", "substance"), ("marijuana", "substance"), ("methamphetamine", "substance")]
+        for (member, base) in bases where !found(base) {
+            guard let i = h.findings.firstIndex(where: { $0.id == "problem:" + member }), let l = problemLabels[base] else { continue }
+            h.add(PatientNoteFinding(id: "problem:" + base, section: Part.history, label: l, change: .problem(base)), at: h.at[i])
+        }
+        attachDetails(&h)
+    }
+
+    private static func sideName(_ s: String) -> String {
+        switch s.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: ". ")) {
+        case "left", "l", "lt": return "left"
+        case "right", "r", "rt": return "right"
+        default: return "bilateral"
+        }
+    }
+
+    /// G and P, and the weeks of gestation. G and P file Pregnant only when a pregnancy is not counted in them (G greater
+    /// than P + A): "G2P2" or "G3P2012" in a gynecological note is not a pregnancy.
+    private static func readObstetric(_ c: String, _ h: inout Hits) {
+        let found = h.findings.contains { $0.id == "problem:pregnant" }
+        var pregnant = found
+        if let m = gpalRx.first(c), !familyContext(c, at: m.range.location), let g = number(m, [1], c) {
+            var p: Double?, a = number(m, [7], c), l = number(m, [8], c)
+            if let t = number(m, [2], c), let pre = number(m, [3], c) {
+                p = t + pre
+                a = number(m, [4], c)
+                l = number(m, [5], c)
+            } else {
+                p = number(m, [6], c)
+            }
+            if let p, g > p + (a ?? 0) { pregnant = true }
+            let value = [Optional(g), p, a, l].map { $0.map { String(Int($0)) } ?? "" }.joined(separator: ",")
+            h.details.append(NoteDetail(problem: pregnant ? "pregnant" : "", key: "gpal", value: value, range: m.range))
+        }
+        // Weeks with days ("32+4", "32 4/7") only in a sentence about a pregnancy, or with "weeks" after them.
+        var weeks: (Double, Double?, NSRange)?
+        if let m = gestationWDRx.first(c), let w = number(m, [1], c) {
+            weeks = (w, number(m, [2], c), m.range)
+        } else if let m = gestationWeeksRx.first(c), let w = number(m, [1, 2], c) {
+            weeks = (w, number(m, [3], c), m.range)
+        } else if let m = gestationDaysRx.all(c).first(where: { $0.text(4, in: c) != nil || pregnant || pregnancyWords.first(c) != nil }),
+                  let w = number(m, [1], c) {
+            weeks = (w, number(m, [2, 3], c), m.range)
+        }
+        if let wk = weeks, case let (w, d, r) = wk, w >= 4, w <= 44, (d ?? 0) <= 6, !negated(c, at: r.location), !familyContext(c, at: r.location) {
+            h.details.append(NoteDetail(problem: "pregnant", key: "gestation", value: String(Int(w)) + "," + (d.map { String(Int($0)) } ?? ""), range: r))
+        }
+    }
+
+    /// The anticoagulants a sentence says the patient is on, each to Hematologic's On anticoagulation with its kind.
+    private static func readAnticoagulants(_ c: String, _ h: inout Hits) {
+        guard allergyCue.first(c) == nil else { return }
+        let ns = c as NSString
+        let generic: [String: String] = ["unfractionated heparin": "heparin", "ufh": "heparin", "lovenox": "enoxaparin", "coumadin": "warfarin", "jantoven": "warfarin",
+                                         "eliquis": "apixaban", "xarelto": "rivaroxaban", "pradaxa": "dabigatran", "savaysa": "edoxaban", "fragmin": "dalteparin",
+                                         "arixtra": "fondaparinux", "lmwh": "LMWH", "low molecular weight heparin": "LMWH", "low-molecular-weight heparin": "LMWH",
+                                         "low-molecular weight heparin": "LMWH", "low molecular-weight heparin": "LMWH", "doac": "DOAC", "noac": "DOAC"]
+        let all = anticoagulantRx.all(c)
+        for (i, m) in all.enumerated() where !negated(c, at: m.range.location) && !familyContext(c, at: m.range.location) {
+            let before = ns.substring(to: m.range.location)
+            let end = m.range.location + m.range.length
+            // Up to the next anticoagulant, the clause's end or 40 characters.
+            let stop = i + 1 < all.count ? all[i + 1].range.location : ns.length
+            let after = ns.substring(with: NSRange(location: end, length: max(0, min(stop, end + 40) - end)))
+            if anticoagulantOff.first(before) != nil || anticoagulantOffAfter.first(after) != nil {
+                h.seen(m.range)
+                continue
+            }
+            let name = (m.text(1, in: c) ?? "").lowercased()
+            let drug = generic[name] ?? name
+            let near = String(before.suffix(25)) + " " + after
+            switch drug {
+            case "heparin", "enoxaparin":
+                var kind = ""
+                if therapeuticRx.first(near) != nil { kind = "therapeutic" }
+                else if prophylaxisRx.first(near) != nil || (drug == "heparin" && heparinSubcutaneousRx.first(near) != nil) { kind = "prophylaxis" }
+                h.details.append(NoteDetail(problem: "anticoagulation", key: "anticoagulant:" + drug, value: kind, range: m.range))
+            case "warfarin":
+                h.details.append(NoteDetail(problem: "anticoagulation", key: "anticoagulant:warfarin", value: "", range: m.range))
+            default:
+                h.details.append(NoteDetail(problem: "anticoagulation", key: "anticoagulant:other", value: drug, range: m.range))
+            }
+        }
+    }
+
+    /// Details that add to a set ("hepatitis B, C", "cardiogenic, distributive", chest tubes) merge.
+    private static let listDetails: Set<String> = ["hepatitisTypes", "shockTypes", "chestTube"]
+
+    /// Puts each detail read on its problem's finding when that finding has nothing else (one chip: "Viral hepatitis
+    /// (hepatitis C)"), as the problem's finding when the sentence has none ("on apixaban" files On anticoagulation), or
+    /// as a finding of its own.
+    private static func attachDetails(_ h: inout Hits) {
+        var merged: [NoteDetail] = []
+        for d in h.details {
+            if let i = merged.firstIndex(where: { $0.problem == d.problem && $0.key == d.key && (d.key != "anticoagulant:other" || $0.value == d.value) }) {
+                if listDetails.contains(d.key) { merged[i].value = mergedList(merged[i].value, d.value) }
+                merged[i].range = NSUnionRange(merged[i].range, d.range)
+                continue
+            }
+            merged.append(d)
+        }
+        h.details = []
+        for d in merged {
+            let change: PatientNoteChange = d.key == "note" ? .problemNote(d.problem, d.value) : .detail(d.problem, d.key, d.value)
+            let text = d.key == "note" ? d.value : detailText(d.key, d.value)
+            if !d.problem.isEmpty, let i = h.findings.firstIndex(where: { $0.id == "problem:" + d.problem }) {
+                if case .problem = h.findings[i].change {
+                    h.findings[i].change = change
+                    h.findings[i].label += " (" + text + ")"
+                    h.at[i] = NSUnionRange(h.at[i], d.range)
+                    h.seen(d.range)
+                    continue
+                }
+            } else if !d.problem.isEmpty, let l = problemLabels[d.problem] {
+                h.add(PatientNoteFinding(id: "problem:" + d.problem, section: Part.history, label: l + " (" + text + ")", change: change), at: d.range)
+                continue
+            }
+            h.add(PatientNoteFinding(id: detailID(d.problem, d.key, d.value), section: Part.history, label: detailLabel(d.problem, d.key, d.value), change: change),
+                  at: d.range)
+        }
+    }
+
+    /// "hx:ckdStage@ckd", "hx:anticoagulant:other:apixaban@anticoagulation", "hx:packYears".
+    static func detailID(_ problem: String, _ key: String, _ value: String) -> String {
+        "hx:" + key + (key == "anticoagulant:other" ? ":" + value.lowercased() : "") + (problem.isEmpty ? "" : "@" + problem)
+    }
+
+    private static func mergedList(_ a: String, _ b: String) -> String {
+        var out = a.split(separator: ",").map(String.init)
+        for x in b.split(separator: ",").map(String.init) where !out.contains(x) { out.append(x) }
+        return out.joined(separator: ",")
+    }
+
+    /// A detail as the review and the quick-add chip show it.
+    static func detailLabel(_ problem: String, _ key: String, _ value: String) -> String {
+        let text = key == "note" ? value : detailText(key, value)
+        if let l = problemLabels[problem] { return l + ": " + text }
+        switch key {
+        case "packYears", "smokingQuitYear": return "Smoking: " + text
+        case "gpal": return "Obstetric history: " + text
+        case "fistula", "catheter": return "Dialysis access: " + text
+        default: return text
+        }
+    }
+
+    static func detailText(_ key: String, _ value: String) -> String {
+        let parts = value.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+        func part(_ i: Int) -> String { i < parts.count ? parts[i] : "" }
+        switch key {
+        case "ckdStage": return "stage " + value
+        case "dialysisSchedule": return value == "mwf" ? "Mon/Wed/Fri" : (value == "tts" ? "Tue/Thu/Sat" : value)
+        case "fistula": return value.isEmpty ? "AV fistula" : "AV fistula, " + value
+        case "catheter": return value.isEmpty ? "dialysis catheter" : "dialysis catheter, " + value
+        case "afType": return value == "longstanding" ? "long-standing persistent" : value
+        case "pacerDependent": return "pacer dependent"
+        case "hepatitisTypes": return "hepatitis " + parts.map { $0.uppercased() }.joined(separator: ", ")
+        case "shockTypes", "giBleed", "pleural": return parts.filter { !$0.isEmpty }.joined(separator: ", ")
+        case "packYears": return value + " pack-years"
+        case "smokingQuitYear": return "quit " + value
+        case "gpal":
+            return zip(["G", "P", "A", "L"], parts).compactMap { $0.1.isEmpty ? nil : $0.0 + $0.1 }.joined(separator: " ")
+        case "gestation": return part(0) + (part(1).isEmpty ? "" : "+" + part(1)) + " weeks"
+        case "ppcmEF": return "LVEF " + value + "%"
+        case "gdmInsulin": return "on insulin"
+        case "chestTube": return "chest tube" + (value.isEmpty ? "" : " " + parts.joined(separator: ", "))
+        case "esophagealProcedure": return "previous procedure: " + value
+        default:
+            if key.hasPrefix("anticoagulant:") {
+                let drug = String(key.dropFirst("anticoagulant:".count))
+                if drug == "other" { return value }
+                return value.isEmpty ? drug : drug + ", " + value
+            }
+            return value
+        }
+    }
+
+    /// Whether the record already holds a detail, or what it holds instead.
+    private static func detailStatus(_ key: String, _ value: String, _ r: PatientRecord) -> PatientNoteStatus {
+        let d = r.hx
+        let parts = value.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+        func scalar(_ old: String?) -> PatientNoteStatus {
+            guard let old, !old.isEmpty else { return .new }
+            return old == value ? .recorded : .replaces(detailText(key, old))
+        }
+        func number(_ old: Double?) -> PatientNoteStatus {
+            guard let old else { return .new }
+            return same(old, Double(value) ?? -1) ? .recorded : .replaces(detailText(key, NumText.short(old)))
+        }
+        func list(_ have: Set<String>) -> PatientNoteStatus { Set(parts.filter { !$0.isEmpty }).isSubset(of: have) ? .recorded : .new }
+        switch key {
+        case "ckdStage": return scalar(d.ckdStage)
+        case "dialysisSchedule": return scalar(d.dialysisSchedule)
+        case "afType": return scalar(d.afType)
+        case "tbStatus": return scalar(d.tbStatus)
+        case "covidStatus": return scalar(d.covidStatus)
+        case "visualImpairment": return scalar(d.visualImpairment)
+        case "gdmControl": return scalar(d.gdmControl)
+        case "pacerDependent": return d.pacerDependent ? .recorded : .new
+        case "gdmInsulin": return d.gdmInsulin ? .recorded : .new
+        case "hepatitisTypes": return list(d.hepatitisTypes)
+        case "shockTypes": return list(d.shockTypes)
+        case "chestTube": return d.chestTube == true && Set(parts.filter { !$0.isEmpty }).isSubset(of: d.chestTubeSides) ? .recorded : .new
+        case "fistula": return d.dialysisAccess.contains("fistula") && (value.isEmpty || mentions(d.fistulaSite, value)) ? .recorded : .new
+        case "catheter": return d.dialysisAccess.contains("catheter") && (value.isEmpty || mentions(d.dialysisCatheterSite, value)) ? .recorded : .new
+        case "packYears": return number(d.packYears)
+        case "ppcmEF": return number(d.ppcmEF)
+        case "smokingQuitYear": return number(d.smokingQuitYear.map { Double($0) })
+        case "esophagealProcedure": return d.esophagealProcedure == true && mentions(d.esophagealProcedureDetails, value) ? .recorded : .new
+        case "giBleed", "pleural":
+            let old = key == "giBleed" ? [d.giBleedStatus, d.giBleedSite] : [d.pleuralSide, d.pleuralFluid]
+            var differs = false, missing = false
+            for (i, o) in old.enumerated() where i < parts.count && !parts[i].isEmpty {
+                if o == nil || o == "" { missing = true } else if o != parts[i] { differs = true }
+            }
+            if differs { return .replaces(old.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")) }
+            return missing ? .new : .recorded
+        case "gpal", "gestation":
+            let old: [Int?] = key == "gpal" ? [d.gravida, d.para, d.abortus, d.living] : [d.gestationWeeks, d.gestationDays]
+            var differs = false, missing = false
+            for (i, o) in old.enumerated() where i < parts.count && !parts[i].isEmpty {
+                if o == nil { missing = true } else if String(o!) != parts[i] { differs = true }
+            }
+            if differs { return .replaces(detailText(key, old.map { $0.map { String($0) } ?? "" }.joined(separator: ","))) }
+            return missing ? .new : .recorded
+        default:
+            guard key.hasPrefix("anticoagulant:") else { return .new }
+            let drug = String(key.dropFirst("anticoagulant:".count))
+            guard let a = d.anticoagulants[drug] else { return .new }
+            if drug == "other" { return mentions(a.name, value) ? .recorded : .new }
+            if value.isEmpty || a.intensity == value { return .recorded }
+            return a.intensity.map { .replaces($0) } ?? .new
+        }
+    }
+
+    /// Writes a detail into the record's History details (PatientHistoryDetails).
+    static func setDetail(_ key: String, _ value: String, _ r: inout PatientRecord) {
+        let parts = value.split(separator: ",", omittingEmptySubsequences: false).map { String($0).trimmingCharacters(in: .whitespaces) }
+        func part(_ i: Int) -> String? { i < parts.count && !parts[i].isEmpty ? parts[i] : nil }
+        switch key {
+        case "ckdStage": r.hx.ckdStage = value
+        case "dialysisSchedule": r.hx.dialysisSchedule = value
+        case "fistula":
+            r.hx.dialysisAccess.insert("fistula")
+            r.hx.fistulaSite = joined(r.hx.fistulaSite, value)
+        case "catheter":
+            r.hx.dialysisAccess.insert("catheter")
+            r.hx.dialysisCatheterSite = joined(r.hx.dialysisCatheterSite, value)
+        case "afType": r.hx.afType = value
+        case "pacerDependent": r.hx.pacerDependent = true
+        case "hepatitisTypes": r.hx.hepatitisTypes.formUnion(parts.filter { !$0.isEmpty })
+        case "tbStatus": r.hx.tbStatus = value
+        case "covidStatus": r.hx.covidStatus = value
+        case "shockTypes": r.hx.shockTypes.formUnion(parts.filter { !$0.isEmpty })
+        case "giBleed":
+            if let s = part(0) { r.hx.giBleedStatus = s }
+            if let s = part(1) { r.hx.giBleedSite = s }
+        case "packYears": r.hx.packYears = Double(value)
+        case "smokingQuitYear": r.hx.smokingQuitYear = Int(value)
+        case "gpal":
+            if let x = part(0).flatMap({ Int($0) }) { r.hx.gravida = x }
+            if let x = part(1).flatMap({ Int($0) }) { r.hx.para = x }
+            if let x = part(2).flatMap({ Int($0) }) { r.hx.abortus = x }
+            if let x = part(3).flatMap({ Int($0) }) { r.hx.living = x }
+        case "gestation":
+            r.hx.gestationWeeks = part(0).flatMap { Int($0) }
+            r.hx.gestationDays = part(1).flatMap { Int($0) }
+        case "ppcmEF": r.hx.ppcmEF = Double(value)
+        case "gdmInsulin": r.hx.gdmInsulin = true
+        case "gdmControl": r.hx.gdmControl = value
+        case "visualImpairment": r.hx.visualImpairment = value
+        case "pleural":
+            if let s = part(0) { r.hx.pleuralSide = s }
+            if let s = part(1) { r.hx.pleuralFluid = s }
+        case "chestTube":
+            r.hx.pleuralDrained = true
+            r.hx.chestTube = true
+            r.hx.chestTubeSides.formUnion(parts.filter { !$0.isEmpty })
+        case "esophagealProcedure":
+            r.hx.esophagealProcedure = true
+            r.hx.esophagealProcedureDetails = joined(r.hx.esophagealProcedureDetails, value)
+        default:
+            guard key.hasPrefix("anticoagulant:") else { return }
+            let drug = String(key.dropFirst("anticoagulant:".count))
+            var a = r.hx.anticoagulants[drug] ?? PatientAnticoagulant()
+            if drug == "other" {
+                a.name = joined(a.name, value)
+            } else if !value.isEmpty {
+                a.intensity = value
+            }
+            r.hx.anticoagulants[drug] = a
         }
     }
 
@@ -2417,6 +3263,14 @@ enum PatientNote {
             // Operations told in several places of the note: one entry.
             let t = mentions(x, y) ? x : x + "; " + y
             return PatientNoteFinding(id: a.id, section: a.section, label: "Past surgical history: " + t, change: .cardiacSurgery(t))
+        case (.detail(let p, let k, let x), .detail(let q, let l, let y)) where p == q && k == l && listDetails.contains(k):
+            // 1.9: "HBV. HCV.": one item, both types.
+            let v = mergedList(x, y)
+            let label = a.id.hasPrefix("problem:") ? (problemLabels[p] ?? p) + " (" + detailText(k, v) + ")" : detailLabel(p, k, v)
+            return PatientNoteFinding(id: a.id, section: a.section, label: label, change: .detail(p, k, v), note: a.note)
+        case (.problem, .detail), (.problem, .problemNote):
+            // The same item told again with its detail.
+            return b
         default:
             return nil
         }
@@ -2531,6 +3385,9 @@ enum PatientNote {
         case .problemNote(let p, let t):
             let has = r.problems.contains(p)
             return has && mentions(problemNoteField(p, r), t) ? .recorded : .new
+        case .detail(let p, let key, let value):
+            if !p.isEmpty, !r.problems.contains(p), !(supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { return .new }
+            return detailStatus(key, value, r)
         case .noHistory:
             if r.noHistory { return .recorded }
             return r.problems.isEmpty ? .new : .conflicts("Problems are already recorded.")
@@ -2656,6 +3513,8 @@ enum PatientNote {
 
     /// Where a problem's words go: an aortic repair's to the repair details, an arrhythmia's to its type, a device's to
     /// the device details, PVD's and congenital disease's to their details; any other to its system's details.
+    /// 1.9: the new pages' items have a text field each (PatientHistoryDetails): a fracture's place, the arthritis's
+    /// joint, the esophageal disorder's type, the psychological disorder's name, the sepsis's source, the burn.
     private static func problemNoteField(_ p: String, _ r: PatientRecord) -> String {
         switch p {
         case "evar", "tevar", "aortic-repair-open": return r.hx.repairDetails
@@ -2663,6 +3522,25 @@ enum PatientNote {
         case "pacemaker", "icd": return r.hx.deviceDetails
         case "pvd": return r.hx.pvdDetails
         case "chd", "chd-elevated": return r.hx.chdDetails
+        // 1.9
+        case "endocarditis": return r.hx.endocarditisDetails
+        case "psych": return r.hx.psychOther
+        case "esrd-dialysis": return r.hx.dialysisScheduleOther
+        case "gastric-bypass": return r.hx.gastricBypassDetails
+        case "esophageal-disorder": return r.hx.esophagealDisorderType
+        case "gi-bleed": return r.hx.giBleedDetails
+        case "bleeding": return r.hx.bleedingOther
+        case "thrombophilia-heme": return r.hx.thrombophiliaOther
+        case "declines-blood": return r.hx.declinesBloodDetails
+        case "vte": return r.hx.vteDate
+        case "sepsis": return r.hx.sepsisSource
+        case "hiv": return r.hx.hivViralLoad
+        case "covid-recent": return r.hx.covidTestDate
+        case "massive-trauma", "burn": return r.hx.traumaDetails
+        case "ra", "oa": return r.hx.arthritisLocation
+        case "fracture": return r.hx.fractureLocation
+        case "compartment-syndrome": return r.hx.compartmentLocation
+        case "substance", "cocaine", "opioid-use", "marijuana", "methamphetamine": return r.hx.drugsOther
         default: return r.systemNotes[PatientCatalog.system(of: p)?.id ?? "cv"] ?? ""
         }
     }
@@ -2674,8 +3552,37 @@ enum PatientNote {
         case "pacemaker", "icd": r.hx.deviceDetails = t
         case "pvd": r.hx.pvdDetails = t
         case "chd", "chd-elevated": r.hx.chdDetails = t
+        // 1.9
+        case "endocarditis": r.hx.endocarditisDetails = t
+        case "psych": r.hx.psychOther = t
+        case "esrd-dialysis": r.hx.dialysisScheduleOther = t
+        case "gastric-bypass": r.hx.gastricBypassDetails = t
+        case "esophageal-disorder": r.hx.esophagealDisorderType = t
+        case "gi-bleed": r.hx.giBleedDetails = t
+        case "bleeding": r.hx.bleedingOther = t
+        case "thrombophilia-heme": r.hx.thrombophiliaOther = t
+        case "declines-blood": r.hx.declinesBloodDetails = t
+        case "vte": r.hx.vteDate = t
+        case "sepsis": r.hx.sepsisSource = t
+        case "hiv": r.hx.hivViralLoad = t
+        case "covid-recent": r.hx.covidTestDate = t
+        case "massive-trauma", "burn": r.hx.traumaDetails = t
+        case "ra", "oa": r.hx.arthritisLocation = t
+        case "fracture": r.hx.fractureLocation = t
+        case "compartment-syndrome": r.hx.compartmentLocation = t
+        case "substance", "cocaine", "opioid-use", "marijuana", "methamphetamine": r.hx.drugsOther = t
         default: r.systemNotes[PatientCatalog.system(of: p)?.id ?? "cv"] = t
         }
+    }
+
+    /// Files a problem as `.problem` does: not beside a more specific one already recorded, and in place of its general
+    /// form.
+    private static func fileProblem(_ p: String, _ r: inout PatientRecord) {
+        r.noHistory = false
+        if (supersededBy[p] ?? []).contains(where: { r.problems.contains($0) }) { return }
+        r.problems.insert(p)
+        r.labProblems.remove(p)
+        for general in supersededBy.keys where (supersededBy[general] ?? []).contains(p) { r.problems.remove(general) }
     }
 
     /// Puts the chosen findings into the record: values are set, lists gain items, text is added after what is there.
@@ -2749,6 +3656,9 @@ enum PatientNote {
                 r.noHistory = false
                 r.problems.insert(p)
                 setProblemNote(p, joined(problemNoteField(p, r), t), &r)
+            case .detail(let p, let key, let value):
+                if !p.isEmpty { fileProblem(p, &r) }
+                setDetail(key, value, &r)
             case .noHistory:
                 if r.problems.isEmpty { r.noHistory = true }
             case .smoking(let s): r.smoking = s
