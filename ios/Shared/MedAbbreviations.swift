@@ -523,14 +523,19 @@ extension MedAbbreviations {
         entry("HD", [m("hemodialysis", "hd-dialysis"), m("hospital day", "hd-day"), m("hemodynamically", "hd-hemo"), m("Huntington disease", "hd-huntington")], hints: [
             after("hd-day", #"^\s*#?\s*\d{1,2}\b(?!\s*(?:x|times|days?\s*(?:a|per)|/\s*w))"#),
             after("hd-hemo", #"^\s*(?:stable|unstable|instability|significant)\b"#),
+            // Hints are first-match: the disease spelled out, or its signs and drugs, before the generic dialysis words
+            // (1.9 review: "Huntington disease (HD) with chorea, PICC catheter in place" is not hemodialysis).
+            near("hd-huntington", #"\b(?:huntington\w*|chorea|choreiform|tetrabenazine|deutetrabenazine)\b"#),
             // 1.9: the dialysis words of the Renal page's Hemodialysis item ("HD MWF via L arm AVF").
             near("hd-dialysis", #"\b(?:mwf|m/w/f|tts|tths|t/th/s|dialy\w*|esrd|eskd|ckd|fistula|avf|avg|graft|perm-?a?-?cath|tunnel(?:l)?ed|catheter|nephrolog\w*|renal|kidney|access)\b"#),
-            near("hd-huntington", #"\b(?:huntington\w*|chorea|choreiform|tetrabenazine|deutetrabenazine)\b"#),
         ]),
         // 1.9: EDS is Ehlers-Danlos syndrome on the Musculoskeletal page, and excessive daytime sleepiness in a sleep history.
         entry("EDS", [m("Ehlers-Danlos syndrome", "eds-ehlers"), m("excessive daytime sleepiness", "eds-sleepiness")], hints: [
+            // The syndrome's own words first, then the sleep words (with fatigue and tiredness), then the joint and skin
+            // words (1.9 review: "EDS (hypermobile type) with chronic fatigue" is Ehlers-Danlos).
+            near("eds-ehlers", #"\b(?:ehlers|danlos|hypermobil\w*|beighton|(?-i:hEDS|vEDS))\b"#),
             near("eds-sleepiness", #"\b(?:sleep\w*|osa|apn(?:o)?ea|c-?pap|bi-?pap|snor\w*|somnolen\w*|epworth|narcolep\w*|fatigue|tired\w*|naps?|stop-?bang|drowsy|drowsiness)\b"#),
-            near("eds-ehlers", #"\b(?:ehlers|danlos|hypermobil\w*|joints?|dislocat\w*|subluxat\w*|connective|collagen|marfan|beighton|vascular|aort\w*|skin|(?-i:hEDS|vEDS))\b"#),
+            near("eds-ehlers", #"\b(?:joints?|dislocat\w*|subluxat\w*|connective|collagen|marfan|vascular|aort\w*|skin)\b"#),
         ]),
         entry("CP", [m("chest pain", "cp-pain"), m("cerebral palsy", "cp-palsy")], hints: [
             near("cp-palsy", #"\b(?:spastic\w*|quadripleg\w*|dipleg\w*|hemipleg\w*|g-?tube|baclofen|contractures?|nonverbal|non-verbal|developmental|seizures?|scoliosis|wheelchair|prematur\w*)\b"#),
