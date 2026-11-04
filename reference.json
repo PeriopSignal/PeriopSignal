@@ -14844,7 +14844,9 @@
       "noRedose": "No routine redose for this drug; the interval assumes a typical case length, and a very long case may still need one.",
       "renal": "Renal dysfunction: a redose may not be warranted. The interval is not changed for you.",
       "closure": "SHEA 2022: stop prophylaxis at closure; no new intervals.",
-      "bypassNoGentamicin": "No gentamicin redose on bypass (STS 2007, III/C)."
+      "bypassNoGentamicin": "No gentamicin redose on bypass (STS 2007, III/C).",
+      "longCaseHours": 8,
+      "longCase": "Long case: this drug has no routine redose interval; consider whether another dose is needed."
     },
     "heparinPurposes": [
       {
@@ -15483,9 +15485,9 @@
         "rtegLy30": 10
       },
       "platelets": "Platelets low on viscoelastic testing: consider a platelet dose.",
-      "coagulopathy": "Coagulopathy likely (80% sensitivity for an INR above 1.2): check the PT/INR.",
+      "coagulopathy": "Coagulopathy likely (80% sensitivity for an INR above 1.2): consider plasma, or PCC per local protocol.",
       "fibrinolysis": "Hyperfibrinolysis: TXA, if not already given and within the time limit.",
-      "note": "TACTIC thresholds (Baksaas-Aasen 2019), each chosen for 70% sensitivity (coagulopathy 80%). The coagulopathy line is information only: the algorithm's plasma or PCC trigger was not verified. ITACTIC found no outcome gain over lab-guided care.",
+      "note": "TACTIC thresholds (Baksaas-Aasen 2019), each chosen for 70% sensitivity (coagulopathy 80%). The plasma or PCC step is from the abstract's coagulopathy threshold; the paper's algorithm figure has not been checked. ITACTIC found no outcome gain over lab-guided care.",
       "sources": [
         "tactic",
         "itactic"
@@ -15772,8 +15774,8 @@
           ],
           [
             "VA weaning MAP",
-            ">60 in one place, >65 in another (ELSO VA)",
-            "Verify"
+            ">65 mmHg",
+            "G (ELSO VA)"
           ]
         ],
         "sources": [
@@ -16393,6 +16395,16 @@
         "q": "After bypass, TAPSE is 1.5 cm and FAC 32%. Is RV function normal?",
         "a": "No: TAPSE under 1.7 cm and FAC under 35% are abnormal.",
         "source": "Nicoara 2020, Table 1"
+      },
+      {
+        "q": "After MV repair, the mean gradient is 7 mmHg and the MVA 1.6 cm². What do you tell the surgeon?",
+        "a": "Iatrogenic stenosis (mean above 6 mmHg with an MVA under 1.8 cm²).",
+        "source": "Nicoara 2020"
+      },
+      {
+        "q": "Before MV repair, the AL:PL ratio is 1.2. Which complication is more likely?",
+        "a": "SAM with LVOT obstruction (risk with an AL:PL ratio of about 1.3 or less).",
+        "source": "Nicoara 2020"
       },
       {
         "q": "Where should an Impella CP inlet sit on the ME LAX view?",

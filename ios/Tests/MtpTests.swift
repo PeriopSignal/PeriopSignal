@@ -105,7 +105,7 @@ final class MtpTests: XCTestCase {
         XCTAssertTrue(MtpCalc.vhaPrompts(s, data: d).isEmpty)
         s.extemCa5 = 38; s.fibtem = 12                     // EXTEM − FIBTEM 26 < 30; EXTEM 38 < 41
         XCTAssertEqual(Set(MtpCalc.vhaPrompts(s, data: d).map(\.id)), ["platelets", "coagulopathy"])
-        XCTAssertTrue(MtpCalc.vhaPrompts(s, data: d).first { $0.id == "coagulopathy" }!.info, "information only, no product")
+        XCTAssertFalse(MtpCalc.vhaPrompts(s, data: d).first { $0.id == "coagulopathy" }!.info, "signed off: plasma or PCC")
         s.extemCa5 = 50; s.fibtem = 15; s.extemLi30 = 80   // 35 ≥ 30; LI30 80 < 85
         XCTAssertEqual(MtpCalc.vhaPrompts(s, data: d).map(\.id), ["fibrinolysis"])
         var t = MtpState(started: t0, data: d)

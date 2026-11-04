@@ -261,7 +261,7 @@ struct CaseTimersView: View {
 
     private func quickAction(_ rem: CaseReminder) -> QuickAction? {
         switch rem.kind {
-        case .antibiotic, .bloodLoss:
+        case .antibiotic, .bloodLoss, .longCase:
             return QuickAction(title: "Given") { logAntibioticDose(Date()) }
         case .abg:
             return QuickAction(title: "Sent") { edit { $0.checks["abg"]?.done.append(TimedEntry(time: Date())) } }

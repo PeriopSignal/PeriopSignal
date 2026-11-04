@@ -104,7 +104,7 @@ struct LabCheckCourse: Codable, Equatable {
 // MARK: - Reminders
 
 struct CaseReminder: Identifiable, Hashable {
-    enum Kind: String, Hashable { case antibiotic, bloodLoss, act, protamineACT, abg, glucose }
+    enum Kind: String, Hashable { case antibiotic, longCase, bloodLoss, act, protamineACT, abg, glucose }
     enum State: Hashable { case waiting, due, overdue }
 
     var kind: Kind
@@ -154,6 +154,11 @@ enum CaseTimerEngine {
             if let h = def.redoseHours, !skipOnBypass {
                 out.append(CaseReminder(kind: .antibiotic, title: "\(def.name) redose",
                                         detail: "\(antibioticDose(def, record: r).text) · every \(fmt(h)) h from the last dose",
+                                        due: last.time.addingTimeInterval(h * 3600)))
+            }
+            if def.redoseHours == nil, !skipOnBypass, let h = d.antibioticRules.longCaseHours, h > 0 {
+                out.append(CaseReminder(kind: .longCase, title: "\(def.name): long case",
+                                        detail: d.antibioticRules.longCase ?? d.antibioticRules.noRedose,
                                         due: last.time.addingTimeInterval(h * 3600)))
             }
             if !skipOnBypass, let ebl = r.fluids["ebl"], ebl - (last.ebl ?? 0) >= d.antibioticRules.bloodLossML {

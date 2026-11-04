@@ -62,6 +62,9 @@ struct AntibioticRules: Codable, Hashable {
     var renal: String
     var closure: String
     var bypassNoGentamicin: String
+    /// Drugs with no routine redose: a reminder this long after the last dose (practice, signed off Nov 4).
+    var longCaseHours: Double?
+    var longCase: String?
 }
 
 struct HeparinPurpose: Codable, Hashable, Identifiable {

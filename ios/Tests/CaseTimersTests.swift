@@ -57,10 +57,15 @@ final class CaseTimersTests: XCTestCase {
         XCTAssertEqual(a.state(at: t0.addingTimeInterval(4 * 3600 + 600)), .overdue)
     }
 
-    func testNoRedoseDrugHasNoTimer() throws {
+    func testNoRedoseDrugHasALongCaseReminderInstead() throws {
         var t = CaseTimers()
         t.antibiotic = AntibioticCourse(drug: "vancomycin", doses: [TimedEntry(time: t0)])
-        XCTAssertTrue(CaseTimerEngine.reminders(t, record: adult(), data: try data()).filter { $0.kind == .antibiotic }.isEmpty)
+        let rem = CaseTimerEngine.reminders(t, record: adult(), data: try data())
+        XCTAssertTrue(rem.filter { $0.kind == .antibiotic }.isEmpty, "no routine redose")
+        XCTAssertEqual(rem.first { $0.kind == .longCase }?.due, t0.addingTimeInterval(8 * 3600), "long-case reminder at 8 h")
+        var c = CaseTimers()
+        c.antibiotic = AntibioticCourse(drug: "cefazolin", doses: [TimedEntry(time: t0)])
+        XCTAssertNil(CaseTimerEngine.reminders(c, record: adult(), data: try data()).first { $0.kind == .longCase }, "only drugs without a redose interval")
     }
 
     func testBloodLossOver1500SinceTheDose() throws {

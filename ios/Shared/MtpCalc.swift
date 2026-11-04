@@ -259,7 +259,7 @@ enum MtpCalc {
     }
 
     /// Platelets low (EXTEM − FIBTEM CA5 <30 mm, or rTEG MA − FF MA <46 mm), coagulopathy likely (EXTEM CA5 <41 mm or
-    /// rTEG MA <64 mm, information only) and hyperfibrinolysis (EXTEM LI30 <85% or rTEG LY30 >10%), from whichever
+    /// rTEG MA <64 mm: plasma or PCC, signed off Nov 4) and hyperfibrinolysis (EXTEM LI30 <85% or rTEG LY30 >10%), from whichever
     /// device's values are entered.
     static func vhaPrompts(_ s: MtpState, data d: MtpData) -> [VhaPrompt] {
         guard let v = d.viscoelastic else { return [] }
@@ -268,7 +268,7 @@ enum MtpCalc {
             || (s.rtegMa.flatMap { m in s.tegFF.map { m - $0 < v.teg.rtegMinusFfMa } } ?? false)
         if plateletsLow { out.append(VhaPrompt(id: "platelets", text: v.platelets, info: false)) }
         if (s.extemCa5.map { $0 < v.rotem.extemCa5 } ?? false) || (s.rtegMa.map { $0 < v.teg.rtegMa } ?? false) {
-            out.append(VhaPrompt(id: "coagulopathy", text: v.coagulopathy, info: true))
+            out.append(VhaPrompt(id: "coagulopathy", text: v.coagulopathy, info: false))
         }
         if (s.extemLi30.map { $0 < v.rotem.extemLi30 } ?? false) || (s.rtegLy30.map { $0 > v.teg.rtegLy30 } ?? false) {
             out.append(VhaPrompt(id: "fibrinolysis", text: v.fibrinolysis, info: false))

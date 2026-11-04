@@ -18,7 +18,7 @@ final class TeeMcsTests: XCTestCase {
         let av = try XCTUnwrap(t.surgery("avRepair"), "AV repair / valve-sparing root (review doc, TEE row 9)")
         XCTAssertTrue(av.post.contains { $0.hasPrefix("Effective height ≥9 mm") })
         XCTAssertFalse(av.post.contains { $0.contains("4 mm") }, "no unverified coaptation-length cut-off")
-        XCTAssertEqual(t.practice?.count, 8, "Q4 and Q5 held back until verified")
+        XCTAssertEqual(t.practice?.count, 10, "all ten, signed off Nov 4")
         for p in t.practice ?? [] { XCTAssertFalse(p.source.isEmpty, p.q) }
     }
 
