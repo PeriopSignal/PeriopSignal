@@ -238,9 +238,11 @@ struct PatientView: View {
         scrollToTop += 1
     }
 
+    /// A box's link: a reference route first ("airway" is the airway reference page here), else an editor or one of
+    /// its pages by its deep-link name (workup:tee, medications).
     private func open(_ key: String) {
-        if key.hasPrefix("workup:") { path.append(PatientEditor.workup(String(key.dropFirst(7)))); return }
-        if let route = RefRoute(key: key) { path.append(route) }
+        if let route = RefRoute(key: key) { path.append(route); return }
+        if let e = PatientDeepLink.parse(key)?.editor { path.append(e) }
     }
 
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
@@ -274,36 +276,38 @@ struct PatientView: View {
                 }
             }
         }
-        let o = LaunchSeed.string("ps.patient.open")
-        // A push asked for before the navigation stack is on screen is sometimes dropped (screenshot runs): wait a moment.
-        if !o.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
-        switch o {
-        case "details": path.append(PatientEditor.details)
-        case "procedure": path.append(PatientEditor.procedure)
-        case "demographics": path.append(PatientEditor.demographics)
-        case "history": path.append(PatientEditor.history)
-        case "medications": path.append(PatientEditor.medications)
-        case "assessment": path.append(PatientEditor.assessment)
-        case "airway": path.append(PatientEditor.airway)
-        case "intraop": path.append(PatientEditor.intraop)
-        case "plan": path.append(PatientEditor.plan)
-        case "handoff": tabOverride = .summary
-        case "note":
+        guard let link = PatientDeepLink.parse(LaunchSeed.string("ps.patient.open")) else { return }
+        switch link {
+        case .summary: tabOverride = .summary
+        case .note:
             // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
             showNote = true
-        case "receive":
+        case .receive:
             try? await Task.sleep(nanoseconds: 800_000_000)
             inbox.pending = PatientPacket(record: PatientDemo.record)
-        default:
-            if o.hasPrefix("workup:") { path.append(PatientEditor.workup(String(o.dropFirst(7)))) }
-            else if o.hasPrefix("intraop:") { path.append(PatientEditor.intraopPart(String(o.dropFirst(8)))) }
-            else if o.hasPrefix("devices:") { path.append(PatientEditor.devices(String(o.dropFirst(8)))) }
-            else if o.hasPrefix("system:") { path.append(PatientEditor.system(String(o.dropFirst(7)))) }
-            else if let route = RefRoute(key: o) { path.append(route) }
+        case .editor, .route:
+            // A push asked for before the navigation stack has settled is sometimes dropped (the stack writes its empty
+            // first state back over the path), and the 1.9 tab's longer first layout on the CI simulator made one wait
+            // of 0.4 s lose now and then (run 375: 340, 393 and 394 showed the tab). Push after a moment, then look
+            // again a few times and push once more while the path is still empty.
+            for delay in Self.openRetryDelays {
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                if Task.isCancelled { return }
+                guard path.isEmpty else { return }
+                switch link {
+                case .editor(let e): path.append(e)
+                case .route(let r): path.append(r)
+                default: break
+                }
+            }
         }
         #endif
     }
+
+    /// When the screenshot runs' -ps.patient.open pushes its page, and looks again: after the stack's first frame,
+    /// then with room for a slow launch (the last well inside the shortest open-key shot's 12 s wait).
+    static let openRetryDelays: [Double] = [0.4, 1.2, 2.4, 4.0]
 
     // MARK: Tabs
 
@@ -867,11 +871,19 @@ struct PatientJumpItem: Hashable {
     init(section: PreopSection) { id = PatientJumpID(section: section); title = section.title }
 }
 
+extension PatientJumpID {
+    /// How far above its card a jump anchor sits. Scrolling aligns the anchor with the top of the scroll view's
+    /// content, which is already under the inline title, so the anchor clears only the pinned jump bar (about 54 pt,
+    /// growing with the in-app text size) and a small margin. (110 pt, meant to clear the title too, landed the card
+    /// 70 pt under the bar, after the tail of the box before it: run 375's shots 442–446.)
+    static var clearance: CGFloat { 56 * PS.textScale }
+}
+
 extension View {
     /// A card the jump bar scrolls to. Its scroll target is a clear anchor stacked above the card, pulled up by
-    /// negative padding so the layout is unchanged: scrolling aligns the anchor with the top of the safe area, under
-    /// the navigation bar, so 110 pt clears the inline title and the pinned jump bar and the card lands just under
-    /// them. (An id in a background is not used by ScrollViewReader; a stacked child is.)
+    /// negative padding so the layout is unchanged: scrolling aligns the anchor with the top of the scroll view's
+    /// content, under the navigation bar, and PatientJumpID.clearance puts the card just under the pinned jump bar.
+    /// (An id in a background is not used by ScrollViewReader; a stacked child is.)
     func jumpTarget(_ editor: PatientEditor) -> some View { jumpTarget(id: PatientJumpID(editor)) }
     /// A section of the Preprocedure tab.
     func jumpTarget(section: PreopSection) -> some View { jumpTarget(id: PatientJumpID(section: section)) }
@@ -881,12 +893,12 @@ extension View {
     func jumpTarget(id: PatientJumpID) -> some View {
         VStack(spacing: 0) {
             Color.clear
-                .frame(height: 110)
+                .frame(height: PatientJumpID.clearance)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
                 .id(id)
             self
         }
-        .padding(.top, -110)
+        .padding(.top, -PatientJumpID.clearance)
     }
 }
