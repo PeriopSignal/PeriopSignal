@@ -192,6 +192,9 @@ struct LabFishbone: Hashable {
     var glucose: LabValue?
     var inr: LabValue?
     var fibrinogen: LabValue?
+    /// Prothrombin time and aPTT in seconds (1.9); the PT is never flagged.
+    var pt: LabValue?
+    var ptt: LabValue?
     /// Hemoglobin or hematocrit estimated from the other, for the cell left empty (LabValue.estimated).
     var estimate: LabValue?
 
@@ -199,7 +202,7 @@ struct LabFishbone: Hashable {
     var cbc: [LabValue?] { [wbc, hb, hct, plt] }
     /// Na, Cl, BUN on the top row; K, HCO₃, Cr below; glucose at the end.
     var bmp: [LabValue?] { [na, k, cl, hco3, bun, cr, glucose] }
-    var coags: [LabValue?] { [inr, fibrinogen] }
+    var coags: [LabValue?] { [pt, inr, ptt, fibrinogen] }
 
     var hasCBC: Bool { cbc.contains { $0 != nil } }
     var hasBMP: Bool { bmp.contains { $0 != nil } }
@@ -498,9 +501,16 @@ enum PatientLabs {
         // ABIM: 150,000–450,000/µL.
         LabTest("plt", "Platelets", short: "Plt", unit: "×10³/µL", group: .main,
                 range: LabRange(150, 450), decimals: 0, plausible: 1...3000),
+        // 1.9: the prothrombin time and the aPTT, for the coagulation cells of the preprocedure summary and the handoff.
+        // The PT has NO reference range here: its seconds depend on the laboratory's reagent and instrument (the reason
+        // the INR exists), so any fixed range would flag normal results of another laboratory. Read it against the range
+        // on the report. The aPTT is the intraoperative set's own entry (ABIM, 25–35 s).
+        LabTest("pt", "Prothrombin time", short: "PT", unit: "s", group: .main, decimals: 1, plausible: 5...300,
+                note: "Not flagged: the PT in seconds depends on the laboratory's reagent and instrument. Read it against the range on the report, or use the INR."),
         LabTest("inr", "INR", short: "INR", unit: "", group: .main,
                 range: LabRange(0.8, 1.1), decimals: 2, minimumDecimals: 1, plausible: 0.5...20,
                 note: "Range without anticoagulants (MedlinePlus)."),
+        IntraopLabs.ptt,
         LabTest("fibrinogen", "Fibrinogen", short: "Fib", unit: "mg/dL", group: .main,
                 range: LabRange(200, 400), decimals: 0, plausible: 10...2000),
         LabTest("na", "Sodium", short: "Na", unit: "mmol/L", group: .main,
@@ -650,6 +660,8 @@ enum PatientLabs {
         fb.glucose = cell("glucose")
         fb.inr = cell("inr")
         fb.fibrinogen = cell("fibrinogen")
+        fb.pt = cell("pt")
+        fb.ptt = cell("ptt")
         let est = estimate(labs)
         fb.estimate = est
         return LabSummary(items: items, fishbone: fb, estimate: est)

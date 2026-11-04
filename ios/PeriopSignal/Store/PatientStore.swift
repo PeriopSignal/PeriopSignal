@@ -283,6 +283,9 @@ final class PatientStore {
         case "demo-ob19": return PatientDemo.ob19
         case "demo-meds": return PatientDemo.meds
         case "demo-links": return PatientDemo.links
+        case "demo-briefs": return PatientDemo.briefs
+        case "demo-briefs-on": return PatientDemo.briefsOn
+        case "demo-briefs-edit": return PatientDemo.briefsEdited
         default: return nil
         }
     }

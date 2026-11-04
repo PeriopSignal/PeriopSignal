@@ -343,11 +343,13 @@ struct LabFishboneView: View {
             }
             if f.hasCoags {
                 HStack(spacing: 16) {
+                    if let p = f.pt { Text("PT ").font(PS.sys(size: 13)).foregroundStyle(PS.fg3) + Text(p.text).font(PS.sys(size: 14, weight: .semibold, design: .monospaced)).foregroundColor(PS.fg) }
                     if let i = f.inr { Text("INR ").font(PS.sys(size: 13)).foregroundStyle(PS.fg3) + Text(i.text).font(PS.sys(size: 14, weight: i.flag.isAbnormal ? .heavy : .semibold, design: .monospaced)).foregroundColor(i.flag.isAbnormal ? PS.red : PS.fg) }
+                    if let t = f.ptt { Text("PTT ").font(PS.sys(size: 13)).foregroundStyle(PS.fg3) + Text(t.text).font(PS.sys(size: 14, weight: t.flag.isAbnormal ? .heavy : .semibold, design: .monospaced)).foregroundColor(t.flag.isAbnormal ? PS.red : PS.fg) }
                     if let fb = f.fibrinogen { Text("Fibrinogen ").font(PS.sys(size: 13)).foregroundStyle(PS.fg3) + Text(fb.text).font(PS.sys(size: 14, weight: fb.flag.isAbnormal ? .heavy : .semibold, design: .monospaced)).foregroundColor(fb.flag.isAbnormal ? PS.red : PS.fg) }
                 }
             }
-            let rest = summary.items.filter { !["wbc", "hb", "hct", "plt", "na", "k", "cl", "hco3", "bun", "cr", "glucose", "inr", "fibrinogen"].contains($0.key) }
+            let rest = summary.items.filter { !["wbc", "hb", "hct", "plt", "na", "k", "cl", "hco3", "bun", "cr", "glucose", "pt", "inr", "ptt", "fibrinogen"].contains($0.key) }
             if !rest.isEmpty || !results.parts.isEmpty {
                 PatientLineText(line: PatientSummary.Line(nil, (rest.map(\.compact) + results.parts).joined(separator: " · "),
                                                           marks: rest.filter { $0.flag.isAbnormal }.map(\.compact) + results.marks))
