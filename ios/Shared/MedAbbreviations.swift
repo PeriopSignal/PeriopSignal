@@ -196,12 +196,27 @@ enum MedAbbreviations {
     /// The built-in abbreviation these letters are, in this case ("AVr" and "AVR" differ; "htn" is "HTN").
     static func lookup(_ token: String) -> MedAbbreviation? {
         let t = token.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
-        if let e = exact[t] ?? anyCase[t.lowercased()] { return e }
+        if let e = exact[t] ?? anyCase[t.lowercased()].flatMap({ fits(t, $0.key) ? $0 : nil }) { return e }
         if t.count > 2, t.hasSuffix("s") {
             let s = String(t.dropLast())
-            return exact[s] ?? anyCase[s.lowercased()]
+            return exact[s] ?? anyCase[s.lowercased()].flatMap { fits(s, $0.key) ? $0 : nil }
         }
         return nil
+    }
+
+    /// 1.9: a key written in capitals ("TIA", "HTN") is read in capitals or all in lower case ("htn", typed quickly),
+    /// never in another case: "Tia" (a name: "Tia is a 34 yo…") and "Ross" are not abbreviations. Keys with a lower-case
+    /// letter in the list ("HFrEF", "afib", "C diff", brand names) are read in any case, as before.
+    static func capitalsOnly(_ key: String) -> Bool {
+        let letters = key.filter(\.isLetter)
+        return letters.count >= 2 && letters.allSatisfy(\.isUppercase)
+    }
+
+    /// Whether letters found in any case are written in a case their key allows (capitalsOnly).
+    private static func fits(_ token: String, _ key: String) -> Bool {
+        guard capitalsOnly(key) else { return true }
+        let k = key.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        return token == k || token == k.lowercased()
     }
 
     // MARK: Reading
@@ -348,8 +363,10 @@ enum MedAbbreviations {
 
     private static func alternative(_ k: String, caseSensitive: Bool) -> String {
         guard let first = k.first, let last = k.last else { return "(?!)" }
-        var p = k.split(separator: " ").map { NSRegularExpression.escapedPattern(for: String($0)) }.joined(separator: #"\s+"#)
-        if !caseSensitive { p = "(?i:" + p + ")" }
+        func words(_ s: String) -> String { s.split(separator: " ").map { NSRegularExpression.escapedPattern(for: String($0)) }.joined(separator: #"\s+"#) }
+        var p = words(k)
+        // 1.9: a key in capitals is read as written or all in lower case, never "Tia" for TIA (capitalsOnly).
+        if !caseSensitive { p = capitalsOnly(k) ? "(?:" + p + "|" + words(k.lowercased()) + ")" : "(?i:" + p + ")" }
         let letters = k.filter(\.isLetter)
         if !letters.isEmpty, letters.allSatisfy(\.isUppercase), last.isLetter || last.isNumber { p += "(?:s)?" }
         let left = first.isLetter || first.isNumber ? "(?<![A-Za-z0-9])" : ""
@@ -506,7 +523,14 @@ extension MedAbbreviations {
         entry("HD", [m("hemodialysis", "hd-dialysis"), m("hospital day", "hd-day"), m("hemodynamically", "hd-hemo"), m("Huntington disease", "hd-huntington")], hints: [
             after("hd-day", #"^\s*#?\s*\d{1,2}\b(?!\s*(?:x|times|days?\s*(?:a|per)|/\s*w))"#),
             after("hd-hemo", #"^\s*(?:stable|unstable|instability|significant)\b"#),
+            // 1.9: the dialysis words of the Renal page's Hemodialysis item ("HD MWF via L arm AVF").
+            near("hd-dialysis", #"\b(?:mwf|m/w/f|tts|tths|t/th/s|dialy\w*|esrd|eskd|ckd|fistula|avf|avg|graft|perm-?a?-?cath|tunnel(?:l)?ed|catheter|nephrolog\w*|renal|kidney|access)\b"#),
             near("hd-huntington", #"\b(?:huntington\w*|chorea|choreiform|tetrabenazine|deutetrabenazine)\b"#),
+        ]),
+        // 1.9: EDS is Ehlers-Danlos syndrome on the Musculoskeletal page, and excessive daytime sleepiness in a sleep history.
+        entry("EDS", [m("Ehlers-Danlos syndrome", "eds-ehlers"), m("excessive daytime sleepiness", "eds-sleepiness")], hints: [
+            near("eds-sleepiness", #"\b(?:sleep\w*|osa|apn(?:o)?ea|c-?pap|bi-?pap|snor\w*|somnolen\w*|epworth|narcolep\w*|fatigue|tired\w*|naps?|stop-?bang|drowsy|drowsiness)\b"#),
+            near("eds-ehlers", #"\b(?:ehlers|danlos|hypermobil\w*|joints?|dislocat\w*|subluxat\w*|connective|collagen|marfan|beighton|vascular|aort\w*|skin|(?-i:hEDS|vEDS))\b"#),
         ]),
         entry("CP", [m("chest pain", "cp-pain"), m("cerebral palsy", "cp-palsy")], hints: [
             near("cp-palsy", #"\b(?:spastic\w*|quadripleg\w*|dipleg\w*|hemipleg\w*|g-?tube|baclofen|contractures?|nonverbal|non-verbal|developmental|seizures?|scoliosis|wheelchair|prematur\w*)\b"#),
@@ -656,7 +680,7 @@ extension MedAbbreviations {
         ("LBO", "large bowel obstruction"), ("IBD", "inflammatory bowel disease"), ("IBS", "irritable bowel syndrome"),
         ("NASH", "nonalcoholic steatohepatitis"), ("NAFLD", "nonalcoholic fatty liver disease"),
         ("MASLD", "metabolic dysfunction-associated steatotic liver disease"), ("ESLD", "end-stage liver disease"), ("HBV", "hepatitis B"), ("HCV", "hepatitis C"),
-        ("HAV", "hepatitis A"), ("N/V", "nausea and vomiting"), ("LFT|LFTs", "liver function tests"),
+        ("HAV", "hepatitis A"), ("RYGB|RNYGB", "Roux-en-Y gastric bypass"), ("EoE", "eosinophilic esophagitis"), ("N/V", "nausea and vomiting"), ("LFT|LFTs", "liver function tests"),
         ("CKD", "chronic kidney disease"), ("ESRD", "end-stage renal disease"), ("ESKD", "end-stage kidney disease"), ("AKI", "acute kidney injury"),
         ("ARF", "acute renal failure"), ("CRI", "chronic renal insufficiency"), ("CRRT", "continuous renal replacement therapy"),
         ("CVVH", "continuous venovenous hemofiltration"), ("CVVHD", "continuous venovenous hemodialysis"), ("CVVHDF", "continuous venovenous hemodiafiltration"),
@@ -677,7 +701,7 @@ extension MedAbbreviations {
         ("PCC", "prothrombin complex concentrate"), ("MTP", "massive transfusion protocol"), ("EBL", "estimated blood loss"), ("T&S", "type and screen"),
         ("T&C", "type and crossmatch"),
         // Infection
-        ("HIV", "human immunodeficiency virus"), ("MRSA", "methicillin-resistant Staphylococcus aureus"),
+        ("HIV", "human immunodeficiency virus"), ("LTBI", "latent tuberculosis infection"), ("MRSA", "methicillin-resistant Staphylococcus aureus"),
         ("MSSA", "methicillin-susceptible Staphylococcus aureus"), ("VRE", "vancomycin-resistant enterococcus"), ("C diff|C. diff|C.diff|CDI", "Clostridioides difficile infection"),
         ("HSV", "herpes simplex virus"), ("CMV", "cytomegalovirus"), ("EBV", "Epstein-Barr virus"), ("SSI", "surgical site infection"), ("abx", "antibiotics"),
         // Medicines and drug classes
