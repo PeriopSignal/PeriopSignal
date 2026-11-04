@@ -106,9 +106,11 @@ enum PatientECGLink {
         r.currentDevices().contains { $0.kind.rawValue.lowercased().contains("epicardial") }
     }
 
-    /// An ICD or CRT is in the history already, so a paced rhythm may be its own.
+    /// An ICD or CRT is in the history already, or on the diagram (a generator in place whose detail says so, 1.9), so a
+    /// paced rhythm may be its own.
     static func deviceAlready(_ r: PatientRecord) -> Bool {
         r.has("icd") || resynchronizationOrICD.first(r.hx.deviceDetails) != nil
+            || r.currentDevices().contains { $0.kind == .cied && resynchronizationOrICD.first($0.detail) != nil }
     }
 
     /// A paced rhythm does not add a pacemaker to the history here.

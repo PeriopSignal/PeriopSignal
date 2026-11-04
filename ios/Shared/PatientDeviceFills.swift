@@ -9,11 +9,17 @@ import CoreGraphics
 // key in PatientRecord.fills.devices, and taken off only if it is still there when the source goes.
 //
 // The rules, per source key ("hd-fistula", "hd-catheter", "chest-tube-left", "chest-tube-right", "cied"):
-//   - the source appears: a device is added (placed on arrival, not in the room) and remembered; a matching device the
-//     user already drew is theirs, so nothing is added and nothing is remembered;
+//   - the source appears (absent before the change, present after it, as every fill in PatientCrossFill: so a record
+//     saved before 1.9 opens unchanged): a device is added (placed on arrival, not in the room) and remembered; a
+//     matching device the user already drew (`alreadyDrawn`) is theirs, so nothing is added and nothing is remembered;
 //   - the source's text changes (the fistula's location, the generator's side): the device follows it, its site and its
-//     detail, unless the user changed that part themselves;
-//   - the user deletes the device: it is not added again while the source holds;
+//     detail, unless the user changed that part themselves; followed onto a place where the user drew one of their own,
+//     the fill's (still as the fill made it) is taken back and forgotten, so the place holds one; when no fill was made
+//     because a drawn device stood for it (the access chosen with no location yet) and the text now names a place none
+//     of the user's devices matches (a new left upper-arm fistula beside an old right forearm one), a device is added
+//     there as if the source had appeared;
+//   - the user deletes the device, or deletes or marks removed the one they drew: nothing is added while the source
+//     holds;
 //   - the source goes: the device is taken off if it is still the fill's, as the fill made it (the user having added a
 //     size, settings, moved it or marked it removed makes it theirs), and the key is forgotten, so the source coming
 //     back adds a device again.
@@ -41,8 +47,19 @@ enum PatientDeviceFills {
                 if let id = r.fills.devices[key] {
                     // The user deleted it: leave it deleted until the source goes and comes back.
                     guard let i = r.devices.firstIndex(where: { $0.id == id }) else { continue }
-                    if let was, was != want { follow(&r.devices[i], was: was, now: want) }
-                } else if !alreadyDrawn(want, in: r.devices) {
+                    if let was, was != want {
+                        let site = r.devices[i].site
+                        follow(&r.devices[i], was: was, now: want)
+                        // Moved onto one the user drew: theirs stands for it.
+                        if r.devices[i].site != site, asFilled(r.devices[i], was: want), alreadyDrawn(want, in: usersDevices(r, but: id)) {
+                            r.devices.remove(at: i)
+                            r.fills.devices[key] = nil
+                        }
+                    }
+                } else if !alreadyDrawn(want, in: usersDevices(r, but: nil)),
+                          was.map({ alreadyDrawn($0, in: usersDevices(r, but: nil)) }) ?? true {
+                    // The source appears, or it moves off a device the user drew (the chip matched any drawn fistula,
+                    // then the location typed is a place none of theirs is): a device is added there.
                     let d = PatientDevice(kind: want.kind, site: want.site, side: want.side, detail: want.detail, placedIntraop: false)
                     r.devices.append(d)
                     r.fills.devices[key] = d.id
@@ -75,11 +92,37 @@ enum PatientDeviceFills {
         return d.site == was.site && d.side == was.side && d.detail == was.detail
     }
 
-    /// The user already drew this (same kind, same place): theirs. A generator counts whatever its site.
+    /// The devices that are not a fill's (and not `id`).
+    private static func usersDevices(_ r: PatientRecord, but id: UUID?) -> [PatientDevice] {
+        let fills = Set(r.fills.devices.values)
+        return r.devices.filter { $0.id != id && !fills.contains($0.id) }
+    }
+
+    /// The user already drew this: theirs. The same kind, or the form a record before 1.9 kept it in (a CVL "dialysis
+    /// catheter", an Other "chest tube"), and the same place; or, when the source or the drawn device names no place (the
+    /// Renal page asks for the location only after the access is chosen), or for an old chest tube (no chest-tube site
+    /// then), a side that does not disagree. A generator counts whatever its site. One marked removed counts too: the
+    /// user's record of it, not to be doubled by one in place (the conservative reading; the history page says nothing of
+    /// a replacement).
     private static func alreadyDrawn(_ w: Want, in devices: [PatientDevice]) -> Bool {
         devices.contains { d in
-            guard d.kind == w.kind, !d.removed else { return false }
-            return w.kind == .cied || (d.site == w.site && d.side == w.side)
+            let legacy = isLegacy(d, of: w.kind)
+            guard d.kind == w.kind || legacy else { return false }
+            if w.kind == .cied { return true }
+            if d.site == w.site && d.side == w.side { return true }
+            let side = d.siteInfo?.side ?? d.side
+            let sideAgrees = w.side == nil || side == nil || side == w.side
+            return (w.site.isEmpty || d.site.isEmpty || (legacy && w.kind == .chestTube)) && sideAgrees
+        }
+    }
+
+    /// A device kept as the 1.8.3 lexicon read it: a hemodialysis catheter as a CVL "dialysis catheter", a chest tube as
+    /// an Other "chest tube".
+    private static func isLegacy(_ d: PatientDevice, of kind: DeviceKind) -> Bool {
+        switch kind {
+        case .dialysisCatheter: return d.kind == .cvc && d.detail.range(of: "dialysis", options: .caseInsensitive) != nil
+        case .chestTube: return d.kind == .other && d.detail.range(of: "chest tube", options: .caseInsensitive) != nil
+        default: return false
         }
     }
 
@@ -136,10 +179,12 @@ enum PatientDeviceFills {
     ///
     /// - Fistula or graft (`.avFistula`): wrist (also "hand", "snuffbox"), forearm, upper arm (also "elbow",
     ///   "antecubital", "brachial", "axillary") or thigh; the access types name their place: radiocephalic is the wrist,
-    ///   brachiocephalic and brachiobasilic the upper arm. "Arm", "LUE" and "upper extremity" alone mean the forearm,
+    ///   brachiocephalic and brachiobasilic the upper arm. "Arm", "LUE" and "upper extremity" alone (with no more exact
+    ///   place or type: "LUE brachiocephalic" is the upper arm) mean the forearm,
     ///   where most are made, and "leg", "LE" and "groin" the thigh. The type goes to the detail ("radiocephalic",
     ///   "AV graft").
-    /// - Catheter (`.dialysisCatheter`): IJ (also "jugular", "neck"), subclavian, femoral (also "groin"). Tunneling goes
+    /// - Catheter (`.dialysisCatheter`): IJ (also "jugular", "neck"; the external jugular, "EJ", is not the IJ and is kept
+    ///   with no place), subclavian, femoral (also "groin"). Tunneling goes
     ///   to the detail ("tunneled" for tunneled, permcath and permacath; "non-tunneled" for temporary).
     /// - Words not understood join the detail. When no place can be drawn (no place named, or a place with no side), the
     ///   site is "" (the model's "no place on the figure yet") and the whole typed text is the detail.
@@ -148,15 +193,18 @@ enum PatientDeviceFills {
         guard !typed.isEmpty else { return AccessSite(site: "", side: nil, detail: "") }
         var s = typed.lowercased().replacingOccurrences(of: "tunnelled", with: "tunneled")
         s = s.replacingOccurrences(of: #"\b(brachio|radio|non)[ \-]+(?=[a-z])"#, with: "$1", options: .regularExpression)
-        s = s.replacingOccurrences(of: #"\b(upper|lower) (arm|extremity|limb)\b"#, with: "$1$2", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"\b(upper|lower)[ \-]+(arm|extremity|limb)\b"#, with: "$1$2", options: .regularExpression)
         let words = s.split(whereSeparator: { !($0.isLetter || $0.isNumber) }).map(String.init)
 
         var side: String?
         var base: String?
+        // A limb named alone ("arm", "LUE", "leg"): a place only when nothing more exact is said ("LUE brachiocephalic").
+        var limbBase: String?
         var details: [String] = []
         var rest: [String] = []
         func setSide(_ x: String) { if side == nil { side = x } }
         func setBase(_ b: String) { if base == nil { base = b } }
+        func setLimb(_ b: String) { if limbBase == nil { limbBase = b } }
         func addDetail(_ d: String) { if !details.contains(d) { details.append(d) } }
         let ignored: Set<String> = ["in", "the", "of", "a", "an", "and", "at", "on", "side", "site", "vein", "av", "arteriovenous", "access",
                                     "fistula", "avf", "catheter", "cath", "line", "hd", "dialysis", "hemodialysis", "permanent"]
@@ -172,18 +220,19 @@ enum PatientDeviceFills {
             case "lsc", "lscv": setSide("left"); setBase("subclavian")
             case "rfv": setSide("right"); setBase("femoral-vein")
             case "lfv": setSide("left"); setBase("femoral-vein")
-            case "rue": setSide("right"); setBase("arm")
-            case "lue": setSide("left"); setBase("arm")
-            case "rle": setSide("right"); setBase("leg")
-            case "lle": setSide("left"); setBase("leg")
+            case "rue": setSide("right"); setLimb("arm")
+            case "lue": setSide("left"); setLimb("arm")
+            case "rle": setSide("right"); setLimb("leg")
+            case "lle": setSide("left"); setLimb("leg")
             case "rfa": if fistula { setSide("right"); setBase("forearm") } else { rest.append(w) }
             case "lfa": if fistula { setSide("left"); setBase("forearm") } else { rest.append(w) }
             case "wrist", "hand", "snuffbox": setBase("wrist")
             case "forearm", "fa": setBase("forearm")
             case "upperarm", "elbow", "antecubital", "ac", "acf", "brachial", "axillary", "axilla": setBase("upper-arm")
-            case "arm", "ue", "upperextremity", "upperlimb": setBase("arm")
+            case "arm", "ue", "upperextremity", "upperlimb": setLimb("arm")
             case "thigh": setBase("thigh")
-            case "leg", "le", "lowerextremity", "lowerlimb", "lowerarm": setBase(w == "lowerarm" ? "forearm" : "leg")
+            case "lowerarm": setBase("forearm")
+            case "leg", "le", "lowerextremity", "lowerlimb": setLimb("leg")
             case "groin": setBase("groin")
             case "femoral", "fem", "fv": setBase("femoral")
             case "ij", "ijv", "jugular", "neck": setBase("ij")
@@ -203,9 +252,13 @@ enum PatientDeviceFills {
                 if !ignored.contains(w) { rest.append(w) }
             }
         }
+        // The external jugular is not the IJ, and no place on the figure for this access: kept as typed.
+        if words.contains("ej") || words.contains("ejv") || (words.contains("external") && words.contains("jugular")) {
+            return AccessSite(site: "", side: side, detail: typed)
+        }
         // The place for this kind: arms and thigh for a fistula, the three veins for a catheter.
         var site: String?
-        if let b = base {
+        if let b = base ?? limbBase {
             switch (fistula, b) {
             case (true, "upper-arm"), (true, "forearm"), (true, "wrist"), (true, "thigh"): site = b
             case (true, "arm"): site = "forearm"
@@ -261,13 +314,14 @@ enum PatientDeviceFills {
     }
 
     /// The limb an AV fistula or graft puts a limb alert on, from its site's side and region (an arm, or a leg for the
-    /// thigh); a fistula kept without a place but with a side is taken to be in the arm. nil with no side, for another
+    /// thigh or the groin); a fistula kept without a place but with a side is taken to be in the arm. nil with no side, for another
     /// kind, or removed.
     static func limb(of d: PatientDevice) -> String? {
         guard d.kind == .avFistula, !d.removed else { return nil }
         let info = d.siteInfo
         guard let side = info?.side ?? d.side, side == "left" || side == "right" else { return nil }
-        return ((info?.region ?? "arm") == "leg" ? "leg-" : "arm-") + side
+        let region = info?.region ?? "arm"
+        return (region == "leg" || region == "groin" ? "leg-" : "arm-") + side
     }
 
     /// Every alert, computed from the record (the fistulas on the diagram first, then the user's, in the order typed):
@@ -289,8 +343,8 @@ enum PatientDeviceFills {
             guard !reason.isEmpty, limbOrder.contains(a.limb) else { continue }
             let key = reason.lowercased()
             if out.contains(where: { $0.limb == a.limb && $0.reason.lowercased() == key }) { continue }
-            if out.contains(where: { $0.limb == a.limb && $0.automatic }), says(key, accessWords) { continue }
-            if harvestArms.contains(a.limb), says(key, harvestWords) { continue }
+            if out.contains(where: { $0.limb == a.limb && $0.automatic }), onlySays(key, accessWords) { continue }
+            if harvestArms.contains(a.limb), onlySays(key, harvestWords) { continue }
             out.append(LimbAlertItem(id: a.id.uuidString, limb: a.limb, reason: reason, automatic: false))
         }
         return out
@@ -299,6 +353,23 @@ enum PatientDeviceFills {
     private static let accessWords = #"\b(?:av[fg]?|fistula|graft|dialysis access|hemodialysis access)\b"#
     private static let harvestWords = #"\b(?:radial (?:artery )?harvest|harvest(?:ing)?|radial artery graft)\b"#
     private static func says(_ text: String, _ pattern: String) -> Bool { text.range(of: pattern, options: .regularExpression) != nil }
+
+    /// The reason says only what `pattern` names: with those words, and the words any limb alert says (the limb, keep
+    /// lines and the cuff off it), taken out, nothing is left. "Dialysis fistula, do not use" only says it; "Steal
+    /// syndrome from AV fistula" says more, and is kept.
+    private static func onlySays(_ text: String, _ pattern: String) -> Bool {
+        guard says(text, pattern) else { return false }
+        let rest = text.replacingOccurrences(of: pattern, with: " ", options: .regularExpression)
+        return rest.split(whereSeparator: { !($0.isLetter || $0.isNumber) }).allSatisfy { alertWords.contains(String($0)) }
+    }
+
+    private static let alertWords: Set<String> = [
+        "l", "r", "left", "right", "arm", "leg", "lue", "rue", "lle", "rle", "upper", "lower", "extremity", "limb", "forearm",
+        "wrist", "thigh", "in", "on", "the", "a", "an", "of", "for", "this", "that", "side", "and", "or", "with",
+        "dialysis", "hemodialysis", "hd", "access", "arteriovenous", "planned", "radial", "artery",
+        "do", "not", "no", "use", "avoid", "keep", "off", "spare", "bp", "cuff", "cuffs", "iv", "ivs", "line", "lines",
+        "sticks", "needles", "blood", "pressure", "pressures", "draws",
+    ]
 
     /// The alerts by limb: the limbs with a fistula first, each group in the order of `limbOrder`.
     static func limbAlertGroups(_ r: PatientRecord, arrivalOnly: Bool = false) -> [LimbAlertGroup] {
