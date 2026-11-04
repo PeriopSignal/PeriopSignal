@@ -364,7 +364,13 @@ enum PatientTEE {
         if r.has("gi-bleed"), r.hx.giBleedSite != "lower" {
             let active = r.hx.giBleedStatus == "active"
             if r.hx.giBleedSite == "upper" {
-                if !active { offer("ugib-recent", "Resolved upper GI bleed recorded: was it recent?") }
+                if r.hx.giBleedStatus == "resolved" {
+                    offer("ugib-recent", "Resolved upper GI bleed recorded: was it recent?")
+                } else if !active {
+                    // No status recorded: an active upper bleed (absolute) is asked first, then a recent one.
+                    offer("ugib-active", "Upper GI bleed recorded, status not recorded: is it active?")
+                    offer("ugib-recent", "Upper GI bleed recorded, status not recorded: was it recent?")
+                }
             } else if active {
                 offer("ugib-active", "Active GI bleed recorded: is it an upper GI bleed?")
             } else {
@@ -372,9 +378,12 @@ enum PatientTEE {
             }
         }
         // An esophageal disorder: its type and any previous esophageal procedure, read for the items they name; with
-        // none named, the question goes to the first esophageal item.
-        if r.has("esophageal-disorder") {
-            let type = r.hx.esophagealDisorderType.trimmingCharacters(in: .whitespacesAndNewlines)
+        // none named, the question goes to the first esophageal item. The previous procedure sits on the section both
+        // dysphagia and an esophageal disorder share, and the section can hold a procedure answered Yes with neither
+        // chosen (the summary then lists it), so it is read under either, or whenever it is answered Yes.
+        let disorder = r.has("esophageal-disorder")
+        if disorder || r.has("dysphagia") || r.hx.esophagealProcedure == true {
+            let type = disorder ? r.hx.esophagealDisorderType.trimmingCharacters(in: .whitespacesAndNewlines) : ""
             let procedure = r.hx.esophagealProcedure == false ? "" : r.hx.esophagealProcedureDetails.trimmingCharacters(in: .whitespacesAndNewlines)
             var named = false
             if !type.isEmpty {
@@ -390,7 +399,7 @@ enum PatientTEE {
                     if let w = mention(procedure, p.words) { named = true; offer(p.id, "Previous esophageal procedure: \u{201C}" + w + "\u{201D}: " + p.question) }
                 }
             }
-            if !named {
+            if disorder, !named {
                 let what = type.isEmpty ? "Esophageal disorder recorded" : "Esophageal disorder recorded (\u{201C}" + type + "\u{201D})"
                 offer("stricture", what + ": is it a stricture, tumor, diverticulum, scleroderma or achalasia? Answer those below.")
             }
