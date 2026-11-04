@@ -403,18 +403,18 @@ struct PatientView: View {
     /// 6. Preprocedure Summary.
     @ViewBuilder private var summarySection: some View {
         PreopSectionTitle(text: PreopSection.summary.title).jumpTarget(section: .summary)
-        PreprocedureSummarySlot()
+        PreprocedureSummaryView()
     }
 
     private static let preopJumps: [PatientJumpItem] = PreopSection.allCases.map { PatientJumpItem(section: $0) }
 
     /// Screenshot runs: the names -ps.patient.jump and -ps.patient.scroll take for the preoperative tab: its six sections
-    /// (procedure, demographics, workup, medications, risk, preopsummary) and the boxes in them. The cards of earlier
+    /// (procedure, demographics, workup, medications, risk) and the boxes in them; "preopsummary" is the summary view's own id. The cards of earlier
     /// versions keep their names, pointing at the nearest new box: history -> problems, assessment -> asa, support -> cardio.
     private static let jumpKeys: [String: PatientJumpID] = [
         "procedure": PatientJumpID(section: .procedure), "demographics": PatientJumpID(anchor: "demographics"),
         "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
-        "risk": PatientJumpID(section: .risk), "preopsummary": PatientJumpID(section: .summary),
+        "risk": PatientJumpID(section: .risk),
         "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
         "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
         "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
@@ -494,14 +494,15 @@ struct PatientView: View {
 
     @ViewBuilder private var summary: some View {
         QuickAddBar(place: .summaryTab)
-        PatientSectionCard(editor: .plan, lines: PatientSummary.planLines(r), empty: "Disposition, pain plan and what the next team should do.")
+        // Status & Plan (1.9): short chips for the airway and the disposition, and To do & Concerns; no folder to open.
+        StatusPlanCard()
             .id(PatientEditor.plan)
         if patient.isEmpty {
             Text("The handoff writes itself here as you fill in the other tabs.")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
         } else {
-            // The lines and devices figure sits in the handoff, under its text (HandoffLinesFigure, 1.8.1).
+            // The lines and devices figure is the handoff's Lines & devices block (PatientBriefs, 1.9).
             HandoffPanel(record: r).id("handoff")
         }
     }
@@ -721,71 +722,51 @@ struct PatientSectionCard: View {
     }
 }
 
-/// The handoff as it stands, short or full, written from the record as you go: read it, copy it, share it, or send
-/// the patient itself to a colleague's Periop Signal so they carry on with the case.
+/// The handoff as it stands (1.9: one handoff in Ben's format, no Short or Full), written from the record as you go and
+/// editable block by block (BriefPanel): read it, edit it, copy it, share it with the fishbone and the lines diagram as
+/// pictures, or send the patient itself to a colleague's Periop Signal so they carry on with the case.
 struct HandoffPanel: View {
     @Environment(ReferenceStore.self) private var refs
     var record: PatientRecord
-    @State private var sharing: [Any]?
-    /// "full" or "short"; the last one used is kept.
-    @AppStorage("ps.handoff.format") private var format = "full"
-    @State private var copied = false
 
-    private var text: String { format == "short" ? HandoffWriter.shortText(record) : HandoffWriter.text(record) }
-
-    /// What the card shows: the text. Screenshot runs: -ps.handoff.from AIRWAY starts it at that header, so a section
-    /// far down the full handoff fits the frame.
-    private var shownText: String {
+    /// Screenshot runs: -ps.handoff.from Airway starts the handoff at the block whose label begins with it, so a block far
+    /// down fits the frame.
+    private var startAt: String {
         #if DEBUG
-        let from = LaunchSeed.string("ps.handoff.from")
-        if !from.isEmpty, let r = text.range(of: "\n" + from + "\n") { return String(text[text.index(after: r.lowerBound)...]) }
+        return LaunchSeed.string("ps.handoff.from")
+        #else
+        return ""
         #endif
-        return text
     }
 
-    /// Screenshot runs: -ps.handoff.image 1 shows the picture that goes after the text when the handoff is shared.
+    /// Screenshot runs: -ps.handoff.image 1 shows the pictures that go after the text when the handoff is shared.
     @ViewBuilder private var sharedImageShot: some View {
         #if DEBUG
-        if LaunchSeed.string("ps.handoff.image") == "1", let img = HandoffShare.diagramImage(record, figure: refs.bundle?.regional?.figure) {
-            VStack(alignment: .leading, spacing: 8) {
-                Eyebrow(text: "Picture shared after the text")
-                Image(uiImage: img).resizable().scaledToFit().frame(maxWidth: .infinity)
+        if LaunchSeed.string("ps.handoff.image") == "1" {
+            let images = HandoffShare.briefImages(PatientBriefs.handoff(record), record: record, figure: refs.bundle?.regional?.figure)
+            if !images.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Eyebrow(text: "Pictures shared after the text")
+                    ForEach(Array(images.enumerated()), id: \.offset) { _, img in
+                        Image(uiImage: img).resizable().scaledToFit().frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(12)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+                .id("sharedimage")
             }
-            .padding(12)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .id("sharedimage")
         }
         #endif
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: "Handoff, as it stands")
-                Spacer()
-                Picker("Handoff", selection: $format) {
-                    Text("Short").tag("short")
-                    Text("Full").tag("full")
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 150)
-            }
-            Text(handoffStyled(shownText, marks: HandoffWriter.marks(record)))
-                .font(PS.sys(size: 14.5))
-                .foregroundStyle(PS.fg)
-                .lineSpacing(3)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            HandoffLinesFigure(record: record)
+            #if DEBUG
+            // Screenshot runs: -ps.brief preop shows the Preprocedure tab's summary here too (its own tab is helper 5's).
+            if LaunchSeed.string("ps.brief") == "preop" { PreprocedureSummaryView() }
+            #endif
+            BriefPanel(kind: .handoff, startAt: startAt)
             sharedImageShot
-            HStack(spacing: 10) {
-                Button { sharing = HandoffShare.items(text: text, image: HandoffShare.diagramImage(record, figure: refs.bundle?.regional?.figure)) } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
-                    .buttonStyle(BigButtonStyle(prominent: true))
-                Button { HandoffShare.copy(text); copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
-                    .buttonStyle(BigButtonStyle(prominent: false))
-            }
             EvidenceNote("Share only through channels your institution approves for patient information.", title: "Approved channels only")
             sendCard
             VStack(alignment: .leading, spacing: 8) {
@@ -801,10 +782,6 @@ struct HandoffPanel: View {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-        }
-        .sensoryFeedback(.success, trigger: copied)
-        .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
-            ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
         }
     }
 
@@ -832,42 +809,6 @@ struct HandoffPanel: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-    }
-}
-
-/// Every line and device in place now, on arrival and placed in the room (the handoff's Lines and Support, the Foley
-/// with them), drawn on the patient under the handoff text (1.8.1, Ben): read-only and compact, the editor's own figure
-/// without its touch handlers (PatientDiagramCard). A tap opens the Lines editor. The shared handoff carries the same
-/// picture after the text (HandoffShare.diagramImage); the copied text stays text.
-struct HandoffLinesFigure: View {
-    @Environment(ReferenceStore.self) private var refs
-    var record: PatientRecord
-
-    var body: some View {
-        if refs.bundle?.regional?.figure != nil, !PatientDiagramModel.items(record, phase: .all).items.isEmpty {
-            NavigationLink(value: PatientEditor.intraopPart("lines")) {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        Eyebrow(text: "Lines & devices now")
-                        Spacer()
-                        Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                    }
-                    // 350: the smallest height whose label columns (8.4 figure units apart) clear the 7-point labels.
-                    // The limb alerts are in the handoff text above, so they are not listed again here.
-                    PatientDiagramCard(record: record, phase: .all, height: 350, listsLimbAlerts: false)
-                }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Lines and devices now: " + PatientDevices.labels(record.currentDevices()).joined(separator: "; "))
-            .accessibilityHint("Opens the Lines editor")
-            .accessibilityAddTraits(.isButton)
-            .id("handofffigure")
-        }
     }
 }
 

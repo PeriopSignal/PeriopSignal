@@ -619,35 +619,3 @@ struct PreopRiskBox: View {
         }
     }
 }
-
-// MARK: - Preprocedure Summary
-
-/// The Preprocedure Summary section: "+ Generate preprocedure summary" turns the summary on (preopSummaryOn); on, the
-/// summary shows. This stand-in shows a quiet placeholder; the summary view itself (PreprocedureSummaryView) is built
-/// beside it and replaces the placeholder where the two are merged. With nothing recorded the button is disabled.
-struct PreprocedureSummarySlot: View {
-    @Environment(PatientStore.self) private var patient
-
-    var body: some View {
-        let r = patient.record
-        VStack(alignment: .leading, spacing: 10) {
-            if r.preopSummaryOn {
-                Text("The preprocedure summary appears here.")
-                    .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            } else {
-                let available = PatientPreop.summaryAvailable(r)
-                Button { patient.update(discrete: true) { $0.preopSummaryOn = true } } label: {
-                    Label("Generate preprocedure summary", systemImage: "plus")
-                        .multilineTextAlignment(.leading)
-                }
-                .buttonStyle(CapsuleButtonStyle(prominent: false))
-                .disabled(!available)
-                .opacity(available ? 1 : 0.5)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}

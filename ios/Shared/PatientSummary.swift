@@ -266,6 +266,19 @@ enum PatientSummary {
     /// "Mask ventilation easy. Intubation easy: video laryngoscope, grade 1, 1 attempt; 7.5 ETT, 23 cm at the lip."
     static func airwayCourse(_ r: PatientRecord) -> Line? {
         let r = r.capitalized
+        var parts = airwayCourseSentences(r)
+        if let end = r.airwayAtEnd, let label = PatientCatalog.airwayAtEnd.first(where: { $0.id == end })?.label {
+            let vent = r.ventilation.trimmingCharacters(in: .whitespacesAndNewlines)
+            parts.append("At handoff: " + label.lowercased() + (end == "intubated" && !vent.isEmpty ? ", " + vent : ""))
+        }
+        guard !parts.isEmpty else { return nil }
+        return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
+    }
+
+    /// The course in the room, one sentence each, without the closing period: mask ventilation, the supraglottic airway,
+    /// the intubation (1.9: the new handoff adds how the airway is left itself).
+    static func airwayCourseSentences(_ r: PatientRecord) -> [String] {
+        let r = r.capitalized
         var parts: [String] = []
         let grade = r.maskGrade.map { " (grade \($0))" } ?? ""
         switch r.mask {
@@ -290,12 +303,7 @@ enum PatientSummary {
         case "none": parts.append("Not intubated" + (detail.isEmpty ? "" : ": " + detail))
         default: if !detail.isEmpty { parts.append(detail.prefix(1).uppercased() + detail.dropFirst()) }
         }
-        if let end = r.airwayAtEnd, let label = PatientCatalog.airwayAtEnd.first(where: { $0.id == end })?.label {
-            let vent = r.ventilation.trimmingCharacters(in: .whitespacesAndNewlines)
-            parts.append("At handoff: " + label.lowercased() + (end == "intubated" && !vent.isEmpty ? ", " + vent : ""))
-        }
-        guard !parts.isEmpty else { return nil }
-        return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
+        return parts
     }
 
     /// What the full handoff says for an airway examination or an echo never touched, so a blank is never read as
