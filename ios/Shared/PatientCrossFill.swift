@@ -38,6 +38,10 @@ struct PatientFills: Codable, Hashable {
     /// "No significant medical history" that the Anemia fill turned off: given back when that Anemia is taken back with
     /// nothing else recorded (a Hb typed digit by digit passes through a low "1" on its way to 14).
     var noHistory = false
+    /// The labs' Anemia taken off because an age under 15 was typed (no cut-off then): given back when a cut-off applies
+    /// again with the Hb still low (an adult age typed digit by digit passes through one digit), forgotten when the Hb
+    /// changes, a cut-off applies or Anemia is recorded.
+    var anemiaAside = false
 
     init() {}
 
@@ -52,6 +56,7 @@ struct PatientFills: Codable, Hashable {
         labSections = v(.labSections, [])
         dialysis = v(.dialysis, false)
         noHistory = v(.noHistory, false)
+        anemiaAside = v(.anemiaAside, false)
     }
 }
 
@@ -141,25 +146,26 @@ enum PatientCrossFill {
         if r.fills.noHistory && (r.noHistory || !r.labProblems.contains("anemia") || r.problems != ["anemia"]) {
             r.fills.noHistory = false
         }
-        // A transition counts only when the Hb itself changed or the cut-off applies both before and after: an age typed
-        // digit by digit passes through one under 15 (no cut-off), which is not the low reading going and coming back.
+        // A transition counts when the Hb itself changed or the cut-off applies both before and after. An age typed under
+        // 15 (no cut-off: nothing is checked by itself) sets the labs' Anemia aside, and a cut-off applying again with the
+        // Hb still low gives it back: every adult age typed digit by digit passes through one digit, which is not the low
+        // reading going and coming back, and an Anemia the user took off is not brought back by it.
         let lowBefore = PatientAnemia.isLow(before), lowNow = PatientAnemia.isLow(r)
-        let judged = before.labs["hb"] != r.labs["hb"] || (PatientAnemia.cutoff(before) != nil && PatientAnemia.cutoff(r) != nil)
-        if judged && !lowBefore && lowNow && !r.has("anemia") {
-            if r.noHistory {
-                r.noHistory = false
-                r.fills.noHistory = r.problems.isEmpty
-            }
-            r.problems.insert("anemia")
-            r.labProblems.insert("anemia")
-        } else if judged && lowBefore && !lowNow && r.labProblems.contains("anemia") {
-            r.problems.remove("anemia")
-            r.labProblems.remove("anemia")
-            if r.fills.noHistory {
-                if r.problems.isEmpty { r.noHistory = true }
-                r.fills.noHistory = false
-            }
+        let hbChanged = before.labs["hb"] != r.labs["hb"]
+        let cutBefore = PatientAnemia.cutoff(before) != nil, cutNow = PatientAnemia.cutoff(r) != nil
+        let judged = hbChanged || (cutBefore && cutNow)
+        if !hbChanged && cutBefore && !cutNow && r.labProblems.contains("anemia") {
+            takeBackAnemia(&r)
+            r.fills.anemiaAside = true
+        } else if !hbChanged && !cutBefore && cutNow && r.fills.anemiaAside {
+            if lowNow && !r.has("anemia") { fileAnemia(&r) }
+        } else if judged && !lowBefore && lowNow && !r.has("anemia") {
+            fileAnemia(&r)
+        } else if judged && !lowNow && r.labProblems.contains("anemia") && (lowBefore || !cutBefore) {
+            // No longer low, or a Hb changed while no cut-off applies (a child's is not checked by itself).
+            takeBackAnemia(&r)
         }
+        if hbChanged || cutNow || r.has("anemia") { r.fills.anemiaAside = false }
 
         // ECG.
         ecg("Atrial fibrillation", was: permanentAF(before), now: permanentAF(r), &r)
@@ -193,6 +199,26 @@ enum PatientCrossFill {
         for f in wantedBefore.subtracting(wantedNow) where r.fills.medFlags.contains(f) { r.medFlags.remove(f) }
 
         PatientDeviceFills.apply(before: before, after: &r)
+    }
+
+    /// The labs' Anemia filed: "No significant medical history" turned off, remembered as the fill's to give back.
+    private static func fileAnemia(_ r: inout PatientRecord) {
+        if r.noHistory {
+            r.noHistory = false
+            r.fills.noHistory = r.problems.isEmpty
+        }
+        r.problems.insert("anemia")
+        r.labProblems.insert("anemia")
+    }
+
+    /// The labs' Anemia taken back, with the "No significant medical history" it turned off when nothing else is recorded.
+    private static func takeBackAnemia(_ r: inout PatientRecord) {
+        r.problems.remove("anemia")
+        r.labProblems.remove("anemia")
+        if r.fills.noHistory {
+            if r.problems.isEmpty { r.noHistory = true }
+            r.fills.noHistory = false
+        }
     }
 
     // MARK: Sources
