@@ -159,7 +159,10 @@ struct PatientRecord: Codable, Equatable {
     /// "never", "former", "current".
     var smoking: String?
     var nkda = false
+    /// Allergies as typed before 1.9; shown until the list below holds them.
     var allergies = ""
+    /// Allergies as items with their severity (1.9).
+    var allergyList: [PatientAllergy] = []
     /// The medication list as typed before 1.9; shown until the list below holds the same drugs.
     var medications = ""
     /// Home and current medications as items (1.9).
@@ -344,6 +347,7 @@ struct PatientRecord: Codable, Equatable {
         smoking = try? c.decodeIfPresent(String.self, forKey: .smoking)
         nkda = v(.nkda, false)
         allergies = v(.allergies, "")
+        allergyList = v(.allergyList, [])
         medications = v(.medications, "")
         homeMeds = v(.homeMeds, [])
         medFlags = v(.medFlags, [])
