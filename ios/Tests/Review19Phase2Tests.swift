@@ -293,4 +293,52 @@ final class Review19Phase2Tests: XCTestCase {
         XCTAssertTrue(e.text.hasPrefix(PatientBriefs.handoff(r, now: now).first?.text ?? "-"), "the 1.9 handoff, header first")
         XCTAssertTrue(e.text.hasSuffix("Archived in Periop Signal, 31 Oct 2026. Check against the chart."))
     }
+
+    // MARK: Mechanical support alone keeps the lines diagram before the case
+
+    func testPreprocedureSupportAloneKeepsTheLinesDiagram() throws {
+        for text in ["HeartMate 3 LVAD 5400 rpm, PI 4.1, 4.8 L/min", "L fem IABP 7.5 Fr 1:1", "Impella CP"] {
+            var r = PatientRecord()
+            r.devices = devices([text], intraop: false)
+            XCTAssertFalse(r.devices.isEmpty, text)
+            let pre = PatientBriefs.preop(r)
+            XCTAssertTrue(try block(pre, "workup").text.contains("Mechanical support: "), "\(text): told in the workup")
+            let lines = try block(pre, "lines")
+            XCTAssertEqual(lines.figure, .diagram(arrivalOnly: true), "\(text): the diagram is kept with nothing else entered")
+            XCTAssertTrue(lines.lines.isEmpty, "\(text): not listed twice: \(lines.text)")
+            if r.devices.allSatisfy({ $0.position != nil }) {
+                XCTAssertFalse(PatientDiagramModel.items(r, phase: .preop).items.isEmpty, "\(text): drawn on it")
+            }
+            XCTAssertEqual(PatientBriefs.plainText(pre).components(separatedBy: "Mechanical support").count, 2,
+                           "\(text): once in the copied text")
+        }
+        // Nothing on the diagram: still no block.
+        var none = PatientRecord()
+        none.ageYears = 50
+        XCTAssertFalse(has(PatientBriefs.preop(none), "lines"))
+    }
+
+    // MARK: The archive list's one-liner
+
+    func testArchiveOneLinerIsTheHeaderOfA19EntryAndTheLineAfterTheOldHeading() {
+        var r = PatientDemo.record
+        r.handoffEdits = [:]
+        let c = PatientCase(number: 1, record: r, room: "OR 12", roomPhone: "")
+        let now = Calendar.current.date(from: DateComponents(year: 2026, month: 10, day: 31, hour: 15, minute: 47))!
+        let e = PatientArchiveWriter.entry(for: c, now: now)
+        XCTAssertTrue(e.oneLiner.hasPrefix("67 yo M (96 kg, 178 cm) had "), "1.9: the header: \(e.oneLiner)")
+        XCTAssertEqual(e.oneLiner, e.text.components(separatedBy: "\n").first)
+
+        // An entry saved before 1.9: the line after its heading.
+        let old = PatientArchiveEntry(day: "2026-10-20", procedure: "Case",
+                                      text: "ANESTHESIA HANDOFF\n67-year-old man · 96 kg · 178 cm\nLaparoscopic sigmoid colectomy · Elective")
+        XCTAssertEqual(old.oneLiner, "67-year-old man · 96 kg · 178 cm")
+        XCTAssertEqual(PatientArchiveEntry(day: "2026-10-20", procedure: "Case", text: "ANESTHESIA HANDOFF").oneLiner, "")
+
+        // A 1.9 entry with no header starts with a block: no one-liner rather than the wrong line.
+        for text in ["Allergies: NKDA\nPMH: HTN", "Code status: DNR\nCase: Urgent", "PMH (ASA II): HTN", "Concerns/Considerations:\n  Difficult airway"] {
+            XCTAssertEqual(PatientArchiveEntry(day: "2026-10-20", procedure: "Case", text: text).oneLiner, "", text)
+        }
+        XCTAssertEqual(PatientArchiveEntry(day: "2026-10-20", procedure: "Case", text: "").oneLiner, "")
+    }
 }

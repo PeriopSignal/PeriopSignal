@@ -159,9 +159,14 @@ struct SummaryBlock: Identifiable, Hashable {
 
     var id: String { key }
     var lines: [String] { text.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
+    /// The fishbone with a value in it, or the lines diagram (built only with a line or device to draw: before the case
+    /// a patient with mechanical support alone has it in the workup's words and on this picture, with no list beside it).
     var figureHasContent: Bool {
-        if case .fishbone(let l)? = figure { return !l.isEmpty }
-        return false
+        switch figure {
+        case .fishbone(let l)?: return !l.isEmpty
+        case .diagram?: return true
+        case nil: return false
+        }
     }
     var hasContent: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || figureHasContent }
 }
