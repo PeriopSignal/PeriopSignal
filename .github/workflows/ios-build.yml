@@ -228,31 +228,31 @@ jobs:
           shot 228-neuro-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "62M, subdural hematoma with midline shift, seizure, stroke 2 weeks ago"
           # 1.9 system pages (315-339, helper 1): every page expanding, light and dark; the CV, Respiratory and Neurologic
           # additions; the From Obstetric rows; the History list and the summary words.
-          shot 315-renal-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
-          shot 316-renal-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance dark
-          shot 317-gi-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
-          shot 318-gi-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.patient.scroll hx-cirrhosis -ps.forceAppearance dark
-          shot 319-endo-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.forceAppearance light
-          shot 320-endo-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.scroll hx-adrenal -ps.evidence.open 1 -ps.forceAppearance dark
-          shot 321-heme-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.forceAppearance light
-          shot 322-heme-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.patient.scroll hx-anticoagulation -ps.forceAppearance dark
-          shot 323-infectious-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.forceAppearance light
-          shot 324-infectious-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.patient.scroll hx-tb -ps.forceAppearance dark
-          shot 325-acute-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:acute -ps.forceAppearance light
-          shot 326-acute-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:acute -ps.forceAppearance dark
-          shot 327-ob-light 15 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.forceAppearance light
-          shot 328-ob-dark 15 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.patient.scroll hx-gdm -ps.forceAppearance dark
-          shot 329-msk-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance light
-          shot 330-msk-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance dark
-          shot 331-social-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance light
-          shot 332-social-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance dark
-          shot 333-cv-af-pacer-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.forceAppearance light
-          shot 334-resp-pleural-dark 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:resp -ps.patient.scroll hx-ild -ps.forceAppearance dark
-          shot 335-neuro-additions-light 15 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:neuro -ps.patient.scroll hx-sci -ps.forceAppearance light
-          shot 336-cv-from-ob-dark 15 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:cv -ps.patient.scroll hx-cardiac-surgery -ps.forceAppearance dark
-          shot 337-heme-from-ob-light 15 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:heme -ps.patient.scroll hx-declines-blood -ps.forceAppearance light
-          shot 338-pages-history-list 14 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open history -ps.forceAppearance light
-          shot 339-renal-empty-dark 14 -ps.tab patient -ps.patient empty -ps.patient.open system:renal -ps.forceAppearance dark
+          shot 315-renal-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
+          shot 316-renal-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance dark
+          shot 317-gi-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
+          shot 318-gi-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.patient.scroll hx-cirrhosis -ps.forceAppearance dark
+          shot 319-endo-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.forceAppearance light
+          shot 320-endo-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.scroll hx-adrenal -ps.evidence.open 1 -ps.forceAppearance dark
+          shot 321-heme-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.forceAppearance light
+          shot 322-heme-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.patient.scroll hx-anticoagulation -ps.forceAppearance dark
+          shot 323-infectious-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.forceAppearance light
+          shot 324-infectious-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.patient.scroll hx-tb -ps.forceAppearance dark
+          shot 325-acute-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:acute -ps.forceAppearance light
+          shot 326-acute-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:acute -ps.forceAppearance dark
+          shot 327-ob-light 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.forceAppearance light
+          shot 328-ob-dark 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.patient.scroll hx-gdm -ps.forceAppearance dark
+          shot 329-msk-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance light
+          shot 330-msk-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance dark
+          shot 331-social-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance light
+          shot 332-social-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance dark
+          shot 333-cv-af-pacer-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.forceAppearance light
+          shot 334-resp-pleural-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:resp -ps.patient.scroll hx-ild -ps.forceAppearance dark
+          shot 335-neuro-additions-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:neuro -ps.patient.scroll hx-sci -ps.forceAppearance light
+          shot 336-cv-from-ob-dark 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:cv -ps.patient.scroll hx-cardiac-surgery -ps.forceAppearance dark
+          shot 337-heme-from-ob-light 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:heme -ps.patient.scroll hx-declines-blood -ps.forceAppearance light
+          shot 338-pages-history-list 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open history -ps.forceAppearance light
+          shot 339-renal-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.open system:renal -ps.forceAppearance dark
           # 1.8.1 wave 2a (Reference tools, 230-239): short one-line headers, summaries and captions behind ⓘ (opened with
           # -ps.evidence.open 1), the ACLS protocol note with its not-recommended lines kept in view, the finder's empty state.
           shot 230-wave2a-airway-ref 12 -ps.ref quickref:asa-difficult-airway -ps.forceAppearance dark

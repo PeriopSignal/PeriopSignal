@@ -515,10 +515,10 @@ extension PatientDemo {
         r.hx.ckdStage = "5"
         r.hx.dialysisSchedule = "mwf"
         r.hx.dialysisAccess = ["fistula"]
-        r.hx.fistulaSite = "Left forearm"
+        r.hx.fistulaSite = "left forearm"
         r.hx.giBleedStatus = "resolved"
         r.hx.giBleedSite = "upper"
-        r.hx.giBleedDetails = "Duodenal ulcer 2024"
+        r.hx.giBleedDetails = "duodenal ulcer 2024"
         r.hx.thyroidType = "hypo"
         r.hx.adrenalKinds = ["steroids"]
         r.hx.steroidDrug = "Prednisolone"
@@ -527,8 +527,8 @@ extension PatientDemo {
         r.hx.anticoagulants = ["warfarin": PatientAnticoagulant(lastDose: "11/02 18:00")]
         r.hx.vteTiming = "chronic"
         r.hx.vteDate = "2023"
-        r.hx.sepsisSource = "Pneumonia"
-        r.hx.sepsisAntibiotic = "Cefepime"
+        r.hx.sepsisSource = "pneumonia"
+        r.hx.sepsisAntibiotic = "cefepime"
         r.hx.shockTypes = ["cardiogenic", "distributive"]
         r.hx.covidStatus = "recent"
         r.hx.covidTestDate = "10/20"

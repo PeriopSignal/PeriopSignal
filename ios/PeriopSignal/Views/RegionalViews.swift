@@ -493,7 +493,7 @@ struct WrapLayout: Layout {
         var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0, width: CGFloat = 0
         for v in subviews {
             let sz = v.sizeThatFits(.unspecified)
-            if x > 0 && x + sz.width > maxW { y += rowH + spacing; x = 0; rowH = 0 }
+            if x > 0 && x + sz.width > maxW + 0.5 { y += rowH + spacing; x = 0; rowH = 0 }
             x += sz.width + spacing; rowH = max(rowH, sz.height); width = max(width, x - spacing)
         }
         return CGSize(width: min(width, maxW), height: y + rowH)
@@ -502,7 +502,9 @@ struct WrapLayout: Layout {
         var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
         for v in subviews {
             let sz = v.sizeThatFits(.unspecified)
-            if x > bounds.minX && x + sz.width > bounds.maxX { y += rowH + spacing; x = bounds.minX; rowH = 0 }
+            // Half a point of slack (1.9): placed in exactly the width it asked for, rounding to pixels could wrap the last
+            // chip onto a row the size never counted, drawing it over the next line (the dialysis schedule's Other).
+            if x > bounds.minX && x + sz.width > bounds.maxX + 0.5 { y += rowH + spacing; x = bounds.minX; rowH = 0 }
             v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(sz))
             x += sz.width + spacing; rowH = max(rowH, sz.height)
         }

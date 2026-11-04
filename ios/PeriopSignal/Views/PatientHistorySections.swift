@@ -36,6 +36,19 @@ struct PatientHistorySectionsView: View {
     }
 
     private static let closing: Set<String> = ["other-disorders", "other"]
+    /// Items with nothing under them once chosen: no empty space is left below their row (1.9).
+    private static let bare: Set<String> = ["hyperlipidemia", "copd", "ild", "raised-icp", "seizure", "dementia", "parkinson", "neuromuscular", "sci",
+                                            "chronic-pain", "cspine", "aki", "gerd", "hiatal-hernia", "varices", "hepatitis-active", "gastroparesis",
+                                            "full-stomach", "sickle", "mdro", "uri", "pneumonia", "c-diff", "infection-active", "gest-htn",
+                                            "muscular-dystrophy"]
+
+    /// A short typed field with its name beside it, for values that read ambiguously once filled ("10/20").
+    private func labeled(_ label: String, _ prompt: String, _ t: Binding<String>) -> some View {
+        HStack(spacing: 10) {
+            Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2).fixedSize()
+            HistoryInlineField(prompt: prompt, label: label, text: t)
+        }
+    }
 
     /// Rows before the closing fields: the PFTs on Respiratory, and what the Obstetric page records for this system.
     @ViewBuilder private var pageRows: some View {
@@ -185,7 +198,7 @@ struct PatientHistorySectionsView: View {
         .accessibilityAddTraits(open ? .isSelected : [])
         .accessibilityHint(open ? "Clears it and its details" : "Adds it and shows its options")
         .id("hx-" + s.id)
-        if open {
+        if open && !Self.bare.contains(s.id) {
             VStack(alignment: .leading, spacing: 8) { content(s) }
                 .padding(.leading, 48).padding(.trailing, 14).padding(.bottom, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -432,8 +445,8 @@ struct PatientHistorySectionsView: View {
                 PatientChips(options: flags(HistorySections.dialysisAccesses), selection: Binding(
                     get: { patient.record.hx.dialysisAccess }, set: { v in edit { HistorySections.setDialysisAccess(v, &$0) } }))
             }
-            if r.hx.dialysisAccess.contains("fistula") { HistoryInlineField(prompt: "Fistula location, e.g. left forearm", text: text(\.fistulaSite)) }
-            if r.hx.dialysisAccess.contains("catheter") { HistoryInlineField(prompt: "Catheter location, e.g. right IJ tunneled", text: text(\.dialysisCatheterSite)) }
+            if r.hx.dialysisAccess.contains("fistula") { labeled("Fistula", "Location, e.g. left forearm", text(\.fistulaSite)) }
+            if r.hx.dialysisAccess.contains("catheter") { labeled("Catheter", "Location, e.g. right IJ tunneled", text(\.dialysisCatheterSite)) }
         case "gastric-bypass":
             HistoryInlineField(prompt: "Details, e.g. Roux-en-Y 2018", text: text(\.gastricBypassDetails))
         case "esophageal":
@@ -500,7 +513,26 @@ struct PatientHistorySectionsView: View {
 
     @ViewBuilder private var adrenal: some View {
         PatientChips(options: flags(HistorySections.adrenalKinds), selection: hxSet(\.adrenalKinds))
-        row("Drug") { PatientChoice(options: PatientSteroids.drugs.map { (id: $0, label: $0) } + [(id: "other", label: "Other")], selection: steroidDrug) }
+        // A menu, not six chips on three lines (1.9, de-cluttered).
+        row("Drug") {
+            let pick = steroidDrug
+            Menu {
+                ForEach(PatientSteroids.drugs, id: \.self) { d in Button(d) { patient.markDiscrete(); pick.wrappedValue = d } }
+                Button("Other") { patient.markDiscrete(); pick.wrappedValue = "other" }
+                if pick.wrappedValue != nil { Button("Clear", role: .destructive) { patient.markDiscrete(); pick.wrappedValue = nil } }
+            } label: {
+                HStack(spacing: 5) {
+                    Text(pick.wrappedValue.map { $0 == "other" ? "Other" : $0 } ?? "Choose")
+                    Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 10, weight: .semibold))
+                }
+                .font(PS.sys(size: 13.5, weight: .semibold))
+                .foregroundStyle(pick.wrappedValue == nil ? PS.fg2 : PS.fg)
+                .padding(.horizontal, 12).padding(.vertical, 7)
+                .background(PS.surface2, in: Capsule())
+                .overlay(Capsule().stroke(PS.line2, lineWidth: 1))
+            }
+            .accessibilityLabel("Glucocorticoid")
+        }
         if !PatientSteroids.drugs.contains(r.hx.steroidDrug) && otherOpen("steroid-other", \.steroidDrug) {
             HistoryInlineField(prompt: "Glucocorticoid", text: text(\.steroidDrug))
         }
@@ -548,18 +580,18 @@ struct PatientHistorySectionsView: View {
             HistoryInlineField(prompt: "What is accepted, e.g. albumin, cell saver", text: text(\.declinesBloodDetails))
         case "vte":
             row("Timing") { PatientChoice(options: HistorySections.acuteChronic, selection: hx(\.vteTiming)) }
-            HistoryInlineField(prompt: "Date, e.g. 09/2026", text: text(\.vteDate))
+            labeled("Date", "e.g. 09/2026", text(\.vteDate))
             PatientChips(options: [PatientFlag("anticoagulation", "On anticoagulation")], selection: onAnticoagulation)
         // Infectious
         case "sepsis":
-            HistoryInlineField(prompt: "Source, e.g. pneumonia, urinary", text: text(\.sepsisSource))
+            labeled("Source", "e.g. pneumonia, urinary", text(\.sepsisSource))
         case "hiv":
-            HistoryInlineField(prompt: "Viral load, e.g. undetectable", text: text(\.hivViralLoad))
+            labeled("Viral load", "e.g. undetectable", text(\.hivViralLoad))
         case "hepatitis":
             row("Type") { PatientChips(options: flags(HistorySections.hepatitisTypes), selection: hxSet(\.hepatitisTypes)) }
         case "covid":
             row("Status") { PatientChoice(options: HistorySections.covidStatuses, selection: hx(\.covidStatus)) }
-            HistoryInlineField(prompt: "Positive test date, e.g. 10/28", text: text(\.covidTestDate))
+            labeled("Positive test", "Date, e.g. 10/28", text(\.covidTestDate))
         case "tb":
             PatientChoice(options: HistorySections.tbStatuses, selection: hx(\.tbStatus))
         case "endocarditis":
@@ -595,8 +627,8 @@ struct PatientHistorySectionsView: View {
             } else {
                 Text(label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
             }
-            if kind == "other" { HistoryInlineField(prompt: "Drug, e.g. apixaban 5 mg BID", text: field(\.name)) }
-            HistoryInlineField(prompt: "Last dose, e.g. 11/03 21:00", text: field(\.lastDose))
+            if kind == "other" { labeled("Drug", "e.g. apixaban 5 mg BID", field(\.name)) }
+            labeled("Last dose", "e.g. 11/03 21:00", field(\.lastDose))
             if kind == "warfarin" { labRow("inr") }
         }
         .padding(10)
@@ -608,9 +640,9 @@ struct PatientHistorySectionsView: View {
     @ViewBuilder private func acuteOB(_ s: HistorySection) -> some View {
         switch s.id {
         case "sepsis":
-            HistoryInlineField(prompt: "Source, e.g. pneumonia, urinary", text: text(\.sepsisSource))
+            labeled("Source", "e.g. pneumonia, urinary", text(\.sepsisSource))
             row("Shock") { PatientChoice(options: Self.noYes, selection: sepsisShock) }
-            HistoryInlineField(prompt: "Antibiotic, e.g. piperacillin-tazobactam", text: text(\.sepsisAntibiotic))
+            labeled("Antibiotic", "e.g. piperacillin-tazobactam", text(\.sepsisAntibiotic))
         case "shock":
             PatientChips(options: flags(HistorySections.shockTypes), selection: hxSet(\.shockTypes))
             currentSupport
@@ -755,7 +787,7 @@ struct PatientHistorySectionsView: View {
                                    PatientFlag("cspine-unstable", "Unstable C-spine"), PatientFlag("scoliosis", "Scoliosis")],
                          selection: options(["spine-fusion", "cspine-unstable", "scoliosis"], s))
         case "fracture":
-            HistoryInlineField(prompt: "Location, e.g. left femur", text: text(\.fractureLocation))
+            labeled("Location", "e.g. left femur", text(\.fractureLocation))
         case "ctd":
             PatientChips(options: [PatientFlag("marfan", "Marfan syndrome"), PatientFlag("eds", "Ehlers-Danlos syndrome")], selection: options(["marfan", "eds"], s))
             row("Valve disease or aortopathy?") { PatientChoice(options: Self.noYes, selection: yesNo(\.ctdCardiovascular)) }
@@ -768,7 +800,7 @@ struct PatientHistorySectionsView: View {
                 .buttonStyle(.plain)
             }
         case "compartment":
-            HistoryInlineField(prompt: "Location, e.g. right forearm", text: text(\.compartmentLocation))
+            labeled("Location", "e.g. right forearm", text(\.compartmentLocation))
         case "smoking":
             PatientChoice(options: HistorySections.smokingStatuses, selection: Binding(
                 get: { patient.record.smoking }, set: { v in edit { HistorySections.setSmoking(v, &$0) } }))
@@ -776,7 +808,7 @@ struct PatientHistorySectionsView: View {
                 PatientNumberField(label: "Quit year", unit: "", value: whole(\.smokingQuitYear)).padding(.horizontal, -14)
             }
             if r.smoking == "former" || r.smoking == "current" {
-                PatientNumberField(label: "Pack-years", unit: "estimated", value: number(\.packYears)).padding(.horizontal, -14)
+                PatientNumberField(label: "Pack-years (estimated)", unit: "", value: number(\.packYears)).padding(.horizontal, -14)
             }
         case "alcohol":
             PatientChoice(options: HistorySections.alcoholAnswers, selection: Binding(
