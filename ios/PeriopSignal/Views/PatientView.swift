@@ -117,6 +117,7 @@ struct PatientView: View {
                 .readPatientTipFrames(tips.isShowing, into: $tipFrames)
                 .noIdentifiersAlert(isPresented: $showIdentifiers)
                 .modifier(PatientCasePresentations())
+                .modifier(CaseTimersPresentation())
                 .onChange(of: scrollToTop) { _, _ in
                     withAnimation(.snappy) { proxy.scrollTo(Self.topID, anchor: .top) }
                 }
@@ -467,6 +468,7 @@ struct PatientView: View {
 
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
+        CaseTimersStrip()
         let parts = intraopCardParts
         jumpBar(proxy, jumpItems ?? []).background(jumpBarReader)
         ForEach(parts, id: \.id) { part in

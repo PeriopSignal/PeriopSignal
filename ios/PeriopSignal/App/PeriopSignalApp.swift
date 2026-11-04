@@ -80,8 +80,14 @@ struct PeriopSignalApp: App {
                     }
                 }
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { patient.refresh() }
+                    if phase == .active {
+                        patient.refresh()
+                        CaseTimerNotifier.shared.sync(book: patient.book, data: refs.caseTimers)
+                    }
                 }
+                // Case timers of every open case, as notifications and the lock-screen countdown.
+                .onChange(of: patient.book) { _, book in CaseTimerNotifier.shared.sync(book: book, data: refs.caseTimers) }
+                .onChange(of: refs.caseTimers) { _, data in CaseTimerNotifier.shared.sync(book: patient.book, data: data) }
         }
     }
 }

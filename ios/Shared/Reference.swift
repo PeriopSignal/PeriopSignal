@@ -31,6 +31,11 @@ struct ReferenceBundle: Codable {
     var abg: AbgData?
     var regional: RegionalData?
     var obEmergency: ObEmergencyData?
+    /// 1.9 drafts (IntraopToolsData): hidden in release builds until "reviewed" is set.
+    var caseTimers: CaseTimerData?
+    var mtp: MtpData?
+    var mcs: McsData?
+    var tee: TeeData?
 
     /// This bundle with any section it lacks taken from `other`: a server file written before a section
     /// existed never hides the copy built into a newer app, and a newer app keeps the Ask endpoint the server has.
@@ -46,6 +51,10 @@ struct ReferenceBundle: Codable {
         if b.abg == nil { b.abg = other.abg }
         if b.regional == nil { b.regional = other.regional }
         if b.obEmergency == nil { b.obEmergency = other.obEmergency }
+        if b.caseTimers == nil { b.caseTimers = other.caseTimers }
+        if b.mtp == nil { b.mtp = other.mtp }
+        if b.mcs == nil { b.mcs = other.mcs }
+        if b.tee == nil { b.tee = other.tee }
         if b.ask?.endpoint == nil, let e = other.ask?.endpoint { b.ask = AskConfig(endpoint: e) }
         return b
     }

@@ -27,7 +27,7 @@ env:
 jobs:
   release:
     name: Archive, sign in the cloud, upload to TestFlight
-    runs-on: macos-15-intel   # Intel pool; the arm64 (macos-15 / macos-latest) pool has been capacity-constrained and jobs were never acquired
+    runs-on: macos-14   # the pool that acquires jobs reliably (Nov 2026); macos-15-intel and macos-15 queued for hours
     timeout-minutes: 90
     outputs:
       uploaded: ${{ steps.export.outputs.uploaded }}

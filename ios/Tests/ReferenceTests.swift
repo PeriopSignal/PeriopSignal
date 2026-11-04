@@ -328,7 +328,7 @@ final class ReferenceTests: XCTestCase {
         XCTAssertFalse(RefFolder.preoperative.items.contains { $0.route == .valves || $0.route == .intervention })
         // Preoperative & General: the preoperative and general anesthesia calculators together, with the Apfel score.
         XCTAssertEqual(RefFolder.preoperative.title, "Preoperative & General")
-        XCTAssertEqual(RefFolder.preoperative.items.map(\.route), [.score("rcri"), .score("ariscat"), .score("stopbang"), .score("apfel"), .fasting, .ponv, .abg, .score("aldrete")])
+        XCTAssertEqual(RefFolder.preoperative.items.map(\.route), [.score("rcri"), .score("ariscat"), .score("stopbang"), .score("apfel"), .fasting, .ponv, .abg, .score("aldrete"), .caseTimers], "1.9: Case Timers, the same timers as My Patient's ⋯ menu")
         XCTAssertEqual(RefRoute(key: "folder:generalAnesthesia"), .folder(.preoperative), "old links land in the merged folder")
         XCTAssertEqual(RefItem.folder(of: .abg), .preoperative)
         XCTAssertEqual(RefFolder.medications.route, .infusions, "a one-tool folder opens the tool")
