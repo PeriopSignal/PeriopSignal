@@ -328,8 +328,10 @@ struct PatientEditorView: View {
         PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything else goes under Other conditions.") {
             let systems = PatientCatalog.systems(for: r)
             ForEach(Array(systems.enumerated()), id: \.element.id) { i, s in
-                // The expanding pages' words are lowercase for the summary; the row reads as a sentence.
-                let picked = HistorySections.items(s, r).enumerated().map { $0.offset == 0 ? $0.element.prefix(1).uppercased() + $0.element.dropFirst() : $0.element }
+                // The expanding pages' words are lowercase for the summary; the row reads as a sentence. The two closing
+                // fields (Other [system] disorders, Other details) follow, as on the summary (1.9).
+                let typed = [r.systemOther[s.id], r.systemNotes[s.id]].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+                let picked = (HistorySections.items(s, r) + typed).enumerated().map { $0.offset == 0 ? $0.element.prefix(1).uppercased() + $0.element.dropFirst() : $0.element }
                 linkRow(s.name, picked.isEmpty ? "None recorded" : picked.joined(separator: "; "), icon: s.icon, value: .system(s.id))
                 if i < systems.count - 1 { Hairline().padding(.leading, 50) }
             }
@@ -388,16 +390,10 @@ struct PatientEditorView: View {
 
     @ViewBuilder private func system(_ id: String) -> some View {
         if let s = PatientCatalog.allSystems.first(where: { $0.id == id }) {
-            if id == "social" {
-                PatientGroup(title: "Smoking") {
-                    PatientChipRow(label: nil) {
-                        PatientChoice(options: [(id: "never", label: "Never"), (id: "former", label: "Former"), (id: "current", label: "Current")], selection: bind(\.smoking))
-                    }
-                }
-            }
             if HistorySections.sections(s.id) != nil {
-                // Cardiovascular and Respiratory (1.8.1): expanding sections; Cardiovascular ends with its studies, the
-                // same editors and data as Assessment.
+                // Every system but Pediatric (1.9; Cardiovascular and Respiratory since 1.8.1): expanding sections.
+                // Smoking is the first item of Smoking & Substances (1.9), not a group above it. Cardiovascular ends
+                // with its studies, the same editors and data as Assessment.
                 PatientHistorySectionsView(system: s)
                 if s.id == "cv" { cvStudies }
             } else {

@@ -53,8 +53,10 @@ final class PatientHistory181Tests: XCTestCase {
         let heme = try XCTUnwrap(names.firstIndex(of: "Hematologic"))
         XCTAssertEqual(names[heme + 1], "Infectious", "after Hematologic")
         let inf = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "infectious" })
-        XCTAssertEqual(inf.problems.map(\.label), ["Active infection", "Endocarditis", "HIV", "Hepatitis B or C", "MRSA or VRE", "C. difficile",
-                                                   "Tuberculosis", "Recent COVID-19", "Isolation precautions"])
+        // 1.9 (Ben's Wanted Changes): Infective endocarditis, Viral hepatitis (A, B or C) and COVID-19 (active or recent,
+        // one id) take Ben's labels; the ids are unchanged.
+        XCTAssertEqual(inf.problems.map(\.label), ["Active infection", "Infective endocarditis", "HIV", "Viral hepatitis", "MRSA or VRE", "C. difficile",
+                                                   "Tuberculosis", "COVID-19", "Isolation precautions"])
         for p in inf.problems {
             XCTAssertNil(p.asa, p.label + ": no ASA example")
             XCTAssertNil(p.peds, p.label)
@@ -114,7 +116,8 @@ final class PatientHistory181Tests: XCTestCase {
         let both = try XCTUnwrap(try? JSONDecoder().decode(PatientRecord.self, from: Data(#"{"problems": ["dm", "dm-poor", "insulin"]}"#.utf8)))
         XCTAssertEqual(both.problems, ["dm", "insulin"])
         XCTAssertEqual(PatientCatalog.migratedProblems(["dm-poor"]), ["dm"])
-        XCTAssertEqual(PatientSummary.historyLines(old).first { $0.label == "Endocrine" }?.text, "Diabetes")
+        // 1.9: Endocrine is an expanding page whose summary words are lowercase, as the other pages' are.
+        XCTAssertEqual(PatientSummary.historyLines(old).first { $0.label == "Endocrine" }?.text, "diabetes")
         let book = try XCTUnwrap(PatientCaseBook.decode(Data(#"{"problems": ["dm-poor"]}"#.utf8)), "a 1.6 record")
         XCTAssertEqual(book.cases.first?.record.problems, ["dm"])
     }

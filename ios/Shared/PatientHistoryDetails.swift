@@ -736,8 +736,8 @@ enum HistorySections {
         let d = r.hx
         switch s.id {
         case "valves": return d.hasValveDisease
-        case "arrhythmia": return !d.arrhythmiaType.isEmpty
-        case "device": return !d.deviceDetails.isEmpty
+        case "arrhythmia": return !d.arrhythmiaType.isEmpty || d.afType != nil
+        case "device": return !d.deviceDetails.isEmpty || d.pacerDependent || d.ciedSide != nil
         case "aorta": return !d.aneurysms.isEmpty || !d.repairDetails.isEmpty
         case "cardiac-surgery": return !PatientHistoryDetails.cardiacSurgeryText(r).isEmpty
         case "other": return !(r.systemNotes[system] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -877,6 +877,35 @@ enum HistorySections {
         if p.contains("hf-decomp") { hf.append("decompensated") } else if d.hfCompensated, !hf.isEmpty { hf.append("compensated") }
         if p.contains("ef-severe") { hf.append("EF severely reduced") } else if p.contains("ef-moderate") { hf.append("EF moderately reduced") }
         if !hf.isEmpty { out.append(hf.joined(separator: ", ")) }
+        out += valveWords(r)
+        if p.contains("af") { out.append((d.afType.flatMap { afTypeWords[$0] }.map { $0 + " " } ?? "") + "AF") }
+        if p.contains("arrhythmia") { out.append("other arrhythmia" + paren(d.arrhythmiaType)) }
+        let devices = [p.contains("pacemaker") ? "pacemaker" : nil, p.contains("icd") ? "ICD" : nil].compactMap { $0 }
+        // 1.9: pacer dependence and the generator's side ("pacemaker, pacer dependent, left-sided generator").
+        var device = devices.joined(separator: " and ")
+        if device.isEmpty && (d.pacerDependent || d.ciedSide != nil) { device = "pacemaker or ICD" }
+        if !device.isEmpty {
+            if d.pacerDependent { device += ", pacer dependent" }
+            if let side = d.ciedSide { device += ", " + side + "-sided generator" }
+            out.append(device + paren(d.deviceDetails))
+        }
+        if p.contains("pulm-htn-severe") { out.append("pulmonary hypertension, severe") }
+        else if p.contains("pulm-htn") { out.append("pulmonary hypertension" + (d.pulmHtnSeverity.map { ", " + $0 } ?? "")) }
+        if let aorta = aortaWords(r) { out.append(aorta) }
+        if p.contains("pvd") { out.append("peripheral vascular disease" + paren(d.pvdDetails)) }
+        if p.contains("chd") || p.contains("chd-elevated") {
+            out.append("congenital heart disease" + (p.contains("chd-elevated") ? ", complex lesion" : "") + paren(d.chdDetails))
+        }
+        let surgery = PatientHistoryDetails.cardiacSurgeryDisplay(r)
+        if !trimmed(surgery).isEmpty { out.append("previous cardiac surgery: " + trimmed(surgery)) }
+        return out
+    }
+
+    /// Each valve lesion in a few words ("aortic stenosis severe", "mitral prosthetic (mechanical 27 mm)"): the
+    /// Cardiovascular summary, and the Musculoskeletal connective-tissue item's cross-reference (1.9).
+    static func valveWords(_ r: PatientRecord) -> [String] {
+        let d = r.hx
+        var out: [String] = []
         for (v, name) in PatientHistoryDetails.valveNames {
             let x = d.valve(v)
             if x.stenosis { out.append(name.lowercased() + " stenosis" + (x.stenosisGrade.map { " " + $0 } ?? "")) }
@@ -885,12 +914,12 @@ enum HistorySections {
         }
         if d.prosthesisUnplaced { out.append("prosthetic valve, position not recorded") }
         if d.severeUnplaced, !d.anySevereLesion { out.append("severe valve disease, valve not recorded") }
-        if p.contains("af") { out.append("AF") }
-        if p.contains("arrhythmia") { out.append("other arrhythmia" + paren(d.arrhythmiaType)) }
-        let devices = [p.contains("pacemaker") ? "pacemaker" : nil, p.contains("icd") ? "ICD" : nil].compactMap { $0 }
-        if !devices.isEmpty { out.append(devices.joined(separator: " and ") + paren(d.deviceDetails)) }
-        if p.contains("pulm-htn-severe") { out.append("pulmonary hypertension, severe") }
-        else if p.contains("pulm-htn") { out.append("pulmonary hypertension" + (d.pulmHtnSeverity.map { ", " + $0 } ?? "")) }
+        return out
+    }
+
+    /// The Aortopathy item in a few words ("aortopathy: ascending aneurysm 4.8 cm, type B dissection"), or nil.
+    static func aortaWords(_ r: PatientRecord) -> String? {
+        let p = r.problems, d = r.hx
         var aorta: [String] = []
         let order = PatientHistoryDetails.aneurysmSites.map(\.id) + [PatientHistoryDetails.unplacedThoracic.id]
         for site in order {
@@ -904,14 +933,7 @@ enum HistorySections {
         let repairs = [p.contains("aortic-repair-open") ? "open repair" : nil, p.contains("evar") ? "EVAR" : nil, p.contains("tevar") ? "TEVAR" : nil].compactMap { $0 }
         if !repairs.isEmpty { aorta.append("prior " + repairs.joined(separator: " and ") + paren(d.repairDetails)) }
         else if !trimmed(d.repairDetails).isEmpty { aorta.append("prior repair" + paren(d.repairDetails)) }
-        if !aorta.isEmpty { out.append("aortopathy: " + aorta.joined(separator: ", ")) }
-        if p.contains("pvd") { out.append("peripheral vascular disease" + paren(d.pvdDetails)) }
-        if p.contains("chd") || p.contains("chd-elevated") {
-            out.append("congenital heart disease" + (p.contains("chd-elevated") ? ", complex lesion" : "") + paren(d.chdDetails))
-        }
-        let surgery = PatientHistoryDetails.cardiacSurgeryDisplay(r)
-        if !trimmed(surgery).isEmpty { out.append("previous cardiac surgery: " + trimmed(surgery)) }
-        return out
+        return aorta.isEmpty ? nil : "aortopathy: " + aorta.joined(separator: ", ")
     }
 
     /// The Respiratory page in a few words: "asthma, uncontrolled; COPD; OSA on CPAP/BiPAP (BiPAP 14/8)".
@@ -930,7 +952,34 @@ enum HistorySections {
         if !inf.isEmpty { out.append("respiratory infection: " + inf.joined(separator: ", ")) }
         if p.contains("ild") { out.append("interstitial lung disease") }
         if p.contains("home-o2") { out.append("home oxygen" + (d.homeO2Flow.map { " " + NumText.short($0) + " L/min" } ?? "")) }
+        if let pleural = pleuralWords(r) { out.append(pleural) }
         return out
+    }
+
+    /// "left hemothorax, drained, chest tube left"; nil when nothing is recorded (1.9).
+    static func pleuralWords(_ r: PatientRecord) -> String? {
+        let p = r.problems, d = r.hx
+        var kinds: [String] = []
+        if p.contains("pleural-effusion") {
+            switch d.pleuralFluid {
+            case "hemothorax": kinds.append("hemothorax")
+            case "chylothorax": kinds.append("chylothorax")
+            default: kinds.append("pleural effusion")
+            }
+        }
+        if p.contains("pneumothorax") { kinds.append("pneumothorax") }
+        guard !kinds.isEmpty || d.pleuralSide != nil || d.pleuralDrained != nil else { return nil }
+        var t = (d.pleuralSide.map { $0 + " " } ?? "") + (kinds.isEmpty ? "pleural effusion or pneumothorax" : kinds.joined(separator: " and "))
+        if d.pleuralDrained == true {
+            t += ", drained"
+            if d.chestTube == true {
+                let sides = ["left", "right"].filter(d.chestTubeSides.contains)
+                t += ", chest tube" + (sides.isEmpty ? " in place" : " " + sides.joined(separator: " and "))
+            }
+        } else if d.pleuralDrained == false {
+            t += ", not drained"
+        }
+        return t
     }
 
     /// The Neurologic page in a few words: "stroke or TIA within 3 months; intracranial bleed with mass effect; seizure disorder".
@@ -949,7 +998,259 @@ enum HistorySections {
         if p.contains("neuromuscular") { out.append("neuromuscular disease") }
         if p.contains("sci") { out.append("spinal cord injury") }
         if p.contains("chronic-pain") { out.append("chronic pain or opioid tolerance") }
+        // 1.9. The unstable cervical spine is listed under Musculoskeletal, its home.
+        if p.contains("visual-impairment") { out.append("visual impairment" + (r.hx.visualImpairment.map { ", " + $0 } ?? "")) }
+        let psych = [p.contains("mdd") ? "MDD" : nil, p.contains("anxiety") ? "anxiety" : nil, nonEmpty(r.hx.psychOther)].compactMap { $0 }
+        if !psych.isEmpty { out.append("psychological disorder: " + psych.joined(separator: ", ")) }
+        else if p.contains("psych") { out.append("psychological disorder") }
         return out
+    }
+
+    // MARK: 1.9 pages in a few words. Each id is listed once, under its home system (PatientCatalog.system(of:)): an
+    // item shown on two pages (isShared) is left out of the page it is only shown on.
+
+    /// "CKD stage 3b; ESRD on hemodialysis M/W/F (left forearm fistula)".
+    static func renalItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if p.contains("ckd") { out.append("CKD" + (d.ckdStage.map { " stage " + $0 } ?? "")) }
+        if p.contains("esrd-no-dialysis") { out.append("ESRD not on scheduled dialysis") }
+        if p.contains("aki") { out.append("AKI") }
+        if p.contains("bph") { out.append("BPH") }
+        if p.contains("prostate-cancer") { out.append("prostate cancer") }
+        if p.contains("esrd-dialysis") {
+            let days = d.dialysisSchedule.flatMap { s in dialysisSchedules.first { $0.id == s }?.label } ?? nonEmpty(d.dialysisScheduleOther)
+            var access: [String] = []
+            if d.dialysisAccess.contains("fistula") { access.append((nonEmpty(d.fistulaSite).map { $0 + " " } ?? "") + "fistula") }
+            if d.dialysisAccess.contains("catheter") { access.append((nonEmpty(d.dialysisCatheterSite).map { $0 + " " } ?? "") + "dialysis catheter") }
+            out.append("ESRD on hemodialysis" + (days.map { " " + $0 } ?? "") + paren(access.joined(separator: ", ")))
+        }
+        return out
+    }
+
+    /// "GERD; prior gastric bypass (Roux-en-Y 2018); GI bleed, upper, resolved".
+    static func giItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if p.contains("gerd") { out.append("GERD") }
+        if p.contains("gastric-bypass") { out.append("prior gastric bypass" + paren(d.gastricBypassDetails)) }
+        var esophagus: [String] = []
+        if p.contains("dysphagia") { esophagus.append("dysphagia") }
+        if p.contains("esophageal-disorder") { esophagus.append("esophageal disorder" + paren(d.esophagealDisorderType)) }
+        if d.esophagealProcedure == true { esophagus.append("previous esophageal procedure" + paren(d.esophagealProcedureDetails)) }
+        if !esophagus.isEmpty { out.append(esophagus.joined(separator: ", ")) }
+        if p.contains("hiatal-hernia") { out.append("hiatal hernia") }
+        if p.contains("varices") { out.append("esophageal varices") }
+        if p.contains("cirrhosis") { out.append("cirrhosis") }
+        if p.contains("hepatitis-active") { out.append("active hepatitis") }
+        if p.contains("gastroparesis") { out.append("gastroparesis") }
+        if p.contains("gi-bleed") {
+            let parts = [d.giBleedSite, d.giBleedStatus].compactMap { $0 }
+            out.append((["GI bleed"] + parts).joined(separator: ", ") + paren(d.giBleedDetails))
+        }
+        if p.contains("full-stomach") { out.append("full stomach or bowel obstruction") }
+        return out
+    }
+
+    /// "diabetes on insulin; hypothyroidism; chronic steroids (prednisolone 10 mg/day, 1 month or more)".
+    static func endoItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if p.contains("insulin") { out.append("diabetes on insulin") }
+        else if p.contains("dm") { out.append("diabetes" + (d.dmNoInsulin ? ", not on insulin" : "")) }
+        if p.contains("thyroid") {
+            switch d.thyroidType {
+            case "hypo": out.append("hypothyroidism")
+            case "hyper": out.append("hyperthyroidism")
+            default: out.append("thyroid disease")
+            }
+        }
+        if p.contains("adrenal") {
+            let kinds = adrenalKinds.filter { d.adrenalKinds.contains($0.id) }.map { $0.label.lowercased() }
+            let drug = nonEmpty(d.steroidDrug).map { PatientSteroids.drugs.contains($0) ? $0.lowercased() : $0 }
+            let dose = [drug, d.steroidDailyMg.map { NumText.short($0) + " mg/day" }].compactMap { $0 }.joined(separator: " ")
+            let duration = d.steroidDuration.flatMap { s in PatientSteroids.durations.first { $0.id == s }?.label.lowercased() }
+            let detail = [dose.isEmpty ? nil : dose, duration].compactMap { $0 }.joined(separator: ", ")
+            out.append((kinds.isEmpty ? "adrenal insufficiency or chronic steroids" : kinds.joined(separator: " and ")) + paren(detail))
+        }
+        return out
+    }
+
+    /// "anemia; thrombophilia (factor V Leiden); on anticoagulation: heparin, therapeutic, last dose 08:00".
+    static func hemeItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if p.contains("anemia") { out.append("anemia") }
+        if p.contains("thrombocytopenia") { out.append("thrombocytopenia") }
+        let bleeding = bleedingKinds.filter { p.contains($0.id) }.map(\.words) + [nonEmpty(d.bleedingOther)].compactMap { $0 }
+        if !bleeding.isEmpty { out.append("bleeding disorder: " + bleeding.joined(separator: ", ")) }
+        else if p.contains("bleeding") { out.append("bleeding disorder or coagulopathy") }
+        if p.contains("thrombophilia-heme") || p.contains("fvl") {
+            let kinds = [p.contains("fvl") ? "factor V Leiden" : nil, nonEmpty(d.thrombophiliaOther)].compactMap { $0 }
+            out.append("thrombophilia" + paren(kinds.joined(separator: ", ")))
+        }
+        if p.contains("anticoagulation") {
+            let drugs = anticoagulantKinds.compactMap { k -> String? in
+                guard let a = d.anticoagulants[k.id] else { return nil }
+                let name = k.id == "other" ? (nonEmpty(a.name) ?? "other") : k.label.lowercased()
+                return ([name, a.intensity] + [nonEmpty(a.lastDose).map { "last dose " + $0 }]).compactMap { $0 }.joined(separator: ", ")
+            }
+            out.append("on anticoagulation" + (drugs.isEmpty ? "" : ": " + drugs.joined(separator: "; ")))
+        }
+        if p.contains("declines-blood") { out.append("declines blood products" + paren(d.declinesBloodDetails)) }
+        if p.contains("vte") { out.append((["DVT/PE", d.vteTiming, nonEmpty(d.vteDate)].compactMap { $0 }).joined(separator: ", ")) }
+        if p.contains("sickle") { out.append("sickle cell disease") }
+        return out
+    }
+
+    /// "MRSA or VRE; HIV (viral load undetectable); COVID-19, active, positive 11/01; isolation precautions: contact".
+    /// Sepsis (Acute illness), URI and pneumonia (Respiratory) are listed under their own systems.
+    static func infectiousItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if p.contains("mdro") { out.append("MRSA or VRE") }
+        if p.contains("hiv") { out.append("HIV" + paren(nonEmpty(d.hivViralLoad).map { "viral load " + $0 } ?? "")) }
+        if p.contains("hepatitis-viral") {
+            let types = hepatitisTypes.filter { d.hepatitisTypes.contains($0.id) }.map(\.label)
+            out.append(types.isEmpty ? "viral hepatitis" : "hepatitis " + types.joined(separator: " and "))
+        }
+        if p.contains("covid-recent") {
+            out.append((["COVID-19", d.covidStatus, nonEmpty(d.covidTestDate).map { "positive " + $0 }].compactMap { $0 }).joined(separator: ", "))
+        }
+        if p.contains("c-diff") { out.append("C. difficile") }
+        if p.contains("tb") { out.append("tuberculosis" + (d.tbStatus.map { ", " + $0 } ?? "")) }
+        if p.contains("endocarditis") { out.append("infective endocarditis" + paren(d.endocarditisDetails)) }
+        if p.contains("infection-active") { out.append("active infection") }
+        if p.contains("isolation") {
+            let kinds = PatientPrecautions.kinds.filter { d.precautions.contains($0.id) }.map { $0.label.lowercased() }
+            out.append("isolation precautions" + (kinds.isEmpty ? "" : ": " + kinds.joined(separator: ", ")))
+        }
+        return out
+    }
+
+    /// "sepsis, source pneumonia, on cefepime; mixed shock: cardiogenic, distributive; massive trauma".
+    static func acuteItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if p.contains("sepsis") {
+            out.append((["sepsis", nonEmpty(d.sepsisSource).map { "source " + $0 }, nonEmpty(d.sepsisAntibiotic).map { "on " + $0 }].compactMap { $0 })
+                .joined(separator: ", "))
+        }
+        if p.contains("shock") { out.append(shockWords(d.shockTypes)) }
+        let trauma = [p.contains("massive-trauma") ? "massive trauma" : nil, p.contains("burn") ? "major burn" : nil].compactMap { $0 }
+        if !trauma.isEmpty || !trimmed(d.traumaDetails).isEmpty {
+            out.append((trauma.isEmpty ? "trauma or burn" : trauma.joined(separator: " and ")) + paren(d.traumaDetails))
+        }
+        if p.contains("ruptured-aneurysm") { out.append("ruptured abdominal or thoracic aneurysm") }
+        return out
+    }
+
+    /// "shock", "cardiogenic shock", or two or more: "mixed shock: cardiogenic, distributive" (Ben's wording).
+    static func shockWords(_ types: Set<String>) -> String {
+        let t = shockTypes.filter { types.contains($0.id) }.map { $0.label.lowercased() }
+        switch t.count {
+        case 0: return "shock"
+        case 1: return t[0] + " shock"
+        default: return "mixed shock: " + t.joined(separator: ", ")
+        }
+    }
+
+    /// "G2P1A0L1, 32+4 weeks, prior cesarean (last birth); preeclampsia with severe features: AKI, HELLP syndrome".
+    static func obItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if p.contains("pregnant") {
+            let gpal = [("G", d.gravida), ("P", d.para), ("A", d.abortus), ("L", d.living)].compactMap { l, n in n.map { l + String($0) } }.joined()
+            var parts: [String] = [gpal.isEmpty ? "pregnant" : gpal]
+            if let w = d.gestationWeeks { parts.append(String(w) + (d.gestationDays.map { "+" + String($0) } ?? "") + " weeks") }
+            if d.priorCesarean == true {
+                parts.append("prior cesarean" + (d.cesareanLastBirth == true ? " (last birth)" : (d.cesareanLastBirth == false ? " (not the last birth)" : "")))
+            } else if d.priorCesarean == false {
+                parts.append("no prior cesarean")
+            }
+            out.append(parts.joined(separator: ", "))
+        }
+        if p.contains("gest-htn") { out.append("gestational hypertension, controlled") }
+        if p.contains("preeclampsia-severe") || p.contains("hellp") || !d.preeclampsiaFeatures.isEmpty {
+            let f = preeclampsiaFeatures.filter { d.preeclampsiaFeatures.contains($0.id) || ($0.id == "hellp" && p.contains("hellp")) }.map(\.words)
+            out.append("preeclampsia with severe features" + (f.isEmpty ? "" : ": " + f.joined(separator: ", ")))
+        } else if p.contains("preeclampsia") {
+            out.append("preeclampsia without severe features")
+        }
+        if p.contains("gdm") || p.contains("gdm-diet") || p.contains("gdm-complex") { out.append("gestational diabetes" + gdmDetail(r)) }
+        if p.contains("ppcm") || p.contains("peripartum-cm") {
+            var t = "peripartum cardiomyopathy"
+            if let ef = d.ppcmEF { t += ", LVEF " + NumText.short(ef) + "%" } else if p.contains("peripartum-cm") { t += ", EF below 40%" }
+            out.append(t)
+        }
+        if p.contains("previa-accreta") {
+            let k = placentaKinds.filter { d.placenta.contains($0.id) }.map { $0.label.lowercased() }
+            out.append("placenta " + (k.isEmpty ? "previa or accreta" : k.joined(separator: " and ")))
+        }
+        if p.contains("uterine-rupture") { out.append("uterine rupture, active") }
+        if p.contains("uterine-rupture-past") { out.append("past uterine rupture") }
+        if p.contains("thrombophilia") { out.append("on anticoagulation for thrombophilia") }
+        return out
+    }
+
+    /// ", uncontrolled, on insulin" (or ", diet-controlled" as saved before 1.9).
+    private static func gdmDetail(_ r: PatientRecord) -> String {
+        let p = r.problems, d = r.hx
+        let parts = [p.contains("gdm-diet") ? "diet-controlled" : d.gdmControl, d.gdmInsulin ? "on insulin" : nil,
+                     p.contains("gdm-complex") ? "complications or high insulin needs" : nil].compactMap { $0 }
+        return parts.isEmpty ? "" : ", " + parts.joined(separator: ", ")
+    }
+
+    /// "rheumatoid arthritis (hands); unstable C-spine; Marfan syndrome, valve disease or aortopathy".
+    static func mskItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        let arthritis = [p.contains("ra") ? "rheumatoid arthritis" : nil, p.contains("oa") ? "osteoarthritis" : nil].compactMap { $0 }
+        let location = arthritisUnspecified(d) ? "" : d.arthritisLocation
+        if !arthritis.isEmpty || !trimmed(location).isEmpty { out.append((arthritis.isEmpty ? "arthritis" : arthritis.joined(separator: " and ")) + paren(location)) }
+        if p.contains("spine-fusion") { out.append("ankylosing spondylitis or cervical fusion") }
+        if p.contains("cspine-unstable") { out.append("unstable C-spine") }
+        if p.contains("scoliosis") { out.append("scoliosis") }
+        if p.contains("fracture") { out.append("fracture" + paren(d.fractureLocation)) }
+        if p.contains("muscular-dystrophy") { out.append("muscular dystrophy") }
+        let ctd = [p.contains("marfan") ? "Marfan syndrome" : nil, p.contains("eds") ? "Ehlers-Danlos syndrome" : nil].compactMap { $0 }
+        if !ctd.isEmpty || d.ctdCardiovascular != nil {
+            let cv = d.ctdCardiovascular.map { $0 ? ", valve disease or aortopathy" : ", no valve disease or aortopathy" } ?? ""
+            out.append((ctd.isEmpty ? "connective tissue disorder" : ctd.joined(separator: " and ")) + cv)
+        }
+        if p.contains("compartment-syndrome") { out.append("compartment syndrome" + paren(d.compartmentLocation)) }
+        return out
+    }
+
+    /// The arthritis location left unspecified on purpose (the Unspecified chip).
+    static func arthritisUnspecified(_ d: PatientHistoryDetails) -> Bool { trimmed(d.arthritisLocation).lowercased() == "unspecified" }
+
+    /// "former smoker, quit 2015, 20 pack-years; social alcohol use; illicit drug use: cocaine". Smoking is said here
+    /// only (PatientSummary.historyLines no longer adds it).
+    static func socialItems(_ r: PatientRecord) -> [String] {
+        let p = r.problems, d = r.hx
+        var out: [String] = []
+        if let s = smokingWords(r) { out.append(s) }
+        if p.contains("alcohol-abuse") { out.append("current alcohol dependence or abuse") }
+        else if p.contains("alcohol-abuse-former") { out.append("former alcohol dependence or abuse") }
+        else if p.contains("alcohol-social") { out.append("social alcohol use") }
+        else if d.alcoholNone { out.append("no alcohol use") }
+        let drugs = HistorySections.drugs.filter { p.contains($0.id) }.map { $0.label.lowercased() } + [nonEmpty(d.drugsOther)].compactMap { $0 }
+        if !drugs.isEmpty { out.append("illicit drug use: " + drugs.joined(separator: ", ")) }
+        else if p.contains("substance") { out.append("illicit drug use") }
+        return out
+    }
+
+    /// "never smoked", "former smoker, quit 2015, 20 pack-years", "current smoker, 30 pack-years"; nil not recorded.
+    static func smokingWords(_ r: PatientRecord) -> String? {
+        let d = r.hx
+        let pack = d.packYears.map { NumText.short($0) + " pack-years" }
+        switch r.smoking {
+        case "never": return "never smoked"
+        case "former": return (["former smoker", d.smokingQuitYear.map { "quit " + String($0) }, pack].compactMap { $0 }).joined(separator: ", ")
+        case "current": return (["current smoker", pack].compactMap { $0 }).joined(separator: ", ")
+        default: return nil
+        }
     }
 
     /// The items a summary lists for a system: the expanding pages' own words, else the problems' labels.
@@ -958,7 +1259,224 @@ enum HistorySections {
         case "cv": return cvItems(r)
         case "resp": return respItems(r)
         case "neuro": return neuroItems(r)
+        case "renal": return renalItems(r)
+        case "gi": return giItems(r)
+        case "endo": return endoItems(r)
+        case "heme": return hemeItems(r)
+        case "infectious": return infectiousItems(r)
+        case "acute": return acuteItems(r)
+        case "ob": return obItems(r)
+        case "msk": return mskItems(r)
+        case "social": return socialItems(r)
         default: return sys.problems.filter { r.problems.contains($0.id) }.map(\.label)
         }
+    }
+
+    private static func nonEmpty(_ s: String) -> String? { trimmed(s).isEmpty ? nil : trimmed(s) }
+
+    // MARK: Cross-references (1.9): shown on a page, never filed there
+
+    /// What the Obstetric page records that belongs on another system's page (display only: no problem id is added,
+    /// so nothing changes the ASA): CV gestational hypertension, preeclampsia, peripartum cardiomyopathy; Hematologic
+    /// thrombocytopenia and HELLP; Respiratory pulmonary edema; Neurologic headache or visual changes; Renal AKI;
+    /// Endocrine gestational diabetes.
+    static func fromObstetric(_ system: String, _ r: PatientRecord) -> [String] {
+        let p = r.problems, f = r.hx.preeclampsiaFeatures
+        var out: [String] = []
+        switch system {
+        case "cv":
+            if p.contains("gest-htn") { out.append("gestational hypertension") }
+            if p.contains("preeclampsia-severe") || p.contains("hellp") || !f.isEmpty { out.append("preeclampsia with severe features") }
+            else if p.contains("preeclampsia") { out.append("preeclampsia without severe features") }
+            if p.contains("ppcm") || p.contains("peripartum-cm") {
+                out.append("peripartum cardiomyopathy" + (r.hx.ppcmEF.map { ", LVEF " + NumText.short($0) + "%" } ?? ""))
+            }
+        case "heme":
+            if f.contains("thrombocytopenia") { out.append("thrombocytopenia (preeclampsia)") }
+            if f.contains("hellp") || p.contains("hellp") { out.append("HELLP syndrome") }
+        case "resp":
+            if f.contains("pulm-edema") { out.append("pulmonary edema (preeclampsia)") }
+        case "neuro":
+            if f.contains("neuro") { out.append("headache or visual changes (preeclampsia)") }
+        case "renal":
+            if f.contains("aki") { out.append("AKI (preeclampsia)") }
+        case "endo":
+            if p.contains("gdm") || p.contains("gdm-diet") || p.contains("gdm-complex") { out.append("gestational diabetes" + gdmDetail(r)) }
+        default: break
+        }
+        return out
+    }
+
+    /// The Cardiovascular page's ruptured aneurysms, shown on Acute illness instead of a second entry
+    /// ("ruptured abdominal aneurysm").
+    static func fromCardiovascular(_ r: PatientRecord) -> [String] {
+        let order = PatientHistoryDetails.aneurysmSites.map(\.id) + [PatientHistoryDetails.unplacedThoracic.id]
+        return order.filter { r.hx.aneurysms[$0]?.ruptured == true }.map { "ruptured " + PatientHistoryDetails.siteWords($0) + " aneurysm" }
+    }
+
+    /// For a connective tissue disorder with valve disease or aortopathy: the Cardiovascular page's valve and aorta
+    /// words, as recorded there.
+    static func cvValveAortaWords(_ r: PatientRecord) -> [String] { valveWords(r) + [aortaWords(r)].compactMap { $0 } }
+}
+
+// MARK: - 1.9 options and the edits the pages make (view-free, so the tests use them)
+
+extension HistorySections {
+    typealias Option = (id: String, label: String)
+
+    static let afTypes: [Option] = [("paroxysmal", "Paroxysmal"), ("persistent", "Persistent"), ("longstanding", "Long-standing persistent"), ("permanent", "Permanent")]
+    static let afTypeWords: [String: String] = ["paroxysmal": "paroxysmal", "persistent": "persistent", "longstanding": "long-standing persistent", "permanent": "permanent"]
+    static let leftRight: [Option] = [("left", "Left"), ("right", "Right")]
+    static let pleuralSides: [Option] = [("left", "Left"), ("right", "Right"), ("bilateral", "Bilateral")]
+    static let pleuralFluids: [Option] = [("unspecified", "Unspecified"), ("hemothorax", "Hemothorax"), ("chylothorax", "Chylothorax")]
+    static let acuteChronic: [Option] = [("acute", "Acute"), ("chronic", "Chronic")]
+    static let ckdStages: [Option] = [("1", "1"), ("2", "2"), ("3a", "3a"), ("3b", "3b"), ("4", "4"), ("5", "5")]
+    static let dialysisSchedules: [Option] = [("mwf", "M/W/F"), ("tts", "Tu/Th/Sa")]
+    static let dialysisAccesses: [Option] = [("fistula", "Fistula"), ("catheter", "Dialysis catheter")]
+    static let giBleedStatuses: [Option] = [("active", "Active"), ("resolved", "Resolved")]
+    static let giBleedSites: [Option] = [("upper", "Upper"), ("lower", "Lower")]
+    static let thyroidTypes: [Option] = [("hypo", "Hypothyroid"), ("hyper", "Hyperthyroid")]
+    static let adrenalKinds: [Option] = [("insufficiency", "Adrenal insufficiency"), ("steroids", "Chronic steroids")]
+    /// Bleeding disorders: the chip, and the summary's words.
+    static let bleedingKinds: [(id: String, label: String, words: String)] = [
+        ("vwd", "von Willebrand disease", "von Willebrand disease"), ("hemophilia-a", "Hemophilia A", "hemophilia A"),
+        ("hemophilia-b", "Hemophilia B", "hemophilia B"), ("dic", "DIC", "DIC"),
+    ]
+    static let anticoagulantKinds: [Option] = [("heparin", "Heparin"), ("warfarin", "Warfarin"), ("enoxaparin", "Enoxaparin"), ("other", "Other")]
+    static let intensities: [Option] = [("therapeutic", "Therapeutic"), ("prophylaxis", "Prophylaxis")]
+    static let hepatitisTypes: [Option] = [("a", "A"), ("b", "B"), ("c", "C")]
+    static let covidStatuses: [Option] = [("active", "Active"), ("recent", "Recent")]
+    static let tbStatuses: [Option] = [("active", "Active"), ("latent", "Latent")]
+    static let shockTypes: [Option] = [("cardiogenic", "Cardiogenic"), ("distributive", "Distributive"), ("obstructive", "Obstructive"), ("hypovolemic", "Hypovolemic")]
+    /// Preeclampsia's severe features: the chip, and the summary's words.
+    static let preeclampsiaFeatures: [(id: String, label: String, words: String)] = [
+        ("neuro", "Headache/visual changes", "headache or visual changes"), ("aki", "AKI", "AKI"),
+        ("thrombocytopenia", "Thrombocytopenia", "thrombocytopenia"), ("pulm-edema", "Pulmonary edema", "pulmonary edema"),
+        ("hellp", "HELLP syndrome", "HELLP syndrome"),
+    ]
+    static let gdmControls: [Option] = [("controlled", "Controlled"), ("uncontrolled", "Uncontrolled")]
+    static let placentaKinds: [Option] = [("previa", "Previa"), ("accreta", "Accreta")]
+    static let smokingStatuses: [Option] = [("never", "Never"), ("former", "Former"), ("current", "Current")]
+    static let alcoholAnswers: [Option] = [("none", "None"), ("social", "Social"), ("former", "Former dependence/abuse"), ("current", "Current dependence/abuse")]
+    static let drugs: [Option] = [("cocaine", "Cocaine"), ("opioid-use", "Opioids"), ("marijuana", "Marijuana"), ("methamphetamine", "Methamphetamine")]
+
+    /// Smoking never, former or current (nil clears it): a quit year only for a former smoker, pack-years for either.
+    static func setSmoking(_ s: String?, _ r: inout PatientRecord) {
+        r.smoking = s
+        if s != "former" { r.hx.smokingQuitYear = nil }
+        if s != "former" && s != "current" { r.hx.packYears = nil }
+    }
+
+    /// Alcohol, one answer: "none" (hx.alcoholNone), "social", "former", "current" (problem ids), nil not recorded.
+    static func alcohol(_ r: PatientRecord) -> String? {
+        if r.has("alcohol-abuse") { return "current" }
+        if r.has("alcohol-abuse-former") { return "former" }
+        if r.has("alcohol-social") { return "social" }
+        return r.hx.alcoholNone ? "none" : nil
+    }
+
+    static func setAlcohol(_ a: String?, _ r: inout PatientRecord) {
+        r.problems.subtract(["alcohol-social", "alcohol-abuse", "alcohol-abuse-former"])
+        r.hx.alcoholNone = a == "none"
+        switch a {
+        case "social": r.problems.insert("alcohol-social")
+        case "former": r.problems.insert("alcohol-abuse-former")
+        case "current": r.problems.insert("alcohol-abuse")
+        default: break
+        }
+        if a != nil { r.noHistory = false }
+    }
+
+    /// Diabetes on insulin ("insulin", the "insulin" problem beside "dm") or not ("none", hx.dmNoInsulin); nil neither.
+    static func diabetesInsulin(_ r: PatientRecord) -> String? { r.has("insulin") ? "insulin" : (r.hx.dmNoInsulin ? "none" : nil) }
+
+    static func setDiabetesInsulin(_ v: String?, _ r: inout PatientRecord) {
+        r.problems.insert("dm")
+        if v == "insulin" { r.problems.insert("insulin") } else { r.problems.remove("insulin") }
+        r.hx.dmNoInsulin = v == "none"
+        r.noHistory = false
+    }
+
+    /// Peripartum cardiomyopathy's LVEF: below 40% is the ASA's class IV example ("peripartum-cm"); otherwise, or with
+    /// no EF typed, the item is "ppcm" (LVEF < 45%, ESC HFA 2019), which carries no class.
+    static func setPPCMEF(_ ef: Double?, _ r: inout PatientRecord) {
+        r.hx.ppcmEF = ef
+        if let ef, ef < 40 { r.problems.remove("ppcm"); r.problems.insert("peripartum-cm") }
+        else { r.problems.remove("peripartum-cm"); r.problems.insert("ppcm") }
+        r.noHistory = false
+    }
+
+    /// Preeclampsia without ("without": "preeclampsia", ASA II) or with severe features ("with": "preeclampsia-severe",
+    /// ASA III); nil clears the item. Without severe features drops the features (and HELLP).
+    static func preeclampsiaSeverity(_ r: PatientRecord) -> String? {
+        if r.has("preeclampsia-severe") || r.has("hellp") || !r.hx.preeclampsiaFeatures.isEmpty { return "with" }
+        return r.has("preeclampsia") ? "without" : nil
+    }
+
+    static func setPreeclampsiaSeverity(_ v: String?, _ r: inout PatientRecord) {
+        r.problems.subtract(["preeclampsia", "preeclampsia-severe"])
+        if v == "with" { r.problems.insert("preeclampsia-severe") }
+        else {
+            r.problems.remove("hellp")
+            r.hx.preeclampsiaFeatures = []
+            if v == "without" { r.problems.insert("preeclampsia") }
+        }
+        r.noHistory = false
+    }
+
+    /// The severe features; HELLP among them is also the "hellp" problem (the ASA's class IV example).
+    static func setPreeclampsiaFeatures(_ f: Set<String>, _ r: inout PatientRecord) {
+        r.hx.preeclampsiaFeatures = f
+        r.problems.remove("preeclampsia")
+        r.problems.insert("preeclampsia-severe")
+        if f.contains("hellp") { r.problems.insert("hellp") } else { r.problems.remove("hellp") }
+        r.noHistory = false
+    }
+
+    /// Thrombophilia in pregnancy on anticoagulation: Yes adds the ASA's obstetric example ("thrombophilia", class III)
+    /// beside the disease; No takes it off.
+    static func setObThrombophiliaAnticoag(_ v: Bool?, _ r: inout PatientRecord) {
+        r.hx.obThrombophiliaAnticoag = v == true ? nil : v
+        r.problems.insert("thrombophilia-heme")
+        if v == true { r.problems.insert("thrombophilia") } else { r.problems.remove("thrombophilia") }
+        r.noHistory = false
+    }
+
+    static func obThrombophiliaAnticoag(_ r: PatientRecord) -> Bool? { r.has("thrombophilia") ? true : r.hx.obThrombophiliaAnticoag }
+
+    /// One anticoagulant on or off (On anticoagulation stays chosen).
+    static func setAnticoagulant(_ kind: String, _ on: Bool, _ r: inout PatientRecord) {
+        r.problems.insert("anticoagulation")
+        if on { if r.hx.anticoagulants[kind] == nil { r.hx.anticoagulants[kind] = PatientAnticoagulant() } }
+        else { r.hx.anticoagulants[kind] = nil }
+        r.noHistory = false
+    }
+
+    /// Sepsis with shock (Yes adds the Shock item; No takes it off, with its types).
+    static func setSepsisShock(_ v: Bool, _ r: inout PatientRecord) {
+        r.problems.insert("sepsis")
+        if v { r.problems.insert("shock") } else { r.problems.remove("shock"); r.hx.shockTypes = [] }
+        r.noHistory = false
+    }
+
+    /// The pleural item's answers, each clearing what hangs from it: the fluid goes with the effusion, the chest tube
+    /// with drainage, its sides with it.
+    static func setPleuralDrained(_ v: Bool?, _ r: inout PatientRecord) {
+        r.hx.pleuralDrained = v
+        if v != true { r.hx.chestTube = nil; r.hx.chestTubeSides = [] }
+    }
+
+    static func setChestTube(_ v: Bool?, _ r: inout PatientRecord) {
+        r.hx.chestTube = v
+        if v != true { r.hx.chestTubeSides = [] }
+    }
+
+    /// The dialysis access: a site typed for an access taken off goes with it.
+    static func setDialysisAccess(_ a: Set<String>, _ r: inout PatientRecord) {
+        r.hx.dialysisAccess = a
+        if !a.contains("fistula") { r.hx.fistulaSite = "" }
+        if !a.contains("catheter") { r.hx.dialysisCatheterSite = "" }
+        r.problems.insert("esrd-dialysis")
+        r.noHistory = false
     }
 }
