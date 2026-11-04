@@ -379,9 +379,10 @@ enum PatientTEE {
         }
         // An esophageal disorder: its type and any previous esophageal procedure, read for the items they name; with
         // none named, the question goes to the first esophageal item. The previous procedure sits on the section both
-        // dysphagia and an esophageal disorder share, so it is read for either.
+        // dysphagia and an esophageal disorder share, and the section can hold a procedure answered Yes with neither
+        // chosen (the summary then lists it), so it is read under either, or whenever it is answered Yes.
         let disorder = r.has("esophageal-disorder")
-        if disorder || r.has("dysphagia") {
+        if disorder || r.has("dysphagia") || r.hx.esophagealProcedure == true {
             let type = disorder ? r.hx.esophagealDisorderType.trimmingCharacters(in: .whitespacesAndNewlines) : ""
             let procedure = r.hx.esophagealProcedure == false ? "" : r.hx.esophagealProcedureDetails.trimmingCharacters(in: .whitespacesAndNewlines)
             var named = false

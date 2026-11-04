@@ -42,10 +42,16 @@ final class Review19TeeSteroidsTests: XCTestCase {
         XCTAssertEqual(PatientTEE.evaluate(r).findings.map(\.item.id), ["dysphagia"], "the procedure is offered, never counted")
         r.hx.esophagealProcedure = false
         XCTAssertTrue(suggestions(r).isEmpty, "No previous procedure: its text is not read")
-        // Without dysphagia or an esophageal disorder the section's text is not read.
+        // With neither chip chosen, the section stays open on a Yes and the summary lists the procedure; the TEE
+        // screen reads it too, but asks no esophageal-disorder fallback question.
         var none = record(["htn"])
         none.hx.esophagealProcedure = true; none.hx.esophagealProcedureDetails = "esophageal dilation and stent"
-        XCTAssertTrue(suggestions(none).isEmpty)
+        XCTAssertTrue(Set(suggestions(none).map(\.item.id)).isSuperset(of: ["stricture", "tumor"]), "\(suggestions(none).map(\.item.id))")
+        XCTAssertTrue(PatientTEE.evaluate(none).findings.isEmpty, "offered, never counted")
+        none.hx.esophagealProcedureDetails = "unknown"
+        XCTAssertTrue(suggestions(none).isEmpty, "nothing named and no esophageal disorder: no fallback question")
+        none.hx.esophagealProcedure = nil; none.hx.esophagealProcedureDetails = "esophageal dilation and stent"
+        XCTAssertTrue(suggestions(none).isEmpty, "not answered and neither chip chosen: the section is not open, its text is not read")
     }
 
     // MARK: Fludrocortisone
