@@ -157,4 +157,32 @@ final class Review19IntegrationTests: XCTestCase {
         let w = try XCTUnwrap(PatientStudies.cautions(plain).first { $0.id == "vertebral-left" }?.text)
         XCTAssertTrue(w.contains("use the right arm for the arterial line and cuff"), w)
     }
+
+    // MARK: A denied anaphylaxis in typed allergies
+
+    /// Typed before 1.9, "PCN - rash, no anaphylaxis" beside a listed "Penicillin (mild)": the typed text is shown, but
+    /// its denied anaphylaxis is not in red. A written one still is.
+    func testADeniedAnaphylaxisInTypedAllergiesIsNotMarked() throws {
+        var r = PatientRecord()
+        r.allergies = "PCN - rash, no anaphylaxis"
+        r.allergyList = [PatientAllergy(name: "Penicillin", severity: "mild", reaction: "")]
+        let line = try XCTUnwrap(PatientAllergyText.line(r))
+        XCTAssertTrue(line.text.localizedCaseInsensitiveContains("no anaphylaxis"), line.text)
+        XCTAssertFalse(line.marks.contains { $0.localizedCaseInsensitiveContains("anaphyla") }, line.marks.joined(separator: " | "))
+        XCTAssertFalse(PatientAllergyText.items(r).contains { $0.anaphylaxis }, "nothing here is an anaphylaxis")
+        // Without a list, the same.
+        var typedOnly = PatientRecord()
+        typedOnly.allergies = "PCN - rash, no anaphylaxis; latex - non-anaphylactic hives"
+        XCTAssertFalse(try XCTUnwrap(PatientAllergyText.line(typedOnly)).marks.contains { $0.localizedCaseInsensitiveContains("anaphyla") })
+        // A written anaphylaxis is marked, beside the list and without it.
+        var real = r
+        real.allergies = "PCN - anaphylaxis"
+        XCTAssertTrue(try XCTUnwrap(PatientAllergyText.line(real)).marks.contains("PCN - anaphylaxis"))
+        var history = PatientRecord()
+        history.allergies = "Hx of anaphylaxis to latex"
+        XCTAssertEqual(try XCTUnwrap(PatientAllergyText.line(history)).marks, ["Hx of anaphylaxis to latex"])
+        XCTAssertTrue(AllergyCatalog.writesAnaphylaxis("Negative reaction: anaphylaxis"))
+        XCTAssertFalse(AllergyCatalog.writesAnaphylaxis("No hx of anaphylaxis"))
+        XCTAssertFalse(AllergyCatalog.writesAnaphylaxis("Denies anaphylaxis"))
+    }
 }
