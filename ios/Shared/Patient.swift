@@ -458,6 +458,8 @@ struct PatientRecord: Codable, Equatable {
         fills.problems.formIntersection(problems)
         fills.medFlags.formIntersection(medFlags)
         fills.ecg.formIntersection(Set(ecg))
+        // Saved before 1.9 (which saves the fills on every record), "aki" also meant ESRD not on scheduled dialysis.
+        if !c.contains(.fills), problems.contains("aki") { hx.akiBefore19 = true }
         PatientHistoryDetails.migrate(&self)
     }
 

@@ -564,7 +564,7 @@ final class PatientPages19Tests: XCTestCase {
             XCTAssertTrue(HistorySections.isSelected(try section(sys, id), system: sys, r), sys + "." + id + " opens chosen")
         }
         XCTAssertEqual(HistorySections.obThrombophiliaAnticoag(r), true, "the 1.8 item was the anticoagulated one")
-        XCTAssertEqual(line("Renal", r), "AKI; ESRD on hemodialysis; Nephrology follows")
+        XCTAssertEqual(line("Renal", r), "AKI or ESRD not on scheduled dialysis; ESRD on hemodialysis; Nephrology follows", "1.8.3's aki keeps its wording")
         XCTAssertEqual(line("Smoking & Substances", r), "former smoker; social alcohol use; illicit drug use; Quit 2015")
         XCTAssertEqual(line("Obstetric", r), "gestational diabetes, diet-controlled; peripartum cardiomyopathy, EF below 40%; uterine rupture, active; on anticoagulation for thrombophilia")
         XCTAssertEqual(line("Hematologic", r), "bleeding disorder: DIC")

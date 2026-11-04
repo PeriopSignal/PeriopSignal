@@ -283,6 +283,11 @@ struct PatientHistoryDetails: Codable, Hashable {
     /// Illicit drug use, Other: as typed.
     var drugsOther = ""
 
+    // Renal
+    /// "aki" saved before 1.9, when it was "Acute kidney injury, or ESRD not on scheduled dialysis" (a note's "ESRD, not
+    /// on dialysis" filed it): which of the two is not known, so it keeps that wording (akiLabel) until it is taken off.
+    var akiBefore19 = false
+
     init() {}
 
     init(from decoder: Decoder) throws {
@@ -373,6 +378,7 @@ struct PatientHistoryDetails: Codable, Hashable {
         packYears = try? c.decodeIfPresent(Double.self, forKey: .packYears)
         alcoholNone = v(.alcoholNone, false)
         drugsOther = v(.drugsOther, "")
+        akiBefore19 = v(.akiBefore19, false)
     }
 
     // MARK: Fixed lists
@@ -754,9 +760,11 @@ enum HistorySections {
         }
     }
 
-    /// Choosing the item alone: its base problem, when it has one.
+    /// Choosing the item alone: its base problem, when it has one. Smoking and Alcohol are answered, not filed: never
+    /// smoked and no alcohol are the ASA I example ("healthy, non-smoking, no or minimal alcohol use"), so opening them
+    /// leaves "No significant medical history" as it is (an alcohol answer that is a problem clears it: setAlcohol).
     static func select(_ s: HistorySection, _ r: inout PatientRecord) {
-        r.noHistory = false
+        if s.id != "smoking" && s.id != "alcohol" { r.noHistory = false }
         if let b = s.base { r.problems.insert(b) }
     }
 
@@ -1015,7 +1023,7 @@ enum HistorySections {
         var out: [String] = []
         if p.contains("ckd") { out.append("CKD" + (d.ckdStage.map { " stage " + $0 } ?? "")) }
         if p.contains("esrd-no-dialysis") { out.append("ESRD not on scheduled dialysis") }
-        if p.contains("aki") { out.append("AKI") }
+        if p.contains("aki") { out.append(d.akiBefore19 ? "AKI or ESRD not on scheduled dialysis" : "AKI") }
         if p.contains("bph") { out.append("BPH") }
         if p.contains("prostate-cancer") { out.append("prostate cancer") }
         if p.contains("esrd-dialysis") {
@@ -1384,7 +1392,9 @@ extension HistorySections {
         case "current": r.problems.insert("alcohol-abuse")
         default: break
         }
-        if a != nil { r.noHistory = false }
+        // No alcohol is part of ASA I's "healthy" (select): only an answer that files a problem clears No significant
+        // medical history.
+        if a != nil && a != "none" { r.noHistory = false }
     }
 
     /// Diabetes on insulin ("insulin", the "insulin" problem beside "dm") or not ("none", hx.dmNoInsulin); nil neither.
