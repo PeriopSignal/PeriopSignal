@@ -560,7 +560,7 @@ jobs:
           shot 460-brief-preop-light 18 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab summary -ps.brief preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           shot 461-brief-preop-dark 18 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab summary -ps.brief preop -ps.patient.scroll preopsummary -ps.forceAppearance dark
           shot 462-brief-preop-edited-light 18 -ps.tab patient -ps.patient demo-briefs-edit -ps.patient.tab summary -ps.brief preop -ps.patient.scroll preopsummary -ps.forceAppearance light
-          shot 463-brief-preop-edited-dark 18 -ps.tab patient -ps.patient demo-briefs-edit -ps.patient.tab summary -ps.brief preop -ps.patient.scroll preopsummary -ps.forceAppearance dark
+          shot 463-brief-preop-lines-risk-dark 22 -ps.tab patient -ps.patient demo-briefs-edit -ps.patient.tab summary -ps.brief preop -ps.patient.scroll preopfigure -ps.forceAppearance dark
           shot 464-brief-handoff-top-light 18 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
           shot 465-brief-handoff-top-dark 18 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 466-brief-handoff-bottom-light 18 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab summary -ps.handoff.from Intake -ps.patient.scroll handoff -ps.forceAppearance light
