@@ -223,7 +223,7 @@ enum PatientBriefs {
             let fish = labs.plainFishbone()
             if !fish.isEmpty { parts.append(fish) }
             parts += lines
-            var out = [((label.map { $0 + " " }) ?? "") + parts.joined(separator: " · ")]
+            var out = [ascii(((label.map { $0 + " " }) ?? "") + parts.joined(separator: " · "))]
             if let c = labs.caption { out.append("  " + c) }
             return out
         }

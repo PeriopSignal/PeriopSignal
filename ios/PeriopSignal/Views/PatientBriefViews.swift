@@ -247,6 +247,7 @@ struct BriefBlockView: View {
                     HStack(alignment: .top, spacing: 12) { FishboneFigure(labs: labs); sideText }
                 }
             }
+            .id("fishbone")
         case .diagram(let arrivalOnly)?:
             VStack(alignment: .leading, spacing: 6) {
                 labelRow
