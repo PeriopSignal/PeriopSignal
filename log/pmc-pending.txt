@@ -27,3 +27,5 @@ hepatology-2026-global-aclf-consensus-definitions | 42960623 | PMID; no PMC copy
 circ-2026-season-ar-tavr-pure-ar | 42965504 | PMID; no PMC copy yet
 nejm-2026-progress-tavr-moderate-as | 42970708 | PMID; no PMC copy yet
 icm-2026-bicarbonate-bayesian-meta-analysis | 42970124 | PMID; no PMC copy yet
+lancet-2026-iris-main-left-main-pci-cabg | 42976899 | PMID; no PMC copy yet
+eja-2026-sugammadex-neostigmine-165-rct-meta | 42973066 | PMID; no PMC copy yet

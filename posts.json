@@ -1,7 +1,173 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-03T09:17:26+00:00",
+ "generatedAt": "2026-11-04T09:23:26+00:00",
  "posts": [
+  {
+   "id": "lancet-2026-iris-main-left-main-pci-cabg",
+   "date": "2026-11-03",
+   "dateApprox": false,
+   "addedAt": "2026-11-04",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "Registry",
+   "topics": [
+    "cardiacSurgery",
+    "cardiac"
+   ],
+   "headline": "IRIS-MAIN: left main PCI and CABG had similar 10-year mortality in a 5,379-patient Asian registry, 24.0% vs 22.9%",
+   "summary": "Investigators analysed the prospective IRIS-MAIN registry from 46 hospitals in South Korea, India, Japan, Indonesia and Malaysia, comparing PCI with drug-eluting stents against isolated CABG for unprotected left main disease. They used a target trial emulation framework with propensity-score overlap weighting; median follow-up was 10 years.",
+   "takeHome": [
+    "No statistically detectable difference in 10-year all-cause mortality: PCI 24.0% vs CABG 22.9%; overlap-weighted hazard ratio 1.00 (95% CI 0.87-1.14); p=0.99",
+    "The authors note the confidence interval does not exclude a mortality benefit or harm with either strategy",
+    "For patients suitable for either strategy, they suggest multidisciplinary Heart Team discussion to weigh the potential trade-offs"
+   ],
+   "authorLimitations": [
+    "This is a non-randomised registry analysis; the findings are observational and cannot establish causal treatment effects or equivalence in survival",
+    "Propensity-score overlap weighting adjusted for measured baseline covariates"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Left main disease is where the heart-team argument gets sharpest, and we anesthetize the patients on both sides of it. Randomized trials follow selected patients; this registry asks the same question in routine practice, with long follow-up.\n\n**What they did.** IRIS-MAIN enrolled 6,900 adults with unprotected left main stenosis of at least 50% at 46 hospitals in five Asian countries between 2003 and 2024. The analysis covers the 5,379 who had PCI with drug-eluting stents (3,836) or isolated CABG (1,543). The team emulated a target trial and used overlap weighting. All-cause mortality was the primary outcome, which matches the ClinicalTrials.gov registration (death at 10 years).\n\n**What they found.** Median follow-up was 10.0 years. Weighted 10-year mortality was 24.0% with PCI and 22.9% with CABG (HR 1.00, 95% CI 0.87-1.14; p=0.99).\n\n**Caveats.**\n- This is not a randomized comparison. Weighting handles measured covariates only, and who was sent to surgery over 22 years is exactly the kind of choice that weighting can miss.\n- The authors say plainly that this cannot establish equivalence.\n- I read the abstract, which gives no stroke, MI or repeat revascularization figures, so survival is only part of the trade-off.\n- Stents and surgical practice changed a lot across the enrolment period, and the population is Asian.\n\n**For us.** This changes no anesthetic plan. It does temper any assumption that a left main patient sent for PCI has been given a clearly worse survival outlook, without proving the two are the same. If you sit on a heart team, use it as context for a shared decision, not as a tiebreaker.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)02104-5",
+   "impact": 2,
+   "trialName": "IRIS-MAIN",
+   "firstAuthor": "Wee",
+   "title": "Long-term outcomes after percutaneous coronary intervention with drug-eluting stents versus coronary artery bypass grafting for left main coronary artery disease: a prospective analysis of the multicentre IRIS-MAIN registry",
+   "glance": {
+    "design": "Prospective registry, 46 hospitals in 5 Asian countries; target trial emulation",
+    "n": "5,379 with unprotected left main disease: PCI 3,836, CABG 1,543",
+    "outcome": "All-cause mortality",
+    "result": "10-year mortality 24.0% vs 22.9%; overlap-weighted HR 1.00 (95% CI 0.87-1.14); p=0.99"
+   },
+   "quiz": {
+    "question": "What do the IRIS-MAIN authors say their 10-year left main comparison of PCI and CABG can establish?",
+    "options": [
+     "Survival equivalence of PCI and CABG in patients suitable for either strategy",
+     "Lower long-term mortality with CABG once measured covariates are weighted",
+     "Lower long-term mortality with PCI in patients treated at high-volume hospitals",
+     "Neither causal treatment effects nor equivalence in survival, because the data are observational"
+    ],
+    "answer": 3,
+    "explanation": "Mortality was 24.0% with PCI and 22.9% with CABG (HR 1.00, 95% CI 0.87-1.14), yet the authors state the interval does not exclude benefit or harm with either strategy. Reading this as equivalence is the tempting error: the registry is non-randomised and adjusts only for measured covariates."
+   }
+  },
+  {
+   "id": "fda-2026-butterflybvm-bellows-holes-early-alert",
+   "date": "2026-11-03",
+   "dateApprox": false,
+   "addedAt": "2026-11-04",
+   "journal": "FDA",
+   "jshort": "FDA",
+   "kind": "Safety alert",
+   "topics": [
+    "general",
+    "criticalCare",
+    "trauma"
+   ],
+   "headline": "FDA early alert: ButterflyBVM bag-valve-masks can develop bellows holes that leak tidal volume; nine lots being removed",
+   "summary": "Compact Medical is removing some lots of its single-use ButterflyBVM resuscitators and correcting the use instructions for others, because holes in the bellows can let tidal volume leak instead of reaching the patient. FDA posted the early alert on November 3.",
+   "takeHome": [
+    "Holes can form in the bellows, causing inadequate ventilation and hypoxia; lots 000109 through 000117 have a higher rate of holes than previously observed",
+    "Do not use lots 000109-000117: remove them from every location, including crash carts and vehicles, once replacement BVMs are in place",
+    "For the listed lots 000081-000108, do the Pre-Use Test before every use, keep backup BVMs, and switch immediately if a hole appears"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** A bag-valve-mask is the device you reach for when everything else has failed, and it usually sits unused on a cart until that moment. A leak you discover during a difficult ventilation is the wrong time to learn about this.\n\n**What happened.** Compact Medical told customers on September 26 and October 7, and FDA posted the early alert on November 3. Holes can form in the bellows, so tidal volume leaks instead of reaching the patient. Compact Medical had reported no serious injuries or deaths as of November 2.\n\n**What is affected.**\n- **Removal:** ButterflyBVM READY (R300, R308) lots 000109-000113 and 000115-000117, and ButterflyBVM (A100, A108) lot 000114.\n- **Correction:** listed READY, A100/A108 and PLUS (P200, P208) lots between 000081 and 000108. These stay in use with the updated instructions.\n- If packaging and labeling are gone, assume the device is in the affected lots.\n\n**What users are told.** Secure replacements first so no area is left without a resuscitator. Quarantine removed units and label them DO NOT USE. Run the Pre-Use Test before every use on correction lots. If chest rise is poor or saturation falls, check the back of the device for a hole. If there is one, change to a backup BVM immediately.\n\n**For us.** Ask your supply chain or anesthesia techs whether your hospital stocks this brand, including transport bags, airway carts and remote sites. Any resuscitator bag should get a quick function check before you depend on it. Ventilation that looks wrong with a good mask seal should prompt you to suspect the device early and swap it.",
+   "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-compact-medical-removes-and-updates-use-instructions-butterflybvm-bag-valve-mask",
+   "impact": 1,
+   "trialName": "",
+   "firstAuthor": ""
+  },
+  {
+   "id": "eja-2026-sugammadex-neostigmine-165-rct-meta",
+   "date": "2026-11-03",
+   "dateApprox": false,
+   "addedAt": "2026-11-04",
+   "journal": "European Journal of Anaesthesiology",
+   "jshort": "EJA",
+   "kind": "Meta-analysis",
+   "topics": [
+    "general"
+   ],
+   "headline": "Sugammadex vs neostigmine: update of 165 RCTs finds reversal 10.5 min faster and fewer adverse events",
+   "summary": "Putzu and colleagues updated the 2017 Cochrane review comparing sugammadex with neostigmine in adults given rocuronium or vecuronium for elective procedures. They pooled randomized trials with meta-analyses, trial sequential analyses and GRADE, searching up to December 2025.",
+   "takeHome": [
+    "165 trials, 19 124 participants: sugammadex 2 mg/kg reached TOF above 0.9 from second twitch faster than neostigmine 0.05 mg/kg (MD -10.49 min; moderate)",
+    "Sugammadex probably reduces patients with at least one adverse event: RR 0.72 (95% CI 0.61-0.84; moderate certainty)",
+    "It probably reduces residual block, desaturation, atelectasis, airway obstruction and bradycardia; authors say broader use could improve peri-operative outcomes"
+   ],
+   "authorLimitations": [
+    "Risk of bias across the included trials was generally unclear or high"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** The argument for neostigmine has been mostly about price. The authors note recent changes in the cost of sugammadex, so the question of whether it should be the routine reversal agent is live again, and 165 trials is a lot of evidence to bring to it.\n\n**What they did.** This updates a 2017 Cochrane review, with databases searched up to December 2025. Trials enrolled adults receiving rocuronium or vecuronium for elective procedures. Outcomes were recovery time and adverse events, graded with GRADE and tested with trial sequential analysis.\n\n**What they found.** Across 19 124 participants, time from second twitch to a TOF ratio above 0.9 was 10.49 minutes shorter (95% CI -11.90 to -9.08) with sugammadex 2 mg/kg than neostigmine 0.05 mg/kg. At least one adverse event: RR 0.72 (0.61-0.84). Residual block, inadequate reversal, desaturation, atelectasis, secretions, airway obstruction, bradycardia, dry mouth and urinary retention were all probably reduced, each at moderate certainty.\n\n**Caveats.**\n- Risk of bias was generally unclear or high, and many trials did not report how they monitored block.\n- 'At least one adverse event' lumps dry mouth with desaturation.\n- I read the abstract, which gives no effect size for most individual events.\n- The search ended before SNaPP (June 2026, in this feed), where pulmonary complications or death were 19.0% vs 21.5%, a real but modest effect.\n\n**For us.** Faster, more reliable reversal is now hard to dispute; a large patient-outcome benefit is less certain. Where the price gap has narrowed, sugammadex as default for aminosteroid block is easy to defend, especially in patients with little respiratory reserve. Quantitative monitoring still matters with either drug.",
+   "url": "https://doi.org/10.1097/EJA.0000000000002526",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Putzu",
+   "title": "Sugammadex versus neostigmine for neuromuscular blockade reversal in adults: A systematic review and meta-analysis of randomised controlled trials",
+   "glance": {
+    "design": "Meta-analysis of RCTs with trial sequential analysis; updates 2017 Cochrane review",
+    "n": "165 trials, 19 124 adults given rocuronium or vecuronium for elective procedures",
+    "outcome": "NMB recovery time and risk of adverse events",
+    "result": "Second twitch to TOF >0.9: MD -10.49 min; any adverse event RR 0.72 (95% CI 0.61 to 0.84)"
+   },
+   "quiz": {
+    "question": "In the updated review of sugammadex versus neostigmine, what was the risk ratio for a patient having at least one adverse event with sugammadex?",
+    "options": [
+     "0.72 (95% CI 0.61 to 0.84), favouring sugammadex",
+     "0.88 (95% CI 0.77 to 1.00), favouring sugammadex",
+     "1.26 (95% CI 1.07 to 1.48), favouring neostigmine",
+     "1.00 (95% CI 0.91 to 1.11), showing no difference"
+    ],
+    "answer": 0,
+    "explanation": "At least one adverse event: RR 0.72 (95% CI 0.61 to 0.84; GRADE moderate); this count lumps dry mouth with desaturation. The review's other main result was reversal 10.49 min faster. Main caveat: risk of bias across the 165 trials was generally unclear or high."
+   }
+  },
+  {
+   "id": "tct26-2026-clasp-ii-tr-pascal",
+   "date": "2026-11-02",
+   "dateApprox": false,
+   "addedAt": "2026-11-04",
+   "journal": "TCT 2026",
+   "jshort": "TCT",
+   "kind": "Conference",
+   "topics": [
+    "cardiac",
+    "echo"
+   ],
+   "headline": "CLASP II TR: PASCAL tricuspid repair beat medical therapy, win ratio 1.98 at 6 months, driven mainly by quality of life",
+   "summary": "This randomized trial assigned 450 patients with symptomatic severe or greater tricuspid regurgitation 2:1 to transcatheter repair with the PASCAL system plus optimal medical therapy or to medical therapy alone, at 58 North American sites. Results came as a late-breaker at TCT 2026, with no journal paper noted yet.",
+   "takeHome": [
+    "PASCAL plus medical therapy beat medical therapy alone on the 6-month hierarchical win ratio: 1.98 (95% CI 1.47-2.67), driven largely by quality of life",
+    "At 1 year, 80% had moderate or less TR vs 30% of controls; KCCQ-OS difference was 10.9 points at 6 months",
+    "At 1 year, death was 8.8% vs 4.6% and HF hospitalization 13.2% vs 12.9%, neither significant; 30-day major adverse events were 6.9% with PASCAL"
+   ],
+   "authorLimitations": [
+    "Controls with more advanced disease who crossed over to tricuspid intervention may have affected outcome assessment, Davidson suggested"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "summary page",
+   "deepDive": "**Why it matters.** Edwards says FDA approved PASCAL for tricuspid repair in October 2026, so more of these cases may reach TEE and anesthesia teams. CLASP II TR is the randomized evidence behind that device.\n\n**What they did.** Davidson, Arnold and colleagues randomized symptomatic patients with severe or greater TR, NYHA class II-IV and at least intermediate surgical risk. The primary endpoint was a hierarchy of death, RVAD or transplant, tricuspid surgery or intervention, HF hospitalization and KCCQ-OS. Over 40% had massive or torrential TR. The registry entry on ClinicalTrials.gov (NCT04097145) lists the same composite at 6 months.\n\n**What they found.** PASCAL won 47.5% of comparisons and controls 24%. KCCQ-OS improved 17.5 vs 2.2 points at 30 days. Implant success was 92.5%, median procedure time 106 minutes and median stay 1 day. Single-leaflet attachment was 3.4% at 30 days, severe bleeding 3.1%.\n\n**Caveats.**\n- The endpoint moved from 24 to 6 months because controls left after TriClip and Evoque were approved. Discussant Jörg Hausleiter asked what the result would have been otherwise.\n- The win came mostly from a patient-reported measure, with a medical-therapy control and no sham described; mortality was numerically higher with PASCAL, not significantly.\n- Edwards funded the trial, and these numbers come from congress coverage, not a paper.\n\n**For us.** This is a fourth trial with the same message: tricuspid repair helps how patients feel, with hard-outcome questions open. Two-thirds here had CKD stage 3 or worse, and a quarter had an HF hospitalization in the prior year. Expect long leaflet-grasping imaging, and check for single-leaflet attachment before the case ends. Watch the RV as TR falls.",
+   "url": "https://www.tctmd.com/news/clasp-ii-tr-pascal-t-teer-offers-health-status-benefits-and-more",
+   "impact": 2,
+   "trialName": "CLASP II TR",
+   "firstAuthor": "Davidson",
+   "quiz": {
+    "question": "What mainly drove the 6-month win-ratio advantage of PASCAL over medical therapy alone in CLASP II TR?",
+    "options": [
+     "Lower all-cause mortality, 8.8% with PASCAL vs 4.6% with controls at 1 year",
+     "Better quality of life on the KCCQ-OS, with death and HF hospitalization not significantly different",
+     "Fewer HF hospitalizations, 13.2% with PASCAL vs 12.9% with controls at 1 year",
+     "Fewer RVAD implants and heart transplants, with similar quality of life in both arms"
+    ],
+    "answer": 1,
+    "explanation": "The win ratio was 1.98 (95% CI 1.47-2.67), driven largely by quality of life. One-year death (8.8% vs 4.6%) and HF hospitalization (13.2% vs 12.9%) were not significantly different. Main caveat: the endpoint moved from 24 to 6 months after control-group attrition."
+   }
+  },
   {
    "id": "nejm-2026-progress-tavr-moderate-as",
    "date": "2026-11-02",
