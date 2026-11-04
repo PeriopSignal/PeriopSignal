@@ -353,6 +353,8 @@ enum PatientStudies {
     /// - no steal on the other arm: "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm."
     /// - steal on the other arm only: it may read low, so femoral access.
     /// - steal on both arms: only "keep lines and the cuff off the left arm" (the vertebral caution gives the rest).
+    /// - a limb alert on the other arm (PatientDeviceFills.limbAlerts: a fistula, a typed reason): "keep lines and the
+    ///   cuff off the left arm; the right arm has a limb alert", so the two lines never send lines to the arm to spare.
     /// Both radials planned: lines and the cuff off both arms, femoral access [P, as for one harvest with steal on the
     /// other arm: neither radial is available; approved wording].
     static func harvestReminder(_ r: PatientRecord) -> String? {
@@ -363,6 +365,10 @@ enum PatientStudies {
         if steal.count == 2 { return "Planned " + h + " radial harvest: keep lines and the cuff off the " + h + " arm." }
         if steal.contains(o) {
             return "Planned " + h + " radial harvest; the " + o + " arm may read low (subclavian steal). Consider femoral arterial access, and keep lines and the cuff off the " + h + " arm."
+        }
+        // A limb alert on the other arm (a fistula, a node dissection): it is not sent there; the team decides where.
+        if PatientDeviceFills.limbAlerts(r).contains(where: { $0.limb == "arm-" + o }) {
+            return "Planned " + h + " radial harvest: keep lines and the cuff off the " + h + " arm; the " + o + " arm has a limb alert."
         }
         return "Planned " + h + " radial harvest: arterial line, IVs and BP cuff in the " + o + " arm."
     }

@@ -870,8 +870,9 @@ enum PatientDevices {
         let v = (d.settings["chambers"] ?? "").lowercased()
         if v.isEmpty { return [] }
         let tokens = v.split(whereSeparator: { !$0.isLetter }).map(String.init)
-        let both = tokens.contains { ["both", "dual", "av", "biatrial"].contains($0) }
-        let atrial = both || tokens.contains { $0 == "atrial" || $0 == "a" }
+        let both = tokens.contains { ["both", "dual", "av"].contains($0) }
+        // Biatrial is both atria, no ventricular wire.
+        let atrial = both || tokens.contains { $0 == "atrial" || $0 == "a" || $0 == "biatrial" }
         let ventricular = both || tokens.contains { $0 == "ventricular" || $0 == "v" }
         return (atrial ? ["atrial"] : []) + (ventricular ? ["ventricular"] : [])
     }
@@ -1061,9 +1062,25 @@ extension PatientDevices {
     /// "epicardial wires A+V", "atrial and ventricular pacing wires DDD 80", "V wires 5 mA", "temp wires": always at the
     /// exit below the sternum. Chambers: the words atrial and ventricular, "A" and "V" beside each other or before
     /// "wires", and "AV", "dual" or "both" for both; the mode, a rate (bpm, "rate 80", "at 80") and an output (mA).
+    /// Without the word "epicardial", "wire" alone does not make them: an entry that names another device or a place
+    /// ("R IJ transvenous pacing wire", "Swan R IJ with pacing wire", "CVL R IJ over wire"), or a transvenous wire, is
+    /// read as any other.
     private static func parseEpicardial(_ text: String) -> DeviceParse? {
         let low = text.lowercased()
         guard low.range(of: #"\b(?:epicardial|wires?|pacing leads?|pacer leads?)\b"#, options: .regularExpression) != nil else { return nil }
+        if low.range(of: #"\bepicardial\b"#, options: .regularExpression) == nil {
+            if low.range(of: #"\b(?:transvenous|tvp|tvpw)\b"#, options: .regularExpression) != nil { return nil }
+            let named = classify(lex(text)).contains { t in
+                switch t.tok {
+                case .kind(let k, _): return k != .epicardialWires
+                // "atrial" is a chamber here, not the right atrium.
+                case .site(let base, _): return base != "right-atrium"
+                case .limb: return true
+                default: return false
+                }
+            }
+            if named { return nil }
+        }
         let words = low.split(whereSeparator: { !($0.isLetter || $0.isNumber || $0 == ".") }).map(String.init).filter { $0 != "and" }
         var atrial = false, ventricular = false
         var settings: [String: String] = [:]
@@ -1366,6 +1383,10 @@ extension PatientDevices {
         if kind == .cied, ["chest", "infraclavicular", "subclavian"].contains(base) { return ("generator", 1) }
         if kind == .chestTube, base == "chest" { return ("lateral-chest", 1) }
         if kind == .epicardialWires, base == "chest" { return ("epicardial-exit", 1) }
+        // A fistula or graft is in the limb, not in the femoral vessels: FA is the forearm, femoral the thigh (as
+        // PatientDeviceFills.readAccessSite reads them).
+        if kind == .avFistula, base == "fa" { return ("forearm", 1) }
+        if kind == .avFistula, base == "femoral" { return ("thigh", 1) }
         switch base {
         case "fa":
             if arterialDevice { return ("femoral-artery", 1) }
