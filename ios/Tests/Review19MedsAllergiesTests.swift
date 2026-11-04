@@ -183,4 +183,67 @@ final class Review19MedsAllergiesTests: XCTestCase {
         // A word the list does not know still reads at the start of an item.
         XCTAssertEqual(meds("metoprolol 25, foobarazine 10"), ["Metoprolol 25", "Foobarazine 10"])
     }
+
+    // MARK: 11. An intolerance is filed
+
+    func testAnIntoleranceIsFiled() {
+        // A word that reverses "tolerate" makes an intolerance: the allergen is filed, with no junk allergen before it.
+        XCTAssertEqual(allergies("unable to tolerate sulfa"), ["Sulfa drugs"])
+        XCTAssertEqual(allergies("cannot tolerate morphine - itching"), ["Morphine (itching)"])
+        XCTAssertEqual(allergies("can't tolerate morphine"), ["Morphine"])
+        XCTAssertEqual(allergies("does not tolerate codeine"), ["Codeine"])
+        XCTAssertEqual(allergies("poorly tolerated codeine"), ["Codeine"])
+        XCTAssertEqual(allergies("PCN rash, does not tolerate codeine"), ["Penicillin (rash)", "Codeine"])
+        XCTAssertEqual(allergies("codeine - nausea, poorly tolerated"), ["Codeine (nausea, poorly tolerated)"])
+        // "Tolerated" alone still denies.
+        XCTAssertEqual(AllergyCatalog.parse("PCN (hives; tolerated cefazolin)").map(\.name), ["Penicillin"])
+        XCTAssertEqual(AllergyCatalog.parse("PCN rash, tolerates cefazolin").map(\.name), ["Penicillin"])
+    }
+
+    // MARK: 12. A negative reaction is a reaction
+
+    func testANegativeReactionIsAReaction() {
+        XCTAssertEqual(allergies("Negative reaction to penicillin"), ["Penicillin"])
+        XCTAssertEqual(allergies("latex anaphylaxis, negative reaction to PCN"), ["Latex (anaphylaxis)", "Penicillin"])
+        XCTAssertEqual(allergies("adverse reaction to codeine"), ["Codeine"])
+        XCTAssertTrue(AllergyCatalog.parse("no reaction to latex").isEmpty, "a denial still denies")
+    }
+
+    // MARK: 13. A denied stop is the drug still taken
+
+    func testADeniedStopKeepsTheDrugAndItsFlag() {
+        XCTAssertEqual(meds("Not holding Eliquis"), ["Apixaban Not holding"])
+        XCTAssertEqual(flags("Not holding Eliquis"), ["anticoagulant"])
+        XCTAssertEqual(meds("Did not stop Plavix"), ["Clopidogrel Did not stop"])
+        XCTAssertEqual(flags("Did not stop Plavix"), ["p2y12"])
+        XCTAssertEqual(meds("Has not held apixaban"), ["Apixaban Has not held"])
+        XCTAssertEqual(flags("Has not held apixaban"), ["anticoagulant"])
+        XCTAssertEqual(meds("never stopped aspirin"), ["Aspirin never stopped"])
+        XCTAssertEqual(flags("never stopped aspirin"), ["aspirin"])
+        // A denial alone still raises no flag.
+        XCTAssertEqual(flags("doesn't take Eliquis"), [])
+        XCTAssertEqual(flags("not on Plavix"), [])
+    }
+
+    // MARK: 14. A denial carries on only over "or", and not to a drug with a dose
+
+    func testADenialDoesNotCarryOverAndOrADose() {
+        XCTAssertEqual(meds("No aspirin and Eliquis 5 mg bid"), ["No aspirin", "Apixaban 5 mg bid"])
+        XCTAssertEqual(flags("No aspirin and Eliquis 5 mg bid"), ["anticoagulant"])
+        XCTAssertEqual(meds("no aspirin or Eliquis 5 mg"), ["No aspirin", "Apixaban 5 mg"])
+        XCTAssertEqual(flags("No aspirin and Eliquis"), ["anticoagulant"], "and does not carry the denial")
+        XCTAssertEqual(flags("no aspirin with Eliquis"), ["anticoagulant"])
+        // As before: "or" carries it on.
+        XCTAssertEqual(meds("denies opioids or insulin"), ["Denies opioids or insulin"])
+        XCTAssertEqual(flags("denies opioids or insulin"), [])
+    }
+
+    // MARK: 15. "No longer taking" is a stop
+
+    func testNoLongerTakingIsAStop() {
+        XCTAssertEqual(meds("no longer taking Plavix"), ["Clopidogrel no longer taking"])
+        XCTAssertEqual(flags("no longer taking Plavix"), ["p2y12"])
+        XCTAssertEqual(meds("stopped taking Plavix"), ["Clopidogrel stopped taking"])
+        XCTAssertEqual(flags("stopped Plavix"), ["p2y12"])
+    }
 }

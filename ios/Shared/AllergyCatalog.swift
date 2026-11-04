@@ -10,8 +10,9 @@ import Foundation
 // follows an allergen is its reaction as typed ("PCN - rash", "sulfa (hives)"); a severity is read only when it is
 // written: "mild", "severe", "anaphylaxis" (or "anaphylactic", "anaphylactoid"). "Hives" and "rash" are reactions and set
 // no severity. A severity or an allergen after a word that denies it ("no anaphylaxis", "not allergic to latex",
-// "tolerated cefazolin") is not recorded: the words stay in the reaction as typed. Nothing here gives advice about an
-// allergen.
+// "tolerated cefazolin") is not recorded: the words stay in the reaction as typed. A word that reverses "tolerate"
+// ("unable to tolerate sulfa", "does not tolerate codeine", "poorly tolerated") makes an intolerance, which is filed, and
+// "negative reaction to" is a reaction. Nothing here gives advice about an allergen.
 
 /// One allergen the + Add field knows.
 struct AllergenEntry: Hashable, Identifiable {
@@ -236,6 +237,27 @@ enum AllergyCatalog {
         while i < ws.count {
             if br[i] { closeSegment() }
             let w = ws[i]
+            // "unable to tolerate sulfa", "cannot tolerate morphine", "does not tolerate codeine", "poorly tolerated":
+            // an intolerance, so the allergen after it is filed. Before an allergen these words are dropped as the
+            // lead words are; after one, or with no allergen after them, they stay in the reaction.
+            if let end = intoleranceEnd(ws, br, from: i) {
+                let allergenAfter = end < ws.count && !br[end]
+                if allergenAfter && (inSegment == 0 || afterAnd) {
+                    i = end
+                    continue
+                }
+                for k in i..<end {
+                    if inSegment > 0 { addReaction(k) } else { orphan.append(k) }
+                }
+                i = end
+                continue
+            }
+            // "Negative reaction to penicillin", "adverse reaction to PCN": a reaction, not a denial.
+            if reactionQualifiers.contains(w.key), i + 1 < ws.count, !br[i + 1], ["reaction", "reactions", "rxn"].contains(ws[i + 1].key),
+               inSegment == 0 || afterAnd || out[out.count - 1].reaction.allSatisfy(\.isEmpty) {
+                i += 1
+                continue
+            }
             // "no anaphylaxis", "not allergic to latex", "tolerated cefazolin": neither a severity nor an allergy, but
             // words of the reaction (or of the item before, at the start of a segment).
             if negations.contains(w.key), let end = negatedEnd(ws, br, from: i) {
@@ -310,9 +332,38 @@ enum AllergyCatalog {
     static let negations: Set<String> = ["no", "not", "never", "non", "nor", "without", "denies", "denied", "negative",
                                          "tolerated", "tolerates", "tolerate", "tolerating", "tolerant"]
 
+    /// The words of "tolerate".
+    static let tolerates: Set<String> = ["tolerated", "tolerates", "tolerate", "tolerating", "tolerant"]
+    /// Words that turn "tolerate" into an intolerance: "unable to tolerate", "cannot tolerate", "does not tolerate",
+    /// "poorly tolerated", "never tolerated".
+    private static let intolerant: Set<String> = ["unable", "cannot", "cant", "not", "never", "poorly", "badly", "doesnt",
+                                                  "didnt", "dont", "couldnt", "wont", "hasnt", "havent", "isnt", "wasnt"]
+    /// Words that may stand between them and "tolerate": "is unable to tolerate", "has not well tolerated".
+    private static let intolerantBetween: Set<String> = ["to", "does", "did", "do", "can", "could", "has", "have", "had",
+                                                         "is", "was", "be", "been", "ever", "well", "pt", "patient"]
+    /// Words before "reaction" that make it an adverse one, not a denied one: "negative reaction to penicillin".
+    private static let reactionQualifiers: Set<String> = ["negative", "adverse", "bad"]
+
+    /// From `i`: the end of an intolerance ("unable to tolerate", "does not tolerate", "poorly tolerated"), just after
+    /// its "tolerate"; nil when the words there are not one, or "tolerate" stands without a word that reverses it.
+    private static func intoleranceEnd(_ ws: [CatalogWord], _ br: [Bool], from i: Int) -> Int? {
+        guard intolerant.contains(ws[i].key) || intolerantBetween.contains(ws[i].key) else { return nil }
+        var reversed = false
+        var k = i
+        while k < ws.count, k == i || !br[k] {
+            let key = ws[k].key
+            if tolerates.contains(key) { return reversed ? k + 1 : nil }
+            if intolerant.contains(key) { reversed = true } else if !intolerantBetween.contains(key) { return nil }
+            k += 1
+        }
+        return nil
+    }
+
     /// After a denying word at `i`: the end of the severity or the allergen it denies, with the words between ("not
-    /// allergic to", "never had") and an "allergy" after; nil when no severity or allergen follows in the same item.
+    /// allergic to", "never had") and an "allergy" after; nil when no severity or allergen follows in the same item, and
+    /// for "negative" before "reaction" ("negative reaction to penicillin" is a reaction).
     private static func negatedEnd(_ ws: [CatalogWord], _ br: [Bool], from i: Int) -> Int? {
+        if reactionQualifiers.contains(ws[i].key), i + 1 < ws.count, ["reaction", "reactions", "rxn"].contains(ws[i + 1].key) { return nil }
         let between: Set<String> = lead.union(["had", "any", "true", "real", "an", "a"])
         var k = i + 1
         while k < ws.count, !br[k], between.contains(ws[k].key) { k += 1 }
