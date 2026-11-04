@@ -12,11 +12,11 @@ final class PatientDiagram19Tests: XCTestCase {
         try XCTUnwrap(PatientDevices.parse(text), "no parse for \"\(text)\"", file: file, line: line)
     }
 
-    /// The record after one change, with the fills run as PatientStore.update does.
+    /// The record after one change, with the device fills run as PatientStore.update does (PatientCrossFill.apply calls them).
     private func change(_ r: PatientRecord, _ edit: (inout PatientRecord) -> Void) -> PatientRecord {
         var after = r
         edit(&after)
-        PatientCrossFill.apply(before: r, after: &after)
+        PatientDeviceFills.apply(before: r, after: &after)
         return after
     }
 

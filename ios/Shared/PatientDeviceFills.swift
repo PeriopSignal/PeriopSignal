@@ -277,10 +277,10 @@ enum PatientDeviceFills {
     static func limbAlerts(_ r: PatientRecord, arrivalOnly: Bool = false) -> [LimbAlertItem] {
         var out: [LimbAlertItem] = []
         for d in r.devices where !arrivalOnly || !d.placedIntraop {
-            guard let limb = limb(of: d) else { continue }
+            guard let lb = limb(of: d) else { continue }
             let reason = d.detail.range(of: "graft", options: .caseInsensitive) != nil ? "AV graft" : "AV fistula"
-            if !out.contains(where: { $0.limb == limb && $0.reason == reason }) {
-                out.append(LimbAlertItem(id: "auto-" + limb + "-" + reason, limb: limb, reason: reason, automatic: true))
+            if !out.contains(where: { $0.limb == lb && $0.reason == reason }) {
+                out.append(LimbAlertItem(id: "auto-" + lb + "-" + reason, limb: lb, reason: reason, automatic: true))
             }
         }
         let harvestArms = Set(r.radial.harvestArms.map { "arm-" + $0 })
