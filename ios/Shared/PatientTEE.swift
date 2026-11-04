@@ -31,9 +31,12 @@ import Foundation
 //     them as absolute in the opinion of consultants or members; the screen marks them absolute and the evidence
 //     says it is opinion.
 //   - What the record states in a structured field counts: problems (esophageal varices, a bleeding disorder or DIC,
-//     cervical fusion or an unstable cervical spine), airway signs (neck radiation changes, limited neck movement),
-//     and esophageal or upper GI operations in the past surgical history. Free text, reflux, cirrhosis and abnormal
-//     platelets or INR are offered to confirm on the checklist, never counted on their own.
+//     cervical fusion or an unstable cervical spine; 1.9: a history of gastric bypass as previous upper GI surgery,
+//     dysphagia, an active upper GI bleed, von Willebrand disease, hemophilia and thrombocytopenia), airway signs (neck
+//     radiation changes, limited neck movement), and esophageal or upper GI operations in the past surgical history.
+//     Free text, reflux, cirrhosis, abnormal platelets or INR, and (1.9) a hiatal hernia, an esophageal disorder with
+//     its type and previous procedure, a GI bleed that is not active and upper, and a previous EGD's findings are
+//     offered to confirm on the checklist, never counted on their own.
 //   - Hahn gives no platelet or INR cutoffs, so the labs only prompt the question.
 
 /// The clinician's answers on the TEE screen.
@@ -44,9 +47,20 @@ struct PatientTEEScreen: Codable, Hashable {
     /// The whole list was asked about: anything not answered Yes is taken as No.
     var reviewed = false
     var notes = ""
+    /// Previous EGD (1.9, Ben): nil not asked, false No, true Yes; its date and findings as typed. The findings are read
+    /// for items to confirm, as the notes are.
+    var previousEGD: Bool?
+    var egdDate = ""
+    var egdFindings = ""
+    /// Previous TEE (1.9, Ben): nil not asked, false No, true Yes; its date as typed.
+    var previousTEE: Bool?
+    var teeDate = ""
 
-    init(yes: Set<String> = [], no: Set<String> = [], reviewed: Bool = false, notes: String = "") {
+    init(yes: Set<String> = [], no: Set<String> = [], reviewed: Bool = false, notes: String = "",
+         previousEGD: Bool? = nil, egdDate: String = "", egdFindings: String = "", previousTEE: Bool? = nil, teeDate: String = "") {
         self.yes = yes; self.no = no; self.reviewed = reviewed; self.notes = notes
+        self.previousEGD = previousEGD; self.egdDate = egdDate; self.egdFindings = egdFindings
+        self.previousTEE = previousTEE; self.teeDate = teeDate
     }
 
     init(from decoder: Decoder) throws {
@@ -55,9 +69,41 @@ struct PatientTEEScreen: Codable, Hashable {
         no = (try? c.decodeIfPresent(Set<String>.self, forKey: .no)) ?? []
         reviewed = (try? c.decodeIfPresent(Bool.self, forKey: .reviewed)) ?? false
         notes = (try? c.decodeIfPresent(String.self, forKey: .notes)) ?? ""
+        previousEGD = try? c.decodeIfPresent(Bool.self, forKey: .previousEGD)
+        egdDate = (try? c.decodeIfPresent(String.self, forKey: .egdDate)) ?? ""
+        egdFindings = (try? c.decodeIfPresent(String.self, forKey: .egdFindings)) ?? ""
+        previousTEE = try? c.decodeIfPresent(Bool.self, forKey: .previousTEE)
+        teeDate = (try? c.decodeIfPresent(String.self, forKey: .teeDate)) ?? ""
     }
 
-    var isEmpty: Bool { yes.isEmpty && no.isEmpty && !reviewed && notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private static func blank(_ s: String) -> Bool { s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+    var isEmpty: Bool {
+        yes.isEmpty && no.isEmpty && !reviewed && Self.blank(notes)
+            && previousEGD == nil && Self.blank(egdDate) && Self.blank(egdFindings) && previousTEE == nil && Self.blank(teeDate)
+    }
+
+    /// "Previous EGD 03/2025: LA grade B esophagitis", "No previous EGD"; nil not asked.
+    var egdText: String? {
+        switch previousEGD {
+        case true?:
+            let d = egdDate.trimmingCharacters(in: .whitespacesAndNewlines), f = egdFindings.trimmingCharacters(in: .whitespacesAndNewlines)
+            return "Previous EGD" + (d.isEmpty ? "" : " " + d) + (f.isEmpty ? "" : ": " + f)
+        case false?: return "No previous EGD"
+        case nil: return nil
+        }
+    }
+
+    /// "Previous TEE 2023", "No previous TEE"; nil not asked.
+    var teeText: String? {
+        switch previousTEE {
+        case true?:
+            let d = teeDate.trimmingCharacters(in: .whitespacesAndNewlines)
+            return "Previous TEE" + (d.isEmpty ? "" : " " + d)
+        case false?: return "No previous TEE"
+        case nil: return nil
+        }
+    }
 
     /// nil not asked, true Yes, false No.
     func answer(_ id: String) -> Bool? { yes.contains(id) ? true : (no.contains(id) ? false : nil) }
@@ -247,6 +293,19 @@ enum PatientTEE {
         problem("varices", "varices")
         problem("bleeding", "coagulopathy")
         problem("dic", "coagulopathy")
+        // 1.9: the GI & liver page's structured items (Ben: "triggers possible TEE concern"). A history of gastric
+        // bypass is previous upper GI surgery; Dysphagia is Hahn's own item; an active upper GI bleed is Hahn's absolute
+        // one. The Hematologic page's named bleeding disorders and Thrombocytopenia are Hahn's "coagulopathy or
+        // thrombocytopenia", as a bleeding disorder was before.
+        if r.has("gastric-bypass") {
+            let d = r.hx.gastricBypassDetails.trimmingCharacters(in: .whitespacesAndNewlines)
+            add("gi-surgery", "History: gastric bypass" + (d.isEmpty ? "" : " (" + d + ")"))
+        }
+        problem("dysphagia", "dysphagia")
+        for p in ["vwd", "hemophilia-a", "hemophilia-b", "thrombocytopenia"] { problem(p, "coagulopathy") }
+        if r.has("gi-bleed"), r.hx.giBleedStatus == "active", r.hx.giBleedSite == "upper" {
+            add("ugib-active", "History: GI bleed, active, upper")
+        }
         problem("spine-fusion", "neck")
         problem("cspine-unstable", "neck")
         for (sign, id) in [("radiation", "radiation"), ("neck", "neck")] where r.airwaySigns.contains(sign) {
@@ -280,14 +339,62 @@ enum PatientTEE {
         ("motility", ["achalasia", "scleroderma", "systemic sclerosis"]),
     ]
 
+    /// A previous esophageal procedure as Ben's list names them (stent, dilation, resection), with the question each
+    /// asks (1.9). Offered to confirm, never counted: a resection may have been endoscopic, a stent or a dilation may
+    /// have treated a stricture or a tumor.
+    static let procedureWords: [(id: String, words: [String], question: String)] = [
+        ("stricture", ["dilation", "dilatation", "dilated", "bougie", "bougienage", "stent", "stented"], "is there a stricture?"),
+        ("tumor", ["stent", "stented"], "was it for a tumor?"),
+        ("esophagectomy", ["resection", "resected"], "was it an esophagectomy?"),
+        ("gi-surgery", upperGIWords + ["myotomy"], "previous upper GI surgery?"),
+    ]
+
     static func suggestions(_ r: PatientRecord, found: Set<String>) -> [TEESuggestion] {
         var out: [TEESuggestion] = []
         func offer(_ id: String, _ why: String) {
             guard let it = item(id), !found.contains(id), r.teeScreen.answer(id) == nil, !out.contains(where: { $0.item.id == id }) else { return }
             out.append(TEESuggestion(item: it, why: why))
         }
+        // 1.9: a recorded hiatal hernia asks Hahn's question first; reflux (which until 1.9 was "Reflux or hiatal hernia")
+        // keeps its own.
+        if r.has("hiatal-hernia") { offer("hiatal-hernia", "Hiatal hernia recorded: is it symptomatic?") }
         if r.has("gerd") { offer("hiatal-hernia", "Reflux or hiatal hernia recorded: is a hiatal hernia symptomatic?") }
         if r.has("cirrhosis") { offer("varices", "Cirrhosis recorded: are there esophageal varices?") }
+        // A GI bleed that is not an active upper one (a finding): resolved upper, or the site or status not recorded.
+        if r.has("gi-bleed"), r.hx.giBleedSite != "lower" {
+            let active = r.hx.giBleedStatus == "active"
+            if r.hx.giBleedSite == "upper" {
+                if !active { offer("ugib-recent", "Resolved upper GI bleed recorded: was it recent?") }
+            } else if active {
+                offer("ugib-active", "Active GI bleed recorded: is it an upper GI bleed?")
+            } else {
+                offer("ugib-recent", "GI bleed recorded: was it a recent upper GI bleed?")
+            }
+        }
+        // An esophageal disorder: its type and any previous esophageal procedure, read for the items they name; with
+        // none named, the question goes to the first esophageal item.
+        if r.has("esophageal-disorder") {
+            let type = r.hx.esophagealDisorderType.trimmingCharacters(in: .whitespacesAndNewlines)
+            let procedure = r.hx.esophagealProcedure == false ? "" : r.hx.esophagealProcedureDetails.trimmingCharacters(in: .whitespacesAndNewlines)
+            var named = false
+            if !type.isEmpty {
+                for (id, words) in noteWords {
+                    if let w = mention(type, words) { named = true; offer(id, "Esophageal disorder: \u{201C}" + w + "\u{201D}.") }
+                }
+            }
+            if !procedure.isEmpty {
+                for (id, words) in noteWords {
+                    if let w = mention(procedure, words) { named = true; offer(id, "Previous esophageal procedure: \u{201C}" + w + "\u{201D}.") }
+                }
+                for p in procedureWords {
+                    if let w = mention(procedure, p.words) { named = true; offer(p.id, "Previous esophageal procedure: \u{201C}" + w + "\u{201D}: " + p.question) }
+                }
+            }
+            if !named {
+                let what = type.isEmpty ? "Esophageal disorder recorded" : "Esophageal disorder recorded (\u{201C}" + type + "\u{201D})"
+                offer("stricture", what + ": is it a stricture, tumor, diverticulum, scleroderma or achalasia? Answer those below.")
+            }
+        }
         var labs: [String] = []
         if let p = r.labs["plt"], PatientLabs.flag("plt", p, sex: r.sex) == .low { labs.append("platelets " + NumText.short(p) + " ×10³/µL") }
         if let i = r.labs["inr"], PatientLabs.flag("inr", i, sex: r.sex) == .high { labs.append("INR " + (PatientLabs.test("inr")?.format(i) ?? NumText.short(i))) }
@@ -295,6 +402,16 @@ enum PatientTEE {
         // Operations the screen already counts are not read again as notes.
         var texts: [String] = r.systemNotes.keys.sorted().compactMap { r.systemNotes[$0] }
         texts.append(contentsOf: [r.otherHistory, r.airwayNotes, r.anesthesiaNotes])
+        // 1.9: Other GI & liver disease, a history of gastric bypass's details and an upper (or unplaced) GI bleed's
+        // details; a previous EGD's findings are read on their own, below.
+        texts.append(contentsOf: [r.systemOther["gi"] ?? "", r.hx.gastricBypassDetails])
+        if r.has("gi-bleed"), r.hx.giBleedSite != "lower" { texts.append(r.hx.giBleedDetails) }
+        let egd = r.teeScreen.previousEGD == false ? "" : r.teeScreen.egdFindings
+        if !egd.isEmpty {
+            for (id, words) in noteWords {
+                if let w = mention(egd, words) { offer(id, "Previous EGD: \u{201C}" + w + "\u{201D}.") }
+            }
+        }
         texts.append(contentsOf: r.surgeries.filter { surgeryItem($0) == nil }.map(\.name))
         for t in texts where !t.isEmpty {
             for (id, words) in noteWords {
@@ -374,7 +491,7 @@ enum PatientTEE {
         "Esophagectomy or esophagogastrectomy and a tracheoesophageal fistula are not in that table. The ASA/SCA practice guidelines (Anesthesiology 2010;112:1084–1096) found the literature insufficient to set contraindications. In their survey, consultants and members were equivocal whether anything besides a previous esophagectomy or esophagogastrectomy is absolute; those who disagreed named esophageal stricture, tracheoesophageal fistula, esophageal surgery and esophageal trauma; consultants agreed, and members were equivocal, that a Zenker diverticulum is absolute; both disagreed that Barrett's esophagus or a hiatal hernia is. The screen marks esophagectomy and a fistula absolute on that opinion.",
         "ASA/SCA 2010: TEE may be used with oral, esophageal or gastric disease if the expected benefit outweighs the risk, with precautions: other imaging (such as epicardial echocardiography), a gastroenterology consultation, a smaller probe, a limited examination, no unnecessary probe manipulation, and the most experienced operator.",
         "An unstable cervical spine counts with restricted neck mobility: the ASE/SCA basic perioperative TEE statement advises caution with probe placement and manipulation when an esophageal or cervical spine injury may coexist (Reeves ST, et al. J Am Soc Echocardiogr 2013;26:443–456).",
-        "What counts on its own: esophageal varices, a bleeding disorder or DIC, cervical fusion or an unstable cervical spine (History); neck radiation changes and limited neck movement (Airway); esophageal and upper GI operations in the past surgical history. Reflux, cirrhosis, abnormal platelets or INR, and words in the notes are offered to confirm, never counted until you answer Yes.",
+        "What counts on its own: esophageal varices, a history of gastric bypass (as upper GI surgery), dysphagia, an active upper GI bleed, a bleeding disorder, thrombocytopenia or DIC, cervical fusion or an unstable cervical spine (History); neck radiation changes and limited neck movement (Airway); esophageal and upper GI operations in the past surgical history. Reflux, a hiatal hernia, an esophageal disorder (its type and any previous esophageal procedure), a GI bleed that is not active and upper, cirrhosis, abnormal platelets or INR, a previous EGD's findings and words in the notes are offered to confirm, never counted until you answer Yes.",
     ]
 
     // MARK: Text matching

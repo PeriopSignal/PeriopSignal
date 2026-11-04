@@ -361,6 +361,15 @@ jobs:
           shot 297-quickbar-system-dark 16 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.forceAppearance dark -ps.quickadd.editor "HTN, severe AS, EF 35%"
           shot 298-quickbar-fluids 16 -ps.tab patient -ps.patient demo -ps.patient.open intraop:fluids -ps.forceAppearance light -ps.quickadd.editor "+2 PRBC, EBL 900, UOP 450"
           shot 299-quickbar-airway-dark 16 -ps.tab patient -ps.patient empty -ps.patient.open intraop:airway -ps.forceAppearance dark -ps.quickadd.editor "ETT 7.5 @ 22, Glidescope Mac 3, grade 1 view, easy mask"
+          # 1.9 links (340-359, helper 2): the TEE screen with the GI history's concerns, the questions asked first
+          # (difficulty swallowing, previous EGD and TEE), and the warnings on the handoff.
+          shot 340-tee-gi-light 14 -ps.tab patient -ps.patient demo-links -ps.patient.open workup:tee -ps.forceAppearance light
+          shot 341-tee-gi-dark 14 -ps.tab patient -ps.patient demo-links -ps.patient.open workup:tee -ps.forceAppearance dark
+          shot 342-tee-gi-confirm-light 15 -ps.tab patient -ps.patient demo-links -ps.patient.open workup:tee -ps.patient.scroll tee-confirm -ps.forceAppearance light
+          shot 343-tee-gi-confirm-dark 15 -ps.tab patient -ps.patient demo-links -ps.patient.open workup:tee -ps.patient.scroll tee-confirm -ps.forceAppearance dark
+          shot 344-tee-gi-evidence 15 -ps.tab patient -ps.patient demo-links -ps.patient.open workup:tee -ps.evidence.open 1 -ps.patient.scroll done -ps.forceAppearance light
+          shot 345-handoff-warnings-light 16 -ps.tab patient -ps.patient demo-links -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 346-handoff-warnings-dark 16 -ps.tab patient -ps.patient demo-links -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 43-acls 12 -ps.ref acls
           shot 44-acls-child 12 -ps.ref acls -ps.acls.patient child -ps.acls.weight 18
           shot 45-acls-cals 12 -ps.ref acls -ps.acls.mode cals

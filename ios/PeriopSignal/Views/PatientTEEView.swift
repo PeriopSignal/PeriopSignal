@@ -22,15 +22,34 @@ extension PatientEditorView {
     @ViewBuilder var teeScreenEditor: some View {
         let res = PatientTEE.evaluate(r)
         TEEResultCard(result: res)
-        if !res.suggestions.isEmpty {
-            PatientGroup(title: "In the record: confirm", note: nil) {
-                ForEach(Array(res.suggestions.enumerated()), id: \.element.item.id) { i, s in
-                    teeRow(s.item, result: res, why: s.why)
-                    if i < res.suggestions.count - 1 { Hairline().padding(.leading, 14) }
-                }
+        // Asked first (1.9, Ben): difficulty swallowing (the checklist's Dysphagia), a previous EGD and a previous TEE.
+        PatientGroup(title: "Ask first") {
+            if let swallow = swallowItem {
+                teeRow(swallow, result: res, why: res.suggestions.first { $0.item.id == "dysphagia" }?.why)
+                Hairline().padding(.leading, 14)
+            }
+            teePreviousRow("Previous EGD?", answer: \.teeScreen.previousEGD)
+            if r.teeScreen.previousEGD == true {
+                PatientTextField(label: "EGD date", prompt: "MM/YYYY", text: bind(\.teeScreen.egdDate))
+                PatientTextField(label: "EGD findings", prompt: "Normal, esophagitis, stricture, varices…", text: bind(\.teeScreen.egdFindings))
+            }
+            Hairline().padding(.leading, 14)
+            teePreviousRow("Previous TEE?", answer: \.teeScreen.previousTEE)
+            if r.teeScreen.previousTEE == true {
+                PatientTextField(label: "TEE date", prompt: "MM/YYYY", text: bind(\.teeScreen.teeDate))
             }
         }
-        let suggested = Set(res.suggestions.map(\.item.id))
+        let others = res.suggestions.filter { $0.item.id != "dysphagia" }
+        if !others.isEmpty {
+            PatientGroup(title: "In the record: confirm", note: nil) {
+                ForEach(Array(others.enumerated()), id: \.element.item.id) { i, s in
+                    teeRow(s.item, result: res, why: s.why)
+                    if i < others.count - 1 { Hairline().padding(.leading, 14) }
+                }
+            }
+            .id("tee-confirm")
+        }
+        let suggested = Set(res.suggestions.map(\.item.id)).union(["dysphagia"])
         let absolute = PatientTEE.items.filter { $0.level == .absolute && !suggested.contains($0.id) }
         let relative = PatientTEE.items.filter { $0.level == .relative && !suggested.contains($0.id) }
         PatientGroup(title: "Absolute contraindications") {
@@ -47,7 +66,7 @@ extension PatientEditorView {
         }
         PatientGroup(title: nil) {
             toggleRow("Asked about every item", "Anything not answered Yes counts as No", Binding(get: { patient.record.teeScreen.reviewed }, set: { v in patient.update { $0.teeScreen.reviewed = v } }))
-            PatientTextField(label: "Notes", prompt: "Last endoscopy, GI advice, probe size, plan", text: Binding(get: { patient.record.teeScreen.notes }, set: { v in patient.update { $0.teeScreen.notes = v } }))
+            PatientTextField(label: "Notes", prompt: "GI advice, probe size, plan", text: Binding(get: { patient.record.teeScreen.notes }, set: { v in patient.update { $0.teeScreen.notes = v } }))
         }
         if !res.findings.isEmpty {
             PatientGroup(title: "Precautions") {
@@ -64,6 +83,26 @@ extension PatientEditorView {
                     .textSelection(.enabled)
             }
         }
+    }
+
+    /// The checklist's Dysphagia, asked in Ben's words.
+    private var swallowItem: TEEItem? {
+        guard var it = PatientTEE.item("dysphagia") else { return nil }
+        it.label = "Difficulty swallowing?"
+        return it
+    }
+
+    /// Previous EGD or TEE: No and Yes; a second tap on the same answer clears it. What was typed under Yes is kept.
+    private func teePreviousRow(_ title: String, answer: WritableKeyPath<PatientRecord, Bool?>) -> some View {
+        let a = r[keyPath: answer]
+        return HStack(spacing: 10) {
+            Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+            Spacer(minLength: 6)
+            YesNoPills(no: a == false, yes: a == true,
+                       onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = a == false ? nil : false } } },
+                       onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = a == true ? nil : true } } })
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
     }
 
     /// One item: its label and detail, then Yes/No, or "In the record" when a structured field already shows it.
