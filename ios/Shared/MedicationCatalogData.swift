@@ -41,7 +41,9 @@ import Foundation
 //     and fludrocortisone, kept as the note reader already reads it (a mineralocorticoid, but usually taken for adrenal
 //     insufficiency alongside hydrocortisone, which is the stress-dose question; judgment call). Inhaled, nasal and
 //     topical corticosteroids are not flagged (Woodcock 2020, Anaesthesia 2020;75:654–663, asks for a judgment by dose
-//     there); "Budesonide" alone reads as the inhaled or nasal form.
+//     there); "Budesonide" alone reads as the inhaled or nasal form. A systemic name written with a route on the skin
+//     or in the eye ("hydrocortisone 1% cream", "prednisolone 1% eye drops") reads as its topical or eye-drop entry
+//     (MedicationCatalog.localForm).
 //   - opioid ("Chronic opioids or buprenorphine"): every opioid agonist or partial agonist and combination, tramadol and
 //     tapentadol, methadone, buprenorphine with or without naloxone, butorphanol, and kratom (the FDA's 2018 statement
 //     on kratom: its compounds are opioids). Opioid antagonists are NOT flagged and their class says so: naltrexone
@@ -311,6 +313,8 @@ enum MedicationData {
         "ertugliflozin-sitagliptin|Ertugliflozin/sitagliptin|steglujan|sglt2|SGLT2 inhibitor + DPP-4 inhibitor",
         // Insulins
         "insulin|Insulin (type not named)|insulin, insulins|insulin|Insulin",
+        "insulin-humulin|Humulin (type not named)|humulin|insulin|Human insulin (type not named)",
+        "insulin-novolin|Novolin (type not named)|novolin|insulin|Human insulin (type not named)",
         "*insulin-glargine|Insulin glargine|lantus, basaglar, toujeo, semglee, rezvoglar, glargine|insulin|Long-acting insulin",
         "insulin-detemir|Insulin detemir|levemir, detemir|insulin|Long-acting insulin",
         "insulin-degludec|Insulin degludec|tresiba, degludec|insulin|Long-acting insulin (ultra-long)",
@@ -404,10 +408,12 @@ enum MedicationData {
         // Systemic glucocorticoids (flagged), and the forms that are not
         "*prednisone|Prednisone|deltasone, rayos|steroid|Glucocorticoid (systemic)",
         "prednisolone|Prednisolone|orapred, millipred, pediapred|steroid|Glucocorticoid (systemic)",
+        "prednisolone-ophthalmic|Prednisolone eye drops|pred forte, pred mild, omnipred, prednisolone eye drops, prednisolone ophthalmic|| Corticosteroid, eye drops",
         "*methylprednisolone|Methylprednisolone|medrol, medrol dosepak, solu-medrol, depo-medrol|steroid|Glucocorticoid (systemic)",
         "dexamethasone|Dexamethasone|decadron, hemady|steroid|Glucocorticoid (systemic)",
+        "dexamethasone-ophthalmic|Dexamethasone eye drops|maxidex, dexamethasone eye drops, dexamethasone ophthalmic|| Corticosteroid, eye drops",
         "hydrocortisone|Hydrocortisone|cortef, alkindi, solu-cortef|steroid|Glucocorticoid (systemic)",
-        "hydrocortisone-topical|Hydrocortisone cream|hydrocortisone cream, hydrocortisone ointment, cortaid|| Corticosteroid, topical",
+        "hydrocortisone-topical|Hydrocortisone cream|hydrocortisone cream, hydrocortisone ointment, hydrocortisone lotion, hydrocortisone topical, cortaid|| Corticosteroid, topical",
         "cortisone|Cortisone acetate|cortisone|steroid|Glucocorticoid (systemic)",
         "fludrocortisone|Fludrocortisone|florinef|steroid|Mineralocorticoid (usually for adrenal insufficiency)",
         "deflazacort|Deflazacort|emflaza|steroid|Glucocorticoid (systemic)",
