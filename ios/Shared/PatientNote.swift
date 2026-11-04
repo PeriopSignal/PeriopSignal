@@ -839,7 +839,7 @@ enum PatientNote {
         out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA,
                 intracranialAneurysm, rupturedAorticRx, notAorticDissection, complexEVARRx, complexEVARTail]
         out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
-                prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI]
+                prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI, otherMeaning]
         out += [infectionNotPositive, hivPrevention, covidNotRecent]
         out += detailPatterns
         out += problemRules.flatMap { r -> [NoteRx] in [r.notBefore, r.notAfter, r.notIf, r.onlyIf, r.negAfter].compactMap { $0 } }
@@ -993,6 +993,7 @@ enum PatientNote {
             }
             // "mild MI", "trivial MI": mitral insufficiency, so not read through MI's meaning as an infarction (1.8.1).
             for m in gradedMI.all(c) { h.seen(m.range(at: 1)) }
+            for m in otherMeaning.all(c) { h.seen(m.range) }
             // The others, where no rule read them as written, are read through their meaning.
             var plain: [AbbreviationReplacement] = []
             var unread: [AbbreviationReplacement] = []
@@ -1175,6 +1176,10 @@ enum PatientNote {
     private static let rupturedIDs: Set<String> = ["aaa-ruptured", "taa-ruptured", "taaa-ruptured", "ruptured-aneurysm"]
     private static let repairIDs: Set<String> = ["aortic-repair-open", "evar", "tevar"]
     /// MI after a valve grade is mitral insufficiency.
+    /// Letters a rule did not read because they mean something else here (1.9 review): occiput anterior ("vertex OA"),
+    /// osteochondritis dissecans ("OCD lesion"), "fx" as function ("LV fx"). Marked read, so they are not read again
+    /// through the list's meaning (osteoarthritis, obsessive-compulsive disorder, fracture).
+    static let otherMeaning = NoteRx(#"\b(?:vertex|vtx|cephalic|direct|fetal|fetus|baby|head|position|presentation)\s+(?-i:OA)\b|(?-i:\bOA\b)(?=\s*(?:position|presentation|vertex|vtx)\b)|\b(?:knee|talus|talar|elbow|capitellum|capitellar|ankle|femoral|condyle|condylar|patellar|trochlear|dome|shoulder|hip|joint)\s+(?-i:OCD)\b|(?-i:\bOCD\b)(?=\s+(?:lesions?|defects?|fragments?|of\s+(?:the\s+)?(?:\w+\s+)?(?:knee|talus|talar|elbow|capitellum|ankle|femoral|condyle|patella|hip|shoulder|dome)))|\b(?:lv|rv|la|bv|lvs|ventricular|biventricular|systolic|diastolic|cardiac|heart|valve|valvular|renal|kidney|liver|hepatic|lung|pulmonary|pulm|thyroid|adrenal|bowel|bladder|sexual|cognitive|neuro|motor|sensory|platelet|immune|synthetic|graft|nl|normal|baseline|organ|pump|marrow|ventilatory|respiratory|diaphragm|diaphragmatic|swallow|swallowing|pft)\s+fx\b|\bfx(?=\s+(?:tests?|testing|studies|study|panel|wnl|nl|normal|preserved|intact|impaired|reduced|decreased|depressed|improved|worsening|declin\w*)\b)"#)
     static let gradedMI = NoteRx(#"\b(?:mild|trace|trivial|moderate|severe)\s+((?-i:MI))\b"#)
     /// A rupture told as past: repaired, or after a history cue.
     static let rupturePastBefore = NoteRx(#"\b(?:s/p|status post|history of|hx of|h/o|prior|previous|previously|old|remote|repaired|repair of)\b[^.;]{0,24}$"#)

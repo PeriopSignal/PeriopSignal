@@ -133,7 +133,7 @@ final class Review19NotesTests: XCTestCase {
 
     /// "fx" as function is not a fracture.
     func testFxAsFunction() {
-        for line in ["Echo: normal LV fx, EF 60%", "Renal fx stable", "normal lung fx on PFTs"] {
+        for line in ["Echo: normal LV fx, EF 60%", "Renal fx stable", "normal lung fx on PFTs", "Echo: normal LV Fx, EF 60%"] {
             XCTAssertFalse(problems(line).contains("problem:fracture"), line)
         }
         XCTAssertTrue(problems("R hip fx").contains("problem:fracture"))
@@ -143,7 +143,9 @@ final class Review19NotesTests: XCTestCase {
     /// OCD as osteochondritis dissecans and OA as occiput anterior.
     func testOsteochondritisAndOcciputAnterior() {
         XCTAssertFalse(problems("Procedure: R knee arthroscopy, drilling of OCD lesion").contains("problem:psych"))
-        XCTAssertFalse(problems("SVE 6/90/0, vertex OA").contains("problem:oa"))
+        XCTAssertFalse(problems("OCD lesion of the R knee").contains("problem:psych"), "not read again as obsessive-compulsive disorder")
+        XCTAssertFalse(problems("SVE 6/90/0, vertex OA").contains("problem:oa"), "not read again as osteoarthritis")
+        XCTAssertFalse(problems("Cervix 8 cm, OA position").contains("problem:oa"))
         XCTAssertTrue(problems("OCD on fluoxetine").contains("problem:psych"))
         XCTAssertTrue(problems("bilateral knee OA").contains("problem:oa"))
     }
