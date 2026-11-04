@@ -16,6 +16,10 @@ final class ReferenceStore {
         }
     }
     var peds: PedsData? { bundle?.peds }
+    var caseTimers: CaseTimerData? { bundle?.caseTimers }
+    var mtp: MtpData? { bundle?.mtp }
+    var mcs: McsData? { bundle?.mcs }
+    var tee: TeeData? { bundle?.tee }
     var askEndpoint: URL? {
         guard let s = bundle?.ask?.endpoint, let u = URL(string: s), u.scheme == "https" else { return nil }
         return u
@@ -37,6 +41,7 @@ final class ReferenceStore {
         } else {
             bundle = cached ?? bundled
         }
+        DraftGate.update(from: bundle)
         await refresh()
     }
 
@@ -53,10 +58,11 @@ final class ReferenceStore {
             bundle = fresh
             ReferenceLoader.saveCache(data)
         }
+        DraftGate.update(from: bundle)
         lastRefresh = Date()
     }
 
     #if DEBUG
-    func inject(_ b: ReferenceBundle) { bundle = b; loaded = true }
+    func inject(_ b: ReferenceBundle) { bundle = b; loaded = true; DraftGate.update(from: b) }
     #endif
 }

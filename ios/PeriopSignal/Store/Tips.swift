@@ -79,7 +79,7 @@ struct TipSet: Equatable, Identifiable {
     ])
 
     /// The Reference tools no tip ever shows on: the Emergency folder (ACLS, OB, LAST, MH, Difficult Airway).
-    static let emergencyRouteKeys: Set<String> = ["acls", "ob", "quickref:asra-last", "quickref:mhaus-mh", "airway"]
+    static let emergencyRouteKeys: Set<String> = ["acls", "ob", "quickref:asra-last", "quickref:mhaus-mh", "airway", "mtp"]
 
     /// Whether a tip may show on this Reference tool or folder (never on an emergency tool).
     static func allowed(onRouteKey key: String) -> Bool { !emergencyRouteKeys.contains(key) }
