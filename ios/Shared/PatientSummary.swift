@@ -160,6 +160,8 @@ enum PatientSummary {
             if let n = r.systemNotes[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty { items.append(n) }
             if !items.isEmpty { out.append(Line(sys.name, items.joined(separator: "; "))) }
         }
+        // The history's warnings, after the systems (1.9): "Aspiration risk: hiatal hernia", "Heparin caution: GI bleed".
+        out += PatientWarnings.lines(r)
         let other = r.otherHistory.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { out.append(Line("Other conditions", other)) }
         if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeries.map(\.text).joined(separator: "; "))) }
