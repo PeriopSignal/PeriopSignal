@@ -99,7 +99,8 @@ final class PatientDiagram19Tests: XCTestCase {
         XCTAssertEqual(avf.site, "forearm-left")
         XCTAssertEqual(avf.device().label, "AV fistula L forearm")
         let bc = try parse("brachiocephalic fistula right")
-        XCTAssertEqual([bc.kind, bc.site], [.avFistula, "upper-arm-right"])
+        XCTAssertEqual(bc.kind, .avFistula)
+        XCTAssertEqual(bc.site, "upper-arm-right")
         XCTAssertEqual(bc.detail, "brachiocephalic")
         XCTAssertEqual(try parse("L radiocephalic AVF").site, "wrist-left")
         XCTAssertEqual(try parse("AV graft R upper arm").device().label, "AV graft R upper arm")
@@ -115,20 +116,23 @@ final class PatientDiagram19Tests: XCTestCase {
         XCTAssertEqual(hd.site, "ij-right")
         XCTAssertEqual(hd.device().label, "HD catheter R IJ")
         let tun = try parse("14.5 Fr tunneled HD catheter left femoral")
-        XCTAssertEqual([tun.kind, tun.size, tun.site, tun.detail], [.dialysisCatheter, "14.5", "femoral-vein-left", "tunneled"])
+        XCTAssertEqual(tun.kind, .dialysisCatheter)
+        XCTAssertEqual([tun.size, tun.site ?? "", tun.detail], ["14.5", "femoral-vein-left", "tunneled"])
         XCTAssertEqual(try parse("RIJ permcath").detail, "tunneled")
         XCTAssertEqual(try parse("RIJ permcath").kind, .dialysisCatheter)
         XCTAssertEqual(try parse("L subclavian trialysis").detail, "Trialysis")
         XCTAssertEqual(try parse("RIJ TLC").kind, .cvc, "a triple-lumen central line is still a CVL")
 
         let ct = try parse("R chest tube 28 Fr")
-        XCTAssertEqual([ct.kind, ct.size, ct.site, ct.side], [.chestTube, "28", "lateral-chest-right", "right"])
+        XCTAssertEqual(ct.kind, .chestTube)
+        XCTAssertEqual([ct.size, ct.site ?? "", ct.side ?? ""], ["28", "lateral-chest-right", "right"])
         XCTAssertEqual(ct.device().label, "R chest tube 28 Fr")
         XCTAssertEqual(try parse("left pigtail chest tube 14 Fr").detail, "pigtail")
         XCTAssertEqual(try parse("chest tube").alternatives.compactMap(\.site), ["lateral-chest-right", "lateral-chest-left"])
 
         let ppm = try parse("PPM left chest")
-        XCTAssertEqual([ppm.kind, ppm.site, ppm.detail], [.cied, "generator-left", "pacemaker"])
+        XCTAssertEqual(ppm.kind, .cied)
+        XCTAssertEqual([ppm.site ?? "", ppm.detail], ["generator-left", "pacemaker"])
         XCTAssertEqual(ppm.device().label, "Pacemaker L pectoral")
         XCTAssertEqual(try parse("ICD right infraclavicular").site, "generator-right", "infraclavicular means the pocket for a generator")
         XCTAssertEqual(try parse("CRT-D left pectoral").detail, "CRT-D")
@@ -136,7 +140,8 @@ final class PatientDiagram19Tests: XCTestCase {
         XCTAssertEqual(try parse("pacemaker").alternatives.compactMap(\.site), ["generator-left", "generator-right"], "left first for a generator")
         // The infraclavicular block is untouched.
         let block = try parse("R infraclavicular block")
-        XCTAssertEqual([block.kind, block.site], [.block, "infraclavicular-right"])
+        XCTAssertEqual(block.kind, .block)
+        XCTAssertEqual(block.site, "infraclavicular-right")
     }
 
     func testLabels() {
