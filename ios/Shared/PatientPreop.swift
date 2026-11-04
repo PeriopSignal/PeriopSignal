@@ -93,6 +93,32 @@ enum PatientPreop {
         return picked.joined(separator: "; ")
     }
 
+    // MARK: Notes the boxes share with the editors
+
+    /// The ASA box's explanations, for its title's ⓘ: how the suggestion works, then (a child with nothing to suggest from)
+    /// where to tick problems, then the chosen class's definition. Moved here from the Assessment editor, unchanged, so the
+    /// editor and the tab say the same.
+    static func asaNote(_ r: PatientRecord) -> String {
+        var parts = ["The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it."]
+        if PatientRules.asaSuggestion(r) == nil && r.isChild {
+            parts.append("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
+        }
+        if let c = r.asaClass {
+            parts.append(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))
+        }
+        return parts.joined(separator: "\n\n")
+    }
+
+    /// How the body-size line is worked out, for the Demographics title's ⓘ once there is a line.
+    static func bodySizeNote(_ r: PatientRecord) -> String? {
+        r.bmi == nil ? nil : "BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian."
+    }
+
+    /// The AHA/ACC "Before surgery" notes for the flagged medications that have one, in the flags' order.
+    static func beforeSurgery(_ r: PatientRecord) -> [(label: String, note: String)] {
+        PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }.compactMap { f in PatientFunctional.medNotes[f.id].map { (label: f.label, note: $0) } }
+    }
+
     // MARK: Summary
 
     /// The Preprocedure Summary button is offered once the record holds anything.

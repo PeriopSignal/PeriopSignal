@@ -45,9 +45,7 @@ extension PatientEditorView {
     var urgencyNote: String? { r.urgency.map { $0.detail + " (2024 AHA/ACC)" } }
 
     /// How the body-size line is worked out, for the group title's ⓘ once there is a line.
-    var bodySizeNote: String? {
-        r.bmi == nil ? nil : "BSA by DuBois and DuBois, as in the echo tools; ideal body weight by Devine (from 152 cm); lean body weight by Janmahasatian."
-    }
+    var bodySizeNote: String? { PatientPreop.bodySizeNote(r) }
 
     private func riskInputsNote(recognized: Bool) -> String? {
         var parts: [String] = []
@@ -115,6 +113,7 @@ extension PatientEditorView {
         case "carotid": carotidEditor
         case "radial": radialEditor
         case "pft": pftEditor
+        case "codestatus": PatientCodeStatusGroup()
         default: EmptyView()
         }
     }
@@ -309,15 +308,7 @@ extension PatientEditorView {
 
     @ViewBuilder var currentInfusionsGroup: some View {
         PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
-            InfusionTypeField(list: \.homeInfusions)
-            Hairline().padding(.leading, 14)
-            ForEach(r.homeInfusions) { inf in
-                InfusionRow(infusion: infusionBinding(\.homeInfusions, inf.id)) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
-                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
-                Hairline().padding(.leading, 14)
-            }
-            WobbleDoneBar(editing: $wobbling)
-            addButton("Add an infusion") { patient.update(discrete: true) { $0.homeInfusions.append(PatientInfusion()) } }
+            CurrentInfusionsBox()
         }
     }
 
@@ -325,20 +316,7 @@ extension PatientEditorView {
 
     /// One line with No and Yes; Yes opens the chips. No clears them.
     func yesNoRow(_ title: String, answer: WritableKeyPath<PatientRecord, Bool?>, chips: WritableKeyPath<PatientRecord, Set<String>>, options: [PatientFlag]) -> some View {
-        let picked = !r[keyPath: chips].isEmpty
-        let yes = r[keyPath: answer] == true || picked
-        let no = r[keyPath: answer] == false && !picked
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
-                Spacer(minLength: 6)
-                YesNoPills(no: no, yes: yes,
-                           onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = false; $0[keyPath: chips] = [] } } },
-                           onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = true } } })
-            }
-            if yes { PatientChips(options: options, selection: bind(chips)) }
-        }
-        .padding(.horizontal, 14).padding(.vertical, 10)
+        PatientYesNoChipsRow(title: title, answer: answer, chips: chips, options: options)
     }
 
     func addButton(_ title: String, _ action: @escaping () -> Void) -> some View {

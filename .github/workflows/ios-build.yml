@@ -555,6 +555,27 @@ jobs:
           shot 383-handoff-shared-image-dialysis 22 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab summary -ps.handoff.format short -ps.handoff.image 1 -ps.patient.scroll sharedimage -ps.forceAppearance dark
           shot 384-typed-wires 20 -ps.tab patient -ps.patient demo-wires -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "epicardial wires A+V" -ps.forceAppearance light
           shot 385-typed-chesttube 20 -ps.tab patient -ps.patient demo-chesttube -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "R chest tube 28 Fr" -ps.forceAppearance dark
+          # 1.9 Preprocedure tab (helper 5): the reorganized tab from top to bottom, light and dark; a large-text pair.
+          shot 440-preop-top-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance light
+          shot 441-preop-top-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance dark
+          shot 442-preop-demographics-code-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.preop.vitals 1 -ps.forceAppearance light
+          shot 443-preop-demographics-code-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.preop.vitals 1 -ps.forceAppearance dark
+          shot 444-preop-allergies-problems-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.tab preop -ps.patient.scroll allergies -ps.forceAppearance light
+          shot 445-preop-allergies-problems-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.tab preop -ps.patient.scroll allergies -ps.forceAppearance dark
+          shot 446-preop-problems-chips-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll problems -ps.preop.intake 1 -ps.forceAppearance light
+          shot 447-preop-problems-chips-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll problems -ps.preop.intake 1 -ps.forceAppearance dark
+          shot 448-preop-asa-functional-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance light
+          shot 449-preop-asa-functional-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance dark
+          shot 450-preop-cardio-workup-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit intrathoracic -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 451-preop-cardio-workup-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit intrathoracic -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 452-preop-airway-labs-devices-light 20 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll airway -ps.forceAppearance light
+          shot 453-preop-airway-labs-devices-dark 20 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll airway -ps.forceAppearance dark
+          shot 454-preop-medications-light 18 -ps.tab patient -ps.patient demo-meds -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light
+          shot 455-preop-medications-dark 18 -ps.tab patient -ps.patient demo-meds -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance dark
+          shot 456-preop-risk-summary-light 18 -ps.tab patient -ps.patient demo-links -ps.patient.tab preop -ps.patient.scroll risk -ps.forceAppearance light
+          shot 457-preop-risk-summary-dark 18 -ps.tab patient -ps.patient demo-links -ps.patient.tab preop -ps.patient.scroll risk -ps.forceAppearance dark
+          shot 458-preop-large-text-demographics-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll demographics -ps.preop.vitals 1 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 459-preop-large-text-problems-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.tab preop -ps.patient.scroll problems -ps.textScale 1.25 -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

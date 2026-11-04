@@ -37,7 +37,7 @@ struct PatientNumberField: View {
     @State private var text = ""
     @FocusState private var focused: Bool
 
-    private static func parse(_ s: String) -> Double? {
+    static func parse(_ s: String) -> Double? {
         let v = Double(s.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: "."))
         guard let v, v.isFinite, v >= 0 else { return nil }
         return v

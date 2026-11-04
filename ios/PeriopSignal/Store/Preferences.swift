@@ -64,7 +64,8 @@ final class Preferences {
         alertMinute = d.object(forKey: "ps.alertMinute") as? Int ?? 30
         quietWeekends = d.bool(forKey: "ps.quietWeekends")
         weeklyDigest = d.object(forKey: "ps.weeklyDigest") as? Bool ?? true
-        textScale = d.object(forKey: "ps.textScale") as? Double ?? 1.0
+        // A launch argument (-ps.textScale 1.25 in the screenshot runs) arrives as text.
+        textScale = d.object(forKey: "ps.textScale") as? Double ?? d.string(forKey: "ps.textScale").flatMap { Double($0) } ?? 1.0
         speechRate = d.object(forKey: "ps.speechRate") as? Double ?? 0.5
         voiceID = d.string(forKey: "ps.voiceID")
         preferRecordings = d.object(forKey: "ps.preferRecordings") as? Bool ?? true
