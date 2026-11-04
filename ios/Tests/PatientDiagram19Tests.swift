@@ -521,16 +521,16 @@ final class PatientDiagram19Tests: XCTestCase {
         var r = PatientRecord()
         r.devices = [fistula("forearm-left", side: "left")]
         r.limbAlerts = [PatientLimbAlert(limb: "arm-right", reason: "prior axillary lymph node dissection")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula; R arm — prior axillary lymph node dissection",
-                       "the limbs with a fistula first, the reason in a sentence")
-        // Capital as typed, lower case inside the sentence unless it is an acronym.
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula; R arm — Prior axillary lymph node dissection",
+                       "the limbs with a fistula first, the reason with the capital FreeText.cap gives it, as in the editor")
+        // Capital as typed, an acronym kept.
         r.limbAlerts = [PatientLimbAlert(limb: "arm-right", reason: "Prior axillary lymph node dissection"),
                         PatientLimbAlert(limb: "leg-left", reason: "AV graft revision")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula; R arm — prior axillary lymph node dissection; L leg — AV graft revision")
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula; R arm — Prior axillary lymph node dissection; L leg — AV graft revision")
         // Two reasons on one limb; blank ones are not alerts.
         r.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Lymphedema"), PatientLimbAlert(limb: "arm-left", reason: "  "),
                         PatientLimbAlert(limb: "arm-left", reason: "lymphedema")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula, lymphedema")
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula, Lymphedema")
         // A limb that is not one of the four is ignored.
         r.limbAlerts = [PatientLimbAlert(limb: "head", reason: "x")]
         XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula")
@@ -572,7 +572,7 @@ final class PatientDiagram19Tests: XCTestCase {
         XCTAssertTrue(text.contains("Arms: "), text)
         // A different reason on the harvest arm is kept, in its own line.
         h.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Lymphedema"), PatientLimbAlert(limb: "arm-right", reason: "Planned radial harvest")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "R arm — planned radial harvest; L arm — lymphedema",
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "R arm — Planned radial harvest; L arm — Lymphedema",
                        "a harvest is only dropped on the arm that is planned for it")
         XCTAssertEqual(PatientSummary.limbAlertLines(h).count, 1)
     }
@@ -582,7 +582,7 @@ final class PatientDiagram19Tests: XCTestCase {
         r.ageYears = 60; r.sex = .female
         r.devices = [fistula("forearm-left", side: "left")]
         r.limbAlerts = [PatientLimbAlert(limb: "arm-right", reason: "prior axillary lymph node dissection")]
-        let line = "Limb alert: L arm — AV fistula; R arm — prior axillary lymph node dissection"
+        let line = "Limb alert: L arm — AV fistula; R arm — Prior axillary lymph node dissection"
         let full = HandoffWriter.text(r)
         XCTAssertTrue(full.contains(line), full)
         XCTAssertEqual(full.components(separatedBy: "Limb alert").count, 2, "once")
@@ -619,7 +619,7 @@ final class PatientDiagram19Tests: XCTestCase {
         let alerts = m.items.filter { $0.marker == .alert }
         XCTAssertEqual(Set(alerts.map(\.id)), ["limb-alert-arm-left", "limb-alert-arm-right"])
         XCTAssertTrue(alerts.allSatisfy { $0.label.isEmpty }, "the mark has no label in the column")
-        XCTAssertEqual(alerts.first { $0.id == "limb-alert-arm-right" }?.spoken, "Limb alert, right arm: prior axillary lymph node dissection")
+        XCTAssertEqual(alerts.first { $0.id == "limb-alert-arm-right" }?.spoken, "Limb alert, right arm: Prior axillary lymph node dissection")
         XCTAssertLessThan(alerts.first { $0.id == "limb-alert-arm-right" }?.anchor.x ?? 200, 100)
         // Labels fit the column and never repeat the alert text.
         for item in m.items where !item.label.isEmpty { XCTAssertLessThanOrEqual(item.label.count, 15, item.label) }

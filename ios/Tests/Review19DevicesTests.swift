@@ -246,9 +246,9 @@ final class Review19DevicesTests: XCTestCase {
         var r = PatientRecord()
         r.devices = [PatientDevice(kind: .avFistula, site: "forearm-left", side: "left")]
         r.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Steal syndrome from AV fistula, no BP cuff")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula, steal syndrome from AV fistula, no BP cuff")
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula, Steal syndrome from AV fistula, no BP cuff")
         r.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Lymphedema after node dissection; old AVF")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula, lymphedema after node dissection; old AVF")
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula, Lymphedema after node dissection; old AVF")
         // Only the fistula again: once.
         r.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "AV fistula, no BP or IVs")]
         XCTAssertEqual(PatientDeviceFills.limbAlertText(r), "L arm — AV fistula")
@@ -256,7 +256,7 @@ final class Review19DevicesTests: XCTestCase {
         var h = PatientRecord()
         h.radial.harvest = "left"
         h.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Old harvest scar infection")]
-        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "L arm — old harvest scar infection")
+        XCTAssertEqual(PatientDeviceFills.limbAlertText(h), "L arm — Old harvest scar infection")
         h.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Planned radial artery harvest, no lines")]
         XCTAssertNil(PatientDeviceFills.limbAlertText(h))
     }

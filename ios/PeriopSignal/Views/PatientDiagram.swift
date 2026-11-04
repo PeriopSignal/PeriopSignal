@@ -141,8 +141,11 @@ struct PatientDiagramCanvas: View {
         onTapFigure == nil && onTapItem == nil && onLongPress == nil && onMove == nil && onDelete == nil && onHold == nil
     }
 
-    /// Figure units of margin on each side for labels and the cart.
+    /// Figure units of margin on each side for labels and the cart: enough for the usual short labels ("CVL", "A-line
+    /// 20G"); a side with a longer one ("Epi wires A+V", "Chest tube 28", 1.9) is widened to fit it (`margins`).
     static let margin: CGFloat = 48
+    /// Points of air after a label, so its last glyph is never on the edge of the drawing.
+    static let labelAir: CGFloat = 3
     @State private var drag: (id: String, by: CGSize)?
     @State private var wiggle = false
     /// The item being held: it lifts (larger, ringed) until let go.
@@ -153,17 +156,70 @@ struct PatientDiagramCanvas: View {
 
     var body: some View {
         Group {
-            if fillsWidth { drawing } else { drawing.aspectRatio((bw + 2 * Self.margin) / bh, contentMode: .fit) }
+            if fillsWidth { drawing } else { drawing.aspectRatio(aspect, contentMode: .fit) }
         }
         .onChange(of: editing) { _, on in wiggle = on }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Patient diagram: " + (items.isEmpty ? "no lines or devices" : items.map(\.caption).filter { !$0.isEmpty }.joined(separator: ", ")))
     }
 
+    /// Width over height of the whole drawing, margins included. The margins are taken at the scale from which the
+    /// label font grows with the figure (below it the 7-point floor makes a label wider in figure units), so the frame
+    /// keeps the figure's own proportions whenever the labels fit the fixed margin, and `layout` fits the rest inside.
+    private var aspect: CGFloat {
+        let m = Self.margins(items, figureWidth: bw, k: Self.fontFloorScale)
+        return (bw + (m.left + m.right) / Self.fontFloorScale) / bh
+    }
+
+    /// The scale under which the label font stays at its 7-point floor.
+    static let fontFloorScale: CGFloat = 7 / 5.6
+
+    /// The label font at scale k: the figure's 5.6 units, never under 7 points.
+    static func fontSize(_ k: CGFloat) -> CGFloat { max(7, 5.6 * k) }
+
+    /// How wide a label is drawn at scale k, in points.
+    static func labelWidth(_ label: String, k: CGFloat) -> CGFloat {
+        let font = UIFont.systemFont(ofSize: fontSize(k), weight: .semibold)
+        return ceil((label as NSString).size(withAttributes: [.font: font]).width)
+    }
+
+    /// The margin each side of the figure, in points, at scale k: the fixed margin, or more where a label in that
+    /// column (which starts 2 units outside the figure) or beside its marker would otherwise run off the drawing and be
+    /// cut mid-glyph. The left margin counts labels drawn to the left, the right the others.
+    static func margins(_ items: [DiagramItem], figureWidth bw: CGFloat, k: CGFloat) -> (left: CGFloat, right: CGFloat) {
+        var m = (left: margin * k, right: margin * k)
+        for item in items where !item.label.isEmpty {
+            let w = labelWidth(item.label, k: k) + labelAir
+            // Points from the figure's edge to where the text starts.
+            let start: CGFloat
+            if let la = item.labelAt {
+                start = (item.labelLeft ? -la.x : la.x - bw) * k
+            } else {
+                start = (item.labelLeft ? 5 - item.anchor.x : item.anchor.x + 5 - bw) * k
+            }
+            if item.labelLeft { m.left = max(m.left, start + w) } else { m.right = max(m.right, start + w) }
+        }
+        return m
+    }
+
+    /// The scale and the figure's left edge in a drawing of this size: the figure as large as fits with its margins,
+    /// centered. The margins depend on the scale (the font has a floor), so a few rounds settle both.
+    static func layout(_ items: [DiagramItem], figureWidth bw: CGFloat, figureHeight bh: CGFloat, in size: CGSize) -> (k: CGFloat, ox: CGFloat) {
+        var k = max(0.01, min(size.width / (bw + 2 * margin), size.height / bh))
+        var m = margins(items, figureWidth: bw, k: k)
+        for _ in 0..<8 {
+            let next = max(0.01, min((size.width - m.left - m.right) / bw, size.height / bh))
+            if abs(next - k) < 0.0005 { break }
+            k = next
+            m = margins(items, figureWidth: bw, k: k)
+        }
+        return (k, (size.width - (bw * k + m.left + m.right)) / 2 + m.left)
+    }
+
     private var drawing: some View {
         GeometryReader { geo in
-            let k = min(geo.size.width / (bw + 2 * Self.margin), geo.size.height / bh)
-            let ox = (geo.size.width - (bw + 2 * Self.margin) * k) / 2 + Self.margin * k
+            let fit = Self.layout(items, figureWidth: bw, figureHeight: bh, in: geo.size)
+            let k = fit.k, ox = fit.ox
             ZStack(alignment: .topLeading) {
                 Canvas { ctx, _ in draw(&ctx, k: k, ox: ox) }
                     .contentShape(Rectangle())
@@ -328,7 +384,7 @@ struct PatientDiagramCanvas: View {
             case .none:
                 break
             }
-            let font = Font.system(size: max(7, 5.6 * k), weight: .semibold)
+            let font = Font.system(size: Self.fontSize(k), weight: .semibold)
             if !item.label.isEmpty {
                 if let la = item.labelAt {
                     // A leader from the insertion point to the label in its column.
