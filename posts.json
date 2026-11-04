@@ -55,6 +55,26 @@
     "seconds": 211,
     "bytes": 1689837,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Long-term outcomes after percutaneous coronary intervention with drug-eluting stents versus coronary artery bypass grafting for left main coronary artery disease: a prospective analysis of the multicentre IRIS-MAIN registry",
+    "authors": [
+     "Wee SB",
+     "Kang DY",
+     "Ahn JM",
+     "Kim JH",
+     "Kim MJ",
+     "Rha SW",
+     "Her SH",
+     "Kim HS",
+     "Park H",
+     "Nam CW",
+     "Kaul U",
+     "Shin WY"
+    ],
+    "journal": "The Lancet",
+    "doi": "10.1016/S0140-6736(26)02104-5",
+    "year": 2026
    }
   },
   {
@@ -120,7 +140,7 @@
    "impact": 2,
    "trialName": "",
    "firstAuthor": "Putzu",
-   "title": "Sugammadex versus neostigmine for neuromuscular blockade reversal in adults: A systematic review and meta-analysis of randomised controlled trials",
+   "title": "Sugammadex versus neostigmine for neuromuscular blockade reversal in adults",
    "glance": {
     "design": "Meta-analysis of RCTs with trial sequential analysis; updates 2017 Cochrane review",
     "n": "165 trials, 19 124 adults given rocuronium or vecuronium for elective procedures",
@@ -143,6 +163,20 @@
     "seconds": 216,
     "bytes": 1725357,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Sugammadex versus neostigmine for neuromuscular blockade reversal in adults",
+    "authors": [
+     "Putzu A",
+     "Park CH",
+     "Hu X",
+     "Mortensen ML",
+     "Hristovska AM",
+     "Afshari A"
+    ],
+    "journal": "European Journal of Anaesthesiology",
+    "doi": "10.1097/EJA.0000000000002526",
+    "year": 2026
    }
   },
   {
