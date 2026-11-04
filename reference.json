@@ -14994,7 +14994,7 @@
       "ceilingNote": "STS 2018 Rec 14: more than 2.6 mg per 100 U is not recommended (IIa/C). The 2.6 cap is a ceiling; the EACTS <1:1 ratio is a target.",
       "noBypass": "Without bypass, heparin's half-life depends on the dose: follow the label (1 mg neutralizes at least 100 U; about half the dose may do about 30 min after the heparin) and titrate to the ACT.",
       "onBypass": "Bypass is still running. Protamine on bypass clots the circuit.",
-      "suction": "Stop cardiotomy (pump) suction before protamine (EACTS 2024).",
+      "suction": "Stop cardiotomy suction when protamine starts (EACTS 2024).",
       "rate": "No more than 50 mg in any 10 minutes (label).",
       "facts": [
         [
