@@ -154,23 +154,36 @@ struct PreopLink: Identifiable {
     var alert = false
 }
 
-/// Items that open an editor: the filled ones as rows, then the empty ones as chips that wrap.
+/// Items that open an editor, in their order: a filled one is a row with its summary, a run of empty ones is chips that
+/// wrap.
 struct PreopLinkList: View {
     var links: [PreopLink]
 
+    /// The links in order, split where an item changes between filled and empty.
+    private var runs: [(filled: Bool, links: [PreopLink])] {
+        var out: [(filled: Bool, links: [PreopLink])] = []
+        for l in links {
+            let filled = l.summary != nil
+            if let last = out.last, last.filled == filled { out[out.count - 1].links.append(l) } else { out.append((filled: filled, links: [l])) }
+        }
+        return out
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(links.filter { $0.summary != nil }) { l in
-                NavigationLink(value: l.editor) {
-                    PreopFilledRow(title: l.title, summary: l.summary ?? "", icon: l.icon, alert: l.alert)
-                }
-                .buttonStyle(.plain)
-            }
-            let empty = links.filter { $0.summary == nil }
-            if !empty.isEmpty {
-                WrapLayout(spacing: 8) {
-                    ForEach(empty) { l in
-                        NavigationLink(value: l.editor) { PreopAddChip(title: l.title) }.buttonStyle(.plain)
+            ForEach(Array(runs.enumerated()), id: \.offset) { _, run in
+                if run.filled {
+                    ForEach(run.links) { l in
+                        NavigationLink(value: l.editor) {
+                            PreopFilledRow(title: l.title, summary: l.summary ?? "", icon: l.icon, alert: l.alert)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } else {
+                    WrapLayout(spacing: 8) {
+                        ForEach(run.links) { l in
+                            NavigationLink(value: l.editor) { PreopAddChip(title: l.title) }.buttonStyle(.plain)
+                        }
                     }
                 }
             }
@@ -284,7 +297,7 @@ struct PreopDemographicsBox: View {
                     Image(systemName: vitalsOpen ? "chevron.down" : "plus").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.accent).frame(width: 14)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(r.vitals.isEmpty ? "Add preoperative vitals" : "Preoperative vitals")
-                            .font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent)
+                            .font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(r.vitals.isEmpty ? PS.accent : PS.fg2)
                         if !vitalsOpen, let line = PatientSummary.vitalsLine(r) {
                             Text(line).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
                         }
@@ -356,7 +369,7 @@ struct PreopProblemsBox: View {
                 }
                 Text(words.isEmpty ? "—" : words)
                     .font(PS.sys(size: 12)).foregroundStyle(words.isEmpty ? PS.fg3 : PS.fg2)
-                    .lineLimit(2).multilineTextAlignment(.leading)
+                    .lineLimit(3).multilineTextAlignment(.leading)
             }
             .padding(10)
             .frame(maxWidth: .infinity, minHeight: 66, alignment: .topLeading)
@@ -451,7 +464,7 @@ struct PreopCardioBox: View {
                 Hairline().padding(.leading, 14)
                 PatientCardiacEvaluationContent()
                 Hairline().padding(.leading, 14)
-                workup(r).padding(14)
+                workup(r).padding(14).id("preopworkup")
             }
         }
     }

@@ -367,7 +367,7 @@ struct PatientView: View {
         PreopDemographicsBox().jumpTarget(anchor: "demographics")
         PatientGroup(title: "Allergies") { AllergiesBox() }.jumpTarget(anchor: "allergies")
         PreopProblemsBox().jumpTarget(anchor: "problems")
-        PreopHistoryChipsBox()
+        PreopHistoryChipsBox().jumpTarget(anchor: "chips")
     }
 
     /// 3. Examination & Workup: ASA and functional capacity, Cardiopulmonary Evaluation (with the cardiac workup),
@@ -415,7 +415,7 @@ struct PatientView: View {
         "procedure": PatientJumpID(section: .procedure), "demographics": PatientJumpID(anchor: "demographics"),
         "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
         "risk": PatientJumpID(section: .risk), "preopsummary": PatientJumpID(section: .summary),
-        "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"),
+        "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
         "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
         "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
         "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "infusions"), "flagged": PatientJumpID(anchor: "flagged"),
