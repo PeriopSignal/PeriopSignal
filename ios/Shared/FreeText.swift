@@ -106,6 +106,7 @@ extension PatientRecord {
         r.radial.notes = FreeText.cap(r.radial.notes)
         r.pft.notes = FreeText.cap(r.pft.notes)
         r.teeScreen.notes = FreeText.cap(r.teeScreen.notes)
+        r.teeScreen.egdFindings = FreeText.cap(r.teeScreen.egdFindings)
         r.dentition = FreeText.cap(r.dentition)
         r.airwayNotes = FreeText.cap(r.airwayNotes)
         r.examNotes = FreeText.cap(r.examNotes)
