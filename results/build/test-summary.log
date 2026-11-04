@@ -1,200 +1,200 @@
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testACurrentOrFormerSmokerClearsNoSignificantHistory]' passed (0.008 seconds).
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testADeniedAnaphylaxisInTypedAllergiesIsNotMarked]' started.
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testADeniedAnaphylaxisInTypedAllergiesIsNotMarked]' passed (0.015 seconds).
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testALabFilledAnemiaIsNotKeptForAChild]' started.
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testALabFilledAnemiaIsNotKeptForAChild]' passed (0.006 seconds).
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testAMigratedLineDoesNotHideTheOnArrivalDevice]' started.
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testAMigratedLineDoesNotHideTheOnArrivalDevice]' passed (0.007 seconds).
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testAnEmptiedLinesBlockIsLeftOut]' started.
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testAnEmptiedLinesBlockIsLeftOut]' passed (0.022 seconds).
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testASidelessFistulaDoesNotAbsorbALocatedOne]' started.
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testASidelessFistulaDoesNotAbsorbALocatedOne]' passed (0.013 seconds).
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testTheVertebralCautionDoesNotSendLinesToALimbAlertArm]' started.
-Test Case '-[PeriopSignalTests.Review19IntegrationTests testTheVertebralCautionDoesNotSendLinesToALimbAlertArm]' passed (0.005 seconds).
-	 Executed 7 tests, with 0 failures (0 unexpected) in 0.077 (0.098) seconds
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testACombinationBrandInParenthesesRaisesItsFlag]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testACombinationBrandInParenthesesRaisesItsFlag]' passed (0.007 seconds).
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADenialDoesNotCarryOverAndOrADose]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADenialDoesNotCarryOverAndOrADose]' passed (0.007 seconds).
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADeniedOrToleratedAllergenIsNotFiled]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADeniedOrToleratedAllergenIsNotFiled]' passed (0.008 seconds).
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADeniedSeverityIsNotRecorded]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADeniedSeverityIsNotRecorded]' passed (0.006 seconds).
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADeniedStopKeepsTheDrugAndItsFlag]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testADeniedStopKeepsTheDrugAndItsFlag]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testANegativeReactionIsAReaction]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testANegativeReactionIsAReaction]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testANegativeReactionIsAReaction]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testAnIntoleranceIsFiled]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testAnIntoleranceIsFiled]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testAnIntoleranceIsFiled]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testHistoryRowReadsTheLists]' started.
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testHistoryRowReadsTheLists]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testHumulinAndNovolinAloneAreInsulin]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testHumulinAndNovolinAloneAreInsulin]' passed (0.008 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testHumulinAndNovolinAloneAreInsulin]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testNoLongerTakingIsAStop]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testNoLongerTakingIsAStop]' passed (0.005 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testNoLongerTakingIsAStop]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testRemarksAreNotMedications]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testRemarksAreNotMedications]' passed (0.007 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testRemarksAreNotMedications]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testShortHandoffGivesTheAllergyList]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testShortHandoffGivesTheAllergyList]' passed (0.153 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testShortHandoffGivesTheAllergyList]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testStoppedHeldAndDeniedDrugs]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testStoppedHeldAndDeniedDrugs]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testStoppedHeldAndDeniedDrugs]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testTopicalAndEyeDropSteroidsRaiseNoSteroidFlag]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testTopicalAndEyeDropSteroidsRaiseNoSteroidFlag]' passed (0.013 seconds).
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testTopicalAndEyeDropSteroidsRaiseNoSteroidFlag]' passed (0.018 seconds).
 Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testTypedAllergyWithAnotherSeverityStillShows]' started.
-Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testTypedAllergyWithAnotherSeverityStillShows]' passed (0.009 seconds).
-	 Executed 15 tests, with 0 failures (0 unexpected) in 0.250 (0.456) seconds
+Test Case '-[PeriopSignalTests.Review19MedsAllergiesTests testTypedAllergyWithAnotherSeverityStillShows]' passed (0.006 seconds).
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.078 (0.652) seconds
 Test Case '-[PeriopSignalTests.Review19NotesTests testAnaphylacticShockInAnAllergyBlock]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testAnaphylacticShockInAnAllergyBlock]' passed (0.389 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testAnaphylacticShockInAnAllergyBlock]' passed (0.240 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testAnaphylacticShockInAnAllergySentenceIsNotShock]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testAnaphylacticShockInAnAllergySentenceIsNotShock]' passed (0.105 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testAnaphylacticShockInAnAllergySentenceIsNotShock]' passed (0.080 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testColorBlindIsNotVisualImpairment]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testColorBlindIsNotVisualImpairment]' passed (0.091 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testColorBlindIsNotVisualImpairment]' passed (0.041 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testFistulaNotADialysisAccess]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testFistulaNotADialysisAccess]' passed (0.209 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testFistulaNotADialysisAccess]' passed (0.111 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testFundoplicationForHiatalHernia]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testFundoplicationForHiatalHernia]' passed (0.070 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testFundoplicationForHiatalHernia]' passed (0.071 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testFxAsFunction]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testFxAsFunction]' passed (0.130 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testFxAsFunction]' passed (0.061 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testGleasonScoreWithWeeksIsNotAGestation]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testGleasonScoreWithWeeksIsNotAGestation]' passed (0.094 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testGleasonScoreWithWeeksIsNotAGestation]' passed (0.142 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testGleasonWithIsNotWeeks]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testGleasonWithIsNotWeeks]' passed (0.107 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testGleasonWithIsNotWeeks]' passed (0.048 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testHepatitisAFromTheArticleOrAVaccine]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testHepatitisAFromTheArticleOrAVaccine]' passed (0.230 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testHepatitisAFromTheArticleOrAVaccine]' passed (0.175 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testLowercaseHepatitisAIsStillRead]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testLowercaseHepatitisAIsStillRead]' passed (0.111 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testLowercaseHepatitisAIsStillRead]' passed (0.178 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testMissingCountsTheLists]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testMissingCountsTheLists]' passed (0.010 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testMissingCountsTheLists]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testNegativeThrombophiliaWorkup]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testNegativeThrombophiliaWorkup]' passed (0.196 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testNegativeThrombophiliaWorkup]' passed (0.093 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testNKDADoesNotOverrideTheAllergyList]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testNKDADoesNotOverrideTheAllergyList]' passed (0.037 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testNKDADoesNotOverrideTheAllergyList]' passed (0.042 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testNonPacerDependentWithASpace]' started.
 Test Case '-[PeriopSignalTests.Review19NotesTests testNonPacerDependentWithASpace]' passed (0.075 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testOsteochondritisAndOcciputAnterior]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testOsteochondritisAndOcciputAnterior]' passed (0.088 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testOsteochondritisAndOcciputAnterior]' passed (0.154 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testPermanentPacemakerIsNotPermanentAF]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testPermanentPacemakerIsNotPermanentAF]' passed (0.084 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testPermanentPacemakerIsNotPermanentAF]' passed (0.094 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testPlannedBypassUnderAProcedureHeading]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testPlannedBypassUnderAProcedureHeading]' passed (0.118 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testPlannedBypassUnderAProcedureHeading]' passed (0.091 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testProcedureOnAnExistingFistula]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testProcedureOnAnExistingFistula]' passed (0.120 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testProcedureOnAnExistingFistula]' passed (0.051 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testReducedFractureIsAFracture]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testReducedFractureIsAFracture]' passed (0.138 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testReducedFractureIsAFracture]' passed (0.070 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testRepairedHiatalHernia]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testRepairedHiatalHernia]' passed (0.106 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testRepairedHiatalHernia]' passed (0.190 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testSpecificAbbreviationHintsComeFirst]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testSpecificAbbreviationHintsComeFirst]' passed (0.097 seconds).
+Test Case '-[PeriopSignalTests.Review19NotesTests testSpecificAbbreviationHintsComeFirst]' passed (0.089 seconds).
 Test Case '-[PeriopSignalTests.Review19NotesTests testTemplatedDrugAnswersAreNegative]' started.
-Test Case '-[PeriopSignalTests.Review19NotesTests testTemplatedDrugAnswersAreNegative]' passed (0.098 seconds).
-	 Executed 22 tests, with 0 failures (0 unexpected) in 2.705 (2.838) seconds
+Test Case '-[PeriopSignalTests.Review19NotesTests testTemplatedDrugAnswersAreNegative]' passed (0.041 seconds).
+	 Executed 22 tests, with 0 failures (0 unexpected) in 2.141 (2.207) seconds
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnActionFlagStaysRedWithInfusionsBesideIt]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnActionFlagStaysRedWithInfusionsBesideIt]' passed (0.031 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnActionFlagStaysRedWithInfusionsBesideIt]' passed (0.005 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnEditedHeaderCarriesTheEditedMark]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnEditedHeaderCarriesTheEditedMark]' passed (0.045 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnEditedHeaderCarriesTheEditedMark]' passed (0.015 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnEstimateFromAnIntraoperativeValueIsMarkedAsIntraoperative]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnEstimateFromAnIntraoperativeValueIsMarkedAsIntraoperative]' passed (0.036 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testAnEstimateFromAnIntraoperativeValueIsMarkedAsIntraoperative]' passed (0.011 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testAPreCaseDripIsNotRepeatedWhenTheCaseHasTheSameOne]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testAPreCaseDripIsNotRepeatedWhenTheCaseHasTheSameOne]' passed (0.013 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testAPreCaseDripIsNotRepeatedWhenTheCaseHasTheSameOne]' passed (0.008 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testArchivedSummaryIsTheHandoffWithItsEdits]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testArchivedSummaryIsTheHandoffWithItsEdits]' passed (0.134 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testArchivedSummaryIsTheHandoffWithItsEdits]' passed (0.116 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testArchiveOneLinerIsTheHeaderOfA19EntryAndTheLineAfterTheOldHeading]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testArchiveOneLinerIsTheHeaderOfA19EntryAndTheLineAfterTheOldHeading]' passed (0.093 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testArchiveOneLinerIsTheHeaderOfA19EntryAndTheLineAfterTheOldHeading]' passed (0.034 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testASAClassIsKeptWhenThePMHHasNothingElse]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testASAClassIsKeptWhenThePMHHasNothingElse]' passed (0.023 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testASAClassIsKeptWhenThePMHHasNothingElse]' passed (0.020 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testCaptionNamesTheValuesOfEachIntraoperativeTime]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testCaptionNamesTheValuesOfEachIntraoperativeTime]' passed (0.016 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testCaptionNamesTheValuesOfEachIntraoperativeTime]' passed (0.023 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testCarotidCautionsShowOnTheTabsWorkupRow]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testCarotidCautionsShowOnTheTabsWorkupRow]' passed (0.066 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testCarotidCautionsShowOnTheTabsWorkupRow]' passed (0.013 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testCoagulationDividersGoOnlyBetweenTwoParts]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testCoagulationDividersGoOnlyBetweenTwoParts]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testCoagulationDividersGoOnlyBetweenTwoParts]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testOtherConditionsFieldStaysOpenOnceShown]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testOtherConditionsFieldStaysOpenOnceShown]' passed (0.007 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testOtherConditionsFieldStaysOpenOnceShown]' passed (0.028 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testOtherDispositionBoxKeepsWhatIsTyped]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testOtherDispositionBoxKeepsWhatIsTyped]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testOtherDispositionBoxKeepsWhatIsTyped]' passed (0.006 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreprocedureSupportAloneKeepsTheLinesDiagram]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreprocedureSupportAloneKeepsTheLinesDiagram]' passed (0.019 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreprocedureSupportAloneKeepsTheLinesDiagram]' passed (0.023 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreprocedureWorkupListsOnlyTheSupportOnArrivalAndOnlyOnce]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreprocedureWorkupListsOnlyTheSupportOnArrivalAndOnlyOnce]' passed (0.022 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreprocedureWorkupListsOnlyTheSupportOnArrivalAndOnlyOnce]' passed (0.011 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreviousCardiacSurgeryListsOnlyCardiacOperations]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreviousCardiacSurgeryListsOnlyCardiacOperations]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testPreviousCardiacSurgeryListsOnlyCardiacOperations]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testSectionsAndBoxesHaveDifferentScrollIDs]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testSectionsAndBoxesHaveDifferentScrollIDs]' passed (0.010 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testSectionsAndBoxesHaveDifferentScrollIDs]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testSharedAndCopiedTextCarryThePreparedTimeAndTheReminder]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testSharedAndCopiedTextCarryThePreparedTimeAndTheReminder]' passed (0.172 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testSharedAndCopiedTextCarryThePreparedTimeAndTheReminder]' passed (0.092 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testTheCodeStatusPageIsReachableForEveryStatus]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testTheCodeStatusPageIsReachableForEveryStatus]' passed (0.020 seconds).
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testTheCodeStatusPageIsReachableForEveryStatus]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.Review19Phase2Tests testTheLabelOfABlockOfSeveralLinesIsBoldInTheRichText]' started.
-Test Case '-[PeriopSignalTests.Review19Phase2Tests testTheLabelOfABlockOfSeveralLinesIsBoldInTheRichText]' passed (0.049 seconds).
-	 Executed 19 tests, with 0 failures (0 unexpected) in 0.771 (0.840) seconds
+Test Case '-[PeriopSignalTests.Review19Phase2Tests testTheLabelOfABlockOfSeveralLinesIsBoldInTheRichText]' passed (0.036 seconds).
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.465 (0.527) seconds
 Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testFludrocortisoneIsNotConvertedAsCortisone]' started.
-Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testFludrocortisoneIsNotConvertedAsCortisone]' passed (0.015 seconds).
+Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testFludrocortisoneIsNotConvertedAsCortisone]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testPreviousEsophagealProcedureIsReadUnderDysphagiaAlone]' started.
-Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testPreviousEsophagealProcedureIsReadUnderDysphagiaAlone]' passed (0.023 seconds).
+Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testPreviousEsophagealProcedureIsReadUnderDysphagiaAlone]' passed (0.145 seconds).
 Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testUpperGIBleedWithoutStatusAsksWhetherItIsActive]' started.
-Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testUpperGIBleedWithoutStatusAsksWhetherItIsActive]' passed (0.006 seconds).
-	 Executed 3 tests, with 0 failures (0 unexpected) in 0.044 (0.156) seconds
+Test Case '-[PeriopSignalTests.Review19TeeSteroidsTests testUpperGIBleedWithoutStatusAsksWhetherItIsActive]' passed (0.004 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.155 (0.186) seconds
 Test Case '-[PeriopSignalTests.SharedComponentsTests testMaintainedInstructionStaysInViewWordForWord]' started.
 Test Case '-[PeriopSignalTests.SharedComponentsTests testMaintainedInstructionStaysInViewWordForWord]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testPatientGroupNoteAddsNoRowUnderTheCard]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testPatientGroupNoteAddsNoRowUnderTheCard]' passed (2.206 seconds).
+Test Case '-[PeriopSignalTests.SharedComponentsTests testPatientGroupNoteAddsNoRowUnderTheCard]' passed (4.981 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testPresetCaptionIsBehindInfo]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testPresetCaptionIsBehindInfo]' passed (6.839 seconds).
+Test Case '-[PeriopSignalTests.SharedComponentsTests testPresetCaptionIsBehindInfo]' passed (5.155 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testSectionHeaderWithoutInfoIsThePlainEyebrow]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testSectionHeaderWithoutInfoIsThePlainEyebrow]' passed (0.038 seconds).
+Test Case '-[PeriopSignalTests.SharedComponentsTests testSectionHeaderWithoutInfoIsThePlainEyebrow]' passed (0.012 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testToolHeaderSummaryBehindInfoUnlessEmergency]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testToolHeaderSummaryBehindInfoUnlessEmergency]' passed (0.166 seconds).
+Test Case '-[PeriopSignalTests.SharedComponentsTests testToolHeaderSummaryBehindInfoUnlessEmergency]' passed (0.236 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testToolHeaderTitleStaysOnOneLine]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testToolHeaderTitleStaysOnOneLine]' passed (0.028 seconds).
+Test Case '-[PeriopSignalTests.SharedComponentsTests testToolHeaderTitleStaysOnOneLine]' passed (0.020 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testToolSpecificPerKgPrompts]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testToolSpecificPerKgPrompts]' passed (0.349 seconds).
+Test Case '-[PeriopSignalTests.SharedComponentsTests testToolSpecificPerKgPrompts]' passed (0.003 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testWeightNotesStayShort]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testWeightNotesStayShort]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.SharedComponentsTests testWeightNotesStayShort]' passed (0.002 seconds).
 Test Case '-[PeriopSignalTests.SharedComponentsTests testWelcomeFollowsTermsOnlyOnNewInstall]' started.
-Test Case '-[PeriopSignalTests.SharedComponentsTests testWelcomeFollowsTermsOnlyOnNewInstall]' passed (0.003 seconds).
-	 Executed 9 tests, with 0 failures (0 unexpected) in 9.636 (9.657) seconds
+Test Case '-[PeriopSignalTests.SharedComponentsTests testWelcomeFollowsTermsOnlyOnNewInstall]' passed (0.002 seconds).
+	 Executed 9 tests, with 0 failures (0 unexpected) in 10.416 (10.470) seconds
+Test Case '-[PeriopSignalTests.Shots19FixTests testADrugAlreadyReadIsNotSuggestedAgain]' started.
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:106: error: -[PeriopSignalTests.Shots19FixTests testADrugAlreadyReadIsNotSuggestedAgain] : XCTAssertEqual failed: ("Optional("fenoldopam")") is not equal to ("Optional("fentanyl")")
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:111: error: -[PeriopSignalTests.Shots19FixTests testADrugAlreadyReadIsNotSuggestedAgain] : XCTAssertTrue failed
+Test Case '-[PeriopSignalTests.Shots19FixTests testADrugAlreadyReadIsNotSuggestedAgain]' failed (0.105 seconds).
+Test Case '-[PeriopSignalTests.Shots19FixTests testDripListHasNoDuplicateEntriesOrAliases]' started.
+Test Case '-[PeriopSignalTests.Shots19FixTests testDripListHasNoDuplicateEntriesOrAliases]' passed (0.330 seconds).
+Test Case '-[PeriopSignalTests.Shots19FixTests testEquivalenceLineKeptForOtherDrugs]' started.
+Test Case '-[PeriopSignalTests.Shots19FixTests testEquivalenceLineKeptForOtherDrugs]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.Shots19FixTests testLabelFontNeverUnderSevenPoints]' started.
+Test Case '-[PeriopSignalTests.Shots19FixTests testLabelFontNeverUnderSevenPoints]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.Shots19FixTests testLimbAlertReasonReadsWithItsCapitalEverywhere]' started.
+Test Case '-[PeriopSignalTests.Shots19FixTests testLimbAlertReasonReadsWithItsCapitalEverywhere]' passed (0.003 seconds).
+Test Case '-[PeriopSignalTests.Shots19FixTests testLongLabelsWidenTheirSideSoNoneIsCut]' started.
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:40: error: -[PeriopSignalTests.Shots19FixTests testLongLabelsWidenTheirSideSoNoneIsCut] : XCTAssertGreaterThan failed: ("58.37837837837838") is not greater than ("58.37837837837838") - (360.0, 511.0): the long labels widen the right side
+Test Case '-[PeriopSignalTests.Shots19FixTests testLongLabelsWidenTheirSideSoNoneIsCut]' failed (0.043 seconds).
+Test Case '-[PeriopSignalTests.Shots19FixTests testNoEquivalenceLineForTheReferenceDrug]' started.
+Test Case '-[PeriopSignalTests.Shots19FixTests testNoEquivalenceLineForTheReferenceDrug]' passed (0.004 seconds).
+Test Case '-[PeriopSignalTests.Shots19FixTests testShortLabelsKeepTheFixedMargin]' started.
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:22: error: -[PeriopSignalTests.Shots19FixTests testShortLabelsKeepTheFixedMargin] : XCTAssertEqualWithAccuracy failed: ("26.0") is not equal to ("24.0") +/- ("0.001")
+Test Case '-[PeriopSignalTests.Shots19FixTests testShortLabelsKeepTheFixedMargin]' failed (0.013 seconds).
+Test Suite 'Shots19FixTests' failed at 2026-11-04 09:49:31.404.
+	 Executed 8 tests, with 4 failures (0 unexpected) in 0.506 (0.515) seconds
 Test Case '-[PeriopSignalTests.TEEProcedures183Tests testChecklistIDsAreInTheProcedureList]' started.
-Test Case '-[PeriopSignalTests.TEEProcedures183Tests testChecklistIDsAreInTheProcedureList]' passed (0.028 seconds).
+Test Case '-[PeriopSignalTests.TEEProcedures183Tests testChecklistIDsAreInTheProcedureList]' passed (0.020 seconds).
 Test Case '-[PeriopSignalTests.TEEProcedures183Tests testNewEsophagealAndGastricOperationsFlagTheChecklist]' started.
-Test Case '-[PeriopSignalTests.TEEProcedures183Tests testNewEsophagealAndGastricOperationsFlagTheChecklist]' passed (0.009 seconds).
+Test Case '-[PeriopSignalTests.TEEProcedures183Tests testNewEsophagealAndGastricOperationsFlagTheChecklist]' passed (0.007 seconds).
 Test Case '-[PeriopSignalTests.TEEProcedures183Tests testOperationsLeftOutStayOut]' started.
-Test Case '-[PeriopSignalTests.TEEProcedures183Tests testOperationsLeftOutStayOut]' passed (0.010 seconds).
-	 Executed 3 tests, with 0 failures (0 unexpected) in 0.046 (0.491) seconds
+Test Case '-[PeriopSignalTests.TEEProcedures183Tests testOperationsLeftOutStayOut]' passed (0.009 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.036 (0.040) seconds
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAbgNarrativeBehindInfoExceptEmptyAndNormalCaveat]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAbgNarrativeBehindInfoExceptEmptyAndNormalCaveat]' passed (0.061 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAbgNarrativeBehindInfoExceptEmptyAndNormalCaveat]' passed (0.038 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAclsProtocolNotesKeepEveryNotRecommendedSentenceInView]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAclsProtocolNotesKeepEveryNotRecommendedSentenceInView]' passed (0.164 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAclsProtocolNotesKeepEveryNotRecommendedSentenceInView]' passed (0.038 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAclsWeightPromptAndClearNote]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAclsWeightPromptAndClearNote]' passed (0.010 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testAclsWeightPromptAndClearNote]' passed (0.004 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testFastingScopeAndDifficultAirwaySummaryStayInView]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testFastingScopeAndDifficultAirwaySummaryStayInView]' passed (0.078 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testFastingScopeAndDifficultAirwaySummaryStayInView]' passed (0.283 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testInfusionsPumpCautionComesFromTheFooter]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testInfusionsPumpCautionComesFromTheFooter]' passed (0.006 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testInfusionsPumpCautionComesFromTheFooter]' passed (0.009 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testNeuraxialLevelKeepsAtLeastInView]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testNeuraxialLevelKeepsAtLeastInView]' passed (0.656 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testNeuraxialLevelKeepsAtLeastInView]' passed (0.083 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testObTitlesFitOneLineWithoutShrinking]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testObTitlesFitOneLineWithoutShrinking]' passed (2.029 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testObTitlesFitOneLineWithoutShrinking]' passed (0.066 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testQuickRefTitlesFitOneLineWithoutShrinking]' started.
-Test Case '-[PeriopSignalTests.Wave2aReferenceTests testQuickRefTitlesFitOneLineWithoutShrinking]' passed (0.567 seconds).
+Test Case '-[PeriopSignalTests.Wave2aReferenceTests testQuickRefTitlesFitOneLineWithoutShrinking]' passed (0.084 seconds).
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testRegionalFinderPromptIsOneLine]' started.
 Test Case '-[PeriopSignalTests.Wave2aReferenceTests testRegionalFinderPromptIsOneLine]' passed (0.005 seconds).
-	 Executed 9 tests, with 0 failures (0 unexpected) in 3.576 (3.740) seconds
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.609 (0.634) seconds
 Test Case '-[PeriopSignalTests.ZMedicationSpeedTests testTypingStaysFast]' started.
-MEDICATION SPEED TEST: 1101 keystrokes (type-ahead + reading) in 1716.6 ms, 1.559 ms each, 877 medications
-MEDICATION SPEED TEST search: 6.890 ms per query
-Test Case '-[PeriopSignalTests.ZMedicationSpeedTests testTypingStaysFast]' passed (3.794 seconds).
-	 Executed 1 test, with 0 failures (0 unexpected) in 3.794 (3.804) seconds
+MEDICATION SPEED TEST: 1101 keystrokes (type-ahead + reading) in 651.0 ms, 0.591 ms each, 877 medications
+MEDICATION SPEED TEST search: 1.390 ms per query
+Test Case '-[PeriopSignalTests.ZMedicationSpeedTests testTypingStaysFast]' passed (1.086 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.086 (1.133) seconds
 Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testQuickAddStaysFast]' started.
-PROCEDURE SPEED TEST quick-add bar: 60 lines in 1647.870 ms, 27.465 ms each
-Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testQuickAddStaysFast]' passed (1.684 seconds).
+PROCEDURE SPEED TEST quick-add bar: 60 lines in 631.940 ms, 10.532 ms each
+Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testQuickAddStaysFast]' passed (0.653 seconds).
 Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testTypeaheadStaysFast]' started.
-PROCEDURE SPEED TEST type-ahead: 1080 keystrokes (search + parse) in 5179.662 ms, 4.796 ms each, 1023 procedures
-PROCEDURE SPEED TEST search 3.377 ms, parse 0.242 ms per keystroke
-Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testTypeaheadStaysFast]' passed (9.123 seconds).
+PROCEDURE SPEED TEST type-ahead: 1080 keystrokes (search + parse) in 3227.841 ms, 2.989 ms each, 1023 procedures
+PROCEDURE SPEED TEST search 2.592 ms, parse 0.115 ms per keystroke
+Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testTypeaheadStaysFast]' passed (6.170 seconds).
 Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testTypedNoteStaysFast]' started.
-PROCEDURE SPEED TEST typed note: 10 reads in 3890.815 ms, 389.082 ms each
-Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testTypedNoteStaysFast]' passed (4.288 seconds).
-	 Executed 3 tests, with 0 failures (0 unexpected) in 15.095 (15.187) seconds
-	 Executed 903 tests, with 0 failures (0 unexpected) in 134.415 (148.973) seconds
-	 Executed 903 tests, with 0 failures (0 unexpected) in 134.415 (149.288) seconds
-** TEST SUCCEEDED **
+PROCEDURE SPEED TEST typed note: 10 reads in 2778.789 ms, 277.879 ms each
+Test Case '-[PeriopSignalTests.ZProcedureSpeedTests testTypedNoteStaysFast]' passed (3.109 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 9.932 (10.007) seconds
+Test Suite 'PeriopSignalTests.xctest' failed at 2026-11-04 09:49:43.746.
+	 Executed 911 tests, with 7 failures (0 unexpected) in 92.707 (100.458) seconds
+Test Suite 'All tests' failed at 2026-11-04 09:49:43.760.
+	 Executed 911 tests, with 7 failures (0 unexpected) in 92.707 (100.481) seconds
+** TEST FAILED **

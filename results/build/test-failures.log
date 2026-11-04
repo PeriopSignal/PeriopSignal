@@ -1,0 +1,13 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Handoff183Tests.swift:182: error: -[PeriopSignalTests.Handoff183Tests testDiagramImageOnlyWhenSomethingIsDrawn] : XCTAssertEqualWithAccuracy failed: ("528.0") is not equal to ("534.8108108108108") +/- ("1.5") - the figure's own proportions, no empty bands
+Test Case '-[PeriopSignalTests.Handoff183Tests testDiagramImageOnlyWhenSomethingIsDrawn]' failed (3.288 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/PatientDiagram19Tests.swift:575: error: -[PeriopSignalTests.PatientDiagram19Tests testLimbAlertDoesNotRepeatTheFistulaOrTheHarvest] : XCTAssertEqual failed: ("Optional("R arm — Planned radial harvest; L arm — Lymphedema")") is not equal to ("Optional("R arm — planned radial harvest; L arm — lymphedema")") - a harvest is only dropped on the arm that is planned for it
+Test Case '-[PeriopSignalTests.PatientDiagram19Tests testLimbAlertDoesNotRepeatTheFistulaOrTheHarvest]' failed (0.041 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Review19DevicesTests.swift:259: error: -[PeriopSignalTests.Review19DevicesTests testAUserReasonThatSaysMoreThanTheFistulaIsKept] : XCTAssertEqual failed: ("Optional("L arm — Old harvest scar infection")") is not equal to ("Optional("L arm — old harvest scar infection")")
+Test Case '-[PeriopSignalTests.Review19DevicesTests testAUserReasonThatSaysMoreThanTheFistulaIsKept]' failed (0.008 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:106: error: -[PeriopSignalTests.Shots19FixTests testADrugAlreadyReadIsNotSuggestedAgain] : XCTAssertEqual failed: ("Optional("fenoldopam")") is not equal to ("Optional("fentanyl")")
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:111: error: -[PeriopSignalTests.Shots19FixTests testADrugAlreadyReadIsNotSuggestedAgain] : XCTAssertTrue failed
+Test Case '-[PeriopSignalTests.Shots19FixTests testADrugAlreadyReadIsNotSuggestedAgain]' failed (0.105 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:40: error: -[PeriopSignalTests.Shots19FixTests testLongLabelsWidenTheirSideSoNoneIsCut] : XCTAssertGreaterThan failed: ("58.37837837837838") is not greater than ("58.37837837837838") - (360.0, 511.0): the long labels widen the right side
+Test Case '-[PeriopSignalTests.Shots19FixTests testLongLabelsWidenTheirSideSoNoneIsCut]' failed (0.043 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Shots19FixTests.swift:22: error: -[PeriopSignalTests.Shots19FixTests testShortLabelsKeepTheFixedMargin] : XCTAssertEqualWithAccuracy failed: ("26.0") is not equal to ("24.0") +/- ("0.001")
+Test Case '-[PeriopSignalTests.Shots19FixTests testShortLabelsKeepTheFixedMargin]' failed (0.013 seconds).
