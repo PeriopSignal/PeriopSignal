@@ -27,9 +27,9 @@ struct BriefLabCell: Hashable {
 
     var abnormal: Bool { flag.isAbnormal }
 
-    /// "K 5.9 H", "Hb 11.6*" (intraoperative), "Hct ~39 (est.)".
+    /// "K 5.9 H", "Hb 11.6*" (intraoperative), "Hct ~39 (est.)", "Hct ~22 (est.)*" (from an intraoperative Hb).
     var compact: String {
-        if estimated { return label + " ~" + text + " (est.)" }
+        if estimated { return label + " ~" + text + " (est.)" + (intraop ? "*" : "") }
         return label + " " + text + (flag.mark.isEmpty ? "" : " " + flag.mark) + (intraop ? "*" : "")
     }
 
@@ -103,15 +103,31 @@ struct BriefLabs: Hashable {
         }
         var merged: [String: Double] = [:]
         for (k, s) in byKey { merged[k] = s.value }
+        // The estimate is worked out from the other of Hb and Hct: it is from the case (starred, with that set's time)
+        // when that value is.
+        var estimatedFrom: (label: String, source: Source)?
         if let e = PatientLabs.estimate(merged), labs.cells[e.key] == nil {
-            labs.cells[e.key] = BriefLabCell(key: e.key, label: e.label, text: e.text, flag: .normal, intraop: false, estimated: true)
+            let source = byKey[e.key == "hct" ? "hb" : "hct"]
+            labs.cells[e.key] = BriefLabCell(key: e.key, label: e.label, text: e.text, flag: .normal, intraop: source?.intraop ?? false, estimated: true)
+            if let source, source.intraop { estimatedFrom = (e.label, source) }
         }
         if withIntraop {
             var times: [Date?] = []
             for s in byKey.values where s.intraop && !times.contains(where: { $0 == s.time }) { times.append(s.time) }
             times.sort { ($0 ?? Date.distantPast) > ($1 ?? Date.distantPast) }
             if !times.isEmpty {
-                let when = times.map { t in t.map { PatientSummary.time($0, now: now) } ?? "no time" }.joined(separator: " / ")
+                // With more than one set, each time names its values, so an older value is not read as the newest.
+                let several = times.count > 1
+                let when = times.map { t -> String in
+                    let clock = t.map { PatientSummary.time($0, now: now) } ?? "no time"
+                    guard several else { return clock }
+                    var names = order.compactMap { k -> String? in
+                        guard let s = byKey[k], s.intraop, s.time == t else { return nil }
+                        return PatientLabs.test(k)?.short
+                    }
+                    if let e = estimatedFrom, e.source.time == t { names.append(e.label + " est.") }
+                    return clock + (names.isEmpty ? "" : " (" + names.joined(separator: ", ") + ")")
+                }.joined(separator: " / ")
                 let others = byKey.values.contains { !$0.intraop }
                 labs.caption = "* Intraop " + when + (others ? "; other values preop" : "")
             }
@@ -224,7 +240,7 @@ enum PatientBriefs {
             if !fish.isEmpty { parts.append(fish) }
             parts += lines
             var out = [ascii(((label.map { $0 + " " }) ?? "") + parts.joined(separator: " · "))]
-            if let c = labs.caption { out.append("  " + c) }
+            if let c = labs.caption { out.append("  " + ascii(c)) }
             return out
         }
         guard !lines.isEmpty else { return [] }
@@ -232,6 +248,18 @@ enum PatientBriefs {
         if label == nil { return lines }
         if lines.count == 1 { return [((label.map { $0 + " " }) ?? "") + lines[0]] }
         return [label ?? ""] + lines.map { "  " + $0 }
+    }
+
+    /// The line that closes a brief when it is copied or shared, as the 1.8.3 handoffs' did: when it was prepared, and to
+    /// check it against the chart.
+    static func footer(_ now: Date) -> String {
+        "Prepared with Periop Signal, " + PatientSummary.time(now, now: now.addingTimeInterval(86_400 * 2)) + ". Check against the chart."
+    }
+
+    /// What Copy and Share give: the brief's text, a blank line, then the footer.
+    static func sharedText(_ blocks: [SummaryBlock], now: Date = Date()) -> String {
+        let t = plainText(blocks)
+        return t.isEmpty ? footer(now) : t + "\n\n" + footer(now)
     }
 
     /// "HCO₃" as "HCO3", for text that goes to other apps.
@@ -377,6 +405,8 @@ enum PatientBriefs {
             if l.alert { marks.append(t) }
         }
         let asa = PatientRules.asaText(r)
+        // A class chosen with nothing else to say: the class is the block's words, so it is not lost with an empty paragraph.
+        if parts.isEmpty, let asa { return SummaryBlock(key: "pmh", label: "PMH", text: asa) }
         // The alerts inside it are in bold red; the label stays plain.
         return SummaryBlock(key: "pmh", label: asa.map { "PMH (" + $0 + ")" } ?? "PMH", text: parts.joined(separator: " · "), marks: marks)
     }
@@ -410,8 +440,9 @@ enum PatientBriefs {
         }
         b.alert = pieces.contains { $0.alert && $0.label != "Home" }
         b.marks = pieces.filter { $0.label == "Alerts" }.map { "Alerts: " + $0.text }
-        // With no list typed, the flags are the list and an action flag among them is the alert.
-        if pieces.count == 1, pieces[0].label == "Home", pieces[0].alert { b.marks = [pieces[0].text]; b.alert = true }
+        // With no list typed, the flags are the list and an action flag among them is the alert, with or without the
+        // infusions beside it.
+        if let home = pieces.first(where: { $0.label == "Home" }), home.alert { b.marks.append(home.text); b.alert = true }
         return b
     }
 
@@ -472,11 +503,16 @@ enum PatientBriefs {
 
     /// Preprocedure cardiac workup: the ECG, echo, catheterizations, carotid and radial ultrasound and PFTs entered, each
     /// on its own line, the carotid and vertebral cautions, the TEE screen's contraindications and (preprocedure) the
-    /// mechanical support. Absent with none. In the handoff the support is in the lines and devices.
+    /// mechanical support on arrival. Absent with none. In the handoff the support is in the lines and devices; before the
+    /// case it is here only, not listed again under Lines & devices.
     private static func workupBlock(_ r: PatientRecord, assess: [PatientSummary.Line], kind: Kind) -> SummaryBlock {
         var lines = assess.filter { workupLabels.contains($0.label ?? "") }
         if let t = PatientTEE.line(r) { lines.append(t) }
-        if kind == .preop { lines += PatientSummary.supportLines(r).map { PatientSummary.Line("Mechanical support", $0.text, alert: true) } }
+        // Before the case: the support the patient arrives with (one placed in the room is not preprocedure workup).
+        if kind == .preop {
+            let support = r.currentDevices(arrivalOnly: true).filter { PatientDevice.supportKinds.contains($0.kind) }
+            lines += PatientDevices.labels(support).map { PatientSummary.Line("Mechanical support", $0, alert: true) }
+        }
         var b = SummaryBlock(key: "workup", label: "Preprocedure cardiac workup", text: lines.map { joined($0) }.joined(separator: "\n"))
         b.alert = lines.contains { $0.alert }
         for l in lines { b.marks += l.marks }
@@ -542,7 +578,10 @@ enum PatientBriefs {
         var lines: [String] = []
         let drips = c.infusions.map(\.text).filter { !$0.isEmpty }
         if !drips.isEmpty { lines.append("Infusions: " + drips.joined(separator: "; ")) }
-        let before = c.homeInfusions.map(\.text).filter { !$0.isEmpty }
+        // A drip running before the case is listed again only when it is not one of the case's (another drug or rate).
+        func same(_ s: String) -> String { s.lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ") }
+        let running = Set(drips.map(same))
+        let before = c.homeInfusions.map(\.text).filter { !$0.isEmpty && !running.contains(same($0)) }
         if !before.isEmpty {
             let name = drips.isEmpty ? "Infusions (running before the case)" : "Running before the case"
             lines.append(name + ": " + before.joined(separator: "; "))
@@ -580,7 +619,8 @@ enum PatientBriefs {
         let c = r.capitalized
         let arrival = kind == .preop
         let devices = c.currentDevices(arrivalOnly: arrival).filter { PatientDevice.lineKinds.contains($0.kind) || PatientDevice.supportKinds.contains($0.kind) }
-        var lines = arrival ? PatientDevices.labels(devices) : PatientDevices.labelsWithPhase(devices)
+        // Before the case the mechanical support is listed in the cardiac workup (it is still drawn on the diagram).
+        var lines = arrival ? PatientDevices.labels(devices.filter { !PatientDevice.supportKinds.contains($0.kind) }) : PatientDevices.labelsWithPhase(devices)
         var marks: [String] = []
         let groups = PatientDeviceFills.limbAlertGroups(c, arrivalOnly: arrival)
         if !groups.isEmpty {

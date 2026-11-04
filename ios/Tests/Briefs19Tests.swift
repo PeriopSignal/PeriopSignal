@@ -235,7 +235,7 @@ final class Briefs19Tests: XCTestCase {
         XCTAssertEqual(labs.cells["hco3"]?.text, "21", "the arterial bicarbonate stands in the HCO₃ cell")
         XCTAssertEqual(labs.cells["na"]?.intraop, false, "the preoperative value stays")
         XCTAssertEqual(labs.cells["hb"]?.text, "10.8")
-        XCTAssertEqual(labs.caption, "* Intraop 10:40 / 09:15; other values preop")
+        XCTAssertEqual(labs.caption, "* Intraop 10:40 (K, HCO₃, Lactate) / 09:15 (INR); other values preop", "each time names its values")
         XCTAssertTrue(try block(PatientBriefs.handoff(r), "labs").text.contains("Lactate 1.4*"), "the other values listed")
         // The preprocedure summary is the preoperative labs.
         guard case .fishbone(let pre)? = try block(PatientBriefs.preop(r), "labs").figure else { return XCTFail("no fishbone") }

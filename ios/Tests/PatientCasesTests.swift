@@ -205,7 +205,7 @@ final class PatientCasesTests: XCTestCase {
         XCTAssertEqual(e.day, "2026-10-31", "the date only")
         XCTAssertNotNil(e.day.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression))
         XCTAssertTrue(e.procedure.hasPrefix("Laparoscopic sigmoid colectomy"), e.procedure)
-        XCTAssertTrue(e.text.hasPrefix("ANESTHESIA HANDOFF"))
+        XCTAssertTrue(e.text.hasPrefix("67 yo M (96 kg, 178 cm) had "), "the 1.9 handoff, header first: \(e.text.prefix(80))")
         XCTAssertTrue(e.text.contains("Laparoscopic sigmoid colectomy"))
         XCTAssertTrue(e.text.contains("TAP block"), "the full handoff")
         for gone in ["OR 12", "or12", "Or 12", "555-0112", "5550112", "14:30", "15:47", "22:15", "05:40", "08:10", "Last intake", "Prepared with"] {

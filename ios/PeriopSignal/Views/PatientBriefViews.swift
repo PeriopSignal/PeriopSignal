@@ -83,20 +83,35 @@ struct FishboneFigure: View {
         }
     }
 
-    private var coags: some View {
-        HStack(spacing: 0) {
-            if labs.cells["pt"] != nil || labs.cells["inr"] != nil {
-                VStack(spacing: 0) {
-                    cell("pt", "PT")
-                    hRule(cellWidth)
-                    cell("inr", "INR")
-                }
-                vRule()
+    /// The coagulation parts entered, in order: "ptinr" (PT over INR), "ptt", "fibrinogen". A divider goes between two
+    /// of them only, never beside one alone or twice in a row.
+    static func coagParts(_ labs: BriefLabs) -> [String] {
+        var out: [String] = []
+        if labs.cells["pt"] != nil || labs.cells["inr"] != nil { out.append("ptinr") }
+        if labs.cells["ptt"] != nil { out.append("ptt") }
+        if labs.cells["fibrinogen"] != nil { out.append("fibrinogen") }
+        return out
+    }
+
+    @ViewBuilder private func coagPart(_ id: String) -> some View {
+        switch id {
+        case "ptinr":
+            VStack(spacing: 0) {
+                cell("pt", "PT")
+                hRule(cellWidth)
+                cell("inr", "INR")
             }
-            if labs.cells["ptt"] != nil { cell("ptt", "PTT") }
-            if labs.cells["fibrinogen"] != nil {
-                if labs.cells["ptt"] != nil || labs.cells["pt"] != nil || labs.cells["inr"] != nil { vRule() }
-                cell("fibrinogen", "Fib")
+        case "ptt": cell("ptt", "PTT")
+        default: cell("fibrinogen", "Fib")
+        }
+    }
+
+    private var coags: some View {
+        let parts = Self.coagParts(labs)
+        return HStack(spacing: 0) {
+            ForEach(Array(parts.enumerated()), id: \.element) { i, id in
+                if i > 0 { vRule() }
+                coagPart(id)
             }
         }
     }
@@ -221,6 +236,10 @@ struct BriefBlockView: View {
     private var multiline: Bool { block.lines.count > 1 }
     private var isHeader: Bool { block.key == "header" }
 
+    /// The small mark after the words of a block the user edited, the header too (its age, weight or procedure then no
+    /// longer follow the record); "" for one that was not.
+    static func editedMark(_ b: SummaryBlock) -> String { b.edited ? "  edited" : "" }
+
     private var labelRow: some View {
         HStack(spacing: 6) {
             if let l = block.label {
@@ -256,7 +275,8 @@ struct BriefBlockView: View {
             .id(arrivalOnly ? "preopfigure" : "handofffigure")
         case nil:
             if isHeader {
-                Text(block.text).font(PS.sys(size: 15.5, weight: .semibold)).foregroundStyle(PS.fg)
+                (Text(block.text).font(PS.sys(size: 15.5, weight: .semibold)).foregroundColor(PS.fg)
+                 + Text(Self.editedMark(block)).font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))
                     .fixedSize(horizontal: false, vertical: true)
             } else if multiline {
                 VStack(alignment: .leading, spacing: 3) {
@@ -270,7 +290,7 @@ struct BriefBlockView: View {
                 // The label and the words on one line, so the paragraph wraps under both.
                 (Text(block.label.map { $0 + ": " } ?? "").font(PS.sys(size: 14.5, weight: .bold)).foregroundColor(block.alert ? PS.accent : PS.fg)
                  + Text(briefStyled(block.text, marks: block.marks, labels: false)).font(PS.sys(size: 14.5)).foregroundColor(PS.fg)
-                 + Text(block.edited ? "  edited" : "").font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))
+                 + Text(Self.editedMark(block)).font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -441,6 +461,9 @@ struct PreprocedureSummaryView: View {
 /// airway shows as its own chip until changed. The pain plan and call-if typed before 1.9 show only when they hold text.
 struct StatusPlanCard: View {
     @Environment(PatientStore.self) private var patient
+    /// Other was tapped (or its box is being typed in): the box stays, and Other stays chosen, while the words typed
+    /// begin like a chip's label ("ICU step-down") or are only a space so far.
+    @State private var otherOpen = false
     private var r: PatientRecord { patient.record }
 
     static let dispositionChips = ["Fast track", "PACU", "ICU"]
@@ -466,18 +489,43 @@ struct StatusPlanCard: View {
         return s
     }
 
+    /// The chip shown as chosen: Other while its box is open, whatever has been typed so far.
+    static func selectedChip(_ saved: String?, otherOpen: Bool) -> String? {
+        otherOpen ? "Other" : dispositionChip(saved)
+    }
+
+    /// The Other box shows while it is open or the saved value is other words.
+    static func showsOtherField(_ saved: String?, otherOpen: Bool) -> Bool {
+        otherOpen || dispositionChip(saved) == "Other"
+    }
+
+    /// The words in the Other box: while it is open, exactly what was typed (even "ICU" on the way to "ICU step-down").
+    static func otherFieldText(_ saved: String?, otherOpen: Bool) -> String {
+        guard otherOpen else { return otherText(saved) }
+        guard let s = saved, s != "Other" else { return "" }
+        return s
+    }
+
     private var airway: Binding<String?> {
         Binding(get: { r.airwayAtEnd }, set: { v in patient.update(discrete: true) { $0.airwayAtEnd = v } })
     }
 
     private var disposition: Binding<String?> {
-        Binding(get: { Self.dispositionChip(r.disposition) },
-                set: { v in patient.update(discrete: true) { $0.disposition = v } })
+        Binding(get: { Self.selectedChip(r.disposition, otherOpen: otherOpen) },
+                set: { v in
+                    otherOpen = v == "Other"
+                    // Other keeps the words already typed for it.
+                    if v == "Other", Self.dispositionChip(r.disposition) == "Other" { return }
+                    patient.update(discrete: true) { $0.disposition = v }
+                })
     }
 
     private var otherBinding: Binding<String> {
-        Binding(get: { Self.otherText(r.disposition) },
-                set: { t in patient.update { $0.disposition = t.isEmpty ? "Other" : t } })
+        Binding(get: { Self.otherFieldText(r.disposition, otherOpen: otherOpen) },
+                set: { t in
+                    otherOpen = true
+                    patient.update { $0.disposition = t.isEmpty ? "Other" : t }
+                })
     }
 
     private func row<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
@@ -496,7 +544,7 @@ struct StatusPlanCard: View {
             row("Airway") { PatientChoice(options: Self.airwayOptions(r.airwayAtEnd), selection: airway) }
             row("Disposition") {
                 PatientChoice(options: (Self.dispositionChips + ["Other"]).map { (id: $0, label: $0) }, selection: disposition)
-                if Self.dispositionChip(r.disposition) == "Other" {
+                if Self.showsOtherField(r.disposition, otherOpen: otherOpen) {
                     PlanField(prompt: "Where the patient goes, e.g. Ward", text: otherBinding)
                 }
             }

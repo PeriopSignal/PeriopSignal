@@ -854,7 +854,9 @@ struct PatientJumpID: Hashable {
     init(_ editor: PatientEditor) { key = "editor:\(editor)" }
     /// A section of the Preprocedure tab, or a box in one.
     init(section: PreopSection) { key = "preop:" + section.rawValue }
-    init(anchor: String) { key = "preop:" + anchor }
+    /// A box has a key of its own, so a box named like its section ("demographics") is not a second view with the
+    /// section title's id.
+    init(anchor: String) { key = "preop-box:" + anchor }
 }
 
 /// One chip of the jump bar: where it scrolls and its words.

@@ -98,8 +98,9 @@ enum PatientArchiveWriter {
         r.lastClears = nil
         for k in r.scores.keys { r.scores[k]?.date = nil }
         let procedure = PatientSummary.procedureLines(r).filter { $0.label == nil }.map(\.text).joined(separator: " · ")
-        var lines = HandoffWriter.text(r, now: now).components(separatedBy: "\n")
-        // The handoff's footer says when it was prepared; the archive's says only the date.
+        // The 1.9 handoff, as it was handed over: with the user's edits to its blocks (r.handoffEdits).
+        var lines = PatientBriefs.plainText(PatientBriefs.handoff(r, now: now)).components(separatedBy: "\n")
+        // The archive's footer says only the date.
         while let last = lines.last, last.trimmingCharacters(in: .whitespaces).isEmpty || last.hasPrefix("Prepared with Periop Signal") {
             lines.removeLast()
         }
