@@ -1,8 +1,1 @@
-   2 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:620:1: error: Expected '}' at end of extension
-   2 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:620:1: error: expected '}' at end of extension
-   2 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:620:1: error: Expected '}' at end of brace statement
-   2 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:620:1: error: expected '}' at end of brace statement
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:593:1: error: Declaration is only valid at file scope
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:593:1: error: declaration is only valid at file scope
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:580:1: error: Declaration is only valid at file scope
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/PatientStore.swift:580:1: error: declaration is only valid at file scope
+   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift:411:37: warning: call to main actor-isolated static method 'parse' in a synchronous nonisolated context
