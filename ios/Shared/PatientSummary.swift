@@ -149,6 +149,7 @@ enum PatientSummary {
     }
 
     static func historyLines(_ r: PatientRecord, now: Date = Date()) -> [Line] {
+        let original = r
         let r = r.capitalized
         var out: [Line] = []
         if r.noHistory && r.problems.isEmpty { out.append(Line(nil, "No significant medical history")) }
@@ -163,13 +164,18 @@ enum PatientSummary {
         let other = r.otherHistory.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { out.append(Line("Other conditions", other)) }
         if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeries.map(\.text).joined(separator: "; "))) }
-        if r.nkda { out.append(Line("Allergies", "No known drug allergies")) }
-        else if !r.allergies.isEmpty { out.append(Line("Allergies", r.allergies, alert: true)) }
-        // The list as typed; the flags only add what needs action (an anticoagulant, a GLP-1 agonist), so the
-        // same drugs are not listed twice. With no list typed, the flags are the list.
+        // 1.9: the allergy list with each severity (anaphylaxis in red), and the allergies typed before 1.9 while the list
+        // does not hold them (PatientAllergyText).
+        if let a = PatientAllergyText.line(original) { out.append(a) }
+        // The medication list (1.9: the items, then the list typed before 1.9 while the items do not hold its drugs);
+        // the flags only add what needs action (an anticoagulant, a GLP-1 agonist), so the same drugs are not listed
+        // twice. With no list, the flags are the list.
         let flags = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }
         let watched = flags.filter { watchFlags.contains($0.id) }.map(\.label)
-        let typed = r.medications.trimmingCharacters(in: .whitespacesAndNewlines)
+        var listed = r.homeMeds.map(\.text).filter { !$0.isEmpty }
+        let typedText = r.medications.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !typedText.isEmpty, listed.isEmpty || !MedicationCatalog.covers(original.homeMeds, legacy: original.medications) { listed.append(typedText) }
+        let typed = listed.joined(separator: "; ")
         if !typed.isEmpty {
             out.append(Line("Medications", typed))
             if !watched.isEmpty { out.append(Line("Medication alerts", watched.joined(separator: ", "), alert: true)) }

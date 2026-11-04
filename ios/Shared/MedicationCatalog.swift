@@ -6,7 +6,16 @@ import Foundation
 // letter. Should be smart enough to list multiple medications with a space or comma break … Flagged medications should
 // autoselect if added to home medications." The catalog gives each common outpatient drug its generic name, brand names
 // and abbreviations, and the medication flags it raises (PatientCatalog.medFlags ids: "anticoagulant", "p2y12",
-// "aspirin", "insulin", "glp1", "sglt2", "betablocker", "acei", "statin", "steroid", "opioid", "maoi").
+// "aspirin", "insulin", "glp1", "sglt2", "betablocker", "acei", "statin", "steroid", "opioid", "maoi"). The list itself,
+// its sources and the judgment behind each flag are in MedicationCatalogData.swift.
+//
+// A typed line ("metoprolol 25 mg bid, lisinopril 10 atorvastatin") is read as items: commas, semicolons, new lines, "+"
+// and "and" separate them, and so does a space before a drug the list knows ("metoprolol lisinopril atorvastatin" is
+// three). The longest name wins ("insulin glargine", "Toprol XL"). What follows a drug up to the next one is its dose,
+// as typed. A brand reads as its generic name ("Eliquis 5 bid" is Apixaban, "5 bid"): the catalog id keeps the brand's
+// entry, so nothing is lost and the list reads one way. A word the list does not know becomes a typed item only where a
+// drug name would be (the start of an item, or a word with a drug's ending such as -pril or -olol after a dose); dose and
+// timing words ("daily", "mg", "prn") never do.
 
 /// One drug the list knows.
 struct MedEntry: Hashable, Identifiable {
@@ -22,18 +31,303 @@ struct MedEntry: Hashable, Identifiable {
 }
 
 enum MedicationCatalog {
-    static let entries: [MedEntry] = []
+    private static let parsedRows: [(entry: MedEntry, common: Bool)] = MedicationData.rows.compactMap(row)
+    static let entries: [MedEntry] = parsedRows.map(\.entry)
+    /// The most prescribed, offered first among equal matches.
+    static let commonIDs: Set<String> = Set(parsedRows.filter(\.common).map(\.entry.id))
+
+    private static let byID: [String: Int] = Dictionary(entries.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { a, _ in a })
+    private static let commonIndex: Set<Int> = Set(entries.indices.filter { commonIDs.contains(entries[$0].id) })
+
+    static let phrases = CatalogPhrases(forms: CatalogPhrases.forms(entries.map { (name: $0.name, aliases: $0.aliases) }))
+
+    /// "id|Name|aliases|flags|class", a leading "*" on the id for the most prescribed.
+    private static func row(_ s: String) -> (entry: MedEntry, common: Bool)? {
+        let f = s.split(separator: "|", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespaces) }
+        guard f.count == 5, !f[0].isEmpty, !f[1].isEmpty else { return nil }
+        var id = f[0]
+        let common = id.hasPrefix("*")
+        if common { id.removeFirst() }
+        let aliases = f[2].split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        let flags = Set(f[3].split(separator: " ").map(String.init))
+        return (MedEntry(id: id, name: f[1], aliases: aliases, flags: flags, drugClass: f[4]), common)
+    }
+
+    static func entry(id: String) -> MedEntry? { byID[id].map { entries[$0] } }
+
+    /// The entry a whole name names exactly, generic or brand ("Toprol XL", "apixaban"); nil otherwise.
+    static func entry(named s: String) -> MedEntry? { phrases.exact(s).map { entries[$0] } }
+
+    // MARK: Search
+
+    /// One entry the type-ahead offers, with the brand or abbreviation that found it when that is not the name.
+    struct Hit: Hashable {
+        var entry: MedEntry
+        /// "eliquis" when "eli" found Apixaban by its brand.
+        var matched: String?
+    }
 
     /// The entries a typed prefix finds, best first.
-    static func search(_ q: String, limit: Int = 8) -> [MedEntry] { [] }
+    static func search(_ q: String, limit: Int = 8) -> [MedEntry] { hits(q, limit: limit).map(\.entry) }
+
+    static func hits(_ q: String, limit: Int = 8) -> [Hit] {
+        phrases.search(q, limit: limit) { commonIndex.contains($0) ? 1 : 0 }.map { h in
+            let p = phrases.phrases[h.phrase]
+            return Hit(entry: entries[h.entry], matched: p.isName ? nil : p.text)
+        }
+    }
+
+    /// A suggestion for what is being typed at the end of the line, with the words it replaces.
+    struct Suggestion: Hashable {
+        var hit: Hit
+        var replaces: Range<String.Index>
+        /// The text after the pick: the words replaced by the entry's name and a space.
+        func completing(_ line: String) -> String {
+            line.replacingCharacters(in: replaces, with: MedicationCatalog.listName(hit.entry) + " ")
+        }
+    }
+
+    /// The type-ahead for the end of the line: the last one to three words being typed (not a dose or timing word, not
+    /// the start of one after a drug: "metoprolol 25 mg b" offers nothing). The longer query first ("insulin gla"), then
+    /// the last word alone ("lisinopril meto").
+    static func typeahead(_ line: String, limit: Int = 5) -> [Suggestion] {
+        guard let last = line.last, last.isLetter || last.isNumber else { return [] }
+        let ws = CatalogText.words(line)
+        guard !ws.isEmpty, ws[ws.count - 1].range.upperBound == line.endIndex else { return [] }
+        let br = CatalogText.breaks(line, ws)
+        let segStart = ws.indices.last(where: { br[$0] || ws[$0].key == "and" }).map { ws[$0].key == "and" ? $0 + 1 : $0 } ?? 0
+        guard segStart < ws.count else { return [] }
+        // Does the item being typed already name a drug before the last word? Then a dose word may be on its way.
+        let drugBefore = (segStart..<(ws.count - 1)).contains(where: { phrases.longest(ws, at: $0) != nil })
+        var out: [Suggestion] = []
+        for n in stride(from: min(3, ws.count - segStart), through: 1, by: -1) {
+            let start = ws.count - n
+            let w = ws[start]
+            guard w.isLetters, w.key.count >= 2, !noise.contains(w.key) else { continue }
+            if n == 1, drugBefore, noise.contains(where: { $0.hasPrefix(w.key) }) { continue }
+            let q = String(line[w.range.lowerBound...])
+            for h in hits(q, limit: limit) where !out.contains(where: { $0.hit.entry.id == h.entry.id }) {
+                out.append(Suggestion(hit: h, replaces: w.range.lowerBound..<line.endIndex))
+            }
+            if out.count >= limit { break }
+        }
+        // A whole name typed and nothing more to offer.
+        if out.count == 1, let s = out.first, phrases.exact(String(line[s.replaces])) == byID[s.hit.entry.id] { return [] }
+        return Array(out.prefix(limit))
+    }
+
+    /// The name an item takes and a pick puts in the line: the generic name, without "(agent not named)" when the rest
+    /// still names the entry ("Insulin", "Statin").
+    static func listName(_ e: MedEntry) -> String {
+        if let p = e.name.range(of: " (") {
+            let short = String(e.name[..<p.lowerBound])
+            if entry(named: short)?.id == e.id { return short }
+            if let a = e.aliases.first, entry(named: a)?.id == e.id { return a }
+        }
+        return e.name
+    }
+
+    // MARK: Reading a line
+
+    /// One item read from a line, with where its name sits.
+    struct ReadItem: Hashable {
+        var med: PatientMed
+        /// Not in the list: as typed.
+        var typed: Bool { med.catalogID == nil }
+        var nameRange: Range<String.Index>
+    }
 
     /// A line of several medications ("metoprolol 25 bid, lisinopril 10 daily atorvastatin"), as items.
-    static func parse(_ line: String) -> [PatientMed] { [] }
+    static func parse(_ line: String) -> [PatientMed] { read(line).map(\.med) }
 
-    static func entry(id: String) -> MedEntry? { entries.first { $0.id == id } }
+    /// As `parse`, with a word still being typed at the end of the line left out when the list does not know it yet
+    /// (the type-ahead speaks for it).
+    static func reading(_ line: String) -> [ReadItem] {
+        var items = read(line)
+        if let last = line.last, last.isLetter || last.isNumber, let it = items.last, it.typed, it.nameRange.upperBound == line.endIndex {
+            items.removeLast()
+        }
+        return items
+    }
 
-    /// The flags a medication list raises.
-    static func flags(for meds: [PatientMed]) -> Set<String> { [] }
+    static func read(_ line: String) -> [ReadItem] {
+        struct Building {
+            var entry: Int?
+            var nameRange: Range<String.Index>
+            var dose: [Int] = []
+        }
+        let ws = CatalogText.words(line)
+        let br = CatalogText.breaks(line, ws)
+        var out: [Building] = []
+        var itemInSegment = false
+        var pending: [Int] = []
+        var i = 0
+        while i < ws.count {
+            if br[i] { itemInSegment = false; pending = [] }
+            let w = ws[i]
+            if w.key == "and" {
+                itemInSegment = false
+                pending = []
+                i += 1
+                continue
+            }
+            if let m = phrases.longest(ws, at: i) {
+                let range = w.range.lowerBound..<ws[i + m.count - 1].range.upperBound
+                // The same drug named again in its own item ("apixaban (Eliquis) 5 mg") is one item; a brand in
+                // parentheses right after the generic ("metoprolol (Toprol XL) 50 mg") is the same item, read as the
+                // more specific entry when it is one ("Metoprolol succinate").
+                if itemInSegment, let last = out.last {
+                    if last.entry == m.entry {
+                        i += m.count
+                        continue
+                    }
+                    if let le = last.entry, last.dose.isEmpty, line[last.nameRange.upperBound..<w.range.lowerBound].contains("(") {
+                        if CatalogText.fold(entries[m.entry].name).hasPrefix(CatalogText.fold(listName(entries[le]))) { out[out.count - 1].entry = m.entry }
+                        i += m.count
+                        continue
+                    }
+                }
+                out.append(Building(entry: m.entry, nameRange: range, dose: pending.contains(where: { ws[$0].isNumeric }) ? pending : []))
+                pending = []
+                itemInSegment = true
+                i += m.count
+                continue
+            }
+            if startsTypedName(w, atStart: !itemInSegment) {
+                var j = i + 1
+                while j < ws.count, j - i < 3, !br[j], ws[j].key != "and", phrases.longest(ws, at: j) == nil, continuesName(ws[j]) { j += 1 }
+                out.append(Building(entry: nil, nameRange: w.range.lowerBound..<ws[j - 1].range.upperBound,
+                                    dose: pending.contains(where: { ws[$0].isNumeric }) ? pending : []))
+                pending = []
+                itemInSegment = true
+                i = j
+                continue
+            }
+            if leadNoise.contains(w.key) && !itemInSegment {
+                i += 1
+                continue
+            }
+            if itemInSegment { out[out.count - 1].dose.append(i) } else { pending.append(i) }
+            i += 1
+        }
+        return out.map { b in
+            let dose = CatalogText.text(line, runs: CatalogText.runs(line, ws, b.dose))
+            if let e = b.entry {
+                return ReadItem(med: PatientMed(name: listName(entries[e]), dose: dose, catalogID: entries[e].id), nameRange: b.nameRange)
+            }
+            return ReadItem(med: PatientMed(name: FreeText.cap(String(line[b.nameRange])), dose: dose), nameRange: b.nameRange)
+        }
+    }
+
+    /// A word the list does not know that reads as a drug's name: at the start of an item any word of three letters or
+    /// more that is not a dose, timing or filler word; after that, only one with a drug's ending (lisinopril's -pril).
+    private static func startsTypedName(_ w: CatalogWord, atStart: Bool) -> Bool {
+        guard w.isLetters, w.key.count >= 3, !noise.contains(w.key), !leadNoise.contains(w.key) else { return false }
+        if atStart { return true }
+        return w.key.count >= 5 && drugEndings.contains(where: { w.key.hasSuffix($0) })
+    }
+
+    /// The next word of a typed name: letters, or a short letter-digit word ("K2", "B6"); not a dose word.
+    private static func continuesName(_ w: CatalogWord) -> Bool {
+        guard !noise.contains(w.key), !leadNoise.contains(w.key), w.key.first?.isLetter == true else { return false }
+        if w.isLetters { return w.key.count >= 2 }
+        // "q6h", "x2" are timing.
+        if (w.key.hasPrefix("q") || w.key.hasPrefix("x")), w.key.dropFirst().first?.isNumber == true { return false }
+        return w.key.count <= 3
+    }
+
+    /// Dose, route and timing words: never a drug's name.
+    static let noise: Set<String> = [
+        "mg", "mcg", "ug", "g", "gm", "gram", "grams", "kg", "ml", "l", "unit", "units", "u", "iu", "meq", "mmol",
+        "tab", "tabs", "tablet", "tablets", "cap", "caps", "capsule", "capsules", "pill", "pills", "puff", "puffs", "spray",
+        "sprays", "drop", "drops", "patch", "patches", "inj", "injection", "injections", "shot", "shots", "dose", "doses",
+        "po", "iv", "im", "sc", "sq", "subq", "subcut", "sl", "pr", "top", "topical", "inh", "inhaled", "inhaler", "neb",
+        "nebs", "nebulizer", "nasal", "oral", "orally", "daily", "bid", "tid", "qid", "qd", "qam", "qpm", "qhs", "hs",
+        "prn", "qod", "qwk", "weekly", "monthly", "once", "twice", "times", "day", "days", "week", "weeks", "month",
+        "months", "year", "years", "morning", "evening", "night", "nightly", "bedtime", "am", "pm", "noon", "meals",
+        "meal", "with", "without", "before", "after", "at", "in", "on", "of", "the", "a", "an", "or", "for", "to", "per",
+        "as", "needed", "every", "each", "other", "last", "taken", "take", "takes", "taking", "took", "held", "hold",
+        "holding", "stopped", "stop", "started", "start", "since", "today", "yesterday", "tonight", "ago", "hours", "hour",
+        "hrs", "hr", "h", "min", "mins", "er", "xr", "sr", "la", "cr", "xl", "ir", "dr", "ec", "od", "bd", "sliding",
+        "scale", "ss", "chewable", "enteric", "coated", "extended", "release", "delayed", "immediate", "low", "high",
+        "half", "full", "then", "until", "x", "via", "pump", "pen", "vial", "solution", "cream", "ointment", "gel",
+        "drip", "infusion", "gtt", "mouth", "skin", "eye", "eyes", "both", "left", "right", "ou", "os", "ad", "lib",
+        "and", "also", "plus", "but", "not", "no", "none", "denies", "occasional", "occasionally", "sometimes", "rarely",
+        "usually", "dosing", "dosed", "unknown", "unsure", "same", "home", "meds", "med", "medication", "medications",
+    ]
+
+    /// Words that open a list and are dropped there ("Home meds:", "takes", "pt on").
+    static let leadNoise: Set<String> = [
+        "home", "meds", "med", "medication", "medications", "current", "list", "includes", "including", "takes", "taking",
+        "take", "on", "also", "plus", "pt", "patient", "is", "uses", "using", "reports", "rx", "otc", "supplements",
+        "herbals", "prescribed", "and",
+    ]
+
+    /// Endings of drug names, for a typed word after a dose ("metoprolol 25 xyzolol 10").
+    static let drugEndings: [String] = [
+        "pril", "sartan", "olol", "alol", "ilol", "statin", "dipine", "azole", "prazole", "tidine", "setron", "triptan",
+        "gliptin", "gliflozin", "glutide", "glitazone", "xaban", "gatran", "parin", "grel", "mab", "tinib", "cillin",
+        "mycin", "floxacin", "cycline", "navir", "gravir", "fovir", "clovir", "azepam", "zolam", "barbital", "oxetine",
+        "ipramine", "triptyline", "afil", "dronate", "olone", "asone", "lukast", "terol", "tropium", "curium", "caine",
+        "codone", "morphone", "semide", "thiazide", "tiazem", "pamil", "darone", "profen", "coxib", "apine", "idone",
+        "azine", "etine",
+    ]
+
+    // MARK: Flags
+
+    /// The flags a medication list raises: each item's entry by its catalog id, or by its name when that names an entry
+    /// exactly.
+    static func flags(for meds: [PatientMed]) -> Set<String> {
+        meds.reduce(into: Set<String>()) { s, m in if let e = resolve(m) { s.formUnion(e.flags) } }
+    }
+
+    /// The flags a typed name raises ("Eliquis" → anticoagulant); none for a name the list does not know. For the note
+    /// reader and quick add.
+    static func flags(forName s: String) -> Set<String> { entry(named: s)?.flags ?? [] }
+
+    /// An item's entry: by its catalog id, else by its name.
+    static func resolve(_ m: PatientMed) -> MedEntry? {
+        if let id = m.catalogID, let e = entry(id: id) { return e }
+        return entry(named: m.name)
+    }
+
+    // MARK: Adding to the list
+
+    /// The same drug: one entry, or the same name typed.
+    static func same(_ a: PatientMed, _ b: PatientMed) -> Bool {
+        if let x = resolve(a)?.id, let y = resolve(b)?.id { return x == y }
+        let fa = CatalogText.fold(a.name).trimmingCharacters(in: .whitespaces), fb = CatalogText.fold(b.name).trimmingCharacters(in: .whitespaces)
+        return !fa.isEmpty && fa == fb
+    }
+
+    /// How an item compares with the list: new, already there, or a new dose for one there.
+    static func status(_ m: PatientMed, in list: [PatientMed]) -> PatientNoteStatus {
+        guard let o = list.first(where: { same($0, m) }) else { return .new }
+        let d = m.dose.trimmingCharacters(in: .whitespaces)
+        let old = o.dose.trimmingCharacters(in: .whitespaces)
+        if d.isEmpty || old.caseInsensitiveCompare(d) == .orderedSame { return .recorded }
+        return old.isEmpty ? .new : .replaces(old)
+    }
+
+    /// Adds items to the list: a drug already there takes the new dose (one typed without a dose keeps its dose); a new
+    /// drug is added.
+    static func apply(_ items: [PatientMed], to list: inout [PatientMed]) {
+        for m in items {
+            if let i = list.firstIndex(where: { same($0, m) }) {
+                let d = m.dose.trimmingCharacters(in: .whitespaces)
+                if !d.isEmpty { list[i].dose = d }
+                if list[i].catalogID == nil { list[i].catalogID = m.catalogID }
+            } else {
+                list.append(m)
+            }
+        }
+    }
+
+    /// Every drug in a list typed before 1.9 is on the item list already (so the typed text need not be shown too).
+    static func covers(_ list: [PatientMed], legacy: String) -> Bool {
+        let items = parse(legacy)
+        return !items.isEmpty && items.allSatisfy { m in list.contains { same($0, m) } }
+    }
 }
 
 /// One allergy (1.9): the allergen as picked or typed, its severity, and the reaction as typed.

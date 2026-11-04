@@ -278,6 +278,7 @@ final class PatientStore {
         case "demo-labs": return PatientDemo.labs
         case "demo-pages19": return PatientDemo.pages19
         case "demo-ob19": return PatientDemo.ob19
+        case "demo-meds": return PatientDemo.meds
         default: return nil
         }
     }
@@ -570,6 +571,19 @@ extension PatientDemo {
         r.hx.anticoagulants = ["enoxaparin": PatientAnticoagulant(intensity: "prophylaxis", lastDose: "11/03 20:00")]
         r.labs = ["hb": 10.9, "plt": 88, "inr": 1.0]
         r.systemNotes = ["ob": "Maternal-fetal medicine following"]
+// MARK: - 1.9 medication and allergy lists (the demo for their screenshots)
+
+extension PatientDemo {
+    /// The demo patient with the medications and allergies as items (1.9): brands typed and read as generics, a dose on
+    /// each, a GLP-1 agonist and an anticoagulant flagged, and three allergies with their severity.
+    static var meds: PatientRecord {
+        var r = record
+        r.medications = ""
+        r.allergies = ""
+        r.homeMeds = MedicationCatalog.parse("Toprol XL 50 mg daily, lisinopril 20 mg daily, atorvastatin 40 mg qhs, Lantus 30 units qhs, "
+                                             + "Eliquis 5 mg bid, Mounjaro 7.5 mg weekly, sertraline 100 mg")
+        r.medFlags = MedicationCatalog.flags(for: r.homeMeds)
+        r.allergyList = AllergyCatalog.parse("PCN mild rash, sulfa (hives), latex anaphylaxis")
         return r
     }
 }

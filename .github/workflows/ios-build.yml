@@ -516,6 +516,18 @@ jobs:
           shot 214-history-aorta 14 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open history -ps.forceAppearance light
           shot 215-studies-radial-both 15 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open workup:radial -ps.patient.scroll done -ps.forceAppearance dark
           shot 216-intraop-lines-both 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit harvest-both -ps.patient.open intraop:lines -ps.forceAppearance light
+          # 1.9 medication and allergy lists (helper 5): the boxes filled (demo-meds), the lists typed before 1.9 with
+          # Convert to list (demo), a line read into chips as it is typed, the drips split by spaces, the summary lines.
+          shot 390-meds-boxes-light 15 -ps.tab patient -ps.patient demo-meds -ps.patient.open medications -ps.forceAppearance light
+          shot 391-meds-boxes-dark 15 -ps.tab patient -ps.patient demo-meds -ps.patient.open medications -ps.forceAppearance dark
+          shot 392-meds-list-light 15 -ps.tab patient -ps.patient demo-meds -ps.patient.open medications -ps.patient.scroll homemeds -ps.forceAppearance light
+          shot 393-meds-legacy-light 15 -ps.tab patient -ps.patient demo -ps.patient.open medications -ps.forceAppearance light
+          shot 394-meds-typing-dark 16 -ps.tab patient -ps.patient demo-meds -ps.patient.open medications -ps.patient.scroll homemeds -ps.meds.type "metoprolol 25 mg bid lisinopril 10, Eliquis 5 bid foobarazine 10 mg, tirzep" -ps.forceAppearance dark
+          shot 395-allergy-typing-light 16 -ps.tab patient -ps.patient empty -ps.patient.open medications -ps.allergy.type "PCN - rash, sulfa (hives), latex anaphylaxis" -ps.forceAppearance light
+          shot 396-allergy-typing-dark 16 -ps.tab patient -ps.patient empty -ps.patient.open medications -ps.allergy.type "PCN - rash, sulfa (hives), latex anaphylaxis" -ps.forceAppearance dark
+          shot 397-infusions-typing-light 16 -ps.tab patient -ps.patient empty -ps.patient.open medications -ps.patient.scroll infusions -ps.infusion.type "norepi 0.05 vaso 0.04 epi 0.02 mcg/kg/min fent" -ps.forceAppearance light
+          shot 398-meds-handoff-light 16 -ps.tab patient -ps.patient demo-meds -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 399-meds-history-card-dark 15 -ps.tab patient -ps.patient demo-meds -ps.patient.tab preop -ps.patient.scroll history -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

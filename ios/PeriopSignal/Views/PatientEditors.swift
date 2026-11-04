@@ -426,17 +426,16 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var medications: some View {
-        PatientGroup(title: "Allergies") {
-            toggleRow("No known drug allergies", nil, bind(\.nkda))
-            if !r.nkda {
-                PatientTextField(label: "Allergies & reactions", prompt: "e.g. penicillin (rash); latex", text: bind(\.allergies))
-            }
-        }
-        PatientGroup(title: "Medications") {
-            PatientTextField(label: "Home medications", prompt: "Drug, dose, last taken", text: bind(\.medications))
-            PatientChipRow(label: "Flags") { PatientChips(options: PatientCatalog.medFlags, selection: bind(\.medFlags)) }
-        }
+        // 1.9: the medication and allergy lists (PatientMedicationViews.swift); the Preprocedure tab's own boxes come with
+        // the reorganized tab.
+        PatientGroup(title: "Allergies") { AllergiesBox() }
+            .id("allergies")
+        PatientGroup(title: "Home medications") { HomeMedicationsBox() }
+            .id("homemeds")
         currentInfusionsGroup
+            .id("infusions")
+        PatientGroup(title: "Flagged medications") { FlaggedMedicationsChips() }
+            .id("flagged")
         let notes = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }.compactMap { f in PatientFunctional.medNotes[f.id].map { (f.label, $0) } }
         if !notes.isEmpty {
             PatientGroup(title: "Before surgery", note: "2024 AHA/ACC perioperative guideline, with the class of each recommendation.") {
