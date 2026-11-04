@@ -965,6 +965,7 @@ enum MedicationData {
         "phenazopyridine|Phenazopyridine|pyridium, azo, azo standard|| Urinary analgesic",
         "bethanechol|Bethanechol|urecholine|| Cholinergic agonist (urinary retention)",
         "pentosan|Pentosan polysulfate|elmiron|| Bladder protectant (weak anticoagulant effect on its label)",
+        "methylene-blue|Methylene blue|provayblue|maoi|Dye with reversible MAO-A inhibition",
         "methylene-blue-urinary|Methenamine/methylene blue combination|uribel, urelle, urimar-t, uro-mp, ustell|| Urinary antiseptic and analgesic (low-dose methylene blue)",
         "potassium-citrate|Potassium citrate|urocit-k|| Urinary alkalinizer",
         // Kidney and electrolytes
