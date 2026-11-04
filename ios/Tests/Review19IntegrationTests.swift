@@ -125,4 +125,36 @@ final class Review19IntegrationTests: XCTestCase {
         change(&n) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["fistula"]; $0.hx.fistulaSite = "somewhere" }
         XCTAssertEqual(n.devices.count, 1)
     }
+
+    // MARK: The vertebral caution beside a limb alert
+
+    /// Steal on the harvest side and a fistula in the other arm: neither the harvest line nor the vertebral caution sends
+    /// the arterial line and cuff to the fistula arm. Without a harvest, the same.
+    func testTheVertebralCautionDoesNotSendLinesToALimbAlertArm() throws {
+        var r = PatientRecord()
+        r.radial.harvest = "left"
+        r.carotid.left.vertebral = "reversed"
+        r.devices = [PatientDevice(kind: .avFistula, site: "forearm-right", side: "right")]
+        XCTAssertEqual(PatientStudies.harvestReminder(r), "Planned left radial harvest: keep lines and the cuff off the left arm; the right arm has a limb alert.")
+        let v = try XCTUnwrap(PatientStudies.cautions(r).first { $0.id == "vertebral-left" }?.text)
+        XCTAssertFalse(v.contains("use the right arm"), v)
+        XCTAssertFalse(v.contains("Use the right arm"), v)
+        XCTAssertTrue(v.contains("Left-arm BP may read low"), v)
+
+        var noHarvest = PatientRecord()
+        noHarvest.carotid.left.vertebral = "partial"
+        noHarvest.limbAlerts = [PatientLimbAlert(limb: "arm-right", reason: "Prior axillary lymph node dissection")]
+        let p = try XCTUnwrap(PatientStudies.cautions(noHarvest).first { $0.id == "vertebral-left" }?.text)
+        XCTAssertFalse(p.contains("Use the right arm"), p)
+
+        // No limb alert: the other arm is still offered.
+        var plain = PatientRecord()
+        plain.carotid.left.vertebral = "reversed"
+        let q = try XCTUnwrap(PatientStudies.cautions(plain).first { $0.id == "vertebral-left" }?.text)
+        XCTAssertTrue(q.contains("use the right arm for the arterial line and cuff"), q)
+        // A limb alert on the steal side itself does not change it.
+        plain.limbAlerts = [PatientLimbAlert(limb: "arm-left", reason: "Lymphedema")]
+        let w = try XCTUnwrap(PatientStudies.cautions(plain).first { $0.id == "vertebral-left" }?.text)
+        XCTAssertTrue(w.contains("use the right arm for the arterial line and cuff"), w)
+    }
 }
