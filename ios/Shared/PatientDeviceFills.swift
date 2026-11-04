@@ -303,7 +303,7 @@ enum PatientDeviceFills {
         var id: String { limb }
         /// "L arm".
         var name: String { PatientDeviceFills.limbName(limb) }
-        /// "L arm — AV fistula, prior axillary lymph node dissection".
+        /// "L arm — AV fistula, Prior axillary lymph node dissection".
         var text: String { name + " — " + reasons.joined(separator: ", ") }
     }
 
@@ -385,21 +385,14 @@ enum PatientDeviceFills {
         for limb in limbOrder {
             let mine = items.filter { $0.limb == limb }
             guard !mine.isEmpty else { continue }
-            groups.append(LimbAlertGroup(limb: limb, reasons: mine.map(\.reason).map(sentenceForm), automatic: mine.contains { $0.automatic }))
+            groups.append(LimbAlertGroup(limb: limb, reasons: mine.map(\.reason).map(FreeText.cap), automatic: mine.contains { $0.automatic }))
         }
         return groups.filter(\.automatic) + groups.filter { !$0.automatic }
     }
 
-    /// A typed reason inside a sentence: its first letter lower-cased unless the word is an acronym ("AV graft revision"),
-    /// as the user's capital (FreeText.cap) was added only for a list.
-    static func sentenceForm(_ reason: String) -> String {
-        guard let f = reason.first, f.isUppercase else { return reason }
-        let second = reason.dropFirst().first
-        if let second, second.isUppercase { return reason }
-        return f.lowercased() + reason.dropFirst()
-    }
-
-    /// The handoff line: "L arm — AV fistula; R arm — prior axillary lymph node dissection", or nil with none.
+    /// The handoff line: "L arm — AV fistula; R arm — Prior axillary lymph node dissection", or nil with none. A typed
+    /// reason reads with the capital FreeText.cap gives it wherever it is shown (the editor, the cards, the summary and
+    /// the handoff), so one alert never reads "prior" in one place and "Prior" in another.
     static func limbAlertText(_ r: PatientRecord) -> String? {
         let groups = limbAlertGroups(r)
         return groups.isEmpty ? nil : groups.map(\.text).joined(separator: "; ")

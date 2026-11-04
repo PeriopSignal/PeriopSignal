@@ -374,7 +374,7 @@ enum PatientSummary {
         }
     }
 
-    /// Limbs to spare (1.9): "Limb alert: L arm — AV fistula; R arm — prior axillary lymph node dissection". A fistula or
+    /// Limbs to spare (1.9): "Limb alert: L arm — AV fistula; R arm — Prior axillary lymph node dissection". A fistula or
     /// graft on the diagram and the alerts the user added, by limb; a planned radial harvest stays in the Arms line, and an
     /// alert that only says so is not repeated here (PatientDeviceFills.limbAlerts).
     static func limbAlertLines(_ r: PatientRecord) -> [Line] {
