@@ -276,6 +276,7 @@ final class PatientStore {
         case "demo-neuro": return PatientDemo.neuro
         case "demo-typed": return PatientDemo.typed
         case "demo-labs": return PatientDemo.labs
+        case "demo-meds": return PatientDemo.meds
         default: return nil
         }
     }
@@ -480,6 +481,23 @@ enum PatientDemo {
         r.considerations = ["pressors", "tee", "surgical"]
         r.considerationsNote = "Epinephrine and norepinephrine rising after bypass; severe LV dysfunction on TEE; diffuse coagulopathy, chest may stay open"
         r.codeStatus = .full
+        return r
+    }
+}
+
+// MARK: - 1.9 medication and allergy lists (the demo for their screenshots)
+
+extension PatientDemo {
+    /// The demo patient with the medications and allergies as items (1.9): brands typed and read as generics, a dose on
+    /// each, a GLP-1 agonist and an anticoagulant flagged, and three allergies with their severity.
+    static var meds: PatientRecord {
+        var r = record
+        r.medications = ""
+        r.allergies = ""
+        r.homeMeds = MedicationCatalog.parse("Toprol XL 50 mg daily, lisinopril 20 mg daily, atorvastatin 40 mg qhs, Lantus 30 units qhs, "
+                                             + "Eliquis 5 mg bid, Mounjaro 7.5 mg weekly, sertraline 100 mg")
+        r.medFlags = MedicationCatalog.flags(for: r.homeMeds)
+        r.allergyList = AllergyCatalog.parse("PCN mild rash, sulfa (hives), latex anaphylaxis")
         return r
     }
 }
