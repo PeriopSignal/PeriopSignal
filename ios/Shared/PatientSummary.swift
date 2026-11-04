@@ -499,8 +499,8 @@ enum HandoffWriter {
 
     /// The short version, one screen: who and what, allergies, the airway, lines and drips, events, and where the
     /// patient goes with when to call.
-    static func shortText(_ r: PatientRecord, now: Date = Date()) -> String {
-        let r = r.capitalized
+    static func shortText(_ original: PatientRecord, now: Date = Date()) -> String {
+        let r = original.capitalized
         var out: [String] = ["ANESTHESIA HANDOFF (SHORT)"]
         if !r.oneLiner.isEmpty { out.append(r.oneLiner) }
         var proc: [String] = []
@@ -517,7 +517,8 @@ enum HandoffWriter {
         }
         line("Code status", PatientCodeStatus.text(r) ?? "")
         line("Key considerations", IntraopConsiderations.text(r) ?? "")
-        line("Allergies", r.nkda ? "No known drug allergies" : r.allergies)
+        // The allergies as the summary and the full handoff give them (1.9: the list, then the text typed before 1.9).
+        line("Allergies", PatientAllergyText.line(original)?.text ?? "")
         // Positive and pending infectious results only (Ben, Nov 3); the full handoff lists every one entered.
         line("Infectious results", LabResults.shortInfectious(r))
         if r.arrivesWithAirway, let a = r.currentAirwayText {

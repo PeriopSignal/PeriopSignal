@@ -353,12 +353,7 @@ struct PatientEditorView: View {
         }
     }
 
-    var medsSummary: String {
-        if r.nkda && r.medications.isEmpty { return "No known drug allergies" }
-        let c = r.capitalized
-        let parts = [r.nkda ? "NKDA" : (c.allergies.isEmpty ? "" : "Allergies: " + c.allergies), c.medications].filter { !$0.isEmpty }
-        return parts.isEmpty ? "None recorded" : parts.joined(separator: " · ")
-    }
+    var medsSummary: String { PatientHistoryRows.medsSummary(r) }
 
     func intakeRow(_ title: String, _ date: Binding<Date?>) -> some View {
         PatientIntakeRow(title: title, date: date)
@@ -919,5 +914,24 @@ struct PatientEditorView: View {
         PatientGroup(title: "To do & concerns") {
             PatientTextField(label: "For the next team", prompt: "Labs to check, antibiotic redosing, CPAP, glucose, drains", text: bind(\.todos))
         }
+    }
+}
+
+/// The History editor's summary rows, out of the view so they can be tested.
+enum PatientHistoryRows {
+    /// The "Medications & allergies" row (1.9): the allergies and the medications as the summary gives them, the lists
+    /// and then the text typed before 1.9 while the lists do not hold it.
+    static func medsSummary(_ r: PatientRecord) -> String {
+        let c = r.capitalized
+        var meds = c.homeMeds.map(\.text).filter { !$0.isEmpty }
+        let typed = c.medications.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !typed.isEmpty, meds.isEmpty || !MedicationCatalog.covers(r.homeMeds, legacy: r.medications) { meds.append(typed) }
+        let allergies = PatientAllergyText.line(r)?.text
+        let none = allergies == "No known drug allergies"
+        if none && meds.isEmpty { return "No known drug allergies" }
+        var parts: [String] = []
+        if let a = allergies { parts.append(none ? "NKDA" : "Allergies: " + a) }
+        if !meds.isEmpty { parts.append(meds.joined(separator: "; ")) }
+        return parts.isEmpty ? "None recorded" : parts.joined(separator: " · ")
     }
 }

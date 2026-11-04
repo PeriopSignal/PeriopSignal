@@ -15,7 +15,11 @@ import Foundation
 // as typed. A brand reads as its generic name ("Eliquis 5 bid" is Apixaban, "5 bid"): the catalog id keeps the brand's
 // entry, so nothing is lost and the list reads one way. A word the list does not know becomes a typed item only where a
 // drug name would be (the start of an item, or a word with a drug's ending such as -pril or -olol after a dose); dose and
-// timing words ("daily", "mg", "prn") never do.
+// timing words ("daily", "mg", "prn") never do, nor a word after "last dose" or "held" ("last dose Sunday" is a remark
+// on the drug before). A drug after a denial ("no opioids", "denies anticoagulants") is kept as typed and raises no flag;
+// a stop ("stopped Plavix 5 days ago", "holding Eliquis", "no longer taking Plavix") stays with its drug and its flag, and
+// so does a denied stop ("not holding Eliquis", "did not stop Plavix"). Only "or" carries a denial on to the next drug,
+// and never to one with a dose ("no aspirin and Eliquis 5 mg bid" takes Eliquis).
 
 /// One drug the list knows.
 struct MedEntry: Hashable, Identifiable {
@@ -161,39 +165,101 @@ enum MedicationCatalog {
         var out: [Building] = []
         var itemInSegment = false
         var pending: [Int] = []
+        // Where this segment's items start in `out`.
+        var segmentStart = 0
+        // The first word since the last drug that denies or stops the next one ("no", "denies"; "stopped", "held").
+        var modifier: Int?
+        // The item a denial made in this segment, and the word after its drug: "or" or "and" carries the denial on.
+        var deniedItem: Int?
+        var deniedEnd = 0
+
+        // A segment that names no drug but says when one was last taken, held or stopped ("last dose Sunday", "held
+        // since Monday"): it belongs to the drug before.
+        func closeSegment() {
+            if out.count == segmentStart, !out.isEmpty, pending.contains(where: { remarks.contains(ws[$0].key) || stops.contains(ws[$0].key) }) {
+                out[out.count - 1].dose += pending
+            }
+            pending = []
+            itemInSegment = false
+            modifier = nil
+            deniedItem = nil
+            segmentStart = out.count
+        }
+
         var i = 0
         while i < ws.count {
-            if br[i] { itemInSegment = false; pending = [] }
+            if br[i] { closeSegment() }
             let w = ws[i]
             if w.key == "and" {
                 itemInSegment = false
                 pending = []
+                modifier = nil
                 i += 1
                 continue
             }
             if let m = phrases.longest(ws, at: i) {
                 let range = w.range.lowerBound..<ws[i + m.count - 1].range.upperBound
+                // "Denies opioids or anticoagulants": one denial, as typed. Only "or" carries it on, and not to a drug
+                // with a dose after it: "no aspirin and Eliquis 5 mg bid" takes Eliquis.
+                let dosed = i + m.count < ws.count && !br[i + m.count] && ws[i + m.count].isNumeric
+                if let d = deniedItem, d == out.count - 1, !dosed,
+                   (deniedEnd..<i).contains(where: { ["or", "nor"].contains(ws[$0].key) }),
+                   (deniedEnd..<i).allSatisfy({ deniedBetween.contains(ws[$0].key) }) {
+                    out[d].nameRange = out[d].nameRange.lowerBound..<range.upperBound
+                    out[d].dose.removeAll { $0 < i }
+                    deniedEnd = i + m.count
+                    pending = []
+                    modifier = nil
+                    itemInSegment = true
+                    i += m.count
+                    continue
+                }
+                // "No aspirin or Eliquis 5 mg": the "or" is not a word of the denial.
+                if let d = deniedItem, d == out.count - 1 {
+                    out[d].dose.removeAll { $0 >= deniedEnd && deniedBetween.contains(ws[$0].key) }
+                }
                 // The same drug named again in its own item ("apixaban (Eliquis) 5 mg") is one item; a brand in
                 // parentheses right after the generic ("metoprolol (Toprol XL) 50 mg") is the same item, read as the
-                // more specific entry when it is one ("Metoprolol succinate").
+                // more specific entry when it is one ("Metoprolol succinate"), or as the combination pill it names
+                // ("metformin (Synjardy)" is empagliflozin/metformin, which raises the SGLT2 flag).
                 if itemInSegment, let last = out.last {
                     if last.entry == m.entry {
                         i += m.count
                         continue
                     }
                     if let le = last.entry, last.dose.isEmpty, line[last.nameRange.upperBound..<w.range.lowerBound].contains("(") {
-                        if CatalogText.fold(entries[m.entry].name).hasPrefix(CatalogText.fold(listName(entries[le]))) { out[out.count - 1].entry = m.entry }
+                        if refines(m.entry, le) { out[out.count - 1].entry = m.entry }
                         i += m.count
                         continue
                     }
                 }
-                out.append(Building(entry: m.entry, nameRange: range, dose: pending.contains(where: { ws[$0].isNumeric }) ? pending : []))
+                // The words before the drug: a dose written first ("2 puffs albuterol"), or a stop ("stopped Plavix 5
+                // days ago", "holding Eliquis", "no longer taking Plavix"), kept with it; a denial ("no opioids", "denies
+                // anticoagulants") makes an item as typed, which raises no flag. A denial of a stop ("not holding
+                // Eliquis", "did not stop Plavix") is the drug still taken.
+                var before = pending
+                if let n = modifier, itemInSegment, !out.isEmpty {
+                    before = out[out.count - 1].dose.filter { $0 >= n }
+                    out[out.count - 1].dose.removeAll { $0 >= n }
+                }
+                if let n = modifier, let d = (n..<i).first(where: { denials.contains(ws[$0].key) }),
+                   !(d + 1..<i).contains(where: { stops.contains(ws[$0].key) }) {
+                    out.append(Building(entry: nil, nameRange: ws[n].range.lowerBound..<range.upperBound))
+                    deniedItem = out.count - 1
+                    deniedEnd = i + m.count
+                } else {
+                    let keep = before.contains { ws[$0].isNumeric || stops.contains(ws[$0].key) }
+                    out.append(Building(entry: m.entry, nameRange: range, dose: keep ? before : []))
+                }
                 pending = []
+                modifier = nil
                 itemInSegment = true
                 i += m.count
                 continue
             }
-            if startsTypedName(w, atStart: !itemInSegment) {
+            // After "last dose", "held" or "no", a word the list does not know is not a drug's name ("last dose Sunday").
+            let remarked = modifier != nil || pending.contains { remarks.contains(ws[$0].key) }
+            if !remarked, startsTypedName(w, atStart: !itemInSegment) {
                 var j = i + 1
                 while j < ws.count, j - i < 3, !br[j], ws[j].key != "and", phrases.longest(ws, at: j) == nil, continuesName(ws[j]) { j += 1 }
                 out.append(Building(entry: nil, nameRange: w.range.lowerBound..<ws[j - 1].range.upperBound,
@@ -203,20 +269,65 @@ enum MedicationCatalog {
                 i = j
                 continue
             }
-            if leadNoise.contains(w.key) && !itemInSegment {
+            if denials.contains(w.key) || stops.contains(w.key) {
+                if modifier == nil { modifier = i }
+            } else if !noise.contains(w.key), !leadNoise.contains(w.key) {
+                modifier = nil
+            }
+            // "Stopped taking Plavix": after a stop, "taking" stays with it.
+            if leadNoise.contains(w.key) && !itemInSegment && modifier == nil {
                 i += 1
                 continue
             }
             if itemInSegment { out[out.count - 1].dose.append(i) } else { pending.append(i) }
             i += 1
         }
+        closeSegment()
         return out.map { b in
             let dose = CatalogText.text(line, runs: CatalogText.runs(line, ws, b.dose))
             if let e = b.entry {
-                return ReadItem(med: PatientMed(name: listName(entries[e]), dose: dose, catalogID: entries[e].id), nameRange: b.nameRange)
+                // "Hydrocortisone 1% cream", "prednisolone 1% eye drops": the name as read, the local form's entry.
+                let id = localForm(e, b.dose.map { ws[$0].key }).map { entries[$0].id } ?? entries[e].id
+                return ReadItem(med: PatientMed(name: listName(entries[e]), dose: dose, catalogID: id), nameRange: b.nameRange)
             }
             return ReadItem(med: PatientMed(name: FreeText.cap(String(line[b.nameRange])), dose: dose), nameRange: b.nameRange)
         }
+    }
+
+    /// Entry `b` is a more specific form of entry `a` ("Metoprolol succinate" of metoprolol) or a combination pill
+    /// holding it ("Empagliflozin/metformin" holds metformin).
+    private static func refines(_ b: Int, _ a: Int) -> Bool {
+        let short = CatalogText.fold(listName(entries[a]))
+        let name = CatalogText.fold(entries[b].name)
+        return name.hasPrefix(short) || name.split(separator: "/").contains { $0.trimmingCharacters(in: .whitespaces) == short }
+    }
+
+    /// Words that deny the drug after them: "no opioids", "denies anticoagulants", "never on insulin".
+    static let denials: Set<String> = ["no", "not", "denies", "denied", "never", "nor", "doesnt", "didnt", "dont", "hasnt",
+                                       "havent", "isnt", "wasnt"]
+    /// Words that stop or hold the drug after them: "stopped Plavix 5 days ago", "holding Eliquis", "no longer taking
+    /// Plavix". After a denial they still stop ("not holding Eliquis" is Eliquis taken).
+    static let stops: Set<String> = ["stopped", "stop", "stopping", "held", "hold", "holding", "discontinued", "off", "quit",
+                                     "paused", "longer"]
+    /// Words between two denied drugs that carry the denial on: "denies opioids or insulin", "no opioid use or insulin".
+    private static let deniedBetween: Set<String> = ["or", "nor", "any", "use", "other", "either"]
+    /// Words that open a remark on the drug before: "last dose Sunday", "last taken this morning".
+    static let remarks: Set<String> = ["last", "taken", "took", "since", "ago", "longer", "dose", "doses", "dosed"]
+
+    /// A systemic glucocorticoid written with a route on the skin or in the eye ("hydrocortisone 1% cream", "prednisolone
+    /// 1% eye drops") reads as its topical or eye-drop entry, which raises no flag: the steroid flag is for systemic use.
+    /// Any other route keeps the systemic entry.
+    private static let localRoutes: [(suffix: String, words: Set<String>)] = [
+        (suffix: "-ophthalmic", words: ["eye", "eyes", "ophthalmic", "ou", "os", "gtt", "gtts", "drop", "drops"]),
+        (suffix: "-topical", words: ["cream", "ointment", "lotion", "topical", "top", "skin", "gel"]),
+    ]
+
+    private static func localForm(_ e: Int, _ words: [String]) -> Int? {
+        guard entries[e].flags.contains("steroid") else { return nil }
+        for r in localRoutes where words.contains(where: { r.words.contains($0) }) {
+            if let i = byID[entries[e].id + r.suffix] { return i }
+        }
+        return nil
     }
 
     /// A word the list does not know that reads as a drug's name: at the start of an item any word of three letters or
@@ -254,6 +365,9 @@ enum MedicationCatalog {
         "drip", "infusion", "gtt", "mouth", "skin", "eye", "eyes", "both", "left", "right", "ou", "os", "ad", "lib",
         "and", "also", "plus", "but", "not", "no", "none", "denies", "occasional", "occasionally", "sometimes", "rarely",
         "usually", "dosing", "dosed", "unknown", "unsure", "same", "home", "meds", "med", "medication", "medications",
+        "denied", "never", "nor", "stopping", "discontinued", "off", "quit", "paused", "longer", "compliance", "compliant",
+        "noncompliance", "noncompliant", "adherence", "adherent", "did", "does", "do", "has", "have", "had", "was", "doesnt",
+        "didnt", "dont", "hasnt", "havent", "isnt", "wasnt",
     ]
 
     /// Words that open a list and are dropped there ("Home meds:", "takes", "pt on").
