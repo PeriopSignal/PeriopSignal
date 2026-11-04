@@ -457,7 +457,12 @@ enum PatientAllergyText {
             return PatientSummary.Line("Allergies", typed, alert: true, marks: pieces(typed).filter { $0.range(of: "anaphyla", options: .caseInsensitive) != nil })
         }
         var text = listed.map(\.text).joined(separator: "; ")
-        if !typed.isEmpty, !AllergyCatalog.covers(r.allergyList, legacy: r.allergies) { text += "; " + typed }
-        return PatientSummary.Line("Allergies", text, alert: true, marks: listed.filter(\.anaphylaxis).map(\.text))
+        var marks = listed.filter(\.anaphylaxis).map(\.text)
+        if !typed.isEmpty, !AllergyCatalog.covers(r.allergyList, legacy: r.allergies) {
+            text += "; " + typed
+            // An anaphylaxis in the typed text is in red too, as it is without a list.
+            marks += pieces(typed).filter { $0.range(of: "anaphyla", options: .caseInsensitive) != nil }
+        }
+        return PatientSummary.Line("Allergies", text, alert: true, marks: marks)
     }
 }
