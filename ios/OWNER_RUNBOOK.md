@@ -71,6 +71,10 @@ Without this, the app still alerts through background refresh (iOS decides the t
 - **More tab**: saved posts (moved here from the tab bar), your topics (the feed gets a *For you* filter and alerts only cover those topics), earliest alert time, quiet weekends, Sunday digest, theme, text size, listening speed.
 - Spotlight on the iPhone finds posts by trial name, drug or journal.
 
+### Clinical sign-off for the 1.9 tools (case timers, MTP, TEE companion, mechanical support)
+
+Their numbers are in `reference.json` under `caseTimers`, `mtp`, `tee` and `mcs`, each drafted with its primary sources in the [1.9 clinical review doc](https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v). While a section's `"reviewed"` is `null` it is a draft: TestFlight and App Store builds hide that tool (debug and CI screenshot builds show it with a "Draft" banner). To release one after signing it off in the doc, set its `"reviewed"` to the sign-off date (`"2026-11-10"`), bump `updated`, and merge: phones pick it up at their next launch, with no app update. Setting it back to `null` hides the tool again.
+
 ## 9. Natural voice for Listen (nothing to set up)
 Every post gets a recording made by **Kokoro**, an open-weights neural voice that runs on GitHub's own machines: no account, no key, no cost. The `Post audio` workflow records new posts a few minutes after each morning update, keeps the MP3s in the repository's `audio` release, and the app streams them (downloaded once, then offline). Posts without a recording yet are read by the iPhone's own voice; for a better phone voice, download a free **Premium** one under iOS Settings → Accessibility → Spoken Content → Voices → English (Ava, Zoe, Evan) and pick it under More → Reading.
 

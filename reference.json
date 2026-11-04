@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-01",
+  "updated": "2026-11-03",
   "revision": 1793499859,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
@@ -14716,6 +14716,1721 @@
     "notes": [
       "Values are as printed by the sources named on each card; where sources disagree, the card says so. Several US documents (ACOG PB 183, CO 767, PB 222) could not be read, so their values come from ACOG District II, ACOG 2023 algorithms, CMQCC and hospital tools that carry them.",
       "Checked item by item against the primary sources on 29 October 2026 (208 items); the AHA 2015 algorithm figure could not be read."
+    ]
+  },
+  "caseTimers": {
+    "reviewed": "2026-11-03",
+    "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
+    "adultOnly": true,
+    "weightFlag": [
+      35,
+      200
+    ],
+    "antibiotics": [
+      {
+        "id": "cefazolin",
+        "name": "Cefazolin",
+        "dose": "2 g; 3 g if ≥120 kg",
+        "redoseHours": 4,
+        "doseG": 2,
+        "heavyKg": 120,
+        "heavyDoseG": 3,
+        "cardiac": "STS: 2 g if over 60 kg; 1 g every 3–4 h with the chest open, and a redose after perfusion if bypass ends within the 4-h window."
+      },
+      {
+        "id": "cefuroxime",
+        "name": "Cefuroxime",
+        "dose": "1.5 g",
+        "redoseHours": 4
+      },
+      {
+        "id": "cefoxitin",
+        "name": "Cefoxitin",
+        "dose": "2 g",
+        "redoseHours": 2
+      },
+      {
+        "id": "cefotetan",
+        "name": "Cefotetan",
+        "dose": "2 g",
+        "redoseHours": 6
+      },
+      {
+        "id": "ceftriaxone",
+        "name": "Ceftriaxone",
+        "dose": "2 g",
+        "redoseHours": null
+      },
+      {
+        "id": "ampicillin",
+        "name": "Ampicillin",
+        "dose": "2 g",
+        "redoseHours": 2
+      },
+      {
+        "id": "ampicillin-sulbactam",
+        "name": "Ampicillin–sulbactam",
+        "dose": "3 g",
+        "redoseHours": 2
+      },
+      {
+        "id": "piperacillin-tazobactam",
+        "name": "Piperacillin–tazobactam",
+        "dose": "3.375 g",
+        "redoseHours": 2
+      },
+      {
+        "id": "ertapenem",
+        "name": "Ertapenem",
+        "dose": "1 g",
+        "redoseHours": null
+      },
+      {
+        "id": "aztreonam",
+        "name": "Aztreonam",
+        "dose": "2 g",
+        "redoseHours": 4
+      },
+      {
+        "id": "clindamycin",
+        "name": "Clindamycin",
+        "dose": "900 mg",
+        "redoseHours": 6
+      },
+      {
+        "id": "vancomycin",
+        "name": "Vancomycin",
+        "dose": "15 mg/kg",
+        "redoseHours": null,
+        "mgPerKg": 15,
+        "note": "Start within 120 min of incision.",
+        "cardiac": "STS: 7.5 mg/kg during bypass may be considered (IIb/C)."
+      },
+      {
+        "id": "metronidazole",
+        "name": "Metronidazole",
+        "dose": "500 mg",
+        "redoseHours": null
+      },
+      {
+        "id": "gentamicin",
+        "name": "Gentamicin",
+        "dose": "5 mg/kg dosing weight",
+        "redoseHours": null,
+        "mgPerKg": 5,
+        "dosingWeight": true,
+        "note": "Above 120% of ideal body weight, dose on IBW + 0.4 × (actual − IBW).",
+        "cardiac": "STS: 4 mg/kg; no redose on bypass (III/C)."
+      },
+      {
+        "id": "ciprofloxacin",
+        "name": "Ciprofloxacin",
+        "dose": "400 mg",
+        "redoseHours": null,
+        "note": "Start within 120 min of incision."
+      },
+      {
+        "id": "levofloxacin",
+        "name": "Levofloxacin",
+        "dose": "500 mg",
+        "redoseHours": null,
+        "note": "Start within 120 min of incision."
+      }
+    ],
+    "antibioticRules": {
+      "fromStart": "The interval runs from the start of the preoperative dose and assumes normal renal function.",
+      "bloodLossML": 1500,
+      "bloodLoss": "Blood loss over 1,500 mL since the last dose: redose.",
+      "noRedose": "No routine redose for this drug; the interval assumes a typical case length, and a very long case may still need one.",
+      "renal": "Renal dysfunction: a redose may not be warranted. The interval is not changed for you.",
+      "closure": "SHEA 2022: stop prophylaxis at closure; no new intervals.",
+      "bypassNoGentamicin": "No gentamicin redose on bypass (STS 2007, III/C).",
+      "longCaseHours": 8,
+      "longCase": "Long case: this drug has no routine redose interval; consider whether another dose is needed."
+    },
+    "heparinPurposes": [
+      {
+        "id": "bypass",
+        "name": "Bypass",
+        "doseLow": 300,
+        "doseHigh": 400,
+        "doseDefault": 300,
+        "goal": 450,
+        "goalDevice": 400,
+        "goalText": ">450 s (institutional; STS 2018: >480 s), or >400 s on maximally activated or microcuvette ACT",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "G",
+        "sources": [
+          "sts2018",
+          "eacts2024"
+        ],
+        "note": "Higher bolus arms (400–450 U/kg) showed no benefit."
+      },
+      {
+        "id": "offpump",
+        "name": "Off-pump CABG",
+        "doseLow": 100,
+        "doseHigh": 200,
+        "goal": 300,
+        "goalText": "Commonly >250–300 s",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "P",
+        "sources": [],
+        "note": "Usually 200 U/kg, half the bypass dose; some centres give a full dose. Before an emergency conversion to bypass, give a full dose to >480 s.",
+        "doseDefault": 200
+      },
+      {
+        "id": "vascular",
+        "name": "Vascular (open, carotid)",
+        "doseLow": 50,
+        "doseHigh": 100,
+        "flatUnits": 5000,
+        "goal": null,
+        "userGoalText": "~200–250 s, practice only",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "P",
+        "sources": [
+          "action1",
+          "esvs2023"
+        ],
+        "note": "No ACT goal preset. ACTION-1 (open AAA): 100 U/kg titrated to ACT 200 s vs a 5,000 IU bolus was stopped for futility, with more bleeding and more deaths in the ACT-guided arm (+7.9%, 95% CI 2.3–13.6)."
+      },
+      {
+        "id": "endovascular",
+        "name": "EVAR / TEVAR",
+        "doseLow": 50,
+        "doseHigh": 100,
+        "flatUnits": 5000,
+        "goal": null,
+        "userGoalText": "200–250 s (some aim ≥250), practice only",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "P",
+        "sources": [
+          "esvs2023"
+        ],
+        "note": "No ACT goal preset. Often a 5,000 IU bolus. ESVS 2023 wording not yet verified."
+      },
+      {
+        "id": "tavr",
+        "name": "TAVR",
+        "doseLow": 70,
+        "doseHigh": 100,
+        "goal": 250,
+        "goalText": "250–300 s",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "G",
+        "sources": [
+          "tenberg2021"
+        ],
+        "note": "ACT goal from ten Berg 2021; the dose range is practice."
+      },
+      {
+        "id": "ecmo",
+        "name": "ECMO cannulation",
+        "doseLow": 50,
+        "doseHigh": 100,
+        "goal": null,
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "G?",
+        "sources": [
+          "elso2021"
+        ],
+        "note": "Less if bleeding or after bypass. ELSO full text not yet opened.",
+        "userGoalText": "varies by center, set yours (ELSO: anti-Xa 0.3–0.7 IU/mL or aPTT once running)"
+      },
+      {
+        "id": "other",
+        "name": "Other",
+        "goal": null,
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "",
+        "sources": [],
+        "note": "Enter the dose and, if you use one, the ACT goal."
+      }
+    ],
+    "heparinRules": {
+      "outOfRangePct": 20,
+      "hardConfirmNonBypassUPerKg": 250,
+      "bypassMinUPerKg": 250,
+      "bypassMinGoal": 400,
+      "firstActMinutes": 3,
+      "unitsCheckBelow": 1000,
+      "resistance": "Goal not reached despite an adequate dose: consider heparin resistance (no numeric definition in STS 2018).",
+      "clottingTest": "STS 2018 (I/C): a clotting time should show adequate anticoagulation before bypass and at regular intervals during it.",
+      "deviceNote": "ACT values differ between devices (557 vs 618 s in one changeover). Pick your device.",
+      "hardConfirmExempt": [
+        "bypass",
+        "ecmo"
+      ]
+    },
+    "protamine": {
+      "ratioLow": 0.8,
+      "ratioHigh": 1.0,
+      "flagAbove": 1.3,
+      "blockAbove": 2.6,
+      "maxMgPer10Min": 50,
+      "postActMinutes": 3,
+      "basis": "Suggested from the initial heparin bolus; total heparin is shown for reference.",
+      "ratioNote": "EACTS 2024: keep the protamine-to-heparin ratio under 1:1.",
+      "ceilingNote": "STS 2018 (IIa/C): it is reasonable to keep protamine under 2.6 mg per 100 U of heparin; above that, platelet function falls, the ACT rises and bleeding increases. The 2.6 cap is a ceiling; the EACTS <1:1 ratio is a target.",
+      "noBypass": "Without bypass, heparin's half-life depends on the dose: follow the label (1 mg neutralizes at least 100 U; about half the dose may do about 30 min after the heparin) and titrate to the ACT.",
+      "onBypass": "Bypass is still running. Protamine on bypass clots the circuit.",
+      "suction": "Stop cardiotomy suction when protamine starts (EACTS 2024).",
+      "rate": "No more than 50 mg in any 10 minutes (label).",
+      "facts": [
+        [
+          "Potency",
+          "1 mg neutralizes at least 100 U of heparin",
+          "G",
+          "protamine"
+        ],
+        [
+          "Late dose",
+          "About half the dose may do about 30 min after the heparin",
+          "G",
+          "protamine"
+        ],
+        [
+          "Titration",
+          "Titrating protamine to the heparin in the blood (e.g. Hepcon) is associated with less bleeding and transfusion (IIa/B)",
+          "G",
+          "sts2018"
+        ],
+        [
+          "Test dose",
+          "No society recommendation",
+          "P",
+          ""
+        ],
+        [
+          "Severe reaction",
+          "Pulmonary hypertension and collapse after protamine: stop it, resuscitate, and restart bypass with full anticoagulation (I/C)",
+          "G",
+          "sts2018"
+        ],
+        [
+          "Rebound",
+          "25 mg/h for up to 6 h after long bypass with high heparin doses may be considered (IIb/C); rebound or bleeding can come 30 min to 18 h after protamine (label)",
+          "G",
+          "sts2018"
+        ]
+      ]
+    },
+    "checks": [
+      {
+        "id": "abg",
+        "name": "ABG",
+        "options": [
+          {
+            "label": "On bypass",
+            "minutes": 30
+          },
+          {
+            "label": "Major case",
+            "minutes": 60
+          }
+        ],
+        "note": "Institutional; no society interval (AmSECT, EACTS 2024).",
+        "strength": "P",
+        "sources": [
+          "amsect",
+          "eacts2024"
+        ],
+        "every": [
+          30,
+          60,
+          90,
+          120
+        ]
+      },
+      {
+        "id": "glucose",
+        "name": "Glucose",
+        "options": [
+          {
+            "label": "Default",
+            "minutes": 60
+          },
+          {
+            "label": "Bypass or insulin drip",
+            "minutes": 30
+          }
+        ],
+        "high": 180,
+        "low": 70,
+        "unit": "mg/dL",
+        "note": "Every 60 min by default; change it to suit the case. Alerts above 180 (STS 2009; ADA 100–180) or below 70 mg/dL. ADA: every 30 min to 2 h on IV insulin. SHEA 2022's 110–150 target is postoperative only.",
+        "strength": "G?",
+        "sources": [
+          "stsglucose",
+          "ada2026",
+          "shea2022"
+        ],
+        "every": [
+          30,
+          60,
+          90,
+          120
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "bratzler",
+        "label": "Bratzler 2013, ASHP/IDSA/SIS/SHEA surgical prophylaxis",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/23327981/"
+      },
+      {
+        "id": "shea2022",
+        "label": "SHEA/IDSA/APIC 2022, SSI prevention",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37137483/"
+      },
+      {
+        "id": "sts2006",
+        "label": "STS antibiotic prophylaxis in cardiac surgery, Part I, 2006",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/16368422/"
+      },
+      {
+        "id": "sts2007",
+        "label": "STS antibiotic prophylaxis in cardiac surgery, Part II, 2007",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/17383396/"
+      },
+      {
+        "id": "sts2018",
+        "label": "STS/SCA/AmSECT anticoagulation during CPB, 2018",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29346209/"
+      },
+      {
+        "id": "eacts2024",
+        "label": "EACTS/EACTAIC/EBCP cardiopulmonary bypass, 2024",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39949326/"
+      },
+      {
+        "id": "tenberg2021",
+        "label": "ten Berg 2021, antithrombotic therapy in TAVI",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/33822924/"
+      },
+      {
+        "id": "esvs2023",
+        "label": "ESVS 2023 antithrombotic therapy",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37019274/"
+      },
+      {
+        "id": "action1",
+        "label": "ACTION-1, Eur J Vasc Endovasc Surg 2025",
+        "url": "https://doi.org/10.1016/j.ejvs.2025.07.027"
+      },
+      {
+        "id": "elso2021",
+        "label": "ELSO anticoagulation guideline 2021",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35080509/"
+      },
+      {
+        "id": "ash2024",
+        "label": "Heparin resistance, ASH 2024",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39643992/"
+      },
+      {
+        "id": "protamine",
+        "label": "Protamine sulfate injection, FDA label",
+        "url": "https://drugs.com/pro/protamine-sulfate-injection.html"
+      },
+      {
+        "id": "stsglucose",
+        "label": "STS blood glucose management during adult cardiac surgery, 2009",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/19161815/"
+      },
+      {
+        "id": "ada2026",
+        "label": "ADA Standards of Care 2026, §16 hospital care",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41358892/"
+      },
+      {
+        "id": "amsect",
+        "label": "AmSECT Standards & Guidelines 2017–2023",
+        "url": "https://www.amsect.org/Portals/0/Comparison%20of%20S%26G%20Changes%20from%202017%20to%202023%20Final%20Draft.pdf"
+      }
+    ]
+  },
+  "mtp": {
+    "reviewed": "2026-11-03",
+    "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
+    "adultOnly": true,
+    "products": [
+      {
+        "id": "prbc",
+        "name": "RBC",
+        "unit": "unit",
+        "citrated": true,
+        "caseKey": "prbc"
+      },
+      {
+        "id": "plasma",
+        "name": "Plasma",
+        "unit": "unit",
+        "citrated": true,
+        "caseKey": "plasma"
+      },
+      {
+        "id": "platelets",
+        "name": "Platelets",
+        "unit": "dose",
+        "citrated": true,
+        "caseKey": "platelets",
+        "note": "One tap = one apheresis dose, or a pool of 4–6 whole-blood-derived units."
+      },
+      {
+        "id": "cryo",
+        "name": "Cryo",
+        "unit": "pool",
+        "citrated": true,
+        "caseKey": "cryo",
+        "note": "A pool counts as one unit toward calcium."
+      },
+      {
+        "id": "wholeBlood",
+        "name": "Whole blood",
+        "unit": "unit",
+        "citrated": true,
+        "caseKey": "wholeBlood",
+        "note": "Counts as 1 RBC + 1 plasma in the ratio. Females of reproductive potential: RhD-negative when available. TOWAR and SWiFT found 2 prehospital units no better than components.",
+        "ratioAs": [
+          "prbc",
+          "plasma"
+        ]
+      },
+      {
+        "id": "cellSaver",
+        "name": "Cell saver",
+        "unit": "mL",
+        "step": 250,
+        "citrated": false,
+        "caseKey": "cellSaver",
+        "note": "One tap per 250 mL returned. Doesn't count toward calcium."
+      },
+      {
+        "id": "fibrinogen",
+        "name": "Fibrinogen concentrate",
+        "unit": "g",
+        "step": 1,
+        "citrated": false
+      },
+      {
+        "id": "pcc",
+        "name": "4F-PCC",
+        "unit": "IU",
+        "step": 500,
+        "citrated": false
+      },
+      {
+        "id": "rfviia",
+        "name": "rFVIIa",
+        "unit": "mg",
+        "step": 1,
+        "citrated": false,
+        "note": "Tally only: not first line (EU Rec 32); JTS no longer recommends it."
+      }
+    ],
+    "plateletUnits": {
+      "default": 6,
+      "min": 4,
+      "max": 6,
+      "note": "The ratio counts a platelet dose as this many units, so 1 dose per 6 RBC reads 1:1:1, not 1:6."
+    },
+    "cryoPool": {
+      "default": 5,
+      "min": 1,
+      "max": 20,
+      "mgPerUnit": 150,
+      "note": "At least 150 mg fibrinogen per unit (Circular 2024). Rossaint 2023 gives 3–4 g of fibrinogen, about 15–20 single-donor units; 10 units is a US convention. Set your blood bank's pool size."
+    },
+    "ratio": {
+      "target": "1:1:1",
+      "note": "RBC : plasma : platelets against 1:1:1 (PROPPR; JTS). EU 2023 also accepts plasma:RBC of at least 1:2, or fibrinogen-based dosing."
+    },
+    "calcium": {
+      "everyUnits": 4,
+      "dose": "CaCl₂ 1 g (10 mL 10%) or Ca gluconate 3 g (30 mL 10%). Send iCa.",
+      "chloride": "CaCl₂ preferably central; check the line.",
+      "rule": "A measured iCa drawn since the last dose decides: below 1.1 give, below 0.9 urgent; at 1.1 or above, send another after 4 more citrated units. With no iCa since the last dose, the JTS rule: with the first citrated unit, then after every 4 units. Every citrated unit counts (a cryo pool as 1); cell saver and factor concentrates don't.",
+      "icaGive": 1.1,
+      "icaUrgent": 0.9,
+      "icaNote": "Give below 1.1 mmol/L (EU 2023 normal range 1.1–1.3; JTS uses 1.2). Urgent below 0.9.",
+      "salts": [
+        [
+          "CaCl₂ 10%, 1 g/10 mL",
+          "270 mg elemental per g",
+          "1 g ≈ 3 g gluconate",
+          "Slow IV, preferably central. Extravasation causes necrosis"
+        ],
+        [
+          "Ca gluconate 10%, 1 g/10 mL",
+          "93 mg elemental per g",
+          "3 g ≈ 280 mg elemental",
+          "Safer peripherally (JTS)"
+        ]
+      ],
+      "fastNote": "Giving it fast during massive transfusion is off-label practice."
+    },
+    "txa": {
+      "contexts": [
+        {
+          "id": "trauma",
+          "name": "Trauma",
+          "text": "1 g over 10 min, then 1 g over 8 h (CRASH-2; EU Rec 23, 1A). JTS gives a 2 g bolus.",
+          "maxHoursFromInjury": 3,
+          "late": "More than 3 h since injury: CRASH-2 found harm when TXA was started this late."
+        },
+        {
+          "id": "obstetric",
+          "name": "Obstetric",
+          "text": "1 g, then 1 g more if bleeding continues after 30 min (WOMAN)."
+        },
+        {
+          "id": "surgical",
+          "name": "Surgical",
+          "text": "Consider if fibrinolysis (ASA 2015)."
+        }
+      ]
+    },
+    "fibrinogen": {
+      "clauss": 1.5,
+      "fibtem": 10,
+      "tegFF": 19,
+      "text": "Fibrinogen low: 3–4 g of concentrate, or cryo (EU Rec 29, 2C).",
+      "note": "Clauss ≤1.5 g/L; viscoelastic cut-offs (FIBTEM CA5 <10 mm, TEG FF MA <19 mm) are from the TACTIC algorithm. ITACTIC found no outcome gain over lab-guided care."
+    },
+    "pcc": {
+      "bands": [
+        {
+          "from": 2,
+          "to": 4,
+          "iuPerKg": 25
+        },
+        {
+          "from": 4,
+          "to": 6,
+          "iuPerKg": 35,
+          "toInclusive": true
+        },
+        {
+          "from": 6,
+          "to": null,
+          "iuPerKg": 50
+        }
+      ],
+      "capKg": 100,
+      "text": "Vitamin K antagonist reversal only, with IV vitamin K. Dosing weight capped at 100 kg; repeat dosing isn't recommended.",
+      "boxed": "Boxed warning: arterial and venous thromboembolic complications."
+    },
+    "labs": {
+      "everyRbc": 4,
+      "everyMinutes": 30,
+      "kHigh": 5.5,
+      "text": "Send labs after every 4 RBC units and at least every 30–60 min, with K⁺ (flagged above 5.5).",
+      "strength": "P"
+    },
+    "targets": [
+      [
+        "iCa",
+        "Normal 1.1–1.3 mmol/L. Give below 1.1 (EU 2023; JTS uses 1.2). Urgent below 0.9",
+        "G: EU Rec 31; JTS"
+      ],
+      [
+        "Fibrinogen",
+        "Treat at ≤1.5 g/L (EU). ASA: below 0.8–1.0",
+        "G: EU Rec 29; ASA 2015"
+      ],
+      [
+        "Platelets",
+        ">50 × 10⁹/L; >100 with TBI",
+        "G: EU Rec 30; ASA 2015"
+      ],
+      [
+        "PT/aPTT",
+        "Plasma if >1.5× normal (EU), or INR >2.0 with microvascular bleeding (ASA)",
+        "G: EU Rec 27; ASA 2015"
+      ],
+      [
+        "Hb",
+        "70–90 g/L when giving RBC",
+        "G: EU Rec 16 (1C)"
+      ],
+      [
+        "Temperature",
+        "36–37 °C core. Warm all fluids",
+        "G: EU Rec 18 (1C)"
+      ]
+    ],
+    "cautions": [
+      "Never a bare \"1 g calcium\": chloride has 3× the elemental calcium of gluconate.",
+      "CaCl₂ through a peripheral line or IO can cause necrosis.",
+      "A fixed calcium repeat with no iCa can over- or under-treat: check iCa.",
+      "All defaults are for adults; children are at high risk of low calcium and magnesium and high potassium.",
+      "Tally taps are not verified doses."
+    ],
+    "sources": [
+      {
+        "id": "jts",
+        "label": "JTS Damage Control Resuscitation CPG (2019, calcium update 2023)",
+        "url": "https://jts.health.mil/assets/docs/cpgs/Damage_Control_Resuscitation_12_Jul_2019_ID18.pdf"
+      },
+      {
+        "id": "rossaint2023",
+        "label": "Rossaint 2023, European guideline on bleeding after major trauma",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36859355/"
+      },
+      {
+        "id": "proppr",
+        "label": "PROPPR, JAMA 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/25647203/"
+      },
+      {
+        "id": "asa2015",
+        "label": "ASA perioperative blood management, 2015",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/25545654/"
+      },
+      {
+        "id": "circular2024",
+        "label": "Circular of Information for blood components, 2024",
+        "url": "https://weareblood.org/wp-content/uploads/2024/10/Circular-of-Information-for-the-Use-of-Human-Blood-and-Blood-Components-June-2024.pdf"
+      },
+      {
+        "id": "towar",
+        "label": "TOWAR, NEJM 2026",
+        "url": "https://doi.org/10.1056/NEJMoa2602167"
+      },
+      {
+        "id": "swift",
+        "label": "SWiFT, NEJM 2026",
+        "url": "https://doi.org/10.1056/NEJMoa2516043"
+      },
+      {
+        "id": "crash2",
+        "label": "CRASH-2, Lancet 2010",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/20554319/"
+      },
+      {
+        "id": "woman",
+        "label": "WOMAN, Lancet 2017",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28456509/"
+      },
+      {
+        "id": "itactic",
+        "label": "ITACTIC, Intensive Care Med 2021",
+        "url": "https://doi.org/10.1007/s00134-020-06266-1"
+      },
+      {
+        "id": "tactic",
+        "label": "Baksaas-Aasen 2019, TACTIC ROTEM and TEG algorithms, Ann Surg",
+        "url": "https://doi.org/10.1097/SLA.0000000000002825"
+      },
+      {
+        "id": "kcentra",
+        "label": "Kcentra (4F-PCC), FDA label",
+        "url": "https://www.drugs.com/pro/kcentra.html"
+      },
+      {
+        "id": "fibryga",
+        "label": "Fibryga (fibrinogen concentrate), FDA label",
+        "url": "https://www.fda.gov/media/105864/download"
+      },
+      {
+        "id": "cacl2",
+        "label": "Calcium chloride 10%, FDA label",
+        "url": "https://americanregent.com/media/1525/calcium-chloride-10percent-prescribing-information.pdf"
+      },
+      {
+        "id": "cagluc",
+        "label": "Calcium gluconate, FDA label",
+        "url": "https://ndclist.com/ndc/51662-1347/label"
+      },
+      {
+        "id": "rhd2026",
+        "label": "RhD and whole blood, Obstet Gynecol 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42743435/"
+      }
+    ],
+    "addToCaseDefault": true,
+    "viscoelastic": {
+      "rotem": {
+        "extemMinusFibtemCa5": 30,
+        "extemCa5": 41,
+        "extemLi30": 85
+      },
+      "teg": {
+        "rtegMinusFfMa": 46,
+        "rtegMa": 64,
+        "rtegLy30": 10
+      },
+      "platelets": "Platelets low on viscoelastic testing: consider a platelet dose.",
+      "coagulopathy": "Coagulopathy likely (80% sensitivity for an INR above 1.2): consider plasma, or PCC per local protocol.",
+      "fibrinolysis": "Hyperfibrinolysis: TXA, if not already given and within the time limit.",
+      "note": "TACTIC thresholds (Baksaas-Aasen 2019), each chosen for 70% sensitivity (coagulopathy 80%). The plasma or PCC step is from the abstract's coagulopathy threshold; the paper's algorithm figure has not been checked. ITACTIC found no outcome gain over lab-guided care.",
+      "sources": [
+        "tactic",
+        "itactic"
+      ]
+    }
+  },
+  "mcs": {
+    "reviewed": "2026-11-03",
+    "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
+    "legend": "Mfr = from the manufacturer only. Per your team = varies by institution. Review = from a review article. Verify = not yet checked against the source. G = guideline.",
+    "devices": [
+      {
+        "id": "lvad",
+        "name": "LVAD",
+        "detail": "HeartMate 3",
+        "deviceKinds": [
+          "lvad"
+        ],
+        "questions": [
+          {
+            "q": "Is the pump running?",
+            "look": "Listen for the hum; controller on, no alarm; power 3–5 W. 10 W or more: suspect pump thrombosis (Mfr)."
+          },
+          {
+            "q": "Is the patient perfused?",
+            "look": "NIBP fails with a pulse pressure under 15 mmHg: use the Doppler opening pressure (≈ MAP). Avoid MAP under 60 and keep it mid-range."
+          },
+          {
+            "q": "Is the pump underfilled?",
+            "look": "Low PI and flow, suction events: volume, check the speed with the VAD team. Laparoscopy: insufflation 10–12 mmHg, avoid over 15."
+          },
+          {
+            "q": "Is the RV failing?",
+            "look": "CVP over 15 suggests RV failure, not low volume."
+          },
+          {
+            "q": "Arrest?",
+            "look": "Compress if MAP is under 50 and EtCO₂ under 20 (2026 review); a 2023 review used MAP under 30–40. AHA 2017 supports compressions."
+          }
+        ],
+        "rows": [
+          [
+            "Speed",
+            "4,800–6,500 rpm",
+            "Review; settable 3,000–9,000 (Mfr)"
+          ],
+          [
+            "Power",
+            "3–5 W; ≥10 W: suspect thrombosis",
+            "Mfr for 10 W"
+          ],
+          [
+            "Flow",
+            "4–6 L/min, estimated. Low-flow alarm <2.5 (or 2.0)",
+            "Mfr"
+          ],
+          [
+            "PI",
+            "2–6 (1–10 seen)",
+            "Review"
+          ],
+          [
+            "MAP",
+            "Avoid <60; mid-range. ISHLT 2013 <80 (IIb/C); 2023 review 70–85; 2026 review 75–90; Mfr <90",
+            "Verify (ISHLT 2023 not read)"
+          ],
+          [
+            "INR",
+            "2.0–3.0; some centres 2.0–2.5",
+            "Per your VAD team"
+          ],
+          [
+            "Aspirin",
+            "ARIES-HM3: no aspirin was non-inferior, with fewer bleeds. Older 81–325 mg advice is background",
+            "RCT"
+          ],
+          [
+            "Bridging",
+            "Hold warfarin; heparin once INR <2; post-op aPTT 60–80 s",
+            "Per your VAD team"
+          ],
+          [
+            "NIBP",
+            "Fails if pulse pressure <15 mmHg; Doppler opening pressure ≈ MAP",
+            "Review"
+          ],
+          [
+            "CVP",
+            ">15 suggests RV failure, not low volume",
+            "Review"
+          ],
+          [
+            "Laparoscopy",
+            "Insufflation 10–12 mmHg; avoid >15",
+            "Review"
+          ],
+          [
+            "HVAD (legacy)",
+            "2,400–3,200 rpm; 2.5–8.5 W. Recalled 2021",
+            "Review"
+          ]
+        ],
+        "call": "Call the VAD team for every elective case, an alarm that won't clear, high power, RV failure, any speed change, arrest or reversal.",
+        "sources": [
+          "ishlt2023",
+          "lvad2026",
+          "lvad2023",
+          "hm3params",
+          "aries",
+          "ahacpr"
+        ]
+      },
+      {
+        "id": "impella",
+        "name": "Impella",
+        "detail": "CP, 5.5, RP",
+        "deviceKinds": [
+          "impella"
+        ],
+        "questions": [
+          {
+            "q": "Is it pumping?",
+            "look": "Console flow against the P-level; never P0 with the pump in the LV (retrograde flow)."
+          },
+          {
+            "q": "Is it in the right place?",
+            "look": "ME LAX: CP inlet 3.5 cm below the aortic annulus. 5.5: use the IFU (Mfr ≈5 cm)."
+          },
+          {
+            "q": "Is the purge working?",
+            "look": "300–1,100 mmHg, 2–30 mL/h. Over 600 mmHg with flow under 2 mL/h and rising LDH: purge thrombosis. Never stop the purge."
+          },
+          {
+            "q": "Hemolysis?",
+            "look": "Plasma-free Hb over 20 mg/dL suggests it; no standard cut-off. Check position first."
+          },
+          {
+            "q": "Is the RV keeping up?",
+            "look": "A failing RV underfills the LV and the flow falls: consider RV support (RP, ProtekDuo)."
+          }
+        ],
+        "rows": [
+          [
+            "CP flow by P-level",
+            "P2 1.1–2.1, P4 2.0–2.5, P6 2.5–2.9, P8 3.1–3.4, P9 3.3–3.7 L/min",
+            "Mfr (2019 software)"
+          ],
+          [
+            "RP flow",
+            "P4 1.3–2.9, P6 2.4–3.5, P9 3.9–4.4 L/min",
+            "Mfr"
+          ],
+          [
+            "5.5 flow",
+            "No P-level table found; use the console or IFU",
+            "Verify"
+          ],
+          [
+            "Purge",
+            "300–1,100 mmHg; 2–30 mL/h; D5W + heparin 25 or 50 U/mL. Never stop it",
+            "Mfr; per your team"
+          ],
+          [
+            "Purge thrombosis",
+            ">600 mmHg + flow <2 mL/h + rising LDH",
+            "Mfr"
+          ],
+          [
+            "CP depth",
+            "3.5 cm, annulus to inlet (ME LAX)",
+            "Mfr; review 3.5–4"
+          ],
+          [
+            "5.5 depth",
+            "Use the IFU (Mfr ≈5 cm; sources say 4–5.5)",
+            "Mfr"
+          ],
+          [
+            "P0",
+            "Never in the LV (retrograde flow)",
+            "Mfr"
+          ],
+          [
+            "Hemolysis",
+            "pfHb >20 mg/dL suggests it",
+            "Review; no standard cut-off"
+          ],
+          [
+            "Heparin",
+            "One review: aPTT 40–80 s or anti-Xa 0.5–0.7",
+            "Per your team"
+          ]
+        ],
+        "sources": [
+          "impellaifu",
+          "impellaecho",
+          "pvad2025"
+        ]
+      },
+      {
+        "id": "ecmo",
+        "name": "ECMO",
+        "detail": "VA and VV",
+        "deviceKinds": [
+          "ecmoDrainage",
+          "ecmoReturn"
+        ],
+        "questions": [
+          {
+            "q": "VA or VV?",
+            "look": "VA supports the heart and lungs; VV only the lungs."
+          },
+          {
+            "q": "Is the patient perfused? (VA)",
+            "look": "The lowest flow that perfuses: DO₂:VO₂ over 3 (SvO₂ over 66%). No L/min target. Post-oxygenator PaO₂ about 150 mmHg."
+          },
+          {
+            "q": "Is the upper body oxygenated? (VA)",
+            "look": "Right radial line and SpO₂ for differential hypoxia."
+          },
+          {
+            "q": "Is the LV distending? (VA)",
+            "look": "Pulse pressure under 5–10, a closed aortic valve, smoke in the LV: vent early."
+          },
+          {
+            "q": "Is the leg perfused? (VA)",
+            "look": "Leg NIRS over 50%, side-to-side gap under 20%; distal perfusion cannula 6–8 Fr."
+          },
+          {
+            "q": "Is the oxygenator failing?",
+            "look": "CO₂ transfer under 10 mmHg at maximal sweep: change it."
+          }
+        ],
+        "rows": [
+          [
+            "VV start",
+            "Sweep ~2, flow ~2 L/min; titrate slowly",
+            "G"
+          ],
+          [
+            "VV ventilator",
+            "Plateau ≤25, PEEP ≥10, RR ~10, FiO₂ 0.3–0.5",
+            "G"
+          ],
+          [
+            "VV saturation",
+            "SaO₂ often 80–90%; judge DO₂, not SpO₂",
+            "G"
+          ],
+          [
+            "VA flow",
+            "Lowest that perfuses; DO₂:VO₂ >3 (SvO₂ >66%). No L/min target",
+            "G"
+          ],
+          [
+            "VA gases",
+            "Post-oxygenator PaO₂ ≈150 mmHg",
+            "G"
+          ],
+          [
+            "VA limb",
+            "Right radial line and SpO₂; leg NIRS >50%, gap <20%; distal cannula 6–8 Fr",
+            "G"
+          ],
+          [
+            "LV distension",
+            "Pulse pressure <5–10, closed AV, smoke: vent early",
+            "G"
+          ],
+          [
+            "Oxygenator",
+            "Change if CO₂ transfer <10 mmHg at max sweep",
+            "G"
+          ],
+          [
+            "Heparin",
+            "Anti-Xa 0.3–0.5, 0.4–0.6 or 0.5–0.7; no fixed ACT",
+            "Per your team"
+          ],
+          [
+            "Bleeding",
+            "Platelets ≥100 × 10⁹/L; fibrinogen >1.5 g/L; Hb >7–9",
+            "G"
+          ],
+          [
+            "VA weaning MAP",
+            ">65 mmHg",
+            "G (ELSO VA)"
+          ]
+        ],
+        "sources": [
+          "elsovv",
+          "elsova",
+          "elsocircuit",
+          "elso2021"
+        ]
+      },
+      {
+        "id": "iabp",
+        "name": "IABP",
+        "detail": "Intra-aortic balloon pump",
+        "deviceKinds": [
+          "iabp"
+        ],
+        "questions": [
+          {
+            "q": "Is it timed right?",
+            "look": "Inflation at the dicrotic notch; the assisted end-diastolic pressure 5–10 mmHg below the unassisted."
+          },
+          {
+            "q": "Is it in the right place?",
+            "look": "Tip 2–3 cm below the left subclavian artery (Desc Ao views), above the renal arteries."
+          },
+          {
+            "q": "Is the limb perfused?",
+            "look": "Check distal pulses and the left radial trace (a high balloon lowers it)."
+          }
+        ],
+        "rows": [
+          [
+            "Role",
+            "No 30-day benefit in IABP-SHOCK II; class III for routine AMI shock",
+            "Trial review"
+          ],
+          [
+            "Position",
+            "Tip 2–3 cm below the LSCA, above the renals",
+            "Review"
+          ],
+          [
+            "Timing",
+            "Inflate at the dicrotic notch. Assisted EDP 5–10 mmHg below unassisted",
+            "Review"
+          ],
+          [
+            "Heparin",
+            "No society target. HIT ~7%",
+            "Per your team"
+          ],
+          [
+            "Weaning",
+            "1:1 → 1:2 → 1:3",
+            "Per your team"
+          ]
+        ],
+        "sources": [
+          "iabptiming",
+          "mcsami",
+          "iabpufh"
+        ]
+      },
+      {
+        "id": "protekduo",
+        "name": "ProtekDuo",
+        "detail": "Percutaneous RV support",
+        "deviceKinds": [
+          "protekDuo"
+        ],
+        "questions": [
+          {
+            "q": "Is the outflow in the main PA?",
+            "look": "Migration into a branch, or retraction into the RV, harms."
+          },
+          {
+            "q": "Is it pumping enough?",
+            "look": "Usually 4.5–5 L/min."
+          }
+        ],
+        "rows": [
+          [
+            "Design",
+            "Right IJ dual lumen, RA to main PA; 29 or 31 Fr; 4.5–5 L/min",
+            "Review"
+          ],
+          [
+            "Position",
+            "Outflow in the main PA. Branch migration or retraction harms",
+            "Review"
+          ],
+          [
+            "Heparin",
+            "Not in the sources read",
+            "Per your team"
+          ]
+        ],
+        "sources": [
+          "protekduo"
+        ]
+      }
+    ],
+    "cautions": [
+      "Every number is reference only. Verify all LVAD rows (ISHLT 2023 not yet read).",
+      "LVAD and Impella flows are estimates; an LVAD thrombus can falsely raise them."
+    ],
+    "sources": [
+      {
+        "id": "ishlt2023",
+        "label": "ISHLT mechanical circulatory support guideline 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37245143/"
+      },
+      {
+        "id": "lvad2026",
+        "label": "LVAD patients having noncardiac surgery, review 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41817232/"
+      },
+      {
+        "id": "lvad2023",
+        "label": "LVAD patients having noncardiac surgery, review 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36912004/"
+      },
+      {
+        "id": "hm3params",
+        "label": "HeartMate 3 pump parameters (Abbott)",
+        "url": "https://www.cardiovascular.abbott/content/dam/cv/cardiovascular/hcp/education-training/heart-failure/documents/hf-heartmate3-lvad-pump-parameters.pdf"
+      },
+      {
+        "id": "aries",
+        "label": "ARIES-HM3, JAMA 2023",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/37950897/"
+      },
+      {
+        "id": "ahacpr",
+        "label": "AHA: CPR in patients with MCS, 2017",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/28533303/"
+      },
+      {
+        "id": "impellaecho",
+        "label": "Echocardiography for Impella, 2026",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/41899330/"
+      },
+      {
+        "id": "pvad2025",
+        "label": "Percutaneous VAD review, 2025",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42473600/"
+      },
+      {
+        "id": "impellaifu",
+        "label": "Impella CP instructions for use (FDA)",
+        "url": "https://fda.gov/media/140767/download"
+      },
+      {
+        "id": "elsovv",
+        "label": "ELSO interim guideline: VV ECMO",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/33965970/"
+      },
+      {
+        "id": "elsova",
+        "label": "ELSO interim guideline: VA ECMO",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/34339398/"
+      },
+      {
+        "id": "elsocircuit",
+        "label": "ELSO circuit guideline",
+        "url": "https://doi.org/10.1097/MAT.0000000000001630"
+      },
+      {
+        "id": "elso2021",
+        "label": "ELSO anticoagulation guideline 2021",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35080509/"
+      },
+      {
+        "id": "iabptiming",
+        "label": "IABP timing",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/17672189/"
+      },
+      {
+        "id": "mcsami",
+        "label": "MCS trials in AMI cardiogenic shock",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42355620/"
+      },
+      {
+        "id": "iabpufh",
+        "label": "Heparin with IABP",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/38575436/"
+      },
+      {
+        "id": "protekduo",
+        "label": "ProtekDuo review",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/38304906/"
+      }
+    ]
+  },
+  "tee": {
+    "reviewed": "2026-11-03",
+    "reviewDoc": "https://claude.ai/artifact/2hHaheME7LbUiVxjss9n3v",
+    "views": [
+      {
+        "n": 1,
+        "name": "ME 5C",
+        "angle": "~0° + ~10° (verify)",
+        "level": "ME",
+        "basic": false,
+        "depth": "~30 cm"
+      },
+      {
+        "n": 2,
+        "name": "ME 4C",
+        "angle": "10–20°",
+        "level": "ME",
+        "basic": true,
+        "depth": "~30–35 cm"
+      },
+      {
+        "n": 3,
+        "name": "ME mitral commissural",
+        "angle": "50–70°",
+        "level": "ME",
+        "basic": false
+      },
+      {
+        "n": 4,
+        "name": "ME 2C",
+        "angle": "80–100°",
+        "level": "ME",
+        "basic": true
+      },
+      {
+        "n": 5,
+        "name": "ME LAX",
+        "angle": "120–140° (Reeves 120–160°)",
+        "level": "ME",
+        "basic": true
+      },
+      {
+        "n": 6,
+        "name": "ME AV LAX",
+        "angle": "120–140°",
+        "level": "ME",
+        "basic": false
+      },
+      {
+        "n": 7,
+        "name": "ME Asc Ao LAX",
+        "angle": "90–110°",
+        "level": "ME",
+        "basic": true
+      },
+      {
+        "n": 8,
+        "name": "ME Asc Ao SAX",
+        "angle": "0–30° (Reeves 20–40°)",
+        "level": "ME",
+        "basic": true
+      },
+      {
+        "n": 9,
+        "name": "ME right PV",
+        "angle": "~0°",
+        "level": "ME",
+        "basic": false
+      },
+      {
+        "n": 10,
+        "name": "ME AV SAX",
+        "angle": "25–45°",
+        "level": "ME",
+        "basic": true
+      },
+      {
+        "n": 11,
+        "name": "ME RV inflow-outflow",
+        "angle": "50–70° (Reeves 60–90°)",
+        "level": "ME",
+        "basic": true
+      },
+      {
+        "n": 12,
+        "name": "ME modified bicaval TV",
+        "angle": "50–70°",
+        "level": "ME",
+        "basic": false
+      },
+      {
+        "n": 13,
+        "name": "ME bicaval",
+        "angle": "90–110°",
+        "level": "ME",
+        "basic": true
+      },
+      {
+        "n": 14,
+        "name": "ME R and L PVs",
+        "angle": "90–110°",
+        "level": "ME",
+        "basic": false
+      },
+      {
+        "n": 15,
+        "name": "ME LAA",
+        "angle": "90–110°",
+        "level": "ME",
+        "basic": false
+      },
+      {
+        "n": 16,
+        "name": "TG basal SAX",
+        "angle": "0–20°",
+        "level": "TG",
+        "basic": false
+      },
+      {
+        "n": 17,
+        "name": "TG mid SAX",
+        "angle": "0–20°",
+        "level": "TG",
+        "basic": true
+      },
+      {
+        "n": 18,
+        "name": "TG apical SAX",
+        "angle": "0–20°",
+        "level": "TG",
+        "basic": false
+      },
+      {
+        "n": 19,
+        "name": "TG RV basal",
+        "angle": "0–20°",
+        "level": "TG",
+        "basic": false
+      },
+      {
+        "n": 20,
+        "name": "TG RV inflow-outflow",
+        "angle": "0–20°",
+        "level": "TG",
+        "basic": false
+      },
+      {
+        "n": 21,
+        "name": "Deep TG 5C",
+        "angle": "0–20°",
+        "level": "Deep TG",
+        "basic": false
+      },
+      {
+        "n": 22,
+        "name": "TG 2C",
+        "angle": "90–110°",
+        "level": "TG",
+        "basic": false
+      },
+      {
+        "n": 23,
+        "name": "TG RV inflow",
+        "angle": "90–110°",
+        "level": "TG",
+        "basic": false
+      },
+      {
+        "n": 24,
+        "name": "TG LAX",
+        "angle": "120–140°",
+        "level": "TG",
+        "basic": false
+      },
+      {
+        "n": 25,
+        "name": "Desc Ao SAX",
+        "angle": "0–10°",
+        "level": "Desc Ao",
+        "basic": true
+      },
+      {
+        "n": 26,
+        "name": "Desc Ao LAX",
+        "angle": "90–100°",
+        "level": "Desc Ao",
+        "basic": true
+      },
+      {
+        "n": 27,
+        "name": "UE arch LAX",
+        "angle": "0° (verify)",
+        "level": "UE",
+        "basic": false
+      },
+      {
+        "n": 28,
+        "name": "UE arch SAX",
+        "angle": "70–90°",
+        "level": "UE",
+        "basic": false
+      }
+    ],
+    "viewsNote": "Order and angles from Hahn 2013 (the printed Table 10 is still to be checked); Reeves' angle shown where it differs. Basic = Reeves' 11 views, for monitoring only.",
+    "basicNote": "Basic perioperative TEE is for monitoring, not surgical decisions: get an advanced consult for those (Reeves 2013).",
+    "surgeries": [
+      {
+        "id": "all",
+        "name": "Every case",
+        "pre": [
+          "LV and RV function",
+          "17-segment wall motion",
+          "Valves",
+          "Aorta",
+          "PFO, left SVC, LAA thrombus",
+          "Conditions (rate, rhythm, pressure, inotropes)"
+        ],
+        "post": [
+          "LV and RV function against baseline",
+          "Wall motion against baseline",
+          "Valves",
+          "Aorta",
+          "De-airing",
+          "Surgeon told of findings"
+        ]
+      },
+      {
+        "id": "cabg",
+        "name": "CABG",
+        "pre": [
+          "Baseline wall motion",
+          "Ischemic MR",
+          "MI complications",
+          "Atheroma at cannula and clamp sites"
+        ],
+        "post": [
+          "Wall motion against baseline",
+          "MR change",
+          "Dissection"
+        ]
+      },
+      {
+        "id": "avr",
+        "name": "AVR",
+        "pre": [
+          "Severity",
+          "Annulus",
+          "LVOT",
+          "Calcium",
+          "Coronary ostia",
+          "LVOT obstruction risk"
+        ],
+        "post": [
+          "Seating",
+          "Gradients and DVI (significant <0.25, possible 0.25–0.35, normal >0.35; Zoghbi 2024)",
+          "Paravalvular vs central AR",
+          "New wall motion abnormality"
+        ]
+      },
+      {
+        "id": "mv",
+        "name": "MV repair",
+        "pre": [
+          "Mechanism",
+          "Segments",
+          "SAM risk (including AL:PL ≈1.3 or less)",
+          "LA and LAA thrombus",
+          "TV annulus"
+        ],
+        "post": [
+          "Residual MR mild or less",
+          "Stenosis (mean >6 mmHg with MVA <1.8 cm², verify)",
+          "SAM",
+          "Circumflex wall motion",
+          "New AR"
+        ]
+      },
+      {
+        "id": "aortic",
+        "name": "Aortic",
+        "pre": [
+          "Dimensions",
+          "Dissection details",
+          "AR mechanism",
+          "Root geometry"
+        ],
+        "post": [
+          "Residual AR",
+          "Coronary flow",
+          "Residual flap"
+        ]
+      },
+      {
+        "id": "avRepair",
+        "name": "AV repair / valve-sparing root",
+        "pre": [
+          "Mechanism: El Khoury type (I dilation, II prolapse, III restriction)",
+          "Annulus and STJ diameters"
+        ],
+        "post": [
+          "Effective height ≥9 mm (annular plane to central coaptation)",
+          "Coaptation above the annulus",
+          "Coaptation length (longer is better)",
+          "Residual AR, with its vena contracta"
+        ]
+      }
+    ],
+    "flags": [
+      [
+        "New RWMA",
+        "Any segment worse than baseline"
+      ],
+      [
+        "LV or RV worse",
+        "EF category down, or RV indices newly abnormal"
+      ],
+      [
+        "Residual MR",
+        "Moderate or worse after repair"
+      ],
+      [
+        "Iatrogenic MS",
+        "Mean >6 mmHg and MVA <1.8 cm² (verify)"
+      ],
+      [
+        "SAM / LVOT obstruction",
+        "SAM present, with or without a gradient"
+      ],
+      [
+        "Paravalvular leak",
+        "Any; graded by circumferential extent"
+      ],
+      [
+        "Prosthesis dysfunction",
+        "High gradient, low DVI or an immobile leaflet"
+      ],
+      [
+        "New flap",
+        "At a cannulation or clamp site"
+      ],
+      [
+        "Low coaptation after AV repair",
+        "Coaptation below the annulus, or effective height under 9 mm"
+      ],
+      [
+        "New AR",
+        "Mild or worse after MV or root surgery"
+      ],
+      [
+        "New effusion",
+        "Pericardial or pleural"
+      ],
+      [
+        "Air",
+        "Residual air after bypass"
+      ]
+    ],
+    "rv": "RV abnormal: TAPSE <1.7 cm, FAC <35%, S′ <9.5 cm/s (Nicoara Table 1).",
+    "diastolic": "The ASE diastolic tool is for the preoperative TTE: Nagueh 2025 excludes intraoperative use and gives no TEE cut-offs.",
+    "report": "A checklist, not the formal echo report (Nicoara 2020).",
+    "sources": [
+      {
+        "id": "hahn2013",
+        "label": "Hahn 2013, ASE/SCA comprehensive TEE examination",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/23998692/"
+      },
+      {
+        "id": "reeves2013",
+        "label": "Reeves 2013, ASE/SCA basic perioperative TEE",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/23622926/"
+      },
+      {
+        "id": "nicoara2020",
+        "label": "Nicoara 2020, ASE/SCA TEE to guide cardiac surgical decisions",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/32503709/"
+      },
+      {
+        "id": "asa2010",
+        "label": "ASA/SCA practice guidelines for perioperative TEE, 2010",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/20418689/"
+      },
+      {
+        "id": "zoghbi2024",
+        "label": "Zoghbi 2024, prosthetic valve function",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/38182282/"
+      },
+      {
+        "id": "nagueh2025",
+        "label": "Nagueh 2025, diastolic function",
+        "url": "https://doi.org/10.1016/j.echo.2025.03.011"
+      },
+      {
+        "id": "bierbach2010",
+        "label": "Bierbach 2010, aortic root and cusp configuration, Eur J Cardiothorac Surg",
+        "url": "https://doi.org/10.1016/j.ejcts.2010.01.060"
+      },
+      {
+        "id": "lepolain2009",
+        "label": "le Polain de Waroux 2009, recurrent AR after repair, JACC Cardiovasc Imaging",
+        "url": "https://doi.org/10.1016/j.jcmg.2009.04.013"
+      }
+    ],
+    "required": [
+      "Conditions (rate, rhythm, pressure, inotropes)"
+    ],
+    "handoff": {
+      "title": "TEE draft: confirm with the echocardiographer",
+      "note": "Adds about 6 lines to the case's echo notes in My Patient, with the time. It does not replace the formal echo report (Nicoara 2020)."
+    },
+    "avRepairNote": "Effective height ≥9 mm made no or mild AR very likely (Bierbach 2010). Coaptation below the annulus (OR 7.9), a shorter coaptation length, a larger annulus and any residual AR predicted failure (le Polain de Waroux 2009); type III and Marfan recurred more. Applying these to valve-sparing root surgery is an extension.",
+    "practice": [
+      {
+        "q": "Which is one of Reeves' 11 basic views: ME commissural, ME AV LAX, ME LAX or ME LAA?",
+        "a": "ME LAX.",
+        "source": "Reeves 2013"
+      },
+      {
+        "q": "After AVR the DVI is 0.22. What does it suggest?",
+        "a": "Significant prosthetic obstruction (DVI under 0.25).",
+        "source": "Zoghbi 2024"
+      },
+      {
+        "q": "After bypass, TAPSE is 1.5 cm and FAC 32%. Is RV function normal?",
+        "a": "No: TAPSE under 1.7 cm and FAC under 35% are abnormal.",
+        "source": "Nicoara 2020, Table 1"
+      },
+      {
+        "q": "After MV repair, the mean gradient is 7 mmHg and the MVA 1.6 cm². What do you tell the surgeon?",
+        "a": "Iatrogenic stenosis (mean above 6 mmHg with an MVA under 1.8 cm²).",
+        "source": "Nicoara 2020"
+      },
+      {
+        "q": "Before MV repair, the AL:PL ratio is 1.2. Which complication is more likely?",
+        "a": "SAM with LVOT obstruction (risk with an AL:PL ratio of about 1.3 or less).",
+        "source": "Nicoara 2020"
+      },
+      {
+        "q": "Where should an Impella CP inlet sit on the ME LAX view?",
+        "a": "About 3.5 cm below the aortic annulus.",
+        "source": "Impella CP IFU"
+      },
+      {
+        "q": "VA ECMO: pulse pressure 4 mmHg, the aortic valve stays shut, smoke in the LV. Next step?",
+        "a": "Vent the LV early.",
+        "source": "ELSO VA"
+      },
+      {
+        "q": "What ACT on bypass does STS 2018 find reasonable?",
+        "a": "Above 480 s (IIa). This app's default is above 450 s, set by your institution.",
+        "source": "STS/SCA/AmSECT 2018"
+      },
+      {
+        "q": "LVAD: low flows, a small LV and a CVP of 18. Most likely cause?",
+        "a": "RV failure (CVP above 15), not low volume.",
+        "source": "LVAD reviews 2023 and 2026"
+      },
+      {
+        "q": "Can the ASE diastolic algorithm grade function from intraoperative TEE values?",
+        "a": "No: Nagueh 2025 excludes intraoperative use and gives no TEE cut-offs.",
+        "source": "Nagueh 2025"
+      }
     ]
   }
 }

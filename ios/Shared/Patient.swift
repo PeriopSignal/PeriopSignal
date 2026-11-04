@@ -268,6 +268,8 @@ struct PatientRecord: Codable, Equatable {
     var teeScreen = PatientTEEScreen()
     /// Intraoperative lab sets (PatientIntraop); the handoff shows the most recent.
     var intraopLabs: [IntraopLabSet] = []
+    /// Case timers (CaseTimers): antibiotic doses, heparin, ACTs, protamine and lab checks, each with its time.
+    var timers = CaseTimers()
     /// Major intraoperative considerations (IntraopConsiderations.flags) and anything else, for the handoff.
     var considerations: Set<String> = []
     var considerationsNote = ""
@@ -390,6 +392,7 @@ struct PatientRecord: Codable, Equatable {
         echo = v(.echo, "")
         teeScreen = v(.teeScreen, PatientTEEScreen())
         intraopLabs = v(.intraopLabs, [])
+        timers = v(.timers, CaseTimers())
         considerations = v(.considerations, [])
         considerationsNote = v(.considerationsNote, "")
         codeStatus = try? c.decodeIfPresent(CodeStatus.self, forKey: .codeStatus)
