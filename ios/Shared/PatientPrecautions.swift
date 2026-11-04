@@ -57,7 +57,7 @@ enum PatientPrecautions {
         for id in ["uri", "pneumonia"] where r.has(id) { add("droplet", label(id), dropletSource) }
         if r.has("tb"), r.hx.tbStatus != "latent" { add("airborne", label("tb"), tbSource) }
         if r.has("covid-recent"), r.hx.covidStatus != "recent" { add("airborne", label("covid-recent"), covidSource) }
-        return kinds.compactMap { k in
+        return kinds.compactMap { k -> PrecautionSuggestion? in
             guard let items = from[k.id], !r.hx.precautions.contains(k.id) else { return nil }
             return PrecautionSuggestion(precaution: k.id, from: items, source: (sources[k.id] ?? []).joined(separator: " "))
         }

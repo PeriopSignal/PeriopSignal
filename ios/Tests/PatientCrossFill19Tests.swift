@@ -70,7 +70,7 @@ final class PatientCrossFill19Tests: XCTestCase {
         XCTAssertFalse(r.labProblems.contains("anemia"))
         // Taken off by the user while the Hb stays low: stays off, until the Hb goes normal and low again.
         change(&r) { $0.labs["hb"] = 9 }
-        change(&r) { $0.problems.remove("anemia") }
+        change(&r) { _ = $0.problems.remove("anemia") }
         change(&r) { $0.labs["hb"] = 8.6 }
         XCTAssertFalse(r.has("anemia"))
         change(&r) { $0.labs["hb"] = 13 }
@@ -81,7 +81,7 @@ final class PatientCrossFill19Tests: XCTestCase {
         XCTAssertFalse(r.has("anemia"))
         // Entered by the user: never taken off.
         var u = adult(.male)
-        change(&u) { $0.problems.insert("anemia") }
+        change(&u) { _ = $0.problems.insert("anemia") }
         change(&u) { $0.labs["hb"] = 9 }
         XCTAssertFalse(u.labProblems.contains("anemia"), "already the user's")
         change(&u) { $0.labs["hb"] = 15 }
@@ -117,9 +117,9 @@ final class PatientCrossFill19Tests: XCTestCase {
 
     func testHistoryItemsFillTheirFlags() {
         let cases: [(String, (inout PatientRecord) -> Void, (inout PatientRecord) -> Void)] = [
-            ("insulin", { $0.problems.formUnion(["dm", "insulin"]) }, { $0.problems.remove("insulin") }),
+            ("insulin", { $0.problems.formUnion(["dm", "insulin"]) }, { _ = $0.problems.remove("insulin") }),
             ("steroid", { $0.problems.insert("adrenal"); $0.hx.adrenalKinds = ["steroids"] }, { $0.hx.adrenalKinds = ["insufficiency"] }),
-            ("anticoagulant", { $0.problems.insert("anticoagulation") }, { $0.problems.remove("anticoagulation") }),
+            ("anticoagulant", { _ = $0.problems.insert("anticoagulation") }, { _ = $0.problems.remove("anticoagulation") }),
         ]
         for (flag, add, remove) in cases {
             var r = adult()
@@ -130,7 +130,7 @@ final class PatientCrossFill19Tests: XCTestCase {
             XCTAssertFalse(r.medFlags.contains(flag), flag + ": the source goes, the fill goes")
             // The user takes the flag off: it stays off while the source stays.
             change(&r, add)
-            change(&r) { $0.medFlags.remove(flag) }
+            change(&r) { _ = $0.medFlags.remove(flag) }
             XCTAssertTrue(r.fills.medFlags.isEmpty, flag)
             change(&r) { $0.weightKg = 70 }
             XCTAssertFalse(r.medFlags.contains(flag), flag + " stays off")
@@ -139,7 +139,7 @@ final class PatientCrossFill19Tests: XCTestCase {
             XCTAssertTrue(r.medFlags.contains(flag), flag + ": back when the source returns")
             // A flag the user ticked first is never taken off.
             var u = adult()
-            change(&u) { $0.medFlags.insert(flag) }
+            change(&u) { _ = $0.medFlags.insert(flag) }
             change(&u, add)
             XCTAssertFalse(u.fills.medFlags.contains(flag), flag)
             change(&u, remove)
@@ -152,7 +152,7 @@ final class PatientCrossFill19Tests: XCTestCase {
         var r = adult(.female)
         change(&r) { $0.problems.formUnion(["dm", "insulin"]) }
         change(&r) { $0.problems.insert("gdm"); $0.hx.gdmInsulin = true }
-        change(&r) { $0.problems.remove("insulin") }
+        change(&r) { _ = $0.problems.remove("insulin") }
         XCTAssertTrue(r.medFlags.contains("insulin"), "gestational diabetes on insulin still wants it")
         change(&r) { $0.hx.gdmInsulin = false }
         XCTAssertFalse(r.medFlags.contains("insulin"), "no source wants it")
@@ -162,8 +162,8 @@ final class PatientCrossFill19Tests: XCTestCase {
             var m = adult()
             change(&m) { $0.homeMeds = [warfarin] }
             XCTAssertTrue(m.medFlags.contains("anticoagulant"))
-            change(&m) { $0.problems.insert("anticoagulation") }
-            change(&m) { $0.problems.remove("anticoagulation") }
+            change(&m) { _ = $0.problems.insert("anticoagulation") }
+            change(&m) { _ = $0.problems.remove("anticoagulation") }
             XCTAssertTrue(m.medFlags.contains("anticoagulant"), "the list still wants it")
             change(&m) { $0.homeMeds = [] }
             XCTAssertFalse(m.medFlags.contains("anticoagulant"))
@@ -203,7 +203,7 @@ final class PatientCrossFill19Tests: XCTestCase {
         // The AF item taken off takes the fill with it.
         var g = adult()
         change(&g) { $0.problems.insert("af"); $0.hx.afType = "permanent" }
-        change(&g) { $0.problems.remove("af") }
+        change(&g) { _ = $0.problems.remove("af") }
         XCTAssertTrue(g.ecg.isEmpty)
     }
 
@@ -245,22 +245,22 @@ final class PatientCrossFill19Tests: XCTestCase {
     func testCirrhosisAndThyroidOpenTheirLabGroups() {
         for (problem, group) in [("cirrhosis", "liver"), ("thyroid", "thyroid")] {
             var r = adult()
-            change(&r) { $0.problems.insert(problem) }
+            change(&r) { _ = $0.problems.insert(problem) }
             XCTAssertTrue(r.labSections.contains(group), group)
-            change(&r) { $0.problems.remove(problem) }
+            change(&r) { _ = $0.problems.remove(problem) }
             XCTAssertFalse(r.labSections.contains(group), group + ": closed again, as it was the fill's")
             // Opened by the user first: never closed.
             var u = adult()
-            change(&u) { $0.labSections.insert(group) }
-            change(&u) { $0.problems.insert(problem) }
-            change(&u) { $0.problems.remove(problem) }
+            change(&u) { _ = $0.labSections.insert(group) }
+            change(&u) { _ = $0.problems.insert(problem) }
+            change(&u) { _ = $0.problems.remove(problem) }
             XCTAssertTrue(u.labSections.contains(group), group)
             // Closed by the user while the source stays, then reopened by the user: theirs.
             var c = adult()
-            change(&c) { $0.problems.insert(problem) }
-            change(&c) { $0.labSections.remove(group) }
-            change(&c) { $0.labSections.insert(group) }
-            change(&c) { $0.problems.remove(problem) }
+            change(&c) { _ = $0.problems.insert(problem) }
+            change(&c) { _ = $0.labSections.remove(group) }
+            change(&c) { _ = $0.labSections.insert(group) }
+            change(&c) { _ = $0.problems.remove(problem) }
             XCTAssertTrue(c.labSections.contains(group), group)
         }
     }
@@ -277,7 +277,7 @@ final class PatientCrossFill19Tests: XCTestCase {
         var u = adult()
         change(&u) { $0.dialysis = true }
         change(&u) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisSchedule = "mwf" }
-        change(&u) { $0.problems.remove("esrd-dialysis") }
+        change(&u) { _ = $0.problems.remove("esrd-dialysis") }
         XCTAssertTrue(u.dialysis)
         // Unticked by the user: stays unticked.
         var o = adult()
@@ -292,7 +292,7 @@ final class PatientCrossFill19Tests: XCTestCase {
 
     func testSepsisAntibioticFollowsTheTyping() {
         var r = adult()
-        change(&r) { $0.problems.insert("sepsis") }
+        change(&r) { _ = $0.problems.insert("sepsis") }
         for t in ["c", "ce", "cefepime"] { change(&r) { $0.hx.sepsisAntibiotic = t } }
         XCTAssertEqual(r.homeMeds.map(\.name), ["cefepime"], "one medication, renamed as typed")
         XCTAssertNotNil(r.fills.meds[PatientCrossFill.sepsisAntibioticKey])
@@ -316,13 +316,13 @@ final class PatientCrossFill19Tests: XCTestCase {
         XCTAssertEqual(l.homeMeds.count, 1)
         var t = adult()
         change(&t) { $0.homeMeds = [PatientMed(name: "Cefazolin")] }
-        change(&t) { $0.problems.insert("sepsis") }
+        change(&t) { _ = $0.problems.insert("sepsis") }
         for s in ["c", "cef", "cefazolin"] { change(&t) { $0.hx.sepsisAntibiotic = s } }
         XCTAssertEqual(t.homeMeds.map(\.name), ["Cefazolin"])
         // Sepsis taken off: the antibiotic is no longer a source.
         var g = adult()
         change(&g) { $0.problems.insert("sepsis"); $0.hx.sepsisAntibiotic = "Cefepime" }
-        change(&g) { $0.problems.remove("sepsis") }
+        change(&g) { _ = $0.problems.remove("sepsis") }
         XCTAssertTrue(g.homeMeds.isEmpty)
     }
 
@@ -331,7 +331,7 @@ final class PatientCrossFill19Tests: XCTestCase {
     @MainActor func testAFillIsPartOfItsSourcesUndoStep() {
         let store = PatientStore(url: nil)
         store.update(discrete: true) { $0.ageYears = 60; $0.problems = ["dm"] }
-        store.update(discrete: true) { $0.problems.insert("insulin") }
+        store.update(discrete: true) { _ = $0.problems.insert("insulin") }
         XCTAssertTrue(store.record.medFlags.contains("insulin"))
         store.undo()
         XCTAssertFalse(store.record.has("insulin"))
@@ -349,13 +349,13 @@ final class PatientCrossFill19Tests: XCTestCase {
         base.vitals["spo2"] = 94
         let sources: [(String, (inout PatientRecord) -> Void)] = [
             ("anemia", { $0.labs["hb"] = 9.5 }),
-            ("insulin", { $0.problems.insert("insulin") }),
+            ("insulin", { _ = $0.problems.insert("insulin") }),
             ("steroid", { $0.problems.insert("adrenal"); $0.hx.adrenalKinds = ["steroids"] }),
-            ("anticoagulant", { $0.problems.insert("anticoagulation") }),
+            ("anticoagulant", { _ = $0.problems.insert("anticoagulation") }),
             ("af", { $0.problems.insert("af"); $0.hx.afType = "permanent" }),
             ("paced", { $0.problems.insert("pacemaker"); $0.hx.pacerDependent = true }),
-            ("cirrhosis", { $0.problems.insert("cirrhosis") }),
-            ("thyroid", { $0.problems.insert("thyroid") }),
+            ("cirrhosis", { _ = $0.problems.insert("cirrhosis") }),
+            ("thyroid", { _ = $0.problems.insert("thyroid") }),
             ("dialysis", { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisSchedule = "mwf" }),
             ("sepsis", { $0.problems.insert("sepsis"); $0.hx.sepsisAntibiotic = "Cefepime" }),
         ]
