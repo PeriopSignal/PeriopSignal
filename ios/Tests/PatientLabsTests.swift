@@ -11,9 +11,9 @@ final class PatientLabsTests: XCTestCase {
         let keys = PatientLabs.catalog.map(\.key)
         XCTAssertEqual(Set(keys).count, keys.count, "no key twice")
         XCTAssertEqual(PatientLabs.tests(.main).map(\.key),
-                       ["hb", "hct", "wbc", "plt", "inr", "fibrinogen", "na", "k", "cl", "hco3", "bun", "cr", "gfr",
+                       ["hb", "hct", "wbc", "plt", "pt", "inr", "ptt", "fibrinogen", "na", "k", "cl", "hco3", "bun", "cr", "gfr",
                         "glucose", "a1c", "albumin", "tbili", "lactate"],
-                       "fibrinogen under INR, GFR under creatinine; lactate last (1.8.3)")
+                       "PT and aPTT around INR (1.9), fibrinogen after them, GFR under creatinine; lactate last (1.8.3)")
         XCTAssertEqual(PatientLabs.tests(.cardiac).map(\.key), ["bnp", "ntprobnp", "troponin", "troponin99"])
         XCTAssertEqual(PatientLabs.tests(.liver).map(\.key), ["ast", "alt", "alp"])
         XCTAssertEqual(PatientLabs.tests(.thyroid).map(\.key), ["tsh", "ft4", "ft3"])
