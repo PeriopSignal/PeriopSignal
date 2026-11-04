@@ -66,4 +66,63 @@ final class Review19IntegrationTests: XCTestCase {
         XCTAssertTrue(s.has("anemia"))
         XCTAssertFalse(s.labProblems.contains("anemia"), "the user's, not the labs'")
     }
+
+    // MARK: Devices
+
+    /// A 1.8.3 "dialysis catheter" or "chest tube" line, migrated as placed in the room: the history saying the patient
+    /// arrives with one still draws it on arrival, so the preprocedure brief and its diagram show it.
+    func testAMigratedLineDoesNotHideTheOnArrivalDevice() throws {
+        var r = PatientRecord()
+        r.devices = [PatientDevice(kind: .cvc, site: "ij-right", side: "right", detail: "dialysis catheter", placedIntraop: true),
+                     PatientDevice(kind: .other, detail: "chest tube", placedIntraop: true)]
+        change(&r) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["catheter"]; $0.hx.dialysisCatheterSite = "R IJ" }
+        change(&r) { $0.hx.chestTube = true; $0.hx.chestTubeSides = ["left"] }
+        let arrival = r.currentDevices(arrivalOnly: true)
+        XCTAssertTrue(arrival.contains { $0.kind == .dialysisCatheter && $0.site == "ij-right" }, arrival.map(\.label).joined(separator: ", "))
+        XCTAssertTrue(arrival.contains { $0.kind == .chestTube && $0.side == "left" }, arrival.map(\.label).joined(separator: ", "))
+        let lines = try XCTUnwrap(PatientBriefs.preop(r).first { $0.key == "lines" })
+        XCTAssertTrue(lines.text.localizedCaseInsensitiveContains("catheter"), lines.text)
+        // The same form drawn as on arrival (not placed in the room) still stands for it: not doubled.
+        var mine = PatientRecord()
+        mine.devices = [PatientDevice(kind: .cvc, site: "ij-right", side: "right", detail: "dialysis catheter")]
+        change(&mine) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["catheter"]; $0.hx.dialysisCatheterSite = "R IJ" }
+        XCTAssertEqual(mine.devices.count, 1)
+    }
+
+    /// "AVF" drawn with no place and no side does not stand for the Renal page's left forearm fistula: that one is drawn,
+    /// with its limb alert, and the harvest line does not send lines to the left arm.
+    func testASidelessFistulaDoesNotAbsorbALocatedOne() {
+        var r = PatientRecord()
+        r.devices = [PatientDevice(kind: .avFistula)]
+        change(&r) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["fistula"] }
+        XCTAssertEqual(r.devices.count, 1, "the chip with no location: the drawn one stands for it")
+        change(&r) { $0.hx.fistulaSite = "left forearm" }
+        XCTAssertTrue(r.devices.contains { $0.kind == .avFistula && $0.site == "forearm-left" })
+        XCTAssertTrue(PatientDeviceFills.limbAlerts(r).contains { $0.limb == "arm-left" && $0.automatic })
+        r.radial.harvest = "right"
+        let reminder = PatientStudies.harvestReminder(r) ?? ""
+        XCTAssertFalse(reminder.contains("in the left arm"), reminder)
+        XCTAssertTrue(HandoffWriter.text(r).contains("Limb alert: L arm — AV fistula"), HandoffWriter.text(r))
+
+        // The location typed in one go, beside the side-less one: drawn too.
+        var once = PatientRecord()
+        once.devices = [PatientDevice(kind: .avFistula)]
+        change(&once) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["fistula"]; $0.hx.fistulaSite = "left forearm" }
+        XCTAssertTrue(PatientDeviceFills.limbAlerts(once).contains { $0.limb == "arm-left" })
+
+        // The fill's first, then the side-less one drawn, then the location retyped: the fill's follows and stays.
+        var f = PatientRecord()
+        change(&f) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["fistula"]; $0.hx.fistulaSite = "left forearm" }
+        change(&f) { $0.devices.append(PatientDevice(kind: .avFistula)) }
+        change(&f) { $0.hx.fistulaSite = "left upper arm" }
+        XCTAssertTrue(f.devices.contains { $0.site == "upper-arm-left" })
+        XCTAssertNotNil(f.fills.devices["hd-fistula"])
+        XCTAssertTrue(PatientDeviceFills.limbAlerts(f).contains { $0.limb == "arm-left" })
+
+        // A side-less fistula still stands for a source that names no side either.
+        var n = PatientRecord()
+        n.devices = [PatientDevice(kind: .avFistula)]
+        change(&n) { $0.problems.insert("esrd-dialysis"); $0.hx.dialysisAccess = ["fistula"]; $0.hx.fistulaSite = "somewhere" }
+        XCTAssertEqual(n.devices.count, 1)
+    }
 }

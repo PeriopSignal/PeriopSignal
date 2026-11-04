@@ -104,13 +104,20 @@ enum PatientDeviceFills {
     /// then), a side that does not disagree. A generator counts whatever its site. One marked removed counts too: the
     /// user's record of it, not to be doubled by one in place (the conservative reading; the history page says nothing of
     /// a replacement).
+    ///
+    /// Two do not stand for the source's: a device in the 1.8.3 form marked placed in the room (as the 1.8.3 migration
+    /// marks every line it reads), since the history says the patient arrives with it and the preprocedure brief and its
+    /// diagram show only what is there on arrival; and a fistula drawn with no side when the source names one, since the
+    /// side is the limb alert's (and the harvest line's arm to spare).
     private static func alreadyDrawn(_ w: Want, in devices: [PatientDevice]) -> Bool {
         devices.contains { d in
             let legacy = isLegacy(d, of: w.kind)
             guard d.kind == w.kind || legacy else { return false }
+            if legacy && d.placedIntraop { return false }
             if w.kind == .cied { return true }
             if d.site == w.site && d.side == w.side { return true }
             let side = d.siteInfo?.side ?? d.side
+            if w.kind == .avFistula && side == nil && w.side != nil { return false }
             let sideAgrees = w.side == nil || side == nil || side == w.side
             return (w.site.isEmpty || d.site.isEmpty || (legacy && w.kind == .chestTube)) && sideAgrees
         }
