@@ -3,6 +3,9 @@ name: iOS release (TestFlight)
 on:
   workflow_dispatch:
     inputs:
+      runner:
+        description: "GitHub macOS runner label (macos-15 has Xcode 26, needed to upload; macos-14 acquires faster but cannot upload)"
+        default: "macos-15"
       version:
         description: "Marketing version shown in TestFlight (e.g. 1.0.0)"
         required: true
@@ -27,7 +30,7 @@ env:
 jobs:
   release:
     name: Archive, sign in the cloud, upload to TestFlight
-    runs-on: macos-14   # the pool that acquires jobs reliably (Nov 2026); macos-15-intel and macos-15 queued for hours
+    runs-on: ${{ inputs.runner || 'macos-15' }}   # a dispatch input, so a pool that is not acquiring jobs can be swapped without a commit; uploads need Xcode 26 (iOS 26 SDK), which only the macos-15 images carry
     timeout-minutes: 90
     outputs:
       uploaded: ${{ steps.export.outputs.uploaded }}
