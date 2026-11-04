@@ -14,6 +14,17 @@ import Foundation
 //   each history item (suggestions(_:)), and nothing is filed on the ECG until it is tapped. Paroxysmal AF in sinus rhythm,
 //   or a pacemaker that is not pacing, must not appear in a handoff as an ECG finding nobody saw, and free text such as
 //   "not PPM dependent" is not read. If Ben asks for it fully automatic, the filing goes in one place: suggestions.
+//
+//   The exception (Ben, Nov 3; 1.9): two structured history answers say what the ECG must show, so they file it, as
+//   fills (PatientCrossFill): AF typed as permanent (2023 ACC/AHA/ACCP/HRS AF guideline, Joglar JA, et al. Circulation
+//   2024;149:e1–e156: the decision not to pursue sinus rhythm) files "Atrial fibrillation", and "Pacer dependent" on a
+//   pacemaker or ICD files "Paced rhythm (ventricular)" (ventricular pacing is present in a dependent patient whether the
+//   mode is VVI or DDD). A fill is taken off when its answer goes, only if it is still on the ECG and still the fill's;
+//   one the user took off stays off. Paroxysmal, persistent and long-standing persistent AF file nothing (the patient may
+//   be in sinus rhythm), and everything else stays a one-tap suggestion below.
+//
+//   Epicardial pacing wires on the diagram (helper 4's device kind, read by its raw value so this file does not depend
+//   on its name) count as temporary pacing, as the words do.
 enum PatientECGLink {
     // MARK: The mapping
 
@@ -87,7 +98,12 @@ enum PatientECGLink {
     static func temporaryPacingContext(_ r: PatientRecord) -> Bool {
         let texts = [r.ecgNotes, r.hx.deviceDetails, r.procedure, r.otherHistory, r.anesthesiaNotes, r.systemNotes["cv"] ?? ""]
             + r.devices.map { $0.detail + " " + $0.settings.values.joined(separator: " ") }
-        return texts.contains { temporaryPacing.first($0) != nil }
+        return epicardialWires(r) || texts.contains { temporaryPacing.first($0) != nil }
+    }
+
+    /// Epicardial pacing wires in place on the diagram (1.9): any device kind whose raw value names them.
+    static func epicardialWires(_ r: PatientRecord) -> Bool {
+        r.currentDevices().contains { $0.kind.rawValue.lowercased().contains("epicardial") }
     }
 
     /// An ICD or CRT is in the history already, so a paced rhythm may be its own.

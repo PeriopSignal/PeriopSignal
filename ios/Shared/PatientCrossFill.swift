@@ -269,10 +269,44 @@ enum PatientCrossFill {
 // MARK: Suggestions the pages show (helper APIs; nothing here is stored)
 
 extension PatientCrossFill {
-    /// An abnormal TSH (or free T4) with no Thyroid disease recorded: the line to offer ("TSH 8.2 mIU/L, high: add thyroid
-    /// disease?"), or nil.
-    static func thyroidSuggestion(_ r: PatientRecord) -> String? { nil }
+    // Read against the lab catalog's TSH and free T4 reference ranges (PatientLabs: ABIM ranges), one tap, never filed by
+    // itself (1.9 spec). A high TSH reads as hypothyroid and a low one as hyperthyroid; a free T4 that agrees (low with a
+    // high TSH, high with a low one, or normal, as in subclinical disease) keeps that type, and one that disagrees leaves
+    // the type for the user. A free T4 out of range with a normal or missing TSH is offered without a type: a low free
+    // T4 with a normal TSH can be central hypothyroidism.
 
-    /// Accepting it: Thyroid disease, hypo- or hyperthyroid as the TSH reads.
-    static func acceptThyroidSuggestion(_ r: inout PatientRecord) {}
+    /// What the TSH and free T4 say, when either is out of range: the values in words and the type they point to ("hypo",
+    /// "hyper") or nil.
+    static func thyroidReading(_ r: PatientRecord) -> (parts: [String], type: String?)? {
+        func read(_ key: String) -> (text: String, flag: LabFlag)? {
+            guard let v = r.labs[key], v.isFinite, PatientLabs.isPlausible(key, v), let t = PatientLabs.test(key) else { return nil }
+            let f = PatientLabs.flag(key, v, sex: r.sex)
+            return (t.short + " " + t.format(v) + " " + t.unit + (f == .normal ? "" : (f == .high ? ", high" : ", low")), f)
+        }
+        let tsh = read("tsh"), ft4 = read("ft4")
+        guard tsh?.flag.isAbnormal == true || ft4?.flag.isAbnormal == true else { return nil }
+        var type: String?
+        if let t = tsh, t.flag.isAbnormal {
+            type = t.flag == .high ? "hypo" : "hyper"
+            if let f = ft4, f.flag == t.flag { type = nil }
+        }
+        return ([tsh, ft4].compactMap { $0?.text }, type)
+    }
+
+    /// An abnormal TSH (or free T4) with no Thyroid disease recorded: the line to offer ("TSH 8.2 mIU/L, high: add
+    /// thyroid disease (hypothyroid)?"), or nil.
+    static func thyroidSuggestion(_ r: PatientRecord) -> String? {
+        guard !r.has("thyroid"), let x = thyroidReading(r) else { return nil }
+        let type = x.type.map { $0 == "hypo" ? " (hypothyroid)" : " (hyperthyroid)" } ?? ""
+        return x.parts.joined(separator: "; ") + ": add thyroid disease" + type + "?"
+    }
+
+    /// Accepting it: Thyroid disease, hypo- or hyperthyroid as the TSH reads (a type already chosen stays). The Thyroid
+    /// lab group opens by the Thyroid disease fill, as for any other way it is added.
+    static func acceptThyroidSuggestion(_ r: inout PatientRecord) {
+        guard let x = thyroidReading(r) else { return }
+        r.noHistory = false
+        r.problems.insert("thyroid")
+        if r.hx.thyroidType == nil { r.hx.thyroidType = x.type }
+    }
 }
