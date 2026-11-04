@@ -14975,7 +14975,7 @@
       "firstActMinutes": 3,
       "unitsCheckBelow": 1000,
       "resistance": "Goal not reached despite an adequate dose: consider heparin resistance (no numeric definition in STS 2018).",
-      "clottingTest": "STS 2018 Rec 1: a clotting test before bypass (I/C).",
+      "clottingTest": "STS 2018 (I/C): a clotting time should show adequate anticoagulation before bypass and at regular intervals during it.",
       "deviceNote": "ACT values differ between devices (557 vs 618 s in one changeover). Pick your device.",
       "hardConfirmExempt": [
         "bypass",
@@ -14991,7 +14991,7 @@
       "postActMinutes": 3,
       "basis": "Suggested from the initial heparin bolus; total heparin is shown for reference.",
       "ratioNote": "EACTS 2024: keep the protamine-to-heparin ratio under 1:1.",
-      "ceilingNote": "STS 2018 Rec 14: more than 2.6 mg per 100 U is not recommended (IIa/C). The 2.6 cap is a ceiling; the EACTS <1:1 ratio is a target.",
+      "ceilingNote": "STS 2018 (IIa/C): it is reasonable to keep protamine under 2.6 mg per 100 U of heparin; above that, platelet function falls, the ACT rises and bleeding increases. The 2.6 cap is a ceiling; the EACTS <1:1 ratio is a target.",
       "noBypass": "Without bypass, heparin's half-life depends on the dose: follow the label (1 mg neutralizes at least 100 U; about half the dose may do about 30 min after the heparin) and titrate to the ACT.",
       "onBypass": "Bypass is still running. Protamine on bypass clots the circuit.",
       "suction": "Stop cardiotomy suction when protamine starts (EACTS 2024).",
@@ -15011,7 +15011,7 @@
         ],
         [
           "Titration",
-          "Dosing to the heparin level (e.g. Hepcon) means less bleeding (IIa/B)",
+          "Titrating protamine to the heparin in the blood (e.g. Hepcon) is associated with less bleeding and transfusion (IIa/B)",
           "G",
           "sts2018"
         ],
@@ -15023,13 +15023,13 @@
         ],
         [
           "Severe reaction",
-          "Stop protamine, re-heparinize, restart bypass (I/C)",
+          "Pulmonary hypertension and collapse after protamine: stop it, resuscitate, and restart bypass with full anticoagulation (I/C)",
           "G",
           "sts2018"
         ],
         [
           "Rebound",
-          "25 mg/h for up to 6 h after long bypass may be considered (IIb/C); rebound or bleeding can come 30 min to 18 h after protamine",
+          "25 mg/h for up to 6 h after long bypass with high heparin doses may be considered (IIb/C); rebound or bleeding can come 30 min to 18 h after protamine (label)",
           "G",
           "sts2018"
         ]
