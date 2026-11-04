@@ -57,14 +57,19 @@ struct PatientMed: Codable, Hashable, Identifiable {
     var name = ""
     /// "5 mg daily", "40 units at night".
     var dose = ""
+    /// The MedicationCatalog entry it was picked or read as; nil when typed and not recognized.
+    var catalogID: String?
 
-    init(id: UUID = UUID(), name: String = "", dose: String = "") { self.id = id; self.name = name; self.dose = dose }
+    init(id: UUID = UUID(), name: String = "", dose: String = "", catalogID: String? = nil) {
+        self.id = id; self.name = name; self.dose = dose; self.catalogID = catalogID
+    }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = (try? c.decodeIfPresent(UUID.self, forKey: .id)) ?? UUID()
         name = (try? c.decodeIfPresent(String.self, forKey: .name)) ?? ""
         dose = (try? c.decodeIfPresent(String.self, forKey: .dose)) ?? ""
+        catalogID = try? c.decodeIfPresent(String.self, forKey: .catalogID)
     }
 
     var text: String { [name, dose].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: " ") }
