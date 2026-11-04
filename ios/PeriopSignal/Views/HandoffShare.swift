@@ -38,6 +38,111 @@ enum HandoffShare {
         UIPasteboard.general.setItems([pasteboardItem(text)], options: [:])
     }
 
+    // MARK: The 1.9 briefs (preprocedure summary and handoff)
+
+    /// The brief's rich text: the header line bold and underlined, each block's label (and the label of each line under
+    /// it) bold; the words are PatientBriefs.plainText's, unchanged. With a footer (Copy, Share) it closes the text after
+    /// a blank line, as in PatientBriefs.sharedText.
+    static func richText(_ blocks: [SummaryBlock], footer: String? = nil) -> NSAttributedString {
+        let out = NSMutableAttributedString()
+        let regular = UIFont.systemFont(ofSize: size)
+        let bold = UIFont.boldSystemFont(ofSize: size)
+        var first = true
+        for b in blocks {
+            for line in PatientBriefs.plainLines(b) {
+                if !first { out.append(NSAttributedString(string: "\n", attributes: [.font: regular])) }
+                let start = out.length
+                out.append(NSAttributedString(string: line, attributes: [.font: regular]))
+                let indent = line.prefix { $0 == " " }.count
+                if b.key == "header" {
+                    let r = NSRange(location: start, length: (line as NSString).length)
+                    out.addAttribute(.font, value: bold, range: r)
+                    out.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: r)
+                } else {
+                    let body = String(line.dropFirst(indent))
+                    // The block's own label, also when it stands alone on its line above a block of several lines
+                    // ("Concerns/Considerations:"), where there is no ": " for HandoffStyle to find.
+                    let own = b.label.map { PatientBriefs.ascii($0) + ":" }
+                    if indent == 0, let own, body.hasPrefix(own) {
+                        out.addAttribute(.font, value: bold, range: NSRange(location: start, length: (own as NSString).length))
+                    } else if let r = HandoffStyle.labelRange(Substring(body)) {
+                        let ns = NSRange(r, in: body)
+                        out.addAttribute(.font, value: bold, range: NSRange(location: start + indent + ns.location, length: ns.length))
+                    }
+                }
+                first = false
+            }
+        }
+        if let footer {
+            out.append(NSAttributedString(string: (first ? "" : "\n\n") + footer, attributes: [.font: regular]))
+        }
+        return out
+    }
+
+    /// Copy: the plain text (the fishbone as one line) with the rich text beside it, closed by the footer.
+    static func copy(blocks: [SummaryBlock], now: Date = Date()) {
+        let footer = PatientBriefs.footer(now)
+        UIPasteboard.general.setItems([pasteboardItem(PatientBriefs.sharedText(blocks, now: now), rich: richText(blocks, footer: footer))], options: [:])
+    }
+
+    static func pasteboardItem(_ text: String, rich: NSAttributedString) -> [String: Any] {
+        var item: [String: Any] = [UTType.utf8PlainText.identifier: text]
+        if let rtf = try? rich.data(from: NSRange(location: 0, length: rich.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]) {
+            item[UTType.rtf.identifier] = rtf
+        }
+        return item
+    }
+
+    /// What the share sheet is given for a brief: the text (rich for the apps that keep it), then the fishbone as a
+    /// picture and the lines diagram with its list as a picture, when the brief has them.
+    @MainActor static func briefItems(_ blocks: [SummaryBlock], record: PatientRecord, figure: RegionalFigure?, now: Date = Date()) -> [Any] {
+        var out: [Any] = [TextItem(plain: PatientBriefs.sharedText(blocks, now: now), rich: richText(blocks, footer: PatientBriefs.footer(now)))]
+        out += briefImages(blocks, record: record, figure: figure) as [Any]
+        return out
+    }
+
+    @MainActor static func briefImages(_ blocks: [SummaryBlock], record: PatientRecord, figure: RegionalFigure?) -> [UIImage] {
+        var out: [UIImage] = []
+        for b in blocks {
+            switch b.figure {
+            case .fishbone(let labs)?:
+                if let i = fishboneImage(labs) { out.append(i) }
+            case .diagram(let arrivalOnly)?:
+                if let i = linesImage(record, lines: b.lines, marks: b.marks, arrivalOnly: arrivalOnly, figure: figure) { out.append(i) }
+            case nil:
+                break
+            }
+        }
+        return out
+    }
+
+    /// The fishbone as a picture, drawn in the light appearance on white.
+    @MainActor static func fishboneImage(_ labs: BriefLabs) -> UIImage? {
+        guard !labs.isEmpty else { return nil }
+        let view = FishboneFigure(labs: labs)
+            .padding(14)
+            .background(Color.white)
+            .environment(\.colorScheme, .light)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 3
+        return renderer.uiImage
+    }
+
+    /// The lines diagram with its list on the right, as a picture; nil when nothing is drawn on the diagram.
+    @MainActor static func linesImage(_ record: PatientRecord, lines: [String], marks: [String], arrivalOnly: Bool, figure: RegionalFigure?) -> UIImage? {
+        guard let figure else { return nil }
+        let m = PatientDiagramModel.items(record, phase: arrivalOnly ? .preop : .all)
+        guard !m.items.isEmpty else { return nil }
+        let view = BriefDiagramLayout(figure: figure, items: m.items, cart: m.cart, lines: lines, marks: marks, scale: 1, listFont: 13)
+            .frame(width: 440)
+            .padding(12)
+            .background(Color.white)
+            .environment(\.colorScheme, .light)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 3
+        return renderer.uiImage
+    }
+
     /// Mail, Notes and the pasteboard keep formatting; Messages and every other app get the plain text.
     static func takesRichText(_ type: UIActivity.ActivityType?) -> Bool {
         guard let type else { return false }
@@ -54,6 +159,11 @@ enum HandoffShare {
             plain = text
             rich = HandoffShare.richText(text)
         }
+        /// A brief's text and its rich version (richText(blocks)).
+        init(plain: String, rich: NSAttributedString) {
+            self.plain = plain
+            self.rich = rich
+        }
         func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any { plain }
         func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
             HandoffShare.takesRichText(activityType) ? rich : plain
@@ -67,6 +177,13 @@ enum HandoffShare {
         return out
     }
 
+    /// The text, then every picture (1.9: the fishbone and the lines diagram with its list).
+    static func items(text: String, images: [UIImage]) -> [Any] {
+        var out: [Any] = [TextItem(text)]
+        for i in images { out.append(i) }
+        return out
+    }
+
     // MARK: The diagram
 
     /// The lines diagram as a picture, drawn in the light appearance on white so it reads in any app; nil when nothing
@@ -75,7 +192,13 @@ enum HandoffShare {
         guard let figure else { return nil }
         let m = PatientDiagramModel.items(record, phase: .all)
         guard !m.items.isEmpty else { return nil }
-        let view = PatientDiagramCanvas(figure: figure, items: m.items, cart: m.cart)
+        // The limb alerts are written under the picture (1.9), so the mark on the figure can be read in any app; with
+        // none, the picture is the figure alone, as before.
+        let canvas = PatientDiagramCanvas(figure: figure, items: m.items, cart: m.cart)
+        let groups = PatientDeviceFills.limbAlertGroups(record)
+        let content: AnyView = groups.isEmpty ? AnyView(canvas)
+            : AnyView(VStack(alignment: .leading, spacing: 8) { canvas; LimbAlertCaption(groups: groups) })
+        let view = content
             .frame(width: 360)
             .padding(12)
             .background(Color.white)

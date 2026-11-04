@@ -70,6 +70,8 @@ enum PatientEditor: Hashable {
         ("anesthetic", "Anesthetic Complications", "exclamationmark.shield"), ("labs", "Labs", "testtube.2"),
         ("tee", "TEE Screen", "exclamationmark.triangle"), ("carotid", "Carotid Ultrasound", "waveform.path"),
         ("radial", "Radial Artery Ultrasound", "hand.raised"), ("pft", "Pulmonary Function Tests", "lungs"),
+        // 1.9: the code status plan and POLST, behind a small link on the Preprocedure tab's Demographics box.
+        ("codestatus", "Code Status", "exclamationmark.shield"),
     ]
 }
 
@@ -231,17 +233,7 @@ struct PatientEditorView: View {
 
     /// A titled list of recommendations, each on its own line.
     func adviceList(_ title: String, _ items: [String], tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
-            ForEach(Array(items.enumerated()), id: \.offset) { _, a in
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Image(systemName: "arrow.turn.down.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(tint)
-                    Text(a).font(PS.sys(size: 13)).foregroundStyle(PS.fg).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 14).padding(.vertical, 10)
+        PatientAdviceList(title: title, items: items, tint: tint)
     }
 
     func toggleRow(_ title: String, _ detail: String?, _ isOn: Binding<Bool>) -> some View {
@@ -328,8 +320,10 @@ struct PatientEditorView: View {
         PatientGroup(title: "Problems by system", note: "Tap a system to add its common problems; anything else goes under Other conditions.") {
             let systems = PatientCatalog.systems(for: r)
             ForEach(Array(systems.enumerated()), id: \.element.id) { i, s in
-                // The expanding pages' words are lowercase for the summary; the row reads as a sentence.
-                let picked = HistorySections.items(s, r).enumerated().map { $0.offset == 0 ? $0.element.prefix(1).uppercased() + $0.element.dropFirst() : $0.element }
+                // The expanding pages' words are lowercase for the summary; the row reads as a sentence. The two closing
+                // fields (Other [system] disorders, Other details) follow, as on the summary (1.9).
+                let typed = [r.systemOther[s.id], r.systemNotes[s.id]].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+                let picked = (HistorySections.items(s, r) + typed).enumerated().map { $0.offset == 0 ? $0.element.prefix(1).uppercased() + $0.element.dropFirst() : $0.element }
                 linkRow(s.name, picked.isEmpty ? "None recorded" : picked.joined(separator: "; "), icon: s.icon, value: .system(s.id))
                 if i < systems.count - 1 { Hairline().padding(.leading, 50) }
             }
@@ -359,45 +353,18 @@ struct PatientEditorView: View {
         }
     }
 
-    var medsSummary: String {
-        if r.nkda && r.medications.isEmpty { return "No known drug allergies" }
-        let c = r.capitalized
-        let parts = [r.nkda ? "NKDA" : (c.allergies.isEmpty ? "" : "Allergies: " + c.allergies), c.medications].filter { !$0.isEmpty }
-        return parts.isEmpty ? "None recorded" : parts.joined(separator: " · ")
-    }
+    var medsSummary: String { PatientHistoryRows.medsSummary(r) }
 
     func intakeRow(_ title: String, _ date: Binding<Date?>) -> some View {
-        HStack {
-            Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
-            Spacer()
-            if let d = date.wrappedValue {
-                DatePicker(title, selection: Binding(get: { d }, set: { date.wrappedValue = $0 }), displayedComponents: [.date, .hourAndMinute])
-                    .labelsHidden()
-                Button { date.wrappedValue = nil } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(PS.fg3) }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Clear the time")
-            } else {
-                Button("Set time") { date.wrappedValue = PatientRecord.npoMidnight() }
-                    .font(PS.sys(size: 13.5, weight: .semibold))
-                    .buttonStyle(.borderless)
-                    .tint(PS.accent)
-            }
-        }
-        .padding(.horizontal, 14).padding(.vertical, 9)
+        PatientIntakeRow(title: title, date: date)
     }
 
     @ViewBuilder private func system(_ id: String) -> some View {
         if let s = PatientCatalog.allSystems.first(where: { $0.id == id }) {
-            if id == "social" {
-                PatientGroup(title: "Smoking") {
-                    PatientChipRow(label: nil) {
-                        PatientChoice(options: [(id: "never", label: "Never"), (id: "former", label: "Former"), (id: "current", label: "Current")], selection: bind(\.smoking))
-                    }
-                }
-            }
             if HistorySections.sections(s.id) != nil {
-                // Cardiovascular and Respiratory (1.8.1): expanding sections; Cardiovascular ends with its studies, the
-                // same editors and data as Assessment.
+                // Every system but Pediatric (1.9; Cardiovascular and Respiratory since 1.8.1): expanding sections.
+                // Smoking is the first item of Smoking & Substances (1.9), not a group above it. Cardiovascular ends
+                // with its studies, the same editors and data as Assessment.
                 PatientHistorySectionsView(system: s)
                 if s.id == "cv" { cvStudies }
             } else {
@@ -430,29 +397,20 @@ struct PatientEditorView: View {
     }
 
     @ViewBuilder private var medications: some View {
-        PatientGroup(title: "Allergies") {
-            toggleRow("No known drug allergies", nil, bind(\.nkda))
-            if !r.nkda {
-                PatientTextField(label: "Allergies & reactions", prompt: "e.g. penicillin (rash); latex", text: bind(\.allergies))
-            }
-        }
-        PatientGroup(title: "Medications") {
-            PatientTextField(label: "Home medications", prompt: "Drug, dose, last taken", text: bind(\.medications))
-            PatientChipRow(label: "Flags") { PatientChips(options: PatientCatalog.medFlags, selection: bind(\.medFlags)) }
-        }
+        // 1.9: the medication and allergy lists (PatientMedicationViews.swift); the Preprocedure tab's own boxes come with
+        // the reorganized tab.
+        PatientGroup(title: "Allergies") { AllergiesBox() }
+            .id("allergies")
+        PatientGroup(title: "Home medications") { HomeMedicationsBox() }
+            .id("homemeds")
         currentInfusionsGroup
-        let notes = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }.compactMap { f in PatientFunctional.medNotes[f.id].map { (f.label, $0) } }
+            .id("infusions")
+        PatientGroup(title: "Flagged medications") { FlaggedMedicationsChips() }
+            .id("flagged")
+        let notes = PatientPreop.beforeSurgery(r)
         if !notes.isEmpty {
             PatientGroup(title: "Before surgery", note: "2024 AHA/ACC perioperative guideline, with the class of each recommendation.") {
-                ForEach(Array(notes.enumerated()), id: \.offset) { i, n in
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(n.0).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
-                        Text(n.1).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    if i < notes.count - 1 { Hairline().padding(.leading, 14) }
-                }
+                PatientBeforeSurgeryRows(notes: notes)
             }
         }
         if r.medFlags.contains("anticoagulant") || r.medFlags.contains("p2y12") {
@@ -468,133 +426,30 @@ struct PatientEditorView: View {
     @ViewBuilder private var assessment: some View {
         // One ⓘ on the group title holds what used to be the card's own "Explanation & Evidence" rows too (1.8.1).
         PatientGroup(title: "ASA physical status", note: asaNote) {
-            if let s = PatientRules.asaSuggestion(r) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Suggested: " + s.label).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                    AsaReasonTable(reasons: s.reasons, top: s.level)
-                    if r.asaClass != s.level {
-                        Button("Use ASA " + PatientRules.roman(s.level)) { patient.update(discrete: true) { $0.asaClass = s.level } }
-                            .buttonStyle(CapsuleButtonStyle())
-                            .padding(.top, 4)
-                    }
-                }
-                .padding(.horizontal, 14).padding(.vertical, 10)
-                Hairline().padding(.leading, 14)
-            }
-            PatientChipRow(label: "Class") {
-                PatientChoice(options: (1...6).map { (id: String($0), label: "ASA " + PatientRules.roman($0)) },
-                              selection: Binding(get: { patient.record.asaClass.map { String($0) } }, set: { v in patient.update { $0.asaClass = v.flatMap { Int($0) } } }))
-            }
-            PatientInfoToggle(title: "Emergency (E)", info: "Delay would significantly increase the threat to life or body part",
-                              isOn: Binding(get: { patient.record.asaE ?? patient.record.emergency }, set: { v in patient.update { $0.asaE = v } }))
-                .padding(.bottom, 4)
+            PatientAsaContent()
         }
         PatientCodeStatusGroup()
         PatientGroup(title: "Functional capacity", note: PatientFunctional.metsNote) {
-            PatientChipRow(label: nil) {
-                PatientChoice(options: [(id: "ge4", label: "4 METs or more"), (id: "lt4", label: "Under 4 METs"), (id: "unknown", label: "Unknown")], selection: bind(\.mets))
-            }
-            DisclosureGroup {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(PatientFunctional.dasiItems) { it in
-                        Toggle(isOn: Binding(get: { patient.record.dasi.contains(it.id) }, set: { on in patient.update(discrete: true) { if on { $0.dasi.insert(it.id) } else { $0.dasi.remove(it.id) } } })) {
-                            Text(it.label).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                        }
-                        .tint(PS.accent)
-                        .padding(.vertical, 6)
-                    }
-                    if let d = PatientFunctional.dasi(r) {
-                        PatientInfoLine(text: PatientFunctional.dasiText(d), info: PatientFunctional.dasiNote,
-                                        font: PS.sys(size: 14, weight: .semibold), color: d > PatientFunctional.dasiCutoff ? PS.fg : PS.accent)
-                            .padding(.top, 6)
-                    }
-                }
-            } label: {
-                Text("Duke Activity Status Index").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-            }
-            .tint(PS.fg2)
-            .padding(.horizontal, 14).padding(.vertical, 10)
-            Hairline().padding(.leading, 14)
-            PatientInfoToggle(title: "Frail", detail: "By a validated tool",
-                              info: "Use a validated tool, such as the Clinical Frailty Scale. Assessing frailty is reasonable at 65 or older, or younger with perceived frailty, before elevated-risk surgery (2024 AHA/ACC, class 2a).",
-                              isOn: bind(\.frail))
-                .padding(.bottom, 4)
+            PatientFunctionalContent()
         }
         // The guideline is for adults (2024 AHA/ACC §1.4, p e355): under 18 the symptoms and acute conditions are still
         // recorded, without the stepwise evaluation or its advice, as in the H&P (PatientSummary).
         PatientGroup(title: "Cardiac evaluation", note: r.isAdult ? PatientFunctional.cardiacNote : PatientFunctional.cardiacAdultOnly) {
-            yesNoRow("Cardiac symptoms or signs", answer: \.cardiacSymptomsAnswer, chips: \.cardiacSymptoms, options: PatientFunctional.cardiacSymptomFlags)
-            Hairline().padding(.leading, 14)
-            yesNoRow("Acute cardiac conditions", answer: \.activeCardiacAnswer, chips: \.activeCardiac, options: PatientFunctional.activeCardiac)
-            Hairline().padding(.leading, 14)
-            let thoracic = r.allIntrathoracic
-            linkRow("Previous intrathoracic surgery", thoracic.isEmpty ? "None recorded" : thoracic.map(\.text).joined(separator: "; "), icon: thoracic.isEmpty ? "plus.circle" : "lungs", value: .workup("intrathoracic"))
-            if r.isAdult {
-                Hairline().padding(.leading, 14)
-                let mods = PatientFunctional.riskModifiers(r)
-                if !mods.isEmpty {
-                    line("Adds risk beyond the RCRI: " + mods.joined(separator: ", ") + ".")
-                        .padding(.horizontal, 14).padding(.bottom, 4)
-                }
-                let step = PatientFunctional.cardiacStep(r)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(step.title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(step.alert ? PS.accent : PS.fg)
-                    Text(step.detail).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.horizontal, 14).padding(.vertical, 10)
-                let branch = PatientFunctional.branchAdvice(r)
-                if !branch.isEmpty {
-                    Hairline().padding(.leading, 14)
-                    adviceList("For this risk", branch, tint: PS.fg3)
-                }
-                let advice = PatientFunctional.conditionAdvice(r)
-                if !advice.isEmpty {
-                    Hairline().padding(.leading, 14)
-                    adviceList("By condition", advice, tint: PS.accent)
-                }
-            }
+            PatientCardiacEvaluationContent()
         }
         .id("cardiac")
         studiesGroup
         PatientGroup(title: "Risk scores & checks") {
             let prompts = PatientRules.prompts(r) + PatientTEE.prompts(r)
-            ForEach(Array(prompts.enumerated()), id: \.element.id) { i, p in
-                Button { onOpenRoute(p.route) } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: p.done == nil ? "circle.dashed" : "checkmark.circle.fill")
-                            .font(PS.sys(size: 16, weight: .semibold))
-                            .foregroundStyle(p.done == nil ? PS.accent : PS.green)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(p.done ?? p.title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                            Text(p.why).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                        }
-                        Spacer(minLength: 6)
-                        Image(systemName: "chevron.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
-                    }
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                if i < prompts.count - 1 { Hairline().padding(.leading, 42) }
-            }
+            PatientPromptRows(prompts: prompts, onOpen: onOpenRoute)
             if prompts.isEmpty {
                 line("Add the age to see the adult scores.").padding(14)
             }
         }
     }
 
-    /// The ASA card's explanations, for its title's ⓘ: how the suggestion works, then (a child with nothing to suggest
-    /// from) where to tick problems, then the chosen class's definition; each was a row of its own before 1.8.1.
-    var asaNote: String {
-        var parts = ["The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it."]
-        if PatientRules.asaSuggestion(r) == nil && r.isChild {
-            parts.append("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
-        }
-        if let c = r.asaClass {
-            parts.append(PatientFunctional.asaDefinition(c) + (PatientFunctional.asaExampleLead(c).map { " " + $0 } ?? ""))
-        }
-        return parts.joined(separator: "\n\n")
-    }
+    /// The ASA card's explanations, for its title's ⓘ (PatientPreop.asaNote, shared with the Preprocedure tab).
+    var asaNote: String { PatientPreop.asaNote(r) }
 
     /// The tests on file: the cardiac studies (unchanged from the cardiac evaluation, in its order), then the carotid
     /// and radial artery ultrasound and the pulmonary function tests.
@@ -1059,5 +914,24 @@ struct PatientEditorView: View {
         PatientGroup(title: "To do & concerns") {
             PatientTextField(label: "For the next team", prompt: "Labs to check, antibiotic redosing, CPAP, glucose, drains", text: bind(\.todos))
         }
+    }
+}
+
+/// The History editor's summary rows, out of the view so they can be tested.
+enum PatientHistoryRows {
+    /// The "Medications & allergies" row (1.9): the allergies and the medications as the summary gives them, the lists
+    /// and then the text typed before 1.9 while the lists do not hold it.
+    static func medsSummary(_ r: PatientRecord) -> String {
+        let c = r.capitalized
+        var meds = c.homeMeds.map(\.text).filter { !$0.isEmpty }
+        let typed = c.medications.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !typed.isEmpty, meds.isEmpty || !MedicationCatalog.covers(r.homeMeds, legacy: r.medications) { meds.append(typed) }
+        let allergies = PatientAllergyText.line(r)?.text
+        let none = allergies == "No known drug allergies"
+        if none && meds.isEmpty { return "No known drug allergies" }
+        var parts: [String] = []
+        if let a = allergies { parts.append(none ? "NKDA" : "Allergies: " + a) }
+        if !meds.isEmpty { parts.append(meds.joined(separator: "; ")) }
+        return parts.isEmpty ? "None recorded" : parts.joined(separator: " · ")
     }
 }

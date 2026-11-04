@@ -28,13 +28,18 @@ final class PatientNeuro182Tests: XCTestCase {
 
     func testPageOrderAndIds() throws {
         XCTAssertNotNil(HistorySections.sections("neuro"))
+        // 1.9 (Ben's Wanted Changes): Visual impairment, Psychological disorder and Unstable C-spine follow, and the page
+        // ends with Other neurological disorders and Other details instead of the single Other.
         XCTAssertEqual(HistorySections.neuro.map(\.title), [
             "Stroke or TIA", "Intracranial bleed", "Intracranial mass or raised ICP", "Seizure disorder", "Dementia or cognitive impairment",
-            "Parkinson disease", "Neuromuscular disease", "Spinal cord injury", "Chronic pain or opioid tolerance", "Other",
+            "Parkinson disease", "Neuromuscular disease", "Spinal cord injury", "Chronic pain or opioid tolerance",
+            "Visual impairment", "Psychological disorder", "Unstable C-spine", "Other neurological disorders", "Other details",
         ])
         let neuro = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "neuro" })
         let catalogIDs = Set(neuro.problems.map(\.id))
-        let sectionIDs = Set(HistorySections.neuro.flatMap(\.members))
+        // 1.9: Unstable C-spine is the Musculoskeletal item shown here too (HistorySections.isShared), not a neurologic id.
+        let sectionIDs = Set(HistorySections.neuro.filter { !HistorySections.isShared($0, on: "neuro") }.flatMap(\.members))
+        XCTAssertEqual(HistorySections.neuro.filter { HistorySections.isShared($0, on: "neuro") }.map(\.id), ["cspine"])
         XCTAssertEqual(catalogIDs, sectionIDs, "every neurologic id sits under one item, and every item's ids are in the catalog")
         for id in ["cva", "cva-recent", "cva-unspec", "ich-mass", "raised-icp", "seizure", "dementia", "parkinson", "neuromuscular", "sci", "chronic-pain"] {
             XCTAssertTrue(catalogIDs.contains(id), id + " keeps its id")

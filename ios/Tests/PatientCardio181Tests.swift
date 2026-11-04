@@ -292,7 +292,9 @@ final class PatientCardio181Tests: XCTestCase {
         let hf = ids("HFrEF, EF 25%")
         XCTAssertTrue(hf.isSuperset(of: ["problem:hf", "problem:ef-severe"]))
         XCTAssertTrue(ids("PPM").contains("problem:pacemaker"))
-        XCTAssertEqual(change("PPM dependent", "problem:pacemaker"), .problemNote("pacemaker", "dependent"))
+        // 1.9 (contract): pacer dependence is its own field (PatientHistoryDetails.pacerDependent), no longer the word
+        // "dependent" in the device details.
+        XCTAssertEqual(change("PPM dependent", "problem:pacemaker"), .detail("pacemaker", "pacerDependent", "true"))
         XCTAssertTrue(ids("AICD").contains("problem:icd"))
         XCTAssertEqual(change("moderate pulmonary hypertension", "problem:pulm-htn"), .pulmHtn("moderate"))
         XCTAssertTrue(ids("severe pulmonary hypertension").contains("problem:pulm-htn-severe"))
@@ -333,7 +335,9 @@ final class PatientCardio181Tests: XCTestCase {
         XCTAssertTrue(r.problems.isSuperset(of: ["cad-recent", "cabg", "valve-severe", "af", "pacemaker", "pulm-htn", "taa"]))
         XCTAssertEqual(r.hx.valve("aortic"), PatientValve(stenosis: true, stenosisGrade: "severe"))
         XCTAssertEqual(r.hx.valve("mitral"), PatientValve(prosthetic: true, prosthesis: "mechanical 27 mm"))
-        XCTAssertEqual(r.hx.deviceDetails, "dependent")
+        // 1.9 (contract): the pacer dependence field, not the word in the device details.
+        XCTAssertTrue(r.hx.pacerDependent)
+        XCTAssertEqual(r.hx.deviceDetails, "")
         XCTAssertEqual(r.hx.pulmHtnSeverity, "moderate")
         XCTAssertEqual(r.hx.aneurysms["root"], PatientAneurysm(cm: 4.8))
         // 1.8.3 (Ben): each operation its own entry in Past surgical history, with its date (it was one entry, "CABG 2019; mechanical MVR").

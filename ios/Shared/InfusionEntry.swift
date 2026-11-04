@@ -106,10 +106,69 @@ enum InfusionEntry {
         d("sufentanil", "Sufentanil", ["sufentanil", "sufent", "sufenta"], nil, ["mcg/kg/h", "mcg/h"]),
         d("iepo", "Epoprostenol, inhaled", ["epoprostenol", "inhaled epoprostenol", "iepo", "flolan", "veletri"], "ng/kg/min", ["ng/kg/min"]),
         d("ino", "Nitric oxide, inhaled", ["nitric oxide", "inhaled nitric oxide", "ino", "inomax"], "ppm", ["ppm"]),
+    ] + more
+
+    /// The ICU and OR drips added in 1.9 (Ben: a "large reference list" for current infusions). None has a unit in the
+    /// Reference infusion table (or its entry there is a bolus: labetalol, calcium chloride, methylene blue), so with no
+    /// unit typed the line asks, offering the units these drips are usually run in.
+    static let more: [InfusionEntryDrug] = [
+        // Pulmonary vasodilators
+        d("epoprostenol-iv", "Epoprostenol, IV", ["epoprostenol iv", "iv epoprostenol", "iv flolan"], nil, ["ng/kg/min"]),
+        d("treprostinil", "Treprostinil", ["treprostinil", "remodulin", "trep"], nil, ["ng/kg/min"]),
+        d("iloprost", "Iloprost", ["iloprost", "ilomedin"], nil, ["ng/kg/min"]),
+        // Vasodilators, antihypertensives, heart failure
+        d("labetalol", "Labetalol", ["labetalol", "trandate"], nil, ["mg/min", "mg/h"]),
+        d("fenoldopam", "Fenoldopam", ["fenoldopam", "corlopam"], nil, ["mcg/kg/min"]),
+        d("nesiritide", "Nesiritide", ["nesiritide", "natrecor"], nil, ["mcg/kg/min"]),
+        d("methylene-blue", "Methylene blue", ["methylene blue", "provayblue", "mb"], nil, ["mg/kg/h"]),
+        d("alprostadil", "Alprostadil (PGE1)", ["alprostadil", "pge1", "pge", "prostin", "prostin vr", "prostaglandin e1"], nil, ["mcg/kg/min"]),
+        // Antiarrhythmics
+        d("procainamide", "Procainamide", ["procainamide", "procan", "pronestyl"], nil, ["mg/min"]),
+        // Sedation and analgesia
+        d("midazolam", "Midazolam", ["midazolam", "midaz", "versed"], nil, ["mg/h", "mcg/kg/min"]),
+        d("lorazepam", "Lorazepam", ["lorazepam", "ativan"], nil, ["mg/h"]),
+        d("fentanyl", "Fentanyl", ["fentanyl", "fent", "sublimaze"], nil, ["mcg/h", "mcg/kg/h"]),
+        d("hydromorphone", "Hydromorphone", ["hydromorphone", "dilaudid"], nil, ["mg/h"]),
+        d("morphine", "Morphine", ["morphine", "mso4"], nil, ["mg/h"]),
+        d("alfentanil", "Alfentanil", ["alfentanil", "alfenta"], nil, ["mcg/kg/min"]),
+        d("pentobarbital", "Pentobarbital", ["pentobarbital", "nembutal"], nil, ["mg/kg/h"]),
+        // Neuromuscular blockers
+        d("cisatracurium", "Cisatracurium", ["cisatracurium", "cisat", "cis", "nimbex"], nil, ["mcg/kg/min"]),
+        d("rocuronium", "Rocuronium", ["rocuronium", "roc", "rocu", "zemuron"], nil, ["mcg/kg/min"]),
+        d("vecuronium", "Vecuronium", ["vecuronium", "vec", "vecu"], nil, ["mcg/kg/min"]),
+        d("atracurium", "Atracurium", ["atracurium"], nil, ["mcg/kg/min"]),
+        // Anticoagulants, antiplatelets, thrombolytics
+        d("argatroban", "Argatroban", ["argatroban", "arga"], nil, ["mcg/kg/min"]),
+        d("eptifibatide", "Eptifibatide", ["eptifibatide", "integrilin", "epti"], nil, ["mcg/kg/min"]),
+        d("tirofiban", "Tirofiban", ["tirofiban", "aggrastat"], nil, ["mcg/kg/min"]),
+        d("cangrelor", "Cangrelor", ["cangrelor", "kengreal"], nil, ["mcg/kg/min"]),
+        d("alteplase", "Alteplase", ["alteplase", "tpa", "activase"], nil, ["mg/h"]),
+        // Electrolytes, fluids and nutrition
+        d("potassium-chloride", "Potassium chloride", ["potassium chloride", "potassium", "kcl"], nil, ["mEq/h"]),
+        d("magnesium", "Magnesium sulfate", ["magnesium sulfate", "magnesium", "mag", "mag sulfate", "mgso4"], nil, ["g/h"]),
+        d("calcium-chloride", "Calcium chloride", ["calcium chloride", "cacl", "cacl2"], nil, ["mg/h", "g/h"]),
+        d("calcium-gluconate", "Calcium gluconate", ["calcium gluconate", "ca gluconate"], nil, ["g/h", "mg/kg/h"]),
+        d("sodium-bicarbonate", "Sodium bicarbonate", ["sodium bicarbonate", "bicarbonate", "bicarb", "nahco3"], nil, ["mEq/h", "mL/h"]),
+        d("hypertonic-saline", "Hypertonic saline", ["hypertonic saline", "3% saline", "3% nacl", "nacl 3%", "hts"], nil, ["mL/h"]),
+        d("dextrose", "Dextrose", ["dextrose", "d10", "d10w", "dextrose 10%"], nil, ["mL/h"]),
+        d("tpn", "Parenteral nutrition (TPN)", ["tpn", "parenteral nutrition", "total parenteral nutrition", "ppn"], nil, ["mL/h"]),
+        d("lipids", "Lipid emulsion", ["lipids", "lipid emulsion", "intralipid", "intralipids", "smoflipid", "clinolipid"], nil, ["mL/h"]),
+        // Gastrointestinal, renal, obstetric, reversal
+        d("octreotide", "Octreotide", ["octreotide", "sandostatin", "octreo"], nil, ["mcg/h"]),
+        d("pantoprazole", "Pantoprazole", ["pantoprazole", "protonix", "panto"], nil, ["mg/h"]),
+        d("furosemide", "Furosemide", ["furosemide", "lasix"], nil, ["mg/h"]),
+        d("bumetanide", "Bumetanide", ["bumetanide", "bumex"], nil, ["mg/h"]),
+        d("oxytocin", "Oxytocin", ["oxytocin", "pitocin", "pit"], nil, ["milliunits/min", "units/h"]),
+        d("naloxone", "Naloxone", ["naloxone", "narcan"], nil, ["mg/h"]),
     ]
 
     /// Words that name more than one drip: asked.
-    static let ambiguous: [String: [String]] = ["levo": ["norepinephrine", "levosimendan"]]
+    static let ambiguous: [String: [String]] = [
+        "levo": ["norepinephrine", "levosimendan"],
+        // 1.9: epoprostenol runs inhaled or IV; calcium is the chloride or the gluconate.
+        "epoprostenol": ["iepo", "epoprostenol-iv"], "flolan": ["iepo", "epoprostenol-iv"], "veletri": ["iepo", "epoprostenol-iv"],
+        "calcium": ["calcium-chloride", "calcium-gluconate"],
+    ]
 
     private static func d(_ id: String, _ name: String, _ aliases: [String], _ unit: String?, _ units: [String]) -> InfusionEntryDrug {
         InfusionEntryDrug(id: id, name: name, aliases: aliases, unit: unit, units: units)
@@ -132,7 +191,8 @@ enum InfusionEntry {
     // MARK: Reading
 
     /// Typeahead for the piece being typed (the last one, before its rate): drugs whose name or an alias starts with
-    /// what was typed, the name first.
+    /// what was typed, the name first. A drug the piece already reads as (`read` shows its chip: "fent" is fentanyl,
+    /// "nor" norepinephrine) is not offered again, so the same drug is never under the field twice.
     static func suggestions(_ text: String, limit: Int = 4) -> [InfusionEntryDrug] {
         guard let last = pieces(text).last else { return [] }
         let parts = split(last)
@@ -140,9 +200,11 @@ enum InfusionEntry {
         let w = fold(parts.drug)
         guard w.count >= 2 else { return [] }
         if drugs.contains(where: { fold($0.name) == w }) { return [] }
+        let already = matches(w)
+        let read: String? = already.count == 1 ? already[0].id : nil
         var out: [InfusionEntryDrug] = []
-        for x in drugs where fold(x.name).hasPrefix(w) && !out.contains(x) { out.append(x) }
-        for x in drugs where x.aliases.contains(where: { $0.hasPrefix(w) }) && !out.contains(x) { out.append(x) }
+        for x in drugs where fold(x.name).hasPrefix(w) && x.id != read && !out.contains(where: { $0.id == x.id }) { out.append(x) }
+        for x in drugs where x.aliases.contains(where: { $0.hasPrefix(w) }) && x.id != read && !out.contains(where: { $0.id == x.id }) { out.append(x) }
         return Array(out.prefix(limit))
     }
 
@@ -250,10 +312,73 @@ enum InfusionEntry {
 
     // MARK: Pieces
 
-    /// The line's drips: split at commas (not inside a number: "1,000"), semicolons, "+" and "and".
+    /// The line's drips: split at commas (not inside a number: "1,000"), semicolons, "+" and "and", and (1.9) at a
+    /// space before a drip's name that follows a rate or another drip's name ("norepi 0.05 vaso 0.04", "norepi vaso").
     static func pieces(_ text: String) -> [String] {
         let marked = splitRx.stringByReplacingMatches(in: text, range: NSRange(text.startIndex..., in: text), withTemplate: "\u{1F}")
-        return marked.split(separator: "\u{1F}").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        let parts = marked.split(separator: "\u{1F}").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        // The word at the very end is still being typed: after a rate, a word that starts a drip's name splits there
+        // too ("norepi 0.05 va"), so the typeahead offers vasopressin.
+        let typing = text.last.map { !$0.isWhitespace && $0 != "," && $0 != ";" } ?? false
+        return parts.enumerated().flatMap { n, p in spaceSplit(p, typing: typing && n == parts.count - 1) }
+    }
+
+    /// One piece split at the spaces before each drip name the list knows, when the words before it end with a rate or
+    /// a unit, or are a drip's name themselves. Names of several words ("angiotensin ii", "nitric oxide") are matched
+    /// whole, longest first; a number that is part of a name ("angiotensin 2") is not a rate.
+    private static func spaceSplit(_ piece: String, typing: Bool) -> [String] {
+        let words = piece.split(whereSeparator: { $0.isWhitespace }).map(String.init)
+        guard words.count >= 2 else { return [piece] }
+        var out: [[String]] = [[words[0]]]
+        var i = 1
+        while i < words.count {
+            let current = out[out.count - 1].joined(separator: " ")
+            let afterRate = rateWord(words[i - 1])
+            if afterRate || isName(current), let n = nameLength(words, at: i),
+               !isName(current + " " + words[i..<(i + n)].joined(separator: " ")) {
+                out.append(Array(words[i..<(i + n)]))
+                i += n
+                continue
+            }
+            if typing, afterRate, i == words.count - 1, startsName(words[i]) {
+                out.append([words[i]])
+                i += 1
+                continue
+            }
+            out[out.count - 1].append(words[i])
+            i += 1
+        }
+        return out.map { $0.joined(separator: " ") }
+    }
+
+    /// A number ("0.05", ".08", "1,000", "0.02-0.1") or a unit ("mcg/kg/min", "u/hr", "ppm").
+    private static func rateWord(_ w: String) -> Bool {
+        if let f = w.first, f.isNumber || (f == "." && w.dropFirst().first?.isNumber == true) { return true }
+        return normalizedUnit(w) != nil
+    }
+
+    /// The whole of a drip's name or alias, or a word that names several.
+    private static func isName(_ s: String) -> Bool {
+        let w = fold(s)
+        return ambiguous[w] != nil || drugs.contains { fold($0.name) == w || $0.aliases.contains(w) }
+    }
+
+    /// How many words from `i` make a drip's name, longest first (up to four).
+    private static func nameLength(_ words: [String], at i: Int) -> Int? {
+        for n in stride(from: min(4, words.count - i), through: 1, by: -1) where isName(words[i..<(i + n)].joined(separator: " ")) {
+            return n
+        }
+        return nil
+    }
+
+    /// Two letters or more that start a drip's name or alias, and not a unit or "gtt" being typed ("mg" of "mg/h").
+    private static func startsName(_ w: String) -> Bool {
+        let f = fold(w)
+        guard f.count >= 2, f.allSatisfy(\.isLetter) else { return false }
+        let filler = ["mcg", "mg", "meq", "mmol", "ml", "ng", "milliunits", "units", "ppm", "gtts", "drip", "infusion", "running", "at",
+                      "min", "hr", "hour"]
+        if filler.contains(where: { $0.hasPrefix(f) }) { return false }
+        return ambiguous.keys.contains { $0.hasPrefix(f) } || drugs.contains { fold($0.name).hasPrefix(f) || $0.aliases.contains { $0.hasPrefix(f) } }
     }
 
     private static let thousandsRx = try! NSRegularExpression(pattern: #"(\d),(\d{3})(?!\d)"#)
@@ -279,7 +404,7 @@ enum InfusionEntry {
     /// The first number in the piece that is not part of the drug's own name ("angiotensin 2 20" reads 20), with a
     /// range ("0.05-0.1") and the unit after it.
     private static let rateRx = try! NSRegularExpression(pattern:
-        #"(?<![A-Za-z0-9.])(\d*\.?\d+)(?:\s*(?:-|–|to)\s*(\d*\.?\d+))?\s*((?:mcg|ug|µg|μg|mg|ng|g|units?|u|iu|ml|ppm|mic)(?:\s*/\s*kg)?(?:\s*/\s*(?:min(?:ute)?s?|hr?s?|hours?|m))?)?\s*(?:gtts?|drips?|infusion)?\s*$"#,
+        #"(?<![A-Za-z0-9.])(\d*\.?\d+)(?:\s*(?:-|–|to)\s*(\d*\.?\d+))?\s*((?:mcg|ug|µg|μg|milliunits?|munits?|mu|mg|meq|mmol|ng|g|units?|u|iu|ml|ppm|mic)(?:\s*/\s*kg)?(?:\s*/\s*(?:min(?:ute)?s?|hr?s?|hours?|m))?)?\s*(?:gtts?|drips?|infusion)?\s*$"#,
         options: [.caseInsensitive])
 
     private static func cleanDrug(_ s: String) -> String {
@@ -307,7 +432,10 @@ enum InfusionEntry {
         let parts = s.lowercased().replacingOccurrences(of: " ", with: "").split(separator: "/").map(String.init)
         guard let first = parts.first else { return nil }
         let mass: [String: String] = ["mcg": "mcg", "ug": "mcg", "µg": "mcg", "μg": "mcg", "mic": "mcg", "mg": "mg", "ng": "ng", "g": "g",
-                                      "unit": "units", "units": "units", "u": "units", "iu": "units", "ml": "mL", "ppm": "ppm"]
+                                      "unit": "units", "units": "units", "u": "units", "iu": "units", "ml": "mL", "ppm": "ppm",
+                                      // 1.9: electrolytes and oxytocin.
+                                      "meq": "mEq", "mmol": "mmol", "milliunit": "milliunits", "milliunits": "milliunits",
+                                      "munit": "milliunits", "munits": "milliunits", "mu": "milliunits"]
         guard let m = mass[first] else { return nil }
         var out = m
         for p in parts.dropFirst() {

@@ -94,7 +94,9 @@ final class PatientWorkupTests: XCTestCase {
         r.homeInfusions = [PatientInfusion(drug: "Heparin", rate: "1200 units/h")]
         r.anesthesiaHistory = ["mh"]
         let h = PatientSummary.historyLines(r)
-        XCTAssertEqual(h.first { $0.label == "Smoking & Substances" }?.text, "Current smoker; Social alcohol use", "smoking leads the substance line")
+        // 1.9: Smoking & Substances is an expanding page; its words are lowercase like the other pages', and smoking is
+        // its first item (HistorySections.socialItems) rather than a line the summary adds.
+        XCTAssertEqual(h.first { $0.label == "Smoking & Substances" }?.text, "current smoker; social alcohol use", "smoking leads the substance line")
         XCTAssertEqual(h.first { $0.label == "Past surgical history" }?.text, "Appendectomy (2001)")
         XCTAssertEqual(h.first { $0.label == "Current infusions" }?.text, "Heparin at 1200 units/h")
         XCTAssertEqual(h.first { $0.label == "Anesthetic complications" }?.alert, true, "malignant hyperthermia is flagged")

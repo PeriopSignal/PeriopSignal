@@ -161,7 +161,8 @@ final class Features181cTests: XCTestCase {
     }
 
     func testTypeahead() {
-        XCTAssertEqual(InfusionEntry.suggestions("nor").first?.id, "norepinephrine")
+        XCTAssertEqual(InfusionEntry.suggestions("no").first?.id, "norepinephrine")
+        XCTAssertTrue(InfusionEntry.suggestions("nor").isEmpty, "read as norepinephrine already: its chip is shown, not a suggestion too")
         XCTAssertEqual(InfusionEntry.suggestions("norepi 0.05, va").first?.id, "vasopressin")
         XCTAssertTrue(InfusionEntry.suggestions("norepi 0.05").isEmpty)
         XCTAssertTrue(InfusionEntry.suggestions("n").isEmpty)

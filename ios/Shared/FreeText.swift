@@ -86,6 +86,10 @@ extension PatientRecord {
         r.allergies = FreeText.capItems(r.allergies)
         r.medications = FreeText.capItems(r.medications)
         r.systemNotes = r.systemNotes.mapValues(FreeText.cap)
+        r.systemOther = r.systemOther.mapValues(FreeText.cap)
+        r.homeMeds = r.homeMeds.map { var m = $0; m.name = FreeText.cap(m.name); return m }
+        r.allergyList = r.allergyList.map { var a = $0; a.name = FreeText.cap(a.name); return a }
+        r.limbAlerts = r.limbAlerts.map { var a = $0; a.reason = FreeText.cap(a.reason); return a }
         r.hx.respInfectionType = FreeText.cap(r.hx.respInfectionType)
         r.anesthesiaNotes = FreeText.cap(r.anesthesiaNotes)
         r.labNotes = FreeText.cap(r.labNotes)
@@ -102,6 +106,7 @@ extension PatientRecord {
         r.radial.notes = FreeText.cap(r.radial.notes)
         r.pft.notes = FreeText.cap(r.pft.notes)
         r.teeScreen.notes = FreeText.cap(r.teeScreen.notes)
+        r.teeScreen.egdFindings = FreeText.cap(r.teeScreen.egdFindings)
         r.dentition = FreeText.cap(r.dentition)
         r.airwayNotes = FreeText.cap(r.airwayNotes)
         r.examNotes = FreeText.cap(r.examNotes)

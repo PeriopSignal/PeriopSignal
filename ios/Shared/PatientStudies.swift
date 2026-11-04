@@ -353,6 +353,8 @@ enum PatientStudies {
     /// - no steal on the other arm: "Planned left radial harvest: arterial line, IVs and BP cuff in the right arm."
     /// - steal on the other arm only: it may read low, so femoral access.
     /// - steal on both arms: only "keep lines and the cuff off the left arm" (the vertebral caution gives the rest).
+    /// - a limb alert on the other arm (PatientDeviceFills.limbAlerts: a fistula, a typed reason): "keep lines and the
+    ///   cuff off the left arm; the right arm has a limb alert", so the two lines never send lines to the arm to spare.
     /// Both radials planned: lines and the cuff off both arms, femoral access [P, as for one harvest with steal on the
     /// other arm: neither radial is available; approved wording].
     static func harvestReminder(_ r: PatientRecord) -> String? {
@@ -363,6 +365,10 @@ enum PatientStudies {
         if steal.count == 2 { return "Planned " + h + " radial harvest: keep lines and the cuff off the " + h + " arm." }
         if steal.contains(o) {
             return "Planned " + h + " radial harvest; the " + o + " arm may read low (subclavian steal). Consider femoral arterial access, and keep lines and the cuff off the " + h + " arm."
+        }
+        // A limb alert on the other arm (a fistula, a node dissection): it is not sent there; the team decides where.
+        if PatientDeviceFills.limbAlerts(r).contains(where: { $0.limb == "arm-" + o }) {
+            return "Planned " + h + " radial harvest: keep lines and the cuff off the " + h + " arm; the " + o + " arm has a limb alert."
         }
         return "Planned " + h + " radial harvest: arterial line, IVs and BP cuff in the " + o + " arm."
     }
@@ -402,7 +408,7 @@ enum PatientStudies {
     // doi 10.1007/s00059-013-3925-9) [G?]; the arterial line on the other side [P].
     static let vertebralSource = "Reversed vertebral flow indicates subclavian steal, and partial (alternating) reversal early steal, from a stenosis of the subclavian (on the right, possibly the innominate) before the vertebral (Kliewer MA, et al. AJR 2000). A difference of 10 mmHg or more between the arms suggests it (Clark CE, et al. Lancet 2012); measure both arms (ESC 2024). The internal mammary arises beyond the stenosis, so a graft from it can steal from the heart (coronary–subclavian steal; Kilic ID, et al. Herz 2015). The arterial line on the other side is practice."
 
-    /// The vertebral caution for steal on one side. `noLineAdvice`: the other arm is the harvest arm, so it is not
+    /// The vertebral caution for steal on one side. `noLineAdvice`: the other arm is the harvest arm or has a limb alert, so it is not
     /// offered for the arterial line (the harvest caution suggests femoral access).
     static func vertebralText(_ s: String, partial: Bool, noLineAdvice: Bool) -> String {
         let o = otherSide(s)
@@ -451,7 +457,11 @@ enum PatientStudies {
         } else {
             for s in r.carotid.reversedSides {
                 let partial = (s == "right" ? r.carotid.right : r.carotid.left).vertebral == "partial"
-                out.append(StudyCaution(id: "vertebral-" + s, text: vertebralText(s, partial: partial, noLineAdvice: both || h == otherSide(s)), source: vertebralSource))
+                // The other arm is not offered for the arterial line and cuff when it is the harvest arm or has a limb
+                // alert (a fistula, a node dissection), as the harvest line does not send lines there either.
+                let o = otherSide(s)
+                let spared = PatientDeviceFills.limbAlerts(r).contains { $0.limb == "arm-" + o }
+                out.append(StudyCaution(id: "vertebral-" + s, text: vertebralText(s, partial: partial, noLineAdvice: both || h == o || spared), source: vertebralSource))
             }
         }
         return out

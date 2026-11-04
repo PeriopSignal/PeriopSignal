@@ -121,6 +121,10 @@ enum PatientCatalog {
             PatientProblem("resp-infection-other", "Other respiratory infection"),
             PatientProblem("ild", "Interstitial lung disease"),
             PatientProblem("home-o2", "Home oxygen"),
+            // 1.9: the side, the fluid, drainage and a chest tube sit in PatientRecord.hx; a chest tube in place is drawn
+            // on the diagram (PatientDeviceFills).
+            PatientProblem("pleural-effusion", "Pleural effusion"),
+            PatientProblem("pneumothorax", "Pneumothorax"),
         ]),
         PatientSystem(id: "neuro", name: "Neurologic", icon: "brain.head.profile", problems: [
             PatientProblem("cva", "Stroke or TIA, over 3 months", asa: 3, asaExample: "history (>3 months) of MI, CVA, TIA, or CAD/stents", rcri: "cva"),
@@ -140,20 +144,42 @@ enum PatientCatalog {
             PatientProblem("neuromuscular", "Neuromuscular disease"),
             PatientProblem("sci", "Spinal cord injury"),
             PatientProblem("chronic-pain", "Chronic pain or opioid tolerance"),
+            // 1.9 (Ben's list). An unstable cervical spine is the Musculoskeletal item "cspine-unstable", shown on this page
+            // too.
+            PatientProblem("visual-impairment", "Visual impairment"),
+            PatientProblem("psych", "Psychological disorder"),
+            PatientProblem("mdd", "Major depressive disorder"),
+            PatientProblem("anxiety", "Anxiety disorder"),
         ]),
+        // 1.9: an expanding page. The CKD stage (KDIGO G1–G5), the dialysis schedule and the access sites sit in
+        // PatientRecord.hx; a fistula or dialysis catheter with a location is drawn on the diagram (PatientDeviceFills).
         PatientSystem(id: "renal", name: "Renal", icon: "drop", problems: [
             PatientProblem("ckd", "Chronic kidney disease", peds: 3, pedsExample: "renal failure"),
+            // Chosen by hand (an option of CKD/ESRD), never inferred from stage 5: a stage-5 patient may be on peritoneal
+            // dialysis. Until 1.9 this was part of "aki", whose ASA IV example it shares.
+            PatientProblem("esrd-no-dialysis", "ESRD not on regularly scheduled dialysis", asa: 4, asaExample: "ARD or ESRD not undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
+            // Saved before 1.9 as "Acute kidney injury, or ESRD not on scheduled dialysis"; the id and its ASA IV are kept.
+            PatientProblem("aki", "Acute kidney injury", asa: 4, asaExample: "ARD or ESRD not undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
+            PatientProblem("bph", "Benign prostatic hyperplasia"),
+            PatientProblem("prostate-cancer", "Prostate cancer"),
+            // The Hemodialysis item (1.9).
             PatientProblem("esrd-dialysis", "ESRD on regularly scheduled dialysis", asa: 3, asaExample: "ESRD undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
-            PatientProblem("aki", "Acute kidney injury, or ESRD not on scheduled dialysis", asa: 4, asaExample: "ARD or ESRD not undergoing regularly scheduled dialysis", peds: 3, pedsExample: "renal failure"),
         ]),
+        // 1.9: an expanding page, in Ben's order. Reflux and a hiatal hernia are two items now ("gerd" was "Reflux or hiatal
+        // hernia"); the aspiration and heparin warnings and the TEE concerns are PatientWarnings and PatientTEE.
         PatientSystem(id: "gi", name: "GI & liver", icon: "cross.case", problems: [
-            PatientProblem("gerd", "Reflux or hiatal hernia"),
-            PatientProblem("full-stomach", "Full stomach or bowel obstruction"),
-            PatientProblem("gastroparesis", "Gastroparesis"),
-            PatientProblem("hepatitis-active", "Active hepatitis", asa: 3, asaExample: "active hepatitis"),
-            PatientProblem("cirrhosis", "Cirrhosis"),
+            PatientProblem("gerd", "Reflux/GERD"),
+            PatientProblem("gastric-bypass", "History of gastric bypass"),
+            PatientProblem("dysphagia", "Dysphagia"),
+            PatientProblem("esophageal-disorder", "Esophageal disorder"),
+            PatientProblem("hiatal-hernia", "Hiatal hernia"),
             // A relative contraindication to a TEE probe (Hahn RT, et al. J Am Soc Echocardiogr 2013, Table 6).
             PatientProblem("varices", "Esophageal varices"),
+            PatientProblem("cirrhosis", "Cirrhosis"),
+            PatientProblem("hepatitis-active", "Active hepatitis", asa: 3, asaExample: "active hepatitis"),
+            PatientProblem("gastroparesis", "Gastroparesis"),
+            PatientProblem("gi-bleed", "GI bleed"),
+            PatientProblem("full-stomach", "Full stomach or bowel obstruction"),
         ]),
         PatientSystem(id: "endo", name: "Endocrine", icon: "flask", problems: [
             // One item since 1.8.1 ("dm-poor", Diabetes, poorly controlled, loads as this one: migratedProblems). Confirmed
@@ -165,55 +191,95 @@ enum PatientCatalog {
             PatientProblem("thyroid", "Thyroid disease"),
             PatientProblem("adrenal", "Adrenal insufficiency or chronic steroids"),
         ]),
+        // 1.9: an expanding page. Anemia is also set by a low hemoglobin (WHO 2024 cut-offs, PatientCrossFill). Factor V
+        // Leiden is a thrombophilia, not a bleeding disorder (Ben, Nov 3); the Obstetric page's Thrombophilia is this item.
         PatientSystem(id: "heme", name: "Hematologic", icon: "drop.triangle", problems: [
             PatientProblem("anemia", "Anemia"),
+            PatientProblem("thrombocytopenia", "Thrombocytopenia"),
             PatientProblem("bleeding", "Bleeding disorder or coagulopathy"),
+            PatientProblem("vwd", "von Willebrand disease"),
+            PatientProblem("hemophilia-a", "Hemophilia A"),
+            PatientProblem("hemophilia-b", "Hemophilia B"),
+            PatientProblem("dic", "DIC", asa: 4, asaExample: "DIC", peds: 4, pedsExample: "disseminated intravascular coagulation"),
+            // Not the Obstetric "thrombophilia", whose ASA III example is a thrombophilic disease requiring anticoagulation
+            // in pregnancy.
+            PatientProblem("thrombophilia-heme", "Thrombophilia"),
+            PatientProblem("fvl", "Factor V Leiden"),
+            PatientProblem("anticoagulation", "On anticoagulation"),
+            PatientProblem("declines-blood", "Declines blood products"),
             PatientProblem("vte", "DVT or PE"),
             PatientProblem("sickle", "Sickle cell disease"),
-            PatientProblem("dic", "DIC", asa: 4, asaExample: "DIC", peds: 4, pedsExample: "disseminated intravascular coagulation"),
-            PatientProblem("declines-blood", "Declines blood products"),
         ]),
-        // 1.8.1. None is among the ASA's examples (sepsis stays under Acute illness, with shock).
+        // 1.8.1. None is among the ASA's examples (sepsis stays under Acute illness, with shock). 1.9: an expanding page.
+        // Sepsis (Acute illness), URI and pneumonia (Respiratory) are shown here too, with the same ids; endocarditis is
+        // shown on the Cardiovascular page. The precautions they suggest are PatientPrecautions.
         PatientSystem(id: "infectious", name: "Infectious", icon: "facemask", problems: [
             PatientProblem("infection-active", "Active infection"),
-            PatientProblem("endocarditis", "Endocarditis"),
+            PatientProblem("endocarditis", "Infective endocarditis"),
             PatientProblem("hiv", "HIV"),
-            PatientProblem("hepatitis-viral", "Hepatitis B or C"),
+            // Saved before 1.9 as "Hepatitis B or C"; the types (A, B, C) sit in PatientRecord.hx.
+            PatientProblem("hepatitis-viral", "Viral hepatitis"),
             PatientProblem("mdro", "MRSA or VRE"),
             PatientProblem("c-diff", "C. difficile"),
             PatientProblem("tb", "Tuberculosis"),
-            PatientProblem("covid-recent", "Recent COVID-19"),
+            // Active or recent sits in PatientRecord.hx; ARISCAT reads the one id either way.
+            PatientProblem("covid-recent", "COVID-19"),
             PatientProblem("isolation", "Isolation precautions"),
         ]),
         PatientSystem(id: "acute", name: "Acute illness", icon: "waveform.path.ecg", problems: [
             PatientProblem("sepsis", "Sepsis", asa: 4, asaExample: "sepsis", peds: 4, pedsExample: "sepsis"),
             PatientProblem("shock", "Shock", asa: 4, asaExample: "shock", peds: 4, pedsExample: "shock"),
             PatientProblem("massive-trauma", "Massive trauma", asa: 5, asaExample: "massive trauma", peds: 5, pedsExample: "massive trauma"),
+            // 1.9. A burn is in no ASA example.
+            PatientProblem("burn", "Major burn"),
             PatientProblem("ruptured-aneurysm", "Ruptured abdominal or thoracic aneurysm", asa: 5, asaExample: "ruptured abdominal/thoracic aneurysm"),
         ]),
         PatientSystem(id: "ob", name: "Obstetric", icon: "figure.2.and.child.holdinghands", problems: [
             PatientProblem("pregnant", "Pregnant", asa: 2, asaExample: "pregnancy"),
             PatientProblem("gest-htn", "Gestational hypertension, well controlled", asa: 2, asaExample: "well-controlled gestational HTN"),
             PatientProblem("preeclampsia", "Preeclampsia without severe features, controlled", asa: 2, asaExample: "controlled preeclampsia without severe features"),
+            // 1.9: Gestational diabetes alone; controlled or uncontrolled and insulin sit in PatientRecord.hx. Only the ASA's
+            // own examples (diet-controlled; complications or high insulin requirements) carry a class.
+            PatientProblem("gdm", "Gestational diabetes"),
             PatientProblem("gdm-diet", "Gestational diabetes, diet-controlled", asa: 2, asaExample: "diet-controlled gestational DM"),
             PatientProblem("gdm-complex", "Gestational diabetes with complications or high insulin needs", asa: 3, asaExample: "gestational DM with complications or high insulin requirements"),
             PatientProblem("thrombophilia", "Thrombophilia needing anticoagulation", asa: 3, asaExample: "a thrombophilic disease requiring anticoagulation"),
             PatientProblem("preeclampsia-severe", "Preeclampsia with severe features", asa: 3, asaExample: "preeclampsia with severe features"),
             PatientProblem("hellp", "Preeclampsia complicated by HELLP or another adverse event", asa: 4, asaExample: "preeclampsia with severe features complicated by HELLP or other adverse event"),
+            // 1.9 (Ben, Nov 3): peripartum cardiomyopathy as the ESC Heart Failure Association defines it, LVEF < 45%
+            // (Bauersachs J, et al. Eur J Heart Fail 2019;21:827–843). An EF below 40% is the ASA's class IV example.
+            PatientProblem("ppcm", "Peripartum cardiomyopathy (LVEF < 45%)"),
             PatientProblem("peripartum-cm", "Peripartum cardiomyopathy, EF below 40%", asa: 4, asaExample: "peripartum cardiomyopathy with EF <40"),
             PatientProblem("previa-accreta", "Placenta previa or accreta spectrum"),
-            PatientProblem("uterine-rupture", "Uterine rupture", asa: 5, asaExample: "uterine rupture"),
+            // Active rupture is the ASA's class V example; a past rupture is in none (1.9).
+            PatientProblem("uterine-rupture", "Uterine rupture, active", asa: 5, asaExample: "uterine rupture"),
+            PatientProblem("uterine-rupture-past", "Uterine rupture, past"),
         ]),
+        // 1.9: an expanding page. The unstable cervical spine is shown on the Neurologic page too.
         PatientSystem(id: "msk", name: "Musculoskeletal", icon: "figure.walk", problems: [
             PatientProblem("ra", "Rheumatoid arthritis"),
+            PatientProblem("oa", "Osteoarthritis"),
             PatientProblem("spine-fusion", "Ankylosing spondylitis or cervical fusion"),
             PatientProblem("cspine-unstable", "Unstable cervical spine"),
             PatientProblem("scoliosis", "Scoliosis"),
+            PatientProblem("fracture", "Fracture"),
+            // The ASA's pediatric class III example ("p-muscular-dystrophy" is the same example on the Pediatric list).
+            PatientProblem("muscular-dystrophy", "Muscular dystrophy", peds: 3, pedsExample: "muscular dystrophy"),
+            PatientProblem("marfan", "Marfan syndrome"),
+            PatientProblem("eds", "Ehlers-Danlos syndrome"),
+            PatientProblem("compartment-syndrome", "Compartment syndrome"),
         ]),
         PatientSystem(id: "social", name: "Smoking & Substances", icon: "wineglass", problems: [
             PatientProblem("alcohol-social", "Social alcohol use", asa: 2, asaExample: "social alcohol drinker"),
             PatientProblem("alcohol-abuse", "Alcohol dependence or abuse", asa: 3, asaExample: "alcohol dependence or abuse"),
-            PatientProblem("substance", "Opioid or stimulant use"),
+            // 1.9. The ASA's example names dependence or abuse without saying current; a former one is set by hand.
+            PatientProblem("alcohol-abuse-former", "Former alcohol dependence or abuse"),
+            // Saved before 1.9 as "Opioid or stimulant use"; the drugs are its options.
+            PatientProblem("substance", "Illicit drug use"),
+            PatientProblem("cocaine", "Cocaine use"),
+            PatientProblem("opioid-use", "Illicit opioid use"),
+            PatientProblem("marijuana", "Marijuana use"),
+            PatientProblem("methamphetamine", "Methamphetamine use"),
         ]),
     ]
 

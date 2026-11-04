@@ -97,6 +97,8 @@ enum PatientRules {
     /// What the ASA table calls a recorded problem: its label, except severe valve disease, named by its lesions
     /// ("Aortic stenosis, severe") or, saved before 1.8.1 without its valve, "Severe valve disease, valve not recorded".
     static func asaFinding(_ p: PatientProblem, _ r: PatientRecord) -> String {
+        // "aki" saved before 1.9 keeps the label it had then (PatientHistoryDetails.akiBefore19).
+        if p.id == "aki", r.hx.akiBefore19 { return "Acute kidney injury, or ESRD not on scheduled dialysis" }
         guard p.id == "valve-severe" else { return p.label }
         var lesions: [String] = []
         for (v, name) in PatientHistoryDetails.valveNames {
@@ -361,6 +363,10 @@ extension PatientRules {
     static let cardiacWords = ["cabg", "opcab", "valve", "avr", "mvr", "tvr", "tavr", "tavi", "teer", "mitraclip", "lvad", "heart transplant",
                                "oht", "cardiac", "sternotomy", "coronary", "myectomy", "maze", "ross", "asd", "vsd", "pericardiectomy",
                                "aortic root", "bentall", "arch replacement", "cardiopulmonary bypass"]
+
+    /// Why the RCRI is not shown for a cardiac operation (the Procedure page's risk inputs and the Preprocedure tab's
+    /// Cardiopulmonary Evaluation say it).
+    static let rcriHiddenNote = "Cardiac surgery: the RCRI is not shown, as it was derived for noncardiac surgery (Lee 1999)."
 
     /// The procedure list's flag for any recognized procedure, or a keyword in a typed procedure's name. Details and
     /// history ("lap chole s/p CABG", "EGD in an LVAD patient") never count: the RCRI is meant for exactly those

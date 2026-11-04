@@ -53,8 +53,10 @@ final class PatientHistory181Tests: XCTestCase {
         let heme = try XCTUnwrap(names.firstIndex(of: "Hematologic"))
         XCTAssertEqual(names[heme + 1], "Infectious", "after Hematologic")
         let inf = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "infectious" })
-        XCTAssertEqual(inf.problems.map(\.label), ["Active infection", "Endocarditis", "HIV", "Hepatitis B or C", "MRSA or VRE", "C. difficile",
-                                                   "Tuberculosis", "Recent COVID-19", "Isolation precautions"])
+        // 1.9 (Ben's Wanted Changes): Infective endocarditis, Viral hepatitis (A, B or C) and COVID-19 (active or recent,
+        // one id) take Ben's labels; the ids are unchanged.
+        XCTAssertEqual(inf.problems.map(\.label), ["Active infection", "Infective endocarditis", "HIV", "Viral hepatitis", "MRSA or VRE", "C. difficile",
+                                                   "Tuberculosis", "COVID-19", "Isolation precautions"])
         for p in inf.problems {
             XCTAssertNil(p.asa, p.label + ": no ASA example")
             XCTAssertNil(p.peds, p.label)
@@ -114,7 +116,8 @@ final class PatientHistory181Tests: XCTestCase {
         let both = try XCTUnwrap(try? JSONDecoder().decode(PatientRecord.self, from: Data(#"{"problems": ["dm", "dm-poor", "insulin"]}"#.utf8)))
         XCTAssertEqual(both.problems, ["dm", "insulin"])
         XCTAssertEqual(PatientCatalog.migratedProblems(["dm-poor"]), ["dm"])
-        XCTAssertEqual(PatientSummary.historyLines(old).first { $0.label == "Endocrine" }?.text, "Diabetes")
+        // 1.9: Endocrine is an expanding page whose summary words are lowercase, as the other pages' are.
+        XCTAssertEqual(PatientSummary.historyLines(old).first { $0.label == "Endocrine" }?.text, "diabetes")
         let book = try XCTUnwrap(PatientCaseBook.decode(Data(#"{"problems": ["dm-poor"]}"#.utf8)), "a 1.6 record")
         XCTAssertEqual(book.cases.first?.record.problems, ["dm"])
     }
@@ -129,7 +132,8 @@ final class PatientHistory181Tests: XCTestCase {
         XCTAssertEqual(ids("T2DM on insulin"), ["problem:dm", "problem:insulin"])
         XCTAssertEqual(ids("IDDM"), ["problem:dm", "problem:insulin"])
         XCTAssertEqual(ids("poorly controlled insulin-dependent diabetes"), ["problem:dm", "problem:insulin"])
-        XCTAssertEqual(ids("gestational diabetes"), ["problem:gdm-diet"], "untouched")
+        // 1.9 (spec): gestational diabetes alone is "gdm"; "gdm-diet" is the ASA's diet-controlled example only.
+        XCTAssertEqual(ids("gestational diabetes"), ["problem:gdm"], "its own item")
         XCTAssertEqual(ids("diabetes insipidus"), [])
         XCTAssertEqual(ids("pre-diabetes"), [])
         XCTAssertNil(PatientNote.read("DM2", now: now).findings.first { $0.id == "problem:dm" }?.note, "no well-controlled caution any more")
@@ -154,7 +158,8 @@ final class PatientHistory181Tests: XCTestCase {
         XCTAssertNil(PatientNote.read("TIA", now: now).findings.first { $0.id == "problem:cva" })
         XCTAssertNil(PatientNote.read("stroke 5 years ago", now: now).findings.first { $0.id == "problem:cva" }?.note, "the time is given")
         for t in ["heat stroke", "stroke volume 60 mL", "on apixaban for stroke prevention", "No history of stroke"] {
-            XCTAssertEqual(ids(t), [], t)
+            // 1.9 (spec): a named anticoagulant files On anticoagulation (Hematologic); no stroke either way.
+            XCTAssertEqual(ids(t).subtracting(["problem:anticoagulation"]), [], t)
         }
     }
 

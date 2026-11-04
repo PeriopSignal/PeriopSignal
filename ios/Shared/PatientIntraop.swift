@@ -52,10 +52,14 @@ enum IntraopLabs {
                 note: "Not flagged: the ABIM ranges give none; read it against your analyzer's range."),
         lactate,
         LabTest("ica", "Ionized calcium", short: "iCa", unit: "mmol/L", group: .main, range: LabRange(1.16, 1.31), decimals: 2, plausible: 0.2...4),
-        LabTest("ptt", "aPTT", short: "PTT", unit: "s", group: .main, range: LabRange(25, 35), decimals: 0, plausible: 10...300),
+        ptt,
         LabTest("act", "ACT", short: "ACT", unit: "s", group: .main, decimals: 0, plausible: 30...1500,
                 note: "Not flagged: read against the target. During bypass, above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa), or above about 400 s on maximal-activation or microcuvette devices."),
     ]
+
+    /// The aPTT: ABIM 25–35 s. The preoperative catalog (1.9) reuses this entry, so the same value is flagged the same way
+    /// before and during the case; the PT beside it has no flag (PatientLabs.catalog).
+    static let ptt = LabTest("ptt", "aPTT", short: "PTT", unit: "s", group: .main, range: LabRange(25, 35), decimals: 0, plausible: 10...300)
 
     /// The gas's lactate; the preoperative catalog's "Lactate" (1.8.3) reuses its unit, range and note.
     static let lactate = LabTest("lactate", "Lactate, arterial", short: "Lactate", unit: "mmol/L", group: .main, range: LabRange(nil, 2.0),

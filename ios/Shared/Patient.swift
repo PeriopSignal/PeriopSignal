@@ -139,22 +139,37 @@ struct PatientRecord: Codable, Equatable {
     // History
     var noHistory = false
     var problems: Set<String> = [] {
-        // An item taken off, by any path, is no longer the labs' to take off later (LabResults.edit).
-        didSet { if !labProblems.isSubset(of: problems) { labProblems.formIntersection(problems) } }
+        // An item taken off, by any path, is no longer the labs' (LabResults.edit) or a link's (PatientCrossFill) to take
+        // off later.
+        didSet {
+            if !labProblems.isSubset(of: problems) { labProblems.formIntersection(problems) }
+            if !fills.problems.isSubset(of: problems) { fills.problems.formIntersection(problems) }
+        }
     }
     /// The diameter (cm) of each unruptured aortic aneurysm, by problem id ("aaa", "taa", "taaa"), as saved before the
     /// aneurysms were kept by location (PatientHistoryDetails.aneurysms); read once and moved there.
     var aortaSizes: [String: Double] = [:]
     /// What the expanding History pages hold beside the problem ids: valves, aneurysms by location, typed details (1.8.1).
     var hx = PatientHistoryDetails()
+    /// Each system page's Other details (1.8: its "Other"), by system id.
     var systemNotes: [String: String] = [:]
+    /// Each system page's Other [system] disorders (1.9), by system id.
+    var systemOther: [String: String] = [:]
     var otherHistory = ""
     /// "never", "former", "current".
     var smoking: String?
     var nkda = false
+    /// Allergies as typed before 1.9; shown until the list below holds them.
     var allergies = ""
+    /// Allergies as items with their severity (1.9).
+    var allergyList: [PatientAllergy] = []
+    /// The medication list as typed before 1.9; shown until the list below holds the same drugs.
     var medications = ""
-    var medFlags: Set<String> = []
+    /// Home and current medications as items (1.9).
+    var homeMeds: [PatientMed] = []
+    var medFlags: Set<String> = [] {
+        didSet { if !fills.medFlags.isSubset(of: medFlags) { fills.medFlags.formIntersection(medFlags) } }
+    }
     var anesthesiaHistory: Set<String> = []
     var anesthesiaNotes = ""
     var lastSolids: Date?
@@ -195,7 +210,9 @@ struct PatientRecord: Codable, Equatable {
     /// intrathoracic operations are listed with them).
     var intrathoracic: [PatientSurgery] = []
     /// ECG findings from the typeable list, and anything else.
-    var ecg: [String] = []
+    var ecg: [String] = [] {
+        didSet { if !fills.ecg.isSubset(of: Set(ecg)) { fills.ecg.formIntersection(Set(ecg)) } }
+    }
     var ecgNotes = ""
     var echoFindings = PatientEcho()
     var lhc = PatientLHC()
@@ -262,6 +279,9 @@ struct PatientRecord: Codable, Equatable {
     /// ECMO cannulas, LVAD, IABP, Impella. The airway lives in currentAirway and the intraoperative course; blocks and
     /// neuraxial techniques in `regional`.
     var devices: [PatientDevice] = []
+    /// Limbs to spare (1.9): typed by the user ("prior axillary lymph node dissection"); an AV fistula's arm is
+    /// added on the diagram by itself (PatientDeviceFills.limbAlerts), not stored here.
+    var limbAlerts: [PatientLimbAlert] = []
     var regional: [PatientRegional] = []
     var infusions: [PatientInfusion] = []
     /// Units: "prbc", "wholeBlood", "plasma", "platelets", "cryo"; mL: "cellSaver", "crystalloid", "colloid", "ebl", "uop".
@@ -294,6 +314,19 @@ struct PatientRecord: Codable, Equatable {
     var callIf = ""
     var todos = ""
 
+    /// What one part of the record filled in another (1.9), so a link takes back only what it added.
+    var fills = PatientFills()
+
+    // 1.9 Preprocedure tab and Summary & Handoff
+    /// Cardiopulmonary evaluation's "Intrathoracic procedure": nil not asked, false No, true Yes.
+    var intrathoracicProcedure: Bool?
+    /// The preprocedure summary was generated (its + Generate button); it then follows the record.
+    var preopSummaryOn = false
+    /// Text the user changed in the generated preprocedure summary and handoff, by block key; a block with an edit keeps
+    /// it until Regenerate.
+    var preopSummaryEdits: [String: String] = [:]
+    var handoffEdits: [String: String] = [:]
+
     init() {}
 
     /// Every field read with a fallback, so a record saved by an older version still opens after an update.
@@ -319,11 +352,14 @@ struct PatientRecord: Codable, Equatable {
         aortaSizes = v(.aortaSizes, [:])
         hx = v(.hx, PatientHistoryDetails())
         systemNotes = v(.systemNotes, [:])
+        systemOther = v(.systemOther, [:])
         otherHistory = v(.otherHistory, "")
         smoking = try? c.decodeIfPresent(String.self, forKey: .smoking)
         nkda = v(.nkda, false)
         allergies = v(.allergies, "")
+        allergyList = v(.allergyList, [])
         medications = v(.medications, "")
+        homeMeds = v(.homeMeds, [])
         medFlags = v(.medFlags, [])
         anesthesiaHistory = v(.anesthesiaHistory, [])
         anesthesiaNotes = v(.anesthesiaNotes, "")
@@ -387,6 +423,7 @@ struct PatientRecord: Codable, Equatable {
         airwayFollowUp = v(.airwayFollowUp, [])
         lines = v(.lines, [])
         devices = v(.devices, [])
+        limbAlerts = v(.limbAlerts, [])
         if !c.contains(.devices) && !lines.isEmpty {
             devices = lines.map { l in var d = PatientDevice(line: l); d.placedIntraop = true; return d }
             lines = []
@@ -413,6 +450,16 @@ struct PatientRecord: Codable, Equatable {
         painPlan = v(.painPlan, "")
         callIf = v(.callIf, "")
         todos = v(.todos, "")
+        fills = v(.fills, PatientFills())
+        intrathoracicProcedure = try? c.decodeIfPresent(Bool.self, forKey: .intrathoracicProcedure)
+        preopSummaryOn = v(.preopSummaryOn, false)
+        preopSummaryEdits = v(.preopSummaryEdits, [:])
+        handoffEdits = v(.handoffEdits, [:])
+        fills.problems.formIntersection(problems)
+        fills.medFlags.formIntersection(medFlags)
+        fills.ecg.formIntersection(Set(ecg))
+        // Saved before 1.9 (which saves the fills on every record), "aki" also meant ESRD not on scheduled dialysis.
+        if !c.contains(.fills), problems.contains("aki") { hx.akiBefore19 = true }
         PatientHistoryDetails.migrate(&self)
     }
 

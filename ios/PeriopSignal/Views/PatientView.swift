@@ -112,6 +112,7 @@ struct PatientView: View {
                     .padding(.bottom, 32)
                     .id(Self.topID)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 .overlay(alignment: .top) { pinnedJumpBar(proxy) }
                 .readPatientTipFrames(tips.isShowing, into: $tipFrames)
                 .noIdentifiersAlert(isPresented: $showIdentifiers)
@@ -130,7 +131,7 @@ struct PatientView: View {
                     if !a.isEmpty {
                         let go = {
                             if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(PatientEditor.intraopPart(String(a.dropFirst(8)))), anchor: .top) }
-                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(PatientJumpID(e), anchor: .top) }
+                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(e, anchor: .top) }
                             else { proxy.scrollTo(a, anchor: .top) }
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
@@ -237,9 +238,11 @@ struct PatientView: View {
         scrollToTop += 1
     }
 
+    /// A box's link: a reference route first ("airway" is the airway reference page here), else an editor or one of
+    /// its pages by its deep-link name (workup:tee, medications).
     private func open(_ key: String) {
-        if key.hasPrefix("workup:") { path.append(PatientEditor.workup(String(key.dropFirst(7)))); return }
-        if let route = RefRoute(key: key) { path.append(route) }
+        if let route = RefRoute(key: key) { path.append(route); return }
+        if let e = PatientDeepLink.parse(key)?.editor { path.append(e) }
     }
 
     /// Screenshot runs: -ps.patient.tab preop | intraop | summary; -ps.patient.open details | procedure | demographics |
@@ -260,6 +263,8 @@ struct PatientView: View {
                     r.echoFindings.tricuspid.regurgitation = .trivial
                     r.echoFindings.aortic.regurgitation = .trivial
                 case "harvest-both": r.radial.harvest = "both"
+                // 1.9 (the Preprocedure tab): Intrathoracic procedure answered Yes, as a tap would.
+                case "intrathoracic": PatientPreop.setIntrathoracic(true, &r)
                 // 1.8.3 (the ECG and the history linked): an AF found on the ECG, which the history then holds too; the ECG
                 // cleared, so the history's AF and pacemaker are offered as suggestions.
                 case "ecg-af": PatientECGLink.add("Atrial fibrillation", to: &r)
@@ -271,36 +276,38 @@ struct PatientView: View {
                 }
             }
         }
-        let o = LaunchSeed.string("ps.patient.open")
-        // A push asked for before the navigation stack is on screen is sometimes dropped (screenshot runs): wait a moment.
-        if !o.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }
-        switch o {
-        case "details": path.append(PatientEditor.details)
-        case "procedure": path.append(PatientEditor.procedure)
-        case "demographics": path.append(PatientEditor.demographics)
-        case "history": path.append(PatientEditor.history)
-        case "medications": path.append(PatientEditor.medications)
-        case "assessment": path.append(PatientEditor.assessment)
-        case "airway": path.append(PatientEditor.airway)
-        case "intraop": path.append(PatientEditor.intraop)
-        case "plan": path.append(PatientEditor.plan)
-        case "handoff": tabOverride = .summary
-        case "note":
+        guard let link = PatientDeepLink.parse(LaunchSeed.string("ps.patient.open")) else { return }
+        switch link {
+        case .summary: tabOverride = .summary
+        case .note:
             // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
             showNote = true
-        case "receive":
+        case .receive:
             try? await Task.sleep(nanoseconds: 800_000_000)
             inbox.pending = PatientPacket(record: PatientDemo.record)
-        default:
-            if o.hasPrefix("workup:") { path.append(PatientEditor.workup(String(o.dropFirst(7)))) }
-            else if o.hasPrefix("intraop:") { path.append(PatientEditor.intraopPart(String(o.dropFirst(8)))) }
-            else if o.hasPrefix("devices:") { path.append(PatientEditor.devices(String(o.dropFirst(8)))) }
-            else if o.hasPrefix("system:") { path.append(PatientEditor.system(String(o.dropFirst(7)))) }
-            else if let route = RefRoute(key: o) { path.append(route) }
+        case .editor, .route:
+            // A push asked for before the navigation stack has settled is sometimes dropped (the stack writes its empty
+            // first state back over the path), and the 1.9 tab's longer first layout on the CI simulator made one wait
+            // of 0.4 s lose now and then (run 375: 340, 393 and 394 showed the tab). Push after a moment, then look
+            // again a few times and push once more while the path is still empty.
+            for delay in Self.openRetryDelays {
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                if Task.isCancelled { return }
+                guard path.isEmpty else { return }
+                switch link {
+                case .editor(let e): path.append(e)
+                case .route(let r): path.append(r)
+                default: break
+                }
+            }
         }
         #endif
     }
+
+    /// When the screenshot runs' -ps.patient.open pushes its page, and looks again: after the stack's first frame,
+    /// then with room for a slow launch (the last well inside the shortest open-key shot's 12 s wait).
+    static let openRetryDelays: [Double] = [0.4, 1.2, 2.4, 4.0]
 
     // MARK: Tabs
 
@@ -336,7 +343,7 @@ struct PatientView: View {
             noteButton
             // The empty patient's one hint, in place of an explainer card.
             if patient.isEmpty {
-                Text("Type the patient in one line, or open a section below.")
+                Text("Type the patient in one line, or fill in a box below.")
                     .font(PS.sys(size: 12.5))
                     .foregroundStyle(PS.fg3)
                     .fixedSize(horizontal: false, vertical: true)
@@ -344,26 +351,79 @@ struct PatientView: View {
             }
         }
         jumpBar(proxy, Self.preopJumps).background(jumpBarReader)
+        // 1. Procedure
         PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
-            .jumpTarget(PatientEditor.procedure)
-        PatientSectionCard(editor: .demographics, lines: PatientSummary.demographicsLines(r), empty: "Age, sex, height, weight and preprocedure vital signs.")
-            .jumpTarget(PatientEditor.demographics)
-        PatientSectionCard(editor: .history, lines: PatientSummary.historyLines(r), empty: "Problems by system, surgical history, medications, allergies, anesthetic complications, NPO and labs.")
-            .jumpTarget(PatientEditor.history)
-        PatientSectionCard(editor: .assessment, lines: PatientSummary.assessmentLines(r), empty: "ASA class, functional capacity, the cardiac evaluation and the risk scores.")
-            .jumpTarget(PatientEditor.assessment)
-        airwayCard.jumpTarget(PatientEditor.airway)
-        devicesCard.jumpTarget(PatientEditor.devices("preop"))
-        PatientSectionCard(editor: .devices("support"), lines: PatientSummary.supportLines(r), empty: "IABP, Impella, LVAD or ECMO, with their settings.")
-            .jumpTarget(PatientEditor.devices("support"))
+            .jumpTarget(section: .procedure)
+        demographicsSection
+        workupSection
+        medicationsSection
+        riskSection
+        summarySection
     }
 
-    private static let preopJumps: [PatientEditor] = [.procedure, .demographics, .history, .assessment, .airway, .devices("preop"), .devices("support")]
+    // The 1.9 tab (Ben's Wanted Changes): six sections, each a jump-bar target, with the boxes' controls in place
+    // (PatientPreopViews.swift). The editors behind the old cards are still there for the boxes' links and deep links.
 
-    /// Screenshot runs: the names -ps.patient.jump and -ps.patient.scroll take for the preoperative cards.
-    private static let jumpKeys: [String: PatientEditor] = [
-        "procedure": .procedure, "demographics": .demographics, "history": .history, "assessment": .assessment,
-        "airway": .airway, "devices": .devices("preop"), "support": .devices("support"),
+    /// 2. Demographics & History: Demographics, Allergies, Problems by system, and the surgical history, complications
+    /// and last intake chips. (Labs moved to Examination & Workup.)
+    @ViewBuilder private var demographicsSection: some View {
+        PreopSectionTitle(text: PreopSection.demographics.title).jumpTarget(section: .demographics)
+        PreopDemographicsBox().jumpTarget(anchor: "demographics")
+        PatientGroup(title: "Allergies") { AllergiesBox() }.jumpTarget(anchor: "allergies")
+        PreopProblemsBox().jumpTarget(anchor: "problems")
+        PreopHistoryChipsBox().jumpTarget(anchor: "chips")
+    }
+
+    /// 3. Examination & Workup: ASA and functional capacity, Cardiopulmonary Evaluation (with the cardiac workup),
+    /// the airway examination, laboratory studies, lines and devices.
+    @ViewBuilder private var workupSection: some View {
+        PreopSectionTitle(text: PreopSection.workup.title).jumpTarget(section: .workup)
+        PreopAsaBox().jumpTarget(anchor: "asa")
+        PreopCardioBox().jumpTarget(anchor: "cardio")
+        airwayCard.jumpTarget(anchor: "airway")
+        PatientSectionCard(editor: .workup("labs"), lines: [PatientSummary.labsLine(r.capitalized), PatientSummary.liverLine(r)].compactMap { $0 },
+                           empty: "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", title: "Laboratory Studies")
+            .jumpTarget(anchor: "labs")
+        devicesCard.jumpTarget(anchor: "devices")
+    }
+
+    /// 4. Current Medications: home medications, current infusions, flagged medications.
+    @ViewBuilder private var medicationsSection: some View {
+        PreopSectionTitle(text: PreopSection.medications.title).jumpTarget(section: .medications)
+        PatientGroup(title: "Home medications") { HomeMedicationsBox() }.jumpTarget(anchor: "homemeds")
+        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
+            CurrentInfusionsBox()
+        }
+        .jumpTarget(anchor: "infusions")
+        PreopFlaggedBox(onOpenRoute: { open($0) }).jumpTarget(anchor: "flagged")
+    }
+
+    /// 5. Risk Scores & Checks: the warnings, then the prompts (no RCRI for cardiac surgery).
+    @ViewBuilder private var riskSection: some View {
+        PreopSectionTitle(text: PreopSection.risk.title).jumpTarget(section: .risk)
+        PreopRiskBox(onOpenRoute: { open($0) })
+    }
+
+    /// 6. Preprocedure Summary.
+    @ViewBuilder private var summarySection: some View {
+        PreopSectionTitle(text: PreopSection.summary.title).jumpTarget(section: .summary)
+        PreprocedureSummaryView()
+    }
+
+    private static let preopJumps: [PatientJumpItem] = PreopSection.allCases.map { PatientJumpItem(section: $0) }
+
+    /// Screenshot runs: the names -ps.patient.jump and -ps.patient.scroll take for the preoperative tab: its six sections
+    /// (procedure, demographics, workup, medications, risk) and the boxes in them; "preopsummary" is the summary view's own id. The cards of earlier
+    /// versions keep their names, pointing at the nearest new box: history -> problems, assessment -> asa, support -> cardio.
+    private static let jumpKeys: [String: PatientJumpID] = [
+        "procedure": PatientJumpID(section: .procedure), "demographics": PatientJumpID(anchor: "demographics"),
+        "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
+        "risk": PatientJumpID(section: .risk),
+        "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
+        "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
+        "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
+        "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "infusions"), "flagged": PatientJumpID(anchor: "flagged"),
+        "history": PatientJumpID(anchor: "problems"), "assessment": PatientJumpID(anchor: "asa"), "support": PatientJumpID(anchor: "cardio"),
     ]
 
     /// The intraoperative echo card shows when an echo is usual for the surgery, a TEE is planned, or one is recorded.
@@ -376,10 +436,10 @@ struct PatientView: View {
     }
 
     /// The jump bar's sections for the tab (none on Summary & Handoff).
-    private var jumpEditors: [PatientEditor]? {
+    private var jumpItems: [PatientJumpItem]? {
         switch tab {
         case .preop: return Self.preopJumps
-        case .intraop: return intraopCardParts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")]
+        case .intraop: return (intraopCardParts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")]).map { PatientJumpItem($0) }
         case .summary: return nil
         }
     }
@@ -390,7 +450,7 @@ struct PatientView: View {
             VStack(alignment: .leading, spacing: 9) {
                 sectionHeader(.devices("preop"))
                 let lines = PatientSummary.arrivalDeviceLines(r)
-                if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty {
+                if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty && PatientDeviceFills.limbAlerts(r).isEmpty {
                     Text("Tap to draw the lines, airway and devices the patient arrives with.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
                     PatientDiagramCard(record: r, phase: .preop, height: 260)
@@ -408,7 +468,7 @@ struct PatientView: View {
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         let parts = intraopCardParts
-        jumpBar(proxy, jumpEditors ?? []).background(jumpBarReader)
+        jumpBar(proxy, jumpItems ?? []).background(jumpBarReader)
         ForEach(parts, id: \.id) { part in
             PatientSectionCard(editor: .intraopPart(part.id), lines: PatientSummary.intraopPartLines(r, part.id), empty: Self.intraopEmpty[part.id] ?? "")
                 .jumpTarget(PatientEditor.intraopPart(part.id))
@@ -438,14 +498,15 @@ struct PatientView: View {
 
     @ViewBuilder private var summary: some View {
         QuickAddBar(place: .summaryTab)
-        PatientSectionCard(editor: .plan, lines: PatientSummary.planLines(r), empty: "Disposition, pain plan and what the next team should do.")
+        // Status & Plan (1.9): short chips for the airway and the disposition, and To do & Concerns; no folder to open.
+        StatusPlanCard()
             .id(PatientEditor.plan)
         if patient.isEmpty {
             Text("The handoff writes itself here as you fill in the other tabs.")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
         } else {
-            // The lines and devices figure sits in the handoff, under its text (HandoffLinesFigure, 1.8.1).
+            // The lines and devices figure is the handoff's Lines & devices block (PatientBriefs, 1.9).
             HandoffPanel(record: r).id("handoff")
         }
     }
@@ -545,7 +606,7 @@ struct PatientView: View {
     /// scrolled under it: any section is one tap away from anywhere on the tab. At rest only a point at the top is
     /// there, to measure where the chips pin; the bar and its material exist only while pinned.
     @ViewBuilder private func pinnedJumpBar(_ proxy: ScrollViewProxy) -> some View {
-        if let editors = jumpEditors {
+        if let items = jumpItems {
             ZStack(alignment: .top) {
                 Color.clear
                     .frame(height: 1)
@@ -557,7 +618,7 @@ struct PatientView: View {
                     })
                     .allowsHitTesting(false)
                 if jumpPinned {
-                    jumpBar(proxy, editors)
+                    jumpBar(proxy, items)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -574,12 +635,12 @@ struct PatientView: View {
         }
     }
 
-    private func jumpBar(_ proxy: ScrollViewProxy, _ editors: [PatientEditor]) -> some View {
+    private func jumpBar(_ proxy: ScrollViewProxy, _ items: [PatientJumpItem]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(editors, id: \.self) { e in
-                    Button { withAnimation(.snappy) { proxy.scrollTo(PatientJumpID(e), anchor: .top) } } label: {
-                        Text(e.title)
+                ForEach(items, id: \.self) { item in
+                    Button { withAnimation(.snappy) { proxy.scrollTo(item.id, anchor: .top) } } label: {
+                        Text(item.title)
                             .font(PS.sys(size: 13.5, weight: .semibold))
                             .foregroundStyle(PS.fg2)
                             .padding(.horizontal, 13).padding(.vertical, 7)
@@ -598,7 +659,7 @@ struct PatientView: View {
         NavigationLink(value: PatientEditor.airway) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader(.airway)
+                    sectionHeader(.airway, title: "Airway Examination")
                     let lines = PatientSummary.airwayLines(r)
                     if lines.isEmpty {
                         Text("Current airway and oxygen, Mallampati, difficult-airway signs and teeth.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
@@ -621,10 +682,10 @@ struct PatientView: View {
         .buttonStyle(.plain)
     }
 
-    private func sectionHeader(_ e: PatientEditor) -> some View {
+    private func sectionHeader(_ e: PatientEditor, title: String? = nil) -> some View {
         HStack(spacing: 8) {
             Image(systemName: e.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-            Text(e.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+            Text(title ?? e.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
             Spacer()
             Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
         }
@@ -638,13 +699,15 @@ struct PatientSectionCard: View {
     var editor: PatientEditor
     var lines: [PatientSummary.Line]
     var empty: String
+    /// The card's title when it is not the editor's own ("Laboratory Studies" for the Labs page).
+    var title: String? = nil
 
     var body: some View {
         NavigationLink(value: editor) {
             VStack(alignment: .leading, spacing: 9) {
                 HStack(spacing: 8) {
                     Image(systemName: editor.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                    Text(editor.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text(title ?? editor.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
                     Spacer()
                     Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                 }
@@ -663,71 +726,51 @@ struct PatientSectionCard: View {
     }
 }
 
-/// The handoff as it stands, short or full, written from the record as you go: read it, copy it, share it, or send
-/// the patient itself to a colleague's Periop Signal so they carry on with the case.
+/// The handoff as it stands (1.9: one handoff in Ben's format, no Short or Full), written from the record as you go and
+/// editable block by block (BriefPanel): read it, edit it, copy it, share it with the fishbone and the lines diagram as
+/// pictures, or send the patient itself to a colleague's Periop Signal so they carry on with the case.
 struct HandoffPanel: View {
     @Environment(ReferenceStore.self) private var refs
     var record: PatientRecord
-    @State private var sharing: [Any]?
-    /// "full" or "short"; the last one used is kept.
-    @AppStorage("ps.handoff.format") private var format = "full"
-    @State private var copied = false
 
-    private var text: String { format == "short" ? HandoffWriter.shortText(record) : HandoffWriter.text(record) }
-
-    /// What the card shows: the text. Screenshot runs: -ps.handoff.from AIRWAY starts it at that header, so a section
-    /// far down the full handoff fits the frame.
-    private var shownText: String {
+    /// Screenshot runs: -ps.handoff.from Airway starts the handoff at the block whose label begins with it, so a block far
+    /// down fits the frame.
+    private var startAt: String {
         #if DEBUG
-        let from = LaunchSeed.string("ps.handoff.from")
-        if !from.isEmpty, let r = text.range(of: "\n" + from + "\n") { return String(text[text.index(after: r.lowerBound)...]) }
+        return LaunchSeed.string("ps.handoff.from")
+        #else
+        return ""
         #endif
-        return text
     }
 
-    /// Screenshot runs: -ps.handoff.image 1 shows the picture that goes after the text when the handoff is shared.
+    /// Screenshot runs: -ps.handoff.image 1 shows the pictures that go after the text when the handoff is shared.
     @ViewBuilder private var sharedImageShot: some View {
         #if DEBUG
-        if LaunchSeed.string("ps.handoff.image") == "1", let img = HandoffShare.diagramImage(record, figure: refs.bundle?.regional?.figure) {
-            VStack(alignment: .leading, spacing: 8) {
-                Eyebrow(text: "Picture shared after the text")
-                Image(uiImage: img).resizable().scaledToFit().frame(maxWidth: .infinity)
+        if LaunchSeed.string("ps.handoff.image") == "1" {
+            let images = HandoffShare.briefImages(PatientBriefs.handoff(record), record: record, figure: refs.bundle?.regional?.figure)
+            if !images.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Eyebrow(text: "Pictures shared after the text")
+                    ForEach(Array(images.enumerated()), id: \.offset) { _, img in
+                        Image(uiImage: img).resizable().scaledToFit().frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(12)
+                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+                .id("sharedimage")
             }
-            .padding(12)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .id("sharedimage")
         }
         #endif
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: "Handoff, as it stands")
-                Spacer()
-                Picker("Handoff", selection: $format) {
-                    Text("Short").tag("short")
-                    Text("Full").tag("full")
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 150)
-            }
-            Text(handoffStyled(shownText, marks: HandoffWriter.marks(record)))
-                .font(PS.sys(size: 14.5))
-                .foregroundStyle(PS.fg)
-                .lineSpacing(3)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            HandoffLinesFigure(record: record)
+            #if DEBUG
+            // Screenshot runs: -ps.brief preop shows the Preprocedure tab's summary here too (its own tab is helper 5's).
+            if LaunchSeed.string("ps.brief") == "preop" { PreprocedureSummaryView() }
+            #endif
+            BriefPanel(kind: .handoff, startAt: startAt)
             sharedImageShot
-            HStack(spacing: 10) {
-                Button { sharing = HandoffShare.items(text: text, image: HandoffShare.diagramImage(record, figure: refs.bundle?.regional?.figure)) } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
-                    .buttonStyle(BigButtonStyle(prominent: true))
-                Button { HandoffShare.copy(text); copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
-                    .buttonStyle(BigButtonStyle(prominent: false))
-            }
             EvidenceNote("Share only through channels your institution approves for patient information.", title: "Approved channels only")
             sendCard
             VStack(alignment: .leading, spacing: 8) {
@@ -743,10 +786,6 @@ struct HandoffPanel: View {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-        }
-        .sensoryFeedback(.success, trigger: copied)
-        .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
-            ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
         }
     }
 
@@ -774,41 +813,6 @@ struct HandoffPanel: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-    }
-}
-
-/// Every line and device in place now, on arrival and placed in the room (the handoff's Lines and Support, the Foley
-/// with them), drawn on the patient under the handoff text (1.8.1, Ben): read-only and compact, the editor's own figure
-/// without its touch handlers (PatientDiagramCard). A tap opens the Lines editor. The shared handoff carries the same
-/// picture after the text (HandoffShare.diagramImage); the copied text stays text.
-struct HandoffLinesFigure: View {
-    @Environment(ReferenceStore.self) private var refs
-    var record: PatientRecord
-
-    var body: some View {
-        if refs.bundle?.regional?.figure != nil, !PatientDiagramModel.items(record, phase: .all).items.isEmpty {
-            NavigationLink(value: PatientEditor.intraopPart("lines")) {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        Eyebrow(text: "Lines & devices now")
-                        Spacer()
-                        Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                    }
-                    // 350: the smallest height whose label columns (8.4 figure units apart) clear the 7-point labels.
-                    PatientDiagramCard(record: record, phase: .all, height: 350)
-                }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Lines and devices now: " + PatientDevices.labels(record.currentDevices()).joined(separator: "; "))
-            .accessibilityHint("Opens the Lines editor")
-            .accessibilityAddTraits(.isButton)
-            .id("handofffigure")
-        }
     }
 }
 
@@ -850,24 +854,51 @@ final class PatientJumpGeometry {
 /// A card's scroll target, kept apart from the jump bar's own chips (identified by the same editors), so a jump
 /// scrolls the tab and never the row of chips.
 struct PatientJumpID: Hashable {
-    var editor: PatientEditor
-    init(_ editor: PatientEditor) { self.editor = editor }
+    var key: String
+    init(_ editor: PatientEditor) { key = "editor:\(editor)" }
+    /// A section of the Preprocedure tab, or a box in one.
+    init(section: PreopSection) { key = "preop:" + section.rawValue }
+    /// A box has a key of its own, so a box named like its section ("demographics") is not a second view with the
+    /// section title's id.
+    init(anchor: String) { key = "preop-box:" + anchor }
+}
+
+/// One chip of the jump bar: where it scrolls and its words.
+struct PatientJumpItem: Hashable {
+    var id: PatientJumpID
+    var title: String
+    init(_ editor: PatientEditor) { id = PatientJumpID(editor); title = editor.title }
+    init(section: PreopSection) { id = PatientJumpID(section: section); title = section.title }
+}
+
+extension PatientJumpID {
+    /// How far above its card a jump anchor sits. Scrolling aligns the anchor with the top of the scroll view's
+    /// content, which is already under the inline title, so the anchor clears only the pinned jump bar (about 54 pt,
+    /// growing with the in-app text size) and a small margin. (110 pt, meant to clear the title too, landed the card
+    /// 70 pt under the bar, after the tail of the box before it: run 375's shots 442–446.)
+    static var clearance: CGFloat { 56 * PS.textScale }
 }
 
 extension View {
     /// A card the jump bar scrolls to. Its scroll target is a clear anchor stacked above the card, pulled up by
-    /// negative padding so the layout is unchanged: scrolling aligns the anchor with the top of the safe area, under
-    /// the navigation bar, so 110 pt clears the inline title and the pinned jump bar and the card lands just under
-    /// them. (An id in a background is not used by ScrollViewReader; a stacked child is.)
-    func jumpTarget(_ editor: PatientEditor) -> some View {
+    /// negative padding so the layout is unchanged: scrolling aligns the anchor with the top of the scroll view's
+    /// content, under the navigation bar, and PatientJumpID.clearance puts the card just under the pinned jump bar.
+    /// (An id in a background is not used by ScrollViewReader; a stacked child is.)
+    func jumpTarget(_ editor: PatientEditor) -> some View { jumpTarget(id: PatientJumpID(editor)) }
+    /// A section of the Preprocedure tab.
+    func jumpTarget(section: PreopSection) -> some View { jumpTarget(id: PatientJumpID(section: section)) }
+    /// A box in the Preprocedure tab.
+    func jumpTarget(anchor: String) -> some View { jumpTarget(id: PatientJumpID(anchor: anchor)) }
+
+    func jumpTarget(id: PatientJumpID) -> some View {
         VStack(spacing: 0) {
             Color.clear
-                .frame(height: 110)
+                .frame(height: PatientJumpID.clearance)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
-                .id(PatientJumpID(editor))
+                .id(id)
             self
         }
-        .padding(.top, -110)
+        .padding(.top, -PatientJumpID.clearance)
     }
 }

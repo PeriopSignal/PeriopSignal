@@ -10,6 +10,9 @@ import SwiftUI
 enum PatientDiagramModel {
     enum Phase: String { case preop, intraop, all }
 
+    /// The id of a limb alert's marker is this and the limb ("limb-alert-arm-left").
+    static let limbAlertPrefix = "limb-alert-"
+
     /// Fractions of the figure box to figure units.
     static func pt(_ f: CGPoint) -> CGPoint { CGPoint(x: f.x * 200, y: f.y * 420) }
 
@@ -33,6 +36,9 @@ enum PatientDiagramModel {
         case .neuraxial: return DiagramColor.neuraxial
         case .needle: return DiagramColor.needle
         case .airway: return DiagramColor.airway
+        case .pacing: return DiagramColor.pacing
+        case .access: return DiagramColor.access
+        case .drain: return DiagramColor.drain
         }
     }
 
@@ -48,8 +54,26 @@ enum PatientDiagramModel {
         case .impella: return "Impella" + (d.detail.isEmpty ? "" : " " + d.detail) + (d.settings["pLevel"].map { " " + $0 } ?? "")
         case .lvad: return "LVAD" + (d.settings["rpm"].map { " " + $0 } ?? "")
         case .protekDuo: return "ProtekDuo" + size
+        // 1.9: the tags that fit the label column (15 characters).
+        case .epicardialWires:
+            let c = PatientDevices.chamberWords(d)
+            return "Epi wires" + (c.isEmpty ? "" : " " + c.map { $0 == "atrial" ? "A" : "V" }.joined(separator: "+"))
+        case .cied:
+            let t = d.detail.trimmingCharacters(in: .whitespacesAndNewlines)
+            return t.isEmpty ? "PPM/ICD" : (t.lowercased() == "pacemaker" ? "PPM" : t)
+        case .avFistula: return d.detail.range(of: "graft", options: .caseInsensitive) != nil ? "AV graft" : "AVF"
+        case .dialysisCatheter: return "HD cath" + size
+        case .chestTube: return "Chest tube" + size
         default: return d.kind.label + size
         }
+    }
+
+    /// The leads of a pacemaker or ICD (1.9): from the pocket under the clavicle, medial to the vein and down to the
+    /// right ventricle.
+    private static func generatorLeads(from a: CGPoint) -> [CGPoint] {
+        let left = a.x < 100
+        // The points are off the hub points, so a lead is not spread with the central lines.
+        return [CGPoint(x: left ? 89 : 111, y: 78), CGPoint(x: left ? 98 : 102, y: 90), CGPoint(x: 103, y: 104), CGPoint(x: 106, y: 113)]
     }
 
     static func items(_ r: PatientRecord, phase: Phase) -> (items: [DiagramItem], cart: DiagramCart?) {
@@ -102,11 +126,38 @@ enum PatientDiagramModel {
             switch d.kind {
             case .piv, .foley, .other:
                 item.marker = .dot
+            case .epicardialWires:
+                // From the exit below the sternum to the chambers it paces: the atrial wire on the right atrial wall, the
+                // ventricular on the right ventricle (off the hub points, so the lines are not spread with the central ones).
+                let chambers = PatientDevices.chamberWords(d)
+                let atrialTip = CGPoint(x: 93, y: 103), ventricularTip = CGPoint(x: 107, y: 113)
+                item.dashed = true
+                item.width = 1.5
+                item.course = [CGPoint(x: a.x, y: a.y - 8), chambers.contains("atrial") && !chambers.contains("ventricular") ? atrialTip : ventricularTip]
+                if chambers.contains("atrial") && chambers.contains("ventricular") {
+                    out.append(DiagramItem(id: d.id.uuidString + "-atrial", anchor: a, course: [CGPoint(x: a.x - 3, y: a.y - 8), atrialTip],
+                                           color: c, width: 1.5, dashed: true, marker: .none, label: "", labelLeft: left, movable: false))
+                }
+            case .cied:
+                item.marker = .generator
+                item.course = generatorLeads(from: a)
+                item.width = 1.2
+            case .avFistula:
+                // A short bar along the limb the access runs in.
+                item.marker = .dot
+                let leg = region == "leg"
+                item.course = [CGPoint(x: a.x + (leg ? 0 : (left ? 3 : -3)), y: a.y - (leg ? 16 : 14))]
+                item.width = 3
+            case .chestTube:
+                // Into the pleural space: in and down from the chest wall.
+                item.marker = .dot
+                item.course = [CGPoint(x: a.x + (left ? 12 : -12), y: a.y + 12)]
+                item.width = 2.4
             case .arterial:
                 item.marker = .dot
             case .intraosseous:
                 item.marker = .square
-            case .cvc, .picc:
+            case .cvc, .picc, .dialysisCatheter:
                 item.course = fromBelow ? [CGPoint(x: (a.x + 100) / 2, y: a.y - 6), ivc] : (region == "arm" ? [CGPoint(x: left ? 70 : 130, y: 92), svc] : [svc])
                 item.width = 2
             case .pac:
@@ -146,6 +197,14 @@ enum PatientDiagramModel {
                 item.marker = .dot
             }
             out.append(item)
+        }
+
+        // Limb alerts (1.9): a mark on each limb to spare, from an AV fistula or graft and from the user's list.
+        for g in PatientDeviceFills.limbAlertGroups(r, arrivalOnly: phase == .preop) {
+            guard let at = PatientDeviceFills.limbAnchor(g.limb) else { continue }
+            out.append(DiagramItem(id: PatientDiagramModel.limbAlertPrefix + g.limb, anchor: at, color: DiagramColor.limbAlert, marker: .alert,
+                                   label: "", labelLeft: at.x < 100,
+                                   spoken: "Limb alert, " + PatientDeviceFills.limbWords(g.limb) + ": " + g.reasons.joined(separator: ", ")))
         }
 
         // Blocks and neuraxial techniques, from the Regional list (drawn, not dragged).
@@ -261,14 +320,19 @@ struct PatientDiagramCard: View {
     var record: PatientRecord
     var phase: PatientDiagramModel.Phase
     var height: CGFloat = 300
+    /// The limb alerts listed under the figure (1.9); the handoff leaves them to its own text.
+    var listsLimbAlerts = true
 
     var body: some View {
         if let fig = refs.bundle?.regional?.figure {
             let m = PatientDiagramModel.items(record, phase: phase)
-            PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
-                .frame(height: height)
-                .frame(maxWidth: .infinity)
-                .allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: 8) {
+                PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
+                    .frame(height: height)
+                    .frame(maxWidth: .infinity)
+                    .allowsHitTesting(false)
+                if listsLimbAlerts { LimbAlertCaption(groups: PatientDeviceFills.limbAlertGroups(record, arrivalOnly: phase == .preop)) }
+            }
         }
     }
 }
@@ -290,6 +354,10 @@ struct PatientDevicesEditor: View {
     /// The item held on the diagram, for its actions.
     @State private var heldID: UUID?
     @State private var showHeldMenu = false
+    /// The limb alert being added (1.9) and the one whose reasons are shown.
+    @State private var alertLimb = "arm-left"
+    @State private var alertReason = ""
+    @State private var shownAlertLimb: String?
 
     private var r: PatientRecord { patient.record }
     private var placedIntraop: Bool { phase == .intraop }
@@ -320,7 +388,10 @@ struct PatientDevicesEditor: View {
                                              tapOptions = DeviceSite.options(near: f, limit: 8, within: 36)
                                              if !tapOptions.isEmpty { showTapMenu = true }
                                          },
-                                         onTapItem: { id in editingID = UUID(uuidString: id) },
+                                         onTapItem: { id in
+                                             if id.hasPrefix(PatientDiagramModel.limbAlertPrefix) { shownAlertLimb = String(id.dropFirst(PatientDiagramModel.limbAlertPrefix.count)) }
+                                             else { editingID = UUID(uuidString: id) }
+                                         },
                                          onLongPress: { Haptics.light(); withAnimation(.snappy) { editing = true } },
                                          onMove: { id, by in move(id, by) },
                                          onDelete: { id in delete(id) },
@@ -339,6 +410,12 @@ struct PatientDevicesEditor: View {
                 }
                 .padding(12)
                 .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+                .alert(shownAlertLimb.map { "Limb alert: " + PatientDeviceFills.limbName($0) } ?? "Limb alert",
+                       isPresented: Binding(get: { shownAlertLimb != nil }, set: { if !$0 { shownAlertLimb = nil } })) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(PatientDeviceFills.limbAlertGroups(r).first { $0.limb == shownAlertLimb }.map { $0.reasons.joined(separator: "\n") } ?? "")
+                }
                 .confirmationDialog("Add at this spot", isPresented: $showTapMenu, titleVisibility: .visible) {
                     ForEach(tapOptions) { o in
                         Button(o.label) { add([PatientDevice(kind: o.kind, site: o.site.id, side: o.site.side, placedIntraop: placedIntraop)], open: true) }
@@ -354,6 +431,7 @@ struct PatientDevicesEditor: View {
                 shorthand
                 typeButtons
                 list
+                limbAlertsGroup
             }
         }
         .onAppear {
@@ -464,7 +542,10 @@ struct PatientDevicesEditor: View {
     }
 
     private func addKind(_ k: DeviceKind, open: Bool = true) {
-        let site = PatientDevices.defaultSite(for: k).flatMap { def in DeviceSite.find(def.site, side: DeviceSite.isPaired(def.site) ? "right" : nil) }
+        // A generator is most often on the left (1.9); the side of anything else is a guess the clinician moves.
+        let site = PatientDevices.defaultSite(for: k).flatMap { def in
+            DeviceSite.find(def.site, side: DeviceSite.isPaired(def.site) ? (k == .cied ? "left" : "right") : nil)
+        }
         add([PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, placedIntraop: placedIntraop)], open: open)
     }
 
@@ -584,7 +665,8 @@ struct PatientDevicesEditor: View {
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(d.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(d.removed ? PS.fg3 : PS.fg)
                                     .strikethrough(d.removed)
-                                Text(d.placedIntraop ? "Placed in the room" : "On arrival").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                                Text((d.placedIntraop ? "Placed in the room" : "On arrival") + (d.position == nil && d.kind != .other ? " · not on the figure yet: tap to choose the site" : ""))
+                                    .font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
                             }
                             Spacer()
                             Image(systemName: "chevron.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -602,6 +684,80 @@ struct PatientDevicesEditor: View {
                 }
             }
         }
+    }
+
+    // MARK: Limb alerts (1.9)
+
+    /// The limbs to spare: an arm or leg with an AV fistula or graft on the figure (by itself, from the device), and the
+    /// ones added here with a reason. Each is marked "!ⓘ" on the figure.
+    @ViewBuilder private var limbAlertsGroup: some View {
+        let auto = PatientDeviceFills.limbAlerts(r).filter(\.automatic)
+        PatientGroup(title: "Limb alerts", note: "Marks a limb to spare on the diagram: an arm or leg with an AV fistula or graft is marked by itself; add another with the reason, such as a prior axillary lymph node dissection.") {
+            ForEach(auto) { a in
+                HStack(spacing: 10) {
+                    LimbAlertBadge()
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(PatientDeviceFills.limbName(a.limb) + " — " + a.reason).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                        Text("From the device on the figure").font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 14).padding(.vertical, 9)
+                Hairline().padding(.leading, 14)
+            }
+            ForEach(r.limbAlerts) { a in
+                HStack(spacing: 10) {
+                    LimbAlertBadge()
+                    Text(PatientDeviceFills.limbName(a.limb) + " — " + (a.reason.isEmpty ? "No reason given" : a.reason))
+                        .font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(a.reason.isEmpty ? PS.fg3 : PS.fg)
+                    Spacer()
+                    Button { removeLimbAlert(a.id) } label: { Image(systemName: "trash").font(PS.sys(size: 14)).foregroundStyle(PS.red) }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Delete the limb alert for " + PatientDeviceFills.limbWords(a.limb))
+                }
+                .padding(.horizontal, 14).padding(.vertical, 9)
+                Hairline().padding(.leading, 14)
+            }
+            HStack {
+                Text("Limb").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                Spacer()
+                Menu {
+                    ForEach(Array(PatientLimbAlert.limbs.enumerated()), id: \.offset) { _, l in Button(l.label) { alertLimb = l.id } }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(PatientLimbAlert.limbs.first { $0.id == alertLimb }?.label ?? "Choose").font(PS.sys(size: 14.5, weight: .semibold))
+                        Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 11, weight: .semibold))
+                    }
+                }
+            }
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            Hairline().padding(.leading, 14)
+            HStack(spacing: 8) {
+                TextField("Reason, e.g. prior axillary lymph node dissection", text: $alertReason)
+                    .font(PS.sys(size: 15))
+                    .submitLabel(.done)
+                    .onSubmit { addLimbAlert() }
+                Button { addLimbAlert() } label: { Image(systemName: "plus.circle.fill").font(PS.sys(size: 20)).foregroundStyle(PS.accent) }
+                    .buttonStyle(.plain)
+                    .disabled(alertReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityLabel("Add the limb alert")
+            }
+            .padding(.horizontal, 14).padding(.vertical, 10)
+        }
+        .id("limbalerts")
+    }
+
+    private func addLimbAlert() {
+        let reason = alertReason.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !reason.isEmpty else { return }
+        Haptics.light()
+        patient.update(discrete: true) { $0.limbAlerts.append(PatientLimbAlert(limb: alertLimb, reason: reason)) }
+        alertReason = ""
+    }
+
+    private func removeLimbAlert(_ id: UUID) {
+        Haptics.light()
+        withAnimation(.snappy) { patient.update(discrete: true) { $0.limbAlerts.removeAll { $0.id == id } } }
     }
 
     // MARK: Changes

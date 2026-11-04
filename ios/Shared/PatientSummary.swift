@@ -149,25 +149,35 @@ enum PatientSummary {
     }
 
     static func historyLines(_ r: PatientRecord, now: Date = Date()) -> [Line] {
+        let original = r
         let r = r.capitalized
         var out: [Line] = []
         if r.noHistory && r.problems.isEmpty { out.append(Line(nil, "No significant medical history")) }
         for sys in PatientCatalog.allSystems {
+            // Smoking leads the Smoking & Substances items (HistorySections.socialItems, 1.9).
             var items = HistorySections.items(sys, r)
-            if sys.id == "social", let s = r.smoking { items.insert(smokingText(s), at: 0) }
+            // Other [system] disorders, then Other details (1.9).
+            if let o = r.systemOther[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !o.isEmpty { items.append(o) }
             if let n = r.systemNotes[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty { items.append(n) }
             if !items.isEmpty { out.append(Line(sys.name, items.joined(separator: "; "))) }
         }
+        // The history's warnings, after the systems (1.9): "Aspiration risk: hiatal hernia", "Heparin caution: GI bleed".
+        out += PatientWarnings.lines(r)
         let other = r.otherHistory.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { out.append(Line("Other conditions", other)) }
         if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeries.map(\.text).joined(separator: "; "))) }
-        if r.nkda { out.append(Line("Allergies", "No known drug allergies")) }
-        else if !r.allergies.isEmpty { out.append(Line("Allergies", r.allergies, alert: true)) }
-        // The list as typed; the flags only add what needs action (an anticoagulant, a GLP-1 agonist), so the
-        // same drugs are not listed twice. With no list typed, the flags are the list.
+        // 1.9: the allergy list with each severity (anaphylaxis in red), and the allergies typed before 1.9 while the list
+        // does not hold them (PatientAllergyText).
+        if let a = PatientAllergyText.line(original) { out.append(a) }
+        // The medication list (1.9: the items, then the list typed before 1.9 while the items do not hold its drugs);
+        // the flags only add what needs action (an anticoagulant, a GLP-1 agonist), so the same drugs are not listed
+        // twice. With no list, the flags are the list.
         let flags = PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }
         let watched = flags.filter { watchFlags.contains($0.id) }.map(\.label)
-        let typed = r.medications.trimmingCharacters(in: .whitespacesAndNewlines)
+        var listed = r.homeMeds.map(\.text).filter { !$0.isEmpty }
+        let typedText = r.medications.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !typedText.isEmpty, listed.isEmpty || !MedicationCatalog.covers(original.homeMeds, legacy: original.medications) { listed.append(typedText) }
+        let typed = listed.joined(separator: "; ")
         if !typed.isEmpty {
             out.append(Line("Medications", typed))
             if !watched.isEmpty { out.append(Line("Medication alerts", watched.joined(separator: ", "), alert: true)) }
@@ -256,6 +266,19 @@ enum PatientSummary {
     /// "Mask ventilation easy. Intubation easy: video laryngoscope, grade 1, 1 attempt; 7.5 ETT, 23 cm at the lip."
     static func airwayCourse(_ r: PatientRecord) -> Line? {
         let r = r.capitalized
+        var parts = airwayCourseSentences(r)
+        if let end = r.airwayAtEnd, let label = PatientCatalog.airwayAtEnd.first(where: { $0.id == end })?.label {
+            let vent = r.ventilation.trimmingCharacters(in: .whitespacesAndNewlines)
+            parts.append("At handoff: " + label.lowercased() + (end == "intubated" && !vent.isEmpty ? ", " + vent : ""))
+        }
+        guard !parts.isEmpty else { return nil }
+        return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
+    }
+
+    /// The course in the room, one sentence each, without the closing period: mask ventilation, the supraglottic airway,
+    /// the intubation (1.9: the new handoff adds how the airway is left itself).
+    static func airwayCourseSentences(_ r: PatientRecord) -> [String] {
+        let r = r.capitalized
         var parts: [String] = []
         let grade = r.maskGrade.map { " (grade \($0))" } ?? ""
         switch r.mask {
@@ -280,12 +303,7 @@ enum PatientSummary {
         case "none": parts.append("Not intubated" + (detail.isEmpty ? "" : ": " + detail))
         default: if !detail.isEmpty { parts.append(detail.prefix(1).uppercased() + detail.dropFirst()) }
         }
-        if let end = r.airwayAtEnd, let label = PatientCatalog.airwayAtEnd.first(where: { $0.id == end })?.label {
-            let vent = r.ventilation.trimmingCharacters(in: .whitespacesAndNewlines)
-            parts.append("At handoff: " + label.lowercased() + (end == "intubated" && !vent.isEmpty ? ", " + vent : ""))
-        }
-        guard !parts.isEmpty else { return nil }
-        return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
+        return parts
     }
 
     /// What the full handoff says for an airway examination or an echo never touched, so a blank is never read as
@@ -329,6 +347,7 @@ enum PatientSummary {
         let placed = PatientDevices.labels(r.devices.filter { $0.placedIntraop && PatientDevice.lineKinds.contains($0.kind) })
         let lines = placed + r.lines.map(\.text).filter { !$0.isEmpty }
         if !lines.isEmpty { out.append(Line("Lines", lines.joined(separator: "; "))) }
+        out += limbAlertLines(r)
         out += harvestLines(r)
         let blocks = r.regional.map(\.text).filter { !$0.isEmpty }
         if !blocks.isEmpty { out.append(Line("Regional", blocks.joined(separator: "; "))) }
@@ -355,6 +374,14 @@ enum PatientSummary {
         }
     }
 
+    /// Limbs to spare (1.9): "Limb alert: L arm — AV fistula; R arm — Prior axillary lymph node dissection". A fistula or
+    /// graft on the diagram and the alerts the user added, by limb; a planned radial harvest stays in the Arms line, and an
+    /// alert that only says so is not repeated here (PatientDeviceFills.limbAlerts).
+    static func limbAlertLines(_ r: PatientRecord) -> [Line] {
+        guard let text = PatientDeviceFills.limbAlertText(r) else { return [] }
+        return [Line("Limb alert", text, alert: true, marks: PatientDeviceFills.limbAlertGroups(r).map(\.name))]
+    }
+
     /// The lines for one part of the intraoperative record (PatientEditor.intraopParts).
     static func intraopPartLines(_ r: PatientRecord, _ part: String) -> [Line] {
         let r = r.capitalized
@@ -365,7 +392,7 @@ enum PatientSummary {
             return out
         }
         let labels: [String: Set<String>] = [
-            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Arms"], "regional": ["Regional"], "infusions": ["Infusions"],
+            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Arms", "Limb alert"], "regional": ["Regional"], "infusions": ["Infusions"],
             "fluids": ["In", "Blood products", "Out", "Factor concentrates & other products"], "labs": ["Last labs"], "meds": ["Medications & interventions"],
             "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes"],
         ]
@@ -457,8 +484,8 @@ enum HandoffWriter {
         // Every line and device in place now, on arrival or placed in the room, with the mechanical support.
         let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
         let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
-        section("Lines & devices", PatientSummary.harvestLines(r) + lines + support)
-        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Arms"]
+        section("Lines & devices", PatientSummary.limbAlertLines(r) + PatientSummary.harvestLines(r) + lines + support)
+        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Arms", "Limb alert"]
         var intraop = PatientSummary.intraopLines(r).filter { !told.contains($0.label ?? "") }
         // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
         if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -472,8 +499,8 @@ enum HandoffWriter {
 
     /// The short version, one screen: who and what, allergies, the airway, lines and drips, events, and where the
     /// patient goes with when to call.
-    static func shortText(_ r: PatientRecord, now: Date = Date()) -> String {
-        let r = r.capitalized
+    static func shortText(_ original: PatientRecord, now: Date = Date()) -> String {
+        let r = original.capitalized
         var out: [String] = ["ANESTHESIA HANDOFF (SHORT)"]
         if !r.oneLiner.isEmpty { out.append(r.oneLiner) }
         var proc: [String] = []
@@ -490,7 +517,8 @@ enum HandoffWriter {
         }
         line("Code status", PatientCodeStatus.text(r) ?? "")
         line("Key considerations", IntraopConsiderations.text(r) ?? "")
-        line("Allergies", r.nkda ? "No known drug allergies" : r.allergies)
+        // The allergies as the summary and the full handoff give them (1.9: the list, then the text typed before 1.9).
+        line("Allergies", PatientAllergyText.line(original)?.text ?? "")
         // Positive and pending infectious results only (Ben, Nov 3); the full handoff lists every one entered.
         line("Infectious results", LabResults.shortInfectious(r))
         if r.arrivesWithAirway, let a = r.currentAirwayText {
@@ -501,6 +529,7 @@ enum HandoffWriter {
         } else if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
         if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
         line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
+        line("Limb alert", PatientDeviceFills.limbAlertText(r) ?? "")
         line("Arms", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))
         line("Cautions", PatientStudies.cautions(r).filter { !$0.id.hasPrefix("harvest") }.map(\.text).joined(separator: " "))
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))

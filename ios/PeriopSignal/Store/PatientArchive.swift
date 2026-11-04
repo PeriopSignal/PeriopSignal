@@ -47,11 +47,21 @@ struct PatientArchiveEntry: Codable, Equatable, Identifiable {
         return now >= e
     }
 
-    /// "67-year-old man · 96 kg · 178 cm": the handoff's first line after its heading.
+    /// The patient in one line, for the archive list. A 1.9 entry is the 1.9 handoff, whose first line is its header
+    /// ("67 yo M (96 kg, 178 cm) had Laparoscopic sigmoid colectomy"); with no header it starts with a labelled block
+    /// ("Allergies: NKDA"), which is no one-liner. An older entry starts with the "ANESTHESIA HANDOFF" heading and has
+    /// its one-liner ("67-year-old man · 96 kg · 178 cm") on the line after it.
     var oneLiner: String {
         let lines = text.components(separatedBy: "\n")
-        return lines.count > 1 ? lines[1] : ""
+        guard let first = lines.first else { return "" }
+        if first.hasPrefix("ANESTHESIA HANDOFF") { return lines.count > 1 ? lines[1] : "" }
+        let line = first.trimmingCharacters(in: .whitespaces)
+        let labelled = Self.blockLabels.contains { line == $0 + ":" || line.hasPrefix($0 + ": ") || line.hasPrefix($0 + " (") }
+        return labelled ? "" : line
     }
+
+    /// The labels of the handoff's blocks ("Code status", "Case", "Allergies", "PMH", ...); the header has none.
+    private static let blockLabels: [String] = PatientBriefs.slots(.handoff, PatientRecord()).compactMap(\.label)
 }
 
 /// Writes an ended case's archive entry.
@@ -98,8 +108,9 @@ enum PatientArchiveWriter {
         r.lastClears = nil
         for k in r.scores.keys { r.scores[k]?.date = nil }
         let procedure = PatientSummary.procedureLines(r).filter { $0.label == nil }.map(\.text).joined(separator: " · ")
-        var lines = HandoffWriter.text(r, now: now).components(separatedBy: "\n")
-        // The handoff's footer says when it was prepared; the archive's says only the date.
+        // The 1.9 handoff, as it was handed over: with the user's edits to its blocks (r.handoffEdits).
+        var lines = PatientBriefs.plainText(PatientBriefs.handoff(r, now: now)).components(separatedBy: "\n")
+        // The archive's footer says only the date.
         while let last = lines.last, last.trimmingCharacters(in: .whitespaces).isEmpty || last.hasPrefix("Prepared with Periop Signal") {
             lines.removeLast()
         }
