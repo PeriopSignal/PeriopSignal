@@ -49,6 +49,12 @@
     ],
     "answer": 3,
     "explanation": "Mortality was 24.0% with PCI and 22.9% with CABG (HR 1.00, 95% CI 0.87-1.14), yet the authors state the interval does not exclude benefit or harm with either strategy. Reading this as equivalence is the tempting error: the registry is non-randomised and adjusts only for measured covariates."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-2026-iris-main-left-main-pci-cabg.mp3",
+    "seconds": 211,
+    "bytes": 1689837,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -78,7 +84,13 @@
    "url": "https://www.fda.gov/medical-devices/medical-device-recalls-and-early-alerts/early-alert-compact-medical-removes-and-updates-use-instructions-butterflybvm-bag-valve-mask",
    "impact": 1,
    "trialName": "",
-   "firstAuthor": ""
+   "firstAuthor": "",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/fda-2026-butterflybvm-bellows-holes-early-alert.mp3",
+    "seconds": 185,
+    "bytes": 1476525,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "eja-2026-sugammadex-neostigmine-165-rct-meta",
@@ -125,6 +137,12 @@
     ],
     "answer": 0,
     "explanation": "At least one adverse event: RR 0.72 (95% CI 0.61 to 0.84; GRADE moderate); this count lumps dry mouth with desaturation. The review's other main result was reversal 10.49 min faster. Main caveat: risk of bias across the 165 trials was generally unclear or high."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/eja-2026-sugammadex-neostigmine-165-rct-meta.mp3",
+    "seconds": 216,
+    "bytes": 1725357,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -166,6 +184,12 @@
     ],
     "answer": 1,
     "explanation": "The win ratio was 1.98 (95% CI 1.47-2.67), driven largely by quality of life. One-year death (8.8% vs 4.6%) and HF hospitalization (13.2% vs 12.9%) were not significantly different. Main caveat: the endpoint moved from 24 to 6 months after control-group attrition."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/tct26-2026-clasp-ii-tr-pascal.mp3",
+    "seconds": 212,
+    "bytes": 1697517,
+    "voice": "kokoro:af_heart"
    }
   },
   {
