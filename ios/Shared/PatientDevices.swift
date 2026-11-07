@@ -215,7 +215,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
             return [size(["22", "20", "18"]), detail("Notes", ["ultrasound-guided"])]
         case .cvc:
             return [size(["7", "8.5", "9", "12"]),
-                    detail("Type", ["triple lumen", "MAC introducer", "Cordis", "introducer", "dialysis catheter"]), depth]
+                    detail("Type", ["triple lumen", "MAC introducer", "SLIC", "Cordis", "introducer", "dialysis catheter"]), depth]
         case .pac:
             return [size(["7", "7.5", "8"]), depth, detail("Introducer", ["8.5 Fr introducer", "9 Fr introducer", "MAC introducer"])]
         case .picc:
@@ -1576,7 +1576,7 @@ extension PatientDevices {
             }
             kindDetails.removeAll { introducers.contains($0) }
         }
-        if kindDetails.contains("MAC introducer") { kindDetails.removeAll { $0 == "introducer" } }
+        if kindDetails.contains("MAC introducer") || kindDetails.contains("SLIC") { kindDetails.removeAll { $0 == "introducer" } }
         for d in kindDetails where !details.contains(d) { details.append(d) }
         for i in 0..<n where !used[i] {
             if case .detail(let d) = t[i].tok {
@@ -1900,6 +1900,8 @@ private enum Lexicon {
         v("mac", .kind(.cvc, "MAC introducer"))
         v("introducer|intro", .kind(.cvc, "introducer"))
         v("cordis", .kind(.cvc, "Cordis"))
+        // 1.10 (Ben, Nov 7): SLIC, the short-length introducer catheter, as a central line.
+        v("slic", .kind(.cvc, "SLIC"))
         v("sheath", .kind(.cvc, "sheath"))
         // Dialysis catheters are their own kind since 1.9 (they were a CVL "dialysis catheter").
         v("trialysis", .kind(.dialysisCatheter, "Trialysis"))
@@ -2013,6 +2015,7 @@ private enum Lexicon {
         v("art line|arterial line|a line|art cath|arterial catheter", .kind(.arterial, nil))
         v("central line", .kind(.cvc, nil))
         v("triple lumen|3 lumen", .kind(.cvc, "triple lumen"))
+        v("short length introducer|short-length introducer", .kind(.cvc, "SLIC"))
         v("quad lumen", .kind(.cvc, "quad lumen"))
         v("double lumen|dual lumen", .detail("double lumen"))
         v("hd cath|hd catheter|hd line|dialysis cath|dialysis catheter|dialysis line|hemodialysis catheter|hemodialysis line|hemodialysis cath", .kind(.dialysisCatheter, nil))

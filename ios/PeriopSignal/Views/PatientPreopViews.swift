@@ -406,7 +406,7 @@ struct PreopHistoryChipsBox: View {
     /// "Solids 00:00 · clears 05:00" (the day too when it is not today).
     private func intakeText(_ r: PatientRecord) -> String? {
         func when(_ d: Date) -> String {
-            Calendar.current.isDateInToday(d) ? d.formatted(date: .omitted, time: .shortened) : d.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+            Calendar.current.isDateInToday(d) ? d.formatted(date: .omitted, time: .shortened) : PatientDates.day(d) + " " + d.formatted(date: .omitted, time: .shortened)
         }
         var parts: [String] = []
         if let d = r.lastSolids { parts.append("Solids " + when(d)) }

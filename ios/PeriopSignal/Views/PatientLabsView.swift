@@ -13,6 +13,8 @@ extension PatientEditorView {
         // The ⓘ explains the Hb ↔ Hct estimate, only while one is shown.
         PatientGroup(title: "Labs", note: sum.estimate == nil ? nil : PatientLabs.estimateCaption) {
             labRows(PatientLabs.entryOrder(.main), section: "main", estimate: sum.estimate)
+            Hairline().padding(.leading, 14)
+            LabsDrawnRow()
             PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.", text: bind(\.labNotes))
         }
         typeScreenGroup

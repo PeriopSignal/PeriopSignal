@@ -338,14 +338,21 @@ enum PatientAirway {
         return parts.joined(separator: "; ")
     }
 
-    /// Han mask-ventilation grades (Han R, et al. Anesthesiology 2004;101:267, as Kheterpal 2006 tabulates them), in
-    /// our words; each applies with or without a muscle relaxant.
-    static let maskGrades: [(id: String, label: String, detail: String)] = [
-        ("1", "1", "Ventilated by mask"),
-        ("2", "2", "Ventilated with an oral airway or other adjunct"),
-        ("3", "3", "Difficult (inadequate, unstable, or needing two providers)"),
-        ("4", "4", "Unable to ventilate by mask"),
-    ]
+    // 1.10 (Ben, Nov 7): the Han mask-ventilation grade is gone ("not widely used"). A saved grade stays in the record
+    // (PatientRecord.maskGrade) and is ignored everywhere: not shown, not counted as a difficult airway.
+
+    /// The stored value for "Intubation" or "LMA" chosen with no ease recorded yet (PatientRecord.intubation and .sga);
+    /// "easy", "difficult" and "none" are the older values.
+    static let placed = "placed"
+
+    /// "Fiberoptic scope" (Ben, Nov 7); a saved "Flexible scope" reads the same.
+    static let fiberoptic = "Fiberoptic scope"
+
+    /// The device as the app names it today: a saved "Flexible scope" is the fiberoptic scope.
+    static func deviceName(_ d: String?) -> String? {
+        guard let d else { return nil }
+        return d.caseInsensitiveCompare("Flexible scope") == .orderedSame ? fiberoptic : d
+    }
 }
 
 // MARK: - Echo up front

@@ -52,11 +52,15 @@ enum PatientSummary {
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
+    /// "09:41" for today; with another day, "11/03/26 09:41" (1.10, PatientDates).
     static func time(_ d: Date, now: Date = Date()) -> String {
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "en_US_POSIX")
-        fmt.dateFormat = Calendar.current.isDate(d, inSameDayAs: now) ? "HH:mm" : "d MMM HH:mm"
-        return fmt.string(from: d)
+        if Calendar.current.isDate(d, inSameDayAs: now) {
+            let fmt = DateFormatter()
+            fmt.locale = Locale(identifier: "en_US_POSIX")
+            fmt.dateFormat = "HH:mm"
+            return fmt.string(from: d)
+        }
+        return PatientDates.dayTime(d)
     }
 
     /// The procedure card: what, how urgent, the planned anesthetic and the risk-score inputs it sets.
@@ -275,31 +279,43 @@ enum PatientSummary {
         return Line("Airway", parts.joined(separator: ". ") + ".", alert: difficultAirway(r))
     }
 
+    /// A typed note as one clean fragment: trimmed, with no closing period or comma (the sentence adds its own), so the
+    /// course never reads "Beard ." (1.10, Ben's airway example).
+    static func courseNote(_ s: String) -> String {
+        var t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        while let last = t.last, ".;,".contains(last) { t = String(t.dropLast()).trimmingCharacters(in: .whitespaces) }
+        return t
+    }
+
     /// The course in the room, one sentence each, without the closing period: mask ventilation, the supraglottic airway,
-    /// the intubation (1.9: the new handoff adds how the airway is left itself).
+    /// the intubation (1.9: the new handoff adds how the airway is left itself). 1.10 (Ben, Nov 7): no Han mask-ventilation
+    /// grade (a saved one is ignored); the scope reads "Fiberoptic scope", a saved "Flexible scope" too.
     static func airwayCourseSentences(_ r: PatientRecord) -> [String] {
         let r = r.capitalized
         var parts: [String] = []
-        let grade = r.maskGrade.map { " (grade \($0))" } ?? ""
+        let maskNote = courseNote(r.maskNote), sgaNote = courseNote(r.sgaNote)
+        let intubationNote = courseNote(r.intubationNote), tubeText = courseNote(r.tube)
         switch r.mask {
-        case "easy": parts.append("Mask ventilation easy" + grade)
-        case "difficult": parts.append("Mask ventilation DIFFICULT" + grade + (r.maskNote.isEmpty ? "" : ": " + r.maskNote))
+        case "easy": parts.append("Mask ventilation easy")
+        case "difficult": parts.append("Mask ventilation DIFFICULT" + (maskNote.isEmpty ? "" : ": " + maskNote))
         case "none": parts.append("No mask ventilation")
-        default: if !grade.isEmpty { parts.append("Mask ventilation" + grade) }
+        default: break
         }
         switch r.sga {
         case "easy": parts.append("Supraglottic airway easy")
-        case "difficult": parts.append("Supraglottic airway DIFFICULT" + (r.sgaNote.isEmpty ? "" : ": " + r.sgaNote))
+        case "difficult": parts.append("Supraglottic airway DIFFICULT" + (sgaNote.isEmpty ? "" : ": " + sgaNote))
+        case PatientAirway.placed: parts.append("Supraglottic airway")
         default: break
         }
         var tube: [String] = []
-        if let d = r.airwayDevice { tube.append(d.lowercased()) }
+        if let d = PatientAirway.deviceName(r.airwayDevice) { tube.append(d.lowercased()) }
         if let g = r.laryngoscopyGrade { tube.append("grade " + g) }
         if let a = r.attempts { tube.append("\(a) attempt" + (a == 1 ? "" : "s")) }
-        let detail = tube.joined(separator: ", ") + (r.tube.isEmpty ? "" : (tube.isEmpty ? "" : "; ") + r.tube)
+        let detail = tube.joined(separator: ", ") + (tubeText.isEmpty ? "" : (tube.isEmpty ? "" : "; ") + tubeText)
         switch r.intubation {
         case "easy": parts.append("Intubation easy" + (detail.isEmpty ? "" : ": " + detail))
-        case "difficult": parts.append("Intubation DIFFICULT" + (detail.isEmpty ? "" : ": " + detail) + (r.intubationNote.isEmpty ? "" : ". " + r.intubationNote))
+        case "difficult": parts.append("Intubation DIFFICULT" + (detail.isEmpty ? "" : ": " + detail) + (intubationNote.isEmpty ? "" : ". " + intubationNote))
+        case PatientAirway.placed: parts.append("Intubation" + (detail.isEmpty ? "" : ": " + detail))
         case "none": parts.append("Not intubated" + (detail.isEmpty ? "" : ": " + detail))
         default: if !detail.isEmpty { parts.append(detail.prefix(1).uppercased() + detail.dropFirst()) }
         }
@@ -316,34 +332,15 @@ enum PatientSummary {
         PatientRules.echoFirst(r) || PatientTEE.planned(r)
     }
 
-    /// Mask, supraglottic airway or intubation recorded as difficult.
+    /// Mask, supraglottic airway or intubation recorded as difficult (1.10: a saved Han mask grade no longer counts).
     static func difficultAirway(_ r: PatientRecord) -> Bool {
-        r.mask == "difficult" || r.sga == "difficult" || r.intubation == "difficult" || (r.maskGrade ?? 0) >= 3
-    }
-
-    /// ASA 2022 follow-up care after a difficult airway: tell the patient, document it, advise an alert or registry.
-    static let followUp: [(id: String, label: String, todo: String)] = [
-        ("told", "Patient told", "tell the patient (or a responsible person)"),
-        ("documented", "Documented in the chart", "document the difficulty and what worked"),
-        ("alert", "Alert or registry advised", "advise an alert bracelet or registry"),
-    ]
-
-    /// "Patient told. Still to do: document the difficulty and what worked; advise an alert bracelet or registry".
-    static func followUpLine(_ r: PatientRecord) -> Line? {
-        guard difficultAirway(r) else { return nil }
-        let done = followUp.filter { r.airwayFollowUp.contains($0.id) }.map(\.label)
-        let todo = followUp.filter { !r.airwayFollowUp.contains($0.id) }.map(\.todo)
-        var parts: [String] = []
-        if !done.isEmpty { parts.append(done.joined(separator: "; ")) }
-        if !todo.isEmpty { parts.append("Still to do: " + todo.joined(separator: "; ")) }
-        return Line("Difficult-airway follow-up", parts.joined(separator: ". "), alert: !todo.isEmpty)
+        r.mask == "difficult" || r.sga == "difficult" || r.intubation == "difficult"
     }
 
     static func intraopLines(_ r: PatientRecord) -> [Line] {
         let r = r.capitalized
         var out: [Line] = []
         if let a = airwayCourse(r) { out.append(a) }
-        if let fu = followUpLine(r) { out.append(fu) }
         let placed = PatientDevices.labels(r.devices.filter { $0.placedIntraop && PatientDevice.lineKinds.contains($0.kind) })
         let lines = placed + r.lines.map(\.text).filter { !$0.isEmpty }
         if !lines.isEmpty { out.append(Line("Lines", lines.joined(separator: "; "))) }
@@ -392,7 +389,7 @@ enum PatientSummary {
             return out
         }
         let labels: [String: Set<String>] = [
-            "airway": ["Airway", "Difficult-airway follow-up"], "lines": ["Lines", "Arms", "Limb alert"], "regional": ["Regional"], "infusions": ["Infusions"],
+            "airway": ["Airway"], "lines": ["Lines", "Arms", "Limb alert"], "regional": ["Regional"], "infusions": ["Infusions"],
             "fluids": ["In", "Blood products", "Out", "Factor concentrates & other products"], "labs": ["Last labs"], "meds": ["Medications & interventions"],
             "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes"],
         ]
@@ -479,13 +476,12 @@ enum HandoffWriter {
         // No preoperative airway examination in the handoff (1.8.3): the airway now, then the intraoperative course.
         var airway = PatientSummary.handoffAirwayLines(r)
         if let c = PatientSummary.airwayCourse(r) { airway.append(PatientSummary.Line("Course", c.text, alert: c.alert)) }
-        if let fu = PatientSummary.followUpLine(r) { airway.append(fu) }
         section("Airway", airway)
         // Every line and device in place now, on arrival or placed in the room, with the mechanical support.
         let lines = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).map { PatientSummary.Line("Line", $0) }
         let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
         section("Lines & devices", PatientSummary.limbAlertLines(r) + PatientSummary.harvestLines(r) + lines + support)
-        let told: Set<String> = ["Airway", "Difficult-airway follow-up", "Lines", "Arms", "Limb alert"]
+        let told: Set<String> = ["Airway", "Lines", "Arms", "Limb alert"]
         var intraop = PatientSummary.intraopLines(r).filter { !told.contains($0.label ?? "") }
         // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
         if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -527,7 +523,6 @@ enum HandoffWriter {
             if let end = r.airwayAtEnd { t += "; at handoff: " + (end == "intubated" ? "remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label.lowercased() ?? end)) }
             line("Airway", t)
         } else if let c = PatientSummary.airwayCourse(r) { line("Airway", c.text) }
-        if let fu = PatientSummary.followUpLine(r) { line("Difficult-airway follow-up", fu.text) }
         line("Lines", PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) }).joined(separator: "; "))
         line("Limb alert", PatientDeviceFills.limbAlertText(r) ?? "")
         line("Arms", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))

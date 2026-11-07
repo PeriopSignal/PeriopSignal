@@ -56,11 +56,17 @@ struct InfusionTypeField: View {
             if !suggestions.isEmpty {
                 WrapLayout(spacing: 6) {
                     ForEach(suggestions) { d in
-                        Button(d.name) { complete(d) }
-                            .font(PS.sys(size: 13, weight: .semibold))
-                            .buttonStyle(CapsuleButtonStyle(prominent: false))
+                        // The drug and, small, the unit its rate is in (1.10: the unit fills in as you type).
+                        Button { complete(d) } label: {
+                            (Text(d.name) + Text((d.unit ?? d.units.first).map { "  " + $0 } ?? "").font(PS.sys(size: 10.5, weight: .regular)))
+                        }
+                        .font(PS.sys(size: 13, weight: .semibold))
+                        .buttonStyle(CapsuleButtonStyle(prominent: false))
+                        .accessibilityLabel(d.name + ((d.unit ?? d.units.first).map { ", " + $0 } ?? ""))
                     }
                 }
+            } else if let hint = InfusionEntry.unitHint(text) {
+                Text(hint).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).padding(.horizontal, 2)
             }
             if !r.isEmpty {
                 WrapLayout(spacing: 6) {

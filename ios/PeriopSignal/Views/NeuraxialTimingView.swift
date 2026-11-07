@@ -273,7 +273,7 @@ struct NeuraxialTimingView: View {
     private static let when: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US")
-        f.dateFormat = "EEE d MMM, HH:mm"
+        f.dateFormat = "EEE MM/dd/yy, HH:mm"
         return f
     }()
 }

@@ -111,6 +111,10 @@ struct BriefLabs: Hashable {
             labs.cells[e.key] = BriefLabCell(key: e.key, label: e.label, text: e.text, flag: .normal, intraop: source?.intraop ?? false, estimated: true)
             if let source, source.intraop { estimatedFrom = (e.label, source) }
         }
+        // 1.10 (Ben, Nov 7: labs note their times, very small): when the preoperative labs were drawn, if it was entered.
+        let drawn = r.labsDrawn.map { PatientSummary.time($0, now: now) }
+        let preopValues = byKey.values.contains { !$0.intraop }
+        if !withIntraop, let drawn, preopValues { labs.caption = "Preop labs " + drawn }
         if withIntraop {
             var times: [Date?] = []
             for s in byKey.values where s.intraop && !times.contains(where: { $0 == s.time }) { times.append(s.time) }
@@ -128,8 +132,9 @@ struct BriefLabs: Hashable {
                     if let e = estimatedFrom, e.source.time == t { names.append(e.label + " est.") }
                     return clock + (names.isEmpty ? "" : " (" + names.joined(separator: ", ") + ")")
                 }.joined(separator: " / ")
-                let others = byKey.values.contains { !$0.intraop }
-                labs.caption = "* Intraop " + when + (others ? "; other values preop" : "")
+                labs.caption = "* Intraop " + when + (preopValues ? "; other values preop" + (drawn.map { " " + $0 } ?? "") : "")
+            } else if let drawn, preopValues {
+                labs.caption = "Preop labs " + drawn
             }
         }
         return (labs, side)
@@ -164,7 +169,7 @@ struct SummaryBlock: Identifiable, Hashable {
     /// A diagram block the user edited counts by its words alone, so one they emptied is left out, picture and all.
     var figureHasContent: Bool {
         switch figure {
-        case .fishbone(let l)?: return !l.isEmpty
+        case .fishbone(let l)?: return !l.isEmpty || l.caption != nil
         case .diagram?: return !edited
         case nil: return false
         }
@@ -464,8 +469,8 @@ enum PatientBriefs {
         return b
     }
 
-    /// Airway course, on one line: how it arrived, mask and intubation in the room (a difficult one in capitals), the
-    /// follow-up still to do after a difficult airway, and how the patient leaves (extubated, remains intubated).
+    /// Airway course, on one line: how it arrived, mask and intubation in the room (a difficult one in capitals), and
+    /// how the patient leaves (extubated, remains intubated). 1.10: no difficult-airway follow-up sentence.
     static func airwayCourse(_ r: PatientRecord) -> (text: String, alert: Bool)? {
         let c = r.capitalized
         var sentences: [String] = []
@@ -476,7 +481,6 @@ enum PatientBriefs {
         sentences += PatientSummary.airwayCourseSentences(c)
         if !trimmed(c.airwayNotes).isEmpty { sentences.append("Airway notes: " + trimmed(c.airwayNotes)) }
         if !trimmed(c.examNotes).isEmpty { sentences.append("Examination: " + trimmed(c.examNotes)) }
-        if let fu = PatientSummary.followUpLine(c) { sentences.append(((fu.label.map { $0 + ": " }) ?? "") + fu.text) }
         if let end = c.airwayAtEnd {
             let vent = trimmed(c.ventilation)
             switch end {
@@ -487,8 +491,12 @@ enum PatientBriefs {
             }
         }
         guard !sentences.isEmpty else { return nil }
-        // A sentence that already ends in a period (a typed note) is not given a second one.
-        let text = sentences.map { $0.hasSuffix(".") ? String($0.dropLast()) : $0 }.joined(separator: ". ") + "."
+        // A sentence that already ends in a period (a typed note) is not given a second one, and none has a space before
+        // its period (1.10: "Beard ." in Ben's example).
+        let text = sentences.map { s -> String in
+            let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+            return (t.hasSuffix(".") ? String(t.dropLast()) : t).trimmingCharacters(in: .whitespaces)
+        }.filter { !$0.isEmpty }.joined(separator: ". ") + "."
         return (text, PatientSummary.difficultAirway(c))
     }
 
@@ -572,7 +580,7 @@ enum PatientBriefs {
         }
         if !trimmed(c.labNotes).isEmpty { lines.append(trimmed(c.labNotes)) }
         return SummaryBlock(key: "labs", label: "Labs", text: lines.joined(separator: "\n"),
-                            figure: made.labs.isEmpty ? nil : .fishbone(made.labs), marks: marks, joiner: " · ")
+                            figure: made.labs.isEmpty && made.labs.caption == nil ? nil : .fishbone(made.labs), marks: marks, joiner: " · ")
     }
 
     // MARK: Infusions, medications, intake and output

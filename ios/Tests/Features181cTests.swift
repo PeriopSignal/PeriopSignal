@@ -108,7 +108,8 @@ final class Features181cTests: XCTestCase {
     }
 
     func testDrugsWithoutACatalogUnitAsk() {
-        for (line, drug) in [("insulin 4", "insulin"), ("ketamine 0.5", "ketamine"), ("sufentanil 0.3", "sufentanil"),
+        // 1.10: insulin is not here any more: it has one usual unit (units/h), so its unit fills in (below).
+        for (line, drug) in [("ketamine 0.5", "ketamine"), ("sufentanil 0.3", "sufentanil"),
                              ("heparin 1000", "heparin"), ("amio 1", "amiodarone")] {
             let r = InfusionEntry.read(line)
             XCTAssertTrue(r.items.isEmpty, line + ": no unit is made up")
@@ -116,8 +117,10 @@ final class Features181cTests: XCTestCase {
             XCTAssertEqual(r.questions.first?.options.last?.id, InfusionEntry.noUnit, line)
         }
         XCTAssertEqual(InfusionEntry.read("amio 1").questions.first?.text, "mg/min or mg/h or no unit")
-        XCTAssertEqual(rates("insulin 4", choices: ["unit:insulin:4": "units/h"]), ["Insulin 4 units/h"])
-        XCTAssertEqual(rates("insulin 4", choices: ["unit:insulin:4": InfusionEntry.noUnit]), ["Insulin 4"], "as typed, without a unit")
+        XCTAssertEqual(rates("insulin 4"), ["Insulin 4 units/h"], "a drug with one usual unit needs no question")
+        XCTAssertEqual(InfusionEntry.read("insulin 4").items.first?.note, "No unit written: read as units/h.")
+        XCTAssertEqual(rates("ketamine 0.5", choices: ["unit:ketamine:0.5": "mg/kg/h"]), ["Ketamine 0.5 mg/kg/h"])
+        XCTAssertEqual(rates("ketamine 0.5", choices: ["unit:ketamine:0.5": InfusionEntry.noUnit]), ["Ketamine 0.5"], "as typed, without a unit")
     }
 
     func testUnitsTypedAreKept() {

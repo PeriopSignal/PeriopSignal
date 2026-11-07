@@ -131,7 +131,7 @@ struct PatientView: View {
                     let a = jump.isEmpty ? scroll : jump
                     if !a.isEmpty {
                         let go = {
-                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(PatientEditor.intraopPart(String(a.dropFirst(8)))), anchor: .top) }
+                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(intraop: IntraopSection(part: String(a.dropFirst(8)))), anchor: .top) }
                             else if let e = Self.jumpKeys[a] { proxy.scrollTo(e, anchor: .top) }
                             else { proxy.scrollTo(a, anchor: .top) }
                         }
@@ -427,20 +427,11 @@ struct PatientView: View {
         "history": PatientJumpID(anchor: "problems"), "assessment": PatientJumpID(anchor: "asa"), "support": PatientJumpID(anchor: "cardio"),
     ]
 
-    /// The intraoperative echo card shows when an echo is usual for the surgery, a TEE is planned, or one is recorded.
-    private var echoUp: Bool { PatientRules.echoFirst(r) || PatientTEE.planned(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty }
-
-    /// The intraoperative parts with a card of their own, in order; major considerations close the tab, after the
-    /// echo button.
-    private var intraopCardParts: [(id: String, title: String, icon: String)] {
-        PatientEditor.intraopParts.filter { ($0.id != "echo" || echoUp) && $0.id != "considerations" }
-    }
-
     /// The jump bar's sections for the tab (none on Summary & Handoff).
     private var jumpItems: [PatientJumpItem]? {
         switch tab {
         case .preop: return Self.preopJumps
-        case .intraop: return (intraopCardParts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")]).map { PatientJumpItem($0) }
+        case .intraop: return IntraopSection.allCases.map { PatientJumpItem(intraop: $0) }
         case .summary: return nil
         }
     }
@@ -466,37 +457,26 @@ struct PatientView: View {
         .buttonStyle(.plain)
     }
 
+    /// The 1.10 tab (Ben, Nov 7): five headings in his order (PatientIntraopTab): Airway Course, Lines & Devices,
+    /// Medications & Infusions, Fluids & Blood, and Other Intraoperative Details (links). Major considerations, which closed
+    /// the tab as a card, is the last of those links, shown in full once filled. The old part keys (-ps.patient.jump
+    /// intraop:labs and the like) scroll to the section that now holds the part.
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         CaseTimersStrip()
-        let parts = intraopCardParts
         jumpBar(proxy, jumpItems ?? []).background(jumpBarReader)
-        ForEach(parts, id: \.id) { part in
-            PatientSectionCard(editor: .intraopPart(part.id), lines: PatientSummary.intraopPartLines(r, part.id), empty: Self.intraopEmpty[part.id] ?? "")
-                .jumpTarget(PatientEditor.intraopPart(part.id))
-        }
-        if !echoUp {
-            NavigationLink(value: PatientEditor.intraopPart("echo")) {
-                Label("Add echo findings", systemImage: "plus.circle")
-            }
-            .buttonStyle(GhostButtonStyle())
-        }
-        PatientSectionCard(editor: .intraopPart("considerations"), lines: PatientSummary.intraopPartLines(r, "considerations"), empty: Self.intraopEmpty["considerations"] ?? "")
-            .jumpTarget(PatientEditor.intraopPart("considerations"))
+        IntraopSectionTitle(text: IntraopSection.airway.title).jumpTarget(id: PatientJumpID(intraop: .airway))
+        IntraopAirwayCourse()
+        IntraopSectionTitle(text: IntraopSection.lines.title).jumpTarget(id: PatientJumpID(intraop: .lines))
+        IntraopDevicesCard()
+        IntraopSectionTitle(text: IntraopSection.meds.title).jumpTarget(id: PatientJumpID(intraop: .meds))
+        IntraopInfusionsSection()
+        IntraopNotableMedicationLink()
+        IntraopSectionTitle(text: IntraopSection.fluids.title).jumpTarget(id: PatientJumpID(intraop: .fluids))
+        IntraopFluidsSection()
+        IntraopSectionTitle(text: IntraopSection.other.title).jumpTarget(id: PatientJumpID(intraop: .other))
+        IntraopOtherDetails()
     }
-
-    private static let intraopEmpty: [String: String] = [
-        "airway": "Mask, supraglottic airway, intubation, the view and the tube.",
-        "lines": "Peripheral, arterial and central lines.",
-        "regional": "Blocks and neuraxial techniques, drugs and catheters.",
-        "infusions": "Drips running and their rates.",
-        "fluids": "Blood products, cell saver, crystalloid and albumin with + and −; blood loss and urine.",
-        "labs": "Blood gas and coagulation sets with their times; the latest goes to the handoff.",
-        "considerations": "Difficult airway, massive transfusion, pressors, TEE findings and more, for the top of the handoff.",
-        "meds": "Antibiotic and time, steroids, TXA, reversal, positioning.",
-        "events": "What happened, and whether the patient leaves intubated or extubated.",
-        "echo": "LV and RV function, valves, aorta, other findings.",
-    ]
 
     @ViewBuilder private var summary: some View {
         QuickAddBar(place: .summaryTab)
@@ -863,6 +843,8 @@ struct PatientJumpID: Hashable {
     /// A box has a key of its own, so a box named like its section ("demographics") is not a second view with the
     /// section title's id.
     init(anchor: String) { key = "preop-box:" + anchor }
+    /// A section of the 1.10 Intraoperative tab.
+    init(intraop section: IntraopSection) { key = "intraop-section:" + section.rawValue }
 }
 
 /// One chip of the jump bar: where it scrolls and its words.
@@ -871,6 +853,7 @@ struct PatientJumpItem: Hashable {
     var title: String
     init(_ editor: PatientEditor) { id = PatientJumpID(editor); title = editor.title }
     init(section: PreopSection) { id = PatientJumpID(section: section); title = section.title }
+    init(intraop section: IntraopSection) { id = PatientJumpID(intraop: section); title = section.jumpTitle }
 }
 
 extension PatientJumpID {
