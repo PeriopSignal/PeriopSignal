@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Preop110Tests.swift:202: error: -[PeriopSignalTests.Preop110Tests testRowsThatFitGoOnOneLineOnTheNarrowestPhones] : XCTAssertNotNil failed - urgency on one line at 393.0 pt: wraps (one-line widths [380, 342, 380, 342, 327, 327] for 325)
+Test Case '-[PeriopSignalTests.Preop110Tests testRowsThatFitGoOnOneLineOnTheNarrowestPhones]' failed (21.123 seconds).
