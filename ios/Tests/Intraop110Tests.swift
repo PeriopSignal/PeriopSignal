@@ -175,7 +175,7 @@ final class Intraop110Tests: XCTestCase {
 
     func testAnOlderTimeInTheLabsCaptionUsesTheNewDate() {
         var r = PatientRecord()
-        r.labs = ["k": 5.0]
+        r.labs = ["k": 5.0, "na": 138]
         r.intraopLabs = [IntraopLabSet(time: date(3, 10, 40), values: ["k": 4.9])]
         let caption = BriefLabs.make(r, withIntraop: true, now: date()).labs.caption
         XCTAssertEqual(caption, "* Intraop 11/03/26 10:40; other values preop")
