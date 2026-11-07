@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Intraop110Tests.swift:181: error: -[PeriopSignalTests.Intraop110Tests testAnOlderTimeInTheLabsCaptionUsesTheNewDate] : XCTAssertEqual failed: ("Optional("* Intraop 11/03/26 10:40")") is not equal to ("Optional("* Intraop 11/03/26 10:40; other values preop")")
+Test Case '-[PeriopSignalTests.Intraop110Tests testAnOlderTimeInTheLabsCaptionUsesTheNewDate]' failed (1.950 seconds).
