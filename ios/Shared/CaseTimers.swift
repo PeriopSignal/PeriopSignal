@@ -125,11 +125,11 @@ struct AntibioticCourse: Codable, Equatable, Identifiable {
 
     var id: String { drug }
     var last: TimedEntry? { doses.max { $0.time < $1.time } }
+
+    enum CodingKeys: String, CodingKey { case drug, doses, everyMinutes }
 }
 
 extension AntibioticCourse {
-    enum CodingKeys: String, CodingKey { case drug, doses, everyMinutes }
-
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         drug = try c.decode(String.self, forKey: .drug)

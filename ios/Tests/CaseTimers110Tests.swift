@@ -219,7 +219,8 @@ final class CaseTimers110Tests: XCTestCase {
         let coag = try XCTUnwrap(rem.first { $0.kind == .lab })
         XCTAssertEqual(coag.id, "lab.coag")
         XCTAssertEqual(coag.due, t0.addingTimeInterval(45 * 60))
-        XCTAssertTrue(labs.markDone(coag, now: t0.addingTimeInterval(50 * 60), ebl: nil))
+        let sent = labs.markDone(coag, now: t0.addingTimeInterval(50 * 60), ebl: nil)
+        XCTAssertTrue(sent)
         XCTAssertEqual(CaseTimerEngine.reminders(labs, record: r, data: d).first { $0.kind == .lab }?.due, t0.addingTimeInterval(95 * 60))
         XCTAssertEqual(rem.first { $0.kind == .abg }?.due, t0.addingTimeInterval(90 * 60))
 
@@ -272,7 +273,8 @@ final class CaseTimers110Tests: XCTestCase {
         t.snooze(snoozed, now: t0.addingTimeInterval(37 * 60))
         XCTAssertEqual(CaseTimerEngine.reminders(t, record: r, data: d).first { $0.id == "abg" }?.due, t0.addingTimeInterval(42 * 60))
         // Sent: the snooze goes and the next check runs from now.
-        XCTAssertTrue(t.markDone(snoozed, now: t0.addingTimeInterval(40 * 60), ebl: nil))
+        let abgSent = t.markDone(snoozed, now: t0.addingTimeInterval(40 * 60), ebl: nil)
+        XCTAssertTrue(abgSent)
         XCTAssertNil(t.snoozes["abg"])
         XCTAssertEqual(CaseTimerEngine.reminders(t, record: r, data: d).first { $0.id == "abg" }?.due, t0.addingTimeInterval(70 * 60))
 
@@ -297,7 +299,8 @@ final class CaseTimers110Tests: XCTestCase {
         var h = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30); h.doses = [TimedEntry(time: t0, value: 24000)]
         var ht = CaseTimers(); ht.heparin = h
         let act = try XCTUnwrap(CaseTimerEngine.reminders(ht, record: r, data: d).first { $0.kind == .act })
-        XCTAssertFalse(ht.markDone(act, now: t0, ebl: nil))
+        let actDone = ht.markDone(act, now: t0, ebl: nil)
+        XCTAssertFalse(actDone)
         ht.stop(act)
         XCTAssertEqual(ht.heparin?.actOff, true)
     }
@@ -340,13 +343,16 @@ final class CaseTimers110Tests: XCTestCase {
     /// A 1.9 log as 1.9 wrote it (JSONEncoder's default dates: seconds since 2001).
     private func log19() -> [String: Any] {
         let ref = t0.timeIntervalSinceReferenceDate
-        return [
-            "antibiotic": ["drug": "cefazolin", "doses": [["id": UUID().uuidString, "time": ref, "ebl": 0]]],
-            "heparin": ["purpose": "offpump", "goal": 300, "userGoal": false, "deviceAlt": false, "actEvery": 30,
-                        "doses": [["id": UUID().uuidString, "time": ref + 600, "value": 16000]],
-                        "acts": [["id": UUID().uuidString, "time": ref + 840, "value": 310]], "protamine": []],
-            "checks": ["abg": ["every": 30, "started": ref, "done": []]],
-        ]
+        let none: [Any] = []
+        let dose: [String: Any] = ["id": UUID().uuidString, "time": ref, "ebl": 0]
+        let antibiotic: [String: Any] = ["drug": "cefazolin", "doses": [dose]]
+        let bolus: [String: Any] = ["id": UUID().uuidString, "time": ref + 600, "value": 16000]
+        let act: [String: Any] = ["id": UUID().uuidString, "time": ref + 840, "value": 310]
+        let heparin: [String: Any] = ["purpose": "offpump", "goal": 300, "userGoal": false, "deviceAlt": false, "actEvery": 30,
+                                      "doses": [bolus], "acts": [act], "protamine": none]
+        let abg: [String: Any] = ["every": 30, "started": ref, "done": none]
+        let checks: [String: Any] = ["abg": abg]
+        return ["antibiotic": antibiotic, "heparin": heparin, "checks": checks]
     }
 
     func testDecodingA19Log() throws {
@@ -379,11 +385,14 @@ final class CaseTimers110Tests: XCTestCase {
 
         // A saved EVAR / TEVAR case still reads, under its own name, and a 1.9 device goal stays as saved.
         var tevar = log19()
-        tevar["heparin"] = ["purpose": "endovascular", "goal": NSNull(), "doses": [], "acts": [], "protamine": []]
+        let empty: [Any] = []
+        let tevarHeparin: [String: Any] = ["purpose": "endovascular", "goal": NSNull(), "doses": empty, "acts": empty, "protamine": empty]
+        tevar["heparin"] = tevarHeparin
         let tv = try JSONDecoder().decode(CaseTimers.self, from: try JSONSerialization.data(withJSONObject: tevar))
         XCTAssertEqual(d.purpose(tv.heparin!.purpose)?.name, "EVAR / TEVAR")
         var dev = log19()
-        dev["heparin"] = ["purpose": "bypass", "goal": 400, "deviceAlt": true, "doses": [], "acts": [], "protamine": []]
+        let devHeparin: [String: Any] = ["purpose": "bypass", "goal": 400, "deviceAlt": true, "doses": empty, "acts": empty, "protamine": empty]
+        dev["heparin"] = devHeparin
         let dv = try JSONDecoder().decode(CaseTimers.self, from: try JSONSerialization.data(withJSONObject: dev))
         XCTAssertEqual(dv.heparin?.goal, 400); XCTAssertEqual(dv.heparin?.deviceAlt, true)
     }
