@@ -199,8 +199,8 @@ final class Preop110Tests: XCTestCase {
         assertOneLine("incision", PatientPreop110.incisions, choice: true, screens: [375, 393, 402])
         assertOneLine("duration", PatientPreop110.durations, choice: true, screens: [375, 393, 402])
         assertOneLine("sex", PatientPreop110.sexes, choice: true, screens: [375, 393, 402])
-        assertOneLine("urgency", urgency, choice: true, screens: [402])
-        assertOneLine("code status", code, choice: true, screens: [402])
+        assertOneLine("urgency", urgency, choice: true, screens: [393, 402])
+        assertOneLine("code status", code, choice: true, screens: [375, 393, 402])
         // Reported, not asserted: where the two long rows land (the report says which phones they fit).
         print("urgency 375:", fit(urgency, choice: true, screen: 375), "| 393:", fit(urgency, choice: true, screen: 393), "| 402:", fit(urgency, choice: true, screen: 402))
         print("code status 375:", fit(code, choice: true, screen: 375), "| 393:", fit(code, choice: true, screen: 393), "| 402:", fit(code, choice: true, screen: 402))
