@@ -290,18 +290,12 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: "Procedure", note: urgencyNote) {
             PatientTextField(label: "Procedure", prompt: "e.g. laparoscopic colectomy", text: bind(\.procedure))
-            PatientChipRow(label: "Urgency") {
-                PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
-            }
-            PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
+            PatientChipRow(label: "Urgency") { UrgencyChips() }
+            PatientChipRow(label: "Planned anesthetic") { AnestheticChips() }
             Hairline().padding(.leading, 14)
             toggleRow("High-risk surgery", "Intraperitoneal, intrathoracic or suprainguinal vascular (RCRI)", bind(\.highRiskSurgery))
-            PatientChipRow(label: "Incision (ARISCAT)") {
-                PatientChoice(options: [(id: "Peripheral", label: "Peripheral"), (id: "Upper abdominal", label: "Upper abdominal"), (id: "Intrathoracic", label: "Intrathoracic")], selection: bind(\.incision))
-            }
-            PatientChipRow(label: "Expected duration (ARISCAT)") {
-                PatientChoice(options: [(id: "≤ 2 h", label: "2 h or less"), (id: "> 2–3 h", label: "Over 2 to 3 h"), (id: "> 3 h", label: "Over 3 h")], selection: bind(\.duration))
-            }
+            PatientChipRow(label: "Incision (ARISCAT)") { IncisionChips() }
+            PatientChipRow(label: "Expected duration (ARISCAT)") { DurationChips() }
         }
         PatientGroup(title: "Vital signs") {
             ForEach(Array(PatientCatalog.vitals.enumerated()), id: \.element.id) { i, v in

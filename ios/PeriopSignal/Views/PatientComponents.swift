@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Pieces the My Patient screens share
 
@@ -119,66 +120,158 @@ struct PatientTextField: View {
     }
 }
 
-/// Toggle chips for a set of flags; several can be on. Each tap is an Undo step of its own.
+/// Screenshot runs only (a debug build): `-ps.patient.width 375` lays My Patient out at that width, so a row can be checked on
+/// the narrowest phone the CI simulator (402 pt) is wider than. Does nothing in a release build.
+struct DebugContentWidth: ViewModifier {
+    @ViewBuilder func body(content: Content) -> some View {
+        #if DEBUG
+        if let w = Double(LaunchSeed.string("ps.patient.width")), w > 0 {
+            content.frame(maxWidth: CGFloat(w)).frame(maxWidth: .infinity)
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+// MARK: - Chip sets: one line when it fits (1.10)
+
+/// A set of chips in the fewest lines. Ben (Nov 7): any chip set that fits one line without making the chips too small goes
+/// on one line. The first of these that fits the width is used, else the chips wrap as they always did:
+/// the full words with the usual padding; the full words with tighter padding; the short words (where an option has
+/// them: "≥4 METs", "GA", "Upper abd"; VoiceOver always reads the full words) with the usual and then tighter padding;
+/// the full and then the short words with the tightest padding. The font never gets smaller than the chip font, and
+/// a chip's width does not change when it is chosen (a chosen chip is shown by its fill alone in a single line), so a tap
+/// never makes a row jump between one line and two. The padding steps and the text size are in `ChipMetrics`, which the
+/// tests use to check a row at 375 and 393 pt.
+struct ChipSet: View {
+    enum Style { case choice, toggle }
+
+    var options: [ChipChoice]
+    var style: Style
+    var tint: Color = PS.accent
+    var hints: [String: String] = [:]
+    var isOn: (String) -> Bool
+    var tap: (String) -> Void
+    @Environment(PatientStore.self) private var store: PatientStore?
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            line(short: false, .regular)
+            line(short: false, .tight)
+            line(short: true, .regular)
+            line(short: true, .tight)
+            line(short: false, .dense)
+            line(short: true, .dense)
+            WrapLayout(spacing: ChipMetrics.gap(.regular)) {
+                ForEach(Array(options.enumerated()), id: \.offset) { chip($0.element, short: false, .regular, wrapped: true) }
+            }
+        }
+    }
+
+    private func line(short: Bool, _ d: ChipMetrics.Density) -> some View {
+        HStack(spacing: ChipMetrics.gap(d)) {
+            ForEach(Array(options.enumerated()), id: \.offset) { chip($0.element, short: short, d, wrapped: false) }
+        }
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
+    private func chip(_ o: ChipChoice, short: Bool, _ d: ChipMetrics.Density, wrapped: Bool) -> some View {
+        let on = isOn(o.id)
+        let choice = style == .choice
+        let text: Color = choice ? (on ? PS.bg : PS.fg2) : (on ? PS.fg : PS.fg2)
+        let fill: Color = choice ? (on ? PS.fg : PS.surface2) : (on ? tint.opacity(0.18) : PS.surface2)
+        let edge: Color = choice ? (on ? Color.clear : PS.line2) : (on ? tint.opacity(0.55) : PS.line2)
+        return Button {
+            Haptics.light()
+            store?.markDiscrete()
+            tap(o.id)
+        } label: {
+            HStack(spacing: 5) {
+                // The check only where the row wraps: a check would widen the chip when chosen.
+                if wrapped, !choice, on { Image(systemName: "checkmark").font(PS.sys(size: 10.5, weight: .bold)) }
+                // Bold when chosen only where the row wraps, for the same reason. (13.5 is scaled by PS.sys, as ChipMetrics.fontSize is.)
+                Text(short ? o.shown : o.label)
+                    .font(PS.sys(size: 13.5, weight: wrapped && on ? .semibold : .medium))
+                    .lineLimit(wrapped ? nil : 1)
+            }
+            .foregroundStyle(text)
+            .padding(.horizontal, ChipMetrics.hPad(d, choice: choice)).padding(.vertical, 7)
+            .background(fill, in: Capsule())
+            .overlay(Capsule().stroke(edge, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(o.label)
+        .accessibilityAddTraits(on ? .isSelected : [])
+        .accessibilityHint(hints[o.id] ?? "")
+    }
+}
+
+/// The chip font and the padding steps of a chip row, and how wide a row is: the tests check the rows against these.
+enum ChipMetrics {
+    enum Density { case regular, tight, dense }
+    /// Today's chip font (13.5 pt, scaled by the in-app text size).
+    static var fontSize: CGFloat { (13.5 * PS.textScale).rounded(toPlaces: 1) }
+    static func gap(_ d: Density) -> CGFloat { d == .regular ? 7 : (d == .tight ? 5 : 4) }
+    static func hPad(_ d: Density, choice: Bool) -> CGFloat { d == .regular ? (choice ? 12 : 11) : (d == .tight ? 8 : 6) }
+
+    /// The order the row tries its one-line forms in (ChipSet.body).
+    static let order: [(short: Bool, density: Density)] = [(false, .regular), (false, .tight), (true, .regular), (true, .tight), (false, .dense), (true, .dense)]
+
+    /// The width of one line of chips, by the system font at the chip size and weight.
+    static func width(_ labels: [String], density d: Density, choice: Bool) -> CGFloat {
+        let font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
+        let text = labels.reduce(CGFloat(0)) { $0 + ($1 as NSString).size(withAttributes: [.font: font]).width }
+        return text + CGFloat(labels.count) * 2 * hPad(d, choice: choice) + CGFloat(max(0, labels.count - 1)) * gap(d)
+    }
+
+    /// The first one-line form that fits `width`, nil when the row wraps.
+    static func lineFit(_ options: [ChipChoice], choice: Bool, in width: CGFloat) -> (short: Bool, density: Density)? {
+        order.first { o in
+            width >= Self.width(options.map { o.short ? $0.shown : $0.label }, density: o.density, choice: choice)
+        }
+    }
+}
+
+/// Toggle chips for a set of flags; several can be on. Each tap is an Undo step of its own. `shorts` give a narrow single
+/// line shorter words by id (ChipSet).
 struct PatientChips: View {
     var options: [PatientFlag]
     @Binding var selection: Set<String>
     var tint: Color = PS.accent
-    @Environment(PatientStore.self) private var store: PatientStore?
+    var shorts: [String: String] = [:]
 
     var body: some View {
-        WrapLayout(spacing: 7) {
-            ForEach(options) { o in
-                let on = selection.contains(o.id)
-                Button {
-                    Haptics.light()
-                    store?.markDiscrete()
-                    if on { selection.remove(o.id) } else { selection.insert(o.id) }
-                } label: {
-                    HStack(spacing: 5) {
-                        if on { Image(systemName: "checkmark").font(PS.sys(size: 10.5, weight: .bold)) }
-                        Text(o.label).font(PS.sys(size: 13.5, weight: on ? .semibold : .medium))
-                    }
-                    .foregroundStyle(on ? PS.fg : PS.fg2)
-                    .padding(.horizontal, 11).padding(.vertical, 7)
-                    .background(on ? tint.opacity(0.18) : PS.surface2, in: Capsule())
-                    .overlay(Capsule().stroke(on ? tint.opacity(0.55) : PS.line2, lineWidth: 1))
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(on ? .isSelected : [])
-                .accessibilityHint(o.detail ?? "")
-            }
-        }
+        ChipSet(options: options.map { ChipChoice($0.id, $0.label, short: shorts[$0.id]) }, style: .toggle, tint: tint,
+                hints: Dictionary(options.compactMap { o in o.detail.map { (o.id, $0) } }, uniquingKeysWith: { a, _ in a }),
+                isOn: { selection.contains($0) },
+                tap: { id in if selection.contains(id) { selection.remove(id) } else { selection.insert(id) } })
     }
 }
 
 /// One choice among a few, as chips; tapping the chosen one clears it. Each tap is an Undo step of its own.
 struct PatientChoice: View {
-    var options: [(id: String, label: String)]
+    var choices: [ChipChoice]
     @Binding var selection: String?
     var tint: Color = PS.accent
-    @Environment(PatientStore.self) private var store: PatientStore?
+
+    init(options: [(id: String, label: String)], selection: Binding<String?>, tint: Color = PS.accent, shorts: [String: String] = [:]) {
+        choices = options.map { ChipChoice($0.id, $0.label, short: shorts[$0.id]) }
+        _selection = selection
+        self.tint = tint
+    }
+
+    init(choices: [ChipChoice], selection: Binding<String?>, tint: Color = PS.accent) {
+        self.choices = choices
+        _selection = selection
+        self.tint = tint
+    }
 
     var body: some View {
-        WrapLayout(spacing: 7) {
-            ForEach(Array(options.enumerated()), id: \.offset) { _, o in
-                let on = selection == o.id
-                Button {
-                    Haptics.light()
-                    store?.markDiscrete()
-                    selection = on ? nil : o.id
-                } label: {
-                    Text(o.label)
-                        .font(PS.sys(size: 13.5, weight: on ? .semibold : .medium))
-                        .foregroundStyle(on ? PS.bg : PS.fg2)
-                        .padding(.horizontal, 12).padding(.vertical, 7)
-                        .background(on ? PS.fg : PS.surface2, in: Capsule())
-                        .overlay(Capsule().stroke(on ? Color.clear : PS.line2, lineWidth: 1))
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(on ? .isSelected : [])
-            }
-        }
+        ChipSet(options: choices, style: .choice, tint: tint, isOn: { selection == $0 },
+                tap: { id in selection = selection == id ? nil : id })
     }
 }
 

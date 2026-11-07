@@ -206,6 +206,8 @@ struct PatientView: View {
                 RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: nil, handoff: handoff)
             }
         }
+        // Screenshot runs: -ps.patient.width 375 lays My Patient out as on that width (the CI simulator is wider).
+        .modifier(DebugContentWidth())
         .overlay {
             if tips.isShowing {
                 PatientTipsOverlay(tips: $tips, frames: tipFrames, bar: tipBar)
@@ -352,9 +354,10 @@ struct PatientView: View {
             }
         }
         jumpBar(proxy, Self.preopJumps).background(jumpBarReader)
-        // 1. Procedure
-        PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
-            .jumpTarget(section: .procedure)
+        // 1. Procedure: the open Planned Procedure & Anesthetic box and the "+ Risk-score inputs" link under it (1.10); the
+        // Procedure editor is still behind PatientEditor.procedure for deep links.
+        PreopPlannedBox().jumpTarget(section: .procedure)
+        PreopRiskInputsLink().jumpTarget(anchor: PatientPreop110.riskInputsAnchor)
         demographicsSection
         workupSection
         medicationsSection
@@ -417,7 +420,8 @@ struct PatientView: View {
     /// (procedure, demographics, workup, medications, risk) and the boxes in them; "preopsummary" is the summary view's own id. The cards of earlier
     /// versions keep their names, pointing at the nearest new box: history -> problems, assessment -> asa, support -> cardio.
     private static let jumpKeys: [String: PatientJumpID] = [
-        "procedure": PatientJumpID(section: .procedure), "demographics": PatientJumpID(anchor: "demographics"),
+        "procedure": PatientJumpID(section: .procedure), "planned": PatientJumpID(section: .procedure),
+        "riskinputs": PatientJumpID(anchor: PatientPreop110.riskInputsAnchor), "demographics": PatientJumpID(anchor: "demographics"),
         "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
         "risk": PatientJumpID(section: .risk),
         "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
