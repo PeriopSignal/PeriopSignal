@@ -664,6 +664,27 @@ jobs:
           shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
           shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
           shot 579-intraop-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark
+          # 1.10 Case Timers (helper A, 500-519).
+          shot 500-timers110-running-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections none -ps.forceAppearance dark
+          shot 501-timers110-running-light 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.timers.sections none -ps.forceAppearance light
+          shot 502-timers110-antibiotic-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections antibiotic -ps.timers.pick cefoxitin -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 503-timers110-antibiotic-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections antibiotic -ps.timers.pick cefoxitin -ps.timers.scroll antibiotic -ps.forceAppearance light
+          shot 504-timers110-antibiotic-other-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections antibiotic -ps.timers.pick clindamycin -ps.timers.other antibiotic -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 505-timers110-antibiotic-other-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections antibiotic -ps.timers.pick clindamycin -ps.timers.other antibiotic -ps.timers.scroll antibiotic -ps.forceAppearance light
+          shot 506-timers110-labs-start-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections labs -ps.timers.labs abg:30,glucose:60 -ps.timers.other labs:coag -ps.timers.scroll labs -ps.forceAppearance dark
+          shot 507-timers110-labs-start-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections labs -ps.timers.labs abg:30,glucose:60 -ps.timers.other labs:coag -ps.timers.scroll labs -ps.forceAppearance light
+          shot 508-timers110-labs-running-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections labs -ps.timers.scroll labs -ps.forceAppearance dark
+          shot 509-timers110-labs-running-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections labs -ps.timers.scroll labs -ps.forceAppearance light
+          shot 510-timers110-bypass-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
+          shot 511-timers110-bypass-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance light
+          shot 512-timers110-bypass-protamine-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance dark
+          shot 513-timers110-bypass-protamine-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance light
+          shot 514-timers110-tavr-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed tavr -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
+          shot 515-timers110-tavr-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed tavr -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance light
+          shot 516-timers110-tavr-new-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.purpose tavr -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
+          shot 517-timers110-bypass-new-act-other-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.purpose bypass -ps.timers.other act -ps.timers.sections heparin -ps.timers.scroll heparin.act -ps.forceAppearance light
+          shot 518-timers110-empty-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance dark
+          shot 519-timers110-empty-light 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

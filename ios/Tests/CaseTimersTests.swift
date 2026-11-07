@@ -35,7 +35,8 @@ final class CaseTimersTests: XCTestCase {
         let d = try data()
         XCTAssertNil(d.purpose("vascular")?.goal, "ACTION-1: no preset ACT goal for open vascular or carotid")
         XCTAssertNil(d.purpose("endovascular")?.goal)
-        XCTAssertEqual(d.purpose("bypass")?.goal, 450, "signed off: >450 s")
+        // 1.10 changes this (Ben, Nov 7: "Make ACT goes 480 sec based off STS"): 450 s → 480 s.
+        XCTAssertEqual(d.purpose("bypass")?.goal, 480, "1.10: ≥ 480 s (STS 2018)")
         XCTAssertEqual(d.purpose("bypass")?.goalDevice, 400)
         XCTAssertNil(d.purpose("ecmo")?.goal, "ECMO: varies by center, the user sets it")
         for p in d.heparinPurposes { XCTAssertEqual(p.actEvery, [30, 20], "\(p.id): 30 or 20 min") }

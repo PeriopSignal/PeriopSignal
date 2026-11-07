@@ -560,6 +560,39 @@ def main(path):
                 need(wd.get("max") is None or (num(wd["max"]) and wd["max"] > 0), f"ob event {eid}: weight dose max must be positive")
                 need(wd.get("aboveKg") is None or (num(wd["aboveKg"]) and isinstance(wd.get("aboveText"), str)), f"ob event {eid}: aboveKg needs aboveText")
 
+    # Case timers (1.9; 1.10 adds "hidden" purposes, "actDevice" and the coagulation check). The app decodes these
+    # fields as required, so a missing one hides the whole tool.
+    ct = data.get("caseTimers")
+    if ct is not None:
+        num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+        ct_src ={s.get("id") for s in ct.get("sources") or []}
+        purposes = ct.get("heparinPurposes") or []
+        pids = [p_.get("id") for p_ in purposes]
+        need(len(pids) == len(set(pids)) and all(isinstance(i, str) and i for i in pids), "caseTimers: heparin purpose ids must be unique strings")
+        for i in ("bypass", "offpump", "vascular", "endovascular", "tavr", "ecmo", "other"):
+            need(i in pids, f"caseTimers: purpose {i} must stay (saved cases use its id)")
+        for p_ in purposes:
+            pid = p_.get("id")
+            need(isinstance(p_.get("name"), str) and p_["name"], f"caseTimers purpose {pid}: name")
+            need(isinstance(p_.get("actEvery"), list) and p_["actEvery"] and all(num(x) and x > 0 for x in p_["actEvery"]), f"caseTimers purpose {pid}: actEvery must list positive minutes")
+            g = p_.get("goal")
+            need(g is None or (num(g) and 100 <= g <= 999), f"caseTimers purpose {pid}: goal must be null or 100-999 s")
+            lo, hi = p_.get("doseLow"), p_.get("doseHigh")
+            need((lo is None) == (hi is None) and (lo is None or (num(lo) and num(hi) and 0 < lo <= hi)), f"caseTimers purpose {pid}: doseLow <= doseHigh, both or neither")
+            need(p_.get("hidden") in (None, True, False), f"caseTimers purpose {pid}: hidden must be a boolean")
+            need(all(s_ in ct_src for s_ in p_.get("sources") or []), f"caseTimers purpose {pid}: sources must name listed sources")
+        need(any(p_.get("hidden") is not True for p_ in purposes), "caseTimers: at least one purpose must be offered")
+        pr = ct.get("protamine") or {}
+        need(all(num(pr.get(k)) for k in ("ratioLow", "ratioHigh", "flagAbove", "blockAbove", "maxMgPer10Min", "postActMinutes")), "caseTimers.protamine: numeric ratios and limits")
+        if all(num(pr.get(k)) for k in ("ratioLow", "ratioHigh", "flagAbove", "blockAbove")):
+            need(0 < pr["ratioLow"] <= pr["ratioHigh"] <= pr["flagAbove"] < pr["blockAbove"], "caseTimers.protamine: ratioLow <= ratioHigh <= flagAbove < blockAbove")
+        cids = [c.get("id") for c in ct.get("checks") or []]
+        need(len(cids) == len(set(cids)), "caseTimers: check ids must be unique")
+        for c in ct.get("checks") or []:
+            need(isinstance(c.get("options"), list) and c["options"] and all(num(o.get("minutes")) and o["minutes"] > 0 for o in c["options"]), f"caseTimers check {c.get('id')}: options need minutes")
+        hr = ct.get("heparinRules") or {}
+        need(hr.get("actDevice") is None or (isinstance(hr["actDevice"], str) and hr["actDevice"]), "caseTimers.heparinRules.actDevice must be a string")
+
     if problems:
         print("\n".join("- " + p for p in problems))
         print(f"FAILED: {len(problems)} problem(s)")
