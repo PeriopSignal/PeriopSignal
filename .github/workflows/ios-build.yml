@@ -565,7 +565,7 @@ jobs:
           shot 541-planned-box-empty-dark 18 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark
           shot 542-planned-box-filled-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
           shot 543-planned-box-filled-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark
-          shot 544-planned-box-search-urgency-light 18 -ps.tab patient -ps.patient.tab preop -ps.procsearch "lap chole" -ps.preop.urgency 1 -ps.forceAppearance light
+          shot 544-w393-planned-box-search-urgency-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 393 -ps.procsearch "lap chole" -ps.preop.urgency 1 -ps.forceAppearance light
           shot 545-risk-inputs-open-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
           shot 546-functional-one-line-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance light
           shot 547-functional-one-line-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance dark

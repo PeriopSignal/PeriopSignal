@@ -215,7 +215,7 @@ enum ChipMetrics {
     /// Today's chip font (13.5 pt, scaled by the in-app text size).
     static var fontSize: CGFloat { (13.5 * PS.textScale).rounded(toPlaces: 1) }
     static func gap(_ d: Density) -> CGFloat { d == .regular ? 7 : (d == .tight ? 5 : 4) }
-    static func hPad(_ d: Density, choice: Bool) -> CGFloat { d == .regular ? (choice ? 12 : 11) : (d == .tight ? 8 : 6.5) }
+    static func hPad(_ d: Density, choice: Bool) -> CGFloat { d == .regular ? (choice ? 12 : 11) : (d == .tight ? 8 : 6) }
 
     /// The order the row tries its one-line forms in (ChipSet.body).
     static let order: [(short: Bool, density: Density)] = [(false, .regular), (false, .tight), (true, .regular), (true, .tight), (false, .dense), (true, .dense)]
@@ -223,7 +223,7 @@ enum ChipMetrics {
     /// The width of one line of chips, by the system font at the chip size and weight.
     static func width(_ labels: [String], density d: Density, choice: Bool) -> CGFloat {
         let font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
-        let text = labels.reduce(CGFloat(0)) { $0 + ceil(($1 as NSString).size(withAttributes: [.font: font]).width) }
+        let text = labels.reduce(CGFloat(0)) { $0 + ($1 as NSString).size(withAttributes: [.font: font]).width }
         return text + CGFloat(labels.count) * 2 * hPad(d, choice: choice) + CGFloat(max(0, labels.count - 1)) * gap(d)
     }
 
