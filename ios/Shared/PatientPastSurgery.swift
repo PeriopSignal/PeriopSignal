@@ -59,7 +59,7 @@ enum PastSurgeryNote {
     static let commentaryRx = NoteRx(#"^(?:no|none|nil|denies|denied|negative|neg|n/a|na|noncontributory|non-contributory|unremarkable|noted|see|per|otherwise|unknown|unsure|not|ga|mac)\b|\b(?:complications?|an(?:a)?esthe\w*|difficult (?:airway|intubation)|ponv|malignant hyperthermia|uneventful|tolerated|problems?|issues?|reactions?)\b"#)
     /// An operative word: the text says an operation was done ("repair", "-ectomy", "bypass", "replacement", "ORIF", "surgery"),
     /// or is an abbreviation that only names one (CABG, AVR, TAVR, EVAR).
-    static let surgicalRx = NoteRx(#"(?:ectomy|otomy|ostomy|plasty|oscopy|pexy|orrhaphy|desis)\b|\b(?:repair|surgery|operation|resection|replacement|bypass|fusion|transplant\w*|fixation|orif|graft(?:ing)?|implant\w*|excision|c-?section|cesarean|ligation|amputation|biopsy|decompression|reconstruction|ablation|tka|tha|tkr|thr)\b|(?-i:\b(?:CABG|OPCAB|SAVR|AVR|MVR|TVR|AVr|MVr|TVr|TAVR|TAVI|TEER|EVAR|TEVAR|FEVAR|BEVAR|PCI|TURP)\b)"#)
+    static let surgicalRx = NoteRx(#"(?:ectomy|otomy|ostomy|plasty|oscopy|pexy|orrhaphy|desis)\b|\b(?:repair|surgery|operation|resection|replacement|bypass|fusion|transplant\w*|fixation|orif|graft(?:ing)?|implant\w*|excision|c-?section|cesarean|ligation|amputation|biopsy|decompression|reconstruction|ablation|closure|tka|tha|tkr|thr)\b|(?-i:\b(?:CABG|OPCAB|SAVR|AVR|MVR|TVR|AVr|MVr|TVr|TAVR|TAVI|TEER|TMVR|TTVR|TPVR|LAAO|LAAC|VSRR|EVAR|TEVAR|FEVAR|BEVAR|PCI|TURP)\b)"#)
     /// A diagnosis, which a procedure-list alias can also be ("AAA" is the open repair's, "dissection" a cardiac repair's):
     /// with no operative word it is not an operation, after "h/o" or in a "PSH:" section.
     static let diagnosisRx = NoteRx(#"\b(?:aaa|taaa?|taad|aod|aneurysms?|dissections?|hernias?|ectopic|fractures?|appendicitis|cholecystitis|cholelithiasis|gallstones?|obstruction|sbo|cancer|carcinoma|tumou?rs?|mass|stones?|stenosis|regurgitation|insufficiency|pregnancy|pneumothorax|empyema|abscess|torsion|bleed(?:ing)?|perforation|ulcers?|polyps?|cysts?)\b"#)
@@ -67,7 +67,7 @@ enum PastSurgeryNote {
     /// chole", "appy", "ACDF"). After a history lead ("h/o", "Hx", "prior"), a procedure-list match counts only with an
     /// operative word or one of these: the list's aliases include diagnoses ("scoliosis", "coarctation", "varicose veins")
     /// that a history lead usually introduces (1.8.3 re-check).
-    static let shorthandRx = NoteRx(#"\b(?:procedure|whipple|nissen|toupet|heller|bentall|fontan|glenn|norwood|kasai|ladd|hartmann'?s?|ivor lewis|mckeown|sistrunk|puestow|latarjet|bankart|brostrom|ravitch|nuss|maze|cox-maze|watchman|mitraclip|roux-en-y|billroth|mohs|lichtenstein|lap chole|appy|lap appy|lap band|gastric band|gastric sleeve|t&a|d&c|leep)\b|(?-i:\b(?:TSA|ACDF|PLIF|TLIF|ALIF|XLIF|VATS|RATS|LAR|APR|IPAA|TAH|TLH|LAVH|BSO|TURBT|PCNL|FESS|UPPP|LVAD|OHT|OLT|CEA|TCAR|LAAO|TEP|TAPP)\b)"#)
+    static let shorthandRx = NoteRx(#"\b(?:procedure|whipple|nissen|toupet|heller|bentall|fontan|glenn|norwood|kasai|ladd|hartmann'?s?|ivor lewis|mckeown|sistrunk|puestow|latarjet|bankart|brostrom|ravitch|nuss|maze|cox-maze|watchman|mitraclip|roux-en-y|billroth|mohs|lichtenstein|lap chole|appy|lap appy|lap band|gastric band|gastric sleeve|t&a|d&c|leep|triclip|amulet|lariat|david procedure)\b|(?-i:\b(?:TSA|ACDF|PLIF|TLIF|ALIF|XLIF|VATS|RATS|LAR|APR|IPAA|TAH|TLH|LAVH|BSO|TURBT|PCNL|FESS|UPPP|LVAD|OHT|OLT|CEA|TCAR|LAAO|TEP|TAPP)\b)"#)
     static let chestRx = NoteRx(#"\b(?:thoracotomy|sternotomy|vats|thoracoscopic|lobectomy|pneumonectomy|segmentectomy|esophagectomy|open[- ]heart|cardiac surgery|heart surgery)\b"#)
     static let monthYearRx = NoteRx(#"(?:\bin\s+|\(\s*|\b(?:on|dated|at)\s+)?\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?,?\s+(?:19|20)\d\d)\b\s*\)?"#)
     /// Dates in a note: MM/YYYY, a year, a month name and year, and "'19" (with or without a month before it). Never M/D
@@ -373,9 +373,15 @@ enum PastSurgeryNote {
         return s
     }
 
-    /// Whether a cardiac operation (for the cardiac page's Previous cardiac surgery).
+    /// Whether a cardiac operation (for the cardiac page's Previous cardiac surgery): a cardiac procedure of the list that
+    /// opened the chest, or the words of a typed one. 1.10: a transcatheter heart procedure (TAVR, TEER, LAAO) is a
+    /// cardiac procedure of the list but not cardiac surgery, and its name ("...aortic valve replacement") is not read
+    /// as one.
     static func isCardiac(_ s: PatientSurgery) -> Bool {
-        s.procedures.contains { $0.catalog?.cardiac ?? false } || cardiacWordsRx.first(s.name) != nil
+        if s.procedures.contains(where: { $0.catalog.map { $0.cardiac && $0.incision == "Intrathoracic" } ?? false }) { return true }
+        guard !s.procedures.isEmpty else { return cardiacWordsRx.first(s.name) != nil }
+        let typed = s.procedures.filter { $0.catalog == nil }.map(\.text).joined(separator: " + ")
+        return !typed.isEmpty && cardiacWordsRx.first(typed) != nil
     }
 
     // MARK: Matching what the record has
@@ -410,6 +416,14 @@ enum PastSurgeryNote {
         let na = normalized(a.name), nb = normalized(b.name)
         guard !na.isEmpty, !nb.isEmpty else { return false }
         return na == nb || na.contains(nb) || nb.contains(na)
+    }
+
+    /// The same operation entered twice in the editors (1.10): `same`, and either the procedure list knows both or the
+    /// words are the same ("Hernia repair" typed is not merged into "Inguinal hernia repair" typed).
+    static func duplicate(_ a: PatientSurgery, _ b: PatientSurgery) -> Bool {
+        guard same(a, b) else { return false }
+        if !ids(a).isEmpty && !ids(b).isEmpty { return true }
+        return normalized(a.name) == normalized(b.name)
     }
 
     static func index(of s: PatientSurgery, in r: PatientRecord) -> Int? {

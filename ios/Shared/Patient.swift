@@ -329,6 +329,10 @@ struct PatientRecord: Codable, Equatable {
     var preopSummaryEdits: [String: String] = [:]
     var handoffEdits: [String: String] = [:]
 
+    // 1.10 (Ben): the intraoperative echo in two exams. `intraopEcho` is the pre-bypass exam (a 1.9 save's intraoperative
+    // echo opens as it); this is the post-bypass exam.
+    var intraopEchoPost = PatientEcho()
+
     init() {}
 
     /// Every field read with a fallback, so a record saved by an older version still opens after an update.
@@ -458,6 +462,7 @@ struct PatientRecord: Codable, Equatable {
         preopSummaryOn = v(.preopSummaryOn, false)
         preopSummaryEdits = v(.preopSummaryEdits, [:])
         handoffEdits = v(.handoffEdits, [:])
+        intraopEchoPost = v(.intraopEchoPost, PatientEcho())
         fills.problems.formIntersection(problems)
         fills.medFlags.formIntersection(medFlags)
         fills.ecg.formIntersection(Set(ecg))

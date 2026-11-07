@@ -477,6 +477,8 @@ struct PatientHistoryDetails: Codable, Hashable {
             }
         }
         r.aortaSizes = [:]
+        foldIntrathoracic(&r)
+        linkCardiacSurgery(&r)
         sync(&r)
     }
 
@@ -519,6 +521,66 @@ struct PatientHistoryDetails: Codable, Hashable {
         s.intrathoracic = true
         r.surgeries.append(s)
         r.hx.cardiacSurgeryID = s.id
+    }
+
+    // MARK: One list of past operations (1.10)
+    //
+    // Ben (Nov 7): "previous cardiac surgery input into cardiovascular assessment and cardiopulmonary evaluation should
+    // populate in past surgical history (but not double post if entered twice)." The cardiopulmonary evaluation's
+    // "+ Previous cardiac surgery" (the Previous intrathoracic surgery page) kept its own list until 1.10; its operations
+    // now are entries of Past surgical history, marked cardiac or thoracic, so the two pages and the cardiovascular page's
+    // Previous cardiac surgery edit the same entries.
+
+    /// Adds a blank operation, marked cardiac or thoracic, for the Previous intrathoracic surgery page; returns its id.
+    @discardableResult
+    static func addIntrathoracic(_ r: inout PatientRecord) -> UUID {
+        let s = PatientSurgery(intrathoracic: true)
+        r.surgeries.append(s)
+        return s.id
+    }
+
+    /// An operation edited on Past surgical history or Previous intrathoracic surgery. When it is now an operation already
+    /// listed (the same procedures, or the same words, on dates that do not differ: PastSurgeryNote.duplicate), the two are one
+    /// entry: the one listed first stays, with the date, the cardiac or thoracic mark and the cardiovascular page's link of
+    /// either. A cardiac operation becomes the cardiovascular page's Previous cardiac surgery when that is empty.
+    static func editSurgery(_ s: PatientSurgery, _ r: inout PatientRecord) {
+        guard let i = r.surgeries.firstIndex(where: { $0.id == s.id }) else { return }
+        r.surgeries[i] = s
+        if !s.name.trimmingCharacters(in: .whitespaces).isEmpty,
+           let j = r.surgeries.indices.first(where: { $0 != i && PastSurgeryNote.duplicate(r.surgeries[$0], s) }) {
+            var kept = r.surgeries[j]
+            if kept.date.isEmpty { kept.date = s.date }
+            if s.intrathoracic { kept.intrathoracic = true }
+            r.surgeries[j] = kept
+            if r.hx.cardiacSurgeryID == s.id { r.hx.cardiacSurgeryID = kept.id }
+            r.surgeries.remove(at: i)
+        }
+        linkCardiacSurgery(&r)
+    }
+
+    /// Previous cardiac surgery on the cardiovascular page, when it is empty: the first cardiac operation marked cardiac or
+    /// thoracic in Past surgical history, so typing it there edits that entry instead of adding a second one.
+    static func linkCardiacSurgery(_ r: inout PatientRecord) {
+        guard r.hx.cardiacSurgeryID.flatMap({ id in r.surgeries.first { $0.id == id } }) == nil else { return }
+        r.hx.cardiacSurgeryID = r.surgeries.first { $0.intrathoracic && PastSurgeryNote.isCardiac($0) }?.id
+    }
+
+    /// A record saved before 1.10: the operations of the evaluation's own list become entries of Past surgical history,
+    /// marked cardiac or thoracic (one already listed is not listed again). `migrate` then links a cardiac one to the
+    /// cardiovascular page's Previous cardiac surgery when that is empty.
+    static func foldIntrathoracic(_ r: inout PatientRecord) {
+        guard !r.intrathoracic.isEmpty else { return }
+        for var s in r.intrathoracic {
+            s.intrathoracic = true
+            if s.name.trimmingCharacters(in: .whitespaces).isEmpty && s.date.isEmpty { continue }
+            if let j = r.surgeries.firstIndex(where: { PastSurgeryNote.same($0, s) }) {
+                r.surgeries[j].intrathoracic = true
+                if r.surgeries[j].date.isEmpty { r.surgeries[j].date = s.date }
+            } else {
+                r.surgeries.append(s)
+            }
+        }
+        r.intrathoracic = []
     }
 }
 

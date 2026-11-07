@@ -27,6 +27,9 @@ enum QuickAddTab: String, CaseIterable, Hashable {
 enum QuickAddPlace: Hashable {
     case preopTab, intraopTab, summaryTab
     case editor(intraop: Bool)
+    /// The Past Surgical History page's bar (1.10, Ben's notes-img1 bug): an operation typed there is a past operation,
+    /// never the planned procedure.
+    case pastSurgery
 
     var tab: QuickAddTab {
         switch self {
@@ -36,9 +39,14 @@ enum QuickAddPlace: Hashable {
     }
 
     var compact: Bool {
-        if case .editor = self { return true }
-        return false
+        switch self {
+        case .editor, .pastSurgery: return true
+        default: return false
+        }
     }
+
+    /// The line is read as past surgical history (QuickAdd.read's `surgicalHistory`).
+    var surgicalHistory: Bool { self == .pastSurgery }
 }
 
 /// What a line gives: findings to file, and what is shown but never filed.
@@ -221,8 +229,10 @@ enum QuickAdd {
 
     /// The example in the bar: the tab's, and on Summary & Handoff one that reads there.
     static func placeholder(_ place: QuickAddPlace) -> String {
-        place == .summaryTab ? "K 5.4, norepi 0.05, A-line" : placeholder(place.tab)
+        if place == .pastSurgery { return pastSurgeryPlaceholder }
+        return place == .summaryTab ? "K 5.4, norepi 0.05, A-line" : placeholder(place.tab)
     }
+    static let pastSurgeryPlaceholder = "CABG ×3 2015, appendectomy, R TKA 06/2019"
 
     /// The questions the reader asks itself ("SpO₂ 95% · room air?", "PRBC 2 · given?") and the infusion reader's
     /// (InfusionEntry: "drug:<word>", "unit:<drugID>:<rate>"), as opposed to an abbreviation's meaning: nothing is added
@@ -235,8 +245,15 @@ enum QuickAdd {
 
     /// The findings a line gives on a tab. `record` is the patient as it stands (for the intraoperative airway and
     /// the blood totals); `abbreviations` and `choices` are the user's own and the meanings chosen, as for a note.
+    ///
+    /// `surgicalHistory` (1.10): the bar on the Past Surgical History page. Until 1.10 that bar read a line the way the
+    /// Preoperative tab's does, where an operation opening the line is the planned procedure, so "tonsillectomy" typed
+    /// there offered to replace the planned AVR (Ben's notes-img1). There, an operation is read as past surgery only
+    /// (PastSurgeryNote, as a "PSH:" section's lines are, with its date), the planned procedure and its anesthetic are
+    /// never read, and the rest of the line (labs, history) reads as on the Preoperative tab.
     static func read(_ line: String, record: PatientRecord, tab: QuickAddTab, now: Date = Date(),
-                     abbreviations user: [String: String] = [:], choices: [String: String] = [:]) -> QuickAddReading {
+                     abbreviations user: [String: String] = [:], choices: [String: String] = [:],
+                     surgicalHistory: Bool = false) -> QuickAddReading {
         let one = line.components(separatedBy: .newlines).joined(separator: " ")
         var s = QuickScan(one)
         var reading = QuickAddReading()
@@ -247,6 +264,7 @@ enum QuickAdd {
         let c = QuickContext(tab: tab, record: record, now: now, abbreviations: abbreviations, choices: choices, setID: UUID())
         var out = QuickOut()
 
+        if surgicalHistory { readPastSurgery(&s, c, &out) }
         if tab == .intraop {
             readAirway(&s, c, &out)
             // "A-line pre-induction" on the Intraoperative tab says when it went in, not that it is still to come.
@@ -263,7 +281,7 @@ enum QuickAdd {
         readLabs(&s, c, &out)
         readDrips(&s, c, &out)
         readMarkedDrips(&s, c, &out)
-        readProcedure(&s, c, &out)
+        if !surgicalHistory { readProcedure(&s, c, &out) }
 
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
         let fresh = choices.filter { !out.stale.contains($0.key) }
@@ -274,11 +292,12 @@ enum QuickAdd {
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
         // And the aorta's: a dissection with no type, a bare "TAA".
         // And the procedure's: a bare Bentall's valve.
-        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:") || q.id.hasPrefix("quick:procedure:"))
+        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:")
+                                        || (q.id.hasPrefix("quick:procedure:") && !surgicalHistory))
             && !out.questions.contains(where: { $0.id == q.id }) {
             out.questions.append(q)
         }
-        readPlan(base, c, &out)
+        if !surgicalHistory { readPlan(base, c, &out) }
 
         var rank: [String: Int] = [:]
         for (i, sec) in sections.enumerated() { rank[sec] = i }
@@ -1861,6 +1880,19 @@ enum QuickAdd {
             if !w.isEmpty { out.append((w, start..<i)) }
         }
         return out
+    }
+
+    /// The Past Surgical History bar (1.10): each operation in the line, with its date, as the lines after a "PSH:" header
+    /// are read (an operative word, an eponym or the procedure list's name; a diagnosis is not one), each its own entry.
+    /// What is read is masked, so nothing else reads it again.
+    private static func readPastSurgery(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+        var state = PastSurgeryNote.State(open: true, bodyEmpty: true)
+        for op in PastSurgeryNote.read(s.text, state: &state).operations {
+            s.mask(op.range)
+            let entry = PastSurgeryNote.surgery(op.text, op.date)
+            out.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: PatientNote.Part.history,
+                                       label: "Past surgical history: " + entry.text, change: .pastSurgery(op.text, op.date)))
+        }
     }
 
     private static func take(_ p: (range: NSRange, text: String), _ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {

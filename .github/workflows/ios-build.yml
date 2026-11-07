@@ -620,6 +620,26 @@ jobs:
           shot 480-timers-from-reference 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.forceAppearance dark
           shot 481-tee-practice 18 -ps.ref tee -ps.tee.practice 1 -ps.forceAppearance light
           shot 482-tee-av-repair 18 -ps.ref tee -ps.tee.surgery avRepair -ps.tee.post 1 -ps.forceAppearance dark
+          # 1.10 helper B (520-539): echo LV/RV size and prosthesis details, the intraoperative pre- and post-bypass exams and
+          # the handoff's Pre/Post lines, Past Surgical History's bar adding a past operation only, transcatheter procedures.
+          shot 520-echo-size-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-lv -ps.forceAppearance light
+          shot 521-echo-size-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-lv -ps.forceAppearance dark
+          shot 522-echo-prosthesis-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance light
+          shot 523-echo-prosthesis-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance dark
+          shot 524-intraop-echo-pre-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-pre -ps.forceAppearance light
+          shot 525-intraop-echo-pre-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-pre -ps.forceAppearance dark
+          shot 526-intraop-echo-post-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-post -ps.forceAppearance light
+          shot 527-intraop-echo-post-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll post-echo-a -ps.forceAppearance dark
+          shot 528-intraop-echo-add-post-light 18 -ps.tab patient -ps.patient demo-echo110-pre -ps.patient.open intraop:echo -ps.patient.scroll echo-post -ps.forceAppearance light
+          shot 529-handoff-tee-pre-post-light 20 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 530-handoff-tee-pre-post-dark 20 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 531-psh-quickadd-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:surgeries -ps.quickadd.editor "tonsillectomy 2005" -ps.forceAppearance light
+          shot 532-psh-quickadd-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:surgeries -ps.quickadd.editor "MitraClip 2022, VATS wedge 2019" -ps.forceAppearance dark
+          shot 533-transcatheter-mitraclip-light 16 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.patient.addproc MitraClip -ps.forceAppearance light
+          shot 534-transcatheter-pvl-dark 16 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.patient.addproc "mitral PVL plug" -ps.forceAppearance dark
+          shot 535-previous-intrathoracic-light 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance light
+          shot 536-previous-intrathoracic-dark 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance dark
+          shot 537-preop-echo-summary-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

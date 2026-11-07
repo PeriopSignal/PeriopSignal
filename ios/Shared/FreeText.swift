@@ -101,6 +101,7 @@ extension PatientRecord {
         r.ecgNotes = FreeText.cap(r.ecgNotes)
         r.echoFindings = Self.capEcho(r.echoFindings)
         r.intraopEcho = Self.capEcho(r.intraopEcho)
+        r.intraopEchoPost = Self.capEcho(r.intraopEchoPost)
         r.lhc.notes = FreeText.cap(r.lhc.notes)
         r.carotid.notes = FreeText.cap(r.carotid.notes)
         r.radial.notes = FreeText.cap(r.radial.notes)
@@ -153,6 +154,13 @@ extension PatientRecord {
         var f = e
         f.aorta = FreeText.cap(e.aorta)
         f.other = FreeText.cap(e.other)
+        // 1.10: the chambers' and valves' free text and the prosthesis details.
+        f.lvNotes = FreeText.cap(e.lvNotes)
+        f.rvNotes = FreeText.cap(e.rvNotes)
+        for kp in [\PatientEcho.mitral, \PatientEcho.tricuspid, \PatientEcho.aortic] {
+            f[keyPath: kp].notes = FreeText.cap(e[keyPath: kp].notes)
+            f[keyPath: kp].prosthesisDetail = FreeText.cap(e[keyPath: kp].prosthesisDetail)
+        }
         return f
     }
 }
