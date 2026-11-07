@@ -32,6 +32,8 @@ struct CaseTimerData: Codable, Hashable {
 
     func antibiotic(_ id: String) -> AntibioticDef? { antibiotics.first { $0.id == id } }
     func purpose(_ id: String) -> HeparinPurpose? { heparinPurposes.first { $0.id == id } }
+    /// The purposes offered as chips, in the file's order (a hidden one still reads for a saved case).
+    var offeredPurposes: [HeparinPurpose] { heparinPurposes.filter { $0.hidden != true } }
     func check(_ id: String) -> LabCheckDef? { checks.first { $0.id == id } }
     func sources(_ ids: [String]) -> [EvidenceSource] { ids.compactMap { id in sources.first { $0.id == id } } }
 }
@@ -88,6 +90,9 @@ struct HeparinPurpose: Codable, Hashable, Identifiable {
     var strength: String?
     var sources: [String]?
     var note: String?
+    /// 1.10: kept so a saved case with this purpose still reads, but not offered (EVAR / TEVAR folded into
+    /// "Vascular/TEVAR", Ben, Nov 7).
+    var hidden: Bool?
 
     var isBypass: Bool { id == "bypass" }
     var isCardiac: Bool { id == "bypass" || id == "offpump" }
@@ -105,6 +110,8 @@ struct HeparinRules: Codable, Hashable {
     var resistance: String
     var clottingTest: String
     var deviceNote: String
+    /// 1.10: the ACT device every goal is written for ("i-STAT", Ben, Nov 7).
+    var actDevice: String?
 }
 
 struct ProtamineRules: Codable, Hashable {
