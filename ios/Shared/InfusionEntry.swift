@@ -265,6 +265,10 @@ enum InfusionEntry {
             } else if let u = drug.unit {
                 r.items.append(Item(drugID: drug.id, drug: drug.name, rate: rate + " " + u, typed: piece, note: "No unit written: read as " + u + "."))
                 continue
+            } else if let u = onlyUnit(drug) {
+                // 1.10 (Ben, Nov 7: the unit fills in as the drip is typed): a drug with a single usual unit needs no question.
+                r.items.append(Item(drugID: drug.id, drug: drug.name, rate: rate + " " + u, typed: piece, note: "No unit written: read as " + u + "."))
+                continue
             }
             let units = offered ?? drug.units
             let qid = "unit:" + drug.id + ":" + rate
@@ -276,6 +280,27 @@ enum InfusionEntry {
             }
         }
         return r
+    }
+
+    /// The unit a drug with no catalog unit is run in when its list gives only one ("insulin" units/h); nil when it could be
+    /// more than one (ketamine, amiodarone, heparin), which still ask.
+    static func onlyUnit(_ d: InfusionEntryDrug) -> String? {
+        d.unit == nil && d.units.count == 1 ? d.units[0] : nil
+    }
+
+    /// What to show under the field while a drug is named and no rate typed yet (1.10, Ben's "auto fill dosing units"):
+    /// "Units: mcg/kg/min or mcg/min", or "Unit fills in: units/h" for a drug with one unit; nil otherwise.
+    static func unitHint(_ text: String) -> String? {
+        guard let last = pieces(text).last else { return nil }
+        let parts = split(last)
+        guard parts.rate == nil, !fold(parts.drug).isEmpty else { return nil }
+        let found = matches(parts.drug)
+        guard found.count == 1 else { return nil }
+        let d = found[0]
+        // The usual first, as the question offers them.
+        let list = (d.units + [d.unit].compactMap { $0 }).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+        if list.isEmpty { return nil }
+        return list.count == 1 ? "Unit fills in: " + list[0] : "Units: " + list.joined(separator: " or ")
     }
 
     /// The drugs a typed word names: an alias outright (or a word that names several, all of them); else every drug

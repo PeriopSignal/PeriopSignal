@@ -179,7 +179,7 @@ struct FastingView: View {
     }
 
     private static let when: DateFormatter = {
-        let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "EEE d MMM, HH:mm"; return f
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "EEE MM/dd/yy, HH:mm"; return f
     }()
     private static let clock: DateFormatter = {
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "HH:mm"; return f

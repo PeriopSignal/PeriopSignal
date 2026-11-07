@@ -410,7 +410,7 @@ enum PatientCatalog {
     ]
 
     static let dispositions = ["PACU", "ICU", "Ward", "Same-day discharge", "Other"]
-    static let devices = ["Direct laryngoscope", "Video laryngoscope", "Flexible scope", "Supraglottic airway", "Face mask only"]
+    static let devices = ["Direct laryngoscope", "Video laryngoscope", "Fiberoptic scope", "Supraglottic airway", "Face mask only"]
     static let grades = ["1", "2a", "2b", "3", "4"]
 
     /// Cormack and Lehane's grades with Yentis and Lee's 2a and 2b (Anaesthesia 1984; 1998). Grades 3 and 4 are

@@ -86,7 +86,7 @@ enum PatientDiagramModel {
         }
 
         // The airway: an ETT down the trachea, or a tracheostomy at the stoma.
-        let intubatedHere = r.intubation == "easy" || r.intubation == "difficult" || !r.tube.isEmpty
+        let intubatedHere = r.intubation == "easy" || r.intubation == "difficult" || r.intubation == PatientAirway.placed || !r.tube.isEmpty
         let ettNow: Bool = {
             switch phase {
             case .preop: return r.currentAirway == "ett"

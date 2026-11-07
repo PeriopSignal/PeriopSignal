@@ -620,6 +620,27 @@ jobs:
           shot 480-timers-from-reference 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.forceAppearance dark
           shot 481-tee-practice 18 -ps.ref tee -ps.tee.practice 1 -ps.forceAppearance light
           shot 482-tee-av-repair 18 -ps.ref tee -ps.tee.surgery avRepair -ps.tee.post 1 -ps.forceAppearance dark
+          # 1.10 Intraoperative tab, airway course, handoff airway and labs with times, SLIC (helper D, 560-579).
+          shot 560-intraop-top-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.forceAppearance light
+          shot 561-intraop-top-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.forceAppearance dark
+          shot 562-intraop-lines-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance light
+          shot 563-intraop-meds-infusions-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.infusion.type "insulin 4, nor" -ps.forceAppearance light
+          shot 564-intraop-meds-infusions-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.infusion.type "dobut 5, epi" -ps.forceAppearance dark
+          shot 565-intraop-fluids-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance light
+          shot 566-intraop-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
+          shot 567-intraop-other-details-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:labs -ps.forceAppearance light
+          shot 568-intraop-other-details-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:labs -ps.forceAppearance dark
+          shot 569-airway-intubation-open-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:airway -ps.forceAppearance light
+          shot 570-airway-intubation-open-dark 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:airway -ps.forceAppearance dark
+          shot 571-handoff-airway-course-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 572-handoff-airway-course-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 573-handoff-labs-times-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 574-handoff-labs-times-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 575-labs-drawn-time-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 576-lines-slic-typed-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "LIJ SLIC 9 Fr" -ps.forceAppearance light
+          shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
+          shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
+          shot 579-intraop-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -356,14 +356,15 @@ final class Briefs19Tests: XCTestCase {
         XCTAssertTrue(support.contains("ECMO") || support.contains("IABP"), support)
     }
 
-    func testDifficultAirwayFollowUpIsInTheAirwayCourse() throws {
+    func testDifficultAirwayIsInTheAirwayCourse() throws {
         var r = PatientRecord()
         r.intubation = "difficult"; r.laryngoscopyGrade = "3"; r.airwayAtEnd = "extubated"
+        // 1.10 (Ben, Nov 7): the difficult-airway follow-up is gone from the airway and the handoff; a saved one is ignored.
         r.airwayFollowUp = ["told"]
         let course = try block(PatientBriefs.handoff(r), "airway")
         XCTAssertTrue(course.alert)
         XCTAssertTrue(course.text.contains("Intubation DIFFICULT"), course.text)
-        XCTAssertTrue(course.text.contains("Difficult-airway follow-up: Patient told. Still to do: "), course.text)
+        XCTAssertFalse(course.text.contains("follow-up"), course.text)
         XCTAssertTrue(course.text.hasSuffix("Extubated."), "it still ends with how the patient leaves: \(course.text)")
         XCTAssertFalse(course.text.contains("\n"))
     }

@@ -291,7 +291,7 @@ final class Review19Phase2Tests: XCTestCase {
         let e = PatientArchiveWriter.entry(for: c, now: now)
         XCTAssertTrue(e.text.contains("Intraoperative events: Brief bradycardia at insufflation, resolved"), e.text)
         XCTAssertTrue(e.text.hasPrefix(PatientBriefs.handoff(r, now: now).first?.text ?? "-"), "the 1.9 handoff, header first")
-        XCTAssertTrue(e.text.hasSuffix("Archived in Periop Signal, 31 Oct 2026. Check against the chart."))
+        XCTAssertTrue(e.text.hasSuffix("Archived in Periop Signal, 10/31/26. Check against the chart."))
     }
 
     // MARK: Mechanical support alone keeps the lines diagram before the case

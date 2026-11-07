@@ -392,7 +392,9 @@ final class PatientTests: XCTestCase {
         XCTAssertFalse(t.contains("Cardiac advice"), "and so does the preoperative advice")
         var hard = demo; hard.intubation = "difficult"; hard.airwayFollowUp = ["told"]
         let h = HandoffWriter.text(hard)
-        XCTAssertTrue(h.contains("Difficult-airway follow-up: Patient told. Still to do: document"), h)
+        // 1.10 (Ben, Nov 7): no difficult-airway follow-up in the handoff; a saved one is ignored.
+        XCTAssertFalse(h.contains("follow-up"), h)
+        XCTAssertTrue(h.contains("Intubation DIFFICULT"), h)
         var vent = demo; vent.airwayAtEnd = "intubated"; vent.ventilation = "VC 450 × 14, PEEP 8"; vent.fluids["wholeBlood"] = 2
         let v = HandoffWriter.text(vent)
         XCTAssertTrue(v.contains("At handoff: intubated, VC 450 × 14, PEEP 8."), v)
@@ -422,7 +424,7 @@ final class PatientTests: XCTestCase {
         var hard = demo; hard.intubation = "difficult"; hard.urgency = .emergency; hard.nkda = true; hard.allergies = ""
         let h = HandoffWriter.shortText(hard)
         XCTAssertTrue(h.contains("Intubation DIFFICULT"))
-        XCTAssertTrue(h.contains("Difficult-airway follow-up: Still to do:"), h)
+        XCTAssertFalse(h.contains("follow-up"), "1.10: no difficult-airway follow-up in the short handoff either")
         XCTAssertTrue(h.contains(" · Emergency · "), "the timing shows when it isn't elective")
         XCTAssertTrue(h.contains("Allergies: No known drug allergies"))
         let blank = HandoffWriter.shortText(PatientRecord())

@@ -1915,7 +1915,7 @@ enum QuickAdd {
     private static let airwayDevices: [(NoteRx, String)] = [
         (NoteRx(#"(?-i:\bVL\b)|\bvideo ?laryngoscop\w*|\bglide ?scope\b|\bglide\b|\bc-?mac\b|\bmcgrath\b"#), "Video laryngoscope"),
         (NoteRx(#"(?-i:\bDL\b)|\bdirect laryngoscop\w*|\b(?:mac|macintosh)\s*#?\s*[1-5]\b|\bmiller\s*#?\s*[0-4]\b"#), "Direct laryngoscope"),
-        (NoteRx(#"\b(?:fob|foi|afoi)\b|\bfib(?:er|re) ?optic\w*|\bflexible (?:scope|bronchoscop\w*)"#), "Flexible scope"),
+        (NoteRx(#"\b(?:fob|foi|afoi)\b|\bfib(?:er|re) ?optic\w*|\bflexible (?:scope|bronchoscop\w*)"#), "Fiberoptic scope"),
         (NoteRx(#"\b(?:lma|i-?gel|sga)\b|\bsupraglottic\b|\blaryngeal mask\b"#), "Supraglottic airway"),
     ]
     /// "LMA 4", "LMA #4", "i-gel size 4", "#4 LMA", "size 4 i-gel". Groups: 1 the device before a size (2), or a size (3)
@@ -2071,10 +2071,9 @@ enum QuickAdd {
             if let va = viewAfter.first(p.after) { gr.length += va.range.location + va.range.length }
             if context { views.append((value: grades[g], range: gr)) }
         }
-        if let mg = maskGrade {
-            put("maskGrade", mg.value, "Mask grade " + mg.value, mg.range)
-            s.mask(mg.range)
-        }
+        // 1.10 (Ben, Nov 7): the Han mask grade is retired. It is still read, so it is not filed as the view grade, and is
+        // then left out: nothing is recorded for it.
+        if let mg = maskGrade { s.mask(mg.range) }
         // Laryngoscopes in the order written; one said to be in the room, available or a backup was not used.
         var scopes: [(device: String, range: NSRange, certain: Bool)] = []
         for (rx, device) in airwayDevices {
@@ -2125,7 +2124,7 @@ enum QuickAdd {
             }
         }
         let none = NSRange(location: NSNotFound, length: 0)
-        let short = ["Video laryngoscope": "VL", "Direct laryngoscope": "DL", "Flexible scope": "Flexible scope", "Supraglottic airway": "SGA"]
+        let short = ["Video laryngoscope": "VL", "Direct laryngoscope": "DL", "Fiberoptic scope": "Fiberoptic scope", "Supraglottic airway": "SGA"]
         var devices: [String] = []
         for sc in scopes where !devices.contains(sc.device) { devices.append(sc.device) }
         if devices.count > 1 {
