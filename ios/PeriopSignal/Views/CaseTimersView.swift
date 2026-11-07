@@ -619,17 +619,18 @@ struct CaseTimersView: View {
                         .foregroundStyle(PS.fg)
                 }
                 let pending = abxPending.filter { t.course($0) == nil }
-                if !pending.isEmpty || !changes.isEmpty {
-                    Hairline()
-                    if !pending.isEmpty { StartTimeRow(start: $abxStart) }
-                    Button {
-                        startAntibiotics(pending, changes: changes)
-                    } label: {
-                        Text(pending.isEmpty ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(CapsuleButtonStyle(prominent: true))
-                    .accessibilityHint(pending.isEmpty ? "Saves the new redose intervals" : "Logs the dose at the start time and starts the redose timer")
+                let update = pending.isEmpty && !changes.isEmpty
+                Hairline()
+                if !update { StartTimeRow(start: $abxStart) }
+                Button {
+                    startAntibiotics(pending, changes: changes)
+                } label: {
+                    Text(update ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
                 }
+                .buttonStyle(CapsuleButtonStyle(prominent: true))
+                .disabled(pending.isEmpty && changes.isEmpty)
+                .opacity(pending.isEmpty && changes.isEmpty ? 0.45 : 1)
+                .accessibilityHint(update ? "Saves the new redose intervals" : "Logs the dose at the start time and starts the redose timer")
             }
         }
         .id("antibiotic.card")
@@ -745,16 +746,17 @@ struct CaseTimersView: View {
                     if i > 0 { Hairline() }
                     labRow(def, d).id("lab." + def.id)
                 }
-                if !starts.isEmpty || !changes.isEmpty {
-                    Hairline()
-                    if !starts.isEmpty { StartTimeRow(start: $labStart) }
-                    Button {
-                        startLabs(starts, changes: changes)
-                    } label: {
-                        Text(starts.isEmpty ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(CapsuleButtonStyle(prominent: true))
+                let update = starts.isEmpty && !changes.isEmpty
+                Hairline()
+                if !update { StartTimeRow(start: $labStart) }
+                Button {
+                    startLabs(starts, changes: changes)
+                } label: {
+                    Text(update ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
                 }
+                .buttonStyle(CapsuleButtonStyle(prominent: true))
+                .disabled(starts.isEmpty && changes.isEmpty)
+                .opacity(starts.isEmpty && changes.isEmpty ? 0.45 : 1)
             }
         }
         .id("labs.card")
@@ -1144,30 +1146,29 @@ struct CaseTimersView: View {
         RecurrenceRow(label: "Recurring every", chips: chips, pick: pick, preferred: p.actEvery.first ?? 30,
                       maxMinutes: CaseTimerRecurrence.actMax)
         if !running { StartTimeRow(start: $actStart) }
-        if !running || changed {
-            Button {
-                Haptics.light()
-                let m = pick.wrappedValue.minutes
-                let start = CaseTimerRecurrence.resolveStart(actStart, now: Date())
-                edit { t in
-                    guard t.heparin != nil else { return }
-                    if running {
-                        if let m { t.heparin?.actEvery = m } else { t.heparin?.actOff = true }
-                    } else if let m {
-                        t.heparin?.actEvery = m
-                        t.heparin?.actStart = start
-                        t.heparin?.actOff = false
-                    }
+        let idle = running ? !changed : pick.wrappedValue.minutes == nil
+        Button {
+            Haptics.light()
+            let m = pick.wrappedValue.minutes
+            let start = CaseTimerRecurrence.resolveStart(actStart, now: Date())
+            edit { t in
+                guard t.heparin != nil else { return }
+                if running {
+                    if let m { t.heparin?.actEvery = m } else { t.heparin?.actOff = true }
+                } else if let m {
+                    t.heparin?.actEvery = m
+                    t.heparin?.actStart = start
+                    t.heparin?.actOff = false
                 }
-                actPick = nil
-                actStart = Date()
-            } label: {
-                Text(running ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: true))
-            .disabled(!running && pick.wrappedValue.minutes == nil)
-            .opacity(!running && pick.wrappedValue.minutes == nil ? 0.45 : 1)
+            actPick = nil
+            actStart = Date()
+        } label: {
+            Text(running ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
         }
+        .buttonStyle(CapsuleButtonStyle(prominent: true))
+        .disabled(idle)
+        .opacity(idle ? 0.45 : 1)
     }
 
     // MARK: Footer
