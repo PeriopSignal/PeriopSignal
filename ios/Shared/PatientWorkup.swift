@@ -374,13 +374,16 @@ struct PatientSurgery: Codable, Hashable, Identifiable {
     }
 
     /// Replaces the procedures, keeps the older fields in step, and marks the operation cardiac or thoracic when a
-    /// procedure from the list is (it is never unmarked here: the clinician may know better).
+    /// procedure from the list entered the chest (it is never unmarked here: the clinician may know better). 1.10 (Ben:
+    /// "Past surgical history should only flag previous intrathoracic procedure when appropriate"): a transcatheter heart
+    /// procedure (TAVR, TEER, a Watchman, a PVL plug) or peripheral ECMO is `cardiac` in the list but did not open the
+    /// chest, so it no longer marks the operation; every open heart operation is Intrathoracic in the list.
     mutating func setProcedures(_ list: [PlannedProcedure]) {
         procedures = list
         name = list.map(\.text).filter { !$0.isEmpty }.joined(separator: " + ")
         procedureID = list.first?.catalogID
         side = list.first?.side
-        if list.contains(where: { p in p.catalog.map { $0.cardiac || $0.incision == "Intrathoracic" } ?? false }) { intrathoracic = true }
+        if list.contains(where: { p in p.catalog?.incision == "Intrathoracic" }) { intrathoracic = true }
     }
 
     /// "Left total knee arthroplasty (03/2019)"; several procedures joined with " + ".
@@ -418,19 +421,47 @@ struct EchoValve: Codable, Hashable {
     var stenosis: EchoGrade?
     /// "Mechanical", "Bioprosthetic", "Repair or ring", "Transcatheter" (TAVR or TEER), or free text.
     var prosthesis = ""
+    /// The prosthesis or repair in the user's words, optional, offered once a kind is chosen (1.10, Ben): "29 Magna".
+    var prosthesisDetail = ""
+    /// Free text for the valve (1.10, Ben: on every valve and chamber of the intraoperative exams).
+    var notes = ""
 
-    init(regurgitation: EchoGrade? = nil, stenosis: EchoGrade? = nil, prosthesis: String = "") {
+    init(regurgitation: EchoGrade? = nil, stenosis: EchoGrade? = nil, prosthesis: String = "", prosthesisDetail: String = "", notes: String = "") {
         self.regurgitation = regurgitation; self.stenosis = stenosis; self.prosthesis = prosthesis
+        self.prosthesisDetail = prosthesisDetail; self.notes = notes
     }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         regurgitation = try? c.decodeIfPresent(EchoGrade.self, forKey: .regurgitation)
         stenosis = try? c.decodeIfPresent(EchoGrade.self, forKey: .stenosis)
         prosthesis = (try? c.decodeIfPresent(String.self, forKey: .prosthesis)) ?? ""
+        prosthesisDetail = (try? c.decodeIfPresent(String.self, forKey: .prosthesisDetail)) ?? ""
+        notes = (try? c.decodeIfPresent(String.self, forKey: .notes)) ?? ""
     }
-    var isEmpty: Bool { regurgitation == nil && stenosis == nil && prosthesis.isEmpty }
+    var isEmpty: Bool { regurgitation == nil && stenosis == nil && prosthesis.isEmpty && prosthesisDetail.isEmpty && notes.isEmpty }
 
     static let prostheses = ["Mechanical", "Bioprosthetic", "Repair or ring", "Transcatheter"]
+
+    /// The kinds whose detail box shows (Ben: "When Mechanical, Bioprosthetic, Repair or ring are selected a free text
+    /// box should appear"); a transcatheter valve has a model and size too, so it gets the box as well.
+    static func takesDetail(_ kind: String) -> Bool { !kind.isEmpty }
+
+    /// The prosthesis as the summary says it: a replacement by its abbreviation ("AVR bioprosthetic", "MVR mechanical"),
+    /// a repair or a transcatheter valve by the valve ("Mitral repair or ring"), then the detail ("AVR bioprosthetic:
+    /// 29 Magna"). Empty without a kind; a detail alone reads after the valve's name.
+    func prosthesisPhrase(name: String, replacement: String) -> String? {
+        let kind = prosthesis.trimmingCharacters(in: .whitespaces)
+        let detail = prosthesisDetail.trimmingCharacters(in: .whitespacesAndNewlines)
+        if kind.isEmpty { return detail.isEmpty ? nil : name + " prosthesis: " + detail }
+        let head = (kind == "Mechanical" || kind == "Bioprosthetic") ? replacement + " " + kind.lowercased() : name + " " + kind.lowercasedFirst
+        return detail.isEmpty ? head : head + ": " + detail
+    }
+}
+
+/// A chamber's size on echo (1.10, Ben: "Normal size and dilated for the LV and RV").
+enum EchoSize: String, Codable, CaseIterable, Hashable {
+    case normal, dilated
+    var label: String { self == .normal ? "Normal" : "Dilated" }
 }
 
 /// Echo findings in the order of a report: LV, RV, mitral, tricuspid, aortic valve, aorta, other.
@@ -438,6 +469,12 @@ struct PatientEcho: Codable, Hashable {
     var lv: EchoGrade?
     var lvef: Double?
     var rv: EchoGrade?
+    /// 1.10 (Ben): the LV and RV size, normal or dilated, and free text for each chamber (shown in the intraoperative
+    /// exams).
+    var lvSize: EchoSize?
+    var rvSize: EchoSize?
+    var lvNotes = ""
+    var rvNotes = ""
     var mitral = EchoValve()
     var tricuspid = EchoValve()
     var aortic = EchoValve()
@@ -455,6 +492,10 @@ struct PatientEcho: Codable, Hashable {
         lv = try? c.decodeIfPresent(EchoGrade.self, forKey: .lv)
         lvef = try? c.decodeIfPresent(Double.self, forKey: .lvef)
         rv = try? c.decodeIfPresent(EchoGrade.self, forKey: .rv)
+        lvSize = try? c.decodeIfPresent(EchoSize.self, forKey: .lvSize)
+        rvSize = try? c.decodeIfPresent(EchoSize.self, forKey: .rvSize)
+        lvNotes = (try? c.decodeIfPresent(String.self, forKey: .lvNotes)) ?? ""
+        rvNotes = (try? c.decodeIfPresent(String.self, forKey: .rvNotes)) ?? ""
         mitral = (try? c.decodeIfPresent(EchoValve.self, forKey: .mitral)) ?? EchoValve()
         tricuspid = (try? c.decodeIfPresent(EchoValve.self, forKey: .tricuspid)) ?? EchoValve()
         aortic = (try? c.decodeIfPresent(EchoValve.self, forKey: .aortic)) ?? EchoValve()
@@ -530,27 +571,68 @@ struct PatientEcho: Codable, Hashable {
     }
 
     /// The findings as short phrases, in report order: "LV EF 35%, moderately reduced", "Severe AS", "Mitral repair".
+    /// 1.10: a chamber's size after its function ("LV EF 35%, moderately reduced, dilated"; alone "LV dilated", "RV size
+    /// normal"); a prosthesis with its detail ("AVR bioprosthetic: 29 Magna"); a section's free text after its findings
+    /// ("LV: new anterior hypokinesis", "Mitral: …").
     var phrases: [String] {
         var out: [String] = []
-        if lv != nil || lvef != nil {
+        func clean(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
+        func size(_ z: EchoSize?) -> String? { z.map { $0 == .dilated ? "dilated" : "normal size" } }
+        if lv != nil || lvef != nil || lvSize != nil {
             var s = "LV"
             if let ef = lvef { s += " EF " + NumText.short(ef) + "%" }
             if let g = lv { s += (lvef == nil ? " function " : ", ") + PatientEcho.function(g) }
+            if let z = lvSize {
+                if lv == nil && lvef == nil { s += z == .dilated ? " dilated" : " size normal" } else { s += ", " + (size(z) ?? "") }
+            }
             out.append(s)
         }
-        if let g = rv { out.append("RV function " + PatientEcho.function(g)) }
+        if !clean(lvNotes).isEmpty { out.append("LV: " + clean(lvNotes)) }
+        if rv != nil || rvSize != nil {
+            var s = "RV"
+            if let g = rv { s += " function " + PatientEcho.function(g) }
+            if let z = rvSize {
+                if rv == nil { s += z == .dilated ? " dilated" : " size normal" } else { s += ", " + (size(z) ?? "") }
+            }
+            out.append(s)
+        }
+        if !clean(rvNotes).isEmpty { out.append("RV: " + clean(rvNotes)) }
         if noValveDisease { out.append("No significant valve disease") }
-        func valve(_ v: EchoValve, _ letter: String, _ name: String) {
+        func valve(_ v: EchoValve, _ letter: String, _ name: String, _ replacement: String) {
             if let g = v.stenosis, g != .normal { out.append(g.label + " " + letter + "S") }
             if let g = v.regurgitation, g != .normal { out.append(g.label + " " + letter + "R") }
-            if !v.prosthesis.isEmpty { out.append(name + " " + v.prosthesis.lowercasedFirst) }
+            if let p = v.prosthesisPhrase(name: name, replacement: replacement) { out.append(p) }
+            if !clean(v.notes).isEmpty { out.append(name + ": " + clean(v.notes)) }
         }
-        valve(mitral, "M", "Mitral")
-        valve(tricuspid, "T", "Tricuspid")
-        valve(aortic, "A", "Aortic")
+        valve(mitral, "M", "Mitral", "MVR")
+        valve(tricuspid, "T", "Tricuspid", "TVR")
+        valve(aortic, "A", "Aortic", "AVR")
         if aortaIntact == true { out.append("Aorta intact") }
         if aortaIntact == false || !aorta.isEmpty { out.append(aorta.isEmpty ? "Aorta abnormal" : "Aorta: " + aorta) }
         if !other.isEmpty { out.append(other) }
+        return out
+    }
+
+    /// The post-bypass exam started from the pre-bypass one (1.10): its findings, without the study and date.
+    func copiedForPostBypass() -> PatientEcho {
+        var e = self
+        e.study = nil
+        e.date = PatientMonthYear()
+        return e
+    }
+
+    /// The intraoperative TEE in its exams (1.10, Ben's notes-img3): with a post-bypass exam, "Pre: …" and "Post: …"; with
+    /// the pre-bypass exam alone, its findings as before 1.10 (a case without bypass has one exam, which needs no label).
+    /// Only what is entered. The study word ("TEE:") the summary opens with is left out: the block's label says it.
+    static func intraopParts(pre: PatientEcho, post: PatientEcho) -> [(label: String?, text: String)] {
+        func body(_ e: PatientEcho) -> String {
+            let s = e.summary
+            return s.hasPrefix("TEE: ") ? String(s.dropFirst(5)) : s
+        }
+        if post.isEmpty { return pre.isEmpty ? [] : [(nil, body(pre))] }
+        var out: [(label: String?, text: String)] = []
+        if !pre.isEmpty { out.append(("Pre", body(pre))) }
+        out.append(("Post", body(post)))
         return out
     }
 

@@ -54,6 +54,9 @@ enum PatientEditor: Hashable {
         switch self {
         case .intraop, .intraopPart: return .editor(intraop: true)
         case .devices(let p): return .editor(intraop: p == "intraop")
+        // 1.10: what is typed on Past Surgical History is a past operation, never the planned procedure.
+        // (and on Previous Intrathoracic Surgery, whose operations are Past surgical history entries).
+        case .workup("surgeries"), .workup("intrathoracic"): return .pastSurgery
         default: return .editor(intraop: false)
         }
     }
@@ -659,7 +662,8 @@ struct PatientEditorView: View {
     @ViewBuilder private var intraopEcho: some View {
         // The probe's safety first: one tap to the TEE screen from where the TEE is recorded.
         PatientGroup(title: nil) { teeLinkRow }
-        EchoFindingsEditor(echo: bind(\.intraopEcho))
+        // 1.10 (Ben, notes-img3): the pre-bypass and post-bypass exams (IntraopEchoEditor.swift).
+        IntraopEchoExams()
         PatientGroup(title: "Echo summary") {
             PatientChipRow(label: "Add a finding") {
                 WrapLayout(spacing: 7) {

@@ -359,8 +359,10 @@ enum PatientSummary {
         if r.noEvents { out.append(Line("Events", "No notable events")) }
         else if !r.events.isEmpty { out.append(Line("Events", r.events, alert: true)) }
         if let t = PatientTEE.line(r) { out.append(t) }
-        if !r.intraopEcho.isEmpty { out.append(Line("Echo", r.intraopEcho.summary)) }
-        if !r.echo.isEmpty { out.append(Line(r.intraopEcho.isEmpty ? "Echo" : "Echo notes", r.echo)) }
+        // 1.10: the pre- and post-bypass exams ("Echo, pre-bypass" and "Echo, post-bypass" once there is a post-bypass one).
+        let exams = PatientEcho.intraopParts(pre: r.intraopEcho, post: r.intraopEchoPost)
+        for p in exams { out.append(Line(p.label.map { "Echo, " + ($0 == "Pre" ? "pre-bypass" : "post-bypass") } ?? "Echo", p.text)) }
+        if !r.echo.isEmpty { out.append(Line(exams.isEmpty ? "Echo" : "Echo notes", r.echo)) }
         return out
     }
 
@@ -484,7 +486,7 @@ enum HandoffWriter {
         let told: Set<String> = ["Airway", "Lines", "Arms", "Limb alert"]
         var intraop = PatientSummary.intraopLines(r).filter { !told.contains($0.label ?? "") }
         // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
-        if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.intraopEchoPost.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             intraop.append(PatientSummary.Line("Echo", PatientSummary.notAssessed))
         }
         section("Intraoperative", intraop)

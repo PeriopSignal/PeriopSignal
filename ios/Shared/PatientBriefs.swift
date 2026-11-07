@@ -533,14 +533,13 @@ enum PatientBriefs {
         return b
     }
 
-    /// Intraoperative TEE: the findings entered in the Intraoperative tab, and the echo notes typed there.
+    /// Intraoperative TEE: the findings entered in the Intraoperative tab, and the echo notes typed there. 1.10 (Ben's
+    /// notes-img3): with a post-bypass exam, a "Pre: …" line and a "Post: …" line (PatientEcho.intraopParts); only what is
+    /// entered.
     private static func intraopTEEBlock(_ r: PatientRecord) -> SummaryBlock {
         let c = r.capitalized
-        var parts: [String] = []
-        // The summary opens with the study ("TEE: LV EF 45%"); the block's label says it.
-        if !c.intraopEcho.isEmpty {
-            let s = c.intraopEcho.summary
-            parts.append(s.hasPrefix("TEE: ") ? String(s.dropFirst(5)) : s)
+        var parts: [String] = PatientEcho.intraopParts(pre: c.intraopEcho, post: c.intraopEchoPost).map { p in
+            p.label.map { $0 + ": " + p.text } ?? p.text
         }
         if !trimmed(c.echo).isEmpty { parts.append(trimmed(c.echo)) }
         return SummaryBlock(key: "tee", label: "Intraoperative TEE", text: parts.joined(separator: "\n"))

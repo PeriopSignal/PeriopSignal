@@ -50,7 +50,8 @@ final class ProcedureCatalogTests: XCTestCase {
 
     func testAbbreviations() {
         let expected: [(String, String)] = [
-            ("CABG", "cabg"), ("OPCAB", "opcab"), ("TAVR", "tavr"), ("TAVI", "tavr"), ("TEER", "teer"), ("MitraClip", "teer"),
+            ("CABG", "cabg"), ("OPCAB", "opcab"), ("TAVR", "tavr"), ("TAVI", "tavr"), ("TEER", "teer"), ("MitraClip", "teer-mitral"), // 1.10: TEER by valve
+            ("TriClip", "teer-tricuspid"),
             ("LVAD", "lvad"), ("OHT", "heart-transplant"), ("OLT", "liver-transplant"), ("BLT", "bilateral-lung-transplant"),
             ("SLT", "single-lung-transplant"), ("VATS", "wedge"), ("RATS", "robotic-lobectomy"), ("EGD", "egd"), ("ERCP", "ercp"),
             ("EUS", "eus"), ("TEE", "tee"), ("DCCV", "dccv"), ("PVI", "af-ablation"), ("ICD", "icd"), ("PPM", "ppm"),

@@ -332,6 +332,9 @@ struct PatientRecord: Codable, Equatable {
     // 1.10
     /// When the preoperative labs were drawn (Ben, Nov 7: the labs in the summary and handoff note their times, very small).
     var labsDrawn: Date?
+    // 1.10 (Ben): the intraoperative echo in two exams. `intraopEcho` is the pre-bypass exam (a 1.9 save's intraoperative
+    // echo opens as it); this is the post-bypass exam.
+    var intraopEchoPost = PatientEcho()
 
     init() {}
 
@@ -463,6 +466,7 @@ struct PatientRecord: Codable, Equatable {
         preopSummaryEdits = v(.preopSummaryEdits, [:])
         handoffEdits = v(.handoffEdits, [:])
         labsDrawn = try? c.decodeIfPresent(Date.self, forKey: .labsDrawn)
+        intraopEchoPost = v(.intraopEchoPost, PatientEcho())
         fills.problems.formIntersection(problems)
         fills.medFlags.formIntersection(medFlags)
         fills.ecg.formIntersection(Set(ecg))
