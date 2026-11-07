@@ -41,7 +41,7 @@ final class Clinical110Tests: XCTestCase {
         XCTAssertEqual(QuickAdd.placeholder(.pastSurgery), QuickAdd.pastSurgeryPlaceholder)
         // Other editors keep the Preoperative tab's reading.
         XCTAssertEqual(PatientEditor.workup("echo").quickAddPlace, .editor(intraop: false))
-        XCTAssertEqual(PatientEditor.workup("intrathoracic").quickAddPlace, .editor(intraop: false))
+        XCTAssertEqual(PatientEditor.workup("intrathoracic").quickAddPlace, .pastSurgery, "its operations are Past surgical history entries")
     }
 
     func testAnOperationTypedThereIsAPastOperationNeverTheProcedure() {

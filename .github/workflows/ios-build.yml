@@ -626,11 +626,11 @@ jobs:
           shot 521-echo-size-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-lv -ps.forceAppearance dark
           shot 522-echo-prosthesis-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance light
           shot 523-echo-prosthesis-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance dark
-          shot 524-intraop-echo-pre-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-pre -ps.forceAppearance light
+          shot 524-intraop-echo-pre-light 22 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-pre -ps.forceAppearance light
           shot 525-intraop-echo-pre-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-pre -ps.forceAppearance dark
           shot 526-intraop-echo-post-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-post -ps.forceAppearance light
           shot 527-intraop-echo-post-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll post-echo-a -ps.forceAppearance dark
-          shot 528-intraop-echo-add-post-light 18 -ps.tab patient -ps.patient demo-echo110-pre -ps.patient.open intraop:echo -ps.patient.scroll echo-post -ps.forceAppearance light
+          shot 528-intraop-echo-add-post-light 22 -ps.tab patient -ps.patient demo-echo110-pre -ps.patient.open intraop:echo -ps.patient.scroll echo-post -ps.forceAppearance light
           shot 529-handoff-tee-pre-post-light 20 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
           shot 530-handoff-tee-pre-post-dark 20 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 531-psh-quickadd-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:surgeries -ps.quickadd.editor "tonsillectomy 2005" -ps.forceAppearance light

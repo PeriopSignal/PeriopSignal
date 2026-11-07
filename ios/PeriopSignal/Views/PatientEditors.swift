@@ -55,7 +55,8 @@ enum PatientEditor: Hashable {
         case .intraop, .intraopPart: return .editor(intraop: true)
         case .devices(let p): return .editor(intraop: p == "intraop")
         // 1.10: what is typed on Past Surgical History is a past operation, never the planned procedure.
-        case .workup("surgeries"): return .pastSurgery
+        // (and on Previous Intrathoracic Surgery, whose operations are Past surgical history entries).
+        case .workup("surgeries"), .workup("intrathoracic"): return .pastSurgery
         default: return .editor(intraop: false)
         }
     }

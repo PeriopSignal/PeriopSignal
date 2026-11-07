@@ -39,9 +39,10 @@ final class QuickBar181fTests: XCTestCase {
         var preop: [PatientEditor] = [.details, .procedure, .demographics, .history, .medications, .assessment, .airway, .plan,
                                       .devices("preop"), .devices("support")]
         preop += PatientCatalog.allSystems.map { PatientEditor.system($0.id) }
-        // 1.10 (Ben's notes-img1): Past Surgical History's bar reads past operations only (its own place; Clinical110Tests).
-        preop += PatientEditor.workups.filter { $0.id != "surgeries" }.map { PatientEditor.workup($0.id) }
+        // 1.10 (Ben's notes-img1): Past Surgical History and Previous Intrathoracic Surgery read past operations only (its own place; Clinical110Tests).
+        preop += PatientEditor.workups.filter { $0.id != "surgeries" && $0.id != "intrathoracic" }.map { PatientEditor.workup($0.id) }
         XCTAssertEqual(PatientEditor.workup("surgeries").quickAddPlace, .pastSurgery)
+        XCTAssertEqual(PatientEditor.workup("intrathoracic").quickAddPlace, .pastSurgery)
         XCTAssertEqual(PatientEditor.workup("surgeries").quickAddPlace.tab, .preop)
         XCTAssertTrue(PatientEditor.workup("surgeries").quickAddPlace.compact)
         var intraop: [PatientEditor] = [.intraop, .devices("intraop")]
