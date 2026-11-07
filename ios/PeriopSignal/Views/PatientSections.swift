@@ -23,21 +23,15 @@ extension PatientEditorView {
         .onAppear(perform: readOldProcedureText)
         // The chosen urgency's definition: behind the group title's ⓘ (1.8.1), not on a row of its own in the card.
         PatientGroup(title: "Urgency & anesthetic", note: urgencyNote) {
-            PatientChipRow(label: "Urgency") {
-                PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
-            }
-            PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
+            PatientChipRow(label: "Urgency") { UrgencyChips() }
+            PatientChipRow(label: "Planned anesthetic") { AnestheticChips() }
         }
         PatientGroup(title: "Risk-score inputs", note: riskInputsNote(recognized: recognized)) {
             if !PatientRules.cardiacSurgery(r) {
                 toggleRow("High-risk surgery", "Intraperitoneal, intrathoracic or suprainguinal vascular (RCRI)", bind(\.highRiskSurgery))
             }
-            PatientChipRow(label: "Incision (ARISCAT)") {
-                PatientChoice(options: [(id: "Peripheral", label: "Peripheral"), (id: "Upper abdominal", label: "Upper abdominal"), (id: "Intrathoracic", label: "Intrathoracic")], selection: bind(\.incision))
-            }
-            PatientChipRow(label: "Expected duration (ARISCAT)") {
-                PatientChoice(options: [(id: "≤ 2 h", label: "2 h or less"), (id: "> 2–3 h", label: "Over 2 to 3 h"), (id: "> 3 h", label: "Over 3 h")], selection: bind(\.duration))
-            }
+            PatientChipRow(label: "Incision (ARISCAT)") { IncisionChips() }
+            PatientChipRow(label: "Expected duration (ARISCAT)") { DurationChips() }
         }
     }
 
@@ -685,12 +679,15 @@ struct PatientInfoLine: View {
     }
 }
 
-/// The No and Yes pills of a single-line question.
+/// The No and Yes pills of a single-line question. A second tap on the pill that is on clears the answer to
+/// unanswered (`onClear`), as every chip does (Ben, Nov 7); VoiceOver says so in the selected pill's hint.
 struct YesNoPills: View {
     var no: Bool
     var yes: Bool
     var onNo: () -> Void
     var onYes: () -> Void
+    /// Called instead of `onNo` / `onYes` when the pill tapped is already on.
+    var onClear: () -> Void
     var body: some View {
         HStack(spacing: 6) {
             pill("No", on: no, tint: PS.green, action: onNo)
@@ -698,7 +695,7 @@ struct YesNoPills: View {
         }
     }
     private func pill(_ t: String, on: Bool, tint: Color, action: @escaping () -> Void) -> some View {
-        Button { Haptics.light(); action() } label: {
+        Button { Haptics.light(); if on { onClear() } else { action() } } label: {
             Text(t).font(PS.sys(size: 13.5, weight: .semibold))
                 .foregroundStyle(on ? PS.accentFg : PS.fg2)
                 .padding(.horizontal, 14).padding(.vertical, 6)
@@ -706,6 +703,7 @@ struct YesNoPills: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])
+        .accessibilityHint(on ? "Tap again to clear the answer" : "")
     }
 }
 

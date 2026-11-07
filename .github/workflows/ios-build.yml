@@ -558,6 +558,29 @@ jobs:
           shot 383-handoff-shared-image-dialysis 22 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab summary -ps.handoff.format short -ps.handoff.image 1 -ps.patient.scroll sharedimage -ps.forceAppearance dark
           shot 384-typed-wires 20 -ps.tab patient -ps.patient demo-wires -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "epicardial wires A+V" -ps.forceAppearance light
           shot 385-typed-chesttube 20 -ps.tab patient -ps.patient demo-chesttube -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "R chest tube 28 Fr" -ps.forceAppearance dark
+          # 1.10 Preprocedure tab and chips (540-559, helper C): the open Planned Procedure & Anesthetic box (empty, filled, urgency chips
+          # open, the search list), the "+ Risk-score inputs" link open, single-line chip rows (functional capacity, code status with DNR and DNI
+          # both on, a system page), at the CI phone's width and at 375 pt (-ps.patient.width 375), and the large-text fallback.
+          shot 540-planned-box-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance light
+          shot 541-planned-box-empty-dark 18 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark
+          shot 542-planned-box-filled-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
+          shot 543-planned-box-filled-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark
+          shot 544-planned-box-search-urgency-light 18 -ps.tab patient -ps.patient.tab preop -ps.procsearch "lap chole" -ps.preop.urgency 1 -ps.forceAppearance light
+          shot 545-risk-inputs-open-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
+          shot 546-functional-one-line-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance light
+          shot 547-functional-one-line-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance dark
+          shot 548-code-status-dnr-dni-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 549-code-status-dnr-dni-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance dark
+          shot 550-w375-planned-urgency-risk-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 375 -ps.preop.urgency 1 -ps.preop.risk 1 -ps.forceAppearance light
+          shot 551-w375-code-status-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 552-w375-functional-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll asa -ps.forceAppearance dark
+          shot 553-system-cv-one-line-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.forceAppearance light
+          shot 554-system-cv-one-line-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.forceAppearance dark
+          shot 555-w375-system-cv-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.width 375 -ps.forceAppearance dark
+          shot 556-large-text-planned-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.textScale 1.25 -ps.preop.urgency 1 -ps.forceAppearance light
+          shot 557-large-text-code-status-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.textScale 1.25 -ps.forceAppearance dark
+          shot 558-w375-risk-inputs-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
+          shot 559-procedure-editor-light 18 -ps.tab patient -ps.patient demo -ps.patient.open procedure -ps.forceAppearance light
           # 1.9 Preprocedure tab (helper 5): the reorganized tab from top to bottom, light and dark; a large-text pair.
           shot 440-preop-top-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance light
           shot 441-preop-top-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance dark

@@ -258,9 +258,7 @@ struct PatientCodeStatusGroup: View {
         let r = patient.record
         PatientGroup(title: "Code status", note: PatientCodeStatus.note) {
             PatientChipRow(label: nil) {
-                PatientChoice(options: CodeStatus.allCases.map { (id: $0.rawValue, label: $0.label) },
-                              selection: Binding(get: { patient.record.codeStatus?.rawValue }, set: { v in patient.update { $0.codeStatus = v.flatMap { CodeStatus(rawValue: $0) } } }),
-                              tint: PS.accent)
+                CodeStatusChips()
             }
             if r.codeStatus == .limited {
                 PatientTextField(label: "Limits", prompt: "e.g. no chest compressions or defibrillation; vasopressors acceptable", text: patient.binding(\.codeStatusLimits))
@@ -281,7 +279,9 @@ struct PatientCodeStatusGroup: View {
                 InfoChipRow(label: "For the procedure", info: r.codeStatusPlan?.info) {
                     PatientChoice(options: CodeStatusPlan.allCases.map { (id: $0.rawValue, label: $0.label) },
                                   selection: Binding(get: { patient.record.codeStatusPlan?.rawValue }, set: { v in patient.update { $0.codeStatusPlan = v.flatMap { CodeStatusPlan(rawValue: $0) } } }),
-                                  tint: PS.accent2)
+                                  tint: PS.accent2,
+                                  // One word each when the row has room for no more ("For the procedure" is the title).
+                                  shorts: ["maintained": "Maintained", "modified": "Modified", "suspended": "Suspended"])
                 }
                 if let shown = r.codeStatusPlan?.inView {
                     Text(shown)

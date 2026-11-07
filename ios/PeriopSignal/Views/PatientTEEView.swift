@@ -99,8 +99,9 @@ extension PatientEditorView {
             Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
             Spacer(minLength: 6)
             YesNoPills(no: a == false, yes: a == true,
-                       onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = a == false ? nil : false } } },
-                       onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = a == true ? nil : true } } })
+                       onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = false } } },
+                       onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = true } } },
+                       onClear: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = nil } } })
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
     }
@@ -116,8 +117,10 @@ extension PatientEditorView {
                 Spacer(minLength: 6)
                 if fromRecord == nil {
                     YesNoPills(no: answer == false || (answer == nil && r.teeScreen.reviewed), yes: answer == true,
-                               onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0.teeScreen.set(it.id, answer == false ? nil : false) } } },
-                               onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0.teeScreen.set(it.id, answer == true ? nil : true) } } })
+                               onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0.teeScreen.set(it.id, false) } } },
+                               onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0.teeScreen.set(it.id, true) } } },
+                               // A No shown only because the screen was reviewed (no answer yet) is set as an answer first, as before.
+                               onClear: { withAnimation(.snappy) { patient.update(discrete: true) { $0.teeScreen.set(it.id, answer == nil ? false : nil) } } })
                 } else {
                     Label("In the record", systemImage: "checkmark.circle.fill")
                         .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(tint)
