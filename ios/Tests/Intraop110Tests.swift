@@ -212,9 +212,9 @@ final class Intraop110Tests: XCTestCase {
         XCTAssertNil(BriefLabs.make(r, withIntraop: false, now: date()).labs.caption, "no time entered, none shown")
         r.labsDrawn = date(7, 6, 30)
         XCTAssertEqual(BriefLabs.make(r, withIntraop: false, now: date()).labs.caption, "Preop labs 06:30")
-        guard case .fishbone(let pre)? = try block(PatientBriefs.preop(r), "labs").figure else { return XCTFail("no fishbone") }
+        guard case .fishbone(let pre)? = try block(PatientBriefs.preop(r, now: date()), "labs").figure else { return XCTFail("no fishbone") }
         XCTAssertEqual(pre.caption, "Preop labs 06:30")
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(r)), "Labs: BMP: Na 138, K 4.1\n  Preop labs 06:30")
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(r, now: date())), "Labs: BMP: Na 138, K 4.1\n  Preop labs 06:30")
         // Drawn another day: the date too.
         r.labsDrawn = date(5, 6, 30)
         XCTAssertEqual(BriefLabs.make(r, withIntraop: false, now: date()).labs.caption, "Preop labs 11/05/26 06:30")
@@ -227,7 +227,7 @@ final class Intraop110Tests: XCTestCase {
         r.intraopLabs = [IntraopLabSet(time: date(7, 10, 40), values: ["k": 4.9])]
         let caption = BriefLabs.make(r, withIntraop: true, now: date()).labs.caption
         XCTAssertEqual(caption, "* Intraop 10:40; other values preop 06:30")
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(r)), "Labs: BMP: Na 138, K 4.9*\n  * Intraop 10:40; other values preop 06:30")
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())), "Labs: BMP: Na 138, K 4.9*\n  * Intraop 10:40; other values preop 06:30")
         // Preoperative labs with a time and no case sets: the time alone.
         var pre = PatientRecord()
         pre.labs = ["na": 138]
@@ -239,12 +239,12 @@ final class Intraop110Tests: XCTestCase {
         // pH and lactate are not on the fishbone: the caption still goes under it, so their time is not lost.
         var r = PatientRecord()
         r.intraopLabs = [IntraopLabSet(time: date(7, 10, 40), values: ["ph": 7.33, "lactate": 1.4])]
-        let labs = try block(PatientBriefs.handoff(r), "labs")
+        let labs = try block(PatientBriefs.handoff(r, now: date()), "labs")
         guard case .fishbone(let f)? = labs.figure else { return XCTFail("a block with a caption keeps its figure") }
         XCTAssertTrue(f.isEmpty)
         XCTAssertEqual(f.caption, "* Intraop 10:40")
         XCTAssertTrue(labs.figureHasContent)
-        XCTAssertTrue(PatientBriefs.plainText(PatientBriefs.handoff(r)).contains("* Intraop 10:40"), PatientBriefs.plainText(PatientBriefs.handoff(r)))
+        XCTAssertTrue(PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())).contains("* Intraop 10:40"), PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())))
     }
 
     func testTheDrawnTimeSavesAndOlderRecordsHaveNone() throws {

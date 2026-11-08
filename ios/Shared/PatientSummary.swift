@@ -404,7 +404,7 @@ enum PatientSummary {
         let titles: Set<String> = ["Airway", "Lines", "Regional", "Infusions", "Medications & interventions", "Events", "Echo"]
         let shortened = [echoPre: "Pre-bypass", echoPost: "Post-bypass"]
         var out = intraopLines(r).filter { l in l.label.map { labels[part]?.contains($0) ?? false } ?? false }
-            .map { l in
+            .map { l -> Line in
                 if titles.contains(l.label ?? "") { return Line(nil, l.text, alert: l.alert, marks: l.marks) }
                 if let s = l.label.flatMap({ shortened[$0] }) { return Line(s, l.text, alert: l.alert, marks: l.marks) }
                 return l
