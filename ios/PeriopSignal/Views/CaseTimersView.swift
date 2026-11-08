@@ -528,8 +528,16 @@ struct CaseTimersView: View {
                     .lineLimit(1)
                     .fixedSize()
             }
+            // What the timer is for, under its title, as 1.9's Next list had it (1.10 review): the ACT goal and interval,
+            // the antibiotic dose and interval, the check interval. A row with no due time shows it once, as its due line.
+            let text = Self.runningText(rem, state: state)
+            if let detail = text.detail {
+                Text(detail)
+                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
+                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+            }
             HStack(spacing: 8) {
-                Text(dueLine(rem, state: state))
+                Text(text.due)
                     .font(PS.sys(size: 12.5, weight: state == .overdue ? .semibold : .regular))
                     .foregroundStyle(state == .overdue ? PS.red : PS.fg2)
                     .lineLimit(2).minimumScaleFactor(0.85).fixedSize(horizontal: false, vertical: true)
@@ -553,10 +561,14 @@ struct CaseTimersView: View {
         .accessibilityElement(children: .contain)
     }
 
-    private func dueLine(_ rem: CaseReminder, state: CaseReminder.State) -> String {
-        guard let due = rem.due else { return rem.detail }
+    /// The two lines under a running timer's title: its detail ("Goal ≥ 480 s · every 30 min", "2 g · every 4 h from the
+    /// last dose", "Every 30 min") and its due line ("Due at 07:19", "Overdue · due at 07:11"). A reminder with no due time
+    /// (blood loss) has its detail as its due line and no separate detail, so nothing shows twice.
+    static func runningText(_ rem: CaseReminder, state: CaseReminder.State) -> (detail: String?, due: String) {
+        guard let due = rem.due else { return (nil, rem.detail) }
         let at = (rem.snoozed ? "Snoozed to " : "Due at ") + ClockText.time(due)
-        return state == .overdue ? "Overdue · " + at.lowercasedFirst : at
+        let detail = rem.detail.trimmingCharacters(in: .whitespaces)
+        return (detail.isEmpty ? nil : detail, state == .overdue ? "Overdue · " + at.lowercasedFirst : at)
     }
 
     private func doneTitle(_ rem: CaseReminder) -> String {
