@@ -706,6 +706,10 @@ jobs:
           shot 518-timers110-empty-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance dark
           shot 519-timers110-empty-light 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance light
           shot 600-tee-practice-act-answer 18 -ps.ref tee -ps.tee.practice 1 -ps.tee.answer 8 -ps.forceAppearance light
+          # 1.10 screenshot review, regressions in timers and the Intraoperative tab (660-679): the cardiac demo's Lines &
+          # Devices card with the radial-harvest arm cautions above the figure.
+          shot 660-regress-intraop-lines-card-dark 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance dark
+          shot 661-regress-intraop-lines-card-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance light
           # 1.10 helper B (520-539): echo LV/RV size and prosthesis details, the intraoperative pre- and post-bypass exams and
           # the handoff's Pre/Post lines, Past Surgical History's bar adding a past operation only, transcatheter procedures.
           shot 520-echo-size-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-lv -ps.forceAppearance light
