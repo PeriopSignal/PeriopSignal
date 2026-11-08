@@ -1,0 +1,20 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-08 16:42:24.423 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] root appear tab=preop
+2026-11-08 16:42:24.423 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] PatientView appear
+2026-11-08 16:42:27.189 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] open begin editor(PeriopSignal.PatientEditor.workup("pft"))
+2026-11-08 16:42:30.240 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=0 pushed=false
+2026-11-08 16:42:30.384 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] path 0 -> 1
+2026-11-08 16:42:31.759 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] page appear workup("pft")
+2026-11-08 16:42:33.101 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:34.841 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] root disappear
+2026-11-08 16:42:35.558 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:39.581 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:40.082 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:40.610 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:41.127 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:41.646 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:42.177 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:42.707 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:43.210 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:43.722 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
+2026-11-08 16:42:44.228 Df PeriopSignal[49624:20282] [org.periopsignal.app:shots] look path=1 pushed=true
