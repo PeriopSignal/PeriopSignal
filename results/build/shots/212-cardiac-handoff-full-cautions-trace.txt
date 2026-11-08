@@ -1,2 +1,0 @@
-Timestamp               Ty Process[PID:TID]
-2026-11-08 16:43:29.970 Df PeriopSignal[51495:21403] [org.periopsignal.app:shots] open begin summary
