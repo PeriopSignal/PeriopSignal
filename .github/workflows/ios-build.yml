@@ -701,6 +701,7 @@ jobs:
           shot 517-timers110-bypass-new-act-other-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.purpose bypass -ps.timers.other act -ps.timers.sections heparin -ps.timers.scroll heparin.act -ps.forceAppearance light
           shot 518-timers110-empty-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance dark
           shot 519-timers110-empty-light 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance light
+          shot 600-tee-practice-act-answer 18 -ps.ref tee -ps.tee.practice 1 -ps.tee.answer 8 -ps.forceAppearance light
           # 1.10 helper B (520-539): echo LV/RV size and prosthesis details, the intraoperative pre- and post-bypass exams and
           # the handoff's Pre/Post lines, Past Surgical History's bar adding a past operation only, transcatheter procedures.
           shot 520-echo-size-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-lv -ps.forceAppearance light

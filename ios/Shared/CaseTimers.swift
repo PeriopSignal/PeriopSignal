@@ -348,6 +348,21 @@ enum CaseTimerRecurrence {
     static let labMax: Double = 240
     static let actMax: Double = 120
 
+    /// The Other chip's label: "Other", then the chosen value once picked, short enough that the row stays on one line
+    /// at 375 pt (coordinator decision: every chip row that fits goes on one line; review 1.10: "Other · 45 min"
+    /// wrapped the lab rows). "45 min", "2 h", "1h 45m"; VoiceOver reads the full interval (otherChipA11y).
+    static func otherChipLabel(_ pick: RecurrencePick) -> String {
+        guard pick.other, let v = pick.minutes, v > 0 else { return "Other" }
+        let m = Int(v.rounded())
+        if m < 60 || m % 60 == 0 { return CaseTimerEngine.interval(v) }
+        return "\(m / 60)h \(m % 60)m"
+    }
+
+    static func otherChipA11y(_ pick: RecurrencePick) -> String {
+        guard pick.other, let v = pick.minutes, v > 0 else { return "Other interval" }
+        return "Other interval, " + CaseTimerEngine.interval(v)
+    }
+
     /// The value the Other picker opens at: the current choice, else the item's own default, on the 5-minute grid.
     static func otherPreselect(current: Double?, preferred: Double, maxMinutes: Double) -> Double {
         let v = (current ?? 0) > 0 ? current! : preferred
