@@ -40,10 +40,12 @@ final class Review110TimersTests: XCTestCase {
         XCTAssertEqual(back?.since, t0.addingTimeInterval(4 * 3600))
 
         // Dismissed again, then the antibiotic row's Given (markDone on the redose reminder) brings it back too.
-        t.stop(try XCTUnwrap(back))
+        let backRem = try XCTUnwrap(back)
+        t.stop(backRem)
         XCTAssertNil(CaseTimerEngine.reminders(t, record: r, data: d).first { $0.kind == .bloodLoss })
         let redose = try XCTUnwrap(CaseTimerEngine.reminders(t, record: r, data: d).first { $0.kind == .antibiotic })
-        XCTAssertTrue(t.markDone(redose, now: t0.addingTimeInterval(8 * 3600), ebl: 3200))
+        let given = t.markDone(redose, now: t0.addingTimeInterval(8 * 3600), ebl: 3200)
+        XCTAssertTrue(given)
         XCTAssertNil(t.snoozes["bloodLoss.cefazolin"], "a new dose clears the drug's put-away rules")
         r.fluids["ebl"] = 4800
         XCTAssertNotNil(CaseTimerEngine.reminders(t, record: r, data: d).first { $0.kind == .bloodLoss })
