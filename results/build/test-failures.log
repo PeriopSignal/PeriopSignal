@@ -1,8 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Intraop110Tests.swift:243: error: -[PeriopSignalTests.Intraop110Tests testALabSetWithOnlyOtherValuesStillShowsItsTime] : XCTAssertEqual failed: ("Optional("* Intraop 11/07/26 10:40")") is not equal to ("Optional("* Intraop 10:40")")
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Intraop110Tests.swift:245: error: -[PeriopSignalTests.Intraop110Tests testALabSetWithOnlyOtherValuesStillShowsItsTime] : XCTAssertTrue failed - Labs: Lactate 1.4* · pH 7.33 L*
-Test Case '-[PeriopSignalTests.Intraop110Tests testALabSetWithOnlyOtherValuesStillShowsItsTime]' failed (2.671 seconds).
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Intraop110Tests.swift:214: error: -[PeriopSignalTests.Intraop110Tests testPreoperativeLabsNoteWhenTheyWereDrawn] : XCTAssertEqual failed: ("Optional("Preop labs 11/07/26 06:30")") is not equal to ("Optional("Preop labs 06:30")")
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Intraop110Tests.swift:215: error: -[PeriopSignalTests.Intraop110Tests testPreoperativeLabsNoteWhenTheyWereDrawn] : XCTAssertEqual failed: ("Labs: BMP: Na 138, K 4.1
-Test Case '-[PeriopSignalTests.Intraop110Tests testPreoperativeLabsNoteWhenTheyWereDrawn]' failed (0.034 seconds).
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Intraop110Tests.swift:228: error: -[PeriopSignalTests.Intraop110Tests testTheHandoffNotesTheTimeOfEachSetAndOfThePreoperativeValues] : XCTAssertEqual failed: ("Labs: BMP: Na 138, K 4.9*
-Test Case '-[PeriopSignalTests.Intraop110Tests testTheHandoffNotesTheTimeOfEachSetAndOfThePreoperativeValues]' failed (0.025 seconds).
