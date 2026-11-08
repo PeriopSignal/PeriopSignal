@@ -765,7 +765,7 @@ final class QuickAddTests: XCTestCase {
 
     func testPlannedAnestheticFromTheProcedure() {
         let q = read("68M for lap chole")
-        XCTAssertEqual(change(q, QuickAdd.planPrefix + "ga"), .anesthetic("ga"), "as the Procedure editor fills it")
+        XCTAssertEqual(change(q, QuickAdd.planPrefix + "ga"), .anesthetic("ga"), "as the Planned Procedure & Anesthetic box fills it")
         XCTAssertEqual(applied(q).anesthetic, ["ga"])
         let chips = QuickAdd.chips(q, record: PatientRecord())
         guard let plan = chips.first(where: { $0.destination == "Anesthetic" }),

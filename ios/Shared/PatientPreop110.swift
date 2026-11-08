@@ -85,8 +85,10 @@ enum PatientPreop110 {
     static func urgencyLinkTitle(_ r: PatientRecord) -> String { r.urgency.map { "Urgency: " + $0.label } ?? "Urgency" }
 
     /// The collapsed row's words once an urgency is chosen, the Change control included: "Urgency: Elective · Change".
-    static func urgencyCollapsedParts(_ r: PatientRecord) -> (title: String, action: String)? {
-        r.urgency == nil ? nil : (urgencyLinkTitle(r), "Change")
+    /// `alert` marks an emergency, whose title draws in the alert style (PS.accent) as 1.9's Procedure card drew
+    /// "Emergency · General" (alert: r.emergency), so an emergency case still stands out at a glance on the Preop tab.
+    static func urgencyCollapsedParts(_ r: PatientRecord) -> (title: String, action: String, alert: Bool)? {
+        r.urgency == nil ? nil : (urgencyLinkTitle(r), "Change", r.emergency)
     }
 
     /// The risk-score inputs in one line for the "+ Risk-score inputs" link once any is filled: "High-risk surgery · Upper

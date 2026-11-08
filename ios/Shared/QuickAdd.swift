@@ -125,6 +125,8 @@ private struct QuickOut {
     /// Lab keys already read, with the value filed (a second, different value is asked about).
     var labs: Set<String> = []
     var labValues: [String: Double] = [:]
+    /// The asides after past operations on the Past Surgical History bar ("under GA"), reported as not read.
+    var asides: [String] = []
 
     mutating func add(_ f: PatientNoteFinding) {
         guard !findings.contains(where: { $0.id == f.id }) else { return }
@@ -318,7 +320,7 @@ enum QuickAdd {
             if let v = out.valueKeys[a.id] { x.valueKey = v }
             return x
         }
-        reading.unread = asTyped([note.other, note.previous].filter { !$0.isEmpty }.joined(separator: "; "), s.text,
+        reading.unread = asTyped(([note.other, note.previous] + out.asides).filter { !$0.isEmpty }.joined(separator: "; "), s.text,
                                  user: user, choices: fresh)
         return reading
     }
@@ -1885,6 +1887,15 @@ enum QuickAdd {
     /// The Past Surgical History bar (1.10): each operation in the line, with its date, as the lines after a "PSH:" header
     /// are read (an operative word, an eponym or the procedure list's name; a diagnosis is not one), each its own entry.
     /// What is read is masked, so nothing else reads it again.
+    ///
+    /// Review 1.10: the masking had two side effects 1.9 did not have. (1) An aside after an operation ("under GA",
+    /// "spinal") was masked with it and never reported, so typed words were dropped silently; it is reported as not read
+    /// again ("Not read: under GA"), as the note reader's "PSH:" lines do (PatientNote, `previous`). (2) The history an
+    /// operation implies ("Prior CABG", which answers the RCRI's ischemic heart disease and the ASA III example; "Prior
+    /// TEVAR"; a prosthetic valve) was no longer filed, which the note reader still files from the same "PSH:" line. Each
+    /// operation's own words are read for those history items only: never a second Past surgical history entry, a
+    /// Previous cardiac surgery or a procedure (the entry above is the one entry; it links the cardiovascular page's
+    /// Previous cardiac surgery through PastSurgeryNote.add). Conservative choice: the chip is offered, the user adds it.
     private static func readPastSurgery(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
         var state = PastSurgeryNote.State(open: true, bodyEmpty: true)
         for op in PastSurgeryNote.read(s.text, state: &state).operations {
@@ -1892,6 +1903,23 @@ enum QuickAdd {
             let entry = PastSurgeryNote.surgery(op.text, op.date)
             out.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: PatientNote.Part.history,
                                        label: "Past surgical history: " + entry.text, change: .pastSurgery(op.text, op.date)))
+            if !op.aside.isEmpty, !out.asides.contains(where: { $0.caseInsensitiveCompare(op.aside) == .orderedSame }) {
+                out.asides.append(op.aside)
+            }
+            guard !op.text.isEmpty else { continue }
+            for f in PatientNote.read(op.text, now: c.now, abbreviations: [:], choices: c.choices, askRoomAir: false).findings
+                where impliedHistory(f.change) {
+                route(f, op.text, c, &out)
+            }
+        }
+    }
+
+    /// The history items a past operation's own words file on the Past Surgical History bar ("Prior CABG", "Prior TEVAR", a
+    /// prosthetic valve): readPastSurgery.
+    static func impliedHistory(_ change: PatientNoteChange) -> Bool {
+        switch change {
+        case .problem, .prosthesis: return true
+        default: return false
         }
     }
 
@@ -1915,14 +1943,14 @@ enum QuickAdd {
     static let planPrefix = "plan-anesthetic:"
     /// A technique written in shorthand ("under block", "ACB", "TIVA", "LMA"): the plan is the user's, not filled.
     static let techniqueWord = NoteRx(#"(?-i:\b(?:GA|GETA|MAC|ACB|TAP|ESP|PENG|QL|ISB|SCB|FNB|SAB|CSE|LMA|TIVA)\b)|\b(?:blocks?|regional|spinal|epidural|neuraxial|sedation|ipack)\b"#)
-    static let planNote = "The usual plan for the procedure, as the Procedure editor fills it."
+    static let planNote = "The usual plan for the procedure, as the Planned Procedure & Anesthetic box fills it."
 
     private static func isAnesthetic(_ f: PatientNoteFinding) -> Bool {
         if case .anesthetic = f.change { return true }
         return false
     }
 
-    /// The planned anesthetic the Procedure editor fills from procedures on the list, when the record has none and the
+    /// The planned anesthetic the Planned Procedure & Anesthetic box fills from procedures on the list, when the record has none and the
     /// line names no technique (even one the reader did not take, as in "TKA, spinal"). A plan already set is never
     /// replaced.
     private static func readPlan(_ line: String, _ c: QuickContext, _ out: inout QuickOut) {
