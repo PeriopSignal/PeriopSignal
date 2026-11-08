@@ -543,11 +543,22 @@ struct PatientHistoryDetails: Codable, Hashable {
     /// listed (the same procedures, or the same words, on dates that do not differ: PastSurgeryNote.duplicate), the two are one
     /// entry: the one listed first stays, with the date, the cardiac or thoracic mark and the cardiovascular page's link of
     /// either. A cardiac operation becomes the cardiovascular page's Previous cardiac surgery when that is empty.
+    ///
+    /// An entry with no date merges only into another with no date. The procedure is the row's prompt, so a repeat
+    /// operation (a redo sternotomy, a second Cesarean section) is picked before its date is typed, and an entry whose date
+    /// is cleared to be retyped has no date for a moment: merging either into the dated entry of the same procedure took
+    /// away the row being entered (a previous sternotomy lost, and their number is the re-entry risk). Conservative choice:
+    /// an undated row beside a dated entry of the same procedure stays its own entry until its date says it is the same.
     static func editSurgery(_ s: PatientSurgery, _ r: inout PatientRecord) {
         guard let i = r.surgeries.firstIndex(where: { $0.id == s.id }) else { return }
+        let wasDated = !r.surgeries[i].date.isEmpty
         r.surgeries[i] = s
+        func mergeable(_ o: PatientSurgery) -> Bool {
+            guard PastSurgeryNote.duplicate(o, s) else { return false }
+            return !s.date.isEmpty || (!wasDated && o.date.isEmpty)
+        }
         if !s.name.trimmingCharacters(in: .whitespaces).isEmpty,
-           let j = r.surgeries.indices.first(where: { $0 != i && PastSurgeryNote.duplicate(r.surgeries[$0], s) }) {
+           let j = r.surgeries.indices.first(where: { $0 != i && mergeable(r.surgeries[$0]) }) {
             var kept = r.surgeries[j]
             if kept.date.isEmpty { kept.date = s.date }
             if s.intrathoracic { kept.intrathoracic = true }
