@@ -1,0 +1,9 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-08 15:18:35.887 Sd PeriopSignal[29574:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+UAUserActivityManager supportsActivityContinuation=YES isEnabled=YES serverPid=0 PROJECT:UserActivity-551
+2026-11-08 15:18:35.911 Sd PeriopSignal[29574:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+[04800122-69CA-45EB-8113-6986244AB9A8 userInfo.count=1 dirty 
+2026-11-08 15:18:35.953 Df PeriopSignal[29574:15010] [com.apple.network:activity] <nw_activity 50:1 [8600A7D2-D44A-4E6B-B9AE-E3F6B93D00C1] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 97823ms
+2026-11-08 15:18:35.953 Df PeriopSignal[29574:15010] [com.apple.network:activity] <nw_activity 50:2 [89C5FE68-1D53-457F-B3A0-B6740FC73170] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 97822ms
+2026-11-08 15:18:35.953 Df PeriopSignal[29574:15010] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [8600A7D2-D44A-4E6B-B9AE-E3F6B93D00C1] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-08 15:18:35.953 Df PeriopSignal[29574:15010] [com.apple.network:activity] Unset the global parent activity
