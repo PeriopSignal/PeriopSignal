@@ -372,22 +372,22 @@ struct PatientDiagramCard: View {
     }
 
     var body: some View {
-        if let fig = refs.bundle?.regional?.figure {
-            let m = PatientDiagramModel.items(record, phase: phase)
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(parts, id: \.self) { part in
-                    switch part {
-                    case .limbAlerts:
-                        LimbAlertCaption(groups: PatientDeviceFills.limbAlertGroups(record, arrivalOnly: phase == .preop))
-                    case .figure:
-                        PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
-                            .frame(height: height)
-                            .frame(maxWidth: .infinity)
-                            .allowsHitTesting(false)
-                    }
-                }
+        let order = parts
+        VStack(alignment: .leading, spacing: 8) {
+            if order.first == .limbAlerts { caption }
+            if let fig = refs.bundle?.regional?.figure {
+                let m = PatientDiagramModel.items(record, phase: phase)
+                PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
+                    .frame(height: height)
+                    .frame(maxWidth: .infinity)
+                    .allowsHitTesting(false)
             }
+            if order.count > 1 && order.last == .limbAlerts { caption }
         }
+    }
+
+    private var caption: some View {
+        LimbAlertCaption(groups: PatientDeviceFills.limbAlertGroups(record, arrivalOnly: phase == .preop))
     }
 }
 
