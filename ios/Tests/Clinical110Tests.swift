@@ -68,7 +68,9 @@ final class Clinical110Tests: XCTestCase {
 
     func testSeveralOperationsWithDates() {
         let r = avrPlanned
-        let q = psh(QuickAdd.pastSurgeryPlaceholder, record: r)
+        // The bar's example before it was shortened to fit one line at 375 pt: three operations, one not in the list.
+        let line = "CABG ×3 2015, appendectomy, R TKA 06/2019"
+        let q = psh(line, record: r)
         XCTAssertFalse(q.findings.contains(where: isProcedure))
         XCTAssertEqual(q.findings.count, 3, q.findings.map(\.label).joined(separator: "; "))
         let after = applied(q, to: r)
@@ -86,7 +88,23 @@ final class Clinical110Tests: XCTestCase {
         XCTAssertEqual(tka?.procedures.first?.side, "right")
         XCTAssertFalse(tka?.intrathoracic ?? true)
         // Added again: nothing doubles.
-        XCTAssertEqual(applied(psh(QuickAdd.pastSurgeryPlaceholder, record: after), to: after).surgeries.count, 3)
+        XCTAssertEqual(applied(psh(line, record: after), to: after).surgeries.count, 3)
+    }
+
+    /// The bar's example, short enough for the one-line bar at 375 pt, still reads in full as two dated operations.
+    func testThePlaceholderReadsAsTwoDatedOperations() {
+        let r = avrPlanned
+        let q = psh(QuickAdd.pastSurgeryPlaceholder, record: r)
+        XCTAssertFalse(q.findings.contains(where: isProcedure))
+        XCTAssertEqual(q.findings.count, 2, q.findings.map(\.label).joined(separator: "; "))
+        let after = applied(q, to: r)
+        XCTAssertEqual(after.procedures, r.procedures)
+        XCTAssertEqual(after.surgeries.count, 2)
+        XCTAssertEqual(after.surgeries.first { $0.procedures.first?.catalogID == "cabg" }?.date, PatientMonthYear(year: 2015))
+        let tka = after.surgeries.first { $0.procedures.first?.catalogID == "tka" }
+        XCTAssertEqual(tka?.date, PatientMonthYear(month: 6, year: 2019))
+        XCTAssertEqual(tka?.procedures.first?.side, "right")
+        XCTAssertLessThanOrEqual(QuickAdd.pastSurgeryPlaceholder.count, 30, "fits the compact bar at 375 pt")
     }
 
     func testPlanningWordsAndDiagnosesAreNotFiledThere() {
