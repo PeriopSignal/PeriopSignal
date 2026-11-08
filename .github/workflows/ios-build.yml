@@ -151,6 +151,10 @@ jobs:
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            # A filtered run keeps the app's screenshot trace (ShotTrace, debug builds) beside each shot.
+            if [ -n "$ONLY" ]; then
+              xcrun simctl spawn "$UDID" log show --last "$((wait + 6))s" --style compact --predicate 'process == "PeriopSignal" AND category == "shots"' > "build/shots/$name-trace.txt" 2>/dev/null || true
+            fi
             # The app is gone (it crashed): keep the newest crash report for this shot.
             if ! pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null; then
               crash=$(ls -t ~/Library/Logs/DiagnosticReports/PeriopSignal*.ips 2>/dev/null | head -1)

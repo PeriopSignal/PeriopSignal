@@ -1,4 +1,5 @@
 import SwiftUI
+import os
 
 /// My Patient's three tabs: Preoperative, Intraoperative, and Summary & Handoff.
 enum PatientTab: String, CaseIterable, Identifiable {
@@ -121,6 +122,11 @@ struct PatientView: View {
                 .onChange(of: scrollToTop) { _, _ in
                     withAnimation(.snappy) { proxy.scrollTo(Self.topID, anchor: .top) }
                 }
+                .onDisappear {
+                    #if DEBUG
+                    ShotTrace.note("root disappear")
+                    #endif
+                }
                 .onAppear {
                     #if DEBUG
                     // Screenshot runs: -ps.patient.jump handoff | assessment | history | airway | intraop:<part> scrolls
@@ -141,6 +147,9 @@ struct PatientView: View {
                         // lines figure) on a slow simulator.
                         if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: go) }
                     }
+                    #endif
+                    #if DEBUG
+                    ShotTrace.note("root appear tab=\(tab.rawValue)")
                     #endif
                     // The first time (not in screenshot runs unless -ps.tips 1), once the tab has settled.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
@@ -201,6 +210,10 @@ struct PatientView: View {
             }
             .navigationDestination(for: PatientEditor.self) { e in
                 PatientEditorView(editor: e, onOpenRoute: { open($0) })
+                    #if DEBUG
+                    .onAppear { ShotTrace.note("page appear \(e)") }
+                    .onDisappear { ShotTrace.note("page disappear \(e)") }
+                    #endif
             }
             .navigationDestination(for: RefRoute.self) { route in
                 RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: nil, handoff: handoff)
@@ -222,6 +235,11 @@ struct PatientView: View {
         }
         .environment(handoff)
         .task { await openForScreenshot() }
+        #if DEBUG
+        .onChange(of: path) { o, n in ShotTrace.note("path \(o.count) -> \(n.count)") }
+        .onAppear { ShotTrace.note("PatientView appear") }
+        .onDisappear { ShotTrace.note("PatientView disappear") }
+        #endif
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
         }
@@ -280,6 +298,7 @@ struct PatientView: View {
             }
         }
         guard let link = PatientDeepLink.parse(LaunchSeed.string("ps.patient.open")) else { return }
+        ShotTrace.note("open begin \(link)")
         switch link {
         case .summary: tabOverride = .summary
         case .note:
@@ -303,7 +322,8 @@ struct PatientView: View {
             var pushed = false
             for delay in Self.openLookDelays {
                 try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                if Task.isCancelled { return }
+                if Task.isCancelled { ShotTrace.note("open task cancelled"); return }
+                ShotTrace.note("look path=\(path.count) pushed=\(pushed)")
                 guard path.isEmpty else { continue }
                 var t = Transaction()
                 t.disablesAnimations = pushed
@@ -915,3 +935,16 @@ extension View {
         .padding(.top, -PatientJumpID.clearance)
     }
 }
+
+#if DEBUG
+/// Screenshot runs (debug builds): a trace of the -ps.patient.open push and what follows it, in the device log under
+/// the "shots" category, which the CI keeps beside each shot of a filtered run.
+enum ShotTrace {
+    private static let log = Logger(subsystem: "org.periopsignal.app", category: "shots")
+    static var on: Bool { !LaunchSeed.string("ps.patient.open").isEmpty || !LaunchSeed.string("ps.patient.jump").isEmpty }
+    static func note(_ s: String) {
+        guard on else { return }
+        log.notice("\(s, privacy: .public)")
+    }
+}
+#endif
