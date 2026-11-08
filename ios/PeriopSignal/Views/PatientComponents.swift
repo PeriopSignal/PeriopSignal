@@ -153,6 +153,8 @@ struct ChipSet: View {
     var style: Style
     var tint: Color = PS.accent
     var hints: [String: String] = [:]
+    /// A row Ben asked for on one line with its full words (urgency, review 1.10) tries the compact padding last.
+    var compact = false
     var isOn: (String) -> Bool
     var tap: (String) -> Void
     @Environment(PatientStore.self) private var store: PatientStore?
@@ -165,6 +167,10 @@ struct ChipSet: View {
             line(short: true, .tight)
             line(short: false, .dense)
             line(short: true, .dense)
+            if compact {
+                line(short: false, .compact)
+                line(short: true, .compact)
+            }
             WrapLayout(spacing: ChipMetrics.gap(.regular)) {
                 ForEach(Array(options.enumerated()), id: \.offset) { chip($0.element, short: false, .regular, wrapped: true) }
             }
@@ -211,14 +217,20 @@ struct ChipSet: View {
 
 /// The chip font and the padding steps of a chip row, and how wide a row is: the tests check the rows against these.
 enum ChipMetrics {
-    enum Density { case regular, tight, dense }
+    enum Density { case regular, tight, dense, compact }
     /// Today's chip font (13.5 pt, scaled by the in-app text size).
     static var fontSize: CGFloat { (13.5 * PS.textScale).rounded(toPlaces: 1) }
-    static func gap(_ d: Density) -> CGFloat { d == .regular ? 7 : (d == .tight ? 5 : 4) }
-    static func hPad(_ d: Density, choice: Bool) -> CGFloat { d == .regular ? (choice ? 12 : 11) : (d == .tight ? 8 : 6) }
+    static func gap(_ d: Density) -> CGFloat {
+        switch d { case .regular: return 7; case .tight: return 5; case .dense: return 4; case .compact: return 3 }
+    }
+    static func hPad(_ d: Density, choice: Bool) -> CGFloat {
+        switch d { case .regular: return choice ? 12 : 11; case .tight: return 8; case .dense: return 6; case .compact: return 4 }
+    }
 
     /// The order the row tries its one-line forms in (ChipSet.body).
     static let order: [(short: Bool, density: Density)] = [(false, .regular), (false, .tight), (true, .regular), (true, .tight), (false, .dense), (true, .dense)]
+    /// The order of a row that may go compact (ChipSet.compact).
+    static let compactOrder: [(short: Bool, density: Density)] = order + [(false, .compact), (true, .compact)]
 
     /// The width of one line of chips, by the system font at the chip size and weight.
     static func width(_ labels: [String], density d: Density, choice: Bool) -> CGFloat {
@@ -228,8 +240,8 @@ enum ChipMetrics {
     }
 
     /// The first one-line form that fits `width`, nil when the row wraps.
-    static func lineFit(_ options: [ChipChoice], choice: Bool, in width: CGFloat) -> (short: Bool, density: Density)? {
-        order.first { o in
+    static func lineFit(_ options: [ChipChoice], choice: Bool, in width: CGFloat, compact: Bool = false) -> (short: Bool, density: Density)? {
+        (compact ? compactOrder : order).first { o in
             width >= Self.width(options.map { o.short ? $0.shown : $0.label }, density: o.density, choice: choice)
         }
     }
@@ -256,11 +268,13 @@ struct PatientChoice: View {
     var choices: [ChipChoice]
     @Binding var selection: String?
     var tint: Color = PS.accent
+    var compact = false
 
-    init(options: [(id: String, label: String)], selection: Binding<String?>, tint: Color = PS.accent, shorts: [String: String] = [:]) {
+    init(options: [(id: String, label: String)], selection: Binding<String?>, tint: Color = PS.accent, shorts: [String: String] = [:], compact: Bool = false) {
         choices = options.map { ChipChoice($0.id, $0.label, short: shorts[$0.id]) }
         _selection = selection
         self.tint = tint
+        self.compact = compact
     }
 
     init(choices: [ChipChoice], selection: Binding<String?>, tint: Color = PS.accent) {
@@ -270,7 +284,7 @@ struct PatientChoice: View {
     }
 
     var body: some View {
-        ChipSet(options: choices, style: .choice, tint: tint, isOn: { selection == $0 },
+        ChipSet(options: choices, style: .choice, tint: tint, compact: compact, isOn: { selection == $0 },
                 tap: { id in selection = selection == id ? nil : id })
     }
 }

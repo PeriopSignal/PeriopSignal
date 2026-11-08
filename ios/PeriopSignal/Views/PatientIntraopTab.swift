@@ -333,7 +333,7 @@ struct IntraopAirwayCourse: View {
 
     /// How the airway is left: the handoff's course ends with it ("Remains intubated").
     @ViewBuilder private var atHandoff: some View {
-        IntraopChoiceLine(label: "At handoff", options: PatientCatalog.airwayAtEnd, selection: choice(\.airwayAtEnd))
+        IntraopChoiceLine(label: "At handoff", options: PatientCatalog.airwayAtEndChoices(r), selection: choice(\.airwayAtEnd))
         if r.airwayAtEnd == "intubated" {
             PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: text(\.ventilation))
         }
