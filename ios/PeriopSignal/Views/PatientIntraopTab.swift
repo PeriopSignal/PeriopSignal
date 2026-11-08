@@ -364,6 +364,8 @@ struct IntraopInfusionsSection: View {
                         .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
                 .buttonStyle(.plain)
+                // About the 20 pt the editor page left above the Infusions header in 1.9, so the two do not read as one block.
+                .padding(.bottom, 12)
             }
             PatientGroup(title: "Infusions") {
                 // Typed in one line, as the quick-add bar takes them (1.8.1).
