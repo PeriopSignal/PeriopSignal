@@ -72,7 +72,11 @@ final class Clinical110Tests: XCTestCase {
         let line = "CABG ×3 2015, appendectomy, R TKA 06/2019"
         let q = psh(line, record: r)
         XCTAssertFalse(q.findings.contains(where: isProcedure))
-        XCTAssertEqual(q.findings.count, 3, q.findings.map(\.label).joined(separator: "; "))
+        // Three operations, and the history the CABG implies ("Prior CABG", RCRI ischemic heart disease), as 1.9 and the
+        // note reader's "PSH:" lines file it (review 1.10: restored; never a second Past surgical history entry).
+        XCTAssertEqual(q.findings.count, 4, q.findings.map(\.label).joined(separator: "; "))
+        XCTAssertEqual(q.findings.filter { if case .pastSurgery = $0.change { return true }; return false }.count, 3)
+        XCTAssertTrue(q.findings.contains { $0.change == .problem("cabg") })
         let after = applied(q, to: r)
         XCTAssertEqual(after.procedures, r.procedures)
         XCTAssertEqual(after.surgeries.count, 3)

@@ -143,9 +143,14 @@ struct DebugContentWidth: ViewModifier {
 /// the full words with the usual padding; the full words with tighter padding; the short words (where an option has
 /// them: "≥4 METs", "GA", "Upper abd"; VoiceOver always reads the full words) with the usual and then tighter padding;
 /// the full and then the short words with the tightest padding. The font never gets smaller than the chip font, and
-/// a chip's width does not change when it is chosen (a chosen chip is shown by its fill alone in a single line), so a tap
-/// never makes a row jump between one line and two. The padding steps and the text size are in `ChipMetrics`, which the
-/// tests use to check a row at 375 and 393 pt.
+/// a chip's width does not change when it is chosen, so a tap never makes a row jump between one line and two. The
+/// padding steps and the text size are in `ChipMetrics`, which the tests use to check a row at 375 and 393 pt.
+///
+/// A chosen toggle chip (several can be on) is never shown by colour alone (review 1.10; WCAG 2.1 SC 1.4.1, Use of
+/// Color): its one-line forms are tried first with a ✓ slot in every chip, drawn only on the chosen ones, so the width is
+/// the same on or off, as 1.9's "✓ With mass effect". Only a row that would otherwise wrap falls back to the tighter forms
+/// without the slot, where a chosen chip has a 1.5-pt outline in the full tint (a heavier edge, not a hue); the wrapped
+/// form keeps the ✓ and bold text. A choice chip (one of a few) is filled solid with inverted text, not a hue.
 struct ChipSet: View {
     enum Style { case choice, toggle }
 
@@ -158,18 +163,64 @@ struct ChipSet: View {
     var isOn: (String) -> Bool
     var tap: (String) -> Void
     @Environment(PatientStore.self) private var store: PatientStore?
+    /// InlineChoices' hidden measure of the row: only the first form without the ✓ slot, the width 1.10 measured.
+    @Environment(\.chipLineProbe) private var probe
+
+    /// Any option has shorter words; without them the short forms are the full ones and are not tried twice.
+    private var shorts: Bool { options.contains { $0.short != nil } }
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
+        if probe {
             line(short: false, .regular)
-            line(short: false, .tight)
-            line(short: true, .regular)
-            line(short: true, .tight)
-            line(short: false, .dense)
-            line(short: true, .dense)
-            if compact {
-                line(short: false, .compact)
-                line(short: true, .compact)
+        } else {
+            forms
+        }
+    }
+
+    private var forms: some View {
+        // The order is ChipMetrics.forms(choice:compact:shorts:). Each form is a whole row of chips that ViewThatFits
+        // keeps, so a toggle row's ✓ forms are paid for by dropping repeats: the short forms where there are no short
+        // words, and the fallback without the slot at the usual padding (a row that misses every ✓ form takes the
+        // tighter padding without it).
+        ViewThatFits(in: .horizontal) {
+            if style == .toggle {
+                Group {
+                    line(short: false, .regular, check: true)
+                    line(short: false, .tight, check: true)
+                    if shorts {
+                        line(short: true, .regular, check: true)
+                        line(short: true, .tight, check: true)
+                    }
+                    line(short: false, .dense, check: true)
+                    if shorts { line(short: true, .dense, check: true) }
+                    if compact {
+                        line(short: false, .compact, check: true)
+                        if shorts { line(short: true, .compact, check: true) }
+                    }
+                }
+                Group {
+                    line(short: false, .tight)
+                    if shorts { line(short: true, .tight) }
+                    line(short: false, .dense)
+                    if shorts { line(short: true, .dense) }
+                    if compact {
+                        line(short: false, .compact)
+                        if shorts { line(short: true, .compact) }
+                    }
+                }
+            } else {
+                line(short: false, .regular)
+                line(short: false, .tight)
+                if shorts {
+                    line(short: true, .regular)
+                    line(short: true, .tight)
+                }
+                line(short: false, .dense)
+                if shorts { line(short: true, .dense) }
+                if compact {
+                    line(short: false, .compact)
+                    if shorts { line(short: true, .compact) }
+                }
             }
             WrapLayout(spacing: ChipMetrics.gap(.regular)) {
                 ForEach(Array(options.enumerated()), id: \.offset) { chip($0.element, short: false, .regular, wrapped: true) }
@@ -177,36 +228,46 @@ struct ChipSet: View {
         }
     }
 
-    private func line(short: Bool, _ d: ChipMetrics.Density) -> some View {
+    private func line(short: Bool, _ d: ChipMetrics.Density, check: Bool = false) -> some View {
         HStack(spacing: ChipMetrics.gap(d)) {
-            ForEach(Array(options.enumerated()), id: \.offset) { chip($0.element, short: short, d, wrapped: false) }
+            ForEach(Array(options.enumerated()), id: \.offset) { chip($0.element, short: short, d, wrapped: false, check: check) }
         }
         .fixedSize(horizontal: true, vertical: false)
     }
 
-    private func chip(_ o: ChipChoice, short: Bool, _ d: ChipMetrics.Density, wrapped: Bool) -> some View {
+    private func chip(_ o: ChipChoice, short: Bool, _ d: ChipMetrics.Density, wrapped: Bool, check: Bool = false) -> some View {
         let on = isOn(o.id)
         let choice = style == .choice
+        // A one-line toggle row without the ✓ slot (it would wrap with it): the chosen chip's heavier outline.
+        let heavy = !choice && on && !wrapped && !check
         let text: Color = choice ? (on ? PS.bg : PS.fg2) : (on ? PS.fg : PS.fg2)
         let fill: Color = choice ? (on ? PS.fg : PS.surface2) : (on ? tint.opacity(0.18) : PS.surface2)
-        let edge: Color = choice ? (on ? Color.clear : PS.line2) : (on ? tint.opacity(0.55) : PS.line2)
+        let edge: Color = choice ? (on ? Color.clear : PS.line2) : (on ? (heavy ? tint : tint.opacity(0.55)) : PS.line2)
         return Button {
             Haptics.light()
             store?.markDiscrete()
             tap(o.id)
         } label: {
-            HStack(spacing: 5) {
-                // The check only where the row wraps: a check would widen the chip when chosen.
-                if wrapped, !choice, on { Image(systemName: "checkmark").font(PS.sys(size: 10.5, weight: .bold)) }
-                // Bold when chosen only where the row wraps, for the same reason. (13.5 is scaled by PS.sys, as ChipMetrics.fontSize is.)
+            HStack(spacing: ChipMetrics.checkGap) {
+                if wrapped, !choice, on { Image(systemName: "checkmark").font(PS.sys(size: ChipMetrics.checkFont, weight: .bold)) }
+                // The ✓ slot of a one-line toggle row: every chip keeps its width, so a tap never changes the chip's
+                // width (ChipMetrics.width counts it). A chosen chip draws the ✓ in it; an unchosen one splits it on
+                // both sides of its words, so they stay centred.
+                if check, on {
+                    Image(systemName: "checkmark").font(PS.sys(size: ChipMetrics.checkFont, weight: .bold))
+                        .frame(width: ChipMetrics.checkWidth)
+                        .accessibilityHidden(true)
+                }
+                // Bold when chosen only where the row wraps: bold text is wider. (13.5 is scaled by PS.sys, as ChipMetrics.fontSize is.)
                 Text(short ? o.shown : o.label)
                     .font(PS.sys(size: 13.5, weight: wrapped && on ? .semibold : .medium))
                     .lineLimit(wrapped ? nil : 1)
+                    .padding(.horizontal, check && !on ? (ChipMetrics.checkWidth + ChipMetrics.checkGap) / 2 : 0)
             }
             .foregroundStyle(text)
             .padding(.horizontal, ChipMetrics.hPad(d, choice: choice)).padding(.vertical, 7)
             .background(fill, in: Capsule())
-            .overlay(Capsule().stroke(edge, lineWidth: 1))
+            .overlay(Capsule().stroke(edge, lineWidth: heavy ? ChipMetrics.heavyEdge : 1))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(o.label)
@@ -227,22 +288,54 @@ enum ChipMetrics {
         switch d { case .regular: return choice ? 12 : 11; case .tight: return 8; case .dense: return 6; case .compact: return 4 }
     }
 
-    /// The order the row tries its one-line forms in (ChipSet.body).
+    /// The ✓ of a chosen toggle chip: its size (before the text-size scale, as PS.sys takes it), the slot a one-line row
+    /// keeps for it in every chip, and the space between it and the words.
+    static let checkFont: CGFloat = 10.5
+    static var checkWidth: CGFloat {
+        let size = (checkFont * PS.textScale).rounded(toPlaces: 1)
+        if let c = checkCache, c.size == size { return c.width }
+        let config = UIImage.SymbolConfiguration(font: UIFont.systemFont(ofSize: size, weight: .bold))
+        let width = (UIImage(systemName: "checkmark", withConfiguration: config)?.size.width ?? size * 1.1).rounded(.up)
+        checkCache = (size, width)
+        return width
+    }
+    /// The ✓ width at the last text size (every chip of every one-line form asks for it).
+    private static var checkCache: (size: CGFloat, width: CGFloat)?
+    static let checkGap: CGFloat = 5
+    /// The outline of a chosen toggle chip in a one-line row with no room for the ✓.
+    static let heavyEdge: CGFloat = 1.5
+
+    /// One one-line form of a row: the short words or the full ones, the padding, and whether each chip keeps a ✓ slot.
+    typealias Form = (short: Bool, density: Density, check: Bool)
+
+    /// The order the row tries its one-line forms in, without the ✓ slot (ChipSet.body).
     static let order: [(short: Bool, density: Density)] = [(false, .regular), (false, .tight), (true, .regular), (true, .tight), (false, .dense), (true, .dense)]
     /// The order of a row that may go compact (ChipSet.compact).
     static let compactOrder: [(short: Bool, density: Density)] = order + [(false, .compact), (true, .compact)]
 
-    /// The width of one line of chips, by the system font at the chip size and weight.
-    static func width(_ labels: [String], density d: Density, choice: Bool) -> CGFloat {
+    /// Every one-line form in the order ChipSet.body tries them: a toggle row tries each form with the ✓ slot first,
+    /// then the tighter ones without it; a choice row only the forms without it. Without short words (`shorts` false)
+    /// the short forms, the same as the full ones, are left out.
+    static func forms(choice: Bool, compact: Bool = false, shorts: Bool = true) -> [Form] {
+        let base = (compact ? compactOrder : order).filter { shorts || !$0.short }
+        let plain: [Form] = base.map { (short: $0.short, density: $0.density, check: false) }
+        guard !choice else { return plain }
+        let checked: [Form] = base.map { (short: $0.short, density: $0.density, check: true) }
+        return checked + plain.filter { $0.density != .regular }
+    }
+
+    /// The width of one line of chips, by the system font at the chip size and weight; `check` adds each chip's ✓ slot.
+    static func width(_ labels: [String], density d: Density, choice: Bool, check: Bool = false) -> CGFloat {
         let font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
         let text = labels.reduce(CGFloat(0)) { $0 + ($1 as NSString).size(withAttributes: [.font: font]).width }
-        return text + CGFloat(labels.count) * 2 * hPad(d, choice: choice) + CGFloat(max(0, labels.count - 1)) * gap(d)
+        let slots = check ? CGFloat(labels.count) * (checkWidth + checkGap) : 0
+        return text + slots + CGFloat(labels.count) * 2 * hPad(d, choice: choice) + CGFloat(max(0, labels.count - 1)) * gap(d)
     }
 
     /// The first one-line form that fits `width`, nil when the row wraps.
-    static func lineFit(_ options: [ChipChoice], choice: Bool, in width: CGFloat, compact: Bool = false) -> (short: Bool, density: Density)? {
-        (compact ? compactOrder : order).first { o in
-            width >= Self.width(options.map { o.short ? $0.shown : $0.label }, density: o.density, choice: choice)
+    static func lineFit(_ options: [ChipChoice], choice: Bool, in width: CGFloat, compact: Bool = false) -> Form? {
+        forms(choice: choice, compact: compact, shorts: options.contains { $0.short != nil }).first { o in
+            width >= Self.width(options.map { o.short ? $0.shown : $0.label }, density: o.density, choice: choice, check: o.check)
         }
     }
 }

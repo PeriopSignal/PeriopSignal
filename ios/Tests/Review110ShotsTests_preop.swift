@@ -132,7 +132,7 @@ final class Review110ShotsTests_preop: XCTestCase {
     func testOpenKeyIsWatchedPastTheLongestShotWait() {
         let delays = PatientView.openLookDelays
         XCTAssertEqual(Array(delays.prefix(PatientView.openRetryDelays.count)), PatientView.openRetryDelays)
-        XCTAssertGreaterThanOrEqual(delays.reduce(0, +), 24, "looks until past the longest open-key shot's 24 s wait")
+        XCTAssertGreaterThanOrEqual(delays.reduce(0, +), 30, "looks until past the longest open-key shot's 30 s wait")
         XCTAssertLessThanOrEqual(delays.dropFirst(PatientView.openRetryDelays.count).max() ?? 0, 1.0, "a late write-over is put back within a second")
     }
 }

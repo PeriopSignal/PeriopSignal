@@ -117,7 +117,7 @@ struct PreopPlannedBox: View {
         } else if let u = r.urgency, let parts = PatientPreop110.urgencyCollapsedParts(r) {
             Button { withAnimation(.snappy) { urgencyOpen = true } } label: {
                 HStack(spacing: 6) {
-                    Text(parts.title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text(parts.title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(parts.alert ? PS.accent : PS.fg)
                     Text("·").font(PS.sys(size: 14.5)).foregroundStyle(PS.fg3)
                     Text(parts.action).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent)
                     Spacer(minLength: 0)
