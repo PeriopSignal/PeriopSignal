@@ -14979,7 +14979,7 @@
       "unitsCheckBelow": 1000,
       "resistance": "Goal not reached despite an adequate dose: consider heparin resistance (no numeric definition in STS 2018).",
       "clottingTest": "STS 2018 (I/C): a clotting time should show adequate anticoagulation before bypass and at regular intervals during it.",
-      "deviceNote": "ACT goals here are for i-STAT values: ACT values differ between devices (557 vs 618 s in one changeover).",
+      "deviceNote": "ACT values differ between devices (557 vs 618 s in one changeover).",
       "hardConfirmExempt": [
         "bypass",
         "ecmo"
@@ -14994,8 +14994,8 @@
       "maxMgPer10Min": 50,
       "postActMinutes": 3,
       "basis": "Suggested from the initial heparin bolus; total heparin is shown for reference.",
-      "ratioNote": "EACTS 2024: keep the protamine-to-heparin ratio under 1:1.",
-      "ceilingNote": "STS 2018 (IIa/C): it is reasonable to keep protamine under 2.6 mg per 100 U of heparin; above that, platelet function falls, the ACT rises and bleeding increases. The 2.6 cap is a ceiling; the EACTS <1:1 ratio is a target.",
+      "ratioNote": "EACTS 2024: the protamine-to-heparin ratio should be kept below 1.0, so 1 mg per 100 U is the cap, not the target.",
+      "ceilingNote": "STS 2018 (IIa/C): it is reasonable to keep protamine under 2.6 mg per 100 U of heparin; above that, platelet function falls, the ACT rises and bleeding increases. 2.6 mg per 100 U is an outer safety limit, far above the 1 mg per 100 U cap.",
       "noBypass": "Without bypass, heparin's half-life depends on the dose: follow the label (1 mg neutralizes at least 100 U; about half the dose may do about 30 min after the heparin) and titrate to the ACT.",
       "onBypass": "Bypass is still running. Protamine on bypass clots the circuit.",
       "suction": "Stop cardiotomy suction when protamine starts (EACTS 2024).",
@@ -16439,7 +16439,7 @@
       },
       {
         "q": "What ACT on bypass does STS 2018 find reasonable?",
-        "a": "Above 480 s (IIa). This app's default is above 450 s, set by your institution.",
+        "a": "Above 480 s (IIa). This app's bypass default is the same, above 480 s; you can change it in Case Timers.",
         "source": "STS/SCA/AmSECT 2018"
       },
       {
