@@ -100,7 +100,10 @@ final class Clinical110Tests: XCTestCase {
         let r = avrPlanned
         let q = psh(QuickAdd.pastSurgeryPlaceholder, record: r)
         XCTAssertFalse(q.findings.contains(where: isProcedure))
-        XCTAssertEqual(q.findings.count, 2, q.findings.map(\.label).joined(separator: "; "))
+        // Two operations, and the history the CABG implies ("Prior CABG").
+        XCTAssertEqual(q.findings.count, 3, q.findings.map(\.label).joined(separator: "; "))
+        XCTAssertEqual(q.findings.filter { if case .pastSurgery = $0.change { return true }; return false }.count, 2)
+        XCTAssertTrue(q.findings.contains { $0.change == .problem("cabg") })
         let after = applied(q, to: r)
         XCTAssertEqual(after.procedures, r.procedures)
         XCTAssertEqual(after.surgeries.count, 2)
