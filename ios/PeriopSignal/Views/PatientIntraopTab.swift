@@ -94,7 +94,11 @@ struct IntraopChoiceLine: View {
         self.tap = tap
     }
 
-    private func chip(_ o: (id: String, label: String), pad: CGFloat) -> some View {
+    /// The chip's weight: bold when chosen only where the row wraps. In a one-line form a chosen chip keeps its width
+    /// (its fill shows the choice), so a tap never makes the row jump to another layout, as in ChipSet.
+    static func weight(on: Bool, wrapped: Bool) -> Font.Weight { wrapped && on ? .semibold : .medium }
+
+    private func chip(_ o: (id: String, label: String), pad: CGFloat, wrapped: Bool = false) -> some View {
         let on = isOn(o.id)
         return Button {
             Haptics.light()
@@ -102,7 +106,7 @@ struct IntraopChoiceLine: View {
             tap(o.id)
         } label: {
             Text(o.label)
-                .font(PS.sys(size: 13.5, weight: on ? .semibold : .medium))
+                .font(PS.sys(size: 13.5, weight: Self.weight(on: on, wrapped: wrapped)))
                 .lineLimit(1)
                 .foregroundStyle(on ? PS.bg : PS.fg2)
                 .padding(.horizontal, pad).padding(.vertical, 7)
@@ -126,7 +130,7 @@ struct IntraopChoiceLine: View {
     func unpadded() -> IntraopChoiceLine { var c = self; c.inset = false; return c }
 
     private var wrapped: some View {
-        WrapLayout(spacing: 7) { ForEach(Array(options.enumerated()), id: \.offset) { _, o in chip(o, pad: 12) } }
+        WrapLayout(spacing: 7) { ForEach(Array(options.enumerated()), id: \.offset) { _, o in chip(o, pad: 12, wrapped: true) } }
     }
 
     @ViewBuilder private var labeled: some View {
@@ -315,6 +319,10 @@ struct IntraopAirwayCourse: View {
             Text("LMA").font(PS.sys(size: 12, weight: .bold)).foregroundStyle(PS.fg3).textCase(.uppercase)
                 .padding(.horizontal, 14).padding(.top, 4)
             IntraopChoiceLine(label: "Ease", options: Self.ease, selection: easeBinding(\.sga))
+            // The LMA's size, where the quick-add bar filed it ("LMA 4"): seen and corrected here.
+            if PatientAirway.tubeIsLMA(r) {
+                PatientTextField(label: "Device and size", prompt: "e.g. LMA 4", text: text(\.tube))
+            }
             if r.sga == "difficult" {
                 PatientTextField(label: "What made it difficult", prompt: "Device and size, leak, attempts, what worked", text: text(\.sgaNote))
             }

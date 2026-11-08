@@ -2210,6 +2210,10 @@ enum QuickAdd {
             let v = w == "easy" ? "easy" : "difficult"
             put("mask", v, "Mask " + v, m.range)
         }
+        // A Han grade of 3 (difficult mask ventilation) or 4 (unable to mask ventilate) with no ease written: the grade
+        // itself is retired, but what it says is kept as a difficult mask, so it is not dropped from the course and the
+        // handoff (Han R, et al. Grading scale for mask ventilation. Anesthesiology 2004;101:267). Grades 1-2 add nothing.
+        if let mg = maskGrade, let g = Int(mg.value), g >= 3 { put("mask", "difficult", "Mask difficult", mg.range) }
         if let m = intubationEaseRx.first(text), let w = (group(m, 1, text) ?? group(m, 2, text))?.lowercased(), !negated(m.range, text) {
             let v = w == "easy" ? "easy" : "difficult"
             put("intubation", v, "Intubation " + v, m.range)
@@ -2399,12 +2403,13 @@ enum QuickAdd {
 // MARK: - The intraoperative airway fields
 
 extension PatientRecord {
-    /// The intraoperative airway course by QuickAdd.airwayFields' names; nil when not recorded.
+    /// The intraoperative airway course by QuickAdd.airwayFields' names; nil when not recorded. An intubation chosen with
+    /// no ease yet (PatientAirway.placed, 1.10) is no ease recorded, so "easy intubation" is new, not "replaces placed".
     func intraopAirway(_ key: String) -> String? {
         switch key {
         case "mask": return mask
         case "maskGrade": return maskGrade.map { String($0) }
-        case "intubation": return intubation
+        case "intubation": return intubation == PatientAirway.placed ? nil : intubation
         case "device": return airwayDevice
         case "grade": return laryngoscopyGrade
         case "attempts": return attempts.map { String($0) }

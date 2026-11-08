@@ -419,6 +419,7 @@ struct PatientRecord: Codable, Equatable {
         mask = try? c.decodeIfPresent(String.self, forKey: .mask)
         maskNote = v(.maskNote, "")
         maskGrade = try? c.decodeIfPresent(Int.self, forKey: .maskGrade)
+        (mask, maskNote) = PatientAirway.migratedMask(mask, note: maskNote, grade: maskGrade)
         sga = try? c.decodeIfPresent(String.self, forKey: .sga)
         sgaNote = v(.sgaNote, "")
         intubation = try? c.decodeIfPresent(String.self, forKey: .intubation)
