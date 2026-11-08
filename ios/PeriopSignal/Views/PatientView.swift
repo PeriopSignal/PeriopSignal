@@ -293,11 +293,13 @@ struct PatientView: View {
             // A push asked for before the navigation stack has settled is sometimes dropped (the stack writes its empty
             // first state back over the path), and the 1.9 tab's longer first layout on the CI simulator made one wait
             // of 0.4 s lose now and then (run 375: 340, 393 and 394 showed the tab). Push after a moment, then look
-            // again a few times and push once more while the path is still empty.
+            // again a few times and push once more while the path is still empty. A push that took can still be written
+            // over later on the slower Intel runner (run 416: 569 and 570 showed the Preoperative tab), so every look
+            // pushes again while the path is empty, not only the looks before the first push took.
             for delay in Self.openRetryDelays {
                 try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 if Task.isCancelled { return }
-                guard path.isEmpty else { return }
+                guard path.isEmpty else { continue }
                 switch link {
                 case .editor(let e): path.append(e)
                 case .route(let r): path.append(r)

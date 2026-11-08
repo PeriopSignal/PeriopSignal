@@ -651,10 +651,10 @@ jobs:
           shot 564-intraop-meds-infusions-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.infusion.type "dobut 5, epi" -ps.forceAppearance dark
           shot 565-intraop-fluids-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance light
           shot 566-intraop-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
-          shot 567-intraop-other-details-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:labs -ps.forceAppearance light
-          shot 568-intraop-other-details-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:labs -ps.forceAppearance dark
-          shot 569-airway-intubation-open-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:airway -ps.forceAppearance light
-          shot 570-airway-intubation-open-dark 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:airway -ps.forceAppearance dark
+          shot 567-intraop-other-details-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance light
+          shot 568-intraop-other-details-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance dark
+          shot 569-airway-intubation-open-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.open intraop:airway -ps.forceAppearance light
+          shot 570-airway-intubation-open-dark 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.open intraop:airway -ps.forceAppearance dark
           shot 571-handoff-airway-course-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance light
           shot 572-handoff-airway-course-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 573-handoff-labs-times-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
