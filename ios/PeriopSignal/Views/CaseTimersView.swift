@@ -189,7 +189,7 @@ private struct TimerChipRow: View {
                     Text(c.label)
                         .font(PS.sys(size: 13.5, weight: .medium))
                         .lineLimit(1)
-                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .padding(.horizontal, 10).padding(.vertical, 7)  // 10 pt (as the Labs and infusion chips): four chips with a chosen Other value fit one line at 375 pt
                         .background(c.on ? PS.accent.opacity(0.15) : PS.surface2, in: Capsule())
                         .overlay(Capsule().stroke(c.on ? PS.accent.opacity(0.7) : PS.line2, lineWidth: 1))
                         .foregroundStyle(c.on ? PS.accent : PS.fg)
