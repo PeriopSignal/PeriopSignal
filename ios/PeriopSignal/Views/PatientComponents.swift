@@ -148,7 +148,7 @@ struct DebugContentWidth: ViewModifier {
 ///
 /// A chosen toggle chip (several can be on) is never shown by colour alone (review 1.10; WCAG 2.1 SC 1.4.1, Use of
 /// Color): its one-line forms are tried first with a ✓ slot in every chip, drawn only on the chosen ones, so the width is
-/// the same on or off, as 1.9's "✓ With mass effect". Only a row that would otherwise wrap falls back to the forms
+/// the same on or off, as 1.9's "✓ With mass effect". Only a row that would otherwise wrap falls back to the tighter forms
 /// without the slot, where a chosen chip has a 1.5-pt outline in the full tint (a heavier edge, not a hue); the wrapped
 /// form keeps the ✓ and bold text. A choice chip (one of a few) is filled solid with inverted text, not a hue.
 struct ChipSet: View {
@@ -164,30 +164,53 @@ struct ChipSet: View {
     var tap: (String) -> Void
     @Environment(PatientStore.self) private var store: PatientStore?
 
+    /// Any option has shorter words; without them the short forms are the full ones and are not tried twice.
+    private var shorts: Bool { options.contains { $0.short != nil } }
+
     var body: some View {
-        // The order is ChipMetrics.forms(choice:compact:).
+        // The order is ChipMetrics.forms(choice:compact:shorts:). Each form is a whole row of chips that ViewThatFits
+        // keeps, so a toggle row's ✓ forms are paid for by dropping repeats: the short forms where there are no short
+        // words, and the fallback without the slot at the usual padding (a row that misses every ✓ form takes the
+        // tighter padding without it).
         ViewThatFits(in: .horizontal) {
             if style == .toggle {
-                line(short: false, .regular, check: true)
-                line(short: false, .tight, check: true)
-                line(short: true, .regular, check: true)
-                line(short: true, .tight, check: true)
-                line(short: false, .dense, check: true)
-                line(short: true, .dense, check: true)
-                if compact {
-                    line(short: false, .compact, check: true)
-                    line(short: true, .compact, check: true)
+                Group {
+                    line(short: false, .regular, check: true)
+                    line(short: false, .tight, check: true)
+                    if shorts {
+                        line(short: true, .regular, check: true)
+                        line(short: true, .tight, check: true)
+                    }
+                    line(short: false, .dense, check: true)
+                    if shorts { line(short: true, .dense, check: true) }
+                    if compact {
+                        line(short: false, .compact, check: true)
+                        if shorts { line(short: true, .compact, check: true) }
+                    }
                 }
-            }
-            line(short: false, .regular)
-            line(short: false, .tight)
-            line(short: true, .regular)
-            line(short: true, .tight)
-            line(short: false, .dense)
-            line(short: true, .dense)
-            if compact {
-                line(short: false, .compact)
-                line(short: true, .compact)
+                Group {
+                    line(short: false, .tight)
+                    if shorts { line(short: true, .tight) }
+                    line(short: false, .dense)
+                    if shorts { line(short: true, .dense) }
+                    if compact {
+                        line(short: false, .compact)
+                        if shorts { line(short: true, .compact) }
+                    }
+                }
+            } else {
+                line(short: false, .regular)
+                line(short: false, .tight)
+                if shorts {
+                    line(short: true, .regular)
+                    line(short: true, .tight)
+                }
+                line(short: false, .dense)
+                if shorts { line(short: true, .dense) }
+                if compact {
+                    line(short: false, .compact)
+                    if shorts { line(short: true, .compact) }
+                }
             }
             WrapLayout(spacing: ChipMetrics.gap(.regular)) {
                 ForEach(Array(options.enumerated()), id: \.offset) { chip($0.element, short: false, .regular, wrapped: true) }
@@ -281,12 +304,14 @@ enum ChipMetrics {
     static let compactOrder: [(short: Bool, density: Density)] = order + [(false, .compact), (true, .compact)]
 
     /// Every one-line form in the order ChipSet.body tries them: a toggle row tries each form with the ✓ slot first,
-    /// then each without it; a choice row only the forms without it.
-    static func forms(choice: Bool, compact: Bool = false) -> [Form] {
-        let base = compact ? compactOrder : order
+    /// then the tighter ones without it; a choice row only the forms without it. Without short words (`shorts` false)
+    /// the short forms, the same as the full ones, are left out.
+    static func forms(choice: Bool, compact: Bool = false, shorts: Bool = true) -> [Form] {
+        let base = (compact ? compactOrder : order).filter { shorts || !$0.short }
         let plain: [Form] = base.map { (short: $0.short, density: $0.density, check: false) }
+        guard !choice else { return plain }
         let checked: [Form] = base.map { (short: $0.short, density: $0.density, check: true) }
-        return choice ? plain : checked + plain
+        return checked + plain.filter { $0.density != .regular }
     }
 
     /// The width of one line of chips, by the system font at the chip size and weight; `check` adds each chip's ✓ slot.
@@ -299,7 +324,7 @@ enum ChipMetrics {
 
     /// The first one-line form that fits `width`, nil when the row wraps.
     static func lineFit(_ options: [ChipChoice], choice: Bool, in width: CGFloat, compact: Bool = false) -> Form? {
-        forms(choice: choice, compact: compact).first { o in
+        forms(choice: choice, compact: compact, shorts: options.contains { $0.short != nil }).first { o in
             width >= Self.width(options.map { o.short ? $0.shown : $0.label }, density: o.density, choice: choice, check: o.check)
         }
     }

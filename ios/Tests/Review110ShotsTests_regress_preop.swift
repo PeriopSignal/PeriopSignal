@@ -31,15 +31,34 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
 
     func testToggleRowsTryEveryOneLineFormWithTheCheckSlotFirst() {
         let toggle = ChipMetrics.forms(choice: false)
-        XCTAssertEqual(toggle.count, 2 * ChipMetrics.order.count)
-        XCTAssertTrue(toggle.prefix(ChipMetrics.order.count).allSatisfy(\.check), "the forms with the ✓ slot first")
-        XCTAssertFalse(toggle.suffix(ChipMetrics.order.count).contains(where: \.check), "then the 1.10 forms, before wrapping")
-        XCTAssertEqual(toggle.prefix(ChipMetrics.order.count).map(\.density), ChipMetrics.order.map(\.density))
-        XCTAssertEqual(toggle.suffix(ChipMetrics.order.count).map(\.density), ChipMetrics.order.map(\.density))
-        XCTAssertEqual(ChipMetrics.forms(choice: false, compact: true).count, 2 * ChipMetrics.compactOrder.count)
+        let n = ChipMetrics.order.count
+        XCTAssertTrue(toggle.prefix(n).allSatisfy(\.check), "the forms with the ✓ slot first")
+        XCTAssertEqual(toggle.prefix(n).map(\.density), ChipMetrics.order.map(\.density))
+        XCTAssertEqual(toggle.prefix(n).map(\.short), ChipMetrics.order.map(\.short))
+        let fallback = Array(toggle.dropFirst(n))
+        XCTAssertFalse(fallback.contains(where: \.check), "then the forms without it, before wrapping")
+        XCTAssertEqual(fallback.map(\.density), [.tight, .tight, .dense, .dense], "the tighter ones (the usual padding is never narrower)")
+        XCTAssertEqual(ChipMetrics.forms(choice: false, compact: true).filter(\.check).count, ChipMetrics.compactOrder.count)
         // A choice chip is filled solid with inverted text when chosen: no slot, the forms as before.
         XCTAssertFalse(ChipMetrics.forms(choice: true).contains(where: \.check))
         XCTAssertEqual(ChipMetrics.forms(choice: true).map(\.density), ChipMetrics.order.map(\.density))
+    }
+
+    /// Every form is a whole row ViewThatFits keeps (the system pages opened late on the CI simulator when a toggle row
+    /// kept twelve): a row without short words keeps no more forms than 1.10 did.
+    func testARowWithoutShortWordsKeepsNoMoreFormsThanBefore() {
+        let plain = ChipMetrics.forms(choice: false, shorts: false)
+        XCTAssertLessThanOrEqual(plain.count, ChipMetrics.order.count)
+        XCTAssertFalse(plain.contains(where: \.short))
+        XCTAssertEqual(plain.map(\.check), [true, true, true, false, false])
+        XCTAssertEqual(ChipMetrics.forms(choice: true, shorts: false).map(\.density), [.regular, .tight, .dense])
+        // The same fits: the short forms of a row without short words are the full ones.
+        let options = [ChipChoice("a", "Heparin"), ChipChoice("b", "Warfarin"), ChipChoice("c", "Enoxaparin"), ChipChoice("d", "Other")]
+        for w in stride(from: CGFloat(200), through: 420, by: 5) {
+            let fit = ChipMetrics.lineFit(options, choice: true, in: w)
+            let full = ChipMetrics.order.first { !$0.short && w >= ChipMetrics.width(options.map(\.label), density: $0.density, choice: true) }
+            XCTAssertEqual(fit?.density, full?.density, "\(w)")
+        }
     }
 
     func testTheCheckSlotIsCountedInEveryChipSoATapNeverWidensIt() {
