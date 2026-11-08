@@ -437,6 +437,8 @@ jobs:
           shot 98-patient-echo 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
           shot 99-patient-lhc 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc
           shot 100-patient-surgeries 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries
+          # 1.10 review: the Past Surgical History bar's shorter example fits the one-line bar at 375 pt.
+          shot 680-w375-psh-placeholder-light 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance light
           shot 101-patient-events 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events
           shot 102-patient-preop-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
           shot 103-cardiac-preop 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop
