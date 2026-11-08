@@ -217,18 +217,19 @@ struct ChipSet: View {
         } label: {
             HStack(spacing: ChipMetrics.checkGap) {
                 if wrapped, !choice, on { Image(systemName: "checkmark").font(PS.sys(size: ChipMetrics.checkFont, weight: .bold)) }
-                // The ✓ slot of a one-line toggle row: laid out on every chip, drawn on the chosen ones, so a tap never
-                // changes the chip's width (ChipMetrics.width counts it).
-                if check {
+                // The ✓ slot of a one-line toggle row: every chip keeps its width, so a tap never changes the chip's
+                // width (ChipMetrics.width counts it). A chosen chip draws the ✓ in it; an unchosen one splits it on
+                // both sides of its words, so they stay centred.
+                if check, on {
                     Image(systemName: "checkmark").font(PS.sys(size: ChipMetrics.checkFont, weight: .bold))
                         .frame(width: ChipMetrics.checkWidth)
-                        .opacity(on ? 1 : 0)
                         .accessibilityHidden(true)
                 }
                 // Bold when chosen only where the row wraps: bold text is wider. (13.5 is scaled by PS.sys, as ChipMetrics.fontSize is.)
                 Text(short ? o.shown : o.label)
                     .font(PS.sys(size: 13.5, weight: wrapped && on ? .semibold : .medium))
                     .lineLimit(wrapped ? nil : 1)
+                    .padding(.horizontal, check && !on ? (ChipMetrics.checkWidth + ChipMetrics.checkGap) / 2 : 0)
             }
             .foregroundStyle(text)
             .padding(.horizontal, ChipMetrics.hPad(d, choice: choice)).padding(.vertical, 7)
