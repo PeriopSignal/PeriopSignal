@@ -1,0 +1,611 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-08 06:20:23.447 Df PeriopSignal[60435:97031] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=60435 task=PeriopSignal[60435]/0#-1 LF=22
+2026-11-08 06:20:23.448 E  PeriopSignal[60435:97031] [com.apple.kvs:Connection] Unable to find entitlement for KVS store
+2026-11-08 06:20:23.449 F  PeriopSignal[60435:97031] [com.apple.kvs:Connection] BUG IN CLIENT OF KVS: Trying to initialize NSUbiquitousKeyValueStore without a store identifier. Please specify your store identifier in the 'com.apple.developer.ubiquity-kvstore-identifier' entitlement.
+2026-11-08 06:20:23.449 A  PeriopSignal[60435:97031] (libsystem_trace.dylib) Activity for state dumps
+2026-11-08 06:20:23.457 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x105005610] activating connection: mach=true listener=false peer=false name=com.apple.cfprefsd.daemon
+2026-11-08 06:20:24.002 A  PeriopSignal[60435:9707f] (CoreFoundation) Loading Preferences From User Session CFPrefsD
+2026-11-08 06:20:24.003 Df PeriopSignal[60435:97031] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=60435 task=PeriopSignal[60435]/0#-1 LF=22
+2026-11-08 06:20:24.004 Df PeriopSignal[60435:97031] (libMobileGestalt.dylib) No persisted cache on this platform.
+2026-11-08 06:20:24.009 Df PeriopSignal[60435:97080] [com.apple.BoardServices:XPCErrors] [C:1] Alloc com.apple.frontboard.systemappservices
+2026-11-08 06:20:24.012 Df PeriopSignal[60435:97080] [com.apple.xpc:connection] [0x103f04ef0] activating connection: mach=false listener=false peer=false name=(anonymous)
+2026-11-08 06:20:24.012 Df PeriopSignal[60435:97074] [com.apple.UIKit:BackgroundTask] Creating new assertion because there is no existing background assertion.
+2026-11-08 06:20:24.013 Df PeriopSignal[60435:97074] [com.apple.UIKit:BackgroundTask] Creating new background assertion
+2026-11-08 06:20:24.013 Df PeriopSignal[60435:97074] [com.apple.UIKit:BackgroundTask] Created new background assertion <BKSProcessAssertion: 0x600002165270>
+2026-11-08 06:20:24.014 Df PeriopSignal[60435:97074] [com.apple.runningboard:connection] Initializing connection
+2026-11-08 06:20:24.028 Df PeriopSignal[60435:97074] [com.apple.runningboard:process] Removing all cached process handles
+2026-11-08 06:20:24.028 Df PeriopSignal[60435:9707f] [com.apple.runningboard:connection] Sending handshake request attempt #1 to server
+2026-11-08 06:20:24.029 Df PeriopSignal[60435:9707f] [com.apple.runningboard:connection] Creating connection to com.apple.runningboard
+2026-11-08 06:20:24.029 Df PeriopSignal[60435:9707f] [com.apple.xpc:connection] [0x103d09c50] activating connection: mach=true listener=false peer=false name=com.apple.runningboard
+2026-11-08 06:20:24.031 A  PeriopSignal[60435:97080] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:24.031 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason added: 10; deactivation reasons: 0 -> 1024; animating application lifecycle event: 0
+2026-11-08 06:20:24.032 Df PeriopSignal[60435:97031] [com.apple.BoardServices:Injection] activating monitor for service com.apple.frontboard.open
+2026-11-08 06:20:24.032 Df PeriopSignal[60435:97031] [com.apple.BoardServices:Injection] activating monitor for service com.apple.frontboard.workspace-service
+2026-11-08 06:20:24.033 Df PeriopSignal[60435:9707f] [com.apple.runningboard:connection] Handshake succeeded
+2026-11-08 06:20:24.033 Df PeriopSignal[60435:97031] [com.apple.FrontBoard:Common] FBSWorkspace registering source: com.apple.frontboard.systemappservices
+2026-11-08 06:20:24.033 Df PeriopSignal[60435:9707f] [com.apple.runningboard:connection] Identity resolved as app<org.periopsignal.app((null))>
+2026-11-08 06:20:24.036 Df PeriopSignal[60435:97074] [com.apple.UIKit:BackgroundTask] Incrementing reference count for background assertion <BKSProcessAssertion: 0x600002165270>
+2026-11-08 06:20:24.037 Df PeriopSignal[60435:97074] [com.apple.UIKit:BackgroundTask] Created background task <_UIBackgroundTaskInfo: 0x600001758f40>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 7553 (elapsed = 0).
+2026-11-08 06:20:24.037 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UIApplicationSceneKeyboardSettings on FBSSceneSettings
+2026-11-08 06:20:24.039 Df PeriopSignal[60435:97031] [com.apple.FrontBoard:Common] FBSWorkspace connected to endpoint : <BSServiceConnectionEndpoint: 0x60000020f7e0; target: com.apple.frontboard.systemappservices; service: com.apple.frontboard.workspace-service>
+2026-11-08 06:20:24.039 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneOcclusionSettings> on FBSSceneSettings
+2026-11-08 06:20:24.039 Df PeriopSignal[60435:97031] [com.apple.FrontBoard:Common] <FBSWorkspaceScenesClient:0x600003004900 com.apple.frontboard.systemappservices> attempting immediate handshake from activate
+2026-11-08 06:20:24.040 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneInterfaceProtectionSettings> on FBSSceneSettings
+2026-11-08 06:20:24.041 Df PeriopSignal[60435:97031] [com.apple.FrontBoard:Common] <FBSWorkspaceScenesClient:0x600003004900 com.apple.frontboard.systemappservices> sent handshake
+2026-11-08 06:20:24.041 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneLayoutPreferencesHostSettingsExtension on FBSSceneSettings
+2026-11-08 06:20:24.042 Df PeriopSignal[60435:97031] [com.apple.runningboard:general] Added observer for process assertions expiration warning: <_RBSExpirationWarningClient: 0x600000209a40>
+2026-11-08 06:20:24.042 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneSafeAreaSettingsExtension on FBSSceneSettings
+2026-11-08 06:20:24.044 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneLayoutPreferenceClientSettingsExtension on FBSSceneClientSettings
+2026-11-08 06:20:24.046 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UIHomeAffordanceHostSceneSettings> on FBSSceneSettings
+2026-11-08 06:20:24.047 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISystemShellSceneHostingEnvironmentSettings on FBSSceneSettings
+2026-11-08 06:20:24.047 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneRenderingEnvironmentSettings on FBSSceneSettings
+2026-11-08 06:20:24.048 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneRenderingEnvironmentClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:24.049 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneTransitioningHostSettings> on FBSSceneSettings
+2026-11-08 06:20:24.050 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneFocusSystemSettings> on FBSSceneSettings
+2026-11-08 06:20:24.050 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneOrientationSettingsExtension on FBSSceneSettings
+2026-11-08 06:20:24.051 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneOrientationClientSettingsExtension on FBSSceneClientSettings
+2026-11-08 06:20:24.052 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneWindowingControlClientSettings on FBSSceneClientSettings
+2026-11-08 06:20:24.053 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingContentSizePreferenceClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:24.054 Df PeriopSignal[60435:97031] [com.apple.UIKit:UIScreen] Evaluated capturing state as 0 on <UIScreen: 0x103f058a0> for initial
+2026-11-08 06:20:24.054 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneHostingTraitCollectionPropagationSettings on FBSSceneSettings
+2026-11-08 06:20:24.055 Df PeriopSignal[60435:97031] [com.apple.UIKit:UIScreen] Evaluated capturing state as 0 on <UIScreen: 0x103f058a0> for CADisplay KVO
+2026-11-08 06:20:24.056 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingSheetPresentationSettings> on FBSSceneSettings
+2026-11-08 06:20:24.058 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingSheetPresentationClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:24.059 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingEventDeferringSettings> on FBSSceneSettings
+2026-11-08 06:20:24.060 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <UIKit__UITypedKeyValueSceneSettings> on FBSSceneSettings
+2026-11-08 06:20:24.061 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <UIKit__UITypedKeyValueSceneSettings> on FBSSceneClientSettings
+2026-11-08 06:20:24.062 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingViewControllerPreferencePropagationClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:24.062 Df PeriopSignal[60435:97031] [com.apple.Accessibility:AXSupportCommon] Read CategoryName: per-app = 1, category name = (null)
+2026-11-08 06:20:24.063 Df PeriopSignal[60435:97074] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneZoomTransitionSettings> on FBSSceneSettings
+2026-11-08 06:20:24.064 Df PeriopSignal[60435:97031] [com.apple.Accessibility:AXSupportCommon] Read CategoryName: per-app = 0, category name = (null)
+2026-11-08 06:20:24.065 Df PeriopSignal[60435:9707f] [com.apple.FrontBoard:SceneExtension] Realizing settings extension FBSSceneSettingsCore on FBSSceneSettings
+2026-11-08 06:20:24.069 Df PeriopSignal[60435:9707f] [com.apple.FrontBoard:SceneExtension] Realizing settings extension FBSSceneClientSettingsCore on FBSSceneClientSettings
+2026-11-08 06:20:24.085 Df PeriopSignal[60435:9707f] [com.apple.FrontBoard:SceneExtension] UIMutableApplicationSceneSettings setting counterpart class: UIApplicationSceneSettings
+2026-11-08 06:20:24.086 Df PeriopSignal[60435:9707f] [com.apple.FrontBoard:SceneExtension] UIMutableApplicationSceneClientSettings setting counterpart class: UIApplicationSceneClientSettings
+2026-11-08 06:20:24.087 Df PeriopSignal[60435:9707f] [com.apple.FrontBoard:SceneExtension] Realizing settings extension FBSSceneTransitionContextCore on FBSSceneTransitionContext
+2026-11-08 06:20:24.087 Df PeriopSignal[60435:97031] [com.apple.dt.xctest:Default] Registering for test daemon availability notify post.
+2026-11-08 06:20:24.088 Df PeriopSignal[60435:97031] [com.apple.dt.xctest:Default] notify_get_state check indicated test daemon not ready.
+2026-11-08 06:20:24.088 Df PeriopSignal[60435:97031] [com.apple.dt.xctest:Default] notify_get_state check indicated test daemon not ready.
+2026-11-08 06:20:24.089 Df PeriopSignal[60435:97031] [com.apple.dt.xctest:Default] notify_get_state check indicated test daemon not ready.
+2026-11-08 06:20:24.091 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason added: 11; deactivation reasons: 1024 -> 3072; animating application lifecycle event: 0
+2026-11-08 06:20:24.094 Df PeriopSignal[60435:97031] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Creating a user notification center
+2026-11-08 06:20:24.096 Df PeriopSignal[60435:97031] [com.apple.BackgroundTasks:Framework] submitTaskRequest: <BGAppRefreshTaskRequest: org.periopsignal.app.refresh, earliestBeginDate: 2026-11-08 09:20:24 +0000>
+2026-11-08 06:20:24.097 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason removed: 10; deactivation reasons: 3072 -> 2048; animating application lifecycle event: 0
+2026-11-08 06:20:24.098 Df PeriopSignal[60435:97031] [com.apple.UIKit:EventBus] Event Timing Profile for Touch: not found, path="/System/Library/EventTimingProfiles/Sim.Touch.plist"
+2026-11-08 06:20:24.098 Df PeriopSignal[60435:97031] [com.apple.UIKit:EventBus] Event Timing Profile for Pencil: not found, path="/System/Library/EventTimingProfiles/Sim.Pencil.plist"
+2026-11-08 06:20:24.098 Df PeriopSignal[60435:97031] [com.apple.UIKit:UpdateScheduler] Selected display: name=LCD (PurpleMain), id=1
+2026-11-08 06:20:24.107 Df PeriopSignal[60435:97031] [com.apple.UIKit:BackgroundTask] Will add backgroundTask with taskName: Persistent SceneSession Map Update, expirationHandler: <__NSGlobalBlock__: 0x7ff840854ae0>
+2026-11-08 06:20:24.107 Df PeriopSignal[60435:97031] [com.apple.UIKit:BackgroundTask] Reusing background assertion <BKSProcessAssertion: 0x600002165270>
+2026-11-08 06:20:24.107 Df PeriopSignal[60435:97031] [com.apple.UIKit:BackgroundTask] Incrementing reference count for background assertion <BKSProcessAssertion: 0x600002165270>
+2026-11-08 06:20:24.107 Df PeriopSignal[60435:97031] [com.apple.UIKit:BackgroundTask] Created background task <_UIBackgroundTaskInfo: 0x60000176b040>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 7553 (elapsed = 0).
+2026-11-08 06:20:24.108 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason added: 5; deactivation reasons: 2048 -> 2080; animating application lifecycle event: 1
+2026-11-08 06:20:24.109 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Should send trait collection or coordinate space update, interface style 2 -> 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.111 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.111 Df PeriopSignal[60435:97031] [com.apple.UIKit:HomeAffordanceObservation] Initializing: <_UIHomeAffordanceSceneNotifier: 0x600002921f80>; with scene: <UIWindowScene: 0x105111b30>
+2026-11-08 06:20:24.112 Df PeriopSignal[60435:97031] [com.apple.BacklightServices:scenes] 0x600000c46d30 setDelegate:<0x600000c46e80 _UIBacklightEnvironment> hasDelegate:YES for environment:sceneID:org.periopsignal.app-default
+2026-11-08 06:20:24.113 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.113 Df PeriopSignal[60435:97031] [com.apple.UIKit:EventDeferring] [0x600002922530] Initialized with scene: <UIWindowScene: 0x105111b30>; behavior: <_UIEventDeferringBehavior_iOS: 0x600000203d60>; availableForProcess: 1, systemShellManagesKeyboardFocus: 1
+2026-11-08 06:20:24.114 Df PeriopSignal[60435:97031] [com.apple.BoardServices:XPCErrors] [C:2] Alloc com.apple.backboard.hid-services.xpc
+2026-11-08 06:20:24.114 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x103d0c610] activating connection: mach=false listener=false peer=false name=(anonymous)
+2026-11-08 06:20:24.117 Df PeriopSignal[60435:97081] [com.apple.BackBoard:EventDelivery] BKSHIDEventObserver - connection activation
+2026-11-08 06:20:24.117 Df PeriopSignal[60435:97031] [com.apple.BackBoard:EventDelivery] policyStatus:<BKSHIDEventDeliveryPolicyObserver: 0x60000263c180; process scope; status: target> was:none
+2026-11-08 06:20:24.117 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Setting default evaluation strategy for UIUserInterfaceIdiomPhone to LastOneWins
+2026-11-08 06:20:24.117 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Scene target of keyboard event deferring environment did change: 1; scene: UIWindowScene: 0x105111b30; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:24.118 Df PeriopSignal[60435:97031] [com.apple.UIKit:EventDeferring] [0x600002922530] Scene target of event deferring environments did update: scene: 0x105111b30; current systemShellManagesKeyboardFocus: 1; systemShellManagesKeyboardFocusForScene: 1; eligibleForRecordRemoval: 1;
+2026-11-08 06:20:24.118 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Scene became target of keyboard event deferring environment: UIWindowScene: 0x105111b30; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:24.118 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Stack[KeyWindow] 0x600000c47360: Taking no further action for migration from LastOneWins -> SystemShellManaged as there are no scenes
+2026-11-08 06:20:24.118 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Setting default evaluation strategy for UIUserInterfaceIdiomPhone to SystemShellManaged
+2026-11-08 06:20:24.118 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Key window needs update: 0; currentKeyWindowScene: 0x0; evaluatedKeyWindowScene: 0x105111b30; currentApplicationKeyWindow: 0x0; evaluatedApplicationKeyWindow: 0x0; reason: UIWindowScene: 0x105111b30: Window scene became target of keyboard environment
+2026-11-08 06:20:24.119 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.120 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.123 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.257 Df PeriopSignal[60435:97031] [com.apple.UIKit:Orientation] <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1) Scene updated orientation preferences: none -> ( Pu )
+2026-11-08 06:20:24.266 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Key window API is scene-level: YES
+2026-11-08 06:20:24.266 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] UIWindowScene: 0x105111b30: Window became key in scene: UIWindow: 0x103d147f0; contextId: 0x44B320AC: reason: UIWindowScene: 0x105111b30: Window requested to become key in scene: 0x103d147f0
+2026-11-08 06:20:24.266 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Key window needs update: 1; currentKeyWindowScene: 0x0; evaluatedKeyWindowScene: 0x105111b30; currentApplicationKeyWindow: 0x0; evaluatedApplicationKeyWindow: 0x103d147f0; reason: UIWindowScene: 0x105111b30: Window requested to become key in scene: 0x103d147f0
+2026-11-08 06:20:24.266 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Window did become application key: UIWindow: 0x103d147f0; contextId: 0x44B320AC; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:24.267 Df PeriopSignal[60435:97031] [com.apple.UIKit:EventDeferring] [0x600002922530] Begin local event deferring requested for token: 0x600002641140; environments: 1; reason: UIWindowScene: 0x105111b30: Begin event deferring in keyboardFocus for window: 0x103d147f0
+2026-11-08 06:20:24.268 Df PeriopSignal[60435:97081] [com.apple.BackBoard:EventDelivery] BKSHIDEventDeliveryManager - connection activation
+2026-11-08 06:20:24.272 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.272 Df PeriopSignal[60435:97081] [com.apple.BackBoard:EventDelivery] policyStatus:<BKSHIDEventDeliveryPolicyObserver: 0x60000263c180; token: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default; status: ancestor> was:target
+2026-11-08 06:20:24.274 Df PeriopSignal[60435:97031] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: AD82AD0B-4199-43D1-901B-8ECD763ED0F1
+2026-11-08 06:20:24.275 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Ignoring already applied deactivation reason: 5; deactivation reasons: 2080
+2026-11-08 06:20:24.275 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason added: 12; deactivation reasons: 2080 -> 6176; animating application lifecycle event: 1
+2026-11-08 06:20:24.275 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason removed: 11; deactivation reasons: 6176 -> 4128; animating application lifecycle event: 1
+2026-11-08 06:20:24.276 Df PeriopSignal[60435:97031] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneIntelligenceSupportSettings> on FBSSceneSettings
+2026-11-08 06:20:24.277 Df PeriopSignal[60435:9707f] [com.apple.UIIntelligenceSupport:xpc] establishing connection to agent
+2026-11-08 06:20:24.278 Df PeriopSignal[60435:9707f] [com.apple.xpc:session] [0x600002169ae0] Session created.
+2026-11-08 06:20:24.278 Df PeriopSignal[60435:9707f] [com.apple.xpc:session] [0x600002169ae0] Session created from connection [0x1050089e0]
+2026-11-08 06:20:24.278 Df PeriopSignal[60435:9707f] [com.apple.xpc:connection] [0x1050089e0] activating connection: mach=true listener=false peer=false name=com.apple.uiintelligencesupport.agent
+2026-11-08 06:20:24.278 Df PeriopSignal[60435:9707f] [com.apple.xpc:session] [0x600002169ae0] Session activated
+2026-11-08 06:20:24.280 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:24.296 A  PeriopSignal[60435:97031] (CoreFoundation) Updating Key-Value Observers Of Preferences
+2026-11-08 06:20:24.619 Df PeriopSignal[60435:97080] [com.apple.UIKit:BackgroundTask] Ending background task with UIBackgroundTaskIdentifier: 2
+2026-11-08 06:20:24.619 Df PeriopSignal[60435:97080] [com.apple.UIKit:BackgroundTask] Ending task with identifier 2 and description: <_UIBackgroundTaskInfo: 0x60000176b040>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 7553 (elapsed = 0), _expireHandler: <__NSGlobalBlock__: 0x7ff840854ae0>
+2026-11-08 06:20:24.620 Df PeriopSignal[60435:97080] [com.apple.UIKit:BackgroundTask] Decrementing reference count for assertion <BKSProcessAssertion: 0x600002165270> (used by background task with identifier 2: <_UIBackgroundTaskInfo: 0x60000176b040>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 7553 (elapsed = 0))
+2026-11-08 06:20:25.068 Df PeriopSignal[60435:97081] [com.apple.UIKit:BackgroundTask] Ending background task with UIBackgroundTaskIdentifier: 1
+2026-11-08 06:20:25.068 Df PeriopSignal[60435:97081] [com.apple.UIKit:BackgroundTask] Ending task with identifier 1 and description: <_UIBackgroundTaskInfo: 0x600001758f40>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 7553 (elapsed = 1), _expireHandler: (null)
+2026-11-08 06:20:25.068 Df PeriopSignal[60435:97081] [com.apple.UIKit:BackgroundTask] Decrementing reference count for assertion <BKSProcessAssertion: 0x600002165270> (used by background task with identifier 1: <_UIBackgroundTaskInfo: 0x600001758f40>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 7553 (elapsed = 1))
+2026-11-08 06:20:25.069 Df PeriopSignal[60435:97081] [com.apple.UIKit:BackgroundTask] Will invalidate assertion: <BKSProcessAssertion: 0x600002165270> for task identifier: 1
+2026-11-08 06:20:25.123 Df PeriopSignal[60435:97081] [com.apple.xpc:connection] [0x10501d6f0] activating connection: mach=true listener=false peer=false name=com.apple.fontservicesd
+2026-11-08 06:20:25.126 Df PeriopSignal[60435:97081] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=60435 task=PeriopSignal[60435]/0#-1 LF=22
+2026-11-08 06:20:25.179 A  PeriopSignal[60435:97081] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:25.204 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:26.801 Df PeriopSignal[60435:97080] [com.apple.calls.callkit:Default] Call host has no calls
+2026-11-08 06:20:26.802 Df PeriopSignal[60435:97031] [PrototypeTools:domain] Not observing PTDefaults on customer install.
+2026-11-08 06:20:30.944 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x11a2ca090] activating connection: mach=true listener=false peer=false name=com.apple.IOSurface.Remote
+2026-11-08 06:20:31.013 A  PeriopSignal[60435:97080] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:31.026 A  PeriopSignal[60435:97081] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:31.038 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x10501fb10] activating connection: mach=true listener=false peer=false name=com.apple.lsd.mapdb
+2026-11-08 06:20:31.126 A  PeriopSignal[60435:97081] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:31.155 Df PeriopSignal[60435:97031] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:1 [04D148D7-4DC7-40B6-8954-05AB74FC6842] (reporting strategy default)>
+2026-11-08 06:20:31.156 Df PeriopSignal[60435:97031] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:2 [978F40C2-C356-47F3-AA7E-BBE956152E77] (reporting strategy default)>
+2026-11-08 06:20:31.156 Df PeriopSignal[60435:97031] [com.apple.network:activity] Set activity <nw_activity 50:1 [04D148D7-4DC7-40B6-8954-05AB74FC6842] (reporting strategy default)> as the global parent
+2026-11-08 06:20:31.165 Df PeriopSignal[60435:97031] [com.apple.UIKit:UpdateScheduler] Target list changed: <CADisplay:LCD PurpleMain>
+2026-11-08 06:20:31.170 Df PeriopSignal[60435:97031] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: AD82AD0B-4199-43D1-901B-8ECD763ED0F1
+2026-11-08 06:20:31.172 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:31.173 Df PeriopSignal[60435:97031] [com.apple.BackgroundTasks:Framework] Handling app launch
+2026-11-08 06:20:31.195 Df PeriopSignal[60435:97031] [com.apple.UIKit:EventDeferring] [0x600002922530] Scene target of event deferring environments did update: scene: 0x105111b30; current systemShellManagesKeyboardFocus: 1; systemShellManagesKeyboardFocusForScene: 1; eligibleForRecordRemoval: 1;
+2026-11-08 06:20:31.195 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyWindow] Scene became target of keyboard event deferring environment: UIWindowScene: 0x105111b30; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:31.196 Df PeriopSignal[60435:97031] [com.apple.Accessibility:AXCommon] Read Per-App on Init: Smart invert = (null)
+2026-11-08 06:20:31.519 Df PeriopSignal[60435:97081] [com.apple.network:] networkd_settings_read_from_file initialized networkd settings by reading plist directly
+2026-11-08 06:20:31.520 Df PeriopSignal[60435:97081] [com.apple.network:] networkd_settings_read_from_file initialized networkd settings by reading plist directly
+2026-11-08 06:20:31.521 Df PeriopSignal[60435:97081] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=60435 task=PeriopSignal[60435]/0#-1 LF=22
+2026-11-08 06:20:31.523 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-08 06:20:31.523 A  PeriopSignal[60435:97081] (CoreFoundation) Loading Preferences From User Session CFPrefsD
+2026-11-08 06:20:31.530 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Initializing NSHTTPCookieStorage singleton
+2026-11-08 06:20:31.531 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Initializing CFHTTPCookieStorage singleton
+2026-11-08 06:20:31.531 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Creating default cookie storage with process/bundle identifier
+2026-11-08 06:20:31.531 A  PeriopSignal[60435:97081] (libsystem_containermanager.dylib) container_system_group_path_for_identifier
+2026-11-08 06:20:31.532 Df PeriopSignal[60435:97081] [com.apple.containermanager:xpc] Requesting container lookup; class = 13, identifier = com.apple.nsurlsessiond, group_identifier = systemgroup.com.apple.nsurlstoragedresources, create = 1, temp = 0, euid = 501, uid = 501
+2026-11-08 06:20:31.532 A  PeriopSignal[60435:97081] (libsystem_containermanager.dylib) container_query_t
+2026-11-08 06:20:31.532 Df PeriopSignal[60435:97081] [com.apple.containermanager:xpc] Query; euid = 501, uid = 501, class = 13, identifier = [com.apple.nsurlsessiond](1), flags = 900000003
+2026-11-08 06:20:31.533 E  PeriopSignal[60435:97081] [com.apple.containermanager:unspecified] _container_query_get_result_at_index: error = 2→(98) NOT_CODESIGNED;
+2026-11-08 06:20:31.533 E  PeriopSignal[60435:97081] [com.apple.containermanager:unspecified] container_system_group_path_for_identifier: error = ((container_error_t)98) NOT_CODESIGNED
+2026-11-08 06:20:31.537 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Initializing AlternativeServices Storage singleton
+2026-11-08 06:20:31.537 Df PeriopSignal[60435:97081] [com.apple.FileURL:default] kExcludedFromBackupXattrName set on path: /Users/runner/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Data/Application/E9337227-0B65-46FF-BAD7-CD6A4F329D1C/Library/HTTPStorages/org.periopsignal.app
+2026-11-08 06:20:31.546 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Garbage collection for alternative services
+2026-11-08 06:20:31.547 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Connection 0: creating secure tcp or quic connection
+2026-11-08 06:20:31.551 Df PeriopSignal[60435:97031] [com.apple.FrontBoard:SceneExtension] Realizing settings extension SBUISecureRenderingSettingsExtension on FBSSceneSettings
+2026-11-08 06:20:31.552 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:31.554 Df PeriopSignal[60435:97031] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x105111b30> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:31.554 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Connection 1: enabling TLS
+2026-11-08 06:20:31.554 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Connection 1: starting, TC(0x0)
+2026-11-08 06:20:31.555 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1 F23AE1A6-663C-415C-B1DE-082102CD66DB Hostname#308325b5:443 quic-connection, url: https://periopsignal.github.io/PeriopSignal/posts.json, definite, attribution: developer, context: com.apple.CFNetwork.NSURLSession.{58B6AB88-26FF-4829-BF12-5AF5DB42B9D1}{(null)}{Y}{2}{0x0} (private), proc: 2EF513B2-3903-3A0B-B0A3-8F4586296DD5, delegated upid: 0] start
+2026-11-08 06:20:31.556 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1 Hostname#308325b5:443 initial parent-flow ((null))] event: path:start @0.000s
+2026-11-08 06:20:31.558 Df PeriopSignal[60435:97031] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: AD82AD0B-4199-43D1-901B-8ECD763ED0F1
+2026-11-08 06:20:31.559 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason removed: 12; deactivation reasons: 4128 -> 32; animating application lifecycle event: 1
+2026-11-08 06:20:31.559 Df PeriopSignal[60435:97031] [com.apple.KeyboardArbiter:Client] Send setDeactivating: N (-DeactivationReason:SuspendedEventsOnly)
+2026-11-08 06:20:31.560 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1 Hostname#308325b5:443 waiting parent-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.003s, uuid: F29291FF-61CB-4586-8E4B-B647F2A8754D
+2026-11-08 06:20:31.562 Df PeriopSignal[60435:97081] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=60435 task=PeriopSignal[60435]/0#-1 LF=22
+2026-11-08 06:20:31.563 Df PeriopSignal[60435:97081] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=60435 task=PeriopSignal[60435]/0#-1 LF=22
+2026-11-08 06:20:31.563 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1 Hostname#308325b5:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_connect @0.007s
+2026-11-08 06:20:31.563 Df PeriopSignal[60435:97081] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state preparing
+2026-11-08 06:20:31.565 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1 Hostname#308325b5:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_child @0.009s
+2026-11-08 06:20:31.565 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1 Hostname#308325b5:443 initial path ((null))] event: path:start @0.009s
+2026-11-08 06:20:31.566 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1 Hostname#308325b5:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.010s, uuid: F29291FF-61CB-4586-8E4B-B647F2A8754D
+2026-11-08 06:20:31.566 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1 Hostname#308325b5:443 in_progress transform (satisfied (Path is satisfied), interface: en0)] event: transform:start @0.010s
+2026-11-08 06:20:31.566 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1.1 Hostname#308325b5:443 initial path ((null))] event: path:start @0.010s
+2026-11-08 06:20:31.567 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1.1 Hostname#308325b5:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.011s, uuid: 151771DE-ED83-4DA0-98A6-B9C5B5929F37
+2026-11-08 06:20:31.567 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1.1 Hostname#308325b5:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] event: resolver:start_dns @0.011s
+2026-11-08 06:20:31.569 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> setting up Connection 1
+2026-11-08 06:20:31.571 Df PeriopSignal[60435:97081] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#308325b5:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#797f18e6:443
+2026-11-08 06:20:31.571 Df PeriopSignal[60435:97081] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#308325b5:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#841cc58b:443
+2026-11-08 06:20:31.571 Df PeriopSignal[60435:97081] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#308325b5:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#cde73a4a:443
+2026-11-08 06:20:31.571 Df PeriopSignal[60435:97081] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#308325b5:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#7b3032ff:443
+2026-11-08 06:20:31.571 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1.1 Hostname#308325b5:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] event: resolver:receive_dns @0.015s
+2026-11-08 06:20:31.572 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1.1.1 IPv4#797f18e6:443 initial path ((null))] event: path:start @0.016s
+2026-11-08 06:20:31.572 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1.1.1 IPv4#797f18e6:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.016s, uuid: CD368436-B1C0-4A14-9DE2-A868AA6DFA87
+2026-11-08 06:20:31.574 Df PeriopSignal[60435:97081] [com.apple.network:connection] [C1.1.1.1 IPv4#797f18e6:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_connect @0.018s
+2026-11-08 06:20:31.577 Df PeriopSignal[60435:97074] [com.apple.network:connection] nw_socket_handle_socket_event [C1.1.1.1:3] Socket received CONNECTED event
+2026-11-08 06:20:31.577 Df PeriopSignal[60435:97074] [com.apple.network:connection] nw_flow_connected [C1.1.1.1 IPv4#797f18e6:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] Transport protocol connected (socket)
+2026-11-08 06:20:31.578 Df PeriopSignal[60435:97074] [com.apple.network:connection] [C1.1.1.1 IPv4#797f18e6:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:finish_transport @0.021s
+2026-11-08 06:20:31.579 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_session_apply_protocol_options_for_transport_block_invoke_2(2323) [C1.1.1.1:2][0x10c7d41f0] TLS configured [min_version(0x0303) max_version(0x0304) name(redacted) tickets(false) false_start(false) enforce_ev(false) enforce_ats(false) ats_non_pfs_ciphersuite_allowed(false) ech(false) pqtls(true), pake(false)]
+2026-11-08 06:20:31.579 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2390) [C1.1.1.1:2][0x10c7d41f0] Client handshake started
+2026-11-08 06:20:31.580 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS client enter_early_data
+2026-11-08 06:20:31.580 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS client read_server_hello
+2026-11-08 06:20:31.587 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client read_hello_retry_request
+2026-11-08 06:20:31.588 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client read_server_hello
+2026-11-08 06:20:31.589 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client read_encrypted_extensions
+2026-11-08 06:20:31.589 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client read_certificate_request
+2026-11-08 06:20:31.589 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client read_server_certificate
+2026-11-08 06:20:31.589 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client read_server_certificate_verify
+2026-11-08 06:20:31.590 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async(1833) [C1.1.1.1:2][0x10c7d41f0] Performing external trust evaluation
+2026-11-08 06:20:31.590 A  PeriopSignal[60435:97074] (Security) SecKeyCopyPublicBytes
+2026-11-08 06:20:31.591 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async_external(1818) [C1.1.1.1:2][0x10c7d41f0] Asyncing for external verify block
+2026-11-08 06:20:31.591 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Connection 1: asked to evaluate TLS Trust
+2026-11-08 06:20:31.594 Df PeriopSignal[60435:97031] [com.apple.UIKit:Application] Deactivation reason removed: 5; deactivation reasons: 32 -> 0; animating application lifecycle event: 0
+2026-11-08 06:20:31.594 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> auth completion disp=1 cred=0x0
+2026-11-08 06:20:31.596 Df PeriopSignal[60435:97074] [com.apple.securityd:trust] (Trust 0x600003545ce0) No pending evals, starting
+2026-11-08 06:20:31.596 A  PeriopSignal[60435:97074] (Security) SecTrustEvaluateIfNecessaryFastAsync
+2026-11-08 06:20:31.597 Df PeriopSignal[60435:97074] [com.apple.securityd:keychain] System Keychain Always Supported set via feature flag to disabled
+2026-11-08 06:20:31.597 Df PeriopSignal[60435:97074] [com.apple.xpc:connection] [0x103dd97b0] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-08 06:20:31.597 Df PeriopSignal[60435:97074] [com.apple.xpc:connection] [0x103d36c90] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-08 06:20:31.598 Df PeriopSignal[60435:97074] [com.apple.securityd:trust] (Trust 0x600003545ce0) Completed async eval kickoff
+2026-11-08 06:20:31.605 Df PeriopSignal[60435:97074] [com.apple.securityd:trust] (Trust 0x600003545ce0) trustd returned 4
+2026-11-08 06:20:31.605 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] System Trust Evaluation yielded status(0)
+2026-11-08 06:20:31.605 Df PeriopSignal[60435:97074] [com.apple.securityd:trust] (Trust 0x600003545c30) No pending evals, starting
+2026-11-08 06:20:31.606 A  PeriopSignal[60435:97074] (Security) SecTrustEvaluateIfNecessaryFastAsync
+2026-11-08 06:20:31.606 Df PeriopSignal[60435:97074] [com.apple.xpc:connection] [0x103f57010] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-08 06:20:31.606 Df PeriopSignal[60435:97074] [com.apple.securityd:trust] (Trust 0x600003545c30) Completed async eval kickoff
+2026-11-08 06:20:31.607 Df PeriopSignal[60435:97074] [com.apple.xpc:connection] [0x103d36c90] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-08 06:20:31.613 Df PeriopSignal[60435:97074] [com.apple.securityd:trust] (Trust 0x600003545c30) trustd returned 4
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Connection 1: TLS Trust result 0
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async_external_block_invoke_3(1773) [C1.1.1.1:2][0x10c7d41f0] Returning from external verify block with result: true
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_certificate_verify_callback(2014) [C1.1.1.1:2][0x10c7d41f0] Certificate verification result: OK
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client read_server_finished
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client send_end_of_early_data
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client send_client_encrypted_extensions
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client send_client_certificate
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client complete_second_flight
+2026-11-08 06:20:31.614 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS 1.3 client done
+2026-11-08 06:20:31.615 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS client finish_client_handshake
+2026-11-08 06:20:31.615 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10c7d41f0] Client handshake state: TLS client done
+2026-11-08 06:20:31.615 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] boringssl_context_info_handler(2396) [C1.1.1.1:2][0x10c7d41f0] Client handshake done
+2026-11-08 06:20:31.615 A  PeriopSignal[60435:97074] (Security) SecKeyCopyPublicBytes
+2026-11-08 06:20:31.615 Df PeriopSignal[60435:97074] [com.apple.network:boringssl] nw_protocol_boringssl_signal_connected(895) [C1.1.1.1:2][0x10c7d41f0] TLS connected [server(0) version(0x0304) ciphersuite(TLS_AES_128_GCM_SHA256) group(0x11ec) signature_alg(0x0804) alpn(h2) resumed(0) offered_ticket(0) in_early_data(0) early_data_accepted(0) false_started(0) ocsp_received(0) sct_received(0) connect_time(36ms) flight_time(9ms) rtt(7ms) write_stalls(0) read_stalls(2) pake(0x0000)]
+2026-11-08 06:20:31.616 Df PeriopSignal[60435:97074] [com.apple.network:connection] nw_flow_connected [C1.1.1.1 IPv4#797f18e6:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] Output protocol connected (CFNetworkConnection-93469030)
+2026-11-08 06:20:31.616 Df PeriopSignal[60435:97074] [com.apple.network:connection] [C1.1.1.1 IPv4#797f18e6:443 ready socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.060s
+2026-11-08 06:20:31.616 Df PeriopSignal[60435:97074] [com.apple.network:connection] [C1.1.1 Hostname#308325b5:443 ready resolver (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.060s
+2026-11-08 06:20:31.616 Df PeriopSignal[60435:97074] [com.apple.network:connection] [C1.1 Hostname#308325b5:443 ready transform (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.060s
+2026-11-08 06:20:31.617 Df PeriopSignal[60435:97074] [com.apple.network:connection] nw_flow_connected [C1 IPv4#797f18e6:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] Output protocol connected (endpoint_flow)
+2026-11-08 06:20:31.618 Df PeriopSignal[60435:97074] [com.apple.network:connection] [C1 IPv4#797f18e6:443 ready parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:finish_connect @0.061s
+2026-11-08 06:20:31.618 Df PeriopSignal[60435:97074] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state ready
+2026-11-08 06:20:31.618 A  PeriopSignal[60435:97074] (Security) SecKeyCopyPublicBytes
+2026-11-08 06:20:31.619 Df PeriopSignal[60435:97074] [com.apple.xpc:connection] [0x103f57010] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-08 06:20:31.619 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Connection 1: connected successfully
+2026-11-08 06:20:31.619 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Connection 1: TLS handshake complete
+2026-11-08 06:20:31.620 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Connection 1: ready C(N) E(N)
+2026-11-08 06:20:31.620 Df PeriopSignal[60435:97074] [com.apple.network:connection] [C1] event: client:connection_reused @0.064s
+2026-11-08 06:20:31.621 Df PeriopSignal[60435:97074] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-08 06:20:31.621 E  PeriopSignal[60435:97074] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:20:31.621 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> now using Connection 1
+2026-11-08 06:20:31.621 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> sent request, body N 0
+2026-11-08 06:20:31.648 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> received response, status 200 content K
+2026-11-08 06:20:31.662 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> done using Connection 1
+2026-11-08 06:20:31.662 Df PeriopSignal[60435:97074] [com.apple.network:connection] [C1] event: client:connection_idle @0.106s
+2026-11-08 06:20:31.662 Df PeriopSignal[60435:97074] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-08 06:20:31.662 E  PeriopSignal[60435:97074] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:20:31.666 Df PeriopSignal[60435:97074] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> response ended
+2026-11-08 06:20:31.667 Df PeriopSignal[60435:97080] [com.apple.CFNetwork:Summary] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> summary for task success {transaction_duration_ms=138, response_status=200, connection=1, protocol="h2", domain_lookup_duration_ms=4, connect_duration_ms=43, secure_connection_duration_ms=36, private_relay=false, request_start_ms=92, request_duration_ms=0, response_start_ms=118, response_duration_ms=19, request_bytes=150, request_throughput_kbps=3133, response_bytes=266080, response_throughput_kbps=108448, cache_hit=false}
+2026-11-08 06:20:31.668 Df PeriopSignal[60435:97080] [com.apple.CoreAnalytics:client] No XPC connection in Simulator
+2026-11-08 06:20:31.668 Df PeriopSignal[60435:97080] [com.apple.CFNetwork:Default] Task <B0BF089F-A1C4-444E-B725-8EFC464BAD13>.<1> finished successfully
+2026-11-08 06:20:36.056 Df PeriopSignal[60435:97080] [com.apple.CFNetwork:Default] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-08 06:20:36.060 Df PeriopSignal[60435:97080] [com.apple.network:connection] [C1] event: client:connection_reused @4.504s
+2026-11-08 06:20:36.060 Df PeriopSignal[60435:97080] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-08 06:20:36.060 E  PeriopSignal[60435:97080] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:20:36.060 Df PeriopSignal[60435:97080] [com.apple.CFNetwork:Default] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> now using Connection 1
+2026-11-08 06:20:36.061 Df PeriopSignal[60435:97080] [com.apple.CFNetwork:Default] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> sent request, body N 0
+2026-11-08 06:20:36.073 Df PeriopSignal[60435:97031] [com.apple.chrono:widget] Creating WidgetCenter connection.
+2026-11-08 06:20:36.082 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x103d2c4a0] activating connection: mach=true listener=false peer=false name=com.apple.chrono.widgetcenterconnection
+2026-11-08 06:20:36.082 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> received response, status 200 content K
+2026-11-08 06:20:36.084 Df PeriopSignal[60435:97080] [com.apple.CFNetwork:Default] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> done using Connection 1
+2026-11-08 06:20:36.084 Df PeriopSignal[60435:97080] [com.apple.network:connection] [C1] event: client:connection_idle @4.528s
+2026-11-08 06:20:36.084 Df PeriopSignal[60435:97080] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-08 06:20:36.084 E  PeriopSignal[60435:97080] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:20:36.088 Df PeriopSignal[60435:97080] [com.apple.CFNetwork:Default] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> response ended
+2026-11-08 06:20:36.088 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Summary] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> summary for task success {transaction_duration_ms=28, response_status=200, connection=1, reused=1, reused_after_ms=4398, request_start_ms=1, request_duration_ms=0, response_start_ms=22, response_duration_ms=6, request_bytes=51, request_throughput_kbps=2456, response_bytes=140553, response_throughput_kbps=184031, cache_hit=false}
+2026-11-08 06:20:36.088 Df PeriopSignal[60435:97081] [com.apple.CFNetwork:Default] Task <4C57042E-8B6A-4996-921B-0FC683F498D4>.<2> finished successfully
+2026-11-08 06:20:36.095 Df PeriopSignal[60435:97081] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-08 06:20:36.097 Df PeriopSignal[60435:97081] [com.apple.xpc:connection] [0x10510f4b0] activating connection: mach=true listener=false peer=false name=com.apple.usernotifications.listener
+2026-11-08 06:20:36.105 Df PeriopSignal[60435:97074] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-08 06:20:36.109 Df PeriopSignal[60435:97074] [com.apple.chrono:widget] reloadAllTimelines() - reloaded all timelines
+2026-11-08 06:20:36.516 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x103f59900] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-08 06:20:36.517 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x103d4b3b0] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-08 06:20:36.518 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x105055bb0] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-08 06:20:36.617 Df PeriopSignal[60435:97031] [com.apple.renderbox:misc] RBDevice: initialized bg state: false
+2026-11-08 06:20:36.761 Df PeriopSignal[60435:97031] [com.apple.KeyboardArbiter:Client] startConnection
+2026-11-08 06:20:36.762 Df PeriopSignal[60435:97031] [com.apple.xpc:connection] [0x103dafba0] activating connection: mach=true listener=false peer=false name=com.apple.UIKit.KeyboardManagement.hosted
+2026-11-08 06:20:37.427 Df PeriopSignal[60435:97074] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-08 06:20:37.427 Df PeriopSignal[60435:97031] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-08 06:20:37.430 Df PeriopSignal[60435:97074] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-08 06:20:37.481 Df PeriopSignal[60435:97031] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-08 06:20:37.593 Df PeriopSignal[60435:97031] [com.apple.network:activity] <nw_activity 50:1 [04D148D7-4DC7-40B6-8954-05AB74FC6842] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 16525ms
+2026-11-08 06:20:37.593 Df PeriopSignal[60435:97031] [com.apple.network:activity] <nw_activity 50:2 [978F40C2-C356-47F3-AA7E-BBE956152E77] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 16525ms
+2026-11-08 06:20:37.593 Df PeriopSignal[60435:97031] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [04D148D7-4DC7-40B6-8954-05AB74FC6842] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-08 06:20:37.593 Df PeriopSignal[60435:97031] [com.apple.network:activity] Unset the global parent activity
+2026-11-08 06:20:47.843 Df PeriopSignal[61248:977d6] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=61248 task=PeriopSignal[61248]/0#-1 LF=22
+2026-11-08 06:20:47.844 E  PeriopSignal[61248:977d6] [com.apple.kvs:Connection] Unable to find entitlement for KVS store
+2026-11-08 06:20:47.845 F  PeriopSignal[61248:977d6] [com.apple.kvs:Connection] BUG IN CLIENT OF KVS: Trying to initialize NSUbiquitousKeyValueStore without a store identifier. Please specify your store identifier in the 'com.apple.developer.ubiquity-kvstore-identifier' entitlement.
+2026-11-08 06:20:47.845 A  PeriopSignal[61248:977d6] (libsystem_trace.dylib) Activity for state dumps
+2026-11-08 06:20:47.858 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x1038053c0] activating connection: mach=true listener=false peer=false name=com.apple.cfprefsd.daemon
+2026-11-08 06:20:48.783 A  PeriopSignal[61248:979ea] (CoreFoundation) Loading Preferences From User Session CFPrefsD
+2026-11-08 06:20:48.789 Df PeriopSignal[61248:977d6] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=61248 task=PeriopSignal[61248]/0#-1 LF=22
+2026-11-08 06:20:48.793 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Creating new assertion because there is no existing background assertion.
+2026-11-08 06:20:48.793 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Creating new background assertion
+2026-11-08 06:20:48.793 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Created new background assertion <BKSProcessAssertion: 0x60000215a8a0>
+2026-11-08 06:20:48.793 Df PeriopSignal[61248:97957] [com.apple.runningboard:connection] Initializing connection
+2026-11-08 06:20:48.793 Df PeriopSignal[61248:97957] [com.apple.runningboard:process] Removing all cached process handles
+2026-11-08 06:20:48.794 Df PeriopSignal[61248:979ec] [com.apple.runningboard:connection] Sending handshake request attempt #1 to server
+2026-11-08 06:20:48.794 Df PeriopSignal[61248:979ec] [com.apple.runningboard:connection] Creating connection to com.apple.runningboard
+2026-11-08 06:20:48.794 Df PeriopSignal[61248:979ec] [com.apple.xpc:connection] [0x103807780] activating connection: mach=true listener=false peer=false name=com.apple.runningboard
+2026-11-08 06:20:48.795 Df PeriopSignal[61248:979ea] [com.apple.BoardServices:XPCErrors] [C:1] Alloc com.apple.frontboard.systemappservices
+2026-11-08 06:20:48.797 Df PeriopSignal[61248:979ea] [com.apple.xpc:connection] [0x102f05c50] activating connection: mach=false listener=false peer=false name=(anonymous)
+2026-11-08 06:20:48.797 A  PeriopSignal[61248:979ed] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:48.799 Df PeriopSignal[61248:979ec] [com.apple.runningboard:connection] Handshake succeeded
+2026-11-08 06:20:48.812 Df PeriopSignal[61248:979ec] [com.apple.runningboard:connection] Identity resolved as app<org.periopsignal.app((null))>
+2026-11-08 06:20:48.814 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Incrementing reference count for background assertion <BKSProcessAssertion: 0x60000215a8a0>
+2026-11-08 06:20:48.814 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Created background task <_UIBackgroundTaskInfo: 0x600001761dc0>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 7577 (elapsed = 0).
+2026-11-08 06:20:48.815 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UIApplicationSceneKeyboardSettings on FBSSceneSettings
+2026-11-08 06:20:48.817 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneOcclusionSettings> on FBSSceneSettings
+2026-11-08 06:20:48.818 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneInterfaceProtectionSettings> on FBSSceneSettings
+2026-11-08 06:20:48.818 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneLayoutPreferencesHostSettingsExtension on FBSSceneSettings
+2026-11-08 06:20:48.819 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneSafeAreaSettingsExtension on FBSSceneSettings
+2026-11-08 06:20:48.820 Df PeriopSignal[61248:977d6] (libMobileGestalt.dylib) No persisted cache on this platform.
+2026-11-08 06:20:48.823 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneLayoutPreferenceClientSettingsExtension on FBSSceneClientSettings
+2026-11-08 06:20:48.826 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UIHomeAffordanceHostSceneSettings> on FBSSceneSettings
+2026-11-08 06:20:48.829 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISystemShellSceneHostingEnvironmentSettings on FBSSceneSettings
+2026-11-08 06:20:48.830 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneRenderingEnvironmentSettings on FBSSceneSettings
+2026-11-08 06:20:48.831 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneRenderingEnvironmentClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:48.832 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneTransitioningHostSettings> on FBSSceneSettings
+2026-11-08 06:20:48.832 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason added: 10; deactivation reasons: 0 -> 1024; animating application lifecycle event: 0
+2026-11-08 06:20:48.832 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneFocusSystemSettings> on FBSSceneSettings
+2026-11-08 06:20:48.833 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneOrientationSettingsExtension on FBSSceneSettings
+2026-11-08 06:20:48.833 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneOrientationClientSettingsExtension on FBSSceneClientSettings
+2026-11-08 06:20:48.834 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneWindowingControlClientSettings on FBSSceneClientSettings
+2026-11-08 06:20:48.834 Df PeriopSignal[61248:977d6] [com.apple.BoardServices:Injection] activating monitor for service com.apple.frontboard.open
+2026-11-08 06:20:48.835 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingContentSizePreferenceClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:48.836 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension _UISceneHostingTraitCollectionPropagationSettings on FBSSceneSettings
+2026-11-08 06:20:48.836 Df PeriopSignal[61248:977d6] [com.apple.BoardServices:Injection] activating monitor for service com.apple.frontboard.workspace-service
+2026-11-08 06:20:48.837 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingSheetPresentationSettings> on FBSSceneSettings
+2026-11-08 06:20:48.838 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingSheetPresentationClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:48.839 Df PeriopSignal[61248:977d6] [com.apple.FrontBoard:Common] FBSWorkspace registering source: com.apple.frontboard.systemappservices
+2026-11-08 06:20:48.839 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingEventDeferringSettings> on FBSSceneSettings
+2026-11-08 06:20:48.840 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <UIKit__UITypedKeyValueSceneSettings> on FBSSceneSettings
+2026-11-08 06:20:48.841 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <UIKit__UITypedKeyValueSceneSettings> on FBSSceneClientSettings
+2026-11-08 06:20:48.842 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneHostingViewControllerPreferencePropagationClientSettings> on FBSSceneClientSettings
+2026-11-08 06:20:48.842 Df PeriopSignal[61248:97957] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneZoomTransitionSettings> on FBSSceneSettings
+2026-11-08 06:20:48.843 Df PeriopSignal[61248:977d6] [com.apple.FrontBoard:Common] FBSWorkspace connected to endpoint : <BSServiceConnectionEndpoint: 0x6000002120a0; target: com.apple.frontboard.systemappservices; service: com.apple.frontboard.workspace-service>
+2026-11-08 06:20:48.844 Df PeriopSignal[61248:977d6] [com.apple.FrontBoard:Common] <FBSWorkspaceScenesClient:0x600003004d80 com.apple.frontboard.systemappservices> attempting immediate handshake from activate
+2026-11-08 06:20:48.845 Df PeriopSignal[61248:977d6] [com.apple.FrontBoard:Common] <FBSWorkspaceScenesClient:0x600003004d80 com.apple.frontboard.systemappservices> sent handshake
+2026-11-08 06:20:48.847 Df PeriopSignal[61248:977d6] [com.apple.runningboard:general] Added observer for process assertions expiration warning: <_RBSExpirationWarningClient: 0x600000214da0>
+2026-11-08 06:20:48.850 Df PeriopSignal[61248:979f0] [com.apple.FrontBoard:SceneExtension] Realizing settings extension FBSSceneSettingsCore on FBSSceneSettings
+2026-11-08 06:20:48.853 Df PeriopSignal[61248:979f0] [com.apple.FrontBoard:SceneExtension] Realizing settings extension FBSSceneClientSettingsCore on FBSSceneClientSettings
+2026-11-08 06:20:48.861 Df PeriopSignal[61248:977d6] [com.apple.UIKit:UIScreen] Evaluated capturing state as 0 on <UIScreen: 0x102f067d0> for initial
+2026-11-08 06:20:48.862 Df PeriopSignal[61248:977d6] [com.apple.UIKit:UIScreen] Evaluated capturing state as 0 on <UIScreen: 0x102f067d0> for CADisplay KVO
+2026-11-08 06:20:48.868 Df PeriopSignal[61248:977d6] [com.apple.Accessibility:AXSupportCommon] Read CategoryName: per-app = 1, category name = (null)
+2026-11-08 06:20:48.868 Df PeriopSignal[61248:979f0] [com.apple.FrontBoard:SceneExtension] UIMutableApplicationSceneSettings setting counterpart class: UIApplicationSceneSettings
+2026-11-08 06:20:48.869 Df PeriopSignal[61248:977d6] [com.apple.Accessibility:AXSupportCommon] Read CategoryName: per-app = 0, category name = (null)
+2026-11-08 06:20:48.869 Df PeriopSignal[61248:979f0] [com.apple.FrontBoard:SceneExtension] UIMutableApplicationSceneClientSettings setting counterpart class: UIApplicationSceneClientSettings
+2026-11-08 06:20:48.870 Df PeriopSignal[61248:979f0] [com.apple.FrontBoard:SceneExtension] Realizing settings extension FBSSceneTransitionContextCore on FBSSceneTransitionContext
+2026-11-08 06:20:48.889 Df PeriopSignal[61248:977d6] [com.apple.dt.xctest:Default] Registering for test daemon availability notify post.
+2026-11-08 06:20:48.889 Df PeriopSignal[61248:977d6] [com.apple.dt.xctest:Default] notify_get_state check indicated test daemon not ready.
+2026-11-08 06:20:48.890 Df PeriopSignal[61248:977d6] [com.apple.dt.xctest:Default] notify_get_state check indicated test daemon not ready.
+2026-11-08 06:20:48.890 Df PeriopSignal[61248:977d6] [com.apple.dt.xctest:Default] notify_get_state check indicated test daemon not ready.
+2026-11-08 06:20:48.892 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason added: 11; deactivation reasons: 1024 -> 3072; animating application lifecycle event: 0
+2026-11-08 06:20:48.896 Df PeriopSignal[61248:977d6] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Creating a user notification center
+2026-11-08 06:20:48.898 Df PeriopSignal[61248:977d6] [com.apple.BackgroundTasks:Framework] submitTaskRequest: <BGAppRefreshTaskRequest: org.periopsignal.app.refresh, earliestBeginDate: 2026-11-08 09:20:48 +0000>
+2026-11-08 06:20:48.899 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason removed: 10; deactivation reasons: 3072 -> 2048; animating application lifecycle event: 0
+2026-11-08 06:20:48.900 Df PeriopSignal[61248:977d6] [com.apple.UIKit:EventBus] Event Timing Profile for Touch: not found, path="/System/Library/EventTimingProfiles/Sim.Touch.plist"
+2026-11-08 06:20:48.900 Df PeriopSignal[61248:977d6] [com.apple.UIKit:EventBus] Event Timing Profile for Pencil: not found, path="/System/Library/EventTimingProfiles/Sim.Pencil.plist"
+2026-11-08 06:20:48.901 Df PeriopSignal[61248:977d6] [com.apple.UIKit:UpdateScheduler] Selected display: name=LCD (PurpleMain), id=1
+2026-11-08 06:20:48.907 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x10380e480] activating connection: mach=true listener=false peer=false name=com.apple.lsd.mapdb
+2026-11-08 06:20:49.028 Df PeriopSignal[61248:977d6] [com.apple.BoardServices:XPCErrors] [C:2] Alloc com.apple.backboard.hid-services.xpc
+2026-11-08 06:20:49.029 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x102f09cf0] activating connection: mach=false listener=false peer=false name=(anonymous)
+2026-11-08 06:20:49.032 Df PeriopSignal[61248:979ec] [com.apple.BackBoard:EventDelivery] BKSHIDEventDeliveryManager - connection activation
+2026-11-08 06:20:49.044 Df PeriopSignal[61248:977d6] [com.apple.UIKit:BackgroundTask] Will add backgroundTask with taskName: Persistent SceneSession Map Update, expirationHandler: <__NSGlobalBlock__: 0x7ff840854ae0>
+2026-11-08 06:20:49.045 Df PeriopSignal[61248:977d6] [com.apple.UIKit:BackgroundTask] Reusing background assertion <BKSProcessAssertion: 0x60000215a8a0>
+2026-11-08 06:20:49.045 Df PeriopSignal[61248:977d6] [com.apple.UIKit:BackgroundTask] Incrementing reference count for background assertion <BKSProcessAssertion: 0x60000215a8a0>
+2026-11-08 06:20:49.046 Df PeriopSignal[61248:977d6] [com.apple.UIKit:BackgroundTask] Created background task <_UIBackgroundTaskInfo: 0x60000176c0c0>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 7578 (elapsed = 0).
+2026-11-08 06:20:49.047 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason added: 5; deactivation reasons: 2048 -> 2080; animating application lifecycle event: 1
+2026-11-08 06:20:49.050 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Should send trait collection or coordinate space update, interface style 2 -> 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.055 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.056 Df PeriopSignal[61248:977d6] [com.apple.UIKit:HomeAffordanceObservation] Initializing: <_UIHomeAffordanceSceneNotifier: 0x600002929500>; with scene: <UIWindowScene: 0x102f06e50>
+2026-11-08 06:20:49.056 Df PeriopSignal[61248:977d6] [com.apple.BacklightServices:scenes] 0x600000c51080 setDelegate:<0x600000c51170 _UIBacklightEnvironment> hasDelegate:YES for environment:sceneID:org.periopsignal.app-default
+2026-11-08 06:20:49.060 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.060 Df PeriopSignal[61248:977d6] [com.apple.UIKit:EventDeferring] [0x600002929420] Initialized with scene: <UIWindowScene: 0x102f06e50>; behavior: <_UIEventDeferringBehavior_iOS: 0x600000221e40>; availableForProcess: 1, systemShellManagesKeyboardFocus: 1
+2026-11-08 06:20:49.063 Df PeriopSignal[61248:97957] [com.apple.BackBoard:EventDelivery] BKSHIDEventObserver - connection activation
+2026-11-08 06:20:49.068 Df PeriopSignal[61248:977d6] [com.apple.BackBoard:EventDelivery] policyStatus:<BKSHIDEventDeliveryPolicyObserver: 0x60000263ca80; process scope; status: target> was:none
+2026-11-08 06:20:49.068 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Setting default evaluation strategy for UIUserInterfaceIdiomPhone to LastOneWins
+2026-11-08 06:20:49.068 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Scene target of keyboard event deferring environment did change: 1; scene: UIWindowScene: 0x102f06e50; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:49.068 Df PeriopSignal[61248:977d6] [com.apple.UIKit:EventDeferring] [0x600002929420] Scene target of event deferring environments did update: scene: 0x102f06e50; current systemShellManagesKeyboardFocus: 1; systemShellManagesKeyboardFocusForScene: 1; eligibleForRecordRemoval: 1;
+2026-11-08 06:20:49.068 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Scene became target of keyboard event deferring environment: UIWindowScene: 0x102f06e50; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:49.068 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Stack[KeyWindow] 0x600000c4d560: Taking no further action for migration from LastOneWins -> SystemShellManaged as there are no scenes
+2026-11-08 06:20:49.068 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Setting default evaluation strategy for UIUserInterfaceIdiomPhone to SystemShellManaged
+2026-11-08 06:20:49.069 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Key window needs update: 0; currentKeyWindowScene: 0x0; evaluatedKeyWindowScene: 0x102f06e50; currentApplicationKeyWindow: 0x0; evaluatedApplicationKeyWindow: 0x0; reason: UIWindowScene: 0x102f06e50: Window scene became target of keyboard environment
+2026-11-08 06:20:49.070 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.071 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.076 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.327 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Orientation] <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1) Scene updated orientation preferences: none -> ( Pu )
+2026-11-08 06:20:49.342 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Key window API is scene-level: YES
+2026-11-08 06:20:49.343 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] UIWindowScene: 0x102f06e50: Window became key in scene: UIWindow: 0x102f07830; contextId: 0x91F4CE16: reason: UIWindowScene: 0x102f06e50: Window requested to become key in scene: 0x102f07830
+2026-11-08 06:20:49.343 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Key window needs update: 1; currentKeyWindowScene: 0x0; evaluatedKeyWindowScene: 0x102f06e50; currentApplicationKeyWindow: 0x0; evaluatedApplicationKeyWindow: 0x102f07830; reason: UIWindowScene: 0x102f06e50: Window requested to become key in scene: 0x102f07830
+2026-11-08 06:20:49.343 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Window did become application key: UIWindow: 0x102f07830; contextId: 0x91F4CE16; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:49.343 Df PeriopSignal[61248:977d6] [com.apple.UIKit:EventDeferring] [0x600002929420] Begin local event deferring requested for token: 0x60000263d4a0; environments: 1; reason: UIWindowScene: 0x102f06e50: Begin event deferring in keyboardFocus for window: 0x102f07830
+2026-11-08 06:20:49.349 Df PeriopSignal[61248:979ec] [com.apple.BackBoard:EventDelivery] policyStatus:<BKSHIDEventDeliveryPolicyObserver: 0x60000263ca80; token: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default; status: ancestor> was:target
+2026-11-08 06:20:49.351 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.353 Df PeriopSignal[61248:977d6] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: AD82AD0B-4199-43D1-901B-8ECD763ED0F1
+2026-11-08 06:20:49.355 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Ignoring already applied deactivation reason: 5; deactivation reasons: 2080
+2026-11-08 06:20:49.355 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason added: 12; deactivation reasons: 2080 -> 6176; animating application lifecycle event: 1
+2026-11-08 06:20:49.356 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason removed: 11; deactivation reasons: 6176 -> 4128; animating application lifecycle event: 1
+2026-11-08 06:20:49.356 Df PeriopSignal[61248:977d6] [com.apple.FrontBoard:SceneExtension] Realizing settings extension <_UISceneIntelligenceSupportSettings> on FBSSceneSettings
+2026-11-08 06:20:49.357 Df PeriopSignal[61248:979f0] [com.apple.UIIntelligenceSupport:xpc] establishing connection to agent
+2026-11-08 06:20:49.358 Df PeriopSignal[61248:979f0] [com.apple.xpc:session] [0x6000021745a0] Session created.
+2026-11-08 06:20:49.358 Df PeriopSignal[61248:979f0] [com.apple.xpc:session] [0x6000021745a0] Session created from connection [0x102d16c80]
+2026-11-08 06:20:49.358 Df PeriopSignal[61248:979f0] [com.apple.xpc:connection] [0x102d16c80] activating connection: mach=true listener=false peer=false name=com.apple.uiintelligencesupport.agent
+2026-11-08 06:20:49.358 Df PeriopSignal[61248:979f0] [com.apple.xpc:session] [0x6000021745a0] Session activated
+2026-11-08 06:20:49.361 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:49.381 A  PeriopSignal[61248:977d6] (CoreFoundation) Updating Key-Value Observers Of Preferences
+2026-11-08 06:20:49.571 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Ending background task with UIBackgroundTaskIdentifier: 2
+2026-11-08 06:20:49.571 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Ending task with identifier 2 and description: <_UIBackgroundTaskInfo: 0x60000176c0c0>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 7578 (elapsed = 0), _expireHandler: <__NSGlobalBlock__: 0x7ff840854ae0>
+2026-11-08 06:20:49.571 Df PeriopSignal[61248:97957] [com.apple.UIKit:BackgroundTask] Decrementing reference count for assertion <BKSProcessAssertion: 0x60000215a8a0> (used by background task with identifier 2: <_UIBackgroundTaskInfo: 0x60000176c0c0>: taskID = 2, taskName = Persistent SceneSession Map Update, creationTime = 7578 (elapsed = 0))
+2026-11-08 06:20:49.833 Df PeriopSignal[61248:979f0] [com.apple.UIKit:BackgroundTask] Ending background task with UIBackgroundTaskIdentifier: 1
+2026-11-08 06:20:49.833 Df PeriopSignal[61248:979f0] [com.apple.UIKit:BackgroundTask] Ending task with identifier 1 and description: <_UIBackgroundTaskInfo: 0x600001761dc0>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 7577 (elapsed = 1), _expireHandler: (null)
+2026-11-08 06:20:49.833 Df PeriopSignal[61248:979f0] [com.apple.UIKit:BackgroundTask] Decrementing reference count for assertion <BKSProcessAssertion: 0x60000215a8a0> (used by background task with identifier 1: <_UIBackgroundTaskInfo: 0x600001761dc0>: taskID = 1, taskName = Launch Background Task for Coalescing, creationTime = 7577 (elapsed = 1))
+2026-11-08 06:20:49.834 Df PeriopSignal[61248:979f0] [com.apple.UIKit:BackgroundTask] Will invalidate assertion: <BKSProcessAssertion: 0x60000215a8a0> for task identifier: 1
+2026-11-08 06:20:49.938 A  PeriopSignal[61248:979f0] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:50.215 Df PeriopSignal[61248:979f0] [com.apple.xpc:connection] [0x10380f8a0] activating connection: mach=true listener=false peer=false name=com.apple.fontservicesd
+2026-11-08 06:20:50.218 Df PeriopSignal[61248:979f0] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=61248 task=PeriopSignal[61248]/0#-1 LF=22
+2026-11-08 06:20:50.269 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:51.775 Df PeriopSignal[61248:977d6] [PrototypeTools:domain] Not observing PTDefaults on customer install.
+2026-11-08 06:20:51.775 Df PeriopSignal[61248:979f0] [com.apple.calls.callkit:Default] Call host has no calls
+2026-11-08 06:20:59.387 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x10d99c460] activating connection: mach=true listener=false peer=false name=com.apple.IOSurface.Remote
+2026-11-08 06:20:59.450 Df PeriopSignal[61248:977d6] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:1 [7B22E2F2-C40A-4EAB-936A-92D3407F65AF] (reporting strategy default)>
+2026-11-08 06:20:59.450 Df PeriopSignal[61248:977d6] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:2 [89113867-E6D5-426F-846C-DC33BE3E5358] (reporting strategy default)>
+2026-11-08 06:20:59.450 Df PeriopSignal[61248:977d6] [com.apple.network:activity] Set activity <nw_activity 50:1 [7B22E2F2-C40A-4EAB-936A-92D3407F65AF] (reporting strategy default)> as the global parent
+2026-11-08 06:20:59.451 A  PeriopSignal[61248:979ed] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:59.461 Df PeriopSignal[61248:977d6] [com.apple.UIKit:UpdateScheduler] Target list changed: <CADisplay:LCD PurpleMain>
+2026-11-08 06:20:59.464 A  PeriopSignal[61248:979f0] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:59.469 Df PeriopSignal[61248:977d6] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: AD82AD0B-4199-43D1-901B-8ECD763ED0F1
+2026-11-08 06:20:59.470 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:20:59.470 Df PeriopSignal[61248:977d6] [com.apple.BackgroundTasks:Framework] Handling app launch
+2026-11-08 06:20:59.471 Df PeriopSignal[61248:977d6] [com.apple.UIKit:EventDeferring] [0x600002929420] Scene target of event deferring environments did update: scene: 0x102f06e50; current systemShellManagesKeyboardFocus: 1; systemShellManagesKeyboardFocusForScene: 1; eligibleForRecordRemoval: 1;
+2026-11-08 06:20:59.471 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyWindow] Scene became target of keyboard event deferring environment: UIWindowScene: 0x102f06e50; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-08 06:20:59.495 Df PeriopSignal[61248:977d6] [com.apple.Accessibility:AXCommon] Read Per-App on Init: Smart invert = (null)
+2026-11-08 06:20:59.560 A  PeriopSignal[61248:979ed] (RunningBoardServices) didChangeInheritances
+2026-11-08 06:20:59.806 Df PeriopSignal[61248:979f0] [com.apple.network:] networkd_settings_read_from_file initialized networkd settings by reading plist directly
+2026-11-08 06:20:59.808 Df PeriopSignal[61248:979f0] [com.apple.network:] networkd_settings_read_from_file initialized networkd settings by reading plist directly
+2026-11-08 06:20:59.809 Df PeriopSignal[61248:979f0] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=61248 task=PeriopSignal[61248]/0#-1 LF=22
+2026-11-08 06:20:59.813 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-08 06:20:59.814 A  PeriopSignal[61248:979f0] (CoreFoundation) Loading Preferences From User Session CFPrefsD
+2026-11-08 06:20:59.855 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Initializing NSHTTPCookieStorage singleton
+2026-11-08 06:20:59.868 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Initializing CFHTTPCookieStorage singleton
+2026-11-08 06:20:59.868 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Creating default cookie storage with process/bundle identifier
+2026-11-08 06:20:59.871 A  PeriopSignal[61248:979f0] (libsystem_containermanager.dylib) container_system_group_path_for_identifier
+2026-11-08 06:20:59.872 Df PeriopSignal[61248:979f0] [com.apple.containermanager:xpc] Requesting container lookup; class = 13, identifier = com.apple.nsurlsessiond, group_identifier = systemgroup.com.apple.nsurlstoragedresources, create = 1, temp = 0, euid = 501, uid = 501
+2026-11-08 06:20:59.872 A  PeriopSignal[61248:979f0] (libsystem_containermanager.dylib) container_query_t
+2026-11-08 06:20:59.872 Df PeriopSignal[61248:979f0] [com.apple.containermanager:xpc] Query; euid = 501, uid = 501, class = 13, identifier = [com.apple.nsurlsessiond](1), flags = 900000003
+2026-11-08 06:20:59.874 E  PeriopSignal[61248:979f0] [com.apple.containermanager:unspecified] _container_query_get_result_at_index: error = 2→(98) NOT_CODESIGNED;
+2026-11-08 06:20:59.874 E  PeriopSignal[61248:979f0] [com.apple.containermanager:unspecified] container_system_group_path_for_identifier: error = ((container_error_t)98) NOT_CODESIGNED
+2026-11-08 06:20:59.883 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Initializing AlternativeServices Storage singleton
+2026-11-08 06:20:59.884 Df PeriopSignal[61248:979f0] [com.apple.FileURL:default] kExcludedFromBackupXattrName set on path: /Users/runner/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Data/Application/E9337227-0B65-46FF-BAD7-CD6A4F329D1C/Library/HTTPStorages/org.periopsignal.app
+2026-11-08 06:20:59.897 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Connection 0: creating secure tcp or quic connection
+2026-11-08 06:20:59.907 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Connection 1: enabling TLS
+2026-11-08 06:20:59.907 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Connection 1: starting, TC(0x0)
+2026-11-08 06:20:59.908 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1 97389A64-C3BE-480E-9B0F-998310BDD135 Hostname#db0a0fe3:443 quic-connection, url: https://periopsignal.github.io/PeriopSignal/posts.json, definite, attribution: developer, context: com.apple.CFNetwork.NSURLSession.{1509F7B3-5985-4011-881B-79BF1C38F168}{(null)}{Y}{2}{0x0} (private), proc: 2EF513B2-3903-3A0B-B0A3-8F4586296DD5, delegated upid: 0] start
+2026-11-08 06:20:59.908 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1 Hostname#db0a0fe3:443 initial parent-flow ((null))] event: path:start @0.000s
+2026-11-08 06:20:59.911 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1 Hostname#db0a0fe3:443 waiting parent-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.002s, uuid: 278D5087-EB69-4FF7-A1CF-973ABA97F992
+2026-11-08 06:20:59.913 Df PeriopSignal[61248:979f0] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=61248 task=PeriopSignal[61248]/0#-1 LF=22
+2026-11-08 06:20:59.914 Df PeriopSignal[61248:979f0] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=61248 task=PeriopSignal[61248]/0#-1 LF=22
+2026-11-08 06:20:59.914 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1 Hostname#db0a0fe3:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_connect @0.006s
+2026-11-08 06:20:59.915 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state preparing
+2026-11-08 06:20:59.920 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1 Hostname#db0a0fe3:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_child @0.012s
+2026-11-08 06:20:59.920 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1 Hostname#db0a0fe3:443 initial path ((null))] event: path:start @0.012s
+2026-11-08 06:20:59.921 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1 Hostname#db0a0fe3:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.013s, uuid: 278D5087-EB69-4FF7-A1CF-973ABA97F992
+2026-11-08 06:20:59.922 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1 Hostname#db0a0fe3:443 in_progress transform (satisfied (Path is satisfied), interface: en0)] event: transform:start @0.013s
+2026-11-08 06:20:59.923 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1 Hostname#db0a0fe3:443 initial path ((null))] event: path:start @0.014s
+2026-11-08 06:20:59.923 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1 Hostname#db0a0fe3:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.015s, uuid: FBF87EAD-FE61-439C-B742-A4234C5F7A1B
+2026-11-08 06:20:59.924 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1 Hostname#db0a0fe3:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] event: resolver:start_dns @0.016s
+2026-11-08 06:20:59.926 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> setting up Connection 1
+2026-11-08 06:20:59.933 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#db0a0fe3:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#6262ace0:443
+2026-11-08 06:20:59.934 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#db0a0fe3:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#d17a5cdc:443
+2026-11-08 06:20:59.934 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#db0a0fe3:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#dbc32723:443
+2026-11-08 06:20:59.935 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#db0a0fe3:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#eee4fb2a:443
+2026-11-08 06:20:59.935 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1 Hostname#db0a0fe3:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] event: resolver:receive_dns @0.027s
+2026-11-08 06:20:59.937 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1.1 IPv4#6262ace0:443 initial path ((null))] event: path:start @0.029s
+2026-11-08 06:20:59.938 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1.1 IPv4#6262ace0:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.029s, uuid: BAF234A9-BA79-4834-A469-FE644E762CE9
+2026-11-08 06:20:59.940 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1.1 IPv4#6262ace0:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_connect @0.031s
+2026-11-08 06:20:59.942 Df PeriopSignal[61248:979ea] [com.apple.CFNetwork:Default] Garbage collection for alternative services
+2026-11-08 06:20:59.943 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_socket_handle_socket_event [C1.1.1.1:3] Socket received CONNECTED event
+2026-11-08 06:20:59.943 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_flow_connected [C1.1.1.1 IPv4#6262ace0:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] Transport protocol connected (socket)
+2026-11-08 06:20:59.943 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1.1 IPv4#6262ace0:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:finish_transport @0.035s
+2026-11-08 06:20:59.946 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_session_apply_protocol_options_for_transport_block_invoke_2(2323) [C1.1.1.1:2][0x10d9443c0] TLS configured [min_version(0x0303) max_version(0x0304) name(redacted) tickets(false) false_start(false) enforce_ev(false) enforce_ats(false) ats_non_pfs_ciphersuite_allowed(false) ech(false) pqtls(true), pake(false)]
+2026-11-08 06:20:59.947 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2390) [C1.1.1.1:2][0x10d9443c0] Client handshake started
+2026-11-08 06:20:59.948 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS client enter_early_data
+2026-11-08 06:20:59.949 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS client read_server_hello
+2026-11-08 06:20:59.962 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client read_hello_retry_request
+2026-11-08 06:20:59.963 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client read_server_hello
+2026-11-08 06:20:59.964 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client read_encrypted_extensions
+2026-11-08 06:20:59.965 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client read_certificate_request
+2026-11-08 06:20:59.965 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client read_server_certificate
+2026-11-08 06:20:59.966 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client read_server_certificate_verify
+2026-11-08 06:20:59.967 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async(1833) [C1.1.1.1:2][0x10d9443c0] Performing external trust evaluation
+2026-11-08 06:20:59.967 A  PeriopSignal[61248:979ea] (Security) SecKeyCopyPublicBytes
+2026-11-08 06:20:59.967 Df PeriopSignal[61248:979ea] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async_external(1818) [C1.1.1.1:2][0x10d9443c0] Asyncing for external verify block
+2026-11-08 06:20:59.968 Df PeriopSignal[61248:979ea] [com.apple.CFNetwork:Default] Connection 1: asked to evaluate TLS Trust
+2026-11-08 06:20:59.971 Df PeriopSignal[61248:979ea] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> auth completion disp=1 cred=0x0
+2026-11-08 06:20:59.971 Df PeriopSignal[61248:979ea] [com.apple.securityd:trust] (Trust 0x60000353d290) No pending evals, starting
+2026-11-08 06:20:59.971 A  PeriopSignal[61248:979ea] (Security) SecTrustEvaluateIfNecessaryFastAsync
+2026-11-08 06:20:59.972 Df PeriopSignal[61248:979ea] [com.apple.securityd:keychain] System Keychain Always Supported set via feature flag to disabled
+2026-11-08 06:20:59.972 Df PeriopSignal[61248:979ea] [com.apple.xpc:connection] [0x103884360] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-08 06:20:59.973 Df PeriopSignal[61248:979ea] [com.apple.xpc:connection] [0x10ce31160] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-08 06:20:59.973 Df PeriopSignal[61248:979ea] [com.apple.securityd:trust] (Trust 0x60000353d290) Completed async eval kickoff
+2026-11-08 06:20:59.987 Df PeriopSignal[61248:979f0] [com.apple.securityd:trust] (Trust 0x60000353d290) trustd returned 4
+2026-11-08 06:20:59.988 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] System Trust Evaluation yielded status(0)
+2026-11-08 06:20:59.988 Df PeriopSignal[61248:979f0] [com.apple.securityd:trust] (Trust 0x6000035380b0) No pending evals, starting
+2026-11-08 06:20:59.988 A  PeriopSignal[61248:979f0] (Security) SecTrustEvaluateIfNecessaryFastAsync
+2026-11-08 06:20:59.989 Df PeriopSignal[61248:979f0] [com.apple.xpc:connection] [0x10ce523b0] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-08 06:20:59.989 Df PeriopSignal[61248:979f0] [com.apple.securityd:trust] (Trust 0x6000035380b0) Completed async eval kickoff
+2026-11-08 06:20:59.989 Df PeriopSignal[61248:979f0] [com.apple.xpc:connection] [0x10ce31160] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-08 06:20:59.997 Df PeriopSignal[61248:979f0] [com.apple.securityd:trust] (Trust 0x6000035380b0) trustd returned 4
+2026-11-08 06:20:59.997 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Connection 1: TLS Trust result 0
+2026-11-08 06:20:59.997 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async_external_block_invoke_3(1773) [C1.1.1.1:2][0x10d9443c0] Returning from external verify block with result: true
+2026-11-08 06:20:59.997 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_certificate_verify_callback(2014) [C1.1.1.1:2][0x10d9443c0] Certificate verification result: OK
+2026-11-08 06:20:59.998 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client read_server_finished
+2026-11-08 06:20:59.998 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client send_end_of_early_data
+2026-11-08 06:20:59.998 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client send_client_encrypted_extensions
+2026-11-08 06:20:59.998 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client send_client_certificate
+2026-11-08 06:20:59.998 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client complete_second_flight
+2026-11-08 06:20:59.998 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS 1.3 client done
+2026-11-08 06:20:59.999 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS client finish_client_handshake
+2026-11-08 06:20:59.999 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x10d9443c0] Client handshake state: TLS client done
+2026-11-08 06:21:00.000 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] boringssl_context_info_handler(2396) [C1.1.1.1:2][0x10d9443c0] Client handshake done
+2026-11-08 06:21:00.051 A  PeriopSignal[61248:979f0] (Security) SecKeyCopyPublicBytes
+2026-11-08 06:21:00.052 Df PeriopSignal[61248:979f0] [com.apple.network:boringssl] nw_protocol_boringssl_signal_connected(895) [C1.1.1.1:2][0x10d9443c0] TLS connected [server(0) version(0x0304) ciphersuite(TLS_AES_128_GCM_SHA256) group(0x11ec) signature_alg(0x0804) alpn(h2) resumed(0) offered_ticket(0) in_early_data(0) early_data_accepted(0) false_started(0) ocsp_received(0) sct_received(0) connect_time(54ms) flight_time(15ms) rtt(14ms) write_stalls(0) read_stalls(2) pake(0x0000)]
+2026-11-08 06:21:00.053 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_flow_connected [C1.1.1.1 IPv4#6262ace0:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] Output protocol connected (CFNetworkConnection-2410969604)
+2026-11-08 06:21:00.053 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1.1 IPv4#6262ace0:443 ready socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.145s
+2026-11-08 06:21:00.054 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1.1 Hostname#db0a0fe3:443 ready resolver (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.145s
+2026-11-08 06:21:00.054 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1.1 Hostname#db0a0fe3:443 ready transform (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.146s
+2026-11-08 06:21:00.056 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_flow_connected [C1 IPv4#6262ace0:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] Output protocol connected (endpoint_flow)
+2026-11-08 06:21:00.056 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1 IPv4#6262ace0:443 ready parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:finish_connect @0.148s
+2026-11-08 06:21:00.057 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state ready
+2026-11-08 06:21:00.057 A  PeriopSignal[61248:979f0] (Security) SecKeyCopyPublicBytes
+2026-11-08 06:21:00.058 Df PeriopSignal[61248:979f0] [com.apple.xpc:connection] [0x10ce523b0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-08 06:21:00.059 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Connection 1: connected successfully
+2026-11-08 06:21:00.059 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Connection 1: TLS handshake complete
+2026-11-08 06:21:00.060 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Connection 1: ready C(N) E(N)
+2026-11-08 06:21:00.064 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1] event: client:connection_reused @0.155s
+2026-11-08 06:21:00.064 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-08 06:21:00.064 E  PeriopSignal[61248:979f0] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:21:00.065 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> now using Connection 1
+2026-11-08 06:21:00.068 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> sent request, body N 0
+2026-11-08 06:21:00.108 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> received response, status 200 content K
+2026-11-08 06:21:00.122 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> done using Connection 1
+2026-11-08 06:21:00.122 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1] event: client:connection_idle @0.214s
+2026-11-08 06:21:00.123 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-08 06:21:00.123 E  PeriopSignal[61248:979f0] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:21:00.125 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> response ended
+2026-11-08 06:21:00.125 Df PeriopSignal[61248:979ed] [com.apple.CFNetwork:Summary] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> summary for task success {transaction_duration_ms=293, response_status=200, connection=1, protocol="h2", domain_lookup_duration_ms=11, connect_duration_ms=117, secure_connection_duration_ms=54, private_relay=false, request_start_ms=234, request_duration_ms=1, response_start_ms=276, response_duration_ms=17, request_bytes=150, request_throughput_kbps=623, response_bytes=266081, response_throughput_kbps=124884, cache_hit=false}
+2026-11-08 06:21:00.125 Df PeriopSignal[61248:979ed] [com.apple.CoreAnalytics:client] No XPC connection in Simulator
+2026-11-08 06:21:00.126 Df PeriopSignal[61248:979ed] [com.apple.CFNetwork:Default] Task <34E514DC-6B63-4526-BE76-437C6C5368D4>.<1> finished successfully
+2026-11-08 06:21:00.588 Df PeriopSignal[61248:977d6] [com.apple.FrontBoard:SceneExtension] Realizing settings extension SBUISecureRenderingSettingsExtension on FBSSceneSettings
+2026-11-08 06:21:00.589 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:21:00.592 Df PeriopSignal[61248:977d6] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x102f06e50> (AD82AD0B-4199-43D1-901B-8ECD763ED0F1)
+2026-11-08 06:21:00.601 Df PeriopSignal[61248:977d6] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: AD82AD0B-4199-43D1-901B-8ECD763ED0F1
+2026-11-08 06:21:00.602 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason removed: 12; deactivation reasons: 4128 -> 32; animating application lifecycle event: 1
+2026-11-08 06:21:00.603 Df PeriopSignal[61248:977d6] [com.apple.KeyboardArbiter:Client] Send setDeactivating: N (-DeactivationReason:SuspendedEventsOnly)
+2026-11-08 06:21:00.632 Df PeriopSignal[61248:977d6] [com.apple.UIKit:Application] Deactivation reason removed: 5; deactivation reasons: 32 -> 0; animating application lifecycle event: 0
+2026-11-08 06:21:04.098 Df PeriopSignal[61248:979ed] [com.apple.CFNetwork:Default] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-08 06:21:04.102 Df PeriopSignal[61248:979f0] [com.apple.network:connection] [C1] event: client:connection_reused @4.193s
+2026-11-08 06:21:04.102 Df PeriopSignal[61248:979f0] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-08 06:21:04.102 E  PeriopSignal[61248:979f0] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:21:04.102 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> now using Connection 1
+2026-11-08 06:21:04.103 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> sent request, body N 0
+2026-11-08 06:21:04.109 Df PeriopSignal[61248:979ed] [com.apple.CFNetwork:Default] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> received response, status 200 content K
+2026-11-08 06:21:04.118 Df PeriopSignal[61248:979ed] [com.apple.CFNetwork:Default] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> done using Connection 1
+2026-11-08 06:21:04.118 Df PeriopSignal[61248:979ed] [com.apple.network:connection] [C1] event: client:connection_idle @4.209s
+2026-11-08 06:21:04.118 Df PeriopSignal[61248:979ed] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-08 06:21:04.118 E  PeriopSignal[61248:979ed] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-08 06:21:04.120 Df PeriopSignal[61248:979ed] [com.apple.CFNetwork:Default] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> response ended
+2026-11-08 06:21:04.120 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Summary] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> summary for task success {transaction_duration_ms=18, response_status=200, connection=1, reused=1, reused_after_ms=3979, request_start_ms=1, request_duration_ms=0, response_start_ms=7, response_duration_ms=11, request_bytes=51, request_throughput_kbps=2833, response_bytes=140551, response_throughput_kbps=98253, cache_hit=false}
+2026-11-08 06:21:04.120 Df PeriopSignal[61248:979f0] [com.apple.CFNetwork:Default] Task <EC940565-E717-4BE6-B07E-DE278C7FD30C>.<2> finished successfully
+2026-11-08 06:21:04.142 Df PeriopSignal[61248:977d6] [com.apple.chrono:widget] Creating WidgetCenter connection.
+2026-11-08 06:21:04.148 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x102c8b460] activating connection: mach=true listener=false peer=false name=com.apple.chrono.widgetcenterconnection
+2026-11-08 06:21:04.155 Df PeriopSignal[61248:979f0] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-08 06:21:04.157 Df PeriopSignal[61248:979f0] [com.apple.xpc:connection] [0x10ce3d5b0] activating connection: mach=true listener=false peer=false name=com.apple.usernotifications.listener
+2026-11-08 06:21:04.163 Df PeriopSignal[61248:979ed] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-08 06:21:04.180 Df PeriopSignal[61248:979ea] [com.apple.chrono:widget] reloadAllTimelines() - reloaded all timelines
+2026-11-08 06:21:06.647 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x10cf25970] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-08 06:21:06.648 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x10ce49170] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-08 06:21:06.649 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x10382eb20] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-08 06:21:06.900 Df PeriopSignal[61248:977d6] [com.apple.renderbox:misc] RBDevice: initialized bg state: false
+2026-11-08 06:21:07.037 Df PeriopSignal[61248:977d6] [com.apple.KeyboardArbiter:Client] startConnection
+2026-11-08 06:21:07.040 Df PeriopSignal[61248:977d6] [com.apple.xpc:connection] [0x102f17520] activating connection: mach=true listener=false peer=false name=com.apple.UIKit.KeyboardManagement.hosted
+2026-11-08 06:21:07.901 Df PeriopSignal[61248:979ee] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-08 06:21:07.904 Df PeriopSignal[61248:979ee] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-08 06:21:07.955 Df PeriopSignal[61248:977d6] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-08 06:21:07.957 Df PeriopSignal[61248:977d6] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-08 06:21:10.094 Df PeriopSignal[61248:977d6] [com.apple.network:activity] <nw_activity 50:1 [7B22E2F2-C40A-4EAB-936A-92D3407F65AF] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 25575ms
+2026-11-08 06:21:10.095 Df PeriopSignal[61248:977d6] [com.apple.network:activity] <nw_activity 50:2 [89113867-E6D5-426F-846C-DC33BE3E5358] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 25575ms
+2026-11-08 06:21:10.095 Df PeriopSignal[61248:977d6] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [7B22E2F2-C40A-4EAB-936A-92D3407F65AF] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-08 06:21:10.095 Df PeriopSignal[61248:977d6] [com.apple.network:activity] Unset the global parent activity
