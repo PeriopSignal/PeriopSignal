@@ -61,15 +61,20 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
     }
 
     func testSystemPageRowsKeepTheirCheckAt375() {
-        // Rows from the 1.9 shots whose chosen chips read "✓ Warfarin", "✓ Fistula" (321, 315).
+        // Rows from the 1.9 shots whose chosen chips read "✓ Fistula" (315) and the respiratory infection chips.
         let rows: [[ChipChoice]] = [
-            HistorySections.anticoagulantKinds.map { ChipChoice($0.0, $0.1) },
             HistorySections.dialysisAccesses.map { ChipChoice($0.0, $0.1) },
             [ChipChoice("uri", "URI"), ChipChoice("pneumonia", "Pneumonia"), ChipChoice("other", "Other")],
         ]
         for options in rows {
             XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: row375)?.check, true, options.map(\.label).joined(separator: ", "))
         }
+        // Heparin, Warfarin, Enoxaparin, Other (321) does not fit one line at 375 pt with the slot: it stays on one line
+        // without it (no new wrap), its chosen chips with the heavier outline.
+        let anticoagulants = HistorySections.anticoagulantKinds.map { ChipChoice($0.0, $0.1) }
+        let fit = ChipMetrics.lineFit(anticoagulants, choice: false, in: row375)
+        XCTAssertEqual(fit?.check, false)
+        XCTAssertNotNil(ChipMetrics.lineFit(anticoagulants, choice: false, in: 402 - 40 - 28), "one line at 402 pt")
     }
 
     func testARowThatFitsOnlyWithoutTheSlotStaysOnOneLine() throws {

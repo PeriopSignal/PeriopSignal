@@ -1907,7 +1907,9 @@ enum QuickAdd {
                 out.asides.append(op.aside)
             }
             guard !op.text.isEmpty else { continue }
-            for f in PatientNote.read(op.text, now: c.now, abbreviations: [:], choices: c.choices, askRoomAir: false).findings
+            // Read as done ("s/p"): everything on this bar is a past operation, and the note reader files an aortic repair
+            // only when it is told as past (PatientNote.repairPastBefore), as a "PSH:" line's date tells it.
+            for f in PatientNote.read("s/p " + op.text, now: c.now, abbreviations: [:], choices: c.choices, askRoomAir: false).findings
                 where impliedHistory(f.change) {
                 route(f, op.text, c, &out)
             }

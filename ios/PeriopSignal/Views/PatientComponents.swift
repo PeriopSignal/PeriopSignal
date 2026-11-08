@@ -259,9 +259,14 @@ enum ChipMetrics {
     static let checkFont: CGFloat = 10.5
     static var checkWidth: CGFloat {
         let size = (checkFont * PS.textScale).rounded(toPlaces: 1)
+        if let c = checkCache, c.size == size { return c.width }
         let config = UIImage.SymbolConfiguration(font: UIFont.systemFont(ofSize: size, weight: .bold))
-        return (UIImage(systemName: "checkmark", withConfiguration: config)?.size.width ?? size * 1.1).rounded(.up)
+        let width = (UIImage(systemName: "checkmark", withConfiguration: config)?.size.width ?? size * 1.1).rounded(.up)
+        checkCache = (size, width)
+        return width
     }
+    /// The ✓ width at the last text size (every chip of every one-line form asks for it).
+    private static var checkCache: (size: CGFloat, width: CGFloat)?
     static let checkGap: CGFloat = 5
     /// The outline of a chosen toggle chip in a one-line row with no room for the ✓.
     static let heavyEdge: CGFloat = 1.5
