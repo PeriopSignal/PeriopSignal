@@ -664,6 +664,9 @@ jobs:
           shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
           shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
           shot 579-intraop-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark
+          # 1.10 review: the echo link under Other Intraoperative Details with a pre- and a post-bypass exam.
+          shot 580-intraop-echo-link-pre-post-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.scroll intraop:echo -ps.forceAppearance light
+          shot 581-intraop-echo-link-pre-post-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.scroll intraop:echo -ps.forceAppearance dark
           # 1.10 Case Timers (helper A, 500-519).
           shot 500-timers110-running-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections none -ps.forceAppearance dark
           shot 501-timers110-running-light 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.timers.sections none -ps.forceAppearance light
