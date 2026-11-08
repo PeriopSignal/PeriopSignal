@@ -2206,14 +2206,17 @@ enum QuickAdd {
                 for v in views where v.range.location != g.range.location { s.mask(v.range) }
             }
         }
+        // A Han grade of 3 (difficult mask ventilation) or 4 (unable to mask ventilate): the grade itself is retired, but
+        // what it says is kept as a difficult mask with the grade in its note, as a saved grade is read
+        // (PatientAirway.migratedMask), so it is not dropped from the course and the handoff (Han R, et al. Grading scale
+        // for mask ventilation. Anesthesiology 2004;101:267). Conservative choice: an "easy" written beside it ("easy mask,
+        // Han 4") is read as the difficult mask the grade says, as a saved easy with a grade of 4 is. Grades 1-2 add nothing.
+        let han = maskGrade.flatMap { Int($0.value) }.flatMap { $0 >= 3 ? $0 : nil }
         if let m = maskEaseRx.first(text), let w = (group(m, 1, text) ?? group(m, 2, text))?.lowercased(), !negated(m.range, text) {
             let v = w == "easy" ? "easy" : "difficult"
-            put("mask", v, "Mask " + v, m.range)
+            if han == nil { put("mask", v, "Mask " + v, m.range) } else { s.mask(m.range) }
         }
-        // A Han grade of 3 (difficult mask ventilation) or 4 (unable to mask ventilate) with no ease written: the grade
-        // itself is retired, but what it says is kept as a difficult mask, so it is not dropped from the course and the
-        // handoff (Han R, et al. Grading scale for mask ventilation. Anesthesiology 2004;101:267). Grades 1-2 add nothing.
-        if let mg = maskGrade, let g = Int(mg.value), g >= 3 { put("mask", "difficult", "Mask difficult", mg.range) }
+        if let mg = maskGrade, let g = han { put("maskGrade", String(g), "Mask difficult: " + PatientAirway.hanNote(g), mg.range) }
         if let m = intubationEaseRx.first(text), let w = (group(m, 1, text) ?? group(m, 2, text))?.lowercased(), !negated(m.range, text) {
             let v = w == "easy" ? "easy" : "difficult"
             put("intubation", v, "Intubation " + v, m.range)
@@ -2408,7 +2411,12 @@ extension PatientRecord {
     func intraopAirway(_ key: String) -> String? {
         switch key {
         case "mask": return mask
-        case "maskGrade": return maskGrade.map { String($0) }
+        // A Han grade (retired in 1.10) files a difficult mask with the grade in its note: recorded when the note says
+        // that grade; an "easy" or "none" mask is what it replaces.
+        case "maskGrade":
+            guard let m = mask else { return nil }
+            guard m == "difficult" else { return m }
+            return (1...4).first { maskNote.range(of: "Han grade \($0)", options: .caseInsensitive) != nil }.map { String($0) }
         case "intubation": return intubation == PatientAirway.placed ? nil : intubation
         case "device": return airwayDevice
         case "grade": return laryngoscopyGrade
@@ -2421,7 +2429,11 @@ extension PatientRecord {
     mutating func setIntraopAirway(_ key: String, _ value: String) {
         switch key {
         case "mask": mask = value
-        case "maskGrade": maskGrade = Int(value)
+        case "maskGrade":
+            // The grade is not kept (retired in 1.10): what a 3 or 4 says is, as a difficult mask with the grade in its note.
+            guard let g = Int(value), (3...4).contains(g) else { break }
+            mask = "difficult"
+            maskNote = PatientAirway.noteWithHan(g, maskNote)
         case "intubation": intubation = value
         case "device": airwayDevice = value
         case "grade": laryngoscopyGrade = value

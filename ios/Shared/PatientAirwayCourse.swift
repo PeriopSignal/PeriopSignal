@@ -22,11 +22,22 @@ extension PatientAirway {
         guard let g = grade, (1...4).contains(g) else { return (mask, note) }
         if g >= 3 {
             guard mask == nil || mask == "easy" else { return (mask, note) }
-            let said = "Han grade \(g)" + (g == 4 ? ", unable to mask ventilate" : "")
-            let n = note.trimmingCharacters(in: .whitespacesAndNewlines)
-            return ("difficult", n.localizedCaseInsensitiveContains("Han grade") ? note : (n.isEmpty ? said : said + "; " + n))
+            return ("difficult", note.localizedCaseInsensitiveContains("Han grade") ? note : noteWithHan(g, note))
         }
         return (mask ?? "easy", note)
+    }
+
+    /// What a Han grade of 3 or 4 says, as the mask note puts it.
+    static func hanNote(_ g: Int) -> String { "Han grade \(g)" + (g == 4 ? ", unable to mask ventilate" : "") }
+
+    /// The mask note with a Han grade in front ("Han grade 4, unable to mask ventilate; Beard"); a Han grade already at
+    /// its front is replaced, so the grade is never written twice.
+    static func noteWithHan(_ g: Int, _ note: String) -> String {
+        var n = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let r = n.range(of: #"^Han grade [1-4](?:, unable to mask ventilate)?\s*;?\s*"#, options: [.regularExpression, .caseInsensitive]) {
+            n.removeSubrange(r)
+        }
+        return n.isEmpty ? hanNote(g) : hanNote(g) + "; " + n
     }
 
     /// "easy" or "difficult" as saved; anything else (none, placed, nil) is no ease recorded.

@@ -134,6 +134,7 @@ final class Review110HistoryIntraopTests: XCTestCase {
         // 1.9 quick-add "mask grade 4, VL grade 1": the grade alone.
         let four = try load(#"{"maskGrade":4,"intubation":"easy","airwayDevice":"Video laryngoscope","laryngoscopyGrade":"1"}"#)
         XCTAssertEqual(four.mask, "difficult")
+        XCTAssertNil(four.maskGrade, "the grade is not kept once read")
         XCTAssertTrue(PatientSummary.difficultAirway(four), "the difficult-airway alert, as in 1.9")
         let course = PatientBriefs.airwayCourse(four)?.text ?? ""
         XCTAssertTrue(course.contains("Mask ventilation DIFFICULT: Han grade 4, unable to mask ventilate"), course)
@@ -170,6 +171,65 @@ final class Review110HistoryIntraopTests: XCTestCase {
         XCTAssertEqual(applied("Han 3").mask, "difficult")
         XCTAssertNil(applied("mask grade 2, VL grade 1").mask, "grades 1-2 add nothing")
         XCTAssertEqual(applied("easy mask grade 2, VL grade 1").mask, "easy")
+    }
+
+    // MARK: A migrated Han grade is not kept, so a later edit of the mask stays
+
+    func testAMaskEditedAfterTheHanGradeIsReadStaysEdited() throws {
+        let coder = JSONEncoder()
+        func load(_ data: Data) throws -> PatientRecord { try JSONDecoder().decode(PatientRecord.self, from: data) }
+        var r = try load(Data(#"{"maskGrade":4}"#.utf8))
+        XCTAssertEqual(r.mask, "difficult")
+        XCTAssertEqual(r.maskNote, "Han grade 4, unable to mask ventilate")
+        XCTAssertNil(r.maskGrade, "read once into the mask, then dropped")
+        XCTAssertFalse(String(decoding: try coder.encode(r), as: UTF8.self).contains("maskGrade"), "the next save does not carry it")
+        // The clinician taps Easy and deletes the note: the next load (a relaunch) keeps that.
+        r.mask = "easy"; r.maskNote = ""
+        var back = try load(try coder.encode(r))
+        XCTAssertEqual(back.mask, "easy")
+        XCTAssertEqual(back.maskNote, "")
+        // Deselected: no mask comes back.
+        back.mask = nil
+        XCTAssertNil(try load(try coder.encode(back)).mask)
+        // Grades 1-2: a deselected mask does not come back as easy.
+        var two = try load(Data(#"{"maskGrade":2}"#.utf8))
+        XCTAssertEqual(two.mask, "easy")
+        two.mask = nil
+        XCTAssertNil(try load(try coder.encode(two)).mask)
+    }
+
+    // MARK: A typed Han grade 3-4 files a difficult mask with the grade in its note
+
+    func testATypedHanGradeKeepsWhatItSaysInTheNote() throws {
+        func read(_ s: String, _ r: PatientRecord = PatientRecord()) -> QuickAddReading {
+            QuickAdd.read(s, record: r, tab: .intraop, now: now, choices: [:])
+        }
+        func applied(_ s: String, to start: PatientRecord = PatientRecord()) -> PatientRecord {
+            var r = start
+            PatientNote.apply(read(s, start).findings.map(\.change), to: &r)
+            return r
+        }
+        let four = applied("Han 4")
+        XCTAssertEqual(four.mask, "difficult")
+        XCTAssertEqual(four.maskNote, "Han grade 4, unable to mask ventilate", "as a saved grade 4 reads")
+        XCTAssertNil(four.maskGrade)
+        // "easy mask, Han 4": the grade is not dropped; the difficult mask it says is filed (conservative, as on decode).
+        let both = read("easy mask, Han 4")
+        XCTAssertNil(both.findings.first { $0.id == "intraop-airway:mask" }, "\(both.findings.map(\.label))")
+        let f = try XCTUnwrap(both.findings.first { $0.id == "intraop-airway:maskGrade" }, "\(both.findings.map(\.id))")
+        XCTAssertEqual(f.label, "Mask difficult: Han grade 4, unable to mask ventilate")
+        XCTAssertEqual(applied("easy mask, Han 4").mask, "difficult")
+        // Against a recorded mask: an easy one is replaced; once filed it is recorded.
+        var easy = PatientRecord(); easy.mask = "easy"
+        XCTAssertEqual(PatientNote.status(f, in: easy), .replaces("easy"))
+        XCTAssertEqual(PatientNote.status(f, in: PatientRecord()), .new)
+        let filed = applied("Han 4", to: easy)
+        XCTAssertEqual(PatientNote.status(f, in: filed), .recorded)
+        // A note already there is kept after the grade; a later grade replaces the earlier one rather than adding a second.
+        var beard = PatientRecord(); beard.mask = "difficult"; beard.maskNote = "Beard"
+        let three = applied("Han 3", to: beard)
+        XCTAssertEqual(three.maskNote, "Han grade 3; Beard")
+        XCTAssertEqual(applied("mask grade 4", to: three).maskNote, "Han grade 4, unable to mask ventilate; Beard")
     }
 
     // MARK: The Intraop tab's chips keep their width when chosen

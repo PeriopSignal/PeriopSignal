@@ -338,8 +338,8 @@ enum PatientAirway {
         return parts.joined(separator: "; ")
     }
 
-    // 1.10 (Ben, Nov 7): the Han mask-ventilation grade is gone ("not widely used"). A saved grade stays in the record
-    // (PatientRecord.maskGrade) and is ignored everywhere: not shown, not counted as a difficult airway.
+    // 1.10 (Ben, Nov 7): the Han mask-ventilation grade is gone ("not widely used"). A saved grade is read once into the
+    // mask ease and note it meant (PatientAirway.migratedMask) and then dropped; it is not shown or counted on its own.
 
     /// The stored value for "Intubation" or "LMA" chosen with no ease recorded yet (PatientRecord.intubation and .sga);
     /// "easy", "difficult" and "none" are the older values.

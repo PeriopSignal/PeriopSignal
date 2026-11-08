@@ -254,7 +254,8 @@ struct PatientRecord: Codable, Equatable {
     /// "easy", "difficult", "none".
     var mask: String?
     var maskNote = ""
-    /// Han mask-ventilation grade, 1–4. Retired in 1.10 (Ben, Nov 7): kept so a saved patient round-trips, never shown or used.
+    /// Han mask-ventilation grade, 1–4. Retired in 1.10 (Ben, Nov 7): never shown or used. A saved grade is read once into
+    /// the mask ease and note (PatientAirway.migratedMask) and not kept, so it is nil on every decoded record.
     var maskGrade: Int?
     /// Supraglottic airway: "easy", "difficult", "none".
     var sga: String?
@@ -418,8 +419,10 @@ struct PatientRecord: Codable, Equatable {
         oxygen = v(.oxygen, PatientOxygen())
         mask = try? c.decodeIfPresent(String.self, forKey: .mask)
         maskNote = v(.maskNote, "")
-        maskGrade = try? c.decodeIfPresent(Int.self, forKey: .maskGrade)
-        (mask, maskNote) = PatientAirway.migratedMask(mask, note: maskNote, grade: maskGrade)
+        // A saved Han grade (retired in 1.10) is read once into the mask it meant, then dropped, so the next save no longer
+        // carries it and a 1.10 edit of the mask or its note is not undone on the next load.
+        (mask, maskNote) = PatientAirway.migratedMask(mask, note: maskNote, grade: try? c.decodeIfPresent(Int.self, forKey: .maskGrade))
+        maskGrade = nil
         sga = try? c.decodeIfPresent(String.self, forKey: .sga)
         sgaNote = v(.sgaNote, "")
         intubation = try? c.decodeIfPresent(String.self, forKey: .intubation)
