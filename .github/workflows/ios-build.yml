@@ -583,6 +583,8 @@ jobs:
           shot 559-procedure-editor-light 18 -ps.tab patient -ps.patient demo -ps.patient.open procedure -ps.forceAppearance light
           # 1.10 regression review, Preoperative group (640-659): chosen toggle chips keep their check on one-line rows at 375 pt.
           shot 640-w375-cv-af-pacer-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.patient.width 375 -ps.forceAppearance light
+          shot 641-diag-renal-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
+          diag 641-diag-renal-light
           # 1.9 Preprocedure tab (helper 5): the reorganized tab from top to bottom, light and dark; a large-text pair.
           shot 440-preop-top-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance light
           shot 441-preop-top-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance dark
