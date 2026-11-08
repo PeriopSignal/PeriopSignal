@@ -142,7 +142,10 @@ final class CaseTimers110Tests: XCTestCase {
         XCTAssertTrue(over.contains { $0.level == .soft }, "1.17: above the cap")
         XCTAssertFalse(over.needsConfirm)
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 200, course: h, purpose: p, rules: d.protamine).needsConfirm, "1.33")
-        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 600, course: h, purpose: p, rules: d.protamine).blocks, "2.67 of the initial, though 2.0 of the total")
+        // 1.10 review: the STS 2.6 ceiling reads on the heparin given (STS does not state its basis); 2.67 on the initial
+        // dose needs a second tap, it no longer blocks.
+        XCTAssertFalse(CaseTimerEngine.protamineIssues(mg: 600, course: h, purpose: p, rules: d.protamine).blocks, "2.0 of the total given")
+        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 600, course: h, purpose: p, rules: d.protamine).needsConfirm, "2.67 of the initial")
         h.protamine.append(TimedEntry(time: t0.addingTimeInterval(7800), value: 150))
         XCTAssertEqual(try XCTUnwrap(CaseTimerEngine.protamineSuggestion(h, purpose: p, rules: d.protamine)).remainingMg, 0, "never negative")
     }
@@ -159,7 +162,11 @@ final class CaseTimers110Tests: XCTestCase {
         h.doses.append(TimedEntry(time: t0.addingTimeInterval(2400), value: 3_000))
         s = try XCTUnwrap(CaseTimerEngine.protamineSuggestion(h, purpose: p, rules: d.protamine))
         XCTAssertEqual(s.capMg, 70, "the initial dose, not the 10,000 U total")
-        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 190, course: h, purpose: p, rules: d.protamine).blocks, "2.7 mg per 100 U of the initial dose")
+        // 1.10 review: 1.9 mg per 100 U of the 10,000 U given is under the STS ceiling; 2.7 of the initial dose needs a
+        // second tap.
+        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 190, course: h, purpose: p, rules: d.protamine).needsConfirm, "2.7 mg per 100 U of the initial dose")
+        XCTAssertFalse(CaseTimerEngine.protamineIssues(mg: 190, course: h, purpose: p, rules: d.protamine).blocks)
+        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 270, course: h, purpose: p, rules: d.protamine).blocks, "2.7 of all 10,000 U given")
         XCTAssertNil(CaseTimerEngine.protamineSuggestion(HeparinCourse(purpose: "tavr", goal: 250, actEvery: 30), purpose: p, rules: d.protamine))
     }
 

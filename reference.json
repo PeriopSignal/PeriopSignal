@@ -14857,7 +14857,7 @@
         "doseDefault": 300,
         "goal": 480,
         "goalDevice": 400,
-        "goalText": "i-STAT; STS 2018 and EACTS 2024: above 480 s",
+        "goalText": "STS 2018 and EACTS 2024: above 480 s",
         "actEvery": [
           30,
           20

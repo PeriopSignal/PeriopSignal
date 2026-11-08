@@ -676,9 +676,9 @@ jobs:
           shot 508-timers110-labs-running-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections labs -ps.timers.scroll labs -ps.forceAppearance dark
           shot 509-timers110-labs-running-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections labs -ps.timers.scroll labs -ps.forceAppearance light
           shot 510-timers110-bypass-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
-          shot 511-timers110-bypass-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance light
+          shot 511-timers110-bypass-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin -ps.evidence.open 1 -ps.forceAppearance light
           shot 512-timers110-bypass-protamine-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance dark
-          shot 513-timers110-bypass-protamine-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance light
+          shot 513-timers110-bypass-protamine-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.evidence.open 1 -ps.forceAppearance light
           shot 514-timers110-tavr-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed tavr -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
           shot 515-timers110-tavr-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed tavr -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance light
           shot 516-timers110-tavr-new-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.purpose tavr -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
