@@ -659,7 +659,7 @@ jobs:
           shot 572-handoff-airway-course-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 573-handoff-labs-times-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
           shot 574-handoff-labs-times-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
-          shot 575-labs-drawn-time-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 575-labs-drawn-time-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.forceAppearance light
           shot 576-lines-slic-typed-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "LIJ SLIC 9 Fr" -ps.forceAppearance light
           shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
           shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
