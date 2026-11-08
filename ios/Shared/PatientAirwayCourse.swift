@@ -12,6 +12,34 @@ extension PatientAirway {
     /// "Face mask only" stay in the catalog for the quick-add bar and older records; the LMA has its own chip.)
     static var intubationDevices: [String] { [PatientCatalog.devices[0], PatientCatalog.devices[1], fiberoptic] }
 
+    /// A saved Han mask-ventilation grade (retired in 1.10), read into the mask ease it stands for, so what a 1.9 save
+    /// said stays in the course, the handoff and the difficult-airway alert (migrate on read). Han R, Tremper KK,
+    /// Kheterpal S, O'Reilly M. Grading scale for mask ventilation. Anesthesiology 2004;101:267: grade 3 is difficult
+    /// mask ventilation, grade 4 unable to mask ventilate; grades 1-2 are ventilated by mask (with an adjunct for 2).
+    /// Conservative choice: 1.9 counted a grade of 3 or 4 as a difficult airway whatever the mask ease, so a grade of 3 or
+    /// 4 makes an empty or "easy" mask difficult, with the grade in its note; 1-2 fill only an empty mask, as easy.
+    static func migratedMask(_ mask: String?, note: String, grade: Int?) -> (mask: String?, note: String) {
+        guard let g = grade, (1...4).contains(g) else { return (mask, note) }
+        if g >= 3 {
+            guard mask == nil || mask == "easy" else { return (mask, note) }
+            return ("difficult", note.localizedCaseInsensitiveContains("Han grade") ? note : noteWithHan(g, note))
+        }
+        return (mask ?? "easy", note)
+    }
+
+    /// What a Han grade of 3 or 4 says, as the mask note puts it.
+    static func hanNote(_ g: Int) -> String { "Han grade \(g)" + (g == 4 ? ", unable to mask ventilate" : "") }
+
+    /// The mask note with a Han grade in front ("Han grade 4, unable to mask ventilate; Beard"); a Han grade already at
+    /// its front is replaced, so the grade is never written twice.
+    static func noteWithHan(_ g: Int, _ note: String) -> String {
+        var n = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let r = n.range(of: #"^Han grade [1-4](?:, unable to mask ventilate)?\s*;?\s*"#, options: [.regularExpression, .caseInsensitive]) {
+            n.removeSubrange(r)
+        }
+        return n.isEmpty ? hanNote(g) : hanNote(g) + "; " + n
+    }
+
     /// "easy" or "difficult" as saved; anything else (none, placed, nil) is no ease recorded.
     static func ease(_ saved: String?) -> String? { saved == "easy" || saved == "difficult" ? saved : nil }
 
@@ -30,6 +58,12 @@ extension PatientAirway {
 
     private static func supraglotticDevice(_ r: PatientRecord) -> Bool { r.airwayDevice == "Supraglottic airway" }
 
+    /// `tube` holds the LMA's size, not a tube: the device is the supraglottic airway and no intubation is recorded (the
+    /// quick-add bar files "LMA 4" this way). The LMA section shows it then, as the Tube field is under Intubation only.
+    static func tubeIsLMA(_ r: PatientRecord) -> Bool {
+        supraglotticDevice(r) && !(r.intubation == "easy" || r.intubation == "difficult" || r.intubation == placed)
+    }
+
     /// Chooses or clears Intubation. Clearing it clears its details too (device, view, attempts, tube and the note on
     /// a difficult one); Undo brings them back.
     static func setIntubation(_ on: Bool, _ r: inout PatientRecord) {
@@ -45,13 +79,15 @@ extension PatientAirway {
         }
     }
 
-    /// Chooses or clears the LMA.
+    /// Chooses or clears the LMA. Clearing it clears the LMA's size kept in `tube` too, which would otherwise read as an
+    /// intubation's tube (the Intubation chip on, an ETT on the diagram); Undo brings it back.
     static func setLMA(_ on: Bool, _ r: inout PatientRecord) {
         if on {
             if r.sga == nil || r.sga == "none" { r.sga = placed }
         } else {
             r.sga = nil
             r.sgaNote = ""
+            if tubeIsLMA(r) { r.tube = "" }
             if supraglotticDevice(r) { r.airwayDevice = nil }
         }
     }

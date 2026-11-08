@@ -651,10 +651,10 @@ jobs:
           shot 564-intraop-meds-infusions-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.infusion.type "dobut 5, epi" -ps.forceAppearance dark
           shot 565-intraop-fluids-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance light
           shot 566-intraop-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
-          shot 567-intraop-other-details-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:labs -ps.forceAppearance light
-          shot 568-intraop-other-details-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:labs -ps.forceAppearance dark
-          shot 569-airway-intubation-open-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:airway -ps.forceAppearance light
-          shot 570-airway-intubation-open-dark 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:airway -ps.forceAppearance dark
+          shot 567-intraop-other-details-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance light
+          shot 568-intraop-other-details-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance dark
+          shot 569-airway-intubation-open-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.open intraop:airway -ps.forceAppearance light
+          shot 570-airway-intubation-open-dark 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.open intraop:airway -ps.forceAppearance dark
           shot 571-handoff-airway-course-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance light
           shot 572-handoff-airway-course-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 573-handoff-labs-times-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
@@ -664,6 +664,9 @@ jobs:
           shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
           shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
           shot 579-intraop-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark
+          # 1.10 review: the echo link under Other Intraoperative Details with a pre- and a post-bypass exam.
+          shot 580-intraop-echo-link-pre-post-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.scroll intraop:echo -ps.forceAppearance light
+          shot 581-intraop-echo-link-pre-post-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.scroll intraop:echo -ps.forceAppearance dark
           # 1.10 Case Timers (helper A, 500-519).
           shot 500-timers110-running-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections none -ps.forceAppearance dark
           shot 501-timers110-running-light 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.timers.sections none -ps.forceAppearance light

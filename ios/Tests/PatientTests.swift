@@ -446,7 +446,7 @@ final class PatientTests: XCTestCase {
         c.cardiacSymptoms = ["syncope"]
         let c2 = try JSONDecoder().decode(PatientRecord.self, from: try JSONEncoder().encode(c))
         XCTAssertEqual(c2.urgency, .timeSensitive)
-        XCTAssertEqual(c2.maskGrade, 2)
+        XCTAssertNil(c2.maskGrade, "a Han grade (retired in 1.10) is read into the mask once and not kept")
         XCTAssertEqual(c2.sga, "easy")
         XCTAssertEqual(c2.airwayFollowUp, ["told"])
         XCTAssertEqual(c2.callIf, "SBP under 90")

@@ -64,9 +64,12 @@ final class Intraop110Tests: XCTestCase {
         alone.maskGrade = 2
         XCTAssertNil(PatientBriefs.airwayCourse(alone))
         XCTAssertTrue(PatientSummary.airwayCourseSentences(alone).isEmpty)
-        // It still round-trips with the saved patient.
+        // 1.10 review: read from a save, a grade of 3 or 4 is the difficult mask it meant (migrate on read,
+        // PatientAirway.migratedMask; Review110HistoryIntraopTests), so it is not lost; the grade itself is then dropped,
+        // so a later edit of the mask is not undone on the next load.
         let back = try JSONDecoder().decode(PatientRecord.self, from: JSONEncoder().encode(r))
-        XCTAssertEqual(back.maskGrade, 4)
+        XCTAssertNil(back.maskGrade)
+        XCTAssertEqual(back.mask, "difficult")
     }
 
     func testTheDifficultAirwayFollowUpIsGoneFromTheAirwayAndTheHandoff() throws {
