@@ -1,6 +1,0 @@
-2026-11-08 14:26:49.153005+0000 PeriopSignal[35170:93891] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-11-08 14:26:49.200745+0000 PeriopSignal[35170:93891] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-11-08 14:26:53.936884+0000 PeriopSignal[35170:93892] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-2026-11-08 14:26:53.959088+0000 PeriopSignal[35170:93892] [connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
-Testing failed:
-** TEST FAILED **
