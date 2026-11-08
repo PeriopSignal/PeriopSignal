@@ -455,13 +455,21 @@ struct IntraopDevicesCard: View {
     /// The limb alerts and the arm to spare, the lines in place (on arrival or placed in the room, as the handoff lists
     /// them) on one line, and the mechanical support.
     static func lines(_ r: PatientRecord) -> [PatientSummary.Line] {
-        var out: [PatientSummary.Line] = PatientSummary.limbAlertLines(r)
-        out += PatientSummary.harvestLines(r)
+        let s = sections(r)
+        return s.aboveFigure + s.belowFigure
+    }
+
+    /// Where each line goes on the card (1.10 review): the limb alerts and the radial-harvest arm cautions are safety
+    /// content and open the card above the figure, as they opened 1.9's Lines card on the first screen; the lines in place
+    /// and the mechanical support follow the figure.
+    static func sections(_ r: PatientRecord) -> (aboveFigure: [PatientSummary.Line], belowFigure: [PatientSummary.Line]) {
+        let alerts = PatientSummary.limbAlertLines(r) + PatientSummary.harvestLines(r)
+        var rest: [PatientSummary.Line] = []
         var placed: [String] = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) })
         placed += r.lines.map(\.text).filter { !$0.isEmpty }
-        if !placed.isEmpty { out.append(PatientSummary.Line(nil, placed.joined(separator: "; "))) }
-        out += PatientSummary.supportLines(r)
-        return out
+        if !placed.isEmpty { rest.append(PatientSummary.Line(nil, placed.joined(separator: "; "))) }
+        rest += PatientSummary.supportLines(r)
+        return (alerts, rest)
     }
 
     var body: some View {
@@ -474,14 +482,17 @@ struct IntraopDevicesCard: View {
                     Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                 }
                 // Every line and device in place now, on arrival or placed in the room, as the handoff lists them.
-                let lines = Self.lines(r)
+                let s = Self.sections(r)
                 let figure = PatientDiagramModel.items(r, phase: .all)
-                if lines.isEmpty && figure.items.isEmpty && figure.cart == nil {
+                if s.aboveFigure.isEmpty && s.belowFigure.isEmpty && figure.items.isEmpty && figure.cart == nil {
                     Text("Tap to draw the lines and devices: peripheral, arterial and central lines, the airway and mechanical support.")
                         .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    PatientDiagramCard(record: r, phase: .all, height: 260)
-                    ForEach(Array(lines.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
+                    // The arm and limb alerts first (safety content), then the figure; the limb alert is already in the
+                    // red line above, so the figure does not list it again under itself.
+                    ForEach(Array(s.aboveFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
+                    PatientDiagramCard(record: r, phase: .all, height: 260, listsLimbAlerts: PatientSummary.limbAlertLines(r).isEmpty)
+                    ForEach(Array(s.belowFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
                 }
             }
             .padding(16)

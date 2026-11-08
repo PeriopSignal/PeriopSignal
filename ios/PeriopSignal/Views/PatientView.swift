@@ -536,7 +536,8 @@ struct PatientView: View {
                 if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty && PatientDeviceFills.limbAlerts(r).isEmpty {
                     Text("Tap to draw the lines, airway and devices the patient arrives with.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    PatientDiagramCard(record: r, phase: .preop, height: 260)
+                    // The limb alerts open the card, above the figure, as on the Intraoperative tab (1.10 review).
+                    PatientDiagramCard.preopCard(r)
                     ForEach(Array(lines.enumerated()), id: \.offset) { _, l in summaryLine(l) }
                 }
             }

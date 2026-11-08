@@ -355,18 +355,39 @@ struct PatientDiagramCard: View {
     var height: CGFloat = 300
     /// The limb alerts listed under the figure (1.9); the handoff leaves them to its own text.
     var listsLimbAlerts = true
+    /// The limb alerts above the figure rather than under it (1.10 review): on a card, safety content opens it, on the
+    /// first screen, instead of after a 260-pt figure.
+    var limbAlertsAbove = false
+
+    enum Part: Hashable { case limbAlerts, figure }
+    /// The card's parts, top to bottom.
+    var parts: [Part] {
+        guard listsLimbAlerts else { return [.figure] }
+        return limbAlertsAbove ? [.limbAlerts, .figure] : [.figure, .limbAlerts]
+    }
+
+    /// The Preoperative tab's Lines & Devices card: the limb alerts first, then the figure of what the patient arrives with.
+    static func preopCard(_ r: PatientRecord) -> PatientDiagramCard {
+        PatientDiagramCard(record: r, phase: .preop, height: 260, limbAlertsAbove: true)
+    }
 
     var body: some View {
-        if let fig = refs.bundle?.regional?.figure {
-            let m = PatientDiagramModel.items(record, phase: phase)
-            VStack(alignment: .leading, spacing: 8) {
+        let order = parts
+        VStack(alignment: .leading, spacing: 8) {
+            if order.first == .limbAlerts { caption }
+            if let fig = refs.bundle?.regional?.figure {
+                let m = PatientDiagramModel.items(record, phase: phase)
                 PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
                     .frame(height: height)
                     .frame(maxWidth: .infinity)
                     .allowsHitTesting(false)
-                if listsLimbAlerts { LimbAlertCaption(groups: PatientDeviceFills.limbAlertGroups(record, arrivalOnly: phase == .preop)) }
             }
+            if order.count > 1 && order.last == .limbAlerts { caption }
         }
+    }
+
+    private var caption: some View {
+        LimbAlertCaption(groups: PatientDeviceFills.limbAlertGroups(record, arrivalOnly: phase == .preop))
     }
 }
 
