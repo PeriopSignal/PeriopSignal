@@ -232,7 +232,8 @@ enum QuickAdd {
         if place == .pastSurgery { return pastSurgeryPlaceholder }
         return place == .summaryTab ? "K 5.4, norepi 0.05, A-line" : placeholder(place.tab)
     }
-    static let pastSurgeryPlaceholder = "CABG ×3 2015, appendectomy, R TKA 06/2019"
+    /// Short enough for the compact one-line bar at 375 pt, with both date forms (a year; a month and year).
+    static let pastSurgeryPlaceholder = "CABG ×3 2015, R TKA 06/2019"
 
     /// The questions the reader asks itself ("SpO₂ 95% · room air?", "PRBC 2 · given?") and the infusion reader's
     /// (InfusionEntry: "drug:<word>", "unit:<drugID>:<rate>"), as opposed to an abbreviation's meaning: nothing is added
