@@ -99,8 +99,11 @@ enum PatientDiagramModel {
                 if !r.ettSize.isEmpty { label += " " + r.ettSize }
                 let depth: String = r.ettDepth.split(separator: " ").first.map(String.init) ?? ""
                 if !depth.isEmpty { label += " @" + depth }
-            } else if let first = r.tube.split(separator: ",").first {
-                label = String(first)
+            } else if PatientAirway.tubeIsLMA(r) {
+                // The LMA's size kept in `tube` ("LMA 4"), as typed.
+                if let first = r.tube.split(separator: ",").first { label = String(first) }
+            } else if !r.tube.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                label = ettLabel(tube: r.tube)
             }
             out.append(DiagramItem(id: "airway-ett", anchor: CGPoint(x: 100, y: 42), course: [CGPoint(x: 100, y: 53), CGPoint(x: 100, y: 74)],
                                    color: DiagramColor.airway, width: 2.2, marker: .dot, label: label, labelLeft: false, movable: false))
@@ -300,6 +303,36 @@ enum PatientDiagramModel {
                 if items[i].label.count > 15 { items[i].label = String(items[i].label.prefix(14)) + "…" }
             }
         }
+    }
+
+    /// The airway's tag from the typed Tube field, in the form of the ETT branch above: "8.0 cuffed ETT (23 cm)" and
+    /// "7.5 ETT, 23 cm at the lip" read "ETT 8.0 @23", so the depth is kept and the tag fits the 15-character label column
+    /// (review 1.10: the field's own prompt has no comma, and the whole entry was cut to "8.0 cuffed ETT…"). A double-lumen
+    /// tube keeps its name ("DLT 37 Fr L" reads "DLT 37"). With no size to read, the text before the first comma or
+    /// parenthesis, as typed.
+    static func ettLabel(tube: String) -> String {
+        let t = tube.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ns = t as NSString
+        let number = "([0-9]+(?:\\.[0-9]+)?)"
+        func first(_ pattern: String) -> NSTextCheckingResult? {
+            (try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]))?.firstMatch(in: t, range: NSRange(location: 0, length: ns.length))
+        }
+        // The depth: the number written before "cm"; the size: the first other number.
+        let depthRange = first(number + "\\s*cm\\b")?.range(at: 1)
+        let depth = depthRange.map { " @" + ns.substring(with: $0) } ?? ""
+        var size: String?
+        if let re = try? NSRegularExpression(pattern: number) {
+            for m in re.matches(in: t, range: NSRange(location: 0, length: ns.length)) where m.range != depthRange {
+                size = ns.substring(with: m.range); break
+            }
+        }
+        let dlt = first("\\b(DLT|double[- ]lumen)\\b") != nil
+        let kind = dlt ? "DLT" : "ETT"
+        if let size { return kind + " " + size + depth }
+        // No size: the depth alone ("ETT @23"), else the words as typed.
+        if !depth.isEmpty { return kind + depth }
+        let head = t.split(whereSeparator: { $0 == "," || $0 == "(" }).first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+        return head.isEmpty ? kind : head
     }
 
     private static func trachLabel(_ r: PatientRecord) -> String {

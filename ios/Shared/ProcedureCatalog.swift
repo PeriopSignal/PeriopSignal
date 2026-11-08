@@ -1073,7 +1073,11 @@ extension ProcedureCatalog {
         heart("endocarditis", "Surgery for endocarditis", ["endocarditis surgery", "valve surgery for endocarditis", "aortic root abscess repair", "root abscess debridement", "annular abscess repair"]),
         heart("commando", "Aortomitral curtain reconstruction", ["cardiac commando procedure", "commando operation", "Hemi-Commando", "intervalvular fibrous body reconstruction", "UFO procedure"]),
         heart("homograft-root", "Homograft aortic root replacement", ["homograft root replacement", "homograft aortic root", "allograft root replacement", "aortic homograft"]),
-        heart("wheat", "AVR with supracoronary ascending aorta replacement", ["Wheat procedure", "AVR with ascending aorta replacement", "separate AVR and supracoronary graft", "AVR and supracoronary graft"]),
+        heart("wheat", "AVR with supracoronary ascending aorta replacement", ["Wheat procedure", "AVR with ascending aorta replacement", "separate AVR and supracoronary graft", "AVR and supracoronary graft",
+            // Spelled out (review 1.10): without these the text split into an AVR with "supracoronary" as its detail and a
+            // separate ascending aorta replacement, though "supracoronary" describes the aortic graft.
+            "aortic valve replacement and supracoronary ascending aorta replacement", "aortic valve replacement with supracoronary ascending aorta replacement",
+            "AVR and supracoronary ascending aorta replacement", "aortic valve replacement and supracoronary graft", "aortic valve replacement with supracoronary graft"]),
         heart("mini-tricuspid", "Minimally invasive tricuspid valve surgery", ["minimally invasive tricuspid repair", "right minithoracotomy tricuspid repair", "robotic tricuspid repair", "isolated tricuspid surgery"]),
         heart("tavr-explant", "Surgical TAVR explant", ["TAVR explant", "TAVR explantation", "surgical explant of TAVR", "TAVR explant with AVR"]),
         heart("thoracoscopic-laa", "Thoracoscopic left atrial appendage exclusion", ["thoracoscopic LAA clip", "VATS LAA clip", "thoracoscopic left atrial appendage clip", "standalone LAA exclusion", "thoracoscopic LAA exclusion"], ga, chest, mid),

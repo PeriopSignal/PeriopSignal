@@ -659,7 +659,7 @@ jobs:
           shot 572-handoff-airway-course-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 573-handoff-labs-times-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
           shot 574-handoff-labs-times-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
-          shot 575-labs-drawn-time-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 575-labs-drawn-time-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.forceAppearance light
           shot 576-lines-slic-typed-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "LIJ SLIC 9 Fr" -ps.forceAppearance light
           shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
           shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
@@ -680,6 +680,10 @@ jobs:
           # 598-599: the same AVR with severe aortic stenosis recorded: no "evaluate for valve intervention" note.
           shot 598-review-cardio-avr-as-light 18 -ps.tab patient -ps.patient demo-echo110-as -ps.patient.tab preop -ps.patient.jump cardio -ps.forceAppearance light
           shot 599-review-cardio-avr-as-dark 18 -ps.tab patient -ps.patient demo-echo110-as -ps.patient.tab preop -ps.patient.jump cardio -ps.forceAppearance dark
+          # 1.10 screenshot review, preop group (620-639): the intraop demo's spelled-out AVR with supracoronary ascending
+          # aorta replacement read as one procedure in the Planned Procedure & Anesthetic box.
+          shot 620-shots-preop-planned-wheat-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab preop -ps.forceAppearance light
+          shot 621-shots-preop-planned-wheat-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab preop -ps.forceAppearance dark
           # 1.10 Case Timers (helper A, 500-519).
           shot 500-timers110-running-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections none -ps.forceAppearance dark
           shot 501-timers110-running-light 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.timers.sections none -ps.forceAppearance light

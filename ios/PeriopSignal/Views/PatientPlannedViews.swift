@@ -12,13 +12,16 @@ import SwiftUI
 // MARK: - Chip rows shared by the box and the editors
 
 /// Urgency (2024 AHA/ACC): Elective, Time-sensitive, Urgent, Emergency, on one line where they fit; a second tap clears it.
+/// `compact` (the Planned Procedure & Anesthetic box): the full words on one line at 375 pt too, with the compact padding
+/// (Ben, chat-4; review 1.10). A larger text size still wraps.
 struct UrgencyChips: View {
     @Environment(PatientStore.self) private var patient
+    var compact = false
 
     var body: some View {
         PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) },
                       selection: Binding(get: { patient.record.urgency?.rawValue }, set: { v in patient.update { $0.urgency = v.flatMap { PatientUrgency(rawValue: $0) } } }),
-                      tint: PS.accent)
+                      tint: PS.accent, compact: compact)
     }
 }
 
@@ -104,10 +107,13 @@ struct PreopPlannedBox: View {
                     Button("Hide") { withAnimation(.snappy) { urgencyOpen = false } }
                         .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg3).buttonStyle(.plain)
                 }
-                UrgencyChips()
+                .padding(.horizontal, PatientPreop110.urgencyRowOutset)
+                // The chips take the row's 14-pt inset less the outset, so the four full words fit one line at 375 pt
+                // (the compact chip's 4-pt padding then lines its first word up with the title).
+                UrgencyChips(compact: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 14).padding(.vertical, 10)
+            .padding(.horizontal, 14 - PatientPreop110.urgencyRowOutset).padding(.vertical, 10)
         } else if let u = r.urgency, let parts = PatientPreop110.urgencyCollapsedParts(r) {
             Button { withAnimation(.snappy) { urgencyOpen = true } } label: {
                 HStack(spacing: 6) {

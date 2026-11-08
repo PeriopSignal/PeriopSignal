@@ -101,6 +101,10 @@ enum PatientPreop110 {
     }
 
     /// The names the old Procedure card's jump keys and the new box answer to: the box's scroll keys.
+    /// How far the Planned box's urgency chips reach into the row's 14-pt inset on each side, so the four full words fit
+    /// one line at 375 pt with the compact padding (Ben, chat-4; review 1.10).
+    static let urgencyRowOutset: CGFloat = 4
+
     static let boxAnchor = "planned"
     static let riskInputsAnchor = "riskinputs"
 }

@@ -296,15 +296,25 @@ struct PatientView: View {
             // again a few times and push once more while the path is still empty. A push that took can still be written
             // over later on the slower Intel runner (run 416: 569 and 570 showed the Preoperative tab), so every look
             // pushes again while the path is empty, not only the looks before the first push took.
-            for delay in Self.openRetryDelays {
+            // Review 1.10 (531, 575 and 576 still showed the tab): the looks ended 8 s in, and a path written over after
+            // that stayed empty for the picture 16 to 20 s in. So after them the path is watched for the rest of the
+            // longest shot's wait, and pushed again, without the animation, whenever it is found empty. A push that
+            // stays is never repeated (only an empty path is pushed onto), and nothing in a screenshot run pops it.
+            var pushed = false
+            for delay in Self.openLookDelays {
                 try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 if Task.isCancelled { return }
                 guard path.isEmpty else { continue }
-                switch link {
-                case .editor(let e): path.append(e)
-                case .route(let r): path.append(r)
-                default: break
+                var t = Transaction()
+                t.disablesAnimations = pushed
+                withTransaction(t) {
+                    switch link {
+                    case .editor(let e): path.append(e)
+                    case .route(let r): path.append(r)
+                    default: break
+                    }
                 }
+                pushed = true
             }
         }
         #endif
@@ -313,6 +323,18 @@ struct PatientView: View {
     /// When the screenshot runs' -ps.patient.open pushes its page, and looks again: after the stack's first frame,
     /// then with room for a slow launch (the last well inside the shortest open-key shot's 12 s wait).
     static let openRetryDelays: [Double] = [0.4, 1.2, 2.4, 4.0]
+
+    /// After those, how often the path is looked at again, and for how long in all: past the longest open-key shot's
+    /// wait (24 s), so a push written over late is put back before the picture.
+    static let openWatchInterval: Double = 0.5
+    static let openWatchSeconds: Double = 26
+
+    /// Every wait between looks, in order: the retries, then the watch.
+    static var openLookDelays: [Double] {
+        let early = openRetryDelays.reduce(0, +)
+        let watch = max(0, Int(((openWatchSeconds - early) / openWatchInterval).rounded(.down)))
+        return openRetryDelays + Array(repeating: openWatchInterval, count: watch)
+    }
 
     // MARK: Tabs
 

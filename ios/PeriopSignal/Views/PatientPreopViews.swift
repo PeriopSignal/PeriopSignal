@@ -512,12 +512,13 @@ struct PreopCardioBox: View {
             }
             if yes {
                 VStack(alignment: .leading, spacing: 8) {
-                    // What Yes set, offered as already set; the RCRI's own rule (cardiac surgery only) in words.
+                    // What Yes set, offered as already set; the RCRI's own rule (cardiac surgery, under 18 only: an adult's
+                    // card already has its one cardiac-surgery line below) in words.
                     if let set = PatientPreop.intrathoracicSetLine(r) {
                         Text(set).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
-                    if PatientRules.cardiacSurgery(r) {
-                        Text(PatientRules.rcriHiddenNote).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    if let note = PatientPreop.intrathoracicRcriNote(r) {
+                        Text(note).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
                     let thoracic = PatientPreop.previousCardiacSurgery(r)
                     let tee = PatientPreop.workup(r).first { $0.id == "tee" }

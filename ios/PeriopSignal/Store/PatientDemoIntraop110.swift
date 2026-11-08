@@ -23,14 +23,17 @@ extension PatientDemo {
         r.tube = "8.0 cuffed ETT (23 cm)"
         r.airwayAtEnd = "intubated"
         r.airwayFollowUp = ["told"]
-        r.devices = ["18g R forearm", "R radial art line 20g", "RIJ SLIC 9 Fr", "swan RIJ 8.5 Fr introducer"]
+        // A SLIC goes through the introducer in place of a PA catheter, so the R IJ has the SLIC alone (review 1.10: a
+        // second 8.5 Fr introducer with a PAC in the same vein was not plausible).
+        r.devices = ["18g R forearm", "R radial art line 20g", "RIJ SLIC 9 Fr"]
             .flatMap { PatientDevices.parse($0)?.devices(placedIntraop: true) ?? [] }
         r.infusions = [PatientInfusion(drug: "Norepinephrine", rate: "0.05 mcg/kg/min"), PatientInfusion(drug: "Insulin", rate: "4 units/h")]
         r.medsGiven = "Tranexamic acid 1 g load then 400 mg/h; methylprednisolone 500 mg"
         r.fluids = ["crystalloid": 1000, "prbc": 2, "plasma": 2, "cellSaver": 450, "ebl": 600, "uop": 350]
         r.regional = []
         r.events = ""
-        r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["ph": 7.38, "hb": 15.5, "k": 4.9, "na": 138, "ica": 1.16, "lactate": 1.1]),
+        // Hb 9.4 after bypass and 2 units of PRBC (review 1.10: 15.5 did not fit the transfusion).
+        r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["ph": 7.38, "hb": 9.4, "k": 4.9, "na": 138, "ica": 1.16, "lactate": 1.1]),
                          IntraopLabSet(time: PatientDemo.today(9, 15), values: ["inr": 1.3, "act": 512])]
         r.labsDrawn = PatientDemo.today(6, 30)
         r.considerations = []
