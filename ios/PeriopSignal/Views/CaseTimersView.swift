@@ -203,6 +203,32 @@ private struct TimerChipRow: View {
     }
 }
 
+/// The Start / Update timer button at the bottom of each section. With nothing to start it is drawn in the neutral chip
+/// fill with secondary text at full opacity (review 1.10: the accent capsule faded to 0.45 left "Start timer" at about
+/// 1.2:1 in dark and 1.9:1 in light); it still reads as inactive because it loses the accent fill.
+struct TimerStartButtonStyle: ButtonStyle {
+    var active: Bool
+
+    struct Look { var fill: Color; var text: Color; var stroke: Color; var opacity: Double }
+    static func look(active: Bool) -> Look {
+        active ? Look(fill: PS.accent, text: PS.accentFg, stroke: .clear, opacity: 1)
+               : Look(fill: PS.surface2, text: PS.fg2, stroke: PS.line, opacity: 1)
+    }
+
+    func makeBody(configuration: Configuration) -> some View {
+        let l = Self.look(active: active)
+        return configuration.label
+            .font(PS.sys(size: 13, weight: .semibold))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, 13).padding(.vertical, 8)
+            .background(l.fill, in: Capsule())
+            .foregroundStyle(l.text)
+            .overlay(Capsule().stroke(l.stroke, lineWidth: 1))
+            .opacity(configuration.isPressed ? 0.6 : l.opacity)
+    }
+}
+
 /// "Recurring every": three interval chips and Other, which opens a wheel in 5-minute steps at its best guess.
 private struct RecurrenceRow: View {
     var label: String
@@ -216,8 +242,8 @@ private struct RecurrenceRow: View {
             Text(label).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg3)
             TimerChipRow(chips: chips.map { m in
                 TimerChipRow.Chip(id: "m\(m)", label: CaseTimerEngine.interval(m), on: pick.chipOn(m))
-            } + [TimerChipRow.Chip(id: "other", label: pick.other ? "Other · " + CaseTimerEngine.interval(pick.minutes ?? preferred) : "Other",
-                                   on: pick.other, a11y: "Other interval")]) { id in
+            } + [TimerChipRow.Chip(id: "other", label: CaseTimerRecurrence.otherChipLabel(pick),
+                                   on: pick.other, a11y: CaseTimerRecurrence.otherChipA11y(pick))]) { id in
                 if id == "other" {
                     pick.tapOther(preselect: CaseTimerRecurrence.otherPreselect(current: pick.minutes, preferred: preferred, maxMinutes: maxMinutes))
                 } else if let m = chips.first(where: { "m\($0)" == id }) {
@@ -299,6 +325,7 @@ struct CaseTimersView: View {
     @State private var webLink: WebLink?
     @State private var openSections: Set<Section> = []
     @State private var didSetUp = false
+    @State private var didSeed = false
     @State private var scrollTarget: String?
 
     // Antibiotic
@@ -334,6 +361,13 @@ struct CaseTimersView: View {
         }
         .fullScreenCover(item: $webLink) { link in SafariView(url: link.url).ignoresSafeArea() }
         .onAppear(perform: setUp)
+        #if DEBUG
+        // The reference data loads asynchronously (RootView: the route is set before refs.load()), so a screenshot's
+        // picks wait for it instead of being dropped when the page appears first (review 1.10: 502–507, 516, 517).
+        .onChange(of: refs.caseTimers != nil) { _, ready in
+            if ready, didSetUp, let d = refs.caseTimers { applyLaunchSeeds(d) }
+        }
+        #endif
     }
 
     private var page: some View {
@@ -399,30 +433,39 @@ struct CaseTimersView: View {
         // -ps.timers.purpose tavr (a purpose picked); -ps.timers.scroll <section id>.
         let asked = LaunchSeed.list("ps.timers.sections")
         if !asked.isEmpty { open = Set(asked.compactMap(Section.init(rawValue:))) }
-        if let d = refs.caseTimers {
-            abxPending = LaunchSeed.list("ps.timers.pick").filter { d.antibiotic($0) != nil && t.course($0) == nil }
-            for id in abxPending { if let def = d.antibiotic(id) { abxPicks[id] = RecurrencePick(minutes: CaseTimerRecurrence.antibioticDefault(def)) } }
-            for item in LaunchSeed.list("ps.timers.labs") {
-                let parts = item.split(separator: ":").map(String.init)
-                guard let def = d.check(parts[0]) else { continue }
-                labPicks[def.id] = RecurrencePick(minutes: parts.count > 1 ? Double(parts[1]) : CaseTimerRecurrence.labChips(def).first)
-            }
-            let other = LaunchSeed.string("ps.timers.other")
-            if other == "antibiotic", let id = abxPending.first, let def = d.antibiotic(id) {
-                abxPicks[id] = RecurrencePick(minutes: CaseTimerRecurrence.antibioticPreferred(def, rules: d.antibioticRules) + 30, other: true)
-            } else if other.hasPrefix("labs:"), let def = d.check(String(other.dropFirst(5))) {
-                labPicks[def.id] = RecurrencePick(minutes: 45, other: true)
-            } else if other == "act" {
-                actPick = RecurrencePick(minutes: 45, other: true)
-            }
-            let purpose = LaunchSeed.string("ps.timers.purpose")
-            if !purpose.isEmpty, t.heparin == nil, d.purpose(purpose) != nil { pickPurpose(purpose, d) }
-        }
-        let scroll = LaunchSeed.string("ps.timers.scroll")
-        if !scroll.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = scroll } }
+        if let d = refs.caseTimers { applyLaunchSeeds(d) }
         #endif
         openSections = open
     }
+
+    #if DEBUG
+    /// The launch-argument picks that need the reference data, applied once: from setUp when the data is already
+    /// loaded, else when it arrives. The purpose is picked before -ps.timers.other act, because picking a purpose
+    /// clears the ACT pick. The scroll waits for the picks so it lands on the laid-out row.
+    private func applyLaunchSeeds(_ d: CaseTimerData) {
+        guard !didSeed else { return }
+        didSeed = true
+        abxPending = LaunchSeed.list("ps.timers.pick").filter { d.antibiotic($0) != nil && t.course($0) == nil }
+        for id in abxPending { if let def = d.antibiotic(id) { abxPicks[id] = RecurrencePick(minutes: CaseTimerRecurrence.antibioticDefault(def)) } }
+        for item in LaunchSeed.list("ps.timers.labs") {
+            let parts = item.split(separator: ":").map(String.init)
+            guard let def = d.check(parts[0]) else { continue }
+            labPicks[def.id] = RecurrencePick(minutes: parts.count > 1 ? Double(parts[1]) : CaseTimerRecurrence.labChips(def).first)
+        }
+        let purpose = LaunchSeed.string("ps.timers.purpose")
+        if !purpose.isEmpty, t.heparin == nil, d.purpose(purpose) != nil { pickPurpose(purpose, d) }
+        let other = LaunchSeed.string("ps.timers.other")
+        if other == "antibiotic", let id = abxPending.first, let def = d.antibiotic(id) {
+            abxPicks[id] = RecurrencePick(minutes: CaseTimerRecurrence.antibioticPreferred(def, rules: d.antibioticRules) + 30, other: true)
+        } else if other.hasPrefix("labs:"), let def = d.check(String(other.dropFirst(5))) {
+            labPicks[def.id] = RecurrencePick(minutes: 45, other: true)
+        } else if other == "act" {
+            actPick = RecurrencePick(minutes: 45, other: true)
+        }
+        let scroll = LaunchSeed.string("ps.timers.scroll")
+        if !scroll.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = scroll } }
+    }
+    #endif
 
     private func edit(_ change: (inout CaseTimers) -> Void) {
         withAnimation(.snappy) { patient.update(discrete: true) { change(&$0.timers) } }
@@ -632,9 +675,8 @@ struct CaseTimersView: View {
                 } label: {
                     Text(update ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(CapsuleButtonStyle(prominent: true))
+                .buttonStyle(TimerStartButtonStyle(active: !(pending.isEmpty && changes.isEmpty)))
                 .disabled(pending.isEmpty && changes.isEmpty)
-                .opacity(pending.isEmpty && changes.isEmpty ? 0.45 : 1)
                 .accessibilityHint(update ? "Saves the new redose intervals" : "Logs the dose at the start time and starts the redose timer")
             }
         }
@@ -759,9 +801,8 @@ struct CaseTimersView: View {
                 } label: {
                     Text(update ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(CapsuleButtonStyle(prominent: true))
+                .buttonStyle(TimerStartButtonStyle(active: !(starts.isEmpty && changes.isEmpty)))
                 .disabled(starts.isEmpty && changes.isEmpty)
-                .opacity(starts.isEmpty && changes.isEmpty ? 0.45 : 1)
             }
         }
         .id("labs.card")
@@ -1171,9 +1212,8 @@ struct CaseTimersView: View {
         } label: {
             Text(running ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
         }
-        .buttonStyle(CapsuleButtonStyle(prominent: true))
+        .buttonStyle(TimerStartButtonStyle(active: !idle))
         .disabled(idle)
-        .opacity(idle ? 0.45 : 1)
     }
 
     // MARK: Footer
