@@ -159,7 +159,11 @@ final class CaseTimers110Tests: XCTestCase {
         h.doses.append(TimedEntry(time: t0.addingTimeInterval(2400), value: 3_000))
         s = try XCTUnwrap(CaseTimerEngine.protamineSuggestion(h, purpose: p, rules: d.protamine))
         XCTAssertEqual(s.capMg, 70, "the initial dose, not the 10,000 U total")
-        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 190, course: h, purpose: p, rules: d.protamine).blocks, "2.7 mg per 100 U of the initial dose")
+        // 1.10 review: 1.9 mg per 100 U of the 10,000 U given is under the STS ceiling; 2.7 of the initial dose needs a
+        // second tap.
+        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 190, course: h, purpose: p, rules: d.protamine).needsConfirm, "2.7 mg per 100 U of the initial dose")
+        XCTAssertFalse(CaseTimerEngine.protamineIssues(mg: 190, course: h, purpose: p, rules: d.protamine).blocks)
+        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 270, course: h, purpose: p, rules: d.protamine).blocks, "2.7 of all 10,000 U given")
         XCTAssertNil(CaseTimerEngine.protamineSuggestion(HeparinCourse(purpose: "tavr", goal: 250, actEvery: 30), purpose: p, rules: d.protamine))
     }
 

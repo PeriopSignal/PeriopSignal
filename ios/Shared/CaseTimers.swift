@@ -177,7 +177,20 @@ struct HeparinCourse: Codable, Equatable {
         bypassOff = try? c.decodeIfPresent(Date.self, forKey: .bypassOff)
         actStart = try? c.decodeIfPresent(Date.self, forKey: .actStart)
         actOff = (try? c.decodeIfPresent(Bool.self, forKey: .actOff)) ?? false
+        // A retired preset reads as the purpose's current one: 1.9's bypass preset was 450 s (reference.json 1.9.0);
+        // 1.10 presets 480 s (Ben, Nov 7: "Make ACT goes 480 sec based off STS"; STS 2018 and EACTS 2024: >480 s). Only
+        // a preset is moved: a goal the user set, and the 1.9 device goal (deviceAlt, its own caption), stay as saved.
+        if !userGoal, !deviceAlt, let g = goal, let retired = Self.retiredPresets[purpose], abs(g - retired.old) < 0.5 {
+            goal = retired.now
+        }
     }
+
+    /// Presets an earlier version saved, by purpose id, and the preset that replaces each.
+    static let retiredPresets: [String: (old: Double, now: Double)] = ["bypass": (450, 480)]
+
+    /// The ACT timer runs once it is started or a bolus is logged, until it is stopped. A baseline ACT alone does not
+    /// start it: the reminders and the ACT timer row read this one rule.
+    var actRunning: Bool { !actOff && (actStart != nil || !doses.isEmpty) }
 
     var sortedDoses: [TimedEntry] { doses.sorted { $0.time < $1.time } }
     var initialUnits: Double? { sortedDoses.first?.value }
@@ -234,7 +247,12 @@ struct CaseReminder: Identifiable, Hashable {
     var ref: String? = nil
     /// Snoozed to `due` (its own due time had passed).
     var snoozed = false
+    /// For a rule due now (no `due`): the dose it runs from (blood loss since the last dose), so a snooze or stop
+    /// applies to this occurrence only and a new dose brings the reminder back.
+    var since: Date? = nil
     var id: String { ref.map { kind.rawValue + "." + $0 } ?? kind.rawValue }
+    /// What a snooze or stop is matched against: the due time, or for a due-now rule the dose it runs from.
+    var occurrence: Date? { due ?? since }
 
     /// Overdue five minutes after it falls due.
     func state(at now: Date) -> State {
@@ -365,6 +383,20 @@ enum CaseTimerRecurrence {
     }
 }
 
+/// A Start timer's "Start time" (Ben, Nov 7: "defaulted to current time"): nil until the user picks one, so it is the
+/// current time when the picker shows and when Start is tapped, however long the section has been open.
+struct StartTimePick: Equatable {
+    var picked: Date?
+
+    init(picked: Date? = nil) { self.picked = picked }
+
+    /// What the picker shows.
+    func shown(now: Date) -> Date { picked ?? now }
+
+    /// The start logged on Start: the picked clock time resolved to the nearest such moment, or now.
+    func resolved(now: Date) -> Date { picked.map { CaseTimerRecurrence.resolveStart($0, now: now) } ?? now }
+}
+
 enum CaseTimerEngine {
 
     // MARK: Reminders
@@ -390,8 +422,11 @@ enum CaseTimerEngine {
                                         due: last.time.addingTimeInterval(h * 3600), ref: def.id))
             }
             if let ebl = r.fluids["ebl"], ebl - (last.ebl ?? 0) >= d.antibioticRules.bloodLossML {
+                // Short enough for the running list (Ben, Nov 7: "Blood loss over 1,50…" was cut off); the rule's full
+                // sentence stays in reference.json. Bratzler 2013: redose after blood loss over 1,500 mL.
                 out.append(CaseReminder(kind: .bloodLoss, title: "\(def.name) redose: blood loss",
-                                        detail: d.antibioticRules.bloodLoss, due: nil, ref: def.id))
+                                        detail: "EBL ≥ \(grouped(d.antibioticRules.bloodLossML)) mL since the last dose",
+                                        due: nil, ref: def.id, since: last.time))
             }
         }
 
@@ -405,7 +440,7 @@ enum CaseTimerEngine {
                                             detail: "Compare with the \(base)",
                                             due: end.addingTimeInterval(p.postActMinutes * 60)))
                 }
-            } else if !h.actOff, let due = actDue(h, rules: d.heparinRules) {
+            } else if h.actRunning, let due = actDue(h, rules: d.heparinRules) {
                 let goal = h.goal.map { "Goal ≥ \(Int($0)) s" } ?? "No preset goal"
                 out.append(CaseReminder(kind: .act, title: "ACT check", detail: goal + " · every \(interval(h.actEvery))", due: due))
             }
@@ -421,7 +456,7 @@ enum CaseTimerEngine {
 
         // Snoozed and stopped.
         out = out.compactMap { rem in
-            guard let s = t.snoozes[rem.id], s.applies(to: rem.due) else { return rem }
+            guard let s = t.snoozes[rem.id], s.applies(to: rem.occurrence) else { return rem }
             if s.stopped { return nil }
             var r = rem
             r.due = s.until
@@ -441,8 +476,10 @@ enum CaseTimerEngine {
     }
 
     /// When the next ACT falls due: a few minutes after a bolus that no ACT has followed yet, otherwise `actEvery` after
-    /// the last ACT or the timer's start. nil before anything is logged or started.
+    /// the last ACT or the timer's start. nil until the timer is started or a bolus is logged (a baseline ACT alone
+    /// starts nothing).
     static func actDue(_ h: HeparinCourse, rules: HeparinRules) -> Date? {
+        guard h.actStart != nil || !h.doses.isEmpty else { return nil }
         let lastAct = h.acts.max { $0.time < $1.time }?.time
         let anchor = [h.actStart, lastAct].compactMap { $0 }.max()
         if let bolus = h.lastDose, anchor.map({ $0 < bolus.time }) ?? true {
@@ -638,6 +675,33 @@ enum CaseTimerEngine {
         var goalMet: Bool?
     }
 
+    /// The caption under the ACT goal: the device once, then where the number comes from ("i-STAT · STS 2018 and
+    /// EACTS 2024: above 480 s"). A purpose text that already starts with the device (reference.json 1.10.0 wrote
+    /// "i-STAT; STS 2018 …") is not prefixed again.
+    static func goalCaption(_ h: HeparinCourse, _ p: HeparinPurpose, device: String) -> String {
+        if h.userGoal { return "Your goal, \(device). " + (p.goal.map { "Preset ≥ \(Int($0)) s." } ?? (p.userGoalText.map { "Usual: \($0)." } ?? "")) }
+        if h.deviceAlt { return "Set in 1.9 for a maximally activated or microcuvette ACT." }
+        if h.goal == nil { return device + (p.userGoalText.map { ". If you set one: \($0)." } ?? ". Set one if you use one.") }
+        guard var text = p.goalText?.trimmingCharacters(in: .whitespaces), !text.isEmpty else { return device }
+        if !device.isEmpty, text.lowercased().hasPrefix(device.lowercased()) {
+            text = String(text.dropFirst(device.count)).trimmingCharacters(in: CharacterSet(charactersIn: " ;·:,"))
+        }
+        return text.isEmpty ? device : device + " · " + text
+    }
+
+    /// The ⓘ under Heparin & ACT (Ben's answer 4, Nov 7; i-STAT only, Ben, Nov 7).
+    static func actGoalInfo(device: String) -> String { "ACT goals assume \(device) values." }
+
+    /// The ⓘ under Protamine (Ben's answer 4, Nov 7): method (c) in one line. On bypass EACTS 2024 §9.3.2 (dose on the
+    /// initial heparin; ratio below 1.0; "Additional doses of protamine may instead lead to overdosing"); without
+    /// bypass the label's 1 mg per 100 U is the cap and there is no lower bound.
+    static func protamineInfo(bypass: Bool, rules pr: ProtamineRules) -> String {
+        if bypass {
+            return "Suggested from the initial heparin dose (\(fmt(pr.ratioLow))–\(fmt(pr.ratioHigh)) mg per 100 U, capped at \(fmt(pr.ratioHigh)) mg per 100 U), not the total given; later doses do not change it (EACTS 2024)."
+        }
+        return "Capped at \(fmt(pr.ratioHigh)) mg per 100 U of the initial heparin dose (label), not the total given; later doses do not change it."
+    }
+
     /// The goal is reached at the goal value or above (Ben, Nov 7: "≥ 480"; STS 2018 and EACTS 2024 write ">480 s").
     static func status(_ h: HeparinCourse, record r: PatientRecord) -> HeparinStatus {
         let act = h.lastACT
@@ -679,10 +743,12 @@ enum CaseTimerEngine {
     static func protamineSuggestion(_ h: HeparinCourse, purpose p: HeparinPurpose, rules pr: ProtamineRules) -> ProtamineSuggestion? {
         guard let initial = h.initialUnits, initial > 0 else { return nil }
         let per100 = initial / 100
-        let cap = round10(per100 * pr.ratioHigh)
+        // A cap never rounds up past ratioHigh mg per 100 U: down to 5 mg, which is exact for doses drawn in 500-U
+        // steps (7,500 U → 75 mg, not 80). The low end is rounded to 10 mg and never above the cap.
+        let cap = floor5(per100 * pr.ratioHigh)
         let act = h.lastACT
         return ProtamineSuggestion(basisUnits: initial, totalUnits: h.totalUnits,
-                                   lowMg: p.isBypass ? round10(per100 * pr.ratioLow) : nil,
+                                   lowMg: p.isBypass ? min(round10(per100 * pr.ratioLow), cap) : nil,
                                    highMg: p.isBypass ? cap : nil,
                                    capMg: cap, givenMg: h.protamineMg,
                                    lastACT: act?.value, lastACTTime: act?.time, baselineACT: h.baselineACT?.value)
@@ -694,8 +760,22 @@ enum CaseTimerEngine {
         return (s.givenMg + mg) / (s.basisUnits / 100)
     }
 
-    /// Checks on a protamine dose before it is logged: the STS 2018 ceiling (flag above 1.3, block above 2.6 mg per
-    /// 100 U of the initial dose), the cap at 1:1 (EACTS: below 1.0), bypass still running, and the label's rate.
+    /// mg of protamine per 100 U of all the heparin given, counting what was already given.
+    static func protamineRatioOfTotal(addingMg mg: Double, _ s: ProtamineSuggestion) -> Double {
+        let units = max(s.totalUnits, s.basisUnits)
+        guard units > 0 else { return 0 }
+        return (s.givenMg + mg) / (units / 100)
+    }
+
+    /// Checks on a protamine dose before it is logged: the STS 2018 ceiling (block above 2.6 mg per 100 U), a second
+    /// tap above 1.3 mg per 100 U of the initial dose, the cap at 1:1 (EACTS: below 1.0), bypass still running, and the
+    /// label's rate.
+    ///
+    /// The ceiling's basis is the one 1.9 used: on bypass the INITIAL bolus (the 1.9 review doc; EACTS 2024 doses on
+    /// the initial heparin), so top-ups never relax the block there; off bypass all the heparin given, because STS 2018
+    /// does not state its heparin basis (source note above) and large top-ups after a small first bolus are common in
+    /// long vascular and TAVR cases. Method (c)'s initial-dose basis (Ben, Nov 7) applies to the suggestion, its cap
+    /// and the 1.3 second tap for every purpose.
     static func protamineIssues(mg: Double, course h: HeparinCourse, purpose p: HeparinPurpose, rules pr: ProtamineRules) -> [DoseIssue] {
         guard mg > 0 else { return [DoseIssue(level: .block, text: "Enter the dose in mg.")] }
         guard let s = protamineSuggestion(h, purpose: p, rules: pr) else {
@@ -703,11 +783,19 @@ enum CaseTimerEngine {
         }
         var out: [DoseIssue] = []
         let ratio = protamineRatio(addingMg: mg, s)
+        let ofTotal = protamineRatioOfTotal(addingMg: mg, s)
         let ratioText = String(format: "%.1f", ratio)
-        if ratio > pr.blockAbove {
-            out.append(DoseIssue(level: .block, text: "\(ratioText) mg per 100 U of the initial dose: over the STS 2018 ceiling of \(fmt(pr.blockAbove))."))
+        let topUps = s.totalUnits > s.basisUnits
+        // On bypass the ceiling stays on the initial bolus (1.9); off bypass it reads on everything given.
+        let ceiling = p.isBypass ? ratio : ofTotal
+        let ceilingBasis = p.isBypass ? "of the initial dose" : "of the heparin given"
+        if ceiling > pr.blockAbove {
+            out.append(DoseIssue(level: .block, text: "\(String(format: "%.1f", ceiling)) mg per 100 U \(ceilingBasis): over the STS 2018 ceiling of \(fmt(pr.blockAbove))."))
         } else if ratio > pr.flagAbove {
-            out.append(DoseIssue(level: .confirm, text: "\(ratioText) mg per 100 U of the initial dose: over \(fmt(pr.flagAbove))."))
+            // Two decimals for the total, so a value just under the threshold never reads as the threshold itself
+            // (140 mg / 11,000 U is 1.27, not "1.3").
+            let total = topUps ? "; \(String(format: "%.2f", ofTotal)) per 100 U of all \(grouped(s.totalUnits)) U given" : ""
+            out.append(DoseIssue(level: .confirm, text: "\(ratioText) mg per 100 U of the initial dose, over \(fmt(pr.flagAbove))\(total)."))
         } else if ratio > pr.ratioHigh + 0.001 {
             out.append(DoseIssue(level: .soft, text: "\(ratioText) mg per 100 U: above the cap of 1:1. \(pr.ratioNote)"))
         }
@@ -747,6 +835,9 @@ enum CaseTimerEngine {
     }
 
     static func round10(_ v: Double) -> Double { (v / 10).rounded() * 10 }
+
+    /// Down to 5 (a cap); a hair of tolerance so 75.0000001 or 74.9999999 read as 75.
+    static func floor5(_ v: Double) -> Double { ((v + 1e-6) / 5).rounded(.down) * 5 }
 }
 
 // MARK: - Done, snooze and stop
@@ -758,11 +849,12 @@ extension CaseTimers {
         snoozes[rem.id] = ReminderSnooze(due: originalDue(rem), until: from.addingTimeInterval(minutes * 60))
     }
 
-    /// The due time a reminder had before any snooze.
-    private func originalDue(_ rem: CaseReminder) -> Date? { rem.snoozed ? snoozes[rem.id]?.due : rem.due }
+    /// The due time a reminder had before any snooze (for a due-now rule, the dose it runs from).
+    private func originalDue(_ rem: CaseReminder) -> Date? { rem.snoozed ? snoozes[rem.id]?.due : rem.occurrence }
 
     /// Stop a reminder: the timer behind it ends (an antibiotic's redose timer, a lab check, the ACT timer); a rule's
-    /// reminder (long case, blood loss, ACT after protamine) is put away until its due time changes.
+    /// reminder (long case, blood loss, ACT after protamine) is put away until its due time changes, or for blood loss
+    /// until another dose is logged (the 1,500 mL then counts from it).
     mutating func stop(_ rem: CaseReminder) {
         switch rem.kind {
         case .antibiotic:
@@ -786,6 +878,8 @@ extension CaseTimers {
         case .antibiotic, .longCase, .bloodLoss:
             guard let i = antibiotics.firstIndex(where: { $0.drug == rem.ref }) else { return false }
             antibiotics[i].doses.append(TimedEntry(time: now, ebl: ebl ?? 0))
+            // A new dose: every reminder of this drug runs from it now.
+            for k in [CaseReminder.Kind.antibiotic, .longCase, .bloodLoss] { snoozes[k.rawValue + "." + antibiotics[i].drug] = nil }
         case .abg: checks["abg"]?.done.append(TimedEntry(time: now))
         case .lab:
             guard let ref = rem.ref else { return false }

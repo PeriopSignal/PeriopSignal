@@ -239,16 +239,19 @@ private struct RecurrenceRow: View {
     }
 }
 
-/// "Start time" on the 24-hour clock.
+/// "Start time" on the 24-hour clock: the current time, kept current, until the user picks one (StartTimePick).
 private struct StartTimeRow: View {
-    @Binding var start: Date
+    @Binding var start: StartTimePick
 
     var body: some View {
-        DatePicker("Start time", selection: $start, displayedComponents: [.hourAndMinute])
-            .font(PS.sys(size: 14.5, weight: .medium))
-            .foregroundStyle(PS.fg)
-            .tint(PS.accent)
-            .environment(\.locale, Locale(identifier: "en_GB"))
+        TimelineView(.everyMinute) { ctx in
+            DatePicker("Start time", selection: Binding(get: { start.shown(now: ctx.date) }, set: { start.picked = $0 }),
+                       displayedComponents: [.hourAndMinute])
+                .font(PS.sys(size: 14.5, weight: .medium))
+                .foregroundStyle(PS.fg)
+                .tint(PS.accent)
+                .environment(\.locale, Locale(identifier: "en_GB"))
+        }
     }
 }
 
@@ -301,10 +304,10 @@ struct CaseTimersView: View {
     // Antibiotic
     @State private var abxPending: [String] = []
     @State private var abxPicks: [String: RecurrencePick] = [:]
-    @State private var abxStart = Date()
+    @State private var abxStart = StartTimePick()
     // Labs
     @State private var labPicks: [String: RecurrencePick] = [:]
-    @State private var labStart = Date()
+    @State private var labStart = StartTimePick()
     @State private var glucoseValue: Double?
     // Heparin
     @State private var heparinUnits: Double?
@@ -318,7 +321,9 @@ struct CaseTimersView: View {
     @State private var goalEntry: Double?
     @State private var goalArmed = false
     @State private var actPick: RecurrencePick?
-    @State private var actStart = Date()
+    @State private var actStart = StartTimePick()
+    @State private var goalInfoOpen = LaunchSeed.bool("ps.evidence.open")
+    @State private var protamineInfoOpen = LaunchSeed.bool("ps.evidence.open")
 
     private var r: PatientRecord { patient.record }
     private var t: CaseTimers { patient.record.timers }
@@ -431,9 +436,9 @@ struct CaseTimersView: View {
             if openSections.contains(s) { openSections.remove(s) } else {
                 openSections.insert(s)
                 switch s {
-                case .antibiotic: abxStart = Date()
-                case .labs: labStart = Date()
-                case .heparin: actStart = Date()
+                case .antibiotic: abxStart = StartTimePick()
+                case .labs: labStart = StartTimePick()
+                case .heparin: actStart = StartTimePick()
                 }
                 scrollTarget = s.rawValue
             }
@@ -484,7 +489,7 @@ struct CaseTimersView: View {
                 Text(dueLine(rem, state: state))
                     .font(PS.sys(size: 12.5, weight: state == .overdue ? .semibold : .regular))
                     .foregroundStyle(state == .overdue ? PS.red : PS.fg2)
-                    .lineLimit(1).minimumScaleFactor(0.85)
+                    .lineLimit(2).minimumScaleFactor(0.85).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 4)
                 Button(doneTitle(rem)) { done(rem, d) }
                     .buttonStyle(CapsuleButtonStyle(prominent: state != .waiting))
@@ -705,7 +710,7 @@ struct CaseTimersView: View {
 
     private func startAntibiotics(_ pending: [String], changes: [String: Double]) {
         Haptics.light()
-        let start = CaseTimerRecurrence.resolveStart(abxStart, now: Date())
+        let start = abxStart.resolved(now: Date())
         let ebl = r.fluids["ebl"] ?? 0
         let picks = abxPicks
         edit { t in
@@ -720,7 +725,7 @@ struct CaseTimersView: View {
         }
         abxPending = []
         abxPicks = [:]
-        abxStart = Date()
+        abxStart = StartTimePick()
     }
 
     // MARK: Lab checks
@@ -807,7 +812,7 @@ struct CaseTimersView: View {
 
     private func startLabs(_ starts: [LabCheckDef], changes: [LabCheckDef]) {
         Haptics.light()
-        let start = CaseTimerRecurrence.resolveStart(labStart, now: Date())
+        let start = labStart.resolved(now: Date())
         let picks = labPicks
         edit { t in
             for def in starts { if let m = picks[def.id]?.minutes { t.checks[def.id] = LabCheckCourse(every: m, started: start) } }
@@ -816,7 +821,7 @@ struct CaseTimersView: View {
             }
         }
         labPicks = [:]
-        labStart = Date()
+        labStart = StartTimePick()
     }
 
     // MARK: Heparin & ACT
@@ -957,7 +962,11 @@ struct CaseTimersView: View {
     @ViewBuilder private func goalRow(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData, src: URL?) -> some View {
         let device = d.heparinRules.actDevice ?? "i-STAT"
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text("ACT goal").font(PS.sys(size: 13)).foregroundStyle(PS.fg3).frame(width: 74, alignment: .leading)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("ACT goal").font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
+                InfoButton(open: $goalInfoOpen, label: "About ACT goals")
+            }
+            .frame(width: 88, alignment: .leading)
             Text(h.goal.map { "≥ \(Int($0)) s" } ?? "No preset goal")
                 .font(h.goal == nil ? PS.sys(size: 15, weight: .semibold) : PS.serif(size: 22)).foregroundStyle(PS.fg)
             if h.goal != nil, !h.userGoal, let s = p.strength, !s.isEmpty { EvidenceTag(text: s, url: src, onOpen: openLink) }
@@ -968,7 +977,8 @@ struct CaseTimersView: View {
             }
             .font(PS.sys(size: 13.5, weight: .semibold))
         }
-        Text(goalCaption(h, p, device: device)).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+        if goalInfoOpen { InfoCaptionText(text: CaseTimerEngine.actGoalInfo(device: device), font: PS.sys(size: 12)) }
+        Text(CaseTimerEngine.goalCaption(h, p, device: device)).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
         if goalEditing {
             let issues = CaseTimerEngine.goalIssues(goalEntry, purpose: p, rules: d.heparinRules)
             HStack(spacing: 10) {
@@ -990,17 +1000,10 @@ struct CaseTimersView: View {
         }
     }
 
-    private func goalCaption(_ h: HeparinCourse, _ p: HeparinPurpose, device: String) -> String {
-        if h.userGoal { return "Your goal, \(device). " + (p.goal.map { "Preset ≥ \(Int($0)) s." } ?? (p.userGoalText.map { "Usual: \($0)." } ?? "")) }
-        if h.deviceAlt { return "Set in 1.9 for a maximally activated or microcuvette ACT." }
-        if h.goal == nil { return device + (p.userGoalText.map { ". If you set one: \($0)." } ?? ". Set one if you use one.") }
-        return device + (p.goalText.map { " · \($0)" } ?? "")
-    }
-
     /// "300–400 U/kg ≈ 24,000–32,000 U".
     @ViewBuilder private func doseRow(_ p: HeparinPurpose, src: URL?) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text("Heparin").font(PS.sys(size: 13)).foregroundStyle(PS.fg3).frame(width: 74, alignment: .leading)
+            Text("Heparin").font(PS.sys(size: 13)).foregroundStyle(PS.fg3).frame(width: 88, alignment: .leading)
             if let text = CaseTimerEngine.flatDose(p, weightKg: r.weightKg) {
                 Text(text).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
             } else {
@@ -1079,11 +1082,13 @@ struct CaseTimersView: View {
     @ViewBuilder private func protamineBlock(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
         let pr = d.protamine
         let issues = protamineMg.map { CaseTimerEngine.protamineIssues(mg: $0, course: h, purpose: p, rules: pr) } ?? []
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text("Protamine").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
+            InfoButton(open: $protamineInfoOpen, label: "About the protamine suggestion")
             Spacer()
             EvidenceTag(text: "G", url: d.sources(p.isBypass ? ["eacts2024"] : ["protamine"]).first.flatMap { URL(string: $0.url) }, onOpen: openLink)
         }
+        if protamineInfoOpen { InfoCaptionText(text: CaseTimerEngine.protamineInfo(bypass: p.isBypass, rules: pr), font: PS.sys(size: 12)) }
         if let s = CaseTimerEngine.protamineSuggestion(h, purpose: p, rules: pr) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 if let lo = s.lowMg, let hi = s.highMg {
@@ -1131,7 +1136,7 @@ struct CaseTimersView: View {
     /// The ACT recheck timer: start time and "recurring every", then Start timer.
     @ViewBuilder private func actTimer(_ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
         let chips = CaseTimerRecurrence.actChips(p)
-        let running = !h.actOff && (h.actStart != nil || !h.doses.isEmpty)
+        let running = h.actRunning
         let pick = Binding<RecurrencePick>(get: {
             actPick ?? (running ? RecurrencePick(running: h.actEvery, chips: chips) : RecurrencePick(minutes: p.actEvery.first ?? 30))
         }, set: { actPick = $0 })
@@ -1150,7 +1155,7 @@ struct CaseTimersView: View {
         Button {
             Haptics.light()
             let m = pick.wrappedValue.minutes
-            let start = CaseTimerRecurrence.resolveStart(actStart, now: Date())
+            let start = actStart.resolved(now: Date())
             edit { t in
                 guard t.heparin != nil else { return }
                 if running {
@@ -1162,7 +1167,7 @@ struct CaseTimersView: View {
                 }
             }
             actPick = nil
-            actStart = Date()
+            actStart = StartTimePick()
         } label: {
             Text(running ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
         }
