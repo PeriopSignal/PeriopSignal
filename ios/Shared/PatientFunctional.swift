@@ -111,6 +111,21 @@ enum PatientFunctional {
     /// The guideline covers adults, 18 or older (§1.4, p e355).
     static let cardiacAdultOnly = "The 2024 AHA/ACC stepwise evaluation is for adults (18 or older), so it is not shown under 18."
 
+    /// The guideline is for adults having noncardiac surgery (its title, "Guideline for Perioperative Cardiovascular
+    /// Management for Adults Undergoing Noncardiac Surgery", and its scope, §1.4, p e355), and the RCRI was derived for
+    /// noncardiac surgery (Lee 1999; PatientRules.rcriHiddenNote). So for a planned cardiac operation
+    /// (PatientRules.cardiacSurgery) the stepwise verdict, its RCRI text, Figure 1's risk modifiers and its branch boxes are
+    /// not shown; the symptoms and acute-condition answers and the condition notes stay (review 1.10).
+    static let cardiacSurgeryNote = "Cardiac surgery: the 2024 AHA/ACC stepwise evaluation and the RCRI are not shown, as both are for noncardiac surgery."
+
+    /// Whether the stepwise evaluation (verdict, RCRI, risk modifiers, branch advice) applies: adults having noncardiac surgery.
+    static func stepwiseApplies(_ r: PatientRecord) -> Bool { r.isAdult && !PatientRules.cardiacSurgery(r) }
+
+    /// The ⓘ of the Cardiac evaluation group: the approach it follows, or why it is not shown.
+    static func evaluationNote(_ r: PatientRecord) -> String {
+        !r.isAdult ? cardiacAdultOnly : (PatientRules.cardiacSurgery(r) ? cardiacSurgeryNote : cardiacNote)
+    }
+
     /// The acute conditions recorded: the flags, and from the problem list decompensated heart failure and ongoing
     /// cardiac ischemia, which we read as the figure's acute coronary syndrome (Figure 1, p e371).
     static func acuteConditions(_ r: PatientRecord) -> [String] {
@@ -223,7 +238,7 @@ enum PatientFunctional {
     /// The figure's boxes between the risk estimate and functional capacity, for a patient who goes on to that step:
     /// elevated calculated risk, or a condition that adds risk at any calculated risk. ECG: §4.1; echo: §4.2.1, §6.4.
     static func branchAdvice(_ r: PatientRecord) -> [String] {
-        guard !r.emergency, !noCardiacRisk(r), acuteConditions(r).isEmpty else { return [] }
+        guard !r.emergency, !PatientRules.cardiacSurgery(r), !noCardiacRisk(r), acuteConditions(r).isEmpty else { return [] }
         let mods = riskModifiers(r)
         guard elevated(r) || !mods.isEmpty else { return [] }
         var out: [String] = []
@@ -265,7 +280,9 @@ enum PatientFunctional {
         // §6.2, rec 2 (class 2b, C-LD, p e373): elective elevated-risk surgery, one or more RCRI components (footnote ‡)
         // and a recent history of SBP 180 or more or DBP 110 or more before the day of surgery. A reading of unknown
         // timing (the vital signs) does not count: it gets a pointer to the History item. Urgency not yet recorded counts as elective here, as elsewhere in the evaluation.
-        let mayDefer = (r.urgency == nil || r.urgency == .elective) && elevated(r) && !rcriRiskFactors(r).isEmpty
+        // Both this and the troponin surveillance below read the RCRI, which is not used for cardiac surgery.
+        let noncardiac = !PatientRules.cardiacSurgery(r)
+        let mayDefer = noncardiac && (r.urgency == nil || r.urgency == .elective) && elevated(r) && !rcriRiskFactors(r).isEmpty
         if r.has("htn-180"), mayDefer {
             out.append("A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b).")
         } else if mayDefer, (r.vitals["sbp"] ?? 0) >= 180 || (r.vitals["dbp"] ?? 0) >= 110 {
@@ -284,7 +301,7 @@ enum PatientFunctional {
             out.append("Atherosclerotic disease and no statin recorded: if the patient is not taking one, starting a statin around surgery, with the intention of long-term use, is recommended (class 1).")
         }
         // §9.1, rec 1 (class 2b, B-NR, p e406), for the patients troponinSurveillance names.
-        if troponinSurveillance(r) {
+        if noncardiac, troponinSurveillance(r) {
             out.append("Elevated-risk surgery with known cardiovascular disease, cardiac symptoms, or age 65 or older and risk factors: measuring troponin at 24 and 48 hours after surgery may be reasonable to identify myocardial injury (class 2b).")
         }
         return out

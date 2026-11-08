@@ -664,6 +664,16 @@ jobs:
           shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
           shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
           shot 579-intraop-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark
+          # 1.10 review, Preprocedure (590-597): the Cardiopulmonary Evaluation for a planned AVR (no noncardiac verdict),
+          # the "+ Urgency" link and its collapsed row, and the compact labs "Drawn" row (set and empty).
+          shot 590-review-cardio-avr-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 591-review-cardio-avr-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 592-review-urgency-collapsed-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.forceAppearance light
+          shot 593-review-urgency-link-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 594-review-labs-drawn-set-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance light
+          shot 595-review-labs-drawn-set-dark 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance dark
+          shot 596-review-labs-drawn-empty-light 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance light
+          shot 597-review-labs-drawn-empty-dark 16 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance dark
           # 1.10 Case Timers (helper A, 500-519).
           shot 500-timers110-running-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections none -ps.forceAppearance dark
           shot 501-timers110-running-light 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.timers.sections none -ps.forceAppearance light

@@ -431,7 +431,7 @@ struct PatientEditorView: View {
         }
         // The guideline is for adults (2024 AHA/ACC §1.4, p e355): under 18 the symptoms and acute conditions are still
         // recorded, without the stepwise evaluation or its advice, as in the H&P (PatientSummary).
-        PatientGroup(title: "Cardiac evaluation", note: r.isAdult ? PatientFunctional.cardiacNote : PatientFunctional.cardiacAdultOnly) {
+        PatientGroup(title: "Cardiac evaluation", note: PatientFunctional.evaluationNote(r)) {
             PatientCardiacEvaluationContent()
         }
         .id("cardiac")

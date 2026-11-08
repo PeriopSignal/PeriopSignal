@@ -80,8 +80,14 @@ enum PatientPreop110 {
 
     // MARK: Planned Procedure & Anesthetic box
 
-    /// "+ Procedure urgency" while none is chosen; the box then shows the chosen one with a change control.
-    static func urgencyLinkTitle(_ r: PatientRecord) -> String { r.urgency == nil ? "Procedure urgency" : "Urgency: " + (r.urgency?.label ?? "") }
+    /// "+ Urgency" while none is chosen (Ben's evening answer 2, Nov 7: renamed from "+ Procedure urgency"); once one is
+    /// chosen the row collapses to "Urgency: Elective · Change".
+    static func urgencyLinkTitle(_ r: PatientRecord) -> String { r.urgency.map { "Urgency: " + $0.label } ?? "Urgency" }
+
+    /// The collapsed row's words once an urgency is chosen, the Change control included: "Urgency: Elective · Change".
+    static func urgencyCollapsedParts(_ r: PatientRecord) -> (title: String, action: String)? {
+        r.urgency == nil ? nil : (urgencyLinkTitle(r), "Change")
+    }
 
     /// The risk-score inputs in one line for the "+ Risk-score inputs" link once any is filled: "High-risk surgery · Upper
     /// abdominal incision · Over 2 to 3 h". Nil while none is. A cardiac operation leaves the RCRI's high-risk switch out
