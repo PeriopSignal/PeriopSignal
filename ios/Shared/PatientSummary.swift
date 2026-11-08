@@ -337,6 +337,10 @@ enum PatientSummary {
         r.mask == "difficult" || r.sga == "difficult" || r.intubation == "difficult"
     }
 
+    /// The labels of the two intraoperative echo exams once there is a post-bypass one (intraopLines; the echo card of
+    /// intraopPartLines keeps them).
+    static let echoPre = "Echo, pre-bypass", echoPost = "Echo, post-bypass"
+
     static func intraopLines(_ r: PatientRecord) -> [Line] {
         let r = r.capitalized
         var out: [Line] = []
@@ -361,7 +365,7 @@ enum PatientSummary {
         if let t = PatientTEE.line(r) { out.append(t) }
         // 1.10: the pre- and post-bypass exams ("Echo, pre-bypass" and "Echo, post-bypass" once there is a post-bypass one).
         let exams = PatientEcho.intraopParts(pre: r.intraopEcho, post: r.intraopEchoPost)
-        for p in exams { out.append(Line(p.label.map { "Echo, " + ($0 == "Pre" ? "pre-bypass" : "post-bypass") } ?? "Echo", p.text)) }
+        for p in exams { out.append(Line(p.label.map { $0 == "Pre" ? echoPre : echoPost } ?? "Echo", p.text)) }
         if !r.echo.isEmpty { out.append(Line(exams.isEmpty ? "Echo" : "Echo notes", r.echo)) }
         return out
     }
@@ -393,12 +397,18 @@ enum PatientSummary {
         let labels: [String: Set<String>] = [
             "airway": ["Airway"], "lines": ["Lines", "Arms", "Limb alert"], "regional": ["Regional"], "infusions": ["Infusions"],
             "fluids": ["In", "Blood products", "Out", "Factor concentrates & other products"], "labs": ["Last labs"], "meds": ["Medications & interventions"],
-            "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes"],
+            "events": ["Events"], "echo": ["TEE screen", "Echo", "Echo notes", echoPre, echoPost],
         ]
-        // The card's own title names the part, so a line labelled the same way drops its label.
+        // The card's own title names the part, so a line labelled the same way drops its label; the two exams keep
+        // "Pre-bypass" and "Post-bypass" (the card already says echo).
         let titles: Set<String> = ["Airway", "Lines", "Regional", "Infusions", "Medications & interventions", "Events", "Echo"]
+        let shortened = [echoPre: "Pre-bypass", echoPost: "Post-bypass"]
         var out = intraopLines(r).filter { l in l.label.map { labels[part]?.contains($0) ?? false } ?? false }
-            .map { l in titles.contains(l.label ?? "") ? Line(nil, l.text, alert: l.alert, marks: l.marks) : l }
+            .map { l in
+                if titles.contains(l.label ?? "") { return Line(nil, l.text, alert: l.alert, marks: l.marks) }
+                if let s = l.label.flatMap({ shortened[$0] }) { return Line(s, l.text, alert: l.alert, marks: l.marks) }
+                return l
+            }
         if part == "events", let end = r.airwayAtEnd, r.arrivesWithAirway || r.intubation != nil {
             out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label ?? end))))
         }
