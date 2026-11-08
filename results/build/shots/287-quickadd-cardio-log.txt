@@ -1,0 +1,35 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-08 14:57:57.824 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (unsatisfied (No network route))] event: path:unsatisfied @34.808s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:57:57.891 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1 Hostname#1a9c2b81:443 ready transform (unsatisfied (No network route))] event: path:unsatisfied @34.875s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:57:57.891 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (unsatisfied (No network route))] event: path:unsatisfied @34.876s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:57:57.893 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1.1 Hostname#1a9c2b81:443 ready resolver (unsatisfied (No network route))] event: path:unsatisfied @34.878s, uuid: 460081B5-C437-4A8C-849E-E86BCF01DE31
+2026-11-08 14:57:57.894 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1 Hostname#1a9c2b81:443 ready transform (unsatisfied (No network route))] event: path:unsatisfied @34.878s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:57:57.894 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (unsatisfied (No network route))] event: path:unsatisfied @34.878s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:57:57.896 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1.1.1 IPv4#5e80db90:443 ready socket-flow (unsatisfied (No network route))] event: path:unsatisfied @34.881s, uuid: 954FAFB0-A44A-45C5-9425-5C2D61F8B64B
+2026-11-08 14:57:57.899 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1.1 Hostname#1a9c2b81:443 ready resolver (unsatisfied (No network route))] event: path:unsatisfied @34.883s, uuid: 460081B5-C437-4A8C-849E-E86BCF01DE31
+2026-11-08 14:57:57.900 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1 Hostname#1a9c2b81:443 ready transform (unsatisfied (No network route))] event: path:unsatisfied @34.884s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:57:57.901 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (unsatisfied (No network route))] event: path:unsatisfied @34.886s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.050 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.023s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.056 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1 Hostname#1a9c2b81:443 ready transform (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.040s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.056 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.041s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.056 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1.1 Hostname#1a9c2b81:443 ready resolver (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.041s, uuid: 460081B5-C437-4A8C-849E-E86BCF01DE31
+2026-11-08 14:58:01.264 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1 Hostname#1a9c2b81:443 ready transform (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.248s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.270 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.254s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.270 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1.1.1 IPv4#5e80db90:443 ready socket-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.255s, uuid: 954FAFB0-A44A-45C5-9425-5C2D61F8B64B
+2026-11-08 14:58:01.270 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1.1 Hostname#1a9c2b81:443 ready resolver (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.255s, uuid: 460081B5-C437-4A8C-849E-E86BCF01DE31
+2026-11-08 14:58:01.270 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1.1 Hostname#1a9c2b81:443 ready transform (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.255s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.270 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 IPv4#5e80db90:443 ready parent-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied_change @38.255s, uuid: 618685AD-B346-4552-B2C1-C7846FA7299C
+2026-11-08 14:58:01.296 Df PeriopSignal[98777:3d001] [com.apple.network:connection] nw_connection_update_better_path_locked_on_nw_queue [C1] Better alternate path available
+2026-11-08 14:58:01.296 Df PeriopSignal[98777:3d001] [com.apple.network:connection] nw_connection_send_better_path_changed_on_nw_queue [C1] No better_path_available_handler. better_path_available = true
+2026-11-08 14:58:01.312 Df PeriopSignal[98777:3d001] [com.apple.CFNetwork:Default] Connection 1: received advisory(1)
+2026-11-08 14:58:01.315 Df PeriopSignal[98777:3d001] [com.apple.CFNetwork:Default] Connection 1: cleaning up
+2026-11-08 14:58:01.319 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 23490543-7BF7-4B0D-BEAB-B323E5477140 Hostname#1a9c2b81:443 quic-connection, url: https://periopsignal.github.io/PeriopSignal/posts.json, definite, attribution: developer] cancel
+2026-11-08 14:58:01.321 Df PeriopSignal[98777:3d001] [com.apple.network:connection] [C1 23490543-7BF7-4B0D-BEAB-B323E5477140 Hostname#1a9c2b81:443 quic-connection, url: https://periopsignal.github.io/PeriopSignal/posts.json, definite, attribution: developer] cancelled
+	[C1.1.1.1 954FAFB0-A44A-45C5-9425-5C2D61F8B64B 192.168.64.3:59785<->IPv4#5e80db90:443]
+	Connected Path: satisfied (Path is satisfied), interface: en0
+	Privacy Stance: Not Eligible
+	Duration: 38.305s, DNS @0.038s took 0.019s, TCP @0.061s took 0.048s, TLS 1.3 took 0.071s
+	bytes in/out: 413466/1980, packets in/out: 118/7, rtt: 0.011s, retransmitted bytes: 0, out-of-order bytes: 0
+	ecn packets sent/acked/marked/lost: 0/0/0/0
+2026-11-08 14:58:01.332 Df PeriopSignal[98777:3d001] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state cancelled
+2026-11-08 14:58:01.332 Df PeriopSignal[98777:3d001] [com.apple.CFNetwork:Default] Connection 1: done
