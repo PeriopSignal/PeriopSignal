@@ -666,8 +666,8 @@ jobs:
           shot 579-intraop-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark
           # 1.10 review, Preprocedure (590-597): the Cardiopulmonary Evaluation for a planned AVR (no noncardiac verdict),
           # the "+ Urgency" link and its collapsed row, and the compact labs "Drawn" row (set and empty).
-          shot 590-review-cardio-avr-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
-          shot 591-review-cardio-avr-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 590-review-cardio-avr-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.edit intrathoracic -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 591-review-cardio-avr-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.jump cardio -ps.forceAppearance dark
           shot 592-review-urgency-collapsed-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.forceAppearance light
           shot 593-review-urgency-link-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark
           shot 594-review-labs-drawn-set-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance light

@@ -542,38 +542,49 @@ struct IntraopOtherDetails: View {
 
 /// "Drawn" on the labs editor: when the preoperative labs were taken, which the summary and the handoff note, very small,
 /// under the fishbone (PatientBriefs, 1.10). Optional and kept small (Ben's evening answer 1, Nov 7): one compact row in
-/// the caption size, "Drawn (optional) · + Time" until a time is set, then the time with a clear button.
+/// the caption size, "Drawn (optional) · + Time" until a time is set, then "Drawn 06:30 · Change" with a clear button; the
+/// date and time picker opens under it only while changing.
 struct LabsDrawnRow: View {
     @Environment(PatientStore.self) private var patient
+    @State private var editing = false
 
     /// The row's text size and vertical padding: a caption line, well under a lab row's height.
     static let fontSize: CGFloat = 12
     static let verticalPadding: CGFloat = 4
 
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "clock").font(PS.sys(size: Self.fontSize - 1, weight: .semibold)).foregroundStyle(PS.fg3)
-                .accessibilityHidden(true)
-            Text(patient.record.labsDrawn == nil ? "Drawn (optional)" : "Drawn")
-                .font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg3)
-            Spacer(minLength: 6)
-            if let d = patient.record.labsDrawn {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: "clock").font(PS.sys(size: Self.fontSize - 1, weight: .semibold)).foregroundStyle(PS.fg3)
+                    .accessibilityHidden(true)
+                if let d = patient.record.labsDrawn {
+                    // The summary's own time: "06:30" today, "11/06/26 06:30" another day.
+                    Text("Drawn " + PatientSummary.time(d)).font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg2)
+                    Button { withAnimation(.snappy) { editing.toggle() } } label: {
+                        Text(editing ? "Done" : "Change").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(editing ? "Done" : "Change the time the labs were drawn")
+                    Spacer(minLength: 6)
+                    Button { editing = false; patient.update(discrete: true) { $0.labsDrawn = nil } } label: {
+                        Image(systemName: "xmark.circle.fill").font(PS.sys(size: Self.fontSize + 1)).foregroundStyle(PS.fg3)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear the time the labs were drawn")
+                } else {
+                    Text("Drawn (optional)").font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg3)
+                    Button { patient.update(discrete: true) { $0.labsDrawn = Date() } } label: {
+                        Text("+ Time").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Add the time the labs were drawn")
+                    .accessibilityHint("Optional")
+                    Spacer(minLength: 0)
+                }
+            }
+            if editing, let d = patient.record.labsDrawn {
                 DatePicker("Labs drawn", selection: Binding(get: { d }, set: { v in patient.update { $0.labsDrawn = v } }), displayedComponents: [.date, .hourAndMinute])
                     .labelsHidden()
-                    .controlSize(.mini)
-                    .font(PS.sys(size: Self.fontSize))
-                Button { patient.update(discrete: true) { $0.labsDrawn = nil } } label: {
-                    Image(systemName: "xmark.circle.fill").font(PS.sys(size: Self.fontSize + 1)).foregroundStyle(PS.fg3)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Clear the time the labs were drawn")
-            } else {
-                Button { patient.update(discrete: true) { $0.labsDrawn = Date() } } label: {
-                    Text("+ Time").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.accent)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Add the time the labs were drawn")
-                .accessibilityHint("Optional")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
