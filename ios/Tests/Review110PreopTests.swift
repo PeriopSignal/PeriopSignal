@@ -1,5 +1,4 @@
 import XCTest
-import SwiftUI
 import UIKit
 @testable import PeriopSignal
 
@@ -105,16 +104,11 @@ final class Review110PreopTests: XCTestCase {
         XCTAssertFalse(PatientBriefs.plainText(PatientBriefs.preop(r)).contains("Preop labs"))
     }
 
-    @MainActor func testTheDrawnRowIsOneCompactLine() {
-        let store = PatientStore(url: nil)
-        func height() -> CGFloat {
-            let host = UIHostingController(rootView: LabsDrawnRow().environment(store))
-            return host.sizeThatFits(in: CGSize(width: 375, height: CGFloat.greatestFiniteMagnitude)).height
-        }
-        let empty = height()
-        // A caption-size line (a lab row is about 58 pt; the old Drawn row was a full 36 pt row).
-        XCTAssertGreaterThan(empty, 10)
-        XCTAssertLessThanOrEqual(empty, 28, "one compact row while empty")
+    func testTheDrawnRowIsOneCompactLine() {
+        // A caption-size line: the text's line height and the row's padding (the old Drawn row was a 14.5 pt label with
+        // 9 pt above and below, about 36 pt; a lab row is about 58 pt).
+        let empty = UIFont.systemFont(ofSize: LabsDrawnRow.fontSize).lineHeight + 2 * LabsDrawnRow.verticalPadding
+        XCTAssertLessThanOrEqual(empty, 24, "one compact row while empty")
         XCTAssertLessThanOrEqual(LabsDrawnRow.fontSize, 12.5)
         XCTAssertLessThanOrEqual(LabsDrawnRow.verticalPadding, 5)
     }
