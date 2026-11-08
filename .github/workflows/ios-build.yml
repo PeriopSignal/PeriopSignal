@@ -148,12 +148,22 @@ jobs:
             # (the plain Feed, in the default appearance).
             for _ in $(seq 1 30); do pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null || break; sleep 0.5; done
             sleep 1
+            # A launch that opens a page, a tab or a sheet, or jumps the tab (ShotReady, debug builds) leaves a "pending"
+            # file in the app's tmp folder and a "ready" one once that has happened; on this Intel runner's simulator My
+            # Patient can take 10 s or more to show, so such a shot waits past its time, up to 30 s more, for ready.
+            local tmp; tmp=$(xcrun simctl get_app_container "$UDID" org.periopsignal.app data 2>/dev/null || true)
+            [ -n "$tmp" ] && tmp="$tmp/tmp" && rm -f "$tmp/ps-shot-pending" "$tmp/ps-shot-ready"
+            local started=$SECONDS
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
+            if [ -n "$tmp" ] && [ -f "$tmp/ps-shot-pending" ]; then
+              for _ in $(seq 1 60); do [ -f "$tmp/ps-shot-ready" ] && break; sleep 0.5; done
+              [ -f "$tmp/ps-shot-ready" ] || echo "::warning::$name: the page it opens did not report ready"
+            fi
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
             # A filtered run keeps the app's screenshot trace (ShotTrace, debug builds) beside each shot.
             if [ -n "$ONLY" ]; then
-              xcrun simctl spawn "$UDID" log show --last "$((wait + 6))s" --style compact --predicate 'process == "PeriopSignal" AND category == "shots"' > "build/shots/$name-trace.txt" 2>/dev/null || true
+              xcrun simctl spawn "$UDID" log show --last "$((SECONDS - started + 4))s" --style compact --predicate 'process == "PeriopSignal" AND category == "shots"' > "build/shots/$name-trace.txt" 2>/dev/null || true
             fi
             # The app is gone (it crashed): keep the newest crash report for this shot.
             if ! pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null; then
