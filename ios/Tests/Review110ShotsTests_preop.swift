@@ -33,6 +33,8 @@ final class Review110ShotsTests_preop: XCTestCase {
         r.tube = "LMA 4"
         XCTAssertTrue(PatientAirway.tubeIsLMA(r))
         let item = PatientDiagramModel.items(r, phase: .intraop).items.first { $0.id == "airway-ett" }
+        // Drawn or not, an LMA size is never relabelled as an endotracheal tube.
+        XCTAssertFalse(item?.label.hasPrefix("ETT") ?? false)
         if let item { XCTAssertEqual(item.label, "LMA 4") }
     }
 
@@ -117,8 +119,9 @@ final class Review110ShotsTests_preop: XCTestCase {
     func testIntraopDemoLinesAndHbArePlausible() throws {
         let r = PatientDemo.intraop110
         XCTAssertFalse(r.devices.contains { $0.kind == .pac }, "a SLIC goes through the introducer in place of a PA catheter")
-        XCTAssertTrue(r.devices.contains { $0.detail.localizedCaseInsensitiveContains("SLIC") || $0.settings.values.contains { $0.localizedCaseInsensitiveContains("SLIC") } }
-                      || PatientDevices.parse("RIJ SLIC 9 Fr") != nil)
+        let centralLines = r.devices.filter { $0.kind == .cvc }
+        XCTAssertEqual(centralLines.count, 1, "one central line in the R IJ")
+        XCTAssertEqual(centralLines.first?.detail, "SLIC")
         let hb = try XCTUnwrap(r.intraopLabs.compactMap { $0.values["hb"] }.first)
         XCTAssertLessThan(hb, 11, "after bypass and 2 units of PRBC")
         XCTAssertGreaterThan(hb, 7)
