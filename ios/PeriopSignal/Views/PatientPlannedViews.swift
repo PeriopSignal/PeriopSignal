@@ -3,8 +3,8 @@ import SwiftUI
 // MARK: - The Preprocedure tab's top (1.10, Ben's Nov 7 chat 6 and 7)
 //
 // The openable "Procedure" card is an always-open "Planned Procedure & Anesthetic" box, like Demographics & History: the
-// procedure search bar (the Procedure editor's own, with its list and side words), the planned procedures, a "+ Procedure
-// urgency" link (the urgency chips open in place; once one is chosen the box shows it with a Change control) and the
+// procedure search bar (the Procedure editor's own, with its list and side words), the planned procedures, a "+ Urgency"
+// link (the urgency chips open in place; once one is chosen the row reads "Urgency: Elective · Change") and the
 // planned anesthetic chips on one line (GA, MAC, PNB, Neuraxial). Under the box a "+ Risk-score inputs" link opens the
 // high-risk switch, the ARISCAT incision and the expected duration in place; once any is filled the link shows them in one
 // line. The Procedure editor is still there for deep links and the old keys (PatientEditor.procedure).
@@ -94,7 +94,7 @@ struct PreopPlannedBox: View {
 
     // MARK: Urgency
 
-    /// "+ Procedure urgency" while none is chosen; the chips in place when it is tapped; once chosen, the urgency with Change.
+    /// "+ Urgency" while none is chosen; the chips in place when it is tapped; once chosen, "Urgency: Elective · Change".
     @ViewBuilder private func urgency(_ r: PatientRecord) -> some View {
         if urgencyOpen {
             VStack(alignment: .leading, spacing: 8) {
@@ -108,13 +108,13 @@ struct PreopPlannedBox: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 14).padding(.vertical, 10)
-        } else if let u = r.urgency {
+        } else if let u = r.urgency, let parts = PatientPreop110.urgencyCollapsedParts(r) {
             Button { withAnimation(.snappy) { urgencyOpen = true } } label: {
-                HStack(spacing: 8) {
-                    Text("Urgency").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
-                    Text(u.label).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                    Spacer(minLength: 6)
-                    Text("Change").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.accent)
+                HStack(spacing: 6) {
+                    Text(parts.title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
+                    Text("·").font(PS.sys(size: 14.5)).foregroundStyle(PS.fg3)
+                    Text(parts.action).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent)
+                    Spacer(minLength: 0)
                 }
                 .contentShape(Rectangle())
                 .padding(.horizontal, 14).padding(.vertical, 11)
@@ -128,7 +128,7 @@ struct PreopPlannedBox: View {
             Button { withAnimation(.snappy) { urgencyOpen = true } } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "plus").font(PS.sys(size: 11, weight: .bold)).frame(width: 14)
-                    Text("Procedure urgency").font(PS.sys(size: 14, weight: .semibold))
+                    Text(PatientPreop110.urgencyLinkTitle(r)).font(PS.sys(size: 14, weight: .semibold))
                     Spacer(minLength: 0)
                 }
                 .foregroundStyle(PS.accent)
@@ -136,7 +136,7 @@ struct PreopPlannedBox: View {
                 .padding(.horizontal, 14).padding(.vertical, 11)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Add procedure urgency")
+            .accessibilityLabel("Add urgency")
             .accessibilityHint("Opens the urgency choices")
         }
     }

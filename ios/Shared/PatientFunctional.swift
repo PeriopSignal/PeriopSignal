@@ -111,6 +111,27 @@ enum PatientFunctional {
     /// The guideline covers adults, 18 or older (§1.4, p e355).
     static let cardiacAdultOnly = "The 2024 AHA/ACC stepwise evaluation is for adults (18 or older), so it is not shown under 18."
 
+    /// The guideline is for adults having noncardiac surgery (its title, "Guideline for Perioperative Cardiovascular
+    /// Management for Adults Undergoing Noncardiac Surgery", and its scope, §1.4, p e355), and the RCRI was derived for
+    /// noncardiac surgery (Lee 1999; PatientRules.rcriHiddenNote). So for a planned cardiac operation
+    /// (PatientRules.cardiacSurgery) the stepwise verdict, its RCRI text, Figure 1's risk modifiers and its branch boxes are
+    /// not shown; the symptoms and acute-condition answers stay (review 1.10). Of the condition notes, the two valve notes
+    /// go too (review 1.10, second pass): "evaluate severe stenosis for valve intervention before elective surgery" is
+    /// wrong when the planned operation is that intervention or includes it, and the echo reminder is part of every
+    /// cardiac operation's own workup (the pre-bypass TEE grades the valves). The lesions themselves stay recorded and in
+    /// the briefs. The other condition notes (stents and antiplatelets, stroke timing, pulmonary hypertension, the device
+    /// plan, heart failure, statins, the congenital heart disease consult) bear on any operation and are kept: the
+    /// conservative choice, for a clinician to confirm.
+    static let cardiacSurgeryNote = "Cardiac surgery: the 2024 AHA/ACC stepwise evaluation, the RCRI and the guideline's valve notes are not shown, as they are for noncardiac surgery; its other notes by condition are kept."
+
+    /// Whether the stepwise evaluation (verdict, RCRI, risk modifiers, branch advice) applies: adults having noncardiac surgery.
+    static func stepwiseApplies(_ r: PatientRecord) -> Bool { r.isAdult && !PatientRules.cardiacSurgery(r) }
+
+    /// The ⓘ of the Cardiac evaluation group: the approach it follows, or why it is not shown.
+    static func evaluationNote(_ r: PatientRecord) -> String {
+        !r.isAdult ? cardiacAdultOnly : (PatientRules.cardiacSurgery(r) ? cardiacSurgeryNote : cardiacNote)
+    }
+
     /// The acute conditions recorded: the flags, and from the problem list decompensated heart failure and ongoing
     /// cardiac ischemia, which we read as the figure's acute coronary syndrome (Figure 1, p e371).
     static func acuteConditions(_ r: PatientRecord) -> [String] {
@@ -223,7 +244,7 @@ enum PatientFunctional {
     /// The figure's boxes between the risk estimate and functional capacity, for a patient who goes on to that step:
     /// elevated calculated risk, or a condition that adds risk at any calculated risk. ECG: §4.1; echo: §4.2.1, §6.4.
     static func branchAdvice(_ r: PatientRecord) -> [String] {
-        guard !r.emergency, !noCardiacRisk(r), acuteConditions(r).isEmpty else { return [] }
+        guard !r.emergency, !PatientRules.cardiacSurgery(r), !noCardiacRisk(r), acuteConditions(r).isEmpty else { return [] }
         let mods = riskModifiers(r)
         guard elevated(r) || !mods.isEmpty else { return [] }
         var out: [String] = []
@@ -254,8 +275,10 @@ enum PatientFunctional {
             out.append("Stent within 3 months: within 30 days of any stent, elective surgery that stops an antiplatelet is potentially harmful (class 3: harm); flag the P2Y12 inhibitor under Medications for the timing rules.")
         }
         if r.has("cva-recent") { out.append("Stroke or TIA within 3 months: delaying elective surgery until 3 months or more after it is reasonable (class 2a).") }
-        if r.has("valve-severe") { out.append("Severe valve disease: severe aortic or mitral stenosis should be evaluated for valve intervention before elective surgery (class 1).") }
-        if r.hx.hasUngradedOrModerateLesion && !r.has("valve-severe") { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
+        // The valve notes are for noncardiac surgery: not for a planned cardiac operation (cardiacSurgeryNote).
+        let cardiac = PatientRules.cardiacSurgery(r)
+        if r.has("valve-severe"), !cardiac { out.append("Severe valve disease: severe aortic or mitral stenosis should be evaluated for valve intervention before elective surgery (class 1).") }
+        if r.hx.hasUngradedOrModerateLesion && !r.has("valve-severe"), !cardiac { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
         if r.has("chd") || r.has("chd-elevated") { out.append("Congenital heart disease: for intermediate- or elevated-risk lesions, an adult congenital heart disease specialist consult before elective surgery is recommended (class 1).") }
         if r.has("pulm-htn-severe") { out.append("Severe pulmonary hypertension: continue targeted therapy (class 1); before elevated-risk surgery, referral to a pulmonary hypertension center is reasonable (class 2a).") }
         if r.has("pacemaker") || r.has("icd") { out.append("Pacemaker or ICD: a device management plan before surgery when electromagnetic interference is expected (class 1).") }
@@ -265,7 +288,9 @@ enum PatientFunctional {
         // §6.2, rec 2 (class 2b, C-LD, p e373): elective elevated-risk surgery, one or more RCRI components (footnote ‡)
         // and a recent history of SBP 180 or more or DBP 110 or more before the day of surgery. A reading of unknown
         // timing (the vital signs) does not count: it gets a pointer to the History item. Urgency not yet recorded counts as elective here, as elsewhere in the evaluation.
-        let mayDefer = (r.urgency == nil || r.urgency == .elective) && elevated(r) && !rcriRiskFactors(r).isEmpty
+        // Both this and the troponin surveillance below read the RCRI, which is not used for cardiac surgery.
+        let noncardiac = !cardiac
+        let mayDefer = noncardiac && (r.urgency == nil || r.urgency == .elective) && elevated(r) && !rcriRiskFactors(r).isEmpty
         if r.has("htn-180"), mayDefer {
             out.append("A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b).")
         } else if mayDefer, (r.vitals["sbp"] ?? 0) >= 180 || (r.vitals["dbp"] ?? 0) >= 110 {
@@ -284,7 +309,7 @@ enum PatientFunctional {
             out.append("Atherosclerotic disease and no statin recorded: if the patient is not taking one, starting a statin around surgery, with the intention of long-term use, is recommended (class 1).")
         }
         // §9.1, rec 1 (class 2b, B-NR, p e406), for the patients troponinSurveillance names.
-        if troponinSurveillance(r) {
+        if noncardiac, troponinSurveillance(r) {
             out.append("Elevated-risk surgery with known cardiovascular disease, cardiac symptoms, or age 65 or older and risk factors: measuring troponin at 24 and 48 hours after surgery may be reasonable to identify myocardial injury (class 2b).")
         }
         return out

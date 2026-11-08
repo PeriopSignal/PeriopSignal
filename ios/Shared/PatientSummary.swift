@@ -237,11 +237,15 @@ enum PatientSummary {
         // The carotid and vertebral cautions; the harvest arm is told with the lines (intraopLines, the handoff).
         for c in cautions where !c.id.hasPrefix("harvest") { out.append(Line("Caution", c.text, alert: true, marks: [c.mark])) }
         if r.isAdult, !r.emergency, r.ageYears != nil {
-            let step = PatientFunctional.cardiacStep(r)
-            out.append(Line("Cardiac evaluation", step.title, alert: step.alert))
-            // The figure's ECG, echo and consultation boxes; the general therapy reminder stays on the screen.
-            for a in PatientFunctional.branchAdvice(r) where !a.hasPrefix("Consider starting guideline-directed") {
-                out.append(Line("Cardiac advice", a))
+            // Not for cardiac surgery (PatientFunctional.cardiacSurgeryNote): no verdict or branch boxes; the condition notes,
+            // less the valve ones, are still carried.
+            if PatientFunctional.stepwiseApplies(r) {
+                let step = PatientFunctional.cardiacStep(r)
+                out.append(Line("Cardiac evaluation", step.title, alert: step.alert))
+                // The figure's ECG, echo and consultation boxes; the general therapy reminder stays on the screen.
+                for a in PatientFunctional.branchAdvice(r) where !a.hasPrefix("Consider starting guideline-directed") {
+                    out.append(Line("Cardiac advice", a))
+                }
             }
             for a in PatientFunctional.conditionAdvice(r) { out.append(Line("Cardiac advice", a, alert: true)) }
         }

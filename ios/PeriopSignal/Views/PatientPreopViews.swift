@@ -485,7 +485,7 @@ struct PreopCardioBox: View {
 
     var body: some View {
         let r = patient.record
-        PatientGroup(title: "Cardiopulmonary Evaluation", note: r.isAdult ? PatientFunctional.cardiacNote : PatientFunctional.cardiacAdultOnly) {
+        PatientGroup(title: "Cardiopulmonary Evaluation", note: PatientFunctional.evaluationNote(r)) {
             VStack(alignment: .leading, spacing: 0) {
                 intrathoracic(r)
                 Hairline().padding(.leading, 14)

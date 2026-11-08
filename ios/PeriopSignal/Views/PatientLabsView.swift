@@ -14,7 +14,7 @@ extension PatientEditorView {
         PatientGroup(title: "Labs", note: sum.estimate == nil ? nil : PatientLabs.estimateCaption) {
             labRows(PatientLabs.entryOrder(.main), section: "main", estimate: sum.estimate)
             Hairline().padding(.leading, 14)
-            LabsDrawnRow()
+            LabsDrawnRow().id("labsdrawn")
             PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.", text: bind(\.labNotes))
         }
         typeScreenGroup
