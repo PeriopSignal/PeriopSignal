@@ -47,6 +47,17 @@ extension PatientDemo {
     }
 
     /// The same case before bypass: the pre-bypass exam only, so the page offers the post-bypass one.
+    /// The same case with the degenerated valve's severe aortic stenosis recorded under History (-ps.patient
+    /// demo-echo110-as, shots 598–599): for the planned AVR the guideline's "evaluate for valve intervention" note is
+    /// not shown (review 1.10, second pass).
+    static var echo110Severe: PatientRecord {
+        var r = echo110
+        r.hx.valves["aortic"] = PatientValve(stenosis: true, stenosisGrade: "severe", regurgitation: true, regurgitationGrade: "moderate",
+                                             prosthetic: true, prosthesis: "Bioprosthetic")
+        PatientHistoryDetails.sync(&r)
+        return r
+    }
+
     static var echo110Pre: PatientRecord {
         var r = echo110
         r.intraopEchoPost = PatientEcho()

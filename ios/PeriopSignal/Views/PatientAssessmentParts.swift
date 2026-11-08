@@ -180,7 +180,7 @@ struct PatientCardiacEvaluationContent: View {
             Hairline().padding(.leading, 14)
             PatientYesNoChipsRow(title: "Acute cardiac conditions", answer: \.activeCardiacAnswer, chips: \.activeCardiac, options: PatientFunctional.activeCardiac)
             if r.isAdult && !PatientFunctional.stepwiseApplies(r) {
-                // Cardiac surgery: one quiet line instead of the noncardiac verdict; the condition notes stay.
+                // Cardiac surgery: one quiet line instead of the noncardiac verdict; the condition notes, less the valve ones, stay.
                 Hairline().padding(.leading, 14)
                 Text(PatientFunctional.cardiacSurgeryNote)
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)

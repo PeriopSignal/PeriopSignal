@@ -41,7 +41,7 @@ final class Review110PreopTests: XCTestCase {
         XCTAssertTrue(PatientRules.cardiacSurgery(r))
         XCTAssertFalse(PatientFunctional.stepwiseApplies(r))
         XCTAssertEqual(PatientFunctional.evaluationNote(r), PatientFunctional.cardiacSurgeryNote)
-        XCTAssertEqual(PatientFunctional.cardiacSurgeryNote, "Cardiac surgery: the 2024 AHA/ACC stepwise evaluation and the RCRI are not shown, as both are for noncardiac surgery.")
+        XCTAssertEqual(PatientFunctional.cardiacSurgeryNote, "Cardiac surgery: the 2024 AHA/ACC stepwise evaluation, the RCRI and the guideline's valve notes are not shown, as they are for noncardiac surgery; its other notes by condition are kept.")
         // No verdict and no figure boxes in the briefs.
         XCTAssertFalse(labels(r).contains("Cardiac evaluation"), "\(labels(r))")
         XCTAssertTrue(PatientFunctional.branchAdvice(r).isEmpty)
@@ -70,6 +70,50 @@ final class Review110PreopTests: XCTestCase {
         avr.problems.insert("htn-180")
         avr.urgency = .elective
         XCTAssertFalse(PatientFunctional.conditionAdvice(avr).contains { $0.hasPrefix("A recent history of SBP ≥180") })
+    }
+
+    /// A planned AVR with "severe aortic stenosis" typed in the one-liner: the guideline's "evaluate for valve intervention
+    /// before elective surgery" note is not shown, on the screen or in the briefs, as the operation is that intervention;
+    /// the lesion itself still is. The same patient having a lobectomy keeps the note.
+    func testValveNotesAreNotShownForPlannedCardiacSurgery() {
+        let severeNote = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.hasPrefix("Severe valve disease:") } }
+        let echoNote = { (r: PatientRecord) -> Bool in PatientFunctional.conditionAdvice(r).contains { $0.hasPrefix("Valve disease: echo before surgery") } }
+        func typed(_ procedure: String, _ line: String) -> PatientRecord {
+            var r = patient(procedure)
+            PatientNote.apply(PatientNote.read(line).findings.map(\.change), to: &r)
+            PatientHistoryDetails.sync(&r)
+            return r
+        }
+
+        let avr = typed("AVR", "severe aortic stenosis")
+        XCTAssertTrue(PatientRules.cardiacSurgery(avr))
+        XCTAssertTrue(avr.has("valve-severe"), "the one-liner records the lesion")
+        XCTAssertFalse(severeNote(avr), "\(PatientFunctional.conditionAdvice(avr))")
+        let briefs = PatientSummary.assessmentLines(avr).map(\.text).joined(separator: " | ")
+        XCTAssertFalse(briefs.contains("valve intervention"), briefs)
+        XCTAssertTrue(PatientFunctional.conditionAdvice(avr).contains { $0.hasPrefix("Pacemaker or ICD") }, "the other notes stay")
+        let history = PatientSummary.historyLines(avr).map(\.text).joined(separator: " | ")
+        XCTAssertTrue(history.localizedCaseInsensitiveContains("aortic stenosis"), "the lesion is still in the briefs: \(history)")
+
+        let demo = PatientDemo.echo110Severe
+        XCTAssertTrue(demo.has("valve-severe"), "the shots' demo (598-599) records the lesion")
+        XCTAssertFalse(severeNote(demo))
+
+        let lobe = typed("VATS lobectomy", "severe aortic stenosis")
+        XCTAssertTrue(severeNote(lobe), "noncardiac surgery keeps it")
+
+        // An ungraded or moderate lesion: the echo reminder, likewise, only for noncardiac surgery.
+        var cabg = patient("CABG"); cabg.hx.valves["mitral"] = PatientValve(regurgitation: true, regurgitationGrade: "moderate")
+        PatientHistoryDetails.sync(&cabg)
+        XCTAssertTrue(PatientRules.cardiacSurgery(cabg))
+        XCTAssertFalse(echoNote(cabg))
+        var lobe2 = patient("VATS lobectomy"); lobe2.hx.valves = cabg.hx.valves
+        PatientHistoryDetails.sync(&lobe2)
+        XCTAssertTrue(echoNote(lobe2))
+
+        // The congenital heart disease consult is kept for cardiac surgery (the conservative choice).
+        var asd = patient("AVR"); asd.problems.insert("chd")
+        XCTAssertTrue(PatientFunctional.conditionAdvice(asd).contains { $0.hasPrefix("Congenital heart disease") })
     }
 
     func testUnder18NoteIsUnchanged() {

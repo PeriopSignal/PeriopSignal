@@ -237,8 +237,8 @@ enum PatientSummary {
         // The carotid and vertebral cautions; the harvest arm is told with the lines (intraopLines, the handoff).
         for c in cautions where !c.id.hasPrefix("harvest") { out.append(Line("Caution", c.text, alert: true, marks: [c.mark])) }
         if r.isAdult, !r.emergency, r.ageYears != nil {
-            // Not for cardiac surgery (PatientFunctional.cardiacSurgeryNote): no verdict or branch boxes; the condition
-            // notes are still carried.
+            // Not for cardiac surgery (PatientFunctional.cardiacSurgeryNote): no verdict or branch boxes; the condition notes,
+            // less the valve ones, are still carried.
             if PatientFunctional.stepwiseApplies(r) {
                 let step = PatientFunctional.cardiacStep(r)
                 out.append(Line("Cardiac evaluation", step.title, alert: step.alert))

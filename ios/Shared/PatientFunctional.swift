@@ -115,8 +115,14 @@ enum PatientFunctional {
     /// Management for Adults Undergoing Noncardiac Surgery", and its scope, §1.4, p e355), and the RCRI was derived for
     /// noncardiac surgery (Lee 1999; PatientRules.rcriHiddenNote). So for a planned cardiac operation
     /// (PatientRules.cardiacSurgery) the stepwise verdict, its RCRI text, Figure 1's risk modifiers and its branch boxes are
-    /// not shown; the symptoms and acute-condition answers and the condition notes stay (review 1.10).
-    static let cardiacSurgeryNote = "Cardiac surgery: the 2024 AHA/ACC stepwise evaluation and the RCRI are not shown, as both are for noncardiac surgery."
+    /// not shown; the symptoms and acute-condition answers stay (review 1.10). Of the condition notes, the two valve notes
+    /// go too (review 1.10, second pass): "evaluate severe stenosis for valve intervention before elective surgery" is
+    /// wrong when the planned operation is that intervention or includes it, and the echo reminder is part of every
+    /// cardiac operation's own workup (the pre-bypass TEE grades the valves). The lesions themselves stay recorded and in
+    /// the briefs. The other condition notes (stents and antiplatelets, stroke timing, pulmonary hypertension, the device
+    /// plan, heart failure, statins, the congenital heart disease consult) bear on any operation and are kept: the
+    /// conservative choice, for a clinician to confirm.
+    static let cardiacSurgeryNote = "Cardiac surgery: the 2024 AHA/ACC stepwise evaluation, the RCRI and the guideline's valve notes are not shown, as they are for noncardiac surgery; its other notes by condition are kept."
 
     /// Whether the stepwise evaluation (verdict, RCRI, risk modifiers, branch advice) applies: adults having noncardiac surgery.
     static func stepwiseApplies(_ r: PatientRecord) -> Bool { r.isAdult && !PatientRules.cardiacSurgery(r) }
@@ -269,8 +275,10 @@ enum PatientFunctional {
             out.append("Stent within 3 months: within 30 days of any stent, elective surgery that stops an antiplatelet is potentially harmful (class 3: harm); flag the P2Y12 inhibitor under Medications for the timing rules.")
         }
         if r.has("cva-recent") { out.append("Stroke or TIA within 3 months: delaying elective surgery until 3 months or more after it is reasonable (class 2a).") }
-        if r.has("valve-severe") { out.append("Severe valve disease: severe aortic or mitral stenosis should be evaluated for valve intervention before elective surgery (class 1).") }
-        if r.hx.hasUngradedOrModerateLesion && !r.has("valve-severe") { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
+        // The valve notes are for noncardiac surgery: not for a planned cardiac operation (cardiacSurgeryNote).
+        let cardiac = PatientRules.cardiacSurgery(r)
+        if r.has("valve-severe"), !cardiac { out.append("Severe valve disease: severe aortic or mitral stenosis should be evaluated for valve intervention before elective surgery (class 1).") }
+        if r.hx.hasUngradedOrModerateLesion && !r.has("valve-severe"), !cardiac { out.append("Valve disease: echo before surgery if moderate or severe stenosis or regurgitation is suspected (class 1).") }
         if r.has("chd") || r.has("chd-elevated") { out.append("Congenital heart disease: for intermediate- or elevated-risk lesions, an adult congenital heart disease specialist consult before elective surgery is recommended (class 1).") }
         if r.has("pulm-htn-severe") { out.append("Severe pulmonary hypertension: continue targeted therapy (class 1); before elevated-risk surgery, referral to a pulmonary hypertension center is reasonable (class 2a).") }
         if r.has("pacemaker") || r.has("icd") { out.append("Pacemaker or ICD: a device management plan before surgery when electromagnetic interference is expected (class 1).") }
@@ -281,7 +289,7 @@ enum PatientFunctional {
         // and a recent history of SBP 180 or more or DBP 110 or more before the day of surgery. A reading of unknown
         // timing (the vital signs) does not count: it gets a pointer to the History item. Urgency not yet recorded counts as elective here, as elsewhere in the evaluation.
         // Both this and the troponin surveillance below read the RCRI, which is not used for cardiac surgery.
-        let noncardiac = !PatientRules.cardiacSurgery(r)
+        let noncardiac = !cardiac
         let mayDefer = noncardiac && (r.urgency == nil || r.urgency == .elective) && elevated(r) && !rcriRiskFactors(r).isEmpty
         if r.has("htn-180"), mayDefer {
             out.append("A recent history of SBP ≥180 or DBP ≥110 before the day of surgery, with one or more RCRI risk factors: deferring elective elevated-risk surgery may be considered (class 2b).")
