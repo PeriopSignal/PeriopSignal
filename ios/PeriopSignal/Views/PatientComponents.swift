@@ -163,11 +163,21 @@ struct ChipSet: View {
     var isOn: (String) -> Bool
     var tap: (String) -> Void
     @Environment(PatientStore.self) private var store: PatientStore?
+    /// InlineChoices' hidden measure of the row: only the first form without the ✓ slot, the width 1.10 measured.
+    @Environment(\.chipLineProbe) private var probe
 
     /// Any option has shorter words; without them the short forms are the full ones and are not tried twice.
     private var shorts: Bool { options.contains { $0.short != nil } }
 
     var body: some View {
+        if probe {
+            line(short: false, .regular)
+        } else {
+            forms
+        }
+    }
+
+    private var forms: some View {
         // The order is ChipMetrics.forms(choice:compact:shorts:). Each form is a whole row of chips that ViewThatFits
         // keeps, so a toggle row's ✓ forms are paid for by dropping repeats: the short forms where there are no short
         // words, and the fallback without the slot at the usual padding (a row that misses every ✓ form takes the

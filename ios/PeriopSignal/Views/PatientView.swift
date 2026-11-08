@@ -325,9 +325,10 @@ struct PatientView: View {
     static let openRetryDelays: [Double] = [0.4, 1.2, 2.4, 4.0]
 
     /// After those, how often the path is looked at again, and for how long in all: past the longest open-key shot's
-    /// wait (24 s), so a push written over late is put back before the picture.
+    /// wait (30 s: the system pages and the Past Surgical History page, which the Intel runner draws 20 to 30 s after a
+    /// launch; review 1.10), so a push written over late is put back before the picture.
     static let openWatchInterval: Double = 0.5
-    static let openWatchSeconds: Double = 26
+    static let openWatchSeconds: Double = 32
 
     /// Every wait between looks, in order: the retries, then the watch.
     static var openLookDelays: [Double] {

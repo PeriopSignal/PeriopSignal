@@ -1,5 +1,7 @@
 import XCTest
 import CoreGraphics
+import SwiftUI
+import UIKit
 @testable import PeriopSignal
 
 /// 1.10 regression review against the approved 1.9.0 screenshots (the Preoperative group): an emergency urgency keeps its
@@ -110,6 +112,53 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
         XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: wide)?.check, true)
         XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: wide)?.density, .regular)
         XCTAssertGreaterThan(ChipMetrics.heavyEdge, 1, "a heavier edge than an unchosen chip's 1 pt")
+    }
+
+    // MARK: 315: a labelled toggle row keeps its title on the chips' line
+
+    /// The height of a view drawn at `width`.
+    @MainActor private func height<V: View>(_ view: V, width: CGFloat) -> CGFloat {
+        let r = ImageRenderer(content: view.frame(width: width))
+        r.proposedSize = ProposedViewSize(width: width, height: nil)
+        r.scale = 3
+        return r.uiImage?.size.height ?? -1
+    }
+
+    /// Renal's "Access  ✓ Fistula  Dialysis catheter" (1.9 and the 1.10 candidate on one line; the ✓ slot stacked it).
+    @MainActor private func accessRow() -> some View {
+        InlineChoices {
+            Text("Access").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+        } choices: {
+            PatientChips(options: HistorySections.dialysisAccesses.map { PatientFlag($0.0, $0.1) }, selection: .constant(["fistula"]))
+        }
+    }
+
+    /// Between a title and its choices on one line, at the least: the 1.10 HStack's 10 pt, its spacer's 8, 10 pt.
+    private let titleGap: CGFloat = 10 + 8 + 10
+
+    @MainActor func testALabelledToggleRowStaysOnOneLineWhereTheCandidateDid() {
+        let labels = HistorySections.dialysisAccesses.map { $0.1 }
+        let title = ("Access" as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: (13 * PS.textScale).rounded(toPlaces: 1), weight: .semibold)]).width
+        let plain = ChipMetrics.width(labels, density: .regular, choice: false)
+        let checked = ChipMetrics.width(labels, density: .regular, choice: false, check: true)
+        XCTAssertGreaterThan(checked - plain, 20, "the ✓ slot in both chips")
+        let chips = PatientChips(options: HistorySections.dialysisAccesses.map { PatientFlag($0.0, $0.1) }, selection: .constant(["fistula"]))
+        // Room for the title and the chips as the 1.10 candidate measured them, not for the widest ✓ form: one line.
+        let fits = title + titleGap + plain + 4
+        XCTAssertLessThan(fits, title + titleGap + checked, "the widest ✓ form does not fit beside the title")
+        let line = height(chips, width: fits)
+        XCTAssertGreaterThan(line, 0)
+        XCTAssertEqual(height(accessRow(), width: fits), line, accuracy: 1, "\"Access\" stays on its chips' line, as in 1.9 and 1.10")
+        // Where the candidate stacked it, it still stacks (no new layout either way).
+        let stacks = title + titleGap + plain - 8
+        XCTAssertGreaterThan(height(accessRow(), width: stacks), line + 10, "the title above the chips, as 1.10 drew it")
+    }
+
+    func testTheRowIsMeasuredAsTheCandidateMeasuredIt() {
+        XCTAssertEqual(InlineChoicesLayout.gap, titleGap, "the same room between the title and the choices")
+        XCTAssertTrue(InlineChoicesLayout.inline(title: 40, choices: 200, in: 268))
+        XCTAssertFalse(InlineChoicesLayout.inline(title: 40, choices: 200, in: 267.5))
+        XCTAssertTrue(InlineChoicesLayout.inline(title: 40, choices: 2000, in: nil), "no limit: one line")
     }
 
     // MARK: 421: the Past Surgical History bar

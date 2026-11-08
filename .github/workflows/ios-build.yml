@@ -223,21 +223,21 @@ jobs:
           # 1.8.2 Neurologic as an expanding page (222-229): the collapsed list, Stroke or TIA within 3 months and an
           # intracranial bleed with mass effect opened (light and dark), the History list, the Summary and Handoff lines, and a quick-add line.
           shot 222-neuro-collapsed 14 -ps.tab patient -ps.patient empty -ps.patient.open system:neuro -ps.forceAppearance light
-          shot 223-neuro-stroke-ich-light 15 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance light
-          shot 224-neuro-stroke-ich-dark 15 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance dark
+          shot 223-neuro-stroke-ich-light 30 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance light
+          shot 224-neuro-stroke-ich-dark 30 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance dark
           shot 225-neuro-history-list 14 -ps.tab patient -ps.patient demo-neuro -ps.patient.open history -ps.forceAppearance light
           shot 226-neuro-summary 16 -ps.tab patient -ps.patient demo-neuro -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
           shot 227-neuro-handoff-dark 16 -ps.tab patient -ps.patient demo-neuro -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 228-neuro-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "62M, subdural hematoma with midline shift, seizure, stroke 2 weeks ago"
           # 1.9 system pages (315-339, helper 1): every page expanding, light and dark; the CV, Respiratory and Neurologic
           # additions; the From Obstetric rows; the History list and the summary words.
-          shot 315-renal-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
+          shot 315-renal-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
           shot 316-renal-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance dark
           shot 317-gi-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
           shot 318-gi-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.patient.scroll hx-cirrhosis -ps.forceAppearance dark
           shot 319-endo-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.forceAppearance light
           shot 320-endo-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.scroll hx-adrenal -ps.evidence.open 1 -ps.forceAppearance dark
-          shot 321-heme-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.forceAppearance light
+          shot 321-heme-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.forceAppearance light
           shot 322-heme-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.patient.scroll hx-anticoagulation -ps.forceAppearance dark
           shot 323-infectious-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.forceAppearance light
           shot 324-infectious-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.patient.scroll hx-tb -ps.forceAppearance dark
@@ -245,12 +245,12 @@ jobs:
           shot 326-acute-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:acute -ps.forceAppearance dark
           shot 327-ob-light 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.forceAppearance light
           shot 328-ob-dark 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.patient.scroll hx-gdm -ps.forceAppearance dark
-          shot 329-msk-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance light
+          shot 329-msk-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance light
           shot 330-msk-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance dark
           shot 331-social-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance light
           shot 332-social-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance dark
-          shot 333-cv-af-pacer-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.forceAppearance light
-          shot 334-resp-pleural-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:resp -ps.patient.scroll hx-ild -ps.forceAppearance dark
+          shot 333-cv-af-pacer-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.forceAppearance light
+          shot 334-resp-pleural-dark 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:resp -ps.patient.scroll hx-ild -ps.forceAppearance dark
           shot 335-neuro-additions-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:neuro -ps.patient.scroll hx-sci -ps.forceAppearance light
           shot 336-cv-from-ob-dark 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:cv -ps.patient.scroll hx-cardiac-surgery -ps.forceAppearance dark
           shot 337-heme-from-ob-light 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:heme -ps.patient.scroll hx-declines-blood -ps.forceAppearance light
@@ -319,7 +319,7 @@ jobs:
           shot 278-asa-history 18 -ps.tab patient -ps.patient demo-history -ps.patient.open assessment -ps.forceAppearance light
           shot 279-endocrine-diabetes-info-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:endo -ps.evidence.open 1 -ps.forceAppearance light
           shot 420-date-autoslash 14 -ps.tab patient -ps.patient empty -ps.patient.open workup:echo -ps.monthyear 062 -ps.forceAppearance light
-          shot 421-psh-chips 16 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA"
+          shot 421-psh-chips 30 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA"
           shot 428-psh-note-review 16 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.forceAppearance light -ps.patient.note "68M for AVR. HTN. PSH: CABG x3 2019, TEVAR 08/2022, Ascending aorta replacement + LM and RCA endarterectomy + AV repair 06/2025, appendectomy 2010 under GA, uneventful."
           shot 424-psh-filled 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA" -ps.quickadd.add 1
           shot 422-ecg-history-suggestion 16 -ps.tab patient -ps.patient demo-cardio -ps.patient.edit ecg-none -ps.patient.open workup:ecg -ps.forceAppearance light
@@ -574,15 +574,15 @@ jobs:
           shot 550-w375-planned-urgency-risk-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 375 -ps.preop.urgency 1 -ps.preop.risk 1 -ps.forceAppearance light
           shot 551-w375-code-status-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll demographics -ps.forceAppearance light
           shot 552-w375-functional-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll asa -ps.forceAppearance dark
-          shot 553-system-cv-one-line-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.forceAppearance light
+          shot 553-system-cv-one-line-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.forceAppearance light
           shot 554-system-cv-one-line-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.forceAppearance dark
-          shot 555-w375-system-cv-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.width 375 -ps.forceAppearance dark
+          shot 555-w375-system-cv-dark 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.width 375 -ps.forceAppearance dark
           shot 556-large-text-planned-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.textScale 1.25 -ps.preop.urgency 1 -ps.forceAppearance light
           shot 557-large-text-code-status-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.textScale 1.25 -ps.forceAppearance dark
           shot 558-w375-risk-inputs-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
           shot 559-procedure-editor-light 18 -ps.tab patient -ps.patient demo -ps.patient.open procedure -ps.forceAppearance light
           # 1.10 regression review, Preoperative group (640-659): chosen toggle chips keep their check on one-line rows at 375 pt.
-          shot 640-w375-cv-af-pacer-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.patient.width 375 -ps.forceAppearance light
+          shot 640-w375-cv-af-pacer-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.patient.width 375 -ps.forceAppearance light
           # 1.9 Preprocedure tab (helper 5): the reorganized tab from top to bottom, light and dark; a large-text pair.
           shot 440-preop-top-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance light
           shot 441-preop-top-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance dark
