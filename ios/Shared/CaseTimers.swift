@@ -767,14 +767,15 @@ enum CaseTimerEngine {
         return (s.givenMg + mg) / (units / 100)
     }
 
-    /// Checks on a protamine dose before it is logged: the STS 2018 ceiling (block above 2.6 mg per 100 U of the
-    /// heparin given), a second tap above 1.3 mg per 100 U of the initial dose, the cap at 1:1 (EACTS: below 1.0),
-    /// bypass still running, and the label's rate.
+    /// Checks on a protamine dose before it is logged: the STS 2018 ceiling (block above 2.6 mg per 100 U), a second
+    /// tap above 1.3 mg per 100 U of the initial dose, the cap at 1:1 (EACTS: below 1.0), bypass still running, and the
+    /// label's rate.
     ///
-    /// The ceiling is read on all the heparin given, as 1.9 did: STS 2018 does not state its heparin basis (source
-    /// note above), so it never blocks a dose on the initial dose alone; large top-ups after a small first bolus are
-    /// common off bypass. Method (c)'s initial-dose basis applies to the suggestion and its cap (Ben, Nov 7); above
-    /// 1.3 on it the dose needs a second tap, never a block.
+    /// The ceiling's basis is the one 1.9 used: on bypass the INITIAL bolus (the 1.9 review doc; EACTS 2024 doses on
+    /// the initial heparin), so top-ups never relax the block there; off bypass all the heparin given, because STS 2018
+    /// does not state its heparin basis (source note above) and large top-ups after a small first bolus are common in
+    /// long vascular and TAVR cases. Method (c)'s initial-dose basis (Ben, Nov 7) applies to the suggestion, its cap
+    /// and the 1.3 second tap for every purpose.
     static func protamineIssues(mg: Double, course h: HeparinCourse, purpose p: HeparinPurpose, rules pr: ProtamineRules) -> [DoseIssue] {
         guard mg > 0 else { return [DoseIssue(level: .block, text: "Enter the dose in mg.")] }
         guard let s = protamineSuggestion(h, purpose: p, rules: pr) else {
@@ -785,11 +786,16 @@ enum CaseTimerEngine {
         let ofTotal = protamineRatioOfTotal(addingMg: mg, s)
         let ratioText = String(format: "%.1f", ratio)
         let topUps = s.totalUnits > s.basisUnits
-        if ofTotal > pr.blockAbove {
-            out.append(DoseIssue(level: .block, text: "\(String(format: "%.1f", ofTotal)) mg per 100 U of the heparin given: over the STS 2018 ceiling of \(fmt(pr.blockAbove))."))
+        // On bypass the ceiling stays on the initial bolus (1.9); off bypass it reads on everything given.
+        let ceiling = p.isBypass ? ratio : ofTotal
+        let ceilingBasis = p.isBypass ? "of the initial dose" : "of the heparin given"
+        if ceiling > pr.blockAbove {
+            out.append(DoseIssue(level: .block, text: "\(String(format: "%.1f", ceiling)) mg per 100 U \(ceilingBasis): over the STS 2018 ceiling of \(fmt(pr.blockAbove))."))
         } else if ratio > pr.flagAbove {
-            let total = topUps ? " (\(String(format: "%.1f", ofTotal)) of the \(grouped(s.totalUnits)) U given)" : ""
-            out.append(DoseIssue(level: .confirm, text: "\(ratioText) mg per 100 U of the initial dose\(total): over \(fmt(pr.flagAbove))."))
+            // Two decimals for the total, so a value just under the threshold never reads as the threshold itself
+            // (140 mg / 11,000 U is 1.27, not "1.3").
+            let total = topUps ? "; \(String(format: "%.2f", ofTotal)) per 100 U of all \(grouped(s.totalUnits)) U given" : ""
+            out.append(DoseIssue(level: .confirm, text: "\(ratioText) mg per 100 U of the initial dose, over \(fmt(pr.flagAbove))\(total)."))
         } else if ratio > pr.ratioHigh + 0.001 {
             out.append(DoseIssue(level: .soft, text: "\(ratioText) mg per 100 U: above the cap of 1:1. \(pr.ratioNote)"))
         }

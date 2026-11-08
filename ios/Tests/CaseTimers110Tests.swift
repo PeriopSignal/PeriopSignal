@@ -142,10 +142,7 @@ final class CaseTimers110Tests: XCTestCase {
         XCTAssertTrue(over.contains { $0.level == .soft }, "1.17: above the cap")
         XCTAssertFalse(over.needsConfirm)
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 200, course: h, purpose: p, rules: d.protamine).needsConfirm, "1.33")
-        // 1.10 review: the STS 2.6 ceiling reads on the heparin given (STS does not state its basis); 2.67 on the initial
-        // dose needs a second tap, it no longer blocks.
-        XCTAssertFalse(CaseTimerEngine.protamineIssues(mg: 600, course: h, purpose: p, rules: d.protamine).blocks, "2.0 of the total given")
-        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 600, course: h, purpose: p, rules: d.protamine).needsConfirm, "2.67 of the initial")
+        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 600, course: h, purpose: p, rules: d.protamine).blocks, "2.67 of the initial, though 2.0 of the total")
         h.protamine.append(TimedEntry(time: t0.addingTimeInterval(7800), value: 150))
         XCTAssertEqual(try XCTUnwrap(CaseTimerEngine.protamineSuggestion(h, purpose: p, rules: d.protamine)).remainingMg, 0, "never negative")
     }

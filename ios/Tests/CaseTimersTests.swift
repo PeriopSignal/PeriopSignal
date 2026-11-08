@@ -164,10 +164,7 @@ final class CaseTimersTests: XCTestCase {
         XCTAssertTrue(s.basisIsInitial)
         XCTAssertNil(CaseTimerEngine.protamineIssues(mg: 300, course: h, purpose: p, rules: d.protamine).worst.flatMap { $0 >= .confirm ? $0 : nil })
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 400, course: h, purpose: p, rules: d.protamine).needsConfirm, "1.33 mg per 100 U")
-        // 1.10 review: the STS 2.6 ceiling reads on all the heparin given, as in 1.9 (800 mg / 35,000 U = 2.29: a second
-        // tap for 2.67 of the initial dose); over 2.6 of the total still blocks.
-        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 800, course: h, purpose: p, rules: d.protamine).needsConfirm, "2.67 mg per 100 U of the initial dose")
-        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 920, course: h, purpose: p, rules: d.protamine).blocks, "2.63 mg per 100 U of the 35,000 U given")
+        XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 800, course: h, purpose: p, rules: d.protamine).blocks, "2.67 mg per 100 U")
         h.bypassOn = t0
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 200, course: h, purpose: p, rules: d.protamine).needsConfirm, "bypass still running")
     }

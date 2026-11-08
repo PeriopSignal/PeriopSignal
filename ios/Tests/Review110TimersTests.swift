@@ -2,7 +2,8 @@ import XCTest
 @testable import PeriopSignal
 
 /// 1.10 review fixes in Case Timers: a dismissed blood-loss reminder comes back after the next dose; a baseline ACT alone
-/// starts no ACT check; the protamine cap never rounds above 1 mg per 100 U; the STS ceiling reads on the heparin given;
+/// starts no ACT check; the protamine cap never rounds above 1 mg per 100 U; off bypass the STS ceiling reads on the
+/// heparin given, on bypass it stays on the initial bolus (1.9);
 /// Start time defaults to the current time; a saved 1.9 bypass preset reads as 480 s; the goal caption says i-STAT once;
 /// the two ⓘ captions (Ben's answer 4); the blood-loss subtitle is short.
 final class Review110TimersTests: XCTestCase {
@@ -126,7 +127,7 @@ final class Review110TimersTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(CaseTimerEngine.protamineSuggestion(h, purpose: bypass, rules: d.protamine)).capMg, 245)
     }
 
-    func testSTSCeilingReadsOnTheHeparinGiven() throws {
+    func testSTSCeilingReadsOnTheHeparinGivenOffBypass() throws {
         let d = try data()
         let p = try XCTUnwrap(d.purpose("vascular"))
         // Long open vascular case: 5,000 U, then three 2,000 U top-ups.
@@ -137,6 +138,11 @@ final class Review110TimersTests: XCTestCase {
         XCTAssertFalse(issues.blocks, "140 mg is 1.27 mg per 100 U of the 11,000 U given: it can be logged")
         XCTAssertTrue(issues.needsConfirm, "2.8 mg per 100 U of the initial dose still needs a second tap")
         XCTAssertTrue(issues.contains { $0.text.contains("11,000 U given") }, issues.map(\.text).joined(separator: " | "))
+        // The total reads with two decimals, so 1.27 never shows as "1.3" next to "over 1.3".
+        let confirm = try XCTUnwrap(issues.first { $0.level == .confirm }).text
+        XCTAssertTrue(confirm.contains("1.27 per 100 U of all 11,000 U given"), confirm)
+        XCTAssertFalse(confirm.contains("(1.3"), confirm)
+        XCTAssertTrue(confirm.hasPrefix("2.8 mg per 100 U of the initial dose, over 1.3"), confirm)
         // Over 2.6 of everything given is still blocked (STS 2018).
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 250, course: h, purpose: p, rules: d.protamine).blocks, "300 mg / 11,000 U = 2.7")
         // A single dose: initial and total are the same.
@@ -144,6 +150,21 @@ final class Review110TimersTests: XCTestCase {
         one.doses = [TimedEntry(time: t0, value: 5_000)]
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 140, course: one, purpose: p, rules: d.protamine).blocks)
         XCTAssertTrue(CaseTimerEngine.protamineIssues(mg: 70, course: one, purpose: p, rules: d.protamine).needsConfirm, "1.4")
+    }
+
+    func testSTSCeilingStaysOnTheInitialBolusOnBypass() throws {
+        let d = try data()
+        let p = try XCTUnwrap(d.purpose("bypass"))
+        // 30,000 U initial, then a 5,000 U top-up: 800 mg is 2.67 per 100 U of the initial bolus (2.29 of the total).
+        var h = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30)
+        h.doses = [TimedEntry(time: t0, value: 30_000), TimedEntry(time: t0.addingTimeInterval(3600), value: 5_000)]
+        let issues = CaseTimerEngine.protamineIssues(mg: 800, course: h, purpose: p, rules: d.protamine)
+        XCTAssertTrue(issues.blocks, "the top-up never relaxes the STS block on bypass (1.9)")
+        XCTAssertTrue(issues.contains { $0.level == .block && $0.text.contains("of the initial dose") }, issues.map(\.text).joined(separator: " | "))
+        // Just under the ceiling on the initial bolus: a second tap, not a block.
+        let under = CaseTimerEngine.protamineIssues(mg: 770, course: h, purpose: p, rules: d.protamine)
+        XCTAssertFalse(under.blocks, "2.57 of the initial")
+        XCTAssertTrue(under.needsConfirm)
     }
 
     // MARK: Start time
