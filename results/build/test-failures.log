@@ -1,4 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Review110ShotsTests_regress_preop.swift:71: error: -[PeriopSignalTests.Review110ShotsTests_regress_preop testSystemPageRowsKeepTheirCheckAt375] : XCTAssertEqual failed: ("Optional(false)") is not equal to ("Optional(true)") - Heparin, Warfarin, Enoxaparin, Other
-Test Case '-[PeriopSignalTests.Review110ShotsTests_regress_preop testSystemPageRowsKeepTheirCheckAt375]' failed (31.105 seconds).
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/Review110ShotsTests_regress_preop.swift:126: error: -[PeriopSignalTests.Review110ShotsTests_regress_preop testTheHistoryAnOperationImpliesIsFiledOnceWithOnePastSurgeryEntry] : XCTAssertTrue failed - Prior TEVAR
-Test Case '-[PeriopSignalTests.Review110ShotsTests_regress_preop testTheHistoryAnOperationImpliesIsFiledOnceWithOnePastSurgeryEntry]' failed (0.170 seconds).
