@@ -374,16 +374,18 @@ struct PreopProblemsBox: View {
                     PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: otherBinding)
                         .padding(.horizontal, -14).padding(.vertical, -8)
                 } else {
-                    Button { withAnimation(.snappy) { otherOpen = true } } label: {
-                        Label("Add other conditions", systemImage: "plus")
-                            .font(PS.sys(size: 13.5, weight: .semibold))
-                    }
-                    .buttonStyle(.borderless).tint(PS.accent)
+                    // 1.11 (P1-7): a quiet link, like the others that open in place.
+                    PreopQuietLink(title: "Other conditions", hint: "Shows a field for conditions not in the lists") { otherOpen = true }
                 }
             }
             .padding(14)
         }
     }
+
+    /// The empty tile's height (1.11, P1-9): one line, the icon and the name; a filled tile keeps up to three lines of
+    /// summary words under its name.
+    static let emptyTileHeight: CGFloat = 44
+    static let filledTileHeight: CGFloat = 66
 
     private func tile(_ s: PatientSystem, _ r: PatientRecord) -> some View {
         let words = PatientPreop.tileWords(s, r)
@@ -394,12 +396,14 @@ struct PreopProblemsBox: View {
                     Text(s.name).font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
                         .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.leading)
                 }
-                Text(words.isEmpty ? "—" : words)
-                    .font(PS.sys(size: 12)).foregroundStyle(words.isEmpty ? PS.fg3 : PS.fg2)
-                    .lineLimit(3).multilineTextAlignment(.leading)
+                if !words.isEmpty {
+                    Text(words)
+                        .font(PS.sys(size: 12)).foregroundStyle(PS.fg2)
+                        .lineLimit(3).multilineTextAlignment(.leading)
+                }
             }
             .padding(10)
-            .frame(maxWidth: .infinity, minHeight: 66, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: words.isEmpty ? Self.emptyTileHeight : Self.filledTileHeight, alignment: words.isEmpty ? .leading : .topLeading)
             .background(PS.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
@@ -563,10 +567,19 @@ struct PreopCardioBox: View {
 
 // MARK: - Current Medications
 
-/// Flagged medications: the chips, the AHA/ACC "Before surgery" notes behind a disclosure, and the ASRA and fasting tools.
+/// Flagged medications (1.11, Ben's Q19): the active flags as one line of ✓ chips (a tap takes one off), with
+/// "+ Flag a medication" opening the full set in place; the flags come from the typed list and from the chips here. The
+/// AHA/ACC "Before surgery" notes behind a disclosure, and the ASRA and fasting tools, stay under the active flags.
 struct PreopFlaggedBox: View {
     @Environment(PatientStore.self) private var patient
     var onOpenRoute: (String) -> Void
+    @State private var allOpen = LaunchSeed.bool("ps.preop.flags")
+
+    /// The flags on the record, in the catalog's order: hand-set and read from the medication list alike (the record's
+    /// medFlags is the one set; fills.medFlags only remembers which came from the list).
+    static func activeFlags(_ r: PatientRecord) -> [PatientFlag] {
+        PatientCatalog.medFlags.filter { r.medFlags.contains($0.id) }
+    }
 
     var body: some View {
         let r = patient.record
@@ -575,7 +588,7 @@ struct PreopFlaggedBox: View {
         let fasting = r.medFlags.contains("glp1")
         PatientGroup(title: "Flagged medications") {
             VStack(alignment: .leading, spacing: 0) {
-                FlaggedMedicationsChips()
+                flags(r)
                 if !notes.isEmpty {
                     Hairline().padding(.leading, 14)
                     DisclosureGroup {
@@ -603,17 +616,76 @@ struct PreopFlaggedBox: View {
         }
     }
 
+    /// The active flags as ✓ chips, then the "+ Flag a medication" link; or, opened, every flag with Hide.
+    @ViewBuilder private func flags(_ r: PatientRecord) -> some View {
+        let active = Self.activeFlags(r)
+        VStack(alignment: .leading, spacing: 10) {
+            if allOpen {
+                HStack {
+                    Text("Flag a medication").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+                    Spacer(minLength: 6)
+                    PreopHideButton { allOpen = false }
+                }
+                FlaggedMedicationsChips()
+            } else {
+                if !active.isEmpty {
+                    ChipSet(options: active.map { ChipChoice($0.id, $0.label) }, style: .toggle, tint: PS.action,
+                            hints: Dictionary(uniqueKeysWithValues: active.map { ($0.id, "Takes the flag off") }),
+                            isOn: { _ in true },
+                            tap: { id in withAnimation(.snappy) { patient.update { $0.medFlags.remove(id) } } })
+                }
+                PreopQuietLink(title: "Flag a medication", hint: "Shows every medication flag") { allOpen = true }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+    }
+
     private func tool(_ title: String, route: String) -> some View {
         Button { onOpenRoute(route) } label: {
             HStack(spacing: 8) {
                 Image(systemName: "arrow.right.circle").font(PS.sys(size: 14, weight: .semibold))
                 Text(title).font(PS.sys(size: 13.5, weight: .semibold)).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
             }
-            .foregroundStyle(PS.accent)
+            .foregroundStyle(PS.action)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Preprocedure Summary
+
+/// The Preprocedure Summary section (1.9; moved here from PatientBriefViews in 1.11): the brief once generated, with Hide
+/// summary; before that, the Generate button, and nothing at all until the record has an age or a procedure (P1-9: no
+/// disabled button on an empty record; the section title stays so the jump chip has somewhere to go).
+struct PreprocedureSummaryView: View {
+    @Environment(PatientStore.self) private var patient
+
+    /// The Generate button is offered once the record has an age or a planned procedure (or the summary is already on).
+    static func offersSummary(_ r: PatientRecord) -> Bool {
+        r.preopSummaryOn || r.ageYears != nil || !r.procedure.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        let r = patient.record
+        if r.preopSummaryOn {
+            VStack(alignment: .leading, spacing: 10) {
+                BriefPanel(kind: .preop)
+                Button { patient.update(discrete: true) { $0.preopSummaryOn = false } } label: { Text("Hide summary") }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+            }
+            .id("preopsummary")
+        } else if Self.offersSummary(r) {
+            Button { Haptics.light(); patient.update(discrete: true) { $0.preopSummaryOn = true } } label: {
+                Label("Generate preprocedure summary", systemImage: "plus")
+            }
+            .buttonStyle(CapsuleButtonStyle(prominent: true, color: PS.action))
+            .id("preopsummary")
+        } else {
+            Color.clear.frame(height: 1).id("preopsummary")
+        }
     }
 }
 

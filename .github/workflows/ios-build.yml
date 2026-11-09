@@ -758,6 +758,28 @@ jobs:
           shot 535-previous-intrathoracic-light 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance light
           shot 536-previous-intrathoracic-dark 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance dark
           shot 537-preop-echo-summary-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          # 1.11 helper C2 (800-819): the three add looks, the empty-state diet, say it once, the Airway Examination card
+          # (-ps.patient demo-add111: PatientDemo111Add.swift).
+          shot 800-add111-allergies-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll allergies -ps.patient.width 375 -ps.forceAppearance light
+          shot 801-add111-allergies-empty-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll allergies -ps.forceAppearance dark
+          shot 802-add111-problems-tiles-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
+          shot 803-add111-problems-tiles-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll problems -ps.forceAppearance dark
+          shot 804-add111-flagged-active-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll flagged -ps.patient.width 375 -ps.forceAppearance light
+          shot 805-add111-flagged-active-dark 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll flagged -ps.forceAppearance dark
+          shot 806-add111-flagged-open-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll flagged -ps.preop.flags 1 -ps.forceAppearance light
+          shot 807-add111-flagged-empty-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll flagged -ps.forceAppearance dark
+          shot 808-add111-airway-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll airway -ps.patient.width 375 -ps.forceAppearance light
+          shot 809-add111-airway-filled-dark 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll airway -ps.forceAppearance dark
+          shot 810-add111-airway-normal-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.edit exam -ps.patient.scroll airway -ps.patient.width 375 -ps.forceAppearance light
+          shot 811-add111-airway-filled-375-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll airway -ps.patient.width 375 -ps.forceAppearance light
+          shot 812-add111-homemeds-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll homemeds -ps.patient.width 375 -ps.forceAppearance light
+          shot 813-add111-homemeds-dark 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll homemeds -ps.forceAppearance dark
+          shot 814-add111-intraop-other-empty-light 18 -ps.tab patient -ps.patient.tab intraop -ps.patient.jump intraop:other -ps.patient.width 375 -ps.forceAppearance light
+          shot 815-add111-intraop-other-filled-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.jump intraop:other -ps.forceAppearance dark
+          shot 816-add111-intraop-timers-row-light 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.patient.jump intraop:other -ps.forceAppearance light
+          shot 817-add111-events-page-dark 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events -ps.forceAppearance dark
+          shot 818-add111-intraop-lines-limb-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance light
+          shot 819-add111-summary-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll risk -ps.patient.width 375 -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
