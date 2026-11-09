@@ -84,13 +84,17 @@ struct PatientInfusion: Codable, Hashable, Identifiable {
     var id = UUID()
     var drug = ""
     var rate = ""
+    /// The preoperative drip this intraoperative entry was carried from (1.11: the intraop list shows the preop drips
+    /// by itself, tagged "from preop" until the rate is edited); nil for a drip started in the room.
+    var fromPreop: UUID?
 
-    init(drug: String = "", rate: String = "") { self.drug = drug; self.rate = rate }
+    init(drug: String = "", rate: String = "", fromPreop: UUID? = nil) { self.drug = drug; self.rate = rate; self.fromPreop = fromPreop }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = (try? c.decodeIfPresent(UUID.self, forKey: .id)) ?? UUID()
         drug = (try? c.decodeIfPresent(String.self, forKey: .drug)) ?? ""
         rate = (try? c.decodeIfPresent(String.self, forKey: .rate)) ?? ""
+        fromPreop = try? c.decodeIfPresent(UUID.self, forKey: .fromPreop)
     }
     var text: String { [drug, rate].filter { !$0.isEmpty }.joined(separator: " at ") }
 }
@@ -215,6 +219,8 @@ struct PatientRecord: Codable, Equatable {
     }
     var ecgNotes = ""
     var echoFindings = PatientEcho()
+    /// The preprocedure stress test (1.11), beside the ECG, echo and caths in the cardiac workup.
+    var stressTest = PatientStressTest()
     var lhc = PatientLHC()
     var rhc = PatientRHC()
     /// Studies beyond the heart (PatientStudies, 1.8.1): carotid and radial artery ultrasound, pulmonary function tests.
@@ -396,6 +402,7 @@ struct PatientRecord: Codable, Equatable {
         ecg = v(.ecg, [])
         ecgNotes = v(.ecgNotes, "")
         echoFindings = v(.echoFindings, PatientEcho())
+        stressTest = v(.stressTest, PatientStressTest())
         lhc = v(.lhc, PatientLHC())
         rhc = v(.rhc, PatientRHC())
         carotid = v(.carotid, PatientCarotid())

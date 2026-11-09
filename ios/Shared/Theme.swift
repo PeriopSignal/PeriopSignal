@@ -34,6 +34,9 @@ enum PS {
     static let accent = Color.dynamic(dark: "F2634F", light: "D9472F")
     static let accentFg = Color.dynamic(dark: "1C0906", light: "FFFFFF")
     static let accent2 = Color.dynamic(dark: "8AB8FF", light: "2460CC")
+    /// 1.11 (Ben, Q8): the colour of a tap that does something ("+" links, Change, Add N, steppers, the toggle ✓ tint);
+    /// PS.red is for clinical alerts only and PS.accent for the tab bar's selection.
+    static let action = accent2
     static let green = Color.dynamic(dark: "43D68E", light: "1E9D5A")
     /// Abnormal values and scores (bold red in My Patient).
     static let red = Color.dynamic(dark: "FF6B6B", light: "C62828")
