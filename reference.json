@@ -16439,7 +16439,7 @@
       },
       {
         "q": "What ACT on bypass does STS 2018 find reasonable?",
-        "a": "Above 480 s (IIa). This app's bypass default is the same, above 480 s; you can change it in Case Timers.",
+        "a": "Above 480 s (IIa). This app's bypass default: ACT goal ≥ 480 s, as Case Timers shows it; you can change it there.",
         "source": "STS/SCA/AmSECT 2018"
       },
       {

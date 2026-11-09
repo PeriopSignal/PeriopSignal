@@ -10,6 +10,8 @@ import SwiftUI
 struct QuickAddBar: View {
     @Environment(PatientStore.self) private var patient
     var place: QuickAddPlace
+    /// The example in the field, where the page has its own (Previous Intrathoracic Surgery); else the place's.
+    var placeholder: String? = nil
     private var tab: QuickAddTab { place.tab }
     private var compact: Bool { place.compact }
 
@@ -101,7 +103,7 @@ struct QuickAddBar: View {
                 .foregroundStyle(PS.accent2)
                 .accessibilityHidden(true)
             // The editor pages' bar stays one line; the tabs' grows to four as a long line is typed.
-            TextField(QuickAdd.placeholder(place), text: $text, axis: .vertical)
+            TextField(placeholder ?? QuickAdd.placeholder(place), text: $text, axis: .vertical)
                 .lineLimit(compact ? 1...1 : 1...4)
                 .focused($focused)
                 .font(PS.sys(size: compact ? 14 : 15))

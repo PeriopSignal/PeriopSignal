@@ -71,6 +71,27 @@ final class Review110ShotsTests_preop: XCTestCase {
         XCTAssertEqual(PatientCatalog.airwayAtEndChoices(natural).map(\.id), PatientCatalog.airwayAtEnd.map(\.id))
     }
 
+    /// Shots 569/570: an intubation or an LMA recorded in the airway course is not "never instrumented" either.
+    func testRecordedIntubationOrLMAIsNotOfferedNeverInstrumented() {
+        var r = PatientRecord()
+        r.currentAirway = "natural"
+        r.intubation = "easy"
+        XCTAssertEqual(PatientCatalog.airwayAtEndChoices(r).map(\.id), ["extubated", "intubated", "sga"])
+        var lma = PatientRecord()
+        lma.currentAirway = "natural"
+        lma.sga = "easy"
+        XCTAssertFalse(PatientCatalog.airwayAtEndChoices(lma).map(\.id).contains("natural"))
+        // Only the tube details recorded still counts as an intubation.
+        var tube = PatientRecord()
+        tube.tube = "8.0 cuffed ETT"
+        XCTAssertFalse(PatientCatalog.airwayAtEndChoices(tube).map(\.id).contains("natural"))
+        // A saved older value keeps showing.
+        r.airwayAtEnd = "natural"
+        XCTAssertTrue(PatientCatalog.airwayAtEndChoices(r).map(\.id).contains("natural"))
+        // Nothing recorded: every choice.
+        XCTAssertEqual(PatientCatalog.airwayAtEndChoices(PatientRecord()).map(\.id), PatientCatalog.airwayAtEnd.map(\.id))
+    }
+
     // MARK: 590: one quiet cardiac-surgery line
 
     func testAdultCardiacSurgeryHasOneCardiacSurgeryLine() {

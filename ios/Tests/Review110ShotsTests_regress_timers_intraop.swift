@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import PeriopSignal
 
 /// 1.10 screenshot review, regressions against 1.9 (Case Timers and the Intraoperative tab): the running timer rows show
@@ -95,5 +96,64 @@ final class Review110ShotsRegressTimersIntraopTests: XCTestCase {
         XCTAssertEqual(card.phase, .preop)
         // The handoff's figure lists no limb alerts of its own (its text has them).
         XCTAssertEqual(PatientDiagramCard(record: PatientRecord(), phase: .all, listsLimbAlerts: false).parts, [.figure])
+    }
+
+    // MARK: The Lines & Devices card's figure (660, 661)
+
+    /// The rect a column label is drawn in at scale k, in points from the figure's origin (its font's line height high).
+    private func labelRect(_ item: DiagramItem, k: CGFloat) -> CGRect? {
+        guard let la = item.labelAt, !item.label.isEmpty else { return nil }
+        let w = PatientDiagramCanvas.labelWidth(item.label, k: k), h = PatientDiagramCanvas.labelHeight(k)
+        return CGRect(x: item.labelLeft ? la.x * k - w : la.x * k, y: la.y * k - h / 2, width: w, height: h)
+    }
+
+    /// The rect a line of the cart's text is drawn in.
+    private func textRect(_ text: String, size: CGFloat, weight: UIFont.Weight, center: CGPoint) -> CGRect {
+        let f = UIFont.systemFont(ofSize: size, weight: weight)
+        let w = ceil((text as NSString).size(withAttributes: [.font: f]).width)
+        return CGRect(x: center.x - w / 2, y: center.y - f.lineHeight / 2, width: w, height: f.lineHeight)
+    }
+
+    func testCardFigureLabelsNeverOverlapAndTheCartHoldsItsText() throws {
+        // The cardiac demo (shots 660/661): VA ECMO, an IABP, a PAC, an A-line, a PIV and a Foley.
+        let m = PatientDiagramModel.items(PatientDemo.cardiac, phase: .all)
+        let cart = try XCTUnwrap(m.cart)
+        // The 260-point card, the handoff's small figure, the shared picture and the editor (430 points high).
+        for height: CGFloat in [200, 260, 292, 350, 430, 511] {
+            let k = height / 420
+            let items = PatientDiagramCanvas.laidOut(m.items, cart: m.cart, k: k)
+            let labelled = items.filter { $0.labelAt != nil && !$0.label.isEmpty }
+            XCTAssertGreaterThanOrEqual(labelled.count, 5, "height \(height)")
+            for (i, a) in labelled.enumerated() {
+                let ra = try XCTUnwrap(labelRect(a, k: k))
+                for b in labelled.dropFirst(i + 1) {
+                    let rb = try XCTUnwrap(labelRect(b, k: k))
+                    XCTAssertFalse(ra.insetBy(dx: 0, dy: 0.01).intersects(rb.insetBy(dx: 0, dy: 0.01)),
+                                   "height \(height): '\(a.label)' \(ra) and '\(b.label)' \(rb) overlap")
+                }
+            }
+            // The cart's box holds its two lines, and no label is drawn on it.
+            let cl = PatientDiagramCanvas.cartLayout(cart, k: k)
+            let title = textRect(cart.title, size: cl.titleSize, weight: .bold, center: cl.title)
+            let detail = textRect(cart.detail, size: cl.detailSize, weight: .medium, center: cl.detail)
+            XCTAssertTrue(cl.box.contains(title), "height \(height): title \(title) outside the box \(cl.box)")
+            XCTAssertTrue(cl.box.contains(detail), "height \(height): detail \(detail) outside the box \(cl.box)")
+            XCTAssertFalse(title.insetBy(dx: 0, dy: 0.01).intersects(detail.insetBy(dx: 0, dy: 0.01)), "height \(height)")
+            for item in labelled {
+                let r = try XCTUnwrap(labelRect(item, k: k))
+                XCTAssertFalse(r.insetBy(dx: 0, dy: 0.01).intersects(cl.box), "height \(height): '\(item.label)' on the cart")
+            }
+            // The drawing keeps the box inside its right margin.
+            let margins = PatientDiagramCanvas.margins(items, figureWidth: 200, k: k, cart: m.cart)
+            XCTAssertLessThanOrEqual(cl.box.maxX, 200 * k + margins.right)
+        }
+        // The editor's figure keeps the model's gap and the cart's usual box, so it looks as it did.
+        let editor: CGFloat = 430 / 420
+        XCTAssertEqual(PatientDiagramCanvas.labelGap(editor), PatientDiagramModel.labelGap)
+        XCTAssertEqual(PatientDiagramCanvas.laidOut(m.items, cart: m.cart, k: editor).map(\.labelAt), m.items.map(\.labelAt))
+        XCTAssertEqual(PatientDiagramCanvas.cartLayout(cart, k: editor).box.height, 24 * editor, accuracy: 0.001)
+        XCTAssertEqual(PatientDiagramCanvas.cartLayout(cart, k: editor).title.y, (cart.at.y - 4) * editor, accuracy: 0.001)
+        // The card's figure spreads its labels: a 7-point label is taller than the model's 8.5 units at k 0.62.
+        XCTAssertGreaterThan(PatientDiagramCanvas.labelGap(260 / 420), PatientDiagramModel.labelGap)
     }
 }

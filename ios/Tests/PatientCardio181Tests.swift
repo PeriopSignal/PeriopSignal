@@ -257,7 +257,7 @@ final class PatientCardio181Tests: XCTestCase {
         let r = PatientDemo.cardio
         XCTAssertEqual(cvLine(r), "hypertension; hyperlipidemia; CAD: MI within 3 months, prior CABG; HF, decompensated, EF severely reduced; "
                        + "aortic stenosis severe; mitral prosthetic (mechanical 27 mm); AF; pacemaker (dependent); pulmonary hypertension, moderate; "
-                       + "aortopathy: ascending aneurysm 4.8 cm, type B dissection, prior TEVAR (2021); previous cardiac surgery: CABG ×3 2019; Followed by cardiology")
+                       + "aortopathy: ascending aneurysm 4.8 cm, type B dissection, prior TEVAR (2021); previous cardiac surgery; Followed by cardiology", "the operation itself is in the past surgical history")
         XCTAssertEqual(respLine(r), "COPD; OSA on CPAP/BiPAP (BiPAP 14/8); respiratory infection: pneumonia; home oxygen 2 L/min")
         let handoff = HandoffWriter.text(r)
         XCTAssertTrue(handoff.contains("CAD: MI within 3 months, prior CABG"))

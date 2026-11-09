@@ -268,18 +268,24 @@ enum PatientDiagramModel {
         }
     }
 
+    /// Figure units between the centres of two labels in a column, where the label font grows with the figure.
+    static let labelGap: CGFloat = 8.5
+    /// Figure units of the right column the ECMO cart blocks above and below its centre (its 12-unit half height and
+    /// 5 units of air), where its box is drawn at its own size.
+    static let cartBlock: CGFloat = 17
+
     /// Every label goes in a column beside the figure on its side, at the height of its insertion point, then the
     /// labels in each column are pushed apart so none overlap (and kept clear of the ECMO cart); a leader line joins
-    /// each label to its line.
-    static func layoutLabels(_ items: inout [DiagramItem], cart: CGPoint?) {
-        let gap: CGFloat = 8.5
+    /// each label to its line. A small figure, where the label font stays at its 7-point floor and the cart's box grows
+    /// to hold its text, passes a wider gap and a taller block (PatientDiagramCanvas.laidOut).
+    static func layoutLabels(_ items: inout [DiagramItem], cart: CGPoint?, gap: CGFloat = PatientDiagramModel.labelGap, cartBlock: CGFloat = PatientDiagramModel.cartBlock) {
         let top: CGFloat = 6, bottom: CGFloat = 414
         for left in [true, false] {
             let idx = items.indices.filter { !items[$0].label.isEmpty && items[$0].labelLeft == left }
                 .sorted { (items[$0].anchor.y, items[$0].anchor.x) < (items[$1].anchor.y, items[$1].anchor.x) }
             guard !idx.isEmpty else { continue }
             // The cart blocks part of the right column.
-            let blocked: ClosedRange<CGFloat>? = (!left && cart != nil) ? (cart!.y - 17)...(cart!.y + 17) : nil
+            let blocked: ClosedRange<CGFloat>? = (!left && cart != nil) ? (cart!.y - cartBlock)...(cart!.y + cartBlock) : nil
             var ys: [CGFloat] = []
             for i in idx {
                 var y = max(items[i].anchor.y, (ys.last.map { $0 + gap }) ?? top)

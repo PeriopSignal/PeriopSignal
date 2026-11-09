@@ -61,6 +61,11 @@ enum PatientEditor: Hashable {
         }
     }
 
+    /// The bar's example: the place's, and on Previous Intrathoracic Surgery operations that opened the chest.
+    var quickAddPlaceholder: String {
+        self == .workup("intrathoracic") ? QuickAdd.intrathoracicPlaceholder : QuickAdd.placeholder(quickAddPlace)
+    }
+
     static let intraopParts: [(id: String, title: String, icon: String)] = [
         ("airway", "Airway", "mouth"), ("lines", "Lines", "syringe"), ("regional", "Regional & Neuraxial", "figure.flexibility"),
         ("infusions", "Infusions", "ivfluid.bag"), ("fluids", "Fluids & Blood", "drop"), ("labs", "Labs", "testtube.2"),
@@ -97,7 +102,7 @@ struct PatientEditorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Type-to-fill on every page (1.8.1): the same bar as the tabs', compact, filling the whole record.
-                    QuickAddBar(place: editor.quickAddPlace)
+                    QuickAddBar(place: editor.quickAddPlace, placeholder: editor.quickAddPlaceholder)
                     switch editor {
                     case .details: details
                     case .procedure: procedureEditor

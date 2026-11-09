@@ -431,11 +431,13 @@ enum PatientCatalog {
         ("extubated", "Extubated"), ("intubated", "Intubated"), ("sga", "Supraglottic airway in"), ("natural", "Never instrumented"),
     ]
 
-    /// The At handoff choices for this patient. One who arrived with an ETT or a tracheostomy cannot be "Never
-    /// instrumented" (review 1.10: the choice sat under "ETT … on arrival"), so it is offered only to the others, or
-    /// while it is the saved value (an older record keeps showing its choice).
+    /// The At handoff choices for this patient. One who arrived with an ETT or a tracheostomy, or whose airway course
+    /// records an intubation or a supraglottic airway, cannot be "Never instrumented" (review 1.10: the choice sat
+    /// under "ETT … on arrival" and under a recorded intubation), so it is offered only to the others, or while it is
+    /// the saved value (an older record keeps showing its choice).
     static func airwayAtEndChoices(_ r: PatientRecord) -> [(id: String, label: String)] {
-        guard r.arrivesWithAirway else { return airwayAtEnd }
+        let instrumented = r.arrivesWithAirway || PatientAirway.intubationChosen(r) || PatientAirway.lmaChosen(r)
+        guard instrumented else { return airwayAtEnd }
         return airwayAtEnd.filter { $0.id != "natural" || r.airwayAtEnd == "natural" }
     }
 }

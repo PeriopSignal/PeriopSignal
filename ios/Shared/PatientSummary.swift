@@ -158,8 +158,9 @@ enum PatientSummary {
         var out: [Line] = []
         if r.noHistory && r.problems.isEmpty { out.append(Line(nil, "No significant medical history")) }
         for sys in PatientCatalog.allSystems {
-            // Smoking leads the Smoking & Substances items (HistorySections.socialItems, 1.9).
-            var items = HistorySections.items(sys, r)
+            // Smoking leads the Smoking & Substances items (HistorySections.socialItems, 1.9). The previous cardiac
+            // operation is named in the past surgical history only, where it is an entry (review 1.10).
+            var items = HistorySections.items(sys, r, pshAlongside: true)
             // Other [system] disorders, then Other details (1.9).
             if let o = r.systemOther[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !o.isEmpty { items.append(o) }
             if let n = r.systemNotes[sys.id]?.trimmingCharacters(in: .whitespacesAndNewlines), !n.isEmpty { items.append(n) }

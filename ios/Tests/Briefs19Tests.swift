@@ -620,4 +620,33 @@ final class Briefs19Tests: XCTestCase {
             if let a = PatientDeviceFills.limbAlertText(r) { XCTAssertTrue(all.contains(a), "limb alerts") }
         }
     }
+
+    // MARK: 11. Previous cardiac surgery is posted once (review 1.10, shots 529/530)
+
+    func testPreviousCardiacSurgeryIsNamedInThePSHOnly() throws {
+        var r = cholecystectomy
+        r.problems = ["htn"]
+        r.surgeries = [PatientSurgery(name: "Appendectomy")]
+        PatientHistoryDetails.setCardiacSurgery("Aortic valve replacement", &r)
+        XCTAssertNotNil(r.hx.cardiacSurgeryID, "the cardiovascular page's item is a PSH entry")
+        for blocks in [PatientBriefs.preop(r), PatientBriefs.handoff(r)] {
+            let pmh = try block(blocks, "pmh").text
+            let psh = try block(blocks, "psh").text
+            XCTAssertTrue(pmh.contains("previous cardiac surgery"), pmh)
+            XCTAssertFalse(pmh.contains("Aortic valve replacement"), "not posted twice: \(pmh)")
+            XCTAssertTrue(psh.contains("Aortic valve replacement"), psh)
+            XCTAssertTrue(psh.contains("Appendectomy"), psh)
+        }
+        // The summary's history: the Cardiovascular line says it, the past surgical history names it.
+        let hist = PatientSummary.historyLines(r)
+        let cv = try XCTUnwrap(hist.first { $0.label == "Cardiovascular" }?.text)
+        XCTAssertTrue(cv.hasSuffix("previous cardiac surgery"), cv)
+        XCTAssertTrue(try XCTUnwrap(hist.first { $0.label == "Past surgical history" }?.text).contains("Aortic valve replacement"))
+        // The cardiovascular page's own words, with no PSH beside them, keep the operation.
+        XCTAssertTrue(HistorySections.cvItems(r).contains("previous cardiac surgery: Aortic valve replacement"), HistorySections.cvItems(r).joined(separator: "; "))
+        // Nothing linked: nothing about it in the PMH (as before).
+        var none = r
+        PatientHistoryDetails.setCardiacSurgery("", &none)
+        XCTAssertFalse(try block(PatientBriefs.handoff(none), "pmh").text.contains("previous cardiac surgery"))
+    }
 }

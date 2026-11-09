@@ -938,8 +938,10 @@ enum HistorySections {
 
     /// The Cardiovascular page in a few words, one item per section, for the History list, the summary and the
     /// handoff: "CAD: MI within 3 months, prior CABG; HF, decompensated, EF severely reduced; aortic stenosis severe".
-    /// Other (the system's details) is added by the caller.
-    static func cvItems(_ r: PatientRecord) -> [String] {
+    /// Other (the system's details) is added by the caller. `pshAlongside`: a past surgical history line follows (the
+    /// summary and the handoff), so the previous cardiac operation, which is an entry of it, is named there only and this
+    /// says "previous cardiac surgery" (Ben: it populates the PSH, never double posted).
+    static func cvItems(_ r: PatientRecord, pshAlongside: Bool = false) -> [String] {
         let p = r.problems, d = r.hx
         var out: [String] = []
         if p.contains("htn") || p.contains("htn-180") {
@@ -979,7 +981,7 @@ enum HistorySections {
             out.append("congenital heart disease" + (p.contains("chd-elevated") ? ", complex lesion" : "") + paren(d.chdDetails))
         }
         let surgery = PatientHistoryDetails.cardiacSurgeryDisplay(r)
-        if !trimmed(surgery).isEmpty { out.append("previous cardiac surgery: " + trimmed(surgery)) }
+        if !trimmed(surgery).isEmpty { out.append(pshAlongside ? "previous cardiac surgery" : "previous cardiac surgery: " + trimmed(surgery)) }
         return out
     }
 
@@ -1336,9 +1338,10 @@ enum HistorySections {
     }
 
     /// The items a summary lists for a system: the expanding pages' own words, else the problems' labels.
-    static func items(_ sys: PatientSystem, _ r: PatientRecord) -> [String] {
+    /// `pshAlongside`: the past surgical history is listed too (cvItems).
+    static func items(_ sys: PatientSystem, _ r: PatientRecord, pshAlongside: Bool = false) -> [String] {
         switch sys.id {
-        case "cv": return cvItems(r)
+        case "cv": return cvItems(r, pshAlongside: pshAlongside)
         case "resp": return respItems(r)
         case "neuro": return neuroItems(r)
         case "renal": return renalItems(r)
