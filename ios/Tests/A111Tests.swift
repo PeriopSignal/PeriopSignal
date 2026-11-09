@@ -1,5 +1,6 @@
 import XCTest
 import UIKit
+import SwiftUI
 @testable import PeriopSignal
 
 /// 1.11, helper A (Ben's note 1, P1-1, Q20): labs typed into the fishbone. The catalog's new entries and their ranges,
@@ -160,6 +161,22 @@ final class A111Tests: XCTestCase {
         XCTAssertFalse(a.shouldFocus("main.nosuch", focus: nil))
         a.begin("cardiac.bnp", fields: figures)
         XCTAssertFalse(a.isLive, "the card asks only for the Labs group's slots")
+    }
+
+    /// The page scrolls to the requested field before its keyboard comes up: every field the card can ask for has its
+    /// own place, in the figures and in the table, none of them one the page already scrolls to, and the place is in
+    /// the upper half of the page, above the number pad and its bar.
+    func testEachRequestedFieldHasItsOwnPlaceOnThePage() {
+        XCTAssertEqual(PreopLabsFigures.revealID("main.k"), "labfield.main.k")
+        for list in [false, true] {
+            let fields = PreopLabsFigures.mainFieldIDs(list: list)
+            let places = fields.map { PreopLabsFigures.revealID($0) }
+            XCTAssertEqual(Set(places).count, fields.count, "one place per field")
+            XCTAssertTrue(Set(places).isDisjoint(with: ["labs-results", "labsdrawn", "labs-hepatic", "done"]))
+            XCTAssertTrue(Set(places).isDisjoint(with: fields), "not the focus chain's ids")
+        }
+        XCTAssertLessThan(PreopLabsFigures.revealAnchor.y, 0.5)
+        XCTAssertGreaterThan(PreopLabsFigures.revealAnchor.y, 0.2, "nor hard against the title")
     }
 
     /// The retries stop once the keyboard has been anywhere, so Done or a tap elsewhere is not undone.

@@ -367,29 +367,40 @@ struct PreopLabsFigures: View {
     /// The field ids the group shows, as the chain names them ("main.k").
     nonisolated static func mainFieldIDs(list: Bool) -> [String] { mainFieldOrder(list: list).map { "main." + $0 } }
 
+    /// Where the page scrolls to for a field the tab card asked for ("main.k"): the field's own slot or row.
+    nonisolated static func revealID(_ field: String) -> String { "labfield." + field }
+
+    /// Where the requested field is put before its keyboard comes up: a third of the way down the page, which is clear
+    /// of the number pad and its Previous / Next / Done bar on every phone. (Run 491: with the table on, the keyboard
+    /// opened on Potassium with the row left under that bar.)
+    nonisolated static var revealAnchor: UnitPoint { UnitPoint(x: 0.5, y: 1.0 / 3) }
+
     var body: some View {
         let sum = PatientLabs.summary(r)
-        // The ⓘ explains the Hb ↔ Hct estimate, only while one is shown.
-        PatientGroup(title: "Labs", note: sum.estimate == nil ? nil : PatientLabs.estimateCaption) {
-            if list {
-                rows(PatientLabs.entryOrder(.main), estimate: sum.estimate)
+        // The reader is for the tab card's slot request only: it scrolls the page this group sits in.
+        ScrollViewReader { proxy in
+            // The ⓘ explains the Hb ↔ Hct estimate, only while one is shown.
+            PatientGroup(title: "Labs", note: sum.estimate == nil ? nil : PatientLabs.estimateCaption) {
+                if list {
+                    rows(PatientLabs.entryOrder(.main), estimate: sum.estimate)
+                    Hairline().padding(.leading, 14)
+                    rows(PatientLabs.tests(.liver))
+                } else {
+                    figures(sum)
+                }
                 Hairline().padding(.leading, 14)
-                rows(PatientLabs.tests(.liver))
-            } else {
-                figures(sum)
+                LabsDrawnRow().id("labsdrawn")
+                PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.",
+                                 text: Binding(get: { patient.record.labNotes }, set: { v in patient.update { $0.labNotes = v } }))
             }
-            Hairline().padding(.leading, 14)
-            LabsDrawnRow().id("labsdrawn")
-            PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.",
-                             text: Binding(get: { patient.record.labNotes }, set: { v in patient.update { $0.labNotes = v } }))
+            // Opened from a slot on the tab card. On the group, not on the figures: the table's rows carry the same
+            // field ids, and the request is taken whichever of the two the page shows, so none is left for a later visit.
+            .onAppear { focusRequestedSlot(proxy) }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                if slotAttempt.isLive { slotAttempt.end() }
+            }
+            .onDisappear { slotAttempt.end() }
         }
-        // Opened from a slot on the tab card. On the group, not on the figures: the table's rows carry the same field
-        // ids, and the request is taken whichever of the two the page shows, so none is left for a later visit.
-        .onAppear { focusRequestedSlot() }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-            if slotAttempt.isLive { slotAttempt.end() }
-        }
-        .onDisappear { slotAttempt.end() }
         if !forcedList {
             HStack {
                 Spacer(minLength: 0)
@@ -416,6 +427,7 @@ struct PreopLabsFigures: View {
         ForEach(Array(tests.enumerated()), id: \.element.id) { i, t in
             LabFieldRow(test: t, sex: r.sex, troponin99: r.labs["troponin99"], value: value(t.key), chain: chain("main." + t.key),
                         estimate: estimate?.key == t.key ? estimate : nil)
+                .id(Self.revealID("main." + t.key))
             if i < tests.count - 1 { Hairline().padding(.leading, 14) }
         }
     }
@@ -424,6 +436,7 @@ struct PreopLabsFigures: View {
         if let t = PatientLabs.test(key) {
             LabSlot(test: t, sex: r.sex, troponin99: r.labs["troponin99"], value: value(key), chain: chain("main." + key),
                     estimate: sum.estimate?.key == key ? sum.estimate : nil)
+                .id(Self.revealID("main." + key))
         }
     }
 
@@ -451,16 +464,22 @@ struct PreopLabsFigures: View {
 
     /// The keyboard goes to the slot the tab card asked for once the page has settled, and again a little later in case
     /// the push dropped the first; never once the focus has been on a field or a keyboard has come up
-    /// (LabSlotFocusAttempt), so it is not pulled back after Done or from a field the user has tapped.
-    private func focusRequestedSlot() {
+    /// (LabSlotFocusAttempt), so it is not pulled back after Done or from a field the user has tapped. The page is
+    /// scrolled to the field first, and only while the request is still live, so the page never moves under a user who
+    /// has started typing or has put the keyboard away.
+    private func focusRequestedSlot(_ proxy: ScrollViewProxy) {
         var attempt = LabSlotFocusAttempt()
         attempt.begin(LabSlotFocusRequest.take(), fields: Self.mainFieldIDs(list: list))
         slotAttempt = attempt
         guard let id = attempt.request else { return }
+        let reveal = { proxy.scrollTo(Self.revealID(id), anchor: Self.revealAnchor) }
+        // As the page comes in, then with each try: a field already there is not moved again.
+        DispatchQueue.main.async { if slotAttempt.request == id { reveal() } }
         for delay in LabSlotFocusAttempt.tries {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 let c = chain(id)
                 guard slotAttempt.shouldFocus(id, focus: c.focus.wrappedValue) else { return }
+                reveal()
                 c.focusHere()
                 DispatchQueue.main.asyncAfter(deadline: .now() + LabSlotFocusAttempt.settleTime) {
                     slotAttempt.settle(focus: chain(id).focus.wrappedValue)
