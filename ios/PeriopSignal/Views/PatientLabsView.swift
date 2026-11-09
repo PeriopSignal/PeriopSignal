@@ -244,15 +244,36 @@ extension PatientEditorView {
 // MARK: - The figures on the page
 
 /// The tab card asks the page to open with the keyboard on one slot (PreopLabsCard): the slot's field id ("main.k"),
-/// taken once by the page when it appears. The card notes the request as its link fires, and the page's view is built
-/// only on the render pass after that, so the request is there before the page appears. Screenshot runs stand in for
-/// the card's tap with -ps.labs.slot main.k (debug builds), which leaves the same request at launch.
+/// taken once by the page when it appears, in the figures or the table. The card notes the request as its link fires,
+/// and the page's view is built only on the render pass after that, so the request is there before the page appears.
+/// Screenshot runs stand in for the card's tap with -ps.labs.slot main.k (debug builds), which leaves the same request
+/// at launch.
 @MainActor
 enum LabSlotFocusRequest {
-    static var pending: String? = launchRequest()
+    /// How long a tap's request waits for its page. The push starts in the same gesture, so an older request never
+    /// opened a page, and must not put the keyboard on a later visit (another patient's page, perhaps).
+    static let life: TimeInterval = 5
 
-    static func take() -> String? {
+    /// The request a tap left, and when.
+    private static var tapped: (id: String, at: Date)?
+    /// The one a screenshot run leaves at launch, which waits for its page however slow the launch.
+    private static var seeded: String? = launchRequest()
+
+    static var pending: String? {
+        get { tapped?.id ?? seeded }
+        set {
+            seeded = nil
+            tapped = newValue.map { (id: $0, at: Date()) }
+        }
+    }
+
+    /// When a tap left the request; nil with none, and for a screenshot run's.
+    static var noted: Date? { tapped?.at }
+
+    /// The request, once: nothing stays pending after the page has appeared, whatever the page shows.
+    static func take(now: Date = Date()) -> String? {
         defer { pending = nil }
+        if let t = tapped, now.timeIntervalSince(t.at) > life { return nil }
         return pending
     }
 
@@ -261,6 +282,46 @@ enum LabSlotFocusRequest {
         let s = LaunchSeed.string("ps.labs.slot")
         return s.isEmpty ? nil : s
     }
+}
+
+/// One slot request as the page works through it. The page tries a few times, because a push can drop the first, but
+/// only until the keyboard has been anywhere: once the focus is found on a field (the slot asked for, or one the user
+/// tapped), or a keyboard has come up at all, the request is over. So Done, or a tap on Other results, is never
+/// answered by the keyboard coming back to the slot.
+struct LabSlotFocusAttempt: Equatable {
+    /// The field id still to focus; nil with no request, or once it is over.
+    private(set) var request: String?
+
+    /// How long after a try the page looks whether the focus held.
+    static let settleTime: TimeInterval = 0.35
+    /// When the page tries, in seconds after it appears.
+    static let tries: [TimeInterval] = [0.5, 1.4, 3.0]
+
+    var isLive: Bool { request != nil }
+
+    /// The page appeared with this request: kept only when it names a field the page shows now.
+    mutating func begin(_ id: String?, fields: [String]) {
+        request = id.flatMap { fields.contains($0) ? $0 : nil }
+    }
+
+    /// A try's turn: true when it may put the keyboard on `id`. A focus found on any field ends the request.
+    mutating func shouldFocus(_ id: String, focus: String?) -> Bool {
+        guard request == id else { return false }
+        guard focus == nil else {
+            request = nil
+            return false
+        }
+        return true
+    }
+
+    /// A moment after a try: the focus held (or the user has put it elsewhere), so the request is over.
+    mutating func settle(focus: String?) {
+        if focus != nil { request = nil }
+    }
+
+    /// A keyboard came up (for the slot, or for a field outside the Previous / Next chain: Other results, the
+    /// quick-add bar), the user switched between the figures and the table, or the page went away.
+    mutating func end() { request = nil }
 }
 
 /// The Labs group: the figures with their slots (or the table, with List on or at an accessibility text size), the
@@ -272,6 +333,8 @@ struct PreopLabsFigures: View {
     @AppStorage(PreopLabsFigures.listKey) private var listPref = false
     /// The page's Previous / Next chain, by field id.
     var chain: (String) -> PatientFieldChain
+    /// The tab card's slot request, while the page still works on it.
+    @State private var slotAttempt = LabSlotFocusAttempt()
 
     static let listKey = "ps.labs.list"
 
@@ -294,9 +357,15 @@ struct PreopLabsFigures: View {
 
     /// The main labs in the order Next walks them: the figures' slots, or the table's rows (the main table, then the
     /// hepatic enzymes, which the table lists after it).
-    @MainActor static func mainFieldOrder() -> [String] {
-        listMode() ? PatientLabs.entryOrder(.main).map(\.key) + PatientLabs.tests(.liver).map(\.key) : PatientLabs.slotOrder
+    @MainActor static func mainFieldOrder() -> [String] { mainFieldOrder(list: listMode()) }
+
+    /// The same, for the table (list) or the figures: the keys whose fields the Labs group shows.
+    nonisolated static func mainFieldOrder(list: Bool) -> [String] {
+        list ? PatientLabs.entryOrder(.main).map(\.key) + PatientLabs.tests(.liver).map(\.key) : PatientLabs.slotOrder
     }
+
+    /// The field ids the group shows, as the chain names them ("main.k").
+    nonisolated static func mainFieldIDs(list: Bool) -> [String] { mainFieldOrder(list: list).map { "main." + $0 } }
 
     var body: some View {
         let sum = PatientLabs.summary(r)
@@ -314,11 +383,19 @@ struct PreopLabsFigures: View {
             PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.",
                              text: Binding(get: { patient.record.labNotes }, set: { v in patient.update { $0.labNotes = v } }))
         }
+        // Opened from a slot on the tab card. On the group, not on the figures: the table's rows carry the same field
+        // ids, and the request is taken whichever of the two the page shows, so none is left for a later visit.
+        .onAppear { focusRequestedSlot() }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            if slotAttempt.isLive { slotAttempt.end() }
+        }
+        .onDisappear { slotAttempt.end() }
         if !forcedList {
             HStack {
                 Spacer(minLength: 0)
                 Button {
                     Haptics.light()
+                    slotAttempt.end()
                     withAnimation(.snappy) { listPref.toggle() }
                 } label: {
                     Label(list ? "Figures" : "List", systemImage: list ? "square.grid.3x1.below.line.grid.1x2" : "list.bullet")
@@ -370,30 +447,39 @@ struct PreopLabsFigures: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .onAppear {
-            // Opened from a slot on the tab card: the keyboard goes to that slot once the page has settled, and again a
-            // little later in case the push dropped the first, but never over a slot the user has since tapped.
-            guard let id = LabSlotFocusRequest.take() else { return }
-            for delay in [0.5, 1.4, 3.0] {
+    }
+
+    /// The keyboard goes to the slot the tab card asked for once the page has settled, and again a little later in case
+    /// the push dropped the first; never once the focus has been on a field or a keyboard has come up
+    /// (LabSlotFocusAttempt), so it is not pulled back after Done or from a field the user has tapped.
+    private func focusRequestedSlot() {
+        var attempt = LabSlotFocusAttempt()
+        attempt.begin(LabSlotFocusRequest.take(), fields: Self.mainFieldIDs(list: list))
+        slotAttempt = attempt
+        guard let id = attempt.request else { return }
+        for delay in LabSlotFocusAttempt.tries {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                let c = chain(id)
+                guard slotAttempt.shouldFocus(id, focus: c.focus.wrappedValue) else { return }
+                c.focusHere()
+                DispatchQueue.main.asyncAfter(deadline: .now() + LabSlotFocusAttempt.settleTime) {
+                    slotAttempt.settle(focus: chain(id).focus.wrappedValue)
+                }
+            }
+        }
+        #if DEBUG
+        // A screenshot run's -ps.labs.slot only (nobody is typing): again from scratch, in case a slow launch's push
+        // dropped the keyboard while the focus still reads as set (as PatientEditorView does for -ps.patient.focus).
+        if LabSlotFocusRequest.launchRequest() == id {
+            for delay in [4.5, 6.0] {
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                     let c = chain(id)
-                    if c.focus.wrappedValue == nil || delay == 0.5 { c.focusHere() }
+                    c.focus.wrappedValue = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { c.focusHere() }
                 }
             }
-            #if DEBUG
-            // A screenshot run's -ps.labs.slot: again from scratch, in case a slow launch's push dropped the keyboard
-            // while the focus still reads as set (as PatientEditorView does for -ps.patient.focus).
-            if LabSlotFocusRequest.launchRequest() == id {
-                for delay in [4.5, 6.0] {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                        let c = chain(id)
-                        c.focus.wrappedValue = nil
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { c.focusHere() }
-                    }
-                }
-            }
-            #endif
         }
+        #endif
     }
 }
 

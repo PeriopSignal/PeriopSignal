@@ -123,6 +123,87 @@ final class A111Tests: XCTestCase {
         XCTAssertNil(LabSlotFocusRequest.take(), "taken once")
     }
 
+    /// A tap whose page never opened leaves nothing for a later visit: the request is good for its own push only, and
+    /// taking it late still clears it.
+    @MainActor func testFocusRequestDoesNotOutliveItsPush() throws {
+        LabSlotFocusRequest.pending = "main.k"
+        let noted = try XCTUnwrap(LabSlotFocusRequest.noted)
+        XCTAssertNil(LabSlotFocusRequest.take(now: noted.addingTimeInterval(LabSlotFocusRequest.life + 1)), "too old to be this page's")
+        XCTAssertNil(LabSlotFocusRequest.pending, "and gone")
+        XCTAssertNil(LabSlotFocusRequest.noted)
+        LabSlotFocusRequest.pending = "main.hb"
+        let again = try XCTUnwrap(LabSlotFocusRequest.noted)
+        XCTAssertEqual(LabSlotFocusRequest.take(now: again.addingTimeInterval(LabSlotFocusRequest.life - 1)), "main.hb")
+        XCTAssertNil(LabSlotFocusRequest.pending)
+    }
+
+    /// The page takes the request with the table on as with the figures: every slot the tab card can ask for is a
+    /// field in both, under the same id, and a request for a field the page does not show is dropped, not kept.
+    func testSlotRequestIsAFieldInTheFiguresAndInTheList() {
+        let figures = PreopLabsFigures.mainFieldIDs(list: false)
+        let table = PreopLabsFigures.mainFieldIDs(list: true)
+        XCTAssertEqual(figures, PatientLabs.slotOrder.map { "main." + $0 })
+        XCTAssertEqual(table.first, "main." + (PatientLabs.entryOrder(.main).first?.key ?? ""))
+        for key in BriefLabs.bmpKeys + BriefLabs.cbcKeys + BriefLabs.coagKeys {
+            for (name, fields) in [("figures", figures), ("list", table)] {
+                var a = LabSlotFocusAttempt()
+                a.begin("main." + key, fields: fields)
+                XCTAssertEqual(a.request, "main." + key, "\(key) in the \(name)")
+                XCTAssertTrue(a.shouldFocus("main." + key, focus: nil), "\(key) in the \(name)")
+            }
+        }
+        var a = LabSlotFocusAttempt()
+        a.begin(nil, fields: table)
+        XCTAssertFalse(a.isLive, "no request, nothing to do")
+        a.begin("main.nosuch", fields: table)
+        XCTAssertFalse(a.isLive, "not a field on the page")
+        XCTAssertFalse(a.shouldFocus("main.nosuch", focus: nil))
+        a.begin("cardiac.bnp", fields: figures)
+        XCTAssertFalse(a.isLive, "the card asks only for the Labs group's slots")
+    }
+
+    /// The retries stop once the keyboard has been anywhere, so Done or a tap elsewhere is not undone.
+    func testSlotFocusRetriesStopOnceTheFocusLandedOrTheUserMoved() {
+        let fields = PreopLabsFigures.mainFieldIDs(list: false)
+        XCTAssertEqual(LabSlotFocusAttempt.tries, [0.5, 1.4, 3.0])
+
+        // The push dropped the first try: the focus is still nowhere, so the next try goes ahead.
+        var dropped = LabSlotFocusAttempt()
+        dropped.begin("main.k", fields: fields)
+        XCTAssertTrue(dropped.shouldFocus("main.k", focus: nil))
+        dropped.settle(focus: nil)
+        XCTAssertTrue(dropped.isLive)
+        XCTAssertTrue(dropped.shouldFocus("main.k", focus: nil), "tried again")
+
+        // It landed, then Done within the three seconds: focus nil again, and no later try brings the keyboard back.
+        var done = LabSlotFocusAttempt()
+        done.begin("main.k", fields: fields)
+        XCTAssertTrue(done.shouldFocus("main.k", focus: nil))
+        done.settle(focus: "main.k")
+        XCTAssertFalse(done.isLive, "landed once: over")
+        XCTAssertFalse(done.shouldFocus("main.k", focus: nil), "Done is not answered by the keyboard coming back")
+
+        // A keyboard came up at all (the slot's, or Other results' and the quick-add bar's, which are outside the
+        // chain and leave the page's focus nil): over.
+        var typing = LabSlotFocusAttempt()
+        typing.begin("main.k", fields: fields)
+        typing.end()
+        XCTAssertFalse(typing.shouldFocus("main.k", focus: nil), "the focus is not pulled back from Other results")
+
+        // The user tapped another slot before a try: that try is skipped, and so is every later one.
+        var moved = LabSlotFocusAttempt()
+        moved.begin("main.k", fields: fields)
+        XCTAssertFalse(moved.shouldFocus("main.k", focus: "main.na"))
+        XCTAssertFalse(moved.isLive)
+        XCTAssertFalse(moved.shouldFocus("main.k", focus: nil), "nor after they dismiss it")
+
+        // A try left over from an earlier request never serves a newer one.
+        var other = LabSlotFocusAttempt()
+        other.begin("main.hb", fields: fields)
+        XCTAssertFalse(other.shouldFocus("main.k", focus: nil))
+        XCTAssertTrue(other.isLive)
+    }
+
     /// A screenshot run's launch arguments stand in for the card's tap (-ps.labs.slot) and the List toggle
     /// (-ps.labs.list 1); the Previous / Next order reads the same seed as the view, so the two agree.
     @MainActor func testLaunchSeedsForTheSlotRequestAndTheList() {
