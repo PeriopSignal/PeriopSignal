@@ -302,7 +302,7 @@ final class D111Tests: XCTestCase {
         let dse = read("DSE negative")
         XCTAssertEqual(stress(dse)?.kind, .dobutamine)
         XCTAssertEqual(stress(dse)?.result, .negative)
-        XCTAssertEqual(chipTexts(dse), ["Workup · Dobutamine stress test negative"])
+        XCTAssertEqual(chipTexts(dse), ["Workup · DSE negative"])
         XCTAssertEqual(dse.unread, "")
         let r = applied(dse)
         XCTAssertEqual(r.stressTest.kind, .dobutamine)
@@ -319,7 +319,7 @@ final class D111Tests: XCTestCase {
         let ex = read("exercise stress positive")
         XCTAssertEqual(stress(ex)?.kind, .exercise)
         XCTAssertEqual(stress(ex)?.result, .positive)
-        XCTAssertEqual(chipTexts(ex), ["Workup · Exercise stress test positive"])
+        XCTAssertEqual(chipTexts(ex), ["Workup · Exercise stress positive"])
 
         let lex = read("Lexiscan 03/2025 equivocal")
         XCTAssertEqual(stress(lex)?.kind, .other)
@@ -409,6 +409,46 @@ final class D111Tests: XCTestCase {
         XCTAssertFalse(ids(read("norepi 0.05, PRBC 2, EBL 500", .intraop)).contains { $0.hasPrefix("event:") })
     }
 
+    /// The events reader never shadows the history and allergy readers (1.11 review). Summary & Handoff read as the
+    /// Preoperative tab in 1.10, so "hypertension" typed there is still the problem; a word both readers read
+    /// (hypertension, AF, seizure, a bleeding disorder, anaphylaxis) is an event only where its piece says when or how
+    /// it happened in the case, on either tab.
+    func testEventsLeaveHistoryAndAllergiesToTheirReaders() {
+        let htn = summary("hypertension, diabetes")
+        XCTAssertTrue(ids(htn).contains("problem:htn"), "\(ids(htn))")
+        XCTAssertTrue(ids(htn).contains("problem:dm"), "\(ids(htn))")
+        XCTAssertFalse(ids(htn).contains { $0.hasPrefix("event:") })
+        XCTAssertTrue(ids(summary("hypertension")).contains("problem:htn"))
+        let af = summary("afib on apixaban")
+        XCTAssertTrue(ids(af).contains("problem:af"), "\(ids(af))")
+        XCTAssertFalse(ids(af).contains { $0.hasPrefix("event:") })
+        XCTAssertTrue(ids(summary("seizure disorder on keppra")).contains("problem:seizure"))
+        let bleeding = summary("bleeding disorder")
+        XCTAssertTrue(ids(bleeding).contains("problem:bleeding"), "\(ids(bleeding))")
+        XCTAssertFalse(ids(bleeding).contains { $0.hasPrefix("event:") })
+        let allergy = read("allergies: PCN (anaphylaxis)", .intraop)
+        XCTAssertTrue(ids(allergy).contains { $0.hasPrefix("allergies:") }, "\(ids(allergy))")
+        XCTAssertFalse(ids(allergy).contains { $0.hasPrefix("event:") })
+        XCTAssertTrue(ids(summary("allergies: PCN (anaphylaxis)")).contains { $0.hasPrefix("allergies:") })
+
+        // On Summary & Handoff every event says when or how it happened: "hypotension" alone is not one there (1.10).
+        XCTAssertFalse(ids(summary("hypotension")).contains { $0.hasPrefix("event:") })
+        XCTAssertTrue(ids(summary("hypotension after induction")).contains("event:hypotension after induction"))
+        let newAF = summary("new AF after bypass")
+        XCTAssertTrue(ids(newAF).contains("event:new af after bypass"), "\(ids(newAF))")
+        XCTAssertFalse(ids(newAF).contains("problem:af"))
+        XCTAssertTrue(ids(summary("remains intubated to CVICU, bradycardia on emergence")).contains("event:bradycardia on emergence"))
+
+        // On the Intraoperative tab a shared word needs its context; one the history never reads does not.
+        XCTAssertFalse(ids(read("hypertension", .intraop)).contains { $0.hasPrefix("event:") })
+        XCTAssertTrue(ids(read("hypertension with incision", .intraop)).contains("event:hypertension with incision"))
+        XCTAssertTrue(ids(read("anaphylaxis after cefazolin", .intraop)).contains("event:anaphylaxis after cefazolin"))
+        XCTAssertFalse(ids(read("afib", .intraop)).contains { $0.hasPrefix("event:") })
+        XCTAssertTrue(ids(read("seizure on emergence", .intraop)).contains("event:seizure on emergence"))
+        XCTAssertTrue(ids(read("hypotension", .intraop)).contains("event:hypotension"), "not a history word: the event, as before")
+        XCTAssertFalse(ids(read("MH susceptible", .intraop)).contains { $0.hasPrefix("event:") }, "the history's MH")
+    }
+
     func testEventStatus() {
         var r = PatientRecord()
         r.events = "Hypotension after induction"
@@ -472,6 +512,8 @@ final class D111Tests: XCTestCase {
         let q = read("ECG NSR LBBB, no cardiac symptoms, no acute cardiac conditions, DSE negative 2024")
         XCTAssertEqual(ids(q), ["ecg:Normal sinus rhythm", "ecg:Left bundle branch block", "cardiac:symptoms", "cardiac:acute", "stress"],
                        "in the order the line tells them")
+        XCTAssertEqual(chipTexts(q), ["ECG · Normal sinus rhythm", "ECG · Left bundle branch block", "Cardiac · No symptoms", "Cardiac · No acute conditions",
+                                      "Workup · DSE negative (2024)"], "each chip short enough for one line at 375 pt")
         XCTAssertEqual(q.unread, "")
         let r = applied(q)
         XCTAssertEqual(r.ecg, ["Normal sinus rhythm", "Left bundle branch block"])

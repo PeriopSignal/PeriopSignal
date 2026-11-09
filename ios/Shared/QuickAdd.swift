@@ -354,8 +354,9 @@ enum QuickAdd {
         readDrips(&s, c, &out)
         readMarkedDrips(&s, c, &out)
         // Events (1.11) after the numbers, so "bleeding EBL 1200" keeps its blood loss; the timing words kept above are
-        // put back in the event's text.
-        if handoff { readEvents(&s, c, &out) }
+        // put back in the event's text. On Summary & Handoff, which otherwise reads as the Preoperative tab, only a piece
+        // that says when or how it happened is an event; "hypertension" there is the history it was in 1.10.
+        if handoff { readEvents(&s, c, &out, strict: tab == .preop) }
         if !surgicalHistory { readProcedure(&s, c, &out) }
 
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
@@ -2592,9 +2593,15 @@ enum QuickAdd {
     /// A date in the piece: a year, or a month and year ("03/2025").
     private static let stressDate = NoteRx(#"\b(?:(\d{1,2})[/.-])?((?:19|20)\d\d)\b"#)
 
-    /// The chip's text: "Dobutamine stress test negative (03/2025)", "Stress test positive".
+    /// The chip's text, short enough for one line at 375 pt: "DSE negative (03/2025)", "Exercise stress positive",
+    /// "Stress test equivocal". The record's own wording (PatientStressTest.summary) is the long form.
     static func stressText(_ t: PatientStressTest) -> String {
-        var head = t.kind.map { $0 == .other ? "Stress test" : $0.label + " stress test" } ?? "Stress test"
+        var head: String
+        switch t.kind {
+        case .dobutamine?: head = "DSE"
+        case .exercise?: head = "Exercise stress"
+        default: head = "Stress test"
+        }
         if let r = t.result { head += " " + r.label.lowercased() }
         if !t.date.isEmpty { head += " (" + t.date.text + ")" }
         return head
@@ -2650,13 +2657,28 @@ enum QuickAdd {
     static let eventRx = NoteRx(#"\b(?:hypotension|hypotensive|(?<!pulmonary )(?<!portal )(?<!intracranial )hypertension|hypertensive(?:\s+(?:episode|urgency|emergency))?|bradycardi[ac]|brady|tachycardi[ac]|desaturat\w*|desats?|hypoxi\w*|hypox(?:a)?emi\w*|bronchospasm|laryngospasm|arrhythmi\w*|dysrhythmi\w*|(?-i:(?:AF|SVT|VT|VF|PEA))(?!\s*\d)|a-?fib|atrial\s+fibrillation|ventricular\s+(?:tachycardia|fibrillation)|asystole|cardiac\s+arrest|code\s+blue|(?-i:ROSC)|anaphyla\w+|bleeding|h(?:a)?emorrhag\w*|massive\s+transfusion|(?-i:MTP)|aspirat\w+|malignant\s+hyperthermia|(?-i:MH)|high\s+(?:peak|airway|inspiratory)\s+pressures?|pneumothorax|(?-i:PTX)|(?:air|venous\s+air|fat|amniotic\s+fluid|pulmonary)\s+embol\w+|(?-i:VAE)|st[- ](?:changes?|depressions?|elevations?)|stridor|transfusion\s+reaction|(?-i:TRALI|TACO)|hyperkal(?:a)?emi\w*|hypokal(?:a)?emi\w*|hypoglyc(?:a)?emi\w*|hyperglyc(?:a)?emi\w*|hypothermi\w*|hyperthermi\w*|acidosis|coagulopath\w*|vasoplegi\w*|protamine\s+reaction|seizures?|awareness|dental\s+(?:injury|damage|trauma)|(?:chipped|broken|loose|lost)\s+(?:tooth|teeth)|corneal\s+abrasion|nerve\s+injury|extravasat\w*|infiltrated\s+(?:iv|line|piv)|oliguri\w*|anuri\w*|difficult\s+(?:ventilation|oxygenation)|can'?t\s+(?:intubate|ventilate)|(?-i:CICO)|failed\s+(?:block|spinal|epidural)|(?:high|total)\s+spinal|(?-i:LAST)|local\s+an(?:a)?esthetic\s+(?:systemic\s+)?toxicity|h(?:a)?emodynamic(?:ally)?\s+(?:instability|unstable)|ischemia|ischemic\s+(?:changes?|event)|wall[- ]motion\s+abnormalit\w*|low\s+cardiac\s+output|(?-i:LCOS)|difficult\s+(?:separation|wean(?:ing)?)\s+from\s+(?:bypass|cpb|pump)|(?:return(?:ed)?|back)\s+(?:on|to)\s+(?:bypass|pump|cpb))\b"#)
     /// Connectors a piece starts with, not part of the event ("and bronchospasm on emergence").
     private static let eventLead = NoteRx(#"^(?:(?:and|then|with|for|also|plus|&|\+)\s+)+"#)
+    /// Event words the history and allergy readers read too (PatientNote's htn, af, arrhythmia, seizure, bleeding, mh,
+    /// awareness and cad rules; a reaction in an allergy's brackets): "hypertension, diabetes", "afib on apixaban",
+    /// "seizure disorder on keppra", "bleeding disorder", "allergies: PCN (anaphylaxis)". A piece with one of these is an
+    /// event only when it also says when or how it happened in the case (eventContext); otherwise it is left to those
+    /// readers, which file the problem or the allergy as they did in 1.10.
+    static let eventHistoryRx = NoteRx(#"\b(?:hypertension|(?-i:HTN)|a[-. ]?fib|atrial\s+(?:fibrillation|flutter)|(?-i:AF|AFL|PAF|SVT|VT|WPW)|arrhythmi\w*|dysrhythmi\w*|bradyarrhythmi\w*|heart\s+block|sick\s+sinus|seizures?|epilepsy|bleeding\s+(?:disorder|diathesis)|coagulopath\w*|von\s+willebrand|h(?:a)?emophilia|anaphyla\w+|aspirat\w+|ischemia|(?:malignant\s+hyperthermia|(?-i:MH))(?=\s+(?:susceptib\w*|hx|history|family|precautions?|risk|negative|testing|workup|trigger\w*))|awareness)\b"#)
+    /// When or how something happened in the case: a point of the case after a timing word ("after induction", "on
+    /// emergence", "post-bypass", "with protamine"), a drug or product it followed ("after cefazolin", "with the
+    /// transfusion"), "new", "intraop", a clock time, a treatment ("requiring esmolol", "treated with", "resolved").
+    static let eventContext = NoteRx(#"\b(?:(?:after|post|on|at|to|during|with|following|upon|before|pre|since|around|through(?:out)?|prior\s+to)[- ]\s*(?:the\s+|a\s+)?(?:induction|intubation|laryngoscopy|airway\s+manipulation|emergence|extubation|incision|sternotomy|positioning|proning|prone|flip|turn(?:ing)?|closing|closure|bypass|(?-i:CPB)|pump|cross[- ]?clamp\w*|unclamp\w*|declamp\w*|reperfusion|protamine|cement\w*|tourniquet(?:\s+(?:release|deflation|down|up))?|insufflation|pneumoperitoneum|transfusion|manipulation|traction|retraction|release|arrival|transport|handoff|(?:the\s+)?case|(?-i:TEE)|(?-i:TOE)|echo|antibiotics?|(?-i:abx)|cefazolin|ancef|vancomycin|vanc|rocuronium|roc|succinylcholine|sux|sugammadex|neostigmine|contrast|latex|chlorhexidine|(?-i:PRBC|FFP)|platelets|blood|bolus|dose)|new(?:[- ]onset)?|intra-?op(?:erative(?:ly)?)?|in\s+the\s+(?:or|room)|on\s+the\s+table|mid-?case|transient|brief(?:ly)?|episodes?(?:\s+of)?|x\s*\d+\s*(?:min|minutes?|sec|seconds?)|(?:at|@)\s*\d{1,2}:?\d{2}\b|requir(?:ed|ing)|treated\s+with|responded\s+to|resolved|(?:to|into)\s+(?:the\s+)?\d{2,3}s?)\b"#)
 
-    private static func readEvents(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+    /// `strict` (Summary & Handoff, where the bar otherwise reads as the Preoperative tab's): every event needs its
+    /// context, so "hypertension" typed there is the history it was in 1.10 and "bradycardia on emergence" the event.
+    private static func readEvents(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut, strict: Bool) {
         let text = s.text
         var pieces: [NSRange] = []
         for m in eventRx.all(text) where !pieceNegated(m.range, in: text) {
             let p = pieceRange(m.range, in: text)
-            if !pieces.contains(where: { NSEqualRanges($0, p) }) { pieces.append(p) }
+            guard !pieces.contains(where: { NSEqualRanges($0, p) }) else { continue }
+            let piece = s.restored(p)
+            if (strict || eventHistoryRx.first(piece) != nil) && eventContext.first(piece) == nil { continue }
+            pieces.append(p)
         }
         for p in pieces {
             var t = s.restored(p).replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
@@ -2672,7 +2694,7 @@ enum QuickAdd {
     static var patterns111: [NoteRx] {
         var out = [ecgCue, ecgNormal, ecgWord, extubatedRx, intubatedRx, extubatedPast, dispositionRx, dispositionNotAfter, dispositionNotBefore,
                    noCardiacSymptoms, noAcuteCardiac, stressCue, ettToken, stressEquivocal, stressNegative, stressPositive, stressNotDone, stressDate,
-                   eventRx, eventLead]
+                   eventRx, eventLead, eventHistoryRx, eventContext]
         out += ecgRules.map(\.rx) + ecgRules.compactMap(\.notBefore)
         return out
     }
