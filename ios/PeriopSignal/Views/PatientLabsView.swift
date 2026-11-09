@@ -257,7 +257,7 @@ enum LabSlotFocusRequest {
     }
 
     /// The slot a screenshot run's -ps.labs.slot asks for; nil in a plain launch.
-    static func launchRequest() -> String? {
+    nonisolated static func launchRequest() -> String? {
         let s = LaunchSeed.string("ps.labs.slot")
         return s.isEmpty ? nil : s
     }
@@ -290,7 +290,7 @@ struct PreopLabsFigures: View {
     }
 
     /// A screenshot run's -ps.labs.list 1 (debug builds; false otherwise).
-    static func listSeeded() -> Bool { LaunchSeed.bool(listKey) }
+    nonisolated static func listSeeded() -> Bool { LaunchSeed.bool(listKey) }
 
     /// The main labs in the order Next walks them: the figures' slots, or the table's rows (the main table, then the
     /// hepatic enzymes, which the table lists after it).
