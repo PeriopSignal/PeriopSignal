@@ -195,6 +195,17 @@ struct LabFishbone: Hashable {
     /// Prothrombin time and aPTT in seconds (1.9); the PT is never flagged.
     var pt: LabValue?
     var ptt: LabValue?
+    /// 1.11 (Ben, Nov 9): the hepatic figure (Ca | AST, protein | ALT, albumin | alk phos, bilirubin at the point)
+    /// and the two minerals beside it.
+    var ca: LabValue?
+    var ast: LabValue?
+    var alt: LabValue?
+    var alp: LabValue?
+    var protein: LabValue?
+    var albumin: LabValue?
+    var tbili: LabValue?
+    var mg: LabValue?
+    var phos: LabValue?
     /// Hemoglobin or hematocrit estimated from the other, for the cell left empty (LabValue.estimated).
     var estimate: LabValue?
 
@@ -203,11 +214,16 @@ struct LabFishbone: Hashable {
     /// Na, Cl, BUN on the top row; K, HCO₃, Cr below; glucose at the end.
     var bmp: [LabValue?] { [na, k, cl, hco3, bun, cr, glucose] }
     var coags: [LabValue?] { [pt, inr, ptt, fibrinogen] }
+    /// Ca, protein, albumin down the left; AST, ALT, alk phos down the right; bilirubin at the point.
+    var hepatic: [LabValue?] { [ca, protein, albumin, ast, alt, alp, tbili] }
+    var minerals: [LabValue?] { [mg, phos] }
 
     var hasCBC: Bool { cbc.contains { $0 != nil } }
     var hasBMP: Bool { bmp.contains { $0 != nil } }
     var hasCoags: Bool { coags.contains { $0 != nil } }
-    var isEmpty: Bool { !hasCBC && !hasBMP && !hasCoags }
+    var hasHepatic: Bool { hepatic.contains { $0 != nil } }
+    var hasMinerals: Bool { minerals.contains { $0 != nil } }
+    var isEmpty: Bool { !hasCBC && !hasBMP && !hasCoags && !hasHepatic && !hasMinerals }
 }
 
 struct LabSummary: Hashable {
@@ -540,6 +556,20 @@ enum PatientLabs {
         // ABIM 0.3–1.0; a low bilirubin means nothing, so only a high one is flagged.
         LabTest("tbili", "Total bilirubin", short: "T bili", unit: "mg/dL", group: .main,
                 range: LabRange(nil, 1.0), decimals: 1, plausible: 0.1...80),
+        // 1.11 (Ben, Nov 9, the hepatic fishbone and the minerals beside it). ABIM Laboratory Test Reference Ranges,
+        // January 2026: calcium, serum 8.6–10.2 mg/dL; protein, total, serum 5.5–9.0 g/dL; magnesium, serum 1.6–2.6
+        // mg/dL; phosphorus, inorganic, serum 3.0–4.5 mg/dL (the 2.5–4.5 of the general textbooks and MedlinePlus is
+        // not used: the whole catalog follows the ABIM list). Total calcium, as the chemistry panel reports it (the
+        // ionized calcium is the blood gas's own entry, IntraopLabs "ica").
+        LabTest("ca", "Calcium", short: "Ca", unit: "mg/dL", group: .main,
+                range: LabRange(8.6, 10.2), decimals: 1, plausible: 3...20,
+                note: "Total serum calcium; the ionized calcium is on the blood gas."),
+        LabTest("protein", "Total protein", short: "Prot", unit: "g/dL", group: .main,
+                range: LabRange(5.5, 9.0), decimals: 1, plausible: 1...15),
+        LabTest("mg", "Magnesium", short: "Mg", unit: "mg/dL", group: .main,
+                range: LabRange(1.6, 2.6), decimals: 1, plausible: 0.2...15),
+        LabTest("phos", "Phosphorus", short: "PO₄", unit: "mg/dL", group: .main,
+                range: LabRange(3.0, 4.5), decimals: 1, plausible: 0.2...30),
 
         // Cardiac, behind the add button: the 2024 AHA/ACC thresholds (Figure 1, footnote §).
         LabTest("bnp", "BNP", short: "BNP", unit: "pg/mL", group: .cardiac,
@@ -591,6 +621,37 @@ enum PatientLabs {
 
     /// The CBC (WBC, Hb, Hct, Plt) and the BMP (Na, K, Cl, HCO₃, BUN, Cr, glucose) as the fishbone groups them.
     static let fishboneOrder = ["wbc", "hb", "hct", "plt", "na", "k", "cl", "hco3", "bun", "cr", "glucose"]
+
+    // MARK: The fishbone slots (1.11, Ben's note 1: labs are typed into the fishbone)
+
+    /// The hepatic figure's slots in the order Next walks them: down the left column (Ca, protein, albumin), down the
+    /// right (AST, ALT, alk phos), then the bilirubin at the point; the same column-wise order as the BMP's.
+    static let hepaticOrder = ["ca", "protein", "albumin", "ast", "alt", "alp", "tbili"]
+    /// Magnesium and phosphorus, beside the hepatic figure.
+    static let mineralOrder = ["mg", "phos"]
+    /// The main labs without a place on Ben's figures, as a row of plain slots after them.
+    static let otherSlotOrder = ["gfr", "a1c", "lactate"]
+
+    /// Every slot on the Labs page, in the order Next walks the figures: the BMP column by column (Na, K; Cl, HCO₃;
+    /// BUN, Cr; glucose at the point), the CBC (WBC, Hb, Hct, Plt), the coagulation figure (PT, PTT, INR at the point,
+    /// then fibrinogen), the hepatic figure, Mg and PO₄, then GFR, HbA1c and lactate. Every main lab has one slot.
+    static let slotOrder = ["na", "k", "cl", "hco3", "bun", "cr", "glucose", "wbc", "hb", "hct", "plt", "pt", "ptt", "inr", "fibrinogen"]
+        + hepaticOrder + mineralOrder + otherSlotOrder
+
+    /// The keys drawn on a figure (the page's and the brief's): the summary's other values are listed as a line.
+    static let figureKeys = Set(slotOrder)
+
+    /// The faint hint inside an empty slot: the catalog's reference range for this sex ("136–145"), the range the
+    /// value is flagged against; nil where the catalog has none (the PT, read against the report's own range).
+    /// Q20 (Ben, Nov 9): the app's sourced ranges stay; Ben's drawn textbook ranges appear only where they agree with
+    /// the catalog, which is what showing the catalog's range does. Where his drawing differs the catalog wins: Na
+    /// 136–145 (drawn 135–145), Cl 98–106 (95–105), HCO₃ 23–28 (22–28), BUN 8–20 (7–18), Cr by sex (0.6–1.2),
+    /// glucose 70–180 perioperative (70–115), WBC 4.0–11.0 (4.5–11), Hb 14–18 M (13.5–17.5), Hct 42–50 M / 37–47 F
+    /// (39–49 / 35–45), PT unflagged (11–13.5), Ca 8.6–10.2 (8.4–10.2), AST and ALT 40 or less (0–35), protein
+    /// 5.5–9.0 (6–8), albumin 3.5–5.5 (4–6), Mg 1.6–2.6 (1.5–2.5), PO₄ 3.0–4.5 (3.5–4.5), pH 7.38–7.44 (7.35–7.45),
+    /// PaCO₂ 38–42 (35–45), PaO₂ 75 or more (80–100), arterial HCO₃ 23–26 (22–28). They agree on K, Plt, PTT, INR,
+    /// alk phos and bilirubin.
+    static func slotHint(_ key: String, sex: PatientSex?) -> String? { test(key)?.rangeText(for: sex) }
 
     /// The group as the Labs editor lists it, which is the order Next walks: the main labs start with the fishbone's
     /// CBC and BMP, then the rest in catalog order; the other groups keep the catalog's order.
@@ -662,6 +723,15 @@ enum PatientLabs {
         fb.fibrinogen = cell("fibrinogen")
         fb.pt = cell("pt")
         fb.ptt = cell("ptt")
+        fb.ca = cell("ca")
+        fb.ast = cell("ast")
+        fb.alt = cell("alt")
+        fb.alp = cell("alp")
+        fb.protein = cell("protein")
+        fb.albumin = cell("albumin")
+        fb.tbili = cell("tbili")
+        fb.mg = cell("mg")
+        fb.phos = cell("phos")
         let est = estimate(labs)
         fb.estimate = est
         return LabSummary(items: items, fishbone: fb, estimate: est)

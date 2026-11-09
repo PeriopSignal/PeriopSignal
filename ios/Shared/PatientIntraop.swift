@@ -68,6 +68,10 @@ enum IntraopLabs {
 
     /// Blood gas, in the order analyzers print it.
     static let abg = ["ph", "paco2", "pao2", "hco3a", "be", "lactate", "hb", "k", "na", "ica", "glucose"]
+    /// 1.11 (Ben, Nov 9): the gas's slash figure, pH / PaCO₂ / PaO₂ / HCO₃, typed into its slots on the intraoperative
+    /// labs page; the rest of the gas follows as rows. Together they are `abg`, in its order, so Next walks them the same.
+    static let abgSlash = ["ph", "paco2", "pao2", "hco3a"]
+    static var abgRest: [String] { abg.filter { !abgSlash.contains($0) } }
     static let coag = ["inr", "ptt", "fibrinogen", "plt", "act"]
     static var keys: [String] { abg + coag }
 

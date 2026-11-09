@@ -515,9 +515,7 @@ struct PatientView: View {
         PreopAsaBox().jumpTarget(anchor: "asa")
         PreopCardioBox().jumpTarget(anchor: "cardio")
         airwayCard.jumpTarget(anchor: "airway")
-        PatientSectionCard(editor: .workup("labs"), lines: [PatientSummary.labsLine(r.capitalized), PatientSummary.liverLine(r)].compactMap { $0 },
-                           empty: "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", title: "Laboratory Studies")
-            .jumpTarget(anchor: "labs")
+        PreopLabsCard().jumpTarget(anchor: "labs")
         devicesCard.jumpTarget(anchor: "devices")
     }
 

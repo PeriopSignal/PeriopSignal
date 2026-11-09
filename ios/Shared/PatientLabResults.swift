@@ -32,6 +32,20 @@ enum LabResult: String, Codable, CaseIterable, Hashable {
     var needsTelling: Bool { self != .negative }
 }
 
+/// Where the type and screen stands before its result (1.11, Ben's note 1: "Type & Screen" on the labs fishbone sheet):
+/// not sent, sent and awaited, or resulted (the ABO/Rh and the antibody screen are then recorded).
+enum TypeScreenStatus: String, Codable, CaseIterable, Hashable {
+    case notSent = "not-sent", sent, resulted
+
+    var label: String {
+        switch self {
+        case .notSent: return "Not sent"
+        case .sent: return "Sent"
+        case .resulted: return "Resulted"
+        }
+    }
+}
+
 /// Type and screen: ABO/Rh, the antibody screen and the units crossmatched.
 struct PatientTypeScreen: Codable, Hashable {
     /// "A+", "A-", … "O-" (ASCII); shown with a minus sign ("A−").
@@ -40,12 +54,14 @@ struct PatientTypeScreen: Codable, Hashable {
     /// The antibody a positive screen found, as typed ("anti-K").
     var antibody = ""
     var crossmatched: Int?
+    /// Not sent or sent, as the user said (1.11); a result recorded (hasResult) reads as resulted whatever this holds.
+    var status: TypeScreenStatus?
 
     static let types = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
     static let unitLimit = 40
 
-    init(type: String? = nil, screen: LabResult? = nil, antibody: String = "", crossmatched: Int? = nil) {
-        self.type = type; self.screen = screen; self.antibody = antibody; self.crossmatched = crossmatched
+    init(type: String? = nil, screen: LabResult? = nil, antibody: String = "", crossmatched: Int? = nil, status: TypeScreenStatus? = nil) {
+        self.type = type; self.screen = screen; self.antibody = antibody; self.crossmatched = crossmatched; self.status = status
     }
 
     init(from decoder: Decoder) throws {
@@ -54,11 +70,34 @@ struct PatientTypeScreen: Codable, Hashable {
         screen = try? c.decodeIfPresent(LabResult.self, forKey: .screen)
         antibody = (try? c.decodeIfPresent(String.self, forKey: .antibody)) ?? ""
         crossmatched = try? c.decodeIfPresent(Int.self, forKey: .crossmatched)
+        // Records saved before 1.11 have no status: nil, and a recorded result still reads as resulted.
+        status = try? c.decodeIfPresent(TypeScreenStatus.self, forKey: .status)
     }
 
-    var isEmpty: Bool { type == nil && screen == nil && antibodyText.isEmpty && crossmatched == nil }
+    var isEmpty: Bool { type == nil && screen == nil && antibodyText.isEmpty && crossmatched == nil && status == nil }
 
     var antibodyText: String { antibody.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    /// A result is recorded: the ABO/Rh, the antibody screen, an antibody named, or units crossmatched. Every one
+    /// of them prints on the labs line, so every one keeps the result rows open.
+    var hasResult: Bool { type != nil || screen != nil || !antibodyText.isEmpty || (crossmatched ?? 0) > 0 }
+
+    /// A result recorded means resulted, whatever was tapped; otherwise what the user said, if anything.
+    var effectiveStatus: TypeScreenStatus? { hasResult ? .resulted : status }
+
+    /// What a tap on the status chips records: Resulted opens the result rows; Not sent and Sent clear a result
+    /// already recorded (the user says there is none): the type, the screen, the antibody and the units
+    /// crossmatched, so the line never reads "T&S not sent · 2 u crossmatched". The same chip again (nil) clears
+    /// the status, and a result recorded stays.
+    mutating func setStatus(_ s: TypeScreenStatus?) {
+        status = s
+        if let s, s != .resulted {
+            type = nil
+            screen = nil
+            antibody = ""
+            crossmatched = nil
+        }
+    }
 
     /// "A−".
     static func display(_ t: String) -> String { t.replacingOccurrences(of: "-", with: "−") }
@@ -69,10 +108,18 @@ struct PatientTypeScreen: Codable, Hashable {
         return "screen " + s.short + (s == .positive && !antibodyText.isEmpty ? " (" + antibodyText + ")" : "")
     }
 
-    /// "T&S A−, screen neg"; nil with neither.
+    /// "T&S A−, screen neg"; without a result, "T&S sent, result pending" or "T&S not sent" when the user said so;
+    /// nil with nothing, and nil with only units crossmatched (they are a result, and print on their own).
     var head: String? {
         let parts = [type.map(Self.display), screenText].compactMap { $0 }
-        return parts.isEmpty ? nil : "T&S " + parts.joined(separator: ", ")
+        if parts.isEmpty {
+            switch effectiveStatus {
+            case .sent?: return "T&S sent, result pending"
+            case .notSent?: return "T&S not sent"
+            default: return nil
+            }
+        }
+        return "T&S " + parts.joined(separator: ", ")
     }
 
     /// "2 u crossmatched".
@@ -88,6 +135,7 @@ struct PatientTypeScreen: Codable, Hashable {
         if let s = screen { r.screen = s }
         if !antibodyText.isEmpty { r.antibody = antibodyText }
         if let x = crossmatched { r.crossmatched = x }
+        if let s = status { r.status = s }
         return r
     }
 }
