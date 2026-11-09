@@ -89,7 +89,8 @@ enum PatientNoteChange: Hashable {
     case ecg(String)
     /// The airway at handoff (PatientCatalog.airwayAtEnd's id): "extubated" or "intubated".
     case airwayAtEnd(String)
-    /// Where the patient goes after the case (PatientCatalog.dispositions): "ICU", "PACU", "Ward", "Same-day discharge".
+    /// Where the patient goes after the case, as Status & Plan stores it: its own chips "Fast track", "PACU", "ICU", or
+    /// the catalog's "Ward" and "Same-day discharge" (shown there as Other with the text).
     case disposition(String)
     /// The Cardiopulmonary Evaluation's single-line answers: "symptoms" (cardiac symptoms or signs) or "acute" (acute
     /// cardiac conditions), and the answer. Two separate fields, as the None chip sets them: a line says one, or both.

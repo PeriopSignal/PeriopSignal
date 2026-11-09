@@ -2511,7 +2511,8 @@ enum QuickAdd {
     // MARK: The disposition
 
     /// Where the patient goes, after a word that says so ("to ICU", "→ PACU", "dispo: floor", "then home"); group 1 the
-    /// place, group 2 "fast track". "from ICU" is where they came from, and "ICU" alone is not read.
+    /// place, group 2 "fast track" (Status & Plan's own chip). "from ICU" is where they came from, and "ICU" alone is
+    /// not read.
     static let dispositionRx = NoteRx(#"(?:\b(?:to|dispo(?:sition)?|destination|admit(?:ted)?\s+to|going|headed|plan(?:ned)?|then|post-?op(?:erative(?:ly)?)?)\b\s*[:=]?\s*|(?:→|->|=>)\s*)(?:the\s+|a\s+|an\s+)?((?:(?:cv|ct|pc|s|m|n|c|t)icu|(?:neuro|cardiac|surgical|medical|cardiothoracic|cardiovascular)\s+icu|icu)|intensive\s+care(?:\s+unit)?|pacu|recovery(?:\s+room)?|floor|ward|home|same[- ]day(?:\s+discharge)?|(?-i:SDD)|day[- ]case|day\s+surgery(?:\s+unit)?|(?-i:DSU))\b|\b(fast[- ]?track(?:ed)?)\b"#)
     /// After the place: a stay that was, not where they go ("admitted to ICU 2 days ago", "to the floor on POD2").
     private static let dispositionNotAfter = NoteRx(#"^\s*(?:\d+\s+(?:days?|weeks?|months?)\s+ago|yesterday|last\s+\w+|(?:on\s+)?pod\s*\d|stay|admission|course|for\s+\d|preop\w*|pre-?operatively|overnight|x\s*\d|(?:in\s+)?\(?(?:19|20)\d\d)\b"#)
@@ -2536,16 +2537,11 @@ enum QuickAdd {
         for m in dispositionRx.all(text) {
             if dispositionNotAfter.first(ns.substring(from: m.range.location + m.range.length)) != nil { continue }
             if dispositionNotBefore.first(ns.substring(to: m.range.location)) != nil { continue }
-            if let fast = group(m, 2, text) {
-                // Fast track: a PACU path after most operations; after cardiac surgery it means early extubation, and
-                // the destination is still the ICU or a unit, so nothing is read for it there.
-                if PatientRules.cardiacSurgery(c.record) {
-                    ranges.append(m.range)
-                    out.skip(capitalized(fast) + " · after cardiac surgery, say where to (ICU, PACU)")
-                    continue
-                }
+            if group(m, 2, text) != nil {
+                // Fast track is one of Status & Plan's own disposition chips (StatusPlanCard.dispositionChips), stored
+                // as its label.
                 ranges.append(m.range)
-                if chosen == nil { chosen = ("PACU", "Fast track read as PACU; choose ICU if that is the plan.") }
+                if chosen == nil { chosen = ("Fast track", nil) }
                 continue
             }
             guard let word = group(m, 1, text), let value = disposition(for: word) else { continue }

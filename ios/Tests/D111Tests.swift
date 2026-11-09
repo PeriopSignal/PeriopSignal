@@ -213,16 +213,16 @@ final class D111Tests: XCTestCase {
         XCTAssertNil(change(read("to OR", .intraop), "disposition"))
     }
 
+    /// Fast track is one of Status & Plan's own disposition chips, stored as its label.
     func testFastTrack() {
         let q = read("fast track", .intraop)
-        XCTAssertEqual(change(q, "disposition"), .disposition("PACU"))
-        XCTAssertEqual(finding(q, "disposition")?.note, "Fast track read as PACU; choose ICU if that is the plan.")
-        var cabg = PatientRecord()
-        cabg.setProcedures(PlannedProcedure.parse("CABG x3"))
-        let c = read("fast track", .intraop, record: cabg)
-        XCTAssertNil(change(c, "disposition"), "after cardiac surgery fast track is early extubation, not a destination")
-        XCTAssertTrue(c.skipped.contains { $0.hasPrefix("Fast track") }, "\(c.skipped)")
-        XCTAssertEqual(change(read("fast track to ICU", .intraop, record: cabg), "disposition"), .disposition("ICU"), "the place said wins")
+        XCTAssertEqual(change(q, "disposition"), .disposition("Fast track"))
+        XCTAssertNil(finding(q, "disposition")?.note)
+        XCTAssertEqual(StatusPlanCard.dispositionChip(applied(q).disposition), "Fast track", "shows as its own chip")
+        XCTAssertEqual(change(read("fast-tracked", .intraop), "disposition"), .disposition("Fast track"))
+        XCTAssertEqual(change(summary("fast track"), "disposition"), .disposition("Fast track"))
+        XCTAssertEqual(change(read("extubated, fast track", .intraop), "airway-end"), .airwayAtEnd("extubated"))
+        XCTAssertEqual(StatusPlanCard.dispositionChip(applied(read("to the floor", .intraop)).disposition), "Other", "Ward shows as Other with its text")
     }
 
     func testDispositionStatus() {
