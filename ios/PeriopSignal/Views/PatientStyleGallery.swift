@@ -226,7 +226,7 @@ struct PatientStyleGallery: View {
     private var buttons: some View {
         group("Buttons") {
             HStack(spacing: 10) {
-                Button("Add 3") {}.buttonStyle(CapsuleButtonStyle(color: PS.action))
+                Button("Add 3") {}.buttonStyle(CapsuleButtonStyle(color: QuickAddBar.addButtonColor))
                 Button("Change") {}.buttonStyle(CapsuleButtonStyle(prominent: false))
                 Button("Deep dive →") {}.buttonStyle(TextButtonStyle(color: PS.action))
                 Spacer(minLength: 0)

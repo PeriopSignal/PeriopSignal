@@ -3,6 +3,15 @@ import UIKit
 
 // MARK: - Pieces the My Patient screens share
 
+extension CapsuleButtonStyle {
+    /// A filled capsule that acts on My Patient ("Add 3", Done, Save, Generate preprocedure summary): the action
+    /// colour (1.11, P1-8), in both appearances. The style's own default stays the brand red, which Feed and Reference
+    /// keep; a My Patient screen asks for this one instead. Not filled (prominent false), it is the quiet capsule.
+    static func patientAction(prominent: Bool = true) -> CapsuleButtonStyle {
+        CapsuleButtonStyle(prominent: prominent, color: PS.action)
+    }
+}
+
 /// A number field's place in its page's Previous / Next order (PatientEditorView.numberOrder): the page's focus and
 /// this field's id in it.
 struct PatientFieldChain {
@@ -800,7 +809,7 @@ struct WobbleDoneBar: View {
                 Text("Tap − to delete").font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3)
                 Spacer()
                 Button("Done") { Haptics.light(); withAnimation(.snappy) { editing = false } }
-                    .buttonStyle(CapsuleButtonStyle())
+                    .buttonStyle(CapsuleButtonStyle.patientAction())
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
             .transition(.opacity)

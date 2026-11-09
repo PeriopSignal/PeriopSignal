@@ -378,7 +378,7 @@ struct PatientNoteSheet: View {
                         .padding(.horizontal, 10).padding(.vertical, 8)
                         .background(PS.surface2, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     Button("Save") { saveMeaning(u.token) }
-                        .buttonStyle(CapsuleButtonStyle(prominent: true))
+                        .buttonStyle(CapsuleButtonStyle.patientAction())
                         .disabled(blank(draft))
                         .opacity(blank(draft) ? 0.5 : 1)
                     Button {
