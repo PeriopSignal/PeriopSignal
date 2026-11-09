@@ -1,2 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/D111Tests.swift:509: error: -[PeriopSignalTests.D111Tests testAnAllergyIsNeverAnEvent] : XCTAssertTrue failed - PCN allergy (anaphylaxis to cefazolin too) on Summary & Handoff: ["procedure", "plan-anesthetic:mac"]
-Test Case '-[PeriopSignalTests.D111Tests testAnAllergyIsNeverAnEvent]' failed (5.515 seconds).
