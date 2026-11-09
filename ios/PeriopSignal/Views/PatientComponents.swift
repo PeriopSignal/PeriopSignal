@@ -47,7 +47,9 @@ struct PatientNumberField: View {
     var body: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
+                // One line, shrunk a little on a narrow row, never broken mid-word (review 1.10).
                 Text(label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    .lineLimit(1).minimumScaleFactor(0.75)
                 if let hint { Text(hint).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
             }
             Spacer(minLength: 6)
