@@ -140,20 +140,6 @@ struct DebugContentWidth: ViewModifier {
 
 // MARK: - Chip sets: one line when it fits (1.10)
 
-/// A set of chips in the fewest lines. Ben (Nov 7): any chip set that fits one line without making the chips too small goes
-/// on one line. The first of these that fits the width is used, else the chips wrap as they always did:
-/// the full words with the usual padding; the full words with tighter padding; the short words (where an option has
-/// them: "≥4 METs", "GA", "Upper abd"; VoiceOver always reads the full words) with the usual and then tighter padding;
-/// the full and then the short words with the tightest padding. The font never gets smaller than the chip font. The
-/// padding steps and the text size are in `ChipMetrics`, which the tests use to check a row at 375 and 402 pt.
-///
-/// A chosen toggle chip (several can be on) is never shown by colour alone (review 1.10; WCAG 2.1 SC 1.4.1, Use of
-/// Color): on one line it reads "✓ Warfarin", as every chosen toggle chip did in 1.9. Only a chosen chip makes room for
-/// the ✓, partly out of its own padding (never below the compact padding), so a tap widens it by little; the row may then
-/// take a tighter padding, down to the compact one, to keep the ✓ on its line. Only a row that cannot fit its ✓ at any
-/// padding but fit one line in 1.10 stays on one line without it, its chosen chips with a 1.5-pt outline in the full
-/// tint (a heavier edge, not a hue), rather than wrapping; the wrapped form keeps the ✓ and bold text. A choice chip (one
-/// of a few) is filled solid with inverted text, not a hue.
 /// The four looks a chip can have (1.11, Ben's Q7 and Q8): one chip grammar, enforced here rather than by each row's
 /// colours. A **choice** (one of a few: Class, Sex, the No/Yes pills) is ink-filled when chosen, inverted text, never a hue.
 /// A **toggle** (any number on: GA, PNB, a flag) is tinted in the action colour with a ✓ when on. A **preset** (a one-tap
@@ -208,6 +194,20 @@ enum ChipStyle: String, CaseIterable {
     }
 }
 
+/// A set of chips in the fewest lines. Ben (Nov 7): any chip set that fits one line without making the chips too small goes
+/// on one line. The first of these that fits the width is used, else the chips wrap as they always did:
+/// the full words with the usual padding; the full words with tighter padding; the short words (where an option has
+/// them: "≥4 METs", "GA", "Upper abd"; VoiceOver always reads the full words) with the usual and then tighter padding;
+/// the full and then the short words with the tightest padding. The font never gets smaller than the chip font. The
+/// padding steps and the text size are in `ChipMetrics`, which the tests use to check a row at 375 and 402 pt.
+///
+/// A chosen toggle chip (several can be on) is never shown by colour alone (review 1.10; WCAG 2.1 SC 1.4.1, Use of
+/// Color): on one line it reads "✓ Warfarin", as every chosen toggle chip did in 1.9. Only a chosen chip makes room for
+/// the ✓, partly out of its own padding (never below the compact padding), so a tap widens it by little; the row may then
+/// take a tighter padding, down to the compact one, to keep the ✓ on its line. Only a row that cannot fit its ✓ at any
+/// padding but fit one line in 1.10 stays on one line without it, its chosen chips with a 1.5-pt outline in the full
+/// tint (a heavier edge, not a hue), rather than wrapping; the wrapped form keeps the ✓ and bold text. A choice chip (one
+/// of a few) is filled solid with inverted text, not a hue.
 struct ChipSet: View {
     typealias Style = ChipStyle
 
