@@ -114,6 +114,31 @@ final class Clinical110Tests: XCTestCase {
         XCTAssertLessThanOrEqual(QuickAdd.pastSurgeryPlaceholder.count, 30, "fits the compact bar at 375 pt")
     }
 
+    /// Previous Intrathoracic Surgery's bar has its own example (review 1.10, shots 535/536: the PSH one offered a knee
+    /// replacement there): two dated operations that both opened the chest, as short as the PSH one.
+    func testTheIntrathoracicPlaceholderReadsAsTwoChestOperations() {
+        XCTAssertEqual(PatientEditor.workup("intrathoracic").quickAddPlaceholder, QuickAdd.intrathoracicPlaceholder)
+        XCTAssertEqual(PatientEditor.workup("surgeries").quickAddPlaceholder, QuickAdd.pastSurgeryPlaceholder)
+        XCTAssertEqual(PatientEditor.workup("echo").quickAddPlaceholder, QuickAdd.placeholder(.editor(intraop: false)))
+        XCTAssertFalse(QuickAdd.intrathoracicPlaceholder.contains("TKA"))
+        XCTAssertLessThanOrEqual(QuickAdd.intrathoracicPlaceholder.count, 30, "fits the compact bar at 375 pt")
+        let r = avrPlanned
+        let q = psh(QuickAdd.intrathoracicPlaceholder, record: r)
+        XCTAssertFalse(q.findings.contains(where: isProcedure))
+        XCTAssertEqual(q.findings.filter { if case .pastSurgery = $0.change { return true }; return false }.count, 2,
+                       q.findings.map(\.label).joined(separator: "; "))
+        XCTAssertEqual(q.unread, "")
+        let after = applied(q, to: r)
+        XCTAssertEqual(after.procedures, r.procedures)
+        XCTAssertEqual(after.surgeries.count, 2)
+        XCTAssertEqual(after.surgeries.first { $0.procedures.first?.catalogID == "cabg" }?.date, PatientMonthYear(year: 2015))
+        let vats = after.surgeries.first { $0.procedures.first?.catalogID == "wedge" }
+        XCTAssertEqual(vats?.date, PatientMonthYear(month: 6, year: 2019))
+        XCTAssertEqual(vats?.procedures.first?.side, "right")
+        XCTAssertTrue(after.surgeries.allSatisfy(\.intrathoracic), "both show on Previous Intrathoracic Surgery: \(after.surgeries.map(\.text))")
+        XCTAssertEqual(after.allIntrathoracic.count, 2)
+    }
+
     func testPlanningWordsAndDiagnosesAreNotFiledThere() {
         let r = avrPlanned
         for line in ["for TKA", "scheduled for lap chole", "Procedure: tonsillectomy"] {

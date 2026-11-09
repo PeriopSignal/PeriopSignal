@@ -236,6 +236,9 @@ enum QuickAdd {
     }
     /// Short enough for the compact one-line bar at 375 pt, with both date forms (a year; a month and year).
     static let pastSurgeryPlaceholder = "CABG ×3 2015, R TKA 06/2019"
+    /// The Previous Intrathoracic Surgery page's example (review 1.10: the PSH one offered a knee replacement there): two
+    /// operations that opened the chest, with both date forms, as short as the PSH one.
+    static let intrathoracicPlaceholder = "CABG ×3 2015, R VATS 06/2019"
 
     /// The questions the reader asks itself ("SpO₂ 95% · room air?", "PRBC 2 · given?") and the infusion reader's
     /// (InfusionEntry: "drug:<word>", "unit:<drugID>:<rate>"), as opposed to an abbreviation's meaning: nothing is added
