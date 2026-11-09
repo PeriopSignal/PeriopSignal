@@ -335,8 +335,8 @@ enum QuickAdd {
         }
         // 1.11: the disposition from any tab; the ECG, the stress test and the cardiac answers are the preoperative
         // workup (on the Intraoperative tab they are set aside, as the history is).
-        readDisposition(&s, c, &out)
         if !surgicalHistory {
+            readDisposition(&s, c, &out)
             readStressTest(&s, c, &out)
             readCardiacAnswers(&s, c, &out)
             if tab == .preop { readECG(&s, c, &out) }
@@ -2425,6 +2425,12 @@ enum QuickAdd {
         ECGRule(#"\bleft\s+axis(?:\s+deviation)?\b"#, "Left axis deviation"),
     ]
 
+    /// The ECG itself named in a piece ("ECG: AF", "EKG shows SVT"), which the rhythms the history reader also reads need.
+    private static let ecgWord = NoteRx(#"\b(?:ecg|ekg|12[- ]lead|tracing|rhythm\s+strip)\b"#)
+    /// Findings the history reader reads as problems too (PatientECGLink.establishes): atrial fibrillation and flutter,
+    /// SVT and the high-grade blocks. Paced rhythms are not among them: "V-paced" is only ever the rhythm.
+    private static let ecgHistoryWords: Set<String> = ["Atrial fibrillation", "Atrial flutter", "SVT", "Mobitz II", "Complete heart block"]
+
     /// A word negated within its comma piece ("no Q waves", "not extubated", "without bronchospasm"): the one-liner's
     /// negation, bounded by the piece, so "no complications, extubated" is not a negated extubation.
     private static func pieceNegated(_ r: NSRange, in text: String) -> Bool { pieceNegation.first(around(r, in: text).before) != nil }
@@ -2443,6 +2449,9 @@ enum QuickAdd {
         for rule in ecgRules {
             for m in rule.rx.all(text) {
                 if let nb = rule.notBefore, nb.first((text as NSString).substring(to: m.range.location)) != nil { continue }
+                // A rhythm the history reader also reads ("AF on apixaban, ECG: NSR") is the ECG's only in the ECG's own
+                // comma piece; anywhere else in the line it stays history.
+                if ecgHistoryWords.contains(rule.finding), ecgWord.first((text as NSString).substring(with: pieceRange(m.range, in: text))) == nil { continue }
                 if pieceNegated(m.range, in: text) {
                     ranges.append(m.range)
                     continue
@@ -2467,8 +2476,10 @@ enum QuickAdd {
 
     // MARK: The airway at handoff
 
-    static let extubatedRx = NoteRx(#"\b(?:extubated|(?:deep|awake|smooth|uneventful)\s+extubation|extubation(?:\s+(?:in|at)\s+(?:the\s+)?(?:or|end(?:\s+of\s+(?:the\s+)?case)?))?|(?:lma|i-?gel|sga|supraglottic(?:\s+airway)?|tube|ett)\s+(?:out|removed|pulled|came\s+out))\b"#)
-    static let intubatedRx = NoteRx(#"\b(?:remains?|remained|left|still|kept|stays?|stayed|transferred|transported|going|went|arrives?|arriving)\s+intubated\b|\bintubated\s+(?:to|for|on)\s+(?:the\s+)?(?:icu|unit|transport|transfer|arrival|handoff)\b|\bre-?intubated\b|\bnot\s+(?:yet\s+)?extubated\b|\bunable\s+to\s+extubate\b|\bfailed\s+extubation\b|\bintubated\s+(?:(?:and|&)\s+|,\s*)(?:sedated|ventilated)\b"#)
+    /// A bare "tube out" is left alone (a chest tube, a drain); "ETT out" and "LMA out" are the airway.
+    static let extubatedRx = NoteRx(#"\b(?:extubated|(?:deep|awake|smooth|uneventful)\s+extubation|extubation(?:\s+(?:in|at)\s+(?:the\s+)?(?:or|end(?:\s+of\s+(?:the\s+)?case)?))?|(?:lma|i-?gel|sga|supraglottic(?:\s+airway)?|ett|et\s+tube|endotracheal\s+tube)\s+(?:out|removed|pulled|came\s+out))\b"#)
+    /// "arrives intubated" is the airway on arrival (the Preop tab's), not the airway at handoff.
+    static let intubatedRx = NoteRx(#"\b(?:remains?|remained|left|still|kept|stays?|stayed|transferred|transported|going|went)\s+intubated\b|\bintubated\s+(?:to|for|on)\s+(?:the\s+)?(?:icu|unit|transport|transfer|arrival|handoff)\b|\bre-?intubated\b|\bnot\s+(?:yet\s+)?extubated\b|\bunable\s+to\s+extubate\b|\bfailed\s+extubation\b|\bintubated\s+(?:(?:and|&)\s+|,\s*)(?:sedated|ventilated)\b"#)
     /// An extubation told as past ("extubated POD1", "extubated 2019"): not this case's.
     private static let extubatedPast = NoteRx(#"^\s*(?:(?:on\s+)?pod\s*\d|yesterday|last\s+(?:year|week|month|night|time)|\d+\s+(?:days?|weeks?|months?|years?)\s+ago|in\s+(?:19|20)\d\d|\(?(?:19|20)\d\d\)?)\b"#)
 
@@ -2489,6 +2500,8 @@ enum QuickAdd {
         }
         guard let value else { return }
         for r in ranges { s.mask(r) }
+        // "ETT out" is the tube for certain: the abbreviation is not asked about.
+        s.certain += ranges
         let r = c.record
         let instrumented = r.arrivesWithAirway || PatientAirway.intubationChosen(r) || PatientAirway.lmaChosen(r) || !r.tube.trimmingCharacters(in: .whitespaces).isEmpty
         out.add(PatientNoteFinding(id: "airway-end", section: intraop, label: value == "intubated" ? "At handoff: remains intubated" : "At handoff: extubated",
@@ -2501,7 +2514,7 @@ enum QuickAdd {
     /// place, group 2 "fast track". "from ICU" is where they came from, and "ICU" alone is not read.
     static let dispositionRx = NoteRx(#"(?:\b(?:to|dispo(?:sition)?|destination|admit(?:ted)?\s+to|going|headed|plan(?:ned)?|then|post-?op(?:erative(?:ly)?)?)\b\s*[:=]?\s*|(?:→|->|=>)\s*)(?:the\s+|a\s+|an\s+)?((?:(?:cv|ct|pc|s|m|n|c|t)icu|(?:neuro|cardiac|surgical|medical|cardiothoracic|cardiovascular)\s+icu|icu)|intensive\s+care(?:\s+unit)?|pacu|recovery(?:\s+room)?|floor|ward|home|same[- ]day(?:\s+discharge)?|(?-i:SDD)|day[- ]case|day\s+surgery(?:\s+unit)?|(?-i:DSU))\b|\b(fast[- ]?track(?:ed)?)\b"#)
     /// After the place: a stay that was, not where they go ("admitted to ICU 2 days ago", "to the floor on POD2").
-    private static let dispositionNotAfter = NoteRx(#"^\s*(?:\d+\s+(?:days?|weeks?|months?)\s+ago|yesterday|last\s+\w+|(?:on\s+)?pod\s*\d|stay|admission|course|for\s+\d|preop\w*|pre-?operatively|overnight|x\s*\d|in\s+(?:19|20)\d\d)\b"#)
+    private static let dispositionNotAfter = NoteRx(#"^\s*(?:\d+\s+(?:days?|weeks?|months?)\s+ago|yesterday|last\s+\w+|(?:on\s+)?pod\s*\d|stay|admission|course|for\s+\d|preop\w*|pre-?operatively|overnight|x\s*\d|(?:in\s+)?\(?(?:19|20)\d\d)\b"#)
     /// Before the cue: told as past ("was admitted to ICU", "previously transferred to the floor").
     private static let dispositionNotBefore = NoteRx(#"\b(?:was|were|been|previously|preop\w*|pre-?operatively|history\s+of|h/o|s/p)\s+(?:(?:admitted|transferred|moved|sent|taken|discharged)\s+)?$"#)
 
@@ -2569,7 +2582,9 @@ enum QuickAdd {
 
     /// A stress test named: its kind in group 1 (dobutamine), 2 (exercise) or 3 (pharmacologic or nuclear); a plain
     /// "stress test" or "stress echo" names none. "Stress dose" steroids are not one.
-    static let stressCue = NoteRx(#"\b(?:((?-i:DSE)|dobutamine(?:\s+stress)?(?:\s+echo\w*)?)|(exercise\s+(?:stress|treadmill)(?:\s+(?:test|echo\w*|ecg|ekg))?|treadmill(?:\s+(?:stress\s+)?test)?|bruce\s+protocol)|(lexiscan|regadenoson(?:\s+stress)?|adenosine\s+stress|dipyridamole(?:\s+stress)?|persantine|pharmacologic(?:al)?\s+stress(?:\s+test)?|nuclear\s+stress(?:\s+test)?|myoview|sestamibi|(?-i:MIBI)|(?-i:SPECT)|(?-i:MPI)|(?:myocardial\s+)?perfusion\s+(?:scan|imaging|study))|stress\s+(?:test(?:ing)?|echo\w*|ecg|ekg|imaging|study|mpi|perfusion))\b"#)
+    /// A bare "dobutamine" is a drip, a bare "treadmill" is exercise and a bare "dipyridamole" the antiplatelet drug: each
+    /// needs its test word.
+    static let stressCue = NoteRx(#"\b(?:((?-i:DSE)|dobutamine\s+stress(?:\s+(?:echo\w*|test))?|dobutamine\s+echo\w*)|(exercise\s+(?:stress|treadmill)(?:\s+(?:test|echo\w*|ecg|ekg))?|treadmill\s+(?:stress\s+)?test|bruce\s+protocol)|(lexiscan|regadenoson(?:\s+stress)?|adenosine\s+stress|dipyridamole\s+stress|persantine\s+stress|pharmacologic(?:al)?\s+stress(?:\s+test)?|nuclear\s+stress(?:\s+test)?|myoview|sestamibi|(?-i:MIBI)|(?-i:SPECT)|(?-i:MPI)|(?:myocardial\s+)?perfusion\s+(?:scan|imaging|study))|stress\s+(?:test(?:ing)?|echo\w*|ecg|ekg|imaging|study|mpi|perfusion))\b"#)
     /// "ETT" read as the exercise treadmill test (the context or the user chose it; MedAbbreviations' ett-treadmill).
     private static let ettToken = NoteRx(#"(?-i:\bETT\b)"#)
     private static let stressEquivocal = NoteRx(#"\b(?:equivocal|non-?diagnostic|indeterminate|inconclusive|borderline|submaximal)\b"#)
@@ -2635,7 +2650,7 @@ enum QuickAdd {
     /// What happens in a case, as the Events page's prompt lists it: filed as the comma piece it sits in ("hypotension
     /// after induction"). Uppercase-only abbreviations (AF, VT, MH, PTX) so "mh" in a word is not one; "VT 450" is a
     /// tidal volume.
-    static let eventRx = NoteRx(#"\b(?:hypotension|hypotensive|hypertension|hypertensive(?:\s+(?:episode|urgency|emergency))?|bradycardi[ac]|brady|tachycardi[ac]|desaturat\w*|desats?|hypoxi\w*|hypox(?:a)?emi\w*|bronchospasm|laryngospasm|arrhythmi\w*|dysrhythmi\w*|(?-i:(?:AF|SVT|VT|VF|PEA))(?!\s*\d)|a-?fib|atrial\s+fibrillation|ventricular\s+(?:tachycardia|fibrillation)|asystole|cardiac\s+arrest|code\s+blue|(?-i:ROSC)|anaphyla\w+|bleeding|h(?:a)?emorrhag\w*|massive\s+transfusion|(?-i:MTP)|aspirat\w+|malignant\s+hyperthermia|(?-i:MH)|high\s+(?:peak|airway|inspiratory)\s+pressures?|pneumothorax|(?-i:PTX)|(?:air|venous\s+air|fat|amniotic\s+fluid|pulmonary)\s+embol\w+|(?-i:VAE)|st[- ](?:changes?|depressions?|elevations?)|stridor|transfusion\s+reaction|(?-i:TRALI|TACO)|hyperkal(?:a)?emi\w*|hypokal(?:a)?emi\w*|hypoglyc(?:a)?emi\w*|hyperglyc(?:a)?emi\w*|hypothermi\w*|hyperthermi\w*|acidosis|coagulopath\w*|vasoplegi\w*|protamine\s+reaction|seizures?|awareness|dental\s+(?:injury|damage|trauma)|(?:chipped|broken|loose|lost)\s+(?:tooth|teeth)|corneal\s+abrasion|nerve\s+injury|extravasat\w*|infiltrated\s+(?:iv|line|piv)|oliguri\w*|anuri\w*|difficult\s+(?:ventilation|oxygenation)|can'?t\s+(?:intubate|ventilate)|(?-i:CICO)|failed\s+(?:block|spinal|epidural)|(?:high|total)\s+spinal|(?-i:LAST)|local\s+an(?:a)?esthetic\s+(?:systemic\s+)?toxicity|h(?:a)?emodynamic(?:ally)?\s+(?:instability|unstable)|ischemi\w*|wall[- ]motion\s+abnormalit\w*|low\s+cardiac\s+output|(?-i:LCOS)|difficult\s+(?:separation|wean(?:ing)?)\s+from\s+(?:bypass|cpb|pump)|(?:return(?:ed)?|back)\s+(?:on|to)\s+(?:bypass|pump|cpb))\b"#)
+    static let eventRx = NoteRx(#"\b(?:hypotension|hypotensive|(?<!pulmonary )(?<!portal )(?<!intracranial )hypertension|hypertensive(?:\s+(?:episode|urgency|emergency))?|bradycardi[ac]|brady|tachycardi[ac]|desaturat\w*|desats?|hypoxi\w*|hypox(?:a)?emi\w*|bronchospasm|laryngospasm|arrhythmi\w*|dysrhythmi\w*|(?-i:(?:AF|SVT|VT|VF|PEA))(?!\s*\d)|a-?fib|atrial\s+fibrillation|ventricular\s+(?:tachycardia|fibrillation)|asystole|cardiac\s+arrest|code\s+blue|(?-i:ROSC)|anaphyla\w+|bleeding|h(?:a)?emorrhag\w*|massive\s+transfusion|(?-i:MTP)|aspirat\w+|malignant\s+hyperthermia|(?-i:MH)|high\s+(?:peak|airway|inspiratory)\s+pressures?|pneumothorax|(?-i:PTX)|(?:air|venous\s+air|fat|amniotic\s+fluid|pulmonary)\s+embol\w+|(?-i:VAE)|st[- ](?:changes?|depressions?|elevations?)|stridor|transfusion\s+reaction|(?-i:TRALI|TACO)|hyperkal(?:a)?emi\w*|hypokal(?:a)?emi\w*|hypoglyc(?:a)?emi\w*|hyperglyc(?:a)?emi\w*|hypothermi\w*|hyperthermi\w*|acidosis|coagulopath\w*|vasoplegi\w*|protamine\s+reaction|seizures?|awareness|dental\s+(?:injury|damage|trauma)|(?:chipped|broken|loose|lost)\s+(?:tooth|teeth)|corneal\s+abrasion|nerve\s+injury|extravasat\w*|infiltrated\s+(?:iv|line|piv)|oliguri\w*|anuri\w*|difficult\s+(?:ventilation|oxygenation)|can'?t\s+(?:intubate|ventilate)|(?-i:CICO)|failed\s+(?:block|spinal|epidural)|(?:high|total)\s+spinal|(?-i:LAST)|local\s+an(?:a)?esthetic\s+(?:systemic\s+)?toxicity|h(?:a)?emodynamic(?:ally)?\s+(?:instability|unstable)|ischemia|ischemic\s+(?:changes?|event)|wall[- ]motion\s+abnormalit\w*|low\s+cardiac\s+output|(?-i:LCOS)|difficult\s+(?:separation|wean(?:ing)?)\s+from\s+(?:bypass|cpb|pump)|(?:return(?:ed)?|back)\s+(?:on|to)\s+(?:bypass|pump|cpb))\b"#)
     /// Connectors a piece starts with, not part of the event ("and bronchospasm on emergence").
     private static let eventLead = NoteRx(#"^(?:(?:and|then|with|for|also|plus|&|\+)\s+)+"#)
 
@@ -2658,7 +2673,7 @@ enum QuickAdd {
 
     /// The 1.11 patterns, for the test that each one compiles.
     static var patterns111: [NoteRx] {
-        var out = [ecgCue, ecgNormal, extubatedRx, intubatedRx, extubatedPast, dispositionRx, dispositionNotAfter, dispositionNotBefore,
+        var out = [ecgCue, ecgNormal, ecgWord, extubatedRx, intubatedRx, extubatedPast, dispositionRx, dispositionNotAfter, dispositionNotBefore,
                    noCardiacSymptoms, noAcuteCardiac, stressCue, ettToken, stressEquivocal, stressNegative, stressPositive, stressNotDone, stressDate,
                    eventRx, eventLead]
         out += ecgRules.map(\.rx) + ecgRules.compactMap(\.notBefore)

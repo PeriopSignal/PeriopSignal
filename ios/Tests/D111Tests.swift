@@ -88,6 +88,12 @@ final class D111Tests: XCTestCase {
         XCTAssertFalse(ids(read("68M for sinus surgery")).contains { $0.hasPrefix("ecg:") }, "sinus surgery files nothing")
         XCTAssertFalse(ids(read("sinus surgery, HTN")).contains { $0.hasPrefix("ecg:") })
         XCTAssertFalse(ids(read("LVH on echo")).contains { $0.hasPrefix("ecg:") }, "no ECG cue")
+        // A rhythm the history reads too is the ECG's only in the ECG's own piece.
+        let mixed = read("AF on apixaban, ECG: NSR, LBBB")
+        XCTAssertNil(change(mixed, "ecg:Atrial fibrillation"), "the history's AF, not today's rhythm")
+        XCTAssertTrue(ids(mixed).contains("problem:af"))
+        XCTAssertEqual(applied(mixed).ecg, ["Normal sinus rhythm", "Left bundle branch block"])
+        XCTAssertEqual(change(read("EKG shows SVT"), "ecg:SVT"), .ecg("SVT"))
         XCTAssertFalse(ids(read("ECG LBBB", .intraop)).contains { $0.hasPrefix("ecg:") }, "the preoperative ECG is not read on the Intraoperative tab")
     }
 
@@ -165,6 +171,9 @@ final class D111Tests: XCTestCase {
         XCTAssertNil(change(read("remains intubated", .preop), "airway-end"))
         XCTAssertNil(change(read("extubated POD1", .intraop), "airway-end"), "told as past")
         XCTAssertNil(change(read("extubated 2019", .intraop), "airway-end"))
+        XCTAssertNil(change(read("chest tube out", .intraop), "airway-end"), "a chest tube, not the airway")
+        XCTAssertNil(change(read("arrives intubated", .intraop), "airway-end"), "the airway on arrival")
+        XCTAssertEqual(change(read("ETT out", .intraop), "airway-end"), .airwayAtEnd("extubated"))
     }
 
     func testAirwayAtEndStatus() {
@@ -324,6 +333,9 @@ final class D111Tests: XCTestCase {
 
     func testStressTestIsNotReadFromOtherWords() {
         XCTAssertNil(change(read("stress dose steroids"), "stress"), "stress-dose steroids")
+        XCTAssertNil(change(read("dobutamine 5 mcg/kg/min"), "stress"), "a drip")
+        XCTAssertNil(change(read("walks on the treadmill daily"), "stress"), "exercise, not the test")
+        XCTAssertNil(change(read("on aspirin and dipyridamole"), "stress"), "the antiplatelet drug")
         XCTAssertNil(change(read("no stress test"), "stress"))
         XCTAssertNil(change(read("stress test pending"), "stress"))
         XCTAssertNil(change(read("stress test recommended"), "stress"))
@@ -391,6 +403,9 @@ final class D111Tests: XCTestCase {
         XCTAssertFalse(ids(read("VT 450", .intraop)).contains { $0.hasPrefix("event:") }, "a tidal volume")
         XCTAssertFalse(ids(read("mh", .intraop)).contains { $0.hasPrefix("event:") }, "MH in capitals only")
         XCTAssertTrue(ids(read("MH", .intraop)).contains("event:mh"))
+        XCTAssertFalse(ids(read("ischemic cardiomyopathy", .intraop)).contains { $0.hasPrefix("event:") }, "history, not an event")
+        XCTAssertFalse(ids(read("pulmonary hypertension", .intraop)).contains { $0.hasPrefix("event:") })
+        XCTAssertTrue(ids(read("ischemia on TEE after bypass", .intraop)).contains { $0.hasPrefix("event:ischemia") })
         XCTAssertFalse(ids(read("norepi 0.05, PRBC 2, EBL 500", .intraop)).contains { $0.hasPrefix("event:") })
     }
 
