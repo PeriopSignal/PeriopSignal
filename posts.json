@@ -52,6 +52,26 @@
     "seconds": 247,
     "bytes": 1972269,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Long-Term Survival After Initial Invasive or Conservative Management of Stable Coronary Disease in ISCHEMIA-EXTEND",
+    "authors": [
+     "Hochman JS",
+     "Anthopolos R",
+     "Reynolds HR",
+     "Bangalore S",
+     "Xu Y",
+     "O’Brien SM",
+     "Boumakis S",
+     "Chang M",
+     "Rosenberg Y",
+     "Senior R",
+     "Banfield A",
+     "Goodman SG"
+    ],
+    "journal": "JAMA",
+    "doi": "10.1001/jama.2026.20375",
+    "year": 2026
    }
   },
   {
@@ -104,6 +124,28 @@
     "seconds": 210,
     "bytes": 1678125,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Thoracic epidural versus paravertebral blockade for reducing chronic post-thoracotomy pain (TOPIC-2): open label, parallel group, superiority, multicentre, randomised controlled trial",
+    "authors": [
+     "Shelley B",
+     "Middleton L",
+     "Boyles R",
+     "Gilbert M",
+     "Goebel A",
+     "Goldsmith I",
+     "Grant S",
+     "Jackson L",
+     "Javed M",
+     "Kumar S",
+     "Marczin N",
+     "McCall P"
+    ],
+    "journal": "BMJ",
+    "doi": "10.1136/bmj-2026-101114",
+    "year": 2026,
+    "volume": "395",
+    "pages": "e101114"
    }
   },
   {
@@ -155,6 +197,26 @@
     "seconds": 184,
     "bytes": 1471917,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Individualized mean arterial pressure during cardiac surgery The OPTIPAM Randomized Clinical Trial",
+    "authors": [
+     "Descamps R",
+     "MERTES PM",
+     "CHARVIN M",
+     "DESEBBE O",
+     "CHARBONNEAU H",
+     "FELLAHI JL",
+     "CAZENAVE L",
+     "LABASTE F",
+     "LENA D",
+     "ROZEC B",
+     "DESSERTAINE G",
+     "DEBROCZI S"
+    ],
+    "journal": "Anesthesiology",
+    "doi": "10.1097/ALN.0000000000006471",
+    "year": 2026
    }
   },
   {
@@ -206,6 +268,28 @@
     "seconds": 211,
     "bytes": 1691181,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Perioperative respiratory adverse events in children undergoing adenotonsillectomy with laryngeal mask airway versus endotracheal tube ventilation: multicentre, randomised controlled trial",
+    "authors": [
+     "Han Y",
+     "Yi X",
+     "Xia J",
+     "Zhang W",
+     "Zhao Z",
+     "Zhu N",
+     "Liu N",
+     "Chen X",
+     "Wang Y",
+     "Feng L",
+     "Ni W",
+     "Zhuang Y"
+    ],
+    "journal": "BMJ",
+    "doi": "10.1136/bmj-2026-101019",
+    "year": 2026,
+    "volume": "395",
+    "pages": "e101019"
    }
   },
   {
@@ -258,6 +342,26 @@
     "seconds": 195,
     "bytes": 1561197,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Cangrelor versus crushed ticagrelor in acute myocardial infarction complicated by cardiogenic shock (DAPT-SHOCK-AMI): a randomised, double-blind trial",
+    "authors": [
+     "Motovska Z",
+     "Hlinomaz O",
+     "Mrozek J",
+     "Akin I",
+     "Kala P",
+     "Montalescot G",
+     "Hromadka M",
+     "Geisler T",
+     "Precek J",
+     "Kettner J",
+     "Cervinka P",
+     "Katina S"
+    ],
+    "journal": "The Lancet",
+    "doi": "10.1016/S0140-6736(26)00976-1",
+    "year": 2026
    }
   },
   {
