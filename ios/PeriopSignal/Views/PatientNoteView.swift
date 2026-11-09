@@ -15,7 +15,7 @@ struct NoIdentifiersBanner: View {
                 withAnimation(.snappy) { open.toggle() }
             } label: {
                 HStack(spacing: 7) {
-                    Image(systemName: "exclamationmark.shield.fill").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.accent)
+                    Image(systemName: "exclamationmark.shield.fill").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.action)
                     Text("No patient identifiers").font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg)
                     Image(systemName: open ? "info.circle.fill" : "info.circle").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                     Spacer(minLength: 0)
@@ -34,8 +34,8 @@ struct NoIdentifiersBanner: View {
         }
         .padding(.horizontal, 12).padding(.vertical, 7)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(PS.accent.opacity(0.28), lineWidth: 1))
+        .background(PS.action.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(PS.action.opacity(0.28), lineWidth: 1))
     }
 }
 
@@ -415,13 +415,13 @@ struct PatientNoteSheet: View {
     private func identifierWarning(_ kinds: [String]) -> some View {
         let list = kinds.count == 1 ? kinds[0] : kinds.dropLast().joined(separator: ", ") + " or " + (kinds.last ?? "")
         return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "exclamationmark.triangle.fill").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent)
+            Image(systemName: "exclamationmark.triangle.fill").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.red)
             Text("The note may include \(list). The note isn't kept, but text added below is: take identifiers out first.")
                 .font(PS.sys(size: 13)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(PS.red.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private func findingRow(_ f: PatientNoteFinding, _ status: PatientNoteStatus) -> some View {
@@ -471,8 +471,8 @@ struct PatientNoteSheet: View {
     private func statusColor(_ s: PatientNoteStatus) -> Color {
         switch s {
         case .new, .recorded: return PS.fg3
-        case .replaces: return PS.accent2
-        case .conflicts: return PS.accent
+        case .replaces: return PS.action
+        case .conflicts: return PS.red
         }
     }
 
@@ -605,13 +605,13 @@ struct PatientReceiveSheet: View {
                     .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                     if !patient.isEmpty {
                         HStack(alignment: .top, spacing: 10) {
-                            Image(systemName: "arrow.triangle.2.circlepath").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent)
+                            Image(systemName: "arrow.triangle.2.circlepath").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.action)
                             Text("Open it as a new case, or in place of the patient in \(patient.currentCase.label) (\(patient.record.person.isEmpty ? "unnamed" : patient.record.person)); Undo brings that one back until your next edit.")
                                 .font(PS.sys(size: 13)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                         }
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(PS.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(PS.action.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         if patient.canAddCase {
                             Button { openAsNewCase() } label: {
                                 Label("Open as a New Case", systemImage: "plus.square.on.square").frame(maxWidth: .infinity)
@@ -716,7 +716,7 @@ struct SavedAbbreviationsList: View {
                                 withAnimation(.snappy) { store.remove(item.abbreviation) }
                                 onChange()
                             } label: {
-                                Image(systemName: "trash").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.accent)
+                                Image(systemName: "trash").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.red)
                                     .frame(width: 32, height: 32)
                                     .contentShape(Rectangle())
                             }

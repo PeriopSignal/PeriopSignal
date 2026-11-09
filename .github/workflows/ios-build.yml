@@ -819,6 +819,30 @@ jobs:
           shot 827-quickadd111-intraop-added-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
+          # 1.11 helper C1 (780-799): wayfinding, headings, colour and chip grammar. The jump bar's short labels with the current
+          # chip filled and kept in view, one bar once pinned, the "Planned Procedure & Anesthetic" title, the Examination &
+          # Workup box order (Airway, Labs, Lines, Cardiopulmonary, ASA), captions dropped where the title says it, the
+          # ink-filled Yes/No pills, PS.action for actions and PS.red for alerts, and the style gallery in light and dark.
+          shot 780-w375-preop-top-jump-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light
+          shot 781-w375-preop-top-jump-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 782-w375-preop-pinned-workup-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll workup -ps.forceAppearance light
+          shot 783-preop-pinned-cardio-pills-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 784-w375-preop-pinned-medications-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll medications -ps.forceAppearance light
+          shot 785-preop-pinned-summary-dark 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
+          shot 786-w375-intraop-top-jump-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light
+          shot 787-intraop-pinned-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
+          shot 788-style-gallery-light 14 -ps.screen gallery -ps.forceAppearance light
+          shot 789-style-gallery-dark 14 -ps.screen gallery -ps.forceAppearance dark
+          shot 790-w375-style-gallery-large-text-light 14 -ps.screen gallery -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 791-summary-status-plan-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.forceAppearance light
+          shot 792-ecg-nsr-preset-dark 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg -ps.forceAppearance dark
+          shot 793-tee-screen-alerts-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light
+          shot 794-timers-chips-action-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections antibiotic -ps.timers.pick cefoxitin -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 795-w375-preop-demographics-title-info-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll demographics -ps.evidence.open 1 -ps.forceAppearance light
+          shot 796-w375-preop-risk-inputs-action-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
+          shot 797-preop-top-large-text-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.textScale 1.25 -ps.forceAppearance light
+          shot 798-w375-preop-airway-first-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll airway -ps.forceAppearance dark
+          shot 799-w375-lhc-page-no-caption-light 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc -ps.patient.width 375 -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -36,13 +36,13 @@ struct PlannedProcedureRow: View {
                     Label("Which side?", systemImage: "exclamationmark.circle.fill")
                         .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.red)
                 }
-                PatientChoice(options: sideOptions, selection: $item.side, tint: item.needsSide ? PS.red : PS.accent)
+                PatientChoice(options: sideOptions, selection: $item.side)
             }
             if let ask = item.ask {
                 // A bare Bentall: which valve (1.8.1), asked in view as the side is. The answer makes it that procedure,
                 // one Undo step (PatientChoice).
                 Label(ask.text, systemImage: "questionmark.circle.fill")
-                    .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.accent)
+                    .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.action)
                     .fixedSize(horizontal: false, vertical: true)
                 PatientChoice(options: ask.options.map { (id: $0.id, label: $0.text.prefix(1).uppercased() + $0.text.dropFirst()) },
                               selection: Binding(get: { nil }, set: { id in if let id, let x = item.answering(id) { item = x } }))
@@ -138,7 +138,7 @@ struct ProcedureSearchField: View {
                     Text(caption).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                 }
                 Spacer(minLength: 4)
-                Image(systemName: "plus.circle").font(PS.sys(size: 16)).foregroundStyle(PS.accent)
+                Image(systemName: "plus.circle").font(PS.sys(size: 16)).foregroundStyle(PS.action)
             }
             .padding(.horizontal, 14).padding(.vertical, 9)
             .contentShape(Rectangle())

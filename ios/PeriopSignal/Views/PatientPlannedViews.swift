@@ -21,7 +21,7 @@ struct UrgencyChips: View {
     var body: some View {
         PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) },
                       selection: Binding(get: { patient.record.urgency?.rawValue }, set: { v in patient.update { $0.urgency = v.flatMap { PatientUrgency(rawValue: $0) } } }),
-                      tint: PS.accent, compact: compact)
+                      compact: compact)
     }
 }
 
@@ -30,7 +30,7 @@ struct AnestheticChips: View {
     @Environment(PatientStore.self) private var patient
 
     var body: some View {
-        ChipSet(options: PatientPreop110.anesthetics, style: .toggle, tint: PS.accent2,
+        ChipSet(options: PatientPreop110.anesthetics, style: .toggle,
                 isOn: { patient.record.anesthetic.contains($0) },
                 tap: { id in patient.update { if $0.anesthetic.contains(id) { $0.anesthetic.remove(id) } else { $0.anesthetic.insert(id) } } })
     }
@@ -72,12 +72,13 @@ struct PreopPlannedBox: View {
     @Environment(PatientStore.self) private var patient
     @State private var urgencyOpen = LaunchSeed.bool("ps.preop.urgency")
 
-    /// The chosen urgency's definition, for the title's ⓘ (as the Procedure editor does).
-    private var urgencyNote: String? { patient.record.urgency.map { $0.detail + " (2024 AHA/ACC)" } }
+    /// The chosen urgency's definition, for the ⓘ on the section's title line (1.11: the box has no caption of its own,
+    /// the "Planned Procedure & Anesthetic" title above it says what it is; PatientView.preop).
+    static func urgencyNote(_ r: PatientRecord) -> String? { r.urgency.map { $0.detail + " (2024 AHA/ACC)" } }
 
     var body: some View {
         let r = patient.record
-        PatientGroup(title: "Planned Procedure & Anesthetic", note: urgencyNote) {
+        PatientGroup(title: nil) {
             VStack(alignment: .leading, spacing: 0) {
                 ProcedureSearchField(seedKey: "ps.procsearch") { items in patient.update(discrete: true) { $0.setProcedures($0.procedures + items) } }
                 ForEach(r.procedures) { p in
@@ -117,9 +118,10 @@ struct PreopPlannedBox: View {
         } else if let u = r.urgency, let parts = PatientPreop110.urgencyCollapsedParts(r) {
             Button { withAnimation(.snappy) { urgencyOpen = true } } label: {
                 HStack(spacing: 6) {
-                    Text(parts.title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(parts.alert ? PS.accent : PS.fg)
+                    // An emergency is itself a warning, so its word is red; Change is an action (1.11, P1-8).
+                    Text(parts.title).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(parts.alert ? PS.red : PS.fg)
                     Text("·").font(PS.sys(size: 14.5)).foregroundStyle(PS.fg3)
-                    Text(parts.action).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.accent)
+                    Text(parts.action).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.action)
                     Spacer(minLength: 0)
                 }
                 .contentShape(Rectangle())
@@ -137,7 +139,7 @@ struct PreopPlannedBox: View {
                     Text(PatientPreop110.urgencyLinkTitle(r)).font(PS.sys(size: 14, weight: .semibold))
                     Spacer(minLength: 0)
                 }
-                .foregroundStyle(PS.accent)
+                .foregroundStyle(PS.action)
                 .contentShape(Rectangle())
                 .padding(.horizontal, 14).padding(.vertical, 11)
             }
@@ -183,9 +185,9 @@ struct PreopRiskInputsLink: View {
         VStack(alignment: .leading, spacing: 8) {
             Button { withAnimation(.snappy) { open.toggle() } } label: {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Image(systemName: open ? "chevron.down" : "plus").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.accent).frame(width: 14)
+                    Image(systemName: open ? "chevron.down" : "plus").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.action).frame(width: 14)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Risk-score inputs").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(line == nil ? PS.accent : PS.fg2)
+                        Text("Risk-score inputs").font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(line == nil ? PS.action : PS.fg2)
                         if let line, !open {
                             Text(line).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).multilineTextAlignment(.leading)
                                 .lineLimit(2).fixedSize(horizontal: false, vertical: true)
@@ -210,7 +212,7 @@ struct PreopRiskInputsLink: View {
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                        .tint(PS.accent)
+                        .tint(PS.action)
                         .padding(.horizontal, 14).padding(.vertical, 9)
                     }
                     PatientChipRow(label: "Incision (ARISCAT)") { IncisionChips() }

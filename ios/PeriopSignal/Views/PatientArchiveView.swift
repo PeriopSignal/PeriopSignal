@@ -96,9 +96,9 @@ struct PatientArchiveView: View {
             Spacer()
             Image(systemName: "lock.fill")
                 .font(PS.sys(size: 30, weight: .semibold))
-                .foregroundStyle(PS.accent)
+                .foregroundStyle(PS.action)
                 .frame(width: 64, height: 64)
-                .background(PS.accent.opacity(0.12), in: Circle())
+                .background(PS.action.opacity(0.12), in: Circle())
             Text("The case archive is locked").font(PS.serif(size: 22)).foregroundStyle(PS.fg)
             Text("Unlock with " + ArchiveLock.label + ".")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2)
@@ -138,7 +138,7 @@ struct PatientArchiveView: View {
                             .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                     }
                 }
-                .tint(PS.accent)
+                .tint(PS.action)
                 .disabled(!ArchiveLock.available && !archive.lockEnabled)
             }
             .listRowBackground(PS.surface)

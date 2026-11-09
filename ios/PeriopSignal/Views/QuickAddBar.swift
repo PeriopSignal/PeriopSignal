@@ -214,8 +214,10 @@ struct QuickAddBar: View {
     private func statusColor(_ s: PatientNoteStatus) -> Color {
         switch s {
         case .new, .recorded: return PS.fg3
-        case .replaces: return PS.accent
-        case .conflicts: return PS.accent
+        // 1.11 (P1-8): a chip that replaces a recorded value is information in the action colour; one that conflicts
+        // with the record is a warning.
+        case .replaces: return PS.action
+        case .conflicts: return PS.red
         }
     }
 
