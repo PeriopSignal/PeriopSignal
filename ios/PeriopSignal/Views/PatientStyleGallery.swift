@@ -204,7 +204,8 @@ struct PatientStyleGallery: View {
         }
     }
 
-    private func group<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
+    // PatientGroup stores its content closure, so the builder it is handed has to escape.
+    private func group<C: View>(_ title: String, @ViewBuilder _ content: @escaping () -> C) -> some View {
         PatientGroup(title: title) { content() }
     }
 }

@@ -3,6 +3,26 @@ import SwiftUI
 // MARK: - My Patient sections added in 1.6: procedure and demographics, the surgical history, the cardiac
 // evaluation's tests, the current airway, current infusions, and the intraoperative record in parts.
 
+/// 1.11 (P1-6, one heading per thing): a page's only box draws no caption that says the page's title again ("ECG" over
+/// "ECG FINDINGS", "Left Heart Catheterization" over "LEFT HEART CATHETERIZATION"). A caption that carries the box's ⓘ
+/// stays: a page has no title line for the ⓘ to move to, and the note would otherwise fall under a long list.
+enum PatientPageCaption {
+    static func caption(_ caption: String, page: String, note: String? = nil) -> String? {
+        if note != nil { return caption }
+        return restates(caption, page) ? nil : caption
+    }
+
+    /// The caption says the page title ("findings" after a study's name adds nothing).
+    static func restates(_ caption: String, _ page: String) -> Bool {
+        let c = words(caption).filter { $0 != "findings" }
+        return !c.isEmpty && c == words(page)
+    }
+
+    private static func words(_ s: String) -> [String] {
+        s.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init)
+    }
+}
+
 extension PatientEditorView {
 
     // MARK: Procedure and demographics
@@ -144,7 +164,7 @@ extension PatientEditorView {
     }
 
     @ViewBuilder private var ecgEditor: some View {
-        PatientGroup(title: "ECG findings") {
+        PatientGroup(title: PatientPageCaption.caption("ECG findings", page: PatientEditor.workup("ecg").title)) {
             if !r.ecg.isEmpty {
                 WrapLayout(spacing: 7) {
                     ForEach(r.ecg, id: \.self) { f in
@@ -196,7 +216,7 @@ extension PatientEditorView {
     }
 
     @ViewBuilder private var lhcEditor: some View {
-        PatientGroup(title: "Left heart catheterization") {
+        PatientGroup(title: PatientPageCaption.caption("Left heart catheterization", page: PatientEditor.workup("lhc").title)) {
             PatientChipRow(label: "Dominance") {
                 PatientChoice(options: [(id: "right", label: "Right"), (id: "left", label: "Left"), (id: "codominant", label: "Codominant")], selection: bind(\.lhc.dominance))
             }
@@ -218,7 +238,7 @@ extension PatientEditorView {
     }
 
     @ViewBuilder private var rhcEditor: some View {
-        PatientGroup(title: "Right heart catheterization") {
+        PatientGroup(title: PatientPageCaption.caption("Right heart catheterization", page: PatientEditor.workup("rhc").title)) {
             PatientNumberField(label: "Right atrium", unit: "mmHg", value: bind(\.rhc.ra))
             Hairline().padding(.leading, 14)
             PatientNumberField(label: "PA systolic", unit: "mmHg", value: bind(\.rhc.pasp))
@@ -236,7 +256,7 @@ extension PatientEditorView {
     }
 
     @ViewBuilder private var anestheticEditor: some View {
-        PatientGroup(title: "Anesthetic complications") {
+        PatientGroup(title: PatientPageCaption.caption("Anesthetic complications", page: PatientEditor.workup("anesthetic").title)) {
             PatientChipRow(label: nil) { PatientChips(options: PatientCatalog.anesthesiaHistory, selection: bind(\.anesthesiaHistory)) }
             PatientTextField(label: "Details", prompt: "What happened, when, and what was done", text: bind(\.anesthesiaNotes))
         }
@@ -791,25 +811,21 @@ struct PatientEchoSaveBar: View {
 /// removes it).
 struct ECGQuickRow: View {
     @Binding var ecg: [String]
-    @Environment(PatientStore.self) private var store: PatientStore?
+
+    /// 1.11 (P1-8): NSR is a preset like Exam normal and Echo normal (ChipStyle.preset): a green outline, a ✓ once
+    /// applied, never the brand red. The chip is drawn by ChipSet, so the grammar is the code's, not this row's.
+    static let style: ChipStyle = .preset
+    static let chips = [ChipChoice("nsr", "NSR")]
 
     var body: some View {
-        let on = ecg.contains(PatientECG.nsr)
         HStack(spacing: 8) {
-            Button {
-                Haptics.light()
-                store?.markDiscrete()
+            ChipSet(options: Self.chips, style: Self.style, hints: ["nsr": "Normal sinus rhythm; a second tap removes it"],
+                    isOn: { _ in ecg.contains(PatientECG.nsr) }) { _ in
                 withAnimation(.snappy) {
-                    if on { ecg.removeAll { $0 == PatientECG.nsr } }
+                    if ecg.contains(PatientECG.nsr) { ecg.removeAll { $0 == PatientECG.nsr } }
                     else { ecg = PatientECG.adding(PatientECG.nsr, to: ecg) }
                 }
-            } label: {
-                Label("NSR", systemImage: on ? "checkmark" : "plus")
-                    .font(PS.sys(size: 14, weight: .semibold))
             }
-            // 1.11 (P1-8): a preset, in the green of Exam normal and Echo normal, not the brand red.
-            .buttonStyle(CapsuleButtonStyle(prominent: on, color: PS.green))
-            .accessibilityLabel(on ? "Normal sinus rhythm, recorded" : "Add normal sinus rhythm")
             Spacer()
         }
         .padding(.horizontal, 14).padding(.top, 10)

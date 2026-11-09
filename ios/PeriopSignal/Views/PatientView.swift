@@ -469,10 +469,18 @@ struct PatientView: View {
     /// Shows a tab and goes to its top (1.11, P1-5: a switch no longer keeps the old tab's scroll offset, and a tap on the
     /// tab already showing goes back to the top).
     private func select(_ t: PatientTab) {
+        // Decided before the switch: the new tab's first section is current until its anchors report (the old tab's
+        // chip would match nothing); a tap on the tab showing keeps its chip.
+        let keep = Self.jumpAfterSelecting(t, showing: tab, current: currentJump)
         withAnimation(.snappy) { tabOverride = nil; tabID = t.rawValue }
-        // The new tab's first section is current until its anchors report (the old tab's chip would match nothing).
-        if t.rawValue != tabID { currentJump = nil }
+        currentJump = keep
         scrollToTop += 1
+    }
+
+    /// The current chip after a tab is selected: kept when the tab showing is tapped again, cleared on a switch
+    /// (`select` applies it; the tests check it).
+    static func jumpAfterSelecting(_ t: PatientTab, showing: PatientTab, current: PatientJumpID?) -> PatientJumpID? {
+        t == showing ? current : nil
     }
 
     /// The "My Patient" title menu: the tabs, then the sections of the tab showing (PatientTitleMenu lists them).

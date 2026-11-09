@@ -91,6 +91,42 @@ final class C1111Tests: XCTestCase {
         XCTAssertEqual(PatientView.workupOrder, ["airway", "labs", "devices", "cardio", "asa"])
     }
 
+    /// A tab switch clears the current chip (the new tab's first section until its anchors report); a tap on the tab
+    /// already showing keeps it. Decided from the tab showing, before the switch is applied.
+    func testATabSwitchClearsTheCurrentChipAndARetapKeepsIt() {
+        let workup = PatientJumpID(section: .workup)
+        XCTAssertNil(PatientView.jumpAfterSelecting(.intraop, showing: .preop, current: workup))
+        XCTAssertNil(PatientView.jumpAfterSelecting(.summary, showing: .preop, current: workup))
+        XCTAssertEqual(PatientView.jumpAfterSelecting(.preop, showing: .preop, current: workup), workup)
+        XCTAssertNil(PatientView.jumpAfterSelecting(.preop, showing: .preop, current: nil))
+    }
+
+    /// A page's only box draws no caption that says the page title again (ECG / ECG FINDINGS, the catheterizations,
+    /// Anesthetic complications); a caption that carries the box's ⓘ stays, since a page has no title line for it.
+    func testPageCaptionsThatRepeatThePageTitleGo() {
+        XCTAssertNil(PatientPageCaption.caption("ECG findings", page: PatientEditor.workup("ecg").title))
+        XCTAssertNil(PatientPageCaption.caption("Left heart catheterization", page: PatientEditor.workup("lhc").title))
+        XCTAssertNil(PatientPageCaption.caption("Right heart catheterization", page: PatientEditor.workup("rhc").title))
+        XCTAssertNil(PatientPageCaption.caption("Anesthetic complications", page: PatientEditor.workup("anesthetic").title))
+        XCTAssertEqual(PatientPageCaption.caption("Study", page: "Echo Findings"), "Study")
+        XCTAssertEqual(PatientPageCaption.caption("Preprocedure vital signs", page: "Demographics"), "Preprocedure vital signs")
+        XCTAssertEqual(PatientPageCaption.caption("Past surgical history", page: "Past Surgical History", note: "Also under Previous intrathoracic surgery."),
+                       "Past surgical history", "the caption carries the ⓘ")
+        XCTAssertTrue(PatientPageCaption.restates("ECG FINDINGS", "ECG"))
+        XCTAssertFalse(PatientPageCaption.restates("Findings", "ECG"))
+        XCTAssertFalse(PatientPageCaption.restates("Demographics", "Demographics & History"))
+    }
+
+    /// NSR on the ECG page is a preset (green outline, ✓ once applied), drawn by ChipSet from ChipStyle.preset, not a
+    /// filled green button.
+    func testNSRIsAPresetChip() {
+        XCTAssertEqual(ECGQuickRow.style, .preset)
+        XCTAssertEqual(ECGQuickRow.chips.map(\.label), ["NSR"])
+        XCTAssertEqual(ECGQuickRow.style.look(on: false).edge, .green)
+        XCTAssertEqual(ECGQuickRow.style.look(on: true).mark, "checkmark")
+        XCTAssertNotEqual(ECGQuickRow.style.look(on: true).fill, .ink, "a preset is not a choice")
+    }
+
     func testACaptionIsDrawnOnlyWhereTheSectionTitleDoesNotSayIt() {
         XCTAssertTrue(PatientGroup<EmptyView>.showsCaption(title: "Allergies", hidden: false))
         XCTAssertFalse(PatientGroup<EmptyView>.showsCaption(title: "Demographics", hidden: true), "the first box under Demographics & History")

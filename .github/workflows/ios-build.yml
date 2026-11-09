@@ -781,6 +781,7 @@ jobs:
           shot 796-w375-preop-risk-inputs-action-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
           shot 797-preop-top-large-text-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.textScale 1.25 -ps.forceAppearance light
           shot 798-w375-preop-airway-first-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll airway -ps.forceAppearance dark
+          shot 799-w375-lhc-page-no-caption-light 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc -ps.patient.width 375 -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
