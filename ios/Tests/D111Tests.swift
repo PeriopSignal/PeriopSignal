@@ -449,6 +449,158 @@ final class D111Tests: XCTestCase {
         XCTAssertFalse(ids(read("MH susceptible", .intraop)).contains { $0.hasPrefix("event:") }, "the history's MH")
     }
 
+    // MARK: Events against history, allergies and past cases (1.11 review)
+
+    private func events(_ q: QuickAddReading) -> [String] { ids(q).filter { $0.hasPrefix("event:") } }
+    /// The two places that read events: Summary & Handoff and the Intraoperative tab.
+    private func bothPlaces(_ s: String) -> [(place: String, q: QuickAddReading)] {
+        [("Summary & Handoff", summary(s)), ("Intraoperative", read(s, .intraop))]
+    }
+    private func assertNoEvent(_ lines: [String], file: StaticString = #filePath, line: UInt = #line) {
+        for s in lines {
+            for (place, q) in bothPlaces(s) { XCTAssertEqual(events(q), [], "\(s) on \(place)", file: file, line: line) }
+        }
+    }
+
+    /// How a problem is treated or how it went ("treated with", "resolved", "requiring", "new onset", "episodes of") is
+    /// not the case: a word the history reads is an event only with a point of the case, on either place.
+    func testTreatmentWordsDoNotMakeAnEventOfHistory() {
+        assertNoEvent(["hypertension treated with lisinopril", "seizures resolved", "seizures treated with keppra", "hypertension requiring 3 agents",
+                       "SVT treated with adenosine 2020", "arrhythmia resolved after ablation", "new onset AF last month on apixaban",
+                       "paroxysmal AF with episodes of RVR", "episodes of hypoglycemia on insulin", "hypoxemia requiring home O2",
+                       "GERD with aspiration requiring PPI", "AF with RVR 2022", "HTN on 3 agents", "new AF", "hypertension x 5 years"])
+
+        let htn = summary("hypertension treated with lisinopril")
+        XCTAssertTrue(ids(htn).contains("problem:htn"), "\(ids(htn))")
+        XCTAssertEqual(applied(htn).events, "")
+        let htnIntraop = read("hypertension treated with lisinopril", .intraop)
+        XCTAssertTrue(htnIntraop.skipped.contains(QuickAdd.historyElsewhere), "set aside for the Preop tab, as in 1.10")
+        XCTAssertEqual(applied(htnIntraop).events, "")
+        let seizures = summary("seizures resolved")
+        XCTAssertTrue(ids(seizures).contains("problem:seizure"), "\(ids(seizures))")
+        XCTAssertTrue(read("seizures resolved", .intraop).skipped.contains(QuickAdd.historyElsewhere))
+        XCTAssertTrue(ids(summary("seizures treated with keppra")).contains("problem:seizure"))
+        XCTAssertTrue(ids(summary("hypertension requiring 3 agents")).contains("problem:htn"))
+
+        // The same words still tell an event of a word the history does not read, on Summary & Handoff too.
+        XCTAssertTrue(events(summary("hypotension requiring phenylephrine")).contains { $0.hasPrefix("event:hypotension requiring") })
+        XCTAssertTrue(events(summary("tachycardia treated with beta blocker")).contains { $0.hasPrefix("event:tachycardia treated with") })
+        XCTAssertEqual(events(summary("transient hypotension")), ["event:transient hypotension"])
+        XCTAssertTrue(QuickAdd.isEvent("hypotension requiring phenylephrine", lead: "", strict: true))
+        XCTAssertFalse(QuickAdd.isEvent("hypertension requiring 3 agents", lead: "", strict: true))
+        XCTAssertFalse(QuickAdd.isEvent("hypertension treated with lisinopril", lead: "", strict: false))
+        // "new", "resolved" and "episodes of" say nothing of the case: no event there without a point of the case.
+        for piece in ["new stridor", "new onset laryngospasm", "bronchospasm resolved", "episodes of bronchospasm"] {
+            XCTAssertFalse(QuickAdd.isEvent(piece, lead: "", strict: true), piece)
+            XCTAssertEqual(events(summary(piece)), [], piece)
+        }
+        XCTAssertEqual(events(summary("new stridor after extubation")), ["event:new stridor after extubation"])
+    }
+
+    /// A piece with an allergy cue is the allergy reader's, reaction and all, as in 1.10.
+    func testAnAllergyIsNeverAnEvent() {
+        assertNoEvent(["allergic to rocuronium (anaphylaxis)", "allergic to latex (anaphylaxis)", "PCN allergy (anaphylaxis to cefazolin too)",
+                       "allergies: rocuronium - anaphylaxis with induction 2019", "allergies: PCN, latex (anaphylaxis)"])
+        for (place, q) in bothPlaces("allergic to rocuronium (anaphylaxis)") {
+            XCTAssertTrue(ids(q).contains { $0.hasPrefix("allergies:rocuronium") && $0.contains("anaphylaxis") }, "\(place): \(ids(q))")
+            XCTAssertEqual(applied(q).events, "", place)
+        }
+        for s in ["allergic to latex (anaphylaxis)", "PCN allergy (anaphylaxis to cefazolin too)", "allergies: rocuronium - anaphylaxis with induction 2019"] {
+            for (place, q) in bothPlaces(s) { XCTAssertTrue(ids(q).contains { $0.hasPrefix("allergies:") }, "\(s) on \(place): \(ids(q))") }
+        }
+        XCTAssertFalse(QuickAdd.isEvent("allergic to rocuronium (anaphylaxis)", lead: "", strict: false))
+        XCTAssertFalse(QuickAdd.isEvent("anaphylaxis", lead: "allergies: PCN", strict: false), "the reaction later in an allergy list")
+
+        // An event beside an allergy is still the event, and the allergy is still the allergy.
+        for (place, q) in bothPlaces("allergic to PCN, hypotension after induction") {
+            XCTAssertEqual(events(q), ["event:hypotension after induction"], place)
+            XCTAssertTrue(ids(q).contains { $0.hasPrefix("allergies:") }, "\(place): \(ids(q))")
+        }
+        XCTAssertEqual(events(read("NKDA, hypotension after induction", .intraop)), ["event:hypotension after induction"])
+        // Anaphylaxis in the case: with what it followed on either place, "to" a drug on the Intraoperative tab only.
+        XCTAssertEqual(events(read("anaphylaxis after cefazolin", .intraop)), ["event:anaphylaxis after cefazolin"])
+        XCTAssertEqual(events(read("anaphylaxis to rocuronium", .intraop)), ["event:anaphylaxis to rocuronium"])
+        XCTAssertEqual(events(summary("anaphylaxis to rocuronium")), [], "on Summary & Handoff it may be the history's")
+    }
+
+    /// A piece that says it is history (hx, h/o, family history, a past year, a home medicine, "orthostatic") is never an
+    /// event, on the Intraoperative tab either: it is set aside for the Preop tab as it was in 1.10.
+    func testHistoryMarkersAreNeverEvents() {
+        assertNoEvent(["hx MH", "family history of MH", "bleeding on warfarin", "h/o GI bleeding 2020", "hx of cardiac arrest 2019",
+                       "pulmonary embolism 2019 on apixaban", "orthostatic hypotension", "bradycardia on metoprolol", "HTN, DM, AF on apixaban",
+                       "seizure 2019", "PONV, aspiration risk", "ischemia on stress test", "bronchospasm last case",
+                       "hypotension after induction in pt with known AF"])
+
+        for s in ["hx MH", "family history of MH"] {
+            let q = summary(s)
+            XCTAssertEqual(change(q, "anesthesia:mh"), .anesthesiaHistory("mh"), "\(s): \(ids(q))")
+            let intraop = read(s, .intraop)
+            XCTAssertTrue(intraop.skipped.contains(QuickAdd.historyElsewhere), s)
+            XCTAssertEqual(applied(intraop).events, "", s)
+        }
+        let warfarin = summary("bleeding on warfarin")
+        XCTAssertNotNil(applied(warfarin).hx.anticoagulants["warfarin"], "\(ids(warfarin))")
+        XCTAssertEqual(applied(warfarin).events, "")
+        XCTAssertTrue(read("bleeding on warfarin", .intraop).skipped.contains(QuickAdd.historyElsewhere))
+        let gi = summary("h/o GI bleeding 2020")
+        XCTAssertTrue(ids(gi).contains("problem:gi-bleed"), "\(ids(gi))")
+        XCTAssertTrue(read("h/o GI bleeding 2020", .intraop).skipped.contains(QuickAdd.historyElsewhere))
+        let list = summary("HTN, DM, AF on apixaban")
+        for id in ["problem:htn", "problem:dm", "problem:af"] { XCTAssertTrue(ids(list).contains(id), "\(id): \(ids(list))") }
+        XCTAssertTrue(ids(summary("seizure 2019")).contains("problem:seizure"))
+
+        XCTAssertFalse(QuickAdd.isEvent("hx MH", lead: "", strict: false))
+        XCTAssertFalse(QuickAdd.isEvent("bradycardia on metoprolol", lead: "", strict: false), "a medicine the patient takes")
+        XCTAssertFalse(QuickAdd.isEvent("orthostatic hypotension", lead: "", strict: false))
+        XCTAssertFalse(QuickAdd.isEvent("bleeding 2000", lead: "", strict: false), "a year")
+        XCTAssertTrue(QuickAdd.isEvent("bleeding EBL 2000", lead: "", strict: false), "a volume, not a year")
+
+        // History and an event on one line: each to its reader, across a comma, a full stop or a line break.
+        let mixed = summary("hx seizures, bradycardia on emergence")
+        XCTAssertEqual(events(mixed), ["event:bradycardia on emergence"])
+        XCTAssertTrue(ids(mixed).contains("problem:seizure"), "\(ids(mixed))")
+        let sentences = summary("hx MH. Hypotension after induction")
+        XCTAssertEqual(events(sentences), ["event:hypotension after induction"], "\(ids(sentences))")
+        XCTAssertTrue(ids(sentences).contains("anesthesia:mh"), "\(ids(sentences))")
+        XCTAssertEqual(events(read("hx MH. Hypotension after induction", .intraop)), ["event:hypotension after induction"])
+        let lines = summary("HTN\nhypotension after induction")
+        XCTAssertEqual(events(lines), ["event:hypotension after induction"], "\(ids(lines))")
+        XCTAssertTrue(ids(lines).contains("problem:htn"), "\(ids(lines))")
+        XCTAssertEqual(events(read("no hypotension. Bronchospasm on emergence", .intraop)), ["event:bronchospasm on emergence"], "the negation ends with its sentence")
+    }
+
+    /// A point of the case with a past year, or in a clinic, is a past case or a visit: left to the history.
+    func testAPastCaseIsNotThisCase() {
+        assertNoEvent(["laryngospasm after extubation in 2015", "MH after induction 1998", "bronchospasm with intubation 2018",
+                       "hypertension on arrival to clinic"])
+        for (place, q) in bothPlaces("laryngospasm after extubation in 2015") {
+            XCTAssertNil(finding(q, "airway-end"), "\(place): nor is the airway at handoff")
+            XCTAssertEqual(applied(q).events, "", place)
+        }
+        XCTAssertEqual(change(summary("MH after induction 1998"), "anesthesia:mh"), .anesthesiaHistory("mh"))
+        XCTAssertTrue(ids(summary("hypertension on arrival to clinic")).contains("problem:htn"))
+        XCTAssertFalse(QuickAdd.isEvent("laryngospasm after extubation in 2015", lead: "", strict: false))
+
+        // Without the year it is this case, worded as typed though the airway reader takes "extubation" for itself.
+        for (place, q) in bothPlaces("laryngospasm after extubation") {
+            XCTAssertEqual(events(q), ["event:laryngospasm after extubation"], place)
+            XCTAssertEqual(change(q, "airway-end"), .airwayAtEnd("extubated"), place)
+        }
+        for (place, q) in bothPlaces("hypotensive on arrival") { XCTAssertEqual(events(q), ["event:hypotensive on arrival"], place) }
+        for (place, q) in bothPlaces("hypotension prior to induction") { XCTAssertEqual(events(q), ["event:hypotension prior to induction"], place) }
+        for (place, q) in bothPlaces("hypotension at 14:30") { XCTAssertTrue(events(q).contains { $0.hasPrefix("event:hypotension") }, place) }
+        for (place, q) in bothPlaces("hypotension after induction, 2 units PRBC") { XCTAssertEqual(events(q), ["event:hypotension after induction"], place) }
+    }
+
+    /// A tracing's report is the ECG reader's ("ECG sinus brady"); a change at a point of the case is an event.
+    func testATracingReportIsNotAnEvent() {
+        assertNoEvent(["ECG sinus brady"])
+        XCTAssertFalse(QuickAdd.isEvent("ECG sinus brady", lead: "", strict: false))
+        XCTAssertTrue(QuickAdd.isEvent("ECG ST depression after induction", lead: "", strict: true))
+        let q = read("ECG ST depression after induction", .intraop)
+        XCTAssertTrue(events(q).contains { $0.hasSuffix("st depression after induction") }, "\(ids(q))")
+    }
+
     func testEventStatus() {
         var r = PatientRecord()
         r.events = "Hypotension after induction"
@@ -521,6 +673,7 @@ final class D111Tests: XCTestCase {
         XCTAssertEqual(r.activeCardiacAnswer, false)
         XCTAssertEqual(r.stressTest.result, .negative)
         XCTAssertEqual(r.stressTest.date, PatientMonthYear(year: 2024))
+        XCTAssertEqual(r.stressTest.summary, "Dobutamine stress test (2024): negative, no ischemia", "the record keeps its own wording; only the chip is short")
         XCTAssertEqual(PatientSummary.ecgText(r), "Normal sinus rhythm; Left bundle branch block")
     }
 
