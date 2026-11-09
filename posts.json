@@ -1,7 +1,235 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-04T09:23:26+00:00",
+ "generatedAt": "2026-11-09T09:12:53+00:00",
  "posts": [
+  {
+   "id": "jama-2026-ischemia-extend-long-term-survival",
+   "date": "2026-11-07",
+   "dateApprox": false,
+   "addedAt": "2026-11-09",
+   "journal": "JAMA",
+   "jshort": "JAMA",
+   "kind": "Trial update",
+   "topics": [
+    "cardiac",
+    "cardiacSurgery"
+   ],
+   "headline": "ISCHEMIA-EXTEND: routine invasive strategy did not improve 11-year survival in stable coronary disease, 25.8% vs 26.9%",
+   "summary": "Long-term follow-up of the 5,179-participant ISCHEMIA trial, through December 2025, compared an initial invasive strategy (angiography and revascularization plus medical therapy) with initial conservative medical therapy for survival in chronic coronary disease with moderate or severe ischemia.",
+   "takeHome": [
+    "At 11 years, all-cause mortality was 25.8% with an initial invasive strategy vs 26.9% with conservative care (adjusted HR 0.97, 95% CI 0.86-1.09).",
+    "Cardiovascular mortality was 15.8% vs 17.1% (adjusted HR 0.88, 95% CI 0.75-1.02); noncardiovascular mortality was 9.1% vs 8.1% (adjusted HR 1.18, 0.96-1.45).",
+    "Bayesian analysis gave a low (18%) probability of a survival benefit above 1 percentage point with invasive management."
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** ISCHEMIA asked whether adding routine angiography and revascularization to guideline-directed medical therapy helps patients with stable coronary disease and moderate or severe ischemia. Survival curves can separate late, so this extension followed participants through December 2025 (median 9 years, up to 13.4).\n\n**What they did.** The 5,179 participants (median age 64, 23% women, 42% with diabetes, median ejection fraction 60%) had been randomized at 320 sites in 37 countries to an initial invasive strategy or an initial conservative strategy, with invasive care reserved for failure of medical therapy. Analysis was by intention to treat, using Cox and Fine-Gray models, a Bayesian analysis and restricted mean survival time.\n\n**What they found.** There were 1,071 deaths. At 11 years, all-cause mortality was 25.8% with the invasive strategy and 26.9% with the conservative one (difference -1.0 percentage point, 95% CI -4.2 to 2.1; adjusted HR 0.97). Cardiovascular mortality was 15.8% vs 17.1% (adjusted HR 0.88, 95% CI 0.75-1.02) and noncardiovascular mortality 9.1% vs 8.1% (adjusted HR 1.18, 95% CI 0.96-1.45). The Bayesian probability of a survival benefit larger than 1 percentage point was 18%, and restricted mean survival differed by 14 days (95% CI -41 to 70).\n\n**Caveats.** Participants had preserved ejection fraction and no left main disease, and people with unacceptable angina or a recent acute coronary syndrome were excluded, so the result does not extend to them. This summary rests on the abstract; the full-text limitations are not listed here.\n\n**For the anesthesiologist.** Patients with stable ischemic disease who have not been revascularized are not carrying an unaddressed survival penalty. For perioperative planning, the decision to revascularize still rests on symptoms, anatomy and the planned surgery, not on a long-term survival gain from routine invasive management.",
+   "url": "https://doi.org/10.1001/jama.2026.20375",
+   "impact": 2,
+   "trialName": "ISCHEMIA-EXTEND",
+   "firstAuthor": "Hochman",
+   "title": "Long-Term Survival After Initial Invasive or Conservative Management of Stable Coronary Disease in ISCHEMIA-EXTEND",
+   "glance": {
+    "design": "Extended follow-up of an international RCT, 320 sites in 37 countries",
+    "n": "5,179 with chronic coronary disease and moderate or severe ischemia",
+    "outcome": "All-cause, cardiovascular and noncardiovascular mortality",
+    "result": "11-year mortality 25.8% vs 26.9%, adjusted HR 0.97 (95% CI 0.86-1.09); no difference"
+   },
+   "quiz": {
+    "question": "In ISCHEMIA-EXTEND, how did an initial invasive strategy compare with initial conservative management for all-cause mortality at 11 years in chronic coronary disease with moderate or severe ischemia?",
+    "options": [
+     "Significantly lower with the invasive strategy, 25.8% vs 26.9%",
+     "No significant difference overall, but cardiovascular mortality was significantly lower with the invasive strategy",
+     "No significant difference: 25.8% invasive vs 26.9% conservative, adjusted HR 0.97",
+     "Significantly higher with the invasive strategy, driven by noncardiovascular deaths"
+    ],
+    "answer": 2,
+    "explanation": "All-cause mortality at 11 years was 25.8% vs 26.9% (adjusted HR 0.97, 95% CI 0.86-1.09). Cardiovascular (15.8% vs 17.1%) and noncardiovascular (9.1% vs 8.1%) mortality also did not differ significantly. Main caveat: patients had preserved ejection fraction and no left main disease."
+   }
+  },
+  {
+   "id": "bmj-2026-topic-2-paravertebral-vs-epidural-thoracotomy",
+   "date": "2026-11-05",
+   "dateApprox": false,
+   "addedAt": "2026-11-08",
+   "journal": "BMJ",
+   "jshort": "BMJ",
+   "kind": "RCT",
+   "topics": [
+    "thoracic",
+    "regional"
+   ],
+   "headline": "TOPIC-2: paravertebral block did not reduce chronic post-thoracotomy pain vs epidural, 22% vs 16% at 6 months",
+   "summary": "A UK multicentre open-label trial randomized adults having thoracotomy to paravertebral blockade (three single shots plus a catheter) or a thoracic epidural placed before incision. The primary outcome was chronic post-thoracotomy pain at six months.",
+   "takeHome": [
+    "Paravertebral blockade did not reduce chronic post-thoracotomy pain at six months: 22% vs 16%, adjusted RR 1.32 (95% CI 0.93 to 1.86)",
+    "Epidural gave marginally better acute pain on day 1 (worst pain 7.7 mm lower on a 100 mm scale), with no difference on days 2-3",
+    "Paravertebral had less hypotension (12% vs 18%) and pruritus (4% vs 12%) but more urinary retention (12% vs 6%); the authors say both techniques remain reasonable"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Chronic pain after thoracotomy is common and disabling, and the idea that a unilateral paravertebral block might prevent it better than an epidural has driven a lot of practice change. TOPIC-2 is the large pragmatic test of that idea.\n\n**What they did.** 770 adults at 15 UK thoracic centres were randomized to paravertebral blockade (three single-shot injections before incision, then a paravertebral catheter) or a thoracic epidural loaded before incision. After 33 patients who never had a thoracotomy were excluded, 737 formed the modified intention-to-treat population. Chronic pain meant a worst chest pain score of at least 40 on a 100 mm VAS at six months.\n\n**What they found.**\n- Chronic pain at six months: 59/272 (22%) paravertebral vs 47/292 (16%) epidural; adjusted RR 1.32 (0.93 to 1.86), P=0.12.\n- Day 1 worst pain 7.7 mm and average pain 7.0 mm higher with paravertebral; no difference on days 2-3.\n- Hypotension 12% vs 18% and pruritus 4% vs 12%, favoring paravertebral; urinary retention 12% vs 6%, favoring epidural.\n\n**Caveats.** Open label. The six-month primary outcome was available for 564 of 737 patients, and the registry planned 1026 participants, so the trial is smaller than designed. The point estimate leans toward epidural, so the result does not support a preventive benefit of paravertebral block.\n\n**For the anesthesiologist.** Pick the technique for acute-phase reasons: paravertebral for patients where epidural hypotension, anticoagulation timing or bilateral block worries you; epidural where the best day-1 analgesia matters most. Do not sell either one to patients as a way to prevent chronic pain. The trial is about open thoracotomy, not VATS or robotic resections, where fascial plane blocks dominate.",
+   "url": "https://doi.org/10.1136/bmj-2026-101114",
+   "impact": 3,
+   "trialName": "TOPIC-2",
+   "firstAuthor": "Shelley",
+   "title": "Thoracic epidural versus paravertebral blockade for reducing chronic post-thoracotomy pain (TOPIC-2): open label, parallel group, superiority, multicentre, randomised controlled trial",
+   "glance": {
+    "design": "Open-label multicentre RCT, 15 UK thoracic centres, superiority",
+    "n": "770 adults having thoracotomy; 737 in modified ITT",
+    "outcome": "Chronic post-thoracotomy pain (worst chest pain VAS >=40 mm) at 6 months",
+    "result": "22% vs 16%, adjusted RR 1.32 (95% CI 0.93 to 1.86); P=0.12, no reduction"
+   },
+   "quiz": {
+    "question": "In TOPIC-2, how did paravertebral blockade compare with thoracic epidural for chronic pain six months after thoracotomy?",
+    "options": [
+     "Paravertebral cut chronic pain by about a third, 16% vs 22%",
+     "No reduction: 22% vs 16%, adjusted RR 1.32 (95% CI 0.93 to 1.86)",
+     "Paravertebral was noninferior but caused more hypotension",
+     "Epidural significantly reduced chronic pain, adjusted RR 0.66"
+    ],
+    "answer": 1,
+    "explanation": "Chronic pain occurred in 22% with paravertebral and 16% with epidural (adjusted RR 1.32, 95% CI 0.93 to 1.86, P=0.12), so neither prevented it better. Hypotension was actually less common with paravertebral (12% vs 18%). Caveat: open label, and the 6-month outcome was available for 564 of 737 patients."
+   }
+  },
+  {
+   "id": "anesthesiology-2026-optipam-individualized-map-cardiac-surgery",
+   "date": "2026-11-06",
+   "dateApprox": false,
+   "addedAt": "2026-11-08",
+   "journal": "Anesthesiology",
+   "jshort": "ALN",
+   "kind": "RCT",
+   "topics": [
+    "cardiacSurgery"
+   ],
+   "headline": "OPTIPAM: individualized MAP targets in cardiac surgery stopped early for bleeding (18% vs 3%) with no outcome benefit",
+   "summary": "A French multicentre trial randomized elective cardiac surgery patients on bypass to a MAP target within 10% of their preoperative baseline, during surgery and for 24 hours, or to a standard target of 65 mm Hg or more. The primary outcome was death, AKI or neurologic complications at 7 days.",
+   "takeHome": [
+    "The trial stopped after 172 patients because the data and safety monitoring board saw more bleeding with individualized MAP",
+    "Hemorrhagic complications occurred in 18% with individualized MAP vs 3% with standard management (P=0.003)",
+    "Death, AKI or neurologic complications at 7 days: 32% vs 29% (RR 1.1, 95% CI 0.7 to 1.8); benefit could not be determined"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Many of us push pressure higher in hypertensive cardiac patients on the theory that their kidneys and brains autoregulate at a higher set point. OPTIPAM is a randomized test of a patient-specific target, and it raises a safety signal nobody was looking for.\n\n**What they did.** Adults having elective cardiac surgery with CPB at 10 French tertiary centres were randomized, single blind, to a MAP target within ±10% of their preoperative baseline, held through surgery and for 24 hours afterwards, or to MAP of 65 mm Hg or more. The primary outcome was a composite of all-cause death, AKI or prespecified neurologic complications within 7 days.\n\n**What they found.**\n- The DSMB stopped the trial at 172 patients for excess bleeding in the individualized arm.\n- Intraoperative MAP was higher, 80.6 vs 75.6 mm Hg, but the target was met only 33% of the time, with more vasopressor.\n- Primary outcome 32% vs 29%, RR 1.1 (0.7 to 1.8).\n- Hemorrhagic complications 18% vs 3%.\n\n**Caveats.** The registration planned 1100 patients, so the efficacy question is unanswered. The separation in pressure was small and adherence was poor. The abstract does not say what the bleeding events were, or whether higher pressure, more vasopressor or chance drove them.\n\n**For the anesthesiologist.** This does not tell you that 65 mm Hg is enough for everyone, but it is a reason not to chase baseline pressures with vasopressor in the first postoperative day without watching chest tube output. If you target higher pressures after bypass, pair that with a deliberate look at hemostasis and drains. The authors call for future trials to track this bleeding signal.",
+   "url": "https://doi.org/10.1097/ALN.0000000000006471",
+   "impact": 2,
+   "trialName": "OPTIPAM",
+   "firstAuthor": "Descamps",
+   "title": "Individualized mean arterial pressure during cardiac surgery The OPTIPAM Randomized Clinical Trial",
+   "glance": {
+    "design": "Single-blind multicentre RCT, 10 French tertiary centres; stopped early by DSMB",
+    "n": "172 adults having elective cardiac surgery with cardiopulmonary bypass",
+    "outcome": "Death, acute kidney injury or neurologic complications within 7 days",
+    "result": "32% vs 29%, RR 1.1 (95% CI 0.7 to 1.8); bleeding 18% vs 3%"
+   },
+   "quiz": {
+    "question": "Why was the OPTIPAM trial of individualized MAP targets during and after cardiac surgery stopped early?",
+    "options": [
+     "Clear benefit on the 7-day composite of death, AKI or neurologic complications",
+     "More acute kidney injury in the individualized group",
+     "Futility after the primary outcome reached 32% vs 29%",
+     "More hemorrhagic complications in the individualized group, 18% vs 3%"
+    ],
+    "answer": 3,
+    "explanation": "The data and safety monitoring board stopped OPTIPAM at 172 patients because hemorrhagic complications were more frequent with individualized MAP (18% vs 3%, P=0.003). The primary outcome did not differ (32% vs 29%), but the trial was not stopped for futility. Caveat: target adherence was only 33% and the trial was far smaller than planned."
+   }
+  },
+  {
+   "id": "bmj-2026-lma-vs-ett-pediatric-adenotonsillectomy",
+   "date": "2026-11-04",
+   "dateApprox": false,
+   "addedAt": "2026-11-08",
+   "journal": "BMJ",
+   "jshort": "BMJ",
+   "kind": "RCT",
+   "topics": [
+    "pediatric"
+   ],
+   "headline": "LMA instead of tracheal tube for adenotonsillectomy in young children cut respiratory adverse events, 22.5% vs 57.5%",
+   "summary": "Four Chinese tertiary hospitals randomized 400 children aged 2 to 6 years having adenotonsillectomy to ventilation with a laryngeal mask airway or an endotracheal tube. The primary outcome was any perioperative respiratory adverse event.",
+   "takeHome": [
+    "Perioperative respiratory adverse events occurred in 22.5% with an LMA vs 57.5% with an ETT (risk difference -35.0 points, 95% CI -43.5 to -25.7)",
+    "The LMA group had less laryngospasm (0% vs 3.0%), desaturation (15.0% vs 28.0%), airway obstruction and severe cough (10.5% vs 42.0%)",
+    "LMA was converted to ETT in three children, and neither group had serious adverse events; the authors note LMAs were used by experienced anaesthesiologists"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Adenotonsillectomy is one of the commonest pediatric anesthetics and one of the most likely to produce laryngospasm and desaturation, especially at emergence. Whether the flexible LMA is safer than intubation has been argued for decades; this is a large multicentre randomized answer.\n\n**What they did.** 400 children aged 2 to under 7 years (mean 4.7) at four tertiary hospitals were randomized 1:1 to LMA or ETT ventilation for adenotonsillectomy under general anaesthesia. The primary outcome was any perioperative respiratory adverse event: laryngospasm, bronchospasm, desaturation, airway obstruction, severe cough or stridor, analysed by intention to treat.\n\n**What they found.**\n- Any event: 45/200 (22.5%) vs 115/200 (57.5%).\n- Intraoperative 9.0% vs 17.5%; postoperative 16.5% vs 49.5%, so most of the difference comes after surgery.\n- Severe cough 10.5% vs 42.0%, desaturation 15.0% vs 28.0%, laryngospasm 0% vs 3.0%.\n- Three LMAs converted to ETT; no serious adverse events.\n\n**Caveats.** The anaesthesiologists were experienced with the LMA in shared-airway surgery, and the surgical team's comfort with it matters too. Allocation could not be blinded, and severe cough is a soft component that drives much of the composite. The trial is registered in the Chinese registry, so it was not checked against ClinicalTrials.gov.\n\n**For the anesthesiologist.** If your ENT surgeons will work around a flexible LMA, this is strong support for using it in healthy preschool children, particularly for a smoother emergence. Keep the ETT for cases where the airway will be shared poorly, for obstructive apnea severe enough that you want a secured airway, or when the team has little LMA experience.",
+   "url": "https://doi.org/10.1136/bmj-2026-101019",
+   "impact": 2,
+   "trialName": "",
+   "firstAuthor": "Han",
+   "title": "Perioperative respiratory adverse events in children undergoing adenotonsillectomy with laryngeal mask airway versus endotracheal tube ventilation: multicentre, randomised controlled trial",
+   "glance": {
+    "design": "Multicentre parallel-group RCT, four tertiary hospitals in China, 2023-24",
+    "n": "400 children aged 2 to under 7 years having adenotonsillectomy",
+    "outcome": "Any perioperative respiratory adverse event (intention to treat)",
+    "result": "22.5% vs 57.5%, risk difference -35.0 points (95% CI -43.5 to -25.7)"
+   },
+   "quiz": {
+    "question": "In the BMJ trial of 400 children having adenotonsillectomy, where did most of the LMA's reduction in respiratory adverse events occur?",
+    "options": [
+     "Postoperatively: 16.5% with LMA vs 49.5% with ETT",
+     "Intraoperatively: 9.0% with LMA vs 17.5% with ETT",
+     "At induction, mainly through less bronchospasm",
+     "Equally across all periods, with no change in severe cough"
+    ],
+    "answer": 0,
+    "explanation": "Postoperative events were 16.5% vs 49.5%, a 33-point gap, compared with 9.0% vs 17.5% intraoperatively; severe cough fell from 42.0% to 10.5%. Caveat: LMAs were placed by experienced anaesthesiologists and allocation was not blinded."
+   }
+  },
+  {
+   "id": "lancet-2026-dapt-shock-ami-cangrelor-vs-crushed-ticagrelor",
+   "date": "2026-11-07",
+   "dateApprox": false,
+   "addedAt": "2026-11-08",
+   "journal": "Lancet",
+   "jshort": "Lancet",
+   "kind": "RCT",
+   "topics": [
+    "cardiac",
+    "criticalCare"
+   ],
+   "headline": "DAPT-SHOCK-AMI: cangrelor inhibited platelets far better than crushed ticagrelor in MI shock, but noninferiority not shown",
+   "summary": "A double-blind trial at 29 European hospitals randomized 605 patients with acute MI complicated by cardiogenic shock to intravenous cangrelor or a crushed 180 mg ticagrelor load. It had a laboratory primary endpoint (platelet inhibition at the end of PCI) and a clinical one (death, MI or ischaemic stroke at 30 days).",
+   "takeHome": [
+    "Effective platelet inhibition at the end of primary PCI: 100% of 56 with cangrelor vs 22% of 68 with crushed ticagrelor (p<0.0001)",
+    "Death, MI or ischaemic stroke at 30 days: 38% vs 41%; noninferiority of cangrelor was not demonstrated (difference -4 points, 90% CI -10 to 3)",
+    "Major bleeding at 30 days was 6% with cangrelor and 5% with ticagrelor; the authors present it as the first P2Y12 trial specific to MI shock"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Patients in cardiogenic shock absorb oral drugs poorly: they are intubated, hypoperfused, on opioids and often on ECMO or an Impella. Crushed ticagrelor through a tube is routine, and this is the first randomized look at whether an intravenous P2Y12 inhibitor does better.\n\n**What they did.** 605 adults with AMI and cardiogenic shock at 29 hospitals in five European countries were randomized double blind to cangrelor (30 μg/kg bolus, 4 μg/kg/min for at least 2 h) or crushed ticagrelor 180 mg. The laboratory endpoint was platelet reactivity index below 50% at the end of PCI; the clinical endpoint, tested for noninferiority with a 1-point margin, was death, MI or ischaemic stroke at 30 days.\n\n**What they found.**\n- Platelet inhibition: 56/56 (100%) vs 15/68 (22%).\n- Clinical endpoint: 112/298 (38%) vs 126/307 (41%); noninferiority not shown.\n- Major bleeding 6% vs 5%.\n\n**Caveats.** The laboratory endpoint was measured in only about a fifth of patients. A 1-point noninferiority margin is very tight, so the trial could not show noninferiority despite numerically fewer events with cangrelor; it cannot claim superiority either. A Circulation imaging substudy reports less microvascular obstruction with cangrelor, which the authors call hypothesis-generating.\n\n**For the anesthesiologist.** In the cath lab or cardiac ICU, assume crushed ticagrelor leaves most shock patients with unreliable platelet inhibition early on. That matters when you are deciding on cannulation, line placement or emergency CABG: an infusion with a short offset may be easier to manage than an oral load whose effect arrives late and lasts days. Bleeding was similar here, but the trial does not settle which strategy improves outcomes.",
+   "url": "https://doi.org/10.1016/S0140-6736(26)00976-1",
+   "impact": 2,
+   "trialName": "DAPT-SHOCK-AMI",
+   "firstAuthor": "Motovska",
+   "title": "Cangrelor versus crushed ticagrelor in acute myocardial infarction complicated by cardiogenic shock (DAPT-SHOCK-AMI): a randomised, double-blind trial",
+   "glance": {
+    "design": "Double-blind RCT, 29 hospitals in five European countries, noninferiority",
+    "n": "605 adults with acute MI complicated by cardiogenic shock",
+    "outcome": "Death, MI or ischaemic stroke at 30 days; platelet reactivity <50% after PCI",
+    "result": "38% vs 41%, difference -4 points (90% CI -10 to 3); noninferiority not shown"
+   },
+   "quiz": {
+    "question": "In DAPT-SHOCK-AMI, what proportion of crushed-ticagrelor patients reached effective platelet inhibition at the end of primary PCI?",
+    "options": [
+     "100%, the same as cangrelor",
+     "About 41%, matching the 30-day event rate",
+     "22% (15 of 68), vs 100% with cangrelor",
+     "6%, similar to the major bleeding rate"
+    ],
+    "answer": 2,
+    "explanation": "Only 15 of 68 patients (22%) given crushed ticagrelor had a platelet reactivity index below 50% at the end of PCI, vs 56 of 56 (100%) with cangrelor. 41% was the ticagrelor arm's 30-day clinical event rate. Caveat: the laboratory endpoint was measured in about a fifth of patients."
+   }
+  },
   {
    "id": "lancet-2026-iris-main-left-main-pci-cabg",
    "date": "2026-11-03",
@@ -310,7 +538,7 @@
    "topics": [
     "criticalCare"
    ],
-   "headline": "Bicarbonate in ICU metabolic acidosis: no clear survival gain in 4 RCTs, but a 97% probability of less dialysis",
+   "headline": "Bicarbonate in ICU metabolic acidosis: no clear survival gain in 4 RCTs, but a 97% probability of fewer RRT initiations",
    "summary": "A Bayesian random-effects meta-analysis pooled four randomized trials (1544 adults) comparing intravenous sodium bicarbonate with placebo or usual care in ICU patients with metabolic acidosis. Short-term mortality was the primary outcome.",
    "takeHome": [
     "Across four RCTs and 1544 patients, bicarbonate showed no clear short-term mortality benefit: RR 0.94 (95% CrI 0.73-1.22), probability of benefit 72.1%",

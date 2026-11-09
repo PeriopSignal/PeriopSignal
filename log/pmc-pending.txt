@@ -29,3 +29,8 @@ nejm-2026-progress-tavr-moderate-as | 42970708 | PMID; no PMC copy yet
 icm-2026-bicarbonate-bayesian-meta-analysis | 42970124 | PMID; no PMC copy yet
 lancet-2026-iris-main-left-main-pci-cabg | 42976899 | PMID; no PMC copy yet
 eja-2026-sugammadex-neostigmine-165-rct-meta | 42973066 | PMID; no PMC copy yet
+bmj-2026-topic-2-paravertebral-vs-epidural-thoracotomy | 42988384 | PMID; no PMC copy yet
+anesthesiology-2026-optipam-individualized-map-cardiac-surgery | 42993977 | PMID; no PMC copy yet
+bmj-2026-lma-vs-ett-pediatric-adenotonsillectomy | 42982504 | PMID; no PMC copy yet
+lancet-2026-dapt-shock-ami-cangrelor-vs-crushed-ticagrelor | 42998670 | PMID; no PMC copy yet
+jama-2026-ischemia-extend-long-term-survival | 42998244 | PMID; no PMC copy yet
