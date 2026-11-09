@@ -1,7 +1,7 @@
 Timestamp               Ty Process[PID:TID]
-2026-11-09 20:03:01.411 Df PeriopSignal[36077:18a7d] [org.periopsignal.app:shots] root appear tab=preop
-2026-11-09 20:03:01.412 Df PeriopSignal[36077:18a7d] [org.periopsignal.app:shots] PatientView appear
-2026-11-09 20:03:06.167 Df PeriopSignal[36077:18a7d] [org.periopsignal.app:shots] scroll begin cardio key=preop-box:cardio
-2026-11-09 20:03:06.228 Df PeriopSignal[36077:18a7d] [org.periopsignal.app:shots] record update
-2026-11-09 20:03:14.861 Df PeriopSignal[36077:18a7d] [org.periopsignal.app:shots] scroll settled after 8 s
-2026-11-09 20:03:14.862 Df PeriopSignal[36077:18a7d] [org.periopsignal.app:shots] ready
+2026-11-09 20:30:30.242 Df PeriopSignal[38291:19753] [org.periopsignal.app:shots] root appear tab=preop
+2026-11-09 20:30:30.243 Df PeriopSignal[38291:19753] [org.periopsignal.app:shots] PatientView appear
+2026-11-09 20:30:35.120 Df PeriopSignal[38291:19753] [org.periopsignal.app:shots] scroll begin cardio key=preop-box:cardio
+2026-11-09 20:30:35.141 Df PeriopSignal[38291:19753] [org.periopsignal.app:shots] record update
+2026-11-09 20:30:41.020 Df PeriopSignal[38291:19753] [org.periopsignal.app:shots] scroll settled after 5 s
+2026-11-09 20:30:41.021 Df PeriopSignal[38291:19753] [org.periopsignal.app:shots] ready
