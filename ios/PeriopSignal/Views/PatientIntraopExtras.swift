@@ -89,7 +89,19 @@ struct IntraopLabsEditor: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
         }
-        PatientGroup(title: "Blood gas") { rows(s.id, IntraopLabs.abg, chained: chained) }
+        // 1.11 (Ben, Nov 9): the gas as its slash figure, pH / PaCO₂ / PaO₂ / HCO₃, typed into the slots; the rest of
+        // the gas follows as rows. Previous and Next walk them in the same order as before (IntraopLabs.abg).
+        PatientGroup(title: "Blood gas") {
+            FishboneABG(g: .page) { key in
+                if let t = IntraopLabs.tests([key]).first {
+                    LabSlot(test: t, sex: r.sex, value: value(s.id, t.key), chain: chain(t.key, chained))
+                }
+            }
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Hairline().padding(.leading, 14)
+            rows(s.id, IntraopLabs.abgRest, chained: chained)
+        }
         PatientGroup(title: "Coagulation") { rows(s.id, IntraopLabs.coag, chained: chained) }
         PatientGroup(title: "Viscoelastic & other") {
             PatientTextField(label: "ROTEM or TEG", prompt: "e.g. EXTEM CT 85 s, A10 38 mm; FIBTEM A10 7 mm", text: text(s.id, \.viscoelastic))

@@ -296,6 +296,8 @@ final class PatientStore {
         // 1.11 helper B (PatientDemo111Cardio): the Cardiopulmonary, code-status and infusion shots 760–779.
         case "demo-cardio111": return PatientDemo.cardio111
         case "demo-cardio111-chole": return PatientDemo.cardio111Chole
+        case "demo-labs111": return PatientDemo.labs111
+        case "demo-labs111-sent": return PatientDemo.labs111Sent
         default: return nil
         }
     }
