@@ -710,6 +710,13 @@ enum PatientNote {
             .map { NSRegularExpression.escapedPattern(for: $0).replacingOccurrences(of: " ", with: "\\s+") }
         return NoteRx("\\b(" + names.joined(separator: "|") + ")\\b")
     }()
+    /// "on warfarin", "takes metoprolol": a medicine the patient is on, as the medicine reader names them (1.11: the
+    /// quick-add events reader leaves such a line to history).
+    static let takenMedicineRx: NoteRx = {
+        let names = drugs.keys.sorted { $0.count > $1.count }
+            .map { NSRegularExpression.escapedPattern(for: $0).replacingOccurrences(of: " ", with: "\\s+") }
+        return NoteRx("\\b(?:on|takes|taking)\\s+(?:(?:home|daily|chronic|long[- ]term|his|her|a|an)\\s+){0,2}(?:" + names.joined(separator: "|") + ")\\b")
+    }()
 
     /// Drug classes, as written or as an abbreviation reads ("BB" as beta-blocker), and the flag each sets.
     private static let drugClasses: [(NoteRx, String)] = [

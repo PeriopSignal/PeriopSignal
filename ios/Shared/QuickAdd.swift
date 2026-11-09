@@ -355,8 +355,9 @@ enum QuickAdd {
         readMarkedDrips(&s, c, &out)
         // Events (1.11) after the numbers, so "bleeding EBL 1200" keeps its blood loss; the timing words kept above are
         // put back in the event's text. On Summary & Handoff, which otherwise reads as the Preoperative tab, only a piece
-        // that says when or how it happened is an event; "hypertension" there is the history it was in 1.10.
-        if handoff { readEvents(&s, c, &out, strict: tab == .preop) }
+        // that says when or how it happened is an event; "hypertension" there is the history it was in 1.10. On either
+        // place a piece that says it is history or an allergy stays with the note reader (isEvent).
+        if handoff { readEvents(&s, c, &out, strict: tab == .preop, typed: withLineBreaks(base, from: line)) }
         if !surgicalHistory { readProcedure(&s, c, &out) }
 
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
@@ -2660,28 +2661,159 @@ enum QuickAdd {
     /// Event words the history and allergy readers read too (PatientNote's htn, af, arrhythmia, seizure, bleeding, mh,
     /// awareness and cad rules; a reaction in an allergy's brackets): "hypertension, diabetes", "afib on apixaban",
     /// "seizure disorder on keppra", "bleeding disorder", "allergies: PCN (anaphylaxis)". A piece with one of these is an
-    /// event only when it also says when or how it happened in the case (eventContext); otherwise it is left to those
-    /// readers, which file the problem or the allergy as they did in 1.10.
+    /// event only when it names a point of the case (eventCasePoint) or, on the Intraoperative tab, the drug it followed
+    /// (eventAgent); otherwise it is left to those readers, which file the problem or the allergy as they did in 1.10.
     static let eventHistoryRx = NoteRx(#"\b(?:hypertension|(?-i:HTN)|a[-. ]?fib|atrial\s+(?:fibrillation|flutter)|(?-i:AF|AFL|PAF|SVT|VT|WPW)|arrhythmi\w*|dysrhythmi\w*|bradyarrhythmi\w*|heart\s+block|sick\s+sinus|seizures?|epilepsy|bleeding\s+(?:disorder|diathesis)|coagulopath\w*|von\s+willebrand|h(?:a)?emophilia|anaphyla\w+|aspirat\w+|ischemia|(?:malignant\s+hyperthermia|(?-i:MH))(?=\s+(?:susceptib\w*|hx|history|family|precautions?|risk|negative|testing|workup|trigger\w*))|awareness)\b"#)
-    /// When or how something happened in the case: a point of the case after a timing word ("after induction", "on
-    /// emergence", "post-bypass", "with protamine"), a drug or product it followed ("after cefazolin", "with the
-    /// transfusion"), "new", "intraop", a clock time, a treatment ("requiring esmolol", "treated with", "resolved").
-    static let eventContext = NoteRx(#"\b(?:(?:after|post|on|at|to|during|with|following|upon|before|pre|since|around|through(?:out)?|prior\s+to)[- ]\s*(?:the\s+|a\s+)?(?:induction|intubation|laryngoscopy|airway\s+manipulation|emergence|extubation|incision|sternotomy|positioning|proning|prone|flip|turn(?:ing)?|closing|closure|bypass|(?-i:CPB)|pump|cross[- ]?clamp\w*|unclamp\w*|declamp\w*|reperfusion|protamine|cement\w*|tourniquet(?:\s+(?:release|deflation|down|up))?|insufflation|pneumoperitoneum|transfusion|manipulation|traction|retraction|release|arrival|transport|handoff|(?:the\s+)?case|(?-i:TEE)|(?-i:TOE)|echo|antibiotics?|(?-i:abx)|cefazolin|ancef|vancomycin|vanc|rocuronium|roc|succinylcholine|sux|sugammadex|neostigmine|contrast|latex|chlorhexidine|(?-i:PRBC|FFP)|platelets|blood|bolus|dose)|new(?:[- ]onset)?|intra-?op(?:erative(?:ly)?)?|in\s+the\s+(?:or|room)|on\s+the\s+table|mid-?case|transient|brief(?:ly)?|episodes?(?:\s+of)?|x\s*\d+\s*(?:min|minutes?|sec|seconds?)|(?:at|@)\s*\d{1,2}:?\d{2}\b|requir(?:ed|ing)|treated\s+with|responded\s+to|resolved|(?:to|into)\s+(?:the\s+)?\d{2,3}s?)\b"#)
+    /// When in the case something happened: a point of the case after a timing word ("after induction", "on emergence",
+    /// "post-bypass", "with protamine", "s/p induction"), "intraop", "in the OR", "mid-case", a clock time ("at 14:30",
+    /// "@ 0915"). The only words that make an event of a word the history readers read too ("hypertension with
+    /// incision"), on either place.
+    static let eventCasePoint = NoteRx(#"(?:\b(?:(?:after|post|on|at|during|with|following|upon|before|pre|since|around|through(?:out)?|prior\s+to|s/p|status\s+post)[- ]\s*(?:the\s+|a\s+)?(?:skin\s+|surgical\s+)?(?:induction|intubation|laryngoscopy|airway\s+manipulation|emergence|extubation|incision|sternotomy|positioning|proning|prone|flip|turn(?:ing)?|closing|closure|bypass|(?-i:CPB)|pump|cross[- ]?clamp\w*|unclamp\w*|declamp\w*|reperfusion|protamine|cement\w*|tourniquet(?:\s+(?:release|deflation|down|up))?|insufflation|pneumoperitoneum|transfusion|manipulation|traction|retraction|release|arrival|transport|handoff|(?:the\s+)?case)|intra-?op(?:erative(?:ly)?)?|in\s+the\s+(?:or|room)|on\s+the\s+table|mid-?case|at\s*(?:\d{1,2}:\d{2}|\d{4}))|@\s*(?:\d{1,2}:\d{2}|\d{4}))\b"#)
+    /// A drug or product an event followed ("anaphylaxis after cefazolin", "to rocuronium", "with the bolus"), or what
+    /// showed it ("on TEE"). Group 1 is the word before the drug: on Summary & Handoff only one that says when ("after",
+    /// "following", "post", "during") counts, so "anaphylaxis to rocuronium" there stays with the history readers.
+    static let eventAgent = NoteRx(#"\b(?:(after|following|post|during|with|to)[- ]\s*(?:the\s+|a\s+)?(?:antibiotics?|(?-i:abx)|cefazolin|ancef|vancomycin|vanc|rocuronium|roc|succinylcholine|sux|sugammadex|neostigmine|contrast|latex|chlorhexidine|(?-i:PRBC|FFP)|platelets|blood\s+products?|bolus)|on\s+(?:the\s+)?(?-i:TEE|TOE))\b"#)
+    private static let eventAgentTimed: Set<String> = ["after", "following", "post", "during"]
+    /// How an event went ("transient", "x 5 min", "requiring esmolol", "treated with", "to the 70s"): on Summary &
+    /// Handoff this makes an event of a word the history readers do not read ("hypotension requiring phenylephrine"),
+    /// never of one they do ("hypertension treated with lisinopril"). "new", "resolved" and "episodes of" say nothing of
+    /// the case (the history tells a problem as new or resolved too), so they are not among them.
+    static let eventManner = NoteRx(#"\b(?:transient|brief(?:ly)?|x\s*\d+\s*(?:min|minutes?|sec|seconds?)|requir(?:ed|ing)|treated\s+with|responded\s+to|(?:to|into)\s+(?:the\s+)?\d{2,3}s?)\b"#)
+    /// Words that say a piece is history, whatever else it says: "hx MH", "family history of MH", "h/o GI bleeding",
+    /// "orthostatic hypotension", "laryngospasm ... years ago", "last year", "hypertension on arrival to clinic",
+    /// "hypoxemia requiring home O2", "bleeding risk", "on 3 medications". Such a piece is never an event, on either
+    /// place; the note reader reads it as it did in 1.10.
+    static let eventHistoryMark = NoteRx(#"\b(?:hx|h/o|history|pmhx?|fhx|(?-i:FH)|family|familial|mother|father|brother|sister|siblings?|parents?|grand(?:mother|father|parents?)|aunt|uncle|cousin|s/p|status\s+post|prior(?!\s+to\b)|previous(?:ly)?|in\s+the\s+past|remote|known|chronic(?:ally)?|at\s+baseline|orthostatic|postural|nocturnal|exertion\w*|exercise[- ]induced|childhood|as\s+a\s+(?:child|kid|teen\w*)|\d+\s*(?:days?|weeks?|wks?|months?|mos?|years?|yrs?)\s+ago|(?:for|x)\s*\d+\s*(?:months?|mos?|years?|yrs?)|last\s+(?:year|month|week|night|time|admission|an(?:a)?esthe\w+|surgery|operation|case|procedure|epidural|spinal|block|delivery|pregnancy|intubation)|yesterday|pod\s*\d+|pre-?op(?:erative(?:ly)?)?|home|outpatient|clinic|office|(?-i:PCP|ED|ER|GI|UGIB|LGIB|URI|PFTs?|TTE)|gastrointestinal|rectal|menstrual|menses|(?:dental|tooth|teeth)\s+extractions?|stress\s+test\w*|sleep\s+study|holter|hospitali[sz]\w+|admi(?:tted|ssion)\s+(?:for|with|last|in)|risk|precautions?|susceptib\w*|disorder|disease|pacemaker|dialysis|(?:on|from|takes|taking|(?<!treated )with)\s+(?:(?:\d+|a|an|his|her|home|chronic|daily|multiple)\s+){0,2}(?:meds?|medications?|agents?|anticoagula\w+|blood\s+thinners?|beta[- ]?blockers?|ace[- ]?inhibitors?|(?-i:ACEi|ARB|PPI|AEDs?|BB|DOAC|NOAC|CPAP|BiPAP)|statins?|steroids?|antiepileptics?|anticonvulsants?|antiarrhythmics?|antihypertensives?))\b"#)
+    /// A year ("MH after induction 1998", "in 2015"): history. Not a clock time ("at 2015"), a volume ("EBL 2000",
+    /// "2000 mL") or a dose ("2000 units").
+    static let eventYear = NoteRx(#"(?<![\d@~=])(?<!\d[:.])(?<!@ )(?<!at )(?<!: )(?<!ebl )(?<!uop )(?<!ivf )(?<!lr )(?<!ns )(?<!loss )(?<!output )(?<!saver )(?<!crystalloid )(?<!albumin )(?:19|20)\d\d(?!\d)(?![:.]\d)(?!\s*(?:ml|mls|cc|mcg|mg|units?|u|l|g|j)\b)"#)
+    /// A reaction that is the event's own name: its "reaction to" is not the allergy reader's cue.
+    static let eventOwnReaction = NoteRx(#"\b(?:anaphyla\w+|transfusion|protamine)\s+reactions?\b"#)
+    /// A history list begun earlier in the sentence ("h/o laryngospasm, bronchospasm", "PMH: HTN, seizures"): what
+    /// follows in it is history unless it names a point of the case.
+    static let eventHistoryLead = NoteRx(#"\b(?:hx|h/o|history|pmhx?|fhx|(?-i:FH)|past\s+medical)\b"#)
+    /// The reaction an allergy list gives ("allergies: rocuronium, anaphylaxis with induction"): in such a list it is
+    /// the allergy's, whatever follows it.
+    static let eventAllergyReaction = NoteRx(#"\banaphyla\w+"#)
+    /// A piece that opens as a tracing's report ("ECG sinus brady", "EKG: AF") describes the tracing, not the case, unless
+    /// it names a point of the case ("ECG ST depression after induction").
+    static let eventReport = NoteRx(#"^\s*(?:ecg|ekg|12[- ]lead)\b"#)
+
+    /// The text with a pattern's matches blanked, lengths kept.
+    private static func blanked(_ rx: NoteRx, _ s: String) -> String {
+        var ns = s as NSString
+        for m in rx.all(s) where m.range.length > 0 {
+            ns = ns.replacingCharacters(in: m.range, with: String(repeating: " ", count: m.range.length)) as NSString
+        }
+        return ns as String
+    }
+
+    /// `s` (the one line the readers read) with the line breaks of the line as it was typed put back: each was joined as
+    /// one space, so every position stays put.
+    private static func withLineBreaks(_ s: String, from line: String) -> String {
+        let raw = line as NSString
+        var ns = s as NSString
+        guard raw.length == ns.length, line.rangeOfCharacter(from: .newlines) != nil else { return s }
+        for i in 0..<raw.length {
+            guard let u = UnicodeScalar(raw.character(at: i)), CharacterSet.newlines.contains(u) else { continue }
+            ns = ns.replacingCharacters(in: NSRange(location: i, length: 1), with: "\n") as NSString
+        }
+        return ns as String
+    }
+
+    /// A sentence ends at this character: a line break, or a full stop followed by a space (not the end of "y.o.").
+    private static func sentenceEnds(at i: Int, in ns: NSString) -> Bool {
+        guard i >= 0, i < ns.length else { return false }
+        let ch = ns.character(at: i)
+        if ch == 10 || ch == 13 { return true }
+        guard ch == 46, i + 1 < ns.length, ns.character(at: i + 1) == 32 || ns.character(at: i + 1) == 9 else { return false }
+        return !(i >= 2 && ns.character(at: i - 2) == 46)
+    }
+
+    /// The part of the line an event sits in: its comma piece, within its sentence ("hx MH. Hypotension after induction"
+    /// is two).
+    private static func eventPiece(_ r: NSRange, in s: String) -> NSRange {
+        let ns = s as NSString
+        let p = pieceRange(r, in: s)
+        var a = r.location
+        var b = r.location + r.length
+        while a > p.location, !sentenceEnds(at: a - 1, in: ns) { a -= 1 }
+        while b < p.location + p.length, !sentenceEnds(at: b, in: ns) { b += 1 }
+        return NSRange(location: a, length: b - a)
+    }
+
+    /// The sentence so far before a piece, back to a semicolon: where an allergy list or a history list it belongs to began.
+    private static func eventLeadRange(_ p: NSRange, in s: String) -> NSRange {
+        let ns = s as NSString
+        var a = p.location
+        while a > 0, ns.character(at: a - 1) != 59, !sentenceEnds(at: a - 1, in: ns) { a -= 1 }
+        return NSRange(location: a, length: p.location - a)
+    }
+
+    /// Whether a piece with an event word is an event of this case. `lead` is the sentence before it. In order:
+    /// 1. A piece with an allergy cue ("allergic to rocuronium (anaphylaxis)", "PCN allergy (anaphylaxis to cefazolin
+    ///    too)") is the allergy reader's, always; so is an anaphylaxis later in an allergy list.
+    /// 2. A piece that says it is history is the history readers', always: a history word (eventHistoryMark), a year, a
+    ///    medicine the patient is on ("bleeding on warfarin"), looked for outside the case point so "prior to
+    ///    induction" and "s/p bypass" are not history and "after extubation in 2015" is.
+    /// 3. A point of the case makes the event.
+    /// 4. Without one, a piece of an allergy list or a history list begun earlier in the sentence stays with it, and a
+    ///    piece that opens as a tracing's report ("ECG sinus brady") describes the tracing.
+    /// 5. A drug it followed makes the event (on Summary & Handoff only after a word that says when).
+    /// 6. Without either, a word the history readers read too is theirs ("hypertension", "seizures resolved").
+    /// 7. Any other event word is an event on the Intraoperative tab; on Summary & Handoff it needs how it went.
+    static func isEvent(_ piece: String, lead: String, strict: Bool) -> Bool {
+        let allergyList = PatientNote.allergyCue.first(blanked(PatientNote.nkdaRx, lead)) != nil
+        if PatientNote.allergyCue.first(blanked(PatientNote.nkdaRx, blanked(eventOwnReaction, piece))) != nil { return false }
+        if allergyList, eventAllergyReaction.first(piece) != nil { return false }
+        let rest = blanked(eventCasePoint, piece)
+        if eventHistoryMark.first(rest) != nil || eventYear.first(rest) != nil || PatientNote.takenMedicineRx.first(rest) != nil { return false }
+        if eventCasePoint.first(piece) != nil { return true }
+        if allergyList || eventHistoryLead.first(lead) != nil || eventReport.first(piece) != nil { return false }
+        let agent = eventAgent.all(piece).contains { m in
+            guard strict else { return true }
+            return group(m, 1, piece).map { eventAgentTimed.contains($0.lowercased()) } ?? false
+        }
+        if agent { return true }
+        if eventHistoryRx.first(piece) != nil { return false }
+        return !strict || eventManner.first(piece) != nil
+    }
 
     /// `strict` (Summary & Handoff, where the bar otherwise reads as the Preoperative tab's): every event needs its
     /// context, so "hypertension" typed there is the history it was in 1.10 and "bradycardia on emergence" the event.
-    private static func readEvents(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut, strict: Bool) {
+    /// On either place a piece that says it is history or an allergy is left to those readers (isEvent). `typed` is the
+    /// line before the other readers took their words from it, with its line breaks (withLineBreaks).
+    private static func readEvents(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut, strict: Bool, typed: String) {
         let text = s.text
+        let ns = text as NSString
+        // What an event is judged and worded by: what the other readers left, with the kept timing and any point of the
+        // case one of them took ("after extubation", which the airway-at-handoff reader read as the extubation) put back.
+        var seen = (ns.length > 0 ? s.restored(NSRange(location: 0, length: ns.length)) : "") as NSString
+        if seen.length != ns.length { seen = ns }
+        let was = typed as NSString
+        if was.length == ns.length {
+            for m in eventCasePoint.all(typed) where m.range.length > 0 {
+                seen = seen.replacingCharacters(in: m.range, with: was.substring(with: m.range)) as NSString
+            }
+        }
+        // A line break ends a piece as a full stop does ("HTN" on one line, "hypotension after induction" on the next).
+        var broken = ns
+        if was.length == ns.length {
+            for i in 0..<was.length where was.character(at: i) == 10 {
+                broken = broken.replacingCharacters(in: NSRange(location: i, length: 1), with: "\n") as NSString
+            }
+        }
+        let lines = broken as String
         var pieces: [NSRange] = []
-        for m in eventRx.all(text) where !pieceNegated(m.range, in: text) {
-            let p = pieceRange(m.range, in: text)
+        for m in eventRx.all(text) {
+            let p = eventPiece(m.range, in: lines)
             guard !pieces.contains(where: { NSEqualRanges($0, p) }) else { continue }
-            let piece = s.restored(p)
-            if (strict || eventHistoryRx.first(piece) != nil) && eventContext.first(piece) == nil { continue }
+            guard pieceNegation.first(ns.substring(with: NSRange(location: p.location, length: m.range.location - p.location))) == nil else { continue }
+            guard isEvent(seen.substring(with: p), lead: seen.substring(with: eventLeadRange(p, in: lines)), strict: strict) else { continue }
             pieces.append(p)
         }
         for p in pieces {
-            var t = s.restored(p).replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            var t = seen.substring(with: p).replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
                 .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".:;")))
             t = stripped(eventLead, t)
             guard !t.isEmpty else { continue }
@@ -2694,7 +2826,8 @@ enum QuickAdd {
     static var patterns111: [NoteRx] {
         var out = [ecgCue, ecgNormal, ecgWord, extubatedRx, intubatedRx, extubatedPast, dispositionRx, dispositionNotAfter, dispositionNotBefore,
                    noCardiacSymptoms, noAcuteCardiac, stressCue, ettToken, stressEquivocal, stressNegative, stressPositive, stressNotDone, stressDate,
-                   eventRx, eventLead, eventHistoryRx, eventContext]
+                   eventRx, eventLead, eventHistoryRx, eventCasePoint, eventAgent, eventManner, eventHistoryMark, eventYear,
+                   eventOwnReaction, eventHistoryLead, eventAllergyReaction, eventReport, PatientNote.takenMedicineRx]
         out += ecgRules.map(\.rx) + ecgRules.compactMap(\.notBefore)
         return out
     }
