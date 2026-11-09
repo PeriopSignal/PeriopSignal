@@ -7,7 +7,8 @@ import SwiftUI
 // grammar at once: the three colour roles (PS.accent for the tab bar's selection only, PS.action for anything that does
 // something, PS.red for clinical alerts), the four chip looks (ChipStyle), the Yes/No pills, the quiet link and its
 // collapsed row, the add chip and the filled row, the summary lines, the headings and the jump chips. Debug builds only:
-// -ps.screen gallery.
+// -ps.screen gallery; -ps.gallery.scroll links|lines|headings|buttons brings a part below the first screen to the top,
+// so the shots cover the whole page.
 
 struct PatientStyleGallery: View {
     @State private var asa: String? = "3"
@@ -22,28 +23,54 @@ struct PatientStyleGallery: View {
     static let variants = ["tokens", "choice", "toggle", "preset", "add", "yesno", "quietlink", "collapsed", "addchip", "filledrow", "filledrow-alert",
                            "line", "line-marks", "line-alert", "section-title", "card-header", "caption", "jump", "buttons"]
 
+    /// The page's parts in order, by the name -ps.gallery.scroll takes.
+    static let sections = ["tokens", "chips", "links", "lines", "headings", "buttons"]
+
+    /// Which variants each part draws; together they are every variant, each once.
+    static let sectionVariants: [String: [String]] = [
+        "tokens": ["tokens"],
+        "chips": ["choice", "toggle", "preset", "add", "yesno"],
+        "links": ["quietlink", "collapsed", "addchip", "filledrow", "filledrow-alert"],
+        "lines": ["line", "line-marks", "line-alert"],
+        "headings": ["section-title", "card-header", "caption", "jump"],
+        "buttons": ["buttons"],
+    ]
+
+    /// Screenshot runs: the part -ps.gallery.scroll names, or nil for the top of the page (no name, or not a part).
+    static func scrollTarget(_ name: String) -> String? { sections.contains(name) ? name : nil }
+
     private let asaChips = ["1", "2", "3", "4", "5", "6"].map { ChipChoice($0, PatientRules.roman(Int($0)!)) }
     private let sexChips = [ChipChoice("male", "Male"), ChipChoice("female", "Female")]
     private let presetChips = [ChipChoice("exam", "Exam normal"), ChipChoice("echo", "Echo normal"), ChipChoice("none", "None")]
     private let addChips = [ChipChoice("ecg", "ECG"), ChipChoice("echo", "Echo"), ChipChoice("lhc", "Left heart cath")]
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Style gallery").font(PS.sys(size: 22, weight: .bold)).foregroundStyle(PS.fg)
-                    Text("1.11: red means a clinical alert, blue means tap me, the brand red stays on the tab bar; one chip grammar.")
-                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Style gallery").font(PS.sys(size: 22, weight: .bold)).foregroundStyle(PS.fg)
+                        Text("1.11: red means a clinical alert, blue means tap me, the brand red stays on the tab bar; one chip grammar.")
+                            .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    }
+                    tokens.id("tokens")
+                    chips.id("chips")
+                    links.id("links")
+                    lines.id("lines")
+                    headings.id("headings")
+                    buttons.id("buttons")
                 }
-                tokens
-                chips
-                links
-                lines
-                headings
-                buttons
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .task {
+                // Screenshot runs: asked for a few times, since the first frames come before the page has its height.
+                guard let to = Self.scrollTarget(LaunchSeed.string("ps.gallery.scroll")) else { return }
+                for _ in 0..<8 {
+                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    proxy.scrollTo(to, anchor: .top)
+                }
+            }
         }
         .background(PS.bg.ignoresSafeArea())
         .modifier(DebugContentWidth())
