@@ -243,7 +243,7 @@ struct BriefBlockView: View {
     private var labelRow: some View {
         HStack(spacing: 6) {
             if let l = block.label {
-                Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.accent : PS.fg)
+                Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.red : PS.fg)
             }
             if block.edited {
                 Text("edited").font(PS.sys(size: 10, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -288,7 +288,7 @@ struct BriefBlockView: View {
                 }
             } else {
                 // The label and the words on one line, so the paragraph wraps under both.
-                (Text(block.label.map { $0 + ": " } ?? "").font(PS.sys(size: 14.5, weight: .bold)).foregroundColor(block.alert ? PS.accent : PS.fg)
+                (Text(block.label.map { $0 + ": " } ?? "").font(PS.sys(size: 14.5, weight: .bold)).foregroundColor(block.alert ? PS.red : PS.fg)
                  + Text(briefStyled(block.text, marks: block.marks, labels: false)).font(PS.sys(size: 14.5)).foregroundColor(PS.fg)
                  + Text(Self.editedMark(block)).font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))
                     .lineSpacing(2)
@@ -373,10 +373,16 @@ struct BriefPanel: View {
 
     private var title: String { kind == .preop ? "Preprocedure summary" : "Handoff, as it stands" }
 
+    /// The handoff keeps its eyebrow (the Summary & Handoff tab has no section title above it); the preoperative brief
+    /// does not (1.11, P1-6).
+    static func showsEyebrow(_ kind: PatientBriefs.Kind) -> Bool { kind != .preop }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // One heading per thing (1.11, P1-6): the Preprocedure tab's brief sits under its section title, so its eyebrow
+            // ("PREPROCEDURE SUMMARY", the same words) goes and Regenerate keeps the title's line on its own.
             HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: title)
+                if Self.showsEyebrow(kind) { Eyebrow(text: title) }
                 Spacer()
                 Button { confirming = true } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
@@ -535,12 +541,14 @@ struct StatusPlanCard: View {
         }
     }
 
+    // 1.11 (P1-6): a plain box with the STATUS & PLAN caption, as every other box with controls in place; the card header
+    // with an icon and a 16-pt title looked like a card that opens a page, and it opens nothing.
     var body: some View {
+        PatientGroup(title: "Status & Plan") { rows.padding(.horizontal, 14).padding(.vertical, 10) }
+    }
+
+    private var rows: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.right.circle").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                Text("Status & Plan").font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-            }
             row("Airway") { PatientChoice(options: Self.airwayOptions(r.airwayAtEnd), selection: airway) }
             row("Disposition") {
                 PatientChoice(options: (Self.dispositionChips + ["Other"]).map { (id: $0, label: $0) }, selection: disposition)
@@ -558,9 +566,7 @@ struct StatusPlanCard: View {
                 row("Call if") { PlanField(prompt: "When to call", text: patient.bound(\.callIf)) }
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 }
 

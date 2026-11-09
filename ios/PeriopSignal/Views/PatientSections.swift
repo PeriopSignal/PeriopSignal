@@ -276,7 +276,7 @@ extension PatientEditorView {
                 PatientNumberField(label: "FiO₂", unit: "%", value: bind(\.vent.fio2))
                 if r.currentAirway == "trach" {
                     Button { patient.update(discrete: true) { $0.oxygen.device = "trachCollar"; $0.vent = PatientVent() } } label: { Label("Off the ventilator: trach collar", systemImage: "arrow.uturn.right") }
-                        .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent).padding(14)
+                        .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.action).padding(14)
                 }
             }
         }
@@ -314,7 +314,7 @@ extension PatientEditorView {
 
     func addButton(_ title: String, _ action: @escaping () -> Void) -> some View {
         Button { withAnimation(.snappy) { action() } } label: { Label(title, systemImage: "plus.circle") }
-            .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
+            .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.action)
             .padding(14)
     }
 
@@ -382,7 +382,7 @@ struct PatientTypeahead: View {
                         .submitLabel(.done)
                         .onSubmit { commit(matches.first ?? text) }
                     if !text.isEmpty {
-                        Button { commit(text) } label: { Image(systemName: "plus.circle.fill").font(PS.sys(size: 18)).foregroundStyle(PS.accent) }
+                        Button { commit(text) } label: { Image(systemName: "plus.circle.fill").font(PS.sys(size: 18)).foregroundStyle(PS.action) }
                             .buttonStyle(.plain)
                             .accessibilityLabel("Add “\(text)”")
                     }
@@ -395,7 +395,7 @@ struct PatientTypeahead: View {
                     HStack {
                         Text(m).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg)
                         Spacer()
-                        Image(systemName: "plus").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.accent)
+                        Image(systemName: "plus").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.action)
                     }
                     .padding(.horizontal, 14).padding(.vertical, 9)
                     .contentShape(Rectangle())
@@ -427,7 +427,7 @@ struct RemovableChip: View {
                 .accessibilityLabel("Remove \(text)")
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
-        .background(PS.accent.opacity(0.12), in: Capsule())
+        .background(PS.action.opacity(0.12), in: Capsule())
     }
 }
 
@@ -520,7 +520,7 @@ struct SurgeryRow: View {
                 Toggle(isOn: $surgery.intrathoracic) {
                     Text("Cardiac or thoracic (sternotomy, thoracotomy)").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
                 }
-                .tint(PS.accent)
+                .tint(PS.action)
                 .padding(.horizontal, 14).padding(.vertical, 8)
             }
         }
@@ -694,7 +694,7 @@ struct PatientInfoToggle: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             Toggle(title, isOn: Binding(get: { isOn }, set: { v in store?.markDiscrete(); isOn = v }))
                 .labelsHidden()
-                .tint(PS.accent)
+                .tint(PS.action)
         }
         .padding(.horizontal, 14).padding(.vertical, 9)
     }
@@ -725,18 +725,26 @@ struct YesNoPills: View {
     var onYes: () -> Void
     /// Called instead of `onNo` / `onYes` when the pill tapped is already on.
     var onClear: () -> Void
+
+    /// 1.11 (Ben's Q7): an answer is not a verdict. The chosen pill is ink-filled like every single choice (ChipStyle.choice),
+    /// no green No or red Yes; the consequence, if any, is a red line under the row.
+    static let style: ChipStyle = .choice
+    static func look(on: Bool) -> ChipStyle.Look { style.look(on: on) }
+
     var body: some View {
         HStack(spacing: 6) {
-            pill("No", on: no, tint: PS.green, action: onNo)
-            pill("Yes", on: yes, tint: PS.accent, action: onYes)
+            pill("No", on: no, action: onNo)
+            pill("Yes", on: yes, action: onYes)
         }
     }
-    private func pill(_ t: String, on: Bool, tint: Color, action: @escaping () -> Void) -> some View {
-        Button { Haptics.light(); if on { onClear() } else { action() } } label: {
+    private func pill(_ t: String, on: Bool, action: @escaping () -> Void) -> some View {
+        let look = Self.look(on: on)
+        return Button { Haptics.light(); if on { onClear() } else { action() } } label: {
             Text(t).font(PS.sys(size: 13.5, weight: .semibold))
-                .foregroundStyle(on ? PS.accentFg : PS.fg2)
+                .foregroundStyle(ChipStyle.color(look.text, tint: PS.action))
                 .padding(.horizontal, 14).padding(.vertical, 6)
-                .background(on ? tint : PS.surface2, in: Capsule())
+                .background(ChipStyle.color(look.fill, tint: PS.action), in: Capsule())
+                .overlay(Capsule().stroke(ChipStyle.color(look.edge, tint: PS.action), lineWidth: 1))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -799,7 +807,8 @@ struct ECGQuickRow: View {
                 Label("NSR", systemImage: on ? "checkmark" : "plus")
                     .font(PS.sys(size: 14, weight: .semibold))
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: on))
+            // 1.11 (P1-8): a preset, in the green of Exam normal and Echo normal, not the brand red.
+            .buttonStyle(CapsuleButtonStyle(prominent: on, color: PS.green))
             .accessibilityLabel(on ? "Normal sinus rhythm, recorded" : "Add normal sinus rhythm")
             Spacer()
         }

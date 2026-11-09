@@ -70,7 +70,7 @@ extension PatientEditorView {
         }
         if !res.findings.isEmpty {
             PatientGroup(title: "Precautions") {
-                adviceList("If the benefit outweighs the risk", PatientTEE.precautions, tint: res.level == .absolute ? PS.red : PS.accent)
+                adviceList("If the benefit outweighs the risk", PatientTEE.precautions, tint: PS.red)
             }
         }
         EvidenceDisclosure {
@@ -110,7 +110,7 @@ extension PatientEditorView {
     private func teeRow(_ it: TEEItem, result: TEEResult, why: String?) -> some View {
         let fromRecord = PatientTEE.fromRecord(r)[it.id]
         let answer = r.teeScreen.answer(it.id)
-        let tint = it.level == .absolute ? PS.red : PS.accent
+        let tint = PS.red
         return VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 TEEItemTitle(item: it)
@@ -165,7 +165,7 @@ struct TEEResultCard: View {
     private var color: Color {
         switch result.level {
         case .absolute: return PS.red
-        case .relative: return PS.accent
+        case .relative: return PS.red
         case .none: return result.reviewed ? PS.green : PS.fg3
         }
     }
@@ -204,9 +204,9 @@ struct TEEResultCard: View {
                             .foregroundStyle(f.item.level == .absolute ? PS.red : PS.fg)
                         Text(f.item.level == .absolute ? "Absolute" : "Relative")
                             .font(PS.sys(size: 11, weight: .bold))
-                            .foregroundStyle(f.item.level == .absolute ? PS.red : PS.accent)
+                            .foregroundStyle(PS.red)
                             .padding(.horizontal, 7).padding(.vertical, 2)
-                            .background((f.item.level == .absolute ? PS.red : PS.accent).opacity(0.12), in: Capsule())
+                            .background(PS.red.opacity(0.12), in: Capsule())
                     }
                     Text(f.from.joined(separator: "; ") + " · " + f.item.source.short)
                         .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
