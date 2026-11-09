@@ -768,9 +768,15 @@ jobs:
           shot 783-preop-pinned-cardio-pills-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
           shot 784-w375-preop-pinned-medications-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll medications -ps.forceAppearance light
           shot 785-preop-pinned-summary-dark 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
-          # Regenerate on the summary title's line at a phone's width, and under the title at the largest text size.
+          # Regenerate on the summary title's line at a phone's width (a narrower capsule where the full one does not
+          # fit), dimmed until the text has an edit and live once it has; at the largest text size whichever form fits.
           shot 785-w375-preop-summary-regenerate-light 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.forceAppearance light
           shot 785-w375-preop-summary-regenerate-large-text-dark 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.textScale 1.25 -ps.forceAppearance dark
+          shot 785-w375-preop-summary-regenerate-edited-light 20 -ps.tab patient -ps.patient demo-briefs-edit -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.forceAppearance light
+          # The filled capsules that act, in the action colour: Generate preprocedure summary, and the quick-add bar's Add N.
+          shot 785-w375-preop-summary-generate-light 20 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.forceAppearance light
+          shot 797-w375-quickadd-add-capsule-light 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "68M, DM2, h/o stroke, MRSA"
+          shot 797-quickadd-add-capsule-dark 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M, DM2, h/o stroke, MRSA"
           shot 786-w375-intraop-top-jump-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light
           shot 787-intraop-pinned-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
           shot 788-style-gallery-light 14 -ps.screen gallery -ps.forceAppearance light
