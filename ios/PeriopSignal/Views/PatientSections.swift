@@ -108,6 +108,7 @@ extension PatientEditorView {
         case "radial": radialEditor
         case "pft": pftEditor
         case "codestatus": PatientCodeStatusGroup()
+        case "stress": PatientStressTestEditor()
         default: EmptyView()
         }
     }
