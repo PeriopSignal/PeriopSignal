@@ -269,7 +269,7 @@ final class C2111Tests: XCTestCase {
 
     // MARK: The demo patient and its screenshots
 
-    func testTheAdd111DemoHasWhatItsShotsShow() {
+    @MainActor func testTheAdd111DemoHasWhatItsShotsShow() {
         let r = PatientDemo.add111
         XCTAssertEqual(r.homeMeds.count, 7, "seven one-line medication rows")
         XCTAssertEqual(r.allergyList.count, 3)
