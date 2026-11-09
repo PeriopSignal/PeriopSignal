@@ -298,6 +298,8 @@ final class PatientStore {
         case "demo-cardio111-chole": return PatientDemo.cardio111Chole
         case "demo-labs111": return PatientDemo.labs111
         case "demo-labs111-sent": return PatientDemo.labs111Sent
+        case "demo-quickadd111": return PatientDemo.quickAdd111
+        case "demo-quickadd111-end": return PatientDemo.quickAdd111End
         default: return nil
         }
     }

@@ -805,6 +805,20 @@ jobs:
           shot 757-labs111-intraop-abg-375-light 22 -ps.tab patient -ps.patient demo -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance light
           shot 758-labs111-handoff-fishbone-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
           shot 759-labs111-handoff-fishbone-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
+          # 1.11 helper D (820-829): the quick-add rules for what still forced a page (P1-12). The airway at handoff, the
+          # disposition and an event on the Intraoperative tab and on Summary & Handoff; ECG findings, the two cardiac No
+          # answers and the stress test on the Preoperative tab; the Intraoperative example rotating with the case
+          # (mid-case "extubated, to PACU"; at handoff "hypotension after induction, EBL 500"); each line added.
+          shot 820-quickadd111-intraop-handoff-dark 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction"
+          shot 821-quickadd111-intraop-handoff-light-375 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction"
+          shot 822-quickadd111-preop-ecg-stress-dark 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "ECG NSR LBBB, no cardiac symptoms, no acute cardiac conditions, DSE negative 2024"
+          shot 823-quickadd111-preop-ecg-stress-light-375 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, no cardiac symptoms, no acute cardiac conditions, DSE negative 2024"
+          shot 824-quickadd111-summary-handoff-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance light -ps.quickadd "remains intubated to CVICU, bradycardia on emergence"
+          shot 825-quickadd111-intraop-placeholder-midcase-dark 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance dark
+          shot 826-quickadd111-intraop-placeholder-handoff-light 18 -ps.tab patient -ps.patient demo-quickadd111-end -ps.patient.tab intraop -ps.forceAppearance light
+          shot 827-quickadd111-intraop-added-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
+          shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
+          shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
