@@ -428,7 +428,31 @@ struct BriefPanel: View {
 
 // MARK: Preprocedure summary
 
-// PreprocedureSummaryView, the Preprocedure tab's last section, is in PatientPreopViews.swift (moved in 1.11, P1-9).
+/// The Preprocedure tab's last section: "+ Generate preprocedure summary", then the brief (record.preopSummaryOn). Nothing
+/// at all until the record has an age or a procedure (1.11, P1-9: no disabled button; the rule, offersSummary, is in
+/// PatientPreopViews.swift).
+struct PreprocedureSummaryView: View {
+    @Environment(PatientStore.self) private var patient
+
+    var body: some View {
+        if patient.record.preopSummaryOn {
+            VStack(alignment: .leading, spacing: 10) {
+                BriefPanel(kind: .preop)
+                Button { patient.update(discrete: true) { $0.preopSummaryOn = false } } label: { Text("Hide summary") }
+                    .buttonStyle(CapsuleButtonStyle(prominent: false))
+            }
+            .id("preopsummary")
+        } else if Self.offersSummary(patient.record) {
+            Button { Haptics.light(); patient.update(discrete: true) { $0.preopSummaryOn = true } } label: {
+                Label("Generate preprocedure summary", systemImage: "plus")
+            }
+            .buttonStyle(CapsuleButtonStyle(prominent: true, color: PS.action))
+            .id("preopsummary")
+        } else {
+            Color.clear.frame(height: 1).id("preopsummary")
+        }
+    }
+}
 
 // MARK: Status & Plan
 

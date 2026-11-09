@@ -776,7 +776,7 @@ jobs:
           shot 813-add111-homemeds-dark 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll homemeds -ps.forceAppearance dark
           shot 814-add111-intraop-other-empty-light 18 -ps.tab patient -ps.patient.tab intraop -ps.patient.jump intraop:other -ps.patient.width 375 -ps.forceAppearance light
           shot 815-add111-intraop-other-filled-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.jump intraop:other -ps.forceAppearance dark
-          shot 816-add111-intraop-timers-row-light 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.patient.jump intraop:other -ps.forceAppearance light
+          shot 816-add111-intraop-timers-row-light 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.patient.scroll casetimers -ps.forceAppearance light
           shot 817-add111-events-page-dark 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events -ps.forceAppearance dark
           shot 818-add111-intraop-lines-limb-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance light
           shot 819-add111-summary-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll risk -ps.patient.width 375 -ps.forceAppearance light

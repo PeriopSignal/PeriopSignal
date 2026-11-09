@@ -135,15 +135,17 @@ enum HomeMedRowStyle {
     ]
     static func shortFlag(_ f: PatientFlag) -> String { shortFlags[f.id] ?? f.label }
     /// The dose field's width: narrower than 1.9's 128 pt so the name and a flag pill share the line. The pill keeps its
-    /// words and the dose its field; a long name shrinks a little, then truncates (shot 812: "Metoprolol succinate" at
-    /// 375 pt), since the name is also on the page and in the briefs.
+    /// words and the dose its field, and the name is never shrunk or truncated (the formulation, succinate or tartrate,
+    /// is part of it): a name too long for one line beside them puts its pill under itself (HomeMedRow).
     static let doseWidth: CGFloat = 104
     /// The dose's text size: a little under the row's, so "7.5 mg weekly" fits the field.
     static let doseFontSize: CGFloat = 13.5
 }
 
 /// One medication on the list, on one line (1.11, P1-10): its name, its flag pill, the dose typed in place, ×. The class
-/// is in the row's detail: a long press shows it, and VoiceOver reads it.
+/// is in the row's detail: a long press shows it, and VoiceOver reads it. The name keeps every letter: when it is too long
+/// to share the line with its pill, the dose field and × (375 pt: "Metoprolol succinate" with "β-blocker"), the pill
+/// goes under the name and the dose field and × stay in their column, so the row is as tall as its name needs.
 private struct HomeMedRow: View {
     var med: PatientMed
     @Binding var dose: String
@@ -153,36 +155,25 @@ private struct HomeMedRow: View {
         let entry = MedicationCatalog.resolve(med)
         let flags = PatientCatalog.medFlags.filter { entry?.flags.contains($0.id) == true }
         let drugClass = entry?.drugClass ?? "Typed, not in the list"
-        HStack(alignment: .center, spacing: 8) {
-            Text(FreeText.cap(med.name)).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                .lineLimit(1).minimumScaleFactor(0.8)
-            if let f = flags.first {
-                Text(HomeMedRowStyle.shortFlag(f) + (flags.count > 1 ? " +\(flags.count - 1)" : ""))
-                    .font(PS.sys(size: 10.5, weight: .semibold)).foregroundStyle(PS.action)
-                    .lineLimit(1).fixedSize()
-                    .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(PS.action.opacity(0.12), in: Capsule())
-                    .layoutPriority(1)
-                    .accessibilityLabel(flags.map(\.label).joined(separator: ", "))
+        ViewThatFits(in: .horizontal) {
+            // One line: the name whole, its pill, the dose, ×.
+            HStack(alignment: .center, spacing: 8) {
+                name.lineLimit(1).fixedSize()
+                pill(flags)
+                Spacer(minLength: 0)
+                doseField
+                removeButton
             }
-            Spacer(minLength: 0)
-            TextField("Dose", text: $dose)
-                .font(PS.sys(size: HomeMedRowStyle.doseFontSize)).foregroundStyle(PS.fg)
-                .multilineTextAlignment(.trailing)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .padding(.horizontal, 8).padding(.vertical, 6)
-                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .frame(width: HomeMedRowStyle.doseWidth)
-                .layoutPriority(1)
-                .accessibilityLabel("Dose of " + med.name)
-            Button(action: onRemove) {
-                Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3)
-                    .frame(width: 28, height: 28)
-                    .contentShape(Rectangle())
+            // The name over its pill, the dose and × beside both.
+            HStack(alignment: .center, spacing: 8) {
+                VStack(alignment: .leading, spacing: 3) {
+                    name.fixedSize(horizontal: false, vertical: true)
+                    pill(flags)
+                }
+                Spacer(minLength: 0)
+                doseField
+                removeButton
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Remove " + med.name)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         .contextMenu {
@@ -192,6 +183,43 @@ private struct HomeMedRow: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(FreeText.cap(med.name) + ", " + drugClass)
+    }
+
+    private var name: some View {
+        Text(FreeText.cap(med.name)).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
+    }
+
+    @ViewBuilder private func pill(_ flags: [PatientFlag]) -> some View {
+        if let f = flags.first {
+            Text(HomeMedRowStyle.shortFlag(f) + (flags.count > 1 ? " +\(flags.count - 1)" : ""))
+                .font(PS.sys(size: 10.5, weight: .semibold)).foregroundStyle(PS.action)
+                .lineLimit(1).fixedSize()
+                .padding(.horizontal, 6).padding(.vertical, 2)
+                .background(PS.action.opacity(0.12), in: Capsule())
+                .accessibilityLabel(flags.map(\.label).joined(separator: ", "))
+        }
+    }
+
+    private var doseField: some View {
+        TextField("Dose", text: $dose)
+            .font(PS.sys(size: HomeMedRowStyle.doseFontSize)).foregroundStyle(PS.fg)
+            .multilineTextAlignment(.trailing)
+            .autocorrectionDisabled()
+            .textInputAutocapitalization(.never)
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .frame(width: HomeMedRowStyle.doseWidth)
+            .accessibilityLabel("Dose of " + med.name)
+    }
+
+    private var removeButton: some View {
+        Button(action: onRemove) {
+            Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Remove " + med.name)
     }
 }
 
@@ -382,14 +410,16 @@ private struct AllergyRow: View {
 
 // MARK: - Flagged medications
 
-/// The medication flags as chips (as before 1.9), bound to the record's medFlags. Each tap is its own Undo step.
+/// The medication flags as chips (as before 1.9), bound to the record's medFlags. Each tap is its own Undo step. Toggles
+/// in the action tint (1.11, P1-8), the same as the active flags' chips they open beside (PreopFlaggedBox).
 struct FlaggedMedicationsChips: View {
     @Environment(PatientStore.self) private var patient
 
     var body: some View {
         PatientChipRow(label: nil) {
             PatientChips(options: PatientCatalog.medFlags,
-                         selection: Binding(get: { patient.record.medFlags }, set: { v in patient.update { $0.medFlags = v } }))
+                         selection: Binding(get: { patient.record.medFlags }, set: { v in patient.update { $0.medFlags = v } }),
+                         tint: PS.action)
         }
     }
 }

@@ -49,8 +49,9 @@ struct PreopAirwayCard: View {
 
     // MARK: Controls
 
-    /// "✓ Exam normal" and "Mallampati I II III IV" on one line where they fit (402-pt phones), else the preset on its
-    /// own line above the class row (375 pt).
+    /// "✓ Exam normal" above the "Mallampati I II III IV" row: the two do not fit side by side at the app's text size on
+    /// any phone width the shots cover (375 or 402 pt; shots 808–811 all stack), so the stacked form is the one seen;
+    /// the one-line form is kept for wider layouts (an iPad, landscape).
     private var controls: some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 12) { preset; mallampatiRow }

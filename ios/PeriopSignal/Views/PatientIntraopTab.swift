@@ -575,6 +575,9 @@ struct IntraopOtherDetails: View {
     /// The case timers row's title: "+ Case timers" while none runs, "Case timers" once some do.
     static func caseTimersTitle(running: Int) -> String { running > 0 ? PreopEmptyHints.caseTimersRunning : PreopEmptyHints.caseTimersNone }
 
+    /// The row's scroll id: the last row of the tab, which a screenshot reaches with -ps.patient.scroll casetimers (shot 816).
+    static let caseTimersScrollID = "casetimers"
+
     /// Opens the case timers, as My Patient's ⋯ menu does: a row like its neighbours, with ⏱ as its icon and › on the
     /// right; "+ Case timers" while none runs, else "Case timers" with the timers that are running under it.
     private var caseTimerLink: some View {
@@ -594,6 +597,7 @@ struct IntraopOtherDetails: View {
             }
         }
         .buttonStyle(.plain)
+        .id(Self.caseTimersScrollID)
         .accessibilityLabel(reminders.isEmpty ? "Add a case timer" : "Case timers, \(reminders.count) running")
         .accessibilityHint("Opens Case Timers for this patient")
     }

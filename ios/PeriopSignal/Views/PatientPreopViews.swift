@@ -657,35 +657,12 @@ struct PreopFlaggedBox: View {
 
 // MARK: - Preprocedure Summary
 
-/// The Preprocedure Summary section (1.9; moved here from PatientBriefViews in 1.11): the brief once generated, with Hide
-/// summary; before that, the Generate button, and nothing at all until the record has an age or a procedure (P1-9: no
-/// disabled button on an empty record; the section title stays so the jump chip has somewhere to go).
-struct PreprocedureSummaryView: View {
-    @Environment(PatientStore.self) private var patient
-
-    /// The Generate button is offered once the record has an age or a planned procedure (or the summary is already on).
+/// When the Preprocedure Summary section (PreprocedureSummaryView, PatientBriefViews.swift) offers its Generate button
+/// (1.11, P1-9): once the record has an age or a planned procedure, or the summary is already on; before that nothing is
+/// drawn (no disabled button), and the section title stays so the jump chip has somewhere to go.
+extension PreprocedureSummaryView {
     static func offersSummary(_ r: PatientRecord) -> Bool {
         r.preopSummaryOn || r.ageYears != nil || !r.procedure.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    var body: some View {
-        let r = patient.record
-        if r.preopSummaryOn {
-            VStack(alignment: .leading, spacing: 10) {
-                BriefPanel(kind: .preop)
-                Button { patient.update(discrete: true) { $0.preopSummaryOn = false } } label: { Text("Hide summary") }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
-            }
-            .id("preopsummary")
-        } else if Self.offersSummary(r) {
-            Button { Haptics.light(); patient.update(discrete: true) { $0.preopSummaryOn = true } } label: {
-                Label("Generate preprocedure summary", systemImage: "plus")
-            }
-            .buttonStyle(CapsuleButtonStyle(prominent: true, color: PS.action))
-            .id("preopsummary")
-        } else {
-            Color.clear.frame(height: 1).id("preopsummary")
-        }
     }
 }
 

@@ -77,7 +77,7 @@ struct PreopHideButton: View {
 enum PreopEmptyHints {
     /// The Airway Examination card.
     static let airway = "Mallampati, difficult-airway signs, teeth"
-    /// The Lines & Devices card of the Preoperative tab.
+    /// The Lines & Devices card of the Preoperative tab (PatientView.devicesCard, C1's; wired in the post-merge sweep).
     static let lines = "Lines and devices on arrival"
     /// The Lines & Devices card of the Intraoperative tab.
     static let intraopLines = "Lines, airway and mechanical support"

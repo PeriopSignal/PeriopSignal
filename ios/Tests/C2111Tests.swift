@@ -150,6 +150,12 @@ final class C2111Tests: XCTestCase {
         XCTAssertEqual(PreopEmptyHints.lines, "Lines and devices on arrival")
     }
 
+    func testCaseTimersRowHasAScrollIdForTheShotThatShowsItsRunningTimers() {
+        // The row is the last on the tab; the shot reaches it by its id (-ps.patient.scroll casetimers), not by the
+        // section header, whose top-anchored scroll left the row under the tab bar.
+        XCTAssertEqual(IntraopOtherDetails.caseTimersScrollID, "casetimers")
+    }
+
     func testCaseTimersRowReadsAddWhileNoneRuns() {
         XCTAssertEqual(IntraopOtherDetails.caseTimersTitle(running: 0), "+ Case timers")
         XCTAssertEqual(IntraopOtherDetails.caseTimersTitle(running: 2), "Case timers")
@@ -210,7 +216,8 @@ final class C2111Tests: XCTestCase {
         XCTAssertLessThan(HomeMedRowStyle.doseWidth, 128, "1.9's dose field")
         // The name, a flag pill and the dose field share one line at 375 pt: the pill keeps its words and the dose its
         // field, so with the widest pill, the dose field, × and the spacing, at least 85 pt is left for the name (a
-        // typical name fits whole; the longest shrinks, then truncates), and the longest demo dose fits its field.
+        // typical name fits whole; a longer one is never shrunk or cut: its pill goes under it, HomeMedRow), and the
+        // longest demo dose fits its field.
         let name = UIFont.systemFont(ofSize: 14.5, weight: .semibold)
         let pill = UIFont.systemFont(ofSize: 10.5, weight: .semibold)
         let dose = UIFont.systemFont(ofSize: HomeMedRowStyle.doseFontSize)
@@ -285,6 +292,15 @@ final class C2111Tests: XCTestCase {
         XCTAssertTrue(PatientSummary.airwayCardLines(r).contains { $0.text == "Impossible mask ventilation: 3 of 5 predictors" })
         XCTAssertTrue(r.devices.contains { $0.kind == .avFistula && !$0.placedIntraop })
         XCTAssertEqual(PatientDeviceFills.limbAlertGroups(r).map(\.limb), ["arm-left", "arm-right"])
+        // Nothing is left in a limb the card warns about: the base demo's left forearm cannula and right radial A-line are
+        // not carried into the fistula arm or the alerted one (shot 818 listed "PIV 18 G L forearm" beside "AV fistula
+        // L forearm").
+        XCTAssertFalse(PatientDemo.meds.devices.filter { PatientDemo.limb(of: $0) != nil }.isEmpty, "the base demo has limb lines to drop")
+        let alerted = Set(PatientDeviceFills.limbAlerts(r).map(\.limb))
+        for d in r.devices where d.kind != .avFistula {
+            if let limb = PatientDemo.limb(of: d) { XCTAssertFalse(alerted.contains(limb), "\(d.kind) at \(d.site) sits in an alerted limb") }
+        }
+        XCTAssertEqual(PatientDemo.limb(of: PatientDevices.parse("PIV 18 G L forearm")!.device()), "arm-left")
         XCTAssertEqual(PatientStore.debugSeed("demo-add111")?.homeMeds.count, 7, "registered in the demo switch")
     }
 }
