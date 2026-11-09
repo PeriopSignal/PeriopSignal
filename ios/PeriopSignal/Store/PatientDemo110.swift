@@ -2,7 +2,8 @@ import Foundation
 
 // A made-up patient for the 1.10 echo and past-surgery screenshots (-ps.patient demo-echo110, shots 520–539): a 71-year-old
 // man with a degenerated bioprosthetic aortic valve and an ascending aneurysm, for a redo AVR with supracoronary ascending
-// aorta replacement; the intraoperative TEE has a pre-bypass and a post-bypass exam as Ben's notes-img3 shows.
+// aorta replacement; the intraoperative TEE has a pre-bypass and a post-bypass exam as Ben's notes-img3 shows (the explanted
+// 23 mm Perimount replaced by a 23 mm Magna Ease: no annular enlargement is planned, so the same size; review 1.10).
 
 extension PatientDemo {
     static var echo110: PatientRecord {
@@ -40,7 +41,7 @@ extension PatientDemo {
         post.rv = .normal
         post.mitral = EchoValve(regurgitation: .mild, stenosis: .normal)
         post.tricuspid = EchoValve(regurgitation: .trivial, stenosis: .normal)
-        post.aortic = EchoValve(regurgitation: .normal, stenosis: .normal, prosthesis: "Bioprosthetic", prosthesisDetail: "29 Magna",
+        post.aortic = EchoValve(regurgitation: .normal, stenosis: .normal, prosthesis: "Bioprosthetic", prosthesisDetail: "23 mm Magna Ease",
                                 notes: "Well seated, no paravalvular leak")
         r.intraopEchoPost = post
         return r
