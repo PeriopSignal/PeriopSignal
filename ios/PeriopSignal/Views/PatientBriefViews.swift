@@ -11,36 +11,20 @@ private extension PatientStore {
 
 // MARK: Fishbone
 
-/// A small "<" or ">" for the fishbone: a wedge whose point is on the left or the right.
-private struct FishboneWedge: Shape {
-    var pointsLeft: Bool
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        if pointsLeft {
-            p.move(to: CGPoint(x: rect.maxX, y: rect.minY))
-            p.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
-            p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        } else {
-            p.move(to: CGPoint(x: rect.minX, y: rect.minY))
-            p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
-            p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        }
-        return p
-    }
-}
-
 /// The labs as the fishbone: BMP (Na, Cl, BUN over K, HCO₃, Cr, with the glucose at the point), CBC (WBC, Hb over Hct,
-/// Plt) and the coagulation values (PT over INR, PTT, fibrinogen). A value not entered is a dash in a group that has
-/// something; abnormal values bold red, as the Labs screen marks them; values from the case end in *. Small, and
-/// legible in light and dark.
+/// Plt) and the coagulation figure (PT over PTT, INR at the point, fibrinogen beside it, as Ben drew it on Nov 9). A
+/// value not entered is a dash in a group that has something; abnormal values bold red, as the Labs screen marks them;
+/// values from the case end in *. Small, and legible in light and dark. The shapes are the Labs page's own
+/// (FishboneBMP, FishboneCBC, FishboneCoags in PatientLabsView.swift, 1.11), so the brief stays in step with the figure
+/// the values are typed into.
 struct FishboneFigure: View {
     var labs: BriefLabs
 
-    private let cellWidth: CGFloat = 40
-    private let rowHeight: CGFloat = 30
+    private let g = FishboneGeometry.small
 
-    private func cell(_ key: String, _ name: String) -> some View {
+    private func cell(_ key: String) -> some View {
         let c = labs.cells[key]
+        let name = c?.label ?? PatientLabs.test(key)?.short ?? key
         let color: Color = c == nil || c?.estimated == true ? PS.fg3 : (c?.abnormal == true ? PS.red : PS.fg)
         return VStack(spacing: 0) {
             Text(c.map { ($0.estimated ? "~" : "") + $0.text + ($0.intraop ? "*" : "") } ?? "—")
@@ -51,40 +35,11 @@ struct FishboneFigure: View {
                 .minimumScaleFactor(0.7)
             Text(name).font(PS.sys(size: 8)).foregroundStyle(PS.fg3)
         }
-        .frame(width: cellWidth, height: rowHeight)
+        .frame(width: g.cellWidth, height: g.cellHeight)
     }
 
-    private func vRule() -> some View { Rectangle().fill(PS.line2).frame(width: 1, height: rowHeight - 6) }
-    private func hRule(_ width: CGFloat) -> some View { Rectangle().fill(PS.line2).frame(width: width, height: 1) }
-
-    private var bmp: some View {
-        HStack(spacing: 3) {
-            VStack(spacing: 0) {
-                HStack(spacing: 0) { cell("na", "Na"); vRule(); cell("cl", "Cl"); vRule(); cell("bun", "BUN") }
-                hRule(cellWidth * 3 + 2)
-                HStack(spacing: 0) { cell("k", "K"); vRule(); cell("hco3", "HCO₃"); vRule(); cell("cr", "Cr") }
-            }
-            FishboneWedge(pointsLeft: false).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
-            cell("glucose", "Glu")
-        }
-    }
-
-    private var cbc: some View {
-        HStack(spacing: 0) {
-            cell("wbc", "WBC")
-            FishboneWedge(pointsLeft: true).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
-            VStack(spacing: 0) {
-                cell("hb", "Hb")
-                hRule(cellWidth)
-                cell("hct", "Hct")
-            }
-            FishboneWedge(pointsLeft: false).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
-            cell("plt", "Plt")
-        }
-    }
-
-    /// The coagulation parts entered, in order: "ptinr" (PT over INR), "ptt", "fibrinogen". A divider goes between two
-    /// of them only, never beside one alone or twice in a row.
+    /// The coagulation parts entered, in order: "ptinr" (PT and INR), "ptt", "fibrinogen"; the fibrinogen cell is
+    /// drawn only when it is among them (the PT, PTT and INR cells are the figure itself).
     static func coagParts(_ labs: BriefLabs) -> [String] {
         var out: [String] = []
         if labs.cells["pt"] != nil || labs.cells["inr"] != nil { out.append("ptinr") }
@@ -93,34 +48,11 @@ struct FishboneFigure: View {
         return out
     }
 
-    @ViewBuilder private func coagPart(_ id: String) -> some View {
-        switch id {
-        case "ptinr":
-            VStack(spacing: 0) {
-                cell("pt", "PT")
-                hRule(cellWidth)
-                cell("inr", "INR")
-            }
-        case "ptt": cell("ptt", "PTT")
-        default: cell("fibrinogen", "Fib")
-        }
-    }
-
-    private var coags: some View {
-        let parts = Self.coagParts(labs)
-        return HStack(spacing: 0) {
-            ForEach(Array(parts.enumerated()), id: \.element) { i, id in
-                if i > 0 { vRule() }
-                coagPart(id)
-            }
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if labs.hasBMP { bmp }
-            if labs.hasCBC { cbc }
-            if labs.hasCoags { coags }
+            if labs.hasBMP { FishboneBMP(g: g) { cell($0) } }
+            if labs.hasCBC { FishboneCBC(g: g) { cell($0) } }
+            if labs.hasCoags { FishboneCoags(g: g, fibrinogen: Self.coagParts(labs).contains("fibrinogen")) { cell($0) } }
             if let c = labs.caption {
                 Text(c).font(PS.sys(size: 9)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
             }

@@ -293,6 +293,8 @@ final class PatientStore {
         case "demo-echo110": return PatientDemo.echo110
         case "demo-echo110-pre": return PatientDemo.echo110Pre
         case "demo-echo110-as": return PatientDemo.echo110Severe
+        case "demo-labs111": return PatientDemo.labs111
+        case "demo-labs111-sent": return PatientDemo.labs111Sent
         default: return nil
         }
     }

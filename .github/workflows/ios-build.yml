@@ -758,6 +758,30 @@ jobs:
           shot 535-previous-intrathoracic-light 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance light
           shot 536-previous-intrathoracic-dark 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance dark
           shot 537-preop-echo-summary-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          # 1.11 labs typed into the fishbone (helper A, 740-759): the Labs page's figures with their slots (and the keyboard on
+          # one), the hepatic figure with Mg and PO₄, the List toggle, the Type & screen status row (resulted; sent and
+          # awaited), the empty page with its range hints, the tab card with the small figures (filled, at 375 pt, empty), the
+          # intraoperative labs page's ABG slash figure, and the handoff's fishbone drawn from the same shapes.
+          shot 740-labs111-figures-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 741-labs111-figures-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.forceAppearance dark
+          shot 742-labs111-figures-375-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 743-labs111-slot-keyboard-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.focus main.k -ps.forceAppearance light
+          shot 744-labs111-hepatic-dark 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-hepatic -ps.forceAppearance dark
+          shot 745-labs111-hepatic-375-light 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-hepatic -ps.patient.width 375 -ps.forceAppearance light
+          shot 746-labs111-list-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.labs.list 1 -ps.forceAppearance light
+          shot 747-labs111-typescreen-resulted-light 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance light
+          shot 748-labs111-typescreen-sent-dark 22 -ps.tab patient -ps.patient demo-labs111-sent -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance dark
+          shot 749-labs111-empty-page-light 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 750-labs111-empty-page-dark 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:labs -ps.forceAppearance dark
+          shot 751-labs111-card-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab preop -ps.patient.scroll labs -ps.forceAppearance light
+          shot 752-labs111-card-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab preop -ps.patient.scroll labs -ps.forceAppearance dark
+          shot 753-labs111-card-375-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab preop -ps.patient.scroll labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 754-labs111-card-empty-light 20 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll labs -ps.forceAppearance light
+          shot 755-labs111-intraop-abg-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:labs -ps.forceAppearance light
+          shot 756-labs111-intraop-abg-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:labs -ps.forceAppearance dark
+          shot 757-labs111-intraop-abg-375-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 758-labs111-handoff-fishbone-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 759-labs111-handoff-fishbone-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

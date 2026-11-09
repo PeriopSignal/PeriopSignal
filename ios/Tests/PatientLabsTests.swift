@@ -10,10 +10,12 @@ final class PatientLabsTests: XCTestCase {
     func testCatalog() {
         let keys = PatientLabs.catalog.map(\.key)
         XCTAssertEqual(Set(keys).count, keys.count, "no key twice")
+        // 1.11 (Ben's note 1, the hepatic fishbone and the minerals): calcium, total protein, magnesium and phosphorus
+        // join the main labs after the bilirubin; lactate stays last.
         XCTAssertEqual(PatientLabs.tests(.main).map(\.key),
                        ["hb", "hct", "wbc", "plt", "pt", "inr", "ptt", "fibrinogen", "na", "k", "cl", "hco3", "bun", "cr", "gfr",
-                        "glucose", "a1c", "albumin", "tbili", "lactate"],
-                       "PT and aPTT around INR (1.9), fibrinogen after them, GFR under creatinine; lactate last (1.8.3)")
+                        "glucose", "a1c", "albumin", "tbili", "ca", "protein", "mg", "phos", "lactate"],
+                       "PT and aPTT around INR (1.9), fibrinogen after them, GFR under creatinine; Ca, protein, Mg, PO₄ (1.11); lactate last (1.8.3)")
         XCTAssertEqual(PatientLabs.tests(.cardiac).map(\.key), ["bnp", "ntprobnp", "troponin", "troponin99"])
         XCTAssertEqual(PatientLabs.tests(.liver).map(\.key), ["ast", "alt", "alp"])
         XCTAssertEqual(PatientLabs.tests(.thyroid).map(\.key), ["tsh", "ft4", "ft3"])
