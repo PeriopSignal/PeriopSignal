@@ -1,7 +1,8 @@
-[0;93m2026-11-04 09:24:55.108671746 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-4 post(s) to synthesize with kokoro:af_heart
-  lancet-2026-iris-main-left-main-pci-cabg: 211 s, 1650 KB, 59 s to make
-  fda-2026-butterflybvm-bellows-holes-early-alert: 185 s, 1441 KB, 50 s to make
-  eja-2026-sugammadex-neostigmine-165-rct-meta: 216 s, 1684 KB, 58 s to make
-  tct26-2026-clasp-ii-tr-pascal: 212 s, 1657 KB, 57 s to make
-synthesized 4, failed 0, 9718 characters, 4 min
+[0;93m2026-11-09 09:14:08.537849737 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+5 post(s) to synthesize with kokoro:af_heart
+  jama-2026-ischemia-extend-long-term-survival: 247 s, 1926 KB, 54 s to make
+  bmj-2026-topic-2-paravertebral-vs-epidural-thoracotomy: 210 s, 1638 KB, 44 s to make
+  anesthesiology-2026-optipam-individualized-map-cardiac-surgery: 184 s, 1437 KB, 38 s to make
+  bmj-2026-lma-vs-ett-pediatric-adenotonsillectomy: 211 s, 1651 KB, 44 s to make
+  lancet-2026-dapt-shock-ami-cangrelor-vs-crushed-ticagrelor: 195 s, 1524 KB, 41 s to make
+synthesized 5, failed 0, 12165 characters, 4 min
