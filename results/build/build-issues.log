@@ -1,2 +1,1 @@
-   1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Views/PatientStyleGallery.swift:208:36: error: escaping closure captures non-escaping parameter 'content'
    1 /Users/runner/work/PeriopSignal/PeriopSignal/ios/PeriopSignal/Store/SpeechPlayer.swift:411:37: warning: call to main actor-isolated static method 'parse' in a synchronous nonisolated context
