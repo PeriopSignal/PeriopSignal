@@ -134,8 +134,9 @@ enum HomeMedRowStyle {
         "acei": "ACEi/ARB", "steroid": "Steroid", "opioid": "Opioid", "maoi": "MAOI",
     ]
     static func shortFlag(_ f: PatientFlag) -> String { shortFlags[f.id] ?? f.label }
-    /// The dose field's width: narrower than 1.9's 128 pt so the name and a flag pill share the line at 375 pt.
-    static let doseWidth: CGFloat = 104
+    /// The dose field's width (PatientNumberField's): narrower than 1.9's 128 pt so the name and a flag pill share the
+    /// line, with at least 100 pt left for the name at 375 pt (a long name shrinks a little, then truncates).
+    static let doseWidth: CGFloat = 92
 }
 
 /// One medication on the list, on one line (1.11, P1-10): its name, its flag pill, the dose typed in place, ×. The class

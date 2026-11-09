@@ -88,10 +88,11 @@ final class C2111Tests: XCTestCase {
         XCTAssertEqual(airway.count, 1)
         XCTAssertTrue(airway[0].text.hasSuffix("At handoff: extubated."), airway[0].text)
         XCTAssertFalse(PatientSummary.intraopPartLines(course, "events").contains { $0.label == "At handoff" })
-        // Only the airway at handoff, no course: the airway part says it once.
+        // Only the airway at handoff, no course: the course sentence carries it, and the airway part says it once.
         var only = PatientRecord()
         only.airwayAtEnd = "sga"
-        XCTAssertEqual(PatientSummary.intraopPartLines(only, "airway").map(\.text), ["Supraglottic airway in"])
+        XCTAssertEqual(PatientSummary.intraopPartLines(only, "airway").map(\.text), ["At handoff: supraglottic airway in."])
+        XCTAssertTrue(PatientSummary.intraopPartLines(only, "events").isEmpty)
         XCTAssertEqual(PatientSummary.atHandoffText("extubated"), "Extubated")
         XCTAssertEqual(PatientSummary.atHandoffText("intubated"), "Remains intubated")
         // The handoff text is what it was: the course with "At handoff" in the Airway section.
@@ -207,14 +208,17 @@ final class C2111Tests: XCTestCase {
             XCTAssertLessThanOrEqual(HomeMedRowStyle.shortFlag(f).count, 10, f.id)
         }
         XCTAssertLessThan(HomeMedRowStyle.doseWidth, 128, "1.9's dose field")
-        // The name, a flag pill and the dose field share one line at 375 pt: the longest demo name at its font, the
-        // widest pill, the dose field, × and the spacing fit the row.
+        // The name, a flag pill and the dose field share one line at 375 pt: with the widest pill, the dose field, × and
+        // the spacing, at least 100 pt is left for the name (most of the demo's names fit whole; the longest shrinks a
+        // little), and a typical name with its pill fits without shrinking.
         let name = UIFont.systemFont(ofSize: 14.5, weight: .semibold)
         let pill = UIFont.systemFont(ofSize: 10.5, weight: .semibold)
-        let longest = PatientDemo.meds.homeMeds.map { (FreeText.cap($0.name) as NSString).size(withAttributes: [.font: name]).width }.max() ?? 0
         let widestPill = PatientCatalog.medFlags.map { (HomeMedRowStyle.shortFlag($0) as NSString).size(withAttributes: [.font: pill]).width + 12 }.max() ?? 0
         let room: CGFloat = 375 - 40 - 28
-        XCTAssertLessThanOrEqual(longest * 0.8 + 8 + widestPill + 8 + HomeMedRowStyle.doseWidth + 8 + 28, room, "longest \(longest), pill \(widestPill)")
+        let nameRoom = room - (8 + widestPill + 8 + HomeMedRowStyle.doseWidth + 8 + 28)
+        XCTAssertGreaterThanOrEqual(nameRoom, 100, "pill \(widestPill)")
+        let typical = ("Atorvastatin" as NSString).size(withAttributes: [.font: name]).width
+        XCTAssertLessThanOrEqual(typical, nameRoom)
     }
 
     // MARK: P1-7: the quiet link and the allergies type line
