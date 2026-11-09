@@ -509,6 +509,13 @@ final class D111Tests: XCTestCase {
             for (place, q) in bothPlaces(s) { XCTAssertTrue(ids(q).contains { $0.hasPrefix("allergies:") }, "\(s) on \(place): \(ids(q))") }
         }
         XCTAssertFalse(QuickAdd.isEvent("allergic to rocuronium (anaphylaxis)", lead: "", strict: false))
+        // "PCN allergy" opening the line is penicillin, not the nephrostomy the procedure list knows as PCN; the
+        // procedure opening a line is still read.
+        for q in [read("PCN allergy"), summary("PCN allergy (anaphylaxis to cefazolin too)")] {
+            XCTAssertNil(finding(q, "procedure"), "\(ids(q))")
+            XCTAssertTrue(ids(q).contains("allergies:pcn"), "\(ids(q))")
+        }
+        XCTAssertNotNil(finding(read("PCN, HTN"), "procedure"), "\(ids(read("PCN, HTN")))")
         XCTAssertFalse(QuickAdd.isEvent("anaphylaxis", lead: "allergies: PCN", strict: false), "the reaction later in an allergy list")
 
         // An event beside an allergy is still the event, and the allergy is still the allergy.

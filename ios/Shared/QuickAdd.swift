@@ -1844,6 +1844,9 @@ enum QuickAdd {
     private static let urgencyWord = NoteRx(#"\b(?:elective|urgent|emergent|emergency|semi-?urgent|stat|time[- ]sensitive)\b"#)
     /// A procedure from the past, not planned ("CABG 2015", "s/p", "years ago").
     private static let pastWords = NoteRx(#"\b(?:19|20)\d\d\b|\bago\b|\b(?:s/p|status post|prior|previous|history|hx|h/o|remote)\b"#)
+    /// "allergy" right after the name that opens the line (1.11): "PCN allergy" is penicillin, the allergy reader's, not a
+    /// nephrostomy.
+    static let allergyAfterName = NoteRx(#"^\s*allerg(?:y|ies)\b"#)
     /// Words that join procedures or detail one: "×3", "+", "possible open", "L4-5".
     private static let detailWord = NoteRx(#"^(?:x\d{1,2}|×\d{1,2}|×|x|\d{1,2}|\+|&|and|/|with|w/|plus|possible|poss|open|conversion|converted|to|redo|re-do|robotic|robot|robot-assisted|assisted|lap|laparoscopic|minimally|invasive|mini|left|right|bilateral|l|r|lt|rt|bilat|b/l|elective|urgent|emergent|emergency|stat|staged|single|double|triple|quadruple|vessel|level|levels|[a-z]\d{1,2}(?:-[a-z]?\d{1,2})?)$"#)
 
@@ -1895,7 +1898,8 @@ enum QuickAdd {
         let next = p.range.location + p.range.length < ns.length ? ns.substring(with: NSRange(location: p.range.location + p.range.length, length: 1)) : ""
         let rest = ns.substring(with: pieceRange(p.range, in: text))
         guard PatientNote.deviceCue.first(named) == nil, PatientNote.tubeCue.first(named) == nil, next != ":",
-              pastWords.first(rest) == nil, aortaHistoryLead.first(named) == nil else { return }
+              pastWords.first(rest) == nil, aortaHistoryLead.first(named) == nil,
+              allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { return }
         take(p, &s, c, &out)
     }
 
@@ -2827,7 +2831,7 @@ enum QuickAdd {
         var out = [ecgCue, ecgNormal, ecgWord, extubatedRx, intubatedRx, extubatedPast, dispositionRx, dispositionNotAfter, dispositionNotBefore,
                    noCardiacSymptoms, noAcuteCardiac, stressCue, ettToken, stressEquivocal, stressNegative, stressPositive, stressNotDone, stressDate,
                    eventRx, eventLead, eventHistoryRx, eventCasePoint, eventAgent, eventManner, eventHistoryMark, eventYear,
-                   eventOwnReaction, eventHistoryLead, eventAllergyReaction, eventReport, PatientNote.takenMedicineRx]
+                   eventOwnReaction, eventHistoryLead, eventAllergyReaction, eventReport, PatientNote.takenMedicineRx, allergyAfterName]
         out += ecgRules.map(\.rx) + ecgRules.compactMap(\.notBefore)
         return out
     }
