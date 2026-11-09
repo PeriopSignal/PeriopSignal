@@ -1,0 +1,4 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/C2111Tests.swift:94: error: -[PeriopSignalTests.C2111Tests testAtHandoffLineMovedFromTheEventsPartToTheAirwayPartAndTheHandoffIsUnchanged] : XCTAssertEqual failed: ("["At handoff: supraglottic airway in."]") is not equal to ("["Supraglottic airway in"]")
+Test Case '-[PeriopSignalTests.C2111Tests testAtHandoffLineMovedFromTheEventsPartToTheAirwayPartAndTheHandoffIsUnchanged]' failed (4.068 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/C2111Tests.swift:217: error: -[PeriopSignalTests.C2111Tests testMedicationRowFlagsHaveShortWordsAndTheDoseFieldIsNarrower] : XCTAssertLessThanOrEqual failed: ("335.50901774168017") is greater than ("307.0") - longest 145.77918541431427, pill 62.88566941022873
+Test Case '-[PeriopSignalTests.C2111Tests testMedicationRowFlagsHaveShortWordsAndTheDoseFieldIsNarrower]' failed (0.039 seconds).
