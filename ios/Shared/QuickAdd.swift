@@ -337,9 +337,10 @@ enum QuickAdd {
         // workup (on the Intraoperative tab they are set aside, as the history is).
         if !surgicalHistory {
             readDisposition(&s, c, &out)
-            readStressTest(&s, c, &out)
-            readCardiacAnswers(&s, c, &out)
+            // In the order a workup line is told: the ECG, the answers, then the test.
             if tab == .preop { readECG(&s, c, &out) }
+            readCardiacAnswers(&s, c, &out)
+            readStressTest(&s, c, &out)
         }
         readFishbone(&s, c, &out)
         readGas(&s, c, &out)

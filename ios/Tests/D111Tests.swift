@@ -470,7 +470,8 @@ final class D111Tests: XCTestCase {
 
     func testAPreopWorkupLine() {
         let q = read("ECG NSR LBBB, no cardiac symptoms, no acute cardiac conditions, DSE negative 2024")
-        XCTAssertEqual(Set(ids(q)), ["ecg:Normal sinus rhythm", "ecg:Left bundle branch block", "cardiac:symptoms", "cardiac:acute", "stress"])
+        XCTAssertEqual(ids(q), ["ecg:Normal sinus rhythm", "ecg:Left bundle branch block", "cardiac:symptoms", "cardiac:acute", "stress"],
+                       "in the order the line tells them")
         XCTAssertEqual(q.unread, "")
         let r = applied(q)
         XCTAssertEqual(r.ecg, ["Normal sinus rhythm", "Left bundle branch block"])
