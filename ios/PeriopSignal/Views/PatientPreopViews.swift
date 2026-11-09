@@ -491,7 +491,7 @@ struct PreopCardioBox: View {
                 Hairline().padding(.leading, 14)
                 PatientCardiacEvaluationContent()
                 Hairline().padding(.leading, 14)
-                workup(r).padding(14).id("preopworkup")
+                workup(r).padding(14).jumpTarget(anchor: "preopworkup")
             }
         }
     }

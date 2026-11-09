@@ -610,7 +610,7 @@ jobs:
           shot 447-preop-asa-functional-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance dark
           shot 448-preop-cardio-intrathoracic-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit intrathoracic -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
           shot 449-preop-cardio-intrathoracic-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.edit intrathoracic -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
-          shot 450-preop-cardiac-workup-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 450-preop-cardiac-workup-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.forceAppearance light
           shot 451-preop-cardiac-workup-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.forceAppearance dark
           shot 452-preop-airway-labs-devices-light 20 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll airway -ps.forceAppearance light
           shot 453-preop-airway-labs-devices-dark 20 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll airway -ps.forceAppearance dark
