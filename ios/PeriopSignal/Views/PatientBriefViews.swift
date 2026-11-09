@@ -361,7 +361,6 @@ struct BriefPanel: View {
     var startAt: String = ""
     @State private var sharing: [Any]?
     @State private var copied = false
-    @State private var confirming = false
 
     private var record: PatientRecord { patient.record }
     private var all: [SummaryBlock] { PatientBriefs.blocks(kind, record) }
@@ -369,26 +368,25 @@ struct BriefPanel: View {
         guard !startAt.isEmpty, let i = all.firstIndex(where: { ($0.label ?? "").lowercased().hasPrefix(startAt.lowercased()) }) else { return all }
         return Array(all[i...])
     }
-    private var edited: Bool { !PatientBriefs.edits(kind, record).isEmpty }
-
     private var title: String { kind == .preop ? "Preprocedure summary" : "Handoff, as it stands" }
 
     /// The handoff keeps its eyebrow (the Summary & Handoff tab has no section title above it); the preoperative brief
     /// does not (1.11, P1-6).
     static func showsEyebrow(_ kind: PatientBriefs.Kind) -> Bool { kind != .preop }
 
+    /// The preoperative brief's Regenerate sits on its section title's line ("Preprocedure Summary · Regenerate", 1.11,
+    /// P1-6: PatientView.summarySection), so the panel draws no header row for it; the handoff keeps its eyebrow and
+    /// Regenerate on one row.
+    static func regenerateOnTitleLine(_ kind: PatientBriefs.Kind) -> Bool { !showsEyebrow(kind) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // One heading per thing (1.11, P1-6): the Preprocedure tab's brief sits under its section title, so its eyebrow
-            // ("PREPROCEDURE SUMMARY", the same words) goes and Regenerate keeps the title's line on its own.
-            HStack(alignment: .firstTextBaseline) {
-                if Self.showsEyebrow(kind) { Eyebrow(text: title) }
-                Spacer()
-                Button { confirming = true } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
-                    .disabled(!edited)
-                    .opacity(edited ? 1 : 0.45)
-                    .accessibilityHint("Rebuilds this text from the record and clears your edits")
+            if !Self.regenerateOnTitleLine(kind) {
+                HStack(alignment: .firstTextBaseline) {
+                    Eyebrow(text: title)
+                    Spacer()
+                    BriefRegenerateButton(kind: kind)
+                }
             }
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(shown) { b in
@@ -418,17 +416,35 @@ struct BriefPanel: View {
             }
         }
         .sensoryFeedback(.success, trigger: copied)
-        .confirmationDialog("Regenerate this text from the record?", isPresented: $confirming, titleVisibility: .visible) {
-            Button("Regenerate", role: .destructive) {
-                patient.update(discrete: true) { PatientBriefs.regenerate(&$0, kind) }
-            }
-            Button("Keep my edits", role: .cancel) {}
-        } message: {
-            Text("Your edits to this text are cleared. Undo brings them back.")
-        }
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
             ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
         }
+    }
+}
+
+/// A brief's Regenerate: off until the brief has an edit; asks, then clears this brief's edits (Undo brings them back).
+/// On the handoff's eyebrow row, and on the Preprocedure Summary title's line.
+struct BriefRegenerateButton: View {
+    @Environment(PatientStore.self) private var patient
+    var kind: PatientBriefs.Kind
+    @State private var confirming = false
+
+    private var edited: Bool { !PatientBriefs.edits(kind, patient.record).isEmpty }
+
+    var body: some View {
+        Button { confirming = true } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
+            .buttonStyle(CapsuleButtonStyle(prominent: false))
+            .disabled(!edited)
+            .opacity(edited ? 1 : 0.45)
+            .accessibilityHint("Rebuilds this text from the record and clears your edits")
+            .confirmationDialog("Regenerate this text from the record?", isPresented: $confirming, titleVisibility: .visible) {
+                Button("Regenerate", role: .destructive) {
+                    patient.update(discrete: true) { PatientBriefs.regenerate(&$0, kind) }
+                }
+                Button("Keep my edits", role: .cancel) {}
+            } message: {
+                Text("Your edits to this text are cleared. Undo brings them back.")
+            }
     }
 }
 

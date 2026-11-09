@@ -45,21 +45,38 @@ private extension PatientStore {
 struct PreopSectionTitle: View {
     var text: String
     var info: String? = nil
+    /// A control on the title's line, at its trailing edge (1.11, P1-6: Regenerate beside "Preprocedure Summary"). Where
+    /// the two do not fit one line (a narrow phone at the largest text size) it drops under the title, never clipped.
+    var trailing: AnyView? = nil
     @State private var open = LaunchSeed.bool("ps.evidence.open")
-
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 7) {
-                Text(text)
-                    .font(PS.sys(size: 19, weight: .bold))
-                    .foregroundStyle(PS.fg)
-                    .accessibilityAddTraits(.isHeader)
-                if let info, !info.isEmpty { InfoButton(open: $open, label: "About " + text, size: 13) }
+            if let trailing {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        titleLine.fixedSize(horizontal: true, vertical: false)
+                        Spacer(minLength: 0)
+                        trailing
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        titleLine
+                        HStack(spacing: 0) { Spacer(minLength: 0); trailing }
+                    }
+                }
+            } else {
+                titleLine
             }
             if open, let info, !info.isEmpty { InfoCaptionText(text: info, font: PS.sys(size: 12.5)) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 10)
+    }
+
+    private var titleLine: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Text(text).font(PS.sys(size: 19, weight: .bold)).foregroundStyle(PS.fg).accessibilityAddTraits(.isHeader)
+            if let info, !info.isEmpty { InfoButton(open: $open, label: "About " + text, size: 13) }
+        }
     }
 }
 

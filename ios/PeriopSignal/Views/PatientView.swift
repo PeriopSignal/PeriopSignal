@@ -620,11 +620,17 @@ struct PatientView: View {
         PreopRiskBox(onOpenRoute: { open($0) })
     }
 
-    /// 6. Preprocedure Summary.
+    /// 6. Preprocedure Summary. Once the summary is generated its Regenerate sits on the title's line (1.11, P1-6: one
+    /// heading, no row of its own for the button); before that there is nothing to regenerate.
     @ViewBuilder private var summarySection: some View {
-        PreopSectionTitle(text: PreopSection.summary.sectionTitle).jumpTarget(section: .summary)
+        PreopSectionTitle(text: PreopSection.summary.sectionTitle,
+                          trailing: Self.summaryTitleHasRegenerate(r) ? AnyView(BriefRegenerateButton(kind: .preop)) : nil)
+            .jumpTarget(section: .summary)
         PreprocedureSummaryView()
     }
+
+    /// Regenerate rides the Preprocedure Summary title only while the summary is showing.
+    static func summaryTitleHasRegenerate(_ r: PatientRecord) -> Bool { r.preopSummaryOn && BriefPanel.regenerateOnTitleLine(.preop) }
 
     private static let preopJumps: [PatientJumpItem] = PreopSection.allCases.map { PatientJumpItem(section: $0) }
 
@@ -634,6 +640,7 @@ struct PatientView: View {
     private static let jumpKeys: [String: PatientJumpID] = [
         "procedure": PatientJumpID(section: .procedure), "planned": PatientJumpID(section: .procedure),
         "riskinputs": PatientJumpID(anchor: PatientPreop110.riskInputsAnchor), "demographics": PatientJumpID(anchor: "demographics"),
+        "demographics-title": PatientJumpID(section: .demographics),
         "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
         "risk": PatientJumpID(section: .risk), "summary": PatientJumpID(section: .summary),
         "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),

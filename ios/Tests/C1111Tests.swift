@@ -193,6 +193,41 @@ final class C1111Tests: XCTestCase {
         }
     }
 
+    /// The gallery's parts cover every variant once, and each part below the first screen can be brought up for its
+    /// shot (-ps.gallery.scroll); a name that is not a part scrolls nowhere.
+    func testStyleGalleryPartsCoverEveryVariantAndCanBeScrolledTo() {
+        XCTAssertEqual(PatientStyleGallery.sections, ["tokens", "chips", "links", "lines", "headings", "buttons"])
+        XCTAssertEqual(Set(PatientStyleGallery.sectionVariants.keys), Set(PatientStyleGallery.sections))
+        let drawn = PatientStyleGallery.sections.flatMap { PatientStyleGallery.sectionVariants[$0] ?? [] }
+        XCTAssertEqual(drawn.sorted(), PatientStyleGallery.variants.sorted(), "every variant in one part, once")
+        for part in ["links", "lines", "headings", "buttons"] { XCTAssertEqual(PatientStyleGallery.scrollTarget(part), part) }
+        XCTAssertNil(PatientStyleGallery.scrollTarget(""))
+        XCTAssertNil(PatientStyleGallery.scrollTarget("nowhere"))
+    }
+
+    // MARK: P1-6 — Regenerate on the title line; the screenshot names
+
+    /// "Preprocedure Summary · Regenerate" on the title line: the preoperative brief draws no header row of its own, and
+    /// the title carries Regenerate only once the summary is showing. The handoff keeps its eyebrow row.
+    func testRegenerateSitsOnThePreprocedureSummaryTitleLine() {
+        XCTAssertTrue(BriefPanel.regenerateOnTitleLine(.preop))
+        XCTAssertFalse(BriefPanel.regenerateOnTitleLine(.handoff), "the handoff has no section title: eyebrow and Regenerate on one row")
+        var r = PatientRecord()
+        r.ageYears = 70
+        XCTAssertFalse(PatientView.summaryTitleHasRegenerate(r), "nothing to regenerate before the summary is generated")
+        r.preopSummaryOn = true
+        XCTAssertTrue(PatientView.summaryTitleHasRegenerate(r))
+    }
+
+    /// The screenshot names: "demographics" is the first box (as before), "demographics-title" the section title above
+    /// it, the same target as the jump chip's.
+    func testTheDemographicsTitleIsAScreenshotTarget() {
+        XCTAssertEqual(PatientView.shotTargetKey("demographics-title"), PatientJumpID(section: .demographics).key)
+        XCTAssertEqual(PatientView.shotTargetKey("demographics"), PatientJumpID(anchor: "demographics").key)
+        XCTAssertNotEqual(PatientView.shotTargetKey("demographics-title"), PatientView.shotTargetKey("demographics"))
+        XCTAssertEqual(PatientView.shotTargetKey("summary"), PatientJumpID(section: .summary).key)
+    }
+
     // MARK: Saved records
 
     /// A record saved by 1.10 (its keys as 1.10 wrote them, none of 1.11's) still loads, and nothing in this release's

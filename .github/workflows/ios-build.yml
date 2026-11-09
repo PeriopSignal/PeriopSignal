@@ -768,16 +768,27 @@ jobs:
           shot 783-preop-pinned-cardio-pills-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
           shot 784-w375-preop-pinned-medications-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll medications -ps.forceAppearance light
           shot 785-preop-pinned-summary-dark 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
+          # Regenerate on the summary title's line at a phone's width, and under the title at the largest text size.
+          shot 785-w375-preop-summary-regenerate-light 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.forceAppearance light
+          shot 785-w375-preop-summary-regenerate-large-text-dark 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.textScale 1.25 -ps.forceAppearance dark
           shot 786-w375-intraop-top-jump-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light
           shot 787-intraop-pinned-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
           shot 788-style-gallery-light 14 -ps.screen gallery -ps.forceAppearance light
           shot 789-style-gallery-dark 14 -ps.screen gallery -ps.forceAppearance dark
           shot 790-w375-style-gallery-large-text-light 14 -ps.screen gallery -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          # The gallery below its first screen (-ps.gallery.scroll): links and rows, summary lines, headings, buttons.
+          shot 788-style-gallery-links-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.forceAppearance light
+          shot 788-style-gallery-headings-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.forceAppearance light
+          shot 789-style-gallery-links-dark 14 -ps.screen gallery -ps.gallery.scroll links -ps.forceAppearance dark
+          shot 789-style-gallery-headings-dark 14 -ps.screen gallery -ps.gallery.scroll headings -ps.forceAppearance dark
+          shot 790-w375-style-gallery-links-large-text-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 790-w375-style-gallery-lines-large-text-light 14 -ps.screen gallery -ps.gallery.scroll lines -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 790-w375-style-gallery-headings-large-text-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
           shot 791-summary-status-plan-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.forceAppearance light
           shot 792-ecg-nsr-preset-dark 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg -ps.forceAppearance dark
           shot 793-tee-screen-alerts-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light
           shot 794-timers-chips-action-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections antibiotic -ps.timers.pick cefoxitin -ps.timers.scroll antibiotic -ps.forceAppearance dark
-          shot 795-w375-preop-demographics-title-info-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll demographics -ps.evidence.open 1 -ps.forceAppearance light
+          shot 795-w375-preop-demographics-title-info-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll demographics-title -ps.evidence.open 1 -ps.forceAppearance light
           shot 796-w375-preop-risk-inputs-action-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
           shot 797-preop-top-large-text-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.textScale 1.25 -ps.forceAppearance light
           shot 798-w375-preop-airway-first-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll airway -ps.forceAppearance dark
