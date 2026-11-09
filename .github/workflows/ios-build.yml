@@ -758,6 +758,29 @@ jobs:
           shot 535-previous-intrathoracic-light 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance light
           shot 536-previous-intrathoracic-dark 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance dark
           shot 537-preop-echo-summary-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          # 1.11 helper B (760-779): code status as a quiet link with the inline plan, the three stacked links, the HISTORY
+          # caption, Cardiopulmonary from the procedure with the None row and the one result row, the stress test, the
+          # intraop infusions carrying the preop drips. 375-pt variants where a row's fit matters.
+          shot 760-b111-demographics-links-empty-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 761-b111-demographics-links-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance dark
+          shot 762-b111-code-status-chips-open-375-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll demographics -ps.preop.code 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 763-b111-code-status-dnr-plan-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 764-b111-preop-infusions-link-empty-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll infusions -ps.forceAppearance light
+          shot 765-b111-code-status-plan-missing-375-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll demographics -ps.patient.width 375 -ps.forceAppearance light
+          shot 766-b111-history-caption-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll chips -ps.forceAppearance light
+          shot 767-b111-asa-suggestion-hidden-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance light
+          shot 768-b111-cardio-cabg-derived-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 769-b111-cardio-cabg-derived-dark 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 770-b111-cardio-chole-none-result-375-light 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.width 375 -ps.forceAppearance light
+          shot 771-b111-cardio-chole-none-result-light 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 772-b111-cardio-chole-none-result-dark 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 773-b111-cardio-result-open-light 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.preop.result 1 -ps.forceAppearance light
+          shot 774-b111-cardio-empty-375-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.width 375 -ps.forceAppearance light
+          shot 775-b111-stress-editor-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.open workup:stress -ps.forceAppearance light
+          shot 776-b111-stress-editor-dark 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.open workup:stress -ps.forceAppearance dark
+          shot 777-b111-workup-stress-filled-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.forceAppearance light
+          shot 778-b111-intraop-infusions-from-preop-light 20 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.forceAppearance light
+          shot 779-b111-intraop-infusions-from-preop-dark 20 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.forceAppearance dark
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

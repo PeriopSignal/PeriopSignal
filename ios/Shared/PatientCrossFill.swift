@@ -203,6 +203,9 @@ enum PatientCrossFill {
         for f in wantedBefore.subtracting(wantedNow) where r.fills.medFlags.contains(f) { r.medFlags.remove(f) }
 
         PatientDeviceFills.apply(before: before, after: &r)
+
+        // 1.11 (Ben's note 3): "Intrathoracic procedure" answered by the planned procedure while the user has not.
+        PatientPreop.syncIntrathoracic(before: before, after: &r)
     }
 
     /// The labs' Anemia filed: "No significant medical history" turned off, remembered as the fill's to give back.

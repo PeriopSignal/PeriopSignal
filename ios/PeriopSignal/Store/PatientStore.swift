@@ -293,6 +293,9 @@ final class PatientStore {
         case "demo-echo110": return PatientDemo.echo110
         case "demo-echo110-pre": return PatientDemo.echo110Pre
         case "demo-echo110-as": return PatientDemo.echo110Severe
+        // 1.11 helper B (PatientDemo111Cardio): the Cardiopulmonary, code-status and infusion shots 760–779.
+        case "demo-cardio111": return PatientDemo.cardio111
+        case "demo-cardio111-chole": return PatientDemo.cardio111Chole
         default: return nil
         }
     }
