@@ -1,0 +1,1 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/C2111Tests.swift:281:37: error: call to main actor-isolated static method 'debugSeed' in a synchronous nonisolated context
