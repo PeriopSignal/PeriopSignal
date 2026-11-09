@@ -882,32 +882,8 @@ struct PatientView: View {
 
     // MARK: Section cards
 
-    private var airwayCard: some View {
-        NavigationLink(value: PatientEditor.airway) {
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader(.airway, title: "Airway Examination")
-                    let lines = PatientSummary.airwayLines(r)
-                    if lines.isEmpty {
-                        Text("Current airway and oxygen, Mallampati, difficult-airway signs and teeth.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        ForEach(Array(lines.enumerated()), id: \.offset) { _, l in summaryLine(l) }
-                    }
-                }
-                if let m = r.mallampati, !r.arrivesWithAirway {
-                    VStack(spacing: 4) {
-                        MallampatiDrawing(mclass: m).frame(width: 64, height: 64)
-                        Text(PatientRules.roman(m)).font(PS.mono(size: 11, weight: .bold)).foregroundStyle(PS.fg2)
-                    }
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
+    /// 1.11 (P1-11): Exam normal and the Mallampati class on the card itself, the findings as findings (PreopAirwayCard.swift).
+    private var airwayCard: some View { PreopAirwayCard() }
 
     private func sectionHeader(_ e: PatientEditor, title: String? = nil) -> some View {
         PatientCardHeader(title: title ?? e.title, icon: e.icon)

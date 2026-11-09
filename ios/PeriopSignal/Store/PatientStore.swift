@@ -298,6 +298,8 @@ final class PatientStore {
         case "demo-cardio111-chole": return PatientDemo.cardio111Chole
         case "demo-labs111": return PatientDemo.labs111
         case "demo-labs111-sent": return PatientDemo.labs111Sent
+        // 1.11 helper C2 (PatientDemo111Add.swift).
+        case "demo-add111": return PatientDemo.add111
         default: return nil
         }
     }

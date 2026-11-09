@@ -644,26 +644,9 @@ struct PatientEditorView: View {
                 PatientTextField(label: "What happened", prompt: "Hypotension, arrhythmia, bronchospasm, bleeding…", text: bind(\.events))
             }
         }
-        // At the end of the case: extubated takes the ETT off the patient diagram.
-        if r.arrivesWithAirway || PatientAirway.intubationChosen(r) || !r.tube.isEmpty {
-            HStack(spacing: 10) {
-                Button { withAnimation(.snappy) { patient.update(discrete: true) { $0.airwayAtEnd = "intubated" } } } label: {
-                    Label("Remains intubated", systemImage: r.airwayAtEnd == "intubated" ? "checkmark.circle.fill" : "lungs")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(BigButtonStyle(prominent: r.airwayAtEnd == "intubated"))
-                Button { withAnimation(.snappy) { patient.update(discrete: true) { $0.airwayAtEnd = "extubated" } } } label: {
-                    Label("Extubated", systemImage: r.airwayAtEnd == "extubated" ? "checkmark.circle.fill" : "wind")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(BigButtonStyle(prominent: r.airwayAtEnd == "extubated"))
-            }
-            if r.airwayAtEnd == "intubated" {
-                PatientGroup(title: nil) {
-                    PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: bind(\.ventilation))
-                }
-            }
-        }
+        // 1.11 (P1-10): how the airway is left (airwayAtEnd) is recorded once, in the Airway Course's "At handoff" row (and
+        // Status & Plan's Airway chips); the Remains intubated / Extubated buttons and the Ventilation field that repeated
+        // it here are gone.
     }
 
     @ViewBuilder private var intraopEcho: some View {

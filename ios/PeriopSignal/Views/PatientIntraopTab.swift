@@ -160,7 +160,9 @@ struct IntraopChoiceLine: View {
     }
 }
 
-/// An "+ Add" row that opens an editor, with what the editor holds under it once something is recorded.
+/// A link row that opens an editor, with what the editor holds under it once something is recorded. 1.11 (P1-7, P1-9,
+/// P1-10): the row keeps its own icon while empty (grey, not a ⊕), its hint is one short phrase, and a summary line
+/// truncates to two lines with "…" on the tab (the page has it all); an alert line is never truncated.
 struct IntraopLinkRow: View {
     var title: String
     var icon: String
@@ -169,36 +171,55 @@ struct IntraopLinkRow: View {
     /// What it holds, in a few words, while empty.
     var hint: String = ""
 
+    /// How many lines a summary line may take on the tab; nil (no limit) for an alert.
+    static func lineLimit(_ l: PatientSummary.Line) -> Int? { l.alert ? nil : 2 }
+
     var body: some View {
         NavigationLink(value: editor) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 10) {
-                    Image(systemName: lines.isEmpty ? "plus.circle" : icon)
-                        .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.accent)
-                        .frame(width: 22)
-                    Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                    Spacer(minLength: 6)
-                    Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                }
+            IntraopLinkRowBody(title: title, icon: icon, empty: lines.isEmpty, trailing: "chevron.right") {
                 if lines.isEmpty {
                     if !hint.isEmpty {
-                        Text(hint).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                            .padding(.leading, 32)
+                        Text(hint).font(PS.sys(size: PreopEmptyHints.hintFontSize)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 6) {
-                        ForEach(Array(lines.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
+                        ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
+                            PatientLineText(line: l).lineLimit(Self.lineLimit(l))
+                        }
                     }
-                    .padding(.leading, 32)
                 }
             }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel((lines.isEmpty ? "Add " : "Edit ") + title)
+    }
+}
+
+/// The look the intraoperative link rows share (the case timers row too): the icon (its own, grey while empty, the
+/// accent once filled), the title, a trailing symbol, and what the row holds indented under the title.
+struct IntraopLinkRowBody<Content: View>: View {
+    var title: String
+    var icon: String
+    var empty: Bool
+    var trailing: String
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(empty ? PS.fg3 : PS.accent)
+                    .frame(width: 22)
+                Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 6)
+                Image(systemName: trailing).font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+            }
+            content().padding(.leading, 32)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .contentShape(Rectangle())
     }
 }
 
@@ -446,18 +467,13 @@ struct IntraopDevicesCard: View {
     @Environment(PatientStore.self) private var patient
     private var r: PatientRecord { patient.record }
 
-    /// The limb alerts and the arm to spare, the lines in place (on arrival or placed in the room, as the handoff lists
-    /// them) on one line, and the mechanical support.
-    static func lines(_ r: PatientRecord) -> [PatientSummary.Line] {
-        let s = sections(r)
-        return s.aboveFigure + s.belowFigure
-    }
-
-    /// Where each line goes on the card (1.10 review): the limb alerts and the radial-harvest arm cautions are safety
-    /// content and open the card above the figure, as they opened 1.9's Lines card on the first screen; the lines in place
-    /// and the mechanical support follow the figure.
+    /// Where each line goes on the card (1.10 review): the radial-harvest arm cautions are safety content and open the card
+    /// above the figure, as they opened 1.9's Lines card on the first screen; the lines in place and the mechanical support
+    /// follow the figure. 1.11 (P1-10): a limb alert is said once, as the figure says it (the red marker on the limb and the
+    /// figure's own list of alerts, above the figure as on the Preoperative tab's card), so the red "Limb alert" text lines
+    /// are no longer in `aboveFigure`; `lines` (the handoff and the tests) still has them first.
     static func sections(_ r: PatientRecord) -> (aboveFigure: [PatientSummary.Line], belowFigure: [PatientSummary.Line]) {
-        let alerts = PatientSummary.limbAlertLines(r) + PatientSummary.harvestLines(r)
+        let alerts = PatientSummary.harvestLines(r)
         var rest: [PatientSummary.Line] = []
         var placed: [String] = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) })
         placed += r.lines.map(\.text).filter { !$0.isEmpty }
@@ -466,35 +482,49 @@ struct IntraopDevicesCard: View {
         return (alerts, rest)
     }
 
+    /// Every line the card says, the limb alerts first (the figure's caption carries them on the card itself).
+    static func lines(_ r: PatientRecord) -> [PatientSummary.Line] {
+        let s = sections(r)
+        return PatientSummary.limbAlertLines(r) + s.aboveFigure + s.belowFigure
+    }
+
+    /// The card has something to show: a line above or below the figure, or anything drawn on it.
+    static func hasContent(_ r: PatientRecord) -> Bool {
+        let s = sections(r)
+        let figure = PatientDiagramModel.items(r, phase: .all)
+        return !(s.aboveFigure.isEmpty && s.belowFigure.isEmpty && figure.items.isEmpty && figure.cart == nil)
+    }
+
     var body: some View {
+        // 1.11 (P1-6, said once): the section title above the card already says "Lines & Devices", so the card has no
+        // header of its own; its › sits at the top right, and the figure comes first.
         NavigationLink(value: PatientEditor.intraopPart("lines")) {
             VStack(alignment: .leading, spacing: 9) {
-                HStack(spacing: 8) {
-                    Image(systemName: "figure.stand").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                    Text("Lines & Devices").font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-                    Spacer()
-                    Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                }
-                // Every line and device in place now, on arrival or placed in the room, as the handoff lists them.
                 let s = Self.sections(r)
-                let figure = PatientDiagramModel.items(r, phase: .all)
-                if s.aboveFigure.isEmpty && s.belowFigure.isEmpty && figure.items.isEmpty && figure.cart == nil {
-                    Text("Tap to draw the lines and devices: peripheral, arterial and central lines, the airway and mechanical support.")
+                if !Self.hasContent(r) {
+                    Text(PreopEmptyHints.intraopLines)
                         .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                        .padding(.trailing, 24)
                 } else {
-                    // The arm and limb alerts first (safety content), then the figure; the limb alert is already in the
-                    // red line above, so the figure does not list it again under itself.
-                    ForEach(Array(s.aboveFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
-                    PatientDiagramCard(record: r, phase: .all, height: 260, listsLimbAlerts: PatientSummary.limbAlertLines(r).isEmpty)
+                    // The arm cautions first (safety content), then the figure with its limb alerts above it (once: the
+                    // marker on the limb and the caption), then the lines in place.
+                    ForEach(Array(s.aboveFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l).padding(.trailing, 24) }
+                    PatientDiagramCard(record: r, phase: .all, height: 260, limbAlertsAbove: true)
+                        .padding(.trailing, s.aboveFigure.isEmpty ? 24 : 0)
                     ForEach(Array(s.belowFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
                 }
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .topTrailing) {
+                Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3).padding(16)
+            }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Lines & Devices")
+        .accessibilityHint("Opens the lines page")
     }
 }
 
@@ -505,48 +535,62 @@ struct IntraopNotableMedicationLink: View {
     var body: some View {
         IntraopLinkRow(title: "Notable medication", icon: "pills", editor: .intraopPart("meds"),
                        lines: PatientSummary.intraopPartLines(patient.record, "meds"),
-                       hint: "TXA, steroids, antibiotic and time, reversal, positioning")
+                       hint: PreopEmptyHints.intraop["meds"] ?? "")
     }
 }
 
 /// The links under Other Intraoperative Details: echo findings, labs, regional & neuraxial, events & interventions,
-/// major considerations and the case timers. Each shows what it holds once something is recorded.
+/// major considerations and the case timers. Each shows what it holds once something is recorded; while empty, its own
+/// icon and a one-phrase hint (1.11, P1-7 and P1-9).
 struct IntraopOtherDetails: View {
     @Environment(PatientStore.self) private var patient
+    @Environment(ReferenceStore.self) private var refs
     private var r: PatientRecord { patient.record }
 
-    private func link(_ part: String, _ title: String, _ icon: String, _ hint: String) -> some View {
-        IntraopLinkRow(title: title, icon: icon, editor: .intraopPart(part), lines: PatientSummary.intraopPartLines(r, part), hint: hint)
+    private func link(_ part: String, _ title: String, _ icon: String) -> some View {
+        IntraopLinkRow(title: title, icon: icon, editor: .intraopPart(part), lines: PatientSummary.intraopPartLines(r, part),
+                       hint: PreopEmptyHints.intraop[part] ?? "")
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            link("echo", "Intraoperative echo findings", "waveform.path.ecg.rectangle", "Pre- and post-bypass TEE: LV and RV function, valves, aorta")
-            link("labs", "Intraoperative labs", "testtube.2", "Blood gas and coagulation sets, each with its time")
-            link("regional", "Regional & neuraxial", "figure.flexibility", "Blocks and neuraxial techniques, drugs and catheters")
-            link("events", "Intraoperative events & interventions", "exclamationmark.triangle", "What happened, and whether the patient leaves intubated or extubated")
+            link("echo", "Intraoperative echo findings", "waveform.path.ecg.rectangle")
+            link("labs", "Intraoperative labs", "testtube.2")
+            link("regional", "Regional & neuraxial", "figure.flexibility")
+            link("events", "Intraoperative events & interventions", "exclamationmark.triangle")
             // Safety content, kept as the last link and shown in full (red) once filled: the top of the handoff reads it.
-            link("considerations", "Major considerations", "exclamationmark.bubble", "Difficult airway, massive transfusion, pressors, TEE findings, for the top of the handoff")
+            link("considerations", "Major considerations", "exclamationmark.bubble")
             if DraftGate.shows("caseTimers") { caseTimerLink }
         }
     }
 
-    /// Opens the case timers, as My Patient's ⋯ menu does.
+    /// The case timers row's title: "+ Case timers" while none runs, "Case timers" once some do.
+    static func caseTimersTitle(running: Int) -> String { running > 0 ? PreopEmptyHints.caseTimersRunning : PreopEmptyHints.caseTimersNone }
+
+    /// The row's scroll id: the last row of the tab, which a screenshot reaches with -ps.patient.scroll casetimers (shot 816).
+    static let caseTimersScrollID = "casetimers"
+
+    /// Opens the case timers, as My Patient's ⋯ menu does: a row like its neighbours, with ⏱ as its icon and › on the
+    /// right; "+ Case timers" while none runs, else "Case timers" with the timers that are running under it.
     private var caseTimerLink: some View {
-        Button { Haptics.light(); CaseTimersUI.shared.open = true } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "plus.circle").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.accent).frame(width: 22)
-                Text("Case timer").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                Spacer(minLength: 6)
-                Image(systemName: "timer").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
+        let reminders = refs.caseTimers.map { CaseTimerEngine.reminders(r.timers, record: r, data: $0) } ?? []
+        return Button { Haptics.light(); CaseTimersUI.shared.open = true } label: {
+            IntraopLinkRowBody(title: Self.caseTimersTitle(running: reminders.count), icon: "timer", empty: reminders.isEmpty, trailing: "chevron.right") {
+                if !reminders.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(reminders.prefix(3)) { rem in
+                            Text(rem.title).font(PS.sys(size: 14)).foregroundStyle(PS.fg).lineLimit(1)
+                        }
+                        if reminders.count > 3 {
+                            Text("+ \(reminders.count - 3) more").font(PS.sys(size: PreopEmptyHints.hintFontSize)).foregroundStyle(PS.fg3)
+                        }
+                    }
+                }
             }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Add a case timer")
+        .id(Self.caseTimersScrollID)
+        .accessibilityLabel(reminders.isEmpty ? "Add a case timer" : "Case timers, \(reminders.count) running")
         .accessibilityHint("Opens Case Timers for this patient")
     }
 }

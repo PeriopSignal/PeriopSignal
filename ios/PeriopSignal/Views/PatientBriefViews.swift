@@ -382,8 +382,9 @@ struct BriefRegenerateButton: View {
 
 // MARK: Preprocedure summary
 
-/// The Preprocedure tab's last section: "+ Generate preprocedure summary", then the brief (record.preopSummaryOn). A record
-/// with nothing in it has nothing to summarize: the button is off.
+/// The Preprocedure tab's last section: "+ Generate preprocedure summary", then the brief (record.preopSummaryOn). Nothing
+/// at all until the record has an age or a procedure (1.11, P1-9: no disabled button; the rule, offersSummary, is in
+/// PatientPreopViews.swift).
 struct PreprocedureSummaryView: View {
     @Environment(PatientStore.self) private var patient
 
@@ -395,14 +396,14 @@ struct PreprocedureSummaryView: View {
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
             .id("preopsummary")
-        } else {
+        } else if Self.offersSummary(patient.record) {
             Button { Haptics.light(); patient.update(discrete: true) { $0.preopSummaryOn = true } } label: {
                 Label("Generate preprocedure summary", systemImage: "plus")
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: true))
-            .disabled(patient.isEmpty)
-            .opacity(patient.isEmpty ? 0.45 : 1)
+            .buttonStyle(CapsuleButtonStyle(prominent: true, color: PS.action))
             .id("preopsummary")
+        } else {
+            Color.clear.frame(height: 1).id("preopsummary")
         }
     }
 }

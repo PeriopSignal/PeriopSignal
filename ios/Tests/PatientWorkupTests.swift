@@ -70,7 +70,10 @@ final class PatientWorkupTests: XCTestCase {
         XCTAssertTrue(lines.contains { $0.label == "Ventilator" && $0.text.hasPrefix("AC/VC") })
         XCTAssertEqual(PatientSummary.intraopPartLines(r, "airway").first?.text, "ETT 7.5 at 23 cm at the lip on arrival", "no airway course for a secured airway")
         r.airwayAtEnd = "extubated"
-        XCTAssertTrue(PatientSummary.intraopPartLines(r, "events").contains { $0.text == "Extubated" })
+        // 1.11 (P1-10): how the airway is left is the airway part's line, not the events part's (the Events page lost
+        // its airway buttons; the handoff text is unchanged).
+        XCTAssertTrue(PatientSummary.intraopPartLines(r, "airway").contains { $0.label == "At handoff" && $0.text == "Extubated" })
+        XCTAssertFalse(PatientSummary.intraopPartLines(r, "events").contains { $0.text == "Extubated" })
         XCTAssertTrue(HandoffWriter.shortText(r).contains("Airway: ETT 7.5 at 23 cm at the lip on arrival; AC/VC 450 × 16, PEEP 8, FiO₂ 40%; at handoff: extubated"), HandoffWriter.shortText(r))
 
         var nc = PatientRecord()
