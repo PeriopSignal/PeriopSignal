@@ -179,14 +179,16 @@ final class A111Tests: XCTestCase {
         ts.setStatus(nil)
         XCTAssertEqual(ts.effectiveStatus, .resulted)
         XCTAssertEqual(ts.head, "T&S A−, screen neg")
-        // Not sent or Sent on a recorded result: the user says there is none; the type and screen go, the units typed stay.
+        // Not sent or Sent on a recorded result: the user says there is none; the type, the screen, the antibody and
+        // the units crossmatched all go, so the line never says "not sent" beside units crossmatched.
         ts.antibody = "anti-K"
         ts.setStatus(.notSent)
         XCTAssertNil(ts.type)
         XCTAssertNil(ts.screen)
         XCTAssertEqual(ts.antibody, "")
-        XCTAssertEqual(ts.crossmatched, 2)
-        XCTAssertEqual(ts.parts, ["T&S not sent", "2 u crossmatched"])
+        XCTAssertNil(ts.crossmatched)
+        XCTAssertEqual(ts.effectiveStatus, .notSent)
+        XCTAssertEqual(ts.parts, ["T&S not sent"])
         XCTAssertEqual(TypeScreenStatus.allCases.map(\.label), ["Not sent", "Sent", "Resulted"])
 
         var r = PatientRecord()
@@ -199,6 +201,54 @@ final class A111Tests: XCTestCase {
         XCTAssertEqual(fromNote.merged(over: PatientTypeScreen(status: .sent)).status, .sent)
         XCTAssertEqual(fromNote.merged(over: PatientTypeScreen(status: .sent)).effectiveStatus, .resulted)
         XCTAssertEqual(PatientTypeScreen(status: .notSent).merged(over: PatientTypeScreen(status: .sent)).status, .notSent)
+    }
+
+    /// Units crossmatched or an antibody named are a result too: they print on the card, the summary and the
+    /// handoff, so the rows that edit them stay open (the page shows them when effectiveStatus is resulted).
+    func testCrossmatchOrAntibodyAloneReadsAsResulted() throws {
+        let xm = try JSONDecoder().decode(PatientTypeScreen.self, from: Data(#"{"crossmatched":2}"#.utf8))
+        XCTAssertNil(xm.status)
+        XCTAssertTrue(xm.hasResult)
+        XCTAssertEqual(xm.effectiveStatus, .resulted, "the Crossmatched stepper is on the page while the line prints the units")
+        XCTAssertEqual(xm.parts, ["2 u crossmatched"])
+        let ab = try JSONDecoder().decode(PatientTypeScreen.self, from: Data(#"{"antibody":" anti-K "}"#.utf8))
+        XCTAssertEqual(ab.effectiveStatus, .resulted, "the Antibody field is on the page while the line prints the antibody")
+        XCTAssertEqual(ab.parts, ["T&S antibody anti-K"])
+        // Nothing that prints nothing forces Resulted: no units, blank antibody text.
+        XCTAssertFalse(PatientTypeScreen(crossmatched: 0).hasResult)
+        XCTAssertNil(PatientTypeScreen(antibody: "  ", crossmatched: 0).effectiveStatus)
+        XCTAssertEqual(PatientTypeScreen(crossmatched: 0, status: .sent).effectiveStatus, .sent)
+
+        // A status the record holds beside units (a note's "2 units crossmatched" over a record marked Sent): the
+        // units are the result, the chip reads Resulted, and the line never says "result pending" beside them.
+        let merged = PatientTypeScreen(crossmatched: 2).merged(over: PatientTypeScreen(status: .sent))
+        XCTAssertEqual(merged.status, .sent)
+        XCTAssertEqual(merged.effectiveStatus, .resulted)
+        XCTAssertNil(merged.head)
+        XCTAssertEqual(merged.parts, ["2 u crossmatched"])
+        XCTAssertEqual(PatientTypeScreen(crossmatched: 2, status: .notSent).parts, ["2 u crossmatched"])
+
+        // Sent or Not sent on such a record clears the units and the antibody, and the rows close.
+        var a = xm
+        a.setStatus(.sent)
+        XCTAssertNil(a.crossmatched)
+        XCTAssertEqual(a.effectiveStatus, .sent)
+        XCTAssertEqual(a.parts, ["T&S sent, result pending"])
+        var b = ab
+        b.setStatus(.notSent)
+        XCTAssertEqual(b.antibody, "")
+        XCTAssertEqual(b.parts, ["T&S not sent"])
+        // Resulted, or the same chip again (nil), records no loss.
+        var c = xm
+        c.setStatus(.resulted)
+        XCTAssertEqual(c.crossmatched, 2)
+        c.setStatus(nil)
+        XCTAssertEqual(c.crossmatched, 2)
+        XCTAssertEqual(c.effectiveStatus, .resulted)
+
+        var r = PatientRecord()
+        r.typeScreen = xm
+        XCTAssertEqual(PreopLabsCard.otherLine(r)?.text, "2 u crossmatched")
     }
 
     func testTypeScreenStatusDecodesAndFallsBack() throws {

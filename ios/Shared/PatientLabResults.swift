@@ -54,7 +54,7 @@ struct PatientTypeScreen: Codable, Hashable {
     /// The antibody a positive screen found, as typed ("anti-K").
     var antibody = ""
     var crossmatched: Int?
-    /// Not sent or sent, as the user said (1.11); a type or screen recorded reads as resulted whatever this holds.
+    /// Not sent or sent, as the user said (1.11); a result recorded (hasResult) reads as resulted whatever this holds.
     var status: TypeScreenStatus?
 
     static let types = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
@@ -78,18 +78,24 @@ struct PatientTypeScreen: Codable, Hashable {
 
     var antibodyText: String { antibody.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-    /// A result recorded means resulted, whatever was tapped; otherwise what the user said, if anything.
-    var effectiveStatus: TypeScreenStatus? { type != nil || screen != nil ? .resulted : status }
+    /// A result is recorded: the ABO/Rh, the antibody screen, an antibody named, or units crossmatched. Every one
+    /// of them prints on the labs line, so every one keeps the result rows open.
+    var hasResult: Bool { type != nil || screen != nil || !antibodyText.isEmpty || (crossmatched ?? 0) > 0 }
 
-    /// What a tap on the status chips records: Resulted opens the result rows; Not sent and Sent clear a type and
-    /// screen already recorded (the user says there is no result), leaving the units crossmatched as typed. The
-    /// same chip again (nil) clears the status, and a result recorded stays.
+    /// A result recorded means resulted, whatever was tapped; otherwise what the user said, if anything.
+    var effectiveStatus: TypeScreenStatus? { hasResult ? .resulted : status }
+
+    /// What a tap on the status chips records: Resulted opens the result rows; Not sent and Sent clear a result
+    /// already recorded (the user says there is none): the type, the screen, the antibody and the units
+    /// crossmatched, so the line never reads "T&S not sent · 2 u crossmatched". The same chip again (nil) clears
+    /// the status, and a result recorded stays.
     mutating func setStatus(_ s: TypeScreenStatus?) {
         status = s
         if let s, s != .resulted {
             type = nil
             screen = nil
             antibody = ""
+            crossmatched = nil
         }
     }
 
@@ -103,11 +109,11 @@ struct PatientTypeScreen: Codable, Hashable {
     }
 
     /// "T&S A−, screen neg"; without a result, "T&S sent, result pending" or "T&S not sent" when the user said so;
-    /// nil with nothing.
+    /// nil with nothing, and nil with only units crossmatched (they are a result, and print on their own).
     var head: String? {
         let parts = [type.map(Self.display), screenText].compactMap { $0 }
         if parts.isEmpty {
-            switch status {
+            switch effectiveStatus {
             case .sent?: return "T&S sent, result pending"
             case .notSent?: return "T&S not sent"
             default: return nil
