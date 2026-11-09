@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/A111Tests.swift:175: error: -[PeriopSignalTests.A111Tests testTypeScreenStatus] : XCTAssertEqual failed: ("Optional("Hb 15 · Hct ~45 (est.) · T&S sent, result pending")") is not equal to ("Optional("Hb 15 · T&S sent, result pending")")
+Test Case '-[PeriopSignalTests.A111Tests testTypeScreenStatus]' failed (10.261 seconds).
