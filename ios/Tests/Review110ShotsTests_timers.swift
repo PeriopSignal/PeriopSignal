@@ -23,6 +23,9 @@ final class Review110ShotsTimersTests: XCTestCase {
         XCTAssertFalse(item.a.contains("450"), "the 1.9 default is retired: \(item.a)")
         XCTAssertTrue(item.a.contains("default"), item.a)
         XCTAssertEqual(item.a.components(separatedBy: "480 s").count - 1, 2, "STS's 480 s and the app's 480 s default: \(item.a)")
+        // The app's default in the words Case Timers shows it (an ACT of exactly 480 s reaches the goal), not "above".
+        XCTAssertTrue(item.a.contains("ACT goal ≥ \(Int(goal)) s"), item.a)
+        XCTAssertFalse(item.a.contains("default is the same, above"), item.a)
     }
 
     // MARK: Heparin & ACT ⓘ (511)
