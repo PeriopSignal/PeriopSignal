@@ -405,11 +405,13 @@ final class MedicationCatalog19Tests: XCTestCase {
         XCTAssertEqual(drips("kcl 10 meq/h"), ["Potassium chloride 10 mEq/h"])
         XCTAssertEqual(drips("pit 2 mu/min"), ["Oxytocin 2 milliunits/min"])
         XCTAssertEqual(drips("mag 2 g/h"), ["Magnesium sulfate 2 g/h"])
-        // No unit in the Reference table: asked.
-        let vec = InfusionEntry.read("vec 1")
-        XCTAssertTrue(vec.items.isEmpty)
-        XCTAssertEqual(vec.questions.first?.options.map(\.id), ["mcg/kg/min", InfusionEntry.noUnit])
-        XCTAssertEqual(drips("vec 1", choices: ["unit:vecuronium:1": "mcg/kg/min"]), ["Vecuronium 1 mcg/kg/min"])
+        // No unit in the Reference table and more than one usual unit: asked. (1.10: a drug with a single usual unit, such as
+        // vecuronium's mcg/kg/min, fills it in instead.)
+        let midaz = InfusionEntry.read("midaz 1")
+        XCTAssertTrue(midaz.items.isEmpty)
+        XCTAssertEqual(midaz.questions.first?.options.map(\.id), ["mg/h", "mcg/kg/min", InfusionEntry.noUnit])
+        XCTAssertEqual(drips("midaz 1", choices: ["unit:midazolam:1": "mg/h"]), ["Midazolam 1 mg/h"])
+        XCTAssertEqual(drips("vec 1"), ["Vecuronium 1 mcg/kg/min"])
         XCTAssertEqual(InfusionEntry.drugID(of: "Parenteral nutrition (TPN)"), "tpn")
         XCTAssertEqual(InfusionEntry.drugID(of: "Epoprostenol, IV"), "epoprostenol-iv")
     }

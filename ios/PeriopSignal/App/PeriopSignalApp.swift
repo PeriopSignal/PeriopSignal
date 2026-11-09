@@ -29,6 +29,10 @@ struct PeriopSignalApp: App {
     }
 
     init() {
+        #if DEBUG
+        // Screenshot runs: the CI waits for a page this launch opens (ShotReady).
+        ShotReady.begin()
+        #endif
         // Earlier versions kept the last patient weight and age in settings; those keys are removed. My Patient keeps
         // its one record in a protected file instead (PatientStore), until the user clears it.
         PatientHandoff.purgeStoredPatientValues()

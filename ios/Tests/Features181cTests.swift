@@ -108,7 +108,8 @@ final class Features181cTests: XCTestCase {
     }
 
     func testDrugsWithoutACatalogUnitAsk() {
-        for (line, drug) in [("insulin 4", "insulin"), ("ketamine 0.5", "ketamine"), ("sufentanil 0.3", "sufentanil"),
+        // 1.10: insulin is not here any more: it has one usual unit (units/h), so its unit fills in (below).
+        for (line, drug) in [("ketamine 0.5", "ketamine"), ("sufentanil 0.3", "sufentanil"),
                              ("heparin 1000", "heparin"), ("amio 1", "amiodarone")] {
             let r = InfusionEntry.read(line)
             XCTAssertTrue(r.items.isEmpty, line + ": no unit is made up")
@@ -116,8 +117,10 @@ final class Features181cTests: XCTestCase {
             XCTAssertEqual(r.questions.first?.options.last?.id, InfusionEntry.noUnit, line)
         }
         XCTAssertEqual(InfusionEntry.read("amio 1").questions.first?.text, "mg/min or mg/h or no unit")
-        XCTAssertEqual(rates("insulin 4", choices: ["unit:insulin:4": "units/h"]), ["Insulin 4 units/h"])
-        XCTAssertEqual(rates("insulin 4", choices: ["unit:insulin:4": InfusionEntry.noUnit]), ["Insulin 4"], "as typed, without a unit")
+        XCTAssertEqual(rates("insulin 4"), ["Insulin 4 units/h"], "a drug with one usual unit needs no question")
+        XCTAssertEqual(InfusionEntry.read("insulin 4").items.first?.note, "No unit written: read as units/h.")
+        XCTAssertEqual(rates("ketamine 0.5", choices: ["unit:ketamine:0.5": "mg/kg/h"]), ["Ketamine 0.5 mg/kg/h"])
+        XCTAssertEqual(rates("ketamine 0.5", choices: ["unit:ketamine:0.5": InfusionEntry.noUnit]), ["Ketamine 0.5"], "as typed, without a unit")
     }
 
     func testUnitsTypedAreKept() {
@@ -297,7 +300,8 @@ final class Features181cTests: XCTestCase {
         let found = ProcedureCatalog.search("Bentall").map(\.id)
         XCTAssertTrue(found.contains("bentall-bio") && found.contains("bentall-mech"))
         XCTAssertFalse(found.contains("bentall"), "the picker offers the two, not the general entry")
-        for s in ["Bentall", "aortic root replacement", "modified Bentall"] {
+        // 1.10 (Ben): "aortic root replacement" is its own entry (aortic-root, Clinical110Tests); a Bentall still asks.
+        for s in ["Bentall", "Bentall procedure", "modified Bentall"] {
             let item = try XCTUnwrap(PlannedProcedure.parse(s).first, s)
             XCTAssertEqual(item.catalogID, "bentall", s)
             XCTAssertEqual(item.ask?.text, "Bentall: bioprosthetic or mechanical valve?", s)
@@ -327,7 +331,8 @@ final class Features181cTests: XCTestCase {
         let json = #"{"catalogID":"bentall","name":"Aortic root replacement"}"#.data(using: .utf8)!
         let saved = try JSONDecoder().decode(PlannedProcedure.self, from: json)
         XCTAssertEqual(saved.catalog?.id, "bentall")
-        XCTAssertEqual(saved.title, "Aortic root replacement")
+        // 1.10: the general entry is named as the Bentall it is ("Aortic root replacement" is its own entry now).
+        XCTAssertEqual(saved.title, "Bentall (composite valve graft)")
         XCTAssertNotNil(saved.ask)
         var r = PatientRecord()
         r.setProcedures([saved])

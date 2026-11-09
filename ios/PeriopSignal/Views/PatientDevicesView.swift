@@ -86,7 +86,7 @@ enum PatientDiagramModel {
         }
 
         // The airway: an ETT down the trachea, or a tracheostomy at the stoma.
-        let intubatedHere = r.intubation == "easy" || r.intubation == "difficult" || !r.tube.isEmpty
+        let intubatedHere = r.intubation == "easy" || r.intubation == "difficult" || r.intubation == PatientAirway.placed || !r.tube.isEmpty
         let ettNow: Bool = {
             switch phase {
             case .preop: return r.currentAirway == "ett"
@@ -99,8 +99,11 @@ enum PatientDiagramModel {
                 if !r.ettSize.isEmpty { label += " " + r.ettSize }
                 let depth: String = r.ettDepth.split(separator: " ").first.map(String.init) ?? ""
                 if !depth.isEmpty { label += " @" + depth }
-            } else if let first = r.tube.split(separator: ",").first {
-                label = String(first)
+            } else if PatientAirway.tubeIsLMA(r) {
+                // The LMA's size kept in `tube` ("LMA 4"), as typed.
+                if let first = r.tube.split(separator: ",").first { label = String(first) }
+            } else if !r.tube.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                label = ettLabel(tube: r.tube)
             }
             out.append(DiagramItem(id: "airway-ett", anchor: CGPoint(x: 100, y: 42), course: [CGPoint(x: 100, y: 53), CGPoint(x: 100, y: 74)],
                                    color: DiagramColor.airway, width: 2.2, marker: .dot, label: label, labelLeft: false, movable: false))
@@ -265,18 +268,24 @@ enum PatientDiagramModel {
         }
     }
 
+    /// Figure units between the centres of two labels in a column, where the label font grows with the figure.
+    static let labelGap: CGFloat = 8.5
+    /// Figure units of the right column the ECMO cart blocks above and below its centre (its 12-unit half height and
+    /// 5 units of air), where its box is drawn at its own size.
+    static let cartBlock: CGFloat = 17
+
     /// Every label goes in a column beside the figure on its side, at the height of its insertion point, then the
     /// labels in each column are pushed apart so none overlap (and kept clear of the ECMO cart); a leader line joins
-    /// each label to its line.
-    static func layoutLabels(_ items: inout [DiagramItem], cart: CGPoint?) {
-        let gap: CGFloat = 8.5
+    /// each label to its line. A small figure, where the label font stays at its 7-point floor and the cart's box grows
+    /// to hold its text, passes a wider gap and a taller block (PatientDiagramCanvas.laidOut).
+    static func layoutLabels(_ items: inout [DiagramItem], cart: CGPoint?, gap: CGFloat = PatientDiagramModel.labelGap, cartBlock: CGFloat = PatientDiagramModel.cartBlock) {
         let top: CGFloat = 6, bottom: CGFloat = 414
         for left in [true, false] {
             let idx = items.indices.filter { !items[$0].label.isEmpty && items[$0].labelLeft == left }
                 .sorted { (items[$0].anchor.y, items[$0].anchor.x) < (items[$1].anchor.y, items[$1].anchor.x) }
             guard !idx.isEmpty else { continue }
             // The cart blocks part of the right column.
-            let blocked: ClosedRange<CGFloat>? = (!left && cart != nil) ? (cart!.y - 17)...(cart!.y + 17) : nil
+            let blocked: ClosedRange<CGFloat>? = (!left && cart != nil) ? (cart!.y - cartBlock)...(cart!.y + cartBlock) : nil
             var ys: [CGFloat] = []
             for i in idx {
                 var y = max(items[i].anchor.y, (ys.last.map { $0 + gap }) ?? top)
@@ -302,6 +311,36 @@ enum PatientDiagramModel {
         }
     }
 
+    /// The airway's tag from the typed Tube field, in the form of the ETT branch above: "8.0 cuffed ETT (23 cm)" and
+    /// "7.5 ETT, 23 cm at the lip" read "ETT 8.0 @23", so the depth is kept and the tag fits the 15-character label column
+    /// (review 1.10: the field's own prompt has no comma, and the whole entry was cut to "8.0 cuffed ETT…"). A double-lumen
+    /// tube keeps its name ("DLT 37 Fr L" reads "DLT 37"). With no size to read, the text before the first comma or
+    /// parenthesis, as typed.
+    static func ettLabel(tube: String) -> String {
+        let t = tube.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ns = t as NSString
+        let number = "([0-9]+(?:\\.[0-9]+)?)"
+        func first(_ pattern: String) -> NSTextCheckingResult? {
+            (try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]))?.firstMatch(in: t, range: NSRange(location: 0, length: ns.length))
+        }
+        // The depth: the number written before "cm"; the size: the first other number.
+        let depthRange = first(number + "\\s*cm\\b")?.range(at: 1)
+        let depth = depthRange.map { " @" + ns.substring(with: $0) } ?? ""
+        var size: String?
+        if let re = try? NSRegularExpression(pattern: number) {
+            for m in re.matches(in: t, range: NSRange(location: 0, length: ns.length)) where m.range != depthRange {
+                size = ns.substring(with: m.range); break
+            }
+        }
+        let dlt = first("\\b(DLT|double[- ]lumen)\\b") != nil
+        let kind = dlt ? "DLT" : "ETT"
+        if let size { return kind + " " + size + depth }
+        // No size: the depth alone ("ETT @23"), else the words as typed.
+        if !depth.isEmpty { return kind + depth }
+        let head = t.split(whereSeparator: { $0 == "," || $0 == "(" }).first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+        return head.isEmpty ? kind : head
+    }
+
     private static func trachLabel(_ r: PatientRecord) -> String {
         let words: [Substring] = Array(r.trachType.split(separator: " ").prefix(2))
         return words.isEmpty ? "Trach" : "Trach " + words.joined(separator: " ")
@@ -322,18 +361,39 @@ struct PatientDiagramCard: View {
     var height: CGFloat = 300
     /// The limb alerts listed under the figure (1.9); the handoff leaves them to its own text.
     var listsLimbAlerts = true
+    /// The limb alerts above the figure rather than under it (1.10 review): on a card, safety content opens it, on the
+    /// first screen, instead of after a 260-pt figure.
+    var limbAlertsAbove = false
+
+    enum Part: Hashable { case limbAlerts, figure }
+    /// The card's parts, top to bottom.
+    var parts: [Part] {
+        guard listsLimbAlerts else { return [.figure] }
+        return limbAlertsAbove ? [.limbAlerts, .figure] : [.figure, .limbAlerts]
+    }
+
+    /// The Preoperative tab's Lines & Devices card: the limb alerts first, then the figure of what the patient arrives with.
+    static func preopCard(_ r: PatientRecord) -> PatientDiagramCard {
+        PatientDiagramCard(record: r, phase: .preop, height: 260, limbAlertsAbove: true)
+    }
 
     var body: some View {
-        if let fig = refs.bundle?.regional?.figure {
-            let m = PatientDiagramModel.items(record, phase: phase)
-            VStack(alignment: .leading, spacing: 8) {
+        let order = parts
+        VStack(alignment: .leading, spacing: 8) {
+            if order.first == .limbAlerts { caption }
+            if let fig = refs.bundle?.regional?.figure {
+                let m = PatientDiagramModel.items(record, phase: phase)
                 PatientDiagramCanvas(figure: fig, items: m.items, cart: m.cart, fillsWidth: true)
                     .frame(height: height)
                     .frame(maxWidth: .infinity)
                     .allowsHitTesting(false)
-                if listsLimbAlerts { LimbAlertCaption(groups: PatientDeviceFills.limbAlertGroups(record, arrivalOnly: phase == .preop)) }
             }
+            if order.count > 1 && order.last == .limbAlerts { caption }
         }
+    }
+
+    private var caption: some View {
+        LimbAlertCaption(groups: PatientDeviceFills.limbAlertGroups(record, arrivalOnly: phase == .preop))
     }
 }
 

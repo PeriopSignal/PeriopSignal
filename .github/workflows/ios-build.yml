@@ -5,7 +5,7 @@ on:
     inputs:
       runner:
         description: "GitHub macOS runner label (macos-15 has Xcode 26, needed to upload; macos-14 acquires faster but cannot upload)"
-        default: "macos-14"
+        default: "macos-15-intel"
       with_firebase:
         description: "Include Firebase Messaging (needs the FIREBASE_PLIST_B64 secret)"
         default: "false"
@@ -34,8 +34,8 @@ env:
 jobs:
   build:
     name: Build, test and screenshot in the simulator
-    runs-on: ${{ inputs.runner || 'macos-14' }}   # a dispatch input, so a pool that is not acquiring jobs can be swapped without a commit; uploads need Xcode 26 (iOS 26 SDK), which only the macos-15 images carry
-    timeout-minutes: 240   # the full screenshot set (about 390 shots in 1.9) runs about two hours after the build and tests
+    runs-on: ${{ inputs.runner || 'macos-15-intel' }}   # a dispatch input, so a pool that is not acquiring jobs can be swapped without a commit; uploads need Xcode 26 (iOS 26 SDK), which only the macos-15 images carry
+    timeout-minutes: 350   # the full screenshot set (about 520 shots in 1.10) runs past four hours on macos-15-intel; split it with the shots input when you can (hosted runners stop at 360)
     steps:
       - uses: actions/checkout@v4
 
@@ -119,7 +119,9 @@ jobs:
         # GitHub's 21,000-character expression limit.
         env:
           SIM_UDID: ${{ steps.sim.outputs.udid }}
-          SHOTS_ONLY: ${{ inputs.shots }}
+          # A push to main takes a smoke set (01-29): the full set runs past the job limit on macos-15-intel, so it is
+          # dispatched in parts with the shots input instead.
+          SHOTS_ONLY: ${{ github.event_name == 'push' && '^(0[1-9]|1[0-9]|2[0-9])-' || inputs.shots }}
         run: |
           UDID="$SIM_UDID"
           APP=$(find build/DerivedData/Build/Products/Debug-iphonesimulator -maxdepth 1 -name "*.app" | head -1)
@@ -148,9 +150,23 @@ jobs:
             # (the plain Feed, in the default appearance).
             for _ in $(seq 1 30); do pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null || break; sleep 0.5; done
             sleep 1
+            # A launch that opens a page, a tab or a sheet, or jumps the tab (ShotReady, debug builds) leaves a "pending"
+            # file in the app's tmp folder and a "ready" one once that has happened; on this Intel runner's simulator My
+            # Patient can take 10 s or more to show, so such a shot waits past its time, up to 30 s more, for ready.
+            local tmp; tmp=$(xcrun simctl get_app_container "$UDID" org.periopsignal.app data 2>/dev/null || true)
+            [ -n "$tmp" ] && tmp="$tmp/tmp" && rm -f "$tmp/ps-shot-pending" "$tmp/ps-shot-ready"
+            local started=$SECONDS
             xcrun simctl launch "$UDID" org.periopsignal.app "$@" >/dev/null || echo "::warning::launch failed for $name"
             sleep "$wait"
+            if [ -n "$tmp" ] && [ -f "$tmp/ps-shot-pending" ]; then
+              for _ in $(seq 1 60); do [ -f "$tmp/ps-shot-ready" ] && break; sleep 0.5; done
+              [ -f "$tmp/ps-shot-ready" ] || echo "::warning::$name: the page it opens did not report ready"
+            fi
             xcrun simctl io "$UDID" screenshot "build/shots/$name.png"
+            # A filtered run keeps the app's screenshot trace (ShotTrace, debug builds) beside each shot.
+            if [ -n "$ONLY" ]; then
+              xcrun simctl spawn "$UDID" log show --last "$((SECONDS - started + 4))s" --style compact --predicate 'process == "PeriopSignal" AND category == "shots"' > "build/shots/$name-trace.txt" 2>/dev/null || true
+            fi
             # The app is gone (it crashed): keep the newest crash report for this shot.
             if ! pgrep -f "PeriopSignal.app/PeriopSignal" >/dev/null; then
               crash=$(ls -t ~/Library/Logs/DiagnosticReports/PeriopSignal*.ips 2>/dev/null | head -1)
@@ -223,21 +239,21 @@ jobs:
           # 1.8.2 Neurologic as an expanding page (222-229): the collapsed list, Stroke or TIA within 3 months and an
           # intracranial bleed with mass effect opened (light and dark), the History list, the Summary and Handoff lines, and a quick-add line.
           shot 222-neuro-collapsed 14 -ps.tab patient -ps.patient empty -ps.patient.open system:neuro -ps.forceAppearance light
-          shot 223-neuro-stroke-ich-light 15 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance light
-          shot 224-neuro-stroke-ich-dark 15 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance dark
+          shot 223-neuro-stroke-ich-light 30 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance light
+          shot 224-neuro-stroke-ich-dark 30 -ps.tab patient -ps.patient demo-neuro -ps.patient.open system:neuro -ps.forceAppearance dark
           shot 225-neuro-history-list 14 -ps.tab patient -ps.patient demo-neuro -ps.patient.open history -ps.forceAppearance light
           shot 226-neuro-summary 16 -ps.tab patient -ps.patient demo-neuro -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
           shot 227-neuro-handoff-dark 16 -ps.tab patient -ps.patient demo-neuro -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance dark
           shot 228-neuro-quickadd 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "62M, subdural hematoma with midline shift, seizure, stroke 2 weeks ago"
           # 1.9 system pages (315-339, helper 1): every page expanding, light and dark; the CV, Respiratory and Neurologic
           # additions; the From Obstetric rows; the History list and the summary words.
-          shot 315-renal-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
+          shot 315-renal-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
           shot 316-renal-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance dark
           shot 317-gi-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
           shot 318-gi-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.patient.scroll hx-cirrhosis -ps.forceAppearance dark
           shot 319-endo-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.forceAppearance light
           shot 320-endo-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.scroll hx-adrenal -ps.evidence.open 1 -ps.forceAppearance dark
-          shot 321-heme-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.forceAppearance light
+          shot 321-heme-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.forceAppearance light
           shot 322-heme-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.patient.scroll hx-anticoagulation -ps.forceAppearance dark
           shot 323-infectious-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.forceAppearance light
           shot 324-infectious-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:infectious -ps.patient.scroll hx-tb -ps.forceAppearance dark
@@ -245,12 +261,12 @@ jobs:
           shot 326-acute-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:acute -ps.forceAppearance dark
           shot 327-ob-light 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.forceAppearance light
           shot 328-ob-dark 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:ob -ps.patient.scroll hx-gdm -ps.forceAppearance dark
-          shot 329-msk-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance light
+          shot 329-msk-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance light
           shot 330-msk-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.forceAppearance dark
           shot 331-social-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance light
           shot 332-social-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:social -ps.forceAppearance dark
-          shot 333-cv-af-pacer-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.forceAppearance light
-          shot 334-resp-pleural-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:resp -ps.patient.scroll hx-ild -ps.forceAppearance dark
+          shot 333-cv-af-pacer-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.forceAppearance light
+          shot 334-resp-pleural-dark 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:resp -ps.patient.scroll hx-ild -ps.forceAppearance dark
           shot 335-neuro-additions-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:neuro -ps.patient.scroll hx-sci -ps.forceAppearance light
           shot 336-cv-from-ob-dark 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:cv -ps.patient.scroll hx-cardiac-surgery -ps.forceAppearance dark
           shot 337-heme-from-ob-light 18 -ps.tab patient -ps.patient demo-ob19 -ps.patient.open system:heme -ps.patient.scroll hx-declines-blood -ps.forceAppearance light
@@ -319,7 +335,7 @@ jobs:
           shot 278-asa-history 18 -ps.tab patient -ps.patient demo-history -ps.patient.open assessment -ps.forceAppearance light
           shot 279-endocrine-diabetes-info-light 14 -ps.tab patient -ps.patient demo-history -ps.patient.open system:endo -ps.evidence.open 1 -ps.forceAppearance light
           shot 420-date-autoslash 14 -ps.tab patient -ps.patient empty -ps.patient.open workup:echo -ps.monthyear 062 -ps.forceAppearance light
-          shot 421-psh-chips 16 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA"
+          shot 421-psh-chips 30 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA"
           shot 428-psh-note-review 16 -ps.tab patient -ps.patient empty -ps.patient.open note -ps.forceAppearance light -ps.patient.note "68M for AVR. HTN. PSH: CABG x3 2019, TEVAR 08/2022, Ascending aorta replacement + LM and RCA endarterectomy + AV repair 06/2025, appendectomy 2010 under GA, uneventful."
           shot 424-psh-filled 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.forceAppearance light -ps.quickadd.editor "PSH: CABG x3 2019, TEVAR 08/2022, appendectomy 2010 under GA" -ps.quickadd.add 1
           shot 422-ecg-history-suggestion 16 -ps.tab patient -ps.patient demo-cardio -ps.patient.edit ecg-none -ps.patient.open workup:ecg -ps.forceAppearance light
@@ -423,6 +439,8 @@ jobs:
           shot 98-patient-echo 16 -ps.tab patient -ps.patient demo -ps.patient.open workup:echo
           shot 99-patient-lhc 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc
           shot 100-patient-surgeries 12 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries
+          # 1.10 review: the Past Surgical History bar's shorter example fits the one-line bar at 375 pt.
+          shot 680-w375-psh-placeholder-light 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance light
           shot 101-patient-events 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events
           shot 102-patient-preop-light 16 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
           shot 103-cardiac-preop 12 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop
@@ -558,6 +576,37 @@ jobs:
           shot 383-handoff-shared-image-dialysis 22 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab summary -ps.handoff.format short -ps.handoff.image 1 -ps.patient.scroll sharedimage -ps.forceAppearance dark
           shot 384-typed-wires 20 -ps.tab patient -ps.patient demo-wires -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "epicardial wires A+V" -ps.forceAppearance light
           shot 385-typed-chesttube 20 -ps.tab patient -ps.patient demo-chesttube -ps.patient.open devices:preop -ps.patient.scroll devicetype -ps.devices.type "R chest tube 28 Fr" -ps.forceAppearance dark
+          # 1.10 Preprocedure tab and chips (540-559, helper C): the open Planned Procedure & Anesthetic box (empty, filled, urgency chips
+          # open, the search list), the "+ Risk-score inputs" link open, single-line chip rows (functional capacity, code status with DNR and DNI
+          # both on, a system page), at the CI phone's width and at 375 pt (-ps.patient.width 375), and the large-text fallback.
+          shot 540-planned-box-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance light
+          shot 541-planned-box-empty-dark 18 -ps.tab patient -ps.patient.tab preop -ps.forceAppearance dark
+          shot 542-planned-box-filled-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance light
+          shot 543-planned-box-filled-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.forceAppearance dark
+          shot 544-w393-planned-box-search-urgency-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 393 -ps.procsearch "lap chole" -ps.preop.urgency 1 -ps.forceAppearance light
+          shot 545-risk-inputs-open-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
+          shot 546-functional-one-line-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance light
+          shot 547-functional-one-line-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance dark
+          shot 548-code-status-dnr-dni-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 549-code-status-dnr-dni-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance dark
+          shot 550-w375-planned-urgency-risk-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 375 -ps.preop.urgency 1 -ps.preop.risk 1 -ps.forceAppearance light
+          shot 551-w375-code-status-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 552-w375-functional-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll asa -ps.forceAppearance dark
+          shot 553-system-cv-one-line-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.forceAppearance light
+          shot 554-system-cv-one-line-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.forceAppearance dark
+          shot 555-w375-system-cv-dark 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.width 375 -ps.forceAppearance dark
+          shot 556-large-text-planned-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.textScale 1.25 -ps.preop.urgency 1 -ps.forceAppearance light
+          shot 557-large-text-code-status-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.textScale 1.25 -ps.forceAppearance dark
+          shot 558-w375-risk-inputs-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
+          shot 559-procedure-editor-light 18 -ps.tab patient -ps.patient demo -ps.patient.open procedure -ps.forceAppearance light
+          # 1.10 regression review, Preoperative group (640-659): chosen toggle chips keep their check on one-line rows at 375 pt.
+          shot 640-w375-cv-af-pacer-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.patient.width 375 -ps.forceAppearance light
+          # Review 1.10, checks (700-719): a chosen toggle chip reads "✓ Warfarin" on its one-line row at 375 pt (heme, endo, CAD, MSK, valves).
+          shot 700-w375-heme-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance light
+          shot 701-w375-endo-dark 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.width 375 -ps.forceAppearance dark
+          shot 702-w375-cv-cad-light 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.width 375 -ps.forceAppearance light
+          shot 703-w375-msk-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.patient.width 375 -ps.forceAppearance light
+          shot 704-w375-cv-valves-dark 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.patient.width 375 -ps.forceAppearance dark
           # 1.9 Preprocedure tab (helper 5): the reorganized tab from top to bottom, light and dark; a large-text pair.
           shot 440-preop-top-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance light
           shot 441-preop-top-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance dark
@@ -620,6 +669,95 @@ jobs:
           shot 480-timers-from-reference 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.forceAppearance dark
           shot 481-tee-practice 18 -ps.ref tee -ps.tee.practice 1 -ps.forceAppearance light
           shot 482-tee-av-repair 18 -ps.ref tee -ps.tee.surgery avRepair -ps.tee.post 1 -ps.forceAppearance dark
+          # 1.10 Intraoperative tab, airway course, handoff airway and labs with times, SLIC (helper D, 560-579).
+          shot 560-intraop-top-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.forceAppearance light
+          shot 561-intraop-top-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.forceAppearance dark
+          shot 562-intraop-lines-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance light
+          shot 563-intraop-meds-infusions-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.infusion.type "insulin 4, nor" -ps.forceAppearance light
+          shot 564-intraop-meds-infusions-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.infusion.type "dobut 5, epi" -ps.forceAppearance dark
+          shot 565-intraop-fluids-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance light
+          shot 566-intraop-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
+          shot 567-intraop-other-details-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance light
+          shot 568-intraop-other-details-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.scroll intraop:labs -ps.forceAppearance dark
+          shot 569-airway-intubation-open-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.open intraop:airway -ps.forceAppearance light
+          shot 570-airway-intubation-open-dark 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.open intraop:airway -ps.forceAppearance dark
+          shot 571-handoff-airway-course-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 572-handoff-airway-course-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Airway -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 573-handoff-labs-times-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 574-handoff-labs-times-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 575-labs-drawn-time-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 576-lines-slic-typed-light 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "LIJ SLIC 9 Fr" -ps.forceAppearance light
+          shot 577-lines-slic-typed-dark 20 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:lines -ps.patient.scroll devicetype -ps.devices.type "RIJ SLIC" -ps.forceAppearance dark
+          shot 578-intraop-cardiac-arrives-intubated-light 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.forceAppearance light
+          shot 579-intraop-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab intraop -ps.forceAppearance dark
+          # 1.10 review: the echo link under Other Intraoperative Details with a pre- and a post-bypass exam.
+          shot 580-intraop-echo-link-pre-post-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.scroll intraop:echo -ps.forceAppearance light
+          shot 581-intraop-echo-link-pre-post-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.scroll intraop:echo -ps.forceAppearance dark
+          # 1.10 review, Preprocedure (590-597): the Cardiopulmonary Evaluation for a planned AVR (no noncardiac verdict),
+          # the "+ Urgency" link and its collapsed row, and the compact labs "Drawn" row (set and empty).
+          shot 590-review-cardio-avr-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.edit intrathoracic -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 591-review-cardio-avr-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.jump cardio -ps.forceAppearance dark
+          shot 592-review-urgency-collapsed-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.forceAppearance light
+          shot 593-review-urgency-link-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 594-review-labs-drawn-set-light 24 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance light
+          shot 595-review-labs-drawn-set-dark 24 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance dark
+          shot 596-review-labs-drawn-empty-light 24 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance light
+          shot 597-review-labs-drawn-empty-dark 24 -ps.tab patient -ps.patient demo-labs -ps.patient.open workup:labs -ps.patient.scroll labsdrawn -ps.forceAppearance dark
+          # 598-599: the same AVR with severe aortic stenosis recorded: no "evaluate for valve intervention" note.
+          shot 598-review-cardio-avr-as-light 18 -ps.tab patient -ps.patient demo-echo110-as -ps.patient.tab preop -ps.patient.jump cardio -ps.forceAppearance light
+          shot 599-review-cardio-avr-as-dark 18 -ps.tab patient -ps.patient demo-echo110-as -ps.patient.tab preop -ps.patient.jump cardio -ps.forceAppearance dark
+          # 1.10 screenshot review, preop group (620-639): the intraop demo's spelled-out AVR with supracoronary ascending
+          # aorta replacement read as one procedure in the Planned Procedure & Anesthetic box.
+          shot 620-shots-preop-planned-wheat-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab preop -ps.forceAppearance light
+          shot 621-shots-preop-planned-wheat-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab preop -ps.forceAppearance dark
+          # 1.10 Case Timers (helper A, 500-519).
+          shot 500-timers110-running-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections none -ps.forceAppearance dark
+          shot 501-timers110-running-light 22 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.timers.open 1 -ps.timers.sections none -ps.forceAppearance light
+          shot 502-timers110-antibiotic-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections antibiotic -ps.timers.pick cefoxitin -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 503-timers110-antibiotic-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections antibiotic -ps.timers.pick cefoxitin -ps.timers.scroll antibiotic -ps.forceAppearance light
+          shot 504-timers110-antibiotic-other-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections antibiotic -ps.timers.pick clindamycin -ps.timers.other antibiotic -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 505-timers110-antibiotic-other-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections antibiotic -ps.timers.pick clindamycin -ps.timers.other antibiotic -ps.timers.scroll antibiotic -ps.forceAppearance light
+          shot 506-timers110-labs-start-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections labs -ps.timers.labs abg:30,glucose:60 -ps.timers.other labs:coag -ps.timers.scroll labs -ps.forceAppearance dark
+          shot 507-timers110-labs-start-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.sections labs -ps.timers.labs abg:30,glucose:60 -ps.timers.other labs:coag -ps.timers.scroll labs -ps.forceAppearance light
+          shot 508-timers110-labs-running-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections labs -ps.timers.scroll labs -ps.forceAppearance dark
+          shot 509-timers110-labs-running-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections labs -ps.timers.scroll labs -ps.forceAppearance light
+          shot 510-timers110-bypass-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
+          shot 511-timers110-bypass-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin -ps.evidence.open 1 -ps.forceAppearance light
+          shot 512-timers110-bypass-protamine-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance dark
+          shot 513-timers110-bypass-protamine-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.evidence.open 1 -ps.forceAppearance light
+          shot 514-timers110-tavr-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed tavr -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
+          shot 515-timers110-tavr-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed tavr -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.forceAppearance light
+          shot 516-timers110-tavr-new-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.purpose tavr -ps.timers.sections heparin -ps.timers.scroll heparin -ps.forceAppearance dark
+          shot 517-timers110-bypass-new-act-other-light 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.purpose bypass -ps.timers.other act -ps.timers.sections heparin -ps.timers.scroll heparin.act -ps.forceAppearance light
+          shot 518-timers110-empty-dark 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance dark
+          shot 519-timers110-empty-light 18 -ps.ref case-timers -ps.patient demo-cardiac -ps.forceAppearance light
+          shot 600-tee-practice-act-answer 18 -ps.ref tee -ps.tee.practice 1 -ps.tee.answer 8 -ps.forceAppearance light
+          # 1.10 screenshot review, regressions in timers and the Intraoperative tab (660-679): the cardiac demo's Lines &
+          # Devices card with the radial-harvest arm cautions above the figure.
+          shot 660-regress-intraop-lines-card-dark 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance dark
+          shot 661-regress-intraop-lines-card-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance light
+          # The preop card's limb alerts above its figure, in dark (378 is the light one).
+          shot 662-regress-preop-card-limb-alert-dark 18 -ps.tab patient -ps.patient demo-dialysis -ps.patient.tab preop -ps.patient.scroll devices -ps.forceAppearance dark
+          # 1.10 helper B (520-539): echo LV/RV size and prosthesis details, the intraoperative pre- and post-bypass exams and
+          # the handoff's Pre/Post lines, Past Surgical History's bar adding a past operation only, transcatheter procedures.
+          shot 520-echo-size-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-lv -ps.forceAppearance light
+          shot 521-echo-size-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-lv -ps.forceAppearance dark
+          shot 522-echo-prosthesis-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance light
+          shot 523-echo-prosthesis-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance dark
+          shot 524-intraop-echo-pre-light 22 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-pre -ps.forceAppearance light
+          shot 525-intraop-echo-pre-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-pre -ps.forceAppearance dark
+          shot 526-intraop-echo-post-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll echo-post -ps.forceAppearance light
+          shot 527-intraop-echo-post-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll post-echo-a -ps.forceAppearance dark
+          shot 528-intraop-echo-add-post-light 22 -ps.tab patient -ps.patient demo-echo110-pre -ps.patient.open intraop:echo -ps.patient.scroll echo-post -ps.forceAppearance light
+          shot 529-handoff-tee-pre-post-light 20 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 530-handoff-tee-pre-post-dark 20 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 531-psh-quickadd-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:surgeries -ps.quickadd.editor "tonsillectomy 2005" -ps.forceAppearance light
+          shot 532-psh-quickadd-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:surgeries -ps.quickadd.editor "MitraClip 2022, VATS wedge 2019" -ps.forceAppearance dark
+          shot 533-transcatheter-mitraclip-light 16 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.patient.addproc MitraClip -ps.forceAppearance light
+          shot 534-transcatheter-pvl-dark 16 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.patient.addproc "mitral PVL plug" -ps.forceAppearance dark
+          shot 535-previous-intrathoracic-light 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance light
+          shot 536-previous-intrathoracic-dark 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance dark
+          shot 537-preop-echo-summary-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

@@ -410,7 +410,7 @@ enum PatientCatalog {
     ]
 
     static let dispositions = ["PACU", "ICU", "Ward", "Same-day discharge", "Other"]
-    static let devices = ["Direct laryngoscope", "Video laryngoscope", "Flexible scope", "Supraglottic airway", "Face mask only"]
+    static let devices = ["Direct laryngoscope", "Video laryngoscope", "Fiberoptic scope", "Supraglottic airway", "Face mask only"]
     static let grades = ["1", "2a", "2b", "3", "4"]
 
     /// Cormack and Lehane's grades with Yentis and Lee's 2a and 2b (Anaesthesia 1984; 1998). Grades 3 and 4 are
@@ -430,4 +430,14 @@ enum PatientCatalog {
     static let airwayAtEnd: [(id: String, label: String)] = [
         ("extubated", "Extubated"), ("intubated", "Intubated"), ("sga", "Supraglottic airway in"), ("natural", "Never instrumented"),
     ]
+
+    /// The At handoff choices for this patient. One who arrived with an ETT or a tracheostomy, or whose airway course
+    /// records an intubation or a supraglottic airway, cannot be "Never instrumented" (review 1.10: the choice sat
+    /// under "ETT … on arrival" and under a recorded intubation), so it is offered only to the others, or while it is
+    /// the saved value (an older record keeps showing its choice).
+    static func airwayAtEndChoices(_ r: PatientRecord) -> [(id: String, label: String)] {
+        let instrumented = r.arrivesWithAirway || PatientAirway.intubationChosen(r) || PatientAirway.lmaChosen(r)
+        guard instrumented else { return airwayAtEnd }
+        return airwayAtEnd.filter { $0.id != "natural" || r.airwayAtEnd == "natural" }
+    }
 }

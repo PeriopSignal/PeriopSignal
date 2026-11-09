@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-11-03",
-  "revision": 1793499859,
+  "updated": "2026-11-07",
+  "revision": 1794087713,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -14855,9 +14855,9 @@
         "doseLow": 300,
         "doseHigh": 400,
         "doseDefault": 300,
-        "goal": 450,
+        "goal": 480,
         "goalDevice": 400,
-        "goalText": ">450 s (institutional; STS 2018: >480 s), or >400 s on maximally activated or microcuvette ACT",
+        "goalText": "STS 2018 and EACTS 2024: above 480 s",
         "actEvery": [
           30,
           20
@@ -14870,24 +14870,8 @@
         "note": "Higher bolus arms (400–450 U/kg) showed no benefit."
       },
       {
-        "id": "offpump",
-        "name": "Off-pump CABG",
-        "doseLow": 100,
-        "doseHigh": 200,
-        "goal": 300,
-        "goalText": "Commonly >250–300 s",
-        "actEvery": [
-          30,
-          20
-        ],
-        "strength": "P",
-        "sources": [],
-        "note": "Usually 200 U/kg, half the bypass dose; some centres give a full dose. Before an emergency conversion to bypass, give a full dose to >480 s.",
-        "doseDefault": 200
-      },
-      {
         "id": "vascular",
-        "name": "Vascular (open, carotid)",
+        "name": "Vascular/TEVAR",
         "doseLow": 50,
         "doseHigh": 100,
         "flatUnits": 5000,
@@ -14903,41 +14887,6 @@
           "esvs2023"
         ],
         "note": "No ACT goal preset. ACTION-1 (open AAA): 100 U/kg titrated to ACT 200 s vs a 5,000 IU bolus was stopped for futility, with more bleeding and more deaths in the ACT-guided arm (+7.9%, 95% CI 2.3–13.6)."
-      },
-      {
-        "id": "endovascular",
-        "name": "EVAR / TEVAR",
-        "doseLow": 50,
-        "doseHigh": 100,
-        "flatUnits": 5000,
-        "goal": null,
-        "userGoalText": "200–250 s (some aim ≥250), practice only",
-        "actEvery": [
-          30,
-          20
-        ],
-        "strength": "P",
-        "sources": [
-          "esvs2023"
-        ],
-        "note": "No ACT goal preset. Often a 5,000 IU bolus. ESVS 2023 wording not yet verified."
-      },
-      {
-        "id": "tavr",
-        "name": "TAVR",
-        "doseLow": 70,
-        "doseHigh": 100,
-        "goal": 250,
-        "goalText": "250–300 s",
-        "actEvery": [
-          30,
-          20
-        ],
-        "strength": "G",
-        "sources": [
-          "tenberg2021"
-        ],
-        "note": "ACT goal from ten Berg 2021; the dose range is practice."
       },
       {
         "id": "ecmo",
@@ -14957,6 +14906,39 @@
         "userGoalText": "varies by center, set yours (ELSO: anti-Xa 0.3–0.7 IU/mL or aPTT once running)"
       },
       {
+        "id": "tavr",
+        "name": "TAVR",
+        "doseLow": 70,
+        "doseHigh": 100,
+        "goal": 250,
+        "goalText": "250–300 s",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "G",
+        "sources": [
+          "tenberg2021"
+        ],
+        "note": "ACT goal from ten Berg 2021; the dose range is practice."
+      },
+      {
+        "id": "offpump",
+        "name": "OCAB",
+        "doseLow": 100,
+        "doseHigh": 200,
+        "goal": 300,
+        "goalText": "Commonly >250–300 s",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "P",
+        "sources": [],
+        "note": "Usually 200 U/kg, half the bypass dose; some centres give a full dose. Before an emergency conversion to bypass, give a full dose to >480 s.",
+        "doseDefault": 200
+      },
+      {
         "id": "other",
         "name": "Other",
         "goal": null,
@@ -14967,6 +14949,25 @@
         "strength": "",
         "sources": [],
         "note": "Enter the dose and, if you use one, the ACT goal."
+      },
+      {
+        "id": "endovascular",
+        "name": "EVAR / TEVAR",
+        "doseLow": 50,
+        "doseHigh": 100,
+        "flatUnits": 5000,
+        "goal": null,
+        "userGoalText": "200–250 s (some aim ≥250), practice only",
+        "actEvery": [
+          30,
+          20
+        ],
+        "strength": "P",
+        "sources": [
+          "esvs2023"
+        ],
+        "note": "No ACT goal preset. Often a 5,000 IU bolus. ESVS 2023 wording not yet verified.",
+        "hidden": true
       }
     ],
     "heparinRules": {
@@ -14978,11 +14979,12 @@
       "unitsCheckBelow": 1000,
       "resistance": "Goal not reached despite an adequate dose: consider heparin resistance (no numeric definition in STS 2018).",
       "clottingTest": "STS 2018 (I/C): a clotting time should show adequate anticoagulation before bypass and at regular intervals during it.",
-      "deviceNote": "ACT values differ between devices (557 vs 618 s in one changeover). Pick your device.",
+      "deviceNote": "ACT values differ between devices (557 vs 618 s in one changeover).",
       "hardConfirmExempt": [
         "bypass",
         "ecmo"
-      ]
+      ],
+      "actDevice": "i-STAT"
     },
     "protamine": {
       "ratioLow": 0.8,
@@ -14992,8 +14994,8 @@
       "maxMgPer10Min": 50,
       "postActMinutes": 3,
       "basis": "Suggested from the initial heparin bolus; total heparin is shown for reference.",
-      "ratioNote": "EACTS 2024: keep the protamine-to-heparin ratio under 1:1.",
-      "ceilingNote": "STS 2018 (IIa/C): it is reasonable to keep protamine under 2.6 mg per 100 U of heparin; above that, platelet function falls, the ACT rises and bleeding increases. The 2.6 cap is a ceiling; the EACTS <1:1 ratio is a target.",
+      "ratioNote": "EACTS 2024: the protamine-to-heparin ratio should be kept below 1.0, so 1 mg per 100 U is the cap, not the target.",
+      "ceilingNote": "STS 2018 (IIa/C): it is reasonable to keep protamine under 2.6 mg per 100 U of heparin; above that, platelet function falls, the ACT rises and bleeding increases. 2.6 mg per 100 U is an outer safety limit, far above the 1 mg per 100 U cap.",
       "noBypass": "Without bypass, heparin's half-life depends on the dose: follow the label (1 mg neutralizes at least 100 U; about half the dose may do about 30 min after the heparin) and titrate to the ACT.",
       "onBypass": "Bypass is still running. Protamine on bypass clots the circuit.",
       "suction": "Stop cardiotomy suction when protamine starts (EACTS 2024).",
@@ -15093,6 +15095,25 @@
           90,
           120
         ]
+      },
+      {
+        "id": "coag",
+        "name": "Coagulation studies",
+        "options": [
+          {
+            "label": "Default",
+            "minutes": 60
+          }
+        ],
+        "every": [
+          30,
+          60,
+          90,
+          120
+        ],
+        "note": "Interval set by you or your institution.",
+        "strength": "P",
+        "sources": []
       }
     ],
     "sources": [
@@ -16418,7 +16439,7 @@
       },
       {
         "q": "What ACT on bypass does STS 2018 find reasonable?",
-        "a": "Above 480 s (IIa). This app's default is above 450 s, set by your institution.",
+        "a": "Above 480 s (IIa). This app's bypass default: ACT goal ≥ 480 s, as Case Timers shows it; you can change it there.",
         "source": "STS/SCA/AmSECT 2018"
       },
       {

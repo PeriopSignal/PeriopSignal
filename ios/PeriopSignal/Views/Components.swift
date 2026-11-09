@@ -677,22 +677,95 @@ private extension URL {
 
 /// A title and its choice buttons on one line when they fit, saving a row; the choices wrap under the title when
 /// they don't (long titles, many choices, large text sizes).
+///
+/// Whether they fit is decided as 1.10 decided it: by the choices' first one-line form without a chosen toggle chip's
+/// ✓ (a hidden copy of the choices, drawn with `chipLineProbe`, which makes a ChipSet draw only that form). On the
+/// title's line the choices then get the room that is left and pick their own form in it, the ✓ forms first, at a
+/// tighter padding where the ✓ needs it (review 1.10: measured at its widest form, the ✓ made the 1.9 and 1.10 one-line
+/// rows such as Renal's "Access  ✓ Fistula  Dialysis catheter" stack). One copy of the title and the choices is drawn
+/// either way.
 struct InlineChoices<Title: View, Choices: View>: View {
     var spacing: CGFloat = 8
     @ViewBuilder var title: () -> Title
     @ViewBuilder var choices: () -> Choices
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: 10) {
-                title().fixedSize()
-                Spacer(minLength: 8)
-                choices().fixedSize()
-            }
-            VStack(alignment: .leading, spacing: spacing) {
-                title()
-                choices()
-            }
+        InlineChoicesLayout(spacing: spacing) {
+            VStack(alignment: .leading, spacing: 0) { title() }
+            VStack(alignment: .leading, spacing: 0) { choices() }
+            VStack(alignment: .leading, spacing: 0) { choices() }
+                .environment(\.chipLineProbe, true)
+                .hidden()
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+private struct ChipLineProbeKey: EnvironmentKey { static let defaultValue = false }
+
+extension EnvironmentValues {
+    /// InlineChoices' measure of a row: a ChipSet draws only its first one-line form without the ✓.
+    var chipLineProbe: Bool {
+        get { self[ChipLineProbeKey.self] }
+        set { self[ChipLineProbeKey.self] = newValue }
+    }
+}
+
+/// InlineChoices' layout of its three parts (the title, the choices, the hidden measure of the choices): on one line,
+/// the title at the leading edge and the choices at the trailing one, as the HStack with a spacer it replaces (10 pt,
+/// the spacer's 8, 10 pt); or the title above the choices.
+struct InlineChoicesLayout: Layout {
+    var spacing: CGFloat = 8
+    /// Between the title and the choices on one line, at the least.
+    static let gap: CGFloat = 28
+
+    /// Whether a title and choices of these widths share one line in `width` (nil: no limit).
+    static func inline(title: CGFloat, choices: CGFloat, in width: CGFloat?) -> Bool {
+        guard let width else { return true }
+        return title + gap + choices <= width + 0.001
+    }
+
+    private struct Plan {
+        var inline: Bool
+        var size: CGSize
+        var title: CGSize
+        var choices: CGSize
+        var choicesProposal: ProposedViewSize
+    }
+
+    private func plan(_ proposal: ProposedViewSize, _ subviews: Subviews) -> Plan? {
+        guard subviews.count == 3 else { return nil }
+        let title = subviews[0], choices = subviews[1], measure = subviews[2]
+        let width: CGFloat? = proposal.width.flatMap { $0.isFinite ? $0 : nil }
+        let titleIdeal = title.sizeThatFits(.unspecified)
+        if Self.inline(title: titleIdeal.width, choices: measure.sizeThatFits(.unspecified).width, in: width) {
+            let ideal = choices.sizeThatFits(.unspecified)
+            let room = width.map { min(ideal.width, max(0, $0 - titleIdeal.width - Self.gap)) } ?? ideal.width
+            let p = ProposedViewSize(width: room, height: nil)
+            let c = choices.sizeThatFits(p)
+            let w = width ?? (titleIdeal.width + Self.gap + c.width)
+            return Plan(inline: true, size: CGSize(width: w, height: max(titleIdeal.height, c.height)), title: titleIdeal, choices: c, choicesProposal: p)
+        }
+        let p = ProposedViewSize(width: width, height: nil)
+        let t = title.sizeThatFits(p), c = choices.sizeThatFits(p)
+        return Plan(inline: false, size: CGSize(width: max(t.width, c.width), height: t.height + spacing + c.height), title: t, choices: c, choicesProposal: p)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        plan(proposal, subviews)?.size ?? .zero
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard let plan = plan(ProposedViewSize(width: bounds.width, height: nil), subviews) else { return }
+        // The measure is hidden; it is placed only because every subview must be.
+        subviews[2].place(at: bounds.origin, proposal: .unspecified)
+        if plan.inline {
+            subviews[0].place(at: CGPoint(x: bounds.minX, y: bounds.midY), anchor: .leading, proposal: ProposedViewSize(plan.title))
+            subviews[1].place(at: CGPoint(x: bounds.maxX, y: bounds.midY), anchor: .trailing, proposal: plan.choicesProposal)
+        } else {
+            subviews[0].place(at: bounds.origin, proposal: ProposedViewSize(width: bounds.width, height: nil))
+            subviews[1].place(at: CGPoint(x: bounds.minX, y: bounds.minY + plan.title.height + spacing), proposal: plan.choicesProposal)
         }
     }
 }

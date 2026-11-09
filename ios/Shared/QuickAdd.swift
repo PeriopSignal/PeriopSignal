@@ -27,6 +27,9 @@ enum QuickAddTab: String, CaseIterable, Hashable {
 enum QuickAddPlace: Hashable {
     case preopTab, intraopTab, summaryTab
     case editor(intraop: Bool)
+    /// The Past Surgical History page's bar (1.10, Ben's notes-img1 bug): an operation typed there is a past operation,
+    /// never the planned procedure.
+    case pastSurgery
 
     var tab: QuickAddTab {
         switch self {
@@ -36,9 +39,14 @@ enum QuickAddPlace: Hashable {
     }
 
     var compact: Bool {
-        if case .editor = self { return true }
-        return false
+        switch self {
+        case .editor, .pastSurgery: return true
+        default: return false
+        }
     }
+
+    /// The line is read as past surgical history (QuickAdd.read's `surgicalHistory`).
+    var surgicalHistory: Bool { self == .pastSurgery }
 }
 
 /// What a line gives: findings to file, and what is shown but never filed.
@@ -117,6 +125,8 @@ private struct QuickOut {
     /// Lab keys already read, with the value filed (a second, different value is asked about).
     var labs: Set<String> = []
     var labValues: [String: Double] = [:]
+    /// The asides after past operations on the Past Surgical History bar ("under GA"), reported as not read.
+    var asides: [String] = []
 
     mutating func add(_ f: PatientNoteFinding) {
         guard !findings.contains(where: { $0.id == f.id }) else { return }
@@ -221,8 +231,14 @@ enum QuickAdd {
 
     /// The example in the bar: the tab's, and on Summary & Handoff one that reads there.
     static func placeholder(_ place: QuickAddPlace) -> String {
-        place == .summaryTab ? "K 5.4, norepi 0.05, A-line" : placeholder(place.tab)
+        if place == .pastSurgery { return pastSurgeryPlaceholder }
+        return place == .summaryTab ? "K 5.4, norepi 0.05, A-line" : placeholder(place.tab)
     }
+    /// Short enough for the compact one-line bar at 375 pt, with both date forms (a year; a month and year).
+    static let pastSurgeryPlaceholder = "CABG ×3 2015, R TKA 06/2019"
+    /// The Previous Intrathoracic Surgery page's example (review 1.10: the PSH one offered a knee replacement there): two
+    /// operations that opened the chest, with both date forms, as short as the PSH one.
+    static let intrathoracicPlaceholder = "CABG ×3 2015, R VATS 06/2019"
 
     /// The questions the reader asks itself ("SpO₂ 95% · room air?", "PRBC 2 · given?") and the infusion reader's
     /// (InfusionEntry: "drug:<word>", "unit:<drugID>:<rate>"), as opposed to an abbreviation's meaning: nothing is added
@@ -235,8 +251,15 @@ enum QuickAdd {
 
     /// The findings a line gives on a tab. `record` is the patient as it stands (for the intraoperative airway and
     /// the blood totals); `abbreviations` and `choices` are the user's own and the meanings chosen, as for a note.
+    ///
+    /// `surgicalHistory` (1.10): the bar on the Past Surgical History page. Until 1.10 that bar read a line the way the
+    /// Preoperative tab's does, where an operation opening the line is the planned procedure, so "tonsillectomy" typed
+    /// there offered to replace the planned AVR (Ben's notes-img1). There, an operation is read as past surgery only
+    /// (PastSurgeryNote, as a "PSH:" section's lines are, with its date), the planned procedure and its anesthetic are
+    /// never read, and the rest of the line (labs, history) reads as on the Preoperative tab.
     static func read(_ line: String, record: PatientRecord, tab: QuickAddTab, now: Date = Date(),
-                     abbreviations user: [String: String] = [:], choices: [String: String] = [:]) -> QuickAddReading {
+                     abbreviations user: [String: String] = [:], choices: [String: String] = [:],
+                     surgicalHistory: Bool = false) -> QuickAddReading {
         let one = line.components(separatedBy: .newlines).joined(separator: " ")
         var s = QuickScan(one)
         var reading = QuickAddReading()
@@ -247,6 +270,7 @@ enum QuickAdd {
         let c = QuickContext(tab: tab, record: record, now: now, abbreviations: abbreviations, choices: choices, setID: UUID())
         var out = QuickOut()
 
+        if surgicalHistory { readPastSurgery(&s, c, &out) }
         if tab == .intraop {
             readAirway(&s, c, &out)
             // "A-line pre-induction" on the Intraoperative tab says when it went in, not that it is still to come.
@@ -263,7 +287,7 @@ enum QuickAdd {
         readLabs(&s, c, &out)
         readDrips(&s, c, &out)
         readMarkedDrips(&s, c, &out)
-        readProcedure(&s, c, &out)
+        if !surgicalHistory { readProcedure(&s, c, &out) }
 
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
         let fresh = choices.filter { !out.stale.contains($0.key) }
@@ -274,11 +298,12 @@ enum QuickAdd {
         // Its questions about two values of a lab ("Cr: 0.9 or 1.6?"), unless one is asked here already.
         // And the aorta's: a dissection with no type, a bare "TAA".
         // And the procedure's: a bare Bentall's valve.
-        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:") || q.id.hasPrefix("quick:procedure:"))
+        for q in note.ambiguous where (q.id.hasPrefix(PatientNote.labQuestionPrefix) || q.id.hasPrefix("quick:aorta:")
+                                        || (q.id.hasPrefix("quick:procedure:") && !surgicalHistory))
             && !out.questions.contains(where: { $0.id == q.id }) {
             out.questions.append(q)
         }
-        readPlan(base, c, &out)
+        if !surgicalHistory { readPlan(base, c, &out) }
 
         var rank: [String: Int] = [:]
         for (i, sec) in sections.enumerated() { rank[sec] = i }
@@ -299,7 +324,7 @@ enum QuickAdd {
             if let v = out.valueKeys[a.id] { x.valueKey = v }
             return x
         }
-        reading.unread = asTyped([note.other, note.previous].filter { !$0.isEmpty }.joined(separator: "; "), s.text,
+        reading.unread = asTyped(([note.other, note.previous] + out.asides).filter { !$0.isEmpty }.joined(separator: "; "), s.text,
                                  user: user, choices: fresh)
         return reading
     }
@@ -1863,6 +1888,47 @@ enum QuickAdd {
         return out
     }
 
+    /// The Past Surgical History bar (1.10): each operation in the line, with its date, as the lines after a "PSH:" header
+    /// are read (an operative word, an eponym or the procedure list's name; a diagnosis is not one), each its own entry.
+    /// What is read is masked, so nothing else reads it again.
+    ///
+    /// Review 1.10: the masking had two side effects 1.9 did not have. (1) An aside after an operation ("under GA",
+    /// "spinal") was masked with it and never reported, so typed words were dropped silently; it is reported as not read
+    /// again ("Not read: under GA"), as the note reader's "PSH:" lines do (PatientNote, `previous`). (2) The history an
+    /// operation implies ("Prior CABG", which answers the RCRI's ischemic heart disease and the ASA III example; "Prior
+    /// TEVAR"; a prosthetic valve) was no longer filed, which the note reader still files from the same "PSH:" line. Each
+    /// operation's own words are read for those history items only: never a second Past surgical history entry, a
+    /// Previous cardiac surgery or a procedure (the entry above is the one entry; it links the cardiovascular page's
+    /// Previous cardiac surgery through PastSurgeryNote.add). Conservative choice: the chip is offered, the user adds it.
+    private static func readPastSurgery(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+        var state = PastSurgeryNote.State(open: true, bodyEmpty: true)
+        for op in PastSurgeryNote.read(s.text, state: &state).operations {
+            s.mask(op.range)
+            let entry = PastSurgeryNote.surgery(op.text, op.date)
+            out.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: PatientNote.Part.history,
+                                       label: "Past surgical history: " + entry.text, change: .pastSurgery(op.text, op.date)))
+            if !op.aside.isEmpty, !out.asides.contains(where: { $0.caseInsensitiveCompare(op.aside) == .orderedSame }) {
+                out.asides.append(op.aside)
+            }
+            guard !op.text.isEmpty else { continue }
+            // Read as done ("s/p"): everything on this bar is a past operation, and the note reader files an aortic repair
+            // only when it is told as past (PatientNote.repairPastBefore), as a "PSH:" line's date tells it.
+            for f in PatientNote.read("s/p " + op.text, now: c.now, abbreviations: [:], choices: c.choices, askRoomAir: false).findings
+                where impliedHistory(f.change) {
+                route(f, op.text, c, &out)
+            }
+        }
+    }
+
+    /// The history items a past operation's own words file on the Past Surgical History bar ("Prior CABG", "Prior TEVAR", a
+    /// prosthetic valve): readPastSurgery.
+    static func impliedHistory(_ change: PatientNoteChange) -> Bool {
+        switch change {
+        case .problem, .prosthesis: return true
+        default: return false
+        }
+    }
+
     private static func take(_ p: (range: NSRange, text: String), _ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
         s.mask(p.range)
         // A bare Bentall asks which valve (1.8.1); the answer is read into the procedure.
@@ -1883,14 +1949,14 @@ enum QuickAdd {
     static let planPrefix = "plan-anesthetic:"
     /// A technique written in shorthand ("under block", "ACB", "TIVA", "LMA"): the plan is the user's, not filled.
     static let techniqueWord = NoteRx(#"(?-i:\b(?:GA|GETA|MAC|ACB|TAP|ESP|PENG|QL|ISB|SCB|FNB|SAB|CSE|LMA|TIVA)\b)|\b(?:blocks?|regional|spinal|epidural|neuraxial|sedation|ipack)\b"#)
-    static let planNote = "The usual plan for the procedure, as the Procedure editor fills it."
+    static let planNote = "The usual plan for the procedure, as the Planned Procedure & Anesthetic box fills it."
 
     private static func isAnesthetic(_ f: PatientNoteFinding) -> Bool {
         if case .anesthetic = f.change { return true }
         return false
     }
 
-    /// The planned anesthetic the Procedure editor fills from procedures on the list, when the record has none and the
+    /// The planned anesthetic the Planned Procedure & Anesthetic box fills from procedures on the list, when the record has none and the
     /// line names no technique (even one the reader did not take, as in "TKA, spinal"). A plan already set is never
     /// replaced.
     private static func readPlan(_ line: String, _ c: QuickContext, _ out: inout QuickOut) {
@@ -1915,7 +1981,7 @@ enum QuickAdd {
     private static let airwayDevices: [(NoteRx, String)] = [
         (NoteRx(#"(?-i:\bVL\b)|\bvideo ?laryngoscop\w*|\bglide ?scope\b|\bglide\b|\bc-?mac\b|\bmcgrath\b"#), "Video laryngoscope"),
         (NoteRx(#"(?-i:\bDL\b)|\bdirect laryngoscop\w*|\b(?:mac|macintosh)\s*#?\s*[1-5]\b|\bmiller\s*#?\s*[0-4]\b"#), "Direct laryngoscope"),
-        (NoteRx(#"\b(?:fob|foi|afoi)\b|\bfib(?:er|re) ?optic\w*|\bflexible (?:scope|bronchoscop\w*)"#), "Flexible scope"),
+        (NoteRx(#"\b(?:fob|foi|afoi)\b|\bfib(?:er|re) ?optic\w*|\bflexible (?:scope|bronchoscop\w*)"#), "Fiberoptic scope"),
         (NoteRx(#"\b(?:lma|i-?gel|sga)\b|\bsupraglottic\b|\blaryngeal mask\b"#), "Supraglottic airway"),
     ]
     /// "LMA 4", "LMA #4", "i-gel size 4", "#4 LMA", "size 4 i-gel". Groups: 1 the device before a size (2), or a size (3)
@@ -2071,10 +2137,9 @@ enum QuickAdd {
             if let va = viewAfter.first(p.after) { gr.length += va.range.location + va.range.length }
             if context { views.append((value: grades[g], range: gr)) }
         }
-        if let mg = maskGrade {
-            put("maskGrade", mg.value, "Mask grade " + mg.value, mg.range)
-            s.mask(mg.range)
-        }
+        // 1.10 (Ben, Nov 7): the Han mask grade is retired. It is still read, so it is not filed as the view grade, and is
+        // then left out: nothing is recorded for it.
+        if let mg = maskGrade { s.mask(mg.range) }
         // Laryngoscopes in the order written; one said to be in the room, available or a backup was not used.
         var scopes: [(device: String, range: NSRange, certain: Bool)] = []
         for (rx, device) in airwayDevices {
@@ -2125,7 +2190,7 @@ enum QuickAdd {
             }
         }
         let none = NSRange(location: NSNotFound, length: 0)
-        let short = ["Video laryngoscope": "VL", "Direct laryngoscope": "DL", "Flexible scope": "Flexible scope", "Supraglottic airway": "SGA"]
+        let short = ["Video laryngoscope": "VL", "Direct laryngoscope": "DL", "Fiberoptic scope": "Fiberoptic scope", "Supraglottic airway": "SGA"]
         var devices: [String] = []
         for sc in scopes where !devices.contains(sc.device) { devices.append(sc.device) }
         if devices.count > 1 {
@@ -2175,10 +2240,17 @@ enum QuickAdd {
                 for v in views where v.range.location != g.range.location { s.mask(v.range) }
             }
         }
+        // A Han grade of 3 (difficult mask ventilation) or 4 (unable to mask ventilate): the grade itself is retired, but
+        // what it says is kept as a difficult mask with the grade in its note, as a saved grade is read
+        // (PatientAirway.migratedMask), so it is not dropped from the course and the handoff (Han R, et al. Grading scale
+        // for mask ventilation. Anesthesiology 2004;101:267). Conservative choice: an "easy" written beside it ("easy mask,
+        // Han 4") is read as the difficult mask the grade says, as a saved easy with a grade of 4 is. Grades 1-2 add nothing.
+        let han = maskGrade.flatMap { Int($0.value) }.flatMap { $0 >= 3 ? $0 : nil }
         if let m = maskEaseRx.first(text), let w = (group(m, 1, text) ?? group(m, 2, text))?.lowercased(), !negated(m.range, text) {
             let v = w == "easy" ? "easy" : "difficult"
-            put("mask", v, "Mask " + v, m.range)
+            if han == nil { put("mask", v, "Mask " + v, m.range) } else { s.mask(m.range) }
         }
+        if let mg = maskGrade, let g = han { put("maskGrade", String(g), "Mask difficult: " + PatientAirway.hanNote(g), mg.range) }
         if let m = intubationEaseRx.first(text), let w = (group(m, 1, text) ?? group(m, 2, text))?.lowercased(), !negated(m.range, text) {
             let v = w == "easy" ? "easy" : "difficult"
             put("intubation", v, "Intubation " + v, m.range)
@@ -2368,12 +2440,18 @@ enum QuickAdd {
 // MARK: - The intraoperative airway fields
 
 extension PatientRecord {
-    /// The intraoperative airway course by QuickAdd.airwayFields' names; nil when not recorded.
+    /// The intraoperative airway course by QuickAdd.airwayFields' names; nil when not recorded. An intubation chosen with
+    /// no ease yet (PatientAirway.placed, 1.10) is no ease recorded, so "easy intubation" is new, not "replaces placed".
     func intraopAirway(_ key: String) -> String? {
         switch key {
         case "mask": return mask
-        case "maskGrade": return maskGrade.map { String($0) }
-        case "intubation": return intubation
+        // A Han grade (retired in 1.10) files a difficult mask with the grade in its note: recorded when the note says
+        // that grade; an "easy" or "none" mask is what it replaces.
+        case "maskGrade":
+            guard let m = mask else { return nil }
+            guard m == "difficult" else { return m }
+            return (1...4).first { maskNote.range(of: "Han grade \($0)", options: .caseInsensitive) != nil }.map { String($0) }
+        case "intubation": return intubation == PatientAirway.placed ? nil : intubation
         case "device": return airwayDevice
         case "grade": return laryngoscopyGrade
         case "attempts": return attempts.map { String($0) }
@@ -2385,7 +2463,11 @@ extension PatientRecord {
     mutating func setIntraopAirway(_ key: String, _ value: String) {
         switch key {
         case "mask": mask = value
-        case "maskGrade": maskGrade = Int(value)
+        case "maskGrade":
+            // The grade is not kept (retired in 1.10): what a 3 or 4 says is, as a difficult mask with the grade in its note.
+            guard let g = Int(value), (3...4).contains(g) else { break }
+            mask = "difficult"
+            maskNote = PatientAirway.noteWithHan(g, maskNote)
         case "intubation": intubation = value
         case "device": airwayDevice = value
         case "grade": laryngoscopyGrade = value

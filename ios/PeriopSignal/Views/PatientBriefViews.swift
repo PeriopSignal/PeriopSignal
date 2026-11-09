@@ -122,7 +122,7 @@ struct FishboneFigure: View {
             if labs.hasCBC { cbc }
             if labs.hasCoags { coags }
             if let c = labs.caption {
-                Text(c).font(PS.sys(size: 10.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                Text(c).font(PS.sys(size: 9)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
             }
         }
         .fixedSize(horizontal: false, vertical: true)

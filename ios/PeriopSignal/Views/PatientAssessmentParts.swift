@@ -67,7 +67,7 @@ struct PatientFunctionalContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            let mets = PatientChoice(options: [(id: "ge4", label: "4 METs or more"), (id: "lt4", label: "Under 4 METs"), (id: "unknown", label: "Unknown")],
+            let mets = PatientChoice(choices: PatientPreop110.mets,
                                      selection: Binding(get: { patient.record.mets }, set: { v in patient.update { $0.mets = v } }))
             if inlineInfo {
                 InfoChipRow(label: "Functional capacity", info: PatientFunctional.metsNote) { mets }
@@ -132,8 +132,11 @@ struct PatientYesNoChipsRow: View {
                 Text(title).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 6)
                 YesNoPills(no: no, yes: yes,
-                           onNo: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = false; $0[keyPath: chips] = [] } } },
-                           onYes: { withAnimation(.snappy) { patient.update(discrete: true) { $0[keyPath: answer] = true } } })
+                           onNo: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop110.tapYesNo(false, answer: answer, chips: chips, in: &$0) } } },
+                           onYes: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop110.tapYesNo(true, answer: answer, chips: chips, in: &$0) } } },
+                           // A second tap on the answer shown clears it to unanswered (and the chips under a Yes).
+                           onClear: { withAnimation(.snappy) { patient.update(discrete: true) {
+                               PatientPreop110.tapYesNo(yes, answer: answer, chips: chips, in: &$0) } } })
             }
             if yes {
                 PatientChips(options: options, selection: Binding(get: { patient.record[keyPath: chips] }, set: { v in patient.update { $0[keyPath: chips] = v } }))
@@ -176,7 +179,20 @@ struct PatientCardiacEvaluationContent: View {
             PatientYesNoChipsRow(title: "Cardiac symptoms or signs", answer: \.cardiacSymptomsAnswer, chips: \.cardiacSymptoms, options: PatientFunctional.cardiacSymptomFlags)
             Hairline().padding(.leading, 14)
             PatientYesNoChipsRow(title: "Acute cardiac conditions", answer: \.activeCardiacAnswer, chips: \.activeCardiac, options: PatientFunctional.activeCardiac)
-            if r.isAdult {
+            if r.isAdult && !PatientFunctional.stepwiseApplies(r) {
+                // Cardiac surgery: one quiet line instead of the noncardiac verdict; the condition notes, less the valve ones, stay.
+                Hairline().padding(.leading, 14)
+                Text(PatientFunctional.cardiacSurgeryNote)
+                    .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                let advice = PatientFunctional.conditionAdvice(r)
+                if !advice.isEmpty {
+                    Hairline().padding(.leading, 14)
+                    PatientAdviceList(title: "By condition", items: advice, tint: PS.accent)
+                }
+            }
+            if PatientFunctional.stepwiseApplies(r) {
                 Hairline().padding(.leading, 14)
                 let mods = PatientFunctional.riskModifiers(r)
                 if !mods.isEmpty {

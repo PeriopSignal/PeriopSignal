@@ -87,16 +87,12 @@ enum PatientArchiveWriter {
         return calendar.startOfDay(for: d)
     }
 
-    /// "Today", "Yesterday", "Thu 29 Oct", "29 Oct 2025".
+    /// "Today", "Yesterday", "10/29/26" (1.10: MM/DD/YY).
     static func label(_ day: String, now: Date = Date(), calendar: Calendar = .current) -> String {
         guard let d = date(day, calendar: calendar) else { return day }
         if calendar.isDate(d, inSameDayAs: now) { return "Today" }
         if let y = calendar.date(byAdding: .day, value: -1, to: now), calendar.isDate(d, inSameDayAs: y) { return "Yesterday" }
-        let f = DateFormatter()
-        f.calendar = calendar
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = calendar.isDate(d, equalTo: now, toGranularity: .year) ? "EEE d MMM" : "d MMM yyyy"
-        return f.string(from: d)
+        return PatientDates.day(d, calendar: calendar)
     }
 
     /// The summary of an ended case: the procedure line and the full handoff, without the room or any time.
@@ -106,6 +102,7 @@ enum PatientArchiveWriter {
         r.updated = nil
         r.lastSolids = nil
         r.lastClears = nil
+        r.labsDrawn = nil
         for k in r.scores.keys { r.scores[k]?.date = nil }
         let procedure = PatientSummary.procedureLines(r).filter { $0.label == nil }.map(\.text).joined(separator: " · ")
         // The 1.9 handoff, as it was handed over: with the user's edits to its blocks (r.handoffEdits).
@@ -114,12 +111,8 @@ enum PatientArchiveWriter {
         while let last = lines.last, last.trimmingCharacters(in: .whitespaces).isEmpty || last.hasPrefix("Prepared with Periop Signal") {
             lines.removeLast()
         }
-        let f = DateFormatter()
-        f.calendar = calendar
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "d MMM yyyy"
         lines.append("")
-        lines.append("Archived in Periop Signal, " + f.string(from: now) + ". Check against the chart.")
+        lines.append("Archived in Periop Signal, " + PatientDates.day(now, calendar: calendar) + ". Check against the chart.")
         let title = scrub(procedure, room: c.room, phone: c.roomPhone)
         return PatientArchiveEntry(day: day(now, calendar: calendar),
                                    procedure: title.isEmpty ? "Case" : title,

@@ -13,6 +13,8 @@ extension PatientEditorView {
         // The ⓘ explains the Hb ↔ Hct estimate, only while one is shown.
         PatientGroup(title: "Labs", note: sum.estimate == nil ? nil : PatientLabs.estimateCaption) {
             labRows(PatientLabs.entryOrder(.main), section: "main", estimate: sum.estimate)
+            Hairline().padding(.leading, 14)
+            LabsDrawnRow().id("labsdrawn")
             PatientTextField(label: "Other results", prompt: "Endocrine, rheumatological, lipids, etc.", text: bind(\.labNotes))
         }
         typeScreenGroup
@@ -250,7 +252,10 @@ struct LabFieldRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
+                // One line, shrunk a little where a narrow row needs it: "Hemoglobin" broke mid-word at 375 pt under a
+                // system page's item indent (review 1.10).
                 Text(test.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    .lineLimit(1).minimumScaleFactor(0.75)
                 if let range = test.rangeText(for: sex) {
                     Text(range + (test.unit.isEmpty ? "" : " " + test.unit)).font(PS.sys(size: 11)).foregroundStyle(PS.fg3)
                 }
@@ -259,6 +264,7 @@ struct LabFieldRow: View {
                         .font(PS.sys(size: 11, weight: .medium)).italic().foregroundStyle(PS.fg3)
                 }
             }
+            .layoutPriority(1)
             Spacer(minLength: 6)
             if flag.isAbnormal {
                 Text(flag.mark).font(PS.sys(size: 12, weight: .heavy)).foregroundStyle(PS.red)
@@ -269,7 +275,8 @@ struct LabFieldRow: View {
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 16, weight: flag.isAbnormal ? .bold : .medium, design: .monospaced))
                 .foregroundStyle(flag.isAbnormal ? PS.red : PS.fg)
-                .frame(width: 84)
+                // Gives up a little width to the label on a narrow row; 84 wherever there is room.
+                .frame(minWidth: 64, maxWidth: 84)
                 .padding(.horizontal, 8).padding(.vertical, 6)
                 .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .onChange(of: text) { _, t in

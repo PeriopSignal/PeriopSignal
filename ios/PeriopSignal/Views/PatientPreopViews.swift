@@ -200,6 +200,20 @@ struct PreopLinkList: View {
 
 // MARK: - Demographics & History
 
+/// The code-status chips (1.10): Full code, DNR, DNI, Limited, Not discussed, on one line where they fit. DNR and DNI can both be
+/// on (a record keeps both as DNR/DNI, so a saved DNR/DNI shows both chips on); Full code, Limited and Not discussed are
+/// exclusive, and a second tap on the one chosen clears it (CodeStatus.tapped).
+struct CodeStatusChips: View {
+    @Environment(PatientStore.self) private var patient
+
+    var body: some View {
+        let status = patient.record.codeStatus
+        ChipSet(options: CodeStatus.chips.map { ChipChoice($0.id, $0.label, short: $0.short) }, style: .choice, tint: PS.accent,
+                isOn: { status?.chipIDs.contains($0) ?? false },
+                tap: { id in patient.update { $0.codeStatus = CodeStatus.tapped(id, from: $0.codeStatus) } })
+    }
+}
+
 /// Age and sex, height and weight in two columns; the code status chips; a link to the preoperative vitals.
 struct PreopDemographicsBox: View {
     @Environment(PatientStore.self) private var patient
@@ -270,9 +284,7 @@ struct PreopDemographicsBox: View {
         let r = patient.record
         return VStack(alignment: .leading, spacing: 8) {
             Text("Code status").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-            PatientChoice(options: CodeStatus.allCases.map { (id: $0.rawValue, label: $0.label) },
-                          selection: Binding(get: { patient.record.codeStatus?.rawValue }, set: { v in patient.update { $0.codeStatus = v.flatMap { CodeStatus(rawValue: $0) } } }),
-                          tint: PS.accent)
+            CodeStatusChips()
             // For every status, so the POLST can be recorded or cleared from the tab too.
             let link = PatientPreop.codeStatusLink(r)
             NavigationLink(value: PatientEditor.workup("codestatus")) {
@@ -406,7 +418,7 @@ struct PreopHistoryChipsBox: View {
     /// "Solids 00:00 · clears 05:00" (the day too when it is not today).
     private func intakeText(_ r: PatientRecord) -> String? {
         func when(_ d: Date) -> String {
-            Calendar.current.isDateInToday(d) ? d.formatted(date: .omitted, time: .shortened) : d.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+            Calendar.current.isDateInToday(d) ? d.formatted(date: .omitted, time: .shortened) : PatientDates.day(d) + " " + d.formatted(date: .omitted, time: .shortened)
         }
         var parts: [String] = []
         if let d = r.lastSolids { parts.append("Solids " + when(d)) }
@@ -473,13 +485,13 @@ struct PreopCardioBox: View {
 
     var body: some View {
         let r = patient.record
-        PatientGroup(title: "Cardiopulmonary Evaluation", note: r.isAdult ? PatientFunctional.cardiacNote : PatientFunctional.cardiacAdultOnly) {
+        PatientGroup(title: "Cardiopulmonary Evaluation", note: PatientFunctional.evaluationNote(r)) {
             VStack(alignment: .leading, spacing: 0) {
                 intrathoracic(r)
                 Hairline().padding(.leading, 14)
                 PatientCardiacEvaluationContent()
                 Hairline().padding(.leading, 14)
-                workup(r).padding(14).id("preopworkup")
+                workup(r).padding(14).jumpTarget(anchor: "preopworkup")
             }
         }
     }
@@ -494,17 +506,19 @@ struct PreopCardioBox: View {
                 Spacer(minLength: 6)
                 // A second tap on the chosen answer clears it, as every chip does.
                 YesNoPills(no: no, yes: yes,
-                           onNo: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(no ? nil : false, &$0) } } },
-                           onYes: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(yes ? nil : true, &$0) } } })
+                           onNo: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(false, &$0) } } },
+                           onYes: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(true, &$0) } } },
+                           onClear: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(nil, &$0) } } })
             }
             if yes {
                 VStack(alignment: .leading, spacing: 8) {
-                    // What Yes set, offered as already set; the RCRI's own rule (cardiac surgery only) in words.
+                    // What Yes set, offered as already set; the RCRI's own rule (cardiac surgery, under 18 only: an adult's
+                    // card already has its one cardiac-surgery line below) in words.
                     if let set = PatientPreop.intrathoracicSetLine(r) {
                         Text(set).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
-                    if PatientRules.cardiacSurgery(r) {
-                        Text(PatientRules.rcriHiddenNote).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    if let note = PatientPreop.intrathoracicRcriNote(r) {
+                        Text(note).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
                     let thoracic = PatientPreop.previousCardiacSurgery(r)
                     let tee = PatientPreop.workup(r).first { $0.id == "tee" }

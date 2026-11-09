@@ -1,4 +1,5 @@
 import SwiftUI
+import os
 
 /// My Patient's three tabs: Preoperative, Intraoperative, and Summary & Handoff.
 enum PatientTab: String, CaseIterable, Identifiable {
@@ -73,6 +74,8 @@ struct PatientView: View {
     @State private var tipBar = PatientTipBarFrames()
     /// Asks the tab to scroll back to the top (the tips start there).
     @State private var scrollToTop = 0
+    /// Screenshot runs: asks the tab to scroll to -ps.patient.jump once the tab it names is showing.
+    @State private var shotJump = 0
 
     private struct NoteResult {
         /// Each banner's own, so its 6-second timer ends only that one.
@@ -121,26 +124,29 @@ struct PatientView: View {
                 .onChange(of: scrollToTop) { _, _ in
                     withAnimation(.snappy) { proxy.scrollTo(Self.topID, anchor: .top) }
                 }
+                #if DEBUG
+                .onChange(of: shotJump) { _, _ in Self.screenshotScroll(Self.shotScrollName, proxy) }
+                #endif
+                .onDisappear {
+                    #if DEBUG
+                    ShotTrace.note("root disappear")
+                    ShotReady.rootHidden()
+                    ShotReady.rootOnScreen = false
+                    #endif
+                }
                 .onAppear {
                     #if DEBUG
                     // Screenshot runs: -ps.patient.jump handoff | assessment | history | airway | intraop:<part> scrolls
-                    // the tab to it. -ps.patient.scroll, when no editor is opened, does the same and then again once
-                    // the title has collapsed, as a tap on the pinned jump bar would.
+                    // the tab to it. -ps.patient.scroll, when no editor is opened, does the same from the task, again
+                    // and again until the shot is taken (scrollForScreenshot).
+                    ShotReady.rootOnScreen = true
                     let jump = LaunchSeed.string("ps.patient.jump")
-                    let scroll = LaunchSeed.string("ps.patient.open").isEmpty ? LaunchSeed.string("ps.patient.scroll") : ""
-                    let a = jump.isEmpty ? scroll : jump
-                    if !a.isEmpty {
-                        let go = {
-                            if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(PatientEditor.intraopPart(String(a.dropFirst(8)))), anchor: .top) }
-                            else if let e = Self.jumpKeys[a] { proxy.scrollTo(e, anchor: .top) }
-                            else { proxy.scrollTo(a, anchor: .top) }
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
-                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 2.6, execute: go) }
-                        // Once more, for a target that appears only when the reference data has loaded (the handoff's
-                        // lines figure) on a slow simulator.
-                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: go) }
+                    if !jump.isEmpty {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { Self.screenshotScroll(jump, proxy) }
                     }
+                    #endif
+                    #if DEBUG
+                    ShotTrace.note("root appear tab=\(tab.rawValue)")
                     #endif
                     // The first time (not in screenshot runs unless -ps.tips 1), once the tab has settled.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
@@ -201,11 +207,20 @@ struct PatientView: View {
             }
             .navigationDestination(for: PatientEditor.self) { e in
                 PatientEditorView(editor: e, onOpenRoute: { open($0) })
+                    #if DEBUG
+                    .onAppear { ShotTrace.note("page appear \(e)"); ShotReady.pageShown() }
+                    .onDisappear { ShotTrace.note("page disappear \(e)") }
+                    #endif
             }
             .navigationDestination(for: RefRoute.self) { route in
                 RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: nil, handoff: handoff)
+                    #if DEBUG
+                    .onAppear { ShotTrace.note("route appear"); ShotReady.pageShown() }
+                    #endif
             }
         }
+        // Screenshot runs: -ps.patient.width 375 lays My Patient out as on that width (the CI simulator is wider).
+        .modifier(DebugContentWidth())
         .overlay {
             if tips.isShowing {
                 PatientTipsOverlay(tips: $tips, frames: tipFrames, bar: tipBar)
@@ -220,6 +235,11 @@ struct PatientView: View {
         }
         .environment(handoff)
         .task { await openForScreenshot() }
+        #if DEBUG
+        .onChange(of: path) { o, n in ShotTrace.note("path \(o.count) -> \(n.count)") }
+        .onAppear { ShotTrace.note("PatientView appear") }
+        .onDisappear { ShotTrace.note("PatientView disappear") }
+        #endif
         .fullScreenCover(item: $webLink) { link in
             SafariView(url: link.url).ignoresSafeArea()
         }
@@ -277,38 +297,150 @@ struct PatientView: View {
                 }
             }
         }
-        guard let link = PatientDeepLink.parse(LaunchSeed.string("ps.patient.open")) else { return }
+        guard let link = PatientDeepLink.parse(LaunchSeed.string("ps.patient.open")) else {
+            if !LaunchSeed.string("ps.patient.jump").isEmpty { await jumpForScreenshot() }
+            else if !Self.shotScrollName.isEmpty { await scrollForScreenshot() }
+            return
+        }
+        ShotTrace.note("open begin \(link)")
         switch link {
-        case .summary: tabOverride = .summary
+        case .summary:
+            tabOverride = .summary
+            await jumpForScreenshot()
         case .note:
             // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
             showNote = true
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            ShotReady.ready()
         case .receive:
             try? await Task.sleep(nanoseconds: 800_000_000)
             inbox.pending = PatientPacket(record: PatientDemo.record)
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            ShotReady.ready()
         case .editor, .route:
             // A push asked for before the navigation stack has settled is sometimes dropped (the stack writes its empty
             // first state back over the path), and the 1.9 tab's longer first layout on the CI simulator made one wait
             // of 0.4 s lose now and then (run 375: 340, 393 and 394 showed the tab). Push after a moment, then look
-            // again a few times and push once more while the path is still empty.
-            for delay in Self.openRetryDelays {
+            // again a few times and push once more while the path is still empty. A push that took can still be written
+            // over later on the slower Intel runner (run 416: 569 and 570 showed the Preoperative tab), so every look
+            // pushes again while the path is empty, not only the looks before the first push took.
+            // Review 1.10 (531, 575 and 576 still showed the tab): the looks ended 8 s in, and a path written over after
+            // that stayed empty for the picture 16 to 20 s in. So after them the path is watched for the rest of the
+            // longest shot's wait, and pushed again, without the animation, whenever it is found empty. A push that
+            // stays is never repeated (only an empty path is pushed onto), and nothing in a screenshot run pops it.
+            var pushed = false
+            for delay in Self.openLookDelays {
                 try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                if Task.isCancelled { return }
-                guard path.isEmpty else { return }
-                switch link {
-                case .editor(let e): path.append(e)
-                case .route(let r): path.append(r)
-                default: break
+                if Task.isCancelled { ShotTrace.note("open task cancelled"); return }
+                guard path.isEmpty else { continue }
+                ShotTrace.note("push (pushed before: \(pushed))")
+                var t = Transaction()
+                t.disablesAnimations = pushed
+                withTransaction(t) {
+                    switch link {
+                    case .editor(let e): path.append(e)
+                    case .route(let r): path.append(r)
+                    default: break
+                    }
                 }
+                pushed = true
             }
         }
         #endif
     }
 
+    /// Screenshot runs: -ps.patient.jump, once the task has set the tab it is on (-ps.patient.open handoff). The tab's
+    /// own first scroll, a second after it appears, can come before that on a slow simulator (the macos-15-intel runner's
+    /// iOS 26 simulator starts the task seconds after the tab appears), and then lands on the Preoperative tab, which
+    /// has no handoff. So the task asks for the scroll twice more, then reports the shot ready (ShotReady).
+    private func jumpForScreenshot() async {
+        #if DEBUG
+        guard !LaunchSeed.string("ps.patient.jump").isEmpty else {
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            ShotReady.ready()
+            return
+        }
+        for delay: UInt64 in [800_000_000, 1_200_000_000] {
+            try? await Task.sleep(nanoseconds: delay)
+            if Task.isCancelled { return }
+            shotJump += 1
+        }
+        try? await Task.sleep(nanoseconds: 800_000_000)
+        ShotReady.ready()
+        #endif
+    }
+
+    /// Screenshot runs: -ps.patient.scroll on the tab (no -ps.patient.open). Three timed scrolls after the tab appeared
+    /// left 451, 452, 455, 457 and 458 at the top of the Preoperative tab in the final 1.10 run: on the Intel runner the
+    /// tab can appear 10 s or more after launch and take seconds more to lay its sections out. So the task asks for the
+    /// scroll every half second while the tab is on screen, reports the shot ready (ShotReady) once the target has been
+    /// laid out (jumpTarget reports it; a plain id counts once the tab is showing) and scrolled to for 3 s, and goes on
+    /// asking until past the longest wait for ready, so the picture is taken at the target whenever it comes.
+    private func scrollForScreenshot() async {
+        #if DEBUG
+        let name = Self.shotScrollName
+        let key = Self.shotTargetKey(name)
+        ShotTrace.note("scroll begin \(name) key=\(key ?? "-")")
+        let start = Date()
+        var looks = 0
+        var reported = false
+        while Date().timeIntervalSince(start) < Self.scrollWatchSeconds {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            if Task.isCancelled { ShotTrace.note("scroll task cancelled"); return }
+            guard ShotReady.rootOnScreen else { continue }
+            shotJump += 1
+            if key.map({ ShotReady.targetsShown.contains($0) }) ?? true { looks += 1 }
+            if !reported && looks >= 6 {
+                reported = true
+                ShotTrace.note("scroll settled after \(Int(Date().timeIntervalSince(start))) s")
+                ShotReady.ready()
+            }
+        }
+        if !reported { ShotTrace.note("scroll target never shown"); ShotReady.ready() }
+        #endif
+    }
+
+    /// How long the task goes on scrolling: past the longest shot's wait and the 30 s more it can wait for ready.
+    static let scrollWatchSeconds: Double = 56
+
+    /// Screenshot runs: the name the tab scrolls to, -ps.patient.jump, or -ps.patient.scroll when no page is opened.
+    static var shotScrollName: String {
+        let jump = LaunchSeed.string("ps.patient.jump")
+        if !jump.isEmpty { return jump }
+        return LaunchSeed.string("ps.patient.open").isEmpty ? LaunchSeed.string("ps.patient.scroll") : ""
+    }
+
+    /// The jumpTarget key a name scrolls to, or nil for a plain id.
+    static func shotTargetKey(_ a: String) -> String? {
+        if a.hasPrefix("intraop:") { return PatientJumpID(intraop: IntraopSection(part: String(a.dropFirst(8)))).key }
+        return jumpKeys[a]?.key
+    }
+
+    /// Screenshot runs: scrolls the tab to a -ps.patient.jump or -ps.patient.scroll name.
+    static func screenshotScroll(_ a: String, _ proxy: ScrollViewProxy) {
+        guard !a.isEmpty else { return }
+        if a.hasPrefix("intraop:") { proxy.scrollTo(PatientJumpID(intraop: IntraopSection(part: String(a.dropFirst(8)))), anchor: .top) }
+        else if let e = jumpKeys[a] { proxy.scrollTo(e, anchor: .top) }
+        else { proxy.scrollTo(a, anchor: .top) }
+    }
+
     /// When the screenshot runs' -ps.patient.open pushes its page, and looks again: after the stack's first frame,
     /// then with room for a slow launch (the last well inside the shortest open-key shot's 12 s wait).
     static let openRetryDelays: [Double] = [0.4, 1.2, 2.4, 4.0]
+
+    /// After those, how often the path is looked at again, and for how long in all: past the longest open-key shot's
+    /// wait (30 s: the system pages and the Past Surgical History page, which the Intel runner draws 20 to 30 s after a
+    /// launch; review 1.10), so a push written over late is put back before the picture.
+    static let openWatchInterval: Double = 0.5
+    static let openWatchSeconds: Double = 32
+
+    /// Every wait between looks, in order: the retries, then the watch.
+    static var openLookDelays: [Double] {
+        let early = openRetryDelays.reduce(0, +)
+        let watch = max(0, Int(((openWatchSeconds - early) / openWatchInterval).rounded(.down)))
+        return openRetryDelays + Array(repeating: openWatchInterval, count: watch)
+    }
 
     // MARK: Tabs
 
@@ -352,9 +484,10 @@ struct PatientView: View {
             }
         }
         jumpBar(proxy, Self.preopJumps).background(jumpBarReader)
-        // 1. Procedure
-        PatientSectionCard(editor: .procedure, lines: PatientSummary.procedureLines(r), empty: "Procedure, urgency, planned anesthetic and the risk-score inputs.")
-            .jumpTarget(section: .procedure)
+        // 1. Procedure: the open Planned Procedure & Anesthetic box and the "+ Risk-score inputs" link under it (1.10); the
+        // Procedure editor is still behind PatientEditor.procedure for deep links.
+        PreopPlannedBox().jumpTarget(section: .procedure)
+        PreopRiskInputsLink().jumpTarget(anchor: PatientPreop110.riskInputsAnchor)
         demographicsSection
         workupSection
         medicationsSection
@@ -417,30 +550,23 @@ struct PatientView: View {
     /// (procedure, demographics, workup, medications, risk) and the boxes in them; "preopsummary" is the summary view's own id. The cards of earlier
     /// versions keep their names, pointing at the nearest new box: history -> problems, assessment -> asa, support -> cardio.
     private static let jumpKeys: [String: PatientJumpID] = [
-        "procedure": PatientJumpID(section: .procedure), "demographics": PatientJumpID(anchor: "demographics"),
+        "procedure": PatientJumpID(section: .procedure), "planned": PatientJumpID(section: .procedure),
+        "riskinputs": PatientJumpID(anchor: PatientPreop110.riskInputsAnchor), "demographics": PatientJumpID(anchor: "demographics"),
         "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
         "risk": PatientJumpID(section: .risk),
         "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
         "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
         "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
         "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "infusions"), "flagged": PatientJumpID(anchor: "flagged"),
+        "preopworkup": PatientJumpID(anchor: "preopworkup"),
         "history": PatientJumpID(anchor: "problems"), "assessment": PatientJumpID(anchor: "asa"), "support": PatientJumpID(anchor: "cardio"),
     ]
-
-    /// The intraoperative echo card shows when an echo is usual for the surgery, a TEE is planned, or one is recorded.
-    private var echoUp: Bool { PatientRules.echoFirst(r) || PatientTEE.planned(r) || !r.intraopEcho.isEmpty || !r.echo.isEmpty }
-
-    /// The intraoperative parts with a card of their own, in order; major considerations close the tab, after the
-    /// echo button.
-    private var intraopCardParts: [(id: String, title: String, icon: String)] {
-        PatientEditor.intraopParts.filter { ($0.id != "echo" || echoUp) && $0.id != "considerations" }
-    }
 
     /// The jump bar's sections for the tab (none on Summary & Handoff).
     private var jumpItems: [PatientJumpItem]? {
         switch tab {
         case .preop: return Self.preopJumps
-        case .intraop: return (intraopCardParts.map { PatientEditor.intraopPart($0.id) } + [PatientEditor.intraopPart("considerations")]).map { PatientJumpItem($0) }
+        case .intraop: return IntraopSection.allCases.map { PatientJumpItem(intraop: $0) }
         case .summary: return nil
         }
     }
@@ -454,7 +580,8 @@ struct PatientView: View {
                 if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty && PatientDeviceFills.limbAlerts(r).isEmpty {
                     Text("Tap to draw the lines, airway and devices the patient arrives with.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    PatientDiagramCard(record: r, phase: .preop, height: 260)
+                    // The limb alerts open the card, above the figure, as on the Intraoperative tab (1.10 review).
+                    PatientDiagramCard.preopCard(r)
                     ForEach(Array(lines.enumerated()), id: \.offset) { _, l in summaryLine(l) }
                 }
             }
@@ -466,37 +593,26 @@ struct PatientView: View {
         .buttonStyle(.plain)
     }
 
+    /// The 1.10 tab (Ben, Nov 7): five headings in his order (PatientIntraopTab): Airway Course, Lines & Devices,
+    /// Medications & Infusions, Fluids & Blood, and Other Intraoperative Details (links). Major considerations, which closed
+    /// the tab as a card, is the last of those links, shown in full once filled. The old part keys (-ps.patient.jump
+    /// intraop:labs and the like) scroll to the section that now holds the part.
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         CaseTimersStrip()
-        let parts = intraopCardParts
         jumpBar(proxy, jumpItems ?? []).background(jumpBarReader)
-        ForEach(parts, id: \.id) { part in
-            PatientSectionCard(editor: .intraopPart(part.id), lines: PatientSummary.intraopPartLines(r, part.id), empty: Self.intraopEmpty[part.id] ?? "")
-                .jumpTarget(PatientEditor.intraopPart(part.id))
-        }
-        if !echoUp {
-            NavigationLink(value: PatientEditor.intraopPart("echo")) {
-                Label("Add echo findings", systemImage: "plus.circle")
-            }
-            .buttonStyle(GhostButtonStyle())
-        }
-        PatientSectionCard(editor: .intraopPart("considerations"), lines: PatientSummary.intraopPartLines(r, "considerations"), empty: Self.intraopEmpty["considerations"] ?? "")
-            .jumpTarget(PatientEditor.intraopPart("considerations"))
+        IntraopSectionTitle(text: IntraopSection.airway.title).jumpTarget(id: PatientJumpID(intraop: .airway))
+        IntraopAirwayCourse()
+        IntraopSectionTitle(text: IntraopSection.lines.title).jumpTarget(id: PatientJumpID(intraop: .lines))
+        IntraopDevicesCard()
+        IntraopSectionTitle(text: IntraopSection.meds.title).jumpTarget(id: PatientJumpID(intraop: .meds))
+        IntraopInfusionsSection()
+        IntraopNotableMedicationLink()
+        IntraopSectionTitle(text: IntraopSection.fluids.title).jumpTarget(id: PatientJumpID(intraop: .fluids))
+        IntraopFluidsSection()
+        IntraopSectionTitle(text: IntraopSection.other.title).jumpTarget(id: PatientJumpID(intraop: .other))
+        IntraopOtherDetails()
     }
-
-    private static let intraopEmpty: [String: String] = [
-        "airway": "Mask, supraglottic airway, intubation, the view and the tube.",
-        "lines": "Peripheral, arterial and central lines.",
-        "regional": "Blocks and neuraxial techniques, drugs and catheters.",
-        "infusions": "Drips running and their rates.",
-        "fluids": "Blood products, cell saver, crystalloid and albumin with + and −; blood loss and urine.",
-        "labs": "Blood gas and coagulation sets with their times; the latest goes to the handoff.",
-        "considerations": "Difficult airway, massive transfusion, pressors, TEE findings and more, for the top of the handoff.",
-        "meds": "Antibiotic and time, steroids, TXA, reversal, positioning.",
-        "events": "What happened, and whether the patient leaves intubated or extubated.",
-        "echo": "LV and RV function, valves, aorta, other findings.",
-    ]
 
     @ViewBuilder private var summary: some View {
         QuickAddBar(place: .summaryTab)
@@ -863,6 +979,8 @@ struct PatientJumpID: Hashable {
     /// A box has a key of its own, so a box named like its section ("demographics") is not a second view with the
     /// section title's id.
     init(anchor: String) { key = "preop-box:" + anchor }
+    /// A section of the 1.10 Intraoperative tab.
+    init(intraop section: IntraopSection) { key = "intraop-section:" + section.rawValue }
 }
 
 /// One chip of the jump bar: where it scrolls and its words.
@@ -871,6 +989,7 @@ struct PatientJumpItem: Hashable {
     var title: String
     init(_ editor: PatientEditor) { id = PatientJumpID(editor); title = editor.title }
     init(section: PreopSection) { id = PatientJumpID(section: section); title = section.title }
+    init(intraop section: IntraopSection) { id = PatientJumpID(intraop: section); title = section.jumpTitle }
 }
 
 extension PatientJumpID {
@@ -899,8 +1018,94 @@ extension View {
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
                 .id(id)
+                #if DEBUG
+                .onAppear { ShotReady.targetsShown.insert(id.key) }
+                #endif
             self
         }
         .padding(.top, -PatientJumpID.clearance)
     }
 }
+
+#if DEBUG
+/// Screenshot runs (debug builds): a trace of the -ps.patient.open push and what follows it, in the device log under
+/// the "shots" category, which the CI keeps beside each shot of a filtered run.
+enum ShotTrace {
+    private static let log = Logger(subsystem: "org.periopsignal.app", category: "shots")
+    static var on: Bool {
+        !LaunchSeed.string("ps.patient.open").isEmpty || !LaunchSeed.string("ps.patient.jump").isEmpty
+            || !LaunchSeed.string("ps.patient.scroll").isEmpty
+    }
+    static func note(_ s: String) {
+        guard on else { return }
+        log.notice("\(s, privacy: .public)")
+    }
+}
+
+/// Screenshot runs (debug builds): a launch that opens a page, a tab or a sheet, or jumps the tab, says when that has
+/// happened, so the CI waits for it instead of a fixed time alone. At launch it leaves a "pending" file in the app's
+/// temporary folder; once the page has been pushed and its transition has ended (the tab under it has gone) and its
+/// own launch seeds have had their time (-ps.patient.scroll, -ps.patient.focus), a "ready" file. The CI's shot
+/// function waits past its usual time, up to 30 s more, while pending is there and ready is not. The CI's Intel
+/// simulator (macos-15-intel, iOS 26) can take 10 s or more to show My Patient and a few more to push the page, which
+/// the 1.9.0 build there does too; the shots' fixed waits were set on the faster macos-14 runner.
+@MainActor
+enum ShotReady {
+    private static var page = false
+    private static var rootGone = false
+    private static var done = false
+    private static let folder = URL(fileURLWithPath: NSTemporaryDirectory())
+    static let pendingName = "ps-shot-pending"
+    static let readyName = "ps-shot-ready"
+    /// The tab (the scroll view of My Patient) is on screen, and the jumpTarget anchors laid out so far by key: what a
+    /// -ps.patient.scroll on the tab waits for (PatientView.scrollForScreenshot).
+    static var rootOnScreen = false
+    static var targetsShown: Set<String> = []
+
+    /// The launch asks for something ShotReady reports: a page, the handoff tab, the note or a received patient, a jump,
+    /// or a scroll of the tab.
+    static var expected: Bool {
+        if !LaunchSeed.string("ps.patient.jump").isEmpty { return true }
+        let open = LaunchSeed.string("ps.patient.open")
+        if open.isEmpty && !LaunchSeed.string("ps.patient.scroll").isEmpty { return true }
+        if ["room", "room-tap", "archive", "archive-entry", "end-case"].contains(open) { return false }
+        return PatientDeepLink.parse(open) != nil
+    }
+
+    /// At launch (the app's init).
+    static func begin() {
+        try? FileManager.default.removeItem(at: folder.appendingPathComponent(readyName))
+        try? FileManager.default.removeItem(at: folder.appendingPathComponent(pendingName))
+        guard expected else { return }
+        try? Data().write(to: folder.appendingPathComponent(pendingName))
+    }
+
+    static func pageShown() {
+        page = true
+        settleIfShown()
+        // The tab under the page may never report going on some systems: ready a little later anyway.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { rootGone = true; settleIfShown() }
+    }
+
+    static func rootHidden() {
+        rootGone = true
+        settleIfShown()
+    }
+
+    /// The page's own launch seeds: scroll at 0.4 s, focus at 1.2 s and again at 2.8 and 4.4 s (PatientEditorView).
+    private static func settleIfShown() {
+        guard page, rootGone, !done else { return }
+        done = true
+        var settle = 1.0
+        if !LaunchSeed.string("ps.patient.scroll").isEmpty { settle += 1.0 }
+        if !LaunchSeed.string("ps.patient.focus").isEmpty { settle = 6.0 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + settle) { ready() }
+    }
+
+    static func ready() {
+        guard expected else { return }
+        ShotTrace.note("ready")
+        try? Data().write(to: folder.appendingPathComponent(readyName))
+    }
+}
+#endif

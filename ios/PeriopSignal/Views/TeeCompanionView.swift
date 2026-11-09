@@ -297,10 +297,12 @@ struct TeeViewsSheet: View {
 struct TeePracticeSheet: View {
     var questions: [TeeData.Practice]
     @Environment(\.dismiss) private var dismiss
-    @State private var shown: Set<Int> = []
+    /// Screenshots: -ps.tee.answer 8 opens question 8's answer and scrolls to it (DEBUG; LaunchSeed is empty in release).
+    @State private var shown: Set<Int> = Set(LaunchSeed.list("ps.tee.answer").compactMap { Int($0) }.map { $0 - 1 })
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Tap a question to see the answer.").font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
@@ -329,9 +331,15 @@ struct TeePracticeSheet: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint(open ? "Hides the answer" : "Shows the answer")
+                        .id(i)
                     }
                 }
                 .padding(20)
+            }
+            .onAppear {
+                guard let first = shown.min() else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { proxy.scrollTo(first, anchor: .center) }
+            }
             }
             .background(FeedBackground())
             .navigationTitle("TEE Practice")

@@ -50,6 +50,14 @@ enum PatientPreop {
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
+    /// The RCRI's rule under Intrathoracic procedure: Yes, for a planned cardiac operation. Only under 18: for an adult the
+    /// same card's one quiet cardiac-surgery line (PatientFunctional.cardiacSurgeryNote, in PatientCardiacEvaluationContent)
+    /// already says the RCRI is not shown, and two notes saying it were one too many (review 1.10).
+    static func intrathoracicRcriNote(_ r: PatientRecord) -> String? {
+        guard r.intrathoracicProcedure == true, PatientRules.cardiacSurgery(r), !r.isAdult else { return nil }
+        return PatientRules.rcriHiddenNote
+    }
+
     // MARK: Cardiac workup
 
     /// The nine tests behind "+ Add Preprocedure Cardiac Workup", in Ben's order (ECG, echo, left and right heart cath,

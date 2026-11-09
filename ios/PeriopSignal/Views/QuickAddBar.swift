@@ -10,6 +10,8 @@ import SwiftUI
 struct QuickAddBar: View {
     @Environment(PatientStore.self) private var patient
     var place: QuickAddPlace
+    /// The example in the field, where the page has its own (Previous Intrathoracic Surgery); else the place's.
+    var placeholder: String? = nil
     private var tab: QuickAddTab { place.tab }
     private var compact: Bool { place.compact }
 
@@ -101,7 +103,7 @@ struct QuickAddBar: View {
                 .foregroundStyle(PS.accent2)
                 .accessibilityHidden(true)
             // The editor pages' bar stays one line; the tabs' grows to four as a long line is typed.
-            TextField(QuickAdd.placeholder(place), text: $text, axis: .vertical)
+            TextField(placeholder ?? QuickAdd.placeholder(place), text: $text, axis: .vertical)
                 .lineLimit(compact ? 1...1 : 1...4)
                 .focused($focused)
                 .font(PS.sys(size: compact ? 14 : 15))
@@ -318,7 +320,8 @@ struct QuickAddBar: View {
             dropped = []
             return
         }
-        let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
+        let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
+                              surgicalHistory: place.surgicalHistory)
         withAnimation(.snappy) {
             reading = q
             readText = t
@@ -349,7 +352,8 @@ struct QuickAddBar: View {
         guard let shown = reading, readText == t else { return recompute() }
         let before = patient.record
         let seen = Set(QuickAdd.chips(shown, record: before).map(\.id))
-        let q = QuickAdd.read(t, record: before, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
+        let q = QuickAdd.read(t, record: before, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
+                              surgicalHistory: place.surgicalHistory)
         let chosen = QuickAdd.chips(q, record: before, dropped: dropped).filter { seen.contains($0.id) && $0.canAdd && !dropped.contains($0.id) }
         guard !chosen.isEmpty else { return Haptics.light() }
         // One discrete step in the store's Undo history, whatever was typed just before.
@@ -392,7 +396,11 @@ struct QuickAddBar: View {
 
     private func openSheet(_ seed: String) {
         focused = false
-        sheet = SheetSeed(text: seed.trimmingCharacters(in: .whitespacesAndNewlines))
+        var t = seed.trimmingCharacters(in: .whitespacesAndNewlines)
+        // On Past Surgical History (1.10) a long paste is that history: under a "PSH:" header the full review reads its
+        // lines as past operations, never as the planned procedure.
+        if place.surgicalHistory, !t.isEmpty, PastSurgeryNote.headerRx.first(t) == nil { t = "PSH:\n" + t }
+        sheet = SheetSeed(text: t)
     }
 
     /// Screenshot runs: -ps.quickadd "<line>" types a line into a tab's bar, -ps.quickadd.editor "<line>" into an editor
@@ -404,7 +412,8 @@ struct QuickAddBar: View {
         #if DEBUG
         let t = LaunchSeed.string(compact ? "ps.quickadd.editor" : "ps.quickadd").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty, text.isEmpty, added == nil else { return }
-        let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices)
+        let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
+                              surgicalHistory: place.surgicalHistory)
         var still = Transaction()
         still.disablesAnimations = true
         withTransaction(still) {

@@ -254,7 +254,8 @@ struct PatientRecord: Codable, Equatable {
     /// "easy", "difficult", "none".
     var mask: String?
     var maskNote = ""
-    /// Han mask-ventilation grade, 1–4.
+    /// Han mask-ventilation grade, 1–4. Retired in 1.10 (Ben, Nov 7): never shown or used. A saved grade is read once into
+    /// the mask ease and note (PatientAirway.migratedMask) and not kept, so it is nil on every decoded record.
     var maskGrade: Int?
     /// Supraglottic airway: "easy", "difficult", "none".
     var sga: String?
@@ -271,7 +272,7 @@ struct PatientRecord: Codable, Equatable {
     var airwayAtEnd: String?
     /// Ventilator settings when the patient leaves intubated.
     var ventilation = ""
-    /// After a difficult airway: "told", "documented", "alert" (ASA 2022 follow-up care).
+    /// After a difficult airway: "told", "documented", "alert". Retired in 1.10 (Ben, Nov 7): kept so a saved patient round-trips, never shown or used.
     var airwayFollowUp: Set<String> = []
     /// Lines as entered before 1.6; a saved patient's are moved into `devices` when it opens.
     var lines: [PatientLine] = []
@@ -328,6 +329,13 @@ struct PatientRecord: Codable, Equatable {
     /// it until Regenerate.
     var preopSummaryEdits: [String: String] = [:]
     var handoffEdits: [String: String] = [:]
+
+    // 1.10
+    /// When the preoperative labs were drawn (Ben, Nov 7: the labs in the summary and handoff note their times, very small).
+    var labsDrawn: Date?
+    // 1.10 (Ben): the intraoperative echo in two exams. `intraopEcho` is the pre-bypass exam (a 1.9 save's intraoperative
+    // echo opens as it); this is the post-bypass exam.
+    var intraopEchoPost = PatientEcho()
 
     init() {}
 
@@ -411,12 +419,15 @@ struct PatientRecord: Codable, Equatable {
         oxygen = v(.oxygen, PatientOxygen())
         mask = try? c.decodeIfPresent(String.self, forKey: .mask)
         maskNote = v(.maskNote, "")
-        maskGrade = try? c.decodeIfPresent(Int.self, forKey: .maskGrade)
+        // A saved Han grade (retired in 1.10) is read once into the mask it meant, then dropped, so the next save no longer
+        // carries it and a 1.10 edit of the mask or its note is not undone on the next load.
+        (mask, maskNote) = PatientAirway.migratedMask(mask, note: maskNote, grade: try? c.decodeIfPresent(Int.self, forKey: .maskGrade))
+        maskGrade = nil
         sga = try? c.decodeIfPresent(String.self, forKey: .sga)
         sgaNote = v(.sgaNote, "")
         intubation = try? c.decodeIfPresent(String.self, forKey: .intubation)
         intubationNote = v(.intubationNote, "")
-        airwayDevice = try? c.decodeIfPresent(String.self, forKey: .airwayDevice)
+        airwayDevice = PatientAirway.deviceName(try? c.decodeIfPresent(String.self, forKey: .airwayDevice))
         laryngoscopyGrade = try? c.decodeIfPresent(String.self, forKey: .laryngoscopyGrade)
         attempts = try? c.decodeIfPresent(Int.self, forKey: .attempts)
         tube = v(.tube, "")
@@ -458,6 +469,8 @@ struct PatientRecord: Codable, Equatable {
         preopSummaryOn = v(.preopSummaryOn, false)
         preopSummaryEdits = v(.preopSummaryEdits, [:])
         handoffEdits = v(.handoffEdits, [:])
+        labsDrawn = try? c.decodeIfPresent(Date.self, forKey: .labsDrawn)
+        intraopEchoPost = v(.intraopEchoPost, PatientEcho())
         fills.problems.formIntersection(problems)
         fills.medFlags.formIntersection(medFlags)
         fills.ecg.formIntersection(Set(ecg))

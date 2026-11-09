@@ -93,6 +93,9 @@ final class PatientStore {
         guard r != record else { return }
         history.willChange(record, case: book.currentID, discrete: discrete || takeDiscreteMark(now), now: now)
         r.updated = now
+        #if DEBUG
+        ShotTrace.note("record update")
+        #endif
         record = r
         cleared = nil
         replaced = nil
@@ -286,6 +289,10 @@ final class PatientStore {
         case "demo-briefs": return PatientDemo.briefs
         case "demo-briefs-on": return PatientDemo.briefsOn
         case "demo-briefs-edit": return PatientDemo.briefsEdited
+        case "demo-intraop110": return PatientDemo.intraop110
+        case "demo-echo110": return PatientDemo.echo110
+        case "demo-echo110-pre": return PatientDemo.echo110Pre
+        case "demo-echo110-as": return PatientDemo.echo110Severe
         default: return nil
         }
     }

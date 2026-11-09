@@ -28,6 +28,66 @@ enum CodeStatus: String, Codable, CaseIterable, Hashable {
         }
     }
 
+    // MARK: 1.10 chips (Ben, Nov 7): DNR and DNI are two chips that can both be on; Full code, Limited and Not discussed
+    // stay exclusive. A record keeps one status, so both on is `.dnrDni`; a saved "DNR/DNI" lights both chips, and
+    // its text ("DNR/DNI") reads as both orders in the summary, the handoff and the plan link.
+
+    /// DNR is in force (alone or with DNI).
+    var hasDNR: Bool { self == .dnr || self == .dnrDni }
+    /// DNI is in force (alone or with DNR).
+    var hasDNI: Bool { self == .dni || self == .dnrDni }
+
+    /// The status for the two orders switched on or off: both is `.dnrDni`; neither is nil.
+    static func orders(dnr: Bool, dni: Bool) -> CodeStatus? {
+        switch (dnr, dni) {
+        case (true, true): return .dnrDni
+        case (true, false): return .dnr
+        case (false, true): return .dni
+        case (false, false): return nil
+        }
+    }
+
+    /// One chip of the code-status row.
+    struct Chip: Hashable, Identifiable {
+        var id: String
+        var label: String
+        /// Shorter words for a narrow row (nil: the label stays). VoiceOver always reads the label.
+        var short: String?
+    }
+
+    /// The chips, in order: there is no DNR/DNI chip any more (both on is DNR and DNI together).
+    static let chips: [Chip] = [
+        Chip(id: "full", label: "Full code", short: "Full"),
+        Chip(id: "dnr", label: "DNR", short: nil),
+        Chip(id: "dni", label: "DNI", short: nil),
+        Chip(id: "limited", label: "Limited", short: nil),
+        Chip(id: "notDiscussed", label: "Not discussed", short: nil),
+    ]
+
+    /// The chips a status lights: `.dnrDni` lights DNR and DNI together.
+    var chipIDs: Set<String> {
+        switch self {
+        case .dnrDni: return ["dnr", "dni"]
+        case .notDiscussed: return ["notDiscussed"]
+        default: return [rawValue]
+        }
+    }
+
+    /// The status after a tap on a chip. DNR and DNI toggle each other's partner on and off (DNR then DNI is both; a tap on
+    /// one that is on takes it off, leaving the other); a tap on Full code, Limited or Not discussed chooses it, replacing
+    /// any order, and a second tap on the one chosen clears it. A tap on DNR or DNI while one of those three is chosen
+    /// replaces it.
+    static func tapped(_ chip: String, from current: CodeStatus?) -> CodeStatus? {
+        let dnr = current?.hasDNR ?? false, dni = current?.hasDNI ?? false
+        switch chip {
+        case "dnr": return orders(dnr: !dnr, dni: dni)
+        case "dni": return orders(dnr: dnr, dni: !dni)
+        default:
+            guard let status = CodeStatus(rawValue: chip) else { return current }
+            return current == status ? nil : status
+        }
+    }
+
     /// Limits resuscitation, so the perioperative plan is asked.
     var limits: Bool { resuscitationOrder || self == .limited }
 

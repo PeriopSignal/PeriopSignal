@@ -214,7 +214,7 @@ final class PatientCasesTests: XCTestCase {
         XCTAssertTrue(e.text.contains("Call [room] at [room phone] by --:--"), e.text)
         XCTAssertTrue(e.text.contains("Cefazolin 2 g --:--"), "times typed in a note")
         XCTAssertTrue(e.text.contains("epinephrine 1:10,000"), "a ratio is not a time")
-        XCTAssertTrue(e.text.hasSuffix("Archived in Periop Signal, 31 Oct 2026. Check against the chart."))
+        XCTAssertTrue(e.text.hasSuffix("Archived in Periop Signal, 10/31/26. Check against the chart."))
 
         // What is saved: an id, the day, the procedure line and the text; no room, phone or time stamp.
         let json = try XCTUnwrap(try JSONSerialization.jsonObject(with: JSONEncoder().encode(e)) as? [String: Any])
@@ -308,11 +308,11 @@ final class PatientCasesTests: XCTestCase {
         let now = date(2026, 10, 31, 9)
         XCTAssertEqual(PatientArchiveWriter.label("2026-10-31", now: now), "Today")
         XCTAssertEqual(PatientArchiveWriter.label("2026-10-30", now: now), "Yesterday")
-        XCTAssertEqual(PatientArchiveWriter.label("2026-10-29", now: now), "Thu 29 Oct")
-        XCTAssertEqual(PatientArchiveWriter.label("2025-10-29", now: now), "29 Oct 2025")
+        XCTAssertEqual(PatientArchiveWriter.label("2026-10-29", now: now), "10/29/26", "1.10: MM/DD/YY")
+        XCTAssertEqual(PatientArchiveWriter.label("2025-10-29", now: now), "10/29/25")
         let e = PatientArchiveEntry(day: "2026-10-31", procedure: "Case", text: "x")
         XCTAssertEqual(e.expires(retentionDays: 7), date(2026, 11, 8, 0))
-        XCTAssertEqual(PatientArchiveDetail.keptText(e, retentionDays: 7, now: now), "Kept through Sat 7 Nov")
+        XCTAssertEqual(PatientArchiveDetail.keptText(e, retentionDays: 7, now: now), "Kept through 11/07/26")
         XCTAssertEqual(PatientArchiveDetail.keptText(PatientArchiveEntry(day: "2026-10-24", procedure: "Case", text: "x"), retentionDays: 7, now: now), "Kept through today")
     }
 

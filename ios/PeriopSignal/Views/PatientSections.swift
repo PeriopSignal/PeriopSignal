@@ -23,21 +23,15 @@ extension PatientEditorView {
         .onAppear(perform: readOldProcedureText)
         // The chosen urgency's definition: behind the group title's ⓘ (1.8.1), not on a row of its own in the card.
         PatientGroup(title: "Urgency & anesthetic", note: urgencyNote) {
-            PatientChipRow(label: "Urgency") {
-                PatientChoice(options: PatientUrgency.allCases.map { (id: $0.rawValue, label: $0.label) }, selection: urgencyChoice, tint: PS.accent)
-            }
-            PatientChipRow(label: "Planned anesthetic") { PatientChips(options: PatientCatalog.anesthetics, selection: bind(\.anesthetic), tint: PS.accent2) }
+            PatientChipRow(label: "Urgency") { UrgencyChips() }
+            PatientChipRow(label: "Planned anesthetic") { AnestheticChips() }
         }
         PatientGroup(title: "Risk-score inputs", note: riskInputsNote(recognized: recognized)) {
             if !PatientRules.cardiacSurgery(r) {
                 toggleRow("High-risk surgery", "Intraperitoneal, intrathoracic or suprainguinal vascular (RCRI)", bind(\.highRiskSurgery))
             }
-            PatientChipRow(label: "Incision (ARISCAT)") {
-                PatientChoice(options: [(id: "Peripheral", label: "Peripheral"), (id: "Upper abdominal", label: "Upper abdominal"), (id: "Intrathoracic", label: "Intrathoracic")], selection: bind(\.incision))
-            }
-            PatientChipRow(label: "Expected duration (ARISCAT)") {
-                PatientChoice(options: [(id: "≤ 2 h", label: "2 h or less"), (id: "> 2–3 h", label: "Over 2 to 3 h"), (id: "> 3 h", label: "Over 3 h")], selection: bind(\.duration))
-            }
+            PatientChipRow(label: "Incision (ARISCAT)") { IncisionChips() }
+            PatientChipRow(label: "Expected duration (ARISCAT)") { DurationChips() }
         }
     }
 
@@ -121,7 +115,7 @@ extension PatientEditorView {
     @ViewBuilder private var surgeriesEditor: some View {
         PatientGroup(title: "Past surgical history", note: "Cardiac and thoracic operations also appear under Previous intrathoracic surgery in the cardiac evaluation.") {
             ForEach(r.surgeries) { s in
-                SurgeryRow(surgery: surgeryBinding(\.surgeries, s.id)) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
+                SurgeryRow(surgery: pastSurgeryBinding(s.id)) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
                     .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
             }
             WobbleDoneBar(editing: $wobbling)
@@ -129,24 +123,23 @@ extension PatientEditorView {
         }
     }
 
+    /// 1.10 (Ben): the operations here are Past surgical history's own entries marked cardiac or thoracic, edited in place,
+    /// so an operation entered here, on Past surgical history or as the cardiovascular page's Previous cardiac surgery is
+    /// one entry (PatientHistoryDetails.editSurgery). A list saved before 1.10 was folded in when the record was read.
     @ViewBuilder private var intrathoracicEditor: some View {
-        let fromHistory = r.surgeries.filter(\.intrathoracic)
-        if !fromHistory.isEmpty {
-            PatientGroup(title: "From the surgical history") {
-                ForEach(fromHistory) { s in
-                    Text(s.text).font(PS.sys(size: 14.5)).foregroundStyle(PS.fg)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 14).padding(.vertical, 10)
-                }
+        let chest = r.surgeries.filter(\.intrathoracic)
+        PatientGroup(title: "Previous intrathoracic surgery", note: "A previous sternotomy or thoracotomy matters for re-entry, adhesions, bleeding and lung isolation. These operations are in Past surgical history too.") {
+            ForEach(chest) { s in
+                SurgeryRow(surgery: pastSurgeryBinding(s.id), intrathoracicToggle: false) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
+                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
             }
-        }
-        PatientGroup(title: "Previous intrathoracic surgery", note: "A previous sternotomy or thoracotomy matters for re-entry, adhesions, bleeding and lung isolation.") {
             ForEach(r.intrathoracic) { s in
                 SurgeryRow(surgery: surgeryBinding(\.intrathoracic, s.id), intrathoracicToggle: false) { patient.update(discrete: true) { $0.intrathoracic.removeAll { $0.id == s.id } } }
-                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update(discrete: true) { $0.intrathoracic.removeAll { $0.id == s.id } } }
             }
             WobbleDoneBar(editing: $wobbling)
-            addButton(r.intrathoracic.isEmpty ? "Add an operation" : "Add another operation") { patient.update(discrete: true) { $0.intrathoracic.append(PatientSurgery(intrathoracic: true)) } }
+            addButton(chest.isEmpty && r.intrathoracic.isEmpty ? "Add an operation" : "Add another operation") {
+                patient.update(discrete: true) { PatientHistoryDetails.addIntrathoracic(&$0) }
+            }
         }
     }
 
@@ -331,6 +324,13 @@ extension PatientEditorView {
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    /// An entry of Past surgical history, edited so that an operation already listed is not listed twice and a cardiac
+    /// one is the cardiovascular page's Previous cardiac surgery (1.10).
+    func pastSurgeryBinding(_ id: UUID) -> Binding<PatientSurgery> {
+        Binding(get: { patient.record.surgeries.first { $0.id == id } ?? PatientSurgery() },
+                set: { v in patient.update { PatientHistoryDetails.editSurgery(v, &$0) } })
     }
 
     func surgeryBinding(_ kp: WritableKeyPath<PatientRecord, [PatientSurgery]>, _ id: UUID) -> Binding<PatientSurgery> {
@@ -561,6 +561,13 @@ struct InfusionRow: View {
 struct EchoFindingsEditor: View {
     @Binding var echo: PatientEcho
     var showsStudy = false
+    /// 1.10 (Ben): a free-text field on every chamber and valve (the intraoperative exams); elsewhere a field shows only
+    /// once it holds text.
+    var sectionNotes = false
+    /// Scroll anchors ("echonormal", "echo-m") get this in front, so two exams on one page keep their own ("post-").
+    var anchorPrefix = ""
+    /// The page's one Explanation & Evidence note (the intraoperative page shows it under its last exam).
+    var showsEvidence = true
     @Environment(PatientStore.self) private var store: PatientStore?
     @Environment(ReferenceStore.self) private var refs: ReferenceStore?
 
@@ -576,6 +583,18 @@ struct EchoFindingsEditor: View {
                       selection: Binding(get: { b.wrappedValue?.rawValue }, set: { b.wrappedValue = $0.flatMap { EchoGrade(rawValue: $0) } }))
     }
 
+    /// Normal or Dilated (1.10, Ben).
+    private func size(_ b: Binding<EchoSize?>) -> some View {
+        PatientChoice(options: EchoSize.allCases.map { (id: $0.rawValue, label: $0.label) },
+                      selection: Binding(get: { b.wrappedValue?.rawValue }, set: { b.wrappedValue = $0.flatMap { EchoSize(rawValue: $0) } }))
+    }
+
+    @ViewBuilder private func notes(_ section: String, _ text: Binding<String>) -> some View {
+        if sectionNotes || !text.wrappedValue.isEmpty {
+            PatientTextField(label: "Notes", prompt: section, text: text)
+        }
+    }
+
     @ViewBuilder private func valve(_ title: String, _ letter: String, _ v: Binding<EchoValve>) -> some View {
         PatientGroup(title: title) {
             PatientChipRow(label: letter + "R") { grade(v.regurgitation, normalLabel: "None", grades: EchoGrade.regurgitation) }
@@ -584,8 +603,13 @@ struct EchoFindingsEditor: View {
                 PatientChoice(options: EchoValve.prostheses.map { (id: $0, label: $0) },
                               selection: Binding(get: { v.wrappedValue.prosthesis.isEmpty ? nil : v.wrappedValue.prosthesis }, set: { v.wrappedValue.prosthesis = $0 ?? "" }))
             }
+            // 1.10 (Ben): once a prosthesis or repair is chosen, its details in the user's words, if they want.
+            if EchoValve.takesDetail(v.wrappedValue.prosthesis) || !v.wrappedValue.prosthesisDetail.isEmpty {
+                PatientTextField(label: "Prosthesis details (optional)", prompt: "e.g. 29 mm Magna Ease, 2019; 28 mm ring", text: v.prosthesisDetail)
+            }
+            notes("e.g. jet direction, PISA, gradient, leaflet motion", v.notes)
         }
-        .id("echo-" + letter.lowercased())
+        .id(anchorPrefix + "echo-" + letter.lowercased())
     }
 
     var body: some View {
@@ -606,13 +630,18 @@ struct EchoFindingsEditor: View {
                 echo = e
             }
         }
-        .id("echonormal")
+        .id(anchorPrefix + "echonormal")
         PatientGroup(title: "Left ventricle") {
             PatientChipRow(label: "Function") { grade($echo.lv) }
+            PatientChipRow(label: "Size") { size($echo.lvSize) }
             PatientNumberField(label: "Ejection fraction", unit: "%", value: $echo.lvef)
+            notes("e.g. wall motion, LVOT gradient, SAM", $echo.lvNotes)
         }
+        .id(anchorPrefix + "echo-lv")
         PatientGroup(title: "Right ventricle") {
             PatientChipRow(label: "Function") { grade($echo.rv) }
+            PatientChipRow(label: "Size") { size($echo.rvSize) }
+            notes("e.g. TAPSE, RVSP, septal motion", $echo.rvNotes)
         }
         valve("Mitral valve", "M", $echo.mitral)
         valve("Tricuspid valve", "T", $echo.tricuspid)
@@ -636,7 +665,9 @@ struct EchoFindingsEditor: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        EvidenceNote("Grades as the ASE documents name them: chamber function normal or mildly, moderately or severely reduced; regurgitation none, trivial, mild, moderate or severe; stenosis none, mild, moderate or severe. The ASE grading and chamber tools under Reference work the numbers out.")
+        if showsEvidence {
+            EvidenceNote("Grades as the ASE documents name them: chamber function normal or mildly, moderately or severely reduced; regurgitation none, trivial, mild, moderate or severe; stenosis none, mild, moderate or severe. The ASE grading and chamber tools under Reference work the numbers out.")
+        }
     }
 }
 
@@ -685,12 +716,15 @@ struct PatientInfoLine: View {
     }
 }
 
-/// The No and Yes pills of a single-line question.
+/// The No and Yes pills of a single-line question. A second tap on the pill that is on clears the answer to
+/// unanswered (`onClear`), as every chip does (Ben, Nov 7); VoiceOver says so in the selected pill's hint.
 struct YesNoPills: View {
     var no: Bool
     var yes: Bool
     var onNo: () -> Void
     var onYes: () -> Void
+    /// Called instead of `onNo` / `onYes` when the pill tapped is already on.
+    var onClear: () -> Void
     var body: some View {
         HStack(spacing: 6) {
             pill("No", on: no, tint: PS.green, action: onNo)
@@ -698,7 +732,7 @@ struct YesNoPills: View {
         }
     }
     private func pill(_ t: String, on: Bool, tint: Color, action: @escaping () -> Void) -> some View {
-        Button { Haptics.light(); action() } label: {
+        Button { Haptics.light(); if on { onClear() } else { action() } } label: {
             Text(t).font(PS.sys(size: 13.5, weight: .semibold))
                 .foregroundStyle(on ? PS.accentFg : PS.fg2)
                 .padding(.horizontal, 14).padding(.vertical, 6)
@@ -706,6 +740,7 @@ struct YesNoPills: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])
+        .accessibilityHint(on ? "Tap again to clear the answer" : "")
     }
 }
 
@@ -718,7 +753,7 @@ struct PatientEchoSaveBar: View {
 
     var body: some View {
         let pre = isSaved(myPatient.record.echoFindings)
-        let intra = isSaved(myPatient.record.intraopEcho)
+        let intra = isSaved(myPatient.record.intraopEcho) || isSaved(myPatient.record.intraopEchoPost)
         HStack(spacing: 10) {
             Image(systemName: pre || intra ? "checkmark.circle.fill" : "person.text.rectangle")
                 .font(PS.sys(size: 15, weight: .semibold))
@@ -732,6 +767,8 @@ struct PatientEchoSaveBar: View {
             Menu {
                 Button("Preoperative echo") { Haptics.light(); myPatient.update(discrete: true) { save(&$0.echoFindings) } }
                 Button("Intraoperative echo") { Haptics.light(); myPatient.update(discrete: true) { save(&$0.intraopEcho) } }
+                // 1.10: the post-bypass exam.
+                Button("Intraoperative echo, post-bypass") { Haptics.light(); myPatient.update(discrete: true) { save(&$0.intraopEchoPost) } }
             } label: {
                 Text(pre || intra ? "Update" : "Save").font(PS.sys(size: 13.5, weight: .semibold))
             }

@@ -366,7 +366,10 @@ final class QuickAddTests: XCTestCase {
         XCTAssertNotNil(unclear.ambiguous.first { $0.id == QuickAdd.gradeKindQuestion })
         XCTAssertNil(applied(unclear).maskGrade, "nothing until chosen")
         XCTAssertNil(applied(unclear).laryngoscopyGrade)
-        XCTAssertEqual(applied(read(line, .intraop, choices: [QuickAdd.gradeKindQuestion: QuickAdd.gradeKindMask])).maskGrade, 3)
+        // 1.10 (Ben, Nov 7): the Han mask grade is retired, so a grade answered as the mask's is left out, and not filed as the view.
+        let asMask = applied(read(line, .intraop, choices: [QuickAdd.gradeKindQuestion: QuickAdd.gradeKindMask]))
+        XCTAssertNil(asMask.maskGrade)
+        XCTAssertNil(asMask.laryngoscopyGrade)
         XCTAssertEqual(applied(read(line, .intraop, choices: [QuickAdd.gradeKindQuestion: QuickAdd.gradeKindView])).laryngoscopyGrade, "3")
     }
 
@@ -472,7 +475,9 @@ final class QuickAddTests: XCTestCase {
         XCTAssertNil(applied(q).laryngoscopyGrade)
         XCTAssertEqual(applied(q).airwayDevice, "Direct laryngoscope")
         XCTAssertEqual(applied(read("DL grade 1, grade 3, 7.5 ETT", .intraop, choices: [QuickAdd.gradeQuestion: "grade-3"])).laryngoscopyGrade, "3")
-        XCTAssertEqual(applied(read("easy mask (grade 1), DL grade 3", .intraop)).maskGrade, 1, "the mask grade, from its phrase")
+        // 1.10: the mask grade is read (so it is not the view) and dropped.
+        XCTAssertNil(applied(read("easy mask (grade 1), DL grade 3", .intraop)).maskGrade, "the mask grade, from its phrase, is retired")
+        XCTAssertEqual(applied(read("easy mask (grade 1), DL grade 3", .intraop)).laryngoscopyGrade, "3")
     }
 
     func testTheFullNoteOnTheIntraoperativeTab() {
@@ -760,7 +765,7 @@ final class QuickAddTests: XCTestCase {
 
     func testPlannedAnestheticFromTheProcedure() {
         let q = read("68M for lap chole")
-        XCTAssertEqual(change(q, QuickAdd.planPrefix + "ga"), .anesthetic("ga"), "as the Procedure editor fills it")
+        XCTAssertEqual(change(q, QuickAdd.planPrefix + "ga"), .anesthetic("ga"), "as the Planned Procedure & Anesthetic box fills it")
         XCTAssertEqual(applied(q).anesthetic, ["ga"])
         let chips = QuickAdd.chips(q, record: PatientRecord())
         guard let plan = chips.first(where: { $0.destination == "Anesthetic" }),
