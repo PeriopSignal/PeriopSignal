@@ -167,7 +167,7 @@ struct PatientDiagramCanvas: View {
     /// label font grows with the figure (below it the 7-point floor makes a label wider in figure units), so the frame
     /// keeps the figure's own proportions whenever the labels fit the fixed margin, and `layout` fits the rest inside.
     private var aspect: CGFloat {
-        let m = Self.margins(items, figureWidth: bw, k: Self.fontFloorScale)
+        let m = Self.margins(items, figureWidth: bw, k: Self.fontFloorScale, cart: cart)
         return (bw + (m.left + m.right) / Self.fontFloorScale) / bh
     }
 
@@ -176,6 +176,60 @@ struct PatientDiagramCanvas: View {
 
     /// The label font at scale k: the figure's 5.6 units, never under 7 points.
     static func fontSize(_ k: CGFloat) -> CGFloat { max(7, 5.6 * k) }
+
+    /// How tall a label is drawn at scale k, in points: its font's line height.
+    static func labelHeight(_ k: CGFloat) -> CGFloat { UIFont.systemFont(ofSize: fontSize(k), weight: .semibold).lineHeight }
+
+    /// Figure units between the centres of two labels in a column at scale k: the model's gap, or a label's height where
+    /// the 7-point floor makes a label taller than that gap (a 260-point card, review 1.10: 'V 25Fr' ran into
+    /// 'A-line 20G'). The editor's figure, the shared picture and every larger drawing keep the model's gap.
+    static func labelGap(_ k: CGFloat) -> CGFloat { max(PatientDiagramModel.labelGap, labelHeight(k) / k) }
+
+    /// The ECMO cart as drawn at scale k, in points from the figure's origin: its box and the centres and font sizes of
+    /// its title and detail lines.
+    struct CartLayout {
+        var box: CGRect
+        var title: CGPoint
+        var detail: CGPoint
+        var titleSize: CGFloat
+        var detailSize: CGFloat
+    }
+
+    /// The cart's box holds its text at any scale (review 1.10: on the 260-point card "4.2 L/min · sweep 3" at its
+    /// 5.5-point floor ran past the 54-unit box): it is 54 × 24 units, wider where a line needs it, and where the fonts'
+    /// floors leave no room for the two lines at their usual places (the title 4 units above the centre, the detail 5
+    /// below) they stack in the middle of a box tall enough for them.
+    static func cartLayout(_ c: DiagramCart, k: CGFloat) -> CartLayout {
+        let ts = max(6.5, 6 * k), ds = max(5.5, 4.6 * k)
+        let tf = UIFont.systemFont(ofSize: ts, weight: .bold), df = UIFont.systemFont(ofSize: ds, weight: .medium)
+        func width(_ s: String, _ f: UIFont) -> CGFloat { s.isEmpty ? 0 : ceil((s as NSString).size(withAttributes: [.font: f]).width) }
+        let th = tf.lineHeight, dh = c.detail.isEmpty ? 0 : df.lineHeight
+        let air: CGFloat = 2
+        let w = max(54 * k, max(width(c.title, tf), width(c.detail, df)) + 2 * air)
+        let x = c.at.x * k, y = c.at.y * k
+        if 8 * k >= th / 2 + air / 2 && 7 * k >= dh / 2 + air / 2 && 9 * k >= (th + dh) / 2 {
+            return CartLayout(box: CGRect(x: x - w / 2, y: y - 12 * k, width: w, height: 24 * k),
+                              title: CGPoint(x: x, y: y - 4 * k), detail: CGPoint(x: x, y: y + 5 * k), titleSize: ts, detailSize: ds)
+        }
+        let h = max(24 * k, th + dh + 2 * air)
+        let top = y - (th + dh) / 2
+        return CartLayout(box: CGRect(x: x - w / 2, y: y - h / 2, width: w, height: h),
+                          title: CGPoint(x: x, y: top + th / 2), detail: CGPoint(x: x, y: top + th + dh / 2), titleSize: ts, detailSize: ds)
+    }
+
+    /// The items with their column labels spaced for scale k (`labelGap`) and kept clear of the cart's box as drawn at k
+    /// (half a label's height of air above and below it, at least the model's 5 units). Where the label font grows with
+    /// the figure and the box is its usual height, the model's layout as it is.
+    static func laidOut(_ items: [DiagramItem], cart: DiagramCart?, k: CGFloat) -> [DiagramItem] {
+        let gap = labelGap(k)
+        let block = max(PatientDiagramModel.cartBlock, cart.map { cartLayout($0, k: k).box.height / 2 / k + max(5, labelHeight(k) / 2 / k) } ?? 0)
+        guard gap > PatientDiagramModel.labelGap + 0.001 || block > PatientDiagramModel.cartBlock + 0.001,
+              items.contains(where: { $0.labelAt != nil }),
+              items.allSatisfy({ $0.label.isEmpty || $0.labelAt != nil }) else { return items }
+        var out = items
+        PatientDiagramModel.layoutLabels(&out, cart: cart?.at, gap: gap, cartBlock: block)
+        return out
+    }
 
     /// How wide a label is drawn at scale k, in points.
     static func labelWidth(_ label: String, k: CGFloat) -> CGFloat {
@@ -186,8 +240,10 @@ struct PatientDiagramCanvas: View {
     /// The margin each side of the figure, in points, at scale k: the fixed margin, or more where a label in that
     /// column (which starts 2 units outside the figure) or beside its marker would otherwise run off the drawing and be
     /// cut mid-glyph. The left margin counts labels drawn to the left, the right the others.
-    static func margins(_ items: [DiagramItem], figureWidth bw: CGFloat, k: CGFloat) -> (left: CGFloat, right: CGFloat) {
+    static func margins(_ items: [DiagramItem], figureWidth bw: CGFloat, k: CGFloat, cart: DiagramCart? = nil) -> (left: CGFloat, right: CGFloat) {
         var m = (left: margin * k, right: margin * k)
+        // The cart's box, where it is wider than usual, stays inside the drawing.
+        if let c = cart { m.right = max(m.right, cartLayout(c, k: k).box.maxX - bw * k + labelAir) }
         for item in items where !item.label.isEmpty {
             let w = labelWidth(item.label, k: k) + labelAir
             // Points from the figure's edge to where the text starts.
@@ -204,24 +260,26 @@ struct PatientDiagramCanvas: View {
 
     /// The scale and the figure's left edge in a drawing of this size: the figure as large as fits with its margins,
     /// centered. The margins depend on the scale (the font has a floor), so a few rounds settle both.
-    static func layout(_ items: [DiagramItem], figureWidth bw: CGFloat, figureHeight bh: CGFloat, in size: CGSize) -> (k: CGFloat, ox: CGFloat) {
+    static func layout(_ items: [DiagramItem], figureWidth bw: CGFloat, figureHeight bh: CGFloat, in size: CGSize,
+                       cart: DiagramCart? = nil) -> (k: CGFloat, ox: CGFloat) {
         var k = max(0.01, min(size.width / (bw + 2 * margin), size.height / bh))
-        var m = margins(items, figureWidth: bw, k: k)
+        var m = margins(items, figureWidth: bw, k: k, cart: cart)
         for _ in 0..<8 {
             let next = max(0.01, min((size.width - m.left - m.right) / bw, size.height / bh))
             if abs(next - k) < 0.0005 { break }
             k = next
-            m = margins(items, figureWidth: bw, k: k)
+            m = margins(items, figureWidth: bw, k: k, cart: cart)
         }
         return (k, (size.width - (bw * k + m.left + m.right)) / 2 + m.left)
     }
 
     private var drawing: some View {
         GeometryReader { geo in
-            let fit = Self.layout(items, figureWidth: bw, figureHeight: bh, in: geo.size)
+            let fit = Self.layout(items, figureWidth: bw, figureHeight: bh, in: geo.size, cart: cart)
             let k = fit.k, ox = fit.ox
+            let shown = Self.laidOut(items, cart: cart, k: k)
             ZStack(alignment: .topLeading) {
-                Canvas { ctx, _ in draw(&ctx, k: k, ox: ox) }
+                Canvas { ctx, _ in draw(&ctx, items: shown, k: k, ox: ox) }
                     .contentShape(Rectangle())
                     .gesture(SpatialTapGesture().onEnded { g in
                         guard !editing else { return }
@@ -307,7 +365,7 @@ struct PatientDiagramCanvas: View {
 
     // MARK: Drawing
 
-    private func draw(_ ctx: inout GraphicsContext, k: CGFloat, ox: CGFloat) {
+    private func draw(_ ctx: inout GraphicsContext, items: [DiagramItem], k: CGFloat, ox: CGFloat) {
         // The body: outline and head.
         var body = RegionalCalc.path(svg: figure.outline, scale: k)
         let h = figure.head
@@ -316,17 +374,6 @@ struct PatientDiagramCanvas: View {
         ctx.translateBy(x: ox, y: 0)
         ctx.fill(body, with: .color(PS.surface2))
         ctx.stroke(body, with: .color(PS.fg3.opacity(0.9)), lineWidth: 1)
-
-        // The ECMO cart and its tubing first, so the cannula markers sit on top.
-        if let c = cart {
-            let r = CGRect(x: (c.at.x - 27) * k, y: (c.at.y - 12) * k, width: 54 * k, height: 24 * k)
-            ctx.fill(Path(roundedRect: r, cornerRadius: 4 * k), with: .color(PS.surface))
-            ctx.stroke(Path(roundedRect: r, cornerRadius: 4 * k), with: .color(PS.fg2), lineWidth: 1)
-            ctx.draw(Text(c.title).font(.system(size: max(6.5, 6 * k), weight: .bold)).foregroundColor(PS.fg), at: CGPoint(x: c.at.x * k, y: (c.at.y - 4) * k))
-            if !c.detail.isEmpty {
-                ctx.draw(Text(c.detail).font(.system(size: max(5.5, 4.6 * k), weight: .medium)).foregroundColor(PS.fg2), at: CGPoint(x: c.at.x * k, y: (c.at.y + 5) * k))
-            }
-        }
 
         for item in items {
             let a = moved(item)
@@ -399,6 +446,18 @@ struct PatientDiagramCanvas: View {
                     let lp = CGPoint(x: c.x + (item.labelLeft ? -5 : 5) * k, y: c.y + item.labelDY * k)
                     ctx.draw(Text(item.label).font(font).foregroundColor(item.color), at: lp, anchor: item.labelLeft ? .trailing : .leading)
                 }
+            }
+        }
+
+        // The ECMO cart last, so the cannulas run into its box and nothing is drawn over its text (review 1.10: the
+        // tubing crossed "4.2 L/min" on the card).
+        if let c = cart {
+            let cl = Self.cartLayout(c, k: k)
+            ctx.fill(Path(roundedRect: cl.box, cornerRadius: 4 * k), with: .color(PS.surface))
+            ctx.stroke(Path(roundedRect: cl.box, cornerRadius: 4 * k), with: .color(PS.fg2), lineWidth: 1)
+            ctx.draw(Text(c.title).font(.system(size: cl.titleSize, weight: .bold)).foregroundColor(PS.fg), at: cl.title)
+            if !c.detail.isEmpty {
+                ctx.draw(Text(c.detail).font(.system(size: cl.detailSize, weight: .medium)).foregroundColor(PS.fg2), at: cl.detail)
             }
         }
     }
