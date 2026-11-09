@@ -134,9 +134,12 @@ enum HomeMedRowStyle {
         "acei": "ACEi/ARB", "steroid": "Steroid", "opioid": "Opioid", "maoi": "MAOI",
     ]
     static func shortFlag(_ f: PatientFlag) -> String { shortFlags[f.id] ?? f.label }
-    /// The dose field's width (PatientNumberField's): narrower than 1.9's 128 pt so the name and a flag pill share the
-    /// line, with at least 100 pt left for the name at 375 pt (a long name shrinks a little, then truncates).
-    static let doseWidth: CGFloat = 92
+    /// The dose field's width: narrower than 1.9's 128 pt so the name and a flag pill share the line. The pill keeps its
+    /// words and the dose its field; a long name shrinks a little, then truncates (shot 812: "Metoprolol succinate" at
+    /// 375 pt), since the name is also on the page and in the briefs.
+    static let doseWidth: CGFloat = 104
+    /// The dose's text size: a little under the row's, so "7.5 mg weekly" fits the field.
+    static let doseFontSize: CGFloat = 13.5
 }
 
 /// One medication on the list, on one line (1.11, P1-10): its name, its flag pill, the dose typed in place, ×. The class
@@ -153,24 +156,25 @@ private struct HomeMedRow: View {
         HStack(alignment: .center, spacing: 8) {
             Text(FreeText.cap(med.name)).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
                 .lineLimit(1).minimumScaleFactor(0.8)
-                .layoutPriority(1)
             if let f = flags.first {
                 Text(HomeMedRowStyle.shortFlag(f) + (flags.count > 1 ? " +\(flags.count - 1)" : ""))
                     .font(PS.sys(size: 10.5, weight: .semibold)).foregroundStyle(PS.action)
-                    .lineLimit(1)
+                    .lineLimit(1).fixedSize()
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(PS.action.opacity(0.12), in: Capsule())
+                    .layoutPriority(1)
                     .accessibilityLabel(flags.map(\.label).joined(separator: ", "))
             }
             Spacer(minLength: 0)
             TextField("Dose", text: $dose)
-                .font(PS.sys(size: 14)).foregroundStyle(PS.fg)
+                .font(PS.sys(size: HomeMedRowStyle.doseFontSize)).foregroundStyle(PS.fg)
                 .multilineTextAlignment(.trailing)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .padding(.horizontal, 8).padding(.vertical, 6)
                 .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .frame(width: HomeMedRowStyle.doseWidth)
+                .layoutPriority(1)
                 .accessibilityLabel("Dose of " + med.name)
             Button(action: onRemove) {
                 Image(systemName: "xmark").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.fg3)

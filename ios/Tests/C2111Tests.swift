@@ -208,17 +208,20 @@ final class C2111Tests: XCTestCase {
             XCTAssertLessThanOrEqual(HomeMedRowStyle.shortFlag(f).count, 10, f.id)
         }
         XCTAssertLessThan(HomeMedRowStyle.doseWidth, 128, "1.9's dose field")
-        // The name, a flag pill and the dose field share one line at 375 pt: with the widest pill, the dose field, × and
-        // the spacing, at least 100 pt is left for the name (most of the demo's names fit whole; the longest shrinks a
-        // little), and a typical name with its pill fits without shrinking.
+        // The name, a flag pill and the dose field share one line at 375 pt: the pill keeps its words and the dose its
+        // field, so with the widest pill, the dose field, × and the spacing, at least 85 pt is left for the name (a
+        // typical name fits whole; the longest shrinks, then truncates), and the longest demo dose fits its field.
         let name = UIFont.systemFont(ofSize: 14.5, weight: .semibold)
         let pill = UIFont.systemFont(ofSize: 10.5, weight: .semibold)
+        let dose = UIFont.systemFont(ofSize: HomeMedRowStyle.doseFontSize)
         let widestPill = PatientCatalog.medFlags.map { (HomeMedRowStyle.shortFlag($0) as NSString).size(withAttributes: [.font: pill]).width + 12 }.max() ?? 0
         let room: CGFloat = 375 - 40 - 28
         let nameRoom = room - (8 + widestPill + 8 + HomeMedRowStyle.doseWidth + 8 + 28)
-        XCTAssertGreaterThanOrEqual(nameRoom, 100, "pill \(widestPill)")
-        let typical = ("Atorvastatin" as NSString).size(withAttributes: [.font: name]).width
+        XCTAssertGreaterThanOrEqual(nameRoom, 85, "pill \(widestPill)")
+        let typical = ("Lisinopril" as NSString).size(withAttributes: [.font: name]).width
         XCTAssertLessThanOrEqual(typical, nameRoom)
+        let longestDose = PatientDemo.meds.homeMeds.map { ($0.dose as NSString).size(withAttributes: [.font: dose]).width }.max() ?? 0
+        XCTAssertLessThanOrEqual(longestDose + 16, HomeMedRowStyle.doseWidth, "longest dose \(longestDose)")
     }
 
     // MARK: P1-7: the quiet link and the allergies type line
