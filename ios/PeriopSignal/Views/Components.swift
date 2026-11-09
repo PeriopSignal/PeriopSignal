@@ -679,10 +679,11 @@ private extension URL {
 /// they don't (long titles, many choices, large text sizes).
 ///
 /// Whether they fit is decided as 1.10 decided it: by the choices' first one-line form without a chosen toggle chip's
-/// ✓ slot (a hidden copy of the choices, drawn with `chipLineProbe`, which makes a ChipSet draw only that form). On the
-/// title's line the choices then get the room that is left and pick their own form in it, the ✓ forms first (review
-/// 1.10: the ✓ slot made the 1.9 and 1.10 one-line rows such as Renal's "Access  ✓ Fistula  Dialysis catheter" stack,
-/// because the row was measured at its widest form). One copy of the title and the choices is drawn either way.
+/// ✓ (a hidden copy of the choices, drawn with `chipLineProbe`, which makes a ChipSet draw only that form). On the
+/// title's line the choices then get the room that is left and pick their own form in it, the ✓ forms first, at a
+/// tighter padding where the ✓ needs it (review 1.10: measured at its widest form, the ✓ made the 1.9 and 1.10 one-line
+/// rows such as Renal's "Access  ✓ Fistula  Dialysis catheter" stack). One copy of the title and the choices is drawn
+/// either way.
 struct InlineChoices<Title: View, Choices: View>: View {
     var spacing: CGFloat = 8
     @ViewBuilder var title: () -> Title
@@ -704,7 +705,7 @@ struct InlineChoices<Title: View, Choices: View>: View {
 private struct ChipLineProbeKey: EnvironmentKey { static let defaultValue = false }
 
 extension EnvironmentValues {
-    /// InlineChoices' measure of a row: a ChipSet draws only its first one-line form without the ✓ slot.
+    /// InlineChoices' measure of a row: a ChipSet draws only its first one-line form without the ✓.
     var chipLineProbe: Bool {
         get { self[ChipLineProbeKey.self] }
         set { self[ChipLineProbeKey.self] = newValue }
