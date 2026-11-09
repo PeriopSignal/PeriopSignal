@@ -512,7 +512,7 @@ enum PatientBriefs {
 
     // MARK: Cardiac workup, TEE
 
-    private static let workupLabels: Set<String> = ["ECG", "Echo", "Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound",
+    private static let workupLabels: Set<String> = ["ECG", "Echo", "Stress test", "Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound",
                                                     "Pulmonary function tests", "Caution"]
 
     /// Preprocedure cardiac workup: the ECG, echo, catheterizations, carotid and radial ultrasound and PFTs entered, each
@@ -521,6 +521,11 @@ enum PatientBriefs {
     /// case it is here only, not listed again under Lines & devices.
     private static func workupBlock(_ r: PatientRecord, assess: [PatientSummary.Line], kind: Kind) -> SummaryBlock {
         var lines = assess.filter { workupLabels.contains($0.label ?? "") }
+        // 1.11 (Ben's note 4): the stress test, after the echo and before the catheterizations.
+        if let s = PatientPreop.stressLine(r) {
+            let at = lines.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? lines.count
+            lines.insert(s, at: at)
+        }
         if let t = PatientTEE.line(r) { lines.append(t) }
         // Before the case: the support the patient arrives with (one placed in the room is not preprocedure workup).
         if kind == .preop {

@@ -80,6 +80,8 @@ enum PatientEditor: Hashable {
         ("radial", "Radial Artery Ultrasound", "hand.raised"), ("pft", "Pulmonary Function Tests", "lungs"),
         // 1.9: the code status plan and POLST, behind a small link on the Preprocedure tab's Demographics box.
         ("codestatus", "Code Status", "exclamationmark.shield"),
+        // 1.11 (Ben's note 4): the preprocedure stress test, a chip of the cardiac workup.
+        ("stress", "Stress Test", "figure.run"),
     ]
 }
 

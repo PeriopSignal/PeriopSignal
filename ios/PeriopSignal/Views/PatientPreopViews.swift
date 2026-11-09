@@ -214,10 +214,15 @@ struct CodeStatusChips: View {
     }
 }
 
-/// Age and sex, height and weight in two columns; the code status chips; a link to the preoperative vitals.
+/// Age and sex, height and weight in two columns, the derived body-size line; then three quiet links in one style (1.11,
+/// Ben's note 2; P1-2, P1-7): "+ Add code status", "+ Add preoperative vitals", "+ Last intake". Each opens its controls
+/// in place and collapses to "Name: value · Change". The code status row carries the perioperative plan chips inline
+/// while the orders limit resuscitation (Q5); its "›" opens the Code Status page for the POLST and the limits.
 struct PreopDemographicsBox: View {
     @Environment(PatientStore.self) private var patient
     @State private var vitalsOpen = LaunchSeed.bool("ps.preop.vitals")
+    @State private var codeOpen = LaunchSeed.bool("ps.preop.code")
+    @State private var intakeOpen = LaunchSeed.bool("ps.preop.intake")
 
     var body: some View {
         let r = patient.record
@@ -232,17 +237,27 @@ struct PreopDemographicsBox: View {
                         PreopNumberCell(label: "Height", unit: "cm", value: patient.preopBinding(\.heightCm))
                         PreopNumberCell(label: "Weight", unit: "kg", value: patient.preopBinding(\.weightKg))
                     }
-                    if r.bmi != nil {
-                        Text(PatientSummary.bodyLine(r)).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg3)
+                    // Without the weight and height (the fields say them): "BMI 30.3 · BSA 2.14 m² · IBW 73 kg · LBW 67 kg".
+                    if let line = PatientPreop.derivedBodyLine(r) {
+                        Text(line).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg3)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .padding(14)
                 Hairline().padding(.leading, 14)
-                codeStatus.padding(14)
-                Hairline().padding(.leading, 14)
-                vitals
+                VStack(alignment: .leading, spacing: 14) {
+                    codeStatus
+                    vitals
+                    intake
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
             }
+        }
+        // Choosing a status closes the chips onto the "Code status: DNR" line; DNR or DNI alone leaves them open, so the
+        // other order is one tap away (a second tap on it would be Change first).
+        .onChange(of: patient.record.codeStatus) { _, s in
+            if let s, codeOpen, s != .dnr, s != .dni { withAnimation(.snappy) { codeOpen = false } }
         }
     }
 
@@ -279,51 +294,57 @@ struct PreopDemographicsBox: View {
 
     // MARK: Code status
 
-    /// The code status chips, inline; the plan for the procedure and the POLST stay on their own page behind a small link.
-    private var codeStatus: some View {
+    /// "+ Add code status" until one is chosen; the five chips in place when tapped (Full, DNR, DNI, Limited, Not
+    /// discussed, DNR and DNI together allowed); then "Code status: DNR · DNI · Change" with "›" to the Code Status page
+    /// (POLST, limits). The perioperative plan (Q5) is asked inline under the row while the orders limit resuscitation,
+    /// with the red "Plan not yet discussed" caption until it is: that warning is never folded away.
+    @ViewBuilder private var codeStatus: some View {
         let r = patient.record
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("Code status").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-            CodeStatusChips()
-            // For every status, so the POLST can be recorded or cleared from the tab too.
-            let link = PatientPreop.codeStatusLink(r)
-            NavigationLink(value: PatientEditor.workup("codestatus")) {
-                HStack(spacing: 6) {
-                    Text(link.text).foregroundStyle(link.alert ? PS.red : PS.fg2)
-                    Image(systemName: "chevron.right").font(PS.sys(size: 10.5, weight: .semibold)).foregroundStyle(PS.fg3)
+        VStack(alignment: .leading, spacing: 10) {
+            if codeOpen {
+                QuietOpenHeader(label: "Code status") { withAnimation(.snappy) { codeOpen = false } }
+                CodeStatusChips()
+            } else if let row = PatientPreop.codeStatusRow(r) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    QuietLinkRow(title: row.text, filled: true, alert: row.alert) { withAnimation(.snappy) { codeOpen = true } }
+                    NavigationLink(value: PatientEditor.workup("codestatus")) {
+                        Image(systemName: "chevron.right").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
+                            .frame(width: 24, height: 24)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Code status details: POLST and limits")
                 }
-                .font(PS.sys(size: 13, weight: .semibold))
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
+            } else {
+                QuietLinkRow(title: PatientPreop.codeStatusLinkTitle) { withAnimation(.snappy) { codeOpen = true } }
             }
-            .buttonStyle(.plain)
+            if PatientPreop.asksCodeStatusPlan(r) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("For the procedure").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+                    PatientChoice(options: CodeStatusPlan.allCases.map { (id: $0.rawValue, label: $0.label) },
+                                  selection: Binding(get: { patient.record.codeStatusPlan?.rawValue }, set: { v in patient.update { $0.codeStatusPlan = v.flatMap { CodeStatusPlan(rawValue: $0) } } }),
+                                  tint: PS.action,
+                                  shorts: ["maintained": "Maintained", "modified": "Modified", "suspended": "Suspended"])
+                    if let cap = PatientPreop.codeStatusPlanCaption(r) {
+                        Text(cap.text).font(PS.sys(size: 12.5, weight: cap.alert ? .semibold : .regular)).foregroundStyle(cap.alert ? PS.red : PS.fg2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
     }
 
     // MARK: Vitals
 
-    private var vitals: some View {
+    /// "+ Add preoperative vitals"; the grid in place; "Vitals: BP 148/86 · HR 72 · SpO₂ 95% · Change" once filled.
+    @ViewBuilder private var vitals: some View {
         let r = patient.record
-        return VStack(alignment: .leading, spacing: 12) {
-            Button {
-                withAnimation(.snappy) { vitalsOpen.toggle() }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: vitalsOpen ? "chevron.down" : "plus").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.accent).frame(width: 14)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(r.vitals.isEmpty ? "Add preoperative vitals" : "Preoperative vitals")
-                            .font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(r.vitals.isEmpty ? PS.accent : PS.fg2)
-                        if !vitalsOpen, let line = PatientSummary.vitalsLine(r) {
-                            Text(line).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityAddTraits(.isButton)
+        VStack(alignment: .leading, spacing: 10) {
             if vitalsOpen {
+                QuietOpenHeader(label: "Preoperative vitals") { withAnimation(.snappy) { vitalsOpen = false } }
                 let fields = PatientCatalog.vitals
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12, alignment: .top), GridItem(.flexible(), spacing: 12, alignment: .top)], spacing: 12) {
                     ForEach(fields) { v in
@@ -331,10 +352,35 @@ struct PreopDemographicsBox: View {
                                         value: Binding(get: { patient.record.vitals[v.id] }, set: { x in patient.update { $0.vitals[v.id] = x } }))
                     }
                 }
+            } else if let line = PatientPreop.vitalsRow(r) {
+                QuietLinkRow(title: line, filled: true) { withAnimation(.snappy) { vitalsOpen = true } }
+            } else {
+                QuietLinkRow(title: PatientPreop.vitalsLinkTitle) { withAnimation(.snappy) { vitalsOpen = true } }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
+    }
+
+    // MARK: Last intake
+
+    /// "+ Last intake" (moved here from the history chips, 1.11: NPO and vitals are confirmed in the same minute); the
+    /// two times in place; "Last intake: Solids 00:00 · clears 05:00 · Change" once set.
+    @ViewBuilder private var intake: some View {
+        let r = patient.record
+        VStack(alignment: .leading, spacing: 10) {
+            if intakeOpen {
+                QuietOpenHeader(label: "Last intake") { withAnimation(.snappy) { intakeOpen = false } }
+                VStack(alignment: .leading, spacing: 0) {
+                    PatientIntakeRow(title: "Solids", date: patient.preopBinding(\.lastSolids, discrete: true))
+                    Hairline().padding(.leading, 14)
+                    PatientIntakeRow(title: "Clear fluids", date: patient.preopBinding(\.lastClears, discrete: true))
+                }
+                .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            } else if let line = PatientPreop.intakeRow(r) {
+                QuietLinkRow(title: line, filled: true) { withAnimation(.snappy) { intakeOpen = true } }
+            } else {
+                QuietLinkRow(title: PatientPreop.intakeLinkTitle) { withAnimation(.snappy) { intakeOpen = true } }
+            }
+        }
     }
 }
 
@@ -410,51 +456,22 @@ struct PreopProblemsBox: View {
     }
 }
 
-/// Past surgical history, anesthetic complications and last intake, as chips that show what they hold once filled.
+/// History (1.11: the box gets its caption; Last intake moved into the Demographics box): past surgical history and
+/// anesthetic complications, as chips that open their pages and show what they hold once filled.
 struct PreopHistoryChipsBox: View {
     @Environment(PatientStore.self) private var patient
-    @State private var intakeOpen = LaunchSeed.bool("ps.preop.intake")
-
-    /// "Solids 00:00 · clears 05:00" (the day too when it is not today).
-    private func intakeText(_ r: PatientRecord) -> String? {
-        func when(_ d: Date) -> String {
-            Calendar.current.isDateInToday(d) ? d.formatted(date: .omitted, time: .shortened) : PatientDates.day(d) + " " + d.formatted(date: .omitted, time: .shortened)
-        }
-        var parts: [String] = []
-        if let d = r.lastSolids { parts.append("Solids " + when(d)) }
-        if let d = r.lastClears { parts.append((parts.isEmpty ? "Clears " : "clears ") + when(d)) }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
 
     var body: some View {
         let r = patient.record
         let psh = r.surgeries.isEmpty ? nil : "PSH: " + r.capitalized.surgeries.map(\.text).joined(separator: "; ")
         let anesthetic = PatientSummary.anestheticComplications(r)
-        let intake = intakeText(r)
-        PatientGroup(title: nil) {
+        PatientGroup(title: "History") {
             VStack(alignment: .leading, spacing: 10) {
                 PreopLinkList(links: [
                     PreopLink(id: "psh", title: "Past surgical history", icon: "scissors", editor: .workup("surgeries"), summary: psh),
                     PreopLink(id: "anesthetic", title: "Anesthetic complications", icon: "exclamationmark.shield", editor: .workup("anesthetic"),
                               summary: anesthetic?.text, alert: anesthetic?.alert ?? false),
                 ])
-                if let intake {
-                    Button { withAnimation(.snappy) { intakeOpen.toggle() } } label: {
-                        PreopFilledRow(title: "Last intake", summary: intake, icon: "clock", chevron: false)
-                    }
-                    .buttonStyle(.plain)
-                } else if !intakeOpen {
-                    Button { withAnimation(.snappy) { intakeOpen = true } } label: { PreopAddChip(title: "Last intake") }
-                        .buttonStyle(.plain)
-                }
-                if intakeOpen {
-                    VStack(alignment: .leading, spacing: 0) {
-                        PatientIntakeRow(title: "Solids", date: patient.preopBinding(\.lastSolids, discrete: true))
-                        Hairline().padding(.leading, 14)
-                        PatientIntakeRow(title: "Clear fluids", date: patient.preopBinding(\.lastClears, discrete: true))
-                    }
-                    .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
             }
             .padding(14)
         }
@@ -462,104 +479,8 @@ struct PreopHistoryChipsBox: View {
 }
 
 // MARK: - Examination & Workup
-
-/// ASA class and functional capacity: the suggestion, the class, E, METs, Frail and the Duke Activity Status Index.
-struct PreopAsaBox: View {
-    @Environment(PatientStore.self) private var patient
-
-    var body: some View {
-        PatientGroup(title: "ASA & Functional Capacity", note: PatientPreop.asaNote(patient.record)) {
-            VStack(alignment: .leading, spacing: 0) {
-                PatientAsaContent(compact: true)
-                Hairline().padding(.leading, 14)
-                PatientFunctionalContent(inlineInfo: true)
-            }
-        }
-    }
-}
-
-/// Cardiopulmonary Evaluation: Intrathoracic procedure Yes / No, the cardiac evaluation, and the cardiac workup chips.
-struct PreopCardioBox: View {
-    @Environment(PatientStore.self) private var patient
-    @State private var workupOpen = LaunchSeed.bool("ps.preop.workup")
-
-    var body: some View {
-        let r = patient.record
-        PatientGroup(title: "Cardiopulmonary Evaluation", note: PatientFunctional.evaluationNote(r)) {
-            VStack(alignment: .leading, spacing: 0) {
-                intrathoracic(r)
-                Hairline().padding(.leading, 14)
-                PatientCardiacEvaluationContent()
-                Hairline().padding(.leading, 14)
-                workup(r).padding(14).jumpTarget(anchor: "preopworkup")
-            }
-        }
-    }
-
-    // MARK: Intrathoracic procedure
-
-    private func intrathoracic(_ r: PatientRecord) -> some View {
-        let yes = r.intrathoracicProcedure == true, no = r.intrathoracicProcedure == false
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
-                Text("Intrathoracic procedure").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 6)
-                // A second tap on the chosen answer clears it, as every chip does.
-                YesNoPills(no: no, yes: yes,
-                           onNo: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(false, &$0) } } },
-                           onYes: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(true, &$0) } } },
-                           onClear: { withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setIntrathoracic(nil, &$0) } } })
-            }
-            if yes {
-                VStack(alignment: .leading, spacing: 8) {
-                    // What Yes set, offered as already set; the RCRI's own rule (cardiac surgery, under 18 only: an adult's
-                    // card already has its one cardiac-surgery line below) in words.
-                    if let set = PatientPreop.intrathoracicSetLine(r) {
-                        Text(set).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                    }
-                    if let note = PatientPreop.intrathoracicRcriNote(r) {
-                        Text(note).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                    }
-                    let thoracic = PatientPreop.previousCardiacSurgery(r)
-                    let tee = PatientPreop.workup(r).first { $0.id == "tee" }
-                    PreopLinkList(links: [
-                        PreopLink(id: "cardiac-surgery", title: "Previous cardiac surgery", icon: "lungs", editor: .workup("intrathoracic"),
-                                  summary: thoracic.isEmpty ? nil : thoracic.map(\.text).joined(separator: "; "), alert: !thoracic.isEmpty),
-                        PreopLink(id: "tee-screening", title: "TEE screening", icon: tee?.icon ?? "checkmark.shield", editor: .workup("tee"),
-                                  summary: tee?.summary, alert: tee?.alert ?? false),
-                    ])
-                }
-            }
-        }
-        .padding(.horizontal, 14).padding(.vertical, 10)
-    }
-
-    // MARK: Cardiac workup
-
-    @ViewBuilder private func workup(_ r: PatientRecord) -> some View {
-        let items = PatientPreop.workup(r)
-        let anyFilled = items.contains { $0.filled }
-        if workupOpen || anyFilled {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text("Preprocedure cardiac workup").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                    Spacer(minLength: 6)
-                    if !anyFilled {
-                        Button("Hide") { withAnimation(.snappy) { workupOpen = false } }
-                            .font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg3).buttonStyle(.plain)
-                    }
-                }
-                PreopLinkList(links: items.map { i in
-                    PreopLink(id: i.id, title: i.title, icon: i.icon, editor: PatientEditor(preopKey: i.key) ?? .workup(i.id), summary: i.summary, alert: i.alert,
-                              caution: i.caution)
-                })
-            }
-        } else {
-            Button { withAnimation(.snappy) { workupOpen = true } } label: { PreopAddChip(title: "Add Preprocedure Cardiac Workup") }
-                .buttonStyle(.plain)
-        }
-    }
-}
+//
+// PreopAsaBox and PreopCardioBox are in PatientAssessmentParts.swift (1.11), with the parts they are made of.
 
 // MARK: - Current Medications
 

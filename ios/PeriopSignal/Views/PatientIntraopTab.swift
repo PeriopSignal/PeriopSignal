@@ -344,6 +344,12 @@ struct IntraopAirwayCourse: View {
 
 /// The drips: typed in a line with the drug list suggesting names and filling in the unit, then the list of what is
 /// running. Used in the tab and in the Infusions editor page.
+///
+/// 1.11 (Ben's note 5, Q6): the drips running before the case are in this list from the start, each with a grey "from
+/// preop" caption until its rate or drug is changed in the room (IntraopInfusionList: the first edit writes the case's
+/// own copy, tagged through PatientInfusion.fromPreop); 🗑 takes the copy out of this list only, the preop record and the
+/// handoff's "running before the case" line keep it. The Carry-over button and the "⊕ Add infusion" row are gone: the
+/// type line adds drips. A record saved with both lists is merged by drug on read, so nothing doubles.
 struct IntraopInfusionsSection: View {
     @Environment(PatientStore.self) private var patient
     @Environment(ReferenceStore.self) private var refs
@@ -351,61 +357,47 @@ struct IntraopInfusionsSection: View {
     private var r: PatientRecord { patient.record }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !r.homeInfusions.isEmpty && r.infusions.isEmpty {
-                Button { patient.update(discrete: true) { $0.infusions = $0.homeInfusions.map { PatientInfusion(drug: $0.drug, rate: $0.rate) } } } label: {
-                    Label("Carry over the current infusions (" + r.homeInfusions.map(\.drug).filter { !$0.isEmpty }.joined(separator: ", ") + ")", systemImage: "arrow.down.circle")
-                        // Wraps, unlike GhostButtonStyle's one line: two drug names ran the page wider than the screen (1.8.1).
-                        .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 15).padding(.vertical, 9)
-                        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(PS.line2, lineWidth: 1))
-                        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                // About the 20 pt the editor page left above the Infusions header in 1.9, so the two do not read as one block.
-                .padding(.bottom, 12)
-            }
-            PatientGroup(title: "Infusions") {
-                // Typed in one line, as the quick-add bar takes them (1.8.1).
-                InfusionTypeField(list: \.infusions)
+        PatientGroup(title: "Infusions") {
+            // Typed in one line, as the quick-add bar takes them (1.8.1).
+            InfusionTypeField(list: \.infusions)
+            Hairline().padding(.leading, 14)
+            ForEach(IntraopInfusionList.rows(r)) { row in
+                infusionEditor(row)
+                    .wobbleDelete($wobbling, label: row.drug.isEmpty ? "infusion" : row.drug) { patient.update(discrete: true) { IntraopInfusionList.remove(row.id, in: &$0) } }
                 Hairline().padding(.leading, 14)
-                ForEach(r.infusions) { inf in
-                    infusionEditor(inf)
-                        .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.infusions.removeAll { $0.id == inf.id } } }
-                    Hairline().padding(.leading, 14)
-                }
-                WobbleDoneBar(editing: $wobbling)
-                Button { patient.update(discrete: true) { $0.infusions.append(PatientInfusion()) } } label: { Label("Add infusion", systemImage: "plus.circle") }
-                    .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
-                    .padding(14)
             }
+            WobbleDoneBar(editing: $wobbling)
         }
     }
 
-    private func infusionEditor(_ inf: PatientInfusion) -> some View {
-        let idx = r.infusions.firstIndex { $0.id == inf.id }
+    private func infusionEditor(_ row: IntraopInfusionRow) -> some View {
         let names = (refs.bundle?.infusions?.groups ?? []).flatMap { $0.drugs.map(\.name) }
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Menu {
                     ForEach(names, id: \.self) { n in
-                        Button(n) { if let i = idx { patient.update(discrete: true) { $0.infusions[i].drug = n } } }
+                        Button(n) { patient.update(discrete: true) { IntraopInfusionList.setDrug(row.id, n, in: &$0) } }
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(inf.drug.isEmpty ? "Choose the drug" : inf.drug).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(inf.drug.isEmpty ? PS.accent : PS.fg).multilineTextAlignment(.leading)
+                        Text(row.drug.isEmpty ? "Choose the drug" : row.drug).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(row.drug.isEmpty ? PS.action : PS.fg).multilineTextAlignment(.leading)
                         Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
                     }
                 }
+                if row.fromPreop {
+                    Text(IntraopInfusionList.fromPreopCaption).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(PS.fg3)
+                        .padding(.horizontal, 7).padding(.vertical, 2)
+                        .background(PS.surface2, in: Capsule())
+                        .accessibilityLabel("Running before the case")
+                }
                 Spacer()
-                Button(role: .destructive) { if let i = idx { patient.update(discrete: true) { $0.infusions.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
+                Button(role: .destructive) { patient.update(discrete: true) { IntraopInfusionList.remove(row.id, in: &$0) } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Remove this infusion")
+                    .accessibilityLabel(row.preopOnly ? "Take this infusion off the case's list" : "Remove this infusion")
             }
             FocusBox { f in
-                TextField("Rate", text: Binding(get: { idx.map { patient.record.infusions[$0].rate } ?? "" }, set: { v in if let i = idx { patient.update { $0.infusions[i].rate = v } } }))
+                TextField("Rate", text: Binding(get: { IntraopInfusionList.rows(patient.record).first { $0.id == row.id }?.rate ?? "" },
+                                                set: { v in patient.update { IntraopInfusionList.setRate(row.id, v, in: &$0) } }))
                     .focused(f)
                     .font(PS.sys(size: 14))
                     .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
