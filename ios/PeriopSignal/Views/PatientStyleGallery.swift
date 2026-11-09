@@ -207,11 +207,15 @@ struct PatientStyleGallery: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Jump bar")
-                HStack(spacing: 8) {
-                    PatientJumpChip(title: "Procedure")
-                    PatientJumpChip(title: "Demographics", current: true)
-                    PatientJumpChip(title: "Exam & Workup")
+                // As on the tab: the row scrolls sideways, so a chip keeps its label on one line at any text size.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        PatientJumpChip(title: "Procedure")
+                        PatientJumpChip(title: "Demographics", current: true)
+                        PatientJumpChip(title: "Exam & Workup")
+                    }
                 }
+                .scrollClipDisabled()
             }
             .padding(.top, 6)
         }

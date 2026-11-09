@@ -782,7 +782,6 @@ jobs:
           shot 789-style-gallery-links-dark 14 -ps.screen gallery -ps.gallery.scroll links -ps.forceAppearance dark
           shot 789-style-gallery-headings-dark 14 -ps.screen gallery -ps.gallery.scroll headings -ps.forceAppearance dark
           shot 790-w375-style-gallery-links-large-text-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
-          shot 790-w375-style-gallery-lines-large-text-light 14 -ps.screen gallery -ps.gallery.scroll lines -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
           shot 790-w375-style-gallery-headings-large-text-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
           shot 791-summary-status-plan-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.forceAppearance light
           shot 792-ecg-nsr-preset-dark 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg -ps.forceAppearance dark
