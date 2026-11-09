@@ -244,14 +244,22 @@ extension PatientEditorView {
 // MARK: - The figures on the page
 
 /// The tab card asks the page to open with the keyboard on one slot (PreopLabsCard): the slot's field id ("main.k"),
-/// taken once by the page when it appears.
+/// taken once by the page when it appears. The card notes the request as its link fires, and the page's view is built
+/// only on the render pass after that, so the request is there before the page appears. Screenshot runs stand in for
+/// the card's tap with -ps.labs.slot main.k (debug builds), which leaves the same request at launch.
 @MainActor
 enum LabSlotFocusRequest {
-    static var pending: String?
+    static var pending: String? = launchRequest()
 
     static func take() -> String? {
         defer { pending = nil }
         return pending
+    }
+
+    /// The slot a screenshot run's -ps.labs.slot asks for; nil in a plain launch.
+    static func launchRequest() -> String? {
+        let s = LaunchSeed.string("ps.labs.slot")
+        return s.isEmpty ? nil : s
     }
 }
 
@@ -270,13 +278,19 @@ struct PreopLabsFigures: View {
     private var r: PatientRecord { patient.record }
     /// The accessibility sizes always get the table: the figures' slots are fixed-size boxes.
     private var forcedList: Bool { typeSize.isAccessibilitySize }
-    /// The toggle, a screenshot run's -ps.labs.list 1, or the accessibility sizes.
-    private var list: Bool { listPref || LaunchSeed.bool(Self.listKey) || forcedList }
+    /// The toggle, a screenshot run's -ps.labs.list 1, or the accessibility sizes: the same reading as listMode(), so
+    /// the Previous / Next order always follows what is on the screen.
+    private var list: Bool { listPref || Self.listSeeded() || forcedList }
 
-    /// What the page shows now, for the Previous / Next order worked out outside this view.
+    /// What the page shows now, for the Previous / Next order worked out outside this view (PatientEditorView's
+    /// labFieldOrder): the remembered toggle, a screenshot run's -ps.labs.list 1, or an accessibility text size.
     @MainActor static func listMode() -> Bool {
-        UserDefaults.standard.bool(forKey: listKey) || UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory
+        UserDefaults.standard.bool(forKey: listKey) || listSeeded()
+            || UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory
     }
+
+    /// A screenshot run's -ps.labs.list 1 (debug builds; false otherwise).
+    static func listSeeded() -> Bool { LaunchSeed.bool(listKey) }
 
     /// The main labs in the order Next walks them: the figures' slots, or the table's rows (the main table, then the
     /// hepatic enzymes, which the table lists after it).
@@ -357,12 +371,28 @@ struct PreopLabsFigures: View {
         .padding(.horizontal, 14).padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
-            // Opened from a slot on the tab card: the keyboard goes to that slot once the page has settled (and again a
-            // little later, in case the push dropped the first).
+            // Opened from a slot on the tab card: the keyboard goes to that slot once the page has settled, and again a
+            // little later in case the push dropped the first, but never over a slot the user has since tapped.
             guard let id = LabSlotFocusRequest.take() else { return }
-            for delay in [0.5, 1.4] {
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { chain(id).focusHere() }
+            for delay in [0.5, 1.4, 3.0] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    let c = chain(id)
+                    if c.focus.wrappedValue == nil || delay == 0.5 { c.focusHere() }
+                }
             }
+            #if DEBUG
+            // A screenshot run's -ps.labs.slot: again from scratch, in case a slow launch's push dropped the keyboard
+            // while the focus still reads as set (as PatientEditorView does for -ps.patient.focus).
+            if LabSlotFocusRequest.launchRequest() == id {
+                for delay in [4.5, 6.0] {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                        let c = chain(id)
+                        c.focus.wrappedValue = nil
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { c.focusHere() }
+                    }
+                }
+            }
+            #endif
         }
     }
 }

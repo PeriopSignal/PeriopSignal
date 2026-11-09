@@ -558,7 +558,8 @@ enum PatientLabs {
                 range: LabRange(nil, 1.0), decimals: 1, plausible: 0.1...80),
         // 1.11 (Ben, Nov 9, the hepatic fishbone and the minerals beside it). ABIM Laboratory Test Reference Ranges,
         // January 2026: calcium, serum 8.6–10.2 mg/dL; protein, total, serum 5.5–9.0 g/dL; magnesium, serum 1.6–2.6
-        // mg/dL; phosphorus, inorganic, serum 2.5–4.5 mg/dL. Total calcium, as the chemistry panel reports it (the
+        // mg/dL; phosphorus, inorganic, serum 3.0–4.5 mg/dL (the 2.5–4.5 of the general textbooks and MedlinePlus is
+        // not used: the whole catalog follows the ABIM list). Total calcium, as the chemistry panel reports it (the
         // ionized calcium is the blood gas's own entry, IntraopLabs "ica").
         LabTest("ca", "Calcium", short: "Ca", unit: "mg/dL", group: .main,
                 range: LabRange(8.6, 10.2), decimals: 1, plausible: 3...20,
@@ -568,7 +569,7 @@ enum PatientLabs {
         LabTest("mg", "Magnesium", short: "Mg", unit: "mg/dL", group: .main,
                 range: LabRange(1.6, 2.6), decimals: 1, plausible: 0.2...15),
         LabTest("phos", "Phosphorus", short: "PO₄", unit: "mg/dL", group: .main,
-                range: LabRange(2.5, 4.5), decimals: 1, plausible: 0.2...30),
+                range: LabRange(3.0, 4.5), decimals: 1, plausible: 0.2...30),
 
         // Cardiac, behind the add button: the 2024 AHA/ACC thresholds (Figure 1, footnote §).
         LabTest("bnp", "BNP", short: "BNP", unit: "pg/mL", group: .cardiac,
@@ -647,7 +648,7 @@ enum PatientLabs {
     /// 136–145 (drawn 135–145), Cl 98–106 (95–105), HCO₃ 23–28 (22–28), BUN 8–20 (7–18), Cr by sex (0.6–1.2),
     /// glucose 70–180 perioperative (70–115), WBC 4.0–11.0 (4.5–11), Hb 14–18 M (13.5–17.5), Hct 42–50 M / 37–47 F
     /// (39–49 / 35–45), PT unflagged (11–13.5), Ca 8.6–10.2 (8.4–10.2), AST and ALT 40 or less (0–35), protein
-    /// 5.5–9.0 (6–8), albumin 3.5–5.5 (4–6), Mg 1.6–2.6 (1.5–2.5), PO₄ 2.5–4.5 (3.5–4.5), pH 7.38–7.44 (7.35–7.45),
+    /// 5.5–9.0 (6–8), albumin 3.5–5.5 (4–6), Mg 1.6–2.6 (1.5–2.5), PO₄ 3.0–4.5 (3.5–4.5), pH 7.38–7.44 (7.35–7.45),
     /// PaCO₂ 38–42 (35–45), PaO₂ 75 or more (80–100), arterial HCO₃ 23–26 (22–28). They agree on K, Plt, PTT, INR,
     /// alk phos and bilirubin.
     static func slotHint(_ key: String, sex: PatientSex?) -> String? { test(key)?.rangeText(for: sex) }

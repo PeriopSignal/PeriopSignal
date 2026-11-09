@@ -765,7 +765,7 @@ jobs:
           shot 740-labs111-figures-light 24 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.forceAppearance light
           shot 741-labs111-figures-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.forceAppearance dark
           shot 742-labs111-figures-375-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.width 375 -ps.forceAppearance light
-          shot 743-labs111-slot-keyboard-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.focus main.k -ps.forceAppearance light
+          shot 743-labs111-slot-keyboard-light 24 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.labs.slot main.k -ps.forceAppearance light
           shot 744-labs111-hepatic-dark 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-hepatic -ps.forceAppearance dark
           shot 745-labs111-hepatic-375-light 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-hepatic -ps.patient.width 375 -ps.forceAppearance light
           shot 746-labs111-list-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.labs.list 1 -ps.forceAppearance light

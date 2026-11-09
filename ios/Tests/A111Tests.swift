@@ -13,7 +13,7 @@ final class A111Tests: XCTestCase {
     func testCatalogAdditionsWithTheirRanges() throws {
         let expected: [(key: String, label: String, low: Double, high: Double, unit: String)] = [
             ("ca", "Calcium", 8.6, 10.2, "mg/dL"), ("protein", "Total protein", 5.5, 9.0, "g/dL"),
-            ("mg", "Magnesium", 1.6, 2.6, "mg/dL"), ("phos", "Phosphorus", 2.5, 4.5, "mg/dL"),
+            ("mg", "Magnesium", 1.6, 2.6, "mg/dL"), ("phos", "Phosphorus", 3.0, 4.5, "mg/dL"),
         ]
         for e in expected {
             let t = try XCTUnwrap(PatientLabs.test(e.key), e.key)
@@ -51,6 +51,8 @@ final class A111Tests: XCTestCase {
         XCTAssertEqual(PatientLabs.slotHint("hb", sex: nil), "12–18")
         XCTAssertEqual(PatientLabs.slotHint("k", sex: nil), "3.5–5", "where the drawing agrees it is the same hint")
         XCTAssertEqual(PatientLabs.slotHint("tbili", sex: nil), "1 or less")
+        XCTAssertEqual(PatientLabs.slotHint("phos", sex: nil), "3–4.5", "the ABIM phosphorus range, not the textbook 2.5–4.5 or the drawn 3.5–4.5")
+        XCTAssertEqual(PatientLabs.flag("phos", 2.8, sex: nil), .low)
         XCTAssertNil(PatientLabs.slotHint("pt", sex: nil), "no range, no hint")
         XCTAssertNil(PatientLabs.slotHint("nonsense", sex: nil))
     }
@@ -119,6 +121,24 @@ final class A111Tests: XCTestCase {
         LabSlotFocusRequest.pending = "main.k"
         XCTAssertEqual(LabSlotFocusRequest.take(), "main.k")
         XCTAssertNil(LabSlotFocusRequest.take(), "taken once")
+    }
+
+    /// A screenshot run's launch arguments stand in for the card's tap (-ps.labs.slot) and the List toggle
+    /// (-ps.labs.list 1); the Previous / Next order reads the same seed as the view, so the two agree.
+    @MainActor func testLaunchSeedsForTheSlotRequestAndTheList() {
+        let before = UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)
+        defer { UserDefaults.standard.setVolatileDomain(before, forName: UserDefaults.argumentDomain) }
+        guard !UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory else { return }
+        UserDefaults.standard.removeObject(forKey: PreopLabsFigures.listKey)
+        UserDefaults.standard.setVolatileDomain([:], forName: UserDefaults.argumentDomain)
+        XCTAssertNil(LabSlotFocusRequest.launchRequest(), "a plain launch asks for no slot")
+        XCTAssertFalse(PreopLabsFigures.listSeeded())
+        XCTAssertFalse(PreopLabsFigures.listMode())
+        UserDefaults.standard.setVolatileDomain(["ps.labs.slot": "main.k", "ps.labs.list": "1"], forName: UserDefaults.argumentDomain)
+        XCTAssertEqual(LabSlotFocusRequest.launchRequest(), "main.k")
+        XCTAssertTrue(PreopLabsFigures.listSeeded())
+        XCTAssertTrue(PreopLabsFigures.listMode(), "the keyboard order follows the table the run shows")
+        XCTAssertEqual(PreopLabsFigures.mainFieldOrder().first, PatientLabs.entryOrder(.main).first?.key)
     }
 
     func testSlotAccessibilityText() throws {
