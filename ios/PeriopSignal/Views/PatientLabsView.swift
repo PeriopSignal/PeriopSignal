@@ -595,9 +595,10 @@ struct LabsQuietLink: View {
             Haptics.light()
             action()
         } label: {
-            HStack(spacing: 5) {
-                Text("+").font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.action)
-                Text(title).font(PS.sys(size: 13.5, weight: .medium)).foregroundStyle(PS.fg2)
+            // The same drawing as the other quiet links (QuietLinkRow, PreopQuietLink): one look for "opens in place".
+            HStack(spacing: 8) {
+                Image(systemName: "plus").font(PS.sys(size: 11, weight: .bold)).foregroundStyle(PS.action).frame(width: 14)
+                Text(title).font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg2)
             }
             .padding(.horizontal, 4).padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)

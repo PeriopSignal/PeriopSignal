@@ -126,7 +126,7 @@ struct IntraopLabsEditor: View {
                         patient.markDiscrete()
                         if let v = b.wrappedValue { b.wrappedValue = -v }
                     } label: {
-                        Text("±").font(PS.sys(size: 16, weight: .bold)).foregroundStyle(PS.accent).frame(width: 30, height: 30)
+                        Text("±").font(PS.sys(size: 16, weight: .bold)).foregroundStyle(PS.action).frame(width: 30, height: 30)
                     }
                     .buttonStyle(.plain)
                     .padding(.trailing, 8)
@@ -189,9 +189,9 @@ struct BloodStepperRow: View {
             Spacer(minLength: 4)
             if let q = quick {
                 Button { set(v + q) } label: {
-                    Text("+" + NumText.short(q)).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.accent)
+                    Text("+" + NumText.short(q)).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.action)
                         .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(PS.accent.opacity(0.12), in: Capsule())
+                        .background(PS.action.opacity(0.12), in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Add \(NumText.short(q)) \(unit) of \(label)")
@@ -215,7 +215,7 @@ struct BloodStepperRow: View {
             Button { set(v + step) } label: {
                 Image(systemName: "plus").font(PS.sys(size: 14, weight: .bold)).frame(width: 34, height: 34)
                     .foregroundStyle(PS.accentFg)
-                    .background(PS.accent, in: Circle())
+                    .background(PS.action, in: Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Add \(NumText.short(step)) \(unit) of \(label)")
@@ -243,7 +243,7 @@ struct IntraopConsiderationsEditor: View {
     var body: some View {
         let r = patient.record
         PatientGroup(title: "Major intraoperative considerations", note: "What the next team most needs to know. These go near the top of both handoffs, under Key considerations.") {
-            PatientChipRow(label: nil) { PatientChips(options: IntraopConsiderations.flags, selection: patient.binding(\.considerations), tint: PS.accent) }
+            PatientChipRow(label: nil) { PatientChips(options: IntraopConsiderations.flags, selection: patient.binding(\.considerations), tint: PS.action) }
             let suggested = IntraopConsiderations.suggested(r)
             if !suggested.isEmpty {
                 Button {
@@ -252,7 +252,7 @@ struct IntraopConsiderationsEditor: View {
                     Label("Add " + suggested.map { $0.label.lowercased() }.joined(separator: ", ") + " (recorded in the airway)", systemImage: "plus.circle")
                         .font(PS.sys(size: 13.5, weight: .semibold)).multilineTextAlignment(.leading)
                 }
-                .buttonStyle(.borderless).tint(PS.accent)
+                .buttonStyle(.borderless).tint(PS.action)
                 .padding(.horizontal, 14).padding(.bottom, 6)
             }
             PatientTextField(label: "Details", prompt: "e.g. grade 4 view, awake fiberoptic; ongoing coagulopathy; new RWMA on TEE; prone 5 h", text: patient.binding(\.considerationsNote))
@@ -281,7 +281,7 @@ struct PatientCodeStatusGroup: View {
                     Text("Portable medical orders (POLST, MOLST)").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                 }
             }
-            .tint(PS.accent)
+            .tint(PS.action)
             .padding(.horizontal, 14).padding(.vertical, 9)
             if r.codeStatus?.limits == true {
                 Hairline().padding(.leading, 14)

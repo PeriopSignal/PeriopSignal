@@ -115,7 +115,7 @@ struct InfusionTypeField: View {
                 Text(it.label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(off ? PS.fg3 : PS.fg)
                     .strikethrough(out, color: PS.fg3)
                 if let note {
-                    Text(note).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(can ? PS.accent : PS.fg3)
+                    Text(note).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(can ? PS.action : PS.fg3)
                 }
                 if can {
                     Image(systemName: out ? "plus" : "xmark").font(PS.sys(size: 9, weight: .bold)).foregroundStyle(PS.fg3)

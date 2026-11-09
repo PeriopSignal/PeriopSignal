@@ -83,13 +83,24 @@ struct PreopSectionTitle: View {
 // MARK: - Small pieces
 
 /// A number cell for two columns: its label above, the value and unit in a field below. A tap anywhere in the cell starts
-/// typing; the keyboard has a Done.
+/// typing; the keyboard has a Done, and Previous / Next when the cell has a place in a run (`chain` and its `order`:
+/// Age → Height → Weight, 1.11).
 struct PreopNumberCell: View {
     var label: String
     var unit: String
     @Binding var value: Double?
+    var chain: PatientFieldChain? = nil
+    var order: [String] = []
     @State private var text = ""
     @FocusState private var focused: Bool
+
+    private var typing: Bool { chain.map { $0.focus.wrappedValue == $0.id } ?? focused }
+
+    /// The field `step` places from `id` in `order`, or nil at either end (and for an id that is not in it).
+    static func neighbour(of id: String, in order: [String], step: Int) -> String? {
+        guard let i = order.firstIndex(of: id), order.indices.contains(i + step) else { return nil }
+        return order[i + step]
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -98,7 +109,7 @@ struct PreopNumberCell: View {
             HStack(spacing: 6) {
                 TextField("—", text: $text)
                     .keyboardType(.decimalPad)
-                    .focused($focused)
+                    .modifier(PatientFieldFocus(chain: chain, local: $focused))
                     .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
                     .foregroundStyle(PS.fg)
                 Text(unit).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).lineLimit(1).fixedSize()
@@ -106,7 +117,7 @@ struct PreopNumberCell: View {
             .padding(.horizontal, 10).padding(.vertical, 8)
             .background(PS.surface2, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .contentShape(Rectangle())
-            .onTapGesture { focused = true }
+            .onTapGesture { if let chain { chain.focusHere() } else { focused = true } }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear { text = value.map { NumText.exact($0) } ?? "" }
@@ -119,9 +130,27 @@ struct PreopNumberCell: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                if focused {
+                if typing {
+                    if let chain, order.contains(chain.id) {
+                        let before = Self.neighbour(of: chain.id, in: order, step: -1)
+                        let after = Self.neighbour(of: chain.id, in: order, step: 1)
+                        Button { chain.focus.wrappedValue = before } label: {
+                            HStack(spacing: 3) { Image(systemName: "chevron.up"); Text("Previous") }
+                        }
+                        .disabled(before == nil)
+                        .accessibilityLabel("Previous field")
+                        Button { chain.focus.wrappedValue = after } label: {
+                            HStack(spacing: 3) { Image(systemName: "chevron.down"); Text("Next") }
+                        }
+                        .disabled(after == nil)
+                        .accessibilityLabel("Next field")
+                    }
                     Spacer()
-                    Button("Done") { focused = false; Keyboard.dismiss() }.fontWeight(.semibold)
+                    Button("Done") {
+                        if let chain { chain.focus.wrappedValue = nil } else { focused = false }
+                        Keyboard.dismiss()
+                    }
+                    .fontWeight(.semibold)
                 }
             }
         }
@@ -235,7 +264,7 @@ struct CodeStatusChips: View {
 
     var body: some View {
         let status = patient.record.codeStatus
-        ChipSet(options: CodeStatus.chips.map { ChipChoice($0.id, $0.label, short: $0.short) }, style: .choice, tint: PS.accent,
+        ChipSet(options: CodeStatus.chips.map { ChipChoice($0.id, $0.label, short: $0.short) }, style: .choice, tint: PS.action,
                 isOn: { status?.chipIDs.contains($0) ?? false },
                 tap: { id in patient.update { $0.codeStatus = CodeStatus.tapped(id, from: $0.codeStatus) } })
     }
@@ -250,6 +279,11 @@ struct PreopDemographicsBox: View {
     @State private var vitalsOpen = LaunchSeed.bool("ps.preop.vitals")
     @State private var codeOpen = LaunchSeed.bool("ps.preop.code")
     @State private var intakeOpen = LaunchSeed.bool("ps.preop.intake")
+    /// Age → Height → Weight: Previous and Next on the number pad walk them (1.11).
+    @FocusState private var sizeFocus: String?
+    static let sizeOrder = ["age", "height", "weight"]
+
+    private func sizeChain(_ id: String) -> PatientFieldChain { PatientFieldChain(focus: $sizeFocus, id: id) }
 
     var body: some View {
         let r = patient.record
@@ -257,12 +291,12 @@ struct PreopDemographicsBox: View {
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .top, spacing: 12) {
-                        PreopNumberCell(label: "Age", unit: PatientRecord.ageFieldUnit(r.ageYears), value: patient.preopBinding(\.ageYears))
+                        PreopNumberCell(label: "Age", unit: PatientRecord.ageFieldUnit(r.ageYears), value: patient.preopBinding(\.ageYears), chain: sizeChain("age"), order: Self.sizeOrder)
                         sexCell
                     }
                     HStack(alignment: .top, spacing: 12) {
-                        PreopNumberCell(label: "Height", unit: "cm", value: patient.preopBinding(\.heightCm))
-                        PreopNumberCell(label: "Weight", unit: "kg", value: patient.preopBinding(\.weightKg))
+                        PreopNumberCell(label: "Height", unit: "cm", value: patient.preopBinding(\.heightCm), chain: sizeChain("height"), order: Self.sizeOrder)
+                        PreopNumberCell(label: "Weight", unit: "kg", value: patient.preopBinding(\.weightKg), chain: sizeChain("weight"), order: Self.sizeOrder)
                     }
                     // Without the weight and height (the fields say them): "BMI 30.3 · BSA 2.14 m² · IBW 73 kg · LBW 67 kg".
                     if let line = PatientPreop.derivedBodyLine(r) {
@@ -439,7 +473,7 @@ struct PreopProblemsBox: View {
                     Text("No significant medical history").font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .tint(PS.accent)
+                .tint(PS.action)
                 LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(PatientPreop.tileSystems(r)) { s in tile(s, r) }
                 }
@@ -465,7 +499,7 @@ struct PreopProblemsBox: View {
         return NavigationLink(value: PatientEditor.system(s.id)) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Image(systemName: s.icon).font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(words.isEmpty ? PS.fg3 : PS.accent)
+                    Image(systemName: s.icon).font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(words.isEmpty ? PS.fg3 : PS.action)
                     Text(s.name).font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
                         .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.leading)
                 }

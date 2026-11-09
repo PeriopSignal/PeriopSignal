@@ -582,7 +582,9 @@ enum HandoffWriter {
         line("Arms", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))
         line("Cautions", PatientStudies.cautions(r).filter { !$0.id.hasPrefix("harvest") }.map(\.text).joined(separator: " "))
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
-        line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
+        // The drips as the intraoperative list shows them (1.11): each preop drip once (its room copy when the rate was
+        // changed there, left out when it was removed there), then the drips started in the room.
+        line("Drips", IntraopInfusionList.rows(r).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
         line("Blood products", BloodProducts.text(r))
         line("Last labs", IntraopLabs.lastLine(r, now: now, abnormalOnly: true)?.text ?? "")
         line("Events", r.noEvents ? "No notable events" : r.events)

@@ -363,6 +363,8 @@ struct IntraopInfusionRow: Hashable, Identifiable {
     var fromPreop: Bool
     /// Only the preop record holds it so far.
     var preopOnly: Bool
+    /// "Norepinephrine at 0.05 mcg/kg/min", as PatientInfusion.text writes it.
+    var text: String { [drug, rate].filter { !$0.isEmpty }.joined(separator: " at ") }
 }
 
 enum IntraopInfusionList {

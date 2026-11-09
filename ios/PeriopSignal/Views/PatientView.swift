@@ -605,7 +605,7 @@ struct PatientView: View {
     @ViewBuilder private var medicationsSection: some View {
         PreopSectionTitle(text: PreopSection.medications.sectionTitle).jumpTarget(section: .medications)
         PatientGroup(title: nil) { HomeMedicationsBox() }.jumpTarget(anchor: "homemeds")
-        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
+        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they appear in the intraoperative infusions list tagged \"from preop\".") {
             CurrentInfusionsBox()
         }
         .jumpTarget(anchor: "infusions")
@@ -665,7 +665,7 @@ struct PatientView: View {
                 sectionHeader(.devices("preop"))
                 let lines = PatientSummary.arrivalDeviceLines(r)
                 if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty && PatientDeviceFills.limbAlerts(r).isEmpty {
-                    Text("Tap to draw the lines, airway and devices the patient arrives with.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    Text(PreopEmptyHints.lines).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
                     // The limb alerts open the card, above the figure, as on the Intraoperative tab (1.10 review).
                     PatientDiagramCard.preopCard(r)

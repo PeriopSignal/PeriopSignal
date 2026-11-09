@@ -37,7 +37,7 @@ struct PreopAirwayCard: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Image(systemName: PatientEditor.airway.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
+            Image(systemName: PatientEditor.airway.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.action)
             Text("Airway Examination").font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
             Spacer()
             Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -65,9 +65,9 @@ struct PreopAirwayCard: View {
             Haptics.light()
             withAnimation(.snappy) { patient.update(discrete: true) { PatientAirway.applyNormalExam(&$0) } }
         } label: {
-            Label("Exam normal", systemImage: applied ? "checkmark.circle.fill" : "checkmark.circle")
+            Text("Exam normal")
         }
-        .buttonStyle(CapsuleButtonStyle(prominent: !applied, color: PS.green))
+        .buttonStyle(PresetButtonStyle(applied: applied))
         .accessibilityHint(PatientAirway.normalExamCaption)
         .accessibilityValue(applied ? "Applied" : "")
     }

@@ -321,7 +321,7 @@ extension PatientEditorView {
     // MARK: Current infusions (Medications & Allergies)
 
     @ViewBuilder var currentInfusionsGroup: some View {
-        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
+        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they appear in the intraoperative infusions list tagged \"from preop\".") {
             CurrentInfusionsBox()
         }
     }

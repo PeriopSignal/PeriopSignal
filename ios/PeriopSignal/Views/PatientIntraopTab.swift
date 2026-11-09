@@ -208,7 +208,7 @@ struct IntraopLinkRowBody<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
-                    .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(empty ? PS.fg3 : PS.accent)
+                    .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(empty ? PS.fg3 : PS.action)
                     .frame(width: 22)
                 Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
                 Spacer(minLength: 6)
@@ -618,7 +618,7 @@ struct LabsDrawnRow: View {
                     // The summary's own time: "06:30" today, "11/06/26 06:30" another day.
                     Text("Drawn " + PatientSummary.time(d)).font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg2)
                     Button { withAnimation(.snappy) { editing.toggle() } } label: {
-                        Text(editing ? "Done" : "Change").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.accent)
+                        Text(editing ? "Done" : "Change").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.action)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(editing ? "Done" : "Change the time the labs were drawn")
@@ -631,7 +631,7 @@ struct LabsDrawnRow: View {
                 } else {
                     Text("Drawn (optional)").font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg3)
                     Button { patient.update(discrete: true) { $0.labsDrawn = Date() } } label: {
-                        Text("+ Time").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.accent)
+                        Text("+ Time").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.action)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Add the time the labs were drawn")

@@ -194,6 +194,28 @@ enum ChipStyle: String, CaseIterable {
     }
 }
 
+/// A lone preset button ("None", "Exam normal") in the preset chip look (`ChipStyle.preset`: a green outline until it is
+/// applied, then a green fill with a ✓), for presets that stand outside a ChipSet row.
+struct PresetButtonStyle: ButtonStyle {
+    var applied: Bool
+    func makeBody(configuration: Configuration) -> some View {
+        let look = ChipStyle.preset.look(on: applied)
+        return HStack(spacing: 4) {
+            if let symbol = look.mark {
+                Image(systemName: symbol).font(PS.sys(size: ChipMetrics.checkFont, weight: .bold)).accessibilityHidden(true)
+            }
+            configuration.label.font(PS.sys(size: 13.5, weight: applied ? .semibold : .medium)).lineLimit(1)
+        }
+        .fixedSize(horizontal: true, vertical: false)
+        .foregroundStyle(ChipStyle.color(look.text, tint: PS.action))
+        .padding(.horizontal, ChipMetrics.hPad(.regular, choice: false)).padding(.vertical, 7)
+        .background(applied ? PS.green.opacity(0.16) : PS.surface2, in: Capsule())
+        .overlay(Capsule().stroke(applied ? PS.green : PS.green.opacity(0.6), lineWidth: 1))
+        .opacity(configuration.isPressed ? 0.6 : 1)
+        .contentShape(Capsule())
+    }
+}
+
 /// A set of chips in the fewest lines. Ben (Nov 7): any chip set that fits one line without making the chips too small goes
 /// on one line. The first of these that fits the width is used, else the chips wrap as they always did:
 /// the full words with the usual padding; the full words with tighter padding; the short words (where an option has

@@ -169,7 +169,7 @@ struct PatientDasiDisclosure: View {
                     Toggle(isOn: Binding(get: { patient.record.dasi.contains(it.id) }, set: { on in patient.update(discrete: true) { if on { $0.dasi.insert(it.id) } else { $0.dasi.remove(it.id) } } })) {
                         Text(it.label).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                     }
-                    .tint(PS.accent)
+                    .tint(PS.action)
                     .padding(.vertical, 6)
                 }
                 if let d = PatientFunctional.dasi(patient.record) {
@@ -323,9 +323,9 @@ struct PatientCardiacEvaluationContent: View {
                 Haptics.light()
                 withAnimation(.snappy) { patient.update(discrete: true) { PatientPreop.setCardiacNone(!applied, &$0) } }
             } label: {
-                Label("None", systemImage: applied ? "checkmark.circle.fill" : "checkmark.circle")
+                Text("None")
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: applied, color: PS.green))
+            .buttonStyle(PresetButtonStyle(applied: applied))
             .accessibilityLabel(applied ? "None, applied" : "None")
             .accessibilityHint(PatientPreop.cardiacNoneCaption)
             Button {
