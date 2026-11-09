@@ -170,9 +170,9 @@ final class A111Tests: XCTestCase {
         XCTAssertEqual(TypeScreenStatus.allCases.map(\.label), ["Not sent", "Sent", "Resulted"])
 
         var r = PatientRecord()
-        r.labs = ["hb": 15]
+        r.labs = ["hb": 15, "hct": 45]
         r.typeScreen = PatientTypeScreen(status: .sent)
-        XCTAssertEqual(PatientSummary.labsLine(r)?.text, "Hb 15 · T&S sent, result pending")
+        XCTAssertEqual(PatientSummary.labsLine(r)?.text, "Hb 15 · Hct 45 · T&S sent, result pending")
         XCTAssertEqual(PreopLabsCard.otherLine(r)?.text, "T&S sent, result pending")
         // A note's reading keeps a status the record holds, and carries one it says.
         let fromNote = PatientTypeScreen(type: "O+")
