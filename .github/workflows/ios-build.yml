@@ -599,6 +599,12 @@ jobs:
           shot 559-procedure-editor-light 18 -ps.tab patient -ps.patient demo -ps.patient.open procedure -ps.forceAppearance light
           # 1.10 regression review, Preoperative group (640-659): chosen toggle chips keep their check on one-line rows at 375 pt.
           shot 640-w375-cv-af-pacer-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:cv -ps.patient.scroll hx-endocarditis -ps.patient.width 375 -ps.forceAppearance light
+          # Review 1.10, checks (700-719): a chosen toggle chip reads "✓ Warfarin" on its one-line row at 375 pt (heme, endo, CAD, MSK, valves).
+          shot 700-w375-heme-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance light
+          shot 701-w375-endo-dark 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.width 375 -ps.forceAppearance dark
+          shot 702-w375-cv-cad-light 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.width 375 -ps.forceAppearance light
+          shot 703-w375-msk-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:msk -ps.patient.width 375 -ps.forceAppearance light
+          shot 704-w375-cv-valves-dark 15 -ps.tab patient -ps.patient demo-cardio -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.patient.width 375 -ps.forceAppearance dark
           # 1.9 Preprocedure tab (helper 5): the reorganized tab from top to bottom, light and dark; a large-text pair.
           shot 440-preop-top-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance light
           shot 441-preop-top-dark 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll procedure -ps.forceAppearance dark

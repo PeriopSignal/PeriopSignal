@@ -31,17 +31,19 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
     /// A chip row inside a group at 375 pt: the page's 20-pt margins and the row's 14.
     private let row375: CGFloat = 375 - 40 - 28
 
-    func testToggleRowsTryEveryOneLineFormWithTheCheckSlotFirst() {
+    func testToggleRowsTryEveryOneLineFormWithTheCheckFirst() {
+        // Review 1.10 (checks): the ✓ is drawn only on chosen chips, so with none chosen a ✓ form is the plain one; a
+        // toggle row tries every form with it down to the compact padding, then its narrowest forms without it.
         let toggle = ChipMetrics.forms(choice: false)
-        let n = ChipMetrics.order.count
-        XCTAssertTrue(toggle.prefix(n).allSatisfy(\.check), "the forms with the ✓ slot first")
-        XCTAssertEqual(toggle.prefix(n).map(\.density), ChipMetrics.order.map(\.density))
-        XCTAssertEqual(toggle.prefix(n).map(\.short), ChipMetrics.order.map(\.short))
+        let n = ChipMetrics.compactOrder.count
+        XCTAssertTrue(toggle.prefix(n).allSatisfy(\.check), "the forms with the ✓ first")
+        XCTAssertEqual(toggle.prefix(n).map(\.density), ChipMetrics.compactOrder.map(\.density))
+        XCTAssertEqual(toggle.prefix(n).map(\.short), ChipMetrics.compactOrder.map(\.short))
         let fallback = Array(toggle.dropFirst(n))
         XCTAssertFalse(fallback.contains(where: \.check), "then the forms without it, before wrapping")
-        XCTAssertEqual(fallback.map(\.density), [.tight, .tight, .dense, .dense], "the tighter ones (the usual padding is never narrower)")
-        XCTAssertEqual(ChipMetrics.forms(choice: false, compact: true).filter(\.check).count, ChipMetrics.compactOrder.count)
-        // A choice chip is filled solid with inverted text when chosen: no slot, the forms as before.
+        XCTAssertEqual(fallback.map(\.density), [.dense, .dense], "only the narrowest ones a 1.10 row could take")
+        XCTAssertEqual(ChipMetrics.forms(choice: false, compact: true).dropFirst(n).map(\.density), [.dense, .dense, .compact, .compact])
+        // A choice chip is filled solid with inverted text when chosen: no ✓, the forms as before.
         XCTAssertFalse(ChipMetrics.forms(choice: true).contains(where: \.check))
         XCTAssertEqual(ChipMetrics.forms(choice: true).map(\.density), ChipMetrics.order.map(\.density))
     }
@@ -52,7 +54,8 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
         let plain = ChipMetrics.forms(choice: false, shorts: false)
         XCTAssertLessThanOrEqual(plain.count, ChipMetrics.order.count)
         XCTAssertFalse(plain.contains(where: \.short))
-        XCTAssertEqual(plain.map(\.check), [true, true, true, false, false])
+        XCTAssertEqual(plain.map(\.check), [true, true, true, true, false])
+        XCTAssertLessThanOrEqual(ChipMetrics.forms(choice: false).count, 10, "no more than the 1.10 toggle row with short words")
         XCTAssertEqual(ChipMetrics.forms(choice: true, shorts: false).map(\.density), [.regular, .tight, .dense])
         // The same fits: the short forms of a row without short words are the full ones.
         let options = [ChipChoice("a", "Heparin"), ChipChoice("b", "Warfarin"), ChipChoice("c", "Enoxaparin"), ChipChoice("d", "Other")]
@@ -63,19 +66,26 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
         }
     }
 
-    func testTheCheckSlotIsCountedInEveryChipSoATapNeverWidensIt() {
+    func testOnlyAChosenChipMakesRoomForItsCheckPartlyOutOfItsPadding() {
         let labels = ["Heparin", "Warfarin", "Enoxaparin", "Other"]
-        XCTAssertGreaterThanOrEqual(ChipMetrics.checkWidth, 8, "the ✓ glyph at the chip's check size")
+        XCTAssertGreaterThanOrEqual(ChipMetrics.checkWidth, 7, "the ✓ glyph at the chip's check size")
+        XCTAssertLessThanOrEqual(ChipMetrics.checkWidth, 14, "the glyph, without the symbol's side margins")
         for d in [ChipMetrics.Density.regular, .tight, .dense, .compact] {
             let plain = ChipMetrics.width(labels, density: d, choice: false)
-            let checked = ChipMetrics.width(labels, density: d, choice: false, check: true)
-            XCTAssertEqual(checked - plain, CGFloat(labels.count) * (ChipMetrics.checkWidth + ChipMetrics.checkGap), accuracy: 0.01, "\(d)")
+            XCTAssertEqual(ChipMetrics.width(labels, density: d, choice: false, checked: [false, false, false, false]), plain, "\(d): unchosen chips keep no slot")
+            let one = ChipMetrics.width(labels, density: d, choice: false, checked: [false, true, false, false])
+            let pad = ChipMetrics.hPad(d, choice: false)
+            let given = 2 * (pad - max(ChipMetrics.hPad(.compact, choice: false), pad - ChipMetrics.checkInset))
+            XCTAssertEqual(one - plain, ChipMetrics.checkWidth + ChipMetrics.lineCheckGap - given, accuracy: 0.01, "\(d)")
+            XCTAssertGreaterThanOrEqual(ChipMetrics.hPad(d, choice: false, checked: true), ChipMetrics.hPad(.compact, choice: false), "never below the compact padding")
+            let two = ChipMetrics.width(labels, density: d, choice: false, checked: [false, true, true, false])
+            XCTAssertEqual(two - plain, 2 * (one - plain), accuracy: 0.01, "\(d): one ✓ per chosen chip")
         }
     }
 
     func testWithMassEffectAloneInItsRowKeepsItsCheck() throws {
         // 1.9's "✓ With mass effect" under Intracranial bleed (shot 223/224).
-        let fit = try XCTUnwrap(ChipMetrics.lineFit([ChipChoice("ich-mass", "With mass effect")], choice: false, in: row375))
+        let fit = try XCTUnwrap(ChipMetrics.lineFit([ChipChoice("ich-mass", "With mass effect")], choice: false, in: row375, selected: ["ich-mass"]))
         XCTAssertTrue(fit.check)
         XCTAssertFalse(fit.short)
         XCTAssertEqual(fit.density, .regular)
@@ -83,34 +93,31 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
 
     func testSystemPageRowsKeepTheirCheckAt375() {
         // Rows from the 1.9 shots whose chosen chips read "✓ Fistula" (315) and the respiratory infection chips.
-        let rows: [[ChipChoice]] = [
-            HistorySections.dialysisAccesses.map { ChipChoice($0.0, $0.1) },
-            [ChipChoice("uri", "URI"), ChipChoice("pneumonia", "Pneumonia"), ChipChoice("other", "Other")],
+        let rows: [([ChipChoice], Set<String>)] = [
+            (HistorySections.dialysisAccesses.map { ChipChoice($0.0, $0.1) }, ["fistula"]),
+            ([ChipChoice("uri", "URI"), ChipChoice("pneumonia", "Pneumonia"), ChipChoice("other", "Other")], ["pneumonia"]),
         ]
-        for options in rows {
-            XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: row375)?.check, true, options.map(\.label).joined(separator: ", "))
+        for (options, on) in rows {
+            XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: row375, selected: on)?.check, true, options.map(\.label).joined(separator: ", "))
         }
-        // Heparin, Warfarin, Enoxaparin, Other (321) does not fit one line at 375 pt with the slot: it stays on one line
-        // without it (no new wrap), its chosen chips with the heavier outline.
-        let anticoagulants = HistorySections.anticoagulantKinds.map { ChipChoice($0.0, $0.1) }
-        let fit = ChipMetrics.lineFit(anticoagulants, choice: false, in: row375)
-        XCTAssertEqual(fit?.check, false)
-        XCTAssertNotNil(ChipMetrics.lineFit(anticoagulants, choice: false, in: 402 - 40 - 28), "one line at 402 pt")
     }
 
-    func testARowThatFitsOnlyWithoutTheSlotStaysOnOneLine() throws {
-        // No new wraps: a row that fit one line in 1.10 still does, without the slot (its chosen chip then has the heavier
-        // outline); it wraps only where 1.10 wrapped it.
+    func testARowThatFitsOnlyWithoutTheCheckStaysOnOneLine() throws {
+        // No new wraps: a row that fit one line in 1.10 still does; where no padding fits its ✓ it goes without it (its
+        // chosen chips then have the heavier outline); it wraps only where 1.10 wrapped it.
         let options = [ChipChoice("a", "Pacemaker"), ChipChoice("b", "ICD"), ChipChoice("c", "Pacer dependent"), ChipChoice("d", "Leadless")]
+        let all = Set(options.map(\.id))
         let narrowest = ChipMetrics.width(options.map(\.shown), density: .dense, choice: false)
-        let fit = try XCTUnwrap(ChipMetrics.lineFit(options, choice: false, in: narrowest))
+        let fit = try XCTUnwrap(ChipMetrics.lineFit(options, choice: false, in: narrowest, selected: all))
         XCTAssertFalse(fit.check)
         XCTAssertEqual(fit.density, .dense)
-        XCTAssertNil(ChipMetrics.lineFit(options, choice: false, in: narrowest - 1), "narrower: it wraps, as in 1.10")
-        // Wide enough for the slot at the usual padding: the ✓ form is used.
-        let wide = ChipMetrics.width(options.map(\.label), density: .regular, choice: false, check: true)
-        XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: wide)?.check, true)
-        XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: wide)?.density, .regular)
+        XCTAssertNil(ChipMetrics.lineFit(options, choice: false, in: narrowest - 1, selected: all), "narrower: it wraps, as in 1.10")
+        // Nothing chosen: the ✓ forms are the plain ones, down to the compact padding.
+        XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: narrowest)?.check, true)
+        // Wide enough for every ✓ at the usual padding: that form is used.
+        let wide = ChipMetrics.width(options.map(\.label), density: .regular, choice: false, checked: [true, true, true, true])
+        XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: wide, selected: all)?.check, true)
+        XCTAssertEqual(ChipMetrics.lineFit(options, choice: false, in: wide, selected: all)?.density, .regular)
         XCTAssertGreaterThan(ChipMetrics.heavyEdge, 1, "a heavier edge than an unchosen chip's 1 pt")
     }
 
@@ -140,8 +147,8 @@ final class Review110ShotsTests_regress_preop: XCTestCase {
         let labels = HistorySections.dialysisAccesses.map { $0.1 }
         let title = ("Access" as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: (13 * PS.textScale).rounded(toPlaces: 1), weight: .semibold)]).width
         let plain = ChipMetrics.width(labels, density: .regular, choice: false)
-        let checked = ChipMetrics.width(labels, density: .regular, choice: false, check: true)
-        XCTAssertGreaterThan(checked - plain, 20, "the ✓ slot in both chips")
+        let checked = ChipMetrics.width(labels, density: .regular, choice: false, checked: [true, false])
+        XCTAssertGreaterThan(checked - plain, 4, "the ✓ of the chosen chip")
         let chips = PatientChips(options: HistorySections.dialysisAccesses.map { PatientFlag($0.0, $0.1) }, selection: .constant(["fistula"]))
         // Room for the title and the chips as the 1.10 candidate measured them, not for the widest ✓ form: one line.
         let fits = title + titleGap + plain + 4
