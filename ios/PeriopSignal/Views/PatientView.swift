@@ -125,29 +125,24 @@ struct PatientView: View {
                     withAnimation(.snappy) { proxy.scrollTo(Self.topID, anchor: .top) }
                 }
                 #if DEBUG
-                .onChange(of: shotJump) { _, _ in Self.screenshotScroll(LaunchSeed.string("ps.patient.jump"), proxy) }
+                .onChange(of: shotJump) { _, _ in Self.screenshotScroll(Self.shotScrollName, proxy) }
                 #endif
                 .onDisappear {
                     #if DEBUG
                     ShotTrace.note("root disappear")
                     ShotReady.rootHidden()
+                    ShotReady.rootOnScreen = false
                     #endif
                 }
                 .onAppear {
                     #if DEBUG
                     // Screenshot runs: -ps.patient.jump handoff | assessment | history | airway | intraop:<part> scrolls
-                    // the tab to it. -ps.patient.scroll, when no editor is opened, does the same and then again once
-                    // the title has collapsed, as a tap on the pinned jump bar would.
+                    // the tab to it. -ps.patient.scroll, when no editor is opened, does the same from the task, again
+                    // and again until the shot is taken (scrollForScreenshot).
+                    ShotReady.rootOnScreen = true
                     let jump = LaunchSeed.string("ps.patient.jump")
-                    let scroll = LaunchSeed.string("ps.patient.open").isEmpty ? LaunchSeed.string("ps.patient.scroll") : ""
-                    let a = jump.isEmpty ? scroll : jump
-                    if !a.isEmpty {
-                        let go = { Self.screenshotScroll(a, proxy) }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: go)
-                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 2.6, execute: go) }
-                        // Once more, for a target that appears only when the reference data has loaded (the handoff's
-                        // lines figure) on a slow simulator.
-                        if jump.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 6.0, execute: go) }
+                    if !jump.isEmpty {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { Self.screenshotScroll(jump, proxy) }
                     }
                     #endif
                     #if DEBUG
@@ -304,6 +299,7 @@ struct PatientView: View {
         }
         guard let link = PatientDeepLink.parse(LaunchSeed.string("ps.patient.open")) else {
             if !LaunchSeed.string("ps.patient.jump").isEmpty { await jumpForScreenshot() }
+            else if !Self.shotScrollName.isEmpty { await scrollForScreenshot() }
             return
         }
         ShotTrace.note("open begin \(link)")
@@ -373,6 +369,52 @@ struct PatientView: View {
         try? await Task.sleep(nanoseconds: 800_000_000)
         ShotReady.ready()
         #endif
+    }
+
+    /// Screenshot runs: -ps.patient.scroll on the tab (no -ps.patient.open). Three timed scrolls after the tab appeared
+    /// left 451, 452, 455, 457 and 458 at the top of the Preoperative tab in the final 1.10 run: on the Intel runner the
+    /// tab can appear 10 s or more after launch and take seconds more to lay its sections out. So the task asks for the
+    /// scroll every half second while the tab is on screen, reports the shot ready (ShotReady) once the target has been
+    /// laid out (jumpTarget reports it; a plain id counts once the tab is showing) and scrolled to for 3 s, and goes on
+    /// asking until past the longest wait for ready, so the picture is taken at the target whenever it comes.
+    private func scrollForScreenshot() async {
+        #if DEBUG
+        let name = Self.shotScrollName
+        let key = Self.shotTargetKey(name)
+        ShotTrace.note("scroll begin \(name) key=\(key ?? "-")")
+        let start = Date()
+        var looks = 0
+        var reported = false
+        while Date().timeIntervalSince(start) < Self.scrollWatchSeconds {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            if Task.isCancelled { ShotTrace.note("scroll task cancelled"); return }
+            guard ShotReady.rootOnScreen else { continue }
+            shotJump += 1
+            if key.map({ ShotReady.targetsShown.contains($0) }) ?? true { looks += 1 }
+            if !reported && looks >= 6 {
+                reported = true
+                ShotTrace.note("scroll settled after \(Int(Date().timeIntervalSince(start))) s")
+                ShotReady.ready()
+            }
+        }
+        if !reported { ShotTrace.note("scroll target never shown"); ShotReady.ready() }
+        #endif
+    }
+
+    /// How long the task goes on scrolling: past the longest shot's wait and the 30 s more it can wait for ready.
+    static let scrollWatchSeconds: Double = 56
+
+    /// Screenshot runs: the name the tab scrolls to, -ps.patient.jump, or -ps.patient.scroll when no page is opened.
+    static var shotScrollName: String {
+        let jump = LaunchSeed.string("ps.patient.jump")
+        if !jump.isEmpty { return jump }
+        return LaunchSeed.string("ps.patient.open").isEmpty ? LaunchSeed.string("ps.patient.scroll") : ""
+    }
+
+    /// The jumpTarget key a name scrolls to, or nil for a plain id.
+    static func shotTargetKey(_ a: String) -> String? {
+        if a.hasPrefix("intraop:") { return PatientJumpID(intraop: IntraopSection(part: String(a.dropFirst(8)))).key }
+        return jumpKeys[a]?.key
     }
 
     /// Screenshot runs: scrolls the tab to a -ps.patient.jump or -ps.patient.scroll name.
@@ -516,6 +558,7 @@ struct PatientView: View {
         "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
         "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
         "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "infusions"), "flagged": PatientJumpID(anchor: "flagged"),
+        "preopworkup": PatientJumpID(anchor: "preopworkup"),
         "history": PatientJumpID(anchor: "problems"), "assessment": PatientJumpID(anchor: "asa"), "support": PatientJumpID(anchor: "cardio"),
     ]
 
@@ -975,6 +1018,9 @@ extension View {
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
                 .id(id)
+                #if DEBUG
+                .onAppear { ShotReady.targetsShown.insert(id.key) }
+                #endif
             self
         }
         .padding(.top, -PatientJumpID.clearance)
@@ -986,7 +1032,10 @@ extension View {
 /// the "shots" category, which the CI keeps beside each shot of a filtered run.
 enum ShotTrace {
     private static let log = Logger(subsystem: "org.periopsignal.app", category: "shots")
-    static var on: Bool { !LaunchSeed.string("ps.patient.open").isEmpty || !LaunchSeed.string("ps.patient.jump").isEmpty }
+    static var on: Bool {
+        !LaunchSeed.string("ps.patient.open").isEmpty || !LaunchSeed.string("ps.patient.jump").isEmpty
+            || !LaunchSeed.string("ps.patient.scroll").isEmpty
+    }
     static func note(_ s: String) {
         guard on else { return }
         log.notice("\(s, privacy: .public)")
@@ -1008,11 +1057,17 @@ enum ShotReady {
     private static let folder = URL(fileURLWithPath: NSTemporaryDirectory())
     static let pendingName = "ps-shot-pending"
     static let readyName = "ps-shot-ready"
+    /// The tab (the scroll view of My Patient) is on screen, and the jumpTarget anchors laid out so far by key: what a
+    /// -ps.patient.scroll on the tab waits for (PatientView.scrollForScreenshot).
+    static var rootOnScreen = false
+    static var targetsShown: Set<String> = []
 
-    /// The launch asks for something ShotReady reports: a page, the handoff tab, the note or a received patient, or a jump.
+    /// The launch asks for something ShotReady reports: a page, the handoff tab, the note or a received patient, a jump,
+    /// or a scroll of the tab.
     static var expected: Bool {
         if !LaunchSeed.string("ps.patient.jump").isEmpty { return true }
         let open = LaunchSeed.string("ps.patient.open")
+        if open.isEmpty && !LaunchSeed.string("ps.patient.scroll").isEmpty { return true }
         if ["room", "room-tap", "archive", "archive-entry", "end-case"].contains(open) { return false }
         return PatientDeepLink.parse(open) != nil
     }
