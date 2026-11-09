@@ -40,16 +40,43 @@ private extension PatientStore {
     }
 }
 
-/// A section's title above its boxes.
+/// A section's title above its boxes. 1.11 (one heading per thing): a section whose first box would restate the title
+/// draws that box without its caption, and the caption's ⓘ moves here (`info`), opening under the title.
 struct PreopSectionTitle: View {
     var text: String
+    var info: String? = nil
+    /// A control on the title's line, at its trailing edge (1.11, P1-6: Regenerate beside "Preprocedure Summary"). Where
+    /// the two do not fit one line (a narrow phone at the largest text size) it drops under the title, never clipped.
+    var trailing: AnyView? = nil
+    @State private var open = LaunchSeed.bool("ps.evidence.open")
     var body: some View {
-        Text(text)
-            .font(PS.sys(size: 19, weight: .bold))
-            .foregroundStyle(PS.fg)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 10)
-            .accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: 6) {
+            if let trailing {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        titleLine.fixedSize(horizontal: true, vertical: false)
+                        Spacer(minLength: 0)
+                        trailing
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        titleLine
+                        HStack(spacing: 0) { Spacer(minLength: 0); trailing }
+                    }
+                }
+            } else {
+                titleLine
+            }
+            if open, let info, !info.isEmpty { InfoCaptionText(text: info, font: PS.sys(size: 12.5)) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 10)
+    }
+
+    private var titleLine: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Text(text).font(PS.sys(size: 19, weight: .bold)).foregroundStyle(PS.fg).accessibilityAddTraits(.isHeader)
+            if let info, !info.isEmpty { InfoButton(open: $open, label: "About " + text, size: 13) }
+        }
     }
 }
 
@@ -130,9 +157,9 @@ struct PreopFilledRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            Image(systemName: icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(alert ? PS.accent : PS.fg3).frame(width: 18).padding(.top, 2)
+            Image(systemName: icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(alert ? PS.red : PS.fg3).frame(width: 18).padding(.top, 2)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(alert ? PS.accent : PS.fg3)
+                Text(title).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(alert ? PS.red : PS.fg3)
                 Text(summary).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg).lineLimit(3).multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
                 if let caution {

@@ -140,6 +140,60 @@ struct DebugContentWidth: ViewModifier {
 
 // MARK: - Chip sets: one line when it fits (1.10)
 
+/// The four looks a chip can have (1.11, Ben's Q7 and Q8): one chip grammar, enforced here rather than by each row's
+/// colours. A **choice** (one of a few: Class, Sex, the No/Yes pills) is ink-filled when chosen, inverted text, never a hue.
+/// A **toggle** (any number on: GA, PNB, a flag) is tinted in the action colour with a ✓ when on. A **preset** (a one-tap
+/// normal: Exam normal, Echo normal, NSR, None) has a green outline, and a ✓ once applied. An **add** chip ("+ ECG")
+/// opens a page or reveals more: a grey outline with a "+". Red never marks a chip's state; PS.red is for clinical alerts.
+enum ChipStyle: String, CaseIterable {
+    case choice, toggle, preset, add
+
+    /// The colour roles a look is built from (the tests check these; `ChipSet` maps them to the PS tokens).
+    enum Tone: Equatable { case ink, inverted, action, green, neutral, secondary, line, clear }
+    struct Look: Equatable {
+        var fill: Tone
+        var text: Tone
+        var edge: Tone
+        /// The symbol drawn before the words, when there is one ("checkmark", "plus").
+        var mark: String?
+    }
+
+    /// The look of a chip that is on or off.
+    func look(on: Bool) -> Look {
+        switch self {
+        case .choice:
+            return on ? Look(fill: .ink, text: .inverted, edge: .clear, mark: nil) : Look(fill: .neutral, text: .secondary, edge: .line, mark: nil)
+        case .toggle:
+            return on ? Look(fill: .action, text: .ink, edge: .action, mark: "checkmark") : Look(fill: .neutral, text: .secondary, edge: .line, mark: nil)
+        case .preset:
+            return on ? Look(fill: .green, text: .ink, edge: .green, mark: "checkmark") : Look(fill: .neutral, text: .ink, edge: .green, mark: nil)
+        case .add:
+            return Look(fill: .neutral, text: .secondary, edge: .line, mark: "plus")
+        }
+    }
+
+    /// One of a few: the chosen chip is filled solid (no ✓ forms).
+    var isChoice: Bool { self == .choice }
+    /// Chosen chips draw a ✓ (the one-line ✓ forms of ChipSet).
+    var checks: Bool { self == .toggle || self == .preset }
+    /// Every chip draws its mark, on or off (the add chip's "+").
+    var alwaysMarked: Bool { self == .add }
+
+    /// The PS colour for a tone; `tint` is the action colour of this row (PS.action unless a row says otherwise).
+    static func color(_ tone: Tone, tint: Color) -> Color {
+        switch tone {
+        case .ink: return PS.fg
+        case .inverted: return PS.bg
+        case .action: return tint
+        case .green: return PS.green
+        case .neutral: return PS.surface2
+        case .secondary: return PS.fg2
+        case .line: return PS.line2
+        case .clear: return .clear
+        }
+    }
+}
+
 /// A set of chips in the fewest lines. Ben (Nov 7): any chip set that fits one line without making the chips too small goes
 /// on one line. The first of these that fits the width is used, else the chips wrap as they always did:
 /// the full words with the usual padding; the full words with tighter padding; the short words (where an option has
@@ -155,11 +209,11 @@ struct DebugContentWidth: ViewModifier {
 /// tint (a heavier edge, not a hue), rather than wrapping; the wrapped form keeps the ✓ and bold text. A choice chip (one
 /// of a few) is filled solid with inverted text, not a hue.
 struct ChipSet: View {
-    enum Style { case choice, toggle }
+    typealias Style = ChipStyle
 
     var options: [ChipChoice]
     var style: Style
-    var tint: Color = PS.accent
+    var tint: Color = PS.action
     var hints: [String: String] = [:]
     /// A row Ben asked for on one line with its full words (urgency, review 1.10) tries the compact padding last.
     var compact = false
@@ -185,7 +239,7 @@ struct ChipSet: View {
         // keeps: a toggle row's ✓ forms (the ✓ only on chosen chips, so with none chosen they are the plain forms) down
         // to the compact padding, then only the narrowest forms without the ✓, which fit wherever a 1.10 form did.
         ViewThatFits(in: .horizontal) {
-            if style == .toggle {
+            if style.checks {
                 Group {
                     line(short: false, .regular, check: true)
                     line(short: false, .tight, check: true)
@@ -249,24 +303,38 @@ struct ChipSet: View {
 
     private func chip(_ o: ChipChoice, short: Bool, _ d: ChipMetrics.Density, wrapped: Bool, check: Bool = false) -> some View {
         let on = isOn(o.id)
-        let choice = style == .choice
-        // A chosen chip of a one-line ✓ form: the ✓, in room taken partly out of its padding (ChipMetrics.width).
-        let mark = check && on && !choice
+        let choice = style.isChoice
+        let look = style.look(on: on)
+        // A chosen chip of a one-line ✓ form: the ✓, in room taken partly out of its padding (ChipMetrics.width); an add
+        // chip's "+" is drawn in every form.
+        let mark = (check && on && style.checks) || style.alwaysMarked
         // A one-line toggle row without the ✓ (no padding fits it): the chosen chip's heavier outline.
-        let heavy = !choice && on && !wrapped && !check
-        let text: Color = choice ? (on ? PS.bg : PS.fg2) : (on ? PS.fg : PS.fg2)
-        let fill: Color = choice ? (on ? PS.fg : PS.surface2) : (on ? tint.opacity(0.18) : PS.surface2)
-        let edge: Color = choice ? (on ? Color.clear : PS.line2) : (on ? (heavy ? tint : tint.opacity(0.55)) : PS.line2)
+        let heavy = style.checks && on && !wrapped && !check
+        let text = ChipStyle.color(look.text, tint: tint)
+        let fill: Color = {
+            switch look.fill {
+            case .action: return tint.opacity(0.18)
+            case .green: return PS.green.opacity(0.16)
+            default: return ChipStyle.color(look.fill, tint: tint)
+            }
+        }()
+        let edge: Color = {
+            switch look.edge {
+            case .action: return heavy ? tint : tint.opacity(0.55)
+            case .green: return on ? PS.green : PS.green.opacity(0.6)
+            default: return ChipStyle.color(look.edge, tint: tint)
+            }
+        }()
         return Button {
             Haptics.light()
             store?.markDiscrete()
             tap(o.id)
         } label: {
             HStack(spacing: wrapped ? ChipMetrics.checkGap : ChipMetrics.lineCheckGap) {
-                if wrapped, !choice, on { Image(systemName: "checkmark").font(PS.sys(size: ChipMetrics.checkFont, weight: .bold)) }
+                if wrapped, style.checks, on { Image(systemName: "checkmark").font(PS.sys(size: ChipMetrics.checkFont, weight: .bold)) }
                 // The symbol's own side margins overflow its frame, which is as wide as the ✓ it draws (checkWidth).
-                if mark {
-                    Image(systemName: "checkmark").font(PS.sys(size: ChipMetrics.checkFont, weight: .bold))
+                if mark, let symbol = look.mark {
+                    Image(systemName: symbol).font(PS.sys(size: ChipMetrics.checkFont, weight: .bold))
                         .frame(width: ChipMetrics.checkWidth)
                         .accessibilityHidden(true)
                 }
@@ -281,7 +349,7 @@ struct ChipSet: View {
             .overlay(Capsule().stroke(edge, lineWidth: heavy ? ChipMetrics.heavyEdge : 1))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(o.label)
+        .accessibilityLabel(style == .add ? "Add " + o.label : o.label)
         .accessibilityAddTraits(on ? .isSelected : [])
         .accessibilityHint(hints[o.id] ?? "")
     }
@@ -423,7 +491,7 @@ enum ChipMetrics {
 struct PatientChips: View {
     var options: [PatientFlag]
     @Binding var selection: Set<String>
-    var tint: Color = PS.accent
+    var tint: Color = PS.action
     var shorts: [String: String] = [:]
 
     var body: some View {
@@ -438,17 +506,18 @@ struct PatientChips: View {
 struct PatientChoice: View {
     var choices: [ChipChoice]
     @Binding var selection: String?
-    var tint: Color = PS.accent
+    /// Kept for callers; a choice chip is ink-filled, so no tint is drawn (ChipStyle.choice).
+    var tint: Color = PS.action
     var compact = false
 
-    init(options: [(id: String, label: String)], selection: Binding<String?>, tint: Color = PS.accent, shorts: [String: String] = [:], compact: Bool = false) {
+    init(options: [(id: String, label: String)], selection: Binding<String?>, tint: Color = PS.action, shorts: [String: String] = [:], compact: Bool = false) {
         choices = options.map { ChipChoice($0.id, $0.label, short: shorts[$0.id]) }
         _selection = selection
         self.tint = tint
         self.compact = compact
     }
 
-    init(choices: [ChipChoice], selection: Binding<String?>, tint: Color = PS.accent) {
+    init(choices: [ChipChoice], selection: Binding<String?>, tint: Color = PS.action) {
         self.choices = choices
         _selection = selection
         self.tint = tint
@@ -522,12 +591,13 @@ struct AsaReasonTable: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
+                    // The suggested class as a chosen choice chip (ink, 1.11), not the brand red.
                     Text(PatientRules.roman(r.level))
                         .font(PS.mono(size: 12, weight: .bold))
-                        .foregroundStyle(r.level == top ? PS.accentFg : PS.fg2)
+                        .foregroundStyle(r.level == top ? PS.bg : PS.fg2)
                         .frame(minWidth: 36)
                         .padding(.vertical, 3)
-                        .background(r.level == top ? PS.accent : PS.surface2, in: Capsule())
+                        .background(r.level == top ? PS.fg : PS.surface2, in: Capsule())
                         .accessibilityLabel("ASA " + PatientRules.roman(r.level))
                 }
                 .padding(.vertical, 7)
@@ -545,10 +615,16 @@ struct PatientGroup<Content: View>: View {
     var title: String?
     var note: String? = nil
     @ViewBuilder var content: () -> Content
+    /// 1.11 (one heading per thing): the tab hides the caption of a box that would restate its section title; the ⓘ then
+    /// sits on the title line (PreopSectionTitle.info), so the note is not drawn here either.
+    @Environment(\.patientCaptionHidden) private var captionHidden
+
+    /// Whether a box draws its caption: it has one, and the section has not taken it over.
+    static func showsCaption(title: String?, hidden: Bool) -> Bool { title != nil && !hidden }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let title { SectionHeader(title: title, info: note).padding(.leading, 2) }
+            if let title, Self.showsCaption(title: title, hidden: captionHidden) { SectionHeader(title: title, info: note).padding(.leading, 2) }
             VStack(alignment: .leading, spacing: 0) { content() }
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -556,6 +632,22 @@ struct PatientGroup<Content: View>: View {
             if title == nil, let note, !note.isEmpty { EvidenceNote(note).padding(.horizontal, 2) }
         }
     }
+}
+
+private struct PatientCaptionHiddenKey: EnvironmentKey { static let defaultValue = false }
+
+extension EnvironmentValues {
+    /// A PatientGroup under a section title that says the same thing draws no caption (1.11, P1-6).
+    var patientCaptionHidden: Bool {
+        get { self[PatientCaptionHiddenKey.self] }
+        set { self[PatientCaptionHiddenKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// The box's caption is the section title above it: draw the box without the caption (the ⓘ, if any, goes on the
+    /// title: PreopSectionTitle.info).
+    func patientCaptionHidden(_ hidden: Bool = true) -> some View { environment(\.patientCaptionHidden, hidden) }
 }
 
 /// Padding for chips inside a group.

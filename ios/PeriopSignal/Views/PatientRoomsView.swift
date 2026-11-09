@@ -471,7 +471,7 @@ struct PatientRoomSheet: View {
                                 Text("Type a room's phone once; pick the room next time.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                             }
                         }
-                        .tint(PS.accent)
+                        .tint(PS.action)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                     }
                     savedRooms

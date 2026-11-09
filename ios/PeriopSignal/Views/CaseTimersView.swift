@@ -190,9 +190,11 @@ private struct TimerChipRow: View {
                         .font(PS.sys(size: 13.5, weight: .medium))
                         .lineLimit(1)
                         .padding(.horizontal, 10).padding(.vertical, 7)  // 10 pt (as the Labs and infusion chips): four chips with a chosen Other value fit one line at 375 pt
-                        .background(c.on ? PS.accent.opacity(0.15) : PS.surface2, in: Capsule())
-                        .overlay(Capsule().stroke(c.on ? PS.accent.opacity(0.7) : PS.line2, lineWidth: 1))
-                        .foregroundStyle(c.on ? PS.accent : PS.fg)
+                        // 1.11 (P1-8): the chosen chip in the action tint with the heavier edge (ChipStyle.toggle's one-line
+                        // form), not the brand red; the chip keeps its width, so the rows sized for 375 pt still fit.
+                        .background(c.on ? PS.action.opacity(0.18) : PS.surface2, in: Capsule())
+                        .overlay(Capsule().stroke(c.on ? PS.action : PS.line2, lineWidth: c.on ? ChipMetrics.heavyEdge : 1))
+                        .foregroundStyle(PS.fg)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(c.a11y ?? c.label)

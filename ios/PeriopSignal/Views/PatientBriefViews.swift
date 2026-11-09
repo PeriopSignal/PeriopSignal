@@ -175,7 +175,7 @@ struct BriefBlockView: View {
     private var labelRow: some View {
         HStack(spacing: 6) {
             if let l = block.label {
-                Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.accent : PS.fg)
+                Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.red : PS.fg)
             }
             if block.edited {
                 Text("edited").font(PS.sys(size: 10, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -220,7 +220,7 @@ struct BriefBlockView: View {
                 }
             } else {
                 // The label and the words on one line, so the paragraph wraps under both.
-                (Text(block.label.map { $0 + ": " } ?? "").font(PS.sys(size: 14.5, weight: .bold)).foregroundColor(block.alert ? PS.accent : PS.fg)
+                (Text(block.label.map { $0 + ": " } ?? "").font(PS.sys(size: 14.5, weight: .bold)).foregroundColor(block.alert ? PS.red : PS.fg)
                  + Text(briefStyled(block.text, marks: block.marks, labels: false)).font(PS.sys(size: 14.5)).foregroundColor(PS.fg)
                  + Text(Self.editedMark(block)).font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))
                     .lineSpacing(2)
@@ -293,7 +293,6 @@ struct BriefPanel: View {
     var startAt: String = ""
     @State private var sharing: [Any]?
     @State private var copied = false
-    @State private var confirming = false
 
     private var record: PatientRecord { patient.record }
     private var all: [SummaryBlock] { PatientBriefs.blocks(kind, record) }
@@ -301,20 +300,25 @@ struct BriefPanel: View {
         guard !startAt.isEmpty, let i = all.firstIndex(where: { ($0.label ?? "").lowercased().hasPrefix(startAt.lowercased()) }) else { return all }
         return Array(all[i...])
     }
-    private var edited: Bool { !PatientBriefs.edits(kind, record).isEmpty }
-
     private var title: String { kind == .preop ? "Preprocedure summary" : "Handoff, as it stands" }
+
+    /// The handoff keeps its eyebrow (the Summary & Handoff tab has no section title above it); the preoperative brief
+    /// does not (1.11, P1-6).
+    static func showsEyebrow(_ kind: PatientBriefs.Kind) -> Bool { kind != .preop }
+
+    /// The preoperative brief's Regenerate sits on its section title's line ("Preprocedure Summary · Regenerate", 1.11,
+    /// P1-6: PatientView.summarySection), so the panel draws no header row for it; the handoff keeps its eyebrow and
+    /// Regenerate on one row.
+    static func regenerateOnTitleLine(_ kind: PatientBriefs.Kind) -> Bool { !showsEyebrow(kind) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: title)
-                Spacer()
-                Button { confirming = true } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
-                    .disabled(!edited)
-                    .opacity(edited ? 1 : 0.45)
-                    .accessibilityHint("Rebuilds this text from the record and clears your edits")
+            if !Self.regenerateOnTitleLine(kind) {
+                HStack(alignment: .firstTextBaseline) {
+                    Eyebrow(text: title)
+                    Spacer()
+                    BriefRegenerateButton(kind: kind)
+                }
             }
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(shown) { b in
@@ -344,17 +348,35 @@ struct BriefPanel: View {
             }
         }
         .sensoryFeedback(.success, trigger: copied)
-        .confirmationDialog("Regenerate this text from the record?", isPresented: $confirming, titleVisibility: .visible) {
-            Button("Regenerate", role: .destructive) {
-                patient.update(discrete: true) { PatientBriefs.regenerate(&$0, kind) }
-            }
-            Button("Keep my edits", role: .cancel) {}
-        } message: {
-            Text("Your edits to this text are cleared. Undo brings them back.")
-        }
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
             ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
         }
+    }
+}
+
+/// A brief's Regenerate: off until the brief has an edit; asks, then clears this brief's edits (Undo brings them back).
+/// On the handoff's eyebrow row, and on the Preprocedure Summary title's line.
+struct BriefRegenerateButton: View {
+    @Environment(PatientStore.self) private var patient
+    var kind: PatientBriefs.Kind
+    @State private var confirming = false
+
+    private var edited: Bool { !PatientBriefs.edits(kind, patient.record).isEmpty }
+
+    var body: some View {
+        Button { confirming = true } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
+            .buttonStyle(CapsuleButtonStyle(prominent: false))
+            .disabled(!edited)
+            .opacity(edited ? 1 : 0.45)
+            .accessibilityHint("Rebuilds this text from the record and clears your edits")
+            .confirmationDialog("Regenerate this text from the record?", isPresented: $confirming, titleVisibility: .visible) {
+                Button("Regenerate", role: .destructive) {
+                    patient.update(discrete: true) { PatientBriefs.regenerate(&$0, kind) }
+                }
+                Button("Keep my edits", role: .cancel) {}
+            } message: {
+                Text("Your edits to this text are cleared. Undo brings them back.")
+            }
     }
 }
 
@@ -467,12 +489,14 @@ struct StatusPlanCard: View {
         }
     }
 
+    // 1.11 (P1-6): a plain box with the STATUS & PLAN caption, as every other box with controls in place; the card header
+    // with an icon and a 16-pt title looked like a card that opens a page, and it opens nothing.
     var body: some View {
+        PatientGroup(title: "Status & Plan") { rows.padding(.horizontal, 14).padding(.vertical, 10) }
+    }
+
+    private var rows: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.right.circle").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                Text("Status & Plan").font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-            }
             row("Airway") { PatientChoice(options: Self.airwayOptions(r.airwayAtEnd), selection: airway) }
             row("Disposition") {
                 PatientChoice(options: (Self.dispositionChips + ["Other"]).map { (id: $0, label: $0) }, selection: disposition)
@@ -490,9 +514,7 @@ struct StatusPlanCard: View {
                 row("Call if") { PlanField(prompt: "When to call", text: patient.bound(\.callIf)) }
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 }
 
