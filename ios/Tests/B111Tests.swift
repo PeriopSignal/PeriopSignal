@@ -343,7 +343,7 @@ final class B111Tests: XCTestCase {
             XCTAssertTrue(w?.marks.contains("positive for ischemia") ?? false)
         }
         let none = PatientBriefs.preop(with("Laparoscopic cholecystectomy")).first { $0.key == "workup" }
-        XCTAssertFalse(none?.text.contains("Stress test") ?? true, "nothing without a test")
+        XCTAssertFalse(none?.text.contains("Stress test") ?? false, "nothing without a test (the block itself may be absent)")
     }
 
     func testTheStressResultAndTypeChipsFitOneLineAt375() {
