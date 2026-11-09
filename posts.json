@@ -46,6 +46,12 @@
     ],
     "answer": 2,
     "explanation": "All-cause mortality at 11 years was 25.8% vs 26.9% (adjusted HR 0.97, 95% CI 0.86-1.09). Cardiovascular (15.8% vs 17.1%) and noncardiovascular (9.1% vs 8.1%) mortality also did not differ significantly. Main caveat: patients had preserved ejection fraction and no left main disease."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/jama-2026-ischemia-extend-long-term-survival.mp3",
+    "seconds": 247,
+    "bytes": 1972269,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -92,6 +98,12 @@
     ],
     "answer": 1,
     "explanation": "Chronic pain occurred in 22% with paravertebral and 16% with epidural (adjusted RR 1.32, 95% CI 0.93 to 1.86, P=0.12), so neither prevented it better. Hypotension was actually less common with paravertebral (12% vs 18%). Caveat: open label, and the 6-month outcome was available for 564 of 737 patients."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/bmj-2026-topic-2-paravertebral-vs-epidural-thoracotomy.mp3",
+    "seconds": 210,
+    "bytes": 1678125,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -137,6 +149,12 @@
     ],
     "answer": 3,
     "explanation": "The data and safety monitoring board stopped OPTIPAM at 172 patients because hemorrhagic complications were more frequent with individualized MAP (18% vs 3%, P=0.003). The primary outcome did not differ (32% vs 29%), but the trial was not stopped for futility. Caveat: target adherence was only 33% and the trial was far smaller than planned."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anesthesiology-2026-optipam-individualized-map-cardiac-surgery.mp3",
+    "seconds": 184,
+    "bytes": 1471917,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -182,6 +200,12 @@
     ],
     "answer": 0,
     "explanation": "Postoperative events were 16.5% vs 49.5%, a 33-point gap, compared with 9.0% vs 17.5% intraoperatively; severe cough fell from 42.0% to 10.5%. Caveat: LMAs were placed by experienced anaesthesiologists and allocation was not blinded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/bmj-2026-lma-vs-ett-pediatric-adenotonsillectomy.mp3",
+    "seconds": 211,
+    "bytes": 1691181,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -228,6 +252,12 @@
     ],
     "answer": 2,
     "explanation": "Only 15 of 68 patients (22%) given crushed ticagrelor had a platelet reactivity index below 50% at the end of PCI, vs 56 of 56 (100%) with cangrelor. 41% was the ticagrelor arm's 30-day clinical event rate. Caveat: the laboratory endpoint was measured in about a fifth of patients."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-2026-dapt-shock-ami-cangrelor-vs-crushed-ticagrelor.mp3",
+    "seconds": 195,
+    "bytes": 1561197,
+    "voice": "kokoro:af_heart"
    }
   },
   {
