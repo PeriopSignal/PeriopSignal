@@ -302,7 +302,7 @@ final class PatientStore {
         case "demo-add111": return PatientDemo.add111
         case "demo-quickadd111": return PatientDemo.quickAdd111
         case "demo-quickadd111-end": return PatientDemo.quickAdd111End
-        default: return nil
+        default: return PatientDemo112.record(seed)
         }
     }
     #endif

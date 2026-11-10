@@ -882,6 +882,18 @@ jobs:
           shot 827-quickadd111-intraop-added-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
+          # ---- 1.12 helper A shots (830-849): add your shot lines directly under this line ----
+          #
+          # ---- 1.12 helper B shots (850-869): add your shot lines directly under this line ----
+          #
+          # ---- 1.12 helper C shots (870-889): add your shot lines directly under this line ----
+          #
+          # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
+          #
+          # ---- 1.12 helper E1 shots (910-924): add your shot lines directly under this line ----
+          #
+          # ---- 1.12 helper E2 shots (925-939): add your shot lines directly under this line ----
+          #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
