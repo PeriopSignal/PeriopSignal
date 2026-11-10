@@ -3876,10 +3876,19 @@ enum PatientNote {
             case .cardiacAnswer(let key, let answer):
                 if key == "symptoms" { r.cardiacSymptomsAnswer = answer } else { r.activeCardiacAnswer = answer }
             case .stressTest(let t):
-                if let k = t.kind { r.stressTest.kind = k }
-                if let v = t.result { r.stressTest.result = v }
-                if !t.date.isEmpty { r.stressTest.date = t.date }
-                if !t.findings.trimmingCharacters(in: .whitespaces).isEmpty { r.stressTest.findings = joined(r.stressTest.findings, t.findings) }
+                // A typed test that disagrees with the recorded one (another kind, result or date) is another test: it
+                // replaces the old one whole, so the old findings are not left under the new result.
+                let o = r.stressTest
+                let differs = !o.isEmpty && ((o.result != nil && t.result != nil && o.result != t.result)
+                    || (o.kind != nil && t.kind != nil && o.kind != t.kind) || (!o.date.isEmpty && !t.date.isEmpty && o.date != t.date))
+                if differs {
+                    r.stressTest = t
+                } else {
+                    if let k = t.kind { r.stressTest.kind = k }
+                    if let v = t.result { r.stressTest.result = v }
+                    if !t.date.isEmpty { r.stressTest.date = t.date }
+                    if !t.findings.trimmingCharacters(in: .whitespaces).isEmpty { r.stressTest.findings = joined(r.stressTest.findings, t.findings) }
+                }
             case .event(let t):
                 r.noEvents = false
                 r.events = joined(r.events, t)

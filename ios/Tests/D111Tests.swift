@@ -331,6 +331,23 @@ final class D111Tests: XCTestCase {
         XCTAssertEqual(stress(read("stress echo: inferior ischemia"))?.result, .positive)
     }
 
+    /// "Normal" said of something else is not the result, and a positive finding is never read as a negative test.
+    func testAStressResultIsNotTakenFromANormalSaidOfSomethingElse() {
+        for line in ["DSE positive for ischemia with normal EF", "stress echo with inducible ischemia and normal LV function",
+                     "stress test not normal", "nuclear stress abnormal with normal BP response"] {
+            XCTAssertEqual(stress(read(line))?.result, .positive, line)
+        }
+        XCTAssertEqual(stress(read("DSE no evidence of ischemia"))?.result, .negative)
+        // Nothing said of the test itself: the kind is filed, the result is left to the user.
+        let ef = read("DSE normal EF")
+        XCTAssertEqual(stress(ef)?.kind, .dobutamine)
+        XCTAssertNil(stress(ef)?.result, "normal EF is not a negative test")
+        XCTAssertNil(stress(read("DSE not negative"))?.result)
+        // An outright negative beside a positive finding of its own: the two disagree, so neither is filed.
+        XCTAssertNil(stress(read("DSE negative for ischemia but abnormal wall motion"))?.result)
+        XCTAssertNil(change(read("stress test normal sinus rhythm"), "stress"), "no kind, no result: nothing filed")
+    }
+
     func testStressTestIsNotReadFromOtherWords() {
         XCTAssertNil(change(read("stress dose steroids"), "stress"), "stress-dose steroids")
         XCTAssertNil(change(read("dobutamine 5 mcg/kg/min"), "stress"), "a drip")
@@ -682,6 +699,156 @@ final class D111Tests: XCTestCase {
         XCTAssertEqual(r.stressTest.date, PatientMonthYear(year: 2024))
         XCTAssertEqual(r.stressTest.summary, "Dobutamine stress test (2024): negative, no ischemia", "the record keeps its own wording; only the chip is short")
         XCTAssertEqual(PatientSummary.ecgText(r), "Normal sinus rhythm; Left bundle branch block")
+    }
+
+    // MARK: Review of the merged branch (1.11): one test per confirmed finding
+
+    private func ecgs(_ q: QuickAddReading) -> Set<String> { Set(ids(q).filter { $0.hasPrefix("ecg:") }) }
+
+    /// A negation or a drug said before the extubation in the same piece is not about the extubation.
+    func testExtubatedAfterOtherWordsInItsPiece() {
+        for line in ["weaned off norepi and extubated, to ICU", "sevo off and extubated awake", "No events. Extubated to PACU", "no issues extubated, to PACU"] {
+            XCTAssertEqual(change(read(line, .intraop), "airway-end"), .airwayAtEnd("extubated"), line)
+        }
+        XCTAssertEqual(change(read("weaned off norepi and extubated, to ICU", .intraop), "disposition"), .disposition("ICU"))
+        XCTAssertEqual(change(read("not extubated, to ICU", .intraop), "airway-end"), .airwayAtEnd("intubated"), "its own negation still counts")
+    }
+
+    /// An extubation that is planned, deferred or delayed has not happened: nothing is filed as extubated.
+    func testAPlannedOrDeferredExtubationIsNotExtubated() {
+        for line in ["plan extubation in ICU", "extubation deferred, to ICU intubated", "extubation criteria not met, to ICU", "delayed extubation, to ICU on propofol"] {
+            XCTAssertNotEqual(change(read(line, .intraop), "airway-end"), .airwayAtEnd("extubated"), line)
+            XCTAssertNotEqual(change(summary(line), "airway-end"), .airwayAtEnd("extubated"), line)
+        }
+        XCTAssertEqual(change(read("extubation criteria not met, to ICU", .intraop), "disposition"), .disposition("ICU"))
+    }
+
+    /// "Not reintubated" and a failed extubation told as history do not make the patient intubated; an origin is not
+    /// the end of the case.
+    func testReintubationDeniedAndIntubatedOrigins() {
+        for line in ["laryngospasm after extubation, not reintubated", "extubated, did not need to be reintubated", "hx failed extubation 2019, extubated awake"] {
+            XCTAssertEqual(change(read(line, .intraop), "airway-end"), .airwayAtEnd("extubated"), line)
+        }
+        XCTAssertNil(change(read("transferred intubated from OSH", .intraop), "airway-end"))
+        XCTAssertNil(change(read("intubated on arrival", .intraop), "airway-end"))
+        XCTAssertEqual(change(read("failed extubation, reintubated", .intraop), "airway-end"), .airwayAtEnd("intubated"))
+    }
+
+    /// "Intubated to ICU" is the airway at handoff and the disposition.
+    func testIntubatedToICU() {
+        let q = read("intubated to ICU on propofol", .intraop)
+        XCTAssertEqual(change(q, "airway-end"), .airwayAtEnd("intubated"), "\(ids(q))")
+        XCTAssertEqual(change(q, "disposition"), .disposition("ICU"))
+        let s = summary("left intubated to ICU")
+        XCTAssertEqual(change(s, "airway-end"), .airwayAtEnd("intubated"))
+        XCTAssertEqual(change(s, "disposition"), .disposition("ICU"))
+        XCTAssertEqual(s.unread, "")
+    }
+
+    /// A place the patient is not going to is not the disposition; on the Preoperative bar a place is one only with a
+    /// planning word, so where the patient was admitted is not where they go after the case.
+    func testDispositionDeniedAndWhereThePatientCameFrom() {
+        XCTAssertEqual(change(read("not going to ICU, to floor", .intraop), "disposition"), .disposition("Ward"))
+        XCTAssertEqual(change(read("did not go to ICU, to PACU", .intraop), "disposition"), .disposition("PACU"))
+        XCTAssertEqual(change(read("to PACU overnight", .intraop), "disposition"), .disposition("PACU"))
+        for line in ["admitted to ICU with septic shock, for ex lap", "admitted to floor with SBO", "transferred from OSH to ICU"] {
+            XCTAssertNil(change(read(line), "disposition"), line)
+        }
+        XCTAssertEqual(change(read("plan ICU postop"), "disposition"), .disposition("ICU"), "a plan on the Preoperative bar")
+    }
+
+    /// DDD, RAD, LVH and a bare "sinus" are ECG findings only in the ECG's own run of findings.
+    func testAmbiguousLettersNeedTheECGRun() {
+        XCTAssertEqual(ecgs(read("62F for L4-5 fusion, DDD, HTN, EKG NSR")), ["ecg:Normal sinus rhythm"], "degenerative disc disease is not a pacing mode")
+        XCTAssertEqual(ecgs(read("ECG NSR, RAD on albuterol")), ["ecg:Normal sinus rhythm"], "reactive airway disease")
+        XCTAssertEqual(ecgs(read("EKG NSR, echo LVH EF 55%")), ["ecg:Normal sinus rhythm"], "the echo's LVH")
+        XCTAssertEqual(ecgs(read("ECG LBBB, for excision of pilonidal sinus")), ["ecg:Left bundle branch block"])
+        XCTAssertEqual(ecgs(read("EKG LVH on echo")), [])
+        XCTAssertEqual(ecgs(read("EKG: NSR, rate 72, LVH")), ["ecg:Normal sinus rhythm", "ecg:Left ventricular hypertrophy"], "still read in the run")
+        XCTAssertEqual(ecgs(read("ECG: AF, RAD")), ["ecg:Atrial fibrillation", "ecg:Right axis deviation"])
+        XCTAssertEqual(ecgs(read("ECG DDD paced")), ["ecg:Paced rhythm (AV)"], "one pacing finding, not two")
+    }
+
+    /// A negation in the sentence before the ECG does not deny its findings.
+    func testANegationBeforeTheECGIsNotTheECGs() {
+        for line in ["No CP or SOB. ECG NSR LBBB", "denies chest pain ECG NSR LBBB"] {
+            XCTAssertEqual(ecgs(read(line)), ["ecg:Normal sinus rhythm", "ecg:Left bundle branch block"], line)
+        }
+    }
+
+    /// A scan that is not of the heart is not a stress test.
+    func testOtherScansAreNotStressTests() {
+        for line in ["sestamibi scan positive for R inferior parathyroid adenoma", "V/Q perfusion scan negative for PE", "quantitative perfusion scan R 40%"] {
+            XCTAssertNil(change(read(line), "stress"), line)
+        }
+        XCTAssertEqual(stress(read("sestamibi stress test negative"))?.result, .negative)
+        XCTAssertEqual(stress(read("myocardial perfusion scan negative"))?.kind, .other)
+    }
+
+    /// A negation or a plan beside the test is not "no stress test" or "not done".
+    func testAStressTestBesideOtherNegationsAndPlans() {
+        for line in ["denies CP/SOB. DSE negative 2024", "DSE negative prior to planned AAA repair", "DSE negative cardiology recommends proceeding",
+                     "DSE negative (unable to do treadmill)"] {
+            XCTAssertEqual(stress(read(line))?.kind, .dobutamine, line)
+            XCTAssertEqual(stress(read(line))?.result, .negative, line)
+        }
+        XCTAssertEqual(stress(read("denies CP/SOB. DSE negative 2024"))?.date, PatientMonthYear(year: 2024))
+        XCTAssertEqual(stress(read("no CP and stress test negative 2023"))?.result, .negative)
+        XCTAssertEqual(stress(read("no ischemia on stress test 2023"))?.result, .negative)
+        XCTAssertEqual(stress(read("no ischemia on stress test 2023"))?.date, PatientMonthYear(year: 2023))
+    }
+
+    /// The test takes its own date, not the date of the operation told before it.
+    func testAStressTestTakesItsOwnDate() {
+        let cabg = read("CABG 2015 DSE 2023 negative")
+        XCTAssertEqual(stress(cabg)?.date, PatientMonthYear(year: 2023))
+        XCTAssertEqual(stress(cabg)?.result, .negative)
+        let pci = read("PCI 2019 stress test 2024 negative")
+        XCTAssertEqual(stress(pci)?.date, PatientMonthYear(year: 2024))
+        XCTAssertEqual(stress(pci)?.result, .negative)
+    }
+
+    /// A different test typed over a recorded one replaces it whole: the old findings are not kept under the new result.
+    func testADifferentStressTestReplacesTheOldOne() {
+        var r = PatientRecord()
+        r.stressTest = PatientStressTest(kind: .exercise, result: .positive, findings: "2 mm ST depression at stage 3")
+        r.stressTest.date = PatientMonthYear(year: 2019)
+        let after = applied(read("DSE negative 03/2025"), to: r)
+        XCTAssertEqual(after.stressTest.kind, .dobutamine)
+        XCTAssertEqual(after.stressTest.result, .negative)
+        XCTAssertEqual(after.stressTest.date, PatientMonthYear(month: 3, year: 2025))
+        XCTAssertEqual(after.stressTest.findings, "", "the 2019 findings are not the 2025 test's")
+    }
+
+    /// "No new cardiac symptoms" says there are old ones: no answer is filed.
+    func testNoNewCardiacSymptomsIsNotNone() {
+        for line in ["stable angina, no new cardiac symptoms", "CHF, no further cardiac symptoms since diuresis"] {
+            XCTAssertNil(change(read(line), "cardiac:symptoms"), line)
+        }
+        XCTAssertEqual(change(read("no active cardiac symptoms"), "cardiac:symptoms"), .cardiacAnswer("symptoms", false))
+    }
+
+    /// The patient's usual state and an event word after a diagnosis are history, on both places; the event's text
+    /// never stops at "requiring".
+    func testBaselineDiagnosisFirstAndEventWording() {
+        XCTAssertTrue(QuickAdd.saidOfBaseline("baseline bradycardia"))
+        XCTAssertTrue(QuickAdd.saidOfBaseline("baseline sinus brady"))
+        XCTAssertFalse(QuickAdd.saidOfBaseline("hypotension 30% below baseline"))
+        XCTAssertTrue(QuickAdd.leadsWithDiagnosis("asthma with bronchospasm"))
+        XCTAssertFalse(QuickAdd.leadsWithDiagnosis("bronchospasm on emergence"))
+        XCTAssertFalse(QuickAdd.leadsWithDiagnosis("transient hypotension"))
+        assertNoEvent(["baseline bradycardia", "asthma with bronchospasm", "CKD with hyperkalemia", "tachy-brady syndrome",
+                       "hypertensive urgency last month", "hypotension on midodrine", "bleeding ulcer"])
+        XCTAssertEqual(events(read("bronchospasm on emergence", .intraop)), ["event:bronchospasm on emergence"], "still an event")
+        XCTAssertTrue(events(read("asthma, bronchospasm after intubation", .intraop)).contains { $0.hasPrefix("event:bronchospasm after") }, "a diagnosis in another piece")
+
+        XCTAssertEqual(QuickAdd.eventWording(seen: "hypotension requiring" + String(repeating: " ", count: 12), typed: "hypotension requiring norepi 0.05"),
+                       "hypotension requiring norepi 0.05", "what another reader took after the connector is put back")
+        XCTAssertEqual(QuickAdd.eventWording(seen: "hypotension requiring", typed: "hypotension requiring"), "hypotension")
+        XCTAssertEqual(QuickAdd.eventWording(seen: "hypotension and then", typed: "hypotension and then"), "hypotension")
+        XCTAssertEqual(QuickAdd.eventWording(seen: "bronchospasm on emergence", typed: "bronchospasm on emergence"), "bronchospasm on emergence")
+        let q = read("hypotension requiring norepi 0.05", .intraop)
+        XCTAssertFalse(events(q).contains { $0.hasSuffix("requiring") }, "\(events(q))")
     }
 
     /// A record saved by 1.10 (no stress test, the fields the rules write as they were) still opens, and one the rules

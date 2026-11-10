@@ -423,10 +423,26 @@ enum IntraopInfusionList {
         if let i = materialize(rowID, in: &r) { r.infusions[i].drug = drug }
     }
 
+    /// The preop drip that rows() merges an untagged intraop entry with by drug (typed in the room, or a 1.10 carry-over).
+    static func mergedPreopDrip(of entryID: UUID, in r: PatientRecord) -> UUID? {
+        var used = Set<UUID>()
+        for h in r.homeInfusions where !h.drug.isEmpty || !h.rate.isEmpty {
+            if let t = r.infusions.first(where: { $0.fromPreop == h.id }) {
+                used.insert(t.id)
+            } else if let m = r.infusions.first(where: { !isTombstone($0) && !used.contains($0.id) && sameDrug($0.drug, h.drug) }) {
+                used.insert(m.id)
+                if m.id == entryID { return h.id }
+            }
+        }
+        return nil
+    }
+
     /// 🗑 on a row: the intraop copy goes; a preop drip stays in the preop record (a tombstone keeps it out of this list).
+    /// An entry merged with a preop drip by drug leaves a tombstone too, or the drip would come back at its preop rate.
     static func remove(_ rowID: UUID, in r: inout PatientRecord) {
         if let i = r.infusions.firstIndex(where: { $0.id == rowID }) {
-            if let p = r.infusions[i].fromPreop, r.homeInfusions.contains(where: { $0.id == p }) {
+            if let p = r.infusions[i].fromPreop ?? mergedPreopDrip(of: rowID, in: r), r.homeInfusions.contains(where: { $0.id == p }) {
+                r.infusions[i].fromPreop = p
                 r.infusions[i].drug = ""
                 r.infusions[i].rate = ""
             } else {

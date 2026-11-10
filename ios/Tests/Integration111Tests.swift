@@ -53,6 +53,26 @@ final class Integration111Tests: XCTestCase {
         XCTAssertEqual(drips(r), "Drips: Norepinephrine at 0.1 mcg/kg/min; Vasopressin at 2 units/h")
     }
 
+    /// A drip typed in the room (or carried over in 1.10) is merged with the preop drip of the same drug. Deleting it must
+    /// not bring the preop drip back at its preop rate.
+    func testARoomEntryMergedWithAPreopDripStaysRemoved() {
+        var r = PatientRecord()
+        r.homeInfusions = [PatientInfusion(drug: "Norepinephrine", rate: "0.05 mcg/kg/min")]
+        r.infusions = [PatientInfusion(drug: "norepinephrine", rate: "0.1 mcg/kg/min"), PatientInfusion(drug: "Vasopressin", rate: "2 units/h")]
+        XCTAssertEqual(IntraopInfusionList.rows(r).map(\.rate), ["0.1 mcg/kg/min", "2 units/h"])
+        XCTAssertEqual(IntraopInfusionList.mergedPreopDrip(of: r.infusions[0].id, in: r), r.homeInfusions[0].id)
+        XCTAssertNil(IntraopInfusionList.mergedPreopDrip(of: r.infusions[1].id, in: r), "a room drip of another drug")
+        IntraopInfusionList.remove(r.infusions[0].id, in: &r)
+        XCTAssertEqual(IntraopInfusionList.rows(r).map(\.text), ["Vasopressin at 2 units/h"], "the preop drip does not come back")
+        XCTAssertEqual(drips(r), "Drips: Vasopressin at 2 units/h")
+        XCTAssertEqual(r.homeInfusions.map(\.rate), ["0.05 mcg/kg/min"], "the preop record keeps it")
+        // A room drip with no preop twin is simply removed.
+        let before = r.infusions.count
+        IntraopInfusionList.remove(r.infusions.first { $0.drug == "Vasopressin" }!.id, in: &r)
+        XCTAssertEqual(r.infusions.count, before - 1)
+        XCTAssertNil(drips(r))
+    }
+
     func testTheRowTextMatchesTheInfusionText() {
         let i = PatientInfusion(drug: "Insulin", rate: "")
         var r = PatientRecord()
