@@ -419,7 +419,12 @@ struct PreprocedureSummaryView: View {
             .buttonStyle(CapsuleButtonStyle.patientAction())
             .id("preopsummary")
         } else {
-            Color.clear.frame(height: 1).id("preopsummary")
+            // An empty record has nothing to summarize: one phrase, so the section does not read as cut off.
+            Text("Appears once something is recorded.")
+                .font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 2)
+                .id("preopsummary")
         }
     }
 }

@@ -1095,8 +1095,17 @@ struct PatientLineText: View {
     static var alertColor: Color { PS.red }
 
     private var styled: AttributedString {
-        var a = AttributedString(line.text)
+        // A short marked value never breaks inside itself ("Ca" at the end of one line and "8.3 L" on the next): its
+        // spaces are non-breaking. A longer marked phrase still wraps.
+        var text = line.text
+        var marks: [String] = []
         for m in line.marks where !m.isEmpty {
+            let joined = m.count <= 18 ? m.replacingOccurrences(of: " ", with: "\u{00A0}") : m
+            if joined != m { text = text.replacingOccurrences(of: m, with: joined) }
+            marks.append(joined)
+        }
+        var a = AttributedString(text)
+        for m in marks {
             var from = a.startIndex
             while let r = a[from...].range(of: m) {
                 a[r].foregroundColor = PS.red
