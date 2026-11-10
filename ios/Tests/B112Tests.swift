@@ -196,6 +196,22 @@ final class B112Tests: XCTestCase {
         XCTAssertEqual(PatientAirwayLine.tubeText("nasal RAE 6.5"), "ETT nasal RAE 6.5")
     }
 
+    func testARecordSavedIn111ReadsInTheShortForm() throws {
+        let saved = #"""
+        {"ageYears":71,"problems":["htn","copd"],"mask":"difficult","maskNote":"Beard, two hands","intubation":"difficult","intubationNote":"Bougie",
+         "airwayDevice":"Video laryngoscope","laryngoscopyGrade":"2b","attempts":2,"tube":"7.5 cuffed ETT (22 cm)","airwayAtEnd":"intubated","ventilation":"VC 450 × 14, PEEP 8"}
+        """#
+        let r = try JSONDecoder().decode(PatientRecord.self, from: Data(saved.utf8))
+        XCTAssertTrue(r.imaging.isEmpty, "the 1.12 fields start empty")
+        let c = try XCTUnwrap(PatientBriefs.airwayCourse(r))
+        XCTAssertEqual(c.text, "Difficult Mask (beard, two hands), Difficult VL Intubation, grade 2b, 2 attempts, bougie, ETT 7.5 at 22 cm. Remains intubated, VC 450 × 14, PEEP 8")
+        XCTAssertTrue(c.alert)
+        XCTAssertFalse(has(PatientBriefs.handoff(r), "imaging"))
+        let pmh = try block(PatientBriefs.handoff(r), "pmh").text
+        XCTAssertFalse(pmh.contains("Cardiovascular"), pmh)
+        XCTAssertFalse(pmh.contains("Respiratory"), pmh)
+    }
+
     func testArrivalNotesAndTheOlderCardsAreNotChanged() throws {
         // The airway notes and the oxygen on arrival stay in the course (safety content).
         let r = record { $0.oxygen = PatientOxygen(device: "ra"); $0.mask = "easy"; $0.airwayNotes = "Loose upper incisor"; $0.airwayAtEnd = "extubated" }

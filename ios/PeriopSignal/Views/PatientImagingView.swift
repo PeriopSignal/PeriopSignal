@@ -25,6 +25,11 @@ struct PreopImagingLink: View {
     var body: some View {
         let imaging = patient.record.imaging
         VStack(alignment: .leading, spacing: 10) {
+            #if DEBUG
+            // Screenshot runs (-ps.preop.imaging 1 -ps.patient.scroll preopimaging): the scroll target, a little above the
+            // open lines, so the pinned section bar does not cover their first.
+            if LaunchSeed.bool("ps.preop.imaging") { Color.clear.frame(height: 50).id("preopimaging") }
+            #endif
             if open {
                 QuietOpenHeader(label: "Preprocedure imaging") { withAnimation(.snappy) { open = false } }
                 VStack(spacing: 0) {
@@ -39,6 +44,5 @@ struct PreopImagingLink: View {
                 QuietLinkRow(title: "Preprocedure Imaging") { withAnimation(.snappy) { open = true } }
             }
         }
-        .id("preopimaging")
     }
 }

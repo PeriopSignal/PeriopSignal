@@ -303,6 +303,8 @@ struct BriefPagesPreview: View {
                     .overlay(Rectangle().stroke(PS.line2, lineWidth: 1))
                     .id("briefpage\(i + 1)")
             }
+            // The end of the last page, for -ps.patient.scroll briefpagesend.
+            Color.clear.frame(height: 1).id("briefpagesend")
         }
     }
 }
