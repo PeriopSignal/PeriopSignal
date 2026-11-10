@@ -887,6 +887,30 @@ jobs:
           # ---- 1.12 helper B shots (850-869): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper C shots (870-889): add your shot lines directly under this line ----
+          # 1.12 helper C (870-889): the case and the tabs pinned at the top once the tab has scrolled (note 10): the row of
+          # cases and tabs over the section chips on both tabs and on Summary & Handoff, at 375 pt, with one case, and in
+          # large text; the case under the title of the pages opened from My Patient. Boxes that fold once filled in (note 17,
+          # -ps.patient.collapse 1): folded, one open with its Done, the alerts in full, an empty patient.
+          shot 870-pinned-row-preop-light 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab preop -ps.patient.jump workup -ps.forceAppearance light
+          shot 871-pinned-row-preop-dark-375 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab preop -ps.patient.jump workup -ps.patient.width 375 -ps.forceAppearance dark
+          shot 872-pinned-row-intraop-light-375 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.patient.width 375 -ps.forceAppearance light
+          shot 873-pinned-row-summary-dark 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 874-pinned-row-one-case-light-375 20 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.jump workup -ps.patient.width 375 -ps.forceAppearance light
+          shot 875-pinned-row-top-unchanged-light 14 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab preop -ps.forceAppearance light
+          shot 876-pinned-row-large-text-dark-375 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab preop -ps.patient.jump workup -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance dark
+          shot 877-case-caption-labs-light 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 878-case-caption-devices-dark-375 20 -ps.tab patient -ps.patient demo-rooms -ps.patient.open devices:preop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 879-case-caption-medications-one-case-light 20 -ps.tab patient -ps.patient demo -ps.patient.open medications -ps.forceAppearance light
+          shot 880-case-caption-case-timers-dark 24 -ps.tab patient -ps.patient demo-rooms -ps.patient.case 2 -ps.patient.open case-timers -ps.timers.seed 1 -ps.forceAppearance dark
+          shot 881-boxes-folded-preop-light 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.jump demographics-title -ps.forceAppearance light
+          shot 882-boxes-folded-preop-dark 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.jump demographics-title -ps.forceAppearance dark
+          shot 883-boxes-folded-preop-light-375 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.jump demographics-title -ps.patient.width 375 -ps.forceAppearance light
+          shot 884-boxes-one-open-with-done-light 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.expand allergies -ps.patient.tab preop -ps.patient.jump demographics-title -ps.forceAppearance light
+          shot 885-boxes-folded-workup-dark-375 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.jump workup -ps.patient.width 375 -ps.forceAppearance dark
+          shot 886-boxes-folded-medications-light 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.jump medications -ps.forceAppearance light
+          shot 887-boxes-folded-intraop-light-375 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab intraop -ps.patient.jump intraop:airway -ps.patient.width 375 -ps.forceAppearance light
+          shot 888-boxes-folded-intraop-fluids-dark 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
+          shot 889-boxes-empty-patient-open-light 18 -ps.tab patient -ps.patient empty -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           #

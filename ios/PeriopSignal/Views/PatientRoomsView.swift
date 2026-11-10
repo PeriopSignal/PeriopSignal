@@ -223,11 +223,15 @@ struct PatientRoomsBar: View {
 
     // MARK: Actions
 
-    private func select(_ c: PatientCase) {
-        guard c.id != current.id else { return }
+    private func select(_ c: PatientCase) { Self.open(c, in: patient) }
+
+    /// Opens a case: one tap on its chip, in this row and in the pinned row at the top of the page (1.12), so both do the
+    /// same thing (the banner for a case just ended goes, the case's own tabs and boxes show).
+    @MainActor static func open(_ c: PatientCase, in patient: PatientStore) {
+        guard c.id != patient.currentCase.id else { return }
         Haptics.light()
         withAnimation(.snappy) {
-            ui.ended = nil
+            PatientRoomsUI.shared.ended = nil
             patient.selectCase(c.id)
         }
     }

@@ -159,6 +159,8 @@ struct PatientEditorView: View {
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(editor.title)
         .navigationBarTitleDisplayMode(.inline)
+        // 1.12 (note 10): the open case's label, small and read-only, under the title.
+        .patientCaseCaption(editor.title)
         .alert("No patient identifiers", isPresented: $showIdentifiers) {
             Button("OK", role: .cancel) {}
         } message: {
