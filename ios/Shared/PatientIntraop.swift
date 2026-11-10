@@ -11,6 +11,38 @@ import Foundation
 // et al. J Extra Corpor Technol 2018;50:5–18) finds it reasonable to keep it above 480 s (class IIa, level C), or
 // above about 400 s on maximal-activation or microcuvette devices.
 
+/// The sample the blood gas in a lab set came from (1.12, Ben's note 13): arterial (the default, and what every set saved
+/// before 1.12 is), a venous gas, or a central venous (ScvO₂, from the CVL) or mixed venous (SvO₂, from the PA catheter)
+/// saturation sample. The arterial reference ranges and H/L flags are not applied to a venous sample, and the labels follow.
+enum BloodGasType: String, Codable, CaseIterable, Hashable {
+    case abg, vbg, scvo2, svo2
+
+    /// The menu's words: "ABG", "VBG", "ScvO₂ (CVL)", "SvO₂ (PA)".
+    var label: String {
+        switch self {
+        case .abg: return "ABG"
+        case .vbg: return "VBG"
+        case .scvo2: return "ScvO₂ (CVL)"
+        case .svo2: return "SvO₂ (PA)"
+        }
+    }
+
+    /// The summaries' and the menu's short words: "ABG", "VBG", "ScvO₂", "SvO₂".
+    var short: String {
+        switch self {
+        case .abg: return "ABG"
+        case .vbg: return "VBG"
+        case .scvo2: return "ScvO₂"
+        case .svo2: return "SvO₂"
+        }
+    }
+
+    /// Everything but an arterial sample.
+    var isVenous: Bool { self != .abg }
+    /// The saturation is the value of interest of ScvO₂ and SvO₂ samples, so the set has a field for it.
+    var hasSaturation: Bool { self == .scvo2 || self == .svo2 }
+}
+
 /// One set of intraoperative labs, drawn at one time.
 struct IntraopLabSet: Codable, Hashable, Identifiable {
     var id = UUID()
@@ -20,9 +52,11 @@ struct IntraopLabSet: Codable, Hashable, Identifiable {
     /// ROTEM or TEG, as written.
     var viscoelastic = ""
     var other = ""
+    /// The blood gas's sample (1.12); ABG for a set saved before it.
+    var gasType: BloodGasType = .abg
 
-    init(time: Date? = nil, values: [String: Double] = [:], viscoelastic: String = "", other: String = "") {
-        self.time = time; self.values = values; self.viscoelastic = viscoelastic; self.other = other
+    init(time: Date? = nil, values: [String: Double] = [:], viscoelastic: String = "", other: String = "", gasType: BloodGasType = .abg) {
+        self.time = time; self.values = values; self.viscoelastic = viscoelastic; self.other = other; self.gasType = gasType
     }
 
     init(from decoder: Decoder) throws {
@@ -32,6 +66,7 @@ struct IntraopLabSet: Codable, Hashable, Identifiable {
         values = (try? c.decodeIfPresent([String: Double].self, forKey: .values)) ?? [:]
         viscoelastic = (try? c.decodeIfPresent(String.self, forKey: .viscoelastic)) ?? ""
         other = (try? c.decodeIfPresent(String.self, forKey: .other)) ?? ""
+        gasType = (try? c.decodeIfPresent(BloodGasType.self, forKey: .gasType)) ?? .abg
     }
 
     var isEmpty: Bool {
@@ -55,7 +90,15 @@ enum IntraopLabs {
         ptt,
         LabTest("act", "ACT", short: "ACT", unit: "s", group: .main, decimals: 0, plausible: 30...1500,
                 note: "Not flagged: read against the target. During bypass, above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa), or above about 400 s on maximal-activation or microcuvette devices."),
+        // 1.12 (Ben's note 13): the saturation of a central venous (ScvO₂) or mixed venous (SvO₂) sample, the value of interest
+        // of those gases. No reference range: what a saturation should be depends on the patient and the question, so none
+        // is invented and it is never flagged. The words follow the sample (IntraopLabs.test(_:type:)).
+        LabTest(satKey, "Venous oxygen saturation", short: "SvO₂", unit: "%", group: .main, decimals: 0, plausible: 1...100,
+                note: "Not flagged: no reference range is shown; read it against the clinical target."),
     ]
+
+    /// The saturation of an ScvO₂ or SvO₂ sample (1.12).
+    static let satKey = "so2v"
 
     /// The aPTT: ABIM 25–35 s. The preoperative catalog (1.9) reuses this entry, so the same value is flagged the same way
     /// before and during the case; the PT beside it has no flag (PatientLabs.catalog).
@@ -67,24 +110,88 @@ enum IntraopLabs {
                                  note: "High above 2 mmol/L, the Sepsis-3 septic-shock lactate criterion (Singer M, et al. JAMA 2016;315:801); the ABIM arterial reference limit is stricter (under 1.3).")
 
     /// Blood gas, in the order analyzers print it.
-    static let abg = ["ph", "paco2", "pao2", "hco3a", "be", "lactate", "hb", "k", "na", "ica", "glucose"]
+    /// 1.12 (Ben's note 13): the glucose has a section of its own above the blood gas card, so it is not in `abg` any more.
+    static let abg = ["ph", "paco2", "pao2", "hco3a", "be", "lactate", "hb", "k", "na", "ica"]
+    static let glucoseKeys = ["glucose"]
     /// 1.11 (Ben, Nov 9): the gas's slash figure, pH / PaCO₂ / PaO₂ / HCO₃, typed into its slots on the intraoperative
     /// labs page; the rest of the gas follows as rows. Together they are `abg`, in its order, so Next walks them the same.
     static let abgSlash = ["ph", "paco2", "pao2", "hco3a"]
     static var abgRest: [String] { abg.filter { !abgSlash.contains($0) } }
     static let coag = ["inr", "ptt", "fibrinogen", "plt", "act"]
-    static var keys: [String] { abg + coag }
+    /// Every intraoperative test, in the order the "Last labs" line prints them (the glucose keeps its old place after the
+    /// ionized calcium, the saturation comes last).
+    static var keys: [String] { abg + glucoseKeys + coag + [satKey] }
+
+    /// A set holding any of these is a blood gas (the summaries show the newest one, with its lactate).
+    static var gasKeys: [String] { abgSlash + [satKey] }
+
+    /// The set's fields on its page, top to bottom, which is the order Previous and Next walk: the glucose, the saturation
+    /// of an ScvO₂ or SvO₂ sample, the gas, the coagulation.
+    static func pageOrder(_ type: BloodGasType) -> [String] {
+        glucoseKeys + (type.hasSaturation ? [satKey] : []) + abg + coag
+    }
 
     /// The tests by key, this list's own entry first ("Lactate, arterial"), then the preoperative catalog's.
     static func tests(_ keys: [String]) -> [LabTest] { keys.compactMap { k in added.first { $0.key == k } ?? PatientLabs.test(k) } }
 
-    static let sources = "Reference ranges: ABIM Laboratory Test Reference Ranges, January 2026 (arterial pH 7.38–7.44, PaCO₂ 38–42 mmHg, PaO₂ 75–100 mmHg, bicarbonate 23–26 mEq/L, arterial lactate under 1.3 mmol/L (flagged here above 2, the Sepsis-3 criterion), ionized calcium 1.16–1.31 mmol/L, aPTT 25–35 s); hemoglobin, potassium, sodium, platelets and fibrinogen as in the preoperative labs; INR from MedlinePlus; glucose flagged above 180 mg/dL (ADA perioperative target 100–180 mg/dL) and below 70 (hypoglycemia). PaO₂ is flagged only when low. Base excess and ACT have no ABIM range and are not flagged; during bypass an ACT above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa). Your laboratory's ranges may differ."
+    // MARK: The gas's sample (1.12)
+
+    /// The values the arterial reference ranges are for; a venous sample is not judged by them.
+    static let arterialRated: Set<String> = ["ph", "paco2", "pao2", "hco3a"]
+
+    /// Whether the catalog's range applies to this value of a gas of this type. The lactate's (above 2 mmol/L, the Sepsis-3
+    /// criterion) is not an arterial range, so it still applies to a venous sample; so do the ones of the ions, hemoglobin
+    /// and glucose.
+    static func isRanged(_ key: String, type: BloodGasType) -> Bool { !(type.isVenous && arterialRated.contains(key)) }
+
+    /// The test as a gas of this type reads it: PvCO₂ and PvO₂ for a venous gas, "Lactate" and "Bicarbonate" without
+    /// "arterial", no arterial range on the gas values, and the saturation named for its sample.
+    static func test(_ key: String, type: BloodGasType) -> LabTest? {
+        guard var t = added.first(where: { $0.key == key }) ?? PatientLabs.test(key) else { return nil }
+        if key == satKey {
+            switch type {
+            case .scvo2: t.label = "Central venous O₂ saturation (ScvO₂)"; t.short = "ScvO₂"
+            case .svo2: t.label = "Mixed venous O₂ saturation (SvO₂)"; t.short = "SvO₂"
+            default: break
+            }
+            return t
+        }
+        guard type.isVenous else { return t }
+        switch key {
+        case "paco2": t.label = "PvCO₂"; t.short = "PvCO₂"
+        case "pao2": t.label = "PvO₂"; t.short = "PvO₂"
+        case "hco3a": t.label = "Bicarbonate"
+        case "lactate": t.label = "Lactate"
+        default: break
+        }
+        if !isRanged(key, type: type) {
+            t.range = nil
+            t.female = nil
+            t.male = nil
+            t.note = "Not flagged: the arterial reference range is not applied to a venous sample."
+        }
+        return t
+    }
+
+    static func tests(_ keys: [String], type: BloodGasType) -> [LabTest] { keys.compactMap { test($0, type: type) } }
+
+    /// Normal, low or high; a venous sample's gas values are never flagged against the arterial ranges.
+    static func flag(_ key: String, _ value: Double, sex: PatientSex?, type: BloodGasType) -> LabFlag {
+        isRanged(key, type: type) ? PatientLabs.flag(key, value, sex: sex) : .normal
+    }
+
+    /// The newest set that holds a blood gas (a value of the slash figure, or the saturation): the gas the summaries show.
+    static func latestGas(_ sets: [IntraopLabSet]) -> IntraopLabSet? {
+        ordered(sets).first { s in gasKeys.contains { (s.values[$0] ?? .nan).isFinite } }
+    }
+
+    static let sources = "Reference ranges: ABIM Laboratory Test Reference Ranges, January 2026 (arterial pH 7.38–7.44, PaCO₂ 38–42 mmHg, PaO₂ 75–100 mmHg, bicarbonate 23–26 mEq/L, arterial lactate under 1.3 mmol/L (flagged here above 2, the Sepsis-3 criterion), ionized calcium 1.16–1.31 mmol/L, aPTT 25–35 s); hemoglobin, potassium, sodium, platelets and fibrinogen as in the preoperative labs; INR from MedlinePlus; glucose flagged above 180 mg/dL (ADA perioperative target 100–180 mg/dL) and below 70 (hypoglycemia). PaO₂ is flagged only when low. Base excess and ACT have no ABIM range and are not flagged; during bypass an ACT above 480 s is reasonable (STS/SCA/AmSECT 2018, class IIa). The pH, carbon dioxide, oxygen and bicarbonate ranges are arterial: they are not applied to a venous gas (VBG, ScvO₂, SvO₂), whose values are not flagged (the lactate and the other values keep their ranges); the saturation has no range. Your laboratory's ranges may differ."
 
     /// The values entered in a set, in the screen's order, flagged.
     static func values(_ s: IntraopLabSet, sex: PatientSex?) -> [LabValue] {
         keys.compactMap { k in
-            guard let t = PatientLabs.test(k), let v = s.values[k], v.isFinite else { return nil }
-            return LabValue(key: k, label: t.short, value: v, text: t.format(v), unit: t.unit, flag: PatientLabs.flag(k, v, sex: sex),
+            guard let t = test(k, type: s.gasType), let v = s.values[k], v.isFinite else { return nil }
+            return LabValue(key: k, label: t.short, value: v, text: t.format(v), unit: t.unit, flag: flag(k, v, sex: sex, type: s.gasType),
                             rated: t.isRated, group: t.group, note: nil)
         }
     }
@@ -123,8 +230,10 @@ enum IntraopLabs {
         let other = s.other.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { parts.append(other) }
         guard !parts.isEmpty else { return nil }
-        let head = s.time.map { PatientSummary.time($0, now: now) + " · " } ?? ""
-        return PatientSummary.Line("Last labs", head + parts.joined(separator: " · "), marks: flagged.map(\.compact))
+        // A venous sample says so (1.12): its pH and PvCO₂ must not be read as arterial.
+        let kind: String? = s.gasType.isVenous && s.values.keys.contains(where: { gasKeys.contains($0) }) ? s.gasType.short : nil
+        let head = [kind, s.time.map { PatientSummary.time($0, now: now) }].compactMap { $0 }.joined(separator: " ")
+        return PatientSummary.Line("Last labs", (head.isEmpty ? "" : head + " · ") + parts.joined(separator: " · "), marks: flagged.map(\.compact))
     }
 
     static func lastLine(_ r: PatientRecord, now: Date = Date(), abnormalOnly: Bool = false) -> PatientSummary.Line? {

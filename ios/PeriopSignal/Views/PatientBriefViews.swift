@@ -9,60 +9,6 @@ private extension PatientStore {
     }
 }
 
-// MARK: Fishbone
-
-/// The labs as the fishbone: BMP (Na, Cl, BUN over K, HCO₃, Cr, with the glucose at the point), CBC (WBC, Hb over Hct,
-/// Plt) and the coagulation figure (PT over PTT, INR at the point, fibrinogen beside it, as Ben drew it on Nov 9). A
-/// value not entered is a dash in a group that has something; abnormal values bold red, as the Labs screen marks them;
-/// values from the case end in *. Small, and legible in light and dark. The shapes are the Labs page's own
-/// (FishboneBMP, FishboneCBC, FishboneCoags in PatientLabsView.swift, 1.11), so the brief stays in step with the figure
-/// the values are typed into.
-struct FishboneFigure: View {
-    var labs: BriefLabs
-
-    private let g = FishboneGeometry.small
-
-    private func cell(_ key: String) -> some View {
-        let c = labs.cells[key]
-        let name = c?.label ?? PatientLabs.test(key)?.short ?? key
-        let color: Color = c == nil || c?.estimated == true ? PS.fg3 : (c?.abnormal == true ? PS.red : PS.fg)
-        return VStack(spacing: 0) {
-            Text(c.map { ($0.estimated ? "~" : "") + $0.text + ($0.intraop ? "*" : "") } ?? "—")
-                .font(PS.sys(size: 12.5, weight: c?.abnormal == true ? .heavy : .semibold, design: .monospaced))
-                .italic(c?.estimated == true)
-                .foregroundStyle(color)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(name).font(PS.sys(size: 8)).foregroundStyle(PS.fg3)
-        }
-        .frame(width: g.cellWidth, height: g.cellHeight)
-    }
-
-    /// The coagulation parts entered, in order: "ptinr" (PT and INR), "ptt", "fibrinogen"; the fibrinogen cell is
-    /// drawn only when it is among them (the PT, PTT and INR cells are the figure itself).
-    static func coagParts(_ labs: BriefLabs) -> [String] {
-        var out: [String] = []
-        if labs.cells["pt"] != nil || labs.cells["inr"] != nil { out.append("ptinr") }
-        if labs.cells["ptt"] != nil { out.append("ptt") }
-        if labs.cells["fibrinogen"] != nil { out.append("fibrinogen") }
-        return out
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if labs.hasBMP { FishboneBMP(g: g) { cell($0) } }
-            if labs.hasCBC { FishboneCBC(g: g) { cell($0) } }
-            if labs.hasCoags { FishboneCoags(g: g, fibrinogen: Self.coagParts(labs).contains("fibrinogen")) { cell($0) } }
-            if let c = labs.caption {
-                Text(c).font(PS.sys(size: 9)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Labs: " + labs.plainFishbone() + (labs.caption.map { ". " + $0 } ?? ""))
-    }
-}
-
 // MARK: Lines diagram with its list
 
 /// The diagram on the left and the block's lines on the right (lines and devices, each with "(Pre)" or "(Intra)" in the
@@ -188,15 +134,12 @@ struct BriefBlockView: View {
 
     @ViewBuilder private var readView: some View {
         switch block.figure {
-        case .fishbone(let labs)?:
+        case .fishbone(let labs)? where !block.edited:
+            // 1.12 (Ben's note 8): the Preop and Intraop columns. A block the user edited shows their words instead (the
+            // text holds everything the columns show).
             VStack(alignment: .leading, spacing: 6) {
                 labelRow
-                let wide = typeSize > .large || block.text.count > 150
-                if wide {
-                    VStack(alignment: .leading, spacing: 8) { FishboneFigure(labs: labs); sideText }
-                } else {
-                    HStack(alignment: .top, spacing: 12) { FishboneFigure(labs: labs); sideText }
-                }
+                BriefLabsFigure(labs: labs)
             }
             .id("fishbone")
         case .diagram(let arrivalOnly)?:
@@ -205,7 +148,7 @@ struct BriefBlockView: View {
                 BriefDiagramList(record: record, arrivalOnly: arrivalOnly, lines: block.lines, marks: block.marks)
             }
             .id(arrivalOnly ? "preopfigure" : "handofffigure")
-        case nil:
+        case .fishbone?, nil:
             if isHeader {
                 (Text(block.text).font(PS.sys(size: 15.5, weight: .semibold)).foregroundColor(PS.fg)
                  + Text(Self.editedMark(block)).font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))

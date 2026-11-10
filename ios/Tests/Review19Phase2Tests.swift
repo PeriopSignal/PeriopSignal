@@ -63,49 +63,12 @@ final class Review19Phase2Tests: XCTestCase {
     }
 
     // MARK: Labs: which intraoperative value is from which time
-
-    func testCaptionNamesTheValuesOfEachIntraoperativeTime() throws {
-        var r = PatientRecord()
-        r.labs = ["na": 138, "inr": 1.0]
-        r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 15), values: ["inr": 1.9]),
-                         IntraopLabSet(time: PatientDemo.today(10, 40), values: ["k": 4.9])]
-        let labs = try fishbone(try block(PatientBriefs.handoff(r), "labs"))
-        XCTAssertEqual(labs.caption, "* Intraop 10:40 (K) / 09:15 (INR); other values preop")
-        // One set: its time alone says it.
-        var one = PatientRecord()
-        one.labs = ["na": 138]
-        one.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["k": 4.9, "hco3a": 21])]
-        let o = try fishbone(try block(PatientBriefs.handoff(one), "labs"))
-        XCTAssertEqual(o.caption, "* Intraop 10:40; other values preop")
-        // The copied caption has plain digits.
-        var two = r
-        two.intraopLabs.append(IntraopLabSet(time: PatientDemo.today(11, 5), values: ["hco3a": 20]))
-        let text = PatientBriefs.plainText(PatientBriefs.handoff(two))
-        XCTAssertTrue(text.contains("11:05 (HCO3)"), text)
-    }
-
-    // MARK: Estimated Hct from an intraoperative Hb
-
-    func testAnEstimateFromAnIntraoperativeValueIsMarkedAsIntraoperative() throws {
-        var r = PatientRecord()
-        r.labs = ["hb": 13.0, "na": 138]
-        r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["hb": 7.3])]
-        let labs = try fishbone(try block(PatientBriefs.handoff(r), "labs"))
-        let hct = try XCTUnwrap(labs.cells["hct"])
-        XCTAssertTrue(hct.estimated)
-        XCTAssertEqual(hct.text, "22")
-        XCTAssertTrue(hct.intraop, "worked out from the 10:40 Hb")
-        XCTAssertEqual(labs.caption, "* Intraop 10:40; other values preop")
-        XCTAssertTrue(PatientBriefs.plainText(PatientBriefs.handoff(r)).contains("Hct ~22 (est.)*"))
-        // Before the case it is the preoperative Hb's estimate.
-        let pre = try fishbone(try block(PatientBriefs.preop(r), "labs"))
-        XCTAssertEqual(pre.cells["hct"]?.intraop, false)
-        XCTAssertEqual(pre.cells["hct"]?.text, "39")
-        // With two times the estimate is named under its Hb's.
-        r.intraopLabs.append(IntraopLabSet(time: PatientDemo.today(11, 30), values: ["k": 4.2]))
-        let two = try fishbone(try block(PatientBriefs.handoff(r), "labs"))
-        XCTAssertEqual(two.caption, "* Intraop 11:30 (K) / 10:40 (Hb, Hct est.); other values preop")
-    }
+    //
+    // 1.12 (Ben's note 8): the fishbone is gone from the summaries, and with it the starred values, the estimated Hct from an
+    // intraoperative Hb, and the coagulation dividers these three 1.9 tests covered (testCaptionNamesTheValuesOfEach-
+    // IntraoperativeTime, testAnEstimateFromAnIntraoperativeValueIsMarkedAsIntraoperative, testCoagulationDividersGoOnlyBetween-
+    // TwoParts). The time-per-value caption is covered by A112Tests (testEachCoagValueIsTheLatestSetThatHoldsIt and
+    // testAChosenIntraopLabIsInTheHandoffOnly).
 
     // MARK: Infusions running before the case and in it
 
@@ -185,21 +148,6 @@ final class Review19Phase2Tests: XCTestCase {
         }
         XCTAssertTrue(try bold("Allergies:"))
         XCTAssertFalse(try bold("Penicillin"))
-    }
-
-    // MARK: Coagulation dividers
-
-    func testCoagulationDividersGoOnlyBetweenTwoParts() {
-        var labs = BriefLabs()
-        labs.cells["inr"] = BriefLabCell(key: "inr", label: "INR", text: "1.2")
-        XCTAssertEqual(FishboneFigure.coagParts(labs), ["ptinr"], "PT/INR alone: no divider")
-        labs.cells["fibrinogen"] = BriefLabCell(key: "fibrinogen", label: "Fib", text: "250")
-        XCTAssertEqual(FishboneFigure.coagParts(labs), ["ptinr", "fibrinogen"], "no PTT: one divider, not two")
-        labs.cells["ptt"] = BriefLabCell(key: "ptt", label: "PTT", text: "30")
-        XCTAssertEqual(FishboneFigure.coagParts(labs), ["ptinr", "ptt", "fibrinogen"])
-        var fibOnly = BriefLabs()
-        fibOnly.cells["fibrinogen"] = BriefLabCell(key: "fibrinogen", label: "Fib", text: "250")
-        XCTAssertEqual(FishboneFigure.coagParts(fibOnly), ["fibrinogen"])
     }
 
     // MARK: Carotid and vertebral cautions on the tab

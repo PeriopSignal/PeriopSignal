@@ -39,6 +39,11 @@ enum LabGroup: String, CaseIterable, Codable, Hashable {
     /// AST, ALT, alkaline phosphatase; albumin and total bilirubin are in main, beside the other MELD inputs.
     case liver
     case thyroid
+    /// 1.12 (Ben's note 12): the vancomycin level, with the urinalysis and blood cultures (PatientMoreLabs) under "+ Infectious
+    /// labs".
+    case infectious
+    /// 1.12: the typed hCG, under "+ Pregnancy test" (shown for a woman or a patient whose sex is not set).
+    case pregnancy
 
     var title: String {
         switch self {
@@ -46,6 +51,8 @@ enum LabGroup: String, CaseIterable, Codable, Hashable {
         case .cardiac: return "Cardiac"
         case .liver: return "Liver"
         case .thyroid: return "Thyroid"
+        case .infectious: return "Infectious labs"
+        case .pregnancy: return "Pregnancy test"
         }
     }
 }
@@ -599,6 +606,14 @@ enum PatientLabs {
                 range: LabRange(0.8, 1.8), decimals: 2, plausible: 0.05...15),
         LabTest("ft3", "Free T3", short: "Free T3", unit: "pg/mL", group: .thyroid,
                 range: LabRange(2.3, 4.2), decimals: 1, plausible: 0.5...50),
+
+        // 1.12 (Ben's note 12). No reference range for either: a vancomycin target depends on the indication (an AUC or a
+        // trough, by the site and the organism), and an hCG range depends on the assay and the setting, so none is invented
+        // and neither is ever flagged. The hCG is a number here only when a number is typed (PatientMoreLabs.setHCG).
+        LabTest("vanc", "Vancomycin level", short: "Vanc", unit: "mcg/mL", group: .infectious, decimals: 1, plausible: 0.1...200,
+                note: "Not flagged: the target depends on the indication."),
+        LabTest("hcg", "hCG", short: "hCG", unit: "mIU/mL", group: .pregnancy, decimals: 1, plausible: 0...10_000_000,
+                note: "Not flagged: read it against the assay's range and the clinical setting."),
 
         // Lactate (1.8.3), last on the labs line and at the foot of the main labs: the intraoperative gas's own entry
         // (unit, range and source note), named without "arterial" because a preoperative sample may be venous.

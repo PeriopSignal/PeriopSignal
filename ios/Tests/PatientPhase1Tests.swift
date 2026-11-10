@@ -344,7 +344,8 @@ final class PatientPhase1Tests: XCTestCase {
         XCTAssertTrue(IntraopLabsEditor.fieldOrder(r).isEmpty, "no set, no fields")
         r.intraopLabs = [IntraopLabSet(time: Date())]
         let order = IntraopLabsEditor.fieldOrder(r)
-        XCTAssertEqual(order.first, "iop.ph")
+        XCTAssertEqual(order.first, "iop.glucose", "1.12 (Ben's note 13): the glucose has a section of its own above the blood gas")
+        XCTAssertEqual(order.dropFirst().first, "iop.ph")
         XCTAssertTrue(order.contains("iop.be"), "base excess keeps its place, beside its ± button")
         XCTAssertEqual(order.last, "iop.act")
         XCTAssertEqual(Set(order).count, order.count, "every field once")

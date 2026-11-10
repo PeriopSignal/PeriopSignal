@@ -176,14 +176,6 @@ final class Intraop110Tests: XCTestCase {
         XCTAssertEqual(PatientMonthYear(year: 2025).text, "2025")
     }
 
-    func testAnOlderTimeInTheLabsCaptionUsesTheNewDate() {
-        var r = PatientRecord()
-        r.labs = ["k": 5.0, "na": 138]
-        r.intraopLabs = [IntraopLabSet(time: date(3, 10, 40), values: ["k": 4.9])]
-        let caption = BriefLabs.make(r, withIntraop: true, now: date()).labs.caption
-        XCTAssertEqual(caption, "* Intraop 11/03/26 10:40; other values preop")
-    }
-
     // MARK: SLIC
 
     func testSLICIsACentralLineOption() throws {
@@ -206,46 +198,63 @@ final class Intraop110Tests: XCTestCase {
     }
 
     // MARK: Labs: times, very small
+    //
+    // 1.12 (Ben's note 8) took the asterisk and its footnote ("* Intraop 10:40; other values preop") out: the Preop and
+    // Intraop columns say which is which. The times stay as the small caption, so the 1.10 tests of the caption were
+    // rewritten for the new wording (they are also covered in A112Tests).
+
+    func testAnOlderTimeInTheLabsCaptionUsesTheNewDate() {
+        var r = PatientRecord()
+        r.labs = ["k": 5.0, "na": 138]
+        r.intraopLabs = [IntraopLabSet(time: date(3, 10, 40), values: ["inr": 1.4])]
+        let caption = BriefLabs.make(r, withIntraop: true, now: date()).caption
+        XCTAssertEqual(caption, "Intraop 11/03/26 10:40")
+        // The gas names its own time, with the date when it is another day.
+        r.intraopLabs = [IntraopLabSet(time: date(3, 10, 40), values: ["ph": 7.4])]
+        XCTAssertEqual(BriefLabs.make(r, withIntraop: true, now: date()).gas?.title, "ABG (11/03/26 10:40)")
+    }
 
     func testPreoperativeLabsNoteWhenTheyWereDrawn() throws {
         var r = PatientRecord()
         r.labs = ["k": 4.1, "na": 138]
-        XCTAssertNil(BriefLabs.make(r, withIntraop: false, now: date()).labs.caption, "no time entered, none shown")
+        XCTAssertNil(BriefLabs.make(r, withIntraop: false, now: date()).caption, "no time entered, none shown")
         r.labsDrawn = date(7, 6, 30)
-        XCTAssertEqual(BriefLabs.make(r, withIntraop: false, now: date()).labs.caption, "Preop labs 06:30")
-        guard case .fishbone(let pre)? = try block(PatientBriefs.preop(r, now: date()), "labs").figure else { return XCTFail("no fishbone") }
+        XCTAssertEqual(BriefLabs.make(r, withIntraop: false, now: date()).caption, "Preop labs 06:30")
+        guard case .fishbone(let pre)? = try block(PatientBriefs.preop(r, now: date()), "labs").figure else { return XCTFail("no labs figure") }
         XCTAssertEqual(pre.caption, "Preop labs 06:30")
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(r, now: date())), "Labs: BMP: Na 138, K 4.1\n  Preop labs 06:30")
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(r, now: date())), "Labs: Preop: CMP: Na 138, K 4.1\n  Preop labs 06:30")
         // Drawn another day: the date too.
         r.labsDrawn = date(5, 6, 30)
-        XCTAssertEqual(BriefLabs.make(r, withIntraop: false, now: date()).labs.caption, "Preop labs 11/05/26 06:30")
+        XCTAssertEqual(BriefLabs.make(r, withIntraop: false, now: date()).caption, "Preop labs 11/05/26 06:30")
     }
 
     func testTheHandoffNotesTheTimeOfEachSetAndOfThePreoperativeValues() throws {
         var r = PatientRecord()
         r.labs = ["k": 5.6, "na": 138]
         r.labsDrawn = date(7, 6, 30)
-        r.intraopLabs = [IntraopLabSet(time: date(7, 10, 40), values: ["k": 4.9])]
-        let caption = BriefLabs.make(r, withIntraop: true, now: date()).labs.caption
-        XCTAssertEqual(caption, "* Intraop 10:40; other values preop 06:30")
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())), "Labs: BMP: Na 138, K 4.9*\n  * Intraop 10:40; other values preop 06:30")
+        r.intraopLabs = [IntraopLabSet(time: date(7, 10, 40), values: ["inr": 1.4])]
+        let caption = BriefLabs.make(r, withIntraop: true, now: date()).caption
+        XCTAssertEqual(caption, "Preop labs 06:30 · Intraop 10:40")
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())),
+                       "Labs:\n  Preop: CMP: Na 138, K 5.6 H\n  Intraop: Coags: INR 1.4 H\n  Preop labs 06:30 · Intraop 10:40")
         // Preoperative labs with a time and no case sets: the time alone.
         var pre = PatientRecord()
         pre.labs = ["na": 138]
         pre.labsDrawn = date(7, 6, 30)
-        XCTAssertEqual(BriefLabs.make(pre, withIntraop: true, now: date()).labs.caption, "Preop labs 06:30")
+        XCTAssertEqual(BriefLabs.make(pre, withIntraop: true, now: date()).caption, "Preop labs 06:30")
     }
 
-    func testALabSetWithOnlyOtherValuesStillShowsItsTime() throws {
-        // pH and lactate are not on the fishbone: the caption still goes under it, so their time is not lost.
+    func testALabSetWithOnlyAGasStillShowsItsTime() throws {
+        // pH and lactate alone: the Intraop column is the gas, labelled with its time.
         var r = PatientRecord()
         r.intraopLabs = [IntraopLabSet(time: date(7, 10, 40), values: ["ph": 7.33, "lactate": 1.4])]
         let labs = try block(PatientBriefs.handoff(r, now: date()), "labs")
-        guard case .fishbone(let f)? = labs.figure else { return XCTFail("a block with a caption keeps its figure") }
-        XCTAssertTrue(f.isEmpty)
-        XCTAssertEqual(f.caption, "* Intraop 10:40")
+        guard case .fishbone(let f)? = labs.figure else { return XCTFail("the labs block keeps its figure") }
+        XCTAssertFalse(f.isEmpty)
+        XCTAssertEqual(f.gas?.figureLabel, "ABG · 10:40")
+        XCTAssertNil(f.caption, "the gas carries its time; no coags, so nothing else to date")
         XCTAssertTrue(labs.figureHasContent)
-        XCTAssertTrue(PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())).contains("* Intraop 10:40"), PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())))
+        XCTAssertEqual(labs.text, "Intraop: ABG (10:40): pH 7.33 L, Lactate 1.4")
     }
 
     func testTheDrawnTimeSavesAndOlderRecordsHaveNone() throws {

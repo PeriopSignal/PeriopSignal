@@ -424,29 +424,36 @@ final class A111Tests: XCTestCase {
         for k in IntraopLabs.abgSlash { XCTAssertNotNil(IntraopLabs.tests([k]).first, k) }
         var r = PatientRecord()
         r.intraopLabs = [IntraopLabSet(time: Date())]
-        XCTAssertEqual(Array(IntraopLabsEditor.fieldOrder(r).prefix(5)), ["iop.ph", "iop.paco2", "iop.pao2", "iop.hco3a", "iop.be"], "Next walks the slash figure, then the rows")
+        // 1.12 (Ben's note 13): the glucose has a section of its own above the blood gas, so Next starts there.
+        XCTAssertEqual(Array(IntraopLabsEditor.fieldOrder(r).prefix(6)), ["iop.glucose", "iop.ph", "iop.paco2", "iop.pao2", "iop.hco3a", "iop.be"], "Next walks the glucose, the slash figure, then the rows")
         XCTAssertEqual(PatientLabs.slotHint("ph", sex: nil), "7.38–7.44", "the gas slots hint the ABIM ranges too")
         XCTAssertEqual(PatientLabs.slotHint("pao2", sex: nil), "75 or more")
     }
 
     // MARK: The briefs
 
-    func testBriefFishboneStaysInStep() throws {
+    /// 1.12 (Ben's note 8) took the fishbone out of the summaries, so the 1.11 test of the brief's figure became a test of
+    /// the Preop column; the tab card (PreopLabsCard) still draws the figures from the same key lists.
+    func testBriefLabsStayInStepWithTheCatalog() throws {
         let r = PatientDemo.labs111
         let made = BriefLabs.make(r, withIntraop: false)
-        XCTAssertEqual(BriefLabs.fishboneKeys, Set(BriefLabs.bmpKeys + BriefLabs.cbcKeys + BriefLabs.coagKeys), "the brief's figure keeps the BMP, CBC and coagulation groups")
-        XCTAssertTrue(made.labs.hasBMP && made.labs.hasCBC && made.labs.hasCoags)
-        XCTAssertEqual(made.labs.cells["pt"]?.text, "12.4")
-        XCTAssertEqual(made.labs.cells["ptt"]?.text, "31")
-        XCTAssertEqual(FishboneFigure.coagParts(made.labs), ["ptinr", "ptt"], "no fibrinogen entered, so no fibrinogen cell")
-        XCTAssertTrue(made.side.contains { $0.key == "ast" && $0.abnormal }, "the hepatic values are listed beside the figure")
-        XCTAssertTrue(made.side.contains { $0.key == "mg" })
-        XCTAssertFalse(made.labs.cells.keys.contains("ast"), "and not drawn on it")
+        XCTAssertEqual(BriefLabs.fishboneKeys, Set(BriefLabs.bmpKeys + BriefLabs.cbcKeys + BriefLabs.coagKeys), "the tab card's figures keep the BMP, CBC and coagulation groups")
+        XCTAssertEqual(made.preop.map(\.name), ["CMP", "Heme", "Other"])
+        let items = made.preop.flatMap(\.items)
+        XCTAssertTrue(items.contains { $0.text == "AST 62 H" && $0.marks == ["AST 62 H"] }, "the hepatic values are in the CMP, abnormal in red")
+        XCTAssertTrue(items.contains { $0.text == "PTT 31" })
+        XCTAssertFalse(items.contains { $0.key == "pt" }, "the PT is not in the default list: a chip under + Add other input data into Handoff")
+        XCTAssertFalse(items.contains { $0.key == "mg" })
         let block = try XCTUnwrap(PatientBriefs.handoff(r).first { $0.key == "labs" })
-        guard case .fishbone(let labs)? = block.figure else { return XCTFail("no fishbone") }
-        XCTAssertEqual(labs.cells["na"]?.text, "139")
-        XCTAssertTrue(block.text.contains("Ca 8.3 L"))
-        XCTAssertTrue(block.marks.contains("Ca 8.3 L"))
+        guard case .fishbone(let labs)? = block.figure else { return XCTFail("no labs figure") }
+        XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "Na 139" })
+        XCTAssertFalse(block.text.contains("Ca 8.3 L"), "the calcium is a chip")
+        XCTAssertTrue(HandoffExtras.preopCandidates(r).map(\.key).contains("preop:ca"))
+        var chosen = r
+        chosen.handoffExtras = ["preop:ca"]
+        let again = try XCTUnwrap(PatientBriefs.handoff(chosen).first { $0.key == "labs" })
+        XCTAssertTrue(again.text.contains("Ca 8.3 L"))
+        XCTAssertTrue(again.marks.contains("Ca 8.3 L"))
     }
 
     // MARK: Demo patients
