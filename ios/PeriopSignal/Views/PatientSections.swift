@@ -801,7 +801,7 @@ struct PatientEchoSaveBar: View {
             } label: {
                 Text(pre || intra ? "Update" : "Save").font(PS.sys(size: 13.5, weight: .semibold))
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: !(pre || intra)))
+            .buttonStyle(CapsuleButtonStyle.patientAction(prominent: !(pre || intra)))
         }
         .padding(12)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

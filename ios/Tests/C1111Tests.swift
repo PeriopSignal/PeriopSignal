@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import UIKit
 @testable import PeriopSignal
 
 /// 1.11, helper C1 (P1-5, P1-6, P1-8; Ben's Q1, Q3, Q7): the jump bar's short labels and the current-section rule, the
@@ -226,6 +227,84 @@ final class C1111Tests: XCTestCase {
         XCTAssertEqual(PatientView.shotTargetKey("demographics"), PatientJumpID(anchor: "demographics").key)
         XCTAssertNotEqual(PatientView.shotTargetKey("demographics-title"), PatientView.shotTargetKey("demographics"))
         XCTAssertEqual(PatientView.shotTargetKey("summary"), PatientJumpID(section: .summary).key)
+    }
+
+    // MARK: P1-8 — filled capsules that act are the action colour; the title line's narrower Regenerate
+
+    /// "Add N" on the quick-add bar is an action, so its capsule is filled with the action colour. The bar and the
+    /// gallery's sample read one constant, so the gallery cannot show a colour the bar does not draw.
+    @MainActor func testQuickAddsAddCapsuleIsTheActionColour() {
+        XCTAssertEqual(QuickAddBar.addButtonColor, PS.action)
+        XCTAssertNotEqual(QuickAddBar.addButtonColor, PS.accent, "the brand red is the tab bar's selection only")
+    }
+
+    /// My Patient's other filled capsules (Done, Save, Generate preprocedure summary, Save to My Patient) take the same
+    /// colour through one style, with the label colour that reads on it. The style's own default is untouched: Feed
+    /// and Reference keep the brand red.
+    @MainActor func testMyPatientsFilledCapsulesAreTheActionColourAndTheSharedDefaultIsUnchanged() {
+        let style = CapsuleButtonStyle.patientAction()
+        XCTAssertEqual(style.color, PS.action)
+        XCTAssertTrue(style.prominent)
+        XCTAssertEqual(style.onColor, PS.accentFg, "white in light, near-black in dark: both read on the action blue")
+        XCTAssertEqual(style.color, QuickAddBar.addButtonColor, "the same fill as Add N")
+        XCTAssertFalse(CapsuleButtonStyle.patientAction(prominent: false).prominent, "Update on the echo save bar stays the quiet capsule")
+        XCTAssertEqual(CapsuleButtonStyle().color, PS.accent, "the shared default stays as Feed and Reference draw it")
+        XCTAssertTrue(CapsuleButtonStyle().prominent)
+    }
+
+    /// The line under a TEE item saying what in the record raised it ("Outside the reference range: platelets 96
+    /// ×10³/µL, INR 1.8.") is a clinical flag and cannot be tapped: alert red, never the action blue.
+    @MainActor func testTheTEEScreensReasonLineIsAnAlertNotAnAction() {
+        XCTAssertEqual(TEEScreenStyle.reasonColor, PS.red)
+        XCTAssertNotEqual(TEEScreenStyle.reasonColor, PS.action)
+        // The line it colours, for a low platelet count (the app's own reference range decides "low").
+        var r = PatientRecord()
+        r.labs["plt"] = 20
+        let why = PatientTEE.evaluate(r).suggestions.first { $0.item.id == "coagulopathy" }?.why ?? ""
+        XCTAssertTrue(why.hasPrefix("Outside the reference range: platelets 20"), why)
+    }
+
+    /// Regenerate is spoken the same in all three of its forms, and the narrower two are what they say.
+    @MainActor func testRegenerateHasThreeFormsWithOneSpokenName() {
+        XCTAssertEqual(BriefRegenerateButton.LabelForm.allCases, [.full, .word, .icon])
+        XCTAssertEqual(BriefRegenerateButton.spokenName, "Regenerate")
+        XCTAssertEqual(BriefRegenerateButton(kind: .preop).form, .full, "the handoff's eyebrow row keeps the full capsule")
+    }
+
+    @MainActor private func titleHeight(_ width: CGFloat, forms: [BriefRegenerateButton.LabelForm]) -> CGFloat {
+        let store = PatientStore(url: nil)
+        func control(_ i: Int) -> AnyView? {
+            i < forms.count ? AnyView(BriefRegenerateButton(kind: .preop, form: forms[i]).environment(store)) : nil
+        }
+        let view = PreopSectionTitle(text: PreopSection.summary.sectionTitle, trailing: control(0), trailingCompact: control(1),
+                                     trailingMinimal: control(2))
+        let r = ImageRenderer(content: view.frame(width: width))
+        r.proposedSize = ProposedViewSize(width: width, height: nil)
+        return r.uiImage?.size.height ?? -1
+    }
+
+    /// "Preprocedure Summary" keeps Regenerate on its own line on a 375-point phone at the default text size (335
+    /// points between the page's margins): where the full capsule does not fit, a narrower form does. Only where not
+    /// even the icon fits beside the title does the control take a second row, and then it is the full capsule.
+    @MainActor func testRegenerateStaysOnTheTitleLineOnANarrowPhone() {
+        let was = PS.textScale
+        PS.textScale = 1
+        defer { PS.textScale = was }
+        let all: [BriefRegenerateButton.LabelForm] = [.full, .word, .icon]
+        let title = (PreopSection.summary.sectionTitle as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 19, weight: .bold)]).width
+        let oneLine = titleHeight(900, forms: all)
+        XCTAssertGreaterThan(oneLine, 0)
+        // A second row adds the gap (8) and the title's own line (about 23).
+        let secondRow: CGFloat = 20
+
+        XCTAssertLessThanOrEqual(titleHeight(335, forms: all), oneLine + 8, "one line on a 375-point phone")
+        // Room for the title and the icon capsule (44), not for the word (about 99) or the full capsule (about 119).
+        let iconOnly = title + 8 + 62
+        XCTAssertLessThanOrEqual(titleHeight(iconOnly, forms: all), oneLine + 8, "the icon alone still shares the title's line")
+        XCTAssertGreaterThan(titleHeight(iconOnly, forms: [.full]), oneLine + secondRow, "without the narrower forms the capsule drops to its own row")
+        XCTAssertGreaterThan(titleHeight(iconOnly, forms: [.full, .word]), oneLine + secondRow, "the word alone does not fit there either")
+        // No room beside the title even for the icon: two rows, nothing clipped.
+        XCTAssertGreaterThan(titleHeight(title + 24, forms: all), oneLine + secondRow)
     }
 
     // MARK: Saved records

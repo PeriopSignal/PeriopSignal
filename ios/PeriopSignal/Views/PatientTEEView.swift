@@ -131,12 +131,21 @@ extension PatientEditorView {
                 Text(fromRecord.joined(separator: "; ")).font(PS.sys(size: 12)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             if let why {
-                Text(why).font(PS.sys(size: 12)).foregroundStyle(PS.accent2).fixedSize(horizontal: false, vertical: true)
+                Text(why).font(PS.sys(size: 12)).foregroundStyle(TEEScreenStyle.reasonColor).fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
         .accessibilityElement(children: .contain)
     }
+}
+
+/// Colours of the TEE screen's rows that are not a control's.
+enum TEEScreenStyle {
+    /// The line under an item saying what in the record raised it ("Outside the reference range: platelets 96 ×10³/µL,
+    /// INR 1.8.", "Cirrhosis recorded: are there esophageal varices?"). It flags a possible contraindication and
+    /// cannot be tapped, so it is the clinical alert colour, like the row's "In the record", never the action blue
+    /// (1.11, P1-8: blue is for what can be tapped).
+    static let reasonColor: Color = PS.red
 }
 
 /// An item's label, with its definition behind an ⓘ at the end of the label (1.8.1). Captions that say how an item is

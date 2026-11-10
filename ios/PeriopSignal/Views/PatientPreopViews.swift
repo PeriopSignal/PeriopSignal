@@ -45,19 +45,25 @@ private extension PatientStore {
 struct PreopSectionTitle: View {
     var text: String
     var info: String? = nil
-    /// A control on the title's line, at its trailing edge (1.11, P1-6: Regenerate beside "Preprocedure Summary"). Where
-    /// the two do not fit one line (a narrow phone at the largest text size) it drops under the title, never clipped.
+    /// A control on the title's line, at its trailing edge (1.11, P1-6: Regenerate beside "Preprocedure Summary").
+    /// "Preprocedure Summary" and the full capsule (icon and word) need about 342 points and a 375-point phone has
+    /// 335, so the title's line takes the first form that fits: `trailing`, then `trailingCompact`, then
+    /// `trailingMinimal`. Only where none of them fits beside the title (large text on a narrow phone) does the full
+    /// control drop to its own row under the title. Nothing is clipped in any form.
     var trailing: AnyView? = nil
+    /// A narrower form of `trailing` (Regenerate without its icon), tried when the full one does not fit.
+    var trailingCompact: AnyView? = nil
+    /// The narrowest form (Regenerate as its icon alone, its spoken name kept), tried before the two-row form.
+    var trailingMinimal: AnyView? = nil
     @State private var open = LaunchSeed.bool("ps.evidence.open")
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if let trailing {
                 ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        titleLine.fixedSize(horizontal: true, vertical: false)
-                        Spacer(minLength: 0)
-                        trailing
-                    }
+                    oneLine(trailing)
+                    // With no narrower form given these repeat the one before, which changes nothing.
+                    oneLine(trailingCompact ?? trailing)
+                    oneLine(trailingMinimal ?? trailingCompact ?? trailing)
                     VStack(alignment: .leading, spacing: 8) {
                         titleLine
                         HStack(spacing: 0) { Spacer(minLength: 0); trailing }
@@ -70,6 +76,15 @@ struct PreopSectionTitle: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 10)
+    }
+
+    /// The title at its full width with a control at the line's trailing edge.
+    private func oneLine(_ control: AnyView) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            titleLine.fixedSize(horizontal: true, vertical: false)
+            Spacer(minLength: 8)
+            control
+        }
     }
 
     private var titleLine: some View {

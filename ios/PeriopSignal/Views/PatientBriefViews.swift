@@ -258,7 +258,7 @@ struct BriefBlockView: View {
                             onCommit(block.key, draft)
                             editing = false
                         }
-                        .buttonStyle(CapsuleButtonStyle(prominent: true))
+                        .buttonStyle(CapsuleButtonStyle.patientAction())
                         Button("Cancel") { editing = false }
                             .buttonStyle(CapsuleButtonStyle(prominent: false))
                         Spacer(minLength: 0)
@@ -357,15 +357,31 @@ struct BriefPanel: View {
 /// A brief's Regenerate: off until the brief has an edit; asks, then clears this brief's edits (Undo brings them back).
 /// On the handoff's eyebrow row, and on the Preprocedure Summary title's line.
 struct BriefRegenerateButton: View {
+    /// How much of the capsule is drawn: icon and word, the word alone, or the icon alone. The narrower forms are for
+    /// the Preprocedure Summary title's line on a narrow phone (PreopSectionTitle); all three are spoken the same.
+    enum LabelForm: CaseIterable { case full, word, icon }
+    static let spokenName = "Regenerate"
+
     @Environment(PatientStore.self) private var patient
     var kind: PatientBriefs.Kind
+    var form: LabelForm = .full
     @State private var confirming = false
 
     private var edited: Bool { !PatientBriefs.edits(kind, patient.record).isEmpty }
 
+    @ViewBuilder static func label(_ form: LabelForm) -> some View {
+        switch form {
+        case .full: Label(spokenName, systemImage: "arrow.clockwise")
+        case .word: Text(spokenName)
+        // At least 18 points of icon, so the capsule (13 points of padding each side) is 44 wide to tap.
+        case .icon: Image(systemName: "arrow.clockwise").frame(minWidth: 18)
+        }
+    }
+
     var body: some View {
-        Button { confirming = true } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
+        Button { confirming = true } label: { Self.label(form) }
             .buttonStyle(CapsuleButtonStyle(prominent: false))
+            .accessibilityLabel(Self.spokenName)
             .disabled(!edited)
             .opacity(edited ? 1 : 0.45)
             .accessibilityHint("Rebuilds this text from the record and clears your edits")
@@ -400,7 +416,7 @@ struct PreprocedureSummaryView: View {
             Button { Haptics.light(); patient.update(discrete: true) { $0.preopSummaryOn = true } } label: {
                 Label("Generate preprocedure summary", systemImage: "plus")
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: true, color: PS.action))
+            .buttonStyle(CapsuleButtonStyle.patientAction())
             .id("preopsummary")
         } else {
             Color.clear.frame(height: 1).id("preopsummary")

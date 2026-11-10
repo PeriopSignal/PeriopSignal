@@ -621,8 +621,11 @@ struct PatientView: View {
     /// 6. Preprocedure Summary. Once the summary is generated its Regenerate sits on the title's line (1.11, P1-6: one
     /// heading, no row of its own for the button); before that there is nothing to regenerate.
     @ViewBuilder private var summarySection: some View {
+        let regenerate = Self.summaryTitleHasRegenerate(r)
         PreopSectionTitle(text: PreopSection.summary.sectionTitle,
-                          trailing: Self.summaryTitleHasRegenerate(r) ? AnyView(BriefRegenerateButton(kind: .preop)) : nil)
+                          trailing: regenerate ? AnyView(BriefRegenerateButton(kind: .preop)) : nil,
+                          trailingCompact: regenerate ? AnyView(BriefRegenerateButton(kind: .preop, form: .word)) : nil,
+                          trailingMinimal: regenerate ? AnyView(BriefRegenerateButton(kind: .preop, form: .icon)) : nil)
             .jumpTarget(section: .summary)
         PreprocedureSummaryView()
     }

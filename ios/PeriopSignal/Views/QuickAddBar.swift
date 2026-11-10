@@ -8,6 +8,9 @@ import SwiftUI
 /// Undo steps back exactly that, the record as it was. A long paste opens the full note review instead, and the pencil
 /// opens it for dictation. Read on this phone by fixed rules; the line itself is not kept.
 struct QuickAddBar: View {
+    /// The fill of the "Add N" capsule: an action, so the action colour (1.11, P1-8), never the brand red of the tab
+    /// bar. The style gallery draws its sample from this, so the two cannot drift apart.
+    static let addButtonColor: Color = PS.action
     @Environment(PatientStore.self) private var patient
     var place: QuickAddPlace
     /// The example in the field, where the page has its own (Previous Intrathoracic Surgery); else the place's.
@@ -116,7 +119,7 @@ struct QuickAddBar: View {
                 .accessibilityHint("Type the patient in one line. Check the chips below, then press Return to add them.")
             if !addable.isEmpty {
                 Button { add() } label: { Text("Add \(addable.count)") }
-                    .buttonStyle(CapsuleButtonStyle())
+                    .buttonStyle(CapsuleButtonStyle(color: Self.addButtonColor))
                     .accessibilityLabel("Add \(addable.count) item\(addable.count == 1 ? "" : "s")")
             } else if !text.isEmpty {
                 Button { withAnimation(.snappy) { clear() } } label: {
