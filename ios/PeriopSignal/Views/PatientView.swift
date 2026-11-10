@@ -119,6 +119,12 @@ struct PatientView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 4)
                     .padding(.bottom, 32)
+                    // Where the tab's content ends, for the current chip at the end of the tab.
+                    .background {
+                        GeometryReader { g in
+                            Color.clear.preference(key: PatientJumpAnchorKey.self, value: [PatientJumpCurrent.endKey: g.frame(in: .global).maxY])
+                        }
+                    }
                     .id(Self.topID)
                 }
                 .scrollDismissesKeyboard(.interactively)
@@ -126,13 +132,24 @@ struct PatientView: View {
                 // 1.11: where each section's anchor is, as the tab scrolls; the current chip follows (P1-5).
                 .onPreferenceChange(PatientJumpAnchorKey.self) { tops in
                     jumpGeometry.tops = tops
+                    jumpGeometry.endY = tops[PatientJumpCurrent.endKey] ?? .infinity
                     updateCurrentJump()
+                }
+                // The bottom of the part of the screen the tab shows in (above the tab bar or the keyboard).
+                .overlay {
+                    GeometryReader { g in
+                        Color.clear
+                            .onAppear { jumpGeometry.viewBottom = g.frame(in: .global).maxY; updateCurrentJump() }
+                            .onChange(of: g.frame(in: .global).maxY) { _, y in jumpGeometry.viewBottom = y; updateCurrentJump() }
+                    }
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
                 }
                 .onChange(of: menuJump) { _, target in
                     guard let target else { return }
                     // The tab may have just been switched by the same tap: give it a frame to lay out.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                        withAnimation(.snappy) { proxy.scrollTo(target, anchor: .top) }
+                        jump(to: target, proxy)
                         menuJump = nil
                     }
                 }
@@ -473,6 +490,7 @@ struct PatientView: View {
         // chip would match nothing); a tap on the tab showing keeps its chip.
         let keep = Self.jumpAfterSelecting(t, showing: tab, current: currentJump)
         withAnimation(.snappy) { tabOverride = nil; tabID = t.rawValue }
+        jumpGeometry.held = nil
         currentJump = keep
         scrollToTop += 1
     }
@@ -814,8 +832,24 @@ struct PatientView: View {
     /// The section at the top of the viewport (PatientJumpCurrent), set only when it changes.
     private func updateCurrentJump() {
         guard let items = jumpItems else { return }
-        let current = PatientJumpCurrent.current(order: items.map(\.id), tops: jumpGeometry.tops, pinY: jumpGeometry.pinY)
+        let order = items.map(\.id)
+        let g = jumpGeometry
+        if let held = g.held {
+            if let top = g.tops[held.key] { g.heldMinTop = min(g.heldMinTop, top) }
+            if !PatientJumpCurrent.holds(order: order, tops: g.tops, pinY: g.pinY, held: held, heldMinTop: g.heldMinTop) { g.held = nil }
+        }
+        // The end of the tab counts only once the bar is pinned: a tab shorter than the screen is at its top.
+        let atEnd = jumpPinned && g.endY <= g.viewBottom + 2
+        let current = PatientJumpCurrent.current(order: order, tops: g.tops, pinY: g.pinY, atEnd: atEnd, held: g.held, heldMinTop: g.heldMinTop)
         if current != currentJump { currentJump = current }
+    }
+
+    /// A chip or the title menu jumps to a section: its chip is the current one from the tap (PatientJumpCurrent.holds).
+    private func jump(to id: PatientJumpID, _ proxy: ScrollViewProxy) {
+        jumpGeometry.held = id
+        jumpGeometry.heldMinTop = .infinity
+        updateCurrentJump()
+        withAnimation(.snappy) { proxy.scrollTo(id, anchor: .top) }
     }
 
     /// The jump bar again, pinned at the top of the tab on the app's background material, once the tab's own has
@@ -860,7 +894,7 @@ struct PatientView: View {
                 HStack(spacing: 8) {
                     ForEach(items, id: \.self) { item in
                         let current = item.id == (currentJump ?? items.first?.id)
-                        Button { withAnimation(.snappy) { proxy.scrollTo(item.id, anchor: .top) } } label: {
+                        Button { jump(to: item.id, proxy) } label: {
                             PatientJumpChip(title: item.title, current: current)
                         }
                         .buttonStyle(.plain)
@@ -1081,6 +1115,12 @@ final class PatientJumpGeometry {
     var pinY: CGFloat = -.infinity
     /// The top of each section's jump anchor, by PatientJumpID.key (1.11: the current chip).
     var tops: [String: CGFloat] = [:]
+    /// The bottom of the tab's content and of the part of the screen it shows in: at the end of the tab the two meet.
+    var endY: CGFloat = .infinity
+    var viewBottom: CGFloat = -.infinity
+    /// The section a chip or the title menu just jumped to, and the highest point its anchor has reached since.
+    var held: PatientJumpID?
+    var heldMinTop: CGFloat = .infinity
 }
 
 /// Which section's chip is drawn filled (1.11, P1-5): the last section, in the bar's order, whose anchor has reached the
@@ -1091,6 +1131,11 @@ enum PatientJumpCurrent {
     /// How far below the pinned chips an anchor may sit and still count as reached (a jump lands it about 8 pt above).
     static let tolerance: CGFloat = 24
 
+    /// How far back down a section just jumped to may be scrolled before its chip lets go.
+    static let holdSlack: CGFloat = 40
+    /// The key the end of the tab's content reports under (not a section).
+    static let endKey = "ps.jump.end"
+
     static func current(order: [PatientJumpID], tops: [String: CGFloat], pinY: CGFloat, tolerance: CGFloat = tolerance) -> PatientJumpID? {
         guard let first = order.first else { return nil }
         guard pinY.isFinite else { return first }
@@ -1100,6 +1145,26 @@ enum PatientJumpCurrent {
             if top <= pinY + tolerance { current = id }
         }
         return current
+    }
+
+    /// Whether a section just jumped to keeps its chip. A short last section cannot reach the pinned bar (the tab ends
+    /// first), so the rule above would leave an earlier chip filled after the tap. The section jumped to holds the chip
+    /// while it comes later in the bar's order than the section at the bar and has not been scrolled back down by hand
+    /// (more than holdSlack below the highest point it reached). Once it reaches the bar the rule above says the same.
+    static func holds(order: [PatientJumpID], tops: [String: CGFloat], pinY: CGFloat, held: PatientJumpID, heldMinTop: CGFloat) -> Bool {
+        guard let reached = current(order: order, tops: tops, pinY: pinY),
+              let h = order.firstIndex(of: held), let r = order.firstIndex(of: reached), h > r else { return false }
+        guard let top = tops[held.key] else { return true }
+        return top <= heldMinTop + holdSlack
+    }
+
+    /// The current chip with the two cases the bar's own rule cannot tell: a section just jumped to (`held`, see
+    /// `holds`), and the end of the tab (`atEnd`), where the last section laid out is current though its anchor never
+    /// reached the bar.
+    static func current(order: [PatientJumpID], tops: [String: CGFloat], pinY: CGFloat, atEnd: Bool, held: PatientJumpID?, heldMinTop: CGFloat) -> PatientJumpID? {
+        if let held, holds(order: order, tops: tops, pinY: pinY, held: held, heldMinTop: heldMinTop) { return held }
+        if atEnd, pinY.isFinite, let last = order.last(where: { tops[$0.key] != nil }) { return last }
+        return current(order: order, tops: tops, pinY: pinY)
     }
 }
 

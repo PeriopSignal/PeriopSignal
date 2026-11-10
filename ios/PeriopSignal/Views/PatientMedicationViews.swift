@@ -455,7 +455,7 @@ private struct LineFieldRow: View {
                 .accessibilityLabel(label)
             if addCount > 0 {
                 Button(action: onAdd) { Text(addTitle ?? "Add \(addCount)") }
-                    .buttonStyle(CapsuleButtonStyle())
+                    .buttonStyle(CapsuleButtonStyle.patientAction())
                     .accessibilityLabel(addTitle ?? "Add \(addCount) " + (addCount == 1 ? noun.one : noun.many))
             } else if !text.isEmpty {
                 Button { withAnimation(.snappy) { onClear() } } label: {

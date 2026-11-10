@@ -63,6 +63,33 @@ final class C1111Tests: XCTestCase {
         XCTAssertNil(PatientJumpCurrent.current(order: [], tops: [:], pinY: pinY))
     }
 
+    /// A short last section cannot reach the pinned bar: a section jumped to keeps its chip until it is scrolled back
+    /// down by hand, and at the end of the tab the last section is current (1.11 review).
+    func testAJumpedToSectionAndTheEndOfTheTab() {
+        let a = PatientJumpID(section: .procedure), b = PatientJumpID(section: .demographics), c = PatientJumpID(section: .workup)
+        let order = [a, b, c]
+        let pinY: CGFloat = 100
+        // The tab ended with the last section's anchor 300 pt below the bar: by the bar's rule the second is current.
+        let end: [String: CGFloat] = [a.key: -900, b.key: -200, c.key: 400]
+        XCTAssertEqual(PatientJumpCurrent.current(order: order, tops: end, pinY: pinY), b)
+        // Jumped to: it holds the chip, from the tap (its anchor still far below) to where the scroll ends.
+        XCTAssertTrue(PatientJumpCurrent.holds(order: order, tops: [a.key: -100, b.key: 600, c.key: 1200], pinY: pinY, held: c, heldMinTop: .infinity))
+        XCTAssertTrue(PatientJumpCurrent.holds(order: order, tops: end, pinY: pinY, held: c, heldMinTop: 400))
+        XCTAssertEqual(PatientJumpCurrent.current(order: order, tops: end, pinY: pinY, atEnd: false, held: c, heldMinTop: 400), c)
+        // Scrolled back down by hand, past the slack: the chip lets go.
+        let back: [String: CGFloat] = [a.key: -840, b.key: -140, c.key: 400 + PatientJumpCurrent.holdSlack + 1]
+        XCTAssertFalse(PatientJumpCurrent.holds(order: order, tops: back, pinY: pinY, held: c, heldMinTop: 400))
+        XCTAssertEqual(PatientJumpCurrent.current(order: order, tops: back, pinY: pinY, atEnd: false, held: c, heldMinTop: 400), b)
+        // A section that reached the bar, or an earlier one, needs no hold: the bar's rule says where the tab is.
+        XCTAssertFalse(PatientJumpCurrent.holds(order: order, tops: [a.key: -500, b.key: 92, c.key: 800], pinY: pinY, held: b, heldMinTop: 92))
+        XCTAssertFalse(PatientJumpCurrent.holds(order: order, tops: end, pinY: pinY, held: a, heldMinTop: .infinity))
+        // At the end of the tab without a jump: the last section laid out. A jump made there still wins.
+        XCTAssertEqual(PatientJumpCurrent.current(order: order, tops: end, pinY: pinY, atEnd: true, held: nil, heldMinTop: .infinity), c)
+        XCTAssertEqual(PatientJumpCurrent.current(order: order, tops: [a.key: -900, b.key: -200], pinY: pinY, atEnd: true, held: nil, heldMinTop: .infinity), b)
+        XCTAssertEqual(PatientJumpCurrent.current(order: order, tops: end, pinY: pinY, atEnd: false, held: nil, heldMinTop: .infinity), b)
+        XCTAssertEqual(PatientJumpCurrent.current(order: order, tops: end, pinY: -.infinity, atEnd: true, held: nil, heldMinTop: .infinity), a)
+    }
+
     func testOnlySectionsReportTheirAnchors() {
         XCTAssertTrue(PatientJumpID(section: .workup).isSection)
         XCTAssertTrue(PatientJumpID(intraop: .fluids).isSection)

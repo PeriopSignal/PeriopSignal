@@ -277,7 +277,7 @@ private struct StartTimeRow: View {
                        displayedComponents: [.hourAndMinute])
                 .font(PS.sys(size: 14.5, weight: .medium))
                 .foregroundStyle(PS.fg)
-                .tint(PS.accent)
+                .tint(PS.action)
                 .environment(\.locale, Locale(identifier: "en_GB"))
         }
     }
@@ -855,7 +855,7 @@ struct CaseTimersView: View {
                             edit { $0.checks[def.id]?.done.append(TimedEntry(time: Date(), value: v)) }
                             glucoseValue = nil
                         }
-                        .buttonStyle(CapsuleButtonStyle(prominent: true)).disabled(glucoseValue == nil)
+                        .buttonStyle(CapsuleButtonStyle.patientAction()).disabled(glucoseValue == nil)
                     }
                 } else {
                     Button("Sent now") { edit { $0.checks[def.id]?.done.append(TimedEntry(time: Date())) } }
@@ -1098,7 +1098,7 @@ struct CaseTimersView: View {
                 edit { $0.heparin?.acts.append(TimedEntry(time: Date(), value: v, baseline: canBaseline ? true : nil)) }
                 actValue = nil
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: true))
+            .buttonStyle(CapsuleButtonStyle.patientAction())
             .disabled(actValue == nil || (actValue ?? 0) < 30)
         }
         if let act = status.lastACT, let at = status.lastACTTime {
