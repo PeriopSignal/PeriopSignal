@@ -39,5 +39,6 @@ struct PreopImagingLink: View {
                 QuietLinkRow(title: "Preprocedure Imaging") { withAnimation(.snappy) { open = true } }
             }
         }
+        .id("preopimaging")
     }
 }

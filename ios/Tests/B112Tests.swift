@@ -392,6 +392,31 @@ final class B112Tests: XCTestCase {
         XCTAssertFalse(url.lastPathComponent.lowercased().contains("demo"), "no identifier in the name")
     }
 
+    private func figure() throws -> RegionalFigure {
+        let json = """
+        {"figure": {"box": [200, 420], "outline": "M10 10 L190 10 L190 410 L10 410 Z", "head": {"cx": 100, "cy": 30, "rx": 17, "ry": 22}, "landmarks": {},
+          "regions": [{"id": "chest", "name": "Anterior chest and breast", "views": {}}]},
+         "blocks": [], "map": {"chest": {"blocks": []}}}
+        """
+        return try JSONDecoder().decode(RegionalData.self, from: Data(json.utf8)).figure
+    }
+
+    @MainActor func testTheLinesDiagramStandsInItsPlaceUnderLinesAndDevices() throws {
+        let plain = context()
+        var drawn = plain
+        drawn.figure = try figure()
+        let lines = try block(PatientBriefs.handoff(plain.record), "lines")
+        XCTAssertEqual(lines.figure, .diagram(arrivalOnly: false))
+        let without = BriefPages.height(of: [lines], plain, width: 350, spacing: 12)
+        let with = BriefPages.height(of: [lines], drawn, width: 350, spacing: 12)
+        XCTAssertGreaterThan(with, without + 60, "the figure stands beside the list: \(without) -> \(with)")
+        // The pages are laid out and drawn with it.
+        let blocks = PatientBriefs.handoff(plain.record)
+        XCTAssertEqual(BriefPages.sheets(blocks, drawn, geo: .phone).flatMap { $0.blocks.map(\.key) }, blocks.map(\.key))
+        XCTAssertFalse(BriefPages.images(blocks, drawn).isEmpty)
+        XCTAssertNotNil(BriefPages.pdf(blocks, drawn))
+    }
+
     @MainActor func testTextOnlyIsTheTextAndItsFooterWithNoPictures() {
         let blocks = PatientBriefs.handoff(PatientDemo112Summary.summary)
         let items = HandoffShare.textOnlyItems(blocks)

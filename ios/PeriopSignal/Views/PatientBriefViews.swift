@@ -101,6 +101,8 @@ struct BriefDiagramLayout: View {
 /// The lines block's figure from the environment (the regional figure and the record's devices).
 struct BriefDiagramList: View {
     @Environment(ReferenceStore.self) private var refs
+    /// 1.12: the figure a shared picture is drawn with (BriefPages.Context.figure); on screen, the reference store's.
+    @Environment(\.briefFigure) private var pictureFigure
     var record: PatientRecord
     var arrivalOnly: Bool
     var lines: [String]
@@ -108,7 +110,7 @@ struct BriefDiagramList: View {
 
     var body: some View {
         let m = PatientDiagramModel.items(record, phase: arrivalOnly ? .preop : .all)
-        if let fig = refs.bundle?.regional?.figure, !m.items.isEmpty {
+        if let fig = pictureFigure ?? refs.bundle?.regional?.figure, !m.items.isEmpty {
             BriefDiagramLayout(figure: fig, items: m.items, cart: m.cart, lines: lines, marks: marks)
         } else {
             VStack(alignment: .leading, spacing: 4) {
@@ -333,7 +335,7 @@ struct BriefPanel: View {
 
     /// Draws the summary in the chosen form and opens the share sheet with it (rendering runs on the main actor).
     private func share(_ format: BriefShareFormat) {
-        let ctx = BriefPages.Context(record: record, refs: refs, patient: patient)
+        let ctx = BriefPages.Context(record: record, refs: refs, patient: patient, figure: refs.bundle?.regional?.figure)
         switch format {
         case .image:
             let pages = BriefPages.images(all, ctx)
@@ -381,6 +383,7 @@ struct BriefPanel: View {
                 }
                 .buttonStyle(BigButtonStyle(prominent: false))
             }
+            .id("briefshare")
             #if DEBUG
             if !LaunchSeed.string("ps.brief.pages").isEmpty { BriefPagesPreview(blocks: all, mode: LaunchSeed.string("ps.brief.pages")) }
             #endif

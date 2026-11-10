@@ -107,11 +107,14 @@ enum BriefPages {
         var footer: String
     }
 
-    /// What the blocks are drawn with: the record (the lines diagram), and the stores the block views read.
+    /// What the blocks are drawn with: the record (the lines diagram), the stores the block views read, and the body figure
+    /// the diagram is drawn on (the reference's, taken when Share is tapped; none draws the list alone, as on screen before
+    /// the reference has loaded).
     struct Context {
         var record: PatientRecord
         var refs: ReferenceStore
         var patient: PatientStore
+        var figure: RegionalFigure?
     }
 
     // MARK: Drawing
@@ -122,6 +125,7 @@ enum BriefPages {
             .frame(width: width, alignment: .topLeading)
             .environment(ctx.refs)
             .environment(ctx.patient)
+            .environment(\.briefFigure, ctx.figure)
             .environment(\.colorScheme, .light)
             .environment(\.dynamicTypeSize, .large)
     }
@@ -150,6 +154,7 @@ enum BriefPages {
         BriefSheet(blocks: s.blocks, record: ctx.record, footer: s.footer, geo: geo, height: s.height)
             .environment(ctx.refs)
             .environment(ctx.patient)
+            .environment(\.briefFigure, ctx.figure)
             .environment(\.colorScheme, .light)
             .environment(\.dynamicTypeSize, .large)
     }
@@ -201,6 +206,19 @@ extension HandoffShare {
 }
 
 // MARK: Views
+
+/// The body figure the lines diagram is drawn on, when the page is drawn for a picture (BriefPages.Context.figure); the
+/// diagram on screen takes the reference store's (BriefDiagramList).
+struct BriefFigureKey: EnvironmentKey {
+    static let defaultValue: RegionalFigure? = nil
+}
+
+extension EnvironmentValues {
+    var briefFigure: RegionalFigure? {
+        get { self[BriefFigureKey.self] }
+        set { self[BriefFigureKey.self] = newValue }
+    }
+}
 
 /// The blocks, one under the other, as the summary shows them (read-only: a tap edits nothing in a picture).
 private struct BriefColumn: View {
@@ -265,8 +283,8 @@ struct BriefPagesPreview: View {
     var blocks: [SummaryBlock]
     var mode: String
 
-    private var images: [UIImage] {
-        let ctx = BriefPages.Context(record: patient.record, refs: refs, patient: patient)
+    private func images(_ figure: RegionalFigure?) -> [UIImage] {
+        let ctx = BriefPages.Context(record: patient.record, refs: refs, patient: patient, figure: figure)
         if mode == "pdf" {
             guard let data = BriefPages.pdf(blocks, ctx), let doc = PDFDocumentBridge.document(data) else { return [] }
             return PDFDocumentBridge.pages(doc)
@@ -275,10 +293,13 @@ struct BriefPagesPreview: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: mode == "pdf" ? "Pages of the PDF" : "Pages of the image")
-            ForEach(Array(images.enumerated()), id: \.offset) { i, img in
-                Image(uiImage: img).resizable().scaledToFit().frame(maxWidth: .infinity)
+        // The figure is read here, so the pages are drawn again once the reference has loaded.
+        let figure = refs.bundle?.regional?.figure
+        VStack(alignment: .center, spacing: 10) {
+            Eyebrow(text: mode == "pdf" ? "Pages of the PDF" : "Pages of the image").frame(maxWidth: .infinity, alignment: .leading)
+            // Each page whole, at 300 pt wide, so the footer shows too.
+            ForEach(Array(images(figure).enumerated()), id: \.offset) { i, img in
+                Image(uiImage: img).resizable().scaledToFit().frame(width: 300)
                     .overlay(Rectangle().stroke(PS.line2, lineWidth: 1))
                     .id("briefpage\(i + 1)")
             }
