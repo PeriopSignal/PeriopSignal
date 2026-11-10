@@ -105,7 +105,7 @@ struct PatientArchiveView: View {
             Button {
                 Task { unlocked = await ArchiveLock.unlock("Open the case archive") }
             } label: { Label("Unlock", systemImage: "faceid").frame(maxWidth: .infinity) }
-                .buttonStyle(BigButtonStyle(prominent: true))
+                .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
                 .padding(.horizontal, 40)
             Spacer()
             Spacer()
@@ -249,7 +249,7 @@ struct PatientArchiveDetail: View {
                     .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                 HStack(spacing: 10) {
                     Button { sharing = true } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
-                        .buttonStyle(BigButtonStyle(prominent: true))
+                        .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
                     Button { UIPasteboard.general.string = entry.text; copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: false))
                 }

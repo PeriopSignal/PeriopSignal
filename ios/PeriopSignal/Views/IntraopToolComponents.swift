@@ -144,7 +144,7 @@ struct CheckedLogButton: View {
         } label: {
             Text(issues.needsConfirm && armed ? "Confirm: " + title.lowercased() : title)
         }
-        .buttonStyle(CapsuleButtonStyle(prominent: true, color: issues.needsConfirm && armed ? PS.red : PS.accent))
+        .buttonStyle(CapsuleButtonStyle(prominent: true, color: issues.needsConfirm && armed ? PS.red : PS.action))
         .disabled(issues.blocks)
         .opacity(issues.blocks ? 0.45 : 1)
     }

@@ -423,7 +423,7 @@ struct PatientEndCaseSheet: View {
             Text(title).frame(maxWidth: .infinity)
                 .foregroundStyle(destructive ? PS.red : (prominent ? PS.accentFg : PS.fg))
         }
-        .buttonStyle(BigButtonStyle(prominent: prominent))
+        .buttonStyle(BigButtonStyle(prominent: prominent, color: PS.action))
     }
 }
 

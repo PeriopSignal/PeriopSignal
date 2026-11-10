@@ -381,11 +381,11 @@ struct IntraopInfusionsSection: View {
         PatientGroup(title: "Infusions") {
             // Typed in one line, as the quick-add bar takes them (1.8.1).
             InfusionTypeField(list: \.infusions)
-            Hairline().padding(.leading, 14)
+            // A divider above each drip, none under the last: nothing follows it since "Add an infusion" went (1.11).
             ForEach(IntraopInfusionList.rows(r)) { row in
+                Hairline().padding(.leading, 14)
                 infusionEditor(row)
                     .wobbleDelete($wobbling, label: row.drug.isEmpty ? "infusion" : row.drug) { patient.update(discrete: true) { IntraopInfusionList.remove(row.id, in: &$0) } }
-                Hairline().padding(.leading, 14)
             }
             WobbleDoneBar(editing: $wobbling)
         }

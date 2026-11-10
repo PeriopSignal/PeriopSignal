@@ -32,7 +32,7 @@ struct QuietLinkRow: View {
                 }
                 Group {
                     if filled {
-                        Text(title).foregroundStyle(alert ? PS.red : PS.fg2) + Text(" · ").foregroundStyle(PS.fg3) + Text("Change").foregroundStyle(PS.action)
+                        Text(title).foregroundStyle(alert ? PS.red : PS.fg2) + Text("\u{00A0}·\u{00A0}").foregroundStyle(PS.fg3) + Text("Change").foregroundStyle(PS.action)
                     } else {
                         Text(title).foregroundStyle(PS.fg2)
                     }
@@ -541,7 +541,7 @@ struct PatientPromptRows: View {
 struct CurrentInfusionsBox: View {
     @Environment(PatientStore.self) private var patient
     @State private var wobbling = false
-    @State private var open = LaunchSeed.bool("ps.preop.infusions")
+    @State private var open = LaunchSeed.bool("ps.preop.infusions") || !LaunchSeed.string("ps.infusion.type").isEmpty
 
     private func binding(_ id: UUID) -> Binding<PatientInfusion> {
         Binding(get: { patient.record.homeInfusions.first { $0.id == id } ?? PatientInfusion() },
@@ -556,11 +556,10 @@ struct CurrentInfusionsBox: View {
                     .padding(14)
             } else {
                 InfusionTypeField(list: \.homeInfusions)
-                Hairline().padding(.leading, 14)
                 ForEach(r.homeInfusions) { inf in
+                    Hairline().padding(.leading, 14)
                     InfusionRow(infusion: binding(inf.id)) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
                         .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
-                    Hairline().padding(.leading, 14)
                 }
                 WobbleDoneBar(editing: $wobbling)
             }

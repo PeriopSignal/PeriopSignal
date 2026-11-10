@@ -180,7 +180,7 @@ struct PatientNoteSheet: View {
         Button { read() } label: {
             Label("Read the note", systemImage: "text.magnifyingglass").frame(maxWidth: .infinity)
         }
-        .buttonStyle(BigButtonStyle(prominent: true))
+        .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
         .disabled(blank(text))
         .opacity(blank(text) ? 0.5 : 1)
         HStack {
@@ -270,7 +270,7 @@ struct PatientNoteSheet: View {
         Button { add(reading) } label: {
             Label(count == 0 ? "Nothing selected" : "Add \(count) item\(count == 1 ? "" : "s")", systemImage: "plus").frame(maxWidth: .infinity)
         }
-        .buttonStyle(BigButtonStyle(prominent: true))
+        .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
         .disabled(count == 0)
         .opacity(count == 0 ? 0.5 : 1)
         Button { withAnimation(.snappy) { self.reading = nil } } label: {
@@ -616,13 +616,13 @@ struct PatientReceiveSheet: View {
                             Button { openAsNewCase() } label: {
                                 Label("Open as a New Case", systemImage: "plus.square.on.square").frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(BigButtonStyle(prominent: true))
+                            .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
                         }
                     }
                     Button { open() } label: {
                         Label(patient.isEmpty ? "Open This Patient" : "Replace \(patient.currentCase.label)", systemImage: "person.badge.plus").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(BigButtonStyle(prominent: patient.isEmpty || !patient.canAddCase))
+                    .buttonStyle(BigButtonStyle(prominent: patient.isEmpty || !patient.canAddCase, color: PS.action))
                     Button { dismiss() } label: { Text("Discard").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: false))
                     EvidenceNote("Check it against the chart. It stays on this phone like any patient you enter, until you clear it; the file you received has been deleted.", title: "Check it against the chart")

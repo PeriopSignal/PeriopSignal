@@ -142,11 +142,13 @@ struct OnboardingView: View {
 
 struct BigButtonStyle: ButtonStyle {
     var prominent: Bool
+    /// The fill when prominent: the brand red, except on My Patient, whose buttons that act are the action colour (1.11).
+    var color: Color = PS.accent
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(PS.sys(size: 16, weight: .semibold))
             .padding(.vertical, 14)
-            .background(prominent ? PS.accent : PS.surface2, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(prominent ? color : PS.surface2, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .foregroundStyle(prominent ? PS.accentFg : PS.fg)
             .opacity(configuration.isPressed ? 0.7 : 1)
     }

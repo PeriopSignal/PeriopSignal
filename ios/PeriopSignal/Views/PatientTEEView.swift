@@ -12,11 +12,12 @@ extension PatientEditorView {
     var teeLinkRow: some View {
         let res = PatientTEE.evaluate(r)
         let icon: String
+        var alert = false
         switch res.level {
-        case .absolute, .relative: icon = "exclamationmark.triangle"
+        case .absolute, .relative: icon = "exclamationmark.triangle"; alert = true
         case .none: icon = res.reviewed ? "checkmark.shield" : "plus.circle"
         }
-        return linkRow("TEE screen", PatientTEE.status(r), icon: icon, value: .workup("tee"))
+        return linkRow("TEE screen", PatientTEE.status(r), icon: icon, alert: alert, value: .workup("tee"))
     }
 
     @ViewBuilder var teeScreenEditor: some View {

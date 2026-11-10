@@ -43,7 +43,7 @@ struct InfusionTypeField: View {
                     .accessibilityLabel("Type a drip")
                 if !addable.isEmpty {
                     Button(action: add) { Text("Add \(addable.count)") }
-                        .buttonStyle(CapsuleButtonStyle())
+                        .buttonStyle(CapsuleButtonStyle.patientAction())
                         .accessibilityLabel("Add \(addable.count) infusion\(addable.count == 1 ? "" : "s")")
                 } else if !text.isEmpty {
                     Button { withAnimation(.snappy) { clear() } } label: {

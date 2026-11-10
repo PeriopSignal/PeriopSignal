@@ -213,7 +213,7 @@ struct TimerStartButtonStyle: ButtonStyle {
 
     struct Look { var fill: Color; var text: Color; var stroke: Color; var opacity: Double }
     static func look(active: Bool) -> Look {
-        active ? Look(fill: PS.accent, text: PS.accentFg, stroke: .clear, opacity: 1)
+        active ? Look(fill: PS.action, text: PS.accentFg, stroke: .clear, opacity: 1)
                : Look(fill: PS.surface2, text: PS.fg2, stroke: PS.line, opacity: 1)
     }
 
@@ -297,7 +297,7 @@ private struct AddRow: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: open ? "minus.circle.fill" : "plus.circle.fill")
-                    .font(PS.sys(size: 18, weight: .semibold)).foregroundStyle(PS.accent)
+                    .font(PS.sys(size: 18, weight: .semibold)).foregroundStyle(PS.action)
                 Text(title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
                 Spacer(minLength: 6)
                 if let detail { Text(detail).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg3).lineLimit(1) }
@@ -305,7 +305,7 @@ private struct AddRow: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 13)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(open ? PS.accent.opacity(0.45) : PS.line, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(open ? PS.action.opacity(0.45) : PS.line, lineWidth: 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -409,7 +409,7 @@ struct CaseTimersView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if inSheet {
-                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.fontWeight(.semibold) }
+                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.fontWeight(.semibold).tint(PS.action) }
             }
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -545,7 +545,7 @@ struct CaseTimersView: View {
                     .lineLimit(2).minimumScaleFactor(0.85).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 4)
                 Button(doneTitle(rem)) { done(rem, d) }
-                    .buttonStyle(CapsuleButtonStyle(prominent: state != .waiting))
+                    .buttonStyle(CapsuleButtonStyle.patientAction(prominent: state != .waiting))
                 if state != .waiting {
                     Button("Snooze 5") { edit { $0.snooze(rem, now: Date()) } }
                         .buttonStyle(CapsuleButtonStyle(prominent: false))
@@ -1031,6 +1031,7 @@ struct CaseTimersView: View {
                 withAnimation(.snappy) { goalEditing.toggle(); goalEntry = goalEditing ? h.goal : nil; goalArmed = false }
             }
             .font(PS.sys(size: 13.5, weight: .semibold))
+            .tint(PS.action)
         }
         if goalInfoOpen { InfoCaptionText(text: CaseTimerEngine.actGoalInfo(device: device), font: PS.sys(size: 12)) }
         Text(CaseTimerEngine.goalCaption(h, p, device: device)).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)

@@ -257,10 +257,11 @@ struct PatientEditorView: View {
         .padding(.horizontal, 14).padding(.vertical, 9)
     }
 
-    func linkRow(_ title: String, _ detail: String, icon: String, value: PatientEditor) -> some View {
+    func linkRow(_ title: String, _ detail: String, icon: String, alert: Bool = false, value: PatientEditor) -> some View {
         NavigationLink(value: value) {
             HStack(spacing: 12) {
-                Image(systemName: icon).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.action).frame(width: 24)
+                // The icon is the action colour, except one that warns (the TEE screen's contraindication triangle).
+                Image(systemName: icon).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(alert ? PS.red : PS.action).frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
                     Text(detail).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineLimit(2)

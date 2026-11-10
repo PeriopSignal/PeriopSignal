@@ -340,7 +340,7 @@ struct BriefPanel: View {
                 Button { sharing = HandoffShare.briefItems(all, record: record, figure: refs.bundle?.regional?.figure) } label: {
                     Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(BigButtonStyle(prominent: true))
+                .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
                 Button { HandoffShare.copy(blocks: all); copied.toggle() } label: {
                     Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity)
                 }
