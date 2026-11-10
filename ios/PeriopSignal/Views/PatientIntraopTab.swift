@@ -170,10 +170,15 @@ struct IntraopLinkRow: View {
     var lines: [PatientSummary.Line]
     /// What it holds, in a few words, while empty.
     var hint: String = ""
+    /// Its lines are never cut (the echo findings, Ben: a finding must not end at "Sev…").
+    var whole = false
 
-    /// How many lines a summary line may take on the tab; nil (no limit) for an alert, and for a line with values
-    /// marked abnormal (the last labs: a flagged value is never behind an ellipsis).
-    static func lineLimit(_ l: PatientSummary.Line) -> Int? { l.alert || !l.marks.isEmpty ? nil : 2 }
+    /// The parts of the Intraoperative tab whose lines are shown whole.
+    static let wholeParts: Set<String> = ["echo"]
+
+    /// How many lines a summary line may take on the tab; nil (no limit) for an alert, for a line with values marked
+    /// abnormal (the last labs: a flagged value is never behind an ellipsis), and for a row shown whole.
+    static func lineLimit(_ l: PatientSummary.Line, whole: Bool = false) -> Int? { whole || l.alert || !l.marks.isEmpty ? nil : 2 }
 
     var body: some View {
         NavigationLink(value: editor) {
@@ -185,7 +190,7 @@ struct IntraopLinkRow: View {
                 } else {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
-                            PatientLineText(line: l).lineLimit(Self.lineLimit(l))
+                            PatientLineText(line: l).lineLimit(Self.lineLimit(l, whole: whole))
                         }
                     }
                 }
@@ -550,7 +555,7 @@ struct IntraopOtherDetails: View {
 
     private func link(_ part: String, _ title: String, _ icon: String) -> some View {
         IntraopLinkRow(title: title, icon: icon, editor: .intraopPart(part), lines: PatientSummary.intraopPartLines(r, part),
-                       hint: PreopEmptyHints.intraop[part] ?? "")
+                       hint: PreopEmptyHints.intraop[part] ?? "", whole: IntraopLinkRow.wholeParts.contains(part))
     }
 
     var body: some View {
