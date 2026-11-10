@@ -405,10 +405,11 @@ final class B112Tests: XCTestCase {
     /// The pixel at (x, y) of an image, as [r, g, b].
     private func pixels(_ cg: CGImage) throws -> (Int, Int) -> [Int] {
         let width = cg.width, height = cg.height
-        var data = [UInt8](repeating: 0, count: width * height * 4)
-        let ctx = try XCTUnwrap(CGContext(data: &data, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+        let ctx = try XCTUnwrap(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
                                           space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         ctx.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let base = try XCTUnwrap(ctx.data).assumingMemoryBound(to: UInt8.self)
+        let data = Array(UnsafeBufferPointer(start: base, count: width * height * 4))
         return { x, y in
             let i = (y * width + x) * 4
             return [Int(data[i]), Int(data[i + 1]), Int(data[i + 2])]
