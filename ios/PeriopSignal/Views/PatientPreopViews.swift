@@ -154,11 +154,13 @@ struct PreopNumberCell: View {
                         }
                         .disabled(before == nil)
                         .accessibilityLabel("Previous field")
+                        .tint(PS.action)
                         Button { chain.focus.wrappedValue = after } label: {
                             HStack(spacing: 3) { Image(systemName: "chevron.down"); Text("Next") }
                         }
                         .disabled(after == nil)
                         .accessibilityLabel("Next field")
+                        .tint(PS.action)
                     }
                     Spacer()
                     Button("Done") {
@@ -166,6 +168,7 @@ struct PreopNumberCell: View {
                         Keyboard.dismiss()
                     }
                     .fontWeight(.semibold)
+                    .tint(PS.action)
                 }
             }
         }

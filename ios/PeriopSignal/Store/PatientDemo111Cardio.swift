@@ -42,7 +42,7 @@ extension PatientDemo {
         PatientPreop.setCardiacNone(true, &r)
         r.ecg = ["Normal sinus rhythm"]
         r.stressTest = PatientStressTest(kind: .exercise, result: .negative, date: PatientMonthYear(month: 6, year: 2026),
-                                         findings: "no ischemia at 10 METs")
+                                         findings: "10 METs, no ST changes")
         PatientPreop.syncIntrathoracic(before: PatientRecord(), after: &r)
         return r
     }

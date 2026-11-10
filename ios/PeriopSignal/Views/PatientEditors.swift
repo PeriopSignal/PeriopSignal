@@ -173,15 +173,18 @@ struct PatientEditorView: View {
                     }
                     .disabled(i == 0)
                     .accessibilityLabel("Previous field")
+                        .tint(PS.action)
                     Button { moveFocus(i + 1) } label: {
                         HStack(spacing: 3) { Image(systemName: "chevron.down"); Text("Next") }
                     }
                     .disabled(i + 1 >= numberOrder.count)
                     .accessibilityLabel("Next field")
+                        .tint(PS.action)
                 }
                 Spacer()
                 Button("Done") { numberFocus = nil; Keyboard.dismiss() }
                     .fontWeight(.semibold)
+                    .tint(PS.action)
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 PatientUndoButton()
