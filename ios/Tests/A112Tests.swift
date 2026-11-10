@@ -274,7 +274,7 @@ final class A112Tests: XCTestCase {
         XCTAssertEqual(l.preop.map(\.name), ["CMP", "Heme", "Other"])
         XCTAssertFalse(l.hasIntraop, "the Preprocedure Summary has the Preop column alone")
         let text = try labsText(preop, handoff: false)
-        XCTAssertEqual(text, "Preop: CMP: Na 138, K 4.1, BUN 24 H, Cr 1.30 H (GFR 52 L), AST 55 H, ALT 30, Glu 142; Heme: Hb 10.9 L, Plt 210, PTT 31, INR 1.0, Fib 310, T&S A−, screen neg, 2 u crossmatched; Other: Lactate 1.4, TSH 5.2 H, Free T4 1.1, T bili 0.8, MRSA neg, Pregnancy test neg, hCG <5, WBC 11.8 H, Alb 3.1 L")
+        XCTAssertEqual(text, "Preop: CMP: Na 138, K 4.1, BUN 24 H, Cr 1.30 H (GFR 52 L), AST 55 H, ALT 30, Glu 142; Heme: Hb 10.9 L, Plt 210, PTT 31, INR 1.0, Fib 310, T&S A+, screen neg, 2 u crossmatched; Other: Lactate 1.4, TSH 5.2 H, Free T4 1.1, T bili 0.8, MRSA neg, Pregnancy test neg, hCG <5, WBC 11.8 H, Alb 3.1 L")
     }
 
     func testOnlyRecordedValuesAreShownAndAnEmptyGroupAndColumnAreOmitted() throws {

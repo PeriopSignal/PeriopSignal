@@ -45,6 +45,8 @@ enum PatientDemo112Labs {
         more.bloodCxNegative = true
         r.moreLabs = more
         r.labNotes = ""
+        // The briefs demo carries a set of its own; the labs shots choose theirs (withSets).
+        r.intraopLabs = []
         r.handoffExtras = ["preop:albumin", "preop:wbc"]
         r.preopSummaryOn = true
         return r
