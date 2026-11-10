@@ -650,7 +650,7 @@ enum QuickAdd {
         return NSRange(location: a, length: b - a)
     }
     /// The text with a pattern's matches replaced by a space each.
-    private static func blanked(_ rx: NoteRx, _ s: String) -> String {
+    private static func spaced(_ rx: NoteRx, _ s: String) -> String {
         rx.re?.stringByReplacingMatches(in: s, options: [], range: NSRange(location: 0, length: (s as NSString).length), withTemplate: " ") ?? s
     }
 
@@ -2494,9 +2494,9 @@ enum QuickAdd {
                 inRun = true
                 out.append(r)
             } else if inRun {
-                var left = blanked(ecgNormal, p)
-                for rule in ecgRules { left = blanked(rule.rx, left) }
-                left = blanked(ecgFiller, left)
+                var left = spaced(ecgNormal, p)
+                for rule in ecgRules { left = spaced(rule.rx, left) }
+                left = spaced(ecgFiller, left)
                 if left.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { out.append(r) } else { inRun = false }
             }
             a = b + 1
