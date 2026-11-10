@@ -126,7 +126,10 @@ final class C2111Tests: XCTestCase {
         XCTAssertNil(IntraopLinkRow.lineLimit(PatientSummary.Line("Last labs", "pH 7.29 L · PaCO₂ 41 · K 5.4 H", marks: ["pH 7.29 L", "K 5.4 H"])), "nor is a line with an abnormal value")
         let echo = PatientSummary.intraopPartLines(PatientDemo.echo110, "echo")
         XCTAssertGreaterThanOrEqual(echo.count, 2, "the pre- and post-bypass exams")
-        XCTAssertTrue(echo.allSatisfy { IntraopLinkRow.lineLimit($0) == 2 })
+        // The echo findings are shown whole (Ben, after 1.11's screenshots: a finding ended at "Sev…").
+        XCTAssertTrue(IntraopLinkRow.wholeParts.contains("echo"))
+        XCTAssertTrue(echo.allSatisfy { IntraopLinkRow.lineLimit($0, whole: true) == nil })
+        XCTAssertFalse(IntraopLinkRow.wholeParts.contains("regional"), "the other rows still take two lines")
         let considerations = PatientSummary.intraopPartLines(PatientDemo.record, "considerations")
         XCTAssertFalse(considerations.isEmpty)
         XCTAssertTrue(considerations.allSatisfy { IntraopLinkRow.lineLimit($0) == nil })
