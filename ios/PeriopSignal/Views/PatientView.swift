@@ -276,6 +276,8 @@ struct PatientView: View {
         .task { await openForScreenshot() }
         #if DEBUG
         .onChange(of: path) { o, n in ShotTrace.note("path \(o.count) -> \(n.count)") }
+        .onChange(of: tabOverride) { o, n in ShotTrace.note("tabOverride \(o?.rawValue ?? "nil") -> \(n?.rawValue ?? "nil")") }
+        .onChange(of: tabID) { o, n in ShotTrace.note("tabID \(o) -> \(n)") }
         .onAppear { ShotTrace.note("PatientView appear") }
         .onDisappear { ShotTrace.note("PatientView disappear") }
         #endif
@@ -294,6 +296,9 @@ struct PatientView: View {
     /// The tips start at the top of a tab with the quick-add bar, with the keyboard down.
     private func prepareForTips() {
         Keyboard.dismiss()
+        #if DEBUG
+        ShotTrace.note("prepareForTips")
+        #endif
         if tab == .summary { tabOverride = .preop }
         scrollToTop += 1
     }
@@ -350,7 +355,9 @@ struct PatientView: View {
             // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
             showNote = true
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            // The sheet reads the note as it appears; on a slow simulator that outlasted 1.5 s and the picture caught the
+            // first frame of the switch to the results (1.11: two runs).
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
             ShotReady.ready()
         case .receive:
             try? await Task.sleep(nanoseconds: 800_000_000)
@@ -489,6 +496,9 @@ struct PatientView: View {
         // Decided before the switch: the new tab's first section is current until its anchors report (the old tab's
         // chip would match nothing); a tap on the tab showing keeps its chip.
         let keep = Self.jumpAfterSelecting(t, showing: tab, current: currentJump)
+        #if DEBUG
+        ShotTrace.note("select \(t.rawValue)")
+        #endif
         withAnimation(.snappy) { tabOverride = nil; tabID = t.rawValue }
         jumpGeometry.held = nil
         currentJump = keep
