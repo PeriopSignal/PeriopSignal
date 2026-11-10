@@ -171,8 +171,9 @@ struct IntraopLinkRow: View {
     /// What it holds, in a few words, while empty.
     var hint: String = ""
 
-    /// How many lines a summary line may take on the tab; nil (no limit) for an alert.
-    static func lineLimit(_ l: PatientSummary.Line) -> Int? { l.alert ? nil : 2 }
+    /// How many lines a summary line may take on the tab; nil (no limit) for an alert, and for a line with values
+    /// marked abnormal (the last labs: a flagged value is never behind an ellipsis).
+    static func lineLimit(_ l: PatientSummary.Line) -> Int? { l.alert || !l.marks.isEmpty ? nil : 2 }
 
     var body: some View {
         NavigationLink(value: editor) {

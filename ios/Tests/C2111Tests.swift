@@ -123,6 +123,7 @@ final class C2111Tests: XCTestCase {
     func testLinkRowLinesTruncateToTwoLinesExceptAlerts() {
         XCTAssertEqual(IntraopLinkRow.lineLimit(PatientSummary.Line("Pre-bypass", "LV EF 60%, normal, dilated; RV function normal")), 2)
         XCTAssertNil(IntraopLinkRow.lineLimit(PatientSummary.Line(nil, "Difficult airway; Massive transfusion", alert: true)), "an alert is never cut")
+        XCTAssertNil(IntraopLinkRow.lineLimit(PatientSummary.Line("Last labs", "pH 7.29 L · PaCO₂ 41 · K 5.4 H", marks: ["pH 7.29 L", "K 5.4 H"])), "nor is a line with an abnormal value")
         let echo = PatientSummary.intraopPartLines(PatientDemo.echo110, "echo")
         XCTAssertGreaterThanOrEqual(echo.count, 2, "the pre- and post-bypass exams")
         XCTAssertTrue(echo.allSatisfy { IntraopLinkRow.lineLimit($0) == 2 })
