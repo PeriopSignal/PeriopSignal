@@ -28,7 +28,7 @@
    "impact": 2,
    "trialName": "VILARE",
    "firstAuthor": "Taboada",
-   "title": "Videolaryngoscopy vs. direct laryngoscopy for tracheal intubation by anaesthesia resident doctors (VILARE): a pragmatic multicentre randomised trial",
+   "title": "Videolaryngoscopy vs. direct laryngoscopy for tracheal intubation by anaesthesia resident doctors ( VILARE ): a pragmatic multicentre randomised trial",
    "glance": {
     "design": "Pragmatic multicentre randomised trial, intubation by anaesthesia residents",
     "n": "1,001 adults having surgery that required tracheal intubation",
@@ -51,6 +51,26 @@
     "seconds": 202,
     "bytes": 1616877,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Videolaryngoscopy vs. direct laryngoscopy for tracheal intubation by anaesthesia resident doctors ( VILARE ): a pragmatic multicentre randomised trial",
+    "authors": [
+     "Taboada M",
+     "Bermúdez M",
+     "Fernández J",
+     "Vázquez O",
+     "Estany‐Gestal A",
+     "de los Ángeles Orallo M",
+     "Molíns N",
+     "Amate JJ",
+     "Mato‐Bua R",
+     "García‐Lorenzo C",
+     "Bascuas B",
+     "Soto‐Jove R"
+    ],
+    "journal": "Anaesthesia",
+    "doi": "10.1111/anae.70456",
+    "year": 2026
    }
   },
   {
@@ -103,6 +123,26 @@
     "seconds": 220,
     "bytes": 1758573,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Community and EMS Interventions to Improve Survival in Cardiac Arrest",
+    "authors": [
+     "Malta Hansen C",
+     "Krychtiuk KA",
+     "Starks MA",
+     "Al-Khalidi HR",
+     "Mark DB",
+     "Monk L",
+     "Kaltenbach L",
+     "Jollis JG",
+     "Al-Khatib SM",
+     "Bosworth HB",
+     "Ward K",
+     "Smith S"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2612757",
+    "year": 2026
    }
   },
   {
@@ -155,6 +195,26 @@
     "seconds": 190,
     "bytes": 1516461,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Prehospital Extracorporeal Life Support in Refractory Out-of-Hospital Cardiac Arrest",
+    "authors": [
+     "Reis Miranda D",
+     "Moors X",
+     "Ali S",
+     "Maissan IM",
+     "van Schuppen HL",
+     "Mommers L",
+     "Weelink EEM",
+     "Houmes RJ",
+     "Kooij FO",
+     "Tacken M",
+     "Hirner MJ",
+     "van Vledder M"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2602919",
+    "year": 2026
    }
   },
   {
