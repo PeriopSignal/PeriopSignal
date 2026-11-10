@@ -1,7 +1,144 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-09T09:12:53+00:00",
+ "generatedAt": "2026-11-10T09:10:16+00:00",
  "posts": [
+  {
+   "id": "anaesthesia-2026-vilare-videolaryngoscopy-residents",
+   "date": "2026-11-09",
+   "dateApprox": false,
+   "addedAt": "2026-11-10",
+   "journal": "Anaesthesia",
+   "jshort": "Anaes",
+   "kind": "RCT",
+   "topics": [
+    "general"
+   ],
+   "headline": "VILARE: videolaryngoscopy raised first-attempt intubation success for anaesthesia residents, 79.2% vs 70.2%",
+   "summary": "A pragmatic multicentre trial randomized 1001 adults needing tracheal intubation for surgery to videolaryngoscopy or direct laryngoscopy for the first attempt. Every intubation was performed by an anaesthesia resident under consultant supervision.",
+   "takeHome": [
+    "First-attempt success was 79.2% with videolaryngoscopy vs 70.2% with direct laryngoscopy (absolute difference 9.0%, 95% CI 3.7 to 14.4)",
+    "Videolaryngoscopy gave better glottic views, less operator-reported difficulty (33.5% vs 47.2%) and fewer procedural complications (7.7% vs 18.2%)",
+    "There was no clinically meaningful difference in intubation time or need for adjunct airway devices"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Videolaryngoscopy improves the glottic view and first-attempt success, but much of that evidence comes from experienced operators, while most routine intubations in teaching hospitals are done by residents. Multicentre evidence in that group was limited.\n\n**What they did.** VILARE was a pragmatic multicentre randomized trial run at Spanish hospitals. Adults having surgery that required tracheal intubation were assigned to videolaryngoscopy or direct laryngoscopy for the first attempt. All intubations were performed by anaesthesia residents under consultant supervision. The primary outcome was successful intubation on the first attempt.\n\n**What they found.** 1001 patients were enrolled, 501 to videolaryngoscopy and 500 to direct laryngoscopy.\n- First-attempt success: 79.2% vs 70.2%, absolute difference 9.0% (95% CI 3.7 to 14.4).\n- Modified Cormack-Lehane grade 2 or 2a view: 93.3% vs 80.8%.\n- Operator-reported difficulty: 33.5% vs 47.2%. Procedural complications: 7.7% vs 18.2%.\n- No clinically meaningful difference in intubation time or in the need for adjunct airway devices.\n\n**Caveats.** The device cannot be hidden from the operator, and difficulty is operator-reported, so the secondary outcomes are softer than the primary one. Participants were adults having surgery, so these results do not speak to emergency or ICU intubation. I could only read the abstract, so the authors' own limitations are not listed.\n\n**For the anesthesiologist.** For programmes that train residents, this supports videolaryngoscopy as the default first device: about nine more successful first passes per 100 patients and fewer complications without a time penalty. Direct laryngoscopy skills still belong in the curriculum, because devices fail and trainees need to learn both.",
+   "url": "https://doi.org/10.1111/anae.70456",
+   "impact": 2,
+   "trialName": "VILARE",
+   "firstAuthor": "Taboada",
+   "title": "Videolaryngoscopy vs. direct laryngoscopy for tracheal intubation by anaesthesia resident doctors (VILARE): a pragmatic multicentre randomised trial",
+   "glance": {
+    "design": "Pragmatic multicentre randomised trial, intubation by anaesthesia residents",
+    "n": "1,001 adults having surgery that required tracheal intubation",
+    "outcome": "Successful tracheal intubation on the first attempt",
+    "result": "79.2% vs 70.2%, absolute difference 9.0% (95% CI 3.7 to 14.4)"
+   },
+   "quiz": {
+    "question": "In the VILARE trial of anaesthesia residents intubating adults for surgery, how did first-attempt intubation success compare between the two devices?",
+    "options": [
+     "79.2% with videolaryngoscopy vs 70.2% with direct laryngoscopy",
+     "70.2% with videolaryngoscopy vs 79.2% with direct laryngoscopy",
+     "93.3% with videolaryngoscopy vs 80.8% with direct laryngoscopy",
+     "7.7% with videolaryngoscopy vs 18.2% with direct laryngoscopy"
+    ],
+    "answer": 0,
+    "explanation": "First-attempt success was 79.2% vs 70.2% (absolute difference 9.0%, 95% CI 3.7 to 14.4). The 93.3% vs 80.8% figures are the glottic view and 7.7% vs 18.2% are complications. Caveat: difficulty was operator-reported and the device could not be blinded."
+   }
+  },
+  {
+   "id": "nejm-2026-race-cars-community-ems-cardiac-arrest",
+   "date": "2026-11-08",
+   "dateApprox": false,
+   "addedAt": "2026-11-10",
+   "journal": "NEJM",
+   "jshort": "NEJM",
+   "kind": "RCT",
+   "topics": [
+    "criticalCare",
+    "general"
+   ],
+   "headline": "RACE-CARS: a community and EMS bundle did not improve good neurologic survival after cardiac arrest, 9.0% vs 9.4%",
+   "summary": "This registry-based cluster-randomized trial in North Carolina counties tested a four-part package of telecommunicator training, community CPR training and more early AED use against usual care in adults with out-of-hospital cardiac arrest.",
+   "takeHome": [
+    "Good neurologic survival to discharge was 9.0% with the intervention and 9.4% with usual care (adjusted OR 0.97, 95% CI 0.75 to 1.26)",
+    "The trial included 28 intervention clusters (11,615 patients) and 27 usual-care clusters (10,844 patients) from July 2022 to June 2026",
+    "A multifaceted community and EMS strategy did not give a greater share of patients a favorable neurologic outcome than usual care"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Early CPR, telecommunicator-assisted CPR and public-access defibrillation are the backbone of cardiac arrest survival, and communities are urged to invest in them. Randomized evidence that a bundled community strategy improves outcomes has been lacking, which is what this large trial tested.\n\n**What they did.** RACE-CARS was a registry-based, cluster-randomized trial in North Carolina. Counties were grouped into clusters and randomized 1:1 to a multifaceted intervention or usual care. The intervention had four parts: training 911 telecommunicators to recognize arrest faster, training them to give CPR instructions to bystanders, community CPR training, and more use of AEDs by first responders or bystanders before EMS arrival. Data came from the Cardiac Arrest Registry to Enhance Survival. The primary outcome was survival to hospital discharge with a good neurologic outcome (Cerebral Performance Category 1 or 2).\n\n**What they found.** From July 2022 to June 2026, 28 clusters (11,615 patients) were assigned to the intervention and 27 clusters (10,844 patients) to usual care. Good neurologic survival was 9.0% (1048 of 11,608) vs 9.4% (1017 of 10,839), adjusted OR 0.97 (95% CI 0.75 to 1.26, P=0.80).\n\n**Caveats.** The trial tests one bundle against usual care. It says nothing about the value of each component, and a null result does not show that CPR training or AEDs are useless. ClinicalTrials.gov (NCT04660526) registers the same primary outcome. I could only read the abstract, so the authors' own limitations are not listed.\n\n**For the anesthesiologist.** Little changes at the bedside: high-quality CPR and early defibrillation remain the standard. For perioperative and ICU physicians who sit on hospital or regional resuscitation committees, the message is that adding training and AED programmes may not be enough on its own to move neurologic survival.",
+   "url": "https://doi.org/10.1056/NEJMoa2612757",
+   "impact": 2,
+   "trialName": "RACE-CARS",
+   "firstAuthor": "Malta Hansen",
+   "title": "Community and EMS Interventions to Improve Survival in Cardiac Arrest",
+   "glance": {
+    "design": "Registry-based cluster-randomized trial, 55 clusters of North Carolina counties",
+    "n": "11,615 vs 10,844 adults with out-of-hospital cardiac arrest",
+    "outcome": "Survival to discharge with good neurologic outcome (CPC 1 or 2)",
+    "result": "9.0% vs 9.4%, adjusted OR 0.97 (95% CI 0.75 to 1.26); no difference"
+   },
+   "quiz": {
+    "question": "In RACE-CARS, a cluster-randomized trial of a community and EMS bundle for out-of-hospital cardiac arrest, what happened to survival with a good neurologic outcome?",
+    "options": [
+     "It was significantly higher with the bundle than with usual care",
+     "It was significantly lower with the bundle than with usual care",
+     "It was higher with the bundle only in clusters with the most AED use",
+     "It did not differ: 9.0% with the bundle vs 9.4% with usual care"
+    ],
+    "answer": 3,
+    "explanation": "Good neurologic survival was 9.0% vs 9.4% (adjusted OR 0.97, 95% CI 0.75 to 1.26, P=0.80), so the bundle showed no benefit. Caveat: the trial tests the whole package, not each component."
+   }
+  },
+  {
+   "id": "nejm-2026-on-scene-prehospital-ecpr-refractory-ohca",
+   "date": "2026-11-07",
+   "dateApprox": false,
+   "addedAt": "2026-11-10",
+   "journal": "NEJM",
+   "jshort": "NEJM",
+   "kind": "Observational",
+   "topics": [
+    "mcs",
+    "criticalCare"
+   ],
+   "headline": "ON-SCENE: prehospital ECPR was linked to higher survival in refractory arrest at 50 or younger, 40% vs 20%",
+   "summary": "A nationwide nonrandomized Dutch study compared young adults with refractory out-of-hospital cardiac arrest attended by helicopter EMS able to start ECPR on scene with those attended by helicopter EMS without that capability.",
+   "takeHome": [
+    "Survival to discharge was 40% (57 of 144) with prehospital ECPR vs 20% (17 of 87) with conventional care (OR 2.72, 1.59 to 4.66)",
+    "Favorable neurologic outcome at 6 months was 36% (51 of 141) vs 13% (11 of 85)",
+    "There were 32 adverse events in the ECPR group and 11 in the conventional group"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Refractory out-of-hospital cardiac arrest in younger adults carries a grim prognosis with conventional resuscitation, and extracorporeal CPR (ECPR) with venoarterial ECMO is increasingly offered in hospital. Data on taking ECPR to the scene were limited for patients aged 50 or younger.\n\n**What they did.** In a nationwide, nonrandomized study in the Netherlands, 144 adults aged 50 or younger attended by Helicopter Emergency Medical Services (HEMS) equipped to deliver prehospital ECPR were compared with 87 attended by HEMS without ECPR capability. The primary outcome was survival until hospital discharge.\n\n**What they found.**\n- Survival to discharge: 57 of 144 (40%) vs 17 of 87 (20%), odds ratio 2.72 (95% CI 1.59 to 4.66, P=0.002).\n- Favorable neurologic outcome at 6 months: 51 of 141 (36%) vs 11 of 85 (13%).\n- Adverse events: 32 in the ECPR group vs 11 in the conventional group.\n\n**Caveats.** This was not randomized. Which group a patient fell into depended on the HEMS team that attended, so unmeasured differences can remain, and the findings apply only to carefully selected patients aged 50 or younger. ClinicalTrials.gov (NCT04620070) registers hospital survival as the primary outcome, matching the paper. I could only read the abstract, so the authors' own limitations are not listed.\n\n**For the anesthesiologist.** Anesthesiologists are often part of HEMS, ECMO and perfusion teams, so this is an important signal that on-scene cannulation can be done and may help the right patient. It does not replace a randomized trial. Centres building an ECPR pathway should use strict selection criteria, have a dedicated drilled team and a receiving ECMO centre, and track complications from the start.",
+   "url": "https://doi.org/10.1056/NEJMoa2602919",
+   "impact": 2,
+   "trialName": "ON-SCENE",
+   "firstAuthor": "Reis Miranda",
+   "title": "Prehospital Extracorporeal Life Support in Refractory Out-of-Hospital Cardiac Arrest",
+   "glance": {
+    "design": "Nationwide nonrandomized study, Dutch HEMS with vs without prehospital ECPR",
+    "n": "144 vs 87 adults aged 50 or younger with refractory arrest",
+    "outcome": "Survival until hospital discharge",
+    "result": "40% vs 20%, odds ratio 2.72 (95% CI 1.59 to 4.66)"
+   },
+   "quiz": {
+    "question": "In the nationwide Dutch study of prehospital ECPR for refractory cardiac arrest in patients aged 50 or younger, how did survival to hospital discharge compare with conventional HEMS care?",
+    "options": [
+     "20% with prehospital ECPR vs 40% with conventional care",
+     "40% with prehospital ECPR vs 20% with conventional care",
+     "36% with prehospital ECPR vs 13% with conventional care",
+     "No difference, with about 30% surviving in both groups"
+    ],
+    "answer": 1,
+    "explanation": "Survival to discharge was 57 of 144 (40%) vs 17 of 87 (20%), odds ratio 2.72 (95% CI 1.59 to 4.66); 36% vs 13% is the 6-month favorable neurologic outcome. Caveat: the comparison was nonrandomized."
+   }
+  },
   {
    "id": "jama-2026-ischemia-extend-long-term-survival",
    "date": "2026-11-07",
