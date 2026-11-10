@@ -45,6 +45,12 @@
     ],
     "answer": 0,
     "explanation": "First-attempt success was 79.2% vs 70.2% (absolute difference 9.0%, 95% CI 3.7 to 14.4). The 93.3% vs 80.8% figures are the glottic view and 7.7% vs 18.2% are complications. Caveat: difficulty was operator-reported and the device could not be blinded."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/anaesthesia-2026-vilare-videolaryngoscopy-residents.mp3",
+    "seconds": 202,
+    "bytes": 1616877,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -91,6 +97,12 @@
     ],
     "answer": 3,
     "explanation": "Good neurologic survival was 9.0% vs 9.4% (adjusted OR 0.97, 95% CI 0.75 to 1.26, P=0.80), so the bundle showed no benefit. Caveat: the trial tests the whole package, not each component."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2026-race-cars-community-ems-cardiac-arrest.mp3",
+    "seconds": 220,
+    "bytes": 1758573,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -137,6 +149,12 @@
     ],
     "answer": 1,
     "explanation": "Survival to discharge was 57 of 144 (40%) vs 17 of 87 (20%), odds ratio 2.72 (95% CI 1.59 to 4.66); 36% vs 13% is the 6-month favorable neurologic outcome. Caveat: the comparison was nonrandomized."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2026-on-scene-prehospital-ecpr-refractory-ohca.mp3",
+    "seconds": 190,
+    "bytes": 1516461,
+    "voice": "kokoro:af_heart"
    }
   },
   {
