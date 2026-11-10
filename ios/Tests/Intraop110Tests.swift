@@ -31,7 +31,8 @@ final class Intraop110Tests: XCTestCase {
     // MARK: Airway course
 
     func testTheAirwayCourseReadsAsBensExample() throws {
-        let want = "Oxygen on arrival: Room air. Mask ventilation DIFFICULT: Beard. Intubation easy: video laryngoscope, grade 1; 8.0 cuffed ETT (23 cm). Remains intubated."
+        // 1.12 (Ben, Nov 10): the same course in the short form (B112Tests has the rules).
+        let want = "Oxygen on arrival: Room air. Difficult Mask (beard), Easy VL Intubation, ETT 8.0 at 23 cm. Remains intubated"
         XCTAssertEqual(PatientBriefs.airwayCourse(example)?.text, want)
         XCTAssertEqual(try block(PatientBriefs.handoff(example), "airway").text, want)
         XCTAssertEqual(PatientBriefs.airwayCourse(example)?.alert, true)
@@ -44,10 +45,10 @@ final class Intraop110Tests: XCTestCase {
         let text = PatientBriefs.airwayCourse(r)?.text ?? ""
         XCTAssertFalse(text.contains(" ."), text)
         XCTAssertFalse(text.contains(".."), text)
-        XCTAssertTrue(text.contains("DIFFICULT: Beard. Intubation"), text)
-        XCTAssertTrue(text.contains("(23 cm). Remains intubated."), text)
+        XCTAssertTrue(text.contains("Difficult Mask (beard), Easy VL"), text)
+        XCTAssertTrue(text.contains("at 23 cm. Remains intubated"), text)
         r.maskNote = "Beard.  "
-        XCTAssertTrue(PatientBriefs.airwayCourse(r)?.text.contains("DIFFICULT: Beard. Intubation") ?? false)
+        XCTAssertTrue(PatientBriefs.airwayCourse(r)?.text.contains("Difficult Mask (beard), Easy VL") ?? false)
     }
 
     func testASavedHanGradeIsIgnored() throws {
@@ -55,7 +56,7 @@ final class Intraop110Tests: XCTestCase {
         r.mask = "easy"; r.maskNote = ""
         r.maskGrade = 4
         let text = PatientBriefs.airwayCourse(r)?.text ?? ""
-        XCTAssertTrue(text.contains("Mask ventilation easy."), text)
+        XCTAssertTrue(text.contains("Easy Mask"), text)
         XCTAssertFalse(text.lowercased().contains("grade 4"), text)
         XCTAssertFalse(text.contains("(grade"), text)
         XCTAssertFalse(PatientSummary.difficultAirway(r), "a Han grade of 3 or 4 no longer makes the airway difficult")
