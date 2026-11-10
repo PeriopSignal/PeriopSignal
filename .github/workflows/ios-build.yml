@@ -249,7 +249,7 @@ jobs:
           # additions; the From Obstetric rows; the History list and the summary words.
           shot 315-renal-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
           shot 316-renal-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance dark
-          shot 317-gi-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
+          shot 317-gi-light 34 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
           shot 318-gi-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.patient.scroll hx-cirrhosis -ps.forceAppearance dark
           shot 319-endo-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.forceAppearance light
           shot 320-endo-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.scroll hx-adrenal -ps.evidence.open 1 -ps.forceAppearance dark
@@ -758,6 +758,130 @@ jobs:
           shot 535-previous-intrathoracic-light 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance light
           shot 536-previous-intrathoracic-dark 16 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open workup:intrathoracic -ps.forceAppearance dark
           shot 537-preop-echo-summary-light 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          # 1.11 helper B (760-779): code status as a quiet link with the inline plan, the three stacked links, the HISTORY
+          # caption, Cardiopulmonary from the procedure with the None row and the one result row, the stress test, the
+          # intraop infusions carrying the preop drips. 375-pt variants where a row's fit matters.
+          shot 760-b111-demographics-links-empty-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 761-b111-demographics-links-empty-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance dark
+          shot 762-b111-code-status-chips-open-375-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll demographics -ps.preop.code 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 763-b111-code-status-dnr-plan-light 18 -ps.tab patient -ps.patient demo-dnr -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
+          shot 764-b111-preop-infusions-link-empty-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll infusions -ps.forceAppearance light
+          shot 765-b111-code-status-plan-missing-375-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll demographics -ps.patient.width 375 -ps.forceAppearance light
+          shot 766-b111-history-caption-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll chips -ps.forceAppearance light
+          shot 767-b111-asa-suggestion-hidden-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.scroll asa -ps.forceAppearance light
+          shot 768-b111-cardio-cabg-derived-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 769-b111-cardio-cabg-derived-dark 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 770-b111-cardio-chole-none-result-375-light 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.width 375 -ps.forceAppearance light
+          shot 771-b111-cardio-chole-none-result-light 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
+          shot 772-b111-cardio-chole-none-result-dark 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 773-b111-cardio-result-open-light 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.tab preop -ps.patient.scroll cardio -ps.preop.result 1 -ps.forceAppearance light
+          shot 774-b111-cardio-empty-375-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.width 375 -ps.forceAppearance light
+          shot 775-b111-stress-editor-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.open workup:stress -ps.forceAppearance light
+          shot 776-b111-stress-editor-dark 18 -ps.tab patient -ps.patient demo-cardio111-chole -ps.patient.open workup:stress -ps.forceAppearance dark
+          shot 777-b111-workup-stress-filled-light 18 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.forceAppearance light
+          shot 778-b111-intraop-infusions-from-preop-light 20 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.forceAppearance light
+          shot 779-b111-intraop-infusions-from-preop-dark 20 -ps.tab patient -ps.patient demo-cardio111 -ps.patient.tab intraop -ps.patient.jump intraop:infusions -ps.forceAppearance dark
+          # 1.11 labs typed into the fishbone (helper A, 740-759): the Labs page's figures with their slots (and the keyboard on
+          # one), the hepatic figure with Mg and PO₄, the List toggle, the Type & screen status row (resulted; sent and
+          # awaited), the empty page with its range hints, the tab card with the small figures (filled, at 375 pt, empty), the
+          # intraoperative labs page's ABG slash figure, and the handoff's fishbone drawn from the same shapes.
+          shot 740-labs111-figures-light 24 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 741-labs111-figures-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.forceAppearance dark
+          shot 742-labs111-figures-375-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 743-labs111-slot-keyboard-light 24 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.labs.slot main.k -ps.forceAppearance light
+          shot 744-labs111-hepatic-dark 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-hepatic -ps.forceAppearance dark
+          shot 745-labs111-hepatic-375-light 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-hepatic -ps.patient.width 375 -ps.forceAppearance light
+          shot 746-labs111-list-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.labs.list 1 -ps.forceAppearance light
+          shot 746-labs111-list-slot-keyboard-light 24 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.labs.list 1 -ps.labs.slot main.k -ps.forceAppearance light
+          shot 747-labs111-typescreen-resulted-light 22 -ps.tab patient -ps.patient demo-labs111 -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance light
+          shot 748-labs111-typescreen-sent-dark 22 -ps.tab patient -ps.patient demo-labs111-sent -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.forceAppearance dark
+          shot 749-labs111-empty-page-light 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:labs -ps.forceAppearance light
+          shot 750-labs111-empty-page-dark 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:labs -ps.forceAppearance dark
+          shot 751-labs111-card-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab preop -ps.patient.scroll labs -ps.forceAppearance light
+          shot 752-labs111-card-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab preop -ps.patient.scroll labs -ps.forceAppearance dark
+          shot 753-labs111-card-375-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab preop -ps.patient.scroll labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 754-labs111-card-empty-light 20 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll labs -ps.forceAppearance light
+          shot 755-labs111-intraop-abg-light 22 -ps.tab patient -ps.patient demo -ps.patient.open intraop:labs -ps.forceAppearance light
+          shot 756-labs111-intraop-abg-dark 22 -ps.tab patient -ps.patient demo -ps.patient.open intraop:labs -ps.forceAppearance dark
+          shot 757-labs111-intraop-abg-375-light 22 -ps.tab patient -ps.patient demo -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 758-labs111-handoff-fishbone-light 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 759-labs111-handoff-fishbone-dark 20 -ps.tab patient -ps.patient demo-labs111 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
+          # 1.11 helper C1 (780-799): wayfinding, headings, colour and chip grammar. The jump bar's short labels with the current
+          # chip filled and kept in view, one bar once pinned, the "Planned Procedure & Anesthetic" title, the Examination &
+          # Workup box order (Airway, Labs, Lines, Cardiopulmonary, ASA), captions dropped where the title says it, the
+          # ink-filled Yes/No pills, PS.action for actions and PS.red for alerts, and the style gallery in light and dark.
+          shot 780-w375-preop-top-jump-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light
+          shot 781-w375-preop-top-jump-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 782-w375-preop-pinned-workup-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll workup -ps.forceAppearance light
+          shot 783-preop-pinned-cardio-pills-dark 18 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance dark
+          shot 784-w375-preop-pinned-medications-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll medications -ps.forceAppearance light
+          shot 785-preop-pinned-summary-dark 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
+          # Regenerate on the summary title's line at a phone's width (a narrower capsule where the full one does not
+          # fit), dimmed until the text has an edit and live once it has; at the largest text size whichever form fits.
+          shot 785-w375-preop-summary-regenerate-light 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.forceAppearance light
+          shot 785-w375-preop-summary-regenerate-large-text-dark 20 -ps.tab patient -ps.patient demo-briefs-on -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.textScale 1.25 -ps.forceAppearance dark
+          shot 785-w375-preop-summary-regenerate-edited-light 20 -ps.tab patient -ps.patient demo-briefs-edit -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.forceAppearance light
+          # The filled capsules that act, in the action colour: Generate preprocedure summary, and the quick-add bar's Add N.
+          shot 785-w375-preop-summary-generate-light 20 -ps.tab patient -ps.patient demo-briefs -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll summary -ps.forceAppearance light
+          shot 797-w375-quickadd-add-capsule-light 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "68M, DM2, h/o stroke, MRSA"
+          shot 797-quickadd-add-capsule-dark 16 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "68M, DM2, h/o stroke, MRSA"
+          shot 786-w375-intraop-top-jump-light 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light
+          shot 787-intraop-pinned-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
+          shot 788-style-gallery-light 14 -ps.screen gallery -ps.forceAppearance light
+          shot 789-style-gallery-dark 14 -ps.screen gallery -ps.forceAppearance dark
+          shot 790-w375-style-gallery-large-text-light 14 -ps.screen gallery -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          # The gallery below its first screen (-ps.gallery.scroll): links and rows, summary lines, headings, buttons.
+          shot 788-style-gallery-links-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.forceAppearance light
+          shot 788-style-gallery-headings-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.forceAppearance light
+          shot 789-style-gallery-links-dark 14 -ps.screen gallery -ps.gallery.scroll links -ps.forceAppearance dark
+          shot 789-style-gallery-headings-dark 14 -ps.screen gallery -ps.gallery.scroll headings -ps.forceAppearance dark
+          shot 790-w375-style-gallery-links-large-text-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 790-w375-style-gallery-headings-large-text-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 791-summary-status-plan-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.forceAppearance light
+          shot 792-ecg-nsr-preset-dark 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg -ps.forceAppearance dark
+          shot 793-tee-screen-alerts-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light
+          shot 794-timers-chips-action-dark 20 -ps.ref case-timers -ps.patient demo-cardiac -ps.timers.seed 1 -ps.timers.sections antibiotic -ps.timers.pick cefoxitin -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 795-w375-preop-demographics-title-info-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll demographics-title -ps.evidence.open 1 -ps.forceAppearance light
+          shot 796-w375-preop-risk-inputs-action-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.preop.risk 1 -ps.patient.scroll riskinputs -ps.forceAppearance dark
+          shot 797-preop-top-large-text-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.textScale 1.25 -ps.forceAppearance light
+          shot 798-w375-preop-airway-first-dark 18 -ps.tab patient -ps.patient demo -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll airway -ps.forceAppearance dark
+          shot 799-w375-lhc-page-no-caption-light 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:lhc -ps.patient.width 375 -ps.forceAppearance light
+          # 1.11 helper C2 (800-819): the three add looks, the empty-state diet, say it once, the Airway Examination card
+          # (-ps.patient demo-add111: PatientDemo111Add.swift).
+          shot 800-add111-allergies-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll allergies -ps.patient.width 375 -ps.forceAppearance light
+          shot 801-add111-allergies-empty-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll allergies -ps.forceAppearance dark
+          shot 802-add111-problems-tiles-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
+          shot 803-add111-problems-tiles-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll problems -ps.forceAppearance dark
+          shot 804-add111-flagged-active-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll flagged -ps.patient.width 375 -ps.forceAppearance light
+          shot 805-add111-flagged-active-dark 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll flagged -ps.forceAppearance dark
+          shot 806-add111-flagged-open-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll flagged -ps.preop.flags 1 -ps.forceAppearance light
+          shot 807-add111-flagged-empty-dark 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll flagged -ps.forceAppearance dark
+          shot 808-add111-airway-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll airway -ps.patient.width 375 -ps.forceAppearance light
+          shot 809-add111-airway-filled-dark 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll airway -ps.forceAppearance dark
+          shot 810-add111-airway-normal-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.edit exam -ps.patient.scroll airway -ps.patient.width 375 -ps.forceAppearance light
+          shot 811-add111-airway-filled-375-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll airway -ps.patient.width 375 -ps.forceAppearance light
+          shot 812-add111-homemeds-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll homemeds -ps.patient.width 375 -ps.forceAppearance light
+          shot 813-add111-homemeds-dark 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab preop -ps.patient.scroll homemeds -ps.forceAppearance dark
+          shot 814-add111-intraop-other-empty-light 18 -ps.tab patient -ps.patient.tab intraop -ps.patient.jump intraop:other -ps.patient.width 375 -ps.forceAppearance light
+          shot 815-add111-intraop-other-filled-dark 18 -ps.tab patient -ps.patient demo-echo110 -ps.patient.tab intraop -ps.patient.jump intraop:other -ps.forceAppearance dark
+          shot 816-add111-intraop-timers-row-light 20 -ps.tab patient -ps.patient demo-cardiac -ps.patient.tab intraop -ps.timers.seed 1 -ps.patient.scroll casetimers -ps.forceAppearance light
+          shot 817-add111-events-page-dark 18 -ps.tab patient -ps.patient demo -ps.patient.open intraop:events -ps.forceAppearance dark
+          shot 818-add111-intraop-lines-limb-light 18 -ps.tab patient -ps.patient demo-add111 -ps.patient.tab intraop -ps.patient.jump intraop:lines -ps.forceAppearance light
+          shot 819-add111-summary-empty-light 18 -ps.tab patient -ps.patient.tab preop -ps.patient.scroll risk -ps.patient.width 375 -ps.forceAppearance light
+          # 1.11 helper D (820-829): the quick-add rules for what still forced a page (P1-12). The airway at handoff, the
+          # disposition and an event on the Intraoperative tab and on Summary & Handoff; ECG findings, the two cardiac No
+          # answers and the stress test on the Preoperative tab; the Intraoperative example rotating with the case
+          # (mid-case "extubated, to PACU"; at handoff "hypotension after induction, EBL 500"); each line added.
+          shot 820-quickadd111-intraop-handoff-dark 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction"
+          shot 821-quickadd111-intraop-handoff-light-375 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction"
+          shot 822-quickadd111-preop-ecg-stress-dark 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.forceAppearance dark -ps.quickadd "ECG NSR LBBB, no cardiac symptoms, no acute cardiac conditions, DSE negative 2024"
+          shot 823-quickadd111-preop-ecg-stress-light-375 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, no cardiac symptoms, no acute cardiac conditions, DSE negative 2024"
+          shot 824-quickadd111-summary-handoff-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance light -ps.quickadd "remains intubated to CVICU, bradycardia on emergence"
+          shot 825-quickadd111-intraop-placeholder-midcase-dark 18 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance dark
+          shot 826-quickadd111-intraop-placeholder-handoff-light 18 -ps.tab patient -ps.patient demo-quickadd111-end -ps.patient.tab intraop -ps.forceAppearance light
+          shot 827-quickadd111-intraop-added-light 20 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
+          shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
+          shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 

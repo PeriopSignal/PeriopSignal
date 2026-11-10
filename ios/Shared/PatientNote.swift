@@ -83,6 +83,22 @@ enum PatientNoteChange: Hashable {
     case typeScreen(PatientTypeScreen)
     /// An infectious result: the test id ("mrsa", or "other" with its name) and the result.
     case infectious(String, String, LabResult)
+    // 1.11 (quick-add rules, P1-12): what still forced a page.
+    /// One ECG finding by PatientECG.findings' name ("Left bundle branch block"); added as the ECG page adds one
+    /// (PatientECGLink.add: a rhythm replaces the rhythm before it, and what it establishes goes to the history).
+    case ecg(String)
+    /// The airway at handoff (PatientCatalog.airwayAtEnd's id): "extubated" or "intubated".
+    case airwayAtEnd(String)
+    /// Where the patient goes after the case, as Status & Plan stores it: its own chips "Fast track", "PACU", "ICU", or
+    /// the catalog's "Ward" and "Same-day discharge" (shown there as Other with the text).
+    case disposition(String)
+    /// The Cardiopulmonary Evaluation's single-line answers: "symptoms" (cardiac symptoms or signs) or "acute" (acute
+    /// cardiac conditions), and the answer. Two separate fields, as the None chip sets them: a line says one, or both.
+    case cardiacAnswer(String, Bool)
+    /// The preprocedure stress test: only the parts written are set (kind, result, date); findings are never cleared.
+    case stressTest(PatientStressTest)
+    /// One intraoperative event, as typed ("hypotension after induction"), added to the Events text.
+    case event(String)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -693,6 +709,13 @@ enum PatientNote {
         let names = drugs.keys.sorted { $0.count > $1.count }
             .map { NSRegularExpression.escapedPattern(for: $0).replacingOccurrences(of: " ", with: "\\s+") }
         return NoteRx("\\b(" + names.joined(separator: "|") + ")\\b")
+    }()
+    /// "on warfarin", "takes metoprolol": a medicine the patient is on, as the medicine reader names them (1.11: the
+    /// quick-add events reader leaves such a line to history).
+    static let takenMedicineRx: NoteRx = {
+        let names = drugs.keys.sorted { $0.count > $1.count }
+            .map { NSRegularExpression.escapedPattern(for: $0).replacingOccurrences(of: " ", with: "\\s+") }
+        return NoteRx("\\b(?:on|takes|taking)\\s+(?:(?:home|daily|chronic|long[- ]term|his|her|a|an)\\s+){0,2}(?:" + names.joined(separator: "|") + ")\\b")
     }()
 
     /// Drug classes, as written or as an abbreviation reads ("BB" as beta-blocker), and the flag each sets.
@@ -3579,6 +3602,48 @@ enum PatientNote {
             // A tube written with less than the record has ("7.5 ETT, 23 cm" for "… at the lip") is already there.
             let known = o.caseInsensitiveCompare(value) == .orderedSame || (key == "tube" && o.lowercased().hasPrefix(value.lowercased()))
             return known ? .recorded : .replaces(o)
+        case .ecg(let f):
+            if r.ecg.contains(f) { return .recorded }
+            // A rhythm replaces the rhythm recorded before it; NSR and a high-grade block replace each other (PatientECG.adding).
+            if PatientECG.rhythms.contains(f), let old = r.ecg.first(where: { PatientECG.rhythms.contains($0) }) { return .replaces(old) }
+            if f == PatientECG.nsr, let old = r.ecg.first(where: { PatientECG.notWithNSR.contains($0) }) { return .replaces(old) }
+            if PatientECG.notWithNSR.contains(f), r.ecg.contains(PatientECG.nsr) { return .replaces(PatientECG.nsr) }
+            return .new
+        case .airwayAtEnd(let id):
+            guard let o = r.airwayAtEnd else { return .new }
+            return o == id ? .recorded : .replaces(o == "intubated" ? "remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == o }?.label.lowercased() ?? o))
+        case .disposition(let d):
+            guard let o = r.disposition?.trimmingCharacters(in: .whitespacesAndNewlines), !o.isEmpty else { return .new }
+            return o.caseInsensitiveCompare(d) == .orderedSame ? .recorded : .replaces(o)
+        case .cardiacAnswer(let key, let answer):
+            // A No never hides a symptom or a condition already recorded: that is sorted out on the page.
+            if key == "symptoms" {
+                if !answer, !r.cardiacSymptoms.isEmpty {
+                    let names = PatientFunctional.cardiacSymptomFlags.filter { r.cardiacSymptoms.contains($0.id) }.map { $0.label.lowercased() }
+                    return .conflicts("Cardiac symptoms are recorded (" + names.joined(separator: ", ") + "); check them in Cardiopulmonary Evaluation.")
+                }
+                guard let o = r.cardiacSymptomsAnswer else { return .new }
+                return o == answer ? .recorded : .replaces(o ? "Yes" : "No")
+            }
+            let active = PatientFunctional.acuteConditions(r)
+            if !answer, !active.isEmpty {
+                return .conflicts("Acute cardiac conditions are recorded (" + active.map { $0.lowercased() }.joined(separator: ", ") + "); check them in Cardiopulmonary Evaluation.")
+            }
+            guard let o = r.activeCardiacAnswer else { return .new }
+            return o == answer ? .recorded : .replaces(o ? "Yes" : "No")
+        case .stressTest(let t):
+            let o = r.stressTest
+            if o.isEmpty { return .new }
+            let kindSame = t.kind == nil || o.kind == t.kind
+            let resultSame = t.result == nil || o.result == t.result
+            let dateSame = t.date.isEmpty || o.date == t.date
+            if kindSame && resultSame && dateSame { return .recorded }
+            if let a = o.result, let b = t.result, a != b { return .replaces(o.summary ?? a.text) }
+            if let a = o.kind, let b = t.kind, a != b { return .replaces(o.summary ?? a.label.lowercased()) }
+            if !o.date.isEmpty, !t.date.isEmpty, o.date != t.date { return .replaces(o.summary ?? o.date.text) }
+            return .new
+        case .event(let t):
+            return mentions(r.events, t) ? .recorded : .new
         }
     }
 
@@ -3804,6 +3869,29 @@ enum PatientNote {
             case .intraopAirway(let key, let value): r.setIntraopAirway(key, value)
             case .typeScreen(let ts): r.typeScreen = ts.merged(over: r.typeScreen)
             case .infectious(let id, let name, let v): LabResults.set(id, name: name, v, in: &r)
+            // 1.11
+            case .ecg(let f): PatientECGLink.add(f, to: &r)
+            case .airwayAtEnd(let id): r.airwayAtEnd = id
+            case .disposition(let d): r.disposition = d
+            case .cardiacAnswer(let key, let answer):
+                if key == "symptoms" { r.cardiacSymptomsAnswer = answer } else { r.activeCardiacAnswer = answer }
+            case .stressTest(let t):
+                // A typed test that disagrees with the recorded one (another kind, result or date) is another test: it
+                // replaces the old one whole, so the old findings are not left under the new result.
+                let o = r.stressTest
+                let differs = !o.isEmpty && ((o.result != nil && t.result != nil && o.result != t.result)
+                    || (o.kind != nil && t.kind != nil && o.kind != t.kind) || (!o.date.isEmpty && !t.date.isEmpty && o.date != t.date))
+                if differs {
+                    r.stressTest = t
+                } else {
+                    if let k = t.kind { r.stressTest.kind = k }
+                    if let v = t.result { r.stressTest.result = v }
+                    if !t.date.isEmpty { r.stressTest.date = t.date }
+                    if !t.findings.trimmingCharacters(in: .whitespaces).isEmpty { r.stressTest.findings = joined(r.stressTest.findings, t.findings) }
+                }
+            case .event(let t):
+                r.noEvents = false
+                r.events = joined(r.events, t)
             }
         }
         // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.

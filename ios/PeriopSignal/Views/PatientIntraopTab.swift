@@ -160,7 +160,9 @@ struct IntraopChoiceLine: View {
     }
 }
 
-/// An "+ Add" row that opens an editor, with what the editor holds under it once something is recorded.
+/// A link row that opens an editor, with what the editor holds under it once something is recorded. 1.11 (P1-7, P1-9,
+/// P1-10): the row keeps its own icon while empty (grey, not a ⊕), its hint is one short phrase, and a summary line
+/// truncates to two lines with "…" on the tab (the page has it all); an alert line is never truncated.
 struct IntraopLinkRow: View {
     var title: String
     var icon: String
@@ -169,36 +171,56 @@ struct IntraopLinkRow: View {
     /// What it holds, in a few words, while empty.
     var hint: String = ""
 
+    /// How many lines a summary line may take on the tab; nil (no limit) for an alert, and for a line with values
+    /// marked abnormal (the last labs: a flagged value is never behind an ellipsis).
+    static func lineLimit(_ l: PatientSummary.Line) -> Int? { l.alert || !l.marks.isEmpty ? nil : 2 }
+
     var body: some View {
         NavigationLink(value: editor) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 10) {
-                    Image(systemName: lines.isEmpty ? "plus.circle" : icon)
-                        .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.accent)
-                        .frame(width: 22)
-                    Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                    Spacer(minLength: 6)
-                    Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                }
+            IntraopLinkRowBody(title: title, icon: icon, empty: lines.isEmpty, trailing: "chevron.right") {
                 if lines.isEmpty {
                     if !hint.isEmpty {
-                        Text(hint).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                            .padding(.leading, 32)
+                        Text(hint).font(PS.sys(size: PreopEmptyHints.hintFontSize)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 6) {
-                        ForEach(Array(lines.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
+                        ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
+                            PatientLineText(line: l).lineLimit(Self.lineLimit(l))
+                        }
                     }
-                    .padding(.leading, 32)
                 }
             }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel((lines.isEmpty ? "Add " : "Edit ") + title)
+    }
+}
+
+/// The look the intraoperative link rows share (the case timers row too): the icon (its own, grey while empty, the
+/// accent once filled), the title, a trailing symbol, and what the row holds indented under the title.
+struct IntraopLinkRowBody<Content: View>: View {
+    var title: String
+    var icon: String
+    var empty: Bool
+    var trailing: String
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(empty ? PS.fg3 : PS.action)
+                    .frame(width: 22)
+                Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
+                Spacer(minLength: 6)
+                Image(systemName: trailing).font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+            }
+            content().padding(.leading, 32)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .contentShape(Rectangle())
     }
 }
 
@@ -344,6 +366,12 @@ struct IntraopAirwayCourse: View {
 
 /// The drips: typed in a line with the drug list suggesting names and filling in the unit, then the list of what is
 /// running. Used in the tab and in the Infusions editor page.
+///
+/// 1.11 (Ben's note 5, Q6): the drips running before the case are in this list from the start, each with a grey "from
+/// preop" caption until its rate or drug is changed in the room (IntraopInfusionList: the first edit writes the case's
+/// own copy, tagged through PatientInfusion.fromPreop); 🗑 takes the copy out of this list only, the preop record and the
+/// handoff's "running before the case" line keep it. The Carry-over button and the "⊕ Add infusion" row are gone: the
+/// type line adds drips. A record saved with both lists is merged by drug on read, so nothing doubles.
 struct IntraopInfusionsSection: View {
     @Environment(PatientStore.self) private var patient
     @Environment(ReferenceStore.self) private var refs
@@ -351,61 +379,47 @@ struct IntraopInfusionsSection: View {
     private var r: PatientRecord { patient.record }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !r.homeInfusions.isEmpty && r.infusions.isEmpty {
-                Button { patient.update(discrete: true) { $0.infusions = $0.homeInfusions.map { PatientInfusion(drug: $0.drug, rate: $0.rate) } } } label: {
-                    Label("Carry over the current infusions (" + r.homeInfusions.map(\.drug).filter { !$0.isEmpty }.joined(separator: ", ") + ")", systemImage: "arrow.down.circle")
-                        // Wraps, unlike GhostButtonStyle's one line: two drug names ran the page wider than the screen (1.8.1).
-                        .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.fg)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 15).padding(.vertical, 9)
-                        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(PS.line2, lineWidth: 1))
-                        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                // About the 20 pt the editor page left above the Infusions header in 1.9, so the two do not read as one block.
-                .padding(.bottom, 12)
-            }
-            PatientGroup(title: "Infusions") {
-                // Typed in one line, as the quick-add bar takes them (1.8.1).
-                InfusionTypeField(list: \.infusions)
+        PatientGroup(title: "Infusions") {
+            // Typed in one line, as the quick-add bar takes them (1.8.1).
+            InfusionTypeField(list: \.infusions)
+            // A divider above each drip, none under the last: nothing follows it since "Add an infusion" went (1.11).
+            ForEach(IntraopInfusionList.rows(r)) { row in
                 Hairline().padding(.leading, 14)
-                ForEach(r.infusions) { inf in
-                    infusionEditor(inf)
-                        .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.infusions.removeAll { $0.id == inf.id } } }
-                    Hairline().padding(.leading, 14)
-                }
-                WobbleDoneBar(editing: $wobbling)
-                Button { patient.update(discrete: true) { $0.infusions.append(PatientInfusion()) } } label: { Label("Add infusion", systemImage: "plus.circle") }
-                    .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
-                    .padding(14)
+                infusionEditor(row)
+                    .wobbleDelete($wobbling, label: row.drug.isEmpty ? "infusion" : row.drug) { patient.update(discrete: true) { IntraopInfusionList.remove(row.id, in: &$0) } }
             }
+            WobbleDoneBar(editing: $wobbling)
         }
     }
 
-    private func infusionEditor(_ inf: PatientInfusion) -> some View {
-        let idx = r.infusions.firstIndex { $0.id == inf.id }
+    private func infusionEditor(_ row: IntraopInfusionRow) -> some View {
         let names = (refs.bundle?.infusions?.groups ?? []).flatMap { $0.drugs.map(\.name) }
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Menu {
                     ForEach(names, id: \.self) { n in
-                        Button(n) { if let i = idx { patient.update(discrete: true) { $0.infusions[i].drug = n } } }
+                        Button(n) { patient.update(discrete: true) { IntraopInfusionList.setDrug(row.id, n, in: &$0) } }
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(inf.drug.isEmpty ? "Choose the drug" : inf.drug).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(inf.drug.isEmpty ? PS.accent : PS.fg).multilineTextAlignment(.leading)
+                        Text(row.drug.isEmpty ? "Choose the drug" : row.drug).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(row.drug.isEmpty ? PS.action : PS.fg).multilineTextAlignment(.leading)
                         Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
                     }
                 }
+                if row.fromPreop {
+                    Text(IntraopInfusionList.fromPreopCaption).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(PS.fg3)
+                        .padding(.horizontal, 7).padding(.vertical, 2)
+                        .background(PS.surface2, in: Capsule())
+                        .accessibilityLabel("Running before the case")
+                }
                 Spacer()
-                Button(role: .destructive) { if let i = idx { patient.update(discrete: true) { $0.infusions.remove(at: i) } } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
+                Button(role: .destructive) { patient.update(discrete: true) { IntraopInfusionList.remove(row.id, in: &$0) } } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Remove this infusion")
+                    .accessibilityLabel(row.preopOnly ? "Take this infusion off the case's list" : "Remove this infusion")
             }
             FocusBox { f in
-                TextField("Rate", text: Binding(get: { idx.map { patient.record.infusions[$0].rate } ?? "" }, set: { v in if let i = idx { patient.update { $0.infusions[i].rate = v } } }))
+                TextField("Rate", text: Binding(get: { IntraopInfusionList.rows(patient.record).first { $0.id == row.id }?.rate ?? "" },
+                                                set: { v in patient.update { IntraopInfusionList.setRate(row.id, v, in: &$0) } }))
                     .focused(f)
                     .font(PS.sys(size: 14))
                     .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -454,18 +468,13 @@ struct IntraopDevicesCard: View {
     @Environment(PatientStore.self) private var patient
     private var r: PatientRecord { patient.record }
 
-    /// The limb alerts and the arm to spare, the lines in place (on arrival or placed in the room, as the handoff lists
-    /// them) on one line, and the mechanical support.
-    static func lines(_ r: PatientRecord) -> [PatientSummary.Line] {
-        let s = sections(r)
-        return s.aboveFigure + s.belowFigure
-    }
-
-    /// Where each line goes on the card (1.10 review): the limb alerts and the radial-harvest arm cautions are safety
-    /// content and open the card above the figure, as they opened 1.9's Lines card on the first screen; the lines in place
-    /// and the mechanical support follow the figure.
+    /// Where each line goes on the card (1.10 review): the radial-harvest arm cautions are safety content and open the card
+    /// above the figure, as they opened 1.9's Lines card on the first screen; the lines in place and the mechanical support
+    /// follow the figure. 1.11 (P1-10): a limb alert is said once, as the figure says it (the red marker on the limb and the
+    /// figure's own list of alerts, above the figure as on the Preoperative tab's card), so the red "Limb alert" text lines
+    /// are no longer in `aboveFigure`; `lines` (the handoff and the tests) still has them first.
     static func sections(_ r: PatientRecord) -> (aboveFigure: [PatientSummary.Line], belowFigure: [PatientSummary.Line]) {
-        let alerts = PatientSummary.limbAlertLines(r) + PatientSummary.harvestLines(r)
+        let alerts = PatientSummary.harvestLines(r)
         var rest: [PatientSummary.Line] = []
         var placed: [String] = PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) })
         placed += r.lines.map(\.text).filter { !$0.isEmpty }
@@ -474,35 +483,49 @@ struct IntraopDevicesCard: View {
         return (alerts, rest)
     }
 
+    /// Every line the card says, the limb alerts first (the figure's caption carries them on the card itself).
+    static func lines(_ r: PatientRecord) -> [PatientSummary.Line] {
+        let s = sections(r)
+        return PatientSummary.limbAlertLines(r) + s.aboveFigure + s.belowFigure
+    }
+
+    /// The card has something to show: a line above or below the figure, or anything drawn on it.
+    static func hasContent(_ r: PatientRecord) -> Bool {
+        let s = sections(r)
+        let figure = PatientDiagramModel.items(r, phase: .all)
+        return !(s.aboveFigure.isEmpty && s.belowFigure.isEmpty && figure.items.isEmpty && figure.cart == nil)
+    }
+
     var body: some View {
+        // 1.11 (P1-6, said once): the section title above the card already says "Lines & Devices", so the card has no
+        // header of its own; its › sits at the top right, and the figure comes first.
         NavigationLink(value: PatientEditor.intraopPart("lines")) {
             VStack(alignment: .leading, spacing: 9) {
-                HStack(spacing: 8) {
-                    Image(systemName: "figure.stand").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                    Text("Lines & Devices").font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-                    Spacer()
-                    Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                }
-                // Every line and device in place now, on arrival or placed in the room, as the handoff lists them.
                 let s = Self.sections(r)
-                let figure = PatientDiagramModel.items(r, phase: .all)
-                if s.aboveFigure.isEmpty && s.belowFigure.isEmpty && figure.items.isEmpty && figure.cart == nil {
-                    Text("Tap to draw the lines and devices: peripheral, arterial and central lines, the airway and mechanical support.")
+                if !Self.hasContent(r) {
+                    Text(PreopEmptyHints.intraopLines)
                         .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                        .padding(.trailing, 24)
                 } else {
-                    // The arm and limb alerts first (safety content), then the figure; the limb alert is already in the
-                    // red line above, so the figure does not list it again under itself.
-                    ForEach(Array(s.aboveFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
-                    PatientDiagramCard(record: r, phase: .all, height: 260, listsLimbAlerts: PatientSummary.limbAlertLines(r).isEmpty)
+                    // The arm cautions first (safety content), then the figure with its limb alerts above it (once: the
+                    // marker on the limb and the caption), then the lines in place.
+                    ForEach(Array(s.aboveFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l).padding(.trailing, 24) }
+                    PatientDiagramCard(record: r, phase: .all, height: 260, limbAlertsAbove: true)
+                        .padding(.trailing, s.aboveFigure.isEmpty ? 24 : 0)
                     ForEach(Array(s.belowFigure.enumerated()), id: \.offset) { _, l in PatientLineText(line: l) }
                 }
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .topTrailing) {
+                Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3).padding(16)
+            }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Lines & Devices")
+        .accessibilityHint("Opens the lines page")
     }
 }
 
@@ -513,48 +536,62 @@ struct IntraopNotableMedicationLink: View {
     var body: some View {
         IntraopLinkRow(title: "Notable medication", icon: "pills", editor: .intraopPart("meds"),
                        lines: PatientSummary.intraopPartLines(patient.record, "meds"),
-                       hint: "TXA, steroids, antibiotic and time, reversal, positioning")
+                       hint: PreopEmptyHints.intraop["meds"] ?? "")
     }
 }
 
 /// The links under Other Intraoperative Details: echo findings, labs, regional & neuraxial, events & interventions,
-/// major considerations and the case timers. Each shows what it holds once something is recorded.
+/// major considerations and the case timers. Each shows what it holds once something is recorded; while empty, its own
+/// icon and a one-phrase hint (1.11, P1-7 and P1-9).
 struct IntraopOtherDetails: View {
     @Environment(PatientStore.self) private var patient
+    @Environment(ReferenceStore.self) private var refs
     private var r: PatientRecord { patient.record }
 
-    private func link(_ part: String, _ title: String, _ icon: String, _ hint: String) -> some View {
-        IntraopLinkRow(title: title, icon: icon, editor: .intraopPart(part), lines: PatientSummary.intraopPartLines(r, part), hint: hint)
+    private func link(_ part: String, _ title: String, _ icon: String) -> some View {
+        IntraopLinkRow(title: title, icon: icon, editor: .intraopPart(part), lines: PatientSummary.intraopPartLines(r, part),
+                       hint: PreopEmptyHints.intraop[part] ?? "")
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            link("echo", "Intraoperative echo findings", "waveform.path.ecg.rectangle", "Pre- and post-bypass TEE: LV and RV function, valves, aorta")
-            link("labs", "Intraoperative labs", "testtube.2", "Blood gas and coagulation sets, each with its time")
-            link("regional", "Regional & neuraxial", "figure.flexibility", "Blocks and neuraxial techniques, drugs and catheters")
-            link("events", "Intraoperative events & interventions", "exclamationmark.triangle", "What happened, and whether the patient leaves intubated or extubated")
+            link("echo", "Intraoperative echo findings", "waveform.path.ecg.rectangle")
+            link("labs", "Intraoperative labs", "testtube.2")
+            link("regional", "Regional & neuraxial", "figure.flexibility")
+            link("events", "Intraoperative events & interventions", "exclamationmark.triangle")
             // Safety content, kept as the last link and shown in full (red) once filled: the top of the handoff reads it.
-            link("considerations", "Major considerations", "exclamationmark.bubble", "Difficult airway, massive transfusion, pressors, TEE findings, for the top of the handoff")
+            link("considerations", "Major considerations", "exclamationmark.bubble")
             if DraftGate.shows("caseTimers") { caseTimerLink }
         }
     }
 
-    /// Opens the case timers, as My Patient's ⋯ menu does.
+    /// The case timers row's title: "+ Case timers" while none runs, "Case timers" once some do.
+    static func caseTimersTitle(running: Int) -> String { running > 0 ? PreopEmptyHints.caseTimersRunning : PreopEmptyHints.caseTimersNone }
+
+    /// The row's scroll id: the last row of the tab, which a screenshot reaches with -ps.patient.scroll casetimers (shot 816).
+    static let caseTimersScrollID = "casetimers"
+
+    /// Opens the case timers, as My Patient's ⋯ menu does: a row like its neighbours, with ⏱ as its icon and › on the
+    /// right; "+ Case timers" while none runs, else "Case timers" with the timers that are running under it.
     private var caseTimerLink: some View {
-        Button { Haptics.light(); CaseTimersUI.shared.open = true } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "plus.circle").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.accent).frame(width: 22)
-                Text("Case timer").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                Spacer(minLength: 6)
-                Image(systemName: "timer").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3)
+        let reminders = refs.caseTimers.map { CaseTimerEngine.reminders(r.timers, record: r, data: $0) } ?? []
+        return Button { Haptics.light(); CaseTimersUI.shared.open = true } label: {
+            IntraopLinkRowBody(title: Self.caseTimersTitle(running: reminders.count), icon: "timer", empty: reminders.isEmpty, trailing: "chevron.right") {
+                if !reminders.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(reminders.prefix(3)) { rem in
+                            Text(rem.title).font(PS.sys(size: 14)).foregroundStyle(PS.fg).lineLimit(1)
+                        }
+                        if reminders.count > 3 {
+                            Text("+ \(reminders.count - 3) more").font(PS.sys(size: PreopEmptyHints.hintFontSize)).foregroundStyle(PS.fg3)
+                        }
+                    }
+                }
             }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Add a case timer")
+        .id(Self.caseTimersScrollID)
+        .accessibilityLabel(reminders.isEmpty ? "Add a case timer" : "Case timers, \(reminders.count) running")
         .accessibilityHint("Opens Case Timers for this patient")
     }
 }
@@ -582,7 +619,7 @@ struct LabsDrawnRow: View {
                     // The summary's own time: "06:30" today, "11/06/26 06:30" another day.
                     Text("Drawn " + PatientSummary.time(d)).font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg2)
                     Button { withAnimation(.snappy) { editing.toggle() } } label: {
-                        Text(editing ? "Done" : "Change").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.accent)
+                        Text(editing ? "Done" : "Change").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.action)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(editing ? "Done" : "Change the time the labs were drawn")
@@ -595,7 +632,7 @@ struct LabsDrawnRow: View {
                 } else {
                     Text("Drawn (optional)").font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg3)
                     Button { patient.update(discrete: true) { $0.labsDrawn = Date() } } label: {
-                        Text("+ Time").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.accent)
+                        Text("+ Time").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.action)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Add the time the labs were drawn")

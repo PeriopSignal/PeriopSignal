@@ -543,7 +543,7 @@ struct PatientDevicesEditor: View {
                     .submitLabel(.done)
                     .onSubmit { addTyped() }
                 if parse != nil {
-                    Button { addTyped() } label: { Image(systemName: "plus.circle.fill").font(PS.sys(size: 20)).foregroundStyle(PS.accent) }
+                    Button { addTyped() } label: { Image(systemName: "plus.circle.fill").font(PS.sys(size: 20)).foregroundStyle(PS.action) }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Add")
                 }
@@ -717,7 +717,8 @@ struct PatientDevicesEditor: View {
 
     @ViewBuilder private var list: some View {
         if !shown.isEmpty || !r.regional.isEmpty || r.currentAirwayText != nil {
-            PatientGroup(title: phase == .preop ? "On arrival" : "Lines & devices") {
+            // On the intraoperative page the list needs no caption: the page title says "Lines & Devices" (1.11, one heading per thing).
+            PatientGroup(title: phase == .preop ? "On arrival" : nil) {
                 ForEach(shown) { d in
                     Button { if !editing { editingID = d.id } } label: {
                         HStack(spacing: 10) {
@@ -797,7 +798,7 @@ struct PatientDevicesEditor: View {
                     .font(PS.sys(size: 15))
                     .submitLabel(.done)
                     .onSubmit { addLimbAlert() }
-                Button { addLimbAlert() } label: { Image(systemName: "plus.circle.fill").font(PS.sys(size: 20)).foregroundStyle(PS.accent) }
+                Button { addLimbAlert() } label: { Image(systemName: "plus.circle.fill").font(PS.sys(size: 20)).foregroundStyle(PS.action) }
                     .buttonStyle(.plain)
                     .disabled(alertReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .accessibilityLabel("Add the limb alert")
@@ -938,12 +939,12 @@ struct DeviceDetailSheet: View {
                             Toggle(isOn: Binding(get: { device?.placedIntraop ?? false }, set: { v in update(discrete: true) { $0.placedIntraop = v } })) {
                                 Text("Placed in the room (not there on arrival)").font(PS.sys(size: 14.5)).foregroundStyle(PS.fg)
                             }
-                            .tint(PS.accent).padding(.horizontal, 14).padding(.vertical, 9)
+                            .tint(PS.action).padding(.horizontal, 14).padding(.vertical, 9)
                             Hairline().padding(.leading, 14)
                             Toggle(isOn: Binding(get: { device?.removed ?? false }, set: { v in update(discrete: true) { $0.removed = v } })) {
                                 Text("Removed").font(PS.sys(size: 14.5)).foregroundStyle(PS.fg)
                             }
-                            .tint(PS.accent).padding(.horizontal, 14).padding(.vertical, 9)
+                            .tint(PS.action).padding(.horizontal, 14).padding(.vertical, 9)
                         }
                         Text(d.label).font(PS.sys(size: 13.5, weight: .medium)).foregroundStyle(PS.fg2)
                             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
@@ -1028,9 +1029,9 @@ struct DeviceFieldRow: View {
         ForEach(field.choices, id: \.self) { c in
             Button(c) { store?.markDiscrete(); value = value == c ? "" : c }
                 .font(PS.sys(size: 12.5, weight: .semibold))
-                .foregroundStyle(value == c ? PS.accentFg : PS.fg2)
+                .foregroundStyle(value == c ? PS.bg : PS.fg2)
                 .padding(.horizontal, 10).padding(.vertical, 5)
-                .background(value == c ? PS.accent : PS.surface2, in: Capsule())
+                .background(value == c ? PS.fg : PS.surface2, in: Capsule())
                 .buttonStyle(.plain)
         }
     }

@@ -96,16 +96,16 @@ struct PatientArchiveView: View {
             Spacer()
             Image(systemName: "lock.fill")
                 .font(PS.sys(size: 30, weight: .semibold))
-                .foregroundStyle(PS.accent)
+                .foregroundStyle(PS.action)
                 .frame(width: 64, height: 64)
-                .background(PS.accent.opacity(0.12), in: Circle())
+                .background(PS.action.opacity(0.12), in: Circle())
             Text("The case archive is locked").font(PS.serif(size: 22)).foregroundStyle(PS.fg)
             Text("Unlock with " + ArchiveLock.label + ".")
                 .font(PS.sys(size: 14)).foregroundStyle(PS.fg2)
             Button {
                 Task { unlocked = await ArchiveLock.unlock("Open the case archive") }
             } label: { Label("Unlock", systemImage: "faceid").frame(maxWidth: .infinity) }
-                .buttonStyle(BigButtonStyle(prominent: true))
+                .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
                 .padding(.horizontal, 40)
             Spacer()
             Spacer()
@@ -138,7 +138,7 @@ struct PatientArchiveView: View {
                             .font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                     }
                 }
-                .tint(PS.accent)
+                .tint(PS.action)
                 .disabled(!ArchiveLock.available && !archive.lockEnabled)
             }
             .listRowBackground(PS.surface)
@@ -249,7 +249,7 @@ struct PatientArchiveDetail: View {
                     .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
                 HStack(spacing: 10) {
                     Button { sharing = true } label: { Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
-                        .buttonStyle(BigButtonStyle(prominent: true))
+                        .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
                     Button { UIPasteboard.general.string = entry.text; copied.toggle() } label: { Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: false))
                 }

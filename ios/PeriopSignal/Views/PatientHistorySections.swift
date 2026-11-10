@@ -186,7 +186,7 @@ struct PatientHistorySectionsView: View {
             HStack(spacing: 12) {
                 Image(systemName: open ? "checkmark.circle.fill" : "circle")
                     .font(PS.sys(size: 18, weight: .regular))
-                    .foregroundStyle(open ? PS.accent : PS.fg3)
+                    .foregroundStyle(open ? PS.action : PS.fg3)
                     .frame(width: 22)
                 title(s, open: open)
                 Spacer(minLength: 6)
@@ -987,7 +987,7 @@ struct PatientHistorySectionsView: View {
     private var pftRow: some View {
         NavigationLink(value: PatientEditor.workup("pft")) {
             HStack(spacing: 12) {
-                Image(systemName: r.pft.isEmpty ? "plus.circle" : "lungs").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.accent).frame(width: 22)
+                Image(systemName: r.pft.isEmpty ? "plus.circle" : "lungs").font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.action).frame(width: 22)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Pulmonary function tests").font(PS.sys(size: 15, weight: .medium)).foregroundStyle(PS.fg)
                     Text(r.pft.isEmpty ? "Add results" : r.pft.summary(copd: r.has("copd"))).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineLimit(2)
@@ -1061,7 +1061,7 @@ struct LinkLabel: View {
             Image(systemName: add ? "plus.circle" : "arrow.right.circle").font(PS.sys(size: 13, weight: .semibold))
             Text(title).font(PS.sys(size: 13.5, weight: .semibold)).multilineTextAlignment(.leading)
         }
-        .foregroundStyle(PS.accent)
+        .foregroundStyle(PS.action)
         .padding(.vertical, 3)
         .contentShape(Rectangle())
     }
@@ -1107,7 +1107,7 @@ struct SuggestionRow: View {
                         Image(systemName: "plus.circle").font(PS.sys(size: 12.5, weight: .semibold))
                         Text(text).font(PS.sys(size: 13.5, weight: .medium)).multilineTextAlignment(.leading)
                     }
-                    .foregroundStyle(PS.accent)
+                    .foregroundStyle(PS.action)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

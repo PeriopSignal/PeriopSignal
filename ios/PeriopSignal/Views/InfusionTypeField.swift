@@ -43,7 +43,7 @@ struct InfusionTypeField: View {
                     .accessibilityLabel("Type a drip")
                 if !addable.isEmpty {
                     Button(action: add) { Text("Add \(addable.count)") }
-                        .buttonStyle(CapsuleButtonStyle())
+                        .buttonStyle(CapsuleButtonStyle.patientAction())
                         .accessibilityLabel("Add \(addable.count) infusion\(addable.count == 1 ? "" : "s")")
                 } else if !text.isEmpty {
                     Button { withAnimation(.snappy) { clear() } } label: {
@@ -115,7 +115,7 @@ struct InfusionTypeField: View {
                 Text(it.label).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(off ? PS.fg3 : PS.fg)
                     .strikethrough(out, color: PS.fg3)
                 if let note {
-                    Text(note).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(can ? PS.accent : PS.fg3)
+                    Text(note).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(can ? PS.action : PS.fg3)
                 }
                 if can {
                     Image(systemName: out ? "plus" : "xmark").font(PS.sys(size: 9, weight: .bold)).foregroundStyle(PS.fg3)

@@ -423,7 +423,7 @@ struct PatientEndCaseSheet: View {
             Text(title).frame(maxWidth: .infinity)
                 .foregroundStyle(destructive ? PS.red : (prominent ? PS.accentFg : PS.fg))
         }
-        .buttonStyle(BigButtonStyle(prominent: prominent))
+        .buttonStyle(BigButtonStyle(prominent: prominent, color: PS.action))
     }
 }
 
@@ -471,7 +471,7 @@ struct PatientRoomSheet: View {
                                 Text("Type a room's phone once; pick the room next time.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                             }
                         }
-                        .tint(PS.accent)
+                        .tint(PS.action)
                         .padding(.horizontal, 14).padding(.vertical, 10)
                     }
                     savedRooms

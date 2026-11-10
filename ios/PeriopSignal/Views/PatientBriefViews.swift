@@ -11,36 +11,20 @@ private extension PatientStore {
 
 // MARK: Fishbone
 
-/// A small "<" or ">" for the fishbone: a wedge whose point is on the left or the right.
-private struct FishboneWedge: Shape {
-    var pointsLeft: Bool
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        if pointsLeft {
-            p.move(to: CGPoint(x: rect.maxX, y: rect.minY))
-            p.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
-            p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        } else {
-            p.move(to: CGPoint(x: rect.minX, y: rect.minY))
-            p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
-            p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        }
-        return p
-    }
-}
-
 /// The labs as the fishbone: BMP (Na, Cl, BUN over K, HCO₃, Cr, with the glucose at the point), CBC (WBC, Hb over Hct,
-/// Plt) and the coagulation values (PT over INR, PTT, fibrinogen). A value not entered is a dash in a group that has
-/// something; abnormal values bold red, as the Labs screen marks them; values from the case end in *. Small, and
-/// legible in light and dark.
+/// Plt) and the coagulation figure (PT over PTT, INR at the point, fibrinogen beside it, as Ben drew it on Nov 9). A
+/// value not entered is a dash in a group that has something; abnormal values bold red, as the Labs screen marks them;
+/// values from the case end in *. Small, and legible in light and dark. The shapes are the Labs page's own
+/// (FishboneBMP, FishboneCBC, FishboneCoags in PatientLabsView.swift, 1.11), so the brief stays in step with the figure
+/// the values are typed into.
 struct FishboneFigure: View {
     var labs: BriefLabs
 
-    private let cellWidth: CGFloat = 40
-    private let rowHeight: CGFloat = 30
+    private let g = FishboneGeometry.small
 
-    private func cell(_ key: String, _ name: String) -> some View {
+    private func cell(_ key: String) -> some View {
         let c = labs.cells[key]
+        let name = c?.label ?? PatientLabs.test(key)?.short ?? key
         let color: Color = c == nil || c?.estimated == true ? PS.fg3 : (c?.abnormal == true ? PS.red : PS.fg)
         return VStack(spacing: 0) {
             Text(c.map { ($0.estimated ? "~" : "") + $0.text + ($0.intraop ? "*" : "") } ?? "—")
@@ -51,40 +35,11 @@ struct FishboneFigure: View {
                 .minimumScaleFactor(0.7)
             Text(name).font(PS.sys(size: 8)).foregroundStyle(PS.fg3)
         }
-        .frame(width: cellWidth, height: rowHeight)
+        .frame(width: g.cellWidth, height: g.cellHeight)
     }
 
-    private func vRule() -> some View { Rectangle().fill(PS.line2).frame(width: 1, height: rowHeight - 6) }
-    private func hRule(_ width: CGFloat) -> some View { Rectangle().fill(PS.line2).frame(width: width, height: 1) }
-
-    private var bmp: some View {
-        HStack(spacing: 3) {
-            VStack(spacing: 0) {
-                HStack(spacing: 0) { cell("na", "Na"); vRule(); cell("cl", "Cl"); vRule(); cell("bun", "BUN") }
-                hRule(cellWidth * 3 + 2)
-                HStack(spacing: 0) { cell("k", "K"); vRule(); cell("hco3", "HCO₃"); vRule(); cell("cr", "Cr") }
-            }
-            FishboneWedge(pointsLeft: false).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
-            cell("glucose", "Glu")
-        }
-    }
-
-    private var cbc: some View {
-        HStack(spacing: 0) {
-            cell("wbc", "WBC")
-            FishboneWedge(pointsLeft: true).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
-            VStack(spacing: 0) {
-                cell("hb", "Hb")
-                hRule(cellWidth)
-                cell("hct", "Hct")
-            }
-            FishboneWedge(pointsLeft: false).stroke(PS.fg3, lineWidth: 1).frame(width: 12, height: 26)
-            cell("plt", "Plt")
-        }
-    }
-
-    /// The coagulation parts entered, in order: "ptinr" (PT over INR), "ptt", "fibrinogen". A divider goes between two
-    /// of them only, never beside one alone or twice in a row.
+    /// The coagulation parts entered, in order: "ptinr" (PT and INR), "ptt", "fibrinogen"; the fibrinogen cell is
+    /// drawn only when it is among them (the PT, PTT and INR cells are the figure itself).
     static func coagParts(_ labs: BriefLabs) -> [String] {
         var out: [String] = []
         if labs.cells["pt"] != nil || labs.cells["inr"] != nil { out.append("ptinr") }
@@ -93,34 +48,11 @@ struct FishboneFigure: View {
         return out
     }
 
-    @ViewBuilder private func coagPart(_ id: String) -> some View {
-        switch id {
-        case "ptinr":
-            VStack(spacing: 0) {
-                cell("pt", "PT")
-                hRule(cellWidth)
-                cell("inr", "INR")
-            }
-        case "ptt": cell("ptt", "PTT")
-        default: cell("fibrinogen", "Fib")
-        }
-    }
-
-    private var coags: some View {
-        let parts = Self.coagParts(labs)
-        return HStack(spacing: 0) {
-            ForEach(Array(parts.enumerated()), id: \.element) { i, id in
-                if i > 0 { vRule() }
-                coagPart(id)
-            }
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if labs.hasBMP { bmp }
-            if labs.hasCBC { cbc }
-            if labs.hasCoags { coags }
+            if labs.hasBMP { FishboneBMP(g: g) { cell($0) } }
+            if labs.hasCBC { FishboneCBC(g: g) { cell($0) } }
+            if labs.hasCoags { FishboneCoags(g: g, fibrinogen: Self.coagParts(labs).contains("fibrinogen")) { cell($0) } }
             if let c = labs.caption {
                 Text(c).font(PS.sys(size: 9)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
             }
@@ -243,7 +175,7 @@ struct BriefBlockView: View {
     private var labelRow: some View {
         HStack(spacing: 6) {
             if let l = block.label {
-                Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.accent : PS.fg)
+                Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.red : PS.fg)
             }
             if block.edited {
                 Text("edited").font(PS.sys(size: 10, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -288,7 +220,7 @@ struct BriefBlockView: View {
                 }
             } else {
                 // The label and the words on one line, so the paragraph wraps under both.
-                (Text(block.label.map { $0 + ": " } ?? "").font(PS.sys(size: 14.5, weight: .bold)).foregroundColor(block.alert ? PS.accent : PS.fg)
+                (Text(block.label.map { $0 + ": " } ?? "").font(PS.sys(size: 14.5, weight: .bold)).foregroundColor(block.alert ? PS.red : PS.fg)
                  + Text(briefStyled(block.text, marks: block.marks, labels: false)).font(PS.sys(size: 14.5)).foregroundColor(PS.fg)
                  + Text(Self.editedMark(block)).font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))
                     .lineSpacing(2)
@@ -326,7 +258,7 @@ struct BriefBlockView: View {
                             onCommit(block.key, draft)
                             editing = false
                         }
-                        .buttonStyle(CapsuleButtonStyle(prominent: true))
+                        .buttonStyle(CapsuleButtonStyle.patientAction())
                         Button("Cancel") { editing = false }
                             .buttonStyle(CapsuleButtonStyle(prominent: false))
                         Spacer(minLength: 0)
@@ -361,7 +293,6 @@ struct BriefPanel: View {
     var startAt: String = ""
     @State private var sharing: [Any]?
     @State private var copied = false
-    @State private var confirming = false
 
     private var record: PatientRecord { patient.record }
     private var all: [SummaryBlock] { PatientBriefs.blocks(kind, record) }
@@ -369,20 +300,25 @@ struct BriefPanel: View {
         guard !startAt.isEmpty, let i = all.firstIndex(where: { ($0.label ?? "").lowercased().hasPrefix(startAt.lowercased()) }) else { return all }
         return Array(all[i...])
     }
-    private var edited: Bool { !PatientBriefs.edits(kind, record).isEmpty }
-
     private var title: String { kind == .preop ? "Preprocedure summary" : "Handoff, as it stands" }
+
+    /// The handoff keeps its eyebrow (the Summary & Handoff tab has no section title above it); the preoperative brief
+    /// does not (1.11, P1-6).
+    static func showsEyebrow(_ kind: PatientBriefs.Kind) -> Bool { kind != .preop }
+
+    /// The preoperative brief's Regenerate sits on its section title's line ("Preprocedure Summary · Regenerate", 1.11,
+    /// P1-6: PatientView.summarySection), so the panel draws no header row for it; the handoff keeps its eyebrow and
+    /// Regenerate on one row.
+    static func regenerateOnTitleLine(_ kind: PatientBriefs.Kind) -> Bool { !showsEyebrow(kind) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Eyebrow(text: title)
-                Spacer()
-                Button { confirming = true } label: { Label("Regenerate", systemImage: "arrow.clockwise") }
-                    .buttonStyle(CapsuleButtonStyle(prominent: false))
-                    .disabled(!edited)
-                    .opacity(edited ? 1 : 0.45)
-                    .accessibilityHint("Rebuilds this text from the record and clears your edits")
+            if !Self.regenerateOnTitleLine(kind) {
+                HStack(alignment: .firstTextBaseline) {
+                    Eyebrow(text: title)
+                    Spacer()
+                    BriefRegenerateButton(kind: kind)
+                }
             }
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(shown) { b in
@@ -404,7 +340,7 @@ struct BriefPanel: View {
                 Button { sharing = HandoffShare.briefItems(all, record: record, figure: refs.bundle?.regional?.figure) } label: {
                     Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(BigButtonStyle(prominent: true))
+                .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
                 Button { HandoffShare.copy(blocks: all); copied.toggle() } label: {
                     Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity)
                 }
@@ -412,24 +348,59 @@ struct BriefPanel: View {
             }
         }
         .sensoryFeedback(.success, trigger: copied)
-        .confirmationDialog("Regenerate this text from the record?", isPresented: $confirming, titleVisibility: .visible) {
-            Button("Regenerate", role: .destructive) {
-                patient.update(discrete: true) { PatientBriefs.regenerate(&$0, kind) }
-            }
-            Button("Keep my edits", role: .cancel) {}
-        } message: {
-            Text("Your edits to this text are cleared. Undo brings them back.")
-        }
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {
             ShareSheet(items: sharing ?? []).presentationDetents([.medium, .large])
         }
     }
 }
 
+/// A brief's Regenerate: off until the brief has an edit; asks, then clears this brief's edits (Undo brings them back).
+/// On the handoff's eyebrow row, and on the Preprocedure Summary title's line.
+struct BriefRegenerateButton: View {
+    /// How much of the capsule is drawn: icon and word, the word alone, or the icon alone. The narrower forms are for
+    /// the Preprocedure Summary title's line on a narrow phone (PreopSectionTitle); all three are spoken the same.
+    enum LabelForm: CaseIterable { case full, word, icon }
+    static let spokenName = "Regenerate"
+
+    @Environment(PatientStore.self) private var patient
+    var kind: PatientBriefs.Kind
+    var form: LabelForm = .full
+    @State private var confirming = false
+
+    private var edited: Bool { !PatientBriefs.edits(kind, patient.record).isEmpty }
+
+    @ViewBuilder static func label(_ form: LabelForm) -> some View {
+        switch form {
+        case .full: Label(spokenName, systemImage: "arrow.clockwise")
+        case .word: Text(spokenName)
+        // At least 18 points of icon, so the capsule (13 points of padding each side) is 44 wide to tap.
+        case .icon: Image(systemName: "arrow.clockwise").frame(minWidth: 18)
+        }
+    }
+
+    var body: some View {
+        Button { confirming = true } label: { Self.label(form) }
+            .buttonStyle(CapsuleButtonStyle(prominent: false))
+            .accessibilityLabel(Self.spokenName)
+            .disabled(!edited)
+            .opacity(edited ? 1 : 0.45)
+            .accessibilityHint("Rebuilds this text from the record and clears your edits")
+            .confirmationDialog("Regenerate this text from the record?", isPresented: $confirming, titleVisibility: .visible) {
+                Button("Regenerate", role: .destructive) {
+                    patient.update(discrete: true) { PatientBriefs.regenerate(&$0, kind) }
+                }
+                Button("Keep my edits", role: .cancel) {}
+            } message: {
+                Text("Your edits to this text are cleared. Undo brings them back.")
+            }
+    }
+}
+
 // MARK: Preprocedure summary
 
-/// The Preprocedure tab's last section: "+ Generate preprocedure summary", then the brief (record.preopSummaryOn). A record
-/// with nothing in it has nothing to summarize: the button is off.
+/// The Preprocedure tab's last section: "+ Generate preprocedure summary", then the brief (record.preopSummaryOn). Nothing
+/// at all until the record has an age or a procedure (1.11, P1-9: no disabled button; the rule, offersSummary, is in
+/// PatientPreopViews.swift).
 struct PreprocedureSummaryView: View {
     @Environment(PatientStore.self) private var patient
 
@@ -441,14 +412,19 @@ struct PreprocedureSummaryView: View {
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
             .id("preopsummary")
-        } else {
+        } else if Self.offersSummary(patient.record) {
             Button { Haptics.light(); patient.update(discrete: true) { $0.preopSummaryOn = true } } label: {
                 Label("Generate preprocedure summary", systemImage: "plus")
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: true))
-            .disabled(patient.isEmpty)
-            .opacity(patient.isEmpty ? 0.45 : 1)
+            .buttonStyle(CapsuleButtonStyle.patientAction())
             .id("preopsummary")
+        } else {
+            // An empty record has nothing to summarize: one phrase, so the section does not read as cut off.
+            Text("Appears once something is recorded.")
+                .font(PS.sys(size: 13)).foregroundStyle(PS.fg3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 2)
+                .id("preopsummary")
         }
     }
 }
@@ -535,12 +511,14 @@ struct StatusPlanCard: View {
         }
     }
 
+    // 1.11 (P1-6): a plain box with the STATUS & PLAN caption, as every other box with controls in place; the card header
+    // with an icon and a 16-pt title looked like a card that opens a page, and it opens nothing.
     var body: some View {
+        PatientGroup(title: "Status & Plan") { rows.padding(.horizontal, 14).padding(.vertical, 10) }
+    }
+
+    private var rows: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.right.circle").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                Text("Status & Plan").font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-            }
             row("Airway") { PatientChoice(options: Self.airwayOptions(r.airwayAtEnd), selection: airway) }
             row("Disposition") {
                 PatientChoice(options: (Self.dispositionChips + ["Other"]).map { (id: $0, label: $0) }, selection: disposition)
@@ -558,9 +536,7 @@ struct StatusPlanCard: View {
                 row("Call if") { PlanField(prompt: "When to call", text: patient.bound(\.callIf)) }
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
     }
 }
 

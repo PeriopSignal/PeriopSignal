@@ -272,6 +272,34 @@ enum PatientSummary {
         return out
     }
 
+    /// The Airway Examination card's lines (1.11, Ben's Q18): the finding, not its definition. "Mallampati III" (the card's
+    /// drawing and numeral show what that means), "Difficult mask ventilation: 2 of 5 predictors", "Impossible mask
+    /// ventilation: 3 of 5 predictors"; the Langeron and Kheterpal wording and the Mallampati definition stay on the page,
+    /// in its ⓘ and in the brief (airwayLines). Only the findings are red. A mask-ventilation count that predicts nothing
+    /// (one Langeron predictor) stays off the card, as it was never red there.
+    static func airwayCardLines(_ r: PatientRecord) -> [Line] {
+        airwayLines(r).compactMap { l -> Line? in
+            if l.label == nil, l.text.hasPrefix("Mallampati "), let m = r.mallampati {
+                return Line(nil, "Mallampati " + PatientRules.roman(m), alert: l.alert)
+            }
+            if l.label == nil, let short = maskRiskShort(l.text) {
+                return Line(nil, short, alert: l.alert)
+            }
+            return l
+        }
+    }
+
+    /// The card's short form of a mask-ventilation line (1.11, Q18): "Difficult mask ventilation: 2 of 5 predictors", from
+    /// the full text with the Langeron or Kheterpal name and the list in parentheses; nil for any other text.
+    static func maskRiskShort(_ text: String) -> String? {
+        for lead in ["Difficult mask ventilation: ", "Impossible mask ventilation: "] where text.hasPrefix(lead) {
+            let rest = text.dropFirst(lead.count)
+            guard let ofRange = rest.range(of: " of 5 ") else { return nil }
+            return lead + String(rest[..<ofRange.lowerBound]) + " of 5 predictors"
+        }
+        return nil
+    }
+
     /// "Mask ventilation easy. Intubation easy: video laryngoscope, grade 1, 1 attempt; 7.5 ETT, 23 cm at the lip."
     static func airwayCourse(_ r: PatientRecord) -> Line? {
         let r = r.capitalized
@@ -396,7 +424,7 @@ enum PatientSummary {
         if part == "considerations" { return IntraopConsiderations.text(r).map { [Line(nil, $0, alert: true)] } ?? [] }
         if part == "airway" && r.arrivesWithAirway {
             var out = [Line(nil, (r.currentAirwayText ?? "Secured") + " on arrival")]
-            if let end = r.airwayAtEnd { out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : end))) }
+            if let end = r.airwayAtEnd { out.append(Line("At handoff", atHandoffText(end))) }
             return out
         }
         let labels: [String: Set<String>] = [
@@ -414,10 +442,19 @@ enum PatientSummary {
                 if let s = l.label.flatMap({ shortened[$0] }) { return Line(s, l.text, alert: l.alert, marks: l.marks) }
                 return l
             }
-        if part == "events", let end = r.airwayAtEnd, r.arrivesWithAirway || r.intubation != nil {
-            out.append(Line("At handoff", end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label ?? end))))
+        // 1.11 (P1-10): how the airway is left belongs to the airway part, not the events one (the Events page lost its
+        // Remains intubated / Extubated buttons; the Intraop "At handoff" row and Status & Plan keep the field). The
+        // course sentence already ends "At handoff: …" once a course is recorded; the line is added only when there is
+        // no course sentence to carry it, so it is said once. The handoff's text (intraopLines) is unchanged.
+        if part == "airway", let end = r.airwayAtEnd, out.isEmpty {
+            out.append(Line("At handoff", atHandoffText(end)))
         }
         return out
+    }
+
+    /// "Extubated", "Remains intubated", or the catalog's label for another value ("Supraglottic airway in").
+    static func atHandoffText(_ end: String) -> String {
+        end == "extubated" ? "Extubated" : (end == "intubated" ? "Remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == end }?.label ?? end))
     }
 
     /// Lines and devices present on arrival (the preoperative picture).
@@ -545,7 +582,9 @@ enum HandoffWriter {
         line("Arms", PatientSummary.harvestLines(r).map(\.text).joined(separator: " "))
         line("Cautions", PatientStudies.cautions(r).filter { !$0.id.hasPrefix("harvest") }.map(\.text).joined(separator: " "))
         line("Support", PatientDevices.labels(r.mechanicalSupport).joined(separator: "; "))
-        line("Drips", (r.infusions.isEmpty ? r.homeInfusions : r.infusions).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
+        // The drips as the intraoperative list shows them (1.11): each preop drip once (its room copy when the rate was
+        // changed there, left out when it was removed there), then the drips started in the room.
+        line("Drips", IntraopInfusionList.rows(r).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
         line("Blood products", BloodProducts.text(r))
         line("Last labs", IntraopLabs.lastLine(r, now: now, abnormalOnly: true)?.text ?? "")
         line("Events", r.noEvents ? "No notable events" : r.events)

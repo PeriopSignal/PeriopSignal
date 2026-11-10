@@ -47,6 +47,11 @@ enum QuickAddPlace: Hashable {
 
     /// The line is read as past surgical history (QuickAdd.read's `surgicalHistory`).
     var surgicalHistory: Bool { self == .pastSurgery }
+
+    /// Where the end of the case is told (1.11, P1-12): the Intraoperative tab and its pages, and Summary & Handoff.
+    /// There "extubated" and "remains intubated" are the airway at handoff and "hypotension after induction" an
+    /// event; on the Preoperative tab and its pages they are not read ("extubated POD1 last year" is history).
+    var handoff: Bool { tab == .intraop || self == .summaryTab }
 }
 
 /// What a line gives: findings to file, and what is shown but never filed.
@@ -109,6 +114,29 @@ private struct QuickScan {
         let ns = text as NSString
         guard r.location != NSNotFound, r.location >= 0, r.length > 0, r.location + r.length <= ns.length else { return }
         text = ns.replacingCharacters(in: r, with: String(repeating: " ", count: r.length))
+    }
+
+    /// Words masked for the other readers that an event's text keeps (1.11): "after induction" says when a line went
+    /// in to the device reader, and when the hypotension happened to the events reader.
+    private(set) var kept: [NSRange] = []
+
+    mutating func keep(_ r: NSRange) {
+        guard r.location != NSNotFound, r.length > 0, r.location + r.length <= (text as NSString).length else { return }
+        kept.append(r)
+        mask(r)
+    }
+
+    /// The text within a range, with the kept words put back (every mask keeps lengths, so positions line up).
+    func restored(_ r: NSRange) -> String {
+        let now = text as NSString
+        let was = original as NSString
+        guard r.location >= 0, r.location + r.length <= now.length, r.length > 0 else { return "" }
+        var out = ""
+        for i in r.location..<(r.location + r.length) {
+            let fromOriginal = kept.contains { NSLocationInRange(i, $0) } && i < was.length
+            out.append(Character(UnicodeScalar((fromOriginal ? was : now).character(at: i)) ?? " "))
+        }
+        return out
     }
 }
 
@@ -226,13 +254,33 @@ enum QuickAdd {
     }
 
     static func placeholder(_ tab: QuickAddTab) -> String {
-        tab == .intraop ? "norepi 0.05, PRBC 2, EBL 500" : "68M for lap chole, HTN, K 5.4, A-line"
+        tab == .intraop ? intraopPlaceholders[0] : "68M for lap chole, HTN, K 5.4, A-line"
     }
 
     /// The example in the bar: the tab's, and on Summary & Handoff one that reads there.
     static func placeholder(_ place: QuickAddPlace) -> String {
         if place == .pastSurgery { return pastSurgeryPlaceholder }
         return place == .summaryTab ? "K 5.4, norepi 0.05, A-line" : placeholder(place.tab)
+    }
+
+    /// The Intraoperative tab's examples (1.11, P1-12), in the order the case goes: drips, blood and fluids first; then
+    /// the end of the case ("extubated, to PACU"); then an event. Each reads on that tab with nothing left unread.
+    static let intraopPlaceholders = ["norepi 0.05, PRBC 2, EBL 500", "extubated, to PACU", "hypotension after induction, EBL 500"]
+
+    /// The example for the record as it stands: on the Intraoperative tab the examples rotate with the case
+    /// (intraopExample), so the bar suggests what is still to type; elsewhere the place's example.
+    static func placeholder(_ place: QuickAddPlace, record r: PatientRecord?) -> String {
+        guard place.tab == .intraop, let r else { return placeholder(place) }
+        return intraopPlaceholders[intraopExample(r)]
+    }
+
+    /// Which Intraoperative example fits the case: 0 before anything of the case is recorded; 1 once a drip, blood,
+    /// fluids or the airway course are, until the airway at handoff or the disposition is; 2 after that.
+    static func intraopExample(_ r: PatientRecord) -> Int {
+        let started = !r.infusions.isEmpty || !r.fluids.isEmpty || r.intubation != nil || r.mask != nil
+            || !r.tube.trimmingCharacters(in: .whitespaces).isEmpty
+        let ended = r.airwayAtEnd != nil || r.disposition != nil
+        return !started ? 0 : (!ended ? 1 : 2)
     }
     /// Short enough for the compact one-line bar at 375 pt, with both date forms (a year; a month and year).
     static let pastSurgeryPlaceholder = "CABG ×3 2015, R TKA 06/2019"
@@ -257,9 +305,14 @@ enum QuickAdd {
     /// there offered to replace the planned AVR (Ben's notes-img1). There, an operation is read as past surgery only
     /// (PastSurgeryNote, as a "PSH:" section's lines are, with its date), the planned procedure and its anesthetic are
     /// never read, and the rest of the line (labs, history) reads as on the Preoperative tab.
+    ///
+    /// `handoff` (1.11, P1-12): the bar sits where the end of the case is told (QuickAddPlace.handoff: the Intraoperative
+    /// tab, which sets it by itself, and Summary & Handoff). There "extubated", "remains intubated" and "LMA out" are
+    /// the airway at handoff and an event ("hypotension after induction") goes to Events; on the Preoperative tab they
+    /// are not read.
     static func read(_ line: String, record: PatientRecord, tab: QuickAddTab, now: Date = Date(),
                      abbreviations user: [String: String] = [:], choices: [String: String] = [:],
-                     surgicalHistory: Bool = false) -> QuickAddReading {
+                     surgicalHistory: Bool = false, handoff: Bool = false) -> QuickAddReading {
         let one = line.components(separatedBy: .newlines).joined(separator: " ")
         var s = QuickScan(one)
         var reading = QuickAddReading()
@@ -269,12 +322,25 @@ enum QuickAdd {
         let abbreviations = MedAbbreviations.scan(base, user: user, choices: choices)
         let c = QuickContext(tab: tab, record: record, now: now, abbreviations: abbreviations, choices: choices, setID: UUID())
         var out = QuickOut()
+        let handoff = handoff || tab == .intraop
 
         if surgicalHistory { readPastSurgery(&s, c, &out) }
+        // The airway at handoff (1.11) before the airway course, whose device words would take the "LMA" of "LMA out".
+        if handoff { readAirwayAtEnd(&s, c, &out) }
         if tab == .intraop {
             readAirway(&s, c, &out)
-            // "A-line pre-induction" on the Intraoperative tab says when it went in, not that it is still to come.
-            for m in inductionTiming.all(s.text) { s.mask(m.range) }
+            // "A-line pre-induction" on the Intraoperative tab says when it went in, not that it is still to come. Kept
+            // for the events reader, whose "hypotension after induction" says when it happened.
+            for m in inductionTiming.all(s.text) { s.keep(m.range) }
+        }
+        // 1.11: the disposition from any tab; the ECG, the stress test and the cardiac answers are the preoperative
+        // workup (on the Intraoperative tab they are set aside, as the history is).
+        if !surgicalHistory {
+            readDisposition(&s, c, &out, preopPlace: !handoff)
+            // In the order a workup line is told: the ECG, the answers, then the test.
+            if tab == .preop { readECG(&s, c, &out) }
+            readCardiacAnswers(&s, c, &out)
+            readStressTest(&s, c, &out)
         }
         readFishbone(&s, c, &out)
         readGas(&s, c, &out)
@@ -287,6 +353,11 @@ enum QuickAdd {
         readLabs(&s, c, &out)
         readDrips(&s, c, &out)
         readMarkedDrips(&s, c, &out)
+        // Events (1.11) after the numbers, so "bleeding EBL 1200" keeps its blood loss; the timing words kept above are
+        // put back in the event's text. On Summary & Handoff, which otherwise reads as the Preoperative tab, only a piece
+        // that says when or how it happened is an event; "hypertension" there is the history it was in 1.10. On either
+        // place a piece that says it is history or an allergy stays with the note reader (isEvent).
+        if handoff { readEvents(&s, c, &out, strict: tab == .preop, typed: withLineBreaks(base, from: line)) }
         if !surgicalHistory { readProcedure(&s, c, &out) }
 
         // The note reader on what is left; a meaning chosen for another value ("levo" chosen at 0.1, now 0.2) is not used.
@@ -342,6 +413,7 @@ enum QuickAdd {
                    productWord, countWord, totalBefore, totalAfter, statedTotal, techniqueWord, aortaHistoryLead, rupturedAAA]
         out += labAliases.map(\.rx) + dripUnits.map(\.rx) + airwayDevices.map { $0.0 }
         out += fluidAfter + fluidBefore + [dripMark, lmaRx]
+        out += patterns111
         return out
     }
 
@@ -409,7 +481,9 @@ enum QuickAdd {
     private static func preoperativeOnly(_ change: PatientNoteChange) -> Bool {
         switch change {
         case .problem, .aneurysm, .valve, .prosthesis, .pulmHtn, .cardiacSurgery, .pastSurgery, .lhcResult, .homeO2, .problemNote, .detail, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
-             .anesthesiaNotes, .dentition, .airwaySign, .mallampati:
+             .anesthesiaNotes, .dentition, .airwaySign, .mallampati,
+             // 1.11: the preoperative ECG, stress test and cardiac answers.
+             .ecg, .stressTest, .cardiacAnswer:
             return true
         default:
             return false
@@ -554,6 +628,31 @@ enum QuickAdd {
 
     /// "no", "held", "off" before a value in its piece: not read.
     private static let pieceNegation = NoteRx(#"\b(?:no|not|non|denies|without|w/o|never|held|holding|off|stopped|weaned|d/c'?d|discontinued|declined|refused)\b"#)
+
+    /// Where one sentence ends and the next begins inside a comma piece ("No events. Extubated to PACU").
+    private static let sentenceBreak = NoteRx(#"[.!?]\s+(?=\S)"#)
+    /// The text before a word, cut to its own sentence: a "no" in the sentence before does not negate it.
+    private static func sameSentence(_ before: String) -> String {
+        guard let last = sentenceBreak.all(before).last else { return before }
+        return (before as NSString).substring(from: last.range.location + last.range.length)
+    }
+    /// The sentence around a range, inside its comma piece.
+    private static func sentenceRange(_ r: NSRange, in s: String) -> NSRange {
+        let ns = s as NSString
+        let p = pieceRange(r, in: s)
+        var a = p.location
+        var b = p.location + p.length
+        let before = ns.substring(with: NSRange(location: a, length: r.location - a))
+        if let last = sentenceBreak.all(before).last { a += last.range.location + last.range.length }
+        let end = r.location + r.length
+        let after = ns.substring(with: NSRange(location: end, length: b - end))
+        if let first = sentenceBreak.first(after) { b = end + first.range.location }
+        return NSRange(location: a, length: b - a)
+    }
+    /// The text with a pattern's matches replaced by a space each.
+    private static func spaced(_ rx: NoteRx, _ s: String) -> String {
+        rx.re?.stringByReplacingMatches(in: s, options: [], range: NSRange(location: 0, length: (s as NSString).length), withTemplate: " ") ?? s
+    }
 
     // MARK: Labs
 
@@ -1770,6 +1869,9 @@ enum QuickAdd {
     private static let urgencyWord = NoteRx(#"\b(?:elective|urgent|emergent|emergency|semi-?urgent|stat|time[- ]sensitive)\b"#)
     /// A procedure from the past, not planned ("CABG 2015", "s/p", "years ago").
     private static let pastWords = NoteRx(#"\b(?:19|20)\d\d\b|\bago\b|\b(?:s/p|status post|prior|previous|history|hx|h/o|remote)\b"#)
+    /// "allergy" right after the name that opens the line (1.11): "PCN allergy" is penicillin, the allergy reader's, not a
+    /// nephrostomy.
+    static let allergyAfterName = NoteRx(#"^\s*allerg(?:y|ies)\b"#)
     /// Words that join procedures or detail one: "×3", "+", "possible open", "L4-5".
     private static let detailWord = NoteRx(#"^(?:x\d{1,2}|×\d{1,2}|×|x|\d{1,2}|\+|&|and|/|with|w/|plus|possible|poss|open|conversion|converted|to|redo|re-do|robotic|robot|robot-assisted|assisted|lap|laparoscopic|minimally|invasive|mini|left|right|bilateral|l|r|lt|rt|bilat|b/l|elective|urgent|emergent|emergency|stat|staged|single|double|triple|quadruple|vessel|level|levels|[a-z]\d{1,2}(?:-[a-z]?\d{1,2})?)$"#)
 
@@ -1821,7 +1923,8 @@ enum QuickAdd {
         let next = p.range.location + p.range.length < ns.length ? ns.substring(with: NSRange(location: p.range.location + p.range.length, length: 1)) : ""
         let rest = ns.substring(with: pieceRange(p.range, in: text))
         guard PatientNote.deviceCue.first(named) == nil, PatientNote.tubeCue.first(named) == nil, next != ":",
-              pastWords.first(rest) == nil, aortaHistoryLead.first(named) == nil else { return }
+              pastWords.first(rest) == nil, aortaHistoryLead.first(named) == nil,
+              allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { return }
         take(p, &s, c, &out)
     }
 
@@ -2288,6 +2391,701 @@ enum QuickAdd {
         }
     }
 
+    // MARK: 1.11 — what still forced a page (P1-12)
+    //
+    // Six rules for what a clinician says in the cardiac workup and at the ends of the case, each filed only from what
+    // the line states: ECG findings behind an ECG cue, the airway at handoff and the disposition, the two No answers of
+    // the Cardiopulmonary Evaluation, the stress test, and intraoperative events. Each masks what it read, so the note
+    // reader does not read the same words as history ("sinus tachycardia" on an ECG is not the symptom), and a word
+    // negated within its comma piece ("no Q waves", "not extubated") is never filed as said.
+
+    // MARK: ECG findings
+
+    /// The cue a line needs before its rhythm and conduction words are ECG findings: "AF" alone stays history, and
+    /// "sinus surgery" files nothing.
+    static let ecgCue = NoteRx(#"\b(?:ecg|ekg|12[- ]lead|(?-i:NSR)|(?:normal\s+)?sinus\s+(?:rhythm|brady\w*|tach\w*)|(?-i:[LR]BBB)|bundle[- ]branch|paced(?:\s+rhythm)?|[av]v?[- ]paced|(?:atrial|ventricular|dual)[- ]?paced|q[- ]waves?)\b"#)
+    /// "normal ECG", "ECG unremarkable": sinus rhythm, said as a whole.
+    static let ecgNormal = NoteRx(#"\b(?:normal|unremarkable|(?-i:WNL))\s+(?:12[- ]lead\s+)?(?:ecg|ekg)\b|\b(?:ecg|ekg)\b\s*(?:[:=-]\s*)?(?:is\s+|was\s+)?(?:normal|unremarkable|(?-i:WNL))\b"#)
+
+    private struct ECGRule {
+        let rx: NoteRx
+        let finding: String
+        /// Skipped when the text just before the mention matches ("incomplete RBBB" is not the block).
+        let notBefore: NoteRx?
+        init(_ p: String, _ finding: String, notBefore: String? = nil) {
+            rx = NoteRx(p)
+            self.finding = finding
+            self.notBefore = notBefore.map { NoteRx($0) }
+        }
+    }
+    private static let incompleteBefore = #"\bincomplete\s+$"#
+    /// "pilonidal sinus", "coronary sinus", "endoscopic sinus surgery": anatomy, not the rhythm.
+    private static let anatomyBefore = #"\b(?:pilonidal|maxillary|frontal|ethmoid\w*|sphenoid\w*|paranasal|coronary|carotid|sagittal|cavernous|venous|transverse|sigmoid|urogenital|dermal|endoscopic)\s+$"#
+    /// Words that mean something else away from the ECG ("DDD" the disc disease, "RAD" the airway disease, "LVH" on
+    /// an echo, a bare "sinus"): findings only in the ECG's own run of comma pieces.
+    private static let ecgAmbiguous: Set<String> = ["sinus", "ddd", "aai", "vvi", "rad", "lvh", "rvh"]
+    /// What an ECG piece may hold besides findings ("with", "rate 72", "occasional").
+    private static let ecgFiller = NoteRx(#"\b(?:with|and|w|no|new|old|occasional|frequent|rare|borderline|possible|probable|mild|rate|hr|bpm|at|\d+)\b|\W+"#)
+    /// "echo LVH", "LVH on echo": the echo's finding, not the ECG's.
+    private static let echoBefore = NoteRx(#"\b(?:echo\w*|tte|tee)\b"#)
+    private static let echoAfter = NoteRx(#"^\s*(?:on|by|per|in)\s+(?:the\s+)?(?:echo\w*|tte|tee)\b"#)
+    /// PatientECG.findings by the words an ECG line uses, in reading order: the paced rhythms before the bare "paced",
+    /// so "A-paced" is not also ventricular pacing. "LAD" is left out (the artery); "left axis deviation" is written out.
+    private static let ecgRules: [ECGRule] = [
+        ECGRule(#"\bsinus\s+brady(?:cardia|cardic)?\b"#, "Sinus bradycardia"),
+        ECGRule(#"\bsinus\s+tach(?:y|ycardia|ycardic)?\b"#, "Sinus tachycardia"),
+        // A bare "sinus" is sinus rhythm only behind the cue ("EKG: sinus, Q waves"), and never the sinus of a surgery,
+        // a node, a pause or the aorta.
+        ECGRule(#"\bnormal\s+sinus(?:\s+rhythm)?\b|(?-i:\bNSR\b)|\bsinus\s+rhythm\b|\bregular\s+sinus\b|\bsinus\b(?=\s*(?:[,;.:)]|$|(?:with|and|&|\+)\b))"#, PatientECG.nsr, notBefore: anatomyBefore),
+        ECGRule(#"\batrial\s+fibrillation\b|\ba[-. ]?fib\b|(?-i:\b(?:AF|PAF)\b)"#, "Atrial fibrillation"),
+        ECGRule(#"\batrial\s+flutter\b|\ba[-. ]?flutter\b|(?-i:\bAFL\b)"#, "Atrial flutter"),
+        ECGRule(#"(?-i:\bSVT\b)|\bsupraventricular\s+tachycardia\b"#, "SVT"),
+        ECGRule(#"\b(?:atrial|(?-i:A))[- ]?paced\b|(?-i:\bAAI\b)(?:[- ]paced\b)?"#, "Paced rhythm (atrial)"),
+        ECGRule(#"\b(?:dual(?:[- ]chamber)?|(?-i:AV))[- ]?paced\b|(?-i:\bDDD\b)(?:[- ]paced\b)?"#, "Paced rhythm (AV)"),
+        ECGRule(#"\b(?:ventricular|(?-i:V))[- ]?paced\b|(?-i:\bVVI\b)(?:[- ]paced\b)?|\bpaced(?:\s+rhythm)?\b"#, "Paced rhythm (ventricular)"),
+        ECGRule(#"\b(?:first|1st)[- ]degree\s+(?:av\s+|heart\s+)?block\b|\b1°\s*(?:av\s*)?(?:b|block)\b|(?-i:\b1(?:st)?\s*AVB\b)"#, "First-degree AV block"),
+        ECGRule(#"\bmobitz\s+(?:i|1|type\s+(?:i|1))\b(?!i)|\bwenckebach\b|\b(?:second|2nd)[- ]degree(?:\s+av)?(?:\s+block)?,?\s+type\s+(?:i|1)\b(?!i)"#, "Mobitz I (Wenckebach)"),
+        ECGRule(#"\bmobitz\s+(?:ii|2|type\s+(?:ii|2))\b|\b(?:second|2nd)[- ]degree(?:\s+av)?(?:\s+block)?,?\s+type\s+(?:ii|2)\b"#, "Mobitz II"),
+        ECGRule(#"\bcomplete\s+heart\s+block\b|\b(?:third|3rd)[- ]degree\s+(?:av\s+|heart\s+)?block\b|(?-i:\bCHB\b)"#, "Complete heart block"),
+        ECGRule(#"(?-i:\bRBBB\b)|\bright\s+bundle(?:[- ]branch)?(?:\s+block)?\b"#, "Right bundle branch block", notBefore: incompleteBefore),
+        ECGRule(#"(?-i:\bLBBB\b)|\bleft\s+bundle(?:[- ]branch)?(?:\s+block)?\b"#, "Left bundle branch block", notBefore: incompleteBefore),
+        ECGRule(#"(?-i:\bLAFB\b|\bLAHB\b)|\bleft\s+anterior\s+(?:fascicular|hemi)[- ]?block\b"#, "Left anterior fascicular block"),
+        ECGRule(#"\bbifascicular(?:\s+block)?\b"#, "Bifascicular block"),
+        ECGRule(#"(?-i:\bLVH\b)|\bleft\s+ventricular\s+hypertrophy\b"#, "Left ventricular hypertrophy"),
+        ECGRule(#"(?-i:\bRVH\b)|\bright\s+ventricular\s+hypertrophy\b"#, "Right ventricular hypertrophy"),
+        ECGRule(#"\b(?:pathologic(?:al)?\s+)?q[- ]waves?\b"#, "Q waves (old infarct)"),
+        ECGRule(#"\bst[- ]?(?:segment\s+)?depressions?\b|\bst\s+dep\b"#, "ST depression"),
+        ECGRule(#"\bst[- ]?(?:segment\s+)?elevations?\b|(?-i:\bSTE\b)"#, "ST elevation"),
+        ECGRule(#"\bt[- ]wave\s+inversions?\b|\binverted\s+t[- ]waves?\b|(?-i:\bTWI\b)"#, "T-wave inversion"),
+        ECGRule(#"\b(?:prolonged|long)\s+qtc?\b|\bqtc?\s+prolongation\b"#, "Prolonged QTc"),
+        ECGRule(#"\bshort\s+pr\b|\bpre-?excitation\b|\bdelta\s+waves?\b|(?-i:\bWPW\b)|\bwolff"#, "Short PR (pre-excitation)"),
+        ECGRule(#"(?-i:\bPVCs?\b)|\bpremature\s+ventricular\b"#, "PVCs"),
+        ECGRule(#"(?-i:\bPACs\b)|\bpremature\s+atrial\b"#, "PACs"),
+        ECGRule(#"\bnon-?specific\s+(?:st(?:[- ]t)?|t[- ]wave)(?:\s+wave)?\s+changes\b|(?-i:\bNSSTTW\b)|\bst[- ]t\s+(?:wave\s+)?changes\b"#, "Nonspecific ST-T changes"),
+        ECGRule(#"\blow\s+voltage\b"#, "Low voltage"),
+        ECGRule(#"\bright\s+axis(?:\s+deviation)?\b|(?-i:\bRAD\b)"#, "Right axis deviation"),
+        ECGRule(#"\bleft\s+axis(?:\s+deviation)?\b"#, "Left axis deviation"),
+    ]
+
+    /// The ECG itself named in a piece ("ECG: AF", "EKG shows SVT"), which the rhythms the history reader also reads need.
+    private static let ecgWord = NoteRx(#"\b(?:ecg|ekg|12[- ]lead|tracing|rhythm\s+strip)\b"#)
+    /// Findings the history reader reads as problems too (PatientECGLink.establishes): atrial fibrillation and flutter,
+    /// SVT and the high-grade blocks. Paced rhythms are not among them: "V-paced" is only ever the rhythm.
+    private static let ecgHistoryWords: Set<String> = ["Atrial fibrillation", "Atrial flutter", "SVT", "Mobitz II", "Complete heart block"]
+
+    /// A word negated within its comma piece and its sentence ("no Q waves", "without bronchospasm"): the one-liner's
+    /// negation, so neither "no complications, extubated" nor "No CP. ECG NSR" negates what follows.
+    private static func pieceNegated(_ r: NSRange, in text: String) -> Bool { pieceNegation.first(sameSentence(around(r, in: text).before)) != nil }
+
+    /// The comma pieces the ECG is told in: the piece with the cue, then the pieces after it for as long as they hold
+    /// only findings ("EKG: NSR, rate 72, LVH"); "RAD on albuterol" or "echo LVH" ends the run.
+    private static func ecgRun(_ text: String) -> [NSRange] {
+        let ns = text as NSString
+        var out: [NSRange] = []
+        var a = 0
+        var inRun = false
+        var bounds: [Int] = []
+        for i in 0..<ns.length where ns.character(at: i) == 44 || ns.character(at: i) == 59 { bounds.append(i) }
+        bounds.append(ns.length)
+        for b in bounds {
+            let r = NSRange(location: a, length: b - a)
+            let p = ns.substring(with: r)
+            if ecgCue.first(p) != nil {
+                inRun = true
+                out.append(r)
+            } else if inRun {
+                var left = spaced(ecgNormal, p)
+                for rule in ecgRules { left = spaced(rule.rx, left) }
+                left = spaced(ecgFiller, left)
+                if left.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { out.append(r) } else { inRun = false }
+            }
+            a = b + 1
+        }
+        return out
+    }
+    /// The text after the last word that names the ECG ("denies chest pain ECG NSR": what follows "ECG").
+    private static func afterECGWord(_ before: String) -> String {
+        guard let last = ecgWord.all(before).last else { return before }
+        return (before as NSString).substring(from: last.range.location + last.range.length)
+    }
+    /// A finding negated after the ECG is named, in its own sentence ("ECG: no Q waves"); a "no" or "denies" said of
+    /// the history before the ECG is not the finding's.
+    private static func ecgNegated(_ r: NSRange, in text: String) -> Bool {
+        pieceNegation.first(afterECGWord(sameSentence(around(r, in: text).before))) != nil
+    }
+    private static func ecgSaidOfEcho(_ r: NSRange, in text: String) -> Bool {
+        let p = around(r, in: text)
+        return echoBefore.first(afterECGWord(p.before)) != nil || echoAfter.first(p.after) != nil
+    }
+
+    private static func readECG(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+        var text = s.text
+        guard ecgCue.first(text) != nil else { return }
+        let run = ecgRun(text)
+        var ranges: [NSRange] = []
+        var findings: [(finding: String, note: String?)] = []
+        func take(_ r: NSRange, _ finding: String, note: String? = nil) {
+            ranges.append(r)
+            if !findings.contains(where: { $0.finding == finding }) { findings.append((finding, note)) }
+            text = (text as NSString).replacingCharacters(in: r, with: String(repeating: " ", count: r.length))
+        }
+        if let m = ecgNormal.first(text), !ecgNegated(m.range, in: text) { take(m.range, PatientECG.nsr, note: "From a normal ECG.") }
+        for rule in ecgRules {
+            for m in rule.rx.all(text) {
+                if let nb = rule.notBefore, nb.first((text as NSString).substring(to: m.range.location)) != nil { continue }
+                // A rhythm the history reader also reads ("AF on apixaban, ECG: NSR") is the ECG's only in the ECG's own
+                // comma piece; anywhere else in the line it stays history.
+                if ecgHistoryWords.contains(rule.finding), ecgWord.first((text as NSString).substring(with: pieceRange(m.range, in: text))) == nil { continue }
+                // "DDD", "RAD", "LVH" and a bare "sinus" are the ECG's only where the ECG is being told.
+                let said = (text as NSString).substring(with: m.range).lowercased()
+                if ecgAmbiguous.contains(said), !run.contains(where: { NSLocationInRange(m.range.location, $0) }) { continue }
+                if rule.finding.hasSuffix("ventricular hypertrophy"), ecgSaidOfEcho(m.range, in: text) { continue }
+                if ecgNegated(m.range, in: text) {
+                    ranges.append(m.range)
+                    continue
+                }
+                take(m.range, rule.finding)
+                break
+            }
+        }
+        guard !ranges.isEmpty else { return }
+        // The cue words themselves ("ECG:", "12-lead") are not history either.
+        for m in ecgCue.all(text) { ranges.append(m.range) }
+        for r in ranges { s.mask(r) }
+        for f in findings {
+            var note = f.note
+            if let e = PatientECGLink.establishes[f.finding], let p = PatientCatalog.problem(e.problem) {
+                note = (note.map { $0 + " " } ?? "") + "Also files " + p.label + " in the history, as the ECG page does."
+            }
+            route(PatientNoteFinding(id: "ecg:" + f.finding, section: PatientNote.Part.assessment, label: "ECG: " + f.finding, change: .ecg(f.finding), note: note),
+                  s.original, c, &out)
+        }
+    }
+
+    // MARK: The airway at handoff
+
+    /// A bare "tube out" is left alone (a chest tube, a drain); "ETT out" and "LMA out" are the airway.
+    static let extubatedRx = NoteRx(#"\b(?:extubated|(?:deep|awake|smooth|uneventful)\s+extubation|extubation(?:\s+(?:in|at)\s+(?:the\s+)?(?:or|end(?:\s+of\s+(?:the\s+)?case)?))?|(?:lma|i-?gel|sga|supraglottic(?:\s+airway)?|ett|et\s+tube|endotracheal\s+tube)\s+(?:out|removed|pulled|came\s+out))\b"#)
+    /// "arrives intubated" is the airway on arrival (the Preop tab's), not the airway at handoff.
+    static let intubatedRx = NoteRx(#"\b(?:remains?|remained|left|still|kept|stays?|stayed|transferred|transported|going|went)\s+intubated\b|\bintubated(?=\s+to\s+(?:the\s+)?(?:\w{0,2}icu|intensive\s+care)\b)|\bintubated\s+(?:to|for|on)\s+(?:the\s+)?(?:icu|unit|transport|transfer|handoff)\b|\bre-?intubated\b|\bnot\s+(?:yet\s+)?extubated\b|\bunable\s+to\s+extubate\b|\bfailed\s+extubation\b|\bintubated\s+(?:(?:and|&)\s+|,\s*)(?:sedated|ventilated)\b"#)
+    /// An extubation told as past ("extubated POD1", "extubated 2019"): not this case's.
+    private static let extubatedPast = NoteRx(#"^\s*(?:(?:on\s+)?pod\s*\d|yesterday|last\s+(?:year|week|month|night|time)|\d+\s+(?:days?|weeks?|months?|years?)\s+ago|in\s+(?:19|20)\d\d|\(?(?:19|20)\d\d\)?)\b"#)
+    /// "transferred intubated from OSH", "intubated on arrival": where the patient came from, not the handoff.
+    private static let intubatedOrigin = NoteRx(#"^\s*(?:from\b|on\s+arrival\b|at\s+(?:an?\s+|the\s+)?(?:osh|outside)\b)"#)
+    /// "not reintubated", "did not need to be reintubated".
+    private static let notReintubated = NoteRx(#"(?:\b(?:not|never|no|without|w/o)|n['’]t)\s+(?:(?!and\b|but\b|then\b)\w+\s+){0,5}$"#)
+    /// "hx failed extubation 2019": history.
+    private static let historyLead = NoteRx(#"\b(?:hx|h/o|history\s+of|prior|previous|past|s/p)\s+(?:of\s+)?(?:a\s+)?$"#)
+    /// "not extubated", "unable to be extubated", "wasn't yet extubated": the tube stays.
+    private static let extubationDenied = NoteRx(#"(?:\b(?:not|never|no|without|unable\s+to\s+be|could\s+not\s+be|cannot\s+be)|n['’]t)\s+(?:(?:yet|been|be|to\s+be|being|able\s+to\s+be|successfully|safely|for)\s+)*$"#)
+    /// "plan to extubate in ICU", "will be extubated once warm": a plan, not the airway now.
+    private static let extubationPlanned = NoteRx(#"\b(?:plan\w*|will|to\s+be|aim\w*|consider\w*|anticipat\w*|expect\w*|if|once|until|await\w*|pending|possible|likely|goal)\b[\s:]*(?:\w+\s+){0,3}$"#)
+    /// The noun as a plan or a deferral: "for extubation", "delayed extubation", "extubation deferred".
+    private static let extubationNounPlanned = NoteRx(#"\b(?:for|delayed|deferred|planned|possible|anticipated|expected)\s+(?:(?:possible|delayed|early|planned)\s+)?$"#)
+    private static let extubationDeferred = NoteRx(#"^\s*(?:(?:was|is|will\s+be|to\s+be)\s+)?(?:deferred|delayed|planned|postponed|criteria|not\b|failed|later|tomorrow|pending|trial|in\s+(?:the\s+)?\w*(?:icu|unit)\b|(?:on\s+)?pod\s*\d)"#)
+
+    private static func readAirwayAtEnd(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+        let text = s.text
+        let ns = text as NSString
+        var value: String?
+        var ranges: [NSRange] = []
+        // The later state first: "extubated, then reintubated" remains intubated.
+        var skipped: [NSRange] = []
+        for m in intubatedRx.all(text) {
+            let said = ns.substring(with: m.range).lowercased()
+            let p = around(m.range, in: text)
+            let before = sameSentence(p.before)
+            let again = said.hasPrefix("reintubated") || said.hasPrefix("re-intubated")
+            let failed = said.hasPrefix("failed")
+            // History ("failed extubation 2019"), a denial ("not reintubated") or where they came from: not read, and
+            // the words stay for the user to see.
+            if ((failed || again) && extubatedPast.first(p.after) != nil) || (again && notReintubated.first(before) != nil)
+                || (failed && historyLead.first(before) != nil) || intubatedOrigin.first(p.after) != nil {
+                skipped.append(m.range)
+                continue
+            }
+            ranges.append(m.range)
+            if value == nil { value = "intubated" }
+        }
+        for m in extubatedRx.all(text) {
+            if skipped.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) { continue }
+            if extubatedPast.first(ns.substring(from: m.range.location + m.range.length)) != nil { continue }
+            let p = around(m.range, in: text)
+            let before = sameSentence(p.before)
+            // A plan or a deferral is not the airway at handoff; only a denial right before the word keeps the tube
+            // ("weaned off norepi and extubated" is extubated).
+            if extubationPlanned.first(before) != nil { continue }
+            if ns.substring(with: m.range).lowercased().contains("extubation"),
+               extubationNounPlanned.first(before) != nil || extubationDeferred.first(p.after) != nil { continue }
+            ranges.append(m.range)
+            if value == nil { value = extubationDenied.first(before) != nil ? "intubated" : "extubated" }
+        }
+        guard let value else { return }
+        for r in ranges { s.mask(r) }
+        // "ETT out" is the tube for certain: the abbreviation is not asked about.
+        s.certain += ranges
+        let r = c.record
+        let instrumented = r.arrivesWithAirway || PatientAirway.intubationChosen(r) || PatientAirway.lmaChosen(r) || !r.tube.trimmingCharacters(in: .whitespaces).isEmpty
+        out.add(PatientNoteFinding(id: "airway-end", section: intraop, label: value == "intubated" ? "At handoff: remains intubated" : "At handoff: extubated",
+                                   change: .airwayAtEnd(value), note: instrumented ? nil : "The airway course has no intubation or LMA yet."))
+    }
+
+    // MARK: The disposition
+
+    /// Where the patient goes, after a word that says so ("to ICU", "→ PACU", "dispo: floor", "then home"); group 1 the
+    /// place, group 2 "fast track" (Status & Plan's own chip). "from ICU" is where they came from, and "ICU" alone is
+    /// not read.
+    static let dispositionRx = NoteRx(#"(?:\b(?:to|dispo(?:sition)?|destination|admit(?:ted)?\s+to|going|headed|plan(?:ned)?|then|post-?op(?:erative(?:ly)?)?)\b\s*[:=]?\s*|(?:→|->|=>)\s*)(?:the\s+|a\s+|an\s+)?((?:(?:cv|ct|pc|s|m|n|c|t)icu|(?:neuro|cardiac|surgical|medical|cardiothoracic|cardiovascular)\s+icu|icu)|intensive\s+care(?:\s+unit)?|pacu|recovery(?:\s+room)?|floor|ward|home|same[- ]day(?:\s+discharge)?|(?-i:SDD)|day[- ]case|day\s+surgery(?:\s+unit)?|(?-i:DSU))\b|\b(fast[- ]?track(?:ed)?)\b"#)
+    /// After the place: a stay that was, not where they go ("admitted to ICU 2 days ago", "to the floor on POD2").
+    private static let dispositionNotAfter = NoteRx(#"^\s*(?:\d+\s+(?:days?|weeks?|months?)\s+ago|yesterday|last\s+\w+|(?:on\s+)?pod\s*\d|stay|admission|course|for\s+\d|preop\w*|pre-?operatively|x\s*\d|(?:in\s+)?\(?(?:19|20)\d\d)\b"#)
+    /// Before the cue: told as past ("was admitted to ICU", "previously transferred to the floor").
+    private static let dispositionNotBefore = NoteRx(#"\b(?:was|were|been|previously|preop\w*|pre-?operatively|history\s+of|h/o|s/p)\s+(?:(?:admitted|transferred|moved|sent|taken|discharged)\s+)?$"#)
+    /// "not going to ICU", "did not go to ICU": that place is not the disposition.
+    private static let dispositionDenied = NoteRx(#"(?:\b(?:not|never|no)|n['’]t)\s+(?:(?!and\b|but\b|then\b)\w+\s+){0,2}$"#)
+    /// On the Preoperative bar a place is a disposition only as a plan: the cue is itself one ("dispo: ICU", "plan
+    /// ICU", "then home") or the sentence has a planning word; "admitted to ICU with septic shock" is where they are.
+    private static let dispositionOwnPlan = NoteRx(#"^(?:dispo|destination|plan|then|post-?op|→|->|=>)"#)
+    private static let dispositionPlanned = NoteRx(#"\b(?:plan\w*|post-?op\w*|dispo\w*|destination|anticipat\w*|expect\w*|book\w*|request\w*)\b"#)
+
+    /// The catalog's disposition for a place word.
+    static func disposition(for word: String) -> String? {
+        let w = word.lowercased()
+        if w.contains("icu") || w.contains("intensive") { return "ICU" }
+        if w.hasPrefix("pacu") || w.hasPrefix("recovery") { return "PACU" }
+        if w.hasPrefix("floor") || w.hasPrefix("ward") { return "Ward" }
+        if w.hasPrefix("home") || w.hasPrefix("same") || w.hasPrefix("sdd") || w.hasPrefix("day") || w.hasPrefix("dsu") { return "Same-day discharge" }
+        return nil
+    }
+
+    private static func readDisposition(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut, preopPlace: Bool) {
+        let text = s.text
+        let ns = text as NSString
+        var chosen: (value: String, note: String?)?
+        var ranges: [NSRange] = []
+        var denied: [NSRange] = []
+        for m in dispositionRx.all(text) {
+            if dispositionNotAfter.first(ns.substring(from: m.range.location + m.range.length)) != nil { continue }
+            if dispositionNotBefore.first(ns.substring(to: m.range.location)) != nil { continue }
+            let sentence = sentenceRange(m.range, in: text)
+            if dispositionDenied.first(ns.substring(with: NSRange(location: sentence.location, length: m.range.location - sentence.location))) != nil {
+                denied.append(m.range)
+                continue
+            }
+            if preopPlace, group(m, 2, text) == nil, dispositionOwnPlan.first(ns.substring(with: m.range)) == nil,
+               dispositionPlanned.first(ns.substring(with: sentence)) == nil { continue }
+            if group(m, 2, text) != nil {
+                // Fast track is one of Status & Plan's own disposition chips (StatusPlanCard.dispositionChips), stored
+                // as its label.
+                ranges.append(m.range)
+                if chosen == nil { chosen = ("Fast track", nil) }
+                continue
+            }
+            guard let word = group(m, 1, text), let value = disposition(for: word) else { continue }
+            ranges.append(m.range)
+            if chosen == nil { chosen = (value, nil) }
+        }
+        guard let chosen else { return }
+        // A denied place beside the chosen one ("not going to ICU, to floor") is read too, not left as unread text.
+        for r in ranges + denied { s.mask(r) }
+        out.add(PatientNoteFinding(id: "disposition", section: intraop, label: "Disposition: " + chosen.value, change: .disposition(chosen.value), note: chosen.note))
+    }
+
+    // MARK: The cardiac answers
+
+    /// "no cardiac symptoms", "denies cardiac sx", "asymptomatic from a cardiac standpoint", "cardiac symptoms: none".
+    static let noCardiacSymptoms = NoteRx(#"\b(?:no|denies|denied|without|negative\s+for|neg\s+for|free\s+of|nil)\s+(?:(?:active|current|any)\s+)?(?:cardiac|cardiovascular|anginal|(?-i:CV))\s+(?:symptoms?|sx|s/s|signs?(?:\s+(?:or|and)\s+symptoms?)?|symptoms?\s+(?:or|and)\s+signs?|complaints?)\b|\b(?:cardiac|cardiovascular|(?-i:CV))\s+(?:symptoms?|sx|s/s|signs?)\s*[:=]?\s*(?:none|nil|negative|neg|denied|denies|no)\b|\basymptomatic\s+(?:from\s+a\s+)?(?:cardiac|cardiovascular|(?-i:CV))(?:\s+(?:standpoint|perspective|point\s+of\s+view))?|\b(?:cardiac|cardiovascular|cardiac-?ally)\s+asymptomatic\b"#)
+    /// "no acute cardiac conditions", "no active cardiac issues", "acute cardiac conditions: none".
+    static let noAcuteCardiac = NoteRx(#"\b(?:no|denies|without|negative\s+for|free\s+of|nil)\s+(?:(?:active|current)\s+)?(?:acute|active|unstable)\s+(?:cardiac|cardiovascular)\s+(?:conditions?|issues?|problems?)\b|\b(?:acute|active)\s+cardiac\s+conditions?\s*[:=]?\s*(?:none|nil|no|negative|neg)\b"#)
+
+    private static func readCardiacAnswers(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+        let text = s.text
+        if let m = noCardiacSymptoms.first(text) {
+            s.mask(m.range)
+            route(PatientNoteFinding(id: "cardiac:symptoms", section: PatientNote.Part.assessment, label: "Cardiac symptoms or signs: No",
+                                     change: .cardiacAnswer("symptoms", false)), s.original, c, &out)
+        }
+        if let m = noAcuteCardiac.first(text) {
+            s.mask(m.range)
+            route(PatientNoteFinding(id: "cardiac:acute", section: PatientNote.Part.assessment, label: "Acute cardiac conditions: No",
+                                     change: .cardiacAnswer("acute", false)), s.original, c, &out)
+        }
+    }
+
+    // MARK: The stress test
+
+    /// A stress test named: its kind in group 1 (dobutamine), 2 (exercise) or 3 (pharmacologic or nuclear); a plain
+    /// "stress test" or "stress echo" names none. "Stress dose" steroids are not one.
+    /// A bare sestamibi, SPECT or perfusion scan is not one either (a parathyroid scan, a V/Q scan): each needs its
+    /// cardiac or stress word.
+    /// A bare "dobutamine" is a drip, a bare "treadmill" is exercise and a bare "dipyridamole" the antiplatelet drug: each
+    /// needs its test word.
+    static let stressCue = NoteRx(#"\b(?:((?-i:DSE)|dobutamine\s+stress(?:\s+(?:echo\w*|test))?|dobutamine\s+echo\w*)|(exercise\s+(?:stress|treadmill)(?:\s+(?:test|echo\w*|ecg|ekg))?|treadmill\s+(?:stress\s+)?test|bruce\s+protocol)|(lexiscan|regadenoson(?:\s+stress)?|adenosine\s+stress|dipyridamole\s+stress|persantine\s+stress|pharmacologic(?:al)?\s+stress(?:\s+test)?|nuclear\s+stress(?:\s+test)?|myoview|(?-i:MPI)|(?:cardiac|myocardial|stress|nuclear)\s+(?:sestamibi|(?-i:MIBI)|(?-i:SPECT))|sestamibi\s+stress|myocardial\s+perfusion\s+(?:scan|imaging|study))|stress\s+(?:test(?:ing)?|echo\w*|ecg|ekg|imaging|study|mpi|perfusion))\b"#)
+    /// "ETT" read as the exercise treadmill test (the context or the user chose it; MedAbbreviations' ett-treadmill).
+    private static let ettToken = NoteRx(#"(?-i:\bETT\b)"#)
+    private static let stressEquivocal = NoteRx(#"\b(?:equivocal|non-?diagnostic|indeterminate|inconclusive|borderline|submaximal)\b"#)
+    /// A result said outright: "negative", "no ischemia", "no evidence of ischemia". "Not negative" is not one.
+    private static let stressNegative = NoteRx(#"\b(?<!not\s)(?:neg(?:ative)?(?:\s+for\s+(?:inducible\s+)?ischemi\w*)?|no\s+(?:evidence\s+of\s+)?(?:(?:inducible|reversible|significant)\s+)?(?:ischemi\w*|defects?|perfusion\s+defects?|wall[- ]motion\s+abnormalit\w*|(?-i:WMA))|without\s+(?:inducible\s+)?ischemi\w*|non-?ischemic)\b"#)
+    /// A soft word for a negative test: "normal", "unremarkable", "low-risk". It is the result only when the piece names no
+    /// positive finding, and never when it describes something else ("normal EF", "normal LV function") or is denied
+    /// ("not normal").
+    private static let stressNormal = NoteRx(#"\b(?<!not\s)(?:(?:normal|unremarkable|(?-i:WNL))(?!\s+(?:(?-i:EF|LVEF|LV|RV|BP|HR|ECG|EKG)\b|ejection|systolic|diastolic|function|size|heart\s+rate|blood\s+pressure|rhythm|sinus|baseline|resting|rest\b|chambers?|valves?))|low[- ]risk)\b"#)
+    private static let stressPositive = NoteRx(#"\b(?:positive(?:\s+for\s+(?:inducible\s+)?ischemi\w*)?|pos|abnormal|not\s+normal|(?:inducible|reversible)\s+(?:ischemi\w*|defects?|perfusion\s+defects?)|ischemi\w*|(?:new\s+)?wall[- ]motion\s+abnormalit\w*|high[- ]risk|(?-i:WMA))\b"#)
+    /// Not a result yet, or none was had: nothing is filed. The words sit right before the test ("no stress test",
+    /// "needs a DSE") or right after it ("stress test pending"); a "no" elsewhere in the sentence ("no CP and stress
+    /// test negative") is not the test's.
+    private static let stressNotDoneBefore = NoteRx(#"\b(?:no|not|never|without|denies|w/o|pending|ordered|scheduled|planned|recommend\w*|needs?|consider\w*|should\s+(?:have|get|undergo)|awaiting|declined|refused|deferred|unable\s+to\s+(?:do|complete|perform|tolerate)|to\s+(?:have|get|undergo)|will\s+(?:have|get|need|undergo))\s+(?:(?:an?|the|for|to\s+have|had|prior|previous|recent|any|formal|record\s+of|repeat|outpatient|preop\w*|further)\s+)*$"#)
+    private static let stressNotDoneAfter = NoteRx(#"^\s*[:\-]?\s*(?:(?:is|was|has\s+been|to\s+be|still)\s+)*(?:pending|ordered|scheduled|planned|recommended|not\s+(?:done|performed|yet|completed)|never\s+(?:done|had|performed)|awaiting|declined|refused|deferred|to\s+be\s+done|cancel\w*|needed|unable\s+to\s+(?:complete|tolerate|perform|do))\b"#)
+    /// What may stand between the test and its date ("DSE negative 2023", "stress test (03/2025)"), and what makes a
+    /// year another thing's ("DSE negative prior to 2015 CABG").
+    private static let stressDateGap = NoteRx(#"^[\s:(\-–]*(?:[\w/]+[\s:(\-–]+){0,4}$"#)
+    private static let stressDateOther = NoteRx(#"\b(?:prior|before|after|since|until|s/p|status\s+post|cabg|pci|stent\w*|mi|surgery|repair)\b"#)
+    private static let stressDateLead = NoteRx(#"^\s*(?:(?:in|from)\s+)?$"#)
+    /// A date in the piece: a year, or a month and year ("03/2025").
+    private static let stressDate = NoteRx(#"\b(?:(\d{1,2})[/.-])?((?:19|20)\d\d)\b"#)
+
+    /// The chip's text, short enough for one line at 375 pt: "DSE negative (03/2025)", "Exercise stress positive",
+    /// "Stress test equivocal". The record's own wording (PatientStressTest.summary) is the long form.
+    static func stressText(_ t: PatientStressTest) -> String {
+        var head: String
+        switch t.kind {
+        case .dobutamine?: head = "DSE"
+        case .exercise?: head = "Exercise stress"
+        default: head = "Stress test"
+        }
+        if let r = t.result { head += " " + r.label.lowercased() }
+        if !t.date.isEmpty { head += " (" + t.date.text + ")" }
+        return head
+    }
+
+    private static func readStressTest(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+        let text = s.text
+        var cue: (range: NSRange, kind: PatientStressTest.Kind?)?
+        if let m = stressCue.first(text) {
+            let kind: PatientStressTest.Kind? = group(m, 1, text) != nil ? .dobutamine : (group(m, 2, text) != nil ? .exercise : (group(m, 3, text) != nil ? .other : nil))
+            cue = (m.range, kind)
+        } else if let m = ettToken.all(text).first(where: { c.means("ett-treadmill", at: $0.range, confirmed: true) }) {
+            cue = (m.range, .exercise)
+        }
+        guard let cue else { return }
+        // The test's own sentence within its comma piece: "denies CP/SOB. DSE negative 2024" reads the second.
+        let ns = text as NSString
+        let piece = sentenceRange(cue.range, in: text)
+        let pieceText = ns.substring(with: piece)
+        let cueEnd = cue.range.location + cue.range.length
+        let pieceEnd = piece.location + piece.length
+        let beforeText = ns.substring(with: NSRange(location: piece.location, length: cue.range.location - piece.location))
+        let afterText = ns.substring(with: NSRange(location: cueEnd, length: pieceEnd - cueEnd))
+        // "no stress test", "stress test pending": nothing, and those words are not history either.
+        let notBefore = stressNotDoneBefore.first(beforeText)
+        let notAfter = stressNotDoneAfter.first(afterText)
+        if notBefore != nil || notAfter != nil {
+            let a = notBefore.map { piece.location + $0.range.location } ?? cue.range.location
+            let b = notAfter.map { cueEnd + $0.range.location + $0.range.length } ?? cueEnd
+            s.mask(NSRange(location: a, length: b - a))
+            return
+        }
+        var t = PatientStressTest(kind: cue.kind)
+        var parts = [cue.range]
+        func inPiece(_ m: NSTextCheckingResult) -> NSRange { shifted(m.range, piece.location) }
+        // The result. Equivocal first. A positive finding is one that is neither denied ("no ischemia") nor part of a negative
+        // phrase. It wins over a soft "normal" said of something else ("positive for ischemia with normal EF"); beside an
+        // outright "negative" the two disagree and the result is left for the user.
+        if let m = stressEquivocal.first(pieceText) {
+            t.result = .equivocal
+            parts.append(inPiece(m))
+        } else {
+            let negative = stressNegative.all(pieceText)
+            let normal = stressNormal.all(pieceText)
+            let positive = stressPositive.all(pieceText).first { p in
+                !pieceNegated(p.range, in: pieceText)
+                    && !(negative + normal).contains { NSIntersectionRange($0.range, p.range).length > 0 }
+            }
+            if let p = positive {
+                if negative.isEmpty {
+                    t.result = .positive
+                    parts.append(inPiece(p))
+                }
+            } else if let m = negative.first ?? normal.first {
+                t.result = .negative
+                parts.append(inPiece(m))
+            }
+        }
+        // The test's own date: the first after it with nothing else dated in between ("DSE negative 03/2025"), else one
+        // right before it ("2023 stress test negative"). "CABG 2015 DSE 2023" dates the test 2023.
+        var dated: (range: NSRange, month: Int?, year: Int)?
+        func date(_ m: NSTextCheckingResult, in str: String, at base: Int) -> (range: NSRange, month: Int?, year: Int)? {
+            guard let y = group(m, 2, str).flatMap({ Int($0) }) else { return nil }
+            let month = group(m, 1, str).flatMap { Int($0) }.flatMap { (1...12).contains($0) ? $0 : nil }
+            return (shifted(m.range, base), month, y)
+        }
+        for m in stressDate.all(afterText) {
+            let gap = (afterText as NSString).substring(to: m.range.location)
+            if stressDateGap.first(gap) != nil, stressDateOther.first(gap) == nil {
+                dated = date(m, in: afterText, at: cueEnd)
+                break
+            }
+        }
+        if dated == nil, let m = stressDate.all(beforeText).last {
+            let before = beforeText as NSString
+            let between = before.substring(from: m.range.location + m.range.length)
+            if between.trimmingCharacters(in: CharacterSet(charactersIn: " :(-")).isEmpty, stressDateLead.first(before.substring(to: m.range.location)) != nil {
+                dated = date(m, in: beforeText, at: piece.location)
+            }
+        }
+        if let d = dated {
+            t.date = PatientMonthYear(month: d.month, year: d.year)
+            parts.append(d.range)
+        }
+        // A bare "stress test" with no result, kind or date records nothing: left for the user to see unread.
+        guard t.kind != nil || t.result != nil || !t.date.isEmpty else { return }
+        // What was read is masked; another thing's date between the parts ("CABG 2015") stays for the other readers.
+        parts.sort { $0.location < $1.location }
+        var merged: [NSRange] = [parts[0]]
+        for p in parts.dropFirst() {
+            let last = merged[merged.count - 1]
+            let lastEnd = last.location + last.length
+            let gap = p.location > lastEnd ? ns.substring(with: NSRange(location: lastEnd, length: p.location - lastEnd)) : ""
+            if p.location <= lastEnd || (stressDate.first(gap) == nil && stressDateOther.first(gap) == nil) {
+                merged[merged.count - 1] = NSUnionRange(last, p)
+            } else {
+                merged.append(p)
+            }
+        }
+        for r in merged { s.mask(r) }
+        s.certain.append(cue.range)
+        route(PatientNoteFinding(id: "stress", section: PatientNote.Part.assessment, label: "Stress test: " + stressText(t), change: .stressTest(t)), s.original, c, &out)
+    }
+
+    // MARK: Intraoperative events
+
+    /// What happens in a case, as the Events page's prompt lists it: filed as the comma piece it sits in ("hypotension
+    /// after induction"). Uppercase-only abbreviations (AF, VT, MH, PTX) so "mh" in a word is not one; "VT 450" is a
+    /// tidal volume.
+    static let eventRx = NoteRx(#"\b(?:hypotension|hypotensive|(?<!pulmonary )(?<!portal )(?<!intracranial )hypertension|hypertensive(?:\s+(?:episode|urgency|emergency))?|bradycardi[ac]|brady|tachycardi[ac]|desaturat\w*|desats?|hypoxi\w*|hypox(?:a)?emi\w*|bronchospasm|laryngospasm|arrhythmi\w*|dysrhythmi\w*|(?-i:(?:AF|SVT|VT|VF|PEA))(?!\s*\d)|a-?fib|atrial\s+fibrillation|ventricular\s+(?:tachycardia|fibrillation)|asystole|cardiac\s+arrest|code\s+blue|(?-i:ROSC)|anaphyla\w+|bleeding|h(?:a)?emorrhag\w*|massive\s+transfusion|(?-i:MTP)|aspirat\w+|malignant\s+hyperthermia|(?-i:MH)|high\s+(?:peak|airway|inspiratory)\s+pressures?|pneumothorax|(?-i:PTX)|(?:air|venous\s+air|fat|amniotic\s+fluid|pulmonary)\s+embol\w+|(?-i:VAE)|st[- ](?:changes?|depressions?|elevations?)|stridor|transfusion\s+reaction|(?-i:TRALI|TACO)|hyperkal(?:a)?emi\w*|hypokal(?:a)?emi\w*|hypoglyc(?:a)?emi\w*|hyperglyc(?:a)?emi\w*|hypothermi\w*|hyperthermi\w*|acidosis|coagulopath\w*|vasoplegi\w*|protamine\s+reaction|seizures?|awareness|dental\s+(?:injury|damage|trauma)|(?:chipped|broken|loose|lost)\s+(?:tooth|teeth)|corneal\s+abrasion|nerve\s+injury|extravasat\w*|infiltrated\s+(?:iv|line|piv)|oliguri\w*|anuri\w*|difficult\s+(?:ventilation|oxygenation)|can'?t\s+(?:intubate|ventilate)|(?-i:CICO)|failed\s+(?:block|spinal|epidural)|(?:high|total)\s+spinal|(?-i:LAST)|local\s+an(?:a)?esthetic\s+(?:systemic\s+)?toxicity|h(?:a)?emodynamic(?:ally)?\s+(?:instability|unstable)|ischemia|ischemic\s+(?:changes?|event)|wall[- ]motion\s+abnormalit\w*|low\s+cardiac\s+output|(?-i:LCOS)|difficult\s+(?:separation|wean(?:ing)?)\s+from\s+(?:bypass|cpb|pump)|(?:return(?:ed)?|back)\s+(?:on|to)\s+(?:bypass|pump|cpb))\b"#)
+    /// Connectors a piece starts with, not part of the event ("and bronchospasm on emergence").
+    private static let eventLead = NoteRx(#"^(?:(?:and|then|with|for|also|plus|&|\+)\s+)+"#)
+    /// Event words the history and allergy readers read too (PatientNote's htn, af, arrhythmia, seizure, bleeding, mh,
+    /// awareness and cad rules; a reaction in an allergy's brackets): "hypertension, diabetes", "afib on apixaban",
+    /// "seizure disorder on keppra", "bleeding disorder", "allergies: PCN (anaphylaxis)". A piece with one of these is an
+    /// event only when it names a point of the case (eventCasePoint) or, on the Intraoperative tab, the drug it followed
+    /// (eventAgent); otherwise it is left to those readers, which file the problem or the allergy as they did in 1.10.
+    static let eventHistoryRx = NoteRx(#"\b(?:hypertension|(?-i:HTN)|a[-. ]?fib|atrial\s+(?:fibrillation|flutter)|(?-i:AF|AFL|PAF|SVT|VT|WPW)|arrhythmi\w*|dysrhythmi\w*|bradyarrhythmi\w*|heart\s+block|sick\s+sinus|tachy[- ]?brady\w*|hypertensive\s+(?:urgency|emergency|crisis)|seizures?|epilepsy|bleeding\s+(?:disorder|diathesis)|coagulopath\w*|von\s+willebrand|h(?:a)?emophilia|anaphyla\w+|aspirat\w+|ischemia|(?:malignant\s+hyperthermia|(?-i:MH))(?=\s+(?:susceptib\w*|hx|history|family|precautions?|risk|negative|testing|workup|trigger\w*))|awareness)\b"#)
+    /// When in the case something happened: a point of the case after a timing word ("after induction", "on emergence",
+    /// "post-bypass", "with protamine", "s/p induction"), "intraop", "in the OR", "mid-case", a clock time ("at 14:30",
+    /// "@ 0915"). The only words that make an event of a word the history readers read too ("hypertension with
+    /// incision"), on either place.
+    static let eventCasePoint = NoteRx(#"(?:\b(?:(?:after|post|on|at|during|with|following|upon|before|pre|since|around|through(?:out)?|prior\s+to|s/p|status\s+post)[- ]\s*(?:the\s+|a\s+)?(?:skin\s+|surgical\s+)?(?:induction|intubation|laryngoscopy|airway\s+manipulation|emergence|extubation|incision|sternotomy|positioning|proning|prone|flip|turn(?:ing)?|closing|closure|bypass|(?-i:CPB)|pump|cross[- ]?clamp\w*|unclamp\w*|declamp\w*|reperfusion|protamine|cement\w*|tourniquet(?:\s+(?:release|deflation|down|up))?|insufflation|pneumoperitoneum|transfusion|manipulation|traction|retraction|release|arrival|transport|handoff|(?:the\s+)?case)|intra-?op(?:erative(?:ly)?)?|in\s+the\s+(?:or|room)|on\s+the\s+table|mid-?case|at\s*(?:\d{1,2}:\d{2}|\d{4}))|@\s*(?:\d{1,2}:\d{2}|\d{4}))\b"#)
+    /// A drug or product an event followed ("anaphylaxis after cefazolin", "to rocuronium", "with the bolus"), or what
+    /// showed it ("on TEE"). Group 1 is the word before the drug: on Summary & Handoff only one that says when ("after",
+    /// "following", "post", "during") counts, so "anaphylaxis to rocuronium" there stays with the history readers.
+    static let eventAgent = NoteRx(#"\b(?:(after|following|post|during|with|to)[- ]\s*(?:the\s+|a\s+)?(?:antibiotics?|(?-i:abx)|cefazolin|ancef|vancomycin|vanc|rocuronium|roc|succinylcholine|sux|sugammadex|neostigmine|contrast|latex|chlorhexidine|(?-i:PRBC|FFP)|platelets|blood\s+products?|bolus)|on\s+(?:the\s+)?(?-i:TEE|TOE))\b"#)
+    private static let eventAgentTimed: Set<String> = ["after", "following", "post", "during"]
+    /// How an event went ("transient", "x 5 min", "requiring esmolol", "treated with", "to the 70s"): on Summary &
+    /// Handoff this makes an event of a word the history readers do not read ("hypotension requiring phenylephrine"),
+    /// never of one they do ("hypertension treated with lisinopril"). "new", "resolved" and "episodes of" say nothing of
+    /// the case (the history tells a problem as new or resolved too), so they are not among them.
+    static let eventManner = NoteRx(#"\b(?:transient|brief(?:ly)?|x\s*\d+\s*(?:min|minutes?|sec|seconds?)|requir(?:ed|ing)|treated\s+with|responded\s+to|(?:to|into)\s+(?:the\s+)?\d{2,3}s?)\b"#)
+    /// Words that say a piece is history, whatever else it says: "hx MH", "family history of MH", "h/o GI bleeding",
+    /// "orthostatic hypotension", "laryngospasm ... years ago", "last year", "hypertension on arrival to clinic",
+    /// "hypoxemia requiring home O2", "bleeding risk", "on 3 medications". Such a piece is never an event, on either
+    /// place; the note reader reads it as it did in 1.10.
+    static let eventHistoryMark = NoteRx(#"\b(?:hx|h/o|history|pmhx?|fhx|(?-i:FH)|family|familial|mother|father|brother|sister|siblings?|parents?|grand(?:mother|father|parents?)|aunt|uncle|cousin|s/p|status\s+post|prior(?!\s+to\b)|previous(?:ly)?|in\s+the\s+past|remote|known|chronic(?:ally)?|at\s+baseline|orthostatic|postural|nocturnal|exertion\w*|exercise[- ]induced|childhood|as\s+a\s+(?:child|kid|teen\w*)|\d+\s*(?:days?|weeks?|wks?|months?|mos?|years?|yrs?)\s+ago|(?:for|x)\s*\d+\s*(?:months?|mos?|years?|yrs?)|last\s+(?:year|month|week|night|time|admission|an(?:a)?esthe\w+|surgery|operation|case|procedure|epidural|spinal|block|delivery|pregnancy|intubation)|yesterday|pod\s*\d+|pre-?op(?:erative(?:ly)?)?|home|outpatient|clinic|office|(?-i:PCP|ED|ER|GI|UGIB|LGIB|URI|PFTs?|TTE)|gastrointestinal|rectal|menstrual|menses|(?:dental|tooth|teeth)\s+extractions?|stress\s+test\w*|sleep\s+study|holter|hospitali[sz]\w+|admi(?:tted|ssion)\s+(?:for|with|last|in)|risk|precautions?|susceptib\w*|disorder|disease|pacemaker|dialysis|midodrine|fludrocortisone|droxidopa|ulcers?|hemorrhoid\w*|diverticul\w*|menorrhagia|melena|hematochezia|hematemesis|(?:on|from|takes|taking|(?<!treated )with)\s+(?:(?:\d+|a|an|his|her|home|chronic|daily|multiple)\s+){0,2}(?:meds?|medications?|agents?|anticoagula\w+|blood\s+thinners?|beta[- ]?blockers?|ace[- ]?inhibitors?|(?-i:ACEi|ARB|PPI|AEDs?|BB|DOAC|NOAC|CPAP|BiPAP)|statins?|steroids?|antiepileptics?|anticonvulsants?|antiarrhythmics?|antihypertensives?))\b"#)
+    /// A year ("MH after induction 1998", "in 2015"): history. Not a clock time ("at 2015"), a volume ("EBL 2000",
+    /// "2000 mL") or a dose ("2000 units").
+    static let eventYear = NoteRx(#"(?<![\d@~=])(?<!\d[:.])(?<!@ )(?<!at )(?<!: )(?<!ebl )(?<!uop )(?<!ivf )(?<!lr )(?<!ns )(?<!loss )(?<!output )(?<!saver )(?<!crystalloid )(?<!albumin )(?:19|20)\d\d(?!\d)(?![:.]\d)(?!\s*(?:ml|mls|cc|mcg|mg|units?|u|l|g|j)\b)"#)
+    /// A reaction that is the event's own name: its "reaction to" is not the allergy reader's cue.
+    static let eventOwnReaction = NoteRx(#"\b(?:anaphyla\w+|transfusion|protamine)\s+reactions?\b"#)
+    /// A history list begun earlier in the sentence ("h/o laryngospasm, bronchospasm", "PMH: HTN, seizures"): what
+    /// follows in it is history unless it names a point of the case.
+    static let eventHistoryLead = NoteRx(#"\b(?:hx|h/o|history|pmhx?|fhx|(?-i:FH)|past\s+medical)\b"#)
+    /// The reaction an allergy list gives ("allergies: rocuronium, anaphylaxis with induction"): in such a list it is
+    /// the allergy's, whatever follows it.
+    static let eventAllergyReaction = NoteRx(#"\banaphyla\w+"#)
+    /// A piece that opens as a tracing's report ("ECG sinus brady", "EKG: AF") describes the tracing, not the case, unless
+    /// it names a point of the case ("ECG ST depression after induction").
+    static let eventReport = NoteRx(#"^\s*(?:ecg|ekg|12[- ]lead)\b"#)
+    /// "baseline" said of the event word itself ("baseline bradycardia", "baseline sinus brady"): the patient's usual
+    /// state, the history's. Not "30% below baseline" or "back to baseline", which tell the case.
+    static let eventBaseline = NoteRx(#"\bbaseline\s+(?:(?:sinus|mild|moderate|severe|resting|asymptomatic)\s+)?$"#)
+    /// A word that leads to what treated the event or what it went with ("requiring", "treated with", "on").
+    static let eventConnector = NoteRx(#"\b(?:requir(?:ed|ing|es)|need(?:ed|ing|s)|treated\s+with|responded\s+to|responsive\s+to|given|started\s+on|on|with|to)(?=\s{2,})"#)
+    /// The same words left at the end of an event's text with nothing after them.
+    static let eventDangling = NoteRx(#"(?:\s+(?:requir(?:ed|ing|es)|need(?:ed|ing|s)|treated\s+with|responded\s+to|responsive\s+to|given|started\s+on|on|with|to|and|then))+\s*$"#)
+
+    /// Whether the event word follows "baseline" ("baseline bradycardia").
+    static func saidOfBaseline(_ piece: String) -> Bool {
+        let ns = piece as NSString
+        return eventRx.all(piece).contains { eventBaseline.first(ns.substring(to: $0.range.location)) != nil }
+    }
+
+    /// Whether a piece names a diagnosis before its event word ("asthma with bronchospasm", "OSA with desaturations
+    /// requiring CPAP", "CKD with hyperkalemia"): it tells the patient's problem, which the note reader files, and
+    /// filing the piece as an event would lose the diagnosis.
+    static func leadsWithDiagnosis(_ piece: String) -> Bool {
+        guard let m = eventRx.first(piece), m.range.location > 0 else { return false }
+        let before = (piece as NSString).substring(to: m.range.location)
+        guard before.rangeOfCharacter(from: .letters) != nil else { return false }
+        return PatientNote.read(before, askRoomAir: false).findings.contains { $0.id.hasPrefix("problem:") }
+    }
+
+    /// An event's words: what the other readers left of its piece (`seen`), with what one of them took after a word
+    /// that leads to it put back from the piece as typed ("hypotension requiring" + the drip reader's "norepi 0.05"),
+    /// so the text never stops at "requiring". Without the typed piece the dangling word is dropped.
+    static func eventWording(seen: String, typed: String) -> String {
+        var a = seen as NSString
+        let b = typed as NSString
+        if a.length == b.length {
+            for m in eventConnector.all(seen) {
+                let i = m.range.location + m.range.length
+                var j = i
+                while j < a.length, a.character(at: j) == 32 { j += 1 }
+                let run = NSRange(location: i, length: j - i)
+                guard run.length > 0, !b.substring(with: run).trimmingCharacters(in: .whitespaces).isEmpty else { continue }
+                a = a.replacingCharacters(in: run, with: b.substring(with: run)) as NSString
+            }
+        }
+        var t = (a as String).replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".:;")))
+        t = stripped(eventLead, t)
+        t = stripped(eventDangling, t)
+        return t.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ".:;")))
+    }
+
+    /// The text with a pattern's matches blanked, lengths kept.
+    private static func blanked(_ rx: NoteRx, _ s: String) -> String {
+        var ns = s as NSString
+        for m in rx.all(s) where m.range.length > 0 {
+            ns = ns.replacingCharacters(in: m.range, with: String(repeating: " ", count: m.range.length)) as NSString
+        }
+        return ns as String
+    }
+
+    /// `s` (the one line the readers read) with the line breaks of the line as it was typed put back: each was joined as
+    /// one space, so every position stays put.
+    private static func withLineBreaks(_ s: String, from line: String) -> String {
+        let raw = line as NSString
+        var ns = s as NSString
+        guard raw.length == ns.length, line.rangeOfCharacter(from: .newlines) != nil else { return s }
+        for i in 0..<raw.length {
+            guard let u = UnicodeScalar(raw.character(at: i)), CharacterSet.newlines.contains(u) else { continue }
+            ns = ns.replacingCharacters(in: NSRange(location: i, length: 1), with: "\n") as NSString
+        }
+        return ns as String
+    }
+
+    /// A sentence ends at this character: a line break, or a full stop followed by a space (not the end of "y.o.").
+    private static func sentenceEnds(at i: Int, in ns: NSString) -> Bool {
+        guard i >= 0, i < ns.length else { return false }
+        let ch = ns.character(at: i)
+        if ch == 10 || ch == 13 { return true }
+        guard ch == 46, i + 1 < ns.length, ns.character(at: i + 1) == 32 || ns.character(at: i + 1) == 9 else { return false }
+        return !(i >= 2 && ns.character(at: i - 2) == 46)
+    }
+
+    /// The part of the line an event sits in: its comma piece, within its sentence ("hx MH. Hypotension after induction"
+    /// is two).
+    private static func eventPiece(_ r: NSRange, in s: String) -> NSRange {
+        let ns = s as NSString
+        let p = pieceRange(r, in: s)
+        var a = r.location
+        var b = r.location + r.length
+        while a > p.location, !sentenceEnds(at: a - 1, in: ns) { a -= 1 }
+        while b < p.location + p.length, !sentenceEnds(at: b, in: ns) { b += 1 }
+        return NSRange(location: a, length: b - a)
+    }
+
+    /// The sentence so far before a piece, back to a semicolon: where an allergy list or a history list it belongs to began.
+    private static func eventLeadRange(_ p: NSRange, in s: String) -> NSRange {
+        let ns = s as NSString
+        var a = p.location
+        while a > 0, ns.character(at: a - 1) != 59, !sentenceEnds(at: a - 1, in: ns) { a -= 1 }
+        return NSRange(location: a, length: p.location - a)
+    }
+
+    /// Whether a piece with an event word is an event of this case. `lead` is the sentence before it. In order:
+    /// 1. A piece with an allergy cue ("allergic to rocuronium (anaphylaxis)", "PCN allergy (anaphylaxis to cefazolin
+    ///    too)") is the allergy reader's, always; so is an anaphylaxis later in an allergy list.
+    /// 2. A piece that says it is history is the history readers', always: a history word (eventHistoryMark), a year, a
+    ///    medicine the patient is on ("bleeding on warfarin"), looked for outside the case point so "prior to
+    ///    induction" and "s/p bypass" are not history and "after extubation in 2015" is.
+    /// 3. A point of the case makes the event.
+    /// 4. Without one, a piece of an allergy list or a history list begun earlier in the sentence stays with it, and a
+    ///    piece that opens as a tracing's report ("ECG sinus brady") describes the tracing.
+    /// 5. A drug it followed makes the event (on Summary & Handoff only after a word that says when).
+    /// 6. Without either, a word the history readers read too is theirs ("hypertension", "seizures resolved"); so is an
+    ///    event word said of the baseline ("baseline bradycardia") or after a diagnosis ("asthma with bronchospasm").
+    /// 7. Any other event word is an event on the Intraoperative tab; on Summary & Handoff it needs how it went.
+    static func isEvent(_ piece: String, lead: String, strict: Bool) -> Bool {
+        let allergyList = PatientNote.allergyCue.first(blanked(PatientNote.nkdaRx, lead)) != nil
+        if PatientNote.allergyCue.first(blanked(PatientNote.nkdaRx, blanked(eventOwnReaction, piece))) != nil { return false }
+        if allergyList, eventAllergyReaction.first(piece) != nil { return false }
+        let rest = blanked(eventCasePoint, piece)
+        if eventHistoryMark.first(rest) != nil || eventYear.first(rest) != nil || PatientNote.takenMedicineRx.first(rest) != nil { return false }
+        if eventCasePoint.first(piece) != nil { return true }
+        if allergyList || eventHistoryLead.first(lead) != nil || eventReport.first(piece) != nil { return false }
+        let agent = eventAgent.all(piece).contains { m in
+            guard strict else { return true }
+            return group(m, 1, piece).map { eventAgentTimed.contains($0.lowercased()) } ?? false
+        }
+        if agent { return true }
+        if eventHistoryRx.first(piece) != nil || saidOfBaseline(piece) || leadsWithDiagnosis(piece) { return false }
+        return !strict || eventManner.first(piece) != nil
+    }
+
+    /// `strict` (Summary & Handoff, where the bar otherwise reads as the Preoperative tab's): every event needs its
+    /// context, so "hypertension" typed there is the history it was in 1.10 and "bradycardia on emergence" the event.
+    /// On either place a piece that says it is history or an allergy is left to those readers (isEvent). `typed` is the
+    /// line before the other readers took their words from it, with its line breaks (withLineBreaks).
+    private static func readEvents(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut, strict: Bool, typed: String) {
+        let text = s.text
+        let ns = text as NSString
+        // What an event is judged and worded by: what the other readers left, with the kept timing and any point of the
+        // case one of them took ("after extubation", which the airway-at-handoff reader read as the extubation) put back.
+        var seen = (ns.length > 0 ? s.restored(NSRange(location: 0, length: ns.length)) : "") as NSString
+        if seen.length != ns.length { seen = ns }
+        let was = typed as NSString
+        if was.length == ns.length {
+            for m in eventCasePoint.all(typed) where m.range.length > 0 {
+                seen = seen.replacingCharacters(in: m.range, with: was.substring(with: m.range)) as NSString
+            }
+        }
+        // A line break ends a piece as a full stop does ("HTN" on one line, "hypotension after induction" on the next).
+        var broken = ns
+        if was.length == ns.length {
+            for i in 0..<was.length where was.character(at: i) == 10 {
+                broken = broken.replacingCharacters(in: NSRange(location: i, length: 1), with: "\n") as NSString
+            }
+        }
+        let lines = broken as String
+        var pieces: [NSRange] = []
+        for m in eventRx.all(text) {
+            let p = eventPiece(m.range, in: lines)
+            guard !pieces.contains(where: { NSEqualRanges($0, p) }) else { continue }
+            guard pieceNegation.first(ns.substring(with: NSRange(location: p.location, length: m.range.location - p.location))) == nil else { continue }
+            guard isEvent(seen.substring(with: p), lead: seen.substring(with: eventLeadRange(p, in: lines)), strict: strict) else { continue }
+            pieces.append(p)
+        }
+        for p in pieces {
+            let left = seen.substring(with: p)
+            let t = eventWording(seen: left, typed: was.length == ns.length ? was.substring(with: p) : left)
+            guard !t.isEmpty else { continue }
+            s.mask(p)
+            out.add(PatientNoteFinding(id: "event:" + t.lowercased(), section: intraop, label: "Event: " + t, change: .event(t)))
+        }
+    }
+
+    /// The 1.11 patterns, for the test that each one compiles.
+    static var patterns111: [NoteRx] {
+        var out = [ecgCue, ecgNormal, ecgWord, extubatedRx, intubatedRx, extubatedPast, dispositionRx, dispositionNotAfter, dispositionNotBefore,
+                   noCardiacSymptoms, noAcuteCardiac, stressCue, ettToken, stressEquivocal, stressNegative, stressNormal, stressPositive, stressNotDoneBefore, stressNotDoneAfter, stressDateGap, stressDateOther, stressDateLead, stressDate,
+                   eventRx, eventLead, eventHistoryRx, eventCasePoint, eventAgent, eventManner, eventHistoryMark, eventYear,
+                   eventOwnReaction, eventHistoryLead, eventAllergyReaction, eventReport, eventBaseline, eventConnector, eventDangling, PatientNote.takenMedicineRx, allergyAfterName,
+                   sentenceBreak, ecgFiller, echoBefore, echoAfter, intubatedOrigin, notReintubated, historyLead, extubationDenied, extubationPlanned,
+                   extubationNounPlanned, extubationDeferred, dispositionDenied, dispositionOwnPlan, dispositionPlanned]
+        out += ecgRules.map(\.rx) + ecgRules.compactMap(\.notBefore)
+        return out
+    }
+
     // MARK: The full note on a tab
 
     /// A note read in the full-note sheet (a long paste, the pencil), routed for the tab it was opened from. On the
@@ -2429,6 +3227,19 @@ enum QuickAdd {
             return ("Allergies", a)
         case .devices(let ds):
             return (destination, f.label + (ds.allSatisfy(\.placedIntraop) && !ds.isEmpty ? " (placed in the OR)" : ""))
+        // 1.11 (P1-12): each new rule names its own place on the chip.
+        case .ecg(let finding):
+            return ("ECG", finding)
+        case .airwayAtEnd(let id):
+            return ("Handoff", id == "intubated" ? "Remains intubated" : (PatientCatalog.airwayAtEnd.first { $0.id == id }?.label ?? capitalized(id)))
+        case .disposition(let d):
+            return ("Disposition", d)
+        case .cardiacAnswer(let key, let answer):
+            return ("Cardiac", (answer ? "Has " : "No ") + (key == "symptoms" ? "symptoms" : "acute conditions"))
+        case .stressTest(let t):
+            return ("Workup", stressText(t))
+        case .event(let t):
+            return ("Event", capitalized(t))
         default:
             var label = f.label
             for p in labelPrefixes where label.hasPrefix(p) { label = String(label.dropFirst(p.count)) }

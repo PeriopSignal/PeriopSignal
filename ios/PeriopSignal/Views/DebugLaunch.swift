@@ -14,6 +14,7 @@ import WidgetKit
 ///   -ps.screen widget       show the widget preview screen instead of the app
 ///   -ps.screen cards        show the two posts with the most topic tags as cards (button-row layout check)
 ///   -ps.screen sharecard    render the share image for the newest landmark post
+///   -ps.screen gallery      My Patient's style gallery: every chip, link and heading variant on one page (1.11)
 ///   -ps.showWelcome 1       open the welcome screen (topics and alerts)
 ///   -ps.forceAppearance light|dark   this launch only (not saved) / -ps.forceLaunchCount N
 enum DebugLaunch {

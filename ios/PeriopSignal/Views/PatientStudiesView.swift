@@ -44,7 +44,7 @@ extension PatientEditorView {
     @ViewBuilder var radialEditor: some View {
         PatientGroup(title: "Planned harvest") {
             PatientChipRow(label: nil) {
-                PatientChoice(options: PatientRadial.harvestOptions, selection: bind(\.radial.harvest), tint: PS.accent)
+                PatientChoice(options: PatientRadial.harvestOptions, selection: bind(\.radial.harvest))
             }
         }
         PatientGroup(title: "Radial arteries") {
@@ -141,7 +141,7 @@ struct StudyCautionRow: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(PS.sys(size: 13, weight: .semibold))
-                .foregroundStyle(PS.accent)
+                .foregroundStyle(PS.red)
             InfoTitle(caption: caution.source, open: $open, captionFont: PS.sys(size: 12), spacing: 4) {
                 Text(caution.text).font(PS.sys(size: 14, weight: .medium)).foregroundStyle(PS.fg)
                     .fixedSize(horizontal: false, vertical: true)

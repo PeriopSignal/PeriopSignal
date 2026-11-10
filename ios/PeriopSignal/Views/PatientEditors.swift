@@ -80,6 +80,8 @@ enum PatientEditor: Hashable {
         ("radial", "Radial Artery Ultrasound", "hand.raised"), ("pft", "Pulmonary Function Tests", "lungs"),
         // 1.9: the code status plan and POLST, behind a small link on the Preprocedure tab's Demographics box.
         ("codestatus", "Code Status", "exclamationmark.shield"),
+        // 1.11 (Ben's note 4): the preprocedure stress test, a chip of the cardiac workup.
+        ("stress", "Stress Test", "figure.run"),
     ]
 }
 
@@ -171,15 +173,18 @@ struct PatientEditorView: View {
                     }
                     .disabled(i == 0)
                     .accessibilityLabel("Previous field")
+                        .tint(PS.action)
                     Button { moveFocus(i + 1) } label: {
                         HStack(spacing: 3) { Image(systemName: "chevron.down"); Text("Next") }
                     }
                     .disabled(i + 1 >= numberOrder.count)
                     .accessibilityLabel("Next field")
+                        .tint(PS.action)
                 }
                 Spacer()
                 Button("Done") { numberFocus = nil; Keyboard.dismiss() }
                     .fontWeight(.semibold)
+                    .tint(PS.action)
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 PatientUndoButton()
@@ -251,14 +256,15 @@ struct PatientEditorView: View {
                 if let detail { Text(detail).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
             }
         }
-        .tint(PS.accent)
+        .tint(PS.action)
         .padding(.horizontal, 14).padding(.vertical, 9)
     }
 
-    func linkRow(_ title: String, _ detail: String, icon: String, value: PatientEditor) -> some View {
+    func linkRow(_ title: String, _ detail: String, icon: String, alert: Bool = false, value: PatientEditor) -> some View {
         NavigationLink(value: value) {
             HStack(spacing: 12) {
-                Image(systemName: icon).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.accent).frame(width: 24)
+                // The icon is the action colour, except one that warns (the TEE screen's contraindication triangle).
+                Image(systemName: icon).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(alert ? PS.red : PS.action).frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
                     Text(detail).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineLimit(2)
@@ -521,8 +527,8 @@ struct PatientEditorView: View {
                         }
                         .padding(10)
                         .frame(maxWidth: .infinity)
-                        .background(on ? PS.accent.opacity(0.14) : PS.surface2, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(on ? PS.accent : Color.clear, lineWidth: 2))
+                        .background(on ? PS.action.opacity(0.14) : PS.surface2, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(on ? PS.action : Color.clear, lineWidth: 2))
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(on ? .isSelected : [])
@@ -543,7 +549,7 @@ struct PatientEditorView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Image(systemName: m.alert ? "exclamationmark.triangle.fill" : "circle")
                             .font(PS.sys(size: 12, weight: .semibold))
-                            .foregroundStyle(m.alert ? PS.accent : PS.fg3)
+                            .foregroundStyle(m.alert ? PS.red : PS.fg3)
                         Text(m.text).font(PS.sys(size: 13.5)).foregroundStyle(m.alert ? PS.fg : PS.fg2).fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -604,7 +610,7 @@ struct PatientEditorView: View {
                 Hairline().padding(.leading, 14)
             }
             Button { patient.update(discrete: true) { $0.lines.append(PatientLine()) } } label: { Label("Add line", systemImage: "plus.circle") }
-                .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
+                .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.action)
                 .padding(14)
         }
     }
@@ -616,7 +622,7 @@ struct PatientEditorView: View {
                 Hairline().padding(.leading, 14)
             }
             Button { patient.update(discrete: true) { $0.regional.append(PatientRegional()) } } label: { Label("Add block", systemImage: "plus.circle") }
-                .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.accent)
+                .font(PS.sys(size: 14, weight: .semibold)).buttonStyle(.borderless).tint(PS.action)
                 .padding(14)
         }
     }
@@ -642,26 +648,9 @@ struct PatientEditorView: View {
                 PatientTextField(label: "What happened", prompt: "Hypotension, arrhythmia, bronchospasm, bleeding…", text: bind(\.events))
             }
         }
-        // At the end of the case: extubated takes the ETT off the patient diagram.
-        if r.arrivesWithAirway || PatientAirway.intubationChosen(r) || !r.tube.isEmpty {
-            HStack(spacing: 10) {
-                Button { withAnimation(.snappy) { patient.update(discrete: true) { $0.airwayAtEnd = "intubated" } } } label: {
-                    Label("Remains intubated", systemImage: r.airwayAtEnd == "intubated" ? "checkmark.circle.fill" : "lungs")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(BigButtonStyle(prominent: r.airwayAtEnd == "intubated"))
-                Button { withAnimation(.snappy) { patient.update(discrete: true) { $0.airwayAtEnd = "extubated" } } } label: {
-                    Label("Extubated", systemImage: r.airwayAtEnd == "extubated" ? "checkmark.circle.fill" : "wind")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(BigButtonStyle(prominent: r.airwayAtEnd == "extubated"))
-            }
-            if r.airwayAtEnd == "intubated" {
-                PatientGroup(title: nil) {
-                    PatientTextField(label: "Ventilation", prompt: "e.g. VC 450 × 14, PEEP 8, FiO₂ 0.5", text: bind(\.ventilation))
-                }
-            }
-        }
+        // 1.11 (P1-10): how the airway is left (airwayAtEnd) is recorded once, in the Airway Course's "At handoff" row (and
+        // Status & Plan's Airway chips); the Remains intubated / Extubated buttons and the Ventilation field that repeated
+        // it here are gone.
     }
 
     @ViewBuilder private var intraopEcho: some View {
@@ -736,7 +725,7 @@ struct PatientEditorView: View {
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(b.technique.isEmpty ? "Choose the technique" : b.technique).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(b.technique.isEmpty ? PS.accent : PS.fg).multilineTextAlignment(.leading)
+                        Text(b.technique.isEmpty ? "Choose the technique" : b.technique).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(b.technique.isEmpty ? PS.action : PS.fg).multilineTextAlignment(.leading)
                         Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 11, weight: .semibold)).foregroundStyle(PS.fg3)
                     }
                 }
@@ -754,7 +743,7 @@ struct PatientEditorView: View {
                     .padding(8).background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
             Toggle("Catheter left in", isOn: Binding(get: { idx.map { patient.record.regional[$0].catheter } ?? false }, set: { v in if let i = idx { patient.update(discrete: true) { $0.regional[i].catheter = v } } }))
-                .font(PS.sys(size: 14)).tint(PS.accent)
+                .font(PS.sys(size: 14)).tint(PS.action)
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
     }

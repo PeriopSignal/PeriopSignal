@@ -190,9 +190,11 @@ private struct TimerChipRow: View {
                         .font(PS.sys(size: 13.5, weight: .medium))
                         .lineLimit(1)
                         .padding(.horizontal, 10).padding(.vertical, 7)  // 10 pt (as the Labs and infusion chips): four chips with a chosen Other value fit one line at 375 pt
-                        .background(c.on ? PS.accent.opacity(0.15) : PS.surface2, in: Capsule())
-                        .overlay(Capsule().stroke(c.on ? PS.accent.opacity(0.7) : PS.line2, lineWidth: 1))
-                        .foregroundStyle(c.on ? PS.accent : PS.fg)
+                        // 1.11 (P1-8): the chosen chip in the action tint with the heavier edge (ChipStyle.toggle's one-line
+                        // form), not the brand red; the chip keeps its width, so the rows sized for 375 pt still fit.
+                        .background(c.on ? PS.action.opacity(0.18) : PS.surface2, in: Capsule())
+                        .overlay(Capsule().stroke(c.on ? PS.action : PS.line2, lineWidth: c.on ? ChipMetrics.heavyEdge : 1))
+                        .foregroundStyle(PS.fg)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(c.a11y ?? c.label)
@@ -211,7 +213,7 @@ struct TimerStartButtonStyle: ButtonStyle {
 
     struct Look { var fill: Color; var text: Color; var stroke: Color; var opacity: Double }
     static func look(active: Bool) -> Look {
-        active ? Look(fill: PS.accent, text: PS.accentFg, stroke: .clear, opacity: 1)
+        active ? Look(fill: PS.action, text: PS.accentFg, stroke: .clear, opacity: 1)
                : Look(fill: PS.surface2, text: PS.fg2, stroke: PS.line, opacity: 1)
     }
 
@@ -275,7 +277,7 @@ private struct StartTimeRow: View {
                        displayedComponents: [.hourAndMinute])
                 .font(PS.sys(size: 14.5, weight: .medium))
                 .foregroundStyle(PS.fg)
-                .tint(PS.accent)
+                .tint(PS.action)
                 .environment(\.locale, Locale(identifier: "en_GB"))
         }
     }
@@ -295,7 +297,7 @@ private struct AddRow: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: open ? "minus.circle.fill" : "plus.circle.fill")
-                    .font(PS.sys(size: 18, weight: .semibold)).foregroundStyle(PS.accent)
+                    .font(PS.sys(size: 18, weight: .semibold)).foregroundStyle(PS.action)
                 Text(title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
                 Spacer(minLength: 6)
                 if let detail { Text(detail).font(PS.sys(size: 12.5, weight: .medium)).foregroundStyle(PS.fg3).lineLimit(1) }
@@ -303,7 +305,7 @@ private struct AddRow: View {
             }
             .padding(.horizontal, 16).padding(.vertical, 13)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(open ? PS.accent.opacity(0.45) : PS.line, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous).stroke(open ? PS.action.opacity(0.45) : PS.line, lineWidth: 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -407,7 +409,7 @@ struct CaseTimersView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if inSheet {
-                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.fontWeight(.semibold) }
+                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.fontWeight(.semibold).tint(PS.action) }
             }
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -543,7 +545,7 @@ struct CaseTimersView: View {
                     .lineLimit(2).minimumScaleFactor(0.85).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 4)
                 Button(doneTitle(rem)) { done(rem, d) }
-                    .buttonStyle(CapsuleButtonStyle(prominent: state != .waiting))
+                    .buttonStyle(CapsuleButtonStyle.patientAction(prominent: state != .waiting))
                 if state != .waiting {
                     Button("Snooze 5") { edit { $0.snooze(rem, now: Date()) } }
                         .buttonStyle(CapsuleButtonStyle(prominent: false))
@@ -853,7 +855,7 @@ struct CaseTimersView: View {
                             edit { $0.checks[def.id]?.done.append(TimedEntry(time: Date(), value: v)) }
                             glucoseValue = nil
                         }
-                        .buttonStyle(CapsuleButtonStyle(prominent: true)).disabled(glucoseValue == nil)
+                        .buttonStyle(CapsuleButtonStyle.patientAction()).disabled(glucoseValue == nil)
                     }
                 } else {
                     Button("Sent now") { edit { $0.checks[def.id]?.done.append(TimedEntry(time: Date())) } }
@@ -1029,6 +1031,7 @@ struct CaseTimersView: View {
                 withAnimation(.snappy) { goalEditing.toggle(); goalEntry = goalEditing ? h.goal : nil; goalArmed = false }
             }
             .font(PS.sys(size: 13.5, weight: .semibold))
+            .tint(PS.action)
         }
         if goalInfoOpen { InfoCaptionText(text: CaseTimerEngine.actGoalInfo(device: device), font: PS.sys(size: 12)) }
         Text(CaseTimerEngine.goalCaption(h, p, device: device)).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
@@ -1096,7 +1099,7 @@ struct CaseTimersView: View {
                 edit { $0.heparin?.acts.append(TimedEntry(time: Date(), value: v, baseline: canBaseline ? true : nil)) }
                 actValue = nil
             }
-            .buttonStyle(CapsuleButtonStyle(prominent: true))
+            .buttonStyle(CapsuleButtonStyle.patientAction())
             .disabled(actValue == nil || (actValue ?? 0) < 30)
         }
         if let act = status.lastACT, let at = status.lastACTTime {

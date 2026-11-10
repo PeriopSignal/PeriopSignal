@@ -84,7 +84,10 @@ final class Review110ShotsRegressTimersIntraopTests: XCTestCase {
         r.limbAlerts = [PatientLimbAlert(limb: "arm-right", reason: "Lymphedema")]
         r.lines = [PatientLine(kind: "Peripheral IV", site: "R hand", size: "18 G")]
         let both = IntraopDevicesCard.sections(r)
-        XCTAssertEqual(both.aboveFigure.first?.label, "Limb alert")
+        // 1.11 (P1-10): the limb alert is said once, by the figure (its marker and caption), not as a red text line as
+        // well; it still leads the card's lines for the handoff.
+        XCTAssertFalse(both.aboveFigure.contains { $0.label == "Limb alert" }, "1.11: the figure's caption says it once")
+        XCTAssertEqual(IntraopDevicesCard.lines(r).first?.label, "Limb alert")
         XCTAssertTrue(both.aboveFigure.contains { $0.label == "Arms" })
         XCTAssertTrue(both.belowFigure.contains { $0.text.contains("18 G") }, both.belowFigure.map(\.text).joined(separator: " | "))
         XCTAssertFalse(both.aboveFigure.contains { $0.text.contains("18 G") })

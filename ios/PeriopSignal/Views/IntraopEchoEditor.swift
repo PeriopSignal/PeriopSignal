@@ -36,7 +36,7 @@ struct IntraopEchoExams: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(PS.accent)
+                .foregroundStyle(PS.action)
                 if !r.intraopEcho.isEmpty {
                     Hairline().padding(.leading, 14)
                     Button {
@@ -53,7 +53,7 @@ struct IntraopEchoExams: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(PS.accent)
+                    .foregroundStyle(PS.action)
                     .accessibilityHint("Copies the pre-bypass findings into the post-bypass exam, to change what is different")
                 }
             }

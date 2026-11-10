@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import os
 
 /// My Patient's three tabs: Preoperative, Intraoperative, and Summary & Handoff.
@@ -76,6 +77,11 @@ struct PatientView: View {
     @State private var scrollToTop = 0
     /// Screenshot runs: asks the tab to scroll to -ps.patient.jump once the tab it names is showing.
     @State private var shotJump = 0
+    /// 1.11 (P1-5): the section at the top of the viewport, whose jump chip is drawn filled and kept in view. Set only
+    /// when it changes (the anchors report every frame into jumpGeometry, a plain class).
+    @State private var currentJump: PatientJumpID?
+    /// 1.11: a section chosen from the "My Patient" title menu, scrolled to once the tab holding it is on screen.
+    @State private var menuJump: PatientJumpID?
 
     private struct NoteResult {
         /// Each banner's own, so its 6-second timer ends only that one.
@@ -113,10 +119,40 @@ struct PatientView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 4)
                     .padding(.bottom, 32)
+                    // Where the tab's content ends, for the current chip at the end of the tab.
+                    .background {
+                        GeometryReader { g in
+                            Color.clear.preference(key: PatientJumpAnchorKey.self, value: [PatientJumpCurrent.endKey: g.frame(in: .global).maxY])
+                        }
+                    }
                     .id(Self.topID)
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .overlay(alignment: .top) { pinnedJumpBar(proxy) }
+                // 1.11: where each section's anchor is, as the tab scrolls; the current chip follows (P1-5).
+                .onPreferenceChange(PatientJumpAnchorKey.self) { tops in
+                    jumpGeometry.tops = tops
+                    jumpGeometry.endY = tops[PatientJumpCurrent.endKey] ?? .infinity
+                    updateCurrentJump()
+                }
+                // The bottom of the part of the screen the tab shows in (above the tab bar or the keyboard).
+                .overlay {
+                    GeometryReader { g in
+                        Color.clear
+                            .onAppear { jumpGeometry.viewBottom = g.frame(in: .global).maxY; updateCurrentJump() }
+                            .onChange(of: g.frame(in: .global).maxY) { _, y in jumpGeometry.viewBottom = y; updateCurrentJump() }
+                    }
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+                }
+                .onChange(of: menuJump) { _, target in
+                    guard let target else { return }
+                    // The tab may have just been switched by the same tap: give it a frame to lay out.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                        jump(to: target, proxy)
+                        menuJump = nil
+                    }
+                }
                 .readPatientTipFrames(tips.isShowing, into: $tipFrames)
                 .noIdentifiersAlert(isPresented: $showIdentifiers)
                 .modifier(PatientCasePresentations())
@@ -188,6 +224,9 @@ struct PatientView: View {
             .navigationTitle("My Patient")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
+            // 1.11 (P1-5): the title is a menu of the three tabs and the current tab's sections, the current ones
+            // checked, so any of them is one tap away from any scroll position; no new chrome.
+            .toolbarTitleMenu { titleMenu }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     NoIdentifiersShield(isPresented: $showIdentifiers)
@@ -237,6 +276,8 @@ struct PatientView: View {
         .task { await openForScreenshot() }
         #if DEBUG
         .onChange(of: path) { o, n in ShotTrace.note("path \(o.count) -> \(n.count)") }
+        .onChange(of: tabOverride) { o, n in ShotTrace.note("tabOverride \(o?.rawValue ?? "nil") -> \(n?.rawValue ?? "nil")") }
+        .onChange(of: tabID) { o, n in ShotTrace.note("tabID \(o) -> \(n)") }
         .onAppear { ShotTrace.note("PatientView appear") }
         .onDisappear { ShotTrace.note("PatientView disappear") }
         #endif
@@ -255,6 +296,9 @@ struct PatientView: View {
     /// The tips start at the top of a tab with the quick-add bar, with the keyboard down.
     private func prepareForTips() {
         Keyboard.dismiss()
+        #if DEBUG
+        ShotTrace.note("prepareForTips")
+        #endif
         if tab == .summary { tabOverride = .preop }
         scrollToTop += 1
     }
@@ -311,7 +355,9 @@ struct PatientView: View {
             // A sheet asked for before the tab is on screen can be dropped, so wait a moment.
             try? await Task.sleep(nanoseconds: 800_000_000)
             showNote = true
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            // The sheet reads the note as it appears; on a slow simulator that outlasted 1.5 s and the picture caught the
+            // first frame of the switch to the results (1.11: two runs).
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
             ShotReady.ready()
         case .receive:
             try? await Task.sleep(nanoseconds: 800_000_000)
@@ -444,13 +490,53 @@ struct PatientView: View {
 
     // MARK: Tabs
 
+    /// Shows a tab and goes to its top (1.11, P1-5: a switch no longer keeps the old tab's scroll offset, and a tap on the
+    /// tab already showing goes back to the top).
+    private func select(_ t: PatientTab) {
+        // Decided before the switch: the new tab's first section is current until its anchors report (the old tab's
+        // chip would match nothing); a tap on the tab showing keeps its chip.
+        let keep = Self.jumpAfterSelecting(t, showing: tab, current: currentJump)
+        #if DEBUG
+        ShotTrace.note("select \(t.rawValue)")
+        #endif
+        withAnimation(.snappy) { tabOverride = nil; tabID = t.rawValue }
+        jumpGeometry.held = nil
+        currentJump = keep
+        scrollToTop += 1
+    }
+
+    /// The current chip after a tab is selected: kept when the tab showing is tapped again, cleared on a switch
+    /// (`select` applies it; the tests check it).
+    static func jumpAfterSelecting(_ t: PatientTab, showing: PatientTab, current: PatientJumpID?) -> PatientJumpID? {
+        t == showing ? current : nil
+    }
+
+    /// The "My Patient" title menu: the tabs, then the sections of the tab showing (PatientTitleMenu lists them).
+    @ViewBuilder private var titleMenu: some View {
+        Picker("Tab", selection: Binding(get: { tab }, set: { t in Haptics.light(); select(t) })) {
+            ForEach(PatientTab.allCases) { t in Label(t.title, systemImage: t.icon).tag(t) }
+        }
+        .pickerStyle(.inline)
+        let sections = PatientTitleMenu.sections(for: tab)
+        if !sections.isEmpty {
+            Picker("Section", selection: Binding(get: { currentJump ?? sections.first?.id }, set: { id in
+                guard let id else { return }
+                Haptics.light()
+                menuJump = id
+            })) {
+                ForEach(sections, id: \.self) { item in Text(item.fullTitle).tag(Optional(item.id)) }
+            }
+            .pickerStyle(.inline)
+        }
+    }
+
     private var tabBar: some View {
         HStack(spacing: 4) {
             ForEach(PatientTab.allCases) { t in
                 let on = t == tab
                 Button {
                     Haptics.light()
-                    withAnimation(.snappy) { tabOverride = nil; tabID = t.rawValue }
+                    select(t)
                 } label: {
                     VStack(spacing: 4) {
                         Image(systemName: t.icon).font(PS.sys(size: 15, weight: .semibold))
@@ -483,10 +569,12 @@ struct PatientView: View {
                     .padding(.horizontal, 4)
             }
         }
-        jumpBar(proxy, Self.preopJumps).background(jumpBarReader)
-        // 1. Procedure: the open Planned Procedure & Anesthetic box and the "+ Risk-score inputs" link under it (1.10); the
-        // Procedure editor is still behind PatientEditor.procedure for deep links.
-        PreopPlannedBox().jumpTarget(section: .procedure)
+        inlineJumpBar(proxy, Self.preopJumps)
+        // 1. Planned Procedure & Anesthetic (1.11, Ben's Q3: the section gets the title; its box loses the caption that said
+        // the same, and the urgency ⓘ moves up to the title line): the open box and the "+ Risk-score inputs" link under
+        // it (1.10); the Procedure editor is still behind PatientEditor.procedure for deep links.
+        PreopSectionTitle(text: PreopSection.procedure.sectionTitle, info: PreopPlannedBox.urgencyNote(r)).jumpTarget(section: .procedure)
+        PreopPlannedBox()
         PreopRiskInputsLink().jumpTarget(anchor: PatientPreop110.riskInputsAnchor)
         demographicsSection
         workupSection
@@ -495,37 +583,57 @@ struct PatientView: View {
         summarySection
     }
 
+    /// The tab's own jump bar, which reads where it is (the pinned copy shows once it has gone under the top) and hides
+    /// while the pinned copy shows, so there is one bar at a time (1.11, P1-5). It keeps its height so nothing jumps.
+    private func inlineJumpBar(_ proxy: ScrollViewProxy, _ items: [PatientJumpItem]) -> some View {
+        jumpBar(proxy, items)
+            .background(jumpBarReader)
+            .opacity(jumpPinned ? 0 : 1)
+            .allowsHitTesting(!jumpPinned)
+            .accessibilityHidden(jumpPinned)
+    }
+
     // The 1.9 tab (Ben's Wanted Changes): six sections, each a jump-bar target, with the boxes' controls in place
     // (PatientPreopViews.swift). The editors behind the old cards are still there for the boxes' links and deep links.
 
     /// 2. Demographics & History: Demographics, Allergies, Problems by system, and the surgical history, complications
     /// and last intake chips. (Labs moved to Examination & Workup.)
     @ViewBuilder private var demographicsSection: some View {
-        PreopSectionTitle(text: PreopSection.demographics.title).jumpTarget(section: .demographics)
-        PreopDemographicsBox().jumpTarget(anchor: "demographics")
+        // One heading per thing (1.11, P1-6): the first box's DEMOGRAPHICS caption restated the title, so it goes, and
+        // its body-size ⓘ sits on the title line.
+        PreopSectionTitle(text: PreopSection.demographics.sectionTitle, info: PatientPreop.bodySizeNote(r)).jumpTarget(section: .demographics)
+        PreopDemographicsBox().patientCaptionHidden().jumpTarget(anchor: "demographics")
         PatientGroup(title: "Allergies") { AllergiesBox() }.jumpTarget(anchor: "allergies")
         PreopProblemsBox().jumpTarget(anchor: "problems")
         PreopHistoryChipsBox().jumpTarget(anchor: "chips")
     }
 
-    /// 3. Examination & Workup: ASA and functional capacity, Cardiopulmonary Evaluation (with the cardiac workup),
-    /// the airway examination, laboratory studies, lines and devices.
+    /// 3. Examination & Workup, in Ben's 1.11 order (Q1: the exam, then the studies, then the assessment): the airway
+    /// examination, laboratory studies, lines and devices, Cardiopulmonary Evaluation (with the cardiac workup), then
+    /// ASA and functional capacity, which ends up directly above Risk Scores & Checks.
+    static let workupOrder = ["airway", "labs", "devices", "cardio", "asa"]
+
     @ViewBuilder private var workupSection: some View {
-        PreopSectionTitle(text: PreopSection.workup.title).jumpTarget(section: .workup)
-        PreopAsaBox().jumpTarget(anchor: "asa")
-        PreopCardioBox().jumpTarget(anchor: "cardio")
-        airwayCard.jumpTarget(anchor: "airway")
-        PatientSectionCard(editor: .workup("labs"), lines: [PatientSummary.labsLine(r.capitalized), PatientSummary.liverLine(r)].compactMap { $0 },
-                           empty: "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", title: "Laboratory Studies")
-            .jumpTarget(anchor: "labs")
-        devicesCard.jumpTarget(anchor: "devices")
+        PreopSectionTitle(text: PreopSection.workup.sectionTitle).jumpTarget(section: .workup)
+        ForEach(Self.workupOrder, id: \.self) { box in workupBox(box).jumpTarget(anchor: box) }
     }
 
-    /// 4. Current Medications: home medications, current infusions, flagged medications.
+    @ViewBuilder private func workupBox(_ key: String) -> some View {
+        switch key {
+        case "airway": airwayCard
+        case "labs": PreopLabsCard()
+        case "devices": devicesCard
+        case "cardio": PreopCardioBox()
+        default: PreopAsaBox()
+        }
+    }
+
+    /// 4. Current Medications: home medications (the box under the title, no caption: P1-6), current infusions, flagged
+    /// medications.
     @ViewBuilder private var medicationsSection: some View {
-        PreopSectionTitle(text: PreopSection.medications.title).jumpTarget(section: .medications)
-        PatientGroup(title: "Home medications") { HomeMedicationsBox() }.jumpTarget(anchor: "homemeds")
-        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they carry into the intraoperative infusions when you add them there.") {
+        PreopSectionTitle(text: PreopSection.medications.sectionTitle).jumpTarget(section: .medications)
+        PatientGroup(title: nil) { HomeMedicationsBox() }.jumpTarget(anchor: "homemeds")
+        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they appear in the intraoperative infusions list tagged \"from preop\".") {
             CurrentInfusionsBox()
         }
         .jumpTarget(anchor: "infusions")
@@ -534,15 +642,24 @@ struct PatientView: View {
 
     /// 5. Risk Scores & Checks: the warnings, then the prompts (no RCRI for cardiac surgery).
     @ViewBuilder private var riskSection: some View {
-        PreopSectionTitle(text: PreopSection.risk.title).jumpTarget(section: .risk)
+        PreopSectionTitle(text: PreopSection.risk.sectionTitle).jumpTarget(section: .risk)
         PreopRiskBox(onOpenRoute: { open($0) })
     }
 
-    /// 6. Preprocedure Summary.
+    /// 6. Preprocedure Summary. Once the summary is generated its Regenerate sits on the title's line (1.11, P1-6: one
+    /// heading, no row of its own for the button); before that there is nothing to regenerate.
     @ViewBuilder private var summarySection: some View {
-        PreopSectionTitle(text: PreopSection.summary.title).jumpTarget(section: .summary)
+        let regenerate = Self.summaryTitleHasRegenerate(r)
+        PreopSectionTitle(text: PreopSection.summary.sectionTitle,
+                          trailing: regenerate ? AnyView(BriefRegenerateButton(kind: .preop)) : nil,
+                          trailingCompact: regenerate ? AnyView(BriefRegenerateButton(kind: .preop, form: .word)) : nil,
+                          trailingMinimal: regenerate ? AnyView(BriefRegenerateButton(kind: .preop, form: .icon)) : nil)
+            .jumpTarget(section: .summary)
         PreprocedureSummaryView()
     }
+
+    /// Regenerate rides the Preprocedure Summary title only while the summary is showing.
+    static func summaryTitleHasRegenerate(_ r: PatientRecord) -> Bool { r.preopSummaryOn && BriefPanel.regenerateOnTitleLine(.preop) }
 
     private static let preopJumps: [PatientJumpItem] = PreopSection.allCases.map { PatientJumpItem(section: $0) }
 
@@ -552,8 +669,9 @@ struct PatientView: View {
     private static let jumpKeys: [String: PatientJumpID] = [
         "procedure": PatientJumpID(section: .procedure), "planned": PatientJumpID(section: .procedure),
         "riskinputs": PatientJumpID(anchor: PatientPreop110.riskInputsAnchor), "demographics": PatientJumpID(anchor: "demographics"),
+        "demographics-title": PatientJumpID(section: .demographics),
         "workup": PatientJumpID(section: .workup), "medications": PatientJumpID(section: .medications),
-        "risk": PatientJumpID(section: .risk),
+        "risk": PatientJumpID(section: .risk), "summary": PatientJumpID(section: .summary),
         "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
         "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
         "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
@@ -578,7 +696,7 @@ struct PatientView: View {
                 sectionHeader(.devices("preop"))
                 let lines = PatientSummary.arrivalDeviceLines(r)
                 if lines.isEmpty && !r.arrivesWithAirway && r.mechanicalSupport.isEmpty && PatientDeviceFills.limbAlerts(r).isEmpty {
-                    Text("Tap to draw the lines, airway and devices the patient arrives with.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                    Text(PreopEmptyHints.lines).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
                     // The limb alerts open the card, above the figure, as on the Intraoperative tab (1.10 review).
                     PatientDiagramCard.preopCard(r)
@@ -600,7 +718,7 @@ struct PatientView: View {
     @ViewBuilder private func intraop(_ proxy: ScrollViewProxy) -> some View {
         noteButton
         CaseTimersStrip()
-        jumpBar(proxy, jumpItems ?? []).background(jumpBarReader)
+        inlineJumpBar(proxy, jumpItems ?? [])
         IntraopSectionTitle(text: IntraopSection.airway.title).jumpTarget(id: PatientJumpID(intraop: .airway))
         IntraopAirwayCourse()
         IntraopSectionTitle(text: IntraopSection.lines.title).jumpTarget(id: PatientJumpID(intraop: .lines))
@@ -718,6 +836,30 @@ struct PatientView: View {
     private func updateJumpPin() {
         let pinned = jumpGeometry.barY < jumpGeometry.pinY
         if pinned != jumpPinned { jumpPinned = pinned }
+        updateCurrentJump()
+    }
+
+    /// The section at the top of the viewport (PatientJumpCurrent), set only when it changes.
+    private func updateCurrentJump() {
+        guard let items = jumpItems else { return }
+        let order = items.map(\.id)
+        let g = jumpGeometry
+        if let held = g.held {
+            if let top = g.tops[held.key] { g.heldMinTop = min(g.heldMinTop, top) }
+            if !PatientJumpCurrent.holds(order: order, tops: g.tops, pinY: g.pinY, held: held, heldMinTop: g.heldMinTop) { g.held = nil }
+        }
+        // The end of the tab counts only once the bar is pinned: a tab shorter than the screen is at its top.
+        let atEnd = jumpPinned && g.endY <= g.viewBottom + 2
+        let current = PatientJumpCurrent.current(order: order, tops: g.tops, pinY: g.pinY, atEnd: atEnd, held: g.held, heldMinTop: g.heldMinTop)
+        if current != currentJump { currentJump = current }
+    }
+
+    /// A chip or the title menu jumps to a section: its chip is the current one from the tap (PatientJumpCurrent.holds).
+    private func jump(to id: PatientJumpID, _ proxy: ScrollViewProxy) {
+        jumpGeometry.held = id
+        jumpGeometry.heldMinTop = .infinity
+        updateCurrentJump()
+        withAnimation(.snappy) { proxy.scrollTo(id, anchor: .top) }
     }
 
     /// The jump bar again, pinned at the top of the tab on the app's background material, once the tab's own has
@@ -753,60 +895,45 @@ struct PatientView: View {
         }
     }
 
+    /// The row of section chips (1.11, P1-5): short labels (the titles keep the full names, which VoiceOver reads), the
+    /// section at the top of the viewport drawn filled and scrolled into view as the tab scrolls. Six chips still need
+    /// more than a phone's width, so the row scrolls; the filled chip says where you are.
     private func jumpBar(_ proxy: ScrollViewProxy, _ items: [PatientJumpItem]) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(items, id: \.self) { item in
-                    Button { withAnimation(.snappy) { proxy.scrollTo(item.id, anchor: .top) } } label: {
-                        Text(item.title)
-                            .font(PS.sys(size: 13.5, weight: .semibold))
-                            .foregroundStyle(PS.fg2)
-                            .padding(.horizontal, 13).padding(.vertical, 7)
-                            .background(PS.surface, in: Capsule())
+        ScrollViewReader { chips in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(items, id: \.self) { item in
+                        let current = item.id == (currentJump ?? items.first?.id)
+                        Button { jump(to: item.id, proxy) } label: {
+                            PatientJumpChip(title: item.title, current: current)
+                        }
+                        .buttonStyle(.plain)
+                        .id(Self.chipID(item.id))
+                        .accessibilityLabel(item.fullTitle)
+                        .accessibilityAddTraits(current ? .isSelected : [])
+                        .accessibilityHint("Scrolls to " + item.fullTitle)
                     }
-                    .buttonStyle(.plain)
                 }
             }
+            .scrollClipDisabled()
+            .onAppear { if let c = currentJump { chips.scrollTo(Self.chipID(c), anchor: nil) } }
+            .onChange(of: currentJump) { _, c in
+                guard let c else { return }
+                withAnimation(.snappy) { chips.scrollTo(Self.chipID(c), anchor: nil) }
+            }
         }
-        .scrollClipDisabled()
     }
+
+    /// A chip's id in its own row (a String, apart from the PatientJumpID the tab scrolls to).
+    private static func chipID(_ id: PatientJumpID) -> String { "jumpchip:" + id.key }
 
     // MARK: Section cards
 
-    private var airwayCard: some View {
-        NavigationLink(value: PatientEditor.airway) {
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader(.airway, title: "Airway Examination")
-                    let lines = PatientSummary.airwayLines(r)
-                    if lines.isEmpty {
-                        Text("Current airway and oxygen, Mallampati, difficult-airway signs and teeth.").font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        ForEach(Array(lines.enumerated()), id: \.offset) { _, l in summaryLine(l) }
-                    }
-                }
-                if let m = r.mallampati, !r.arrivesWithAirway {
-                    VStack(spacing: 4) {
-                        MallampatiDrawing(mclass: m).frame(width: 64, height: 64)
-                        Text(PatientRules.roman(m)).font(PS.mono(size: 11, weight: .bold)).foregroundStyle(PS.fg2)
-                    }
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
+    /// 1.11 (P1-11): Exam normal and the Mallampati class on the card itself, the findings as findings (PreopAirwayCard.swift).
+    private var airwayCard: some View { PreopAirwayCard() }
 
     private func sectionHeader(_ e: PatientEditor, title: String? = nil) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: e.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-            Text(title ?? e.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-            Spacer()
-            Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-        }
+        PatientCardHeader(title: title ?? e.title, icon: e.icon)
     }
 
     private func summaryLine(_ l: PatientSummary.Line) -> some View { PatientLineText(line: l) }
@@ -823,12 +950,7 @@ struct PatientSectionCard: View {
     var body: some View {
         NavigationLink(value: editor) {
             VStack(alignment: .leading, spacing: 9) {
-                HStack(spacing: 8) {
-                    Image(systemName: editor.icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.accent)
-                    Text(title ?? editor.title).font(PS.sys(size: 16, weight: .semibold)).foregroundStyle(PS.fg)
-                    Spacer()
-                    Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
-                }
+                PatientCardHeader(title: title ?? editor.title, icon: editor.icon)
                 if lines.isEmpty {
                     Text(empty).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 } else {
@@ -841,6 +963,37 @@ struct PatientSectionCard: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// The header of a card that opens a page (1.11, P1-6: one header style on both tabs): a 15-pt semibold title and the
+/// chevron; the icon, in the quiet grey, names the page and is never the brand red (red is for clinical alerts).
+struct PatientCardHeader: View {
+    var title: String
+    var icon: String? = nil
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let icon { Image(systemName: icon).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg3) }
+            Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
+            Spacer()
+            Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
+        }
+    }
+}
+
+/// One chip of the jump bar: a quiet capsule, or ink-filled (the single-choice look) for the section at the top of
+/// the viewport (1.11, P1-5).
+struct PatientJumpChip: View {
+    var title: String
+    var current = false
+
+    var body: some View {
+        Text(title)
+            .font(PS.sys(size: 13.5, weight: .semibold))
+            .foregroundStyle(current ? PS.bg : PS.fg2)
+            .padding(.horizontal, 13).padding(.vertical, 7)
+            .background(current ? PS.fg : PS.surface, in: Capsule())
     }
 }
 
@@ -895,7 +1048,7 @@ struct HandoffPanel: View {
                 Eyebrow(text: "Handing over")
                 ForEach(Array(HandoffWriter.steps.enumerated()), id: \.offset) { i, step in
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text("\(i + 1)").font(PS.mono(size: 12, weight: .bold)).foregroundStyle(PS.accent).frame(width: 16, alignment: .leading)
+                        Text("\(i + 1)").font(PS.mono(size: 12, weight: .bold)).foregroundStyle(PS.fg2).frame(width: 16, alignment: .leading)
                         Text(step).font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -938,9 +1091,21 @@ struct HandoffPanel: View {
 struct PatientLineText: View {
     var line: PatientSummary.Line
 
+    /// An alert line is a clinical alert: PS.red, never the brand or action colour (1.11, P1-8).
+    static var alertColor: Color { PS.red }
+
     private var styled: AttributedString {
-        var a = AttributedString(line.text)
+        // A short marked value never breaks inside itself ("Ca" at the end of one line and "8.3 L" on the next): its
+        // spaces are non-breaking. A longer marked phrase still wraps.
+        var text = line.text
+        var marks: [String] = []
         for m in line.marks where !m.isEmpty {
+            let joined = m.count <= 18 ? m.replacingOccurrences(of: " ", with: "\u{00A0}") : m
+            if joined != m { text = text.replacingOccurrences(of: m, with: joined) }
+            marks.append(joined)
+        }
+        var a = AttributedString(text)
+        for m in marks {
             var from = a.startIndex
             while let r = a[from...].range(of: m) {
                 a[r].foregroundColor = PS.red
@@ -953,8 +1118,8 @@ struct PatientLineText: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
-            if let k = line.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(line.alert ? PS.accent : PS.fg3) }
-            Text(styled).font(PS.sys(size: 14, weight: line.alert ? .semibold : .regular)).foregroundStyle(line.alert ? PS.accent : PS.fg)
+            if let k = line.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(line.alert ? Self.alertColor : PS.fg3) }
+            Text(styled).font(PS.sys(size: 14, weight: line.alert ? .semibold : .regular)).foregroundStyle(line.alert ? Self.alertColor : PS.fg)
                 .lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -967,6 +1132,124 @@ final class PatientJumpGeometry {
     var barY: CGFloat = .infinity
     /// The top of the pinned copy's chips.
     var pinY: CGFloat = -.infinity
+    /// The top of each section's jump anchor, by PatientJumpID.key (1.11: the current chip).
+    var tops: [String: CGFloat] = [:]
+    /// The bottom of the tab's content and of the part of the screen it shows in: at the end of the tab the two meet.
+    var endY: CGFloat = .infinity
+    var viewBottom: CGFloat = -.infinity
+    /// The section a chip or the title menu just jumped to, and the highest point its anchor has reached since.
+    var held: PatientJumpID?
+    var heldMinTop: CGFloat = .infinity
+}
+
+/// Which section's chip is drawn filled (1.11, P1-5): the last section, in the bar's order, whose anchor has reached the
+/// pinned bar (its top is at or above the chips, within a small tolerance, so a section just jumped to counts); with
+/// none there yet, the first. The anchor sits PatientJumpID.clearance above the section's title, so a title directly
+/// under the pinned bar is the current section.
+enum PatientJumpCurrent {
+    /// How far below the pinned chips an anchor may sit and still count as reached (a jump lands it about 8 pt above).
+    static let tolerance: CGFloat = 24
+
+    /// How far back down a section just jumped to may be scrolled before its chip lets go.
+    static let holdSlack: CGFloat = 40
+    /// The key the end of the tab's content reports under (not a section).
+    static let endKey = "ps.jump.end"
+
+    static func current(order: [PatientJumpID], tops: [String: CGFloat], pinY: CGFloat, tolerance: CGFloat = tolerance) -> PatientJumpID? {
+        guard let first = order.first else { return nil }
+        guard pinY.isFinite else { return first }
+        var current = first
+        for id in order {
+            guard let top = tops[id.key] else { continue }
+            if top <= pinY + tolerance { current = id }
+        }
+        return current
+    }
+
+    /// Whether a section just jumped to keeps its chip. A short last section cannot reach the pinned bar (the tab ends
+    /// first), so the rule above would leave an earlier chip filled after the tap. The section jumped to holds the chip
+    /// while it comes later in the bar's order than the section at the bar and has not been scrolled back down by hand
+    /// (more than holdSlack below the highest point it reached). Once it reaches the bar the rule above says the same.
+    static func holds(order: [PatientJumpID], tops: [String: CGFloat], pinY: CGFloat, held: PatientJumpID, heldMinTop: CGFloat) -> Bool {
+        guard let reached = current(order: order, tops: tops, pinY: pinY),
+              let h = order.firstIndex(of: held), let r = order.firstIndex(of: reached), h > r else { return false }
+        guard let top = tops[held.key] else { return true }
+        return top <= heldMinTop + holdSlack
+    }
+
+    /// The current chip with the two cases the bar's own rule cannot tell: a section just jumped to (`held`, see
+    /// `holds`), and the end of the tab (`atEnd`), where the last section laid out is current though its anchor never
+    /// reached the bar.
+    static func current(order: [PatientJumpID], tops: [String: CGFloat], pinY: CGFloat, atEnd: Bool, held: PatientJumpID?, heldMinTop: CGFloat) -> PatientJumpID? {
+        if let held, holds(order: order, tops: tops, pinY: pinY, held: held, heldMinTop: heldMinTop) { return held }
+        if atEnd, pinY.isFinite, let last = order.last(where: { tops[$0.key] != nil }) { return last }
+        return current(order: order, tops: tops, pinY: pinY)
+    }
+}
+
+/// Where each section's jump anchor is, reported up to the tab as it scrolls (PatientJumpGeometry.tops).
+struct PatientJumpAnchorKey: PreferenceKey {
+    static var defaultValue: [String: CGFloat] = [:]
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+/// The "My Patient" title menu (1.11, P1-5): the three tabs, then the sections of the tab showing (none on Summary &
+/// Handoff, which has no jump bar).
+enum PatientTitleMenu {
+    static func sections(for tab: PatientTab) -> [PatientJumpItem] {
+        switch tab {
+        case .preop: return PreopSection.allCases.map { PatientJumpItem(section: $0) }
+        case .intraop: return IntraopSection.allCases.map { PatientJumpItem(intraop: $0) }
+        case .summary: return []
+        }
+    }
+}
+
+/// The jump bar's words (1.11, P1-5): short labels that read at a glance; the section titles keep the full names, and
+/// VoiceOver reads the full name on the chip. Six Preoperative chips still need about 490 pt, so the row scrolls, with
+/// the current chip kept in view; the five Intraoperative chips fit a 375-pt phone.
+enum PatientJumpLabels {
+    static func short(_ s: PreopSection) -> String {
+        switch s {
+        case .procedure: return "Procedure"
+        case .demographics: return "Demographics"
+        case .workup: return "Exam & Workup"
+        case .medications: return "Medications"
+        case .risk: return "Risk Scores"
+        case .summary: return "Summary"
+        }
+    }
+
+    static func short(_ s: IntraopSection) -> String {
+        switch s {
+        case .airway: return "Airway"
+        case .lines: return "Lines"
+        case .meds: return "Meds"
+        case .fluids: return "Fluids"
+        case .other: return "Other"
+        }
+    }
+
+    /// The width of a row of chips at the chip font (13.5 semibold, scaled), as PatientJumpChip draws them: 13-pt padding
+    /// each side and 8-pt gaps; the tests measure the rows with it.
+    static func rowWidth(_ labels: [String]) -> CGFloat {
+        let font = UIFont.systemFont(ofSize: (13.5 * PS.textScale).rounded(toPlaces: 1), weight: .semibold)
+        let chips = labels.reduce(CGFloat(0)) { $0 + ($1 as NSString).size(withAttributes: [.font: font]).width + 26 }
+        return chips + CGFloat(max(0, labels.count - 1)) * 8
+    }
+}
+
+extension PreopSection {
+    /// The 19-pt title above the section (1.11, Ben's Q3: the first section is "Planned Procedure & Anesthetic"; its
+    /// jump chip stays "Procedure").
+    var sectionTitle: String {
+        switch self {
+        case .procedure: return "Planned Procedure & Anesthetic"
+        default: return title
+        }
+    }
 }
 
 /// A card's scroll target, kept apart from the jump bar's own chips (identified by the same editors), so a jump
@@ -986,10 +1269,13 @@ struct PatientJumpID: Hashable {
 /// One chip of the jump bar: where it scrolls and its words.
 struct PatientJumpItem: Hashable {
     var id: PatientJumpID
+    /// The chip's short words (PatientJumpLabels).
     var title: String
-    init(_ editor: PatientEditor) { id = PatientJumpID(editor); title = editor.title }
-    init(section: PreopSection) { id = PatientJumpID(section: section); title = section.title }
-    init(intraop section: IntraopSection) { id = PatientJumpID(intraop: section); title = section.jumpTitle }
+    /// The section's full name, which VoiceOver reads and the title menu lists.
+    var fullTitle: String
+    init(_ editor: PatientEditor) { id = PatientJumpID(editor); title = editor.title; fullTitle = editor.title }
+    init(section: PreopSection) { id = PatientJumpID(section: section); title = PatientJumpLabels.short(section); fullTitle = section.sectionTitle }
+    init(intraop section: IntraopSection) { id = PatientJumpID(intraop: section); title = PatientJumpLabels.short(section); fullTitle = section.title }
 }
 
 extension PatientJumpID {
@@ -1018,6 +1304,13 @@ extension View {
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
                 .id(id)
+                // A section's anchor reports where it is, so the jump bar can fill the chip of the section at the top
+                // (1.11); a box's anchor has no chip and reports nothing.
+                .background {
+                    if id.isSection {
+                        GeometryReader { g in Color.clear.preference(key: PatientJumpAnchorKey.self, value: [id.key: g.frame(in: .global).minY]) }
+                    }
+                }
                 #if DEBUG
                 .onAppear { ShotReady.targetsShown.insert(id.key) }
                 #endif
@@ -1025,6 +1318,11 @@ extension View {
         }
         .padding(.top, -PatientJumpID.clearance)
     }
+}
+
+extension PatientJumpID {
+    /// A section of a tab (a jump-bar chip), not a box inside one.
+    var isSection: Bool { key.hasPrefix("preop:") || key.hasPrefix("intraop-section:") }
 }
 
 #if DEBUG

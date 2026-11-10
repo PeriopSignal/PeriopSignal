@@ -42,6 +42,9 @@ struct PatientFills: Codable, Hashable {
     /// again with the Hb still low (an adult age typed digit by digit passes through one digit), forgotten when the Hb
     /// changes, a cut-off applies or Anemia is recorded.
     var anemiaAside = false
+    /// The "Intrathoracic procedure" answer the planned procedure gave (1.11, Ben): true or false while it was derived
+    /// from the catalog's incision, nil once the user answered or the procedure was removed. A user's own tap wins.
+    var intrathoracic: Bool?
 
     init() {}
 
@@ -57,6 +60,7 @@ struct PatientFills: Codable, Hashable {
         dialysis = v(.dialysis, false)
         noHistory = v(.noHistory, false)
         anemiaAside = v(.anemiaAside, false)
+        intrathoracic = try? c.decodeIfPresent(Bool.self, forKey: .intrathoracic)
     }
 }
 
@@ -199,6 +203,9 @@ enum PatientCrossFill {
         for f in wantedBefore.subtracting(wantedNow) where r.fills.medFlags.contains(f) { r.medFlags.remove(f) }
 
         PatientDeviceFills.apply(before: before, after: &r)
+
+        // 1.11 (Ben's note 3): "Intrathoracic procedure" answered by the planned procedure while the user has not.
+        PatientPreop.syncIntrathoracic(before: before, after: &r)
     }
 
     /// The labs' Anemia filed: "No significant medical history" turned off, remembered as the fill's to give back.

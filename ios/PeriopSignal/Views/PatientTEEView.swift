@@ -12,11 +12,12 @@ extension PatientEditorView {
     var teeLinkRow: some View {
         let res = PatientTEE.evaluate(r)
         let icon: String
+        var alert = false
         switch res.level {
-        case .absolute, .relative: icon = "exclamationmark.triangle"
+        case .absolute, .relative: icon = "exclamationmark.triangle"; alert = true
         case .none: icon = res.reviewed ? "checkmark.shield" : "plus.circle"
         }
-        return linkRow("TEE screen", PatientTEE.status(r), icon: icon, value: .workup("tee"))
+        return linkRow("TEE screen", PatientTEE.status(r), icon: icon, alert: alert, value: .workup("tee"))
     }
 
     @ViewBuilder var teeScreenEditor: some View {
@@ -70,7 +71,7 @@ extension PatientEditorView {
         }
         if !res.findings.isEmpty {
             PatientGroup(title: "Precautions") {
-                adviceList("If the benefit outweighs the risk", PatientTEE.precautions, tint: res.level == .absolute ? PS.red : PS.accent)
+                adviceList("If the benefit outweighs the risk", PatientTEE.precautions, tint: PS.red)
             }
         }
         EvidenceDisclosure {
@@ -110,7 +111,7 @@ extension PatientEditorView {
     private func teeRow(_ it: TEEItem, result: TEEResult, why: String?) -> some View {
         let fromRecord = PatientTEE.fromRecord(r)[it.id]
         let answer = r.teeScreen.answer(it.id)
-        let tint = it.level == .absolute ? PS.red : PS.accent
+        let tint = PS.red
         return VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 TEEItemTitle(item: it)
@@ -131,12 +132,21 @@ extension PatientEditorView {
                 Text(fromRecord.joined(separator: "; ")).font(PS.sys(size: 12)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
             if let why {
-                Text(why).font(PS.sys(size: 12)).foregroundStyle(PS.accent2).fixedSize(horizontal: false, vertical: true)
+                Text(why).font(PS.sys(size: 12)).foregroundStyle(TEEScreenStyle.reasonColor).fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
         .accessibilityElement(children: .contain)
     }
+}
+
+/// Colours of the TEE screen's rows that are not a control's.
+enum TEEScreenStyle {
+    /// The line under an item saying what in the record raised it ("Outside the reference range: platelets 96 ×10³/µL,
+    /// INR 1.8.", "Cirrhosis recorded: are there esophageal varices?"). It flags a possible contraindication and
+    /// cannot be tapped, so it is the clinical alert colour, like the row's "In the record", never the action blue
+    /// (1.11, P1-8: blue is for what can be tapped).
+    static let reasonColor: Color = PS.red
 }
 
 /// An item's label, with its definition behind an ⓘ at the end of the label (1.8.1). Captions that say how an item is
@@ -165,7 +175,7 @@ struct TEEResultCard: View {
     private var color: Color {
         switch result.level {
         case .absolute: return PS.red
-        case .relative: return PS.accent
+        case .relative: return PS.red
         case .none: return result.reviewed ? PS.green : PS.fg3
         }
     }
@@ -204,9 +214,9 @@ struct TEEResultCard: View {
                             .foregroundStyle(f.item.level == .absolute ? PS.red : PS.fg)
                         Text(f.item.level == .absolute ? "Absolute" : "Relative")
                             .font(PS.sys(size: 11, weight: .bold))
-                            .foregroundStyle(f.item.level == .absolute ? PS.red : PS.accent)
+                            .foregroundStyle(PS.red)
                             .padding(.horizontal, 7).padding(.vertical, 2)
-                            .background((f.item.level == .absolute ? PS.red : PS.accent).opacity(0.12), in: Capsule())
+                            .background(PS.red.opacity(0.12), in: Capsule())
                     }
                     Text(f.from.joined(separator: "; ") + " · " + f.item.source.short)
                         .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)

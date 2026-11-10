@@ -8,6 +8,9 @@ import SwiftUI
 /// Undo steps back exactly that, the record as it was. A long paste opens the full note review instead, and the pencil
 /// opens it for dictation. Read on this phone by fixed rules; the line itself is not kept.
 struct QuickAddBar: View {
+    /// The fill of the "Add N" capsule: an action, so the action colour (1.11, P1-8), never the brand red of the tab
+    /// bar. The style gallery draws its sample from this, so the two cannot drift apart.
+    static let addButtonColor: Color = PS.action
     @Environment(PatientStore.self) private var patient
     var place: QuickAddPlace
     /// The example in the field, where the page has its own (Previous Intrathoracic Surgery); else the place's.
@@ -103,7 +106,7 @@ struct QuickAddBar: View {
                 .foregroundStyle(PS.accent2)
                 .accessibilityHidden(true)
             // The editor pages' bar stays one line; the tabs' grows to four as a long line is typed.
-            TextField(placeholder ?? QuickAdd.placeholder(place), text: $text, axis: .vertical)
+            TextField(placeholder ?? QuickAdd.placeholder(place, record: patient.record), text: $text, axis: .vertical)
                 .lineLimit(compact ? 1...1 : 1...4)
                 .focused($focused)
                 .font(PS.sys(size: compact ? 14 : 15))
@@ -116,7 +119,7 @@ struct QuickAddBar: View {
                 .accessibilityHint("Type the patient in one line. Check the chips below, then press Return to add them.")
             if !addable.isEmpty {
                 Button { add() } label: { Text("Add \(addable.count)") }
-                    .buttonStyle(CapsuleButtonStyle())
+                    .buttonStyle(CapsuleButtonStyle(color: Self.addButtonColor))
                     .accessibilityLabel("Add \(addable.count) item\(addable.count == 1 ? "" : "s")")
             } else if !text.isEmpty {
                 Button { withAnimation(.snappy) { clear() } } label: {
@@ -214,8 +217,10 @@ struct QuickAddBar: View {
     private func statusColor(_ s: PatientNoteStatus) -> Color {
         switch s {
         case .new, .recorded: return PS.fg3
-        case .replaces: return PS.accent
-        case .conflicts: return PS.accent
+        // 1.11 (P1-8): a chip that replaces a recorded value is information in the action colour; one that conflicts
+        // with the record is a warning.
+        case .replaces: return PS.action
+        case .conflicts: return PS.red
         }
     }
 
@@ -321,7 +326,7 @@ struct QuickAddBar: View {
             return
         }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff)
         withAnimation(.snappy) {
             reading = q
             readText = t
@@ -353,7 +358,7 @@ struct QuickAddBar: View {
         let before = patient.record
         let seen = Set(QuickAdd.chips(shown, record: before).map(\.id))
         let q = QuickAdd.read(t, record: before, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff)
         let chosen = QuickAdd.chips(q, record: before, dropped: dropped).filter { seen.contains($0.id) && $0.canAdd && !dropped.contains($0.id) }
         guard !chosen.isEmpty else { return Haptics.light() }
         // One discrete step in the store's Undo history, whatever was typed just before.
@@ -413,7 +418,7 @@ struct QuickAddBar: View {
         let t = LaunchSeed.string(compact ? "ps.quickadd.editor" : "ps.quickadd").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty, text.isEmpty, added == nil else { return }
         let q = QuickAdd.read(t, record: patient.record, tab: tab, now: Date(), abbreviations: abbreviations.items, choices: choices,
-                              surgicalHistory: place.surgicalHistory)
+                              surgicalHistory: place.surgicalHistory, handoff: place.handoff)
         var still = Transaction()
         still.disablesAnimations = true
         withTransaction(still) {
