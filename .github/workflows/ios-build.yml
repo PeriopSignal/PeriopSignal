@@ -888,7 +888,7 @@ jobs:
           shot 832-labs112-male-no-pregnancy-light-375 22 -ps.tab patient -ps.patient demo-112-labs-male -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.patient.width 375 -ps.forceAppearance light
           shot 833-labs112-empty-quiet-links-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.patient.width 375 -ps.forceAppearance light
           shot 834-labs112-card-light-375 22 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.tab preop -ps.patient.scroll labs -ps.patient.width 375 -ps.forceAppearance light
-          shot 835-labs112-intraop-abg-light 24-ps.tab patient -ps.patient demo-112-labs-abg -ps.patient.open intraop:labs -ps.forceAppearance light
+          shot 835-labs112-intraop-abg-light 24 -ps.tab patient -ps.patient demo-112-labs-abg -ps.patient.open intraop:labs -ps.forceAppearance light
           shot 836-labs112-intraop-abg-dark 24 -ps.tab patient -ps.patient demo-112-labs-abg -ps.patient.open intraop:labs -ps.forceAppearance dark
           shot 837-labs112-intraop-vbg-light-375 24 -ps.tab patient -ps.patient demo-112-labs-vbg -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance light
           shot 838-labs112-intraop-svo2-light 24 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.open intraop:labs -ps.forceAppearance light
