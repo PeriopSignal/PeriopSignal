@@ -249,7 +249,7 @@ jobs:
           # additions; the From Obstetric rows; the History list and the summary words.
           shot 315-renal-light 30 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance light
           shot 316-renal-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:renal -ps.forceAppearance dark
-          shot 317-gi-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
+          shot 317-gi-light 34 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.forceAppearance light
           shot 318-gi-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:gi -ps.patient.scroll hx-cirrhosis -ps.forceAppearance dark
           shot 319-endo-light 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.forceAppearance light
           shot 320-endo-dark 18 -ps.tab patient -ps.patient demo-pages19 -ps.patient.open system:endo -ps.patient.scroll hx-adrenal -ps.evidence.open 1 -ps.forceAppearance dark
