@@ -1,6 +1,0 @@
-Timestamp               Ty Process[PID:TID]
-2026-11-10 02:16:49.637 Df PeriopSignal[88895:36adc] [org.periopsignal.app:shots] root appear tab=summary
-2026-11-10 02:16:49.638 Df PeriopSignal[88895:36adc] [org.periopsignal.app:shots] PatientView appear
-2026-11-10 02:16:50.905 Df PeriopSignal[88895:36adc] [org.periopsignal.app:shots] scroll begin handoff key=-
-2026-11-10 02:16:55.219 Df PeriopSignal[88895:36adc] [org.periopsignal.app:shots] scroll settled after 4 s
-2026-11-10 02:16:55.219 Df PeriopSignal[88895:36adc] [org.periopsignal.app:shots] ready

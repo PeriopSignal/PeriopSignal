@@ -1,0 +1,4 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-10 01:49:33.437 Df PeriopSignal[25681:12be0] [org.periopsignal.app:shots] page appear airway
+2026-11-10 01:49:36.318 Df PeriopSignal[25681:12be0] [org.periopsignal.app:shots] root disappear
+2026-11-10 01:49:37.347 Df PeriopSignal[25681:12be0] [org.periopsignal.app:shots] ready
