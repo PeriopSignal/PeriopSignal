@@ -150,8 +150,8 @@ enum IntraopLabs {
         guard var t = added.first(where: { $0.key == key }) ?? PatientLabs.test(key) else { return nil }
         if key == satKey {
             switch type {
-            case .scvo2: t.label = "Central venous O₂ saturation (ScvO₂)"; t.short = "ScvO₂"
-            case .svo2: t.label = "Mixed venous O₂ saturation (SvO₂)"; t.short = "SvO₂"
+            case .scvo2: t.label = "ScvO₂ saturation"; t.short = "ScvO₂"
+            case .svo2: t.label = "SvO₂ saturation"; t.short = "SvO₂"
             default: break
             }
             return t

@@ -396,7 +396,7 @@ final class A112Tests: XCTestCase {
     func testTheCaptionKeepsTheTimesAsASmallLineAndTheAsteriskSchemeIsGone() throws {
         let r = PatientDemo112Labs.abgRecord
         let l = try labs(PatientBriefs.handoff(r))
-        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 09:15")
+        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 07:30")
         XCTAssertFalse((l.caption ?? "").contains("*"))
         XCTAssertNil(try labs(PatientBriefs.preop(PatientDemo112Labs.preop.withLabsDrawn(nil))).caption, "no time entered, none shown")
         XCTAssertEqual(try labs(PatientBriefs.preop(r)).caption, "Preop labs 06:30", "the Preprocedure Summary names the preop draw time")
@@ -408,7 +408,7 @@ final class A112Tests: XCTestCase {
         let at = try XCTUnwrap(lines.firstIndex(of: "Labs:"))
         XCTAssertTrue(lines[at + 1].hasPrefix("  Preop: CMP: Na 138, K 4.1, BUN 24 H"), lines[at + 1])
         XCTAssertTrue(lines[at + 2].hasPrefix("  Intraop: ABG (08:03): pH 7.43 / PCO2 43 H / PO2 146 / HCO3 28 H, Lactate 1; Coags: Plt 98 L"), "plain digits: " + lines[at + 2])
-        XCTAssertEqual(lines[at + 3], "  Preop labs 06:30 · Intraop 09:15")
+        XCTAssertEqual(lines[at + 3], "  Preop labs 06:30 · Intraop 07:30")
         // Before the case: Preop alone, on the label's line.
         let pre = PatientBriefs.plainText(PatientBriefs.preop(PatientDemo112Labs.preop))
         XCTAssertTrue(pre.contains("Labs: Preop: CMP: Na 138"), pre)
@@ -533,7 +533,7 @@ final class A112Tests: XCTestCase {
         XCTAssertTrue(hand.contains("; Other: K 4.3, Glu 164"), "under Other in the Intraop column, the newest of each: " + hand)
         let l = try labs(PatientBriefs.handoff(r))
         XCTAssertEqual(l.intraop.map(\.name), ["ABG (08:03)", "Coags", "Other"])
-        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 09:15 (Plt, INR, Fib, TEG/ROTEM) / 08:03 (K, Glu)", "the newest time first, each naming its values")
+        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 08:03 (K, Glu) / 07:30 (Plt, INR, Fib, TEG/ROTEM)", "the newest time first, each naming its values")
         let pre = try labsText(r, handoff: false)
         XCTAssertFalse(pre.contains("K 4.3"), "the Preprocedure Summary has no Intraop column")
         XCTAssertFalse(pre.contains("Intraop"))

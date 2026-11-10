@@ -75,8 +75,8 @@ private struct BriefGasFigure: View {
             if let s = gas.saturation { line(s) }
             if gas.hasSlash {
                 ViewThatFits(in: .horizontal) {
-                    slash(cellWidth: 36, gap: 10)
-                    slash(cellWidth: 30, gap: 6)
+                    slash(cellWidth: 38, gap: 9)
+                    slash(cellWidth: 32, gap: 5)
                     if let item = group.items.first(where: { $0.key == "gas" }) {
                         Text(briefStyled(item.text, marks: item.marks, labels: false, size: 13))
                             .font(PS.sys(size: 13)).foregroundStyle(PS.fg)
@@ -103,13 +103,19 @@ private struct BriefGasFigure: View {
         }
     }
 
+    /// One value under its name; an abnormal one is bold red with a small H or L after it (a Text sum, so a narrow cell
+    /// shrinks the pair together).
+    private func value(_ c: BriefLabCell?) -> Text {
+        guard let c else { return Text("—").font(PS.sys(size: 12, design: .monospaced)).foregroundColor(PS.fg3) }
+        let number = Text(c.text).font(PS.sys(size: 12, weight: c.abnormal ? .heavy : .semibold, design: .monospaced))
+            .foregroundColor(c.abnormal ? PS.red : PS.fg)
+        guard c.abnormal else { return number }
+        return number + Text(c.flag.mark).font(PS.sys(size: 8.5, weight: .heavy)).foregroundColor(PS.red)
+    }
+
     private func cell(_ c: BriefLabCell?, label: String, width: CGFloat) -> some View {
         VStack(spacing: 0) {
-            Text(c.map { $0.text + ($0.flag.mark.isEmpty ? "" : " " + $0.flag.mark) } ?? "—")
-                .font(PS.sys(size: 12.5, weight: c?.abnormal == true ? .heavy : .semibold, design: .monospaced))
-                .foregroundStyle(c == nil ? PS.fg3 : (c?.abnormal == true ? PS.red : PS.fg))
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+            value(c).lineLimit(1).minimumScaleFactor(0.6)
             Text(label).font(PS.sys(size: 8)).foregroundStyle(PS.fg3)
         }
         .frame(width: width)
