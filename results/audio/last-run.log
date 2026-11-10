@@ -1,8 +1,6 @@
-[0;93m2026-11-09 09:14:08.537849737 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-5 post(s) to synthesize with kokoro:af_heart
-  jama-2026-ischemia-extend-long-term-survival: 247 s, 1926 KB, 54 s to make
-  bmj-2026-topic-2-paravertebral-vs-epidural-thoracotomy: 210 s, 1638 KB, 44 s to make
-  anesthesiology-2026-optipam-individualized-map-cardiac-surgery: 184 s, 1437 KB, 38 s to make
-  bmj-2026-lma-vs-ett-pediatric-adenotonsillectomy: 211 s, 1651 KB, 44 s to make
-  lancet-2026-dapt-shock-ami-cangrelor-vs-crushed-ticagrelor: 195 s, 1524 KB, 41 s to make
-synthesized 5, failed 0, 12165 characters, 4 min
+[0;93m2026-11-10 09:11:26.577710565 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+3 post(s) to synthesize with kokoro:af_heart
+  anaesthesia-2026-vilare-videolaryngoscopy-residents: 202 s, 1578 KB, 100 s to make
+  nejm-2026-race-cars-community-ems-cardiac-arrest: 220 s, 1717 KB, 107 s to make
+  nejm-2026-on-scene-prehospital-ecpr-refractory-ohca: 190 s, 1480 KB, 92 s to make
+synthesized 3, failed 0, 7160 characters, 5 min
