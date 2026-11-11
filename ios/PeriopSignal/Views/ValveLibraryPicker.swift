@@ -43,10 +43,39 @@ struct ValveLibraryButton: View {
         // Screenshot runs: -ps.valve.library <position> opens that position's picker once the page is up.
         .task {
             guard let p = position, LaunchSeed.string("ps.valve.library") == p.rawValue else { return }
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            try? await Task.sleep(nanoseconds: 7_000_000_000)
             open = true
         }
         #endif
+    }
+}
+
+/// A field with the Library control beside it, or under it at the larger text sizes (`beside` false).
+struct ValveLibraryBeside<Field: View, Library: View>: View {
+    var beside: Bool
+    var alignment: VerticalAlignment
+    private let field: Field
+    private let library: Library
+
+    init(beside: Bool, alignment: VerticalAlignment, @ViewBuilder field: () -> Field, @ViewBuilder library: () -> Library) {
+        self.beside = beside
+        self.alignment = alignment
+        self.field = field()
+        self.library = library()
+    }
+
+    var body: some View {
+        if beside {
+            HStack(alignment: alignment, spacing: 8) {
+                field
+                library
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                field
+                library
+            }
+        }
     }
 }
 
@@ -100,6 +129,8 @@ struct ValveLibraryPicker: View {
                 ValveSizePage(row: row, onChoose: onChoose)
             }
         }
+        // Anything that can be tapped is the action blue, the sheet's Cancel and Back included.
+        .tint(PS.action)
         #if DEBUG
         // Screenshot runs: -ps.valve.library.row "<name>" also opens that valve's sizes.
         .task {

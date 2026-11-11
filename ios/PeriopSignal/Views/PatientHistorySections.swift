@@ -909,10 +909,13 @@ struct PatientHistorySectionsView: View {
                 }
                 if x.prosthetic {
                     // 1.12 (note 4): "Library" beside the field writes the valve into it as if typed.
-                    HStack(spacing: 8) {
+                    // At the larger text sizes the control goes under the field, so neither is squeezed.
+                    let beside = PS.textScale < 1.2
+                    ValveLibraryBeside(beside: beside, alignment: .center) {
                         HistoryInlineField(prompt: "Type, e.g. mechanical 23 mm", text: Binding(
                             get: { patient.record.hx.valve(v.id).prosthesis },
                             set: { t in edit { r in r.hx.editValve(v.id) { $0.prosthesis = t } } }))
+                    } library: {
                         ValveLibraryButton(position: ValvePosition(rawValue: v.id)) { choice in
                             edit { r in r.hx.editValve(v.id) { $0.prosthesis = choice.historyText } }
                         }

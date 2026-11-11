@@ -628,14 +628,15 @@ struct EchoFindingsEditor: View {
             if EchoValve.takesDetail(v.wrappedValue.prosthesis) || !v.wrappedValue.prosthesisDetail.isEmpty {
                 // 1.12 (note 4): "Library" beside the field writes the valve and size into it as if typed (the kind chip
                 // is set from the choice only when none is chosen yet).
-                HStack(alignment: .bottom, spacing: 0) {
+                ValveLibraryBeside(beside: PS.textScale < 1.2, alignment: .bottom) {
                     PatientTextField(label: "Prosthesis details (optional)", prompt: "e.g. 29 mm Magna Ease, 2019; 28 mm ring", text: v.prosthesisDetail)
+                } library: {
                     ValveLibraryButton(position: ValvePosition.allCases.first { $0.label.hasPrefix(letter) },
                                        kind: ValveKind.fromEcho(v.wrappedValue.prosthesis)) { choice in
                         v.wrappedValue.prosthesisDetail = choice.detail
                         if v.wrappedValue.prosthesis.isEmpty { v.wrappedValue.prosthesis = choice.row.kind.echoKind }
                     }
-                    .padding(.trailing, 14).padding(.bottom, 8)
+                    .padding(.horizontal, PS.textScale < 1.2 ? 0 : 14).padding(.trailing, PS.textScale < 1.2 ? 14 : 0).padding(.bottom, 8)
                 }
             }
             notes("e.g. jet direction, PISA, gradient, leaflet motion", v.notes)

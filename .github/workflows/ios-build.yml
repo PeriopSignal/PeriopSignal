@@ -897,20 +897,20 @@ jobs:
           # <position> opens it after 3 s; .row "<name>" opens that valve's sizes), the echo's prosthesis details with Library, and the
           # post-bypass exam's. Valve shorthand and insufficiency in the quick-add bar (notes 6 and 7): the chips, an echo cue, the lines
           # that must file nothing, and the letters that ask.
-          shot 925-valve-library-history-light 20 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.forceAppearance light
-          shot 926-valve-library-history-dark 20 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.forceAppearance dark
-          shot 927-valve-library-picker-light 26 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.valve.library aortic -ps.forceAppearance light
-          shot 928-valve-library-picker-dark 26 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.valve.library aortic -ps.forceAppearance dark
-          shot 929-valve-library-sizes-light 28 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.valve.library aortic -ps.valve.library.row "SAPIEN 3" -ps.forceAppearance light
+          shot 925-valve-library-history-light 22 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.forceAppearance light
+          shot 926-valve-library-history-large-dark 22 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 927-valve-library-picker-light 32 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.valve.library aortic -ps.forceAppearance light
+          shot 928-valve-library-picker-dark 32 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.valve.library aortic -ps.forceAppearance dark
+          shot 929-valve-library-sizes-light 34 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open system:cv -ps.patient.scroll hx-valves -ps.valve.library aortic -ps.valve.library.row "SAPIEN 3" -ps.forceAppearance light
           shot 930-valve-library-echo-light 22 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance light
-          shot 931-valve-library-echo-dark 22 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.forceAppearance dark
-          shot 932-valve-library-echo-picker-375-light 28 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.valve.library aortic -ps.patient.width 375 -ps.forceAppearance light
+          shot 931-valve-library-echo-large-dark 22 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 932-valve-library-echo-picker-375-light 34 -ps.tab patient -ps.patient demo-112-valves -ps.patient.open workup:echo -ps.patient.scroll echo-a -ps.valve.library aortic -ps.patient.width 375 -ps.forceAppearance light
           shot 933-valve-library-intraop-post-light 22 -ps.tab patient -ps.patient demo-echo110 -ps.patient.open intraop:echo -ps.patient.scroll post-echo-a -ps.forceAppearance light
           shot 934-valve-shorthand-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "severe AS, mod MR, mild to moderate AR, trace TR" -ps.forceAppearance light
           shot 935-valve-shorthand-behind-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "AS severe, TR moderate, mild AI, MS severe" -ps.forceAppearance dark
           shot 936-valve-shorthand-echo-375-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "TTE: severe AS, mod MR, trace TR" -ps.forceAppearance light
           shot 937-valve-shorthand-false-positives-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "PS 10/5, MS Contin, MR brain, TR band, AS per protocol, AR glasses" -ps.forceAppearance dark
-          shot 938-valve-shorthand-asks-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "AS, PI, hx MS" -ps.forceAppearance light
+          shot 938-valve-shorthand-asks-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "HTN, AS, PI" -ps.forceAppearance light
           shot 939-valve-insufficiency-375-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "aortic insufficiency, severe mitral insufficiency, mild TI" -ps.forceAppearance dark
           #
           ls -la build/shots
