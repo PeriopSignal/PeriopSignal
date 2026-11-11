@@ -1,7 +1,54 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-10T09:10:16+00:00",
+ "generatedAt": "2026-11-11T09:09:12+00:00",
  "posts": [
+  {
+   "id": "circulation-2026-fragile-offpump-vs-onpump-cabg-frail",
+   "date": "2026-11-10",
+   "dateApprox": false,
+   "addedAt": "2026-11-11",
+   "journal": "Circulation",
+   "jshort": "Circ",
+   "kind": "RCT",
+   "topics": [
+    "cardiacSurgery"
+   ],
+   "headline": "FRAGILE: off-pump vs on-pump CABG in prefrail and frail patients, 10.9% vs 16.0% 30-day events, not significant",
+   "summary": "A multicentre, open-label Brazilian-led trial randomized 508 prefrail or frail patients aged 60 or older to off-pump or on-pump CABG. The primary outcome was a 30-day composite of death, MI, stroke, renal failure, ARDS or reoperation for bleeding.",
+   "takeHome": [
+    "The 30-day composite occurred in 10.9% with off-pump and 16.0% with on-pump CABG (relative risk 1.47, 95% CI 0.94 to 2.31; P=0.09)",
+    "Surgical wound infection at 30 days was more frequent with on-pump surgery: 8.0% vs 3.5% (P=0.04)",
+    "No significant differences in neurocognitive or quality-of-life outcomes at 1 year; estimated 1-year survival 96.1% vs 92.8% (P=0.099)"
+   ],
+   "authorLimitations": [
+    "The trial was open-label"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Off-pump versus on-pump CABG is one of the longest-running arguments in cardiac surgery, and frail older patients are where proponents of avoiding bypass make their strongest case. FRAGILE is a randomized test in exactly that group.\n\n**What they did.** Patients aged 60 or older classified as prefrail or frail and scheduled for CABG were randomized 1:1 between January 2018 and December 2024 to off-pump (n=258) or on-pump (n=250) surgery. The trial was multicentre and open-label. The primary outcome was a 30-day composite of death, myocardial infarction, stroke, renal failure, ARDS or reoperation for bleeding. Analysis was by intention to treat.\n\n**What they found.**\n- Primary composite: 28 patients (10.9%) off-pump vs 40 (16.0%) on-pump; relative risk 1.47 (0.94 to 2.31), P=0.09.\n- Wound infection at 30 days: 3.5% off-pump vs 8.0% on-pump (P=0.04).\n- Estimated 1-year survival 96.1% vs 92.8% (P=0.099).\n- No significant differences in neurocognitive or quality-of-life outcomes at 1 year.\n\n**Caveats.** The main comparison missed significance, so this is a trial of similar outcomes with a trend, not proof of benefit. Open-label design. The wound infection finding is a secondary outcome. The registered primary outcome on ClinicalTrials.gov (NCT02338947) matches the one reported.\n\n**For the anesthesiologist.** Do not read this as a reason to steer frail patients toward off-pump surgery for hard outcomes. It does mean that either strategy is defensible, and the team should plan the anesthetic around the surgeon's usual technique, with conversion to bypass and hemodynamic instability during grafting in mind.",
+   "url": "https://doi.org/10.1161/CIRCULATIONAHA.125.078842",
+   "impact": 2,
+   "trialName": "FRAGILE",
+   "firstAuthor": "Mejia",
+   "title": "Off-Pump versus On-Pump Coronary Artery Bypass Grafting in Prefrail and Frail Patients: 30-Day and 1-Year Outcomes From the FRAGILE Randomized Trial",
+   "glance": {
+    "design": "Multicentre open-label RCT, Brazil-led, 1:1 randomization",
+    "n": "508 prefrail or frail patients aged 60 or older having CABG",
+    "outcome": "30-day composite of death, MI, stroke, renal failure, ARDS or reoperation for bleeding",
+    "result": "10.9% vs 16.0%, RR 1.47 (95% CI 0.94-2.31), P=0.09; no significant difference"
+   },
+   "quiz": {
+    "question": "In FRAGILE, prefrail and frail patients were randomized to off-pump or on-pump CABG. Which statement best describes the 30-day composite result?",
+    "options": [
+     "On-pump CABG significantly reduced the composite, 16.0% vs 10.9%",
+     "Rates were 10.9% off-pump vs 16.0% on-pump, a difference that was not significant (P=0.09)",
+     "Off-pump CABG significantly reduced the composite, 10.9% vs 16.0% (P<0.01)",
+     "Rates were identical at 16.0% in both arms, with similar 1-year survival"
+    ],
+    "answer": 1,
+    "explanation": "The composite occurred in 10.9% off-pump and 16.0% on-pump (relative risk 1.47, 95% CI 0.94 to 2.31; P=0.09), so the trial did not show a significant difference. Wound infection was higher on-pump (8.0% vs 3.5%), but this was a secondary outcome in an open-label trial."
+   }
+  },
   {
    "id": "anaesthesia-2026-vilare-videolaryngoscopy-residents",
    "date": "2026-11-09",
