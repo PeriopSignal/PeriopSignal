@@ -222,6 +222,44 @@ final class G112Tests: XCTestCase {
         XCTAssertEqual(PastSurgeryNote.extractDate("CABG 11/10/2026", now: now).1, d(11, 10, 2026), "yesterday is a past date")
     }
 
+    /// The note reader and the quick-add bar blank what looks like an identifier before they read, and a numeric date with a day
+    /// is one. The date of a past operation or a stress test told with a day is that event's, so it is read; every other
+    /// date with a day stays an identifier.
+    func testOnlyTheDateOfAnEventIsReadAndEveryOtherDateWithADayStaysAnIdentifier() {
+        func kinds(_ s: String) -> [String] { PatientNote.identifiers(s, now: now) }
+        XCTAssertTrue(kinds("appendectomy 6/14/2015").isEmpty, "an operation's date")
+        XCTAssertTrue(kinds("s/p CABG on 5/1/2019").isEmpty)
+        XCTAssertTrue(kinds("DSE 03/14/2025 negative").isEmpty, "a stress test's date")
+        XCTAssertEqual(kinds("DOB 3/14/1958"), ["a date"], "a date of birth")
+        XCTAssertEqual(kinds("appendectomy, DOB 3/14/1958"), ["a date"], "another piece of the line")
+        XCTAssertEqual(kinds("appendectomy DOB 3/14/1958"), ["a date"], "the same piece as a date of birth: not read")
+        XCTAssertEqual(kinds("K 5.4 on 11/10/2026"), ["a date"], "a lab draw")
+        XCTAssertEqual(kinds("s/p CABG 11/11/2026"), ["a date"], "today's date")
+        XCTAssertEqual(kinds("s/p CABG 12/25/2026"), ["a date"], "a later one")
+        XCTAssertEqual(kinds("admitted 3/4/2026"), ["a date"], "no operation or test told with it")
+        XCTAssertEqual(kinds("TTE 3/2/2026: EF 55%"), ["a date"])
+        XCTAssertEqual(kinds("appendectomy 2/30/2015"), ["a date"], "an impossible date is not a date of anything")
+        XCTAssertEqual(PatientNote.identifiers("DOB 03/14/1958, MRN 1234567, seen by Mr. Smith", now: now), ["a record number", "a date", "a name"])
+        // What is blanked is what is not read; an event's date is left whole for the readers.
+        XCTAssertEqual(QuickAdd.identifierRanges("s/p CABG on 5/1/2019", now: now).count, 0)
+        XCTAssertEqual(QuickAdd.identifierRanges("DOB 3/14/1958", now: now).count > 0, true)
+        XCTAssertTrue(QuickAdd.isEventDate(NSRange(location: 10, length: 8), in: "s/p CABG on 5/1/2019", now: now) == false, "that is not the date's range")
+    }
+
+    func testADateWithADayThatNothingReadNeverReachesTheFreeText() {
+        let text = "knee procedure on 6/14/2015 with complications"
+        let n = read(text)
+        XCTAssertFalse((n.previous + " " + n.other).contains("6/14/2015"), "previous: " + n.previous + " other: " + n.other)
+        XCTAssertFalse((n.previous + " " + n.other).contains("14/2015"))
+        XCTAssertEqual(PatientNote.withoutFullDates("knee procedure on 6/14/2015 with complications"), "knee procedure on with complications")
+        XCTAssertEqual(PatientNote.withoutFullDates("pain since 03/2015"), "pain since 03/2015", "a month and year is kept")
+        // A date of birth in a note never gets in either.
+        let b = read("68M for lap chole, DOB 3/14/1958")
+        XCTAssertFalse((b.previous + " " + b.other).contains("3/14/1958"))
+        XCTAssertTrue(b.identifiers.contains("a date"))
+        XCTAssertTrue(applied("68M for lap chole, DOB 3/14/1958").surgeries.isEmpty)
+    }
+
     func testAStressTestIsDatedByAFullDate() {
         func stress(_ line: String) -> PatientStressTest? {
             let q = QuickAdd.read(line, record: PatientRecord(), tab: .preop, now: now)
@@ -278,7 +316,7 @@ final class G112Tests: XCTestCase {
         XCTAssertTrue(r.surgeries[0].text.hasSuffix("(10/21/2026)"), r.surgeries[0].text)
         XCTAssertTrue(r.echoFindings.summary.hasPrefix("TTE 03/02/2026"), r.echoFindings.summary)
         XCTAssertTrue(r.lhc.summary.hasPrefix("LHC 10/18/2026"), r.lhc.summary)
-        XCTAssertEqual(r.stressTest.summary, "Dobutamine stress test (03/14/2025): negative")
+        XCTAssertEqual(r.stressTest.summary, "Dobutamine stress test (03/14/2025): negative, no ischemia")
         // The lines the tab's boxes use keep the day too.
         let assess = PatientSummary.assessmentLines(r)
         XCTAssertTrue(assess.contains { $0.label == "Echo" && $0.text.contains("03/02/2026") })

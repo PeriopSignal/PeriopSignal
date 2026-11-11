@@ -1022,7 +1022,7 @@ enum PatientNote {
         // What looks like an identifier is blanked before reading: nothing is read from it, and it never reaches Other
         // conditions (the warning still names it).
         var blanked = text as NSString
-        for r in QuickAdd.identifierRanges(text) where r.location + r.length <= blanked.length {
+        for r in QuickAdd.identifierRanges(text, now: now) where r.location + r.length <= blanked.length {
             blanked = blanked.replacingCharacters(in: r, with: String(repeating: " ", count: r.length)) as NSString
         }
 
@@ -1115,7 +1115,10 @@ enum PatientNote {
             let full = MedAbbreviations.expand(c, plain)
             let pastClause = pastCare.first(c) != nil || pastCare.first(full.text) != nil
             let pieces = planClause.first(c) != nil ? [] : leftovers(c, h.ranges, keepNegatives: pastClause)
-            for (piece, range) in pieces {
+            for (written, range) in pieces {
+                // A date with a day that was not read as an operation's or a test's never reaches the free text (1.12).
+                let piece = withoutFullDates(written)
+                guard !piece.isEmpty else { continue }
                 let expanded = (full.text as NSString).substring(with: full.target(range))
                 if pastClause || surgicalPiece.first(piece) != nil || surgicalPiece.first(expanded) != nil {
                     if !previous.contains(where: { $0.caseInsensitiveCompare(piece) == .orderedSame }) { previous.append(piece) }
@@ -1239,7 +1242,7 @@ enum PatientNote {
             return ra != rb ? ra < rb : a < b
         }.map { kept[$0] }
         return PatientNoteReading(findings: findings, other: other.joined(separator: "; "), previous: previous.joined(separator: "; "),
-                                  identifiers: identifiers(text), ambiguous: ambiguous, unknown: unknown)
+                                  identifiers: identifiers(text, now: now), ambiguous: ambiguous, unknown: unknown)
     }
 
     /// Reads abbreviations no rule read as written through their meanings; what comes from a meaning is placed back on
@@ -3025,10 +3028,25 @@ enum PatientNote {
     ]
 
     /// Kinds of identifier the text seems to hold, for a warning (nothing is removed automatically).
-    static func identifiers(_ text: String) -> [String] {
+    static func identifiers(_ text: String, now: Date = Date()) -> [String] {
         var out: [String] = []
-        for (kind, rx) in identifierRules where !out.contains(kind) && rx.first(text) != nil { out.append(kind) }
+        for (kind, rx) in identifierRules where !out.contains(kind) {
+            // 1.12: the date of a past operation or a stress test told with a day is that event's, not an identifier
+            // (QuickAdd.isEventDate).
+            let hits = rx.all(text).filter { !(kind == "a date" && QuickAdd.isEventDate($0.range, in: text, now: now)) }
+            if !hits.isEmpty { out.append(kind) }
+        }
         return out
+    }
+
+    /// A numeric date with a day ("6/14/2015"), which no leftover of a note may carry into the record's free text.
+    static let fullDateInText = NoteRx(#"\b\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}\b"#)
+
+    /// `s` without its numeric full dates (1.12), words around them kept.
+    static func withoutFullDates(_ s: String) -> String {
+        guard let re = fullDateInText.re else { return s }
+        let out = re.stringByReplacingMatches(in: s, range: NSRange(location: 0, length: (s as NSString).length), withTemplate: " ")
+        return out.components(separatedBy: .whitespaces).filter { !$0.isEmpty }.joined(separator: " ")
     }
 
     // MARK: Airway, breathing, lines and devices
@@ -3727,7 +3745,8 @@ enum PatientNote {
             if o.isEmpty { return .new }
             let kindSame = t.kind == nil || o.kind == t.kind
             let resultSame = t.result == nil || o.result == t.result
-            let dateSame = t.date.isEmpty || PatientMonthYear.compatible(o.date, t.date)
+            // Nothing added: the typed date is the recorded one, or says no more than it does (a year for a month and year).
+            let dateSame = t.date.isEmpty || (PatientMonthYear.compatible(o.date, t.date) && PatientMonthYear.fuller(o.date, t.date) == o.date)
             if kindSame && resultSame && dateSame { return .recorded }
             if let a = o.result, let b = t.result, a != b { return .replaces(o.summary ?? a.text) }
             if let a = o.kind, let b = t.kind, a != b { return .replaces(o.summary ?? a.label.lowercased()) }

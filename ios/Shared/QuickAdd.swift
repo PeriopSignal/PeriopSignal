@@ -321,8 +321,8 @@ enum QuickAdd {
         let one = line.components(separatedBy: .newlines).joined(separator: " ")
         var s = QuickScan(one)
         var reading = QuickAddReading()
-        reading.identifiers = PatientNote.identifiers(one)
-        for r in identifierRanges(one) { s.mask(r) }
+        reading.identifiers = PatientNote.identifiers(one, now: now)
+        for r in identifierRanges(one, now: now) { s.mask(r) }
         let base = s.text
         let abbreviations = MedAbbreviations.scan(base, user: user, choices: choices)
         let c = QuickContext(tab: tab, record: record, now: now, abbreviations: abbreviations, choices: choices, setID: UUID())
@@ -405,9 +405,33 @@ enum QuickAdd {
         return reading
     }
 
+    private static let fullNumericDate = NoteRx(#"^\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}$"#)
+
+    /// 1.12 (Ben: a day in dates): a numeric date with a day ("6/14/2015") is an identifier, unless it is the date of an event the
+    /// app records with a day: a past operation or a stress test told in the same piece of the line (the stretch between commas
+    /// and semicolons). Never a date of birth, a lab draw, a vital sign, today's date or a later one, an impossible date, or a
+    /// piece that tells no operation or stress test: those stay identifiers, which are blanked before anything is read.
+    static func isEventDate(_ range: NSRange, in text: String, now: Date) -> Bool {
+        let ns = text as NSString
+        guard range.location >= 0, range.location + range.length <= ns.length else { return false }
+        let matched = ns.substring(with: range)
+        guard fullNumericDate.first(matched) != nil, let date = PatientMonthYear.parse(matched, now: now), let day = date.calendarDate(),
+              day < Calendar.current.startOfDay(for: now) else { return false }
+        let breaks = CharacterSet(charactersIn: ",;\n")
+        func isBreak(_ i: Int) -> Bool { UnicodeScalar(ns.character(at: i)).map { breaks.contains($0) } ?? false }
+        var lo = range.location, hi = range.location + range.length
+        while lo > 0, !isBreak(lo - 1) { lo -= 1 }
+        while hi < ns.length, !isBreak(hi) { hi += 1 }
+        let piece = ns.substring(with: NSRange(location: lo, length: hi - lo))
+        if PastSurgeryNote.notSurgeryDateRx.first(piece) != nil { return false }
+        return PastSurgeryNote.surgicalRx.first(piece) != nil || PastSurgeryNote.chestRx.first(piece) != nil
+            || PastSurgeryNote.shorthandRx.first(piece) != nil || PastSurgeryNote.cardiacWordsRx.first(piece) != nil
+            || stressCue.first(piece) != nil
+    }
+
     /// Every pattern, for the test that each one compiles.
     static var allPatterns: [NoteRx] {
-        var out = [recordTail, dateTail, nameTail, surnameTail, titleRx, roomAirWords, pieceNegation, vitaminBefore, fibBefore, bmpRx, cbcRx,
+        var out = [recordTail, dateTail, fullNumericDate, nameTail, surnameTail, titleRx, roomAirWords, pieceNegation, vitaminBefore, fibBefore, bmpRx, cbcRx,
                    gasRx, gasWord, venousGas, gasLabel, bpRx, notBPBefore, vHR, vSpO2, vPercent, vRoomAir, vOxygen, vRR, vTemp, vBareTemp, vBare,
                    bloodBefore, bloodAfter, cellSaverAfter, cellSaverBefore, notGiven, offAfter, plannedLead, lineLead, lastFor, urgencyWord,
                    pastWords, detailWord, tubeRx, dltRx, gradeRx, gradeNotBefore, airwayContext, maskGradeRx, maskEaseRx, intubationEaseRx,
@@ -426,11 +450,14 @@ enum QuickAdd {
 
     /// Where the identifiers PatientNote.identifiers warns about sit in the line, with the value after a cue ("MRN
     /// 12345", "DOB 1/2/1950", "name is Jane Doe"), so the reading can mask them.
-    static func identifierRanges(_ text: String) -> [NSRange] {
+    static func identifierRanges(_ text: String, now: Date = Date()) -> [NSRange] {
         let ns = text as NSString
         var out: [NSRange] = []
         for (kind, rx) in PatientNote.identifierRules {
             for m in rx.all(text) {
+                // 1.12: a full date typed with a past operation or a stress test is that event's date (the field takes a day
+                // now), not an identifier: it is left for the readers.
+                if kind == "a date", isEventDate(m.range, in: text, now: now) { continue }
                 var r = m.range
                 let matched = ns.substring(with: r)
                 let tail: NoteRx?
