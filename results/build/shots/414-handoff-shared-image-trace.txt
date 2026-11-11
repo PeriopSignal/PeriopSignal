@@ -1,0 +1,3 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-11 10:27:51.713 Df PeriopSignal[33007:16b2f] [org.periopsignal.app:shots] scroll settled after 10 s
+2026-11-11 10:27:51.714 Df PeriopSignal[33007:16b2f] [org.periopsignal.app:shots] ready
