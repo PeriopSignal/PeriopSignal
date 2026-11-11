@@ -1018,7 +1018,7 @@ struct DeviceDetailSheet: View {
             .background(FeedBackground())
             .navigationTitle(device?.kind.name ?? "Device")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.tint(PS.action) } }
         }
     }
 }
@@ -1070,7 +1070,8 @@ struct DeviceFieldRow: View {
 
     @ViewBuilder private func entry(maxWidth: CGFloat) -> some View {
         HStack(spacing: 4) {
-            TextField(field.unit.isEmpty ? "—" : field.unit, text: $value)
+            // A numeric field shows its unit beside the box, so the empty box reads "—" (not the unit twice: "cm cm").
+            TextField(field.unit.isEmpty || field.numeric ? "—" : field.unit, text: $value)
                 .keyboardType(field.numeric ? .decimalPad : .default)
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 15, design: field.numeric ? .monospaced : .default))

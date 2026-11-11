@@ -229,9 +229,9 @@ enum ValveGrading {
             if calculationInputs.contains(param.id) { continue }
             let how = i.calculated.contains(param.id) ? " · calculated" : i.fromPatient.contains(param.id) ? " · from My Patient" : ""
             if case .context = param.kind {
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit)\(how)", grade: nil))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit))\(how)", grade: nil))
             } else if let g = param.grade(v) {
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())\(how)", grade: g))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())\(how)", grade: g))
             }
         }
         let vmax = i.numbers["vmax"], mg = i.numbers["mg"], ava = i.numbers["ava"], avai = i.numbers["avai"], svi = i.numbers["svi"], lvef = i.numbers["lvef"]
@@ -281,7 +281,7 @@ enum ValveGrading {
         var cautions: [String] = []
         for param in p {
             if let v = i.numbers[param.id], let g = param.grade(v) {
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())", grade: g))
             } else if i.signs.contains(param.id), case .sign(let g) = param.kind {
                 lines.append(.init(id: param.id, label: param.label, text: g == .moderate ? "noted" : "specific for \(g.label.lowercased())", grade: g == .moderate ? nil : g))
             }
@@ -333,7 +333,7 @@ enum ValveGrading {
         let p = params(for: .ms)
         var lines: [ValveReading.Line] = []
         for param in p {
-            if let v = i.numbers[param.id], let g = param.grade(v) { lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g)) }
+            if let v = i.numbers[param.id], let g = param.grade(v) { lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())", grade: g)) }
         }
         if i.isEmpty { return ValveReading(overall: nil, headline: "Enter measurements", explanation: "Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.", lines: [], cautions: []) }
         var cautions = ["Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.", "Pressure half-time misleads with severe AR, right after balloon commissurotomy and with altered LA or LV compliance."]
@@ -364,10 +364,10 @@ enum ValveGrading {
         for param in p {
             if let v = i.numbers[param.id] {
                 guard let g = param.grade(v) else {
-                    lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · not graded", grade: nil))
+                    lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · not graded", grade: nil))
                     continue
                 }
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())", grade: g))
                 if ["rvol", "rf", "eroa"].contains(param.id) { quantitative.append(g) } else { semi.append(g) }
                 if param.specific { if g == .severe { specificSevere += 1 } else if g == .mild { specificMild += 1 } }
             } else if i.signs.contains(param.id), case .sign(let g) = param.kind {
@@ -435,6 +435,9 @@ enum ValveGrading {
         /// Said under the measurements when an input could not be used.
         var notes: [String] = []
     }
+
+    /// " cm²" after a value, or nothing for a value with no unit (a ratio), so the reading has no doubled space.
+    static func unitSuffix(_ unit: String) -> String { unit.isEmpty ? "" : " " + unit }
 
     /// The value as the field shows it (`fmt`'s rounding), so the grade is the grade of what is on the screen.
     static func shown(_ v: Double) -> Double {

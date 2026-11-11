@@ -768,7 +768,13 @@ struct PatientView: View {
                 .padding(.horizontal, 2)
         } else {
             // The lines and devices figure is the handoff's Lines & devices block (PatientBriefs, 1.9).
-            HandoffPanel(record: r).id("handoff")
+            // The scroll target sits one pinned row above the panel (1.12), so a scroll to the handoff lands its heading
+            // and Regenerate under the pinned case row, not behind it.
+            VStack(spacing: 0) {
+                Color.clear.frame(height: PatientPinned.rowHeight).allowsHitTesting(false).accessibilityHidden(true).id("handoff")
+                HandoffPanel(record: r)
+            }
+            .padding(.top, -PatientPinned.rowHeight)
         }
     }
 

@@ -112,7 +112,7 @@ struct ValveLibraryPicker: View {
                     }
                 }
                 Section {
-                    Text("A draft list of common valves. It only writes text into the field; the field can still be typed in.")
+                    Text("Common valves. Choosing one writes it into the field, which can still be typed in.")
                         .font(PS.sys(size: 12.5))
                         .foregroundStyle(PS.fg3)
                         .listRowBackground(Color.clear)

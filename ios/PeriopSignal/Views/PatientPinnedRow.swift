@@ -185,9 +185,12 @@ struct PatientPageTitle: ViewModifier {
                     Text(title)
                         .font(.system(size: Self.titleSize, weight: .semibold)).foregroundStyle(PS.fg)
                         .lineLimit(1).minimumScaleFactor(0.7)
+                    // On its own small ground, so it reads over whatever scrolls behind the bar.
                     Text(Self.caption(patient.currentCase))
-                        .font(.system(size: Self.captionSize, weight: .medium)).foregroundStyle(PS.fg3)
+                        .font(.system(size: Self.captionSize, weight: .semibold)).foregroundStyle(PS.fg2)
                         .lineLimit(1)
+                        .padding(.horizontal, 7).padding(.vertical, 1)
+                        .background(PS.surface2.opacity(0.92), in: Capsule())
                 }
                 .allowsHitTesting(false)
                 .accessibilityElement(children: .ignore)
