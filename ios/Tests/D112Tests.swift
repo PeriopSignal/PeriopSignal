@@ -1,4 +1,6 @@
 import XCTest
+import UIKit
+import SwiftUI
 @testable import PeriopSignal
 
 /// 1.12, helper D (medications): note 16 (one Current Medications & Infusions box, listed infusions, antibiotics,
