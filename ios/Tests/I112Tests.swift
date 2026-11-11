@@ -9,9 +9,12 @@ import XCTest
 /// given for each activity, the receive rules for the name, and where an incoming URL goes.
 final class I112Tests: XCTestCase {
     private let sent = Date(timeIntervalSince1970: 1_793_354_400)
+    /// PatientDemo.record is computed: every access makes new ids for its procedures and surgeries, so one value is
+    /// used throughout and records compare equal after a round trip.
+    private let demo = PatientDemo.record
 
     private func packet(room: String? = "OR 12") -> PatientPacket {
-        PatientPacket(record: PatientDemo.record, sent: sent, room: room)
+        PatientPacket(record: demo, sent: sent, room: room)
     }
 
     private func linkURL(_ z: String, v: String = "1", scheme: String = "periopsignal", host: String = "receive") -> URL {
@@ -42,7 +45,7 @@ final class I112Tests: XCTestCase {
         XCTAssertEqual(back.room, "OR 12")
         XCTAssertEqual(back.caseName, "OR 12")
         XCTAssertEqual(back, packet())
-        XCTAssertEqual(back.record, PatientDemo.record)
+        XCTAssertEqual(back.record, demo)
     }
 
     func testPacketWithoutARoomHasNoRoomKey() throws {
@@ -53,7 +56,7 @@ final class I112Tests: XCTestCase {
         XCTAssertNil(back.room)
         XCTAssertNil(back.caseName)
         for blank in ["", "   ", "\n\t "] {
-            XCTAssertNil(PatientPacket(record: PatientDemo.record, room: blank).room, "a blank name is no name")
+            XCTAssertNil(PatientPacket(record: demo, room: blank).room, "a blank name is no name")
         }
     }
 
@@ -65,7 +68,7 @@ final class I112Tests: XCTestCase {
         XCTAssertFalse(String(decoding: old, as: UTF8.self).contains("\"room\""))
         let back = try PatientPacket.decode(old)
         XCTAssertNil(back.room)
-        XCTAssertEqual(back.record, PatientDemo.record)
+        XCTAssertEqual(back.record, demo)
     }
 
     func testAPacketWithAnUnknownExtraKeyStillDecodes() throws {
@@ -76,11 +79,11 @@ final class I112Tests: XCTestCase {
         let data = try JSONSerialization.data(withJSONObject: json)
         let back = try PatientPacket.decode(data)
         XCTAssertEqual(back.room, "OR 12")
-        XCTAssertEqual(back.record, PatientDemo.record)
+        XCTAssertEqual(back.record, demo)
     }
 
     func testTheRoomsPhoneIsNeverSent() throws {
-        let c = PatientCase(number: 2, record: PatientDemo.record, room: "OR 12", roomPhone: "216-555-0142")
+        let c = PatientCase(number: 2, record: demo, room: "OR 12", roomPhone: "216-555-0142")
         let p = PatientPacket(of: c, sent: sent)
         XCTAssertEqual(p.room, "OR 12")
         let bytes = try p.encoded()
@@ -92,7 +95,7 @@ final class I112Tests: XCTestCase {
         let url = try XCTUnwrap(PatientLink.url(for: p))
         XCTAssertFalse(url.absoluteString.contains("5550142"))
         // A case without a name sends no name.
-        XCTAssertNil(PatientPacket(of: PatientCase(number: 3, record: PatientDemo.record, roomPhone: "216-555-0142"), sent: sent).room)
+        XCTAssertNil(PatientPacket(of: PatientCase(number: 3, record: demo, roomPhone: "216-555-0142"), sent: sent).room)
     }
 
     func testTheRoomIsTrimmedAndCappedAtFortyCharacters() throws {
@@ -129,7 +132,7 @@ final class I112Tests: XCTestCase {
         XCTAssertEqual(store.currentCase.room, "OR 12")
         XCTAssertEqual(store.currentCase.label, "OR 12")
         XCTAssertEqual(store.currentCase.roomPhone, "", "the sender's room phone is not a thing; the new case has none")
-        XCTAssertEqual(store.record, PatientDemo.record.withUpdated(store.record.updated))
+        XCTAssertEqual(store.record, demo.withUpdated(store.record.updated))
         let first = store.cases.first { $0.id == before }
         XCTAssertEqual(first?.room, "OR 5", "the other case is untouched")
         XCTAssertEqual(first?.record.ageYears, 40)
@@ -161,7 +164,7 @@ final class I112Tests: XCTestCase {
         XCTAssertEqual(store.cases.count, 1)
         XCTAssertEqual(store.currentCase.room, "OR 5", "the receiver named their case")
         XCTAssertEqual(store.currentCase.roomPhone, "216-555-0105")
-        XCTAssertEqual(store.record.ageYears, PatientDemo.record.ageYears, "the patient is replaced")
+        XCTAssertEqual(store.record.ageYears, demo.ageYears, "the patient is replaced")
         XCTAssertNotEqual(store.record.ageYears, 40)
     }
 
@@ -181,7 +184,7 @@ final class I112Tests: XCTestCase {
         XCTAssertTrue(store.isEmpty)
         store.openReceived(packet(room: "OR 12"), asNewCase: false)
         XCTAssertEqual(store.currentCase.room, "OR 12")
-        XCTAssertEqual(store.record.ageYears, PatientDemo.record.ageYears)
+        XCTAssertEqual(store.record.ageYears, demo.ageYears)
         // No sent name: nothing is named.
         let other = PatientStore(url: nil)
         other.openReceived(packet(room: nil), asNewCase: false)
@@ -213,11 +216,11 @@ final class I112Tests: XCTestCase {
     }
 
     @MainActor func testTheTransferFileCarriesTheName() async throws {
-        let data = try PatientPacket(record: PatientDemo.record, room: "OR 12").encoded()
+        let data = try PatientPacket(record: demo, room: "OR 12").encoded()
         XCTAssertEqual(try PatientPacket.decode(data).room, "OR 12")
-        let transfer = PatientTransfer(record: PatientDemo.record, room: "OR 12")
+        let transfer = PatientTransfer(record: demo, room: "OR 12")
         XCTAssertEqual(transfer.room, "OR 12")
-        XCTAssertNil(PatientTransfer(record: PatientDemo.record).room, "the old call still means no name")
+        XCTAssertNil(PatientTransfer(record: demo).room, "the old call still means no name")
     }
 
     // MARK: 2. The AirDrop link
@@ -235,7 +238,7 @@ final class I112Tests: XCTestCase {
         XCTAssertNil(z.rangeOfCharacter(from: CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_")).inverted))
         let back = try PatientLink.decode(url)
         XCTAssertEqual(back, p)
-        XCTAssertEqual(back.record, PatientDemo.record, "the record is equal after encode, URL, decode")
+        XCTAssertEqual(back.record, demo, "the record is equal after encode, URL, decode")
         XCTAssertEqual(back.room, "OR 12")
         XCTAssertLessThan(url.absoluteString.count, PatientLink.maxLinkLength)
     }
@@ -305,8 +308,9 @@ final class I112Tests: XCTestCase {
 
     func testAnOversizePayloadIsRefusedBeforeItIsReadAndFast() async {
         let big = String(repeating: "A", count: PatientLink.maxPayload + 1)
+        let url = linkURL(big)
         let start = Date()
-        await assertRejected(linkURL(big), .tooLarge)
+        await assertRejected(url, .tooLarge)
         XCTAssertLessThan(Date().timeIntervalSince(start), 2)
     }
 
@@ -430,7 +434,7 @@ final class I112Tests: XCTestCase {
     }
 
     func testALinkLongerThanSixtyThousandCharactersFallsBackToTheFileForAirDrop() throws {
-        var r = PatientDemo.record
+        var r = demo
         r.medications = noise(90_000)
         let p = PatientPacket(record: r, sent: sent, room: "OR 12")
         XCTAssertLessThan(try p.encoded().count, PatientPacket.maxBytes, "still an ordinary patient file")
