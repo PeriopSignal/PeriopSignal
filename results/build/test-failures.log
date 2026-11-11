@@ -1,0 +1,12 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:316: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertEqual failed: ("[]") is not equal to ("["problem:malignancy"]") - history of cancer
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:318: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertTrue failed - history of cancer
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:319: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("malignancy")") - history of cancer
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:316: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertEqual failed: ("[]") is not equal to ("["problem:malignancy"]") - malignancy
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:318: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertTrue failed - malignancy
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:319: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("malignancy")") - malignancy
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:316: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertEqual failed: ("[]") is not equal to ("["problem:malignancy"]") - carcinoma
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:318: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertTrue failed - carcinoma
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:319: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("malignancy")") - carcinoma
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:322: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertTrue failed
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/F112Tests.swift:323: error: -[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("malignancy (metastatic)")")
+Test Case '-[PeriopSignalTests.F112Tests testAnUnnamedCancerIsTheItemAlone]' failed (4.175 seconds).
