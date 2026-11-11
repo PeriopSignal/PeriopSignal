@@ -11,6 +11,7 @@ import Foundation
 ///   demo-112-labs-abg    the same, with intraop sets: coags at 07:30 (platelets, INR, fibrinogen, ACT, a ROTEM), then an ABG at 08:03
 ///   demo-112-labs-vbg    the same, the newest set a VBG at 10:40
 ///   demo-112-labs-svo2   the same, the newest set an SvO₂ (PA) sample at 10:40, with two intraop extras chosen
+///   demo-112-labs-noextras  the ABG patient with nothing chosen under "+ Add other input data into Handoff" (its closed link)
 ///   demo-112-labs-male   a man: no pregnancy test offered or shown
 enum PatientDemo112Labs {
     static func record(_ seed: String) -> PatientRecord? {
@@ -18,6 +19,10 @@ enum PatientDemo112Labs {
         case "demo-112-labs-preop": return preop
         case "demo-112-labs-preopsum": return preopSummary
         case "demo-112-labs-abg": return withSets([coagSet, abgSet])
+        case "demo-112-labs-noextras":
+            var r = withSets([coagSet, abgSet])
+            r.handoffExtras = []
+            return r
         case "demo-112-labs-vbg": return withSets([coagSet, abgSet, vbgSet])
         case "demo-112-labs-svo2": return svo2
         case "demo-112-labs-male":

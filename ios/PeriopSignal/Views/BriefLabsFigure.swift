@@ -12,8 +12,15 @@ struct BriefLabsFigure: View {
     var labs: BriefLabs
     @Environment(\.dynamicTypeSize) private var typeSize
 
-    /// Two columns while the text is at its usual size; stacked at the larger ones.
-    private var sideBySide: Bool { labs.hasPreop && labs.hasIntraop && typeSize <= .large }
+    /// Two columns while the text is at its usual size; stacked at the larger ones. Both text sizes count: the system's
+    /// Dynamic Type and the app's own (More > Text size, PS.textScale, which the Large and Extra large choices raise above 1).
+    static func sideBySide(hasPreop: Bool, hasIntraop: Bool, typeSize: DynamicTypeSize, textScale: CGFloat) -> Bool {
+        hasPreop && hasIntraop && typeSize <= .large && textScale <= 1.0
+    }
+
+    private var sideBySide: Bool {
+        Self.sideBySide(hasPreop: labs.hasPreop, hasIntraop: labs.hasIntraop, typeSize: typeSize, textScale: PS.textScale)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -61,7 +68,7 @@ struct BriefLabsFigure: View {
 typealias FishboneFigure = BriefLabsFigure
 
 /// The blood gas as the slash figure: "ABG · 10:40", then pH / PCO₂ / PO₂ / HCO₃ with a slash between, then the lactate (and,
-/// for an ScvO₂ or SvO₂ sample, the saturation first). Where the figure does not fit its column the values are written as
+/// for an ScvO₂ or SvO₂ sample, the saturation first). Where even the tightest figure does not fit its column the values are written as
 /// text instead.
 private struct BriefGasFigure: View {
     var gas: BriefGas
@@ -77,6 +84,9 @@ private struct BriefGasFigure: View {
                 ViewThatFits(in: .horizontal) {
                     slash(cellWidth: 38, gap: 9)
                     slash(cellWidth: 32, gap: 5)
+                    // The half column of a 375-pt phone is about 137 pt: these two keep the figure a figure there.
+                    slash(cellWidth: 30, gap: 3)
+                    slash(cellWidth: 27, gap: 3)
                     if let item = group.items.first(where: { $0.key == "gas" }) {
                         Text(briefStyled(item.text, marks: item.marks, labels: false, size: 13))
                             .font(PS.sys(size: 13)).foregroundStyle(PS.fg)

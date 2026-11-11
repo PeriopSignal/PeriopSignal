@@ -559,6 +559,31 @@ final class A112Tests: XCTestCase {
         XCTAssertEqual(HandoffExtrasLink.title(chosen: 3), "Other input data in Handoff: 3 added")
     }
 
+    // MARK: The columns at the larger text sizes, and a closed link with nothing chosen
+
+    func testTheColumnsStackAtTheAppsLargerTextSizesAsWellAsDynamicType() {
+        func side(_ type: DynamicTypeSize, _ scale: CGFloat) -> Bool {
+            BriefLabsFigure.sideBySide(hasPreop: true, hasIntraop: true, typeSize: type, textScale: scale)
+        }
+        XCTAssertTrue(side(.large, 1.0), "the usual size keeps two columns")
+        XCTAssertTrue(side(.large, TextScale.small.rawValue))
+        XCTAssertFalse(side(.large, TextScale.large.rawValue), "More > Text size > Large stacks them")
+        XCTAssertFalse(side(.large, TextScale.extraLarge.rawValue), "More > Text size > Extra large stacks them")
+        XCTAssertFalse(side(.xxLarge, 1.0), "a larger Dynamic Type stacks them too")
+        XCTAssertFalse(BriefLabsFigure.sideBySide(hasPreop: true, hasIntraop: false, typeSize: .large, textScale: 1.0), "one column is never a pair")
+        XCTAssertFalse(BriefLabsFigure.sideBySide(hasPreop: false, hasIntraop: true, typeSize: .large, textScale: 1.0))
+    }
+
+    #if DEBUG
+    func testTheDemoWithNothingChosenOffersExtrasAndHasNoneChosen() throws {
+        let r = try XCTUnwrap(PatientDemo112Labs.record("demo-112-labs-noextras"))
+        XCTAssertTrue(r.handoffExtras.isEmpty)
+        XCTAssertEqual(HandoffExtras.chosenCount(r), 0)
+        let offered = HandoffExtras.offered(r)
+        XCTAssertFalse(offered.preop.isEmpty && offered.intraop.isEmpty, "recorded values the summaries do not show are offered")
+    }
+    #endif
+
     func testAnExtraThatIsNotChosenChangesNothing() throws {
         let plain = PatientDemo112Labs.preop.withExtras([])
         var more = plain
