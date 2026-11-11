@@ -158,6 +158,19 @@ final class E1112Tests: XCTestCase {
         XCTAssertEqual(bare.devices.filter(\.acceptsDevicesThrough).count, 2)
     }
 
+    func testTheHandoffAndThePreprocedureSummaryListThemAsPACViaAndSLICVia() throws {
+        let r = try XCTUnwrap(PatientDemo112Devices.record("demo-112-lines"))
+        let handoff = try XCTUnwrap(PatientBriefs.handoff(r).first { $0.key == "lines" })
+        let lines = handoff.text.components(separatedBy: "\n")
+        XCTAssertTrue(lines.contains("PAC via R IJ (Pre)"), handoff.text)
+        XCTAssertTrue(lines.contains("SLIC via L IJ (Pre)"), handoff.text)
+        XCTAssertTrue(lines.contains("CVL 9 Fr R IJ (MAC introducer) (Pre)"), "the introducer itself stays listed: \(handoff.text)")
+        let preop = try XCTUnwrap(PatientBriefs.preop(r).first { $0.key == "lines" })
+        let preopLines = preop.text.components(separatedBy: "\n")
+        XCTAssertTrue(preopLines.contains("PAC via R IJ"), preop.text)
+        XCTAssertTrue(preopLines.contains("SLIC via L IJ"), preop.text)
+    }
+
     // MARK: Note 11: Chest X-ray
 
     private func chole() -> PatientRecord {

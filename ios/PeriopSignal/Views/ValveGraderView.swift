@@ -47,6 +47,7 @@ struct ValveGraderView: View {
     private var params: [ValveParam] { ValveGrading.params(for: lesion) }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 picker
@@ -59,6 +60,7 @@ struct ValveGraderView: View {
             .padding(.horizontal, 20)
             .padding(.top, 6)
             .padding(.bottom, 30)
+            .modifier(DebugContentWidth())
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
@@ -69,6 +71,16 @@ struct ValveGraderView: View {
                 Spacer()
                 Button("Done") { Keyboard.dismiss() }
             }
+        }
+        #if DEBUG
+        // DEBUG screenshots: -ps.vg.scroll lvotd scrolls the measurement with that id to the top once the page is up.
+        .task {
+            let id = LaunchSeed.string("ps.vg.scroll")
+            guard !id.isEmpty else { return }
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            proxy.scrollTo("vg-" + id, anchor: .top)
+        }
+        #endif
         }
     }
 
@@ -201,6 +213,7 @@ struct ValveGraderView: View {
                         }
                     }
                     .padding(.horizontal, 14).padding(.vertical, 9)
+                    .id("vg-" + p.id)
                     if i < list.count - 1 { Hairline().padding(.leading, 14) }
                 }
             }
