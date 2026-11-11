@@ -534,14 +534,34 @@ struct IntraopDevicesCard: View {
     }
 }
 
-/// "+ Notable medication" (TXA, steroids… in the Medications & Interventions editor).
+/// "Antibiotics & Notable Medications" (1.12, Ben's note 2; its page keeps the name Medications & Interventions): the
+/// antibiotics charted in Case Timers for the open case with their times (note 3), the notable medications chosen as chips
+/// with their doses (note 18), and the free text the page had.
 struct IntraopNotableMedicationLink: View {
     @Environment(PatientStore.self) private var patient
+    @Environment(ReferenceStore.self) private var refs
+
+    static let title = "Antibiotics & Notable Medications"
+    /// One short phrase while empty; it fits one line at 375 pt (the tests measure it).
+    static let hint = "Antibiotics, TXA, milrinone, reversal"
+
+    /// The row's lines: each charted antibiotic ("Cefazolin 2 g · last 08:12 · next due 12:12", red when its redose is
+    /// overdue), the chosen chips with their doses, then the free text. Empty while nothing is recorded.
+    static func lines(_ r: PatientRecord, antibiotics: [CaseAntibiotics.Line]) -> [PatientSummary.Line] {
+        var out = antibiotics.map { PatientSummary.Line(nil, $0.tabText, alert: $0.overdue) }
+        if !r.notableMeds.isEmpty { out.append(PatientSummary.Line(nil, r.notableMeds.items.joined(separator: "; "))) }
+        let free = r.capitalized.medsGiven.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !free.isEmpty { out.append(PatientSummary.Line(nil, free)) }
+        return out
+    }
 
     var body: some View {
-        IntraopLinkRow(title: "Notable medication", icon: "pills", editor: .intraopPart("meds"),
-                       lines: PatientSummary.intraopPartLines(patient.record, "meds"),
-                       hint: PreopEmptyHints.intraop["meds"] ?? "")
+        TimelineView(.everyMinute) { ctx in
+            let r = patient.record
+            IntraopLinkRow(title: Self.title, icon: "pills", editor: .intraopPart("meds"),
+                           lines: Self.lines(r, antibiotics: CaseAntibiotics.lines(r, data: refs.caseTimers ?? CaseAntibiotics.current, now: ctx.date)),
+                           hint: Self.hint)
+        }
     }
 }
 

@@ -374,6 +374,13 @@ enum IntraopInfusionList {
         i.fromPreop != nil && i.drug.trimmingCharacters(in: .whitespaces).isEmpty && i.rate.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
+    /// The preop drips taken off the case's list (a tombstone points at each; 1.12, Ben's note 16): no longer running, so the
+    /// handoff does not list them as current infusions. The preop record and the Preprocedure Summary, which describe the
+    /// patient on arrival, keep them.
+    static func takenOff(_ r: PatientRecord) -> Set<UUID> {
+        Set(r.infusions.filter(isTombstone).compactMap(\.fromPreop))
+    }
+
     static func sameDrug(_ a: String, _ b: String) -> Bool {
         func norm(_ s: String) -> String { s.lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ") }
         let x = norm(a), y = norm(b)

@@ -314,6 +314,51 @@ enum InfusionEntry {
         return drugs.filter { fold($0.name).hasPrefix(w) || $0.aliases.contains { $0.hasPrefix(w) } }
     }
 
+    // MARK: Medications and infusions in one line (1.12, Ben's note 16)
+
+    /// A line typed in the Current Medications & Infusions box, split in two: the pieces the drip reader reads as infusions
+    /// and the rest, which are medications as before.
+    struct MixedLine: Hashable {
+        var medications: String
+        var infusions: String
+    }
+
+    /// "metoprolol 25 bid, norepi 0.05, heparin 1200 units/h" → the medications "metoprolol 25 bid" and the infusions
+    /// "norepi 0.05, heparin 1200 units/h". Separate the pieces with a comma (the way a drip line separates them).
+    static func mixed(_ line: String) -> MixedLine {
+        var meds: [String] = [], drips: [String] = []
+        for piece in pieces(line) {
+            if isInfusion(piece) { drips.append(piece) } else { meds.append(piece) }
+        }
+        return MixedLine(medications: meds.joined(separator: ", "), infusions: drips.joined(separator: ", "))
+    }
+
+    /// A piece is an infusion when it names a drug of the drip list and either carries a rate or is a drip-only drug:
+    /// - a rate in a unit per time ("heparin 1200 units/h", "nitroglycerin 0.5 mcg/kg/min") is an infusion for any drug of the
+    ///   list, even one that is also a home medication;
+    /// - a rate with no unit ("norepi 0.05") is one for a drug that is only ever a drip;
+    /// - a drip-only drug named alone ("norepinephrine") is one with no rate yet;
+    /// - anything else is a medication: a dose in a plain unit ("furosemide 40 mg"), a home medication named alone
+    ///   ("heparin", "insulin"), a drug the list does not know, a word that names more than one drip ("levo").
+    static func isInfusion(_ piece: String) -> Bool {
+        var parts = split(piece)
+        // "angiotensin 2" is the drug's name, not a rate of 2 (read() does the same).
+        if let rate = parts.rate, parts.unit == nil, parts.high == nil, !matches(parts.drug + " " + rate, prefix: false).isEmpty {
+            parts = (parts.drug + " " + rate, nil, nil, nil)
+        }
+        let word = fold(parts.drug)
+        guard !word.isEmpty else { return false }
+        let found = matches(word, prefix: false)
+        guard !found.isEmpty else { return false }
+        if let unit = parts.unit {
+            // Only a rate unit makes a dose a drip: "40 mg" is a dose.
+            return unit.contains("/") || unit == "ppm"
+        }
+        // Without a unit, only a drug that is just a drip, named for one drug: a home medication ("heparin 5000") is not told by a number.
+        let alsoHomeMedication = found.contains { MedicationCatalog.entry(named: $0.name) != nil } || MedicationCatalog.entry(named: word) != nil
+        return found.count == 1 && !alsoHomeMedication
+    }
+
     // MARK: Adding
 
     /// Adds the drips to a list of infusions: a drug already there takes the new rate (a drip typed without a rate

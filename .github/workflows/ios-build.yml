@@ -889,6 +889,26 @@ jobs:
           # ---- 1.12 helper C shots (870-889): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
+          shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light
+          shot 891-d112-preop-meds-dark 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance dark
+          shot 892-d112-preop-meds-375-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.patient.width 375 -ps.forceAppearance light
+          shot 893-d112-preop-meds-typing-dark 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll homemeds -ps.meds.type "sertraline 50, norepi 0.05, nicardipine, amoxicillin 500 tid, vaso 0.04, levo" -ps.forceAppearance dark
+          shot 894-d112-preop-meds-typing-375-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll homemeds -ps.meds.type "sertraline 50, norepi 0.05, nicardipine, amoxicillin 500 tid, vaso 0.04, levo" -ps.patient.width 375 -ps.forceAppearance light
+          shot 895-d112-page-meds-light 16 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.open medications -ps.patient.scroll homemeds -ps.forceAppearance light
+          shot 896-d112-intraop-row-light 20 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.forceAppearance light
+          shot 897-d112-intraop-row-dark 20 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.forceAppearance dark
+          shot 898-d112-intraop-row-375-light 20 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 899-d112-page-abx-light 16 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.open intraop:meds -ps.forceAppearance light
+          shot 900-d112-page-abx-dark 16 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.open intraop:meds -ps.forceAppearance dark
+          shot 901-d112-page-abx-375-light 20 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 902-d112-page-overdue-light 16 -ps.tab patient -ps.patient demo-112-meds-overdue -ps.patient.open intraop:meds -ps.forceAppearance light
+          shot 903-d112-row-overdue-dark 20 -ps.tab patient -ps.patient demo-112-meds-overdue -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.forceAppearance dark
+          shot 904-d112-page-legacy-txa-light 16 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.open intraop:meds -ps.forceAppearance light
+          shot 905-d112-handoff-abx-light 20 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 906-d112-handoff-abx-dark 20 -ps.tab patient -ps.patient demo-112-meds-abx -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 907-d112-handoff-overdue-light 20 -ps.tab patient -ps.patient demo-112-meds-overdue -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 908-d112-handoff-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 909-d112-preop-summary-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           #
           # ---- 1.12 helper E1 shots (910-924): add your shot lines directly under this line ----
           #

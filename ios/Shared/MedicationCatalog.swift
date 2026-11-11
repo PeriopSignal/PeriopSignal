@@ -444,6 +444,68 @@ enum MedicationCatalog {
     }
 }
 
+// MARK: - The order of the current medications (1.12, Ben's note 16)
+
+/// The groups the Current Medications & Infusions box lists in, and the summaries' medication line follows: infusions
+/// first, then antibiotics, then cardiovascular medications, then the rest; each group in the order entered.
+enum MedGroup: Int, CaseIterable, Comparable {
+    case infusions, antibiotics, cardiovascular, other
+
+    static func < (a: MedGroup, b: MedGroup) -> Bool { a.rawValue < b.rawValue }
+
+    var title: String {
+        switch self {
+        case .infusions: return "Infusions"
+        case .antibiotics: return "Antibiotics"
+        case .cardiovascular: return "Cardiovascular"
+        case .other: return "Other"
+        }
+    }
+}
+
+extension MedicationCatalog {
+    /// Antibiotics are told by the catalog's class line ("Macrolide antibiotic", "Cephalosporin (first generation)", "Penicillin +
+    /// beta-lactamase inhibitor", "Urinary antibacterial"); a drug the catalog does not class is "other". The antituberculosis
+    /// agents, antifungals, antivirals and antimalarials are not in this group.
+    private static let antibioticWords = ["antibiotic", "antibacterial", "cephalosporin", "penicillin", "carbapenem"]
+
+    /// Cardiovascular medications are told by the same class line. Judgment call (Ben to edit): the antihypertensives and
+    /// heart drugs (beta-blockers, ACE inhibitors, ARBs and the ARNI, calcium channel blockers, diuretics and
+    /// mineralocorticoid antagonists, nitrates and other vasodilators, antiarrhythmics, digoxin, antianginals, central
+    /// alpha-2 agonists such as clonidine, ivabradine, mavacamten, riociguat and vericiguat, endothelin antagonists), the
+    /// antithrombotics (anticoagulants, heparins, antiplatelets) and the statins. Eye drops, the alpha-1 blockers (mostly
+    /// taken for the prostate), PDE-5 inhibitors and the others are "other".
+    private static let cardiovascularWords = [
+        "beta-blocker", "ace inhibitor", "angiotensin", "calcium channel blocker", "diuretic", "mineralocorticoid receptor antagonist",
+        "nitrate", "vasodilator", "antiarrhythmic", "cardiac glycoside", "antianginal", "anticoagulant", "heparin", "factor xa inhibitor",
+        "antiplatelet", "p2y12", "soluble guanylate cyclase", "endothelin", "hyperpolarization", "cardiac myosin",
+    ]
+
+    /// The group of a class line: antibiotics, cardiovascular, or other (the infusion group is for the drips).
+    static func group(drugClass: String) -> MedGroup {
+        let c = drugClass.lowercased()
+        if antibioticWords.contains(where: { c.contains($0) }) { return .antibiotics }
+        // Not for the eye or the bladder, and not the muscle relaxant of the same class name.
+        if c.contains("eye drops") || c.contains("bladder protectant") || c.contains("muscle relaxant") { return .other }
+        if cardiovascularWords.contains(where: { c.contains($0) }) { return .cardiovascular }
+        // "ARB" and "statin" are words of their own ("carbonic anhydrase" and "somatostatin analog" hold the letters).
+        if c.range(of: #"\b(?:arb|statin)\b"#, options: [.regularExpression]) != nil { return .cardiovascular }
+        if c.contains("central alpha-2 agonist") { return .cardiovascular }
+        return .other
+    }
+
+    /// The group of a medication on the list (by its catalog entry, else by its name); a drug the catalog does not know is "other".
+    static func group(of m: PatientMed) -> MedGroup {
+        resolve(m).map { group(drugClass: $0.drugClass) } ?? .other
+    }
+
+    /// The list in the order it is shown and told: antibiotics, cardiovascular, then the rest, each group in the order
+    /// entered.
+    static func ordered(_ meds: [PatientMed]) -> [PatientMed] {
+        MedGroup.allCases.flatMap { g in meds.filter { group(of: $0) == g } }
+    }
+}
+
 /// One allergy (1.9): the allergen as picked or typed, its severity, and the reaction as typed.
 struct PatientAllergy: Codable, Hashable, Identifiable {
     var id = UUID()

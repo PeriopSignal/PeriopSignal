@@ -304,7 +304,7 @@ enum PatientBriefs {
             out.append(intraopTEEBlock(r))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
-            out.append(infusionsBlock(r))
+            out.append(infusionsBlock(r, now: now))
             out.append(intakeOutputBlock(r))
             out.append(linesBlock(r, kind: kind))
             out.append(regionalBlock(r))
@@ -436,12 +436,14 @@ enum PatientBriefs {
 
     // MARK: Medications
 
-    /// Preprocedure: the home medications, the infusions running and the flags that need action. Handoff: the home
-    /// medications with those flags (the infusions are with the intraoperative ones).
+    /// Preprocedure: the infusions running, then the home medications and the flags that need action. Handoff: the home
+    /// medications with those flags (the infusions are with the intraoperative ones). 1.12 (Ben's note 16): the medication
+    /// line follows the order of the Current Medications & Infusions box: infusions, then antibiotics, cardiovascular
+    /// medications and the rest, each group in the order entered.
     private static func medicationsBlock(_ r: PatientRecord, hist: [PatientSummary.Line], kind: Kind) -> SummaryBlock {
         var pieces: [(label: String, text: String, alert: Bool)] = []
-        if let m = hist.first(where: { $0.label == "Medications" }) { pieces.append(("Home", m.text, m.alert)) }
         if kind == .preop, let i = hist.first(where: { $0.label == "Current infusions" }) { pieces.append(("Infusions", i.text, true)) }
+        if let m = hist.first(where: { $0.label == "Medications" }) { pieces.append(("Home", orderedMedications(r, line: m.text), m.alert)) }
         if let a = hist.first(where: { $0.label == "Medication alerts" }) { pieces.append(("Alerts", a.text, true)) }
         var b = SummaryBlock(key: "meds", label: kind == .preop ? "Medications" : "Home medications")
         if pieces.count == 1, pieces[0].label == "Home" {
@@ -455,6 +457,16 @@ enum PatientBriefs {
         // infusions beside it.
         if let home = pieces.first(where: { $0.label == "Home" }), home.alert { b.marks.append(home.text); b.alert = true }
         return b
+    }
+
+    /// The medication line (PatientSummary.historyLines: the list's items, then any text typed before 1.9) with the list's items
+    /// in the shown order: antibiotics, cardiovascular, then the rest. A line that is the flags' words (no list) is as it was.
+    static func orderedMedications(_ r: PatientRecord, line: String) -> String {
+        let items = r.capitalized.homeMeds
+        let stored = items.map(\.text).filter { !$0.isEmpty }.joined(separator: "; ")
+        guard !stored.isEmpty, line.hasPrefix(stored) else { return line }
+        let ordered = MedicationCatalog.ordered(items).map(\.text).filter { !$0.isEmpty }.joined(separator: "; ")
+        return ordered + line.dropFirst(stored.count)
     }
 
     // MARK: Airway
@@ -589,28 +601,40 @@ enum PatientBriefs {
 
     // MARK: Infusions, medications, intake and output
 
-    /// Infusions (the drips running in the case; those running before it when they are not the same), the intraoperative
-    /// medications, and the factor concentrates and other products.
-    private static func infusionsBlock(_ r: PatientRecord) -> SummaryBlock {
+    /// Infusions (the drips running in the case; those running before it when they are not the same and were not taken off the
+    /// case's list), the antibiotics charted in Case Timers, the intraoperative medications (the notable medications chosen
+    /// as chips with their doses, then the text typed), and the factor concentrates and other products.
+    ///
+    /// 1.12 (Ben's note 16): a preoperative drip that was deleted on the Intraoperative tab is no longer running, so the handoff
+    /// does not list it any more; the Preprocedure Summary and the preop record keep it (they describe the patient on arrival).
+    /// 1.12 (note 3): "Antibiotics: Cefazolin 2 g, last 08:12, next due 12:12" for each antibiotic charted in Case Timers; one
+    /// whose redose is overdue is red.
+    private static func infusionsBlock(_ r: PatientRecord, now: Date = Date()) -> SummaryBlock {
         let c = r.capitalized
         var lines: [String] = []
+        var marks: [String] = []
         let drips = c.infusions.map(\.text).filter { !$0.isEmpty }
         if !drips.isEmpty { lines.append("Infusions: " + drips.joined(separator: "; ")) }
-        // A drip running before the case is listed again only when it is not one of the case's (another drug or rate).
+        // A drip running before the case is listed again only when it is not one of the case's (another drug or rate), and
+        // not when the case's list took it off.
         func same(_ s: String) -> String { s.lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ") }
         let running = Set(drips.map(same))
-        let before = c.homeInfusions.map(\.text).filter { !$0.isEmpty && !running.contains(same($0)) }
+        let takenOff = IntraopInfusionList.takenOff(r)
+        let before = c.homeInfusions.filter { !takenOff.contains($0.id) }.map(\.text).filter { !$0.isEmpty && !running.contains(same($0)) }
         if !before.isEmpty {
             let name = drips.isEmpty ? "Infusions (running before the case)" : "Running before the case"
             lines.append(name + ": " + before.joined(separator: "; "))
         }
-        var meds: [String] = []
-        let given = trimmed(c.medsGiven)
-        if !given.isEmpty { meds.append(given.hasSuffix(".") || given.hasSuffix(";") ? String(given.dropLast()) : given) }
+        let antibiotics = CaseAntibiotics.lines(r, now: now)
+        if !antibiotics.isEmpty {
+            lines.append("Antibiotics: " + antibiotics.map(\.handoffText).joined(separator: "; "))
+            marks += antibiotics.filter(\.overdue).map(\.handoffText)
+        }
+        var meds = PatientNotableMeds.lines(c)
         let factors = trimmed(c.factors)
         if !factors.isEmpty { meds.append(factors) }
         if !meds.isEmpty { lines.append("Intraop medications: " + meds.joined(separator: "; ")) }
-        return SummaryBlock(key: "infusions", label: "Current infusions & intraop medications", text: lines.joined(separator: "\n"))
+        return SummaryBlock(key: "infusions", label: "Current infusions & intraop medications", text: lines.joined(separator: "\n"), marks: marks)
     }
 
     /// Intake & output, in Ben's order: crystalloid, colloid, blood products, EBL, urine output, cell saver.
