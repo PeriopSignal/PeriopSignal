@@ -97,7 +97,7 @@ final class Preferences {
     var alertTimeText: String {
         var comps = DateComponents(); comps.hour = alertHour; comps.minute = alertMinute
         let date = Calendar.current.date(from: comps) ?? Date()
-        return date.formatted(date: .omitted, time: .shortened)
+        return PatientDates.clock(date)
     }
 
     func toggleTopic(_ id: String) {

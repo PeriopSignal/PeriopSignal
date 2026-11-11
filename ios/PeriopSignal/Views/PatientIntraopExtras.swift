@@ -117,6 +117,7 @@ struct IntraopLabsEditor: View {
                                                                 set: { v in if let i = index(s.id) { patient.update { $0.intraopLabs[i].time = v } } }),
                                displayedComponents: [.date, .hourAndMinute])
                         .labelsHidden()
+                        .environment(\.locale, PatientDates.locale24)
                     Spacer()
                     Button(role: .destructive) {
                         withAnimation(.snappy) { if let i = index(s.id) { patient.update(discrete: true) { _ = $0.intraopLabs.remove(at: i) } } }

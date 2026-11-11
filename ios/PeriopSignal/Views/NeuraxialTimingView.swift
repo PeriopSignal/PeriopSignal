@@ -141,6 +141,7 @@ struct NeuraxialTimingView: View {
             DatePicker("Last dose", selection: $lastDose, in: ...Date().addingTimeInterval(3600), displayedComponents: [.date, .hourAndMinute])
                 .labelsHidden()
                 .datePickerStyle(.compact)
+                .environment(\.locale, PatientDates.locale24)
                 .tint(PS.accent)
             if let t = tier, t.inrRule == true {
                 EvidenceNote("Warfarin counts in days: the block needs a normal INR on the day, whatever the calendar says.", title: "Warfarin: a normal INR on the day")

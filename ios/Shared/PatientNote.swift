@@ -4215,7 +4215,6 @@ extension PatientNote {
             let text = ns.substring(with: m.range).lowercased().split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
             mentions.append(MalignancyMention(key: "other:" + text, range: m.range))
         }
-        raw += malignancyBare.rx.all(c).map(\.range)
         for m in allAccepted(malignancyBare, in: c, &h) where !raw.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) {
             mentions.append(MalignancyMention(key: "bare", range: m.range))
         }
@@ -4324,7 +4323,7 @@ extension PatientNote {
         }
 
         let filled = groups.filter { !$0.typed.isEmpty }
-        let note = "The status, Metastatic and the treatment are kept for the whole list; check each before adding."
+        let note = "State and treatment apply to the whole list; check each before adding."
         for g in filled {
             h.add(PatientNoteFinding(id: malignancyFindingID, section: Part.history, label: "Malignancy: " + PatientMalignancy.words(g.typed),
                                      change: .detail(PatientMalignancy.problemID, "malignancy", PatientMalignancy.encode(g.typed)),

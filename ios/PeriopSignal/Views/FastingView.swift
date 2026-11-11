@@ -128,6 +128,7 @@ struct FastingView: View {
                         if on {
                             DatePicker("Time", selection: Binding(get: { taken[intake.id] ?? Date() }, set: { taken[intake.id] = $0 }), in: ...Date(), displayedComponents: [.date, .hourAndMinute])
                                 .labelsHidden().datePickerStyle(.compact).tint(PS.accent)
+                                .environment(\.locale, PatientDates.locale24)
                                 .padding(.leading, 30)
                         }
                     }

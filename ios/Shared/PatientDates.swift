@@ -31,6 +31,20 @@ enum PatientDates {
         formatter("EEE MM/dd/yy, HH:mm", calendar: calendar).string(from: d)
     }
 
+    /// "09:41": a clock time alone, on the 24-hour clock whatever the phone is set to (Ben, Nov 11: "Make all time 24-hr
+    /// military time standard"). Every time the app writes goes through this or `dayTime`.
+    static func clock(_ d: Date, calendar: Calendar = .current) -> String {
+        formatter("HH:mm", calendar: calendar).string(from: d)
+    }
+
+    /// The reader's own locale with the 24-hour clock, for a time picker (`.environment(\.locale, PatientDates.locale24)`):
+    /// the picker then reads 14:30, never 2:30 PM, and keeps the region's order of day and month.
+    static let locale24: Locale = {
+        var c = Locale.Components(locale: .current)
+        c.hourCycle = .zeroToTwentyThree
+        return Locale(components: c)
+    }()
+
     /// "Sat 11/07/26".
     static func weekdayDay(_ d: Date, calendar: Calendar = .current) -> String {
         formatter("EEE MM/dd/yy", calendar: calendar).string(from: d)

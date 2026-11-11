@@ -669,6 +669,7 @@ struct LabsDrawnRow: View {
             if editing, let d = patient.record.labsDrawn {
                 DatePicker("Labs drawn", selection: Binding(get: { d }, set: { v in patient.update { $0.labsDrawn = v } }), displayedComponents: [.date, .hourAndMinute])
                     .labelsHidden()
+                    .environment(\.locale, PatientDates.locale24)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
