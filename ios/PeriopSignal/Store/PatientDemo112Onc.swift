@@ -26,6 +26,7 @@ enum PatientDemo112Onc {
         r.systemNotes = ["heme": "Bleomycin 2024; chest radiation 2019"]
         r.medFlags.remove("insulin")
         r.asaClass = nil
+        r.preopSummaryOn = true
         PatientHistoryDetails.sync(&r)
         return r
     }
@@ -40,6 +41,7 @@ enum PatientDemo112Onc {
         r.hx.malignancyTreatment = ["chemo"]
         r.medFlags.remove("insulin")
         r.asaClass = nil
+        r.preopSummaryOn = true
         PatientHistoryDetails.sync(&r)
         return r
     }

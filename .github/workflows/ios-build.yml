@@ -1035,6 +1035,8 @@ jobs:
           shot 955-onc112-quickadd-added-tile-light 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll problems -ps.quickadd "lung cancer, metastatic, s/p chemo" -ps.quickadd.add 1 -ps.forceAppearance light
           shot 956-onc112-proc-ecmo-light 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "ECMO" -ps.forceAppearance light
           shot 957-onc112-proc-ecmo-reconfig-dark 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "VA to VV" -ps.forceAppearance dark
+          shot 958-onc112-tile-large-text-dark-375 18 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 959-onc112-tile-empty-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
