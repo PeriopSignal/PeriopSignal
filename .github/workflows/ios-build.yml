@@ -1013,6 +1013,8 @@ jobs:
           shot 938-valve-shorthand-asks-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "HTN, PI, MS" -ps.forceAppearance light
           shot 939-valve-insufficiency-375-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "aortic insufficiency, severe mitral insufficiency, mild TI" -ps.forceAppearance dark
           #
+          # ---- 1.12 helper F shots (940-959): add your shot lines directly under this line ----
+          #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
