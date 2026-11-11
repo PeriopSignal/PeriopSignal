@@ -18,6 +18,10 @@ enum PatientBox: String, CaseIterable, Hashable {
     case demographics, allergies, problems, medications, flagged, cardio, asa
     case airway, infusions, fluids
 
+    /// The box sits directly under a section title that says the same words ("Current Medications & Infusions", "Airway
+    /// Course", "Fluids & Blood"), so its folded card does not repeat them.
+    var repeatsSectionTitle: Bool { self == .medications || self == .airway || self == .fluids }
+
     var title: String {
         switch self {
         case .demographics: return "Demographics"

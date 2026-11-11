@@ -180,7 +180,7 @@ struct PatientBoxCard<Content: View>: View {
             // Where the tab scrolls to keep this box where it is when the ones above it fold.
             Color.clear.frame(height: 0).id(PatientBoxes.pinID(box))
             if boxes.isCollapsed(box, r) {
-                PatientBoxSummaryCard(title: box.title, lines: summary.lines) { boxes.touch(box, patient.record) }
+                PatientBoxSummaryCard(title: box.title, lines: summary.lines, showsTitle: !box.repeatsSectionTitle) { boxes.touch(box, patient.record) }
             } else {
                 // A tap anywhere in the box, on top of what the tap does there, counts as working in this box.
                 content()
@@ -217,13 +217,15 @@ struct PatientBoxCard<Content: View>: View {
 struct PatientBoxSummaryCard: View {
     var title: String
     var lines: [PatientSummary.Line]
+    /// False under a section title that already says the box's name: the card then shows the chevron alone.
+    var showsTitle = true
     var expand: () -> Void
 
     var body: some View {
         Button(action: expand) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
-                    Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
+                    if showsTitle { Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg) }
                     Spacer(minLength: 6)
                     Image(systemName: "chevron.down").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                 }

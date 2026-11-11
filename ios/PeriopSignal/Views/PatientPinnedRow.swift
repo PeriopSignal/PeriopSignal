@@ -65,19 +65,22 @@ struct PatientPinnedRow: View {
     private let tabIcon: CGFloat = 12.5
 
     var body: some View {
+        // With two cases or more the chips need the room, so that a second case is readable and not cut to a letter: the
+        // word stays on the tab showing only, and the cases keep about two chips' width.
+        let several = patient.showsCaseRow && patient.cases.count > 1
         ViewThatFits(in: .horizontal) {
             // Icon and word on each tab button, while the cases keep at least 84 pt (the chips scroll sideways): a 375-pt phone
             // has 335 pt between the gutters, and the three buttons take about 225 of them.
-            HStack(spacing: 8) { cases; tabs(words: true).fixedSize() }
+            HStack(spacing: 8) { cases(ideal: several ? 176 : 84); tabs(words: !several, currentWord: true).fixedSize() }
             // A large text size: the icons alone (VoiceOver still says the full names).
-            HStack(spacing: 8) { cases; tabs(words: false).fixedSize() }
+            HStack(spacing: 8) { cases(ideal: 84); tabs(words: false).fixedSize() }
         }
         .frame(height: PatientPinned.rowHeight)
     }
 
     // MARK: Cases
 
-    @ViewBuilder private var cases: some View {
+    @ViewBuilder private func cases(ideal: CGFloat) -> some View {
         let chips = PatientPinned.caseChips(cases: patient.cases, currentID: patient.currentCase.id, showsRow: patient.showsCaseRow)
         Group {
             if let single = PatientPinned.singleLabel(current: patient.currentCase, showsRow: patient.showsCaseRow) {
@@ -110,7 +113,7 @@ struct PatientPinnedRow: View {
             }
         }
         // The ideal width is what the row must keep for the cases; they take whatever more there is.
-        .frame(minWidth: 0, idealWidth: 84, maxWidth: .infinity, alignment: .leading)
+        .frame(minWidth: 0, idealWidth: ideal, maxWidth: .infinity, alignment: .leading)
     }
 
     private func chip(_ c: PatientPinned.CaseChip) -> some View {
@@ -135,20 +138,22 @@ struct PatientPinnedRow: View {
 
     // MARK: Tabs
 
-    private func tabs(words: Bool) -> some View {
+    /// `words`: icon and word on every button. `currentWord`: without `words`, the tab showing still keeps its word.
+    private func tabs(words: Bool, currentWord: Bool = false) -> some View {
         HStack(spacing: 2) {
             ForEach(PatientTab.allCases) { t in
                 let on = t == tab
+                let worded = words || (currentWord && on)
                 Button {
                     Haptics.light()
                     select(t)
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: t.icon).font(PS.sys(size: tabIcon, weight: .semibold))
-                        if words { Text(t.pinnedTitle).font(PS.sys(size: 12, weight: .semibold)).lineLimit(1) }
+                        if worded { Text(t.pinnedTitle).font(PS.sys(size: 12, weight: .semibold)).lineLimit(1) }
                     }
                     .foregroundStyle(on ? PS.accentFg : PS.fg2)
-                    .padding(.horizontal, words ? 6 : 11)
+                    .padding(.horizontal, worded ? 6 : 9)
                     .frame(minHeight: 32)
                     .background(on ? PS.accent : Color.clear, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .contentShape(Rectangle())
