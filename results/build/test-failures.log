@@ -1,0 +1,6 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/A112Tests.swift:565:27: error: cannot find type 'DynamicTypeSize' in scope
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/A112Tests.swift:568:29: error: cannot infer contextual base in reference to member 'large'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/A112Tests.swift:569:29: error: cannot infer contextual base in reference to member 'large'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/A112Tests.swift:570:30: error: cannot infer contextual base in reference to member 'large'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/A112Tests.swift:571:30: error: cannot infer contextual base in reference to member 'large'
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/A112Tests.swift:572:30: error: cannot infer contextual base in reference to member 'xxLarge'
