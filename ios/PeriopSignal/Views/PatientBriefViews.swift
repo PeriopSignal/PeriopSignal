@@ -112,6 +112,7 @@ struct BriefBlockView: View {
     @State private var draft = ""
     @FocusState private var focused: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.briefOnPage) private var onPage
 
     private var multiline: Bool { block.lines.count > 1 }
     private var isHeader: Bool { block.key == "header" }
@@ -125,7 +126,7 @@ struct BriefBlockView: View {
             if let l = block.label {
                 Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.red : PS.fg)
             }
-            if block.edited {
+            if block.edited && !onPage {
                 Text("edited").font(PS.sys(size: 10, weight: .semibold)).foregroundStyle(PS.fg3)
                     .padding(.horizontal, 6).padding(.vertical, 1)
                     .overlay(Capsule().stroke(PS.line2, lineWidth: 1))

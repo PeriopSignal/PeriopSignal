@@ -126,6 +126,7 @@ enum BriefPages {
             .environment(ctx.refs)
             .environment(ctx.patient)
             .environment(\.briefFigure, ctx.figure)
+            .environment(\.briefOnPage, true)
             .environment(\.colorScheme, .light)
             .environment(\.dynamicTypeSize, .large)
     }
@@ -155,6 +156,7 @@ enum BriefPages {
             .environment(ctx.refs)
             .environment(ctx.patient)
             .environment(\.briefFigure, ctx.figure)
+            .environment(\.briefOnPage, true)
             .environment(\.colorScheme, .light)
             .environment(\.dynamicTypeSize, .large)
     }
@@ -213,10 +215,19 @@ struct BriefFigureKey: EnvironmentKey {
     static let defaultValue: RegionalFigure? = nil
 }
 
+/// True while a block is drawn for a shared picture or PDF: the small "edited" mark is the screen's and stays off it.
+struct BriefOnPageKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
 extension EnvironmentValues {
     var briefFigure: RegionalFigure? {
         get { self[BriefFigureKey.self] }
         set { self[BriefFigureKey.self] = newValue }
+    }
+    var briefOnPage: Bool {
+        get { self[BriefOnPageKey.self] }
+        set { self[BriefOnPageKey.self] = newValue }
     }
 }
 

@@ -468,8 +468,9 @@ extension MedAbbreviations {
     private static let severity = #"\b(?:mild|moderate|mod|severe|critical|trace|trivial|significant|mild[- ]to[- ]moderate|moderate[- ]to[- ]severe|mild-moderate|moderate-severe)\s*$"#
     private static let valve = #"\b(?:valves?|valvular|mitral|aortic|mva|ava|gradients?|mmhg|pht|half[- ]time|cm2|cm²|rheumatic|balloon|commissurotomy|tavr|tavi|savr|mvr|tte|tee|echo\w*|stenosis|regurgitation|insufficiency|murmur|(?-i:AS|AR|MR|TR|AI|TS|TI|LVOT))\b"#
     /// A severity word right after the letters (1.12, note 7: "AS severe", "MR: moderate", "AR mild to moderate"), unless
-    /// that word belongs to the next lesion ("MR mild AS": the mild is the AS's).
-    private static let severityAfter = #"^\s*(?:(?:is|was)\s+|[:\-–]\s*)?(?:trace|trivial|mild|mod(?:erate)?|severe|critical)\b(?:(?:\s*[-–/]\s*|\s+to\s+)(?:mild|mod(?:erate)?|severe|critical)\b)?(?!\s*(?:valve\s+)?(?:(?-i:[AMTP][SRI])\b|aortic|mitral|tricuspid|pulmonic|pulmonary))"#
+    /// that word belongs to the next lesion ("MR mild AS": the mild is the AS's). The grade must end the phrase ("AS
+    /// severe", "AS severe, EF 55%"): "MS severe fatigue" is not a grade of the valve, so the letters are asked.
+    private static let severityAfter = #"^\s*(?:(?:is|was)\s+|[:\-–]\s*)?(?:trace|trivial|mild|mod(?:erate)?|severe|critical)\b(?:(?:\s*[-–/]\s*|\s+to\s+)(?:mild|mod(?:erate)?|severe|critical)\b)?(?!\s*(?:valve\s+)?(?:(?-i:[AMTP][SRI])\b|aortic|mitral|tricuspid|pulmonic|pulmonary))(?=\s*(?:$|[,;.)]))"#
     /// Words that put a magnetic-resonance study after "MR" ("MR brain", "MR angiography") and before it ("cardiac MR").
     private static let mrAfter = #"^\s*(?:of\s+(?:the\s+)?)?(?:brain|head|spine|c-?spine|l-?spine|t-?spine|angio\w*|mra\b|cholangio\w*|enterograph\w*|neck|knee|shoulder|hip|pelvis|abd\w*|orbits?|safe|conditional|compatible|imaging|scan|contrast|venogra\w*|urogra\w*|elastograph\w*|spectroscop\w*|lumbar|cervical|thoracic)"#
     private static let mrBefore = #"\b(?:cardiac|cardiovascular|brain|head|spine|abdominal|pelvic|knee|shoulder|ct\s*(?:and|/|&))\s*$"#

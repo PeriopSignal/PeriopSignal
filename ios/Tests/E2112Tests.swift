@@ -58,6 +58,10 @@ final class E2112Tests: XCTestCase {
         XCTAssertEqual(ValveLibrary.sizes(for: ValveLibrary.rows.first { $0.name == "Evolut R" }!), [23, 26, 29, 34])
         XCTAssertEqual(ValveLibrary.sizes(for: ValveLibrary.rows.first { $0.name == "Physio II ring" }!), [], "a typed size only")
         XCTAssertEqual(ValveLibrary.sizes(for: ValveLibrary.rows.first { $0.name == "MitraClip" }!), [])
+        // A sutureless, rapid-deployment or stentless valve is not sized on the generic row: a typed size.
+        for name in ["Perceval (sutureless)", "Intuity (rapid deployment)", "Freestyle (stentless)", "Evolut PRO"] {
+            XCTAssertEqual(ValveLibrary.sizes(for: ValveLibrary.rows.first { $0.name == name }!), [], name)
+        }
     }
 
     func testChoosingWritesTheTextAsIfTyped() {
@@ -270,6 +274,9 @@ final class E2112Tests: XCTestCase {
         XCTAssertEqual(meaning("AI", in: "AI mild")?.meaning?.text, "aortic regurgitation")
         XCTAssertEqual(meaning("MS", in: "MS moderate")?.meaning?.text, "mitral stenosis")
         XCTAssertEqual(meaning("MS", in: "MS, mild weakness on ocrelizumab")?.meaning?.text, "multiple sclerosis")
+        // A grade behind the letters settles the valve only when it ends the phrase.
+        XCTAssertNotEqual(meaning("MS", in: "hx MS severe fatigue")?.fromContext, true, "severe says how bad the fatigue is, not the valve")
+        XCTAssertEqual(meaning("MS", in: "MS severe, EF 55%")?.meaning?.text, "mitral stenosis")
         XCTAssertEqual(meaning("PS", in: "severe PS")?.meaning?.text, "pulmonic stenosis")
         XCTAssertEqual(meaning("PS", in: "PS 10/5")?.meaning?.text, "pressure support")
         XCTAssertEqual(meaning("PR", in: "PR severe")?.meaning?.text, "pulmonic regurgitation")

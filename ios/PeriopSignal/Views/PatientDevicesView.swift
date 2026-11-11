@@ -951,6 +951,7 @@ struct DeviceDetailSheet: View {
                                         Text(d.kind.name).font(PS.sys(size: 14.5, weight: .semibold))
                                         Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 11, weight: .semibold))
                                     }
+                                    .foregroundStyle(PS.action)
                                 }
                             }
                             .padding(.horizontal, 14).padding(.vertical, 10)
@@ -974,6 +975,7 @@ struct DeviceDetailSheet: View {
                                         Text(d.siteInfo.map { $0.name.prefix(1).uppercased() + $0.name.dropFirst() } ?? "Choose").font(PS.sys(size: 14.5, weight: .semibold))
                                         Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 11, weight: .semibold))
                                     }
+                                    .foregroundStyle(PS.action)
                                 }
                             }
                             .padding(.horizontal, 14).padding(.vertical, 10)
