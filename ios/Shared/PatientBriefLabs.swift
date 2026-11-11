@@ -235,8 +235,9 @@ struct BriefLabs: Hashable {
         if let m = PatientSummary.liverLine(r) { other.append(BriefLabItem(key: "liver", text: m.text, marks: m.marks)) }
         let notes = trimmed(r.labNotes)
         if !notes.isEmpty { other.append(BriefLabItem(key: "labnotes", text: notes)) }
-        // Chosen under "+ Add other input data into Handoff": appended under Other.
-        for c in HandoffExtras.preopCandidates(r) where extras.contains(c.key) { other.append(c.item) }
+        // Appended under Other: what was chosen under "+ Add other input data into Handoff", and any abnormal value
+        // outside the lists (Ben, Nov 11: an abnormal lab is in the summaries whether or not it was picked).
+        for c in HandoffExtras.preopCandidates(r) where extras.contains(c.key) || HandoffExtras.alwaysShown(c) { other.append(c.item) }
 
         var groups: [BriefLabGroup] = []
         if !cmp.isEmpty { groups.append(BriefLabGroup(name: "CMP", items: cmp)) }
@@ -317,9 +318,10 @@ struct BriefLabs: Hashable {
         }
         if !coags.isEmpty { groups.append(BriefLabGroup(name: "Coags", items: coags)) }
 
-        // Other: the values chosen under "+ Add other input data into Handoff", and what was typed under Other results.
+        // Other: the newest intraoperative hemoglobin, always (Ben, Nov 11); any abnormal value outside the gas and the
+        // coags; the values chosen under "+ Add other input data into Handoff"; and what was typed under Other results.
         var other: [BriefLabItem] = []
-        for c in HandoffExtras.intraopCandidates(r) where extras.contains(c.key) {
+        for c in HandoffExtras.intraopCandidates(r) where extras.contains(c.key) || HandoffExtras.alwaysShown(c) {
             other.append(c.item)
             timed.append((c.item.time, c.label))
         }
@@ -423,9 +425,16 @@ enum HandoffExtras {
         return out
     }
 
-    /// The three groups of chips, in the order they are drawn.
+    /// The newest intraoperative hemoglobin is in the handoff whatever its value.
+    static let intraopHemoglobinKey = intraopPrefix + "hb"
+
+    /// In the summaries without being chosen: an abnormal value (its item carries a mark), and the newest intraoperative
+    /// hemoglobin. Such an item is not offered as a chip, since choosing it would change nothing.
+    static func alwaysShown(_ c: Candidate) -> Bool { !c.item.marks.isEmpty || c.key == intraopHemoglobinKey }
+
+    /// The three groups of chips, in the order they are drawn: what is recorded, not shown by default and not shown anyway.
     static func offered(_ r: PatientRecord) -> (preop: [Candidate], intraop: [Candidate], imaging: [Candidate]) {
-        (preopCandidates(r), intraopCandidates(r), imagingCandidates(r))
+        (preopCandidates(r).filter { !alwaysShown($0) }, intraopCandidates(r).filter { !alwaysShown($0) }, imagingCandidates(r))
     }
 
     /// Chosen and still recorded: how many extras the summaries are showing.

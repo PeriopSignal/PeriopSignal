@@ -15,8 +15,8 @@ final class E1112Tests: XCTestCase {
         XCTAssertTrue(line("MAC introducer").acceptsDevicesThrough)
         XCTAssertTrue(line("introducer").acceptsDevicesThrough)
         XCTAssertTrue(line("MAC").acceptsDevicesThrough)
-        // Ben's note 1 names an Introducer or MAC only; a Cordis is its own Type chip and gets no row.
-        XCTAssertFalse(line("Cordis").acceptsDevicesThrough)
+        // Ben, Nov 11: a Cordis takes a PA catheter or SLIC through it too.
+        XCTAssertTrue(line("Cordis").acceptsDevicesThrough)
         XCTAssertTrue(line("triple lumen, MAC introducer").acceptsDevicesThrough)
         XCTAssertFalse(line("triple lumen").acceptsDevicesThrough)
         XCTAssertFalse(line("SLIC").acceptsDevicesThrough)

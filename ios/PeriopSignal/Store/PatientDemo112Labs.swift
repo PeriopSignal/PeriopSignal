@@ -58,8 +58,8 @@ enum PatientDemo112Labs {
 
     private static func applyLabs(_ r: inout PatientRecord) {
         r.labs = ["na": 138, "k": 4.1, "cl": 102, "hco3": 24, "bun": 24, "cr": 1.3, "gfr": 52, "ast": 55, "alt": 30, "glucose": 142,
-                  "hb": 10.9, "hct": 33, "wbc": 11.8, "plt": 210, "pt": 12.1, "ptt": 31, "inr": 1.0, "fibrinogen": 310,
-                  "lactate": 1.4, "tsh": 5.2, "ft4": 1.1, "tbili": 0.8, "albumin": 3.1, "ca": 8.1, "vanc": 18.4]
+                  "hb": 10.9, "hct": 38, "wbc": 7.4, "plt": 210, "pt": 12.1, "ptt": 31, "inr": 1.0, "fibrinogen": 310,
+                  "lactate": 1.4, "tsh": 5.2, "ft4": 1.1, "tbili": 0.8, "albumin": 4.2, "ca": 9.2, "vanc": 18.4]
         r.labsDrawn = PatientDemo.today(6, 30)
         r.typeScreen = PatientTypeScreen(type: "A+", screen: .negative, crossmatched: 2)
         r.infections = PatientInfections(results: ["mrsa": .negative, "staph": .negative, "covid": .negative])
@@ -77,8 +77,8 @@ enum PatientDemo112Labs {
 
     private static var abgSet: IntraopLabSet {
         IntraopLabSet(time: PatientDemo.today(8, 3),
-                      values: ["ph": 7.43, "paco2": 43, "pao2": 146, "hco3a": 28, "be": 4, "lactate": 1.0, "hb": 9, "k": 4.3, "na": 132,
-                               "ica": 1.07, "glucose": 164])
+                      values: ["ph": 7.43, "paco2": 43, "pao2": 146, "hco3a": 28, "be": 4, "lactate": 1.0, "hb": 9, "k": 4.3, "na": 139,
+                               "ica": 1.2, "glucose": 164])
     }
 
     private static var coagSet: IntraopLabSet {
