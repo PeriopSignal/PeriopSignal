@@ -129,6 +129,8 @@ extension PatientEditorView {
         case "pft": pftEditor
         case "codestatus": PatientCodeStatusGroup()
         case "stress": PatientStressTestEditor()
+        // 1.12 (Ben's note 11): the preprocedure chest X-ray.
+        case "cxr": chestXrayEditor
         default: EmptyView()
         }
     }

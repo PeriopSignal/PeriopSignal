@@ -8,9 +8,24 @@ struct ValveGraderView: View {
 
     /// DEBUG screenshots: -ps.vg.lesion mr opens on that lesion.
     @State private var lesion: ValveLesion = ValveLesion(rawValue: LaunchSeed.string("ps.vg.lesion")) ?? .as_
-    @State private var texts: [String: String] = [:]
+    /// DEBUG screenshots: -ps.vg.texts "vmax=3.3;lvotd=2.0" types those values in (1.12).
+    @State private var texts: [String: String] = ValveGraderView.seededTexts()
     @State private var signs: Set<String> = []
 
+    private static func seededTexts() -> [String: String] {
+        #if DEBUG
+        var out: [String: String] = [:]
+        for pair in LaunchSeed.string("ps.vg.texts").split(separator: ";") {
+            let kv = pair.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+            if kv.count == 2 { out[kv[0]] = kv[1] }
+        }
+        return out
+        #else
+        return [:]
+        #endif
+    }
+
+    /// What was typed and ticked (1.12: calculated values are not in it, so an empty page still reads as empty).
     private var input: ValveInput {
         var i = ValveInput()
         for (k, v) in texts {
@@ -19,10 +34,20 @@ struct ValveGraderView: View {
         i.signs = signs
         return i
     }
-    private var reading: ValveReading { ValveGrading.read(lesion, input) }
+    /// What the open patient gives (1.12): the BSA from the recorded height and weight, the LVEF from the recorded echo.
+    private var context: ValveGrading.Context { ValveGrading.Context(myPatient.record) }
+    /// The fields that can be calculated from the others and are empty (1.12, Ben's note 9). A field that holds text which
+    /// is not a number yet is not empty.
+    private var calculation: ValveGrading.Calculation {
+        let occupied = Set(texts.filter { !$0.value.trimmingCharacters(in: .whitespaces).isEmpty }.keys)
+        return ValveGrading.calculate(lesion, typed: input.numbers, occupied: occupied, context: context)
+    }
+    /// The reading grades the value shown, typed or calculated.
+    private var reading: ValveReading { ValveGrading.read(lesion, ValveGrading.graded(input, with: calculation)) }
     private var params: [ValveParam] { ValveGrading.params(for: lesion) }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ToolScroll {
             VStack(alignment: .leading, spacing: 18) {
                 picker
@@ -35,6 +60,7 @@ struct ValveGraderView: View {
             .padding(.horizontal, 20)
             .padding(.top, 6)
             .padding(.bottom, 30)
+            .modifier(DebugContentWidth())
         }
         .background(FeedBackground())
         .scrollContentBackground(.hidden)
@@ -45,6 +71,16 @@ struct ValveGraderView: View {
                 Spacer()
                 Button("Done") { Keyboard.dismiss() }
             }
+        }
+        #if DEBUG
+        // DEBUG screenshots: -ps.vg.scroll lvotd scrolls the measurement with that id to the top once the page is up.
+        .task {
+            let id = LaunchSeed.string("ps.vg.scroll")
+            guard !id.isEmpty else { return }
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            proxy.scrollTo("vg-" + id, anchor: .top)
+        }
+        #endif
         }
     }
 
@@ -123,28 +159,53 @@ struct ValveGraderView: View {
 
     private var numbers: some View {
         let list = params.filter { !$0.isSign }
+        let calc = calculation
         return VStack(alignment: .leading, spacing: 8) {
             Eyebrow(text: "Measurements").padding(.leading, 2)
+            if let line = Self.patientLine(calc, context: context) {
+                Text(line).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).padding(.leading, 2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             VStack(spacing: 0) {
                 ForEach(Array(list.enumerated()), id: \.element.id) { i, p in
-                    let value = texts[p.id].flatMap { Double($0.replacingOccurrences(of: ",", with: ".")) }
-                    let grade = value.flatMap { p.grade($0) }
+                    let typedValue = texts[p.id].flatMap { Double($0.replacingOccurrences(of: ",", with: ".")) }
+                    // 1.12: a calculated value stands in a field that is empty; typing in it replaces it, clearing brings it back.
+                    let calculated: ValveGrading.Calculated? = (texts[p.id] ?? "").trimmingCharacters(in: .whitespaces).isEmpty ? calc.values[p.id] : nil
+                    let grade = (typedValue ?? calculated?.value).flatMap { p.grade($0) }
                     VStack(alignment: .leading, spacing: 3) {
+                        if p.id == "lvotd" {
+                            Text("Optional: the empty fields above are calculated from these.")
+                                .font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(PS.fg3)
+                                .padding(.bottom, 4)
+                        }
                         HStack(spacing: 10) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(p.label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
                                 if let h = p.hint { Text(h).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true) }
+                                if let c = calculated {
+                                    Text(c.caption).font(PS.sys(size: 11.5, weight: .medium)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                                }
                             }
                             Spacer(minLength: 6)
                             if let g = grade { Circle().fill(color(g)).frame(width: 8, height: 8) }
                             FocusBox { f in
-                                TextField("—", text: Binding(get: { texts[p.id] ?? "" }, set: { texts[p.id] = $0 }))
+                                TextField(calculated == nil ? "—" : "", text: Binding(get: { texts[p.id] ?? "" }, set: { texts[p.id] = $0 }))
                                     .keyboardType(.decimalPad)
                                     .focused(f)
                                     .multilineTextAlignment(.trailing)
                                     .font(PS.sys(size: 17, weight: .semibold, design: .monospaced))
                                     .foregroundStyle(PS.fg)
                                     .padding(.horizontal, 6).padding(.vertical, 5)
+                                    .overlay(alignment: .trailing) {
+                                        // The calculated value, in a quieter ink; out of the way of the cursor while the field is being typed in.
+                                        if let c = calculated, !f.wrappedValue {
+                                            Text(c.text)
+                                                .font(PS.sys(size: 17, weight: .semibold, design: .monospaced)).foregroundStyle(PS.fg3)
+                                                .padding(.trailing, 6)
+                                                .allowsHitTesting(false)
+                                                .accessibilityLabel("\(c.text), " + c.caption)
+                                        }
+                                    }
                                     .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                             }
                                 .frame(width: 78)
@@ -152,11 +213,23 @@ struct ValveGraderView: View {
                         }
                     }
                     .padding(.horizontal, 14).padding(.vertical, 9)
+                    .id("vg-" + p.id)
                     if i < list.count - 1 { Hairline().padding(.leading, 14) }
                 }
             }
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            ForEach(Array(calc.notes.enumerated()), id: \.offset) { _, n in
+                Text(n).font(PS.sys(size: 12)).foregroundStyle(PS.fg3).padding(.leading, 2).fixedSize(horizontal: false, vertical: true)
+            }
         }
+    }
+
+    /// "Indexed values use BSA 2.13 m² from My Patient." when a value was indexed or the LVEF taken from the patient.
+    static func patientLine(_ calc: ValveGrading.Calculation, context c: ValveGrading.Context) -> String? {
+        var used: [String] = []
+        if let b = c.bsa, calc.values["avai"] != nil || calc.values["svi"] != nil { used.append("BSA " + String(format: "%.2f", b) + " m²") }
+        if calc.values["lvef"] != nil, let e = c.lvef { used.append("LVEF " + NumText.short(e) + "%") }
+        return used.isEmpty ? nil : used.joined(separator: " and ") + " from My Patient."
     }
 
     private var signsCard: some View {

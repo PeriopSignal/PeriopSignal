@@ -54,6 +54,8 @@ enum PatientDiagramModel {
         case .impella: return "Impella" + (d.detail.isEmpty ? "" : " " + d.detail) + (d.settings["pLevel"].map { " " + $0 } ?? "")
         case .lvad: return "LVAD" + (d.settings["rpm"].map { " " + $0 } ?? "")
         case .protekDuo: return "ProtekDuo" + size
+        // 1.12: a SLIC put through an introducer line is drawn as "SLIC" (a PA catheter is "PAC", from its kind's label).
+        case .cvc where d.throughLine != nil && d.isSLIC: return "SLIC" + size
         // 1.9: the tags that fit the label column (15 characters).
         case .epicardialWires:
             let c = PatientDevices.chamberWords(d)
@@ -499,14 +501,28 @@ struct PatientDevicesEditor: View {
             // Screenshot runs: -ps.devices.type "<shorthand>" types it into the field (1.8.1).
             let t = LaunchSeed.string("ps.devices.type")
             if !t.isEmpty, typed.isEmpty, !supportOnly { typed = t }
+            // 1.12: -ps.devices.details 1 opens the details of the first line that takes a device through it.
+            if LaunchSeed.bool("ps.devices.details"), editingID == nil, !supportOnly {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    editingID = r.devices.first(where: { $0.acceptsDevicesThrough })?.id
+                }
+            }
             #endif
         }
         .sheet(item: Binding(get: { editingID.map { IDBox(id: $0) } }, set: { editingID = $0?.id })) { box in
-            DeviceDetailSheet(deviceID: box.id)
+            DeviceDetailSheet(deviceID: box.id, addedIntraop: placedIntraop)
                 .environment(patient)
-                .presentationDetents([.medium, .large])
+                .presentationDetents(Self.sheetDetents)
                 .presentationDragIndicator(.visible)
         }
+    }
+
+    /// Half and full height; a screenshot run (-ps.devices.large 1) opens it full so the whole of the details shows.
+    private static var sheetDetents: Set<PresentationDetent> {
+        #if DEBUG
+        if LaunchSeed.bool("ps.devices.large") { return [.large] }
+        #endif
+        return [.medium, .large]
     }
 
     private struct IDBox: Identifiable { var id: UUID }
@@ -882,6 +898,9 @@ struct DeviceDetailSheet: View {
     @Environment(PatientStore.self) private var patient
     @Environment(\.dismiss) private var dismiss
     var deviceID: UUID
+    /// The page the sheet was opened from is the intraoperative one (1.12): a device put through this line from there was
+    /// placed in the room.
+    var addedIntraop = false
 
     private var index: Int? { patient.record.devices.firstIndex { $0.id == deviceID } }
     private var device: PatientDevice? { index.map { patient.record.devices[$0] } }
@@ -889,6 +908,29 @@ struct DeviceDetailSheet: View {
     /// A typed detail joins the burst it is part of; a menu pick, toggle or chip (`discrete`) is an Undo step of its own.
     private func update(discrete: Bool = false, _ f: (inout PatientDevice) -> Void) {
         patient.update(discrete: discrete) { r in if let i = r.devices.firstIndex(where: { $0.id == deviceID }) { f(&r.devices[i]) } }
+    }
+
+    /// "Through this line": "+ PA catheter" and "+ SLIC". A chosen chip shows its ✓ (and drops the "+"); a second tap
+    /// removes the device the first one added (PatientDevices.toggleThrough).
+    static func throughChoices(isOn: (ThroughDevice) -> Bool) -> [ChipChoice] {
+        ThroughDevice.allCases.map { t in ChipChoice(t.rawValue, (isOn(t) ? "" : "+ ") + t.name) }
+    }
+
+    private var throughRow: some View {
+        let options = Self.throughChoices { t in patient.record.devices.contains { $0.isThrough(t, of: deviceID) } }
+        return PatientChipRow(label: "Through this line") {
+            ChipSet(options: options, style: .toggle,
+                    hints: ["pac": "Adds a pulmonary artery catheter through this line; tap again to remove it",
+                            "slic": "Adds a SLIC through this line; tap again to remove it"],
+                    isOn: { id in ThroughDevice(rawValue: id).map { t in patient.record.devices.contains { $0.isThrough(t, of: deviceID) } } ?? false },
+                    tap: { id in
+                        guard let t = ThroughDevice(rawValue: id) else { return }
+                        patient.update(discrete: true) { r in
+                            guard let line = r.devices.first(where: { $0.id == deviceID }) else { return }
+                            PatientDevices.toggleThrough(t, line: line, in: &r.devices, placedIntraop: addedIntraop)
+                        }
+                    })
+        }
     }
 
     var body: some View {
@@ -918,7 +960,14 @@ struct DeviceDetailSheet: View {
                                 Spacer()
                                 Menu {
                                     ForEach(DeviceSite.all.filter { $0.kinds.contains(d.kind) || d.kind == .other }) { s in
-                                        Button(s.name.prefix(1).uppercased() + s.name.dropFirst()) { update(discrete: true) { $0.site = s.id; $0.side = s.side; $0.offset = nil } }
+                                        Button(s.name.prefix(1).uppercased() + s.name.dropFirst()) {
+                                            // 1.12: a PA catheter or SLIC put through this line moves with it.
+                                            patient.update(discrete: true) { r in
+                                                guard let i = r.devices.firstIndex(where: { $0.id == deviceID }) else { return }
+                                                r.devices[i].site = s.id; r.devices[i].side = s.side; r.devices[i].offset = nil
+                                                PatientDevices.followLine(deviceID, in: &r.devices)
+                                            }
+                                        }
                                     }
                                 } label: {
                                     HStack(spacing: 4) {
@@ -933,6 +982,12 @@ struct DeviceDetailSheet: View {
                             ForEach(d.kind.fields) { f in
                                 DeviceFieldRow(field: f, value: Binding(get: { device?.value(f.id) ?? "" }, set: { v in update { $0.setValue(v, for: f.id) } }))
                                 Hairline().padding(.leading, 14)
+                                // 1.12 (Ben's note 1): an introducer or MAC line takes a PA catheter or a SLIC through it, between
+                                // its Type and its Depth.
+                                if f.id == "detail", d.acceptsDevicesThrough {
+                                    throughRow
+                                    Hairline().padding(.leading, 14)
+                                }
                             }
                         }
                         PatientGroup(title: nil) {

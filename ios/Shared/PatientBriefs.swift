@@ -398,6 +398,11 @@ enum PatientBriefs {
             let at = lines.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? lines.count
             lines.insert(s, at: at)
         }
+        // 1.12 (Ben's note 11): the chest X-ray, after the stress test (before the catheterizations and ultrasounds).
+        if let x = PatientChestXray.line(r) {
+            let at = lines.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? lines.count
+            lines.insert(x, at: at)
+        }
         if let t = PatientTEE.line(r) { lines.append(t) }
         // Before the case: the support the patient arrives with (one placed in the room is not preprocedure workup).
         if kind == .preop {
