@@ -1043,10 +1043,10 @@ jobs:
           shot 962-dates112-psh-page-light-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance light
           shot 963-dates112-field-placeholder-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:echo -ps.patient.width 375 -ps.forceAppearance light
           shot 964-dates112-field-typed-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.open workup:echo -ps.monthyear 06/14/2015 -ps.patient.width 375 -ps.forceAppearance dark
-          shot 965-dates112-cardio-rows-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light
-          shot 966-dates112-cardio-rows-dark-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.tab preop -ps.patient.scroll cardio -ps.patient.width 375 -ps.forceAppearance dark
-          shot 967-dates112-presummary-light-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance light
-          shot 968-dates112-presummary-dark 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
+          shot 965-dates112-workup-rows-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.forceAppearance light
+          shot 966-dates112-cath-page-dark-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:lhc -ps.patient.width 375 -ps.forceAppearance dark
+          shot 967-dates112-presummary-light-375 22 -ps.tab patient -ps.patient demo-112-dates-summary -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance light
+          shot 968-dates112-presummary-dark 22 -ps.tab patient -ps.patient demo-112-dates-summary -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
           shot 969-dates112-quickadd-psh-light 22 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.quickadd.editor "appendectomy 6/14/2015" -ps.forceAppearance light
           shot 970-dates112-quickadd-psh-dark-375 22 -ps.tab patient -ps.patient empty -ps.patient.open workup:surgeries -ps.quickadd.editor "PSH: appendectomy 6/14/2015, CABG x3 5/1/2019" -ps.patient.width 375 -ps.forceAppearance dark
           shot 971-ts112-labs-expires-link-light-375 22 -ps.tab patient -ps.patient demo-112-dates-ts-sent -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.patient.width 375 -ps.forceAppearance light
@@ -1056,8 +1056,8 @@ jobs:
           shot 975-ts112-handoff-heme-set-light 22 -ps.tab patient -ps.patient demo-112-dates-ts-set -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
           shot 976-ts112-handoff-heme-expired-dark-375 22 -ps.tab patient -ps.patient demo-112-dates-ts-expired -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
           shot 977-lab112-labs-page-no-letters-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:labs -ps.forceAppearance light
-          shot 978-lab112-labs-page-no-letters-dark-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:labs -ps.patient.width 375 -ps.forceAppearance dark
-          shot 979-lab112-share-image-labs-light 22 -ps.tab patient -ps.patient demo-112-dates-ts-set -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 978-lab112-intraop-labs-dark-375 24 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance dark
+          shot 979-lab112-share-image-page2-light 22 -ps.tab patient -ps.patient demo-112-dates-ts-set -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage2 -ps.forceAppearance light
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
