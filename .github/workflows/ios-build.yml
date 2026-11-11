@@ -992,6 +992,8 @@ jobs:
           shot 923-e1-valve-calc-typed-light 16 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;ava=1.1;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.forceAppearance light
           shot 924-e1-valve-calc-nobsa-375-light 16 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.patient.width 375 -ps.forceAppearance light
           #
+          # ---- 1.12 helper H shots (980-999): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper E2 shots (925-939): add your shot lines directly under this line ----
           # The valve library (note 4): the History's prosthesis field with "Library" beside it (light, dark), the picker (-ps.valve.library
           # <position> opens it after 3 s; .row "<name>" opens that valve's sizes), the echo's prosthesis details with Library, and the
