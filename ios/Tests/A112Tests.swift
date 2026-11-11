@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import PeriopSignal
 
 /// 1.12 helper A, labs: the new preprocedure labs (note 12), the blood gas type and the glucose section (note 13), the Labs
