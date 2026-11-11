@@ -139,6 +139,15 @@ final class C112Tests: XCTestCase {
         XCTAssertEqual(fc?.alert, true, "under 4 METs is flagged")
     }
 
+    func testALineLabelledLikeTheBoxLosesItsLabelAndKeepsItsAlert() {
+        let line = PatientSummary.Line("Allergies", "Latex (anaphylaxis)", alert: true, marks: ["Latex (anaphylaxis)"])
+        let drawn = PatientBoxSummaryCard.drawn(title: "Allergies", lines: [line, PatientSummary.Line("Code status", "Full code")])
+        XCTAssertNil(drawn[0].label)
+        XCTAssertTrue(drawn[0].alert)
+        XCTAssertEqual(drawn[0].marks, ["Latex (anaphylaxis)"])
+        XCTAssertEqual(drawn[1].label, "Code status", "another label stays")
+    }
+
     func testTheSpokenLabelNamesTheBoxAndItsLines() {
         let said = PatientBoxSummaryCard.spokenLabel(title: "Allergies", lines: [PatientSummary.Line("Allergies", "Latex (anaphylaxis)", alert: true)])
         XCTAssertEqual(said, "Allergies, collapsed. Allergies: Latex (anaphylaxis)")

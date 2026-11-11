@@ -66,7 +66,8 @@ struct PatientPinnedRow: View {
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            // Icon and word on each tab button, while the cases keep at least 96 pt (the chips scroll sideways).
+            // Icon and word on each tab button, while the cases keep at least 84 pt (the chips scroll sideways): a 375-pt phone
+            // has 335 pt between the gutters, and the three buttons take about 225 of them.
             HStack(spacing: 8) { cases; tabs(words: true).fixedSize() }
             // A large text size: the icons alone (VoiceOver still says the full names).
             HStack(spacing: 8) { cases; tabs(words: false).fixedSize() }
@@ -100,11 +101,16 @@ struct PatientPinnedRow: View {
                     .onChange(of: patient.currentCase.id) { _, id in
                         withAnimation(.snappy) { proxy.scrollTo(id, anchor: .center) }
                     }
+                    // A chip that runs on under the tab buttons fades out, so it reads as more to scroll to, not as cut off.
+                    .mask(HStack(spacing: 0) {
+                        Rectangle().fill(Color.black)
+                        LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing).frame(width: 14)
+                    })
                 }
             }
         }
         // The ideal width is what the row must keep for the cases; they take whatever more there is.
-        .frame(minWidth: 0, idealWidth: 96, maxWidth: .infinity, alignment: .leading)
+        .frame(minWidth: 0, idealWidth: 84, maxWidth: .infinity, alignment: .leading)
     }
 
     private func chip(_ c: PatientPinned.CaseChip) -> some View {
@@ -142,7 +148,7 @@ struct PatientPinnedRow: View {
                         if words { Text(t.pinnedTitle).font(PS.sys(size: 12, weight: .semibold)).lineLimit(1) }
                     }
                     .foregroundStyle(on ? PS.accentFg : PS.fg2)
-                    .padding(.horizontal, words ? 8 : 11)
+                    .padding(.horizontal, words ? 6 : 11)
                     .frame(minHeight: 32)
                     .background(on ? PS.accent : Color.clear, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .contentShape(Rectangle())

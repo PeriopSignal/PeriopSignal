@@ -227,7 +227,7 @@ struct PatientBoxSummaryCard: View {
                     Spacer(minLength: 6)
                     Image(systemName: "chevron.down").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
                 }
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
+                ForEach(Array(shown.enumerated()), id: \.offset) { _, l in
                     PatientLineText(line: l).lineLimit(PatientBox.lineLimit(l))
                 }
             }
@@ -240,6 +240,16 @@ struct PatientBoxSummaryCard: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Self.spokenLabel(title: title, lines: lines))
         .accessibilityHint("Opens the box to edit it")
+    }
+
+    /// The lines as drawn under the title: a line labelled with the title itself ("Allergies" under "Allergies") loses its label.
+    private var shown: [PatientSummary.Line] { Self.drawn(title: title, lines: lines) }
+
+    static func drawn(title: String, lines: [PatientSummary.Line]) -> [PatientSummary.Line] {
+        lines.map { l in
+            guard let label = l.label, label.caseInsensitiveCompare(title) == .orderedSame else { return l }
+            return PatientSummary.Line(nil, l.text, alert: l.alert, marks: l.marks)
+        }
     }
 
     /// "Allergies, collapsed. Allergies: Penicillin (rash)."
