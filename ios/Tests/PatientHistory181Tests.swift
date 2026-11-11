@@ -50,8 +50,8 @@ final class PatientHistory181Tests: XCTestCase {
 
     func testInfectiousSystem() throws {
         let names = PatientCatalog.systems.map(\.name)
-        let heme = try XCTUnwrap(names.firstIndex(of: "Hematologic"))
-        XCTAssertEqual(names[heme + 1], "Infectious", "after Hematologic")
+        let heme = try XCTUnwrap(names.firstIndex(of: "Heme & Oncology"))
+        XCTAssertEqual(names[heme + 1], "Infectious", "after Heme & Oncology")
         let inf = try XCTUnwrap(PatientCatalog.systems.first { $0.id == "infectious" })
         // 1.9 (Ben's Wanted Changes): Infective endocarditis, Viral hepatitis (A, B or C) and COVID-19 (active or recent,
         // one id) take Ben's labels; the ids are unchanged.

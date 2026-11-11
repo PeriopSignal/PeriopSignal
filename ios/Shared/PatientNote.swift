@@ -879,6 +879,7 @@ enum PatientNote {
         out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, valveShortAfterRx, echoCueRx, echoPlannedBefore, echoLeadAfter, echoCueAfter, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
                 prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI, otherMeaning]
         out += [infectionNotPositive, hivPrevention, covidNotRecent]
+        out += malignancyPatterns
         out += detailPatterns
         out += problemRules.flatMap { r -> [NoteRx] in [r.notBefore, r.notAfter, r.notIf, r.onlyIf, r.negAfter].compactMap { $0 } }
         out += [stentCardiac, stentOther, noHistoryRx, esrdRx, drugRx, negCue, negEnd, famCue, famEnd, pastBefore, pastAfter, pastCare, planClause, surgicalPiece]
@@ -975,6 +976,22 @@ enum PatientNote {
         var labConflicts: [String: [Double]] = [:]
         var surgeryState = PastSurgeryNote.State()
         func put(_ f: PatientNoteFinding, _ flag: (current: Bool, earlier: Bool)? = nil) {
+            var f = f
+            // 1.12: the Malignancy item told again joins the first record when its state and treatment are the same; when they
+            // differ it is a finding of its own, so nothing typed about one cancer is put on another.
+            if f.id == malignancyFindingID, found[f.id] != nil {
+                var id = f.id
+                var n = 1
+                while let old = found[id] {
+                    if let merged = malignancyMerged(old, f) {
+                        found[id] = merged
+                        return
+                    }
+                    n += 1
+                    id = malignancyFindingID + "#" + String(n)
+                }
+                f.id = id
+            }
             if let old = found[f.id] {
                 // Two values of a test in different sentences: the one marked current, if exactly one is; otherwise
                 // asked ("Preop Hb 12.1. Now Hb 8.2": 8.2; "Preop Hb 12.1. Hb 8.2": asked).
@@ -1680,6 +1697,7 @@ enum PatientNote {
             h.add(PatientNoteFinding(id: "problem:" + rule.id, section: Part.history, label: label, change: .problem(rule.id), note: rule.quiet ? nil : cautions[rule.id]), at: m.range)
         }
         readDetails19(c, &h)
+        readMalignancy(c, &h)
         readValves(c, &h)
         readCardiacSurgery(c, &h)
         if let m = efRx.first(c), let a = number(m, [1], c) {
@@ -2215,6 +2233,7 @@ enum PatientNote {
         case "gdmInsulin": return "on insulin"
         case "chestTube": return "chest tube" + (value.isEmpty ? "" : " " + parts.joined(separator: ", "))
         case "esophagealProcedure": return "previous procedure: " + value
+        case "malignancy": return PatientMalignancy.words(PatientMalignancy.decode(value))
         default:
             if key.hasPrefix("anticoagulant:") {
                 let drug = String(key.dropFirst("anticoagulant:".count))
@@ -2257,6 +2276,10 @@ enum PatientNote {
         case "ppcmEF": return number(d.ppcmEF)
         case "smokingQuitYear": return number(d.smokingQuitYear.map { Double($0) })
         case "esophagealProcedure": return d.esophagealProcedure == true && mentions(d.esophagealProcedureDetails, value) ? .recorded : .new
+        case "malignancy":
+            let typed = PatientMalignancy.decode(value)
+            if let old = PatientMalignancy.replaced(typed, in: r) { return .replaces(old) }
+            return PatientMalignancy.isRecorded(typed, in: r) ? .recorded : .new
         case "giBleed", "pleural":
             let old = key == "giBleed" ? [d.giBleedStatus, d.giBleedSite] : [d.pleuralSide, d.pleuralFluid]
             var differs = false, missing = false
@@ -2329,6 +2352,8 @@ enum PatientNote {
         case "esophagealProcedure":
             r.hx.esophagealProcedure = true
             r.hx.esophagealProcedureDetails = joined(r.hx.esophagealProcedureDetails, value)
+        case "malignancy":
+            PatientMalignancy.apply(PatientMalignancy.decode(value), to: &r)
         default:
             guard key.hasPrefix("anticoagulant:") else { return }
             let drug = String(key.dropFirst("anticoagulant:".count))
@@ -4053,4 +4078,279 @@ extension PatientRecord {
     /// Where a new last-intake time starts: the midnight just past, since the usual instruction is nothing by mouth
     /// after midnight. The user changes it to what the patient reports.
     static func npoMidnight(_ now: Date = Date()) -> Date { Calendar.current.startOfDay(for: now) }
+}
+
+// MARK: - Malignancy (1.12)
+//
+// The Heme & Oncology page's Malignancy item (PatientMalignancy), read from a note and from the quick-add bar. Ben's words
+// for what a line can say: a cancer by its common name ("lung cancer", "breast ca", "colon cancer", "colorectal cancer",
+// "HCC", "lymphoma", "leukemia", "multiple myeloma", "melanoma", "RCC", "<site> carcinoma", "SCC of the head and neck" only
+// when the site is said), "metastatic" or "mets", "in remission", "s/p chemo", "chemoradiation", "XRT". "MM" alone and "SCC"
+// alone are not read. A cancer is read only where it is the patient's, now or past: not negated ("no hx of cancer"), not a
+// relative's ("mother had breast cancer", "FH colon cancer"), not a screen or a risk ("skin cancer screening", "at risk for
+// lung cancer"), and not inside the name of an operation ("ovarian cancer debulking", "excision of melanoma"); a diagnosis
+// told after "for" is read ("lobectomy for lung cancer" files the procedure and the malignancy). "Prostate cancer" is the
+// Genitourinary item, read by its own rule; it joins this item only through the words around it.
+//
+// The status, Metastatic and the treatment are fields of the whole item, so a word is filed with the cancer it stands
+// next to (the same comma-separated piece, else the one before it). Cancers whose words differ are separate findings, each
+// as typed ("lung cancer, metastatic, s/p chemo, lymphoma in remission" gives two), and the review says that the state
+// applies to the whole list once they are added.
+
+extension PatientNote {
+    /// The finding's id. A second record of the item whose state and treatment differ from the first is
+    /// "problem:malignancy#2", and so on (`malignancyMerged`).
+    static let malignancyFindingID = "problem:malignancy"
+
+    private static let cancerSuffix = #"(?:(?:cancers?|carcinomas?|adenocarcinomas?)\b|ca\b(?!\s*[:=]?\s*\d{1,2}(?:\.\d)?\b))"#
+
+    /// "<site> cancer" (carcinoma, adenocarcinoma, ca) and "cancer of the <site>", then any words that stand for it alone.
+    private static func cancerOf(_ sites: String, standalone: String = "") -> String {
+        var p = #"\b(?:"# + sites + #")\s+"# + cancerSuffix
+        p += #"|\b(?:cancers?|carcinomas?|adenocarcinomas?)\s+(?:of|in)\s+(?:the\s+)?(?:"# + sites + #")\b"#
+        if !standalone.isEmpty { p += "|" + standalone }
+        return p
+    }
+
+    /// A cancer word that is part of an operation's name is the operation's: "ovarian cancer debulking", "tongue cancer
+    /// resection", "melanoma excision", "excision of melanoma".
+    private static let malignancyNotAfter = NoteRx(#"^\s*(?:(?:neck|node|lymph node)\s+)?(?:resection|excision|debulking|dissection|ablation|biopsy|staging|cytoreduction|removal|\w*ectomy)\b"#)
+    private static let malignancyNotBefore = NoteRx(#"\b(?:resection|excision|removal|biopsy|dissection|ablation|debulking)\s+of\s+(?:(?:an?|the|his|her|wide|local|radical)\s+)*(?:\w+\s+)?$"#)
+
+    private static func cancerRule(_ pattern: String) -> Rule {
+        Rule("malignancy", pattern, guarded: true, notBefore: malignancyNotBefore, notAfter: malignancyNotAfter)
+    }
+
+    /// The common cancers (PatientMalignancy.sites), each by the words that name it. Prostate is the existing rule's.
+    private static let malignancyRules: [(id: String, rule: Rule)] = [
+        ("lung", cancerRule(cancerOf(#"lung|pulmonary|bronchogenic|bronchial"#, standalone: #"(?-i:\b(?:NSCLC|SCLC)\b)"#))),
+        ("esophageal", cancerRule(cancerOf(#"o?esophageal|o?esophagus|gastro-?o?esophageal junction|gej"#))),
+        ("head-neck", cancerRule(cancerOf(#"head (?:and|&) neck|head/neck|oral cavity|oral|oropharyn(?:x|geal)|laryn(?:x|geal)|pharyn(?:x|geal)|nasopharyn(?:x|geal)|hypopharyn(?:x|geal)|tongue|tonsil(?:lar)?|sinonasal|salivary gland|parotid"#,
+                                          standalone: #"(?-i:\bHNSCC\b)|(?-i:\bSCC\b)\s+(?:of|in)\s+(?:the\s+)?(?:head (?:and|&) neck|oral cavity|oropharynx|larynx|pharynx|tongue|tonsil)"#))),
+        ("thyroid", cancerRule(cancerOf(#"thyroid"#))),
+        ("colorectal", cancerRule(cancerOf(#"colorectal|colon|colonic|rectal|rectum|rectosigmoid|sigmoid|large bowel|bowel"#))),
+        ("gastric", cancerRule(cancerOf(#"gastric|stomach"#))),
+        ("pancreatic", cancerRule(cancerOf(#"pancreatic|pancreas"#))),
+        ("liver", cancerRule(cancerOf(#"liver|hepatic"#, standalone: #"\bhepatocellular\s+(?:carcinomas?|cancers?)\b|(?-i:\bHCC\b)|\bhepatomas?\b"#))),
+        ("bladder", cancerRule(cancerOf(#"bladder"#))),
+        ("kidney", cancerRule(cancerOf(#"kidney|renal[ -]cell|renal"#, standalone: #"(?-i:\bRCC\b)"#))),
+        ("ovarian", cancerRule(cancerOf(#"ovarian|ovary"#))),
+        ("uterine", cancerRule(cancerOf(#"uterine|endometrial|uterus|endometrium"#))),
+        ("cervical", cancerRule(cancerOf(#"cervical|cervix"#))),
+        ("breast", cancerRule(cancerOf(#"breast"#, standalone: #"\binvasive\s+(?:ductal|lobular)\s+carcinomas?\b"#))),
+        ("melanoma", cancerRule(#"\bmelanomas?\b"#)),
+        ("lymphoma", cancerRule(#"\blymphomas?\b|(?-i:\b(?:NHL|DLBCL)\b)"#)),
+        ("leukemia", cancerRule(#"\bleuk(?:a)?emi(?:a|c)\b|(?-i:\b(?:AML|CLL)\b)"#)),
+        ("myeloma", cancerRule(#"\b(?:(?:multiple|plasma cell)\s+)?myelomas?\b"#)),
+        ("brain", cancerRule(cancerOf(#"brain"#, standalone: #"\bglioblastomas?\b|\bgliomas?\b|(?-i:\bGBM\b)"#))),
+        ("sarcoma", cancerRule(#"\b\w*sarcomas?\b"#)),
+    ]
+
+    /// A cancer not on the list, kept as typed under Other: a few more sites by name.
+    private static let malignancyOtherRule = cancerRule(
+        #"\b(?:testicular|penile|anal|vulvar|vaginal|gallbladder|adrenal|bile duct)\s+"# + cancerSuffix
+            + #"|\b(?:cancers?|carcinomas?)\s+of\s+the\s+(?:testis|testicle|penis|anus|vulva|vagina|gallbladder|adrenal gland|bile duct)\b|\bcholangiocarcinomas?\b|\bmesotheliomas?\b"#)
+
+    /// "Cancer", "malignancy" or "carcinoma" with no site: the item alone. Not a skin carcinoma (basal or squamous cell), a
+    /// carcinoma in situ, a cancer center, nor the cancer of a site above (those are read by their own rule).
+    private static let malignancyBare = Rule("malignancy", #"\b(?:cancers?|malignan(?:cy|cies)|carcinomas?)\b"#, guarded: true,
+                                             notBefore: NoteRx(#"\b(?:basal|squamous)[ -]cell\s+$"#),
+                                             notAfter: NoteRx(#"^\s*(?:(?:centers?|centres?|institute|hospital|society|registry|foundation|in situ)\b|(?:(?:neck|node|lymph node)\s+)?(?:resection|excision|debulking|dissection|ablation|biopsy|staging|cytoreduction|removal|\w*ectomy)\b)"#))
+
+    /// Any word of the item: a line without one is not read (a clause is read on every keystroke of the bar).
+    private static let malignancyGate = NoteRx(#"cancer|carcinoma|\bca\b|malignan|lymphoma|leuk(?:a)?emi|melanoma|myeloma|sarcoma|gleason|glioma|glioblastoma|hepatoma|mesothelioma|cholangio|(?-i:\b(?:HCC|RCC|NSCLC|SCLC|NHL|DLBCL|AML|CLL|GBM|HNSCC|SCC)\b)"#)
+
+    private static let malignancyRemission = NoteRx(#"(?<!partial )\b(?:(?:in|achieved|now in|currently in)\s+)?(?:(?:complete|full|sustained|durable)\s+)?remission\b"#)
+    private static let malignancyActive = NoteRx(#"\bactive\b"#)
+    private static let malignancyMetastatic = NoteRx(#"(?<!non)(?<!non-)\b(?:metastatic|metastases|metastasis|metastasized|metastasised)\b|(?<![\d<>≥≤])(?<![\d<>≥≤]\s)\bmets\b(?!\s*[<>≥≤\d])"#)
+    private static let malignancyChemo = NoteRx(#"\bchemo(?:therapy|-?radiation|-?radiotherapy|-?rt)?\b|(?-i:\bCRT\b)"#)
+    private static let malignancyRadiation = NoteRx(#"\b(?:radiation(?:\s+therapy)?|radiotherapy|xrt|irradiation)\b"#)
+
+    /// Every pattern, for the test that each compiles (allPatterns).
+    static var malignancyPatterns: [NoteRx] {
+        var out = malignancyRules.flatMap { e -> [NoteRx] in [e.rule.rx, e.rule.notBefore, e.rule.notAfter].compactMap { $0 } }
+        for r in [malignancyOtherRule, malignancyBare] { out += [r.rx, r.notBefore, r.notAfter].compactMap { $0 } }
+        out += [malignancyGate, malignancyRemission, malignancyActive, malignancyMetastatic, malignancyChemo, malignancyRadiation]
+        return out
+    }
+
+    private struct MalignancyMention {
+        /// A site id, "prostate", "other:<text as typed>" or "bare".
+        var key: String
+        var range: NSRange
+    }
+
+    private struct MalignancyMod {
+        /// "active", "remission", "metastatic", "chemo", "radiation".
+        var kind: String
+        var range: NSRange
+    }
+
+    /// Reads the item from one clause (readRules): the cancers, and the words about them that the item holds.
+    fileprivate static func readMalignancy(_ c: String, _ h: inout Hits) {
+        guard malignancyGate.first(c) != nil else { return }
+        let ns = c as NSString
+
+        // The cancers, accepted by the usual conditions (negation, family, risk, screen, procedure name); the stretches
+        // every rule matched, accepted or not, keep a bare "cancer" from being read inside "screening for lung cancer".
+        var mentions: [MalignancyMention] = []
+        var raw: [NSRange] = []
+        for entry in malignancyRules {
+            raw += entry.rule.rx.all(c).map(\.range)
+            for m in allAccepted(entry.rule, in: c, &h) { mentions.append(MalignancyMention(key: entry.id, range: m.range)) }
+        }
+        if let prostate = problemRules.first(where: { $0.id == PatientMalignancy.prostateProblem }) {
+            raw += prostate.rx.all(c).map(\.range)
+            for m in allAccepted(prostate, in: c, &h) { mentions.append(MalignancyMention(key: PatientMalignancy.prostateID, range: m.range)) }
+        }
+        raw += malignancyOtherRule.rx.all(c).map(\.range)
+        for m in allAccepted(malignancyOtherRule, in: c, &h) {
+            let text = ns.substring(with: m.range).lowercased().split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
+            mentions.append(MalignancyMention(key: "other:" + text, range: m.range))
+        }
+        raw += malignancyBare.rx.all(c).map(\.range)
+        for m in allAccepted(malignancyBare, in: c, &h) where !raw.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) {
+            mentions.append(MalignancyMention(key: "bare", range: m.range))
+        }
+        mentions.sort { $0.range.location < $1.range.location }
+        guard !mentions.isEmpty else { return }
+
+        // The words about them. One that is negated or a relative's ("no mets") is read and left out.
+        var mods: [MalignancyMod] = []
+        func free(_ r: NSRange) -> Bool { !negated(c, at: r.location) && !familyContext(c, at: r.location) }
+        func collect(_ rx: NoteRx, exclude: [NSRange] = [], _ kinds: (String) -> [String]) {
+            for m in rx.all(c) where !exclude.contains(where: { NSIntersectionRange($0, m.range).length > 0 }) {
+                guard free(m.range) else { h.seen(m.range); continue }
+                for k in kinds(ns.substring(with: m.range).lowercased()) { mods.append(MalignancyMod(kind: k, range: m.range)) }
+            }
+        }
+        collect(malignancyRemission) { _ in ["remission"] }
+        collect(malignancyActive) { _ in ["active"] }
+        collect(malignancyMetastatic) { _ in ["metastatic"] }
+        collect(malignancyChemo) { t in t.contains("radi") || t.hasSuffix("rt") || t == "crt" ? ["chemo", "radiation"] : ["chemo"] }
+        collect(malignancyRadiation, exclude: malignancyChemo.all(c).map(\.range)) { _ in ["radiation"] }
+
+        // Each goes to the cancer it stands next to: in its comma-separated piece the nearest one (a tie goes to none);
+        // in a piece with no cancer ("lung cancer, metastatic, on chemo") the last one before it, else the first after.
+        var breaks: [Int] = []
+        for i in 0..<ns.length {
+            let ch = ns.character(at: i)
+            if ch == 44 || ch == 59 { breaks.append(i) }
+        }
+        func piece(_ loc: Int) -> Int { breaks.filter { $0 < loc }.count }
+        func gap(_ a: NSRange, _ b: NSRange) -> Int {
+            if b.location >= a.location + a.length { return b.location - (a.location + a.length) }
+            if a.location >= b.location + b.length { return a.location - (b.location + b.length) }
+            return 0
+        }
+        var attached = [[MalignancyMod]](repeating: [], count: mentions.count)
+        for mod in mods {
+            let pm = piece(mod.range.location)
+            let same = mentions.indices.filter { piece(mentions[$0].range.location) == pm }
+            var target: Int?
+            if !same.isEmpty {
+                let gaps = same.map { gap(mod.range, mentions[$0].range) }
+                let least = gaps.min() ?? 0
+                let nearest = zip(same, gaps).filter { $0.1 == least }.map { $0.0 }
+                if nearest.count == 1 { target = nearest[0] }
+            } else if let before = mentions.indices.last(where: { mentions[$0].range.location < mod.range.location }) {
+                target = before
+            } else if let after = mentions.indices.first(where: { mentions[$0].range.location > mod.range.location }) {
+                target = after
+            }
+            // "Active" only right beside the cancer ("active lung cancer"), not "active smoker" a clause away.
+            if mod.kind == "active", let t = target, gap(mod.range, mentions[t].range) > 15 { target = nil }
+            if let t = target { attached[t].append(mod) }
+        }
+
+        // One entry per cancer (a cancer and its abbreviation, "lung cancer (NSCLC)", are one).
+        struct Entry {
+            var key: String
+            var ranges: [NSRange]
+            var mods: [MalignancyMod]
+        }
+        var entries: [Entry] = []
+        for (i, m) in mentions.enumerated() {
+            if m.key != "bare", let j = entries.firstIndex(where: { $0.key == m.key }) {
+                entries[j].ranges.append(m.range)
+                entries[j].mods += attached[i]
+            } else {
+                entries.append(Entry(key: m.key, ranges: [m.range], mods: attached[i]))
+            }
+        }
+
+        // Cancers with the same state and treatment make one finding.
+        struct Group {
+            var typed: PatientMalignancy.Typed
+            var bare: Bool
+            var range: NSRange
+        }
+        var groups: [Group] = []
+        var groupKeys: [String] = []
+        for e in entries {
+            let kinds = Set(e.mods.map(\.kind))
+            var t = PatientMalignancy.Typed()
+            // Both "active" and "in remission" beside one cancer say nothing.
+            if kinds.contains("remission") != kinds.contains("active") { t.status = kinds.contains("remission") ? "remission" : "active" }
+            t.metastatic = kinds.contains("metastatic")
+            if kinds.contains("chemo") { t.treatment.append("chemo") }
+            if kinds.contains("radiation") { t.treatment.append("radiation") }
+            let key = (t.status ?? "") + "|" + (t.metastatic ? "1" : "") + "|" + t.treatment.joined(separator: ",")
+            let g: Int
+            if let found = groupKeys.firstIndex(of: key) {
+                g = found
+            } else {
+                groups.append(Group(typed: t, bare: false, range: e.ranges[0]))
+                groupKeys.append(key)
+                g = groups.count - 1
+            }
+            if e.key == "bare" {
+                groups[g].bare = true
+            } else if e.key.hasPrefix("other:") {
+                let text = String(e.key.dropFirst("other:".count))
+                let have = groups[g].typed.other
+                groups[g].typed.other = have.isEmpty ? text : have + "; " + text
+            } else if e.key != PatientMalignancy.prostateID, !groups[g].typed.sites.contains(e.key) {
+                groups[g].typed.sites.append(e.key)
+            }
+            for r in e.ranges + e.mods.map(\.range) { groups[g].range = NSUnionRange(groups[g].range, r) }
+        }
+
+        let filled = groups.filter { !$0.typed.isEmpty }
+        let note = "The status, Metastatic and the treatment are kept for the whole list; check each before adding."
+        for g in filled {
+            h.add(PatientNoteFinding(id: malignancyFindingID, section: Part.history, label: "Malignancy: " + PatientMalignancy.words(g.typed),
+                                     change: .detail(PatientMalignancy.problemID, "malignancy", PatientMalignancy.encode(g.typed)),
+                                     note: filled.count > 1 ? note : nil), at: g.range)
+        }
+        if filled.isEmpty, let g = groups.first(where: { $0.bare }) {
+            h.add(PatientNoteFinding(id: malignancyFindingID, section: Part.history, label: "Malignancy", change: .problem(PatientMalignancy.problemID)), at: g.range)
+        }
+        for e in entries {
+            for r in e.ranges { h.seen(r) }
+            for m in e.mods { h.seen(m.range) }
+        }
+    }
+
+    /// The same item read again with the same state and treatment: its cancers join. nil when they differ (a finding of its own).
+    fileprivate static func malignancyMerged(_ a: PatientNoteFinding, _ b: PatientNoteFinding) -> PatientNoteFinding? {
+        switch (a.change, b.change) {
+        case (.problem, .problem), (.detail, .problem):
+            return a
+        case (.problem, .detail):
+            var x = b
+            x.id = a.id
+            return x
+        case (.detail(_, "malignancy", let x), .detail(_, "malignancy", let y)):
+            var s = PatientMalignancy.decode(x)
+            let t = PatientMalignancy.decode(y)
+            guard s.status == t.status, s.metastatic == t.metastatic, Set(s.treatment) == Set(t.treatment) else { return nil }
+            for id in t.sites where !s.sites.contains(id) { s.sites.append(id) }
+            if !t.other.isEmpty, !s.other.lowercased().contains(t.other.lowercased()) { s.other = s.other.isEmpty ? t.other : s.other + "; " + t.other }
+            return PatientNoteFinding(id: a.id, section: a.section, label: "Malignancy: " + PatientMalignancy.words(s),
+                                      change: .detail(PatientMalignancy.problemID, "malignancy", PatientMalignancy.encode(s)), note: a.note)
+        default:
+            return nil
+        }
+    }
 }
