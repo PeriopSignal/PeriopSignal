@@ -1,0 +1,6 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-11 05:48:03.921 Df PeriopSignal[19723:482d0] [org.periopsignal.app:shots] root appear tab=preop
+2026-11-11 05:48:04.472 Df PeriopSignal[19723:482d0] [org.periopsignal.app:shots] PatientView appear
+2026-11-11 05:48:14.312 Df PeriopSignal[19723:482d0] [org.periopsignal.app:shots] open begin summary
+2026-11-11 05:48:19.993 Df PeriopSignal[19723:482d0] [org.periopsignal.app:shots] tabOverride nil -> summary
+2026-11-11 05:48:24.113 Df PeriopSignal[19723:482d0] [org.periopsignal.app:shots] ready

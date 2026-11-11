@@ -1,0 +1,380 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-11 06:59:29.274 Df PeriopSignal[58828:969fa] [com.apple.calls.callkit:Default] Call host has no calls
+2026-11-11 06:59:29.275 Df PeriopSignal[58828:96747] [PrototypeTools:domain] Not observing PTDefaults on customer install.
+2026-11-11 06:59:38.613 Df PeriopSignal[58828:96747] [org.periopsignal.app:shots] root appear tab=preop
+2026-11-11 06:59:39.449 Df PeriopSignal[58828:96747] [org.periopsignal.app:shots] PatientView appear
+2026-11-11 06:59:54.964 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10e98c6a0] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-11 06:59:54.966 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106babf10] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-11 06:59:54.967 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106bac040] activating connection: mach=true listener=false peer=false name=com.apple.metal.simulator
+2026-11-11 06:59:55.514 Df PeriopSignal[58828:96747] [com.apple.renderbox:misc] RBDevice: initialized bg state: false
+2026-11-11 06:59:55.578 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10ea98e00] activating connection: mach=true listener=false peer=false name=com.apple.IOSurface.Remote
+2026-11-11 06:59:55.850 Df PeriopSignal[58828:96747] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:1 [022BA825-4679-4E9E-9B9E-C2D3C4AC115E] (reporting strategy default)>
+2026-11-11 06:59:55.851 A  PeriopSignal[58828:969f9] (RunningBoardServices) didChangeInheritances
+2026-11-11 06:59:55.856 Df PeriopSignal[58828:96747] [com.apple.network:activity] Create activity from XPC object <nw_activity 50:2 [E4A733D0-F4CD-4E60-AE24-D1676D523632] (reporting strategy default)>
+2026-11-11 06:59:55.861 Df PeriopSignal[58828:96747] [com.apple.network:activity] Set activity <nw_activity 50:1 [022BA825-4679-4E9E-9B9E-C2D3C4AC115E] (reporting strategy default)> as the global parent
+2026-11-11 06:59:55.888 A  PeriopSignal[58828:969fa] (RunningBoardServices) didChangeInheritances
+2026-11-11 06:59:55.891 Df PeriopSignal[58828:96747] [com.apple.UIKit:UpdateScheduler] Target list changed: <CADisplay:LCD PurpleMain>
+2026-11-11 06:59:55.904 Df PeriopSignal[58828:96747] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: 511F6F12-592A-4F54-8BA7-FE702261B8A8
+2026-11-11 06:59:55.911 Df PeriopSignal[58828:96747] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x106f0dd30> (511F6F12-592A-4F54-8BA7-FE702261B8A8)
+2026-11-11 06:59:55.911 Df PeriopSignal[58828:96747] [com.apple.BackgroundTasks:Framework] Handling app launch
+2026-11-11 06:59:55.917 Df PeriopSignal[58828:96747] [com.apple.Accessibility:AXCommon] Read Per-App on Init: Smart invert = (null)
+2026-11-11 06:59:55.950 Df PeriopSignal[58828:96747] [com.apple.UIKit:EventDeferring] [0x6000029218f0] Scene target of event deferring environments did update: scene: 0x106f0dd30; current systemShellManagesKeyboardFocus: 1; systemShellManagesKeyboardFocusForScene: 1; eligibleForRecordRemoval: 1;
+2026-11-11 06:59:55.950 Df PeriopSignal[58828:96747] [com.apple.UIKit:KeyWindow] Scene became target of keyboard event deferring environment: UIWindowScene: 0x106f0dd30; scene identity: com.apple.frontboard.systemappservices/FBSceneManager:sceneID%3Aorg.periopsignal.app-default
+2026-11-11 06:59:55.973 A  PeriopSignal[58828:969fa] (RunningBoardServices) didChangeInheritances
+2026-11-11 06:59:56.342 Df PeriopSignal[58828:969f9] [com.apple.network:] networkd_settings_read_from_file initialized networkd settings by reading plist directly
+2026-11-11 06:59:56.342 Df PeriopSignal[58828:969f9] [com.apple.network:] networkd_settings_read_from_file initialized networkd settings by reading plist directly
+2026-11-11 06:59:56.343 Df PeriopSignal[58828:969f9] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=58828 task=PeriopSignal[58828]/0#-1 LF=22
+2026-11-11 06:59:56.346 Df PeriopSignal[58828:969f9] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-11 06:59:56.346 A  PeriopSignal[58828:969f9] (CoreFoundation) Loading Preferences From User Session CFPrefsD
+2026-11-11 06:59:56.352 Df PeriopSignal[58828:96747] [com.apple.FrontBoard:SceneExtension] Realizing settings extension SBUISecureRenderingSettingsExtension on FBSSceneSettings
+2026-11-11 06:59:56.356 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Initializing NSHTTPCookieStorage singleton
+2026-11-11 06:59:56.357 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Initializing CFHTTPCookieStorage singleton
+2026-11-11 06:59:56.358 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Creating default cookie storage with process/bundle identifier
+2026-11-11 06:59:56.359 A  PeriopSignal[58828:969fa] (libsystem_containermanager.dylib) container_system_group_path_for_identifier
+2026-11-11 06:59:56.359 Df PeriopSignal[58828:969fa] [com.apple.containermanager:xpc] Requesting container lookup; class = 13, identifier = com.apple.nsurlsessiond, group_identifier = systemgroup.com.apple.nsurlstoragedresources, create = 1, temp = 0, euid = 501, uid = 501
+2026-11-11 06:59:56.359 A  PeriopSignal[58828:969fa] (libsystem_containermanager.dylib) container_query_t
+2026-11-11 06:59:56.359 Df PeriopSignal[58828:969fa] [com.apple.containermanager:xpc] Query; euid = 501, uid = 501, class = 13, identifier = [com.apple.nsurlsessiond](1), flags = 900000003
+2026-11-11 06:59:56.361 E  PeriopSignal[58828:969fa] [com.apple.containermanager:unspecified] _container_query_get_result_at_index: error = 2→(98) NOT_CODESIGNED;
+2026-11-11 06:59:56.366 E  PeriopSignal[58828:969fa] [com.apple.containermanager:unspecified] container_system_group_path_for_identifier: error = ((container_error_t)98) NOT_CODESIGNED
+2026-11-11 06:59:56.367 Df PeriopSignal[58828:96747] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x106f0dd30> (511F6F12-592A-4F54-8BA7-FE702261B8A8)
+2026-11-11 06:59:56.381 Df PeriopSignal[58828:96747] [com.apple.UIKit:InterfaceStyle] Not push traits update to screen for new style 2, <UIWindowScene: 0x106f0dd30> (511F6F12-592A-4F54-8BA7-FE702261B8A8)
+2026-11-11 06:59:56.383 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Initializing AlternativeServices Storage singleton
+2026-11-11 06:59:56.384 Df PeriopSignal[58828:969fa] [com.apple.FileURL:default] kExcludedFromBackupXattrName set on path: /Users/runner/Library/Developer/CoreSimulator/Devices/E3312CA2-0242-435C-AF8C-49E295DEC90A/data/Containers/Data/Application/8EC9FB8C-83E2-4440-BD5B-340DED14CBB2/Library/HTTPStorages/org.periopsignal.app
+2026-11-11 06:59:56.401 Df PeriopSignal[58828:96747] [com.apple.UIKit:AppLifecycle] sceneOfRecord: sceneID: sceneID:org.periopsignal.app-default  persistentID: 511F6F12-592A-4F54-8BA7-FE702261B8A8
+2026-11-11 06:59:56.404 Df PeriopSignal[58828:96747] [com.apple.UIKit:Application] Deactivation reason removed: 12; deactivation reasons: 4128 -> 32; animating application lifecycle event: 1
+2026-11-11 06:59:56.405 Df PeriopSignal[58828:96747] [com.apple.KeyboardArbiter:Client] Send setDeactivating: N (-DeactivationReason:SuspendedEventsOnly)
+2026-11-11 06:59:56.426 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Connection 0: creating secure tcp or quic connection
+2026-11-11 06:59:56.434 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Connection 1: enabling TLS
+2026-11-11 06:59:56.434 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Connection 1: starting, TC(0x0)
+2026-11-11 06:59:56.437 Df PeriopSignal[58828:9712f] [com.apple.CFNetwork:Default] Garbage collection for alternative services
+2026-11-11 06:59:56.440 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1 4FE01F57-7C2B-44D4-B2E3-5E1227E12A06 Hostname#4b47dc0b:443 quic-connection, url: https://periopsignal.github.io/PeriopSignal/posts.json, definite, attribution: developer, context: com.apple.CFNetwork.NSURLSession.{24147C2F-6D45-443B-9EAF-53A4A55E9482}{(null)}{Y}{2}{0x0} (private), proc: 2EF513B2-3903-3A0B-B0A3-8F4586296DD5, delegated upid: 0] start
+2026-11-11 06:59:56.441 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1 Hostname#4b47dc0b:443 initial parent-flow ((null))] event: path:start @0.000s
+2026-11-11 06:59:56.445 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1 Hostname#4b47dc0b:443 waiting parent-flow (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.004s, uuid: 2F5A9908-48A6-482D-BD23-C38A4EEF9591
+2026-11-11 06:59:56.448 Df PeriopSignal[58828:969fa] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=58828 task=PeriopSignal[58828]/0#-1 LF=22
+2026-11-11 06:59:56.449 Df PeriopSignal[58828:969fa] [com.apple.securityd:SecWarning] SecTaskLoadEntitlements failed error=22 cs_flags=200, pid=58828 task=PeriopSignal[58828]/0#-1 LF=22
+2026-11-11 06:59:56.449 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1 Hostname#4b47dc0b:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_connect @0.008s
+2026-11-11 06:59:56.449 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state preparing
+2026-11-11 06:59:56.461 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1 Hostname#4b47dc0b:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_child @0.019s
+2026-11-11 06:59:56.461 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1 Hostname#4b47dc0b:443 initial path ((null))] event: path:start @0.020s
+2026-11-11 06:59:56.461 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1 Hostname#4b47dc0b:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.020s, uuid: 2F5A9908-48A6-482D-BD23-C38A4EEF9591
+2026-11-11 06:59:56.462 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1 Hostname#4b47dc0b:443 in_progress transform (satisfied (Path is satisfied), interface: en0)] event: transform:start @0.020s
+2026-11-11 06:59:56.464 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1 Hostname#4b47dc0b:443 initial path ((null))] event: path:start @0.022s
+2026-11-11 06:59:56.467 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1 Hostname#4b47dc0b:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.025s, uuid: A6179C9E-F0C6-4A1F-B696-A37CD2C1B181
+2026-11-11 06:59:56.469 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1 Hostname#4b47dc0b:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] event: resolver:start_dns @0.027s
+2026-11-11 06:59:56.471 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> setting up Connection 1
+2026-11-11 06:59:56.473 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#4b47dc0b:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#f0014cef:443
+2026-11-11 06:59:56.473 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#4b47dc0b:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#46efdbd5:443
+2026-11-11 06:59:56.474 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#4b47dc0b:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#9f45f6ae:443
+2026-11-11 06:59:56.475 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_endpoint_resolver_update [C1.1.1 Hostname#4b47dc0b:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] Adding endpoint handler for IPv4#92b5acba:443
+2026-11-11 06:59:56.476 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1 Hostname#4b47dc0b:443 in_progress resolver (satisfied (Path is satisfied), interface: en0)] event: resolver:receive_dns @0.035s
+2026-11-11 06:59:56.478 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1.1 IPv4#f0014cef:443 initial path ((null))] event: path:start @0.036s
+2026-11-11 06:59:56.478 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1.1 IPv4#f0014cef:443 waiting path (satisfied (Path is satisfied), interface: en0)] event: path:satisfied @0.037s, uuid: 55657DB3-1C72-45C2-90B8-A2664D2D2A5C
+2026-11-11 06:59:56.481 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1.1 IPv4#f0014cef:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:start_connect @0.040s
+2026-11-11 06:59:56.487 Df PeriopSignal[58828:9712f] [com.apple.network:connection] nw_socket_handle_socket_event [C1.1.1.1:3] Socket received CONNECTED event
+2026-11-11 06:59:56.488 Df PeriopSignal[58828:9712f] [com.apple.network:connection] nw_flow_connected [C1.1.1.1 IPv4#f0014cef:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] Transport protocol connected (socket)
+2026-11-11 06:59:56.488 Df PeriopSignal[58828:9712f] [com.apple.network:connection] [C1.1.1.1 IPv4#f0014cef:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:finish_transport @0.047s
+2026-11-11 06:59:56.493 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_session_apply_protocol_options_for_transport_block_invoke_2(2323) [C1.1.1.1:2][0x106fa2e70] TLS configured [min_version(0x0303) max_version(0x0304) name(redacted) tickets(false) false_start(false) enforce_ev(false) enforce_ats(false) ats_non_pfs_ciphersuite_allowed(false) ech(false) pqtls(true), pake(false)]
+2026-11-11 06:59:56.494 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2390) [C1.1.1.1:2][0x106fa2e70] Client handshake started
+2026-11-11 06:59:56.495 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS client enter_early_data
+2026-11-11 06:59:56.497 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS client read_server_hello
+2026-11-11 06:59:56.501 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client read_hello_retry_request
+2026-11-11 06:59:56.501 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client read_server_hello
+2026-11-11 06:59:56.503 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client read_encrypted_extensions
+2026-11-11 06:59:56.503 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client read_certificate_request
+2026-11-11 06:59:56.503 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client read_server_certificate
+2026-11-11 06:59:56.503 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client read_server_certificate_verify
+2026-11-11 06:59:56.504 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async(1833) [C1.1.1.1:2][0x106fa2e70] Performing external trust evaluation
+2026-11-11 06:59:56.504 A  PeriopSignal[58828:9712f] (Security) SecKeyCopyPublicBytes
+2026-11-11 06:59:56.504 Df PeriopSignal[58828:9712f] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async_external(1818) [C1.1.1.1:2][0x106fa2e70] Asyncing for external verify block
+2026-11-11 06:59:56.516 Df PeriopSignal[58828:9712f] [com.apple.CFNetwork:Default] Connection 1: asked to evaluate TLS Trust
+2026-11-11 06:59:56.521 Df PeriopSignal[58828:9712f] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> auth completion disp=1 cred=0x0
+2026-11-11 06:59:56.523 Df PeriopSignal[58828:9712f] [com.apple.securityd:trust] (Trust 0x60000350d810) No pending evals, starting
+2026-11-11 06:59:56.525 A  PeriopSignal[58828:9712f] (Security) SecTrustEvaluateIfNecessaryFastAsync
+2026-11-11 06:59:56.527 Df PeriopSignal[58828:9712f] [com.apple.securityd:keychain] System Keychain Always Supported set via feature flag to disabled
+2026-11-11 06:59:56.527 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x106c2bcb0] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-11 06:59:56.528 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x10ea98f10] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-11 06:59:56.528 Df PeriopSignal[58828:9712f] [com.apple.securityd:trust] (Trust 0x60000350d810) Completed async eval kickoff
+2026-11-11 06:59:56.545 Df PeriopSignal[58828:96747] [com.apple.UIKit:Application] Deactivation reason removed: 5; deactivation reasons: 32 -> 0; animating application lifecycle event: 0
+2026-11-11 06:59:56.545 Df PeriopSignal[58828:969f9] [com.apple.securityd:trust] (Trust 0x60000350d810) trustd returned 4
+2026-11-11 06:59:56.546 Df PeriopSignal[58828:969f9] [com.apple.CFNetwork:Default] System Trust Evaluation yielded status(0)
+2026-11-11 06:59:56.546 Df PeriopSignal[58828:969f9] [com.apple.securityd:trust] (Trust 0x60000351eb50) No pending evals, starting
+2026-11-11 06:59:56.546 A  PeriopSignal[58828:969f9] (Security) SecTrustEvaluateIfNecessaryFastAsync
+2026-11-11 06:59:56.548 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x10ea85ea0] activating connection: mach=true listener=false peer=false name=com.apple.trustd
+2026-11-11 06:59:56.549 Df PeriopSignal[58828:969f9] [com.apple.securityd:trust] (Trust 0x60000351eb50) Completed async eval kickoff
+2026-11-11 06:59:56.550 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x10ea98f10] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 06:59:56.626 Df PeriopSignal[58828:969fa] [com.apple.securityd:trust] (Trust 0x60000351eb50) trustd returned 4
+2026-11-11 06:59:56.626 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Connection 1: TLS Trust result 0
+2026-11-11 06:59:56.626 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_evaluate_trust_async_external_block_invoke_3(1773) [C1.1.1.1:2][0x106fa2e70] Returning from external verify block with result: true
+2026-11-11 06:59:56.626 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_certificate_verify_callback(2014) [C1.1.1.1:2][0x106fa2e70] Certificate verification result: OK
+2026-11-11 06:59:56.626 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client read_server_finished
+2026-11-11 06:59:56.626 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client send_end_of_early_data
+2026-11-11 06:59:56.626 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client send_client_encrypted_extensions
+2026-11-11 06:59:56.627 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client send_client_certificate
+2026-11-11 06:59:56.628 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client complete_second_flight
+2026-11-11 06:59:56.629 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS 1.3 client done
+2026-11-11 06:59:56.630 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS client finish_client_handshake
+2026-11-11 06:59:56.630 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2407) [C1.1.1.1:2][0x106fa2e70] Client handshake state: TLS client done
+2026-11-11 06:59:56.632 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] boringssl_context_info_handler(2396) [C1.1.1.1:2][0x106fa2e70] Client handshake done
+2026-11-11 06:59:56.637 A  PeriopSignal[58828:969fa] (Security) SecKeyCopyPublicBytes
+2026-11-11 06:59:56.638 Df PeriopSignal[58828:969fa] [com.apple.network:boringssl] nw_protocol_boringssl_signal_connected(895) [C1.1.1.1:2][0x106fa2e70] TLS connected [server(0) version(0x0304) ciphersuite(TLS_AES_128_GCM_SHA256) group(0x11ec) signature_alg(0x0804) alpn(h2) resumed(0) offered_ticket(0) in_early_data(0) early_data_accepted(0) false_started(0) ocsp_received(0) sct_received(0) connect_time(143ms) flight_time(8ms) rtt(6ms) write_stalls(0) read_stalls(2) pake(0x0000)]
+2026-11-11 06:59:56.641 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_flow_connected [C1.1.1.1 IPv4#f0014cef:443 in_progress socket-flow (satisfied (Path is satisfied), interface: en0)] Output protocol connected (CFNetworkConnection-1783798811)
+2026-11-11 06:59:56.643 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1.1 IPv4#f0014cef:443 ready socket-flow (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.201s
+2026-11-11 06:59:56.643 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1.1 Hostname#4b47dc0b:443 ready resolver (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.202s
+2026-11-11 06:59:56.644 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1.1 Hostname#4b47dc0b:443 ready transform (satisfied (Path is satisfied), interface: en0)] event: flow:child_finish_connect @0.202s
+2026-11-11 06:59:56.649 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_flow_connected [C1 IPv4#f0014cef:443 in_progress parent-flow (satisfied (Path is satisfied), interface: en0)] Output protocol connected (endpoint_flow)
+2026-11-11 06:59:56.650 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1 IPv4#f0014cef:443 ready parent-flow (satisfied (Path is satisfied), interface: en0)] event: flow:finish_connect @0.208s
+2026-11-11 06:59:56.651 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_connection_report_state_with_handler_on_nw_queue [C1] reporting state ready
+2026-11-11 06:59:56.653 A  PeriopSignal[58828:969fa] (Security) SecKeyCopyPublicBytes
+2026-11-11 06:59:56.653 Df PeriopSignal[58828:969fa] [com.apple.xpc:connection] [0x10ea85ea0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 06:59:56.654 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Connection 1: connected successfully
+2026-11-11 06:59:56.655 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Connection 1: TLS handshake complete
+2026-11-11 06:59:56.656 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Connection 1: ready C(N) E(N)
+2026-11-11 06:59:56.658 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1] event: client:connection_reused @0.217s
+2026-11-11 06:59:56.660 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-11 06:59:56.661 E  PeriopSignal[58828:969fa] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-11 06:59:56.662 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> now using Connection 1
+2026-11-11 06:59:56.663 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> sent request, body N 0
+2026-11-11 06:59:56.750 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> received response, status 200 content K
+2026-11-11 06:59:56.773 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> done using Connection 1
+2026-11-11 06:59:56.773 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1] event: client:connection_idle @0.332s
+2026-11-11 06:59:56.774 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-11 06:59:56.774 E  PeriopSignal[58828:969fa] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-11 06:59:56.776 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> response ended
+2026-11-11 06:59:56.776 Df PeriopSignal[58828:969f9] [com.apple.CFNetwork:Summary] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> summary for task success {transaction_duration_ms=421, response_status=200, connection=1, protocol="h2", domain_lookup_duration_ms=8, connect_duration_ms=168, secure_connection_duration_ms=143, private_relay=false, request_start_ms=308, request_duration_ms=0, response_start_ms=395, response_duration_ms=26, request_bytes=151, request_throughput_kbps=3170, response_bytes=276840, response_throughput_kbps=84193, cache_hit=false}
+2026-11-11 06:59:56.776 Df PeriopSignal[58828:969f9] [com.apple.CoreAnalytics:client] No XPC connection in Simulator
+2026-11-11 06:59:56.777 Df PeriopSignal[58828:969f9] [com.apple.CFNetwork:Default] Task <A1C20EA3-A14E-4285-BD71-AC5CE7627C74>.<1> finished successfully
+2026-11-11 06:59:59.205 Df PeriopSignal[58828:969f8] [com.apple.CFNetwork:Default] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-11 06:59:59.210 Df PeriopSignal[58828:969f8] [com.apple.network:connection] [C1] event: client:connection_reused @2.769s
+2026-11-11 06:59:59.211 Df PeriopSignal[58828:969f8] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-11 06:59:59.211 E  PeriopSignal[58828:969f8] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-11 06:59:59.211 Df PeriopSignal[58828:969f8] [com.apple.CFNetwork:Default] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> now using Connection 1
+2026-11-11 06:59:59.211 Df PeriopSignal[58828:969f8] [com.apple.CFNetwork:Default] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> sent request, body N 0
+2026-11-11 06:59:59.317 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> received response, status 200 content K
+2026-11-11 06:59:59.323 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> done using Connection 1
+2026-11-11 06:59:59.323 Df PeriopSignal[58828:969fa] [com.apple.network:connection] [C1] event: client:connection_idle @2.882s
+2026-11-11 06:59:59.324 Df PeriopSignal[58828:969fa] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-11 06:59:59.324 E  PeriopSignal[58828:969fa] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-11 06:59:59.326 Df PeriopSignal[58828:969fa] [com.apple.CFNetwork:Default] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> response ended
+2026-11-11 06:59:59.327 Df PeriopSignal[58828:969f8] [com.apple.CFNetwork:Summary] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> summary for task success {transaction_duration_ms=117, response_status=200, connection=1, reused=1, reused_after_ms=2437, request_start_ms=1, request_duration_ms=0, response_start_ms=107, response_duration_ms=10, request_bytes=51, request_throughput_kbps=2581, response_bytes=140597, response_throughput_kbps=110500, cache_hit=false}
+2026-11-11 06:59:59.327 Df PeriopSignal[58828:969f8] [com.apple.CFNetwork:Default] Task <79A74FA6-B85F-4FA2-B6A0-B11E57631586>.<2> finished successfully
+2026-11-11 06:59:59.415 Df PeriopSignal[58828:96747] [com.apple.KeyboardArbiter:Client] startConnection
+2026-11-11 06:59:59.417 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106e413a0] activating connection: mach=true listener=false peer=false name=com.apple.UIKit.KeyboardManagement.hosted
+2026-11-11 07:00:01.119 F  PeriopSignal[58828:96747] [com.apple.SwiftUI:Invalid Configuration] Update NavigationRequestObserver tried to update multiple times per frame.
+2026-11-11 07:00:01.119 A  PeriopSignal[58828:96747] (libsystem_trace.dylib) Activity for state dumps
+2026-11-11 07:00:11.485 Df PeriopSignal[58828:96747] [com.apple.chrono:widget] Creating WidgetCenter connection.
+2026-11-11 07:00:11.497 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106f7a240] activating connection: mach=true listener=false peer=false name=com.apple.chrono.widgetcenterconnection
+2026-11-11 07:00:11.515 Df PeriopSignal[58828:9712f] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-11 07:00:11.537 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x106cf6cc0] activating connection: mach=true listener=false peer=false name=com.apple.usernotifications.listener
+2026-11-11 07:00:11.552 Df PeriopSignal[58828:969f9] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-11 07:00:11.577 Df PeriopSignal[58828:9712f] [com.apple.chrono:widget] reloadAllTimelines() - reloaded all timelines
+2026-11-11 07:00:11.843 Sd PeriopSignal[58828:0] (EB73264B-09AE-3310-B642-B0B5D9390089) IOHIDManager State
+{
+    DispatchQueue = 0;
+    RunLoop = 1;
+    createOptions = 0;
+    isOpen = 0;
+    openOptions = 0;
+}
+2026-11-11 07:00:12.439 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] LA logging set up for this process.
+2026-11-11 07:00:12.439 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:1
+2026-11-11 07:00:12.441 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106e791d0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:12.453 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[1:28:0] created new cid:1
+2026-11-11 07:00:12.492 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[1:28:0] cid:2 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:12.493 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:12.493 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[1:28:0] deallocated
+2026-11-11 07:00:12.493 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:3
+2026-11-11 07:00:12.493 Df PeriopSignal[58828:969fa] [com.apple.xpc:connection] [0x106e791d0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:12.497 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10ce2d120] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:12.513 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[2:29:0] created new cid:3
+2026-11-11 07:00:12.540 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[2:29:0] cid:4 returned YES
+2026-11-11 07:00:12.540 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[2:29:0] deallocated
+2026-11-11 07:00:12.541 Df PeriopSignal[58828:969fa] [com.apple.xpc:connection] [0x10ce2d120] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:12.541 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:5
+2026-11-11 07:00:12.541 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106e791d0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:12.567 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[3:30:0] created new cid:5
+2026-11-11 07:00:12.603 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[3:30:0] cid:6 returned YES
+2026-11-11 07:00:12.603 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[3:30:0] deallocated
+2026-11-11 07:00:12.604 Df PeriopSignal[58828:969fa] [com.apple.xpc:connection] [0x106e791d0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:12.759 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:7
+2026-11-11 07:00:12.759 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10e81cc20] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:12.769 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[4:31:0] created new cid:7
+2026-11-11 07:00:12.802 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[4:31:0] cid:8 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:12.802 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:12.802 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[4:31:0] deallocated
+2026-11-11 07:00:12.802 Df PeriopSignal[58828:969fa] [com.apple.xpc:connection] [0x10e81cc20] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:12.803 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:9
+2026-11-11 07:00:12.818 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10ced8f00] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:12.832 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[5:32:0] created new cid:9
+2026-11-11 07:00:12.862 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[5:32:0] cid:10 returned YES
+2026-11-11 07:00:12.862 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[5:32:0] deallocated
+2026-11-11 07:00:12.863 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x10ced8f00] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:12.866 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:11
+2026-11-11 07:00:12.870 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106f4d5e0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:12.878 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[6:33:0] created new cid:11
+2026-11-11 07:00:12.916 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[6:33:0] cid:12 returned YES
+2026-11-11 07:00:12.916 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[6:33:0] deallocated
+2026-11-11 07:00:12.918 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x106f4d5e0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:13.063 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:13
+2026-11-11 07:00:13.064 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10ced8f00] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:13.082 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[7:34:0] created new cid:13
+2026-11-11 07:00:13.105 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[7:34:0] cid:14 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:13.105 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:13.105 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[7:34:0] deallocated
+2026-11-11 07:00:13.105 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:15
+2026-11-11 07:00:13.105 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x10ced8f00] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:13.106 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106ea05d0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:13.118 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[8:35:0] created new cid:15
+2026-11-11 07:00:13.158 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[8:35:0] cid:16 returned YES
+2026-11-11 07:00:13.158 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[8:35:0] deallocated
+2026-11-11 07:00:13.158 Df PeriopSignal[58828:969fa] [com.apple.xpc:connection] [0x106ea05d0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:13.159 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:17
+2026-11-11 07:00:13.160 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106ea05d0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:13.173 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[9:36:0] created new cid:17
+2026-11-11 07:00:13.196 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[9:36:0] cid:18 returned YES
+2026-11-11 07:00:13.196 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[9:36:0] deallocated
+2026-11-11 07:00:13.196 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x106ea05d0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:13.223 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:19
+2026-11-11 07:00:13.224 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106bce860] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:13.241 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[10:37:0] created new cid:19
+2026-11-11 07:00:13.263 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[10:37:0] cid:20 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:13.263 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:13.263 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[10:37:0] deallocated
+2026-11-11 07:00:13.263 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x106bce860] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:13.263 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:21
+2026-11-11 07:00:13.265 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10ced8f00] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:13.278 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[11:38:0] created new cid:21
+2026-11-11 07:00:13.307 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[11:38:0] cid:22 returned YES
+2026-11-11 07:00:13.307 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[11:38:0] deallocated
+2026-11-11 07:00:13.308 Df PeriopSignal[58828:969fa] [com.apple.xpc:connection] [0x10ced8f00] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:13.308 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:23
+2026-11-11 07:00:13.309 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10ced8f00] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:13.321 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[12:39:0] created new cid:23
+2026-11-11 07:00:13.369 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[12:39:0] cid:24 returned YES
+2026-11-11 07:00:13.370 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[12:39:0] deallocated
+2026-11-11 07:00:13.370 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x10ced8f00] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:14.820 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:25
+2026-11-11 07:00:14.821 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106e47ff0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:14.842 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[13:40:0] created new cid:25
+2026-11-11 07:00:14.897 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[13:40:0] cid:26 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:14.897 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:14.898 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[13:40:0] deallocated
+2026-11-11 07:00:14.898 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x106e47ff0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:14.898 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:27
+2026-11-11 07:00:14.899 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106e47ff0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:14.913 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[14:41:0] created new cid:27
+2026-11-11 07:00:14.970 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[14:41:0] cid:28 returned YES
+2026-11-11 07:00:14.970 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[14:41:0] deallocated
+2026-11-11 07:00:14.970 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:29
+2026-11-11 07:00:14.970 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x106e47ff0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:14.970 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10e988500] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:15.018 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[15:42:0] created new cid:29
+2026-11-11 07:00:15.073 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[15:42:0] cid:30 returned YES
+2026-11-11 07:00:15.073 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[15:42:0] deallocated
+2026-11-11 07:00:15.074 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x10e988500] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:19.976 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:31
+2026-11-11 07:00:19.977 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10e95c5b0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:19.984 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[16:43:0] created new cid:31
+2026-11-11 07:00:20.034 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[16:43:0] cid:32 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:20.034 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:20.034 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[16:43:0] deallocated
+2026-11-11 07:00:20.034 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x10e95c5b0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:20.035 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:33
+2026-11-11 07:00:20.037 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106ea6640] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:20.046 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[17:44:0] created new cid:33
+2026-11-11 07:00:20.078 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[17:44:0] cid:34 returned YES
+2026-11-11 07:00:20.078 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[17:44:0] deallocated
+2026-11-11 07:00:20.078 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:35
+2026-11-11 07:00:20.078 Df PeriopSignal[58828:9712f] [com.apple.xpc:connection] [0x106ea6640] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:20.079 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10e95c5b0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:20.099 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[18:45:0] created new cid:35
+2026-11-11 07:00:20.122 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[18:45:0] cid:36 returned YES
+2026-11-11 07:00:20.122 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[18:45:0] deallocated
+2026-11-11 07:00:20.122 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x10e95c5b0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:20.824 Df PeriopSignal[58828:969f9] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-11 07:00:20.828 Df PeriopSignal[58828:969f9] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-11 07:00:20.906 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:37
+2026-11-11 07:00:20.906 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106fe3b20] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:20.919 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[19:46:0] created new cid:37
+2026-11-11 07:00:20.985 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[19:46:0] cid:38 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:20.985 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:20.985 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[19:46:0] deallocated
+2026-11-11 07:00:20.985 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x106fe3b20] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:20.985 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:39
+2026-11-11 07:00:20.986 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106ccc650] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:21.021 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[20:47:0] created new cid:39
+2026-11-11 07:00:21.070 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[20:47:0] cid:40 returned YES
+2026-11-11 07:00:21.070 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[20:47:0] deallocated
+2026-11-11 07:00:21.070 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:41
+2026-11-11 07:00:21.071 Df PeriopSignal[58828:969f6] [com.apple.xpc:connection] [0x106ccc650] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:21.071 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106c8e660] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:21.103 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[21:48:0] created new cid:41
+2026-11-11 07:00:21.185 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[21:48:0] cid:42 returned YES
+2026-11-11 07:00:21.186 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[21:48:0] deallocated
+2026-11-11 07:00:21.187 Df PeriopSignal[58828:969f6] [com.apple.xpc:connection] [0x106c8e660] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:21.446 Df PeriopSignal[58828:96747] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-11 07:00:21.448 Df PeriopSignal[58828:96747] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-11 07:00:21.549 Sd PeriopSignal[58828:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+UAUserActivityManager supportsActivityContinuation=YES isEnabled=YES serverPid=0 PROJECT:UserActivity-551
+2026-11-11 07:00:21.549 Sd PeriopSignal[58828:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+[13CDCC8B-EA13-4022-96DF-36C2C1BE63AD userInfo.count=1 dirty 
+2026-11-11 07:00:21.552 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:43
+2026-11-11 07:00:21.557 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106ccc650] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:21.688 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[22:49:0] created new cid:43
+2026-11-11 07:00:21.711 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[22:49:0] cid:44 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:21.711 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:21.711 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[22:49:0] deallocated
+2026-11-11 07:00:21.712 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:45
+2026-11-11 07:00:21.712 Df PeriopSignal[58828:969f8] [com.apple.xpc:connection] [0x106ccc650] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:21.712 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106cd52f0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:21.730 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[23:50:0] created new cid:45
+2026-11-11 07:00:21.747 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[23:50:0] cid:46 returned YES
+2026-11-11 07:00:21.748 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[23:50:0] deallocated
+2026-11-11 07:00:21.748 Df PeriopSignal[58828:969f8] [com.apple.xpc:connection] [0x106cd52f0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:21.748 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:47
+2026-11-11 07:00:21.749 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106b44b00] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:21.766 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[24:51:0] created new cid:47
+2026-11-11 07:00:21.785 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[24:51:0] cid:48 returned YES
+2026-11-11 07:00:21.786 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[24:51:0] deallocated
+2026-11-11 07:00:21.787 Df PeriopSignal[58828:969f6] [com.apple.xpc:connection] [0x106b44b00] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:22.942 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:49
+2026-11-11 07:00:22.942 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10ce93990] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:22.954 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[25:52:0] created new cid:49
+2026-11-11 07:00:22.974 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[25:52:0] cid:50 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:22.974 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:22.974 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[25:52:0] deallocated
+2026-11-11 07:00:22.974 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:51
+2026-11-11 07:00:22.974 Df PeriopSignal[58828:969f8] [com.apple.xpc:connection] [0x10ce93990] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:22.975 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x10e9c6a20] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:23.005 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[26:53:0] created new cid:51
+2026-11-11 07:00:23.036 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[26:53:0] cid:52 returned YES
+2026-11-11 07:00:23.037 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[26:53:0] deallocated
+2026-11-11 07:00:23.037 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:53
+2026-11-11 07:00:23.037 Df PeriopSignal[58828:969f8] [com.apple.xpc:connection] [0x10e9c6a20] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:23.038 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106e65760] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:23.044 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[27:54:0] created new cid:53
+2026-11-11 07:00:23.063 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[27:54:0] cid:54 returned YES
+2026-11-11 07:00:23.063 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[27:54:0] deallocated
+2026-11-11 07:00:23.063 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x106e65760] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:23.091 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:55
+2026-11-11 07:00:23.092 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106f82590] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:23.097 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[28:55:0] created new cid:55
+2026-11-11 07:00:23.116 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,Biometry] canEvaluatePolicy:1 on LAContext[28:55:0] cid:56 returned Error Domain=com.apple.LocalAuthentication Code=-7 "No identities are enrolled." UserInfo={NSDebugDescription=No identities are enrolled., NSLocalizedDescription=Biometry is not enrolled.}
+2026-11-11 07:00:23.116 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] returned biometryType: 2
+2026-11-11 07:00:23.116 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[28:55:0] deallocated
+2026-11-11 07:00:23.116 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:57
+2026-11-11 07:00:23.116 Df PeriopSignal[58828:969f9] [com.apple.xpc:connection] [0x106f82590] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:23.117 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106bb0fa0] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:23.132 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[29:56:0] created new cid:57
+2026-11-11 07:00:23.161 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[29:56:0] cid:58 returned YES
+2026-11-11 07:00:23.161 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[29:56:0] deallocated
+2026-11-11 07:00:23.161 Df PeriopSignal[58828:969f6] [com.apple.xpc:connection] [0x106bb0fa0] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:23.161 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] Creating LAContext new cid:59
+2026-11-11 07:00:23.161 Df PeriopSignal[58828:96747] [com.apple.xpc:connection] [0x106b44b00] activating connection: mach=true listener=false peer=false name=com.apple.CoreAuthentication.daemon
+2026-11-11 07:00:23.186 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[30:57:0] created new cid:59
+2026-11-11 07:00:23.221 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client] canEvaluatePolicy:2 on LAContext[30:57:0] cid:60 returned YES
+2026-11-11 07:00:23.221 Df PeriopSignal[58828:96747] [com.apple.LocalAuthentication:Client,LAContext] LAContext[30:57:0] deallocated
+2026-11-11 07:00:23.222 Df PeriopSignal[58828:969f6] [com.apple.xpc:connection] [0x106b44b00] invalidated because the current process cancelled the connection by calling xpc_connection_cancel()
+2026-11-11 07:00:23.758 Df PeriopSignal[58828:96747] [com.apple.network:activity] <nw_activity 50:1 [022BA825-4679-4E9E-9B9E-C2D3C4AC115E] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 70440ms
+2026-11-11 07:00:23.758 Df PeriopSignal[58828:96747] [com.apple.network:activity] <nw_activity 50:2 [E4A733D0-F4CD-4E60-AE24-D1676D523632] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 70440ms
+2026-11-11 07:00:23.758 Df PeriopSignal[58828:96747] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [022BA825-4679-4E9E-9B9E-C2D3C4AC115E] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-11 07:00:23.758 Df PeriopSignal[58828:96747] [com.apple.network:activity] Unset the global parent activity
