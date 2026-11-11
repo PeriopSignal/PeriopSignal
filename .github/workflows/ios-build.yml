@@ -1015,6 +1015,8 @@ jobs:
           #
           # ---- 1.12 helper F shots (940-959): add your shot lines directly under this line ----
           #
+          # ---- 1.12 helper G shots (960-979): add your shot lines directly under this line ----
+          #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
