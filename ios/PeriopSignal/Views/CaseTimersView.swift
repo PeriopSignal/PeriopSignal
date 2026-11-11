@@ -17,6 +17,15 @@ import UserNotifications
 final class CaseTimersUI {
     static let shared = CaseTimersUI()
     var open = false
+    /// The card to open and scroll to when the timers appear (1.12 follow-up: the Medications & Interventions page's
+    /// "+ Antibiotic" opens the antibiotic card); read once by the view.
+    var target: String?
+
+    /// Opens the timers at the antibiotic card.
+    func openAntibiotic() {
+        target = CaseTimersView.antibioticCardID
+        open = true
+    }
 }
 
 /// Presents the timers sheet on My Patient's page.
@@ -329,6 +338,11 @@ struct CaseTimersView: View {
     @State private var didSetUp = false
     @State private var didSeed = false
     @State private var scrollTarget: String?
+    /// The leave-with-an-antibiotic-pending question (1.12 follow-up).
+    @State private var showLeave = false
+
+    /// The antibiotic card's scroll id.
+    static let antibioticCardID = "antibiotic.card"
 
     // Antibiotic
     @State private var abxPending: [String] = []
@@ -362,6 +376,8 @@ struct CaseTimersView: View {
             if inSheet { NavigationStack { page } } else { page }
         }
         .fullScreenCover(item: $webLink) { link in SafariView(url: link.url).ignoresSafeArea() }
+        // An antibiotic picked and not logged is not lost by a swipe: the sheet stays until Done asks (1.12 follow-up).
+        .interactiveDismissDisabled(inSheet && !pendingDrugs.isEmpty)
         .onAppear(perform: setUp)
         #if DEBUG
         // The reference data loads asynchronously (RootView: the route is set before refs.load()), so a screenshot's
@@ -407,9 +423,22 @@ struct CaseTimersView: View {
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Case Timers")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(!inSheet && !pendingDrugs.isEmpty)
+        .confirmationDialog(leaveTitle, isPresented: $showLeave, titleVisibility: .visible) {
+            Button("Log dose") { logPendingAndLeave() }
+            Button("Discard", role: .destructive) { discardPendingAndLeave() }
+            Button("Keep editing", role: .cancel) {}
+        }
         .toolbar {
             if inSheet {
-                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.fontWeight(.semibold).tint(PS.action) }
+                ToolbarItem(placement: .topBarTrailing) { Button("Done") { requestLeave() }.fontWeight(.semibold).tint(PS.action) }
+            }
+            if !inSheet && !pendingDrugs.isEmpty {
+                // The back arrow of a page pushed from Reference asks first, too (the system one is hidden meanwhile).
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { requestLeave() } label: { Label("Back", systemImage: "chevron.left").labelStyle(.titleAndIcon) }
+                        .tint(PS.action)
+                }
             }
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -437,7 +466,38 @@ struct CaseTimersView: View {
         if !asked.isEmpty { open = Set(asked.compactMap(Section.init(rawValue:))) }
         if let d = refs.caseTimers { applyLaunchSeeds(d) }
         #endif
+        // Opened from the Medications & Interventions page's "+ Antibiotic": the antibiotic card, scrolled to.
+        if let target = CaseTimersUI.shared.target {
+            CaseTimersUI.shared.target = nil
+            if target == Self.antibioticCardID { open.insert(.antibiotic) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { scrollTarget = target }
+        }
         openSections = open
+    }
+
+    // MARK: Leaving with an antibiotic picked and not logged
+
+    /// The antibiotics picked in this visit that no dose has been logged for.
+    private var pendingDrugs: [String] { abxPending.filter { t.course($0) == nil } }
+
+    private var leaveTitle: String {
+        IntraopAntibiotic.leaveTitle(names: pendingDrugs.map { IntraopAntibiotic.name($0, in: refs.caseTimers) },
+                                     at: ClockText.time(abxStart.resolved(now: Date())))
+    }
+
+    private func requestLeave() {
+        if pendingDrugs.isEmpty { dismiss() } else { Haptics.light(); showLeave = true }
+    }
+
+    private func logPendingAndLeave() {
+        if let d = refs.caseTimers { startAntibiotics(pendingDrugs, changes: abxChanges(d)) }
+        dismiss()
+    }
+
+    private func discardPendingAndLeave() {
+        for drug in pendingDrugs { abxPicks[drug] = nil }
+        abxPending = []
+        dismiss()
     }
 
     #if DEBUG
@@ -449,6 +509,8 @@ struct CaseTimersView: View {
         didSeed = true
         abxPending = LaunchSeed.list("ps.timers.pick").filter { d.antibiotic($0) != nil && t.course($0) == nil }
         for id in abxPending { if let def = d.antibiotic(id) { abxPicks[id] = RecurrencePick(minutes: CaseTimerRecurrence.antibioticDefault(def)) } }
+        // -ps.timers.leave 1: the question asked on leaving with a pick pending.
+        if LaunchSeed.bool("ps.timers.leave"), !abxPending.isEmpty { DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showLeave = true } }
         for item in LaunchSeed.list("ps.timers.labs") {
             let parts = item.split(separator: ":").map(String.init)
             guard let def = d.check(parts[0]) else { continue }
@@ -682,19 +744,29 @@ struct CaseTimersView: View {
                 }
                 let pending = abxPending.filter { t.course($0) == nil }
                 let update = pending.isEmpty && !changes.isEmpty
+                // 1.12 follow-up: the button says what it does for what is pending (a drug with no routine redose has no
+                // interval chosen, and "Start timer" read as if there were nothing to start).
+                let anyInterval = pending.contains { (abxPick($0, d).wrappedValue.minutes ?? 0) > 0 }
+                let title = IntraopAntibiotic.buttonTitle(pending: !pending.isEmpty, anyInterval: anyInterval, onlyChanges: update)
                 Hairline()
                 if !update { StartTimeRow(start: $abxStart) }
                 Button {
                     startAntibiotics(pending, changes: changes)
                 } label: {
-                    Text(update ? "Update timer" : "Start timer").frame(maxWidth: .infinity)
+                    Text(title).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(TimerStartButtonStyle(active: !(pending.isEmpty && changes.isEmpty)))
                 .disabled(pending.isEmpty && changes.isEmpty)
-                .accessibilityHint(update ? "Saves the new redose intervals" : "Logs the dose at the start time and starts the redose timer")
+                .accessibilityHint(IntraopAntibiotic.buttonHint(pending: !pending.isEmpty, anyInterval: anyInterval, onlyChanges: update))
+                if !pending.isEmpty {
+                    Text(IntraopAntibiotic.pendingNote(buttonTitle: title))
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
-        .id("antibiotic.card")
+        .id(Self.antibioticCardID)
     }
 
     @ViewBuilder private func antibioticRow(_ def: AntibioticDef, _ d: CaseTimerData) -> some View {
@@ -741,8 +813,11 @@ struct CaseTimersView: View {
             }
             if let course, let last = course.last {
                 let every = CaseTimerRecurrence.redoseMinutes(course, def: def)
+                // A dose typed in the quick-add bar is shown as typed beside the last dose when it says more than the computed one.
+                let given = IntraopAntibiotic.givenNote(last: last, computed: dose.text)
                 HStack(spacing: 10) {
-                    Text("Last dose \(ClockText.time(last.time))" + (every.map { " · next \(ClockText.time(last.time.addingTimeInterval($0 * 60)))" } ?? ""))
+                    Text("Last dose \(ClockText.time(last.time))" + (every.map { " · next \(ClockText.time(last.time.addingTimeInterval($0 * 60)))" } ?? "")
+                         + (given.map { " · " + $0 } ?? ""))
                         .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
                     Spacer(minLength: 4)
                     Button("Redose given") {
@@ -754,7 +829,7 @@ struct CaseTimersView: View {
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
                 }
                 if course.doses.count > 1 {
-                    DoseHistory(entries: course.doses, text: { "\(ClockText.time($0.time))  \(def.name)" }) { id in
+                    DoseHistory(entries: course.doses, text: { "\(ClockText.time($0.time))  \(def.name)" + ($0.given.map { " " + $0 } ?? "") }) { id in
                         edit { t in
                             if let i = t.antibiotics.firstIndex(where: { $0.drug == def.id }) { t.antibiotics[i].doses.removeAll { $0.id == id } }
                         }

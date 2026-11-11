@@ -993,6 +993,30 @@ jobs:
           shot 924-e1-valve-calc-nobsa-375-light 16 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.patient.width 375 -ps.forceAppearance light
           #
           # ---- 1.12 helper H shots (980-999): add your shot lines directly under this line ----
+          # Typed antibiotics (H): Case Timers with an antibiotic picked and not logged ("Log dose" for a drug with no routine redose,
+          # "Log dose & start timer" for cefazolin, the not-recorded line; the question on leaving), the bar's review of "vanc 1 g at
+          # 0810" and "redose cefazolin at 1205", the Intraoperative row, the page and the handoff once vancomycin 1 g is charted,
+          # and the page empty ("None charted", "+ Antibiotic"). -ps.timers.leave 1 asks the question on leaving.
+          shot 980-h112-timers-vanc-pending-light 20 -ps.ref case-timers -ps.patient demo-112-abx-none -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.scroll antibiotic -ps.forceAppearance light
+          shot 981-h112-timers-vanc-pending-dark 20 -ps.ref case-timers -ps.patient demo-112-abx-none -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 982-h112-timers-cefazolin-pending-light 20 -ps.ref case-timers -ps.patient demo-112-abx-none -ps.timers.sections antibiotic -ps.timers.pick cefazolin -ps.timers.scroll antibiotic -ps.forceAppearance light
+          shot 983-h112-timers-cefazolin-pending-dark 20 -ps.ref case-timers -ps.patient demo-112-abx-none -ps.timers.sections antibiotic -ps.timers.pick cefazolin -ps.timers.scroll antibiotic -ps.forceAppearance dark
+          shot 984-h112-timers-leave-light 24 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.timers.open 1 -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.leave 1 -ps.forceAppearance light
+          shot 985-h112-timers-leave-dark 24 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.timers.open 1 -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.leave 1 -ps.forceAppearance dark
+          shot 986-h112-timers-vanc-pending-375-light 22 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.scroll antibiotic -ps.patient.width 375 -ps.forceAppearance light
+          shot 987-h112-bar-vanc-light 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "vanc 1 g at 0810"
+          shot 988-h112-bar-redose-dark 16 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "redose cefazolin at 1205"
+          shot 989-h112-bar-vanc-375-light 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "vanc 1 g at 0810"
+          shot 990-h112-intraop-row-light 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.forceAppearance light
+          shot 991-h112-intraop-row-dark 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.forceAppearance dark
+          shot 992-h112-intraop-row-375-light 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 993-h112-page-typed-light 16 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.open intraop:meds -ps.forceAppearance light
+          shot 994-h112-page-typed-dark 16 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.open intraop:meds -ps.forceAppearance dark
+          shot 995-h112-page-empty-light 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.open intraop:meds -ps.forceAppearance light
+          shot 996-h112-page-empty-dark 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.open intraop:meds -ps.forceAppearance dark
+          shot 997-h112-handoff-typed-light 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 998-h112-handoff-typed-dark 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 999-h112-page-empty-375-light 20 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance light
           #
           # ---- 1.12 helper E2 shots (925-939): add your shot lines directly under this line ----
           # The valve library (note 4): the History's prosthesis field with "Library" beside it (light, dark), the picker (-ps.valve.library

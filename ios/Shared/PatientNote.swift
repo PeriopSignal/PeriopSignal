@@ -104,6 +104,9 @@ enum PatientNoteChange: Hashable {
     /// "TTE: trace TR" is trivial regurgitation): the valve, "stenosis" or "regurgitation", and its grade. The history's
     /// valve disease is filed as well where the grade is mild or more.
     case echoValve(String, String, EchoGrade)
+    // 1.12 follow-up (Ben, Nov 11): an antibiotic given during the case, read by the bar on the Intraoperative tab; filed in
+    // Case Timers as its own Start or "Redose given" does (IntraopAntibiotic).
+    case antibioticDose(IntraopAntibioticDose)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -3738,6 +3741,8 @@ enum PatientNote {
             guard let o = r.echoFindings.echoGrade(valve: v, lesion: lesion) else { return .new }
             if o == g { return .recorded }
             return .replaces(o == .normal ? "none" : o.label.lowercased())
+        case .antibioticDose(let d):
+            return IntraopAntibiotic.status(d, in: r)
         }
     }
 
@@ -3988,6 +3993,8 @@ enum PatientNote {
                 r.events = joined(r.events, t)
             case .echoValve(let v, let lesion, let g):
                 r.echoFindings.setEchoGrade(g, valve: v, lesion: lesion)
+            case .antibioticDose(let d):
+                IntraopAntibiotic.apply(d, to: &r)
             }
         }
         // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.
