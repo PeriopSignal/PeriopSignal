@@ -116,11 +116,12 @@ final class Preop19Tests: XCTestCase {
     func testWorkupChipsAreInBensOrderAndEmptyAtFirst() {
         let items = PatientPreop.workup(adult())
         // 1.11 (Ben's note 4): the stress test joins the list, after the echo and before the catheterizations.
-        XCTAssertEqual(items.map(\.title), ["ECG", "Echo", "Stress test", "Left heart cath", "Right heart cath", "Carotid US", "Radial artery US",
+        // 1.12 (Ben's note 11): the chest X-ray joins the list, beside the ECG, echo and stress test.
+        XCTAssertEqual(items.map(\.title), ["ECG", "Echo", "Stress test", "Chest X-ray", "Left heart cath", "Right heart cath", "Carotid US", "Radial artery US",
                                            "Pulmonary function tests", "TEE screen", "Mechanical support"])
         XCTAssertTrue(items.allSatisfy { !$0.filled })
         XCTAssertFalse(PatientPreop.workupHasData(adult()))
-        XCTAssertEqual(items.map(\.key), ["workup:ecg", "workup:echo", "workup:stress", "workup:lhc", "workup:rhc", "workup:carotid", "workup:radial",
+        XCTAssertEqual(items.map(\.key), ["workup:ecg", "workup:echo", "workup:stress", "workup:cxr", "workup:lhc", "workup:rhc", "workup:carotid", "workup:radial",
                                          "workup:pft", "workup:tee", "devices:support"])
     }
 

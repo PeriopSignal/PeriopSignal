@@ -99,6 +99,11 @@ enum PatientNoteChange: Hashable {
     case stressTest(PatientStressTest)
     /// One intraoperative event, as typed ("hypotension after induction"), added to the Events text.
     case event(String)
+    // 1.12 (note 7):
+    /// One lesion of the preoperative echo's mitral, tricuspid or aortic valve, read behind an echo cue ("Echo: severe AS",
+    /// "TTE: trace TR" is trivial regurgitation): the valve, "stenosis" or "regurgitation", and its grade. The history's
+    /// valve disease is filed as well where the grade is mild or more.
+    case echoValve(String, String, EchoGrade)
 }
 
 struct PatientNoteFinding: Identifiable, Hashable {
@@ -871,7 +876,7 @@ enum PatientNote {
         var out: [NoteRx] = (problemRules + anesthesiaRules + symptomRules + acuteRules + signRules).map(\.rx)
         out += [rupturePastBefore, repairPastBefore, repairPastAfter, aortaSizeBefore, aortaSizeAfter, bareDissection, taaContext, ankleContext, bareTAA,
                 intracranialAneurysm, rupturedAorticRx, notAorticDissection, complexEVARRx, complexEVARTail]
-        out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
+        out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, valveShortAfterRx, echoCueRx, echoPlannedBefore, echoLeadAfter, echoCueAfter, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
                 prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI, otherMeaning]
         out += [infectionNotPositive, hivPrevention, covidNotRecent]
         out += detailPatterns
@@ -1388,7 +1393,11 @@ enum PatientNote {
     /// of disease (nil, and the lesion is not read).
     static func grade(_ words: [String]) -> String? {
         let order = ["mild", "moderate", "severe"]
-        let read = words.map { $0.lowercased() == "critical" ? "severe" : $0.lowercased() }.filter(order.contains)
+        // 1.12: "mod" is moderate ("mod MR").
+        let read = words.map { w -> String in
+            let l = w.lowercased()
+            return l == "critical" ? "severe" : (l == "mod" ? "moderate" : l)
+        }.filter(order.contains)
         return read.max { order.firstIndex(of: $0)! < order.firstIndex(of: $1)! }
     }
 
@@ -1410,8 +1419,25 @@ enum PatientNote {
     /// stenosis") or abbreviated with a grade ("severe AS", "moderate MR", "mild TR"). Trace and trivial lesions are not
     /// valve disease (the echo's Trivial grade) and are not read. A severe pulmonic lesion has no valve of its own on the
     /// page: it files severe valve disease, valve not recorded (its ASA IV kept).
-    static let valveWrittenRx = NoteRx(#"(?:\b(trace|trivial|mild|moderate|severe|critical)(?:\s*(?:-|–|to|/)\s*(mild|moderate|severe|critical))?\s+)?\b(aortic|mitral|tricuspid|pulmonic|pulmonary)\s+(?:valve\s+)?(stenosis|regurgitation|insufficiency)\b"#)
-    static let valveShortRx = NoteRx(#"\b(trace|trivial|mild|moderate|severe|critical)(?:\s*(?:-|–|to|/)\s*(mild|moderate|severe|critical))?\s+((?-i:AS|AR|AI|MS|MR|TS|TR|TI|PS|PR|PI))\b"#)
+    ///
+    /// 1.12 (notes 6 and 7): "insufficiency" is regurgitation (it was already read, and files as regurgitation); "mod" is
+    /// moderate; the grade may come behind the lesion ("aortic stenosis severe", "mitral regurgitation: moderate") unless
+    /// it is the next lesion's ("severe aortic stenosis moderate mitral regurgitation"). Groups: 1 and 2 the grade before,
+    /// 3 the valve, 4 the lesion, 5 and 6 the grade behind.
+    static let valveWrittenRx = NoteRx(#"(?:\b(trace|trivial|mild|mod(?:erate)?|severe|critical)(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)(mild|mod(?:erate)?|severe|critical))?\s+)?\b(aortic|mitral|tricuspid|pulmonic|pulmonary)\s+(?:valve\s+)?(stenosis|regurgitation|insufficiency)\b(?:(?:\s+(?:is|was)\s+|\s*[:\-–]\s*|\s+)(trace|trivial|mild|mod(?:erate)?|severe|critical)\b(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)(mild|mod(?:erate)?|severe|critical)\b)?(?!\s*(?:valve\s+)?(?:(?-i:[AMTP][SRI])\b|aortic|mitral|tricuspid|pulmonic|pulmonary)))?"#)
+    /// The shorthand that the abbreviation list does not expand first (AR, MR, TR, TS, TI, and any left as written),
+    /// with the grade before it: AS, AR, AI, MS, MR, TS, TR, TI, PS, PR, PI, in capitals only. Groups: 1 and 2 the grade, 3 the letters.
+    static let valveShortRx = NoteRx(#"\b(trace|trivial|mild|mod(?:erate)?|severe|critical)(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)(mild|mod(?:erate)?|severe|critical))?\s+((?-i:AS|AR|AI|MS|MR|TS|TR|TI|PS|PR|PI))\b(?!\s*(?:interval|prolong\w*|segment))"#)
+    /// The same with the grade behind the letters ("MR severe", "TR: moderate"). Groups: 1 the letters, 2 and 3 the grade.
+    static let valveShortAfterRx = NoteRx(#"(?<![A-Za-z])((?-i:AS|AR|AI|MS|MR|TS|TR|TI|PS|PR|PI))(?:\s+(?:is|was)\s+|\s*[:\-–]\s*|\s+)(trace|trivial|mild|mod(?:erate)?|severe|critical)\b(?:(?:\s*[-–/]\s*|\s+to\s+|-to-)(mild|mod(?:erate)?|severe|critical)\b)?(?!\s*(?:valve\s+)?(?:(?-i:[AMTP][SRI])\b|aortic|mitral|tricuspid|pulmonic|pulmonary))"#)
+    /// An echo named: "echo", "TTE", "TEE" (capitals: "tee" is a golf word).
+    static let echoCueRx = NoteRx(#"\b(?:echo|echos|echocardiograms?|echocardiography|(?-i:TTE|TEE))\b"#)
+    /// An echo that is to come ("for TEE", "scheduled for a repeat echo") reports nothing.
+    static let echoPlannedBefore = NoteRx(#"\b(?:for|planned|scheduled|needs?|ordered|repeat|pending|get|getting|to have|will have|due for)\s+(?:an?\s+|the\s+|repeat\s+)?(?:\w+\s+)?$"#)
+    /// What lets an echo cue govern the comma pieces after it: "Echo: EF 55%, mild AS", "TTE shows ...".
+    static let echoLeadAfter = NoteRx(#"^\s*(?:[:\-–]|(?:shows?|showed|showing|reveals?|revealed|with|demonstrates?|demonstrated|notable for|significant for|consistent with|read as|reports?|reported|findings?|impression)\b)"#)
+    /// "severe AS on echo", "mild MR by the TTE".
+    static let echoCueAfter = NoteRx(#"^\s*(?:on|by|per|in|from|at)\s+(?:the\s+)?(?:last\s+|recent\s+|prior\s+|pre-?op(?:erative)?\s+)?(?:echo|echos|echocardiograms?|echocardiography|(?-i:TTE|TEE))\b"#)
     /// A prosthetic valve in place: a type and "valve" ("mechanical mitral valve", "bioprosthetic valve"), a type and
     /// the operation ("mechanical AVR", "tissue MVR"), or the operation told as past ("s/p TAVR", "AVR 2019"), with the
     /// size after it ("23 mm"). Not a planned one ("for TAVR", "scheduled for a bioprosthetic Bentall").
@@ -1426,12 +1452,46 @@ enum PatientNote {
     static let anticoagulationWords = NoteRx(#"\b(?:warfarin|coumadin|anticoagulat\w*|inr|heparin|eliquis|apixaban|lovenox|enoxaparin|bridg\w*)\b"#)
     static let bentallRx = NoteRx(#"\b(?:bio-?)?bentall\b"#)
 
+    /// Whether a lesion mentioned at a range is said of an echo (1.12, note 7): an echo word before it in its sentence ("TTE
+    /// with trace MR", "Echo: EF 55%, mild AS" where the cue heads the run of pieces), or "on echo" right after it. An echo
+    /// that is still to come ("scheduled for TEE") reports nothing, and a cue before a comma with no heading ("TEE tomorrow,
+    /// severe AS") does not reach past it.
+    static func echoCued(_ c: String, _ r: NSRange) -> Bool {
+        let ns = c as NSString
+        guard r.location >= 0, r.location + r.length <= ns.length else { return false }
+        if echoCueAfter.first(ns.substring(from: r.location + r.length)) != nil { return true }
+        let before = ns.substring(to: r.location) as NSString
+        guard let cue = echoCueRx.all(before as String).last else { return false }
+        let end = cue.range.location + cue.range.length
+        let between = before.substring(from: end)
+        guard between.count <= 100 else { return false }
+        if echoPlannedBefore.first(before.substring(to: cue.range.location)) != nil { return false }
+        if between.contains(","), echoLeadAfter.first(between) == nil { return false }
+        return true
+    }
+
     private static func readValves(_ c: String, _ h: inout Hits) {
         let ns = c as NSString
         func free(_ r: NSRange) -> Bool { !negated(c, at: r.location) && !familyContext(c, at: r.location) }
+        // 1.12 (note 7): behind an echo cue the lesion is also the echo's finding (the mitral, tricuspid and aortic valves have
+        // one; trace and trivial are the echo's Trivial regurgitation, not valve disease).
+        func addEcho(_ valve: String, _ lesion: String, _ g: EchoGrade, _ r: NSRange) {
+            guard valve != "pulmonic" else { return }
+            let id = "echo:" + valve + ":" + lesion
+            guard !h.findings.contains(where: { $0.id == id }) else { return }
+            let name = valve.prefix(1).uppercased() + valve.dropFirst() + " " + lesion
+            h.add(PatientNoteFinding(id: id, section: Part.assessment, label: "Echo: " + name + ", " + g.rawValue,
+                                     change: .echoValve(valve, lesion, g)), at: r)
+        }
         func add(_ valve: String, _ lesion: String, _ words: [String], _ r: NSRange) {
             let g = grade(words)
-            if !words.isEmpty, g == nil { h.seen(r); return }
+            let echo = echoCued(c, r)
+            if !words.isEmpty, g == nil {
+                if echo, lesion == "regurgitation" { addEcho(valve, lesion, .trivial, r) }
+                h.seen(r)
+                return
+            }
+            if echo, let g, let eg = EchoGrade(rawValue: g) { addEcho(valve, lesion, eg, r) }
             if valve == "pulmonic" {
                 guard g == "severe" else { h.seen(r); return }
                 h.add(PatientNoteFinding(id: "problem:valve-severe", section: Part.history, label: "Severe valve disease (pulmonic), valve not recorded",
@@ -1446,12 +1506,17 @@ enum PatientNote {
         for m in valveWrittenRx.all(c) where free(m.range) {
             let valve = (m.text(3, in: c) ?? "").lowercased().replacingOccurrences(of: "pulmonary", with: "pulmonic")
             let lesion = (m.text(4, in: c) ?? "").lowercased() == "stenosis" ? "stenosis" : "regurgitation"
-            add(valve, lesion, [m.text(1, in: c), m.text(2, in: c)].compactMap { $0 }, m.range)
+            add(valve, lesion, [m.text(1, in: c), m.text(2, in: c), m.text(5, in: c), m.text(6, in: c)].compactMap { $0 }, m.range)
         }
         let valves: [Character: String] = ["A": "aortic", "M": "mitral", "T": "tricuspid", "P": "pulmonic"]
         for m in valveShortRx.all(c) where free(m.range) {
             guard let ab = m.text(3, in: c), let v = valves[ab.first ?? " "] else { continue }
             add(v, ab.hasSuffix("S") ? "stenosis" : "regurgitation", [m.text(1, in: c), m.text(2, in: c)].compactMap { $0 }, m.range)
+        }
+        // 1.12 (note 7): the grade behind the letters ("MR severe").
+        for m in valveShortAfterRx.all(c) where free(m.range) {
+            guard let ab = m.text(1, in: c), let v = valves[ab.first ?? " "] else { continue }
+            add(v, ab.hasSuffix("S") ? "stenosis" : "regurgitation", [m.text(2, in: c), m.text(3, in: c)].compactMap { $0 }, m.range)
         }
         // Prosthetic valves.
         let bentallPlanned: Bool = {
@@ -3644,6 +3709,10 @@ enum PatientNote {
             return .new
         case .event(let t):
             return mentions(r.events, t) ? .recorded : .new
+        case .echoValve(let v, let lesion, let g):
+            guard let o = r.echoFindings.echoGrade(valve: v, lesion: lesion) else { return .new }
+            if o == g { return .recorded }
+            return .replaces(o == .normal ? "none" : o.label.lowercased())
         }
     }
 
@@ -3892,6 +3961,8 @@ enum PatientNote {
             case .event(let t):
                 r.noEvents = false
                 r.events = joined(r.events, t)
+            case .echoValve(let v, let lesion, let g):
+                r.echoFindings.setEchoGrade(g, valve: v, lesion: lesion)
             }
         }
         // Ids a finding added that the History details hold (an aneurysm, severe valve disease) go to their place.
@@ -3948,6 +4019,33 @@ enum PatientNote {
         let o = old.trimmingCharacters(in: .whitespacesAndNewlines)
         if n.isEmpty || o.localizedCaseInsensitiveContains(n) { return old }
         return o.isEmpty ? n : o + "; " + n
+    }
+}
+
+extension PatientEcho {
+    /// 1.12 (note 7): the grade recorded for one lesion ("stenosis" or "regurgitation") of the "mitral", "tricuspid" or
+    /// "aortic" valve; nil when none is recorded or the valve has no echo field.
+    func echoGrade(valve: String, lesion: String) -> EchoGrade? {
+        let v: EchoValve
+        switch valve {
+        case "mitral": v = mitral
+        case "tricuspid": v = tricuspid
+        case "aortic": v = aortic
+        default: return nil
+        }
+        return lesion == "stenosis" ? v.stenosis : v.regurgitation
+    }
+
+    mutating func setEchoGrade(_ g: EchoGrade, valve: String, lesion: String) {
+        func set(_ v: inout EchoValve) {
+            if lesion == "stenosis" { v.stenosis = g } else { v.regurgitation = g }
+        }
+        switch valve {
+        case "mitral": set(&mitral)
+        case "tricuspid": set(&tricuspid)
+        case "aortic": set(&aortic)
+        default: break
+        }
     }
 }
 

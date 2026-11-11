@@ -82,6 +82,8 @@ enum PatientEditor: Hashable {
         ("codestatus", "Code Status", "exclamationmark.shield"),
         // 1.11 (Ben's note 4): the preprocedure stress test, a chip of the cardiac workup.
         ("stress", "Stress Test", "figure.run"),
+        // 1.12 (Ben's note 11): the preprocedure chest X-ray, beside the ECG, echo and stress test.
+        ("cxr", "Chest X-ray", "photo"),
     ]
 }
 
@@ -159,6 +161,8 @@ struct PatientEditorView: View {
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(editor.title)
         .navigationBarTitleDisplayMode(.inline)
+        // 1.12 (note 10): the open case's label, small and read-only, under the title.
+        .patientCaseCaption(editor.title)
         .alert("No patient identifiers", isPresented: $showIdentifiers) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -409,10 +413,9 @@ struct PatientEditorView: View {
         // the reorganized tab.
         PatientGroup(title: "Allergies") { AllergiesBox() }
             .id("allergies")
-        PatientGroup(title: "Home medications") { HomeMedicationsBox() }
+        // 1.12 (Ben's note 16): one box for the home medications and the drips running before the case.
+        PatientGroup(title: CurrentMedicationsBox.title, note: CurrentMedicationsBox.note) { CurrentMedicationsBox() }
             .id("homemeds")
-        currentInfusionsGroup
-            .id("infusions")
         PatientGroup(title: "Flagged medications") { FlaggedMedicationsChips() }
             .id("flagged")
         let notes = PatientPreop.beforeSurgery(r)
@@ -635,10 +638,10 @@ struct PatientEditorView: View {
         IntraopFluidsSection()
     }
 
+    /// 1.12 (Ben's notes 3 and 18): the antibiotics charted in Case Timers (read-only), the notable medications as chips with
+    /// their doses, and the free text the page had (PatientMedicationViews.swift).
     @ViewBuilder private var intraopMeds: some View {
-        PatientGroup(title: "Medications & interventions") {
-            PatientTextField(label: "Notable medications & interventions", prompt: "Antibiotic and time, steroids, TXA, reversal, positioning", text: bind(\.medsGiven))
-        }
+        IntraopMedicationsPage()
     }
 
     @ViewBuilder private var intraopEvents: some View {

@@ -61,10 +61,12 @@ final class PatientDeepLink19Tests: XCTestCase {
         defer { PS.textScale = scale }
         PS.textScale = 1
         // The pinned bar is about 54 pt (8 pt padding, a 13.5 pt chip, 8 pt padding, the hairline); the anchor clears
-        // it and a small margin, not the 44 pt inline title the scroll view's content is already under.
-        XCTAssertGreaterThanOrEqual(PatientJumpID.clearance, 54)
-        XCTAssertLessThanOrEqual(PatientJumpID.clearance, 70)
+        // it and a small margin, not the 44 pt inline title the scroll view's content is already under. 1.12 (note 10): the
+        // slim row of cases and tabs (about 44 pt) is pinned above the chips once the tab has scrolled, so the anchor
+        // clears both (was 54 to 70; C112Tests.testAJumpClearsTheRowAndTheChipBar).
+        XCTAssertGreaterThanOrEqual(PatientJumpID.clearance, 54 + 44)
+        XCTAssertLessThanOrEqual(PatientJumpID.clearance, 70 + 44)
         PS.textScale = 1.25
-        XCTAssertGreaterThan(PatientJumpID.clearance, 56 * 1.2, "a larger text size makes the bar taller, so the anchor grows with it")
+        XCTAssertGreaterThan(PatientJumpID.clearance, 56 * 1.2 + 44, "a larger text size makes the bar taller, so the anchor grows with it")
     }
 }

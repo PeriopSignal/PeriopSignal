@@ -420,10 +420,12 @@ final class B111Tests: XCTestCase {
         XCTAssertEqual(r.infusions.count, 1)
         XCTAssertTrue(IntraopInfusionList.isTombstone(r.infusions[0]))
         XCTAssertTrue(r.infusions.map(\.text).allSatisfy(\.isEmpty), "an empty text, left out of every summary")
-        // The handoff keeps the "running before the case" line for it.
+        // 1.12 (Ben's note 16): a drip deleted in the room is no longer running, so the handoff no longer lists it as a current
+        // infusion (1.11's handoff kept it in its "running before the case" line); the drips not deleted are still told.
         let block = PatientBriefs.handoff(r).first { $0.key == "infusions" }
         XCTAssertTrue(block?.text.contains("running before the case") ?? false, block?.text ?? "")
-        XCTAssertTrue(block?.text.contains("Epinephrine at 0.05 mcg/kg/min") ?? false)
+        XCTAssertTrue(block?.text.contains("Norepinephrine at 0.1 mcg/kg/min") ?? false)
+        XCTAssertFalse(block?.text.contains("Epinephrine at 0.05 mcg/kg/min") ?? true, "the deleted drip is not a current infusion")
         XCTAssertFalse(block?.text.contains("Infusions: ;") ?? true)
 
         // A copy already edited, then deleted: the same.

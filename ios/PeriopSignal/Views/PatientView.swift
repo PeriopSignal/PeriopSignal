@@ -61,6 +61,10 @@ struct PatientView: View {
     @State private var received: Bool?
     /// The jump bar has scrolled under the top of the tab, so its pinned copy shows.
     @State private var jumpPinned = false
+    /// 1.12 (note 10): the case row and the tab control have scrolled under the bar, so the slim pinned row shows.
+    @State private var tabsPinned = false
+    /// 1.12 (note 17): which boxes are folded on this screen (not saved in the record).
+    @State private var boxes = PatientBoxes()
     /// The grey shield's "No patient identifiers" explanation is open.
     @State private var showIdentifiers = false
     /// Where the jump bar and its pinned copy are, read as the tab scrolls (not observed, so scrolling redraws nothing).
@@ -104,8 +108,12 @@ struct PatientView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // The row of cases only when it earns its place (two or more, or a room or phone); its sheets
                         // and the End case dialog are on the page (PatientCasePresentations).
-                        if PatientRoomsBar.shows(patient) { PatientRoomsBar() }
-                        tabBar.patientTipTarget(.tabs)
+                        // The case row and the tab control; once they have scrolled under the bar, the pinned row takes over.
+                        VStack(alignment: .leading, spacing: 16) {
+                            if PatientRoomsBar.shows(patient) { PatientRoomsBar() }
+                            tabBar.patientTipTarget(.tabs)
+                        }
+                        .background(tabsReader)
                         if let n = noteResult { noteBanner(n) }
                         if let replaced = received { receivedBanner(replaced) }
                         switch tab {
@@ -128,7 +136,7 @@ struct PatientView: View {
                     .id(Self.topID)
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .overlay(alignment: .top) { pinnedJumpBar(proxy) }
+                .overlay(alignment: .top) { pinnedChrome(proxy) }
                 // 1.11: where each section's anchor is, as the tab scrolls; the current chip follows (P1-5).
                 .onPreferenceChange(PatientJumpAnchorKey.self) { tops in
                     jumpGeometry.tops = tops
@@ -155,6 +163,10 @@ struct PatientView: View {
                 }
                 .readPatientTipFrames(tips.isShowing, into: $tipFrames)
                 .noIdentifiersAlert(isPresented: $showIdentifiers)
+                // Another case opens, the patient is cleared, or one is received: the boxes start as for a patient opening.
+                .onChange(of: patient.currentCase.id) { _, _ in boxes.start(patient.record) }
+                .onChange(of: patient.isEmpty) { _, empty in if empty { boxes.start(patient.record) } }
+                .onChange(of: received) { _, new in if new != nil { boxes.start(patient.record) } }
                 .modifier(PatientCasePresentations())
                 .modifier(CaseTimersPresentation())
                 .onChange(of: scrollToTop) { _, _ in
@@ -183,6 +195,15 @@ struct PatientView: View {
                     #endif
                     #if DEBUG
                     ShotTrace.note("root appear tab=\(tab.rawValue)")
+                    #endif
+                    // 1.12 (note 17): the boxes know where the tab scrolls, and a saved patient opens with its filled boxes folded.
+                    let geometry = jumpGeometry
+                    boxes.viewport = { (top: geometry.pinY - 8, bottom: geometry.viewBottom) }
+                    boxes.scroll = { id, anchor in proxy.scrollTo(id, anchor: anchor) }
+                    boxes.startOnce(patient.record)
+                    #if DEBUG
+                    // Screenshot runs: -ps.patient.expand allergies | cardio | airway ... opens that box (the others fold), as a tap would.
+                    if let box = PatientBox(rawValue: LaunchSeed.string("ps.patient.expand")) { boxes.expand(box, patient.record) }
                     #endif
                     // The first time (not in screenshot runs unless -ps.tips 1), once the tab has settled.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
@@ -253,6 +274,8 @@ struct PatientView: View {
             }
             .navigationDestination(for: RefRoute.self) { route in
                 RefDestination(route: route, push: { path.append($0) }, openURL: { webLink = WebLink(url: $0) }, path: nil, handoff: handoff)
+                    // 1.12 (note 10): Case Timers opened from the tab says which case it is for, under its title.
+                    .modifier(PatientRouteCaption(route: route))
                     #if DEBUG
                     .onAppear { ShotTrace.note("route appear"); ShotReady.pageShown() }
                     #endif
@@ -273,6 +296,7 @@ struct PatientView: View {
             if seen { tipsSeen = true }
         }
         .environment(handoff)
+        .environment(boxes)
         .task { await openForScreenshot() }
         #if DEBUG
         .onChange(of: path) { o, n in ShotTrace.note("path \(o.count) -> \(n.count)") }
@@ -602,9 +626,10 @@ struct PatientView: View {
         // One heading per thing (1.11, P1-6): the first box's DEMOGRAPHICS caption restated the title, so it goes, and
         // its body-size ⓘ sits on the title line.
         PreopSectionTitle(text: PreopSection.demographics.sectionTitle, info: PatientPreop.bodySizeNote(r)).jumpTarget(section: .demographics)
-        PreopDemographicsBox().patientCaptionHidden().jumpTarget(anchor: "demographics")
-        PatientGroup(title: "Allergies") { AllergiesBox() }.jumpTarget(anchor: "allergies")
-        PreopProblemsBox().jumpTarget(anchor: "problems")
+        // 1.12 (note 17): each box of this section folds once it holds a value (PatientBoxCard).
+        PatientBoxCard(box: .demographics) { PreopDemographicsBox().patientCaptionHidden() }.jumpTarget(anchor: "demographics")
+        PatientBoxCard(box: .allergies) { PatientGroup(title: "Allergies") { AllergiesBox() } }.jumpTarget(anchor: "allergies")
+        PatientBoxCard(box: .problems) { PreopProblemsBox() }.jumpTarget(anchor: "problems")
         PreopHistoryChipsBox().jumpTarget(anchor: "chips")
     }
 
@@ -623,21 +648,21 @@ struct PatientView: View {
         case "airway": airwayCard
         case "labs": PreopLabsCard()
         case "devices": devicesCard
-        case "cardio": PreopCardioBox()
-        default: PreopAsaBox()
+        case "cardio": PatientBoxCard(box: .cardio) { PreopCardioBox() }
+        default: PatientBoxCard(box: .asa) { PreopAsaBox() }
         }
     }
 
-    /// 4. Current Medications: home medications (the box under the title, no caption: P1-6), current infusions, flagged
-    /// medications.
+    /// 4. Current Medications & Infusions: the medications and the drips running before the case in one box (the box under
+    /// the title, no caption: P1-6; 1.12, Ben's note 16), then the flagged medications.
     @ViewBuilder private var medicationsSection: some View {
         PreopSectionTitle(text: PreopSection.medications.sectionTitle).jumpTarget(section: .medications)
-        PatientGroup(title: nil) { HomeMedicationsBox() }.jumpTarget(anchor: "homemeds")
-        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they appear in the intraoperative infusions list tagged \"from preop\".") {
-            CurrentInfusionsBox()
+        // 1.12 (notes 16 and 17): one box, "Current Medications & Infusions", which folds once it is filled in.
+        PatientBoxCard(box: .medications) {
+            PatientGroup(title: nil) { CurrentMedicationsBox() }
         }
-        .jumpTarget(anchor: "infusions")
-        PreopFlaggedBox(onOpenRoute: { open($0) }).jumpTarget(anchor: "flagged")
+        .jumpTarget(anchor: "homemeds")
+        PatientBoxCard(box: .flagged) { PreopFlaggedBox(onOpenRoute: { open($0) }) }.jumpTarget(anchor: "flagged")
     }
 
     /// 5. Risk Scores & Checks: the warnings, then the prompts (no RCRI for cardiac surgery).
@@ -675,7 +700,7 @@ struct PatientView: View {
         "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
         "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
         "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
-        "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "infusions"), "flagged": PatientJumpID(anchor: "flagged"),
+        "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "homemeds"), "flagged": PatientJumpID(anchor: "flagged"),
         "preopworkup": PatientJumpID(anchor: "preopworkup"),
         "history": PatientJumpID(anchor: "problems"), "assessment": PatientJumpID(anchor: "asa"), "support": PatientJumpID(anchor: "cardio"),
     ]
@@ -720,14 +745,14 @@ struct PatientView: View {
         CaseTimersStrip()
         inlineJumpBar(proxy, jumpItems ?? [])
         IntraopSectionTitle(text: IntraopSection.airway.title).jumpTarget(id: PatientJumpID(intraop: .airway))
-        IntraopAirwayCourse()
+        PatientBoxCard(box: .airway) { IntraopAirwayCourse() }
         IntraopSectionTitle(text: IntraopSection.lines.title).jumpTarget(id: PatientJumpID(intraop: .lines))
         IntraopDevicesCard()
         IntraopSectionTitle(text: IntraopSection.meds.title).jumpTarget(id: PatientJumpID(intraop: .meds))
-        IntraopInfusionsSection()
+        PatientBoxCard(box: .infusions) { IntraopInfusionsSection() }
         IntraopNotableMedicationLink()
         IntraopSectionTitle(text: IntraopSection.fluids.title).jumpTarget(id: PatientJumpID(intraop: .fluids))
-        IntraopFluidsSection()
+        PatientBoxCard(box: .fluids) { IntraopFluidsSection() }
         IntraopSectionTitle(text: IntraopSection.other.title).jumpTarget(id: PatientJumpID(intraop: .other))
         IntraopOtherDetails()
     }
@@ -743,7 +768,13 @@ struct PatientView: View {
                 .padding(.horizontal, 2)
         } else {
             // The lines and devices figure is the handoff's Lines & devices block (PatientBriefs, 1.9).
-            HandoffPanel(record: r).id("handoff")
+            // The scroll target sits one pinned row above the panel (1.12), so a scroll to the handoff lands its heading
+            // and Regenerate under the pinned case row, not behind it.
+            VStack(spacing: 0) {
+                Color.clear.frame(height: PatientPinned.rowHeight).allowsHitTesting(false).accessibilityHidden(true).id("handoff")
+                HandoffPanel(record: r)
+            }
+            .padding(.top, -PatientPinned.rowHeight)
         }
     }
 
@@ -833,9 +864,22 @@ struct PatientView: View {
         }
     }
 
+    /// Reads where the case row and the tab control end as the tab scrolls; the pinned row shows once they are under the bar.
+    private var tabsReader: some View {
+        GeometryReader { g in
+            Color.clear
+                .onAppear { jumpGeometry.tabsBottom = g.frame(in: .global).maxY; updateJumpPin() }
+                .onChange(of: g.frame(in: .global).maxY) { _, y in jumpGeometry.tabsBottom = y; updateJumpPin() }
+        }
+    }
+
     private func updateJumpPin() {
-        let pinned = jumpGeometry.barY < jumpGeometry.pinY
-        if pinned != jumpPinned { jumpPinned = pinned }
+        // 1.12: the pinned row first (the case row and the tab control gone), and the chips under it once their bar has
+        // reached what is left below the row.
+        let pinned = PatientPinned.flags(tabsBottom: jumpGeometry.tabsBottom, barY: jumpGeometry.barY, pinY: jumpGeometry.pinY,
+                                         rowHeight: PatientPinned.rowHeight)
+        if pinned.tabs != tabsPinned { tabsPinned = pinned.tabs }
+        if pinned.chips != jumpPinned { jumpPinned = pinned.chips }
         updateCurrentJump()
     }
 
@@ -856,43 +900,56 @@ struct PatientView: View {
 
     /// A chip or the title menu jumps to a section: its chip is the current one from the tap (PatientJumpCurrent.holds).
     private func jump(to id: PatientJumpID, _ proxy: ScrollViewProxy) {
+        // 1.12 (note 17): a jump to a box opens it.
+        if let box = PatientBox.forJump(id.key) { boxes.expand(box, patient.record) }
         jumpGeometry.held = id
         jumpGeometry.heldMinTop = .infinity
         updateCurrentJump()
         withAnimation(.snappy) { proxy.scrollTo(id, anchor: .top) }
     }
 
-    /// The jump bar again, pinned at the top of the tab on the app's background material, once the tab's own has
-    /// scrolled under it: any section is one tap away from anywhere on the tab. At rest only a point at the top is
-    /// there, to measure where the chips pin; the bar and its material exist only while pinned.
-    @ViewBuilder private func pinnedJumpBar(_ proxy: ScrollViewProxy) -> some View {
-        if let items = jumpItems {
-            ZStack(alignment: .top) {
-                Color.clear
-                    .frame(height: 1)
-                    .padding(.top, 8)
-                    .background(GeometryReader { g in
-                        Color.clear
-                            .onAppear { jumpGeometry.pinY = g.frame(in: .global).minY + 8; updateJumpPin() }
-                            .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.pinY = y + 8; updateJumpPin() }
-                    })
-                    .allowsHitTesting(false)
-                if jumpPinned {
-                    jumpBar(proxy, items)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background {
-                            Rectangle().fill(.ultraThinMaterial)
-                                .overlay(PS.bg.opacity(0.55))
-                                .overlay(alignment: .bottom) { Hairline() }
-                                .ignoresSafeArea(edges: [.horizontal, .top])
-                        }
-                        .transition(.opacity)
+    /// What is pinned at the top of the tab, on the app's background material, once the tab's own has scrolled under it. First
+    /// (1.12, note 10) the slim row of cases and tabs, once the case row and the tab control have gone; under it the jump bar
+    /// again (1.11), once the tab's own has gone: any section, any case and any tab is one tap away from anywhere. At rest
+    /// only a point at the top is there, to measure where the bars pin; the bars and their material exist only while pinned.
+    @ViewBuilder private func pinnedChrome(_ proxy: ScrollViewProxy) -> some View {
+        let items = jumpItems
+        let showsChips = jumpPinned && items != nil
+        ZStack(alignment: .top) {
+            Color.clear
+                .frame(height: 1)
+                .padding(.top, 8)
+                .background(GeometryReader { g in
+                    Color.clear
+                        .onAppear { jumpGeometry.pinY = g.frame(in: .global).minY + 8; updateJumpPin() }
+                        .onChange(of: g.frame(in: .global).minY) { _, y in jumpGeometry.pinY = y + 8; updateJumpPin() }
+                })
+                .allowsHitTesting(false)
+            if tabsPinned || showsChips {
+                VStack(spacing: 0) {
+                    if tabsPinned {
+                        PatientPinnedRow(tab: tab) { select($0) }
+                            .padding(.horizontal, 20)
+                    }
+                    if showsChips, let items {
+                        jumpBar(proxy, items)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background {
+                    Rectangle().fill(.ultraThinMaterial)
+                        .overlay(PS.bg.opacity(0.55))
+                        .overlay(alignment: .bottom) { Hairline() }
+                        .ignoresSafeArea(edges: [.horizontal, .top])
+                }
+                .transition(.opacity)
             }
-            .animation(.easeOut(duration: 0.12), value: jumpPinned)
         }
+        .animation(.easeOut(duration: 0.12), value: jumpPinned)
+        .animation(.easeOut(duration: 0.12), value: tabsPinned)
     }
 
     /// The row of section chips (1.11, P1-5): short labels (the titles keep the full names, which VoiceOver reads), the
@@ -1130,6 +1187,8 @@ struct PatientLineText: View {
 final class PatientJumpGeometry {
     /// The top of the tab's own jump bar.
     var barY: CGFloat = .infinity
+    /// The bottom of the case row and the tab control (1.12: once it is above `pinY` the pinned row shows).
+    var tabsBottom: CGFloat = .infinity
     /// The top of the pinned copy's chips.
     var pinY: CGFloat = -.infinity
     /// The top of each section's jump anchor, by PatientJumpID.key (1.11: the current chip).
@@ -1280,10 +1339,10 @@ struct PatientJumpItem: Hashable {
 
 extension PatientJumpID {
     /// How far above its card a jump anchor sits. Scrolling aligns the anchor with the top of the scroll view's
-    /// content, which is already under the inline title, so the anchor clears only the pinned jump bar (about 54 pt,
-    /// growing with the in-app text size) and a small margin. (110 pt, meant to clear the title too, landed the card
+    /// content, which is already under the inline title, so the anchor clears only the pinned bars (the jump bar, about 54 pt,
+    /// growing with the in-app text size, and since 1.12 the pinned row of cases and tabs, about 44 pt above it) and a small margin. (110 pt, meant to clear the title too, landed the card
     /// 70 pt under the bar, after the tail of the box before it: run 375's shots 442–446.)
-    static var clearance: CGFloat { 56 * PS.textScale }
+    static var clearance: CGFloat { 56 * PS.textScale + PatientPinned.rowHeight }
 }
 
 extension View {

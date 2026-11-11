@@ -9,60 +9,6 @@ private extension PatientStore {
     }
 }
 
-// MARK: Fishbone
-
-/// The labs as the fishbone: BMP (Na, Cl, BUN over K, HCO₃, Cr, with the glucose at the point), CBC (WBC, Hb over Hct,
-/// Plt) and the coagulation figure (PT over PTT, INR at the point, fibrinogen beside it, as Ben drew it on Nov 9). A
-/// value not entered is a dash in a group that has something; abnormal values bold red, as the Labs screen marks them;
-/// values from the case end in *. Small, and legible in light and dark. The shapes are the Labs page's own
-/// (FishboneBMP, FishboneCBC, FishboneCoags in PatientLabsView.swift, 1.11), so the brief stays in step with the figure
-/// the values are typed into.
-struct FishboneFigure: View {
-    var labs: BriefLabs
-
-    private let g = FishboneGeometry.small
-
-    private func cell(_ key: String) -> some View {
-        let c = labs.cells[key]
-        let name = c?.label ?? PatientLabs.test(key)?.short ?? key
-        let color: Color = c == nil || c?.estimated == true ? PS.fg3 : (c?.abnormal == true ? PS.red : PS.fg)
-        return VStack(spacing: 0) {
-            Text(c.map { ($0.estimated ? "~" : "") + $0.text + ($0.intraop ? "*" : "") } ?? "—")
-                .font(PS.sys(size: 12.5, weight: c?.abnormal == true ? .heavy : .semibold, design: .monospaced))
-                .italic(c?.estimated == true)
-                .foregroundStyle(color)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(name).font(PS.sys(size: 8)).foregroundStyle(PS.fg3)
-        }
-        .frame(width: g.cellWidth, height: g.cellHeight)
-    }
-
-    /// The coagulation parts entered, in order: "ptinr" (PT and INR), "ptt", "fibrinogen"; the fibrinogen cell is
-    /// drawn only when it is among them (the PT, PTT and INR cells are the figure itself).
-    static func coagParts(_ labs: BriefLabs) -> [String] {
-        var out: [String] = []
-        if labs.cells["pt"] != nil || labs.cells["inr"] != nil { out.append("ptinr") }
-        if labs.cells["ptt"] != nil { out.append("ptt") }
-        if labs.cells["fibrinogen"] != nil { out.append("fibrinogen") }
-        return out
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if labs.hasBMP { FishboneBMP(g: g) { cell($0) } }
-            if labs.hasCBC { FishboneCBC(g: g) { cell($0) } }
-            if labs.hasCoags { FishboneCoags(g: g, fibrinogen: Self.coagParts(labs).contains("fibrinogen")) { cell($0) } }
-            if let c = labs.caption {
-                Text(c).font(PS.sys(size: 9)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .fixedSize(horizontal: false, vertical: true)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Labs: " + labs.plainFishbone() + (labs.caption.map { ". " + $0 } ?? ""))
-    }
-}
-
 // MARK: Lines diagram with its list
 
 /// The diagram on the left and the block's lines on the right (lines and devices, each with "(Pre)" or "(Intra)" in the
@@ -101,6 +47,8 @@ struct BriefDiagramLayout: View {
 /// The lines block's figure from the environment (the regional figure and the record's devices).
 struct BriefDiagramList: View {
     @Environment(ReferenceStore.self) private var refs
+    /// 1.12: the figure a shared picture is drawn with (BriefPages.Context.figure); on screen, the reference store's.
+    @Environment(\.briefFigure) private var pictureFigure
     var record: PatientRecord
     var arrivalOnly: Bool
     var lines: [String]
@@ -108,7 +56,7 @@ struct BriefDiagramList: View {
 
     var body: some View {
         let m = PatientDiagramModel.items(record, phase: arrivalOnly ? .preop : .all)
-        if let fig = refs.bundle?.regional?.figure, !m.items.isEmpty {
+        if let fig = pictureFigure ?? refs.bundle?.regional?.figure, !m.items.isEmpty {
             BriefDiagramLayout(figure: fig, items: m.items, cart: m.cart, lines: lines, marks: marks)
         } else {
             VStack(alignment: .leading, spacing: 4) {
@@ -164,6 +112,7 @@ struct BriefBlockView: View {
     @State private var draft = ""
     @FocusState private var focused: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.briefOnPage) private var onPage
 
     private var multiline: Bool { block.lines.count > 1 }
     private var isHeader: Bool { block.key == "header" }
@@ -177,7 +126,7 @@ struct BriefBlockView: View {
             if let l = block.label {
                 Text(l + ":").font(PS.sys(size: 14.5, weight: .bold)).foregroundStyle(block.alert ? PS.red : PS.fg)
             }
-            if block.edited {
+            if block.edited && !onPage {
                 Text("edited").font(PS.sys(size: 10, weight: .semibold)).foregroundStyle(PS.fg3)
                     .padding(.horizontal, 6).padding(.vertical, 1)
                     .overlay(Capsule().stroke(PS.line2, lineWidth: 1))
@@ -188,15 +137,12 @@ struct BriefBlockView: View {
 
     @ViewBuilder private var readView: some View {
         switch block.figure {
-        case .fishbone(let labs)?:
+        case .fishbone(let labs)? where !block.edited:
+            // 1.12 (Ben's note 8): the Preop and Intraop columns. A block the user edited shows their words instead (the
+            // text holds everything the columns show).
             VStack(alignment: .leading, spacing: 6) {
                 labelRow
-                let wide = typeSize > .large || block.text.count > 150
-                if wide {
-                    VStack(alignment: .leading, spacing: 8) { FishboneFigure(labs: labs); sideText }
-                } else {
-                    HStack(alignment: .top, spacing: 12) { FishboneFigure(labs: labs); sideText }
-                }
+                BriefLabsFigure(labs: labs)
             }
             .id("fishbone")
         case .diagram(let arrivalOnly)?:
@@ -205,7 +151,7 @@ struct BriefBlockView: View {
                 BriefDiagramList(record: record, arrivalOnly: arrivalOnly, lines: block.lines, marks: block.marks)
             }
             .id(arrivalOnly ? "preopfigure" : "handofffigure")
-        case nil:
+        case .fishbone?, nil:
             if isHeader {
                 (Text(block.text).font(PS.sys(size: 15.5, weight: .semibold)).foregroundColor(PS.fg)
                  + Text(Self.editedMark(block)).font(PS.sys(size: 10, weight: .semibold)).foregroundColor(PS.fg3))
@@ -311,6 +257,40 @@ struct BriefPanel: View {
     /// Regenerate on one row.
     static func regenerateOnTitleLine(_ kind: PatientBriefs.Kind) -> Bool { !showsEyebrow(kind) }
 
+    /// Share (1.12, Ben): the menu offers Image first (the summary as it looks, on white pages at phone width), then PDF and
+    /// Text only (the text and its footer, as Share sent before). Copy stays plain text.
+    private var shareMenu: some View {
+        Menu {
+            ForEach(BriefShareFormat.allCases, id: \.self) { f in
+                Button { share(f) } label: { Label(f.title, systemImage: f.icon) }
+                    .disabled(f != .text && all.isEmpty)
+            }
+        } label: {
+            Label("Share", systemImage: "square.and.arrow.up")
+                .frame(maxWidth: .infinity)
+                .font(PS.sys(size: 16, weight: .semibold))
+                .padding(.vertical, 14)
+                .background(PS.action, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .foregroundStyle(PS.accentFg)
+        }
+        .accessibilityLabel("Share")
+        .accessibilityHint("Choose Image, PDF or Text only")
+    }
+
+    /// Draws the summary in the chosen form and opens the share sheet with it (rendering runs on the main actor).
+    private func share(_ format: BriefShareFormat) {
+        let ctx = BriefPages.Context(record: record, refs: refs, patient: patient, figure: refs.bundle?.regional?.figure)
+        switch format {
+        case .image:
+            let pages = BriefPages.images(all, ctx)
+            if !pages.isEmpty { sharing = pages }
+        case .pdf:
+            if let url = BriefPages.pdfFile(all, ctx) { sharing = [url] }
+        case .text:
+            sharing = HandoffShare.textOnlyItems(all)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if !Self.regenerateOnTitleLine(kind) {
@@ -333,19 +313,24 @@ struct BriefPanel: View {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            // 1.12 (Ben, note 14): "+ Add other input data into Handoff" sits directly under the card, above Share and Copy.
+            // An extras change reaches the blocks it touches through the record; a block the user edited keeps its edit
+            // until Regenerate (PatientBriefs.resolve).
+            HandoffExtrasLink()
             Text("Tap any text to edit it. Your edits stay as the record changes; Regenerate brings back the generated text.")
                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
             HStack(spacing: 10) {
-                Button { sharing = HandoffShare.briefItems(all, record: record, figure: refs.bundle?.regional?.figure) } label: {
-                    Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
+                shareMenu
                 Button { HandoffShare.copy(blocks: all); copied.toggle() } label: {
                     Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(BigButtonStyle(prominent: false))
             }
+            .id("briefshare")
+            #if DEBUG
+            if !LaunchSeed.string("ps.brief.pages").isEmpty { BriefPagesPreview(blocks: all, mode: LaunchSeed.string("ps.brief.pages")) }
+            #endif
         }
         .sensoryFeedback(.success, trigger: copied)
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {

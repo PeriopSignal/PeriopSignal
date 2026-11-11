@@ -6,6 +6,11 @@ import Foundation
 // Figure 18 integration for MR), the 2017 EACVI/ASE aortic stenosis update (Table 3 and the low-gradient
 // pathway) and the 2023 ASE rheumatic heart disease document (mitral stenosis), as rules. Each parameter
 // the user enters is graded; the lesion's integration rule turns the set into one reading.
+//
+// 1.12 (Ben's note 9): what can be calculated from what is entered is filled in (`ValveGrading.calculate`), for aortic
+// stenosis only: the continuity equation and the stroke volume from the LVOT diameter and the velocity time integrals
+// (EACVI/ASE 2017 aortic stenosis update, the same document the lesion cites). A calculated value is shown marked, never
+// replaces what the user typed, and grading uses the value shown.
 
 enum ValveGrade: Int, Comparable, Hashable {
     case mild = 1, moderate = 2, severe = 3
@@ -112,6 +117,11 @@ struct ValveParam: Identifiable, Hashable {
 struct ValveInput: Hashable {
     var numbers: [String: Double] = [:]
     var signs: Set<String> = []
+    /// The numbers that were calculated rather than typed (1.12); the reading says so.
+    var calculated: Set<String> = []
+    /// The numbers taken from the open patient's record rather than typed (the LVEF from the recorded echo); the reading
+    /// says so in those words, since nothing was calculated.
+    var fromPatient: Set<String> = []
     var isEmpty: Bool { numbers.isEmpty && signs.isEmpty }
 }
 
@@ -141,6 +151,11 @@ enum ValveGrading {
             .inv("ratio", "Velocity ratio", "", lowerWorse: 0.5, 0.25, hint: "LVOT ÷ aortic velocity; severe < 0.25"),
             .ctx("svi", "Stroke volume index", "mL/m²", hint: "Low flow < 35"),
             .ctx("lvef", "LVEF", "%", hint: "Decides the low-flow, low-gradient pathway"),
+            // 1.12: optional inputs the empty fields above are calculated from (never graded on their own).
+            .ctx("lvotd", "LVOT diameter", "cm", hint: "With the LVOT VTI: stroke volume and valve area"),
+            .ctx("lvotv", "LVOT velocity", "m/s", hint: "With the peak velocity: velocity ratio"),
+            .ctx("lvotvti", "LVOT VTI", "cm", hint: "Stroke volume, valve area and, with the aortic VTI, the ratio"),
+            .ctx("avvti", "Aortic VTI", "cm", hint: "Continuity equation; with the LVOT VTI, the ratio"),
         ]
         case .ar: return [
             .num("vc", "Vena contracta width", "cm", higherWorse: 0.3, 0.61, specific: true, hint: "Mild < 0.3 · moderate 0.3–0.6 · severe > 0.6"),
@@ -210,10 +225,13 @@ enum ValveGrading {
         let p = params(for: .as_)
         for param in p {
             guard let v = i.numbers[param.id] else { continue }
+            // 1.12: the LVOT and VTI inputs are what the calculated values come from; they are not readings of their own.
+            if calculationInputs.contains(param.id) { continue }
+            let how = i.calculated.contains(param.id) ? " · calculated" : i.fromPatient.contains(param.id) ? " · from My Patient" : ""
             if case .context = param.kind {
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit)", grade: nil))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit))\(how)", grade: nil))
             } else if let g = param.grade(v) {
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())\(how)", grade: g))
             }
         }
         let vmax = i.numbers["vmax"], mg = i.numbers["mg"], ava = i.numbers["ava"], avai = i.numbers["avai"], svi = i.numbers["svi"], lvef = i.numbers["lvef"]
@@ -263,7 +281,7 @@ enum ValveGrading {
         var cautions: [String] = []
         for param in p {
             if let v = i.numbers[param.id], let g = param.grade(v) {
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())", grade: g))
             } else if i.signs.contains(param.id), case .sign(let g) = param.kind {
                 lines.append(.init(id: param.id, label: param.label, text: g == .moderate ? "noted" : "specific for \(g.label.lowercased())", grade: g == .moderate ? nil : g))
             }
@@ -315,7 +333,7 @@ enum ValveGrading {
         let p = params(for: .ms)
         var lines: [ValveReading.Line] = []
         for param in p {
-            if let v = i.numbers[param.id], let g = param.grade(v) { lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g)) }
+            if let v = i.numbers[param.id], let g = param.grade(v) { lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())", grade: g)) }
         }
         if i.isEmpty { return ValveReading(overall: nil, headline: "Enter measurements", explanation: "Valve area (planimetry preferred) and pressure half-time define the grade; gradient and PA pressure support it.", lines: [], cautions: []) }
         var cautions = ["Gradients depend on flow and heart rate: report the rhythm and rate, and never grade on the gradient alone.", "Pressure half-time misleads with severe AR, right after balloon commissurotomy and with altered LA or LV compliance."]
@@ -346,10 +364,10 @@ enum ValveGrading {
         for param in p {
             if let v = i.numbers[param.id] {
                 guard let g = param.grade(v) else {
-                    lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · not graded", grade: nil))
+                    lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · not graded", grade: nil))
                     continue
                 }
-                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit) · \(g.label.lowercased())", grade: g))
+                lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v))\(unitSuffix(param.unit)) · \(g.label.lowercased())", grade: g))
                 if ["rvol", "rf", "eroa"].contains(param.id) { quantitative.append(g) } else { semi.append(g) }
                 if param.specific { if g == .severe { specificSevere += 1 } else if g == .mild { specificMild += 1 } }
             } else if i.signs.contains(param.id), case .sign(let g) = param.kind {
@@ -380,4 +398,111 @@ enum ValveGrading {
     }
 
     static func fmt(_ v: Double) -> String { PedsCalc.fmt(v) }
+
+    // MARK: Calculated values (1.12, Ben's note 9)
+
+    /// The optional inputs of aortic stenosis the other fields are calculated from.
+    static let calculationInputs: Set<String> = ["lvotd", "lvotv", "lvotvti", "avvti"]
+
+    /// An LVOT diameter is entered in cm; a value outside this range (a diameter typed in mm, say) is not used, and the
+    /// calculator says so. This is an entry guard against a unit slip, not a reference range: nothing is graded against
+    /// it, and it comes from no guideline.
+    /// Ben to confirm; without it a 20 typed in mm would be squared as 20 cm.
+    static let lvotDiameterRange: ClosedRange<Double> = 0.3...5.0
+
+    /// What the open patient gives the calculator: the body surface area from the recorded height and weight, and the
+    /// LVEF from the recorded preoperative echo.
+    struct Context: Hashable {
+        var bsa: Double?
+        var lvef: Double?
+        init(bsa: Double? = nil, lvef: Double? = nil) { self.bsa = bsa; self.lvef = lvef }
+
+        init(_ r: PatientRecord) { self.init(bsa: r.bsa, lvef: r.echoFindings.lvef) }
+    }
+
+    /// A value the calculator filled in: what the field shows (`text`, so the value graded is the value shown), the
+    /// number, and the words of its mark ("calculated · LVOT VTI ÷ aortic VTI", "from My Patient's echo").
+    struct Calculated: Hashable {
+        var value: Double
+        var text: String
+        var caption: String
+        /// Taken from the patient's record, not calculated (the LVEF): it is not called "calculated" anywhere.
+        var fromPatient = false
+    }
+
+    struct Calculation: Hashable {
+        var values: [String: Calculated] = [:]
+        /// Said under the measurements when an input could not be used.
+        var notes: [String] = []
+    }
+
+    /// " cm²" after a value, or nothing for a value with no unit (a ratio), so the reading has no doubled space.
+    static func unitSuffix(_ unit: String) -> String { unit.isEmpty ? "" : " " + unit }
+
+    /// The value as the field shows it (`fmt`'s rounding), so the grade is the grade of what is on the screen.
+    static func shown(_ v: Double) -> Double {
+        if v < 1 { return (v * 100).rounded() / 100 }
+        if v < 10 { return (v * 10).rounded() / 10 }
+        return v.rounded()
+    }
+
+    /// The fields of a lesion that can be calculated from the others, calculated. Only for a field that is empty: not in
+    /// `typed` and not in `occupied` (a field holding text that is not a number yet). Aortic stenosis only; the other
+    /// lesions have no standard formula whose inputs are all fields (their volumes need velocity time integrals and
+    /// stroke volumes the calculator does not ask for).
+    ///
+    /// - Velocity ratio = LVOT velocity ÷ aortic peak velocity, or LVOT VTI ÷ aortic VTI when a velocity is missing.
+    /// - Aortic valve area (continuity) = π × (LVOT diameter ÷ 2)² × LVOT VTI ÷ aortic VTI.
+    /// - Stroke volume = π × (LVOT diameter ÷ 2)² × LVOT VTI; stroke volume index = stroke volume ÷ BSA.
+    /// - Indexed valve area = valve area (typed or calculated) ÷ BSA.
+    /// - LVEF from the patient's recorded echo.
+    /// The mean gradient is never derived from the peak velocity.
+    static func calculate(_ lesion: ValveLesion, typed: [String: Double], occupied: Set<String> = [], context: Context = Context()) -> Calculation {
+        guard lesion == .as_ else { return Calculation() }
+        var out = Calculation()
+        func empty(_ id: String) -> Bool { typed[id] == nil && !occupied.contains(id) }
+        func positive(_ id: String) -> Double? { guard let v = typed[id], v > 0, v.isFinite else { return nil }; return v }
+        func put(_ id: String, _ raw: Double, _ how: String) {
+            let v = shown(raw)
+            guard raw.isFinite, v > 0 else { return }
+            out.values[id] = Calculated(value: v, text: fmt(v), caption: "calculated · " + how)
+        }
+        let vmax = positive("vmax"), lvotv = positive("lvotv"), lvotvti = positive("lvotvti"), avvti = positive("avvti")
+        var diameter = positive("lvotd")
+        if let d = diameter, !lvotDiameterRange.contains(d) {
+            out.notes.append("LVOT diameter is read in cm; a value outside 0.3 to 5 cm was not used to calculate the area, stroke volume or indexed area.")
+            diameter = nil
+        }
+        let lvotArea = diameter.map { Double.pi * ($0 / 2) * ($0 / 2) }
+        if empty("ratio") {
+            if let lv = lvotv, let v = vmax { put("ratio", lv / v, "LVOT velocity ÷ peak velocity") }
+            else if let a = lvotvti, let b = avvti { put("ratio", a / b, "LVOT VTI ÷ aortic VTI") }
+        }
+        if empty("ava"), let area = lvotArea, let a = lvotvti, let b = avvti {
+            put("ava", area * a / b, "continuity equation")
+        }
+        // The valve area the indexed area divides: typed, else the one just calculated.
+        let ava = positive("ava") ?? out.values["ava"]?.value
+        if empty("avai"), let a = ava, let bsa = context.bsa, bsa > 0 {
+            put("avai", a / bsa, "valve area ÷ BSA")
+        }
+        if empty("svi"), let area = lvotArea, let a = lvotvti, let bsa = context.bsa, bsa > 0 {
+            put("svi", area * a / bsa, "stroke volume ÷ BSA")
+        }
+        if empty("lvef"), let ef = context.lvef, ef > 0, ef.isFinite {
+            out.values["lvef"] = Calculated(value: ef, text: NumText.short(ef), caption: "from My Patient's echo", fromPatient: true)
+        }
+        return out
+    }
+
+    /// The typed numbers with the calculated ones added for the fields left empty: what the reading grades ("the value
+    /// shown, typed or calculated"). Typed values are never replaced.
+    static func graded(_ typed: ValveInput, with c: Calculation) -> ValveInput {
+        var i = typed
+        for (id, v) in c.values where i.numbers[id] == nil {
+            i.numbers[id] = v.value
+            if v.fromPatient { i.fromPatient.insert(id) } else { i.calculated.insert(id) }
+        }
+        return i
+    }
 }

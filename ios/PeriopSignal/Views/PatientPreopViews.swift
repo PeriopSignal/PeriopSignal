@@ -18,7 +18,8 @@ enum PreopSection: String, CaseIterable, Identifiable {
         case .procedure: return "Procedure"
         case .demographics: return "Demographics & History"
         case .workup: return "Examination & Workup"
-        case .medications: return "Current Medications"
+        // 1.12 (Ben's note 16): the medications and the infusions are one box.
+        case .medications: return "Current Medications & Infusions"
         case .risk: return "Risk Scores & Checks"
         case .summary: return "Preprocedure Summary"
         }
@@ -502,6 +503,8 @@ struct PreopProblemsBox: View {
                     // 1.11 (P1-7): a quiet link, like the others that open in place.
                     PreopQuietLink(title: "Other conditions", hint: "Shows a field for conditions not in the lists") { otherOpen = true }
                 }
+                // 1.12 (Ben): the last line of the box (PatientImagingView.swift).
+                PreopImagingLink()
             }
             .padding(14)
         }

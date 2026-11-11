@@ -227,6 +227,12 @@ enum LabResults {
             parts.append(p.text)
             if p.result == .positive { marks.append(p.text) }
         }
+        // 1.12 (Ben's note 12): the urinalysis and blood cultures sit with the infectious results; the pregnancy test (a
+        // typed hCG that is a number is on the numbers' line) after them, for a woman or a patient whose sex is not set.
+        let more = r.moreLabs.infectiousParts
+        parts += more.parts
+        marks += more.marks
+        if PatientMoreLabs.showsPregnancy(r.sex) { parts += r.moreLabs.pregnancyParts }
         return (parts, marks)
     }
 

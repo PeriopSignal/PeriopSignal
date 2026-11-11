@@ -12,138 +12,11 @@ import Foundation
 // pending infectious results, isolation, TEE contraindications, limb alerts, the radial-harvest arm, difficult-airway
 // follow-up, the major considerations, the disposition); the places are in PatientBriefs below.
 
-/// One value of the labs, as the fishbone and the lists show it.
-struct BriefLabCell: Hashable {
-    var key: String
-    /// The short name under the value ("HCO₃").
-    var label: String
-    /// The value formatted as the Labs screen does ("1.10" for a creatinine).
-    var text: String
-    var flag: LabFlag = .normal
-    /// From an intraoperative set (marked * and dated in the caption).
-    var intraop = false
-    /// Hemoglobin or hematocrit worked out from the other (PatientLabs.estimate): shown, never flagged.
-    var estimated = false
-
-    var abnormal: Bool { flag.isAbnormal }
-
-    /// "K 5.9 H", "Hb 11.6*" (intraoperative), "Hct ~39 (est.)", "Hct ~22 (est.)*" (from an intraoperative Hb).
-    var compact: String {
-        if estimated { return label + " ~" + text + " (est.)" + (intraop ? "*" : "") }
-        return label + " " + text + (flag.mark.isEmpty ? "" : " " + flag.mark) + (intraop ? "*" : "")
-    }
-
-    /// The copied text: the same, with plain digits in the subscripts ("HCO3").
-    var plain: String { PatientBriefs.ascii(compact) }
-}
-
-/// The fishbone's values (BMP, CBC, coagulation) by key, with the caption that says which came from the case.
-struct BriefLabs: Hashable {
-    static let bmpKeys = ["na", "k", "cl", "hco3", "bun", "cr", "glucose"]
-    static let cbcKeys = ["wbc", "hb", "hct", "plt"]
-    static let coagKeys = ["pt", "inr", "ptt", "fibrinogen"]
-    static let fishboneKeys = Set(bmpKeys + cbcKeys + coagKeys)
-
-    var cells: [String: BriefLabCell] = [:]
-    /// "* Intraop 10:40; other values preop": which values came from the intraoperative sets, and when.
-    var caption: String?
-
-    var isEmpty: Bool { cells.isEmpty }
-    func has(_ keys: [String]) -> Bool { keys.contains { cells[$0] != nil } }
-    var hasBMP: Bool { has(Self.bmpKeys) }
-    var hasCBC: Bool { has(Self.cbcKeys) }
-    var hasCoags: Bool { has(Self.coagKeys) }
-
-    /// "BMP: Na 138, K 4.1, Cl 102, HCO3 24, BUN 18, Cr 1.10, Glu 110 · CBC: WBC 7.2, Hb 13.1, Hct 39, Plt 210 · Coags: PT 12.1,
-    /// INR 1.0, PTT 30": the fishbone as one line, for the copied text; only the values entered.
-    func plainFishbone() -> String {
-        func group(_ name: String, _ keys: [String]) -> String? {
-            let parts = keys.compactMap { cells[$0]?.plain }
-            return parts.isEmpty ? nil : name + ": " + parts.joined(separator: ", ")
-        }
-        return [group("BMP", Self.bmpKeys), group("CBC", Self.cbcKeys), group("Coags", Self.coagKeys)]
-            .compactMap { $0 }.joined(separator: " · ")
-    }
-
-    /// The fishbone's values and the other labs entered. `withIntraop` (the handoff): for each test the newest
-    /// intraoperative value replaces the preoperative one, and the caption says so with the time. The arterial
-    /// bicarbonate stands in the HCO₃ cell.
-    static func make(_ r: PatientRecord, withIntraop: Bool, now: Date = Date()) -> (labs: BriefLabs, side: [BriefLabCell]) {
-        struct Source {
-            var value: Double
-            var key: String
-            var intraop: Bool
-            var time: Date?
-        }
-        var byKey: [String: Source] = [:]
-        for (k, v) in r.labs where v.isFinite { byKey[k] = Source(value: v, key: k, intraop: false, time: nil) }
-        if withIntraop {
-            var taken: Set<String> = []
-            for set in IntraopLabs.ordered(r.intraopLabs) {
-                for (k, v) in set.values where v.isFinite {
-                    let target = k == "hco3a" ? "hco3" : k
-                    guard !taken.contains(target) else { continue }
-                    taken.insert(target)
-                    byKey[target] = Source(value: v, key: k, intraop: true, time: set.time)
-                }
-            }
-        }
-        let p99: Double? = r.labs["troponin99"].flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
-        // Catalog order, then the intraoperative tests it lacks.
-        var order: [String] = PatientLabs.catalog.map(\.key).filter { $0 != "troponin99" }
-        for k in IntraopLabs.keys where k != "hco3a" && !order.contains(k) { order.append(k) }
-
-        var labs = BriefLabs()
-        var side: [BriefLabCell] = []
-        for k in order {
-            guard let s = byKey[k], let source = PatientLabs.test(s.key), let named = PatientLabs.test(k) else { continue }
-            let c = BriefLabCell(key: k, label: named.short, text: source.format(s.value),
-                                 flag: PatientLabs.flag(s.key, s.value, sex: r.sex, troponin99: p99), intraop: s.intraop)
-            if fishboneKeys.contains(k) { labs.cells[k] = c } else { side.append(c) }
-        }
-        var merged: [String: Double] = [:]
-        for (k, s) in byKey { merged[k] = s.value }
-        // The estimate is worked out from the other of Hb and Hct: it is from the case (starred, with that set's time)
-        // when that value is.
-        var estimatedFrom: (label: String, source: Source)?
-        if let e = PatientLabs.estimate(merged), labs.cells[e.key] == nil {
-            let source = byKey[e.key == "hct" ? "hb" : "hct"]
-            labs.cells[e.key] = BriefLabCell(key: e.key, label: e.label, text: e.text, flag: .normal, intraop: source?.intraop ?? false, estimated: true)
-            if let source, source.intraop { estimatedFrom = (e.label, source) }
-        }
-        // 1.10 (Ben, Nov 7: labs note their times, very small): when the preoperative labs were drawn, if it was entered.
-        let drawn = r.labsDrawn.map { PatientSummary.time($0, now: now) }
-        let preopValues = byKey.values.contains { !$0.intraop }
-        if !withIntraop, let drawn, preopValues { labs.caption = "Preop labs " + drawn }
-        if withIntraop {
-            var times: [Date?] = []
-            for s in byKey.values where s.intraop && !times.contains(where: { $0 == s.time }) { times.append(s.time) }
-            times.sort { ($0 ?? Date.distantPast) > ($1 ?? Date.distantPast) }
-            if !times.isEmpty {
-                // With more than one set, each time names its values, so an older value is not read as the newest.
-                let several = times.count > 1
-                let when = times.map { t -> String in
-                    let clock = t.map { PatientSummary.time($0, now: now) } ?? "no time"
-                    guard several else { return clock }
-                    var names = order.compactMap { k -> String? in
-                        guard let s = byKey[k], s.intraop, s.time == t else { return nil }
-                        return PatientLabs.test(k)?.short
-                    }
-                    if let e = estimatedFrom, e.source.time == t { names.append(e.label + " est.") }
-                    return clock + (names.isEmpty ? "" : " (" + names.joined(separator: ", ") + ")")
-                }.joined(separator: " / ")
-                labs.caption = "* Intraop " + when + (preopValues ? "; other values preop" + (drawn.map { " " + $0 } ?? "") : "")
-            } else if let drawn, preopValues {
-                labs.caption = "Preop labs " + drawn
-            }
-        }
-        return (labs, side)
-    }
-}
-
 /// One block of a brief.
 struct SummaryBlock: Identifiable, Hashable {
     enum Figure: Hashable {
+        /// The labs block's figure. 1.12 (Ben's note 8): no fishbone any more; the case keeps its name so the code that
+        /// places the figure keeps compiling. It carries the Preop and Intraop columns (BriefLabs).
         case fishbone(BriefLabs)
         /// The lines diagram, with the block's text as the list on its right; `arrivalOnly` for the preprocedure picture.
         case diagram(arrivalOnly: Bool)
@@ -164,12 +37,13 @@ struct SummaryBlock: Identifiable, Hashable {
 
     var id: String { key }
     var lines: [String] { text.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
-    /// The fishbone with a value in it, or the lines diagram (built only with a line or device to draw: before the case
+    /// The labs columns with a value in them, or the lines diagram (built only with a line or device to draw: before the case
     /// a patient with mechanical support alone has it in the workup's words and on this picture, with no list beside it).
-    /// A diagram block the user edited counts by its words alone, so one they emptied is left out, picture and all.
+    /// A block the user edited counts by its words alone, so one they emptied is left out, figure and all (1.12: the labs
+    /// text now holds everything the columns show, so an edited labs block shows the words, not the columns).
     var figureHasContent: Bool {
         switch figure {
-        case .fishbone(let l)?: return !l.isEmpty || l.caption != nil
+        case .fishbone(let l)?: return !edited && !l.isEmpty
         case .diagram?: return !edited
         case nil: return false
         }
@@ -246,12 +120,12 @@ enum PatientBriefs {
         let lines = b.lines
         let label = b.label.map { $0 + ":" }
         if case .fishbone(let labs)? = b.figure {
-            var parts: [String] = []
-            let fish = labs.plainFishbone()
-            if !fish.isEmpty { parts.append(fish) }
-            parts += lines
-            var out = [ascii(((label.map { $0 + " " }) ?? "") + parts.joined(separator: " · "))]
-            if let c = labs.caption { out.append("  " + ascii(c)) }
+            // 1.12 (Ben's note 8): the labs text is two labelled paragraphs, "Preop: …" and "Intraop: …" (plain digits for
+            // other apps); the small caption with the times follows on its own line while the words are the generated ones.
+            guard !lines.isEmpty else { return [] }
+            var out: [String] = lines.count == 1 ? [ascii(((label.map { $0 + " " }) ?? "") + lines[0])]
+                : [ascii(label ?? "")] + lines.map { "  " + ascii($0) }
+            if !b.edited, let c = labs.caption { out.append("  " + ascii(c)) }
             return out
         }
         guard !lines.isEmpty else { return [] }
@@ -293,6 +167,7 @@ enum PatientBriefs {
         if kind == .preop {
             out.append(airwayExamBlock(r))
             out.append(workupBlock(r, assess: assess, kind: kind))
+            out.append(imagingBlock(r))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
             out.append(lastIntakeBlock(hist))
@@ -301,10 +176,11 @@ enum PatientBriefs {
         } else {
             out.append(airwayCourseBlock(r))
             out.append(workupBlock(r, assess: assess, kind: kind))
+            out.append(imagingBlock(r))
             out.append(intraopTEEBlock(r))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
-            out.append(infusionsBlock(r))
+            out.append(infusionsBlock(r, now: now))
             out.append(intakeOutputBlock(r))
             out.append(linesBlock(r, kind: kind))
             out.append(regionalBlock(r))
@@ -398,14 +274,21 @@ enum PatientBriefs {
     /// Assessment lines that read as history: function and the cardiac flags.
     private static let assessmentHistory: Set<String> = ["Functional capacity", "Frailty", "Cardiac symptoms", "Acute cardiac conditions"]
 
+    /// The lines of the history that are a list of problems, with no heading of their own in the PMH (1.12, Ben): a system's
+    /// (its name is the page's heading, not a problem) and "Other conditions". The warnings (Aspiration risk: ...), the
+    /// anesthetic complications and the function lines keep their labels, which are part of what they say.
+    private static let unlabelledInPMH: Set<String> = Set(PatientCatalog.allSystems.map(\.name) + ["Other conditions"])
+
     /// PMH (ASA class): the system pages' words in one paragraph, the history's warnings (aspiration risk, heparin
     /// caution), anesthetic complications, positive infectious items and isolation (they are on the Infectious page's
-    /// words), and function, frailty and the active cardiac flags.
+    /// words), and function, frailty and the active cardiac flags. 1.12 (Ben, Nov 10): the problems in the systems' order,
+    /// with no system heading, joined by "; " ("PMH (ASA IV): hypertension; CAD; COPD; ESRD on hemodialysis"); the tab and
+    /// the pages keep their headings.
     private static func pmhBlock(_ r: PatientRecord, hist: [PatientSummary.Line], assess: [PatientSummary.Line]) -> SummaryBlock {
         var parts: [String] = []
         var marks: [String] = []
         for l in hist where !notPMH.contains(l.label ?? "") {
-            let t = joined(l)
+            let t = unlabelledInPMH.contains(l.label ?? "") ? l.text : joined(l)
             parts.append(t)
             if l.alert { marks.append(t) }
             marks += l.marks
@@ -419,7 +302,7 @@ enum PatientBriefs {
         // A class chosen with nothing else to say: the class is the block's words, so it is not lost with an empty paragraph.
         if parts.isEmpty, let asa { return SummaryBlock(key: "pmh", label: "PMH", text: asa) }
         // The alerts inside it are in bold red; the label stays plain.
-        return SummaryBlock(key: "pmh", label: asa.map { "PMH (" + $0 + ")" } ?? "PMH", text: parts.joined(separator: " · "), marks: marks)
+        return SummaryBlock(key: "pmh", label: asa.map { "PMH (" + $0 + ")" } ?? "PMH", text: parts.joined(separator: "; "), marks: marks)
     }
 
     /// PSH: the past surgical history, with the cardiac or thoracic operations added in the cardiac evaluation.
@@ -436,12 +319,14 @@ enum PatientBriefs {
 
     // MARK: Medications
 
-    /// Preprocedure: the home medications, the infusions running and the flags that need action. Handoff: the home
-    /// medications with those flags (the infusions are with the intraoperative ones).
+    /// Preprocedure: the infusions running, then the home medications and the flags that need action. Handoff: the home
+    /// medications with those flags (the infusions are with the intraoperative ones). 1.12 (Ben's note 16): the medication
+    /// line follows the order of the Current Medications & Infusions box: infusions, then antibiotics, cardiovascular
+    /// medications and the rest, each group in the order entered.
     private static func medicationsBlock(_ r: PatientRecord, hist: [PatientSummary.Line], kind: Kind) -> SummaryBlock {
         var pieces: [(label: String, text: String, alert: Bool)] = []
-        if let m = hist.first(where: { $0.label == "Medications" }) { pieces.append(("Home", m.text, m.alert)) }
         if kind == .preop, let i = hist.first(where: { $0.label == "Current infusions" }) { pieces.append(("Infusions", i.text, true)) }
+        if let m = hist.first(where: { $0.label == "Medications" }) { pieces.append(("Home", orderedMedications(r, line: m.text), m.alert)) }
         if let a = hist.first(where: { $0.label == "Medication alerts" }) { pieces.append(("Alerts", a.text, true)) }
         var b = SummaryBlock(key: "meds", label: kind == .preop ? "Medications" : "Home medications")
         if pieces.count == 1, pieces[0].label == "Home" {
@@ -457,6 +342,16 @@ enum PatientBriefs {
         return b
     }
 
+    /// The medication line (PatientSummary.historyLines: the list's items, then any text typed before 1.9) with the list's items
+    /// in the shown order: antibiotics, cardiovascular, then the rest. A line that is the flags' words (no list) is as it was.
+    static func orderedMedications(_ r: PatientRecord, line: String) -> String {
+        let items = r.capitalized.homeMeds
+        let stored = items.map(\.text).filter { !$0.isEmpty }.joined(separator: "; ")
+        guard !stored.isEmpty, line.hasPrefix(stored) else { return line }
+        let ordered = MedicationCatalog.ordered(items).map(\.text).filter { !$0.isEmpty }.joined(separator: "; ")
+        return ordered + line.dropFirst(stored.count)
+    }
+
     // MARK: Airway
 
     /// Airway exam, on one line: how it is secured now if it is, the Mallampati class, the exam, the difficult-airway signs,
@@ -469,35 +364,12 @@ enum PatientBriefs {
         return b
     }
 
-    /// Airway course, on one line: how it arrived, mask and intubation in the room (a difficult one in capitals), and
-    /// how the patient leaves (extubated, remains intubated). 1.10: no difficult-airway follow-up sentence.
-    static func airwayCourse(_ r: PatientRecord) -> (text: String, alert: Bool)? {
-        let c = r.capitalized
-        var sentences: [String] = []
-        if c.arrivesWithAirway, let a = c.currentAirwayText {
-            sentences.append(a + " on arrival" + (!c.vent.isEmpty && c.oxygen.device != "trachCollar" ? ", " + c.vent.text : ""))
-        }
-        if !c.oxygen.isEmpty && (!c.arrivesWithAirway || c.oxygen.device == "trachCollar") { sentences.append("Oxygen on arrival: " + c.oxygen.text) }
-        sentences += PatientSummary.airwayCourseSentences(c)
-        if !trimmed(c.airwayNotes).isEmpty { sentences.append("Airway notes: " + trimmed(c.airwayNotes)) }
-        if !trimmed(c.examNotes).isEmpty { sentences.append("Examination: " + trimmed(c.examNotes)) }
-        if let end = c.airwayAtEnd {
-            let vent = trimmed(c.ventilation)
-            switch end {
-            case "extubated": sentences.append("Extubated")
-            case "intubated": sentences.append("Remains intubated" + (vent.isEmpty ? "" : " (" + vent + ")"))
-            default:
-                if let label = PatientCatalog.airwayAtEnd.first(where: { $0.id == end })?.label { sentences.append("At handoff: " + label.lowercased()) }
-            }
-        }
-        guard !sentences.isEmpty else { return nil }
-        // A sentence that already ends in a period (a typed note) is not given a second one, and none has a space before
-        // its period (1.10: "Beard ." in Ben's example).
-        let text = sentences.map { s -> String in
-            let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-            return (t.hasSuffix(".") ? String(t.dropLast()) : t).trimmingCharacters(in: .whitespaces)
-        }.filter { !$0.isEmpty }.joined(separator: ". ") + "."
-        return (text, PatientSummary.difficultAirway(c))
+    /// Airway course, on one line: how it arrived, mask and intubation in the room, and how the patient leaves (extubated,
+    /// remains intubated). 1.10: no difficult-airway follow-up sentence. 1.12 (Ben, Nov 10): the short form
+    /// (PatientAirwayLine): "Easy Mask, Easy VL Intubation, ETT 8.0 at 23 cm. Remains intubated, AC/VC 450 × 18, PEEP 8";
+    /// a difficult airway keeps its details on the line, in red (`marks`).
+    static func airwayCourse(_ r: PatientRecord) -> (text: String, alert: Bool, marks: [String])? {
+        PatientAirwayLine.course(r).map { ($0.text, $0.alert, $0.marks) }
     }
 
     private static func airwayCourseBlock(_ r: PatientRecord) -> SummaryBlock {
@@ -505,7 +377,7 @@ enum PatientBriefs {
         if let c = airwayCourse(r) {
             b.text = c.text
             b.alert = c.alert
-            if c.alert { b.marks = ["DIFFICULT"] }
+            b.marks = c.marks
         }
         return b
     }
@@ -526,6 +398,11 @@ enum PatientBriefs {
             let at = lines.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? lines.count
             lines.insert(s, at: at)
         }
+        // 1.12 (Ben's note 11): the chest X-ray, after the stress test (before the catheterizations and ultrasounds).
+        if let x = PatientChestXray.line(r) {
+            let at = lines.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? lines.count
+            lines.insert(x, at: at)
+        }
         if let t = PatientTEE.line(r) { lines.append(t) }
         // Before the case: the support the patient arrives with (one placed in the room is not preprocedure workup).
         if kind == .preop {
@@ -536,6 +413,13 @@ enum PatientBriefs {
         b.alert = lines.contains { $0.alert }
         for l in lines { b.marks += l.marks }
         return b
+    }
+
+    /// Imaging (1.12, Ben): the preprocedure CT, MRI and other imaging the user chose under "+ Add other input data into
+    /// Handoff" (`handoffExtras` "imaging:ct", "imaging:mri", "imaging:other"), after the cardiac workup. Typed imaging that
+    /// was not chosen stays out of the summaries; a chosen item with nothing typed says nothing.
+    private static func imagingBlock(_ r: PatientRecord) -> SummaryBlock {
+        SummaryBlock(key: "imaging", label: "Imaging", text: r.imaging.chosenLines(r.handoffExtras).joined(separator: "\n"))
     }
 
     /// Intraoperative TEE: the findings entered in the Intraoperative tab, and the echo notes typed there. 1.10 (Ben's
@@ -552,65 +436,51 @@ enum PatientBriefs {
 
     // MARK: Labs
 
-    /// Labs: the fishbone, then the other values, type and screen, infectious results (all of them before the case; positive
-    /// and pending ones in the handoff), the liver scores and the lab notes. In the handoff the newest intraoperative value of
-    /// each test replaces the preoperative one, dated in the caption.
+    /// Labs (1.12, Ben's note 8): no fishbone figures; two columns, "Preop" and "Intraop" (the Preprocedure Summary has the
+    /// Preop column alone). The values and their order are BriefLabs.make (PatientBriefLabs.swift); the text is two
+    /// labelled paragraphs, "Preop: …" and "Intraop: …", groups separated by "; ", which is also what Copy and Text only give.
     private static func labsBlock(_ r: PatientRecord, kind: Kind, now: Date) -> SummaryBlock {
-        let c = r.capitalized
-        let made = BriefLabs.make(c, withIntraop: kind == .handoff, now: now)
-        var lines = made.side.map(\.compact)
-        var marks = made.side.filter(\.abnormal).map(\.compact)
-        if kind == .preop {
-            let more = LabResults.lineParts(c)
-            lines += more.parts
-            marks += more.marks
-        } else {
-            lines += c.typeScreen.parts
-            if c.typeScreen.screen == .positive, let h = c.typeScreen.head { marks.append(h) }
-            for p in LabResults.infectiousParts(c.infections, onlyTelling: true) {
-                lines.append(p.text)
-                if p.result == .positive { marks.append(p.text) }
-            }
-            if let set = IntraopLabs.ordered(c.intraopLabs).first {
-                let ve = trimmed(set.viscoelastic)
-                if !ve.isEmpty { lines.append("ROTEM/TEG: " + ve) }
-                let other = trimmed(set.other)
-                if !other.isEmpty { lines.append(other) }
-            }
-        }
-        if let m = PatientSummary.liverLine(c) {
-            lines.append(joined(m))
-            marks += m.marks
-        }
-        if !trimmed(c.labNotes).isEmpty { lines.append(trimmed(c.labNotes)) }
-        return SummaryBlock(key: "labs", label: "Labs", text: lines.joined(separator: "\n"),
-                            figure: made.labs.isEmpty && made.labs.caption == nil ? nil : .fishbone(made.labs), marks: marks, joiner: " · ")
+        let made = BriefLabs.make(r.capitalized, withIntraop: kind == .handoff, now: now)
+        return SummaryBlock(key: "labs", label: "Labs", text: made.paragraphs.joined(separator: "\n"),
+                            figure: made.isEmpty ? nil : .fishbone(made), marks: made.marks)
     }
 
     // MARK: Infusions, medications, intake and output
 
-    /// Infusions (the drips running in the case; those running before it when they are not the same), the intraoperative
-    /// medications, and the factor concentrates and other products.
-    private static func infusionsBlock(_ r: PatientRecord) -> SummaryBlock {
+    /// Infusions (the drips running in the case; those running before it when they are not the same and were not taken off the
+    /// case's list), the antibiotics charted in Case Timers, the intraoperative medications (the notable medications chosen
+    /// as chips with their doses, then the text typed), and the factor concentrates and other products.
+    ///
+    /// 1.12 (Ben's note 16): a preoperative drip that was deleted on the Intraoperative tab is no longer running, so the handoff
+    /// does not list it any more; the Preprocedure Summary and the preop record keep it (they describe the patient on arrival).
+    /// 1.12 (note 3): "Antibiotics: Cefazolin 2 g, last 08:12, next due 12:12" for each antibiotic charted in Case Timers; one
+    /// whose redose is overdue is red.
+    private static func infusionsBlock(_ r: PatientRecord, now: Date = Date()) -> SummaryBlock {
         let c = r.capitalized
         var lines: [String] = []
+        var marks: [String] = []
         let drips = c.infusions.map(\.text).filter { !$0.isEmpty }
         if !drips.isEmpty { lines.append("Infusions: " + drips.joined(separator: "; ")) }
-        // A drip running before the case is listed again only when it is not one of the case's (another drug or rate).
+        // A drip running before the case is listed again only when it is not one of the case's (another drug or rate), and
+        // not when the case's list took it off.
         func same(_ s: String) -> String { s.lowercased().split(whereSeparator: \.isWhitespace).joined(separator: " ") }
         let running = Set(drips.map(same))
-        let before = c.homeInfusions.map(\.text).filter { !$0.isEmpty && !running.contains(same($0)) }
+        let takenOff = IntraopInfusionList.takenOff(r)
+        let before = c.homeInfusions.filter { !takenOff.contains($0.id) }.map(\.text).filter { !$0.isEmpty && !running.contains(same($0)) }
         if !before.isEmpty {
             let name = drips.isEmpty ? "Infusions (running before the case)" : "Running before the case"
             lines.append(name + ": " + before.joined(separator: "; "))
         }
-        var meds: [String] = []
-        let given = trimmed(c.medsGiven)
-        if !given.isEmpty { meds.append(given.hasSuffix(".") || given.hasSuffix(";") ? String(given.dropLast()) : given) }
+        let antibiotics = CaseAntibiotics.lines(r, now: now)
+        if !antibiotics.isEmpty {
+            lines.append("Antibiotics: " + antibiotics.map(\.handoffText).joined(separator: "; "))
+            marks += antibiotics.filter(\.overdue).map(\.handoffText)
+        }
+        var meds = PatientNotableMeds.lines(c)
         let factors = trimmed(c.factors)
         if !factors.isEmpty { meds.append(factors) }
         if !meds.isEmpty { lines.append("Intraop medications: " + meds.joined(separator: "; ")) }
-        return SummaryBlock(key: "infusions", label: "Current infusions & intraop medications", text: lines.joined(separator: "\n"))
+        return SummaryBlock(key: "infusions", label: "Current infusions & intraop medications", text: lines.joined(separator: "\n"), marks: marks)
     }
 
     /// Intake & output, in Ben's order: crystalloid, colloid, blood products, EBL, urine output, cell saver.

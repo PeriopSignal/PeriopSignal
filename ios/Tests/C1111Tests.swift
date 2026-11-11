@@ -14,7 +14,7 @@ final class C1111Tests: XCTestCase {
         let preop = PreopSection.allCases.map { PatientJumpItem(section: $0) }
         XCTAssertEqual(preop.map(\.title), ["Procedure", "Demographics", "Exam & Workup", "Medications", "Risk Scores", "Summary"])
         XCTAssertEqual(preop.map(\.fullTitle), ["Planned Procedure & Anesthetic", "Demographics & History", "Examination & Workup",
-                                                "Current Medications", "Risk Scores & Checks", "Preprocedure Summary"])
+                                                "Current Medications & Infusions", "Risk Scores & Checks", "Preprocedure Summary"])
         let intraop = IntraopSection.allCases.map { PatientJumpItem(intraop: $0) }
         XCTAssertEqual(intraop.map(\.title), ["Airway", "Lines", "Meds", "Fluids", "Other"])
         XCTAssertEqual(intraop.map(\.fullTitle), ["Airway Course", "Lines & Devices", "Medications & Infusions", "Fluids & Blood", "Other Intraoperative Details"])

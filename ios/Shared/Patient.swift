@@ -343,6 +343,20 @@ struct PatientRecord: Codable, Equatable {
     // echo opens as it); this is the post-bypass exam.
     var intraopEchoPost = PatientEcho()
 
+    // 1.12 (Ben, Nov 10). Each area's new fields live in a struct of its own, in its own file, so the record gains one
+    // line per area.
+    /// Results that are not a number in `labs`: the pregnancy test, urinalysis and blood cultures.
+    var moreLabs = PatientMoreLabs()
+    /// Preprocedure imaging findings (CT, MRI, other), as typed.
+    var imaging = PatientImaging()
+    /// What the user chose to add to the summaries beyond their usual contents: "preop:<lab key>", "intraop:<lab key>",
+    /// "imaging:ct", "imaging:mri", "imaging:other".
+    var handoffExtras: [String] = []
+    /// The Intraoperative tab's notable medications: chips, each with an optional dose.
+    var notableMeds = PatientNotableMeds()
+    /// The preprocedure chest X-ray.
+    var chestXray = PatientChestXray()
+
     init() {}
 
     /// Every field read with a fallback, so a record saved by an older version still opens after an update.
@@ -478,6 +492,11 @@ struct PatientRecord: Codable, Equatable {
         handoffEdits = v(.handoffEdits, [:])
         labsDrawn = try? c.decodeIfPresent(Date.self, forKey: .labsDrawn)
         intraopEchoPost = v(.intraopEchoPost, PatientEcho())
+        moreLabs = v(.moreLabs, PatientMoreLabs())
+        imaging = v(.imaging, PatientImaging())
+        handoffExtras = v(.handoffExtras, [])
+        notableMeds = v(.notableMeds, PatientNotableMeds())
+        chestXray = v(.chestXray, PatientChestXray())
         fills.problems.formIntersection(problems)
         fills.medFlags.formIntersection(medFlags)
         fills.ecg.formIntersection(Set(ecg))

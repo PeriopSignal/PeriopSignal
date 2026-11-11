@@ -19,6 +19,8 @@ extension PatientEditorView {
         PreopLabsFigures(chain: chain)
         typeScreenGroup
         infectiousGroup
+        infectiousLabsSection
+        pregnancySection
         labSection("cardiac", "Cardiac labs", PatientLabs.tests(.cardiac))
         if r.labSections.contains("liver") {
             liverGroup
@@ -47,6 +49,7 @@ extension PatientEditorView {
     /// labs are the figures' slots (PatientLabs.slotOrder), or the table's rows when the list is showing.
     var labFieldOrder: [String] {
         var ids = PreopLabsFigures.mainFieldOrder().map { "main." + $0 }
+        if infectiousLabsShown { ids += PatientLabs.tests(.infectious).map { "infectious." + $0.key } }
         let cardiac = PatientLabs.tests(.cardiac)
         if labSectionShown("cardiac", cardiac) { ids += cardiac.map { "cardiac." + $0.key } }
         if r.labSections.contains("liver") { ids += Self.liverKeys.map { "liver." + $0 } }
@@ -148,6 +151,72 @@ extension PatientEditorView {
                 patient.update(discrete: true) { $0.infections.other.append(PatientInfectiousOther()) }
             }
             .padding(.horizontal, 10).padding(.vertical, 8)
+        }
+    }
+
+    // MARK: Infectious labs and the pregnancy test (1.12, Ben's note 12)
+
+    /// The "+ Infectious labs" box is open once the link was tapped or any of its results is recorded.
+    var infectiousLabsShown: Bool {
+        r.labSections.contains("infectious") || r.moreLabs.hasInfectious || r.labs["vanc"] != nil
+    }
+
+    private var negativeOption: [(id: String, label: String)] { [(id: "neg", label: "Negative")] }
+
+    /// Urinalysis (Negative, or the findings), blood cultures (Negative, or what is known) and the vancomycin level. They sit
+    /// with the infectious results above; a urinalysis finding or a culture that is not negative is read by the next team
+    /// (bold red in the summaries), so it is typed here as it was reported.
+    @ViewBuilder private var infectiousLabsSection: some View {
+        if infectiousLabsShown {
+            PatientGroup(title: "Infectious labs", note: "Urinalysis and blood cultures are Negative or what was reported; a finding, or a culture that is not negative, shows in bold red in the summaries. The vancomycin level has no reference range here: the target depends on the indication.") {
+                PatientChipRow(label: "Urinalysis") {
+                    PatientChoice(options: negativeOption,
+                                  selection: Binding(get: { patient.record.moreLabs.uaNegative ? "neg" : nil },
+                                                     set: { v in patient.update { $0.moreLabs.setUrinalysisNegative(v != nil) } }))
+                }
+                PatientChipRow(label: nil) {
+                    PatientChips(options: PatientMoreLabs.urinalysisFindings.map { PatientFlag($0.id, $0.label) },
+                                 selection: Binding(get: { patient.record.moreLabs.uaFindings },
+                                                    set: { v in patient.update { r in
+                                                        r.moreLabs.uaFindings = v
+                                                        if !v.isEmpty { r.moreLabs.uaNegative = false }
+                                                    } }))
+                }
+                LabInlineText(label: "Findings", prompt: "e.g. cloudy, trace protein",
+                              text: Binding(get: { patient.record.moreLabs.uaText }, set: { v in patient.update { $0.moreLabs.setUrinalysisText(v) } }))
+                Hairline().padding(.leading, 14)
+                PatientChipRow(label: "Blood cultures") {
+                    PatientChoice(options: negativeOption,
+                                  selection: Binding(get: { patient.record.moreLabs.bloodCxNegative ? "neg" : nil },
+                                                     set: { v in patient.update { $0.moreLabs.setBloodCulturesNegative(v != nil) } }))
+                }
+                LabInlineText(label: "Result", prompt: "e.g. GPC in clusters, 1 of 2 bottles",
+                              text: Binding(get: { patient.record.moreLabs.bloodCxText }, set: { v in patient.update { $0.moreLabs.setBloodCulturesText(v) } }))
+                Hairline().padding(.leading, 14)
+                labRows(PatientLabs.tests(.infectious), section: "infectious")
+            }
+            .id("labs-infectious")
+        } else {
+            labAdd("infectious", "Infectious labs")
+        }
+    }
+
+    /// "+ Pregnancy test": a Negative chip and/or an hCG value; shown for a woman and when the sex is not set.
+    @ViewBuilder private var pregnancySection: some View {
+        if PatientMoreLabs.showsPregnancy(r.sex) {
+            if r.labSections.contains("pregnancy") || r.moreLabs.hasPregnancy || r.labs["hcg"] != nil {
+                PatientGroup(title: "Pregnancy test", note: "Negative, and/or the hCG value as reported. A number is kept as a lab; words such as <5 stay as typed. No reference range is shown: it depends on the assay and the setting.") {
+                    PatientChipRow(label: "Result") {
+                        PatientChoice(options: negativeOption,
+                                      selection: Binding(get: { patient.record.moreLabs.pregnancyNegative ? "neg" : nil },
+                                                         set: { v in patient.update { $0.moreLabs.pregnancyNegative = v != nil } }))
+                    }
+                    HCGField()
+                }
+                .id("labs-pregnancy")
+            } else {
+                labAdd("pregnancy", "Pregnancy test")
+            }
         }
     }
 
@@ -514,12 +583,15 @@ struct LabSlot: View {
     var chain: PatientFieldChain? = nil
     var estimate: LabValue? = nil
     var g: FishboneGeometry = .page
+    /// False for a value the catalog's range does not apply to (an arterial range on a venous gas, 1.12): never flagged,
+    /// no range hint.
+    var ranged = true
     @State private var text = ""
     @FocusState private var focused: Bool
 
-    private var flag: LabFlag { value.map { PatientLabs.flag(test.key, $0, sex: sex, troponin99: troponin99) } ?? .normal }
+    private var flag: LabFlag { ranged ? (value.map { PatientLabs.flag(test.key, $0, sex: sex, troponin99: troponin99) } ?? .normal) : .normal }
     private var isFocused: Bool { chain.map { $0.focus.wrappedValue == $0.id } ?? focused }
-    private var hint: String? { PatientLabs.slotHint(test.key, sex: sex) }
+    private var hint: String? { ranged ? PatientLabs.slotHint(test.key, sex: sex) : nil }
 
     /// "Sodium, 138, range 136 to 145"; "Hemoglobin, empty, range 12 to 16"; "Hematocrit, estimated 38".
     static func accessibilityText(_ test: LabTest, value: Double?, sex: PatientSex?, flag: LabFlag = .normal, estimate: LabValue? = nil) -> String {
@@ -782,10 +854,13 @@ struct LabFieldRow: View {
     var chain: PatientFieldChain? = nil
     /// Hemoglobin or hematocrit estimated from the other, shown while this one is empty (never saved).
     var estimate: LabValue? = nil
+    /// False for a value the catalog's range does not apply to (an arterial range on a venous gas, 1.12): never flagged.
+    /// The range line follows the `test` given (a venous gas passes a copy without a range).
+    var ranged = true
     @State private var text = ""
     @FocusState private var focused: Bool
 
-    private var flag: LabFlag { value.map { PatientLabs.flag(test.key, $0, sex: sex, troponin99: troponin99) } ?? .normal }
+    private var flag: LabFlag { ranged ? (value.map { PatientLabs.flag(test.key, $0, sex: sex, troponin99: troponin99) } ?? .normal) : .normal }
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -831,6 +906,38 @@ struct LabFieldRow: View {
         // while typing 1.5 stays as typed).
         .onChange(of: value) { _, v in
             if Double(text.replacingOccurrences(of: ",", with: ".")) != v { text = v.map { test.format($0) } ?? "" }
+        }
+    }
+}
+
+/// The hCG as typed (1.12): a number is saved as the lab `hcg`, anything else ("<5") stays as typed
+/// (PatientMoreLabs.setHCG). The text is kept here while it is typed, so "5." is not rewritten to "5" under the cursor.
+struct HCGField: View {
+    @Environment(PatientStore.self) private var patient
+    @State private var text = ""
+
+    private var stored: String { PatientMoreLabs.hcgField(patient.record) }
+
+    private func number(_ s: String) -> Double? { Double(s.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")) }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text("hCG").font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.fg2)
+            TextField("e.g. 12 mIU/mL, or <5", text: $text)
+                .font(PS.sys(size: 15))
+                .foregroundStyle(PS.fg)
+                .padding(.horizontal, 10).padding(.vertical, 7)
+                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .accessibilityLabel("hCG value")
+        }
+        .padding(.horizontal, 14).padding(.vertical, 8)
+        .onAppear { text = stored }
+        .onChange(of: text) { _, t in
+            if t != stored { patient.update { PatientMoreLabs.setHCG(t, in: &$0) } }
+        }
+        // A change from elsewhere (Undo): show it, unless the text being typed already reads as it.
+        .onChange(of: stored) { _, s in
+            if s != text, !(number(text) != nil && number(text) == number(s)) { text = s }
         }
     }
 }

@@ -75,6 +75,10 @@ enum PatientPreop {
             // 1.11 (Ben's note 4): the stress test, noninvasive, before the catheterizations.
             PreopWorkupItem(id: "stress", title: "Stress test", icon: "figure.run", key: "workup:stress", summary: r.stressTest.summary,
                             alert: r.stressTest.result == .positive),
+            // 1.12 (Ben's note 11): the chest X-ray, beside the ECG, echo and stress test. The row's title says "Chest X-ray",
+            // so its summary is the finding alone ("Normal", "moderate left effusion; ...").
+            PreopWorkupItem(id: "cxr", title: "Chest X-ray", icon: "photo", key: "workup:cxr", summary: r.chestXray.text,
+                            alert: r.chestXray.result == .effusion),
             PreopWorkupItem(id: "lhc", title: "Left heart cath", icon: "heart", key: "workup:lhc", summary: r.lhc.isEmpty ? nil : c.lhc.summary),
             PreopWorkupItem(id: "rhc", title: "Right heart cath", icon: "heart.circle", key: "workup:rhc", summary: PatientSummary.rhcText(r)),
             PreopWorkupItem(id: "carotid", title: "Carotid US", icon: "waveform.path", key: "workup:carotid", summary: r.carotid.isEmpty ? nil : c.carotid.summary,
@@ -372,6 +376,13 @@ enum IntraopInfusionList {
     /// handoff's "running before the case" line keep it. Never shown, and empty text is left out of every summary.
     static func isTombstone(_ i: PatientInfusion) -> Bool {
         i.fromPreop != nil && i.drug.trimmingCharacters(in: .whitespaces).isEmpty && i.rate.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    /// The preop drips taken off the case's list (a tombstone points at each; 1.12, Ben's note 16): no longer running, so the
+    /// handoff does not list them as current infusions. The preop record and the Preprocedure Summary, which describe the
+    /// patient on arrival, keep them.
+    static func takenOff(_ r: PatientRecord) -> Set<UUID> {
+        Set(r.infusions.filter(isTombstone).compactMap(\.fromPreop))
     }
 
     static func sameDrug(_ a: String, _ b: String) -> Bool {
