@@ -1014,6 +1014,27 @@ jobs:
           shot 939-valve-insufficiency-375-dark 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "aortic insufficiency, severe mitral insufficiency, mild TI" -ps.forceAppearance dark
           #
           # ---- 1.12 helper F shots (940-959): add your shot lines directly under this line ----
+          # Heme & Oncology (Ben, Nov 11): the Preoperative tile, the page with Malignancy open (cancers, Other, status, Metastatic,
+          # treatment; 375 pt; large text), the PMH line in the Preprocedure Summary and the handoff, lines typed in the quick-add
+          # bar, and the procedure search for ECMO reconfiguration.
+          shot 940-onc112-tile-light-375 18 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
+          shot 941-onc112-tile-dark 18 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll problems -ps.forceAppearance dark
+          shot 942-onc112-page-light 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.forceAppearance light
+          shot 943-onc112-page-dark 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.forceAppearance dark
+          shot 944-onc112-page-light-375 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.patient.width 375 -ps.forceAppearance light
+          shot 945-onc112-page-large-text-dark-375 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 946-onc112-page-remission-light 22 -ps.tab patient -ps.patient demo-112-onc-remission -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.forceAppearance light
+          shot 947-onc112-page-top-empty-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance light
+          shot 948-onc112-presummary-light-375 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance light
+          shot 949-onc112-presummary-dark 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
+          shot 950-onc112-handoff-light 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 951-onc112-handoff-dark-375 22 -ps.tab patient -ps.patient demo-112-onc-remission -ps.patient.tab summary -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
+          shot 952-onc112-quickadd-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "metastatic lung cancer s/p chemo, lymphoma in remission" -ps.forceAppearance light
+          shot 953-onc112-quickadd-one-cancer-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.quickadd "breast ca, in remission, s/p chemoradiation, HCC" -ps.forceAppearance dark
+          shot 954-onc112-quickadd-nothing-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "no hx of cancer, mother had breast cancer, skin cancer screening, BRCA positive" -ps.forceAppearance light
+          shot 955-onc112-quickadd-added-tile-light 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll problems -ps.quickadd "lung cancer, metastatic, s/p chemo" -ps.quickadd.add 1 -ps.forceAppearance light
+          shot 956-onc112-proc-ecmo-light 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "ECMO" -ps.forceAppearance light
+          shot 957-onc112-proc-ecmo-reconfig-dark 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "VA to VV" -ps.forceAppearance dark
           #
           # ---- 1.12 helper G shots (960-979): add your shot lines directly under this line ----
           #

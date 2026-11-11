@@ -1042,6 +1042,11 @@ extension ProcedureCatalog {
         heart("ecmo", "ECMO cannulation", ["ECMO", "VA ECMO", "VV ECMO", "peripheral ECMO", "VA ECMO cannulation", "VV ECMO cannulation", "ECLS", "ECPR", "femoral ECMO cannulation", "VA ECMO initiation", "bedside ECMO cannulation"], ga, per, short, risk: false),
         heart("central-ecmo", "Central ECMO cannulation", ["central ECMO", "central cannulation", "ECMO via sternotomy"], ga, chest, mid),
         heart("ecmo-decannulation", "ECMO decannulation", ["decannulation", "VA ECMO decannulation", "VV ECMO decannulation", "ECMO decannulation with arterial repair", "ECMO removal"], ga, per, short, risk: false),
+        // 1.12 (Ben, Nov 11): a change of the circuit's configuration (VA to VV, VV to VA, to VAV) or an exchange or revision of a
+        // cannula, with the settings of ECMO cannulation (the same anesthetic, peripheral incision, up to 2 h, no high-risk flag).
+        // "ECMO conversion" and "ECMO to VAD" stay with ECMO to VAD conversion, and "decannulation" with ECMO decannulation.
+        heart("ecmo-reconfiguration", "ECMO reconfiguration", ["reconfiguration", "VA to VV", "VV to VA", "VA to VAV", "VAV ECMO", "VVA ECMO", "VA to VV ECMO", "VV to VA ECMO",
+                                                              "ECMO cannula exchange", "cannula exchange", "ECMO revision", "ECMO cannula revision", "ECMO configuration change"], ga, per, short, risk: false),
         heart("tavr", "Transcatheter aortic valve replacement", ["TAVR", "TAVI", "transfemoral TAVR", "TF TAVR", "transcatheter aortic valve implantation", "valve in valve TAVR", "ViV TAVR", "percutaneous TAVR", "transfemoral TAVI", "TAVR in TAVR"], mac, per, short, risk: false),
         heart("tavr-chest", "TAVR, transapical or transaortic", ["transapical TAVR", "TA TAVR", "transapical TAVI", "transaortic TAVR", "direct aortic TAVR"], ga, chest, mid),
         heart("tavr-alternative", "TAVR, subclavian or transcaval", ["subclavian TAVR", "axillary TAVR", "transcaval TAVR", "transcarotid TAVR", "alternative access TAVR", "transaxillary TAVR", "transcaval TAVI", "subclavian TAVI"], ga, per, mid, risk: false),
