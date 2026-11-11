@@ -975,6 +975,8 @@ jobs:
           shot 908-d112-handoff-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
           shot 909-d112-preop-summary-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           #
+          # ---- 1.12 helper I shots (1000-1014): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper E1 shots (910-924): add your shot lines directly under this line ----
           shot 910-e1-through-details-light 16 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance light
           shot 911-e1-through-details-dark 16 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance dark
