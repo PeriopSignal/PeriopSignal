@@ -1,6 +1,5 @@
-build 1.12.0 (38) not visible yet; waiting
 Periop Signal: build 1.12.0 (38) processed
-what to test: set (Ben's Nov 10 notes. Scroll any My Patient tab: a slim row keeps the case and the)
-::warning::beta app review not submitted (422: Another build in the same train is already in beta review. Please submit it again once it gets completed.). Complete Test Information under TestFlight in App Store Connect, then run 'TestFlight distribute' with version=1.12.0 build=38.
+what to test: kept (Ben's Nov 10 notes. Scroll any My Patient tab: a slim row keeps the case and the)
+beta app review: submitted
 added to group 'Colleagues' (public link on)
-external testing: ready for beta submission · internal: in beta testing
+external testing: waiting for beta review · internal: in beta testing
