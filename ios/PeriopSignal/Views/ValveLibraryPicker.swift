@@ -41,10 +41,10 @@ struct ValveLibraryButton: View {
         }
         #if DEBUG
         // Screenshot runs: -ps.valve.library <position> opens that position's picker once the page is up.
-        .task {
+        // (Not a .task: a scroll can take the button out of its lazy list and cancel it.)
+        .onAppear {
             guard let p = position, LaunchSeed.string("ps.valve.library") == p.rawValue else { return }
-            try? await Task.sleep(nanoseconds: 7_000_000_000)
-            open = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 9) { open = true }
         }
         #endif
     }
