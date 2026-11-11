@@ -702,10 +702,12 @@ struct TypeScreenExpiresRow: View {
                         DatePicker("Type and screen expires", selection: Binding(get: { e }, set: { v in patient.update { $0.typeScreen.expires = v } }),
                                    displayedComponents: [.date, .hourAndMinute])
                             .labelsHidden()
+                            .environment(\.locale, PatientDates.locale24)
                     }
                 } else if editing {
                     DatePicker("Type and screen expires", selection: $draft, displayedComponents: [.date, .hourAndMinute])
                         .labelsHidden()
+                        .environment(\.locale, PatientDates.locale24)
                     HStack(spacing: 14) {
                         Button { patient.update(discrete: true) { $0.typeScreen.expires = draft }; withAnimation(.snappy) { editing = false } } label: {
                             Text("Set").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.action)
