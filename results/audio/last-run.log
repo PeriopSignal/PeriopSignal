@@ -1,6 +1,4 @@
-[0;93m2026-11-10 09:11:26.577710565 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-3 post(s) to synthesize with kokoro:af_heart
-  anaesthesia-2026-vilare-videolaryngoscopy-residents: 202 s, 1578 KB, 100 s to make
-  nejm-2026-race-cars-community-ems-cardiac-arrest: 220 s, 1717 KB, 107 s to make
-  nejm-2026-on-scene-prehospital-ecpr-refractory-ohca: 190 s, 1480 KB, 92 s to make
-synthesized 3, failed 0, 7160 characters, 5 min
+[0;93m2026-11-11 09:10:10.451144345 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+1 post(s) to synthesize with kokoro:af_heart
+  circulation-2026-fragile-offpump-vs-onpump-cabg-frail: 213 s, 1662 KB, 58 s to make
+synthesized 1, failed 0, 2289 characters, 1 min
