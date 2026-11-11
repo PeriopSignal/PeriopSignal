@@ -447,13 +447,17 @@ final class A111Tests: XCTestCase {
         let block = try XCTUnwrap(PatientBriefs.handoff(r).first { $0.key == "labs" })
         guard case .fishbone(let labs)? = block.figure else { return XCTFail("no labs figure") }
         XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "Na 139" })
-        XCTAssertFalse(block.text.contains("Ca 8.3 L"), "the calcium is a chip")
-        XCTAssertTrue(HandoffExtras.preopCandidates(r).map(\.key).contains("preop:ca"))
+        // Ben, Nov 11: an abnormal value outside the lists is in the summary without being chosen, and is not a chip;
+        // a normal one (the magnesium) is still a chip to choose.
+        XCTAssertTrue(block.text.contains("Ca 8.3 L"), "the abnormal calcium is shown: " + block.text)
+        XCTAssertTrue(block.marks.contains("Ca 8.3 L"))
+        XCTAssertFalse(HandoffExtras.offered(r).preop.map(\.key).contains("preop:ca"))
+        XCTAssertFalse(block.text.contains("Mg 1.7"), "the magnesium is a chip")
+        XCTAssertTrue(HandoffExtras.offered(r).preop.map(\.key).contains("preop:mg"))
         var chosen = r
-        chosen.handoffExtras = ["preop:ca"]
+        chosen.handoffExtras = ["preop:mg"]
         let again = try XCTUnwrap(PatientBriefs.handoff(chosen).first { $0.key == "labs" })
-        XCTAssertTrue(again.text.contains("Ca 8.3 L"))
-        XCTAssertTrue(again.marks.contains("Ca 8.3 L"))
+        XCTAssertTrue(again.text.contains("Mg 1.7"))
     }
 
     // MARK: Demo patients

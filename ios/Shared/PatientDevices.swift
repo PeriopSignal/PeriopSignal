@@ -447,12 +447,12 @@ extension PatientDevice {
     var isSLIC: Bool { kind == .cvc && detail.range(of: "SLIC", options: .caseInsensitive) != nil }
 
     /// A central line whose type is an introducer or MAC (Ben's note 1, as written): the lines that take a device through
-    /// them. Any other central line type does not (a triple lumen, a SLIC, a dialysis catheter, and a Cordis, which has
-    /// its own Type chip).
+    /// them. Any other central line type does not (a triple lumen, a SLIC, a dialysis catheter). A
+    /// Cordis takes them too (Ben, Nov 11).
     var acceptsDevicesThrough: Bool {
         guard kind == .cvc else { return false }
         let words = detail.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init)
-        return words.contains { $0 == "introducer" || $0 == "mac" }
+        return words.contains { $0 == "introducer" || $0 == "mac" || $0 == "cordis" }
     }
 
     /// This device is the `t` that was put through the line `lineID`.

@@ -8,7 +8,7 @@ import Foundation
 //   Preop    CMP: Na, K, BUN, Cr (GFR), AST/ALT, glucose.  Heme: Hb, Plt, PTT, INR, fibrinogen, Type & Screen.
 //            Other: lactate, TSH, free T4, T bilirubin, MRSA screen, hCG / pregnancy test (not for a man).
 //   Intraop  (handoff only) the newest blood gas with its lactate, drawn as the slash figure (pH / PCO₂ / PO₂ / HCO₃) and
-//            labelled with the gas type and its time; then Coags: the newest Plt, INR, fibrinogen and TEG/ROTEM, each from
+//            labelled with the gas type and its time; then Heme: the newest Hb, Plt, INR, fibrinogen and TEG/ROTEM, each from
 //            the latest set that holds it.
 //
 // Only what is recorded is shown; a group with nothing is left out and so is a column. Abnormal values keep their H/L and
@@ -70,7 +70,7 @@ struct BriefLabItem: Hashable {
     }
 }
 
-/// A named group of a column: "CMP: Na 138, K 4.1", "Coags: Plt 98 L, INR 1.6 H".
+/// A named group of a column: "CMP: Na 138, K 4.1", "Heme: Hb 9 L, Plt 98 L, INR 1.6 H".
 struct BriefLabGroup: Hashable {
     var name: String
     var items: [BriefLabItem]
@@ -109,7 +109,7 @@ struct BriefLabs: Hashable {
 
     var preop: [BriefLabGroup] = []
     var gas: BriefGas?
-    /// The gas's group first (when there is a gas), then Coags, then Other.
+    /// The gas's group first (when there is a gas), then Heme, then Other.
     var intraop: [BriefLabGroup] = []
     /// "Preop labs 06:30 · Intraop 10:40 (INR, TEG/ROTEM) / 09:15 (Plt)": the small caption with the times.
     var caption: String?
@@ -118,7 +118,7 @@ struct BriefLabs: Hashable {
     var hasIntraop: Bool { !intraop.isEmpty }
     var isEmpty: Bool { preop.isEmpty && intraop.isEmpty }
 
-    /// "Preop: CMP: Na 138; Heme: Hb 12" and "Intraop: ABG (10:40): pH 7.33 / …; Coags: …": the text of the block and the
+    /// "Preop: CMP: Na 138; Heme: Hb 12" and "Intraop: ABG (10:40): pH 7.33 / …; Heme: …": the text of the block and the
     /// copied text (groups separated by "; ").
     var paragraphs: [String] {
         var out: [String] = []
@@ -235,8 +235,9 @@ struct BriefLabs: Hashable {
         if let m = PatientSummary.liverLine(r) { other.append(BriefLabItem(key: "liver", text: m.text, marks: m.marks)) }
         let notes = trimmed(r.labNotes)
         if !notes.isEmpty { other.append(BriefLabItem(key: "labnotes", text: notes)) }
-        // Chosen under "+ Add other input data into Handoff": appended under Other.
-        for c in HandoffExtras.preopCandidates(r) where extras.contains(c.key) { other.append(c.item) }
+        // Appended under Other: what was chosen under "+ Add other input data into Handoff", and any abnormal value
+        // outside the lists (Ben, Nov 11: an abnormal lab is in the summaries whether or not it was picked).
+        for c in HandoffExtras.preopCandidates(r) where extras.contains(c.key) || HandoffExtras.alwaysShown(c) { other.append(c.item) }
 
         var groups: [BriefLabGroup] = []
         if !cmp.isEmpty { groups.append(BriefLabGroup(name: "CMP", items: cmp)) }
@@ -296,9 +297,10 @@ struct BriefLabs: Hashable {
             groups.append(BriefLabGroup(name: gas.title, items: gi, isGas: true))
         }
 
-        // Coags: the newest Plt, INR and fibrinogen, each from the latest set that holds it, and the TEG/ROTEM.
+        // Heme (Ben, Nov 11): the newest hemoglobin, always, whatever its value and whether or not a gas was sent; then
+        // the newest Plt, INR and fibrinogen, each from the latest set that holds it, and the TEG/ROTEM.
         var coags: [BriefLabItem] = []
-        for k in ["plt", "inr", "fibrinogen"] {
+        for k in ["hb", "plt", "inr", "fibrinogen"] {
             guard let hit = latest(k, in: sets), let t = PatientLabs.test(k) else { continue }
             let cell = BriefLabCell(key: k, label: t.short, text: t.format(hit.value), flag: PatientLabs.flag(k, hit.value, sex: r.sex))
             var item = BriefLabItem(cell)
@@ -315,11 +317,12 @@ struct BriefLabs: Hashable {
             coags.append(item)
             timed.append((s.time, "TEG/ROTEM"))
         }
-        if !coags.isEmpty { groups.append(BriefLabGroup(name: "Coags", items: coags)) }
+        if !coags.isEmpty { groups.append(BriefLabGroup(name: "Heme", items: coags)) }
 
-        // Other: the values chosen under "+ Add other input data into Handoff", and what was typed under Other results.
+        // Other: any abnormal value outside the gas and the coags (Ben, Nov 11); the values chosen under "+ Add other
+        // input data into Handoff"; and what was typed under Other results.
         var other: [BriefLabItem] = []
-        for c in HandoffExtras.intraopCandidates(r) where extras.contains(c.key) {
+        for c in HandoffExtras.intraopCandidates(r) where extras.contains(c.key) || HandoffExtras.alwaysShown(c) {
             other.append(c.item)
             timed.append((c.item.time, c.label))
         }
@@ -352,8 +355,8 @@ enum HandoffExtras {
     /// the troponin.
     static let preopDefaults: Set<String> = ["na", "k", "bun", "cr", "gfr", "ast", "alt", "glucose", "hb", "plt", "ptt", "inr", "fibrinogen",
                                              "lactate", "tsh", "ft4", "tbili", "hcg", "troponin99"]
-    /// The intraop values the Intraop column shows by default besides the gas: the coags.
-    static let intraopDefaults: Set<String> = ["plt", "inr", "fibrinogen"]
+    /// The intraop values the Intraop column shows by default besides the gas: the hemoglobin and the coags (Heme).
+    static let intraopDefaults: Set<String> = ["hb", "plt", "inr", "fibrinogen"]
 
     /// The recorded preoperative labs and results outside the default list, in the catalog's order, then the urinalysis and
     /// blood cultures when negative, then the infectious results that are negative (a positive or pending one is shown by
@@ -384,7 +387,7 @@ enum HandoffExtras {
         return out
     }
 
-    /// The recorded intraoperative values outside the gas and the coags (base excess, hemoglobin, potassium, sodium,
+    /// The recorded intraoperative values outside the gas and the coags (base excess, potassium, sodium,
     /// ionized calcium, glucose, PTT, ACT, a saturation, and a lactate or gas value the summary's gas does not carry), each
     /// the newest of that test.
     static func intraopCandidates(_ r: PatientRecord) -> [Candidate] {
@@ -423,9 +426,13 @@ enum HandoffExtras {
         return out
     }
 
-    /// The three groups of chips, in the order they are drawn.
+    /// In the summaries without being chosen: an abnormal value (its item carries a mark). Such an item is not offered
+    /// as a chip, since choosing it would change nothing.
+    static func alwaysShown(_ c: Candidate) -> Bool { !c.item.marks.isEmpty }
+
+    /// The three groups of chips, in the order they are drawn: what is recorded, not shown by default and not shown anyway.
     static func offered(_ r: PatientRecord) -> (preop: [Candidate], intraop: [Candidate], imaging: [Candidate]) {
-        (preopCandidates(r), intraopCandidates(r), imagingCandidates(r))
+        (preopCandidates(r).filter { !alwaysShown($0) }, intraopCandidates(r).filter { !alwaysShown($0) }, imagingCandidates(r))
     }
 
     /// Chosen and still recorded: how many extras the summaries are showing.

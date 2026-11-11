@@ -237,7 +237,7 @@ final class Intraop110Tests: XCTestCase {
         let caption = BriefLabs.make(r, withIntraop: true, now: date()).caption
         XCTAssertEqual(caption, "Preop labs 06:30 · Intraop 10:40")
         XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(r, now: date())),
-                       "Labs:\n  Preop: CMP: Na 138, K 5.6 H\n  Intraop: Coags: INR 1.4 H\n  Preop labs 06:30 · Intraop 10:40")
+                       "Labs:\n  Preop: CMP: Na 138, K 5.6 H\n  Intraop: Heme: INR 1.4 H\n  Preop labs 06:30 · Intraop 10:40")
         // Preoperative labs with a time and no case sets: the time alone.
         var pre = PatientRecord()
         pre.labs = ["na": 138]
