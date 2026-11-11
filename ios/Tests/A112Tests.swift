@@ -287,7 +287,7 @@ final class A112Tests: XCTestCase {
         r.labs = [:]
         XCTAssertNil(PatientBriefs.handoff(r).first { $0.key == "labs" }, "nothing recorded, no block")
         r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["inr": 1.4])]
-        XCTAssertEqual(try labsText(r), "Intraop: Coags: INR 1.4 H", "an Intraop column alone")
+        XCTAssertEqual(try labsText(r), "Intraop: Heme: INR 1.4 H", "an Intraop column alone")
     }
 
     func testTheCrAndGFRGoTogetherAndASlashPairsAstAndAltWhileNormal() throws {
@@ -346,10 +346,9 @@ final class A112Tests: XCTestCase {
         XCTAssertEqual(gas.slash.map { $0?.label }, ["pH", "PCO₂", "PO₂", "HCO₃"], "the slash figure's labels")
         XCTAssertEqual(gas.slash.map { $0?.text }, ["7.43", "43", "146", "28"])
         XCTAssertEqual(gas.lactate?.text, "1")
-        XCTAssertEqual(l.intraop.map(\.name), ["ABG (08:03)", "Coags"], "Plt, INR, fibrinogen and the viscoelastic, no PTT or ACT")
-        XCTAssertEqual(gas.hemoglobin?.text, "9", "the hemoglobin that came back on the gas")
+        XCTAssertEqual(l.intraop.map(\.name), ["ABG (08:03)", "Heme"], "the hemoglobin, Plt, INR, fibrinogen and the viscoelastic, no PTT or ACT")
         let text = try labsText(PatientDemo112Labs.abgRecord)
-        XCTAssertTrue(text.contains("\nIntraop: ABG (08:03): pH 7.43 / PCO₂ 43 H / PO₂ 146 / HCO₃ 28 H, Lactate 1, Hb 9 L; Coags: Plt 98 L, INR 1.6 H, Fib 180 L, TEG/ROTEM: EXTEM CT 92 s, A10 38 mm"), text)
+        XCTAssertTrue(text.contains("\nIntraop: ABG (08:03): pH 7.43 / PCO₂ 43 H / PO₂ 146 / HCO₃ 28 H, Lactate 1; Heme: Hb 9 L, Plt 98 L, INR 1.6 H, Fib 180 L, TEG/ROTEM: EXTEM CT 92 s, A10 38 mm"), text)
         XCTAssertFalse(text.contains("ACT"), "the ACT is an extra, not a default")
         XCTAssertFalse(text.contains("Na 139"), "the gas's sodium is normal and not in a list: not shown")
     }
@@ -389,7 +388,7 @@ final class A112Tests: XCTestCase {
         r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 15), values: ["inr": 1.9, "plt": 90], viscoelastic: "EXTEM CT 110 s"),
                          IntraopLabSet(time: PatientDemo.today(10, 40), values: ["inr": 1.4, "fibrinogen": 230])]
         let b = try block(PatientBriefs.handoff(r), "labs")
-        XCTAssertEqual(b.text, "Intraop: Coags: Plt 90 L, INR 1.4 H, Fib 230, TEG/ROTEM: EXTEM CT 110 s")
+        XCTAssertEqual(b.text, "Intraop: Heme: Plt 90 L, INR 1.4 H, Fib 230, TEG/ROTEM: EXTEM CT 110 s")
         let l = try labs([b])
         XCTAssertEqual(l.caption, "Intraop 10:40 (INR, Fib) / 09:15 (Plt, TEG/ROTEM)", "each time names its values")
         XCTAssertFalse(b.text.contains("INR 1.9"))
@@ -398,7 +397,7 @@ final class A112Tests: XCTestCase {
     func testTheCaptionKeepsTheTimesAsASmallLineAndTheAsteriskSchemeIsGone() throws {
         let r = PatientDemo112Labs.abgRecord
         let l = try labs(PatientBriefs.handoff(r))
-        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 07:30")
+        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 08:03 (Hb) / 07:30 (Plt, INR, Fib, TEG/ROTEM)", "the hemoglobin is the gas set's; the coags are older")
         XCTAssertFalse((l.caption ?? "").contains("*"))
         XCTAssertNil(try labs(PatientBriefs.preop(PatientDemo112Labs.preop.withLabsDrawn(nil))).caption, "no time entered, none shown")
         XCTAssertEqual(try labs(PatientBriefs.preop(r)).caption, "Preop labs 06:30", "the Preprocedure Summary names the preop draw time")
@@ -409,8 +408,8 @@ final class A112Tests: XCTestCase {
         let lines = plain.components(separatedBy: "\n")
         let at = try XCTUnwrap(lines.firstIndex(of: "Labs:"))
         XCTAssertTrue(lines[at + 1].hasPrefix("  Preop: CMP: Na 138, K 4.1, BUN 24 H"), lines[at + 1])
-        XCTAssertTrue(lines[at + 2].hasPrefix("  Intraop: ABG (08:03): pH 7.43 / PCO2 43 H / PO2 146 / HCO3 28 H, Lactate 1, Hb 9 L; Coags: Plt 98 L"), "plain digits: " + lines[at + 2])
-        XCTAssertEqual(lines[at + 3], "  Preop labs 06:30 · Intraop 07:30")
+        XCTAssertTrue(lines[at + 2].hasPrefix("  Intraop: ABG (08:03): pH 7.43 / PCO2 43 H / PO2 146 / HCO3 28 H, Lactate 1; Heme: Hb 9 L, Plt 98 L"), "plain digits: " + lines[at + 2])
+        XCTAssertEqual(lines[at + 3], "  Preop labs 06:30 · Intraop 08:03 (Hb) / 07:30 (Plt, INR, Fib, TEG/ROTEM)")
         // Before the case: Preop alone, on the label's line.
         let pre = PatientBriefs.plainText(PatientBriefs.preop(PatientDemo112Labs.preop))
         XCTAssertTrue(pre.contains("Labs: Preop: CMP: Na 138"), pre)
@@ -534,8 +533,8 @@ final class A112Tests: XCTestCase {
         let hand = try labsText(r)
         XCTAssertTrue(hand.contains("; Other: K 4.3, Glu 164"), "under Other in the Intraop column, the newest of each: " + hand)
         let l = try labs(PatientBriefs.handoff(r))
-        XCTAssertEqual(l.intraop.map(\.name), ["ABG (08:03)", "Coags", "Other"])
-        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 08:03 (K, Glu) / 07:30 (Plt, INR, Fib, TEG/ROTEM)", "the newest time first, each naming its values")
+        XCTAssertEqual(l.intraop.map(\.name), ["ABG (08:03)", "Heme", "Other"])
+        XCTAssertEqual(l.caption, "Preop labs 06:30 · Intraop 08:03 (Hb, K, Glu) / 07:30 (Plt, INR, Fib, TEG/ROTEM)", "the newest time first, each naming its values")
         let pre = try labsText(r, handoff: false)
         XCTAssertFalse(pre.contains("K 4.3"), "the Preprocedure Summary has no Intraop column")
         XCTAssertFalse(pre.contains("Intraop"))
@@ -545,8 +544,9 @@ final class A112Tests: XCTestCase {
     }
 
     /// Ben, Nov 11: an abnormal lab outside the lists is in the summaries without being chosen and is not offered as a
-    /// chip; the hemoglobin that came back on the newest gas sits beside its lactate whatever its value.
-    func testAbnormalValuesAreAlwaysShownAndTheGasCarriesItsHemoglobin() throws {
+    /// chip; the newest intraoperative hemoglobin is always under Heme in the handoff, whatever its value and whether or
+    /// not a gas was sent.
+    func testAbnormalValuesAreAlwaysShownAndTheLastHemoglobinIsAlwaysUnderHeme() throws {
         var r = PatientDemo112Labs.preop.withExtras([])
         r.labs["ca"] = 7.4
         XCTAssertTrue(try labsText(r, handoff: false).contains("Ca 7.4 L"), "an abnormal calcium, not chosen")
@@ -555,32 +555,27 @@ final class A112Tests: XCTestCase {
         XCTAssertTrue(HandoffExtras.offered(r).preop.contains { $0.key == "preop:albumin" }, "a normal one is still a chip")
         XCTAssertEqual(HandoffExtras.chosenCount(r), 0)
 
-        // The newest gas with a normal hemoglobin on it, an abnormal potassium and a normal sodium; an older set.
+        // The newest gas with a normal hemoglobin, an abnormal potassium and a normal sodium; an older set.
         var h = PatientRecord()
         h.sex = .male
         h.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 0), values: ["ph": 7.41, "hb": 14.5, "k": 6.1, "na": 140]),
                          IntraopLabSet(time: PatientDemo.today(8, 0), values: ["ph": 7.38, "hb": 9.8, "k": 4.0])]
-        let l = try labs(PatientBriefs.handoff(h))
-        XCTAssertEqual(l.gas?.hemoglobin?.text, "14.5", "the newest gas's own hemoglobin, though normal")
         let text = try labsText(h)
-        XCTAssertTrue(text.contains("ABG (09:00): pH 7.41, Hb 14.5"), text)
-        XCTAssertFalse(text.contains("Hb 9.8"), "not an older gas's")
-        XCTAssertTrue(text.contains("Other: K 6.1 H"), "an abnormal potassium, not chosen: " + text)
+        XCTAssertEqual(text, "Intraop: ABG (09:00): pH 7.41; Heme: Hb 14.5; Other: K 6.1 H", "the newest hemoglobin though normal, and the abnormal potassium")
+        XCTAssertFalse(text.contains("Hb 9.8"), "not an older one")
         XCTAssertFalse(text.contains("Na 140"), "a normal sodium is still a chip")
         let offered = HandoffExtras.offered(h).intraop.map(\.key)
-        XCTAssertFalse(offered.contains("intraop:hb"), "shown with the gas")
+        XCTAssertFalse(offered.contains("intraop:hb"), "always under Heme")
         XCTAssertFalse(offered.contains("intraop:k"), "shown anyway")
         XCTAssertTrue(offered.contains("intraop:na"))
         XCTAssertNil(PatientBriefs.preop(h).first { $0.key == "labs" }, "intraoperative values are the handoff's only")
 
-        // A hemoglobin sent without a gas: abnormal, it is shown under Other; normal, it is a chip to choose.
+        // A hemoglobin sent without a gas is under Heme all the same.
         var alone = PatientRecord()
         alone.sex = .male
-        alone.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 0), values: ["hb": 8.2])]
-        XCTAssertEqual(try labsText(alone), "Intraop: Other: Hb 8.2 L")
         alone.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 0), values: ["hb": 14.5])]
-        XCTAssertNil(PatientBriefs.handoff(alone).first { $0.key == "labs" }, "nothing shown by default")
-        XCTAssertEqual(HandoffExtras.offered(alone).intraop.map(\.key), ["intraop:hb"])
+        XCTAssertEqual(try labsText(alone), "Intraop: Heme: Hb 14.5")
+        XCTAssertTrue(HandoffExtras.offered(alone).intraop.isEmpty)
     }
 
     func testAKeyWhoseItemIsNoLongerRecordedIsIgnored() throws {
