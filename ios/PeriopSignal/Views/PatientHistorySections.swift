@@ -908,10 +908,16 @@ struct PatientHistorySectionsView: View {
                     }
                 }
                 if x.prosthetic {
-                    HistoryInlineField(prompt: "Type, e.g. mechanical 23 mm", text: Binding(
-                        get: { patient.record.hx.valve(v.id).prosthesis },
-                        set: { t in edit { r in r.hx.editValve(v.id) { $0.prosthesis = t } } }))
-                        .padding(.leading, 12)
+                    // 1.12 (note 4): "Library" beside the field writes the valve into it as if typed.
+                    HStack(spacing: 8) {
+                        HistoryInlineField(prompt: "Type, e.g. mechanical 23 mm", text: Binding(
+                            get: { patient.record.hx.valve(v.id).prosthesis },
+                            set: { t in edit { r in r.hx.editValve(v.id) { $0.prosthesis = t } } }))
+                        ValveLibraryButton(position: ValvePosition(rawValue: v.id)) { choice in
+                            edit { r in r.hx.editValve(v.id) { $0.prosthesis = choice.historyText } }
+                        }
+                    }
+                    .padding(.leading, 12)
                 }
             }
             .padding(.vertical, 2)

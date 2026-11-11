@@ -466,7 +466,13 @@ extension MedAbbreviations {
     }
 
     private static let severity = #"\b(?:mild|moderate|mod|severe|critical|trace|trivial|significant|mild[- ]to[- ]moderate|moderate[- ]to[- ]severe|mild-moderate|moderate-severe)\s*$"#
-    private static let valve = #"\b(?:valves?|valvular|mitral|aortic|mva|ava|gradients?|mmhg|pht|half[- ]time|cm2|cm²|rheumatic|balloon|commissurotomy|tavr|tavi|savr|mvr|tte|tee|echo\w*|stenosis|regurgitation|insufficiency|murmur|(?-i:AS|AR|MR|TR|AI|LVOT))\b"#
+    private static let valve = #"\b(?:valves?|valvular|mitral|aortic|mva|ava|gradients?|mmhg|pht|half[- ]time|cm2|cm²|rheumatic|balloon|commissurotomy|tavr|tavi|savr|mvr|tte|tee|echo\w*|stenosis|regurgitation|insufficiency|murmur|(?-i:AS|AR|MR|TR|AI|TS|TI|LVOT))\b"#
+    /// A severity word right after the letters (1.12, note 7: "AS severe", "MR: moderate", "AR mild to moderate"), unless
+    /// that word belongs to the next lesion ("MR mild AS": the mild is the AS's).
+    private static let severityAfter = #"^\s*(?:(?:is|was)\s+|[:\-–]\s*)?(?:trace|trivial|mild|mod(?:erate)?|severe|critical)\b(?:(?:\s*[-–/]\s*|\s+to\s+)(?:mild|mod(?:erate)?|severe|critical)\b)?(?!\s*(?:valve\s+)?(?:(?-i:[AMTP][SRI])\b|aortic|mitral|tricuspid|pulmonic|pulmonary))"#
+    /// Words that put a magnetic-resonance study after "MR" ("MR brain", "MR angiography") and before it ("cardiac MR").
+    private static let mrAfter = #"^\s*(?:of\s+(?:the\s+)?)?(?:brain|head|spine|c-?spine|l-?spine|t-?spine|angio\w*|mra\b|cholangio\w*|enterograph\w*|neck|knee|shoulder|hip|pelvis|abd\w*|orbits?|safe|conditional|compatible|imaging|scan|contrast|venogra\w*|urogra\w*|elastograph\w*|spectroscop\w*|lumbar|cervical|thoracic)"#
+    private static let mrBefore = #"\b(?:cardiac|cardiovascular|brain|head|spine|abdominal|pelvic|knee|shoulder|ct\s*(?:and|/|&))\s*$"#
     private static let anticoagulants = #"anticoag\w*|heparin|apixaban|eliquis|rivaroxaban|xarelto|warfarin|coumadin|lovenox|enoxaparin|doac|dabigatran|edoxaban"#
     private static let infusion = #"gtts?|infusions?|drips?|pressors?|vasopressors?|mcg/kg/min|mcg/min|titrat\w*"#
 
@@ -483,6 +489,8 @@ extension MedAbbreviations {
             before("ms-mitral", severity),
             after("ms-morphine", #"^\s*(?:contin\b|ir\b|er\b|\d+(?:\.\d+)?\s*mg\b)"#),
             near("ms-sclerosis", #"\b(?:relapsing|remitting|progressive|demyelinat\w*|ocrelizumab|ocrevus|interferon|copaxone|glatiramer|tecfidera|natalizumab|tysabri|fingolimod|gilenya|optic neuritis|neurolog\w*|baclofen|spastic\w*|wheelchair|lesions?|mri)\b"#),
+            // 1.12 (note 7): "MS severe", after the sclerosis words so "MS, mild weakness" stays the disease.
+            after("ms-mitral", severityAfter),
             near("ms-mitral", valve),
         ]),
         entry("PE", [m("pulmonary embolism", "pe-embolism"), m("physical exam", "pe-exam", reading: "exam"), m("pleural effusion", "pe-effusion")], hints: [
@@ -540,9 +548,13 @@ extension MedAbbreviations {
         entry("CP", [m("chest pain", "cp-pain"), m("cerebral palsy", "cp-palsy")], hints: [
             near("cp-palsy", #"\b(?:spastic\w*|quadripleg\w*|dipleg\w*|hemipleg\w*|g-?tube|baclofen|contractures?|nonverbal|non-verbal|developmental|seizures?|scoliosis|wheelchair|prematur\w*)\b"#),
         ], skip: [AbbreviationContext(before: NoteRx(#"\bimpella\s*$"#))]),
-        entry("AS", [m("aortic stenosis", "as-aortic"), m("ankylosing spondylitis", "as-spondylitis")], hints: [
+        // 1.12 (note 7): AS severe / near the valve words are the valve; "AS per protocol" is the word, capitalized.
+        entry("AS", [m("aortic stenosis", "as-aortic"), m("ankylosing spondylitis", "as-spondylitis"), m("as", "as-word")], hints: [
             before("as-aortic", severity),
             near("as-spondylitis", #"\b(?:spondyl\w*|spine|spinal|cervical|neck|fusion|fused|kyphosis|bamboo|sacroiliitis|hla-?b27|humira|adalimumab|etanercept|enbrel|infliximab|remicade|secukinumab|cosentyx|rheum\w*)\b"#),
+            after("as-aortic", severityAfter),
+            after("as-word", #"^\s+(?:per|needed|directed|indicated|above|below|noted|follows|usual|before|always|tolerated|appropriate|described|discussed|stated|planned|expected|required|available)\b"#),
+            near("as-aortic", valve),
         ]),
         entry("LA", [m("left atrium", "la-atrium"), m("local anesthetic", "la-local")], hints: [
             near("la-local", #"\b(?:lido\w*|bupi\w*|ropi\w*|chloroprocaine|mepivacaine|infiltrat\w*|toxicity|blocks?|injection|local|wound|ml)\b"#),
@@ -550,12 +562,37 @@ extension MedAbbreviations {
         entry("PS", [m("pulmonic stenosis", "ps-pulmonic"), m("pressure support", "ps-support")], hints: [
             after("ps-support", #"^\s*(?:of\s*|:\s*)?\d"#),
             near("ps-support", #"\b(?:peep|vent\w*|cpap|fio2|sbt|extubat\w*|intubat\w*|psv|trach\w*)\b"#),
+            // 1.12 (note 7): "severe PS", "PS severe", or beside the valve words.
+            before("ps-pulmonic", severity),
+            after("ps-pulmonic", severityAfter),
+            near("ps-pulmonic", valve),
         ], skip: [AbbreviationContext(before: NoteRx(#"\basa\s*(?:class\s*)?$"#))]),
         entry("PR", [m("pulmonic regurgitation", "pr-pulmonic"), m("PR interval", "pr-interval"), m("per rectum", "pr-rectal")], hints: [
             // "trivial PR", "trace PR", "mild PR": a grade before it is the valve (1.8.1).
+            // 1.12: not "mild PR prolongation" (the interval), and "PR 220" is the interval. Before the grade hint.
+            after("pr-interval", #"^\s*(?:interval|prolong\w*|segment|depress\w*|elevat\w*|(?:of\s*|=\s*|:\s*)?(?:\d{2,3}|0?\.\d{1,2})\s*(?:ms|msec|s)?\b)"#),
             before("pr-pulmonic", severity),
             near("pr-interval", #"\b(?:interval|msec|ms|prolonged|ecg|ekg|qrs|qtc|av block|first[- ]degree|1st degree)\b"#),
             near("pr-rectal", #"\b(?:suppositor\w*|tylenol|acetaminophen|rectal\w*|mg)\b"#),
+            // 1.12 (note 7): "PR severe", or beside the valve words.
+            after("pr-pulmonic", severityAfter),
+            near("pr-pulmonic", valve),
+        ]),
+        // 1.12 (note 6 and 7): AI is aortic insufficiency, a synonym of aortic regurgitation; with no grade or valve word it
+        // is asked, and away from the heart it is the other thing.
+        entry("AI", [m("aortic regurgitation", "ai-aortic"), m("artificial intelligence", "ai-artificial")], hints: [
+            before("ai-aortic", severity),
+            after("ai-aortic", severityAfter),
+            near("ai-artificial", #"\b(?:chat ?gpt|gpt|llm|chatbot|machine learning|algorithm|neural|copilot|scribe|prompt|software|app|generated)\b"#),
+            near("ai-aortic", valve),
+        ]),
+        // PI is the pulsatility index of a pump ("HeartMate 3 ... PI 4.1", read as written) or a pulmonic insufficiency with a
+        // grade; bare, it is asked and read as the index, which files nothing.
+        entry("PI", [m("pulsatility index", "pi-pulsatility", reading: "PI"), m("pulmonic regurgitation", "pi-pulmonic")], hints: [
+            before("pi-pulmonic", severity),
+            after("pi-pulmonic", severityAfter),
+            near("pi-pulsatility", #"\b(?:lvad|rvad|hm ?3|heart ?mate|impella|rpm|speed|flow|l/min|power|watts?|pump|mcs|ecmo|centrimag\w*|protek\w*|hvad)\b"#),
+            near("pi-pulmonic", valve),
         ]),
         entry("PDA", [m("patent ductus arteriosus", "pda-ductus"), m("posterior descending artery", "pda-artery")], hints: [
             near("pda-artery", #"\b(?:svg|lima|rima|grafts?|grafted|cabg|stents?|stented|pci|des|bms|lesions?|occlu\w*|stenosis|dominan\w*|(?-i:LAD|RCA|LCx|OM|D1))\b|%"#),
@@ -633,6 +670,17 @@ extension MedAbbreviations {
                         skip: [AbbreviationContext(before: NoteRx(#"\bvitamin\s*$"#))], reads: false),
         // Also a total ankle arthroplasty, and TAAD also thoracic aortic aneurysm and dissection: the note reader asks
         // about each (PatientNote.readTAA, readDissection), so neither is read through its meaning.
+        // 1.12 (note 7): AR, MR, TR and TI are the valve lesions, unless the letters are something else here ("MR brain",
+        // "cardiac MR", "TR band", "AR glasses", "TI" the terminal ileum). TI is read only with a grade, by the note
+        // reader's valve rules (reads: false); AR, MR and TR are read through their meaning bare, as before.
+        MedAbbreviation("MR", caseSensitive: true, meanings: [AbbreviationMeaning("mitral regurgitation")],
+                        skip: [AbbreviationContext(after: NoteRx(mrAfter)), AbbreviationContext(before: NoteRx(mrBefore))]),
+        MedAbbreviation("TR", caseSensitive: true, meanings: [AbbreviationMeaning("tricuspid regurgitation")],
+                        skip: [AbbreviationContext(after: NoteRx(#"^\s*(?:band|wristband)\b"#))]),
+        MedAbbreviation("AR", caseSensitive: true, meanings: [AbbreviationMeaning("aortic regurgitation")],
+                        skip: [AbbreviationContext(after: NoteRx(#"^\s*(?:glasses|headset|goggles|app|overlay|display)\b"#))]),
+        MedAbbreviation("TI", caseSensitive: true, meanings: [AbbreviationMeaning("tricuspid insufficiency")],
+                        skip: [AbbreviationContext(near: NoteRx(#"\b(?:ileum|ileal|ileocecal|crohn\w*|colonoscopy|colectomy|ileostomy|terminal)\b"#))], reads: false),
         MedAbbreviation("TAA", caseSensitive: false, meanings: [AbbreviationMeaning("thoracic aortic aneurysm")], reads: false),
         MedAbbreviation("TAAD", caseSensitive: false, meanings: [AbbreviationMeaning("type A aortic dissection; also thoracic aortic aneurysm and dissection")], reads: false),
     ]
@@ -805,8 +853,9 @@ extension MedAbbreviations {
     /// Read only in this case: "AVR" is a replacement and "AVr" a repair; "MG" is myasthenia gravis and "mg" a milligram.
     private static let exactCaseRows: [(String, String)] = [
         ("AF", "atrial fibrillation"), ("VT", "ventricular tachycardia"), ("VF", "ventricular fibrillation"), ("HF", "heart failure"),
-        ("MI", "myocardial infarction"), ("DES", "drug-eluting stent"), ("BMS", "bare-metal stent"), ("AR", "aortic regurgitation"),
-        ("AI", "aortic insufficiency"), ("MR", "mitral regurgitation"), ("TR", "tricuspid regurgitation"), ("TS", "tricuspid stenosis"),
+        ("MI", "myocardial infarction"), ("DES", "drug-eluting stent"), ("BMS", "bare-metal stent"),
+        // AR, AI, MR and TR are in the ambiguous and contextual lists above (1.12); TS stays here.
+        ("TS", "tricuspid stenosis"),
         ("PH", "pulmonary hypertension"), ("PAD", "peripheral arterial disease"), ("MG", "myasthenia gravis"), ("OA", "osteoarthritis"),
         ("UC", "ulcerative colitis"), ("CF", "cystic fibrosis"), ("TB", "tuberculosis"), ("CSA", "central sleep apnea"), ("CAP", "community-acquired pneumonia"),
         ("IE", "infective endocarditis"), ("CoA", "coarctation of the aorta"), ("SAM", "systolic anterior motion"), ("HIT", "heparin-induced thrombocytopenia"),
@@ -868,7 +917,7 @@ extension MedAbbreviations {
         ("DP", "dorsalis pedis"), ("RFV", "right femoral vein"), ("LFV", "left femoral vein"), ("RFA", "right femoral artery or forearm"),
         ("LFA", "left femoral artery or forearm"), ("RSC", "right subclavian"), ("LSC", "left subclavian"), ("RAC", "right antecubital fossa"),
         ("LAC", "left antecubital fossa"), ("REJ", "right external jugular"), ("LEJ", "left external jugular"), ("HM", "HeartMate"),
-        ("PI", "pulsatility index"), ("RP", "right-sided (Impella RP)"), ("VV", "venovenous"), ("VA", "venoarterial"), ("VAV", "veno-arteriovenous"),
+        ("RP", "right-sided (Impella RP)"), ("VV", "venovenous"), ("VA", "venoarterial"), ("VAV", "veno-arteriovenous"),
         ("VC", "volume control"), ("PC", "pressure control"), ("TC", "trach collar"),
     ]
 
