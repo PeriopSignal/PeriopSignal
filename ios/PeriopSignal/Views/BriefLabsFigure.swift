@@ -94,7 +94,13 @@ private struct BriefGasFigure: View {
                     }
                 }
             }
-            if let l = gas.lactate { line(l) }
+            // The lactate and the hemoglobin that came back on this gas, on one line under the figure.
+            let under = [gas.lactate, gas.hemoglobin].compactMap { $0 }
+            if !under.isEmpty {
+                Text(briefStyled(under.map(\.compact).joined(separator: " · "), marks: under.flatMap(\.marks), labels: false, size: 13))
+                    .font(PS.sys(size: 13)).foregroundStyle(PS.fg)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
