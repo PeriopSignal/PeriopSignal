@@ -11,10 +11,12 @@ extension UTType {
 /// The patient to send, as a Periop Signal file for the share sheet (AirDrop or Messages).
 struct PatientTransfer: Transferable {
     var record: PatientRecord
+    /// The case's name, which goes with the patient (1.12); nil when the case has none.
+    var room: String? = nil
 
     static var transferRepresentation: some TransferRepresentation {
         DataRepresentation(exportedContentType: .periopPatient) { item in
-            try PatientPacket(record: item.record).encoded()
+            try PatientPacket(record: item.record, room: item.room).encoded()
         }
         .suggestedFileName(PatientPacket.fileName)
     }
@@ -55,6 +57,20 @@ final class PatientInbox {
         }
     }
 
+    /// A patient link (periopsignal://receive?...) a colleague sent by AirDrop (1.12, opt-in). It only fills `pending`; the
+    /// user answers the same "Patient Received" sheet as for a file. The link holds the patient, so it is read here and
+    /// nowhere else: not kept, logged, indexed or passed on, and a failure keeps only the message.
+    func receiveLink(_ url: URL) {
+        do {
+            pending = try PatientLink.decode(url)
+            problem = nil
+        } catch let p as PatientPacket.Problem {
+            problem = p.message
+        } catch {
+            problem = PatientPacket.Problem.unreadable.message
+        }
+    }
+
     /// Removes a received file when it sits in this app's own container (never a file opened in place elsewhere).
     nonisolated static func deleteIfOurs(_ url: URL) {
         let fm = FileManager.default
@@ -68,6 +84,7 @@ final class PatientInbox {
     /// launch after a file arrived but before it was read.
     nonisolated static func purgeLeftovers() {
         let fm = FileManager.default
+        PatientSendFiles.purge()
         var folders: [URL] = []
         if let docs = try? fm.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false) {
             folders.append(docs.appendingPathComponent("Inbox", isDirectory: true))

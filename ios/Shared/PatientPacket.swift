@@ -21,13 +21,36 @@ struct PatientPacket: Codable, Equatable {
     var format: Int
     var sent: Date
     var record: PatientRecord
+    /// 1.12: the case's name ("OR 12"), so the receiving phone can name the case the same way. Nil when the case has no
+    /// name, and then the key is not in the file at all. The room's phone is never sent. A packet without it (an older
+    /// app's) decodes with nil, and an older app ignores the key (JSONDecoder skips keys it does not know), so the
+    /// format stays 1.
+    var room: String?
 
-    init(record: PatientRecord, sent: Date = Date()) {
+    /// The longest case name that goes with a patient.
+    static let maxRoomLength = 40
+
+    init(record: PatientRecord, sent: Date = Date(), room: String? = nil) {
         kind = PatientPacket.identifier
         format = PatientPacket.currentFormat
         self.sent = sent
         self.record = record
+        self.room = PatientPacket.cleanRoom(room)
     }
+
+    /// A case name as it travels and as it is read back: control characters out, white space trimmed, at most 40
+    /// characters, and nil when nothing is left. Applied when a packet is made and again when one is shown or used, since
+    /// a file or link can come from anywhere.
+    static func cleanRoom(_ s: String?) -> String? {
+        guard let s else { return nil }
+        let kept = s.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) }
+        var t = String(String.UnicodeScalarView(kept)).trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.count > maxRoomLength { t = String(t.prefix(maxRoomLength)).trimmingCharacters(in: .whitespacesAndNewlines) }
+        return t.isEmpty ? nil : t
+    }
+
+    /// The case name to show and to use on the receiving phone.
+    var caseName: String? { PatientPacket.cleanRoom(room) }
 
     enum Problem: Error, Equatable {
         case tooLarge, notAPatient, newerFormat, unreadable
