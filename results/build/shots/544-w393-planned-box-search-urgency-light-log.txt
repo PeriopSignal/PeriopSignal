@@ -1,0 +1,35 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-11 05:39:01.850 Df PeriopSignal[69354:2d1fe] [com.apple.CFNetwork:Default] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> resuming, timeouts(25.0, 604800.0) qos(0x19) voucher((null)) activity(00000000-0000-0000-0000-000000000000)
+2026-11-11 05:39:01.857 Df PeriopSignal[69354:2d21c] [com.apple.network:connection] [C1] event: client:connection_reused @5.893s
+2026-11-11 05:39:01.858 Df PeriopSignal[69354:2d21c] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is false
+2026-11-11 05:39:01.858 E  PeriopSignal[69354:2d21c] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-11 05:39:01.858 Df PeriopSignal[69354:2d21c] [com.apple.CFNetwork:Default] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> now using Connection 1
+2026-11-11 05:39:01.858 Df PeriopSignal[69354:2d21c] [com.apple.CFNetwork:Default] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> sent request, body N 0
+2026-11-11 05:39:01.869 Df PeriopSignal[69354:2d1fe] [com.apple.CFNetwork:Default] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> received response, status 200 content K
+2026-11-11 05:39:01.883 Df PeriopSignal[69354:2d1fe] [com.apple.CFNetwork:Default] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> done using Connection 1
+2026-11-11 05:39:01.884 Df PeriopSignal[69354:2d1fe] [com.apple.network:connection] [C1] event: client:connection_idle @5.920s
+2026-11-11 05:39:01.884 Df PeriopSignal[69354:2d1fe] [com.apple.network:connection] nw_protocol_socket_notify [C1.1.1.1:3] nw_protocol_notification_type_connection_idle is true
+2026-11-11 05:39:01.884 E  PeriopSignal[69354:2d1fe] [com.apple.network:connection] nw_socket_set_connection_idle [C1.1.1.1:3] setsockopt SO_CONNECTION_IDLE failed [42: Protocol not available]
+2026-11-11 05:39:01.884 Df PeriopSignal[69354:2d1fe] [com.apple.CFNetwork:Default] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> response ended
+2026-11-11 05:39:01.885 Df PeriopSignal[69354:2d1fe] [com.apple.CFNetwork:Summary] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> summary for task success {transaction_duration_ms=29, response_status=200, connection=1, reused=1, reused_after_ms=5081, request_start_ms=2, request_duration_ms=0, response_start_ms=13, response_duration_ms=15, request_bytes=51, request_throughput_kbps=1402, response_bytes=140602, response_throughput_kbps=70530, cache_hit=false}
+2026-11-11 05:39:01.885 Df PeriopSignal[69354:2d1fe] [com.apple.CFNetwork:Default] Task <746F4527-AFA1-4076-B162-13D5F8265042>.<2> finished successfully
+2026-11-11 05:39:02.071 Df PeriopSignal[69354:2ca94] [com.apple.KeyboardArbiter:Client] startConnection
+2026-11-11 05:39:02.073 Df PeriopSignal[69354:2ca94] [com.apple.xpc:connection] [0x10ad14860] activating connection: mach=true listener=false peer=false name=com.apple.UIKit.KeyboardManagement.hosted
+2026-11-11 05:39:03.618 F  PeriopSignal[69354:2ca94] [com.apple.SwiftUI:Invalid Configuration] Update NavigationRequestObserver tried to update multiple times per frame.
+2026-11-11 05:39:03.618 A  PeriopSignal[69354:2ca94] (libsystem_trace.dylib) Activity for state dumps
+2026-11-11 05:39:11.255 Df PeriopSignal[69354:2ca94] [com.apple.chrono:widget] Creating WidgetCenter connection.
+2026-11-11 05:39:11.266 Df PeriopSignal[69354:2ca94] [com.apple.xpc:connection] [0x104c7b230] activating connection: mach=true listener=false peer=false name=com.apple.chrono.widgetcenterconnection
+2026-11-11 05:39:11.305 Df PeriopSignal[69354:2d21b] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-11 05:39:11.308 Df PeriopSignal[69354:2d21b] [com.apple.xpc:connection] [0x104832b00] activating connection: mach=true listener=false peer=false name=com.apple.usernotifications.listener
+2026-11-11 05:39:11.321 Df PeriopSignal[69354:2d21c] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-11 05:39:11.412 Df PeriopSignal[69354:2d21b] [com.apple.chrono:widget] reloadAllTimelines() - reloaded all timelines
+2026-11-11 05:39:12.307 Df PeriopSignal[69354:2ca94] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-11 05:39:12.308 Df PeriopSignal[69354:2d21b] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-11 05:39:12.312 Sd PeriopSignal[69354:0] (8932B5E7-350E-3E7D-A9DF-0DAD1BBE74A3) UAUserActivity
+UAUserActivityManager supportsActivityContinuation=YES isEnabled=YES serverPid=0 PROJECT:UserActivity-551
+2026-11-11 05:39:12.328 Df PeriopSignal[69354:2ca94] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-11 05:39:12.336 Df PeriopSignal[69354:2d21b] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-11 05:39:12.371 Df PeriopSignal[69354:2ca94] [com.apple.network:activity] <nw_activity 50:1 [A631F677-8B2F-43D4-8F5C-5B7A6DBDD65D] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 66120ms
+2026-11-11 05:39:12.372 Df PeriopSignal[69354:2ca94] [com.apple.network:activity] <nw_activity 50:2 [3CD38C8E-0D41-471D-BE14-66D38F583529] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 66119ms
+2026-11-11 05:39:12.372 Df PeriopSignal[69354:2ca94] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [A631F677-8B2F-43D4-8F5C-5B7A6DBDD65D] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-11 05:39:12.372 Df PeriopSignal[69354:2ca94] [com.apple.network:activity] Unset the global parent activity
