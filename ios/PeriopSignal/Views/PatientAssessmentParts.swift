@@ -571,6 +571,7 @@ struct PatientIntakeRow: View {
             if let d = date {
                 DatePicker(title, selection: Binding(get: { d }, set: { date = $0 }), displayedComponents: [.date, .hourAndMinute])
                     .labelsHidden()
+                    .environment(\.locale, PatientDates.locale24)
                 Button { date = nil } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(PS.fg3) }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Clear the time")

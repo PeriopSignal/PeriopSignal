@@ -22,7 +22,7 @@ struct CaseTimerLiveActivity: Widget {
                         .font(.system(size: 22, weight: .semibold, design: .rounded)).monospacedDigit()
                         .foregroundStyle(ctx.state.due < .now ? PS.coralLight : .white)
                         .multilineTextAlignment(.trailing)
-                    Text(ctx.state.due, style: .time).font(.system(size: 12)).foregroundStyle(.white.opacity(0.6))
+                    Text(PatientDates.clock(ctx.state.due)).font(.system(size: 12)).foregroundStyle(.white.opacity(0.6))
                 }
             }
             .padding(16)

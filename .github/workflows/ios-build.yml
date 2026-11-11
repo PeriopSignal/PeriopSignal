@@ -975,6 +975,8 @@ jobs:
           shot 908-d112-handoff-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
           shot 909-d112-preop-summary-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           #
+          # ---- 1.12 helper I shots (1000-1014): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper E1 shots (910-924): add your shot lines directly under this line ----
           shot 910-e1-through-details-light 16 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance light
           shot 911-e1-through-details-dark 16 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance dark
@@ -991,6 +993,8 @@ jobs:
           shot 922-e1-valve-calc-dark 16 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.forceAppearance dark
           shot 923-e1-valve-calc-typed-light 16 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;ava=1.1;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.forceAppearance light
           shot 924-e1-valve-calc-nobsa-375-light 16 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.patient.width 375 -ps.forceAppearance light
+          #
+          # ---- 1.12 helper H shots (980-999): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper E2 shots (925-939): add your shot lines directly under this line ----
           # The valve library (note 4): the History's prosthesis field with "Library" beside it (light, dark), the picker (-ps.valve.library
@@ -1035,6 +1039,8 @@ jobs:
           shot 955-onc112-quickadd-added-tile-light 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll problems -ps.quickadd "lung cancer, metastatic, s/p chemo" -ps.quickadd.add 1 -ps.forceAppearance light
           shot 956-onc112-proc-ecmo-light 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "ECMO" -ps.forceAppearance light
           shot 957-onc112-proc-ecmo-reconfig-dark 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "VA to VV" -ps.forceAppearance dark
+          shot 958-onc112-tile-large-text-dark-375 18 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
+          shot 959-onc112-tile-empty-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
           #
           # ---- 1.12 helper G shots (960-979): add your shot lines directly under this line ----
           # A day in dates, Type & Screen expiration, and no H or L beside a lab value (Ben, Nov 11). Dates are relative to the run day.

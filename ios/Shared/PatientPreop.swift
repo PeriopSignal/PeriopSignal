@@ -221,7 +221,7 @@ enum PatientPreop {
     /// "Solids 00:00 · clears 05:00", as the 1.9 chip read it.
     static func intakeText(_ r: PatientRecord, now: Date = Date()) -> String? {
         func when(_ d: Date) -> String {
-            Calendar.current.isDate(d, inSameDayAs: now) ? d.formatted(date: .omitted, time: .shortened) : PatientDates.day(d) + " " + d.formatted(date: .omitted, time: .shortened)
+            Calendar.current.isDate(d, inSameDayAs: now) ? PatientDates.clock(d) : PatientDates.dayTime(d)
         }
         var parts: [String] = []
         if let d = r.lastSolids { parts.append("Solids " + when(d)) }

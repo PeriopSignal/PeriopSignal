@@ -278,7 +278,7 @@ private struct StartTimeRow: View {
                 .font(PS.sys(size: 14.5, weight: .medium))
                 .foregroundStyle(PS.fg)
                 .tint(PS.action)
-                .environment(\.locale, Locale(identifier: "en_GB"))
+                .environment(\.locale, PatientDates.locale24)
         }
     }
 }
