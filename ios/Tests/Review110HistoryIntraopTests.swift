@@ -137,7 +137,7 @@ final class Review110HistoryIntraopTests: XCTestCase {
         XCTAssertNil(four.maskGrade, "the grade is not kept once read")
         XCTAssertTrue(PatientSummary.difficultAirway(four), "the difficult-airway alert, as in 1.9")
         let course = PatientBriefs.airwayCourse(four)?.text ?? ""
-        XCTAssertTrue(course.contains("Mask ventilation DIFFICULT: Han grade 4, unable to mask ventilate"), course)
+        XCTAssertTrue(course.contains("Difficult Mask (Han grade 4, unable to mask ventilate)"), course)
         XCTAssertEqual(PatientBriefs.airwayCourse(four)?.alert, true)
         let handoff = PatientBriefs.handoff(four).first { $0.key == "airway" }?.text ?? ""
         XCTAssertTrue(handoff.contains("unable to mask ventilate"), handoff)

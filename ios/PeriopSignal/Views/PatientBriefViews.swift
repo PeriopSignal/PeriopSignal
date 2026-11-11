@@ -47,6 +47,8 @@ struct BriefDiagramLayout: View {
 /// The lines block's figure from the environment (the regional figure and the record's devices).
 struct BriefDiagramList: View {
     @Environment(ReferenceStore.self) private var refs
+    /// 1.12: the figure a shared picture is drawn with (BriefPages.Context.figure); on screen, the reference store's.
+    @Environment(\.briefFigure) private var pictureFigure
     var record: PatientRecord
     var arrivalOnly: Bool
     var lines: [String]
@@ -54,7 +56,7 @@ struct BriefDiagramList: View {
 
     var body: some View {
         let m = PatientDiagramModel.items(record, phase: arrivalOnly ? .preop : .all)
-        if let fig = refs.bundle?.regional?.figure, !m.items.isEmpty {
+        if let fig = pictureFigure ?? refs.bundle?.regional?.figure, !m.items.isEmpty {
             BriefDiagramLayout(figure: fig, items: m.items, cart: m.cart, lines: lines, marks: marks)
         } else {
             VStack(alignment: .leading, spacing: 4) {
@@ -254,6 +256,40 @@ struct BriefPanel: View {
     /// Regenerate on one row.
     static func regenerateOnTitleLine(_ kind: PatientBriefs.Kind) -> Bool { !showsEyebrow(kind) }
 
+    /// Share (1.12, Ben): the menu offers Image first (the summary as it looks, on white pages at phone width), then PDF and
+    /// Text only (the text and its footer, as Share sent before). Copy stays plain text.
+    private var shareMenu: some View {
+        Menu {
+            ForEach(BriefShareFormat.allCases, id: \.self) { f in
+                Button { share(f) } label: { Label(f.title, systemImage: f.icon) }
+                    .disabled(f != .text && all.isEmpty)
+            }
+        } label: {
+            Label("Share", systemImage: "square.and.arrow.up")
+                .frame(maxWidth: .infinity)
+                .font(PS.sys(size: 16, weight: .semibold))
+                .padding(.vertical, 14)
+                .background(PS.action, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .foregroundStyle(PS.accentFg)
+        }
+        .accessibilityLabel("Share")
+        .accessibilityHint("Choose Image, PDF or Text only")
+    }
+
+    /// Draws the summary in the chosen form and opens the share sheet with it (rendering runs on the main actor).
+    private func share(_ format: BriefShareFormat) {
+        let ctx = BriefPages.Context(record: record, refs: refs, patient: patient, figure: refs.bundle?.regional?.figure)
+        switch format {
+        case .image:
+            let pages = BriefPages.images(all, ctx)
+            if !pages.isEmpty { sharing = pages }
+        case .pdf:
+            if let url = BriefPages.pdfFile(all, ctx) { sharing = [url] }
+        case .text:
+            sharing = HandoffShare.textOnlyItems(all)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if !Self.regenerateOnTitleLine(kind) {
@@ -276,19 +312,24 @@ struct BriefPanel: View {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+            // 1.12 (Ben, note 14): "+ Add other input data into Handoff" sits directly under the card, above Share and Copy.
+            // An extras change reaches the blocks it touches through the record; a block the user edited keeps its edit
+            // until Regenerate (PatientBriefs.resolve).
+            HandoffExtrasLink()
             Text("Tap any text to edit it. Your edits stay as the record changes; Regenerate brings back the generated text.")
                 .font(PS.sys(size: 12)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 2)
             HStack(spacing: 10) {
-                Button { sharing = HandoffShare.briefItems(all, record: record, figure: refs.bundle?.regional?.figure) } label: {
-                    Label("Share", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(BigButtonStyle(prominent: true, color: PS.action))
+                shareMenu
                 Button { HandoffShare.copy(blocks: all); copied.toggle() } label: {
                     Label("Copy", systemImage: "doc.on.doc").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(BigButtonStyle(prominent: false))
             }
+            .id("briefshare")
+            #if DEBUG
+            if !LaunchSeed.string("ps.brief.pages").isEmpty { BriefPagesPreview(blocks: all, mode: LaunchSeed.string("ps.brief.pages")) }
+            #endif
         }
         .sensoryFeedback(.success, trigger: copied)
         .sheet(isPresented: Binding(get: { sharing != nil }, set: { if !$0 { sharing = nil } })) {

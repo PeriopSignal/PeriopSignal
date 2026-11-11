@@ -502,6 +502,8 @@ struct PreopProblemsBox: View {
                     // 1.11 (P1-7): a quiet link, like the others that open in place.
                     PreopQuietLink(title: "Other conditions", hint: "Shows a field for conditions not in the lists") { otherOpen = true }
                 }
+                // 1.12 (Ben): the last line of the box (PatientImagingView.swift).
+                PreopImagingLink()
             }
             .padding(14)
         }

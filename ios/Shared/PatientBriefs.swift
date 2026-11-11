@@ -167,6 +167,7 @@ enum PatientBriefs {
         if kind == .preop {
             out.append(airwayExamBlock(r))
             out.append(workupBlock(r, assess: assess, kind: kind))
+            out.append(imagingBlock(r))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
             out.append(lastIntakeBlock(hist))
@@ -175,6 +176,7 @@ enum PatientBriefs {
         } else {
             out.append(airwayCourseBlock(r))
             out.append(workupBlock(r, assess: assess, kind: kind))
+            out.append(imagingBlock(r))
             out.append(intraopTEEBlock(r))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
@@ -272,14 +274,21 @@ enum PatientBriefs {
     /// Assessment lines that read as history: function and the cardiac flags.
     private static let assessmentHistory: Set<String> = ["Functional capacity", "Frailty", "Cardiac symptoms", "Acute cardiac conditions"]
 
+    /// The lines of the history that are a list of problems, with no heading of their own in the PMH (1.12, Ben): a system's
+    /// (its name is the page's heading, not a problem) and "Other conditions". The warnings (Aspiration risk: ...), the
+    /// anesthetic complications and the function lines keep their labels, which are part of what they say.
+    private static let unlabelledInPMH: Set<String> = Set(PatientCatalog.allSystems.map(\.name) + ["Other conditions"])
+
     /// PMH (ASA class): the system pages' words in one paragraph, the history's warnings (aspiration risk, heparin
     /// caution), anesthetic complications, positive infectious items and isolation (they are on the Infectious page's
-    /// words), and function, frailty and the active cardiac flags.
+    /// words), and function, frailty and the active cardiac flags. 1.12 (Ben, Nov 10): the problems in the systems' order,
+    /// with no system heading, joined by "; " ("PMH (ASA IV): hypertension; CAD; COPD; ESRD on hemodialysis"); the tab and
+    /// the pages keep their headings.
     private static func pmhBlock(_ r: PatientRecord, hist: [PatientSummary.Line], assess: [PatientSummary.Line]) -> SummaryBlock {
         var parts: [String] = []
         var marks: [String] = []
         for l in hist where !notPMH.contains(l.label ?? "") {
-            let t = joined(l)
+            let t = unlabelledInPMH.contains(l.label ?? "") ? l.text : joined(l)
             parts.append(t)
             if l.alert { marks.append(t) }
             marks += l.marks
@@ -293,7 +302,7 @@ enum PatientBriefs {
         // A class chosen with nothing else to say: the class is the block's words, so it is not lost with an empty paragraph.
         if parts.isEmpty, let asa { return SummaryBlock(key: "pmh", label: "PMH", text: asa) }
         // The alerts inside it are in bold red; the label stays plain.
-        return SummaryBlock(key: "pmh", label: asa.map { "PMH (" + $0 + ")" } ?? "PMH", text: parts.joined(separator: " · "), marks: marks)
+        return SummaryBlock(key: "pmh", label: asa.map { "PMH (" + $0 + ")" } ?? "PMH", text: parts.joined(separator: "; "), marks: marks)
     }
 
     /// PSH: the past surgical history, with the cardiac or thoracic operations added in the cardiac evaluation.
@@ -343,35 +352,12 @@ enum PatientBriefs {
         return b
     }
 
-    /// Airway course, on one line: how it arrived, mask and intubation in the room (a difficult one in capitals), and
-    /// how the patient leaves (extubated, remains intubated). 1.10: no difficult-airway follow-up sentence.
-    static func airwayCourse(_ r: PatientRecord) -> (text: String, alert: Bool)? {
-        let c = r.capitalized
-        var sentences: [String] = []
-        if c.arrivesWithAirway, let a = c.currentAirwayText {
-            sentences.append(a + " on arrival" + (!c.vent.isEmpty && c.oxygen.device != "trachCollar" ? ", " + c.vent.text : ""))
-        }
-        if !c.oxygen.isEmpty && (!c.arrivesWithAirway || c.oxygen.device == "trachCollar") { sentences.append("Oxygen on arrival: " + c.oxygen.text) }
-        sentences += PatientSummary.airwayCourseSentences(c)
-        if !trimmed(c.airwayNotes).isEmpty { sentences.append("Airway notes: " + trimmed(c.airwayNotes)) }
-        if !trimmed(c.examNotes).isEmpty { sentences.append("Examination: " + trimmed(c.examNotes)) }
-        if let end = c.airwayAtEnd {
-            let vent = trimmed(c.ventilation)
-            switch end {
-            case "extubated": sentences.append("Extubated")
-            case "intubated": sentences.append("Remains intubated" + (vent.isEmpty ? "" : " (" + vent + ")"))
-            default:
-                if let label = PatientCatalog.airwayAtEnd.first(where: { $0.id == end })?.label { sentences.append("At handoff: " + label.lowercased()) }
-            }
-        }
-        guard !sentences.isEmpty else { return nil }
-        // A sentence that already ends in a period (a typed note) is not given a second one, and none has a space before
-        // its period (1.10: "Beard ." in Ben's example).
-        let text = sentences.map { s -> String in
-            let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
-            return (t.hasSuffix(".") ? String(t.dropLast()) : t).trimmingCharacters(in: .whitespaces)
-        }.filter { !$0.isEmpty }.joined(separator: ". ") + "."
-        return (text, PatientSummary.difficultAirway(c))
+    /// Airway course, on one line: how it arrived, mask and intubation in the room, and how the patient leaves (extubated,
+    /// remains intubated). 1.10: no difficult-airway follow-up sentence. 1.12 (Ben, Nov 10): the short form
+    /// (PatientAirwayLine): "Easy Mask, Easy VL Intubation, ETT 8.0 at 23 cm. Remains intubated, AC/VC 450 × 18, PEEP 8";
+    /// a difficult airway keeps its details on the line, in red (`marks`).
+    static func airwayCourse(_ r: PatientRecord) -> (text: String, alert: Bool, marks: [String])? {
+        PatientAirwayLine.course(r).map { ($0.text, $0.alert, $0.marks) }
     }
 
     private static func airwayCourseBlock(_ r: PatientRecord) -> SummaryBlock {
@@ -379,7 +365,7 @@ enum PatientBriefs {
         if let c = airwayCourse(r) {
             b.text = c.text
             b.alert = c.alert
-            if c.alert { b.marks = ["DIFFICULT"] }
+            b.marks = c.marks
         }
         return b
     }
@@ -410,6 +396,13 @@ enum PatientBriefs {
         b.alert = lines.contains { $0.alert }
         for l in lines { b.marks += l.marks }
         return b
+    }
+
+    /// Imaging (1.12, Ben): the preprocedure CT, MRI and other imaging the user chose under "+ Add other input data into
+    /// Handoff" (`handoffExtras` "imaging:ct", "imaging:mri", "imaging:other"), after the cardiac workup. Typed imaging that
+    /// was not chosen stays out of the summaries; a chosen item with nothing typed says nothing.
+    private static func imagingBlock(_ r: PatientRecord) -> SummaryBlock {
+        SummaryBlock(key: "imaging", label: "Imaging", text: r.imaging.chosenLines(r.handoffExtras).joined(separator: "\n"))
     }
 
     /// Intraoperative TEE: the findings entered in the Intraoperative tab, and the echo notes typed there. 1.10 (Ben's

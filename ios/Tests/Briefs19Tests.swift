@@ -145,9 +145,10 @@ final class Briefs19Tests: XCTestCase {
         r.airwayAtEnd = "extubated"
         let course = try block(PatientBriefs.handoff(r), "airway")
         XCTAssertEqual(course.label, "Airway course")
-        XCTAssertEqual(course.text, "Mask ventilation easy. Intubation easy: video laryngoscope, grade 1, 1 attempt; 7.5 ETT, 23 cm at the lip. Extubated.")
+        // 1.12 (Ben, Nov 10): the short form (B112Tests has the rules): no grade 1 and no single attempt on an easy airway.
+        XCTAssertEqual(course.text, "Easy Mask, Easy VL Intubation, ETT 7.5 at 23 cm (lip). Extubated")
         r.airwayAtEnd = "intubated"; r.ventilation = "AC/VC 450 × 16, PEEP 8"
-        XCTAssertTrue(try block(PatientBriefs.handoff(r), "airway").text.hasSuffix("Remains intubated (AC/VC 450 × 16, PEEP 8)."))
+        XCTAssertTrue(try block(PatientBriefs.handoff(r), "airway").text.hasSuffix("Remains intubated, AC/VC 450 × 16, PEEP 8"))
         XCTAssertFalse(try block(PatientBriefs.handoff(r), "airway").text.contains("\n"), "one line")
         XCTAssertNotEqual(PatientBriefs.preop(r).first { $0.key == "airway" }?.label, "Airway course", "the preprocedure summary has the exam")
     }
@@ -372,9 +373,10 @@ final class Briefs19Tests: XCTestCase {
         r.airwayFollowUp = ["told"]
         let course = try block(PatientBriefs.handoff(r), "airway")
         XCTAssertTrue(course.alert)
-        XCTAssertTrue(course.text.contains("Intubation DIFFICULT"), course.text)
+        // 1.12: "Difficult Intubation, grade 3" (the grade stays on a difficult airway), in red.
+        XCTAssertTrue(course.text.contains("Difficult Intubation, grade 3"), course.text)
         XCTAssertFalse(course.text.contains("follow-up"), course.text)
-        XCTAssertTrue(course.text.hasSuffix("Extubated."), "it still ends with how the patient leaves: \(course.text)")
+        XCTAssertTrue(course.text.hasSuffix("Extubated"), "it still ends with how the patient leaves: \(course.text)")
         XCTAssertFalse(course.text.contains("\n"))
     }
 
@@ -496,7 +498,7 @@ final class Briefs19Tests: XCTestCase {
         XCTAssertTrue(lines.contains { $0.hasPrefix("Allergies: ") })
         XCTAssertTrue(lines.contains { $0.hasPrefix("PMH (ASA IV): ") })
         XCTAssertTrue(lines.contains { $0.hasPrefix("PSH: ") })
-        XCTAssertTrue(lines.contains { $0.hasPrefix("Airway course: ") && $0.hasSuffix("Extubated.") })
+        XCTAssertTrue(lines.contains { $0.hasPrefix("Airway course: ") && $0.hasSuffix("Extubated") })
         // 1.12 (Ben's note 8): two labelled paragraphs under the label, not a fishbone line.
         XCTAssertTrue(lines.contains("Labs:"))
         XCTAssertTrue(lines.contains { $0.hasPrefix("  Preop: CMP: ") && $0.contains("; Heme: ") && $0.contains("PTT 30, INR 1.0") })
@@ -617,11 +619,9 @@ final class Briefs19Tests: XCTestCase {
                 guard !["Labs", "Liver", "Last intake", "Current infusions"].contains(l.label ?? "") else { continue }
                 XCTAssertTrue(all.contains(l.text), "history line \(l.label ?? "?") is not in the handoff: \(l.text)")
             }
-            if let c = PatientSummary.airwayCourse(r), r.airwayAtEnd != nil {
-                for sentence in PatientSummary.airwayCourseSentences(r) {
-                    XCTAssertTrue(all.contains(sentence), "airway course: \(sentence)")
-                }
-                _ = c
+            // 1.12: the airway course is the short line (PatientAirwayLine); the longer sentences stay on the cards.
+            if PatientSummary.airwayCourse(r) != nil, r.airwayAtEnd != nil, let line = PatientAirwayLine.course(r) {
+                XCTAssertTrue(all.contains(line.text), "airway course: \(line.text)")
             }
             for d in PatientDevices.labels(r.currentDevices().filter { PatientDevice.lineKinds.contains($0.kind) || PatientDevice.supportKinds.contains($0.kind) }) {
                 XCTAssertTrue(all.contains(d), "device \(d)")
