@@ -23,6 +23,7 @@ import CoreGraphics
 //   cied (1.9): model (make, model, settings as typed); the type (pacemaker, ICD, CRT-P, CRT-D) is the device's detail
 //   avFistula (1.9): notes; the kind of access (radiocephalic, brachiocephalic, AV graft) is the detail
 //   dialysisCatheter (1.9): depth (cm); tunneled or non-tunneled is the detail      chestTube (1.9): none (side is the site's)
+//   any kind (1.12): via (the id of the introducer line it was put through, set by the "Through this line" chips)
 
 /// The color a device is drawn in; the figure maps each role to a color.
 enum DeviceColorRole: String, Codable, CaseIterable, Hashable {
@@ -423,6 +424,76 @@ extension PatientDevice {
     }
 }
 
+// MARK: - Devices put through a line (1.12, Ben's note 1)
+
+/// What the details of an introducer or MAC line offer to put through it: a pulmonary artery catheter and a SLIC. Each
+/// is the device that already exists (a `.pac` device; a `.cvc` whose detail is "SLIC"), at this line's site and side,
+/// linked to the line by `PatientDevice.throughKey`.
+enum ThroughDevice: String, CaseIterable, Hashable, Identifiable {
+    case pac, slic
+    var id: String { rawValue }
+    /// The chip's words after its "+": "PA catheter", "SLIC".
+    var name: String { self == .pac ? "PA catheter" : "SLIC" }
+}
+
+extension PatientDevice {
+    /// The `settings` key that links a device to the introducer line it was put through: that line's id.
+    static let throughKey = "via"
+
+    /// The line this device was put through, nil for a device that was not added through one.
+    var throughLine: UUID? { settings[Self.throughKey].flatMap { UUID(uuidString: $0) } }
+
+    /// A SLIC: a central line whose detail names it (the "Type" choice, or typed "SLIC").
+    var isSLIC: Bool { kind == .cvc && detail.range(of: "SLIC", options: .caseInsensitive) != nil }
+
+    /// A central line whose type is an introducer or MAC (also a Cordis, an introducer sheath): the lines that take a
+    /// device through them. Any other central line type does not (a triple lumen, a SLIC, a dialysis catheter).
+    var acceptsDevicesThrough: Bool {
+        guard kind == .cvc else { return false }
+        let words = detail.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init)
+        return words.contains { $0 == "introducer" || $0 == "mac" || $0 == "cordis" }
+    }
+
+    /// This device is the `t` that was put through the line `lineID`.
+    func isThrough(_ t: ThroughDevice, of lineID: UUID) -> Bool {
+        guard throughLine == lineID else { return false }
+        switch t {
+        case .pac: return kind == .pac
+        case .slic: return isSLIC
+        }
+    }
+}
+
+extension PatientDevices {
+    /// A tap on "+ PA catheter" or "+ SLIC" in the details of a line: adds the device through it (the same site and side
+    /// as the line, linked to it), or, when it is already there from an earlier tap, removes the device that tap added.
+    /// A device the user added any other way is never touched. `placedIntraop` is where the tap happened (the room);
+    /// a device through a line placed in the room is placed in the room too. Returns whether the device is now there.
+    @discardableResult
+    static func toggleThrough(_ t: ThroughDevice, line: PatientDevice, in devices: inout [PatientDevice], placedIntraop: Bool) -> Bool {
+        let added = devices.filter { $0.isThrough(t, of: line.id) }.map { $0.id }
+        if !added.isEmpty {
+            devices.removeAll { added.contains($0.id) }
+            return false
+        }
+        let d = PatientDevice(kind: t == .pac ? .pac : .cvc, site: line.site, side: line.side,
+                              detail: t == .slic ? "SLIC" : "", settings: [PatientDevice.throughKey: line.id.uuidString],
+                              placedIntraop: placedIntraop || line.placedIntraop, offset: line.offset)
+        devices.append(d)
+        return true
+    }
+
+    /// The devices put through a line move with it when its site changes, so "PAC via L IJ" never names the old site.
+    static func followLine(_ lineID: UUID, in devices: inout [PatientDevice]) {
+        guard let line = devices.first(where: { $0.id == lineID }) else { return }
+        for i in devices.indices where devices[i].throughLine == lineID {
+            devices[i].site = line.site
+            devices[i].side = line.side
+            devices[i].offset = line.offset
+        }
+    }
+}
+
 // MARK: - Sites on the figure
 
 struct DeviceSite: Hashable, Identifiable {
@@ -779,6 +850,11 @@ enum PatientDevices {
         let sized = size.isEmpty || unit.isEmpty ? size : size + " " + unit
         let depth = val("depth").isEmpty ? "" : "at " + val("depth") + " cm"
         switch d.kind {
+        case .cvc where d.throughLine != nil && d.isSLIC:
+            // 1.12: a SLIC put through an introducer line reads "SLIC via L IJ" (its other details stay in the brackets).
+            let rest = detail.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty && $0.caseInsensitiveCompare("SLIC") != .orderedSame }
+            return spaced("SLIC", sized, brief.isEmpty ? "" : "via " + brief, depth) + paren(rest.joined(separator: ", "), gone)
         case .piv, .arterial, .cvc, .picc, .intraosseous:
             return spaced(d.kind.label, sized, brief, depth) + paren(detail, gone)
         case .pac:

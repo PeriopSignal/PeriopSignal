@@ -82,6 +82,8 @@ enum PatientEditor: Hashable {
         ("codestatus", "Code Status", "exclamationmark.shield"),
         // 1.11 (Ben's note 4): the preprocedure stress test, a chip of the cardiac workup.
         ("stress", "Stress Test", "figure.run"),
+        // 1.12 (Ben's note 11): the preprocedure chest X-ray, beside the ECG, echo and stress test.
+        ("cxr", "Chest X-ray", "photo"),
     ]
 }
 

@@ -107,6 +107,50 @@ extension PatientEditorView {
         EvidenceNote(PatientStudies.pftEvidence)
     }
 
+    // MARK: Chest X-ray (1.12, Ben's note 11)
+
+    /// The result chips: Normal and Effusion are one choice, so they exclude each other, and a second tap clears it.
+    static let chestXrayResults: [ChipChoice] = PatientChestXray.Result.allCases.map { ChipChoice($0.rawValue, $0.label) }
+    static let chestXraySides: [ChipChoice] = PatientChestXray.Side.allCases.map { ChipChoice($0.rawValue, $0.label) }
+    static let chestXraySizes: [ChipChoice] = PatientChestXray.Size.allCases.map { ChipChoice($0.rawValue, $0.label) }
+
+    /// The page behind "+ Chest X-ray": Normal or Effusion; with an effusion, its side and size; one line of findings.
+    /// It records what the report said and grades nothing.
+    @ViewBuilder var chestXrayEditor: some View {
+        PatientGroup(title: "Chest X-ray") {
+            PatientChipRow(label: nil) {
+                PatientChoice(choices: Self.chestXrayResults,
+                              selection: Binding(get: { patient.record.chestXray.result?.rawValue },
+                                                 set: { v in patient.update { $0.chestXray.choose(v.flatMap { PatientChestXray.Result(rawValue: $0) }) } }))
+            }
+            if patient.record.chestXray.result == .effusion {
+                Hairline().padding(.leading, 14)
+                PatientChipRow(label: "Side") {
+                    PatientChoice(choices: Self.chestXraySides,
+                                  selection: Binding(get: { patient.record.chestXray.side?.rawValue },
+                                                     set: { v in patient.update { $0.chestXray.side = v.flatMap { PatientChestXray.Side(rawValue: $0) } } }))
+                }
+                Hairline().padding(.leading, 14)
+                PatientChipRow(label: "Size") {
+                    PatientChoice(choices: Self.chestXraySizes,
+                                  selection: Binding(get: { patient.record.chestXray.size?.rawValue },
+                                                     set: { v in patient.update { $0.chestXray.size = v.flatMap { PatientChestXray.Size(rawValue: $0) } } }))
+                }
+            }
+            Hairline().padding(.leading, 14)
+            PatientTextField(label: "Findings", prompt: "One line, e.g. blunted left costophrenic angle; cardiomegaly",
+                             text: Binding(get: { patient.record.chestXray.findings }, set: { v in patient.update { $0.chestXray.findings = v } }))
+            if let s = patient.record.chestXray.summary {
+                Hairline().padding(.leading, 14)
+                Text(s).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(patient.record.chestXray.result == .effusion ? PS.red : PS.fg2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .id("cxr")
+    }
+
     // MARK: Shared pieces
 
     func studyDateNotes(date: Binding<PatientMonthYear>, notes: Binding<String>, prompt: String) -> some View {

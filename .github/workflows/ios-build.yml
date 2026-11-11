@@ -891,6 +891,21 @@ jobs:
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper E1 shots (910-924): add your shot lines directly under this line ----
+          shot 910-e1-through-details-light 16 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance light
+          shot 911-e1-through-details-dark 16 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance dark
+          shot 912-e1-through-details-bare-light 16 -ps.tab patient -ps.patient demo-112-lines-bare -ps.patient.open devices:preop -ps.devices.details 1 -ps.devices.large 1 -ps.forceAppearance light
+          shot 913-e1-through-editor-light 18 -ps.tab patient -ps.patient demo-112-lines -ps.patient.open devices:preop -ps.forceAppearance light
+          shot 914-e1-through-handoff-figure-light 24 -ps.tab patient -ps.patient demo-112-lines -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.forceAppearance light
+          shot 915-e1-cxr-editor-effusion-light 18 -ps.tab patient -ps.patient demo-112-cxr -ps.patient.open workup:cxr -ps.forceAppearance light
+          shot 916-e1-cxr-editor-effusion-dark 18 -ps.tab patient -ps.patient demo-112-cxr -ps.patient.open workup:cxr -ps.forceAppearance dark
+          shot 917-e1-cxr-editor-normal-light 18 -ps.tab patient -ps.patient demo-112-cxr-normal -ps.patient.open workup:cxr -ps.forceAppearance light
+          shot 918-e1-cxr-workup-empty-375-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.preop.workup 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 919-e1-cxr-workup-filled-light 18 -ps.tab patient -ps.patient demo-112-cxr -ps.patient.tab preop -ps.patient.scroll preopworkup -ps.forceAppearance light
+          shot 920-e1-cxr-handoff-light 18 -ps.tab patient -ps.patient demo-112-cxr -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 921-e1-valve-calc-light 14 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;lvotd=2.0;lvotvti=22;avvti=58" -ps.forceAppearance light
+          shot 922-e1-valve-calc-dark 14 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;lvotd=2.0;lvotvti=22;avvti=58" -ps.forceAppearance dark
+          shot 923-e1-valve-calc-typed-light 14 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;ava=1.1;lvotd=2.0;lvotvti=22;avvti=58" -ps.forceAppearance light
+          shot 924-e1-valve-calc-nobsa-light 14 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.forceAppearance light
           #
           # ---- 1.12 helper E2 shots (925-939): add your shot lines directly under this line ----
           #
