@@ -86,14 +86,8 @@ func briefStyled(_ text: String, marks: [String], labels: Bool, size: CGFloat = 
                 a[lo..<hi].font = PS.sys(size: size, weight: .bold)
             }
         }
-        for m in marks where !m.isEmpty {
-            var from = a.startIndex
-            while from < a.endIndex, let r = a[from...].range(of: m) {
-                a[r].foregroundColor = PS.red
-                a[r].font = PS.sys(size: size, weight: .bold)
-                from = r.upperBound
-            }
-        }
+        // 1.12: a mark paints only where it stands alone ("K 5.9" is not the start of "K 5.95").
+        a.paintMarks(marks, in: line, font: PS.sys(size: size, weight: .bold))
         out.append(a)
         if i < lines.count - 1 { out.append(AttributedString("\n")) }
     }

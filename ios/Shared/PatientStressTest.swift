@@ -55,10 +55,13 @@ struct PatientStressTest: Codable, Hashable {
     var isEmpty: Bool { kind == nil && result == nil && date.isEmpty && findings.trimmingCharacters(in: .whitespaces).isEmpty }
 
     /// "Dobutamine stress test (03/2025): negative, no ischemia; inferior wall ischemia at 7 METs" or nil when empty.
-    var summary: String? {
+    var summary: String? { summary(dates: .app) }
+
+    /// The same with the date as `style` writes it (1.12).
+    func summary(dates: PatientDateStyle) -> String? {
         guard !isEmpty else { return nil }
         var head = (kind.map { $0 == .other ? "Stress test" : $0.label + " stress test" } ?? "Stress test")
-        if !date.isEmpty { head += " (" + date.text + ")" }
+        if !date.isEmpty { head += " (" + date.shown(dates) + ")" }
         var parts: [String] = []
         if let result { parts.append(result.text) }
         let f = findings.trimmingCharacters(in: .whitespaces)

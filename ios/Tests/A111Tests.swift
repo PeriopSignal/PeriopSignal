@@ -33,7 +33,7 @@ final class A111Tests: XCTestCase {
         XCTAssertEqual(PatientLabs.test("ptt")?.range, IntraopLabs.ptt.range)
         XCTAssertEqual(PatientLabs.flag("ptt", 40, sex: nil), .high)
         XCTAssertEqual(PatientLabs.flag("pt", 20, sex: nil), .normal, "the PT is read against the report's own range")
-        XCTAssertEqual(PatientLabs.summary(["ca": 8.3, "mg": 1.7], sex: nil).line, "Ca 8.3 L · Mg 1.7")
+        XCTAssertEqual(PatientLabs.summary(["ca": 8.3, "mg": 1.7], sex: nil).line, "Ca 8.3 · Mg 1.7")
     }
 
     /// Q20 (Ben, Nov 9): the app's sourced ranges stay; his drawn ranges are hints only where they agree.
@@ -387,8 +387,8 @@ final class A111Tests: XCTestCase {
         XCTAssertNil(s.fishbone.ca, "a slot with nothing saved stays empty")
         XCTAssertFalse(PreopLabsCard.isEmpty(r))
         let line = try XCTUnwrap(PreopLabsCard.otherLine(r))
-        XCTAssertEqual(line.text, "Alb 3.1 L · T bili 1.6 H · AST 62 H · T&S A−, screen neg · 2 u crossmatched · TSH pending")
-        XCTAssertEqual(line.marks, ["Alb 3.1 L", "T bili 1.6 H", "AST 62 H"])
+        XCTAssertEqual(line.text, "Alb 3.1 · T bili 1.6 · AST 62 · T&S A−, screen neg · 2 u crossmatched · TSH pending")
+        XCTAssertEqual(line.marks, ["Alb 3.1", "T bili 1.6", "AST 62"])
         XCTAssertFalse(line.text.contains("Hb"), "the figure's own values are not repeated on the line")
     }
 
@@ -403,8 +403,8 @@ final class A111Tests: XCTestCase {
         XCTAssertNil(PreopLabsCard.otherLine(r), "everything is on the three figures")
         r.labs["mg"] = 1.4
         r.labs["gfr"] = 55
-        XCTAssertEqual(PreopLabsCard.otherLine(r)?.text, "GFR 55 L · Mg 1.4 L")
-        XCTAssertEqual(PreopLabsCard.otherLine(r)?.marks, ["GFR 55 L", "Mg 1.4 L"])
+        XCTAssertEqual(PreopLabsCard.otherLine(r)?.text, "GFR 55 · Mg 1.4")
+        XCTAssertEqual(PreopLabsCard.otherLine(r)?.marks, ["GFR 55", "Mg 1.4"])
         var notes = PatientRecord()
         notes.labNotes = "lipids pending"
         XCTAssertFalse(PreopLabsCard.isEmpty(notes), "a note alone is something to show")
@@ -412,7 +412,7 @@ final class A111Tests: XCTestCase {
         sent.typeScreen = PatientTypeScreen(status: .sent)
         XCTAssertFalse(PreopLabsCard.isEmpty(sent))
         XCTAssertEqual(PreopLabsCard.otherLine(PatientDemo.labs111)?.text,
-                       "GFR 72 · HbA1c 6.1 H · Alb 3.1 L · T bili 1.6 H · Ca 8.3 L · Prot 6.4 · Mg 1.7 · PO₄ 3.2 · AST 62 H · ALT 48 H · Alk phos 134 H · Lactate 1.4 · T&S A−, screen neg · 2 u crossmatched · Staph screen neg · MRSA neg · COVID neg · C. diff pending")
+                       "GFR 72 · HbA1c 6.1 · Alb 3.1 · T bili 1.6 · Ca 8.3 · Prot 6.4 · Mg 1.7 · PO₄ 3.2 · AST 62 · ALT 48 · Alk phos 134 · Lactate 1.4 · T&S A−, screen neg · 2 u crossmatched · Staph screen neg · MRSA neg · COVID neg · C. diff pending")
     }
 
     // MARK: The intraoperative gas
@@ -440,7 +440,7 @@ final class A111Tests: XCTestCase {
         XCTAssertEqual(BriefLabs.fishboneKeys, Set(BriefLabs.bmpKeys + BriefLabs.cbcKeys + BriefLabs.coagKeys), "the tab card's figures keep the BMP, CBC and coagulation groups")
         XCTAssertEqual(made.preop.map(\.name), ["CMP", "Heme", "Other"])
         let items = made.preop.flatMap(\.items)
-        XCTAssertTrue(items.contains { $0.text == "AST 62 H" && $0.marks == ["AST 62 H"] }, "the hepatic values are in the CMP, abnormal in red")
+        XCTAssertTrue(items.contains { $0.text == "AST 62" && $0.marks == ["AST 62"] }, "the hepatic values are in the CMP, abnormal in red")
         XCTAssertTrue(items.contains { $0.text == "PTT 31" })
         XCTAssertFalse(items.contains { $0.key == "pt" }, "the PT is not in the default list: a chip under + Add other input data into Handoff")
         XCTAssertFalse(items.contains { $0.key == "mg" })
@@ -449,8 +449,8 @@ final class A111Tests: XCTestCase {
         XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "Na 139" })
         // Ben, Nov 11: an abnormal value outside the lists is in the summary without being chosen, and is not a chip;
         // a normal one (the magnesium) is still a chip to choose.
-        XCTAssertTrue(block.text.contains("Ca 8.3 L"), "the abnormal calcium is shown: " + block.text)
-        XCTAssertTrue(block.marks.contains("Ca 8.3 L"))
+        XCTAssertTrue(block.text.contains("Ca 8.3"), "the abnormal calcium is shown: " + block.text)
+        XCTAssertTrue(block.marks.contains("Ca 8.3"))
         XCTAssertFalse(HandoffExtras.offered(r).preop.map(\.key).contains("preop:ca"))
         XCTAssertFalse(block.text.contains("Mg 1.7"), "the magnesium is a chip")
         XCTAssertTrue(HandoffExtras.offered(r).preop.map(\.key).contains("preop:mg"))

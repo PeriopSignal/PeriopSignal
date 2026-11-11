@@ -84,8 +84,13 @@ struct QuickAddChip: Identifiable, Hashable {
     var value: String
     var status: PatientNoteStatus
     var note: String?
+    /// The parts of `value` to show in bold red (1.12): an out-of-range lab value, with no H or L after it.
+    var marks: [String] = []
+    /// The value for VoiceOver when it differs (1.12): a red lab value says "low" or "high".
+    var spokenValue: String?
 
     var text: String { destination + " · " + value }
+    var spokenText: String { destination + " · " + (spokenValue ?? value) }
     var canAdd: Bool { status.canAdd }
     /// "replaces 1.1", "already recorded", or why it cannot be added.
     var statusText: String? {
@@ -661,11 +666,34 @@ enum QuickAdd {
     /// The preoperative labs screen's keys (the troponin's 99th percentile is not a patient value).
     private static let preopLabKeys = Set(PatientLabs.catalog.map(\.key)).subtracting(["troponin99", "troponin"])
 
-    /// "K 5.4 H", "Hb 9.1 L", "pH 7.29 L": a value as the summary shows it.
+    /// "K 5.4", "Hb 9.1", "pH 7.29": a value as the review chip shows it. 1.12 (Ben): an out-of-range value is bold red with no
+    /// H or L after it (the chip's `marks`); `labSpoken` is the VoiceOver form.
     static func labText(_ key: String, _ v: Double, sex: PatientSex?) -> String {
         guard let t = PatientLabs.test(key) else { return key + " " + NumText.short(v) }
-        let mark = PatientLabs.flag(key, v, sex: sex).mark
-        return t.short + " " + t.format(v) + (mark.isEmpty ? "" : " " + mark)
+        return t.short + " " + t.format(v)
+    }
+
+    /// "K 5.4, high": the same for VoiceOver.
+    static func labSpoken(_ key: String, _ v: Double, sex: PatientSex?) -> String {
+        let word = PatientLabs.flag(key, v, sex: sex).word
+        return labText(key, v, sex: sex) + (word.isEmpty ? "" : ", " + word)
+    }
+
+    /// The chip's red parts and its VoiceOver words, for a lab finding; nil for any other.
+    private static func labMarks(_ f: PatientNoteFinding, _ r: PatientRecord) -> (marks: [String], spoken: String)? {
+        switch f.change {
+        case .lab(let k, let v):
+            return (PatientLabs.flag(k, v, sex: r.sex).isAbnormal ? [labText(k, v, sex: r.sex)] : [], labSpoken(k, v, sex: r.sex))
+        case .intraopLabs(let set):
+            let keys = IntraopLabs.keys.filter { set.values[$0] != nil }
+            let marks = keys.compactMap { k -> String? in
+                guard let v = set.values[k] else { return nil }
+                return PatientLabs.flag(k, v, sex: r.sex).isAbnormal ? labText(k, v, sex: r.sex) : nil
+            }
+            return (marks, keys.compactMap { k in set.values[k].map { labSpoken(k, $0, sex: r.sex) } }.joined(separator: ", "))
+        default:
+            return nil
+        }
     }
 
     private static func labLabel(_ t: LabTest, _ v: Double) -> String {
@@ -2007,7 +2035,7 @@ enum QuickAdd {
     /// Previous cardiac surgery through PastSurgeryNote.add). Conservative choice: the chip is offered, the user adds it.
     private static func readPastSurgery(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
         var state = PastSurgeryNote.State(open: true, bodyEmpty: true)
-        for op in PastSurgeryNote.read(s.text, state: &state).operations {
+        for op in PastSurgeryNote.read(s.text, state: &state, now: c.now).operations {
             s.mask(op.range)
             let entry = PastSurgeryNote.surgery(op.text, op.date)
             out.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: PatientNote.Part.history,
@@ -2742,8 +2770,8 @@ enum QuickAdd {
     private static let stressDateGap = NoteRx(#"^[\s:(\-–]*(?:[\w/]+[\s:(\-–]+){0,4}$"#)
     private static let stressDateOther = NoteRx(#"\b(?:prior|before|after|since|until|s/p|status\s+post|cabg|pci|stent\w*|mi|surgery|repair)\b"#)
     private static let stressDateLead = NoteRx(#"^\s*(?:(?:in|from)\s+)?$"#)
-    /// A date in the piece: a year, or a month and year ("03/2025").
-    private static let stressDate = NoteRx(#"\b(?:(\d{1,2})[/.-])?((?:19|20)\d\d)\b"#)
+    /// A date in the piece: a year, a month and year ("03/2025"), or (1.12) a full date ("03/14/2025"). Groups: month, day, year.
+    private static let stressDate = NoteRx(#"\b(?:(\d{1,2})[/.-](?:(\d{1,2})[/.-])?)?((?:19|20)\d\d)\b"#)
 
     /// The chip's text, short enough for one line at 375 pt: "DSE negative (03/2025)", "Exercise stress positive",
     /// "Stress test equivocal". The record's own wording (PatientStressTest.summary) is the long form.
@@ -2814,11 +2842,13 @@ enum QuickAdd {
         }
         // The test's own date: the first after it with nothing else dated in between ("DSE negative 03/2025"), else one
         // right before it ("2023 stress test negative"). "CABG 2015 DSE 2023" dates the test 2023.
-        var dated: (range: NSRange, month: Int?, year: Int)?
-        func date(_ m: NSTextCheckingResult, in str: String, at base: Int) -> (range: NSRange, month: Int?, year: Int)? {
-            guard let y = group(m, 2, str).flatMap({ Int($0) }) else { return nil }
+        var dated: (range: NSRange, month: Int?, day: Int?, year: Int)?
+        func date(_ m: NSTextCheckingResult, in str: String, at base: Int) -> (range: NSRange, month: Int?, day: Int?, year: Int)? {
+            guard let y = group(m, 3, str).flatMap({ Int($0) }) else { return nil }
             let month = group(m, 1, str).flatMap { Int($0) }.flatMap { (1...12).contains($0) ? $0 : nil }
-            return (shifted(m.range, base), month, y)
+            // A day only with a month, and only a real one (PatientMonthYear drops an impossible day).
+            let day = month == nil ? nil : group(m, 2, str).flatMap { Int($0) }
+            return (shifted(m.range, base), month, day, y)
         }
         for m in stressDate.all(afterText) {
             let gap = (afterText as NSString).substring(to: m.range.location)
@@ -2835,7 +2865,7 @@ enum QuickAdd {
             }
         }
         if let d = dated {
-            t.date = PatientMonthYear(month: d.month, year: d.year)
+            t.date = PatientMonthYear(month: d.month, day: d.day, year: d.year)
             parts.append(d.range)
         }
         // A bare "stress test" with no result, kind or date records nothing: left for the user to see unread.
@@ -3153,8 +3183,13 @@ enum QuickAdd {
                 continue
             }
             let (destination, value) = describe(f, r)
-            out.append(QuickAddChip(id: f.id + "|" + value, findings: [f], destination: destination, value: value,
-                                    status: PatientNote.status(f, in: r), note: f.note))
+            var chip = QuickAddChip(id: f.id + "|" + value, findings: [f], destination: destination, value: value,
+                                    status: PatientNote.status(f, in: r), note: f.note)
+            if let lab = labMarks(f, r) {
+                chip.marks = lab.marks
+                chip.spokenValue = lab.spoken
+            }
+            out.append(chip)
         }
         func on(_ c: QuickAddChip) -> Bool { c.canAdd && !dropped.contains(c.id) }
         // The planned anesthetic goes in only with the procedure it comes from.

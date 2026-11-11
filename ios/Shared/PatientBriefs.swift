@@ -34,9 +34,17 @@ struct SummaryBlock: Identifiable, Hashable {
     var joiner: String?
     /// The user's words stand in for the generated ones.
     var edited = false
+    /// The text for the plain-text outputs (Copy, "Share as text only") when it differs from the drawn `text` (1.12): the labs
+    /// block draws an out-of-range value bold red with no letter, and its plain text keeps the H or L, since colour cannot be
+    /// carried there. Nil: the plain text is `text`. An edited block's words are the user's: no plain form.
+    var plain: String?
+    /// The text for VoiceOver when it differs (1.12): a red value says "low" or "high".
+    var spoken: String?
 
     var id: String { key }
     var lines: [String] { text.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
+    /// The lines of the plain text.
+    var plainLinesOfText: [String] { (plain ?? text).components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
     /// The labs columns with a value in them, or the lines diagram (built only with a line or device to draw: before the case
     /// a patient with mechanical support alone has it in the workup's words and on this picture, with no list beside it).
     /// A block the user edited counts by its words alone, so one they emptied is left out, figure and all (1.12: the labs
@@ -83,6 +91,8 @@ enum PatientBriefs {
             if let e = edits[b.key] {
                 b.text = e
                 b.edited = true
+                b.plain = nil
+                b.spoken = nil
                 b.marks = b.marks.filter { e.contains($0) }
             }
             guard b.hasContent else { continue }
@@ -117,7 +127,8 @@ enum PatientBriefs {
     }
 
     static func plainLines(_ b: SummaryBlock) -> [String] {
-        let lines = b.lines
+        // The plain text keeps the lab letters H and L that the screen no longer draws (1.12).
+        let lines = b.plainLinesOfText
         let label = b.label.map { $0 + ":" }
         if case .fishbone(let labs)? = b.figure {
             // 1.12 (Ben's note 8): the labs text is two labelled paragraphs, "Preop: …" and "Intraop: …" (plain digits for
@@ -155,18 +166,18 @@ enum PatientBriefs {
     // MARK: Slots (every block, empty or not, in order)
 
     static func slots(_ kind: Kind, _ r: PatientRecord, now: Date = Date()) -> [SummaryBlock] {
-        let hist = PatientSummary.historyLines(r, now: now)
-        let assess = PatientSummary.assessmentLines(r)
+        let hist = PatientSummary.historyLines(r, now: now, dates: .summary(now: now))
+        let assess = PatientSummary.assessmentLines(r, dates: .summary(now: now))
         var out: [SummaryBlock] = []
         out.append(headerBlock(r, kind: kind))
         out.append(codeStatusBlock(r))
         if kind == .handoff { out.append(caseBlock(r)) }
         out.append(allergiesBlock(hist))
         out.append(pmhBlock(r, hist: hist, assess: assess))
-        out.append(pshBlock(r))
+        out.append(pshBlock(r, now: now))
         if kind == .preop {
             out.append(airwayExamBlock(r))
-            out.append(workupBlock(r, assess: assess, kind: kind))
+            out.append(workupBlock(r, assess: assess, kind: kind, now: now))
             out.append(imagingBlock(r))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
@@ -175,9 +186,9 @@ enum PatientBriefs {
             out.append(riskBlock(r))
         } else {
             out.append(airwayCourseBlock(r))
-            out.append(workupBlock(r, assess: assess, kind: kind))
+            out.append(workupBlock(r, assess: assess, kind: kind, now: now))
             out.append(imagingBlock(r))
-            out.append(intraopTEEBlock(r))
+            out.append(intraopTEEBlock(r, now: now))
             out.append(labsBlock(r, kind: kind, now: now))
             out.append(medicationsBlock(r, hist: hist, kind: kind))
             out.append(infusionsBlock(r, now: now))
@@ -306,10 +317,11 @@ enum PatientBriefs {
     }
 
     /// PSH: the past surgical history, with the cardiac or thoracic operations added in the cardiac evaluation.
-    private static func pshBlock(_ r: PatientRecord) -> SummaryBlock {
+    private static func pshBlock(_ r: PatientRecord, now: Date) -> SummaryBlock {
         let c = r.capitalized
-        var items = c.surgeries.map(\.text).filter { !$0.isEmpty }
-        for s in c.intrathoracic.map(\.text) where !s.isEmpty && !items.contains(s) { items.append(s) }
+        let dates = PatientDateStyle.summary(now: now)
+        var items = c.surgeries.map { $0.shownText(dates) }.filter { !$0.isEmpty }
+        for s in c.intrathoracic.map({ $0.shownText(dates) }) where !s.isEmpty && !items.contains(s) { items.append(s) }
         return SummaryBlock(key: "psh", label: "PSH", text: items.joined(separator: "; "))
     }
 
@@ -391,10 +403,10 @@ enum PatientBriefs {
     /// on its own line, the carotid and vertebral cautions, the TEE screen's contraindications and (preprocedure) the
     /// mechanical support on arrival. Absent with none. In the handoff the support is in the lines and devices; before the
     /// case it is here only, not listed again under Lines & devices.
-    private static func workupBlock(_ r: PatientRecord, assess: [PatientSummary.Line], kind: Kind) -> SummaryBlock {
+    private static func workupBlock(_ r: PatientRecord, assess: [PatientSummary.Line], kind: Kind, now: Date) -> SummaryBlock {
         var lines = assess.filter { workupLabels.contains($0.label ?? "") }
         // 1.11 (Ben's note 4): the stress test, after the echo and before the catheterizations.
-        if let s = PatientPreop.stressLine(r) {
+        if let s = PatientPreop.stressLine(r, dates: .summary(now: now)) {
             let at = lines.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? lines.count
             lines.insert(s, at: at)
         }
@@ -425,9 +437,9 @@ enum PatientBriefs {
     /// Intraoperative TEE: the findings entered in the Intraoperative tab, and the echo notes typed there. 1.10 (Ben's
     /// notes-img3): with a post-bypass exam, a "Pre: …" line and a "Post: …" line (PatientEcho.intraopParts); only what is
     /// entered.
-    private static func intraopTEEBlock(_ r: PatientRecord) -> SummaryBlock {
+    private static func intraopTEEBlock(_ r: PatientRecord, now: Date) -> SummaryBlock {
         let c = r.capitalized
-        var parts: [String] = PatientEcho.intraopParts(pre: c.intraopEcho, post: c.intraopEchoPost).map { p in
+        var parts: [String] = PatientEcho.intraopParts(pre: c.intraopEcho, post: c.intraopEchoPost, dates: .summary(now: now)).map { p in
             p.label.map { $0 + ": " + p.text } ?? p.text
         }
         if !trimmed(c.echo).isEmpty { parts.append(trimmed(c.echo)) }
@@ -441,8 +453,12 @@ enum PatientBriefs {
     /// labelled paragraphs, "Preop: …" and "Intraop: …", groups separated by "; ", which is also what Copy and Text only give.
     private static func labsBlock(_ r: PatientRecord, kind: Kind, now: Date) -> SummaryBlock {
         let made = BriefLabs.make(r.capitalized, withIntraop: kind == .handoff, now: now)
-        return SummaryBlock(key: "labs", label: "Labs", text: made.paragraphs.joined(separator: "\n"),
-                            figure: made.isEmpty ? nil : .fishbone(made), marks: made.marks)
+        var b = SummaryBlock(key: "labs", label: "Labs", text: made.paragraphs.joined(separator: "\n"),
+                             figure: made.isEmpty ? nil : .fishbone(made), marks: made.marks)
+        // The screen draws an out-of-range value bold red with no letter; the plain text keeps its H or L (1.12).
+        b.plain = made.plainParagraphs.joined(separator: "\n")
+        b.spoken = made.spokenParagraphs.joined(separator: "\n")
+        return b
     }
 
     // MARK: Infusions, medications, intake and output

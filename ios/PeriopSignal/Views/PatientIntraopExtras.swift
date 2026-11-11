@@ -51,7 +51,7 @@ struct IntraopLabsEditor: View {
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Earlier set" + (s.time.map { ", " + PatientSummary.time($0) } ?? "")).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                        if let l = IntraopLabs.line(s, sex: r.sex) { PatientLineText(line: PatientSummary.Line(nil, l.text, marks: l.marks)) }
+                        if let l = IntraopLabs.line(s, sex: r.sex) { PatientLineText(line: PatientSummary.Line(nil, l.text, marks: l.marks, spoken: l.spoken)) }
                     }
                 }
                 .tint(PS.fg2)
@@ -377,13 +377,6 @@ func handoffStyled(_ text: String, marks: [String]) -> AttributedString {
         a[lo..<hi].font = PS.sys(size: 14.5, weight: .bold)
         if s.kind == .header { a[lo..<hi].underlineStyle = .single }
     }
-    for m in marks where !m.isEmpty {
-        var from = a.startIndex
-        while let r = a[from...].range(of: m) {
-            a[r].foregroundColor = PS.red
-            a[r].font = PS.sys(size: 14.5, weight: .bold)
-            from = r.upperBound
-        }
-    }
+    a.paintMarks(marks, in: text, font: PS.sys(size: 14.5, weight: .bold))
     return a
 }

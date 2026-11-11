@@ -235,12 +235,12 @@ final class Briefs19Tests: XCTestCase {
                          IntraopLabSet(time: PatientDemo.today(10, 40), values: ["k": 4.9, "hco3a": 21, "lactate": 1.4])]
         guard case .fishbone(let labs)? = try block(PatientBriefs.handoff(r), "labs").figure else { return XCTFail("no labs figure") }
         // The preop values stay in the Preop column, whatever the case found (no value is replaced and starred any more).
-        XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "K 5.6 H" })
+        XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "K 5.6" })
         XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "INR 1.0" })
         // The Intraop column: the newest gas with its lactate, then the newest coags.
         XCTAssertEqual(labs.gas?.slash.compactMap { $0 }.map(\.key), ["hco3a"])
         XCTAssertEqual(labs.gas?.lactate?.text, "1.4")
-        XCTAssertEqual(labs.intraop.last?.items.map(\.text), ["INR 1.9 H"], "an older set's value when the newest has none")
+        XCTAssertEqual(labs.intraop.last?.items.map(\.text), ["INR 1.9"], "an older set's value when the newest has none")
         XCTAssertEqual(labs.caption, "Intraop 09:15", "the gas's own time is on its figure")
         XCTAssertFalse(try block(PatientBriefs.handoff(r), "labs").text.contains("*"))
         // The preprocedure summary is the preoperative labs alone.
@@ -296,7 +296,7 @@ final class Briefs19Tests: XCTestCase {
         XCTAssertEqual(s.fishbone.pt?.text, "12.1")
         XCTAssertEqual(s.fishbone.ptt?.flag, .high)
         XCTAssertTrue(s.fishbone.hasCoags)
-        XCTAssertEqual(s.line, "PT 12.1 · INR 1.0 · PTT 52 H")
+        XCTAssertEqual(s.line, "PT 12.1 · INR 1.0 · PTT 52")
     }
 
     // MARK: 5. Safety content the old handoff carried

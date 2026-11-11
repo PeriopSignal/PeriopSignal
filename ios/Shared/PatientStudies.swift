@@ -94,9 +94,12 @@ struct PatientCarotid: Codable, Hashable {
     }
 
     /// "Carotid US 05/2026: R ICA 50–69%, L ICA ≥70%; L vertebral reversed".
-    var summary: String {
+    var summary: String { summary(dates: .app) }
+
+    /// The same with the date as `style` writes it (1.12).
+    func summary(dates: PatientDateStyle) -> String {
         var head = "Carotid US"
-        if !date.isEmpty { head += " " + date.text }
+        if !date.isEmpty { head += " " + date.shown(dates) }
         let r = Self.sideText("R", right), l = Self.sideText("L", left)
         let ica = (r + l).filter { $0.contains(" ICA ") }
         let vert = (r + l).filter { $0.contains(" vertebral ") }
@@ -176,9 +179,12 @@ struct PatientRadial: Codable, Hashable {
     var harvestArms: [String] { harvestBoth ? ["right", "left"] : (harvestSide.map { [$0] } ?? []) }
 
     /// "Radial US 04/2026: planned left harvest; R 2.4 mm, …; L 2.8 mm, …".
-    var summary: String {
+    var summary: String { summary(dates: .app) }
+
+    /// The same with the date as `style` writes it (1.12).
+    func summary(dates: PatientDateStyle) -> String {
         var head = "Radial US"
-        if !date.isEmpty { head += " " + date.text }
+        if !date.isEmpty { head += " " + date.shown(dates) }
         var parts: [String] = []
         if harvestBoth { parts.append("planned harvest of both radials") }
         else if let h = harvestSide { parts.append("planned " + h + " harvest") } else if harvest == "none" { parts.append("no harvest planned") }
@@ -274,9 +280,9 @@ struct PatientPFT: Codable, Hashable {
     /// "PFT 04/2026: obstruction, moderate; FEV1 58% predicted (GOLD 2 if COPD); FEV1 1.62 L (58%), FVC 2.90 L (78%), FEV1/FVC 0.56; TLC 104%, DLCO 61%".
     /// The summary, with or without the GOLD grade (the PFT page shows it on its own line, with its caveat); `copd`:
     /// COPD is in the patient's history.
-    func summary(copd: Bool, gold withGold: Bool = true) -> String {
+    func summary(copd: Bool, gold withGold: Bool = true, dates: PatientDateStyle = .app) -> String {
         var head = "PFT"
-        if !date.isEmpty { head += " " + date.text }
+        if !date.isEmpty { head += " " + date.shown(dates) }
         var parts: [String] = []
         if let r = readingText {
             parts.append(r.lowercased() == "normal" ? "normal" : r.prefix(1).lowercased() + r.dropFirst())

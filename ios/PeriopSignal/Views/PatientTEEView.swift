@@ -31,13 +31,13 @@ extension PatientEditorView {
             }
             teePreviousRow("Previous EGD?", answer: \.teeScreen.previousEGD)
             if r.teeScreen.previousEGD == true {
-                PatientTextField(label: "EGD date", prompt: "MM/YYYY", text: bind(\.teeScreen.egdDate))
+                PatientTextField(label: "EGD date", prompt: PatientMonthYear.placeholder, text: bind(\.teeScreen.egdDate))
                 PatientTextField(label: "EGD findings", prompt: "Normal, esophagitis, stricture, varices…", text: bind(\.teeScreen.egdFindings))
             }
             Hairline().padding(.leading, 14)
             teePreviousRow("Previous TEE?", answer: \.teeScreen.previousTEE)
             if r.teeScreen.previousTEE == true {
-                PatientTextField(label: "TEE date", prompt: "MM/YYYY", text: bind(\.teeScreen.teeDate))
+                PatientTextField(label: "TEE date", prompt: PatientMonthYear.placeholder, text: bind(\.teeScreen.teeDate))
             }
         }
         let others = res.suggestions.filter { $0.item.id != "dysphagia" }

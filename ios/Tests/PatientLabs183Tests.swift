@@ -310,7 +310,7 @@ final class PatientLabs183Tests: XCTestCase {
         XCTAssertNil(r.labs["hct"], "never saved")
 
         r.labs = ["hct": 30]
-        XCTAssertEqual(PatientLabs.summary(r).line, "Hb ~10 (est.) · Hct 30 L")
+        XCTAssertEqual(PatientLabs.summary(r).line, "Hb ~10 (est.) · Hct 30")
         r.labs = ["hct": 31]
         XCTAssertEqual(PatientLabs.estimate(r.labs)?.text, "10.3", "Hb to 0.1")
         r.labs = ["hb": 9.8]

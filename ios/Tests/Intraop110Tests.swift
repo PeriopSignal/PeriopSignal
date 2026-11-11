@@ -255,7 +255,7 @@ final class Intraop110Tests: XCTestCase {
         XCTAssertEqual(f.gas?.figureLabel, "ABG · 10:40")
         XCTAssertNil(f.caption, "the gas carries its time; no coags, so nothing else to date")
         XCTAssertTrue(labs.figureHasContent)
-        XCTAssertEqual(labs.text, "Intraop: ABG (10:40): pH 7.33 L, Lactate 1.4")
+        XCTAssertEqual(labs.text, "Intraop: ABG (10:40): pH 7.33, Lactate 1.4")
     }
 
     func testTheDrawnTimeSavesAndOlderRecordsHaveNone() throws {

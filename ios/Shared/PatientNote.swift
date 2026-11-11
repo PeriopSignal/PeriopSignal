@@ -1103,7 +1103,7 @@ enum PatientNote {
             }
             // Past surgical history: a "PSH:" section, "s/p ...", "h/o ..." (1.8.3). What the cardiac reader took is its own.
             let taken = zip(h.findings, h.at).filter { $0.0.id == "cardiac-surgery" }.map { $0.1 }
-            for op in PastSurgeryNote.read(c, state: &surgeryState, skip: taken).operations {
+            for op in PastSurgeryNote.read(c, state: &surgeryState, skip: taken, now: now).operations {
                 let entry = PastSurgeryNote.surgery(op.text, op.date)
                 h.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: Part.history,
                                          label: "Past surgical history: " + entry.text, change: .pastSurgery(op.text, op.date)), at: op.range)
@@ -1589,8 +1589,9 @@ enum PatientNote {
     /// Previous cardiac surgery, told as past: an operation on the heart ("s/p AVR 2015", "prior CABG", "h/o Bentall"),
     /// "prior cardiac surgery", or a redo sternotomy (which means there was one). Transcatheter procedures are not.
     static let cardiacOpWords = #"(?:(?:mechanical|bioprosthetic|tissue)\s+)?(?:(?-i:SAVR|AVR|MVR|TVR|CABG|OPCAB|AVr|MVr|TVr)|aortic valve (?:replacement|repair)|mitral valve (?:replacement|repair)|tricuspid valve (?:replacement|repair)|valve (?:replacement|repair|surgery)|coronary (?:artery )?bypass(?: graft(?:ing)?)?|(?:bio-?)?bentall|ross procedure|maze procedure|myectomy|(?-i:ASD|VSD) (?:repair|closure)|heart transplant(?:ation)?|(?-i:OHT)|cardiac surgery|heart surgery|open[- ]heart surgery|sternotomy)(?:\s*(?:x|×)\s*\d)?"#
-    static let cardiacSurgeryRx = NoteRx(#"\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old|remote)\s+(?:an?\s+)?("# + cardiacOpWords + #")(?:\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\)?)?"#)
-    static let cardiacSurgeryYearRx = NoteRx(#"(?-i:\b((?:SAVR|AVR|MVR|CABG|Bentall)\b(?:\s*(?:x|×)\s*\d)?))\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\b"#)
+    /// 1.12: the date after the operation may carry its day ("s/p CABG on 5/1/2019").
+    static let cardiacSurgeryRx = NoteRx(#"\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old|remote)\s+(?:an?\s+)?("# + cardiacOpWords + #")(?:\s*(?:\(|,)?\s*(?:in\s+|on\s+)?((?:(?:0?[1-9]|1[0-2])[/.\-](?:0?[1-9]|[12]\d|3[01])[/.\-])?(?:19|20)\d\d)\)?)?"#)
+    static let cardiacSurgeryYearRx = NoteRx(#"(?-i:\b((?:SAVR|AVR|MVR|CABG|Bentall)\b(?:\s*(?:x|×)\s*\d)?))\s*(?:\(|,)?\s*(?:in\s+|on\s+)?((?:(?:0?[1-9]|1[0-2])[/.\-](?:0?[1-9]|[12]\d|3[01])[/.\-])?(?:19|20)\d\d)\b"#)
     static let redoSternotomyRx = NoteRx(#"\bredo\s+(?:median\s+)?sternotomy\b|\bre-?(?:do\s+)?sternotomy\b"#)
 
     private static func readCardiacSurgery(_ c: String, _ h: inout Hits) {
@@ -3726,11 +3727,11 @@ enum PatientNote {
             if o.isEmpty { return .new }
             let kindSame = t.kind == nil || o.kind == t.kind
             let resultSame = t.result == nil || o.result == t.result
-            let dateSame = t.date.isEmpty || o.date == t.date
+            let dateSame = t.date.isEmpty || PatientMonthYear.compatible(o.date, t.date)
             if kindSame && resultSame && dateSame { return .recorded }
             if let a = o.result, let b = t.result, a != b { return .replaces(o.summary ?? a.text) }
             if let a = o.kind, let b = t.kind, a != b { return .replaces(o.summary ?? a.label.lowercased()) }
-            if !o.date.isEmpty, !t.date.isEmpty, o.date != t.date { return .replaces(o.summary ?? o.date.text) }
+            if !o.date.isEmpty, !t.date.isEmpty, !PatientMonthYear.compatible(o.date, t.date) { return .replaces(o.summary ?? o.date.text) }
             return .new
         case .event(let t):
             return mentions(r.events, t) ? .recorded : .new
@@ -3974,13 +3975,13 @@ enum PatientNote {
                 // replaces the old one whole, so the old findings are not left under the new result.
                 let o = r.stressTest
                 let differs = !o.isEmpty && ((o.result != nil && t.result != nil && o.result != t.result)
-                    || (o.kind != nil && t.kind != nil && o.kind != t.kind) || (!o.date.isEmpty && !t.date.isEmpty && o.date != t.date))
+                    || (o.kind != nil && t.kind != nil && o.kind != t.kind) || (!o.date.isEmpty && !t.date.isEmpty && !PatientMonthYear.compatible(o.date, t.date)))
                 if differs {
                     r.stressTest = t
                 } else {
                     if let k = t.kind { r.stressTest.kind = k }
                     if let v = t.result { r.stressTest.result = v }
-                    if !t.date.isEmpty { r.stressTest.date = t.date }
+                    if !t.date.isEmpty { r.stressTest.date = PatientMonthYear.fuller(r.stressTest.date, t.date) }
                     if !t.findings.trimmingCharacters(in: .whitespaces).isEmpty { r.stressTest.findings = joined(r.stressTest.findings, t.findings) }
                 }
             case .event(let t):
