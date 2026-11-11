@@ -66,8 +66,8 @@ enum PatientBox: String, CaseIterable, Hashable {
 struct PatientBoxSummary: Equatable {
     /// What the user has entered in the box. The box collapses only when there is at least one.
     var entered: [PatientSummary.Line] = []
-    /// What the app works out from the entries and that is an alert: shown when the box is collapsed so it is never hidden,
-    /// but never what makes a box count as filled in.
+    /// What the app works out from other boxes' entries and the summaries still say (the TEE screen's contraindications):
+    /// shown when the box is collapsed so it is never hidden, but never what makes a box count as filled in.
     var derivedAlerts: [PatientSummary.Line] = []
 
     var holdsValue: Bool { !entered.isEmpty }
@@ -135,8 +135,8 @@ extension PatientBox {
     /// What the Cardiopulmonary box shows: the symptoms and acute conditions, previous intrathoracic surgery, and the
     /// workup (ECG, echo, stress test, catheterizations, carotid and radial ultrasound, PFTs, the cautions, the TEE screen)
     /// as the Preprocedure Summary's cardiac-workup block says it; a line that block carries and the assessment does not
-    /// know (the chest X-ray) is carried too. The stepwise result and the advice are worked out, not entered: only an
-    /// alert among them is added, so it is never hidden.
+    /// know (the chest X-ray) is carried too. The stepwise result and the guideline advice are worked out, not entered, and
+    /// the summaries do not carry them, so the folded box does not either (they are in the box when it is open).
     private static func cardioSummary(_ r: PatientRecord) -> PatientBoxSummary {
         let assess = PatientSummary.assessmentLines(r)
         let entered: Set<String> = ["Cardiac symptoms", "Acute cardiac conditions", "Previous intrathoracic surgery", "ECG", "Echo", "Coronaries",
@@ -155,9 +155,7 @@ extension PatientBox {
                 out.append(PatientSummary.Line(nil, text, marks: block.marks.filter { !$0.isEmpty && text.contains($0) }))
             }
         }
-        var derived = assess.filter { ["Cardiac evaluation", "Cardiac advice"].contains($0.label ?? "") && $0.alert }
-        if let tee { derived.append(tee) }
-        return PatientBoxSummary(entered: out, derivedAlerts: derived)
+        return PatientBoxSummary(entered: out, derivedAlerts: tee.map { [$0] } ?? [])
     }
 
     private static func joined(_ l: PatientSummary.Line) -> String { (l.label.map { $0 + ": " } ?? "") + l.text }

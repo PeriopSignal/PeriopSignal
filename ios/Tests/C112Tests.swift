@@ -129,6 +129,13 @@ final class C112Tests: XCTestCase {
         XCTAssertNil(PatientBox.lineLimit(stress))
     }
 
+    func testTheFoldedCardioBoxCarriesWhatTheSummaryDoesAndNotTheGuidelineAdvice() {
+        let lines = PatientBox.cardio.summary(PatientDemo112Layout.layout).lines
+        XCTAssertTrue(lines.contains { $0.label == "Cardiac symptoms" })
+        XCTAssertTrue(lines.contains { $0.label == "ECG" })
+        XCTAssertFalse(lines.contains { $0.label == "Cardiac advice" || $0.label == "Cardiac evaluation" }, "worked out, and not in the summaries")
+    }
+
     func testTheAsaBoxHasTheChosenClassAndTheFunctionalCapacity() {
         var r = PatientRecord()
         r.asaClass = 3
