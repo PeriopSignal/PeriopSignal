@@ -746,7 +746,7 @@ struct CaseTimersView: View {
                 let update = pending.isEmpty && !changes.isEmpty
                 // 1.12 follow-up: the button says what it does for what is pending (a drug with no routine redose has no
                 // interval chosen, and "Start timer" read as if there were nothing to start).
-                let anyInterval = pending.contains { (abxPick($0, d).wrappedValue.minutes ?? 0) > 0 }
+                let anyInterval = hasInterval(pending, d)
                 let title = IntraopAntibiotic.buttonTitle(pending: !pending.isEmpty, anyInterval: anyInterval, onlyChanges: update)
                 Hairline()
                 if !update { StartTimeRow(start: $abxStart) }
@@ -814,10 +814,8 @@ struct CaseTimersView: View {
             if let course, let last = course.last {
                 let every = CaseTimerRecurrence.redoseMinutes(course, def: def)
                 // A dose typed in the quick-add bar is shown as typed beside the last dose when it says more than the computed one.
-                let given = IntraopAntibiotic.givenNote(last: last, computed: dose.text)
                 HStack(spacing: 10) {
-                    Text("Last dose \(ClockText.time(last.time))" + (every.map { " · next \(ClockText.time(last.time.addingTimeInterval($0 * 60)))" } ?? "")
-                         + (given.map { " · " + $0 } ?? ""))
+                    Text(Self.lastDoseText(last: last, every: every, computed: dose.text))
                         .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg2)
                     Spacer(minLength: 4)
                     Button("Redose given") {
@@ -829,7 +827,7 @@ struct CaseTimersView: View {
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
                 }
                 if course.doses.count > 1 {
-                    DoseHistory(entries: course.doses, text: { "\(ClockText.time($0.time))  \(def.name)" + ($0.given.map { " " + $0 } ?? "") }) { id in
+                    DoseHistory(entries: course.doses, text: { Self.doseText($0, name: def.name) }) { id in
                         edit { t in
                             if let i = t.antibiotics.firstIndex(where: { $0.drug == def.id }) { t.antibiotics[i].doses.removeAll { $0.id == id } }
                         }
@@ -837,6 +835,28 @@ struct CaseTimersView: View {
                 }
             }
         }
+    }
+
+    /// Whether any of the pending antibiotics has a redose interval chosen.
+    private func hasInterval(_ drugs: [String], _ d: CaseTimerData) -> Bool {
+        for drug in drugs where (abxPick(drug, d).wrappedValue.minutes ?? 0) > 0 { return true }
+        return false
+    }
+
+    /// "Last dose 08:10 · next 12:10", and "· given: 1 g" when the last dose was typed in the quick-add bar and says more than the
+    /// dose computed above it.
+    static func lastDoseText(last: TimedEntry, every: Double?, computed: String) -> String {
+        var s = "Last dose " + ClockText.time(last.time)
+        if let every { s += " · next " + ClockText.time(last.time.addingTimeInterval(every * 60)) }
+        if let given = IntraopAntibiotic.givenNote(last: last, computed: computed) { s += " · " + given }
+        return s
+    }
+
+    /// A dose in the log: "08:10  Vancomycin 1 g" (the dose when it was typed).
+    static func doseText(_ e: TimedEntry, name: String) -> String {
+        var s = ClockText.time(e.time) + "  " + name
+        if let g = e.given?.trimmingCharacters(in: .whitespacesAndNewlines), !g.isEmpty { s += " " + g }
+        return s
     }
 
     private func startAntibiotics(_ pending: [String], changes: [String: Double]) {
