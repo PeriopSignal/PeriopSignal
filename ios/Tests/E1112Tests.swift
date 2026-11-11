@@ -15,7 +15,8 @@ final class E1112Tests: XCTestCase {
         XCTAssertTrue(line("MAC introducer").acceptsDevicesThrough)
         XCTAssertTrue(line("introducer").acceptsDevicesThrough)
         XCTAssertTrue(line("MAC").acceptsDevicesThrough)
-        XCTAssertTrue(line("Cordis").acceptsDevicesThrough, "a Cordis is an introducer sheath")
+        // Ben's note 1 names an Introducer or MAC only; a Cordis is its own Type chip and gets no row.
+        XCTAssertFalse(line("Cordis").acceptsDevicesThrough)
         XCTAssertTrue(line("triple lumen, MAC introducer").acceptsDevicesThrough)
         XCTAssertFalse(line("triple lumen").acceptsDevicesThrough)
         XCTAssertFalse(line("SLIC").acceptsDevicesThrough)
@@ -75,7 +76,7 @@ final class E1112Tests: XCTestCase {
 
     func testTheChipsAreIndependentPerLine() {
         let a = line("MAC introducer", site: "ij-right", side: "right")
-        let b = line("Cordis")
+        let b = line("introducer")
         var devices = [a, b]
         PatientDevices.toggleThrough(.pac, line: a, in: &devices, placedIntraop: false)
         XCTAssertTrue(devices.contains { $0.isThrough(.pac, of: a.id) })
@@ -273,7 +274,7 @@ final class E1112Tests: XCTestCase {
             let w = blocks.first { $0.key == "workup" }
             XCTAssertNotNil(w)
             let lines = w?.text.components(separatedBy: "\n") ?? []
-            let cxr = lines.firstIndex { $0 == "Chest X-ray: moderate left effusion; Blunted angle" }
+            let cxr = lines.firstIndex { $0 == "Chest X-ray: moderate left effusion; blunted angle" }
             let stress = lines.firstIndex { $0.hasPrefix("Stress test:") }
             let cor = lines.firstIndex { $0.hasPrefix("Coronaries:") }
             XCTAssertNotNil(cxr, w?.text ?? "")
@@ -291,6 +292,27 @@ final class E1112Tests: XCTestCase {
         // Nothing recorded: no line.
         let none = PatientBriefs.preop(chole()).first { $0.key == "workup" }
         XCTAssertFalse(none?.text.contains("Chest X-ray") ?? false)
+    }
+
+    func testTheChestXrayFindingsReadTheSameInTheRowTheEditorAndTheSummary() throws {
+        var r = PatientRecord()
+        r.chestXray = PatientChestXray(result: .effusion, side: .left, size: .moderate, findings: "blunting of the left costophrenic angle")
+        let line = try XCTUnwrap(PatientChestXray.line(r))
+        XCTAssertEqual(line.text, "moderate left effusion; blunting of the left costophrenic angle", "no capital after the semicolon")
+        XCTAssertEqual(line.text, r.chestXray.text)
+        XCTAssertEqual("Chest X-ray: " + line.text, r.chestXray.summary)
+        r.chestXray = PatientChestXray(findings: "cardiomegaly")
+        XCTAssertEqual(try XCTUnwrap(PatientChestXray.line(r)).text, "cardiomegaly", "findings alone are as typed too")
+    }
+
+    func testTheThroughThisLineChipsFitOneLineAt375() {
+        let width: CGFloat = 375 - 40 - 28
+        let unchosen = DeviceDetailSheet.throughChoices { _ in false }
+        XCTAssertEqual(unchosen.map(\.label), ["+ PA catheter", "+ SLIC"])
+        XCTAssertNotNil(ChipMetrics.lineFit(unchosen, choice: false, in: width))
+        let chosen = DeviceDetailSheet.throughChoices { _ in true }
+        XCTAssertEqual(chosen.map(\.label), ["PA catheter", "SLIC"])
+        XCTAssertNotNil(ChipMetrics.lineFit(chosen, choice: false, in: width, selected: Set(chosen.map(\.id))), "both chosen, with their checks")
     }
 
     func testTheChestXrayChipRowsFitOneLineAt375() {
@@ -452,7 +474,8 @@ final class E1112Tests: XCTestCase {
         XCTAssertEqual(graded.numbers["ava"], 0.71)
         XCTAssertEqual(graded.numbers["svi"], 33)
         XCTAssertEqual(graded.numbers["lvef"], 55)
-        XCTAssertEqual(graded.calculated, ["ratio", "ava", "avai", "svi", "lvef"])
+        XCTAssertEqual(graded.calculated, ["ratio", "ava", "avai", "svi"], "the LVEF is read from the echo, not calculated")
+        XCTAssertEqual(graded.fromPatient, ["lvef"])
         XCTAssertEqual(graded.numbers["vmax"], 3.3, "typed values are untouched")
 
         let reading = ValveGrading.read(.as_, graded)
@@ -463,6 +486,10 @@ final class E1112Tests: XCTestCase {
         XCTAssertTrue(reading.lines.first { $0.id == "ava" }?.text.contains("calculated") ?? false)
         XCTAssertFalse(reading.lines.first { $0.id == "vmax" }?.text.contains("calculated") ?? true)
         for id in ["lvotd", "lvotv", "lvotvti", "avvti"] { XCTAssertNil(reading.lines.first { $0.id == id }, id) }
+        // The LVEF taken from the echo is not called calculated.
+        let lvef = reading.lines.first { $0.id == "lvef" }?.text ?? ""
+        XCTAssertEqual(lvef, "55 % · from My Patient")
+        XCTAssertFalse(lvef.contains("calculated"))
     }
 
     func testATypedAreaIsGradedInsteadOfTheCalculatedOne() {

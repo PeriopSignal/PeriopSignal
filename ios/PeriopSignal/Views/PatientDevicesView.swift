@@ -912,11 +912,12 @@ struct DeviceDetailSheet: View {
 
     /// "Through this line": "+ PA catheter" and "+ SLIC". A chosen chip shows its ✓ (and drops the "+"); a second tap
     /// removes the device the first one added (PatientDevices.toggleThrough).
+    static func throughChoices(isOn: (ThroughDevice) -> Bool) -> [ChipChoice] {
+        ThroughDevice.allCases.map { t in ChipChoice(t.rawValue, (isOn(t) ? "" : "+ ") + t.name) }
+    }
+
     private var throughRow: some View {
-        let options = ThroughDevice.allCases.map { t -> ChipChoice in
-            let on = patient.record.devices.contains { $0.isThrough(t, of: deviceID) }
-            return ChipChoice(t.rawValue, (on ? "" : "+ ") + t.name)
-        }
+        let options = Self.throughChoices { t in patient.record.devices.contains { $0.isThrough(t, of: deviceID) } }
         return PatientChipRow(label: "Through this line") {
             ChipSet(options: options, style: .toggle,
                     hints: ["pac": "Adds a pulmonary artery catheter through this line; tap again to remove it",

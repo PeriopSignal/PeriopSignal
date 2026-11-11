@@ -117,8 +117,11 @@ struct ValveParam: Identifiable, Hashable {
 struct ValveInput: Hashable {
     var numbers: [String: Double] = [:]
     var signs: Set<String> = []
-    /// The numbers that were calculated or taken from My Patient rather than typed (1.12); the reading says so.
+    /// The numbers that were calculated rather than typed (1.12); the reading says so.
     var calculated: Set<String> = []
+    /// The numbers taken from the open patient's record rather than typed (the LVEF from the recorded echo); the reading
+    /// says so in those words, since nothing was calculated.
+    var fromPatient: Set<String> = []
     var isEmpty: Bool { numbers.isEmpty && signs.isEmpty }
 }
 
@@ -224,7 +227,7 @@ enum ValveGrading {
             guard let v = i.numbers[param.id] else { continue }
             // 1.12: the LVOT and VTI inputs are what the calculated values come from; they are not readings of their own.
             if calculationInputs.contains(param.id) { continue }
-            let how = i.calculated.contains(param.id) ? " · calculated" : ""
+            let how = i.calculated.contains(param.id) ? " · calculated" : i.fromPatient.contains(param.id) ? " · from My Patient" : ""
             if case .context = param.kind {
                 lines.append(.init(id: param.id, label: param.label, text: "\(fmt(v)) \(param.unit)\(how)", grade: nil))
             } else if let g = param.grade(v) {
@@ -401,7 +404,10 @@ enum ValveGrading {
     /// The optional inputs of aortic stenosis the other fields are calculated from.
     static let calculationInputs: Set<String> = ["lvotd", "lvotv", "lvotvti", "avvti"]
 
-    /// An LVOT diameter is entered in cm; a value outside this range (a diameter typed in mm, say) is not used.
+    /// An LVOT diameter is entered in cm; a value outside this range (a diameter typed in mm, say) is not used, and the
+    /// calculator says so. This is an entry guard against a unit slip, not a reference range: nothing is graded against
+    /// it, and it comes from no guideline.
+    /// Ben to confirm; without it a 20 typed in mm would be squared as 20 cm.
     static let lvotDiameterRange: ClosedRange<Double> = 0.3...5.0
 
     /// What the open patient gives the calculator: the body surface area from the recorded height and weight, and the
@@ -420,6 +426,8 @@ enum ValveGrading {
         var value: Double
         var text: String
         var caption: String
+        /// Taken from the patient's record, not calculated (the LVEF): it is not called "calculated" anywhere.
+        var fromPatient = false
     }
 
     struct Calculation: Hashable {
@@ -479,7 +487,7 @@ enum ValveGrading {
             put("svi", area * a / bsa, "stroke volume ÷ BSA")
         }
         if empty("lvef"), let ef = context.lvef, ef > 0, ef.isFinite {
-            out.values["lvef"] = Calculated(value: ef, text: NumText.short(ef), caption: "from My Patient's echo")
+            out.values["lvef"] = Calculated(value: ef, text: NumText.short(ef), caption: "from My Patient's echo", fromPatient: true)
         }
         return out
     }
@@ -490,7 +498,7 @@ enum ValveGrading {
         var i = typed
         for (id, v) in c.values where i.numbers[id] == nil {
             i.numbers[id] = v.value
-            i.calculated.insert(id)
+            if v.fromPatient { i.fromPatient.insert(id) } else { i.calculated.insert(id) }
         }
         return i
     }

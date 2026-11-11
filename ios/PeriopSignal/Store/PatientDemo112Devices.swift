@@ -3,8 +3,8 @@ import Foundation
 #if DEBUG
 /// Helper E1's demo patients for the 1.12 screenshots (-ps.patient <seed>): the lines that go through an introducer, the
 /// chest X-ray and the valve calculator's calculated values. Nothing here is written to disk.
-///   demo-112-lines       a MAC introducer in the right IJ with a PA catheter put through it, and a Cordis in the left IJ
-///                        with a SLIC through it (the diagram labels "PAC" and "SLIC", the lines list and the handoff read
+///   demo-112-lines       a MAC introducer in the right IJ with a PA catheter put through it, and an introducer in the left
+///                        IJ with a SLIC through it (the diagram labels "PAC" and "SLIC", the lines list and the handoff read
 ///                        "PAC via R IJ" and "SLIC via L IJ")
 ///   demo-112-lines-bare  the same two introducer lines with nothing put through them yet (the chips unchosen)
 ///   demo-112-cxr         a moderate left effusion with a finding, among a positive stress test and other workup
@@ -32,13 +32,13 @@ enum PatientDemo112Devices {
         r.problems = ["htn", "cad"]
         r.devices = ["18g R forearm", "R radial art line 20g"].flatMap { PatientDevices.parse($0)?.devices(placedIntraop: false) ?? [] }
         r.devices.append(PatientDevice(kind: .cvc, site: "ij-right", side: "right", size: "9", detail: "MAC introducer"))
-        r.devices.append(PatientDevice(kind: .cvc, site: "ij-left", side: "left", size: "8.5", detail: "Cordis"))
+        r.devices.append(PatientDevice(kind: .cvc, site: "ij-left", side: "left", size: "8.5", detail: "introducer"))
         if through {
             if let mac = r.devices.first(where: { $0.acceptsDevicesThrough && $0.side == "right" }) {
                 PatientDevices.toggleThrough(.pac, line: mac, in: &r.devices, placedIntraop: false)
             }
-            if let cordis = r.devices.first(where: { $0.acceptsDevicesThrough && $0.side == "left" }) {
-                PatientDevices.toggleThrough(.slic, line: cordis, in: &r.devices, placedIntraop: false)
+            if let intro = r.devices.first(where: { $0.acceptsDevicesThrough && $0.side == "left" }) {
+                PatientDevices.toggleThrough(.slic, line: intro, in: &r.devices, placedIntraop: false)
             }
         }
         return r
@@ -51,7 +51,7 @@ enum PatientDemo112Devices {
         return r
     }
 
-    /// A 79-year-old woman for a TAVR: a 160 cm, 62 kg body (BSA about 1.7 m²) and an echo with an LVEF of 55%.
+    /// A 79-year-old woman for a TAVR: a 160 cm, 62 kg body (BSA about 1.6 m²) and an echo with an LVEF of 55%.
     private static func valveCalc() -> PatientRecord {
         var r = PatientRecord()
         r.ageYears = 79; r.sex = .female; r.heightCm = 160; r.weightKg = 62

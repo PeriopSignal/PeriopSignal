@@ -91,7 +91,7 @@ struct PatientChestXray: Codable, Hashable {
     var summary: String? { text.map { "Chest X-ray: " + $0 } }
 
     /// The line of the briefs' Preprocedure cardiac workup block, labelled "Chest X-ray". An effusion is marked for
-    /// attention: its words are bold red in the summary. The findings are capitalized as the other typed text is.
+    /// attention: its words are bold red in the summary. The findings stand as typed, as in the workup row and the editor.
     static func line(_ r: PatientRecord) -> PatientSummary.Line? {
         let x = r.chestXray
         guard !x.isEmpty else { return nil }
@@ -101,7 +101,7 @@ struct PatientChestXray: Codable, Hashable {
         case .effusion?: parts.append(x.effusionText ?? "effusion")
         case nil: break
         }
-        let f = FreeText.cap(x.findings.trimmingCharacters(in: .whitespacesAndNewlines))
+        let f = x.findings.trimmingCharacters(in: .whitespacesAndNewlines)
         if !f.isEmpty { parts.append(f) }
         let effusion = x.result == .effusion
         return PatientSummary.Line("Chest X-ray", parts.joined(separator: "; "), alert: effusion, marks: effusion ? [x.effusionText ?? "effusion"] : [])
