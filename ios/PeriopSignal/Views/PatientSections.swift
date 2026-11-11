@@ -318,14 +318,6 @@ extension PatientEditorView {
         }
     }
 
-    // MARK: Current infusions (Medications & Allergies)
-
-    @ViewBuilder var currentInfusionsGroup: some View {
-        PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they appear in the intraoperative infusions list tagged \"from preop\".") {
-            CurrentInfusionsBox()
-        }
-    }
-
     // MARK: Helpers
 
     /// One line with No and Yes; Yes opens the chips. No clears them.

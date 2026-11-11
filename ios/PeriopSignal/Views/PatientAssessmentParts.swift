@@ -535,37 +535,8 @@ struct PatientPromptRows: View {
 
 // MARK: Medications
 
-/// The current infusions (drips running before the case): a "+ Current infusions" link until a drip exists (1.11, P1-9),
-/// then the type line and the list with its rates; long-press wobbles the list to delete. The "⊕ Add an infusion" row is
-/// gone (Ben's note 5): the type line adds drips. The caller supplies the captioned box.
-struct CurrentInfusionsBox: View {
-    @Environment(PatientStore.self) private var patient
-    @State private var wobbling = false
-    @State private var open = LaunchSeed.bool("ps.preop.infusions") || !LaunchSeed.string("ps.infusion.type").isEmpty
-
-    private func binding(_ id: UUID) -> Binding<PatientInfusion> {
-        Binding(get: { patient.record.homeInfusions.first { $0.id == id } ?? PatientInfusion() },
-                set: { v in patient.update { r in if let i = r.homeInfusions.firstIndex(where: { $0.id == id }) { r.homeInfusions[i] = v } } })
-    }
-
-    var body: some View {
-        let r = patient.record
-        VStack(alignment: .leading, spacing: 0) {
-            if r.homeInfusions.isEmpty && !open {
-                QuietLinkRow(title: "Current infusions") { withAnimation(.snappy) { open = true } }
-                    .padding(14)
-            } else {
-                InfusionTypeField(list: \.homeInfusions)
-                ForEach(r.homeInfusions) { inf in
-                    Hairline().padding(.leading, 14)
-                    InfusionRow(infusion: binding(inf.id)) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
-                        .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
-                }
-                WobbleDoneBar(editing: $wobbling)
-            }
-        }
-    }
-}
+// The current infusions box went in 1.12 (Ben's note 16): drips running before the case are typed and listed with the home
+// medications in CurrentMedicationsBox (PatientMedicationViews.swift).
 
 /// The AHA/ACC "Before surgery" note of each flagged medication that has one.
 struct PatientBeforeSurgeryRows: View {

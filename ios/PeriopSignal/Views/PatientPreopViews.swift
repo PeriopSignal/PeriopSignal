@@ -18,7 +18,8 @@ enum PreopSection: String, CaseIterable, Identifiable {
         case .procedure: return "Procedure"
         case .demographics: return "Demographics & History"
         case .workup: return "Examination & Workup"
-        case .medications: return "Current Medications"
+        // 1.12 (Ben's note 16): the medications and the infusions are one box.
+        case .medications: return "Current Medications & Infusions"
         case .risk: return "Risk Scores & Checks"
         case .summary: return "Preprocedure Summary"
         }

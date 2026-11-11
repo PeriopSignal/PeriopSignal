@@ -653,19 +653,13 @@ struct PatientView: View {
         }
     }
 
-    /// 4. Current Medications: home medications (the box under the title, no caption: P1-6), current infusions, flagged
-    /// medications.
+    /// 4. Current Medications & Infusions: the medications and the drips running before the case in one box (the box under
+    /// the title, no caption: P1-6; 1.12, Ben's note 16), then the flagged medications.
     @ViewBuilder private var medicationsSection: some View {
         PreopSectionTitle(text: PreopSection.medications.sectionTitle).jumpTarget(section: .medications)
-        // 1.12 (note 17): the medications and the drips before the case fold as one box, "Current Medications & Infusions".
+        // 1.12 (notes 16 and 17): one box, "Current Medications & Infusions", which folds once it is filled in.
         PatientBoxCard(box: .medications) {
-            VStack(alignment: .leading, spacing: 16) {
-                PatientGroup(title: nil) { HomeMedicationsBox() }
-                PatientGroup(title: "Current infusions", note: "Drips running before the case, with their rates: they appear in the intraoperative infusions list tagged \"from preop\".") {
-                    CurrentInfusionsBox()
-                }
-                .jumpTarget(anchor: "infusions")
-            }
+            PatientGroup(title: nil) { CurrentMedicationsBox() }
         }
         .jumpTarget(anchor: "homemeds")
         PatientBoxCard(box: .flagged) { PreopFlaggedBox(onOpenRoute: { open($0) }) }.jumpTarget(anchor: "flagged")
@@ -706,7 +700,7 @@ struct PatientView: View {
         "allergies": PatientJumpID(anchor: "allergies"), "problems": PatientJumpID(anchor: "problems"), "chips": PatientJumpID(anchor: "chips"),
         "asa": PatientJumpID(anchor: "asa"), "cardio": PatientJumpID(anchor: "cardio"), "airway": PatientJumpID(anchor: "airway"),
         "labs": PatientJumpID(anchor: "labs"), "devices": PatientJumpID(anchor: "devices"),
-        "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "infusions"), "flagged": PatientJumpID(anchor: "flagged"),
+        "homemeds": PatientJumpID(anchor: "homemeds"), "infusions": PatientJumpID(anchor: "homemeds"), "flagged": PatientJumpID(anchor: "flagged"),
         "preopworkup": PatientJumpID(anchor: "preopworkup"),
         "history": PatientJumpID(anchor: "problems"), "assessment": PatientJumpID(anchor: "asa"), "support": PatientJumpID(anchor: "cardio"),
     ]

@@ -4,24 +4,49 @@ import SwiftUI
 //
 // Three boxes' contents, for the Preprocedure tab's Current Medications and Demographics & History sections (each goes
 // inside a PatientGroup; none draws its own card):
-//   HomeMedicationsBox: a line read into chips as you type ("metoprolol 25 bid lisinopril, Eliquis 5 bid"), Add or Return
-//     files them as one Undo step; the list with the dose editable in place and × to remove; the list typed before 1.9
-//     above it with "Convert to list".
+//   CurrentMedicationsBox: a line read into chips as you type ("metoprolol 25 bid lisinopril, Eliquis 5 bid, norepi 0.05"),
+//     Add or Return files them as one Undo step; the infusions first with their rates, then the medications (antibiotics,
+//     cardiovascular, the rest) with the dose editable in place and × to remove; the list typed before 1.9 above it with
+//     "Convert to list". (1.12: it took over the separate Current infusions box.)
 //   AllergiesBox: "No known allergies", or the list with + Add (the same kind of line: "PCN - rash, latex anaphylaxis"),
 //     each allergy with Mild / Severe / Anaphylaxis and its reaction; the allergies typed before 1.9 with "Convert to list".
 //   FlaggedMedicationsChips: PatientCatalog.medFlags as chips bound to the record's medFlags (as before).
 // Read by MedicationCatalog and AllergyCatalog; nothing is filled in that was not typed or picked.
 
-/// Home medications: type-ahead, chips, the list.
-struct HomeMedicationsBox: View {
+/// Current medications and infusions in one box (1.12, Ben's note 16): one type line that takes both ("metoprolol 25 bid,
+/// norepi 0.05, heparin 1200 units/h"), the chips for what it read, and the list. A piece the drip reader reads as an infusion
+/// (a known drip with a rate, or a drip-only drug: InfusionEntry.isInfusion) goes to the infusions; anything else is a
+/// medication, as before. The list is the infusions first (each with its rate field), then the antibiotics, the cardiovascular
+/// medications and the rest (MedicationCatalog.ordered), each group in the order entered. Storage is unchanged: `homeMeds` and
+/// `homeInfusions`, so a saved record opens as it was.
+struct CurrentMedicationsBox: View {
     @Environment(PatientStore.self) private var patient
     @State private var text = ""
     @State private var dropped: Set<Int> = []
+    @State private var droppedDrips: Set<String> = []
+    @State private var choices: [String: String] = [:]
+    @State private var wobbling = false
     @FocusState private var focused: Bool
 
-    static let placeholder = "Type medications, e.g. metoprolol 25 bid lisinopril"
+    static let placeholder = "e.g. metoprolol 25 bid, norepi 0.05"
+    /// The box's name, on the Preoperative tab's section title and the Medications & Allergies page.
+    static let title = "Current Medications & Infusions"
+    static let note = "Medications and drips running before the case. The infusions are listed first, with their rates, then the antibiotics, the cardiovascular medications and the rest, each in the order entered. The drips appear in the intraoperative infusions list tagged \"from preop\"."
 
-    private var reading: [MedicationCatalog.ReadItem] { MedicationCatalog.reading(text) }
+    private var mixed: InfusionEntry.MixedLine { InfusionEntry.mixed(text) }
+
+    /// The piece being typed is a medication: the catalog's reading then leaves it out while its name is unfinished (the
+    /// type-ahead speaks for it); once a drip follows it, it is finished.
+    private var typingMedication: Bool {
+        guard let last = InfusionEntry.pieces(text).last else { return true }
+        return !InfusionEntry.isInfusion(last)
+    }
+
+    private var reading: [MedicationCatalog.ReadItem] {
+        typingMedication ? MedicationCatalog.reading(mixed.medications) : MedicationCatalog.read(mixed.medications)
+    }
+
+    private var dripReading: InfusionEntry.Reading { InfusionEntry.read(mixed.infusions, choices: choices) }
 
     private func canAdd(_ m: PatientMed) -> Bool {
         if case .recorded = MedicationCatalog.status(m, in: patient.record.homeMeds) { return false }
@@ -32,10 +57,21 @@ struct HomeMedicationsBox: View {
         items.enumerated().filter { !dropped.contains($0.offset) && canAdd($0.element.med) }.map(\.element.med)
     }
 
+    private func canAddDrip(_ it: InfusionEntry.Item) -> Bool {
+        if case .recorded = InfusionEntry.status(it, in: patient.record.homeInfusions) { return false }
+        return true
+    }
+
+    private func addableDrips(_ r: InfusionEntry.Reading) -> [InfusionEntry.Item] {
+        r.items.filter { !droppedDrips.contains($0.id) && canAddDrip($0) }
+    }
+
     var body: some View {
         let r = patient.record
         let items = reading
+        let drips = dripReading
         let add = addable(items)
+        let addDrips = addableDrips(drips)
         VStack(alignment: .leading, spacing: 0) {
             let legacy = r.medications.trimmingCharacters(in: .whitespacesAndNewlines)
             if !legacy.isEmpty {
@@ -43,21 +79,20 @@ struct HomeMedicationsBox: View {
                 Hairline().padding(.leading, 14)
             }
             VStack(alignment: .leading, spacing: 8) {
-                LineFieldRow(placeholder: Self.placeholder, label: "Type medications", text: $text, focused: $focused,
-                             addCount: add.count, noun: ("medication", "medications"), onAdd: { file(add) }, onClear: clear)
-                let suggestions = MedicationCatalog.typeahead(text)
-                if !suggestions.isEmpty {
-                    SuggestionChips(items: suggestions.map { s in
-                        SuggestionItem(id: s.hit.entry.id, title: s.hit.entry.name, detail: s.hit.matched.map(FreeText.cap))
-                    }) { id in
-                        guard let s = suggestions.first(where: { $0.hit.entry.id == id }) else { return }
-                        Haptics.light()
-                        text = s.completing(text)
-                        focused = true
-                    }
-                }
-                if !items.isEmpty {
+                LineFieldRow(placeholder: Self.placeholder, label: "Type medications and infusions", text: $text, focused: $focused,
+                             addCount: add.count + addDrips.count, noun: ("item", "items"), onAdd: { file(add, addDrips) }, onClear: clear)
+                suggestions
+                if !items.isEmpty || !drips.isEmpty {
                     WrapLayout(spacing: 6) {
+                        ForEach(drips.questions) { q in InfusionQuestionChip(question: q) { choices[q.id] = $0 } }
+                        ForEach(drips.items) { it in
+                            InfusionChipView(item: it, status: InfusionEntry.status(it, in: r.homeInfusions), out: droppedDrips.contains(it.id)) {
+                                if droppedDrips.contains(it.id) { droppedDrips.remove(it.id) } else { droppedDrips.insert(it.id) }
+                            }
+                        }
+                        ForEach(drips.unknown, id: \.self) { u in
+                            InfusionInfoChip(text: u + " · not in the list", icon: "questionmark.circle")
+                        }
                         ForEach(Array(items.enumerated()), id: \.offset) { n, it in
                             let status = MedicationCatalog.status(it.med, in: r.homeMeds)
                             LineChip(label: it.med.text, note: note(status, typed: it.typed), out: dropped.contains(n), can: canAdd(it.med), typed: it.typed) {
@@ -65,19 +100,68 @@ struct HomeMedicationsBox: View {
                             }
                         }
                     }
+                    let notes = drips.items.filter { !droppedDrips.contains($0.id) && $0.note != nil }
+                    if !notes.isEmpty {
+                        VStack(alignment: .leading, spacing: 3) {
+                            ForEach(notes) { it in
+                                (Text(it.drug + ": ").font(PS.sys(size: 11.5, weight: .semibold)) + Text(it.note ?? "").font(PS.sys(size: 11.5)))
+                                    .foregroundStyle(PS.fg3)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(.horizontal, 2)
+                    }
                 }
             }
             .padding(.horizontal, 14).padding(.vertical, 10)
-            ForEach(r.homeMeds) { m in
+            // The infusions first, each with its rate field; long-press wobbles the list to delete.
+            ForEach(r.homeInfusions) { inf in
+                Hairline().padding(.leading, 14)
+                InfusionRow(infusion: infusionBinding(inf.id)) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
+                    .wobbleDelete($wobbling, label: inf.drug.isEmpty ? "infusion" : inf.drug) { patient.update(discrete: true) { $0.homeInfusions.removeAll { $0.id == inf.id } } }
+            }
+            // Then the medications: antibiotics, cardiovascular, the rest.
+            ForEach(MedicationCatalog.ordered(r.homeMeds)) { m in
                 Hairline().padding(.leading, 14)
                 HomeMedRow(med: m, dose: doseBinding(m.id)) {
                     Haptics.light()
                     withAnimation(.snappy) { patient.update(discrete: true) { $0.homeMeds.removeAll { $0.id == m.id } } }
                 }
             }
+            WobbleDoneBar(editing: $wobbling)
         }
-        .onChange(of: text) { _, _ in if !dropped.isEmpty { dropped = dropped.filter { $0 < reading.count } } }
+        .onChange(of: text) { _, _ in
+            if !dropped.isEmpty { dropped = dropped.filter { $0 < reading.count } }
+            if !droppedDrips.isEmpty { let ids = Set(dripReading.items.map(\.id)); droppedDrips = droppedDrips.filter { ids.contains($0) } }
+        }
         .onAppear(perform: seedForScreenshot)
+    }
+
+    /// The names the line offers to finish the piece being typed: the medications from the list, the drips (with the unit their
+    /// rate is in) from the drip list; a drug both lists know is offered once, as a medication.
+    @ViewBuilder private var suggestions: some View {
+        let meds = MedicationCatalog.typeahead(text)
+        let medNames = Set(meds.map { InfusionEntry.fold($0.hit.entry.name) })
+        let drips = InfusionEntry.suggestions(text).filter { !medNames.contains(InfusionEntry.fold($0.name)) }
+        if !meds.isEmpty || !drips.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                if !drips.isEmpty {
+                    InfusionSuggestionChips(drugs: drips) { completeDrip($0) }
+                }
+                if !meds.isEmpty {
+                    SuggestionChips(items: meds.map { s in
+                        SuggestionItem(id: s.hit.entry.id, title: s.hit.entry.name, detail: s.hit.matched.map(FreeText.cap))
+                    }) { id in
+                        guard let s = meds.first(where: { $0.hit.entry.id == id }) else { return }
+                        Haptics.light()
+                        text = s.completing(text)
+                        focused = true
+                    }
+                }
+            }
+        } else if let hint = InfusionEntry.unitHint(text) {
+            Text(hint).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3).padding(.horizontal, 2)
+        }
     }
 
     private func note(_ s: PatientNoteStatus, typed: Bool) -> String? {
@@ -93,10 +177,28 @@ struct HomeMedicationsBox: View {
                 set: { v in patient.update { r in if let i = r.homeMeds.firstIndex(where: { $0.id == id }) { r.homeMeds[i].dose = v } } })
     }
 
-    /// Files the chips shown and not left out, as one step in the store's Undo history.
-    private func file(_ items: [PatientMed]) {
-        guard !items.isEmpty else { return Haptics.light() }
-        patient.update(discrete: true) { MedicationCatalog.apply(items, to: &$0.homeMeds) }
+    private func infusionBinding(_ id: UUID) -> Binding<PatientInfusion> {
+        Binding(get: { patient.record.homeInfusions.first { $0.id == id } ?? PatientInfusion() },
+                set: { v in patient.update { r in if let i = r.homeInfusions.firstIndex(where: { $0.id == id }) { r.homeInfusions[i] = v } } })
+    }
+
+    /// The typeahead for a drip: the last piece's drug words become the drug's name.
+    private func completeDrip(_ d: InfusionEntryDrug) {
+        Haptics.light()
+        var parts = InfusionEntry.pieces(text)
+        if !parts.isEmpty { parts.removeLast() }
+        parts.append(d.name.lowercased())
+        text = parts.joined(separator: ", ") + " "
+        focused = true
+    }
+
+    /// Files the chips shown and not left out, medications and infusions, as one step in the store's Undo history.
+    private func file(_ meds: [PatientMed], _ drips: [InfusionEntry.Item]) {
+        guard !meds.isEmpty || !drips.isEmpty else { return Haptics.light() }
+        patient.update(discrete: true) { r in
+            MedicationCatalog.apply(meds, to: &r.homeMeds)
+            InfusionEntry.apply(drips, to: &r.homeInfusions)
+        }
         Haptics.success()
         withAnimation(.snappy) { clear() }
     }
@@ -115,12 +217,15 @@ struct HomeMedicationsBox: View {
     private func clear() {
         text = ""
         dropped = []
+        droppedDrips = []
+        choices = [:]
     }
 
-    /// Screenshot runs: -ps.meds.type "<line>" types a line into the field.
+    /// Screenshot runs: -ps.meds.type "<line>" (or -ps.infusion.type) types a line into the field.
     private func seedForScreenshot() {
         #if DEBUG
-        let t = LaunchSeed.string("ps.meds.type")
+        var t = LaunchSeed.string("ps.meds.type")
+        if t.isEmpty { t = LaunchSeed.string("ps.infusion.type") }
         if !t.isEmpty, text.isEmpty { text = t }
         #endif
     }
@@ -556,5 +661,104 @@ private struct LegacyListRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14).padding(.vertical, 10)
+    }
+}
+
+// MARK: - The Medications & Interventions page (1.12, Ben's notes 3 and 18)
+
+/// The Intraoperative tab's "Antibiotics & Notable Medications" page. At the top, read-only, the antibiotics charted in Case
+/// Timers for the open case with their times ("Cefazolin 2 g · last 08:12 · next due 12:12"; an overdue redose in red);
+/// then the notable medications as chips, each with an optional dose typed beside it once chosen; then the free text the
+/// page had before 1.12 (antibiotic and time for a case that does not use Case Timers, steroids, reversal, positioning),
+/// which both show side by side, never merged.
+struct IntraopMedicationsPage: View {
+    @Environment(PatientStore.self) private var patient
+    @Environment(ReferenceStore.self) private var refs
+
+    static let notableTitle = "Notable medications"
+    static let notableNote = "Choose a medication to record it; a dose is printed only if you type one, and none is suggested. A milrinone bolus or inhaled milrinone is not an infusion: type a drip under Infusions."
+    static let otherLabel = "Other medications & interventions"
+    static let otherPrompt = "Antibiotic and time, steroids, reversal, positioning"
+    static let antibioticsTitle = "Antibiotics in Case Timers"
+    static let antibioticsNote = "Read from Case Timers for this case: the drug and dose it holds, the last dose given and the next redose due. Change them in Case Timers."
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            TimelineView(.everyMinute) { ctx in antibiotics(now: ctx.date) }
+            notable
+            PatientGroup(title: nil) {
+                PatientTextField(label: Self.otherLabel, prompt: Self.otherPrompt,
+                                 text: Binding(get: { PatientNotableMeds.pageState(patient.record).text },
+                                               set: { v in patient.update { r in PatientNotableMeds.migrateLegacy(&r); r.medsGiven = v } }))
+            }
+        }
+    }
+
+    // MARK: Case Timers' antibiotics, read-only
+
+    @ViewBuilder private func antibiotics(now: Date) -> some View {
+        let lines = CaseAntibiotics.lines(patient.record, data: refs.caseTimers ?? CaseAntibiotics.current, now: now)
+        if !lines.isEmpty {
+            PatientGroup(title: Self.antibioticsTitle, note: Self.antibioticsNote) {
+                ForEach(Array(lines.enumerated()), id: \.element.id) { i, l in
+                    Text(l.tabText)
+                        .font(PS.sys(size: 14.5, weight: l.overdue ? .semibold : .regular))
+                        .foregroundStyle(l.overdue ? PS.red : PS.fg)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .accessibilityLabel(l.tabText + (l.overdue ? ", redose overdue" : ""))
+                    if i < lines.count - 1 { Hairline().padding(.leading, 14) }
+                }
+            }
+        }
+    }
+
+    // MARK: The chips and their doses
+
+    /// The chips as the page shows them: the record's, and a TXA typed in the free text before 1.12 as the TXA chip.
+    private var shown: PatientNotableMeds {
+        var m = PatientNotableMeds()
+        m.entries = PatientNotableMeds.pageState(patient.record).entries
+        return m
+    }
+
+    private var notable: some View {
+        let m = shown
+        return PatientGroup(title: Self.notableTitle, note: Self.notableNote) {
+            VStack(alignment: .leading, spacing: 0) {
+                ChipSet(options: PatientNotableMeds.options.map { ChipChoice($0.id, $0.label) }, style: .toggle, tint: PS.action,
+                        hints: Dictionary(PatientNotableMeds.options.filter { $0.full != $0.label }.map { ($0.id, $0.full) }, uniquingKeysWith: { a, _ in a }),
+                        isOn: { m.has($0) },
+                        tap: { id in withAnimation(.snappy) { patient.update(discrete: true) { r in PatientNotableMeds.migrateLegacy(&r); r.notableMeds.toggle(id) } } })
+                    .padding(14)
+                ForEach(m.ordered) { e in
+                    Hairline().padding(.leading, 14)
+                    doseRow(e)
+                }
+            }
+        }
+    }
+
+    private func doseRow(_ e: PatientNotableMeds.Entry) -> some View {
+        let name = PatientNotableMeds.option(e.id)?.label ?? e.id
+        let full = PatientNotableMeds.option(e.id)?.full ?? name
+        return HStack(spacing: 10) {
+            Text(name).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 6)
+            TextField("Dose (optional)", text: Binding(
+                get: { PatientNotableMeds.pageState(patient.record).entries.first { $0.id == e.id }?.dose ?? "" },
+                set: { v in patient.update { r in PatientNotableMeds.migrateLegacy(&r); r.notableMeds.setDose(e.id, v) } }))
+                .font(PS.sys(size: 13.5)).foregroundStyle(PS.fg)
+                .multilineTextAlignment(.trailing)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .padding(.horizontal, 8).padding(.vertical, 6)
+                .background(PS.surface2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .frame(width: 170)
+                .accessibilityLabel("Dose of " + full)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 8)
     }
 }
