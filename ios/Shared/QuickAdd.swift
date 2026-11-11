@@ -483,7 +483,9 @@ enum QuickAdd {
         case .problem, .aneurysm, .valve, .prosthesis, .pulmHtn, .cardiacSurgery, .pastSurgery, .lhcResult, .homeO2, .problemNote, .detail, .noHistory, .smoking, .medFlag, .medications, .symptom, .acute, .mets, .frail, .otherHistory, .anesthesiaHistory,
              .anesthesiaNotes, .dentition, .airwaySign, .mallampati,
              // 1.11: the preoperative ECG, stress test and cardiac answers.
-             .ecg, .stressTest, .cardiacAnswer:
+             .ecg, .stressTest, .cardiacAnswer,
+             // 1.12 (note 7): the preoperative echo's valve finding.
+             .echoValve:
             return true
         default:
             return false
@@ -3240,6 +3242,9 @@ enum QuickAdd {
             return ("Workup", stressText(t))
         case .event(let t):
             return ("Event", capitalized(t))
+        // 1.12 (note 7): as the echo's summary says it ("Severe AS", "Trivial TR").
+        case .echoValve(let valve, let lesion, let g):
+            return ("Echo", g.label + " " + valve.prefix(1).uppercased() + (lesion == "stenosis" ? "S" : "R"))
         default:
             var label = f.label
             for p in labelPrefixes where label.hasPrefix(p) { label = String(label.dropFirst(p.count)) }
