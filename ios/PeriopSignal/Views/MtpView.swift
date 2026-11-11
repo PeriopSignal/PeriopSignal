@@ -394,6 +394,7 @@ struct MtpView: View {
                     DatePicker("Injury", selection: Binding(get: { s.injury ?? s.started }, set: { state?.injury = $0 }),
                                in: ...Date(), displayedComponents: [.hourAndMinute])
                         .font(PS.sys(size: 14)).tint(PS.accent)
+                        .environment(\.locale, PatientDates.locale24)
                 }
                 if late, let msg = ctx.late {
                     Label(msg, systemImage: "exclamationmark.triangle.fill").font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.red)

@@ -206,6 +206,7 @@ struct MoreView: View {
                     Text("Alerts found earlier wait until this time.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                 }
             }
+            .environment(\.locale, PatientDates.locale24)
             .onChange(of: alertDate) { _, d in
                 let c = Calendar.current.dateComponents([.hour, .minute], from: d)
                 prefs.alertHour = c.hour ?? 6; prefs.alertMinute = c.minute ?? 30
