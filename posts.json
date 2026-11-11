@@ -47,6 +47,12 @@
     ],
     "answer": 1,
     "explanation": "The composite occurred in 10.9% off-pump and 16.0% on-pump (relative risk 1.47, 95% CI 0.94 to 2.31; P=0.09), so the trial did not show a significant difference. Wound infection was higher on-pump (8.0% vs 3.5%), but this was a secondary outcome in an open-label trial."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/circulation-2026-fragile-offpump-vs-onpump-cabg-frail.mp3",
+    "seconds": 213,
+    "bytes": 1702509,
+    "voice": "kokoro:af_heart"
    }
   },
   {
