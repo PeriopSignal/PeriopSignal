@@ -19,10 +19,11 @@ struct IntraopLabsEditor: View {
     /// The page's Previous / Next focus: the newest set's fields take part in it.
     var focus: FocusState<String?>.Binding? = nil
 
-    /// The newest set's fields, top to bottom: the order Previous and Next walk ("iop.ph").
+    /// The newest set's fields, top to bottom: the order Previous and Next walk ("iop.glucose", then the gas, "iop.ph").
+    /// 1.12: the glucose has its own section above the blood gas, and an ScvO₂ or SvO₂ sample has its saturation first.
     static func fieldOrder(_ r: PatientRecord) -> [String] {
-        guard !r.intraopLabs.isEmpty else { return [] }
-        return IntraopLabs.tests(IntraopLabs.abg + IntraopLabs.coag).map { "iop." + $0.key }
+        guard let newest = IntraopLabs.newestFirst(r.intraopLabs).first else { return [] }
+        return IntraopLabs.tests(IntraopLabs.pageOrder(newest.gasType), type: newest.gasType).map { "iop." + $0.key }
     }
 
     private var r: PatientRecord { patient.record }
@@ -73,36 +74,85 @@ struct IntraopLabsEditor: View {
                 set: { v in if let i = index(id) { patient.update { $0.intraopLabs[i][keyPath: kp] = v } } })
     }
 
-    @ViewBuilder private func setEditor(_ s: IntraopLabSet, chained: Bool = false) -> some View {
-        PatientGroup(title: "Drawn at") {
-            HStack(spacing: 10) {
-                DatePicker("Time drawn", selection: Binding(get: { index(s.id).flatMap { patient.record.intraopLabs[$0].time } ?? Date() },
-                                                            set: { v in if let i = index(s.id) { patient.update { $0.intraopLabs[i].time = v } } }),
-                           displayedComponents: [.date, .hourAndMinute])
-                    .labelsHidden()
-                Spacer()
-                Button(role: .destructive) {
-                    withAnimation(.snappy) { if let i = index(s.id) { patient.update(discrete: true) { _ = $0.intraopLabs.remove(at: i) } } }
-                } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Remove this lab set")
+    /// The set's blood gas type (1.12, Ben's note 13), chosen from a menu at the top right of the set, level with the
+    /// "Drawn at" heading: ABG (the default), VBG, ScvO₂ (CVL) or SvO₂ (PA). The labels and ranges below follow it.
+    private func gasTypeMenu(_ s: IntraopLabSet) -> some View {
+        Menu {
+            ForEach(BloodGasType.allCases, id: \.self) { t in
+                Button {
+                    Haptics.light()
+                    withAnimation(.snappy) { if let i = index(s.id) { patient.update(discrete: true) { $0.intraopLabs[i].gasType = t } } }
+                } label: {
+                    if t == s.gasType { Label(t.label, systemImage: "checkmark") } else { Text(t.label) }
+                }
             }
-            .padding(.horizontal, 14).padding(.vertical, 8)
+        } label: {
+            HStack(spacing: 5) {
+                Text(s.gasType.short)
+                Image(systemName: "chevron.up.chevron.down").font(PS.sys(size: 10, weight: .bold))
+            }
+            .font(PS.sys(size: 13.5, weight: .semibold))
+            .foregroundStyle(PS.action)
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(PS.action.opacity(0.12), in: Capsule())
+            .contentShape(Capsule())
         }
+        .accessibilityLabel("Blood gas type, " + s.gasType.label)
+        .accessibilityHint("Chooses ABG, VBG, ScvO₂ or SvO₂")
+    }
+
+    @ViewBuilder private func setEditor(_ s: IntraopLabSet, chained: Bool = false) -> some View {
+        let type = s.gasType
+        // The "Drawn at" heading with the gas type menu on its line (PatientGroup draws no accessory, so the box is drawn
+        // here the same way).
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
+                SectionHeader(title: "Drawn at", info: nil).padding(.leading, 2)
+                Spacer(minLength: 8)
+                gasTypeMenu(s)
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 10) {
+                    DatePicker("Time drawn", selection: Binding(get: { index(s.id).flatMap { patient.record.intraopLabs[$0].time } ?? Date() },
+                                                                set: { v in if let i = index(s.id) { patient.update { $0.intraopLabs[i].time = v } } }),
+                               displayedComponents: [.date, .hourAndMinute])
+                        .labelsHidden()
+                    Spacer()
+                    Button(role: .destructive) {
+                        withAnimation(.snappy) { if let i = index(s.id) { patient.update(discrete: true) { _ = $0.intraopLabs.remove(at: i) } } }
+                    } label: { Image(systemName: "trash").foregroundStyle(PS.fg3) }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Remove this lab set")
+                }
+                .padding(.horizontal, 14).padding(.vertical, 8)
+            }
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        }
+        // 1.12 (Ben's note 13): the glucose is a section of its own, above the blood gas.
+        PatientGroup(title: "Glucose") { rows(s.id, IntraopLabs.glucoseKeys, chained: chained, type: type) }
         // 1.11 (Ben, Nov 9): the gas as its slash figure, pH / PaCO₂ / PaO₂ / HCO₃, typed into the slots; the rest of
-        // the gas follows as rows. Previous and Next walk them in the same order as before (IntraopLabs.abg).
+        // the gas follows as rows. Previous and Next walk them in the same order as before (IntraopLabs.abg). 1.12: the
+        // labels and the ranges follow the gas type (PvCO₂ and PvO₂ and no arterial flags on a venous gas), and an ScvO₂
+        // or SvO₂ sample has its saturation first.
         PatientGroup(title: "Blood gas") {
+            if type.hasSaturation {
+                rows(s.id, [IntraopLabs.satKey], chained: chained, type: type)
+                Hairline().padding(.leading, 14)
+            }
             FishboneABG(g: .page) { key in
-                if let t = IntraopLabs.tests([key]).first {
-                    LabSlot(test: t, sex: r.sex, value: value(s.id, t.key), chain: chain(t.key, chained))
+                if let t = IntraopLabs.test(key, type: type) {
+                    LabSlot(test: t, sex: r.sex, value: value(s.id, t.key), chain: chain(t.key, chained),
+                            ranged: IntraopLabs.isRanged(t.key, type: type))
                 }
             }
             .padding(.horizontal, 14).padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
             Hairline().padding(.leading, 14)
-            rows(s.id, IntraopLabs.abgRest, chained: chained)
+            rows(s.id, IntraopLabs.abgRest, chained: chained, type: type)
         }
-        PatientGroup(title: "Coagulation") { rows(s.id, IntraopLabs.coag, chained: chained) }
+        PatientGroup(title: "Coagulation") { rows(s.id, IntraopLabs.coag, chained: chained, type: type) }
         PatientGroup(title: "Viscoelastic & other") {
             PatientTextField(label: "ROTEM or TEG", prompt: "e.g. EXTEM CT 85 s, A10 38 mm; FIBTEM A10 7 mm", text: text(s.id, \.viscoelastic))
             PatientTextField(label: "Other results", prompt: "e.g. Mg 1.6, SvO₂ 64%, anti-Xa", text: text(s.id, \.other))
@@ -114,13 +164,14 @@ struct IntraopLabsEditor: View {
         return PatientFieldChain(focus: focus, id: "iop." + key)
     }
 
-    @ViewBuilder private func rows(_ id: UUID, _ keys: [String], chained: Bool) -> some View {
-        let tests = IntraopLabs.tests(keys)
+    @ViewBuilder private func rows(_ id: UUID, _ keys: [String], chained: Bool, type: BloodGasType) -> some View {
+        let tests = IntraopLabs.tests(keys, type: type)
         ForEach(Array(tests.enumerated()), id: \.element.id) { i, t in
             if t.key == "be" {
                 // The number pad has no minus sign: ± turns an excess into a deficit.
                 HStack(spacing: 0) {
-                    LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key), chain: chain(t.key, chained))
+                    LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key), chain: chain(t.key, chained),
+                                ranged: IntraopLabs.isRanged(t.key, type: type))
                     Button {
                         let b = value(id, t.key)
                         patient.markDiscrete()
@@ -133,7 +184,8 @@ struct IntraopLabsEditor: View {
                     .accessibilityLabel("Change the sign of the base excess")
                 }
             } else {
-                LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key), chain: chain(t.key, chained))
+                LabFieldRow(test: t, sex: r.sex, troponin99: nil, value: value(id, t.key), chain: chain(t.key, chained),
+                            ranged: IntraopLabs.isRanged(t.key, type: type))
             }
             if i < tests.count - 1 { Hairline().padding(.leading, 14) }
         }

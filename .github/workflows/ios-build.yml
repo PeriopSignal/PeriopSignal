@@ -829,14 +829,14 @@ jobs:
           shot 787-intraop-pinned-fluids-dark 18 -ps.tab patient -ps.patient demo-intraop110 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
           shot 788-style-gallery-light 14 -ps.screen gallery -ps.forceAppearance light
           shot 789-style-gallery-dark 14 -ps.screen gallery -ps.forceAppearance dark
-          shot 790-w375-style-gallery-large-text-light 14 -ps.screen gallery -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 790-w375-style-gallery-large-text-light 14 -ps.screen gallery -ps.handoff.extras.preview 1 -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
           # The gallery below its first screen (-ps.gallery.scroll): links and rows, summary lines, headings, buttons.
           shot 788-style-gallery-links-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.forceAppearance light
           shot 788-style-gallery-headings-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.forceAppearance light
           shot 789-style-gallery-links-dark 14 -ps.screen gallery -ps.gallery.scroll links -ps.forceAppearance dark
           shot 789-style-gallery-headings-dark 14 -ps.screen gallery -ps.gallery.scroll headings -ps.forceAppearance dark
-          shot 790-w375-style-gallery-links-large-text-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
-          shot 790-w375-style-gallery-headings-large-text-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 790-w375-style-gallery-links-large-text-light 14 -ps.screen gallery -ps.gallery.scroll links -ps.handoff.extras.preview 1 -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 790-w375-style-gallery-headings-large-text-light 14 -ps.screen gallery -ps.gallery.scroll headings -ps.handoff.extras.preview 1 -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
           shot 791-summary-status-plan-box-light 18 -ps.tab patient -ps.patient demo -ps.patient.tab summary -ps.forceAppearance light
           shot 792-ecg-nsr-preset-dark 14 -ps.tab patient -ps.patient demo -ps.patient.open workup:ecg -ps.forceAppearance dark
           shot 793-tee-screen-alerts-light 16 -ps.tab patient -ps.patient demo-cardiac -ps.patient.open workup:tee -ps.forceAppearance light
@@ -883,6 +883,26 @@ jobs:
           shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
           # ---- 1.12 helper A shots (830-849): add your shot lines directly under this line ----
+          shot 830-labs112-infectious-pregnancy-light-375 45 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.patient.width 375 -ps.forceAppearance light
+          shot 831-labs112-infectious-pregnancy-dark 22 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.forceAppearance dark
+          shot 832-labs112-male-no-pregnancy-light-375 22 -ps.tab patient -ps.patient demo-112-labs-male -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.patient.width 375 -ps.forceAppearance light
+          shot 833-labs112-empty-quiet-links-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.open workup:labs -ps.patient.scroll labs-results -ps.patient.width 375 -ps.forceAppearance light
+          shot 834-labs112-card-light-375 22 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.tab preop -ps.patient.scroll labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 835-labs112-intraop-abg-light 24 -ps.tab patient -ps.patient demo-112-labs-abg -ps.patient.open intraop:labs -ps.forceAppearance light
+          shot 836-labs112-intraop-abg-dark 24 -ps.tab patient -ps.patient demo-112-labs-abg -ps.patient.open intraop:labs -ps.forceAppearance dark
+          shot 837-labs112-intraop-vbg-light-375 24 -ps.tab patient -ps.patient demo-112-labs-vbg -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance light
+          shot 838-labs112-intraop-svo2-light 24 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.open intraop:labs -ps.forceAppearance light
+          shot 839-labs112-intraop-svo2-dark-375 24 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance dark
+          shot 840-labs112-handoff-abg-light 22 -ps.tab patient -ps.patient demo-112-labs-abg -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 841-labs112-handoff-abg-dark 22 -ps.tab patient -ps.patient demo-112-labs-abg -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 842-labs112-handoff-vbg-light-375 22 -ps.tab patient -ps.patient demo-112-labs-vbg -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 843-labs112-handoff-extras-closed-nothing-chosen-light 22 -ps.tab patient -ps.patient demo-112-labs-noextras -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.forceAppearance light
+          shot 844-labs112-handoff-svo2-dark-375 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
+          shot 845-labs112-handoff-large-text-light-375 22 -ps.tab patient -ps.patient demo-112-labs-vbg -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.patient.width 375 -ps.textScale 1.25 -ps.forceAppearance light
+          shot 846-labs112-preopsummary-light-375 22 -ps.tab patient -ps.patient demo-112-labs-preopsum -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance light
+          shot 847-labs112-preopsummary-dark 22 -ps.tab patient -ps.patient demo-112-labs-preopsum -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance dark
+          shot 848-labs112-extras-open-light-375 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.handoff.extras 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 849-labs112-extras-open-dark 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.handoff.extras 1 -ps.forceAppearance dark
           #
           # ---- 1.12 helper B shots (850-869): add your shot lines directly under this line ----
           #

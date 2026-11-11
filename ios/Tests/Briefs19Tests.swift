@@ -222,60 +222,65 @@ final class Briefs19Tests: XCTestCase {
     }
 
     // MARK: 4. Labs: the latest intraoperative values, with a time
+    //
+    // 1.12 (Ben's note 8): the labs block is two columns, Preop and Intraop, not a fishbone with starred values. The
+    // 1.9 tests of the starred values, the fishbone's plain line and the side list were rewritten for it here; the new
+    // rules have their own tests in A112Tests.
 
-    func testIntraopLabsOverridePreopValuesAndSayWhen() throws {
+    func testIntraopLabsAreTheirOwnColumnWithTheLatestSetOfEachValue() throws {
         var r = PatientRecord()
         r.labs = ["k": 5.6, "hb": 10.8, "na": 138, "cr": 6.2, "inr": 1.0]
         r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 15), values: ["k": 4.0, "inr": 1.9]),
                          IntraopLabSet(time: PatientDemo.today(10, 40), values: ["k": 4.9, "hco3a": 21, "lactate": 1.4])]
-        guard case .fishbone(let labs)? = try block(PatientBriefs.handoff(r), "labs").figure else { return XCTFail("no fishbone") }
-        XCTAssertEqual(labs.cells["k"]?.text, "4.9", "the newest set's value")
-        XCTAssertEqual(labs.cells["k"]?.intraop, true)
-        XCTAssertEqual(labs.cells["inr"]?.text, "1.9", "an older set's value when the newest has none")
-        XCTAssertEqual(labs.cells["hco3"]?.text, "21", "the arterial bicarbonate stands in the HCO₃ cell")
-        XCTAssertEqual(labs.cells["na"]?.intraop, false, "the preoperative value stays")
-        XCTAssertEqual(labs.cells["hb"]?.text, "10.8")
-        XCTAssertEqual(labs.caption, "* Intraop 10:40 (K, HCO₃, Lactate) / 09:15 (INR); other values preop", "each time names its values")
-        XCTAssertTrue(try block(PatientBriefs.handoff(r), "labs").text.contains("Lactate 1.4*"), "the other values listed")
-        // The preprocedure summary is the preoperative labs.
-        guard case .fishbone(let pre)? = try block(PatientBriefs.preop(r), "labs").figure else { return XCTFail("no fishbone") }
-        XCTAssertEqual(pre.cells["k"]?.text, "5.6")
+        guard case .fishbone(let labs)? = try block(PatientBriefs.handoff(r), "labs").figure else { return XCTFail("no labs figure") }
+        // The preop values stay in the Preop column, whatever the case found (no value is replaced and starred any more).
+        XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "K 5.6 H" })
+        XCTAssertTrue(labs.preop.flatMap(\.items).contains { $0.text == "INR 1.0" })
+        // The Intraop column: the newest gas with its lactate, then the newest coags.
+        XCTAssertEqual(labs.gas?.slash.compactMap { $0 }.map(\.key), ["hco3a"])
+        XCTAssertEqual(labs.gas?.lactate?.text, "1.4")
+        XCTAssertEqual(labs.intraop.last?.items.map(\.text), ["INR 1.9 H"], "an older set's value when the newest has none")
+        XCTAssertEqual(labs.caption, "Intraop 09:15", "the gas's own time is on its figure")
+        XCTAssertFalse(try block(PatientBriefs.handoff(r), "labs").text.contains("*"))
+        // The preprocedure summary is the preoperative labs alone.
+        guard case .fishbone(let pre)? = try block(PatientBriefs.preop(r), "labs").figure else { return XCTFail("no labs figure") }
+        XCTAssertFalse(pre.hasIntraop)
         XCTAssertNil(pre.caption)
-        // An intraoperative set only: still a fishbone, with no "other values" clause.
+        // An intraoperative set only: the Intraop column alone.
         var only = PatientRecord()
         only.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["k": 4.9])]
-        guard case .fishbone(let o)? = try block(PatientBriefs.handoff(only), "labs").figure else { return XCTFail("no fishbone") }
-        XCTAssertEqual(o.caption, "* Intraop 10:40")
+        XCTAssertNil(PatientBriefs.handoff(only).first { $0.key == "labs" }, "a potassium alone is neither the gas nor the coags: it is a chip")
     }
 
-    func testFishbonePlainLine() throws {
+    func testLabsPlainText() throws {
         var r = PatientRecord()
         r.labs = ["na": 138, "k": 4.1, "cl": 102, "hco3": 24, "bun": 18, "cr": 1.1, "glucose": 110, "wbc": 7.2, "hb": 13.1, "hct": 39, "plt": 210,
                   "pt": 12.1, "inr": 1.0, "ptt": 30]
-        let expected = "Labs: BMP: Na 138, K 4.1, Cl 102, HCO3 24, BUN 18, Cr 1.10, Glu 110 · CBC: WBC 7.2, Hb 13.1, Hct 39, Plt 210 · Coags: PT 12.1, INR 1.0, PTT 30"
+        // Only what is in Ben's lists: CMP (Na, K, BUN, Cr, glucose) and Heme (Hb, Plt, PTT, INR); Cl, HCO₃, WBC, Hct and PT are chips.
+        let expected = "Labs: Preop: CMP: Na 138, K 4.1, BUN 18, Cr 1.10, Glu 110; Heme: Hb 13.1, Plt 210, PTT 30, INR 1.0"
         XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(r)), expected)
         XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(r)), expected)
-        // Only what was entered; abnormal values carry their H or L; an estimated Hct says so.
+        // Only what was entered; abnormal values carry their H or L; no estimated Hct.
         var partial = PatientRecord()
         partial.labs = ["k": 5.9, "hb": 12, "inr": 1.6]
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(partial)), "Labs: BMP: K 5.9 H · CBC: Hb 12, Hct ~36 (est.) · Coags: INR 1.6 H")
-        // The case's values in the copied text: * and the caption on its own line.
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(partial)), "Labs: Preop: CMP: K 5.9 H; Heme: Hb 12, INR 1.6 H")
+        // The case's values are their own paragraph, with plain digits and the times on a line of their own.
         var withCase = PatientRecord()
-        withCase.labs = ["k": 5.0, "na": 138]
-        withCase.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["k": 4.9])]
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(withCase)), "Labs: BMP: Na 138, K 4.9*\n  * Intraop 10:40; other values preop")
+        withCase.labs = ["k": 4.5, "na": 138]
+        withCase.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["ph": 7.4, "hco3a": 24])]
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(withCase)), "Labs:\n  Preop: CMP: Na 138, K 4.5\n  Intraop: ABG (10:40): pH 7.4 / HCO3 24")
     }
 
-    func testOtherLabsAreListedBesideTheFishbone() throws {
+    func testOtherLabsAreListedUnderOther() throws {
         var r = PatientRecord()
         r.labs = ["k": 4.1, "albumin": 3.9, "lactate": 1.4]
         r.typeScreen = PatientTypeScreen(type: "A+", screen: .negative, crossmatched: 2)
         let t = try block(PatientBriefs.preop(r), "labs")
-        XCTAssertTrue(t.lines.contains("Alb 3.9"), t.text)
-        XCTAssertTrue(t.lines.contains("Lactate 1.4"), t.text)
-        XCTAssertTrue(t.text.contains("T&S"), t.text)
+        XCTAssertTrue(t.text.contains("Other: Lactate 1.4"), t.text)
+        XCTAssertFalse(t.text.contains("Alb 3.9"), "the albumin is a chip under + Add other input data into Handoff")
+        XCTAssertTrue(t.text.contains("Heme: T&S A+, screen neg, 2 u crossmatched"), t.text)
         XCTAssertEqual(PatientBriefs.plainText([t]).components(separatedBy: "\n").count, 1, "one line in the copied text")
-        XCTAssertTrue(PatientBriefs.plainText([t]).hasPrefix("Labs: BMP: K 4.1 · Alb 3.9 · Lactate 1.4 · T&S"), PatientBriefs.plainText([t]))
+        XCTAssertTrue(PatientBriefs.plainText([t]).hasPrefix("Labs: Preop: CMP: K 4.1; Heme: T&S"), PatientBriefs.plainText([t]))
     }
 
     func testPTAndPTTAreLabFields() {
@@ -320,7 +325,11 @@ final class Briefs19Tests: XCTestCase {
         XCTAssertTrue(labs.text.contains("C. diff pending"), labs.text)
         XCTAssertFalse(labs.text.contains("COVID neg"), "the handoff lists the positive and the pending")
         XCTAssertTrue(labs.marks.contains("MRSA pos"))
-        XCTAssertTrue(try block(PatientBriefs.preop(r), "labs").text.contains("COVID neg"), "the preprocedure summary lists every result")
+        // 1.12 (Ben's note 8): the Preop column lists the MRSA screen and what needs telling; a negative COVID test is a chip
+        // under + Add other input data into Handoff, in the preprocedure summary as in the handoff.
+        XCTAssertFalse(try block(PatientBriefs.preop(r), "labs").text.contains("COVID neg"))
+        XCTAssertTrue(HandoffExtras.preopCandidates(r).map(\.key).contains("preop:covid"))
+        XCTAssertTrue(try block(PatientBriefs.preop(r), "labs").text.contains("MRSA pos"))
         let pmh = try block(PatientBriefs.handoff(r), "pmh")
         XCTAssertTrue(pmh.text.localizedCaseInsensitiveContains("isolation"), pmh.text)
     }
@@ -488,7 +497,10 @@ final class Briefs19Tests: XCTestCase {
         XCTAssertTrue(lines.contains { $0.hasPrefix("PMH (ASA IV): ") })
         XCTAssertTrue(lines.contains { $0.hasPrefix("PSH: ") })
         XCTAssertTrue(lines.contains { $0.hasPrefix("Airway course: ") && $0.hasSuffix("Extubated.") })
-        XCTAssertTrue(lines.contains { $0.hasPrefix("Labs: BMP: ") && $0.contains(" · CBC: ") && $0.contains(" · Coags: PT 12.1, INR 1.0, PTT 30") })
+        // 1.12 (Ben's note 8): two labelled paragraphs under the label, not a fishbone line.
+        XCTAssertTrue(lines.contains("Labs:"))
+        XCTAssertTrue(lines.contains { $0.hasPrefix("  Preop: CMP: ") && $0.contains("; Heme: ") && $0.contains("PTT 30, INR 1.0") })
+        XCTAssertTrue(lines.contains { $0.hasPrefix("  Intraop: ") })
         XCTAssertTrue(lines.contains("Current infusions & intraop medications:"))
         XCTAssertTrue(lines.contains { $0.hasPrefix("  Infusions: ") })
         XCTAssertTrue(lines.contains { $0.hasPrefix("  Intraop medications: ") })

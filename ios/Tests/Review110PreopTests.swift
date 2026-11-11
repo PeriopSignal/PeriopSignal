@@ -143,8 +143,8 @@ final class Review110PreopTests: XCTestCase {
     func testNothingIsShownWhenNoDrawnTimeIsEntered() {
         var r = PatientRecord()
         r.labs = ["k": 4.1, "na": 138]
-        XCTAssertNil(BriefLabs.make(r, withIntraop: false, now: Date()).labs.caption)
-        XCTAssertNil(BriefLabs.make(r, withIntraop: true, now: Date()).labs.caption)
+        XCTAssertNil(BriefLabs.make(r, withIntraop: false, now: Date()).caption)
+        XCTAssertNil(BriefLabs.make(r, withIntraop: true, now: Date()).caption)
         XCTAssertFalse(PatientBriefs.plainText(PatientBriefs.preop(r)).contains("Preop labs"))
     }
 
