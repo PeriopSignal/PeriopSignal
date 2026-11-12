@@ -907,6 +907,27 @@ jobs:
           shot 849-labs112-extras-open-dark 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.handoff.extras 1 -ps.forceAppearance dark
           #
           # ---- 1.12 helper O shots (1110-1129): add your shot lines directly under this line ----
+          # 1.12 helper O (1110-1129): Case Timers' Heparin & ACT as one timeline, 375 pt (Ben, Nov 12): a bypass case with the reminder on
+          # and off, adding an ACT, editing a row, a TAVR, an empty case, the protamine row and block, rows from the day before.
+          shot 1110-hep112-bypass-on-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1111-hep112-bypass-on-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1112-hep112-bypass-off-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass-off -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1113-hep112-bypass-off-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass-off -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1114-hep112-add-act-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add act -ps.timers.hep.value 512 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1115-hep112-add-act-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add act -ps.timers.hep.value 512 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1116-hep112-edit-row-light 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.edit 3 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1117-hep112-edit-row-dark 22 -ps.tab patient -ps.patient demo-112-hep-bypass -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.edit 3 -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1118-hep112-tavr-light 22 -ps.tab patient -ps.patient demo-112-hep-tavr -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1119-hep112-tavr-dark 22 -ps.tab patient -ps.patient demo-112-hep-tavr -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1120-hep112-empty-light 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1121-hep112-empty-dark 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1122-hep112-protamine-timeline-light 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1123-hep112-protamine-timeline-dark 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1124-hep112-protamine-block-light 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.patient.width 375 -ps.forceAppearance light
+          shot 1125-hep112-protamine-block-dark 22 -ps.tab patient -ps.patient demo-112-hep-protamine -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.protamine -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1126-hep112-dated-rows-light 22 -ps.tab patient -ps.patient demo-112-hep-midnight -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1127-hep112-add-dose-first-light 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add dose -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1128-hep112-add-dose-first-dark 22 -ps.tab patient -ps.patient demo-112-hep-empty -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.hep.add dose -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
           #
           # ---- 1.12 helper B shots (850-869): add your shot lines directly under this line ----
           # Handoff: PMH with no system labels, the short airway line (easy, difficult, 375 pt), the imaging block.
