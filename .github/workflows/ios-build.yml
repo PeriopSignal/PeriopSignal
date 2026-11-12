@@ -1119,6 +1119,10 @@ jobs:
           shot 978-lab112-intraop-labs-dark-375 24 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance dark
           shot 979-lab112-share-image-page2-light 22 -ps.tab patient -ps.patient demo-112-dates-ts-set -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage2 -ps.forceAppearance light
           #
+          # 1.12 (Ben, Nov 12): Diagnostic angiogram and Angiogram with possible intervention in the procedure list.
+          shot 1070-proc-angiogram-light 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram" -ps.forceAppearance light
+          shot 1071-proc-angiogram-intervention-dark 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram with possible" -ps.forceAppearance dark
+          #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
 
