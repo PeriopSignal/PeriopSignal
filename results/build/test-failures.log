@@ -1,0 +1,11 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:141: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertNil failed: "procedure("transfusion")" - Hgb 7.2 for transfusion
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:142: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertTrue failed - Hgb 7.2 for transfusion
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:141: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertNil failed: "procedure("dialysis")" - K 5.9 for dialysis
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:142: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertTrue failed - K 5.9 for dialysis
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:141: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertNil failed: "procedure("reversal")" - INR 1.9 for reversal
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:142: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertTrue failed - INR 1.9 for reversal
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:141: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertNil failed: "procedure("pressors")" - BP 80/40 for pressors
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:142: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertTrue failed - BP 80/40 for pressors
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:141: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertNil failed: "procedure("frobnication")" - 73M Hgb 7.2 for frobnication
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:142: error: -[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient] : XCTAssertTrue failed - 73M Hgb 7.2 for frobnication
+Test Case '-[PeriopSignalTests.L112Tests testALabOrVitalBeforeForIsNotThePatient]' failed (9.501 seconds).
