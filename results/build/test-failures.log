@@ -1,3 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/H112Tests.swift:170: error: -[PeriopSignalTests.H112Tests testVancAndADoseIsADoseLoggedInCaseTimersAtNow] : XCTAssertEqual failed: ("Vancomycin 1 g: recorded at 09:30") is not equal to ("Vancomycin 1 g: dose logged in Case Timers at 09:30")
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/H112Tests.swift:171: error: -[PeriopSignalTests.H112Tests testVancAndADoseIsADoseLoggedInCaseTimersAtNow] : XCTAssertEqual failed: ("Optional("Intraop · Vancomycin 1 g: recorded at 09:30")") is not equal to ("Optional("Intraop · Vancomycin 1 g: dose logged in Case Timers at 09:30")")
-Test Case '-[PeriopSignalTests.H112Tests testVancAndADoseIsADoseLoggedInCaseTimersAtNow]' failed (7.724 seconds).
