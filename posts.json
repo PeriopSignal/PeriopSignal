@@ -51,6 +51,29 @@
     "seconds": 231,
     "bytes": 1844589,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Prevention of Venous Thromboembolism after Total Hip or Knee Replacement",
+    "authors": [
+     "Pellegrini VD",
+     "Lambourne CA",
+     "Magder LS",
+     "Franklin PD",
+     "Magaziner JS",
+     "Martin BI",
+     "Iorio R",
+     "Garvin KL",
+     "Mont MA",
+     "Moschetti WE",
+     "Chen AF",
+     "Warwick D"
+    ],
+    "journal": "N Engl J Med",
+    "doi": "10.1056/NEJMoa2602435",
+    "year": 2026,
+    "volume": "395",
+    "issue": "19",
+    "pages": "1896-1910"
    }
   },
   {
@@ -89,6 +112,26 @@
     "seconds": 193,
     "bytes": 1541997,
     "voice": "kokoro:af_heart"
+   },
+   "citation": {
+    "title": "Consensus on the definition, components, and grading of composite postoperative pulmonary complication outcomes (PrECiSIOn): insights from an international Delphi expert panel",
+    "authors": [
+     "Battaglini D",
+     "Blot S",
+     "Fernandez-Bustamante A",
+     "Gama de Abreu M",
+     "Hemmes SNT",
+     "Hollmann MW",
+     "Myatra SN",
+     "Nasa P",
+     "Paulus F",
+     "Schultz MJ",
+     "Serpa Neto A",
+     "Slutsky AS"
+    ],
+    "journal": "The Lancet Respiratory Medicine",
+    "doi": "10.1016/S2213-2600(26)00296-1",
+    "year": 2026
    }
   },
   {
