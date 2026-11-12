@@ -200,8 +200,8 @@ enum PatientCatalog {
         ]),
         // 1.9: an expanding page. Anemia is also set by a low hemoglobin (WHO 2024 cut-offs, PatientCrossFill). Factor V
         // Leiden is a thrombophilia, not a bleeding disorder (Ben, Nov 3); the Obstetric page's Thrombophilia is this item.
-        // 1.12 (Ben, Nov 11): "Heme & Oncology", with one Malignancy item for the common cancers (PatientMalignancy; no ASA
-        // class, no RCRI item). Its id and the ids of the Hematologic problems are unchanged.
+        // 1.12 (Ben, Nov 11): "Heme & Oncology", with one Malignancy item for the common cancers (PatientMalignancy; its ASA class
+        // is by definition and by status, no RCRI item). Its id and the ids of the Hematologic problems are unchanged.
         PatientSystem(id: "heme", name: "Heme & Oncology", icon: "drop.triangle", problems: [
             PatientProblem("anemia", "Anemia", asaDef: 2),
             PatientProblem("thrombocytopenia", "Thrombocytopenia", asaDef: 2),
