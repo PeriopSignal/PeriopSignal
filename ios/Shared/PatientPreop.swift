@@ -96,7 +96,7 @@ enum PatientPreop {
     /// page's own entry, or one the catalog or its words make cardiac), so a lobectomy or a VATS wedge is not called
     /// cardiac surgery.
     static func previousCardiacSurgery(_ r: PatientRecord) -> [PatientSurgery] {
-        r.capitalized.allIntrathoracic.filter { $0.id == r.hx.cardiacSurgeryID || PastSurgeryNote.isCardiac($0) }
+        PatientSurgery.chronological(r.capitalized.allIntrathoracic.filter { $0.id == r.hx.cardiacSurgeryID || PastSurgeryNote.isCardiac($0) })
     }
 
     /// The small link under the code status chips to its page (the plan for the procedure and the POLST), for every

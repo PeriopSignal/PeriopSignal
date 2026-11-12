@@ -137,10 +137,8 @@ extension PatientEditorView {
 
     @ViewBuilder private var surgeriesEditor: some View {
         PatientGroup(title: "Past surgical history", note: "Cardiac and thoracic operations also appear under Previous intrathoracic surgery in the cardiac evaluation.") {
-            ForEach(r.surgeries) { s in
-                SurgeryRow(surgery: pastSurgeryBinding(s.id)) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
-                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
-            }
+            // Newest first (1.12 follow-up, Ben); the order is fixed when the page appears and when an entry is added or removed.
+            PastSurgeryRows(chestOnly: false, wobbling: $wobbling)
             WobbleDoneBar(editing: $wobbling)
             addButton(r.surgeries.isEmpty ? "Add an operation" : "Add another operation") { patient.update(discrete: true) { $0.surgeries.append(PatientSurgery()) } }
         }
@@ -152,10 +150,7 @@ extension PatientEditorView {
     @ViewBuilder private var intrathoracicEditor: some View {
         let chest = r.surgeries.filter(\.intrathoracic)
         PatientGroup(title: "Previous intrathoracic surgery", note: "A previous sternotomy or thoracotomy matters for re-entry, adhesions, bleeding and lung isolation. These operations are in Past surgical history too.") {
-            ForEach(chest) { s in
-                SurgeryRow(surgery: pastSurgeryBinding(s.id), intrathoracicToggle: false) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
-                    .wobbleDelete($wobbling, label: s.text.isEmpty ? "operation" : s.text, angle: 0.6) { patient.update(discrete: true) { $0.surgeries.removeAll { $0.id == s.id } } }
-            }
+            PastSurgeryRows(chestOnly: true, wobbling: $wobbling)
             ForEach(r.intrathoracic) { s in
                 SurgeryRow(surgery: surgeryBinding(\.intrathoracic, s.id), intrathoracicToggle: false) { patient.update(discrete: true) { $0.intrathoracic.removeAll { $0.id == s.id } } }
             }

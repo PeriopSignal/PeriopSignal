@@ -2157,7 +2157,7 @@ enum QuickAdd {
     /// Previous cardiac surgery through PastSurgeryNote.add). Conservative choice: the chip is offered, the user adds it.
     private static func readPastSurgery(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
         var state = PastSurgeryNote.State(open: true, bodyEmpty: true)
-        for op in PastSurgeryNote.read(s.text, state: &state, now: c.now).operations {
+        for op in PastSurgeryNote.read(s.text, state: &state, now: c.now, lenient: true).operations {
             s.mask(op.range)
             let entry = PastSurgeryNote.surgery(op.text, op.date)
             out.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: PatientNote.Part.history,

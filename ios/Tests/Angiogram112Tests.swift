@@ -62,4 +62,27 @@ final class Angiogram112Tests: XCTestCase {
         XCTAssertEqual(first("angioplasty"), "Peripheral angioplasty and stenting", "an angioplasty is not an angiogram")
         XCTAssertEqual(first("fistulagram"), "Fistulagram with angioplasty")
     }
+
+    // MARK: Mesenteric angiogram (Ben, Nov 12)
+
+    func testMesentericAngiogramIsInTheList() throws {
+        let p = try XCTUnwrap(ProcedureCatalog.all.first { $0.id == "mesenteric-angiogram" })
+        XCTAssertEqual(p.name, "Mesenteric angiogram")
+        XCTAssertEqual(p.anesthetic, ["mac"])
+        XCTAssertEqual(p.incision, "Peripheral")
+        XCTAssertEqual(p.duration, "≤ 2 h")
+        XCTAssertFalse(p.highRisk)
+        for q in ["Mesenteric angiogram", "mesenteric angiogram", "mesenteric angiography", "SMA angiogram", "celiac angiogram", "visceral angiogram"] {
+            XCTAssertEqual(first(q), "Mesenteric angiogram", q)
+            XCTAssertEqual(PlannedProcedure.parse(q).first?.catalogID, "mesenteric-angiogram", q)
+        }
+    }
+
+    func testMesentericStentingAndEmbolizationStayWhereTheyWere() {
+        XCTAssertEqual(first("mesenteric stenting"), "Mesenteric or renal artery stenting")
+        XCTAssertEqual(first("SMA stenting"), "Mesenteric or renal artery stenting")
+        XCTAssertEqual(first("renal artery stenting"), "Mesenteric or renal artery stenting")
+        XCTAssertEqual(first("GI bleed embolization"), "Arterial embolization")
+        XCTAssertEqual(first("angiogram"), "Diagnostic angiogram", "a bare angiogram is still the diagnostic one")
+    }
 }

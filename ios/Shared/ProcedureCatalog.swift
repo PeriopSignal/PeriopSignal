@@ -985,6 +985,9 @@ extension ProcedureCatalog {
         p("carotid-body-tumor", "Carotid body tumor excision", ["carotid body tumor", "carotid body tumor resection", "carotid paraganglioma excision", "glomus tumor neck excision"], ga, per, mid, side: true),
         p("hepatorenal-bypass", "Hepatorenal or splenorenal bypass", ["hepatorenal bypass", "splenorenal bypass", "extra-anatomic renal bypass", "iliorenal bypass"], gaNx, upper, long, risk: true, side: true),
         p("sma-embolectomy", "Superior mesenteric artery embolectomy", ["SMA embolectomy", "mesenteric embolectomy", "open SMA embolectomy", "acute mesenteric ischemia revascularization", "retrograde open mesenteric stenting"], gaNx, upper, mid, risk: true),
+        // 1.12 (Ben, Nov 12): the angiogram of the mesenteric vessels on its own (bleeding, ischemia), with the settings of the
+        // other percutaneous angiograms. Stenting stays with the entry below, embolization with Arterial embolization.
+        p("mesenteric-angiogram", "Mesenteric angiogram", ["mesenteric angiography", "mesenteric arteriogram", "visceral angiogram", "SMA angiogram", "celiac angiogram", "IMA angiogram", "mesenteric angiogram with possible intervention", "mesenteric angiogram possible embolization"], mac, per, short),
         p("mesenteric-stent", "Mesenteric or renal artery stenting", ["SMA stenting", "celiac stenting", "mesenteric stenting", "mesenteric angioplasty", "renal artery stenting", "renal angioplasty"], mac, per, short),
         p("aortoiliac-embolectomy", "Aortoiliac embolectomy", ["aortic saddle embolectomy", "saddle embolus embolectomy", "aortic embolectomy", "bilateral femoral embolectomy", "aortoiliac thrombectomy"], ga, per, mid),
         p("bypass-graft-thrombectomy", "Bypass graft thrombectomy or revision", ["bypass graft thrombectomy", "fem pop graft thrombectomy", "bypass graft revision", "vein graft revision", "graft thrombectomy with revision"], ga, per, mid, side: true),
