@@ -306,7 +306,10 @@ final class PatientLabs183Tests: XCTestCase {
         XCTAssertNil(s.fishbone.hct, "the measured cell stays empty")
         XCTAssertEqual(s.items.map(\.key), ["hb"], "not an item")
         XCTAssertEqual(s.line, "Hb 15 · Hct ~45 (est.)")
-        XCTAssertTrue(HandoffWriter.text(r).contains("Labs: Hb 15 · Hct ~45 (est.)"))
+        // The handoff and summaries carry measured values only (Ben, Nov 12).
+        XCTAssertTrue(HandoffWriter.text(r).contains("Labs: Hb 15"))
+        XCTAssertFalse(HandoffWriter.text(r).contains("est."))
+        XCTAssertFalse(PatientSummary.labsLine(r)?.plain?.contains("~") ?? false)
         XCTAssertNil(r.labs["hct"], "never saved")
 
         r.labs = ["hct": 30]

@@ -103,10 +103,13 @@ enum PatientSummary {
         return out
     }
 
-    /// "Hb 9.8 L · Hct ~29 (est.) · … · Lactate 1.4 · T&S A−, screen neg · MRSA neg", the abnormal values and
-    /// positive results marked for bold red, with the other results typed after.
+    /// "Hb 9.8 L · Plt 98 L · … · Lactate 1.4 · T&S A−, screen neg · MRSA neg", the abnormal values and positive
+    /// results marked for bold red, with the other results typed after. Measured values only: the Hb ↔ Hct estimate
+    /// stays on the Labs page and card and is left out of the handoff and summaries, since 3 × Hb can be wrong enough
+    /// to change a transfusion decision (Quintó L et al., Trop Med Int Health 2006; Tanner L et al., PLoS One 2020).
     static func labsLine(_ r: PatientRecord, now: Date = Date()) -> Line? {
-        let sum = PatientLabs.summary(r)
+        var sum = PatientLabs.summary(r)
+        sum.estimate = nil
         let more = LabResults.lineParts(r, now: now)
         let note = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !sum.isEmpty || !more.parts.isEmpty || !note.isEmpty else { return nil }
