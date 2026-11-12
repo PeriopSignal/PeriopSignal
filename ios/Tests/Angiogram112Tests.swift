@@ -34,6 +34,15 @@ final class Angiogram112Tests: XCTestCase {
         XCTAssertEqual(PlannedProcedure.parse("Angiogram with possible intervention").first?.catalogID, "angiogram-intervention")
     }
 
+    /// Part-way through typing it, the first row is the list's entry, not "Diagnostic angiogram possible".
+    func testTheInterventionEntryLeadsWhileItIsBeingTyped() {
+        for q in ["angiogram with possible", "angiogram possible", "angiogram with possible interv"] {
+            XCTAssertEqual(PlannedProcedure.parse(q).first?.catalogID, "angiogram-intervention", q)
+            XCTAssertEqual(first(q), "Angiogram with possible intervention", q)
+        }
+        XCTAssertEqual(PlannedProcedure.parse("angiogram").first?.catalogID, "angiogram-diagnostic")
+    }
+
     func testABareAngiogramOffersBoth() {
         let names = top("angiogram", 4)
         XCTAssertTrue(names.contains("Diagnostic angiogram"), "\(names)")

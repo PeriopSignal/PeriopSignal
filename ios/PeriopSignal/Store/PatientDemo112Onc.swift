@@ -8,6 +8,9 @@ enum PatientDemo112Onc {
         switch seed {
         case "demo-112-onc": return onc
         case "demo-112-onc-remission": return remission
+        case "demo-112-asa-hf": return asa(["htn", "hf"])
+        case "demo-112-asa-hf-decomp": return asa(["htn", "hf-decomp"])
+        case "demo-112-asa-noclass": return asa(["htn", "visual-impairment", "bph", "gastric-bypass"])
         default: return nil
         }
     }
@@ -39,6 +42,19 @@ enum PatientDemo112Onc {
         r.hx.malignancies = ["breast", "lymphoma"]
         r.hx.malignancyStatus = "remission"
         r.hx.malignancyTreatment = ["chemo"]
+        r.medFlags.remove("insulin")
+        r.asaClass = nil
+        r.preopSummaryOn = true
+        PatientHistoryDetails.sync(&r)
+        return r
+    }
+
+    /// The ASA suggestion helper's patients (1.12, K): an adult with the problems given and nothing else that sets a class
+    /// (no BMI, no smoking, no diabetes), the class not yet chosen, so the Assessment page shows the suggestion and its reasons.
+    static func asa(_ problems: Set<String>) -> PatientRecord {
+        var r = PatientDemo.record
+        r.heightCm = nil; r.weightKg = nil; r.smoking = nil
+        r.problems = problems
         r.medFlags.remove("insulin")
         r.asaClass = nil
         r.preopSummaryOn = true

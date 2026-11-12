@@ -28,11 +28,20 @@ enum PatientFunctional {
     static func asaDefinition(_ c: Int) -> String {
         switch c {
         case 1: return "ASA I: a normal healthy patient."
-        case 2: return "ASA II: a patient with mild systemic disease."
-        case 3: return "ASA III: a patient with severe systemic disease."
-        case 4: return "ASA IV: a patient with severe systemic disease that is a constant threat to life."
+        case 2, 3, 4: return "ASA " + PatientRules.roman(c) + ": a patient with " + (asaDefinitionWords(c) ?? "") + "."
         case 5: return "ASA V: a moribund patient who is not expected to survive without the operation."
         default: return "ASA VI: a declared brain-dead patient whose organs are being removed for donor purposes."
+        }
+    }
+
+    /// The ASA's definition of class II, III or IV in words, as the suggestion's "by definition" reasons say it (1.12); the
+    /// one copy `asaDefinition` is built from. Nil for the other classes, which no problem takes by definition.
+    static func asaDefinitionWords(_ c: Int) -> String? {
+        switch c {
+        case 2: return "mild systemic disease"
+        case 3: return "severe systemic disease"
+        case 4: return "severe systemic disease that is a constant threat to life"
+        default: return nil
         }
     }
 

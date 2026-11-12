@@ -94,7 +94,7 @@ final class PatientHistory181Tests: XCTestCase {
         XCTAssertEqual(PatientRules.asaSuggestion(adult(["cva-unspec"]))?.reasons.first?.example, "history (>3 months) of MI, CVA, TIA, or CAD/stents")
         XCTAssertEqual(PatientRules.asaSuggestion(adult(["cva-recent"]))?.level, 4)
         let infectious = Set(PatientCatalog.systems.first { $0.id == "infectious" }!.problems.map(\.id))
-        XCTAssertNil(PatientRules.asaSuggestion(adult(infectious)), "no infectious item is an ASA example")
+        XCTAssertEqual(PatientRules.asaSuggestion(adult(infectious))?.level, 4, "no infectious item is an ASA example; 1.12 (Ben): infective endocarditis is class IV by definition (was no class)")
         XCTAssertEqual(PatientRules.asaSuggestion(adult(infectious.union(["sepsis"])))?.level, 4, "sepsis still is")
 
         XCTAssertTrue(PatientRules.prefill("rcri", adult(["cva-unspec"])).on.contains("cva"))
