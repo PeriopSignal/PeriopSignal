@@ -154,7 +154,8 @@ final class PatientNote19Tests: XCTestCase {
         XCTAssertEqual(change("protein S deficiency", "problem:thrombophilia-heme"), .problemNote("thrombophilia-heme", "protein S deficiency"))
         // ITP is thrombocytopenia; a muscular dystrophy is the Musculoskeletal item.
         XCTAssertEqual(problems("ITP"), ["problem:thrombocytopenia"])
-        XCTAssertTrue(problems("heparin-induced thrombocytopenia").isEmpty, "HIT is a heparin caution")
+        // 1.12 follow-up (Ben, Nov 12): HIT is its own Heme & Oncology item (before, it filed nothing); still never Thrombocytopenia.
+        XCTAssertEqual(problems("heparin-induced thrombocytopenia"), ["problem:hit"], "HIT is its own item, not a low count")
         XCTAssertEqual(problems("Duchenne muscular dystrophy"), ["problem:muscular-dystrophy"])
         XCTAssertEqual(problems("myasthenia gravis"), ["problem:neuromuscular"])
     }

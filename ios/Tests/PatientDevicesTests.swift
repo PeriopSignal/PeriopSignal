@@ -337,7 +337,9 @@ final class PatientDevicesTests: XCTestCase {
 
     func testSiteCatalog() throws {
         let all = DeviceSite.all
-        XCTAssertEqual(all.count, 77, "44 sites, 33 of them on both sides (1.9 added the generator pocket, lateral chest and thigh, and the epicardial wire exit)")
+        // 1.12 (helper N) deliberately added five sites for the monitors and adjuncts: two on the forehead, the mouth beside the tube
+        // for the TEE probe and for the blocker, and the chest for the defibrillator pads (49 sites, 33 of them on both sides).
+        XCTAssertEqual(all.count, 82, "49 sites, 33 of them on both sides (1.9 added the generator pocket, lateral chest and thigh, and the epicardial wire exit; 1.12 five single sites for the monitors)")
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "ids are unique")
         for s in all {
             XCTAssertTrue((0...1).contains(s.anchor.x) && (0...1).contains(s.anchor.y), "\(s.id) sits inside the figure box")
@@ -429,10 +431,12 @@ final class PatientDevicesTests: XCTestCase {
     // MARK: Model
 
     func testKinds() {
-        XCTAssertEqual(DeviceKind.allCases.count, 25)
+        // 1.12 (helper N) deliberately added five kinds, before Other: cerebral oximetry, TEE probe, defib pads, BIS/SedLine, bronchial blocker.
+        XCTAssertEqual(DeviceKind.allCases.count, 30)
         XCTAssertEqual(DeviceKind.allCases.map(\.label), ["PIV", "A-line", "CVL", "PAC", "PICC", "IO", "ETT", "Trach", "ECMO drainage",
                                                           "ECMO return", "LVAD", "IABP", "Impella", "ProtekDuo", "Epidural", "Spinal", "Block",
-                                                          "Catheter", "Foley", "Epicardial wires", "Pacemaker/ICD", "AV fistula", "HD catheter", "Chest tube", "Other"])
+                                                          "Catheter", "Foley", "Epicardial wires", "Pacemaker/ICD", "AV fistula", "HD catheter", "Chest tube",
+                                                          "Cerebral oximetry", "TEE probe", "Defib pads", "BIS/SedLine", "Bronchial blocker", "Other"])
         XCTAssertEqual(DeviceKind.piv.colorRole, .line)
         XCTAssertEqual(DeviceKind.cvc.colorRole, .central)
         XCTAssertEqual(DeviceKind.picc.colorRole, .central)

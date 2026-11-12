@@ -27,8 +27,9 @@ final class K112Tests: XCTestCase {
                             "previa-accreta", "cspine-unstable", "muscular-dystrophy", "compartment-syndrome", "substance", "cocaine", "opioid-use",
                             "methamphetamine"]
     private let classIV = ["hf-decomp", "pulm-htn-severe", "dissection-a", "ich", "raised-icp", "endocarditis", "burn"]
+    // Ben's list of Nov 12, and (a later note the same day) heparin-induced thrombocytopenia and heparin resistance, no class for either.
     private let noClass = ["visual-impairment", "bph", "gastric-bypass", "dysphagia", "full-stomach", "declines-blood", "mdro", "isolation",
-                           "uterine-rupture-past", "fracture"]
+                           "uterine-rupture-past", "fracture", "hit", "heparin-resistance"]
 
     // MARK: The reported case
 
