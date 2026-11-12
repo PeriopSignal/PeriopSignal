@@ -1,0 +1,13 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:118: error: -[PeriopSignalTests.J112Tests testALineOfSeveralOperationsFilesEachWithItsDate] : XCTAssertEqual failed: ("1") is not equal to ("3") - Tonsillectomy out
+Test Case '-[PeriopSignalTests.J112Tests testALineOfSeveralOperationsFilesEachWithItsDate]' failed (11.632 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:55: error: -[PeriopSignalTests.J112Tests testAnOperationWithAReasonDoesNotStopTheOnesAfterIt] : XCTAssertEqual failed: ("0") is not equal to ("3")
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:58: error: -[PeriopSignalTests.J112Tests testAnOperationWithAReasonDoesNotStopTheOnesAfterIt] : XCTAssertEqual failed: ("1") is not equal to ("2") - Coronary artery bypass grafting (2021)
+Test Case '-[PeriopSignalTests.J112Tests testAnOperationWithAReasonDoesNotStopTheOnesAfterIt]' failed (3.392 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:67: error: -[PeriopSignalTests.J112Tests testDifferentTypedOperationsAreNeverTheSameOperation] : XCTAssertTrue failed - read as one operation: Hernia repair ~ Inguinal hernia repair | Knee surgery ~ Knee surgery on the other side | Jaw wiring ~ Jaw wiring revision | Hip pinning ~ Hip pinning left | Eye surgery ~ Eye surgery laser
+Test Case '-[PeriopSignalTests.J112Tests testDifferentTypedOperationsAreNeverTheSameOperation]' failed (0.007 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:48: error: -[PeriopSignalTests.J112Tests testEveryOperationTypedOnTheBarIsRead] : XCTAssertTrue failed - not filed by the Past Surgical History bar: jaw wiring | tubes tied | gallbladder out | deviated septum | hammertoe
+Test Case '-[PeriopSignalTests.J112Tests testEveryOperationTypedOnTheBarIsRead]' failed (0.608 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:91: error: -[PeriopSignalTests.J112Tests testOperationsFiledOneAfterTheOtherAreAllKept] : XCTAssertTrue failed - hernia repair then inguinal hernia repair 2019 -> Hernia repair | knee surgery then knee surgery 2020 on the other side -> Knee surgery | jaw wiring 2012 then jaw wiring revision 2014 ->  | bunion surgery then tubes tied -> Bunionectomy
+Test Case '-[PeriopSignalTests.J112Tests testOperationsFiledOneAfterTheOtherAreAllKept]' failed (0.535 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:102: error: -[PeriopSignalTests.J112Tests testTheSecondLinesChipCanBeAdded] : XCTAssertEqual failed: ("0") is not equal to ("1")
+Test Case '-[PeriopSignalTests.J112Tests testTheSecondLinesChipCanBeAdded]' failed (0.404 seconds).
