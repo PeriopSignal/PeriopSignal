@@ -1028,6 +1028,8 @@ jobs:
           shot 923-e1-valve-calc-typed-light 16 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;ava=1.1;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.forceAppearance light
           shot 924-e1-valve-calc-nobsa-375-light 16 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.patient.width 375 -ps.forceAppearance light
           #
+          # ---- 1.12 helper K shots (1040-1054): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper H shots (980-999): add your shot lines directly under this line ----
           # Typed antibiotics (H): Case Timers with an antibiotic picked and not logged ("Log dose" for a drug with no routine redose,
           # "Log dose & start timer" for cefazolin, the not-recorded line; the question on leaving), the bar's review of "vanc 1 g at
@@ -1101,6 +1103,8 @@ jobs:
           shot 959-onc112-tile-empty-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
           #
           # ---- 1.12 helper G shots (960-979): add your shot lines directly under this line ----
+          #
+          # ---- 1.12 helper L shots (1055-1069): add your shot lines directly under this line ----
           # A day in dates, Type & Screen expiration, and no H or L beside a lab value (Ben, Nov 11). Dates are relative to the run day.
           shot 960-dates112-psh-page-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:surgeries -ps.forceAppearance light
           shot 961-dates112-psh-page-dark-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance dark
@@ -1122,6 +1126,10 @@ jobs:
           shot 977-lab112-labs-page-no-letters-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:labs -ps.forceAppearance light
           shot 978-lab112-intraop-labs-dark-375 24 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open intraop:labs -ps.patient.width 375 -ps.forceAppearance dark
           shot 979-lab112-share-image-page2-light 22 -ps.tab patient -ps.patient demo-112-dates-ts-set -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage2 -ps.forceAppearance light
+          #
+          # 1.12 (Ben, Nov 12): Diagnostic angiogram and Angiogram with possible intervention in the procedure list.
+          shot 1070-proc-angiogram-light 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram" -ps.forceAppearance light
+          shot 1071-proc-angiogram-intervention-dark 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram with possible" -ps.forceAppearance dark
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
