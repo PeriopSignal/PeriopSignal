@@ -1,4 +1,5 @@
-[0;93m2026-11-11 09:10:10.451144345 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
-1 post(s) to synthesize with kokoro:af_heart
-  circulation-2026-fragile-offpump-vs-onpump-cabg-frail: 213 s, 1662 KB, 58 s to make
-synthesized 1, failed 0, 2289 characters, 1 min
+[0;93m2026-11-12 09:15:07.775511636 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+2 post(s) to synthesize with kokoro:af_heart
+  nejm-2026-pepper-aspirin-rivaroxaban-warfarin-arthroplasty: 231 s, 1801 KB, 85 s to make
+  lancet-resp-2026-precision-ppc-delphi-consensus: 193 s, 1505 KB, 68 s to make
+synthesized 2, failed 0, 5453 characters, 3 min
