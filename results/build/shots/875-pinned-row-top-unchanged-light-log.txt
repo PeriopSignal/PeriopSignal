@@ -1,0 +1,15 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-12 03:23:45.116 Df PeriopSignal[37101:51997] [com.apple.chrono:widget] Creating WidgetCenter connection.
+2026-11-12 03:23:45.146 Df PeriopSignal[37101:51997] [com.apple.xpc:connection] [0x100abcff0] activating connection: mach=true listener=false peer=false name=com.apple.chrono.widgetcenterconnection
+2026-11-12 03:23:45.189 Df PeriopSignal[37101:519a9] [com.apple.chrono:widget] reloadAllTimelines() - reloaded all timelines
+2026-11-12 03:23:45.198 Df PeriopSignal[37101:519b6] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-12 03:23:45.201 Df PeriopSignal[37101:519b6] [com.apple.xpc:connection] [0x100dbe3a0] activating connection: mach=true listener=false peer=false name=com.apple.usernotifications.listener
+2026-11-12 03:23:45.217 Df PeriopSignal[37101:519b6] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-12 03:23:45.495 Df PeriopSignal[37101:519b7] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Getting notification settings (async)
+2026-11-12 03:23:45.495 Df PeriopSignal[37101:51997] [com.apple.KeyboardArbiter:Client] handleKeyboardChange: set currentKeyboard:N (wasKeyboard:N)
+2026-11-12 03:23:45.497 Df PeriopSignal[37101:519b7] [com.apple.UserNotifications:Connections] [org.periopsignal.app] Got notification settings [ hasResult: 1 hasCompletionHandler: 1 ]
+2026-11-12 03:23:45.498 Df PeriopSignal[37101:51997] [com.apple.UIKit:KeyboardArbiterClientLog] isWritingToolsHandlingKeyboardTracking:Y (WT ready:Y, Arbiter ready:Y)
+2026-11-12 03:23:45.542 Df PeriopSignal[37101:51997] [com.apple.network:activity] <nw_activity 50:1 [EDB3DEA6-8DFB-4E99-A260-6944C75E5C37] (global parent) (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 26073ms
+2026-11-12 03:23:45.543 Df PeriopSignal[37101:51997] [com.apple.network:activity] <nw_activity 50:2 [8E526F92-204D-4E88-8E1C-B146670ED763] (reporting strategy default) complete (reason success)> complete with reason 2 (success), duration 26073ms
+2026-11-12 03:23:45.543 Df PeriopSignal[37101:51997] [com.apple.network:activity] Unsetting the global parent activity <nw_activity 50:1 [EDB3DEA6-8DFB-4E99-A260-6944C75E5C37] (global parent) (reporting strategy default) complete (reason success)>
+2026-11-12 03:23:45.543 Df PeriopSignal[37101:51997] [com.apple.network:activity] Unset the global parent activity
