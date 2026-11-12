@@ -572,7 +572,7 @@ struct PatientHistoryDetails: Codable, Hashable {
         if !s.name.trimmingCharacters(in: .whitespaces).isEmpty,
            let j = r.surgeries.indices.first(where: { $0 != i && mergeable(r.surgeries[$0]) }) {
             var kept = r.surgeries[j]
-            if kept.date.isEmpty { kept.date = s.date }
+            kept.date = PatientMonthYear.fuller(kept.date, s.date)
             if s.intrathoracic { kept.intrathoracic = true }
             r.surgeries[j] = kept
             if r.hx.cardiacSurgeryID == s.id { r.hx.cardiacSurgeryID = kept.id }

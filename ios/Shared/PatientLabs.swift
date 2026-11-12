@@ -21,12 +21,24 @@ enum LabFlag: String, Codable, Hashable {
 
     var isAbnormal: Bool { self != .normal }
 
-    /// "L", "H" or "": the mark a lab report prints beside the value.
+    /// "L", "H" or "": the mark a lab report prints beside the value. Since 1.12 (Ben, Nov 11: "remove the H and L, simple red
+    /// text is fine to highlight") the app does not DRAW it: an out-of-range value is bold red and nothing else. It is kept for
+    /// the one place that cannot carry colour, the plain text ("Share as text only", Copy), where "Plt 112 L" tells a low
+    /// platelet count from a normal one in a text message.
     var mark: String {
         switch self {
         case .normal: return ""
         case .low: return "L"
         case .high: return "H"
+        }
+    }
+
+    /// "low", "high" or "": what VoiceOver says for a value that is red (it cannot see the colour).
+    var word: String {
+        switch self {
+        case .normal: return ""
+        case .low: return "low"
+        case .high: return "high"
         }
     }
 }
@@ -176,10 +188,21 @@ struct LabValue: Hashable, Identifiable {
 
     var id: String { key }
 
-    /// "Hb 9.8 L", "K 4.1", "Hct ~29 (est.)".
+    /// "Hb 9.8", "K 4.1", "Hct ~29 (est.)": as the app draws it. An out-of-range value is bold red (the line's `marks`), with no
+    /// H or L after it (1.12).
     var compact: String {
         if estimated { return label + " ~" + text + " (est.)" }
-        return label + " " + text + (flag.mark.isEmpty ? "" : " " + flag.mark)
+        return label + " " + text
+    }
+
+    /// "Hb 9.8 L": for the plain text only, which cannot carry colour (see LabFlag.mark).
+    var plainCompact: String {
+        flag.mark.isEmpty || estimated ? compact : compact + " " + flag.mark
+    }
+
+    /// "Hb 9.8, low": for VoiceOver, where a value is red.
+    var spokenCompact: String {
+        flag.word.isEmpty || estimated ? compact : compact + ", " + flag.word
     }
 }
 
@@ -253,8 +276,15 @@ struct LabSummary: Hashable {
         return out
     }
 
-    /// "Hb 9.8 L · Hct ~29 (est.) · Plt 98 L · INR 1.6 H · Na 131 L": the condensed line, for the handoff and a compact view.
+    /// "Hb 9.8 · Hct ~29 (est.) · Plt 98 · INR 1.6 · Na 131": the condensed line, for the handoff and a compact view; the
+    /// out-of-range values are the `abnormal` ones, drawn bold red.
     var line: String { shown.map(\.compact).joined(separator: " · ") }
+
+    /// "Hb 9.8 L · Hct ~29 (est.) · Plt 98 L · INR 1.6 H": the same for the plain text, where the letter stays (1.12).
+    var plainLine: String { shown.map(\.plainCompact).joined(separator: " · ") }
+
+    /// "Hb 9.8, low · Hct ~29 (est.) · Plt 98, low": the same for VoiceOver.
+    var spokenLine: String { shown.map(\.spokenCompact).joined(separator: " · ") }
 }
 
 // MARK: - Liver function testing (MELD & CTP)

@@ -81,14 +81,14 @@ struct PatientBoxSummary: Equatable {
 extension PatientBox {
     /// The box's entries as the summaries word them (PatientSummary, PatientBriefs), for its collapsed form and for the
     /// question "does it hold a value".
-    func summary(_ r: PatientRecord) -> PatientBoxSummary {
+    func summary(_ r: PatientRecord, now: Date = Date()) -> PatientBoxSummary {
         switch self {
         case .demographics: return PatientBoxSummary(entered: Self.demographicsLines(r))
         case .allergies: return PatientBoxSummary(entered: PatientAllergyText.line(r).map { [$0] } ?? [])
         case .problems: return PatientBoxSummary(entered: Self.problemLines(r))
         case .medications: return PatientBoxSummary(entered: Self.medicationLines(r))
         case .flagged: return PatientBoxSummary(entered: Self.flaggedLines(r))
-        case .cardio: return Self.cardioSummary(r)
+        case .cardio: return Self.cardioSummary(r, now: now)
         case .asa: return PatientBoxSummary(entered: Self.asaLines(r))
         case .airway: return PatientBoxSummary(entered: Self.airwayLines(r))
         case .infusions: return PatientBoxSummary(entered: Self.infusionLines(r))
@@ -141,25 +141,36 @@ extension PatientBox {
     /// as the Preprocedure Summary's cardiac-workup block says it; a line that block carries and the assessment does not
     /// know (the chest X-ray) is carried too. The stepwise result and the guideline advice are worked out, not entered, and
     /// the summaries do not carry them, so the folded box does not either (they are in the box when it is open).
-    private static func cardioSummary(_ r: PatientRecord) -> PatientBoxSummary {
-        let assess = PatientSummary.assessmentLines(r)
-        let entered: Set<String> = ["Cardiac symptoms", "Acute cardiac conditions", "Previous intrathoracic surgery", "ECG", "Echo", "Coronaries",
-                                    "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"]
-        var out = assess.filter { entered.contains($0.label ?? "") }
-        if let s = PatientPreop.stressLine(r) {
-            let at = out.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? out.count
-            out.insert(s, at: at)
-        }
+    private static func cardioSummary(_ r: PatientRecord, now: Date = Date()) -> PatientBoxSummary {
+        // The box is inside the app, so its lines carry a full date (`.app`); the summary's block is made with `.summary(now:)`
+        // (a day only within 90 days), so the same study reads differently there. To drop what the box already says, the
+        // lines are compared as the SUMMARY would word them (the same lines, made again in the summary's date style).
+        let out = cardioEntered(r, dates: .app)
         // The TEE screen is worked out from the history and the studies, so it never fills the box, but it stays in view.
         let tee = PatientTEE.line(r)
         var known = Set(out.map(Self.joined))
+        known.formUnion(cardioEntered(r, dates: .summary(now: now)).map(Self.joined))
         if let tee { known.insert(Self.joined(tee)) }
-        if let block = PatientBriefs.slots(.preop, r).first(where: { $0.key == "workup" }) {
+        var all = out
+        if let block = PatientBriefs.slots(.preop, r, now: now).first(where: { $0.key == "workup" }) {
             for text in block.lines where !known.contains(text) && !text.hasPrefix("Mechanical support") {
-                out.append(PatientSummary.Line(nil, text, marks: block.marks.filter { !$0.isEmpty && text.contains($0) }))
+                all.append(PatientSummary.Line(nil, text, marks: block.marks.filter { !$0.isEmpty && text.contains($0) }))
             }
         }
-        return PatientBoxSummary(entered: out, derivedAlerts: tee.map { [$0] } ?? [])
+        return PatientBoxSummary(entered: all, derivedAlerts: tee.map { [$0] } ?? [])
+    }
+
+    /// The entered lines of the Cardiopulmonary box (assessment lines plus the stress test), dates worded in `dates`.
+    private static func cardioEntered(_ r: PatientRecord, dates: PatientDateStyle) -> [PatientSummary.Line] {
+        let assess = PatientSummary.assessmentLines(r, dates: dates)
+        let entered: Set<String> = ["Cardiac symptoms", "Acute cardiac conditions", "Previous intrathoracic surgery", "ECG", "Echo", "Coronaries",
+                                    "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"]
+        var out = assess.filter { entered.contains($0.label ?? "") }
+        if let s = PatientPreop.stressLine(r, dates: dates) {
+            let at = out.firstIndex { ["Coronaries", "Right heart cath", "Carotid ultrasound", "Radial artery ultrasound", "Pulmonary function tests", "Caution"].contains($0.label ?? "") } ?? out.count
+            out.insert(s, at: at)
+        }
+        return out
     }
 
     private static func joined(_ l: PatientSummary.Line) -> String { (l.label.map { $0 + ": " } ?? "") + l.text }

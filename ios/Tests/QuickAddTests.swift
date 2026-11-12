@@ -836,7 +836,7 @@ final class QuickAddTests: XCTestCase {
         r.labs["cr"] = 1.1
         let labs = QuickAdd.chips(read("K 5.4 Cr 1.6", record: r), record: r)
         // Creatinine shows two decimals (Ben, Nov 3, 1.8.3): "1.60", "1.10".
-        XCTAssertEqual(labs.map(\.text), ["Labs · K 5.4 H", "Labs · Cr 1.60 H"])
+        XCTAssertEqual(labs.map(\.text), ["Labs · K 5.4", "Labs · Cr 1.60"])
         XCTAssertEqual(labs.last?.statusText, "replaces 1.10")
         XCTAssertNil(labs.first?.statusText)
         XCTAssertEqual(QuickAdd.changes(labs, dropped: [labs[0].id]), [.lab("cr", 1.6)], "a dropped chip is not filed")

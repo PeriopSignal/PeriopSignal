@@ -480,7 +480,7 @@ struct PatientHistorySectionsView: View {
         case "thyroid":
             PatientChoice(options: HistorySections.thyroidTypes, selection: hx(\.thyroidType))
             let tft = thyroidValues
-            if !tft.isEmpty { LinkedValues(parts: tft) }
+            if !tft.isEmpty { LinkedValues(parts: tft.map { ($0.text, $0.abnormal) }, spoken: tft.map(\.spoken).joined(separator: ", ")) }
             labsLink(tft.isEmpty ? "Add thyroid function tests" : "Thyroid function tests", group: "thyroid", add: tft.isEmpty)
         case "adrenal":
             adrenal
@@ -502,12 +502,14 @@ struct PatientHistorySectionsView: View {
         })
     }
 
-    /// TSH and free T4 as Labs holds them, out-of-range ones marked.
-    private var thyroidValues: [(text: String, abnormal: Bool)] {
+    /// TSH and free T4 as Labs holds them, out-of-range ones in bold red (1.12: with no H or L after them; VoiceOver says
+    /// "low" or "high").
+    private var thyroidValues: [(text: String, abnormal: Bool, spoken: String)] {
         ["tsh", "ft4"].compactMap { key in
             guard let v = r.labs[key], let t = PatientLabs.test(key) else { return nil }
             let flag = PatientLabs.flag(key, v, sex: r.sex)
-            return (t.short + " " + t.format(v) + (t.unit.isEmpty ? "" : " " + t.unit) + (flag.isAbnormal ? " " + flag.mark : ""), flag.isAbnormal)
+            let text = t.short + " " + t.format(v) + (t.unit.isEmpty ? "" : " " + t.unit)
+            return (text, flag.isAbnormal, text + (flag.isAbnormal ? ", " + flag.word : ""))
         }
     }
 
@@ -1123,8 +1125,10 @@ struct LinkLabel: View {
 /// Values another part of the record holds, shown in place ("MELD 3.0 18 · Child-Pugh B (8)").
 struct LinkedValues: View {
     var parts: [(text: String, abnormal: Bool)]
+    /// What VoiceOver says when it differs from the words (a red value says "low" or "high").
+    var spoken: String?
 
-    init(parts: [(text: String, abnormal: Bool)]) { self.parts = parts }
+    init(parts: [(text: String, abnormal: Bool)], spoken: String? = nil) { self.parts = parts; self.spoken = spoken }
     init(text: String, alert: Bool) { parts = [(text, alert)] }
 
     private var line: Text {
@@ -1142,6 +1146,7 @@ struct LinkedValues: View {
             .font(PS.sys(size: 13.5))
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(spoken ?? parts.map(\.text).joined(separator: ", "))
     }
 }
 

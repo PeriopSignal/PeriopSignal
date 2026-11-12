@@ -47,7 +47,7 @@ enum PastSurgeryNote {
     static let sectionEndRx = NoteRx(#"\b(?:pmh|pmhx|past medical (?:history|hx)|medical history|fhx|shx|family history|social history|hpi|meds|medications|allergies|ros|exam|plan|a/p|assessment|labs|vitals)\b\s*[:\-–]"#)
     /// Another section's header at the start of a line closes the surgical history.
     static let otherHeaderRx = NoteRx(#"^\s*[A-Za-z][A-Za-z/&\s]{1,28}:"#)
-    static let andAfterDateRx = NoteRx(#"((?:19|20)\d\d|\d{1,2}/(?:19|20)\d\d|['’]\d\d)\)?\s+(?:and|&)\s+"#)
+    static let andAfterDateRx = NoteRx(#"((?:19|20)\d\d|\d{1,2}/(?:19|20)\d\d|\d{1,2}[/.\-]\d{1,2}[/.\-]\d\d|['’]\d\d)\)?\s+(?:and|&)\s+"#)
     /// What ends an item that runs on into the rest of the sentence ("s/p CABG 2019, now doing well").
     static let cutRx = NoteRx(#"\s+(?:now|here|who|but|which|that|due to|secondary to|c/b|complicated)\b"#)
     /// The planned procedure (1.8.3 review): an item next to one of these words is dropped, not trimmed to its head, and
@@ -69,12 +69,20 @@ enum PastSurgeryNote {
     /// that a history lead usually introduces (1.8.3 re-check).
     static let shorthandRx = NoteRx(#"\b(?:procedure|whipple|nissen|toupet|heller|bentall|fontan|glenn|norwood|kasai|ladd|hartmann'?s?|ivor lewis|mckeown|sistrunk|puestow|latarjet|bankart|brostrom|ravitch|nuss|maze|cox-maze|watchman|mitraclip|roux-en-y|billroth|mohs|lichtenstein|lap chole|appy|lap appy|lap band|gastric band|gastric sleeve|t&a|d&c|leep|triclip|amulet|lariat|david procedure)\b|(?-i:\b(?:TSA|ACDF|PLIF|TLIF|ALIF|XLIF|VATS|RATS|LAR|APR|IPAA|TAH|TLH|LAVH|BSO|TURBT|PCNL|FESS|UPPP|LVAD|OHT|OLT|CEA|TCAR|LAAO|TEP|TAPP)\b)"#)
     static let chestRx = NoteRx(#"\b(?:thoracotomy|sternotomy|vats|thoracoscopic|lobectomy|pneumonectomy|segmentectomy|esophagectomy|open[- ]heart|cardiac surgery|heart surgery)\b"#)
-    static let monthYearRx = NoteRx(#"(?:\bin\s+|\(\s*|\b(?:on|dated|at)\s+)?\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?,?\s+(?:19|20)\d\d)\b\s*\)?"#)
-    /// Dates in a note: MM/YYYY, a year, a month name and year, and "'19" (with or without a month before it). Never M/D
-    /// ("appy 6/30"), nor MM/YY with no apostrophe, nor a 19xx year from two digits.
+    static let monthYearRx = NoteRx(#"(?:\bin\s+|\(\s*|\b(?:on|dated|at)\s+)?\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?,?\s+(?:\d{1,2},?\s+)?(?:19|20)\d\d)\b\s*\)?"#)
+    /// A full date (1.12): month/day/year, "6/14/2015" or "6/14/15" (a day is certain only with three numbers). A month name
+    /// takes its day in monthYearRx ("June 14, 2015"). The year is four digits, or two as the field reads them.
+    static let fullDateRx = NoteRx(#"(?:\bin\s+|\(\s*|\b(?:on|dated|at)\s+)?(?<![\w/.\-])((?:0?[1-9]|1[0-2])\s*[/.\-]\s*(?:0?[1-9]|[12]\d|3[01])\s*[/.\-]\s*(?:(?:19|20)\d\d|\d\d))(?![\d/])\s*\)?"#)
+    /// Dates in a note: MM/YYYY, a year, a month name and year, and "'19" (with or without a month before it), and (1.12) a
+    /// full date (fullDateRx). Never M/D ("appy 6/30"), nor MM/YY with no apostrophe, nor a 19xx year from two digits.
     static let numericRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])((?:0?[1-9]|1[0-2])\s*[/.\-]\s*(?:19|20)\d\d)(?![\d/])\s*\)?"#)
     static let apostropheRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])(?:(0?[1-9]|1[0-2])\s*/\s*)?['’](\d\d)(?!\d)\s*\)?"#)
     static let yearRx = NoteRx(#"(?:\bin\s+|\(\s*)?(?<![\w/.\-])((?:19|20)\d\d)(?![\w/])\s*\)?"#)
+
+    /// What a full date next to these is the date of (1.12): a date of birth, a lab draw or its value, a vital sign, a visit.
+    /// An item with a full date and one of these is not an operation ("DOB 3/14/1958", "K 5.4 on 11/10/2026"). The existing
+    /// guards stay; this only adds to them for a date with a day.
+    static let notSurgeryDateRx = NoteRx(#"\b(?:dob|d\.o\.b\.?|born|birth(?:day|date)?|drawn|draw|collected|vitals?|labs?|today|as of)\b|\b(?:k|na|cr|creat\w*|hgb|hb|hct|plt|inr|ptt|bun|glucose|lactate|wbc|trop\w*|bnp|bp|hr|rr|spo2|sat|temp)\b\s*[:=]?\s*\d"#)
 
     static let cardiacWordsRx = NoteRx(PatientNote.cardiacOpWords)
 
@@ -82,14 +90,14 @@ enum PastSurgeryNote {
     private static let generic: Set<String> = ["surgery", "surgeries", "operation", "operations", "procedure", "procedures", "surgical", "history"]
 
     static var allPatterns: [NoteRx] {
-        [cardiacWordsRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, shorthandRx, chestRx, monthYearRx, numericRx, apostropheRx, yearRx]
+        [cardiacWordsRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, shorthandRx, chestRx, monthYearRx, fullDateRx, numericRx, apostropheRx, yearRx, notSurgeryDateRx]
     }
 
     // MARK: Reading a sentence
 
     /// The operations a sentence gives. `state` carries a header across lines; `skip` holds the stretches already read as
     /// something else (Previous cardiac surgery), which are not read again.
-    static func read(_ c: String, state: inout State, skip: [NSRange] = []) -> Reading {
+    static func read(_ c: String, state: inout State, skip: [NSRange] = [], now: Date = Date()) -> Reading {
         let ns = c as NSString
         var out = Reading()
         func clear(_ r: NSRange) -> Bool { !skip.contains { NSIntersectionRange($0, r).length > 0 } }
@@ -98,7 +106,7 @@ enum PastSurgeryNote {
         if state.open {
             if let b = bulletRx.first(c) {
                 let start = b.range.location + b.range.length
-                let ops = items(ns, NSRange(location: start, length: ns.length - start), strict: false)
+                let ops = items(ns, NSRange(location: start, length: ns.length - start), strict: false, now: now)
                 out.operations = ops.filter { clear($0.range) }
                 state.open = true
                 return out
@@ -106,7 +114,7 @@ enum PastSurgeryNote {
             let numberOnly = c.trimmingCharacters(in: .whitespaces).allSatisfy { $0.isNumber || $0 == "." || $0 == ")" }
             if numberOnly { return out }
             if state.bodyEmpty, otherHeaderRx.first(c) == nil, headerRx.first(c) == nil {
-                let ops = items(ns, NSRange(location: 0, length: ns.length), strict: true)
+                let ops = items(ns, NSRange(location: 0, length: ns.length), strict: true, now: now)
                 if !ops.isEmpty {
                     out.operations = ops.filter { clear($0.range) }
                     return out
@@ -126,7 +134,7 @@ enum PastSurgeryNote {
             state.open = true
             state.bodyEmpty = text.isEmpty
             sectionEnd = body.location + body.length
-            out.operations += items(ns, body, strict: false).filter { clear($0.range) }
+            out.operations += items(ns, body, strict: false, now: now).filter { clear($0.range) }
         }
 
         // "s/p ...", "h/o ...": the operation after it, and the operations listed after that.
@@ -138,7 +146,7 @@ enum PastSurgeryNote {
             let start = m.range.location + m.range.length
             let end = m.range.location < sectionStart ? sectionStart : ns.length
             guard start < end else { continue }
-            let found = leadItems(ns, NSRange(location: start, length: end - start), historyLead: isHistoryLead(ns.substring(with: m.range)))
+            let found = leadItems(ns, NSRange(location: start, length: end - start), historyLead: isHistoryLead(ns.substring(with: m.range)), now: now)
             if found.isEmpty { continue }
             out.operations += found.filter { clear($0.range) }
             if let last = found.last { covered = NSRange(location: m.range.location, length: last.range.location + last.range.length - m.range.location) }
@@ -154,11 +162,11 @@ enum PastSurgeryNote {
         return !(l.hasPrefix("s/p") || l.hasPrefix("status post"))
     }
 
-    private static func leadItems(_ ns: NSString, _ range: NSRange, historyLead: Bool = false) -> [Operation] {
+    private static func leadItems(_ ns: NSString, _ range: NSRange, historyLead: Bool = false, now: Date) -> [Operation] {
         var out: [Operation] = []
         for (i, p) in split(ns, range).enumerated() {
             var stopped = false
-            let op = operation(ns, p, strict: true, historyLead: historyLead, stopped: &stopped)
+            let op = operation(ns, p, strict: true, historyLead: historyLead, now: now, stopped: &stopped)
             if let op {
                 if !op.text.isEmpty {
                     out.append(op)
@@ -181,11 +189,11 @@ enum PastSurgeryNote {
     }
 
     /// The items of a section body.
-    private static func items(_ ns: NSString, _ range: NSRange, strict: Bool) -> [Operation] {
+    private static func items(_ ns: NSString, _ range: NSRange, strict: Bool, now: Date) -> [Operation] {
         var out: [Operation] = []
         for p in split(ns, range) {
             var stopped = false
-            if let op = operation(ns, p, strict: strict, stopped: &stopped) {
+            if let op = operation(ns, p, strict: strict, now: now, stopped: &stopped) {
                 if !op.text.isEmpty {
                     out.append(op)
                 } else if var last = out.popLast(), last.date.isEmpty {
@@ -236,7 +244,7 @@ enum PastSurgeryNote {
 
     /// One item as an operation; nil when it is not one. An item that is only a date has empty text. `stopped` is set when
     /// the item runs on into the rest of the sentence ("... now presenting for ..."): nothing after it is read.
-    private static func operation(_ ns: NSString, _ range: NSRange, strict: Bool, historyLead: Bool = false, stopped: inout Bool) -> Operation? {
+    private static func operation(_ ns: NSString, _ range: NSRange, strict: Bool, historyLead: Bool = false, now: Date, stopped: inout Bool) -> Operation? {
         var t = ns.substring(with: range)
         if let b = bulletRx.first(t) { t = (t as NSString).substring(from: b.range.length) }
         var historyLead = historyLead
@@ -260,7 +268,9 @@ enum PastSurgeryNote {
             aside = tidy((t as NSString).substring(from: a.range.location))
             t = tidy((t as NSString).substring(to: a.range.location))
         }
-        let (rest, date) = extractDate(t)
+        let (rest, date) = extractDate(t, now: now)
+        // A full date beside a birth date, a lab or a vital sign is that thing's (1.12).
+        if date.day != nil, notSurgeryDateRx.first(t) != nil { return nil }
         t = rest
         if t.isEmpty { return date.isEmpty ? nil : Operation(text: "", date: date, aside: aside, range: range) }
         if commentaryRx.first(t) != nil || generic.contains(t.lowercased()) { return nil }
@@ -280,8 +290,10 @@ enum PastSurgeryNote {
         return t.trimmingCharacters(in: CharacterSet(charactersIn: " \t:;,.-–").union(.whitespacesAndNewlines))
     }
 
-    /// The text without its (first) date, and the date: "TEVAR 08/2022", "CABG x3 in 2019", "(June 2015)".
-    static func extractDate(_ text: String) -> (String, PatientMonthYear) {
+    /// The text without its (first) date, and the date: "TEVAR 08/2022", "CABG x3 in 2019", "(June 2015)"; since 1.12 a full
+    /// date too: "appendectomy 6/14/2015", "CABG on 5/1/2019", "PCI June 14, 2015". A full date that is today's or later is
+    /// not a past operation's: it is taken out of the words and the operation is left undated.
+    static func extractDate(_ text: String, now: Date = Date()) -> (String, PatientMonthYear) {
         if let m = apostropheRx.first(text) {
             let ns = text as NSString
             let yy = m.range(at: 2).location != NSNotFound ? Int(ns.substring(with: m.range(at: 2))) : nil
@@ -292,10 +304,11 @@ enum PastSurgeryNote {
                 return (tidy(ns.replacingCharacters(in: m.range, with: " ")), PatientMonthYear(month: month, year: 2000 + yy))
             }
         }
-        for rx in [monthYearRx, numericRx, yearRx] {
+        for rx in [monthYearRx, fullDateRx, numericRx, yearRx] {
             guard let m = rx.first(text), m.numberOfRanges > 1, m.range(at: 1).location != NSNotFound else { continue }
             let ns = text as NSString
-            guard let d = PatientMonthYear.parse(ns.substring(with: m.range(at: 1))) else { continue }
+            guard var d = PatientMonthYear.parse(ns.substring(with: m.range(at: 1)), now: now) else { continue }
+            if let day = d.calendarDate(), day >= Calendar.current.startOfDay(for: now) { d = PatientMonthYear() }
             let rest = ns.replacingCharacters(in: m.range, with: " ")
             return (tidy(rest), d)
         }
@@ -396,11 +409,10 @@ enum PastSurgeryNote {
         s.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
-    /// The dates are compatible: one is empty, or the years agree and the months agree or one is missing.
+    /// The dates are compatible: one is empty, or the years agree and the months agree or one is missing, and (1.12) the days
+    /// agree or one is missing: a date with a day and the same date without one are one date (the fuller one is kept).
     private static func compatible(_ a: PatientMonthYear, _ b: PatientMonthYear) -> Bool {
-        if a.isEmpty || b.isEmpty { return true }
-        guard a.year == b.year else { return false }
-        return a.month == nil || b.month == nil || a.month == b.month
+        PatientMonthYear.compatible(a, b)
     }
 
     /// The same operation: the same procedures from the list (with no different side), or the same words, on dates that
@@ -443,6 +455,8 @@ enum PastSurgeryNote {
         let i: Int
         if let found = index(of: s, in: r) {
             i = found
+            // The same operation on a date that does not differ: the fuller date stays (a day beats a month and year).
+            r.surgeries[i].date = PatientMonthYear.fuller(r.surgeries[i].date, s.date)
             if cardiac { r.surgeries[i].intrathoracic = true }
         } else {
             r.surgeries.append(s)

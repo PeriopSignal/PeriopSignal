@@ -6,18 +6,120 @@ import Foundation
 // preoperative tab records beyond the problem lists. Every type decodes with a fallback for each field, like
 // PatientRecord, so a patient saved by an older version (or sent from one) still opens.
 
-/// Month and year, as a chart gives them ("03/2019", or "2019" alone).
-struct PatientMonthYear: Codable, Hashable {
+/// Where a date is written (1.12, Ben: "add option to input day in addition to month and year ... apply to all"). In the
+/// app a date shows as it was entered ("06/14/2015" when a day was typed). In the two summaries (the Preprocedure Summary
+/// and the handoff, on screen and when copied or shared) the day shows only for a recent date: see
+/// `PatientMonthYear.summaryText(now:)`.
+enum PatientDateStyle: Hashable {
+    case app
+    case summary(now: Date)
+}
+
+/// Month and year, as a chart gives them ("03/2019", or "2019" alone), with an optional day (1.12): "06/14/2015". A day is
+/// kept only with a month and a year and only when the date exists; a record saved before 1.12 has none and opens unchanged.
+struct PatientMonthYear: Codable, Hashable, Comparable {
     var month: Int?
     var year: Int?
+    /// The day of the month, when one was entered (1.12). Never set without a month and a year, never an impossible date.
+    var day: Int?
 
-    init(month: Int? = nil, year: Int? = nil) { self.month = month; self.year = year }
+    init(month: Int? = nil, day: Int? = nil, year: Int? = nil) {
+        self.month = month; self.year = year
+        self.day = PatientMonthYear.isDay(day, month: month, year: year) ? day : nil
+    }
+
+    private enum CodingKeys: String, CodingKey { case month, year, day }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let m = (try? c.decodeIfPresent(Int.self, forKey: .month)) ?? nil
+        let y = (try? c.decodeIfPresent(Int.self, forKey: .year)) ?? nil
+        let d = (try? c.decodeIfPresent(Int.self, forKey: .day)) ?? nil
+        self.init(month: m, day: d, year: y)
+    }
 
     var isEmpty: Bool { month == nil && year == nil }
+
+    /// The text for the field and the app's lists: "06/14/2015" with a day, "06/2015", "2015".
     var text: String {
         guard let y = year else { return "" }
         guard let m = month, (1...12).contains(m) else { return String(y) }
+        if let d = day { return String(format: "%02d/%02d/%d", m, d, y) }
         return String(format: "%02d/%d", m, y)
+    }
+
+    /// The same date without its day: "06/2015".
+    var monthYearText: String { PatientMonthYear(month: month, year: year).text }
+
+    /// What the field's placeholder says (the day is optional) and its accessibility label.
+    static let placeholder = "MM/YYYY or MM/DD/YYYY"
+    static func accessibilityLabel(_ label: String) -> String { label + ", month and year; the day is optional" }
+
+    /// How many days a month has (the year decides February).
+    static func daysIn(month: Int, year: Int) -> Int {
+        switch month {
+        case 2: return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28
+        case 4, 6, 9, 11: return 30
+        default: return 31
+        }
+    }
+
+    /// `day` is a real day of that month and year.
+    static func isDay(_ day: Int?, month: Int?, year: Int?) -> Bool {
+        guard let day, let month, let year, (1...12).contains(month) else { return false }
+        return (1...daysIn(month: month, year: year)).contains(day)
+    }
+
+    /// Oldest first; a date with no month or day sorts before the same year's dated ones.
+    static func < (a: PatientMonthYear, b: PatientMonthYear) -> Bool {
+        let x = [a.year ?? 0, a.month ?? 0, a.day ?? 0], y = [b.year ?? 0, b.month ?? 0, b.day ?? 0]
+        return x.lexicographicallyPrecedes(y)
+    }
+
+    /// The date as a calendar day, when it has one.
+    func calendarDate(_ calendar: Calendar = .current) -> Date? {
+        guard let y = year, let m = month, let d = day else { return nil }
+        return calendar.date(from: DateComponents(year: y, month: m, day: d))
+    }
+
+    /// One date for two entries of the same operation or study (1.12): the fuller one (a day beats a month, a month beats a
+    /// year alone); the first when they are equally full or do not agree. An empty date never wins.
+    static func fuller(_ a: PatientMonthYear, _ b: PatientMonthYear) -> PatientMonthYear {
+        if a.isEmpty { return b }
+        if b.isEmpty { return a }
+        func detail(_ d: PatientMonthYear) -> Int { (d.month != nil ? 1 : 0) + (d.day != nil ? 1 : 0) }
+        return detail(b) > detail(a) && compatible(a, b) ? b : a
+    }
+
+    /// The dates do not differ: one is empty, or the years agree and the months agree or one is missing, and the days
+    /// agree or one is missing ("06/14/2015", "06/2015" and "2015" are one date).
+    static func compatible(_ a: PatientMonthYear, _ b: PatientMonthYear) -> Bool {
+        if a.isEmpty || b.isEmpty { return true }
+        guard a.year == b.year else { return false }
+        guard a.month == nil || b.month == nil || a.month == b.month else { return false }
+        return a.day == nil || b.day == nil || a.day == b.day
+    }
+
+    /// A date older than this many days is written as month and year in the summaries.
+    static let summaryDayWindow = 90
+
+    /// How a date reads in a summary that leaves the phone (1.12). The app holds no identifiers, and an exact date of a
+    /// procedure is one of the date details the de-identification rules count as identifying; a recent date is the one that
+    /// matters clinically (a stent placed three weeks ago). So the day shows only when the date is within the last 90 days
+    /// of `now` (and not in the future); an older date is month and year, as before. The ONE place the rule lives: every
+    /// line a summary prints a date on uses it.
+    func summaryText(now: Date = Date(), calendar: Calendar = .current) -> String {
+        guard day != nil, let d = calendarDate(calendar) else { return monthYearText }
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: d), to: calendar.startOfDay(for: now)).day ?? Int.max
+        return (0...PatientMonthYear.summaryDayWindow).contains(days) ? text : monthYearText
+    }
+
+    /// The date as `style` writes it.
+    func shown(_ style: PatientDateStyle) -> String {
+        switch style {
+        case .app: return text
+        case .summary(let now): return summaryText(now: now)
+        }
     }
 
     private static let monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
@@ -69,8 +171,33 @@ struct PatientMonthYear: Codable, Hashable {
             case 6:
                 if let m = month(String(p.prefix(2))), let y = year(String(p.suffix(4))) { return PatientMonthYear(month: m, year: y) }
                 return nil
+            case 8:
+                // MMDDYYYY (1.12), a real date only.
+                if let m = month(String(p.prefix(2))), let d = Int(String(p.dropFirst(2).prefix(2))), let y = year(String(p.suffix(4))),
+                   PatientMonthYear.isDay(d, month: m, year: y) { return PatientMonthYear(month: m, day: d, year: y) }
+                return nil
             default: return nil
             }
+        }
+        // A full date (1.12): "06/14/2015", "6/14/15", "2015-06-14", "Jun 14 2015". An impossible date ("02/30/2024", a month
+        // of 13) is not read: nil, as for a bad month and year.
+        if parts.count == 3 {
+            let a = parts[0], b = parts[1], c = parts[2]
+            func day(_ digits: String) -> Int? { digits.count <= 2 ? Int(digits) : nil }
+            if isDigits(a), isDigits(b), isDigits(c) {
+                if let m = month(a), let d = day(b), let y = year(c), PatientMonthYear.isDay(d, month: m, year: y) {
+                    return PatientMonthYear(month: m, day: d, year: y)
+                }
+                if a.count == 4, let y = year(a), let m = month(b), let d = day(c), PatientMonthYear.isDay(d, month: m, year: y) {
+                    return PatientMonthYear(month: m, day: d, year: y)
+                }
+                return nil
+            }
+            if a.count >= 3, a.allSatisfy({ $0.isLetter }), isDigits(b), isDigits(c), let d = day(b), c.count == 4, let y = year(c),
+               let mi = monthNames.firstIndex(where: { $0.hasPrefix(a) }), PatientMonthYear.isDay(d, month: mi + 1, year: y) {
+                return PatientMonthYear(month: mi + 1, day: d, year: y)
+            }
+            return nil
         }
         if parts.count == 2 {
             let a = parts[0], b = parts[1]
@@ -108,6 +235,12 @@ struct PatientMonthYear: Codable, Hashable {
         if !rest.isEmpty {
             // A separator after the month's digits.
             guard !head.isEmpty, head.count <= 2, let m = Int(head), (1...12).contains(m) else { return new }
+            // 1.12: a second separator after the digits that follow the month makes those digits the day ("06/14/" and
+            // "06/14/2015"); "6/4/" becomes "06/04/". A day that cannot be one ("06/45/") is left to the old reading.
+            let pieces = rest.split(omittingEmptySubsequences: false, whereSeparator: { separator($0) }).map { String($0.filter { $0.isASCII && $0.isWholeNumber }) }
+            if pieces.count >= 3, !pieces[1].isEmpty, pieces[1].count <= 2, let d = Int(pieces[1]), (1...31).contains(d) {
+                return pad(head) + "/" + pad(pieces[1]) + "/" + String(pieces[2].prefix(4))
+            }
             let year = String(rest.filter { $0.isASCII && $0.isWholeNumber }.prefix(4))
             return pad(head) + "/" + year
         }
@@ -143,6 +276,8 @@ struct PatientMonthYear: Codable, Hashable {
         let parts = t.split(whereSeparator: { separator($0) }).map(String.init)
         if parts.count == 1, isDigits(parts[0]), parts[0].count != 4 { return nil }
         if parts.count == 2, isDigits(parts[1]), parts[1].count != 2, parts[1].count != 4 { return nil }
+        // A full date is settled once its year has two or four digits ("06/14/" and "06/14/201" are still being typed).
+        if parts.count == 3, isDigits(parts[2]), parts[2].count != 2, parts[2].count != 4 { return nil }
         return parse(t, now: now)
     }
 }
@@ -387,9 +522,12 @@ struct PatientSurgery: Codable, Hashable, Identifiable {
     }
 
     /// "Left total knee arthroplasty (03/2019)"; several procedures joined with " + ".
-    var text: String {
+    var text: String { shownText(.app) }
+
+    /// The operation with its date as `style` writes it (1.12): in a summary the day shows only for a recent date.
+    func shownText(_ style: PatientDateStyle) -> String {
         let what = procedures.map(\.text).filter { !$0.isEmpty }.joined(separator: " + ")
-        return date.isEmpty || what.isEmpty ? what : what + " (" + date.text + ")"
+        return date.isEmpty || what.isEmpty ? what : what + " (" + date.shown(style) + ")"
     }
 }
 
@@ -624,9 +762,9 @@ struct PatientEcho: Codable, Hashable {
     /// The intraoperative TEE in its exams (1.10, Ben's notes-img3): with a post-bypass exam, "Pre: …" and "Post: …"; with
     /// the pre-bypass exam alone, its findings as before 1.10 (a case without bypass has one exam, which needs no label).
     /// Only what is entered. The study word ("TEE:") the summary opens with is left out: the block's label says it.
-    static func intraopParts(pre: PatientEcho, post: PatientEcho) -> [(label: String?, text: String)] {
+    static func intraopParts(pre: PatientEcho, post: PatientEcho, dates: PatientDateStyle = .app) -> [(label: String?, text: String)] {
         func body(_ e: PatientEcho) -> String {
-            let s = e.summary
+            let s = e.summary(dates: dates)
             return s.hasPrefix("TEE: ") ? String(s.dropFirst(5)) : s
         }
         if post.isEmpty { return pre.isEmpty ? [] : [(nil, body(pre))] }
@@ -637,8 +775,11 @@ struct PatientEcho: Codable, Hashable {
     }
 
     /// "TTE 03/2026: LV EF 55%, normal; moderate MR".
-    var summary: String {
-        let head = [study, date.isEmpty ? nil : date.text].compactMap { $0 }.joined(separator: " ")
+    var summary: String { summary(dates: .app) }
+
+    /// The same with the date as `style` writes it (1.12).
+    func summary(dates: PatientDateStyle) -> String {
+        let head = [study, date.isEmpty ? nil : date.shown(dates)].compactMap { $0 }.joined(separator: " ")
         let body = phrases.joined(separator: "; ")
         if body.isEmpty { return head }
         return head.isEmpty ? body : head + ": " + body
@@ -679,9 +820,12 @@ struct PatientLHC: Codable, Hashable {
     /// "LHC 05/2026, right dominant: LAD 90%, RCA 70%; LM, LCx, PDA no significant disease". Non-obstructive reads first
     /// ("LHC 06/2026, right dominant: non-obstructive CAD", or "...: no CAD"; then the vessels and the notes), unless the
     /// notes say it already.
-    var summary: String {
+    var summary: String { summary(dates: .app) }
+
+    /// The same with the date as `style` writes it (1.12).
+    func summary(dates: PatientDateStyle) -> String {
         var head = "LHC"
-        if !date.isEmpty { head += " " + date.text }
+        if !date.isEmpty { head += " " + date.shown(dates) }
         if let d = dominance { head += ", " + (d == "codominant" ? "codominant" : d + " dominant") }
         let named = PatientLHC.vessels.filter { stenosis[$0.id] != nil }
         let severe = named.filter { (stenosis[$0.id] ?? 0) >= 50 }.map { "\($0.label) \(NumText.short(stenosis[$0.id] ?? 0))%" }

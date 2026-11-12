@@ -107,6 +107,11 @@ extension PatientEditorView {
                                 value: Binding(get: { patient.record.typeScreen.crossmatched.map { Double($0) } },
                                                set: { v in patient.update { $0.typeScreen.crossmatched = v.map { Int($0.rounded()) }.flatMap { $0 > 0 ? $0 : nil } } }))
             }
+            // 1.12 (Ben): the blood bank's expiration, once the type and screen is sent or resulted; entered by hand.
+            if ts.effectiveStatus == .sent || ts.effectiveStatus == .resulted {
+                Hairline().padding(.leading, 14)
+                TypeScreenExpiresRow()
+            }
         }
         // Screenshot runs: -ps.patient.scroll labs-results.
         .id("labs-results")
@@ -622,9 +627,7 @@ struct LabSlot: View {
                     }
                 }
                 HStack(spacing: 1) {
-                    if flag.isAbnormal {
-                        Text(flag.mark).font(PS.sys(size: 9.5, weight: .heavy)).foregroundStyle(PS.red)
-                    }
+                    // 1.12: an out-of-range value is bold red with no H or L beside it (its accessibility label says low or high).
                     TextField("", text: $text)
                         .modifier(PatientFieldFocus(chain: chain, local: $focused))
                         .keyboardType(.decimalPad)
@@ -653,6 +656,75 @@ struct LabSlot: View {
         }
         .onChange(of: value) { _, v in
             if Double(text.replacingOccurrences(of: ",", with: ".")) != v { text = v.map { test.format($0) } ?? "" }
+        }
+    }
+}
+
+// MARK: Type & screen: when it expires
+
+/// "+ Expires" on the Type & screen group once it is Sent or Resulted (1.12, Ben: "add expiration day and time option to type
+/// and screen"). It opens a date and time picker in place and collapses to "Expires 11/14/26 23:59 · Change" with a way to
+/// clear it, the way the intraoperative lab set's "Drawn 06:30 · Change" does (LabsDrawnRow). Entered by hand: the validity
+/// period is the blood bank's, so nothing here is calculated from the draw time or any rule. Once the time has passed it reads
+/// "Expired 11/14/26 23:59" in red; nothing else happens (no notification, no countdown).
+struct TypeScreenExpiresRow: View {
+    @Environment(PatientStore.self) private var patient
+    @State private var editing = false
+    @State private var draft = Date()
+
+    static let fontSize: CGFloat = 12.5
+
+    private var ts: PatientTypeScreen { patient.record.typeScreen }
+
+    var body: some View {
+        if ts.effectiveStatus == .sent || ts.effectiveStatus == .resulted {
+            VStack(alignment: .leading, spacing: 6) {
+                if let e = ts.expires {
+                    let expired = ts.isExpired()
+                    HStack(spacing: 8) {
+                        Image(systemName: "clock").font(PS.sys(size: Self.fontSize - 1, weight: .semibold)).foregroundStyle(expired ? PS.red : PS.fg3)
+                            .accessibilityHidden(true)
+                        Text((expired ? "Expired " : "Expires ") + PatientSummary.time(e))
+                            .font(PS.sys(size: Self.fontSize, weight: expired ? .semibold : .regular)).foregroundStyle(expired ? PS.red : PS.fg2)
+                        Button { withAnimation(.snappy) { editing.toggle() } } label: {
+                            Text(editing ? "Done" : "Change").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.action)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(editing ? "Done" : "Change when the type and screen expires")
+                        Spacer(minLength: 6)
+                        Button { editing = false; patient.update(discrete: true) { $0.typeScreen.expires = nil } } label: {
+                            Image(systemName: "xmark.circle.fill").font(PS.sys(size: Self.fontSize + 1)).foregroundStyle(PS.fg3)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear when the type and screen expires")
+                    }
+                    if editing {
+                        DatePicker("Type and screen expires", selection: Binding(get: { e }, set: { v in patient.update { $0.typeScreen.expires = v } }),
+                                   displayedComponents: [.date, .hourAndMinute])
+                            .labelsHidden()
+                            .environment(\.locale, PatientDates.locale24)
+                    }
+                } else if editing {
+                    DatePicker("Type and screen expires", selection: $draft, displayedComponents: [.date, .hourAndMinute])
+                        .labelsHidden()
+                        .environment(\.locale, PatientDates.locale24)
+                    HStack(spacing: 14) {
+                        Button { patient.update(discrete: true) { $0.typeScreen.expires = draft }; withAnimation(.snappy) { editing = false } } label: {
+                            Text("Set").font(PS.sys(size: Self.fontSize, weight: .semibold)).foregroundStyle(PS.action)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Set when the type and screen expires")
+                        Button { withAnimation(.snappy) { editing = false } } label: {
+                            Text("Cancel").font(PS.sys(size: Self.fontSize)).foregroundStyle(PS.fg2)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } else {
+                    LabsQuietLink(title: "Expires") { draft = Date(); withAnimation(.snappy) { editing = true } }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14).padding(.vertical, 6)
         }
     }
 }
@@ -879,15 +951,15 @@ struct LabFieldRow: View {
             }
             .layoutPriority(1)
             Spacer(minLength: 6)
-            if flag.isAbnormal {
-                Text(flag.mark).font(PS.sys(size: 12, weight: .heavy)).foregroundStyle(PS.red)
-            }
+            // 1.12: an out-of-range value is bold red with no H or L beside it.
             TextField(value == nil ? (estimate.map { "~" + $0.text } ?? "—") : "—", text: $text)
                 .modifier(PatientFieldFocus(chain: chain, local: $focused))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 16, weight: flag.isAbnormal ? .bold : .medium, design: .monospaced))
                 .foregroundStyle(flag.isAbnormal ? PS.red : PS.fg)
+                // VoiceOver cannot see that the value is red: it says "low" or "high" (1.12).
+                .accessibilityLabel(flag.isAbnormal ? test.label + ", " + flag.word : test.label)
                 // Gives up a little width to the label on a narrow row; 84 wherever there is room.
                 .frame(minWidth: 64, maxWidth: 84)
                 .padding(.horizontal, 8).padding(.vertical, 6)

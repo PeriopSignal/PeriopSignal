@@ -51,7 +51,7 @@ struct IntraopLabsEditor: View {
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Earlier set" + (s.time.map { ", " + PatientSummary.time($0) } ?? "")).font(PS.sys(size: 14.5, weight: .semibold)).foregroundStyle(PS.fg)
-                        if let l = IntraopLabs.line(s, sex: r.sex) { PatientLineText(line: PatientSummary.Line(nil, l.text, marks: l.marks)) }
+                        if let l = IntraopLabs.line(s, sex: r.sex) { PatientLineText(line: PatientSummary.Line(nil, l.text, marks: l.marks, spoken: l.spoken)) }
                     }
                 }
                 .tint(PS.fg2)
@@ -371,20 +371,13 @@ struct PatientCodeStatusGroup: View {
 /// The handoff text with its headers bold and underlined, its labels bold (HandoffStyle, 1.8.3) and its abnormal values
 /// in bold red (HandoffWriter.marks).
 func handoffStyled(_ text: String, marks: [String]) -> AttributedString {
-    var a = AttributedString(text)
+    var a = AttributedString(MarkedText.kept(text, marks: marks))
     for s in HandoffStyle.spans(text) {
         let lo = a.index(a.startIndex, offsetByCharacters: text.distance(from: text.startIndex, to: s.range.lowerBound))
         let hi = a.index(lo, offsetByCharacters: text.distance(from: s.range.lowerBound, to: s.range.upperBound))
         a[lo..<hi].font = PS.sys(size: 14.5, weight: .bold)
         if s.kind == .header { a[lo..<hi].underlineStyle = .single }
     }
-    for m in marks where !m.isEmpty {
-        var from = a.startIndex
-        while let r = a[from...].range(of: m) {
-            a[r].foregroundColor = PS.red
-            a[r].font = PS.sys(size: 14.5, weight: .bold)
-            from = r.upperBound
-        }
-    }
+    a.paintMarks(marks, in: text, font: PS.sys(size: 14.5, weight: .bold))
     return a
 }

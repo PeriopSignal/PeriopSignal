@@ -56,12 +56,18 @@ struct PatientTypeScreen: Codable, Hashable {
     var crossmatched: Int?
     /// Not sent or sent, as the user said (1.11); a result recorded (hasResult) reads as resulted whatever this holds.
     var status: TypeScreenStatus?
+    /// When the blood bank's type and screen expires (1.12, Ben: "add expiration day and time option to type and screen").
+    /// Entered by hand: the validity period is the blood bank's, so it is never calculated from the draw time or any rule.
+    /// Kept in the record when the status goes back to not sent, but shown only while the T&S is sent or resulted.
+    var expires: Date?
 
     static let types = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
     static let unitLimit = 40
 
-    init(type: String? = nil, screen: LabResult? = nil, antibody: String = "", crossmatched: Int? = nil, status: TypeScreenStatus? = nil) {
+    init(type: String? = nil, screen: LabResult? = nil, antibody: String = "", crossmatched: Int? = nil, status: TypeScreenStatus? = nil,
+         expires: Date? = nil) {
         self.type = type; self.screen = screen; self.antibody = antibody; self.crossmatched = crossmatched; self.status = status
+        self.expires = expires
     }
 
     init(from decoder: Decoder) throws {
@@ -72,9 +78,11 @@ struct PatientTypeScreen: Codable, Hashable {
         crossmatched = try? c.decodeIfPresent(Int.self, forKey: .crossmatched)
         // Records saved before 1.11 have no status: nil, and a recorded result still reads as resulted.
         status = try? c.decodeIfPresent(TypeScreenStatus.self, forKey: .status)
+        // Records saved before 1.12 have no expiration.
+        expires = try? c.decodeIfPresent(Date.self, forKey: .expires)
     }
 
-    var isEmpty: Bool { type == nil && screen == nil && antibodyText.isEmpty && crossmatched == nil && status == nil }
+    var isEmpty: Bool { type == nil && screen == nil && antibodyText.isEmpty && crossmatched == nil && status == nil && expires == nil }
 
     var antibodyText: String { antibody.trimmingCharacters(in: .whitespacesAndNewlines) }
 
@@ -125,8 +133,40 @@ struct PatientTypeScreen: Codable, Hashable {
     /// "2 u crossmatched".
     var crossmatchText: String? { crossmatched.flatMap { $0 > 0 ? "\($0) u crossmatched" : nil } }
 
-    /// The labs line's parts: ["T&S A−, screen neg", "2 u crossmatched"].
-    var parts: [String] { [head, crossmatchText].compactMap { $0 } }
+    /// The expiration, while the T&S is sent or resulted (1.12): not sent offers none and shows none, though a saved one stays in
+    /// the record.
+    var shownExpiry: Date? {
+        guard let e = expires, let s = effectiveStatus, s != .notSent else { return nil }
+        return e
+    }
+
+    /// The time has passed (nothing else changes: no notification, no countdown, no timer).
+    func isExpired(now: Date = Date()) -> Bool { shownExpiry.map { $0 <= now } ?? false }
+
+    /// The expiration as the app writes times elsewhere (PatientSummary.time): "23:59" today, "11/14/26 23:59" another day.
+    func expiryStamp(now: Date = Date()) -> String? { shownExpiry.map { PatientSummary.time($0, now: now) } }
+
+    /// "expires 11/14/26 23:59"; once the time has passed "T&S expired 11/14/26 23:59" (the part the line paints red); nil with
+    /// none shown.
+    func expiryText(now: Date = Date()) -> String? {
+        guard let stamp = expiryStamp(now: now) else { return nil }
+        // Resulted with nothing entered yet has no "T&S ..." head to follow: the words say what it is.
+        return isExpired(now: now) ? "T&S expired " + stamp : (head == nil ? "T&S expires " : "expires ") + stamp
+    }
+
+    /// The labs line's parts: ["T&S A−, screen neg", "2 u crossmatched", "expires 11/14/26 23:59"].
+    func parts(now: Date) -> [String] { [head, crossmatchText, expiryText(now: now)].compactMap { $0 } }
+
+    var parts: [String] { parts(now: Date()) }
+
+    /// What to paint bold red on the T&S: a positive antibody screen, and an expired T&S (a mark of the line, so the line is
+    /// never truncated).
+    func marks(now: Date) -> [String] {
+        var out: [String] = []
+        if screen == .positive, let h = head { out.append(h) }
+        if isExpired(now: now), let e = expiryText(now: now) { out.append(e) }
+        return out
+    }
 
     /// What a note gave, over what the record holds: only the parts the note said.
     func merged(over o: PatientTypeScreen) -> PatientTypeScreen {
@@ -219,10 +259,9 @@ enum LabResults {
     }
 
     /// The labs line after the numbers: type and screen, then the infectious results; positives are marked.
-    static func lineParts(_ r: PatientRecord) -> (parts: [String], marks: [String]) {
-        var parts = r.typeScreen.parts
-        var marks: [String] = []
-        if r.typeScreen.screen == .positive, let h = r.typeScreen.head { marks.append(h) }
+    static func lineParts(_ r: PatientRecord, now: Date = Date()) -> (parts: [String], marks: [String]) {
+        var parts = r.typeScreen.parts(now: now)
+        var marks: [String] = r.typeScreen.marks(now: now)
         for p in infectiousParts(r.infections) {
             parts.append(p.text)
             if p.result == .positive { marks.append(p.text) }

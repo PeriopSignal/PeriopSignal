@@ -1025,7 +1025,7 @@ enum PatientNote {
         // What looks like an identifier is blanked before reading: nothing is read from it, and it never reaches Other
         // conditions (the warning still names it).
         var blanked = text as NSString
-        for r in QuickAdd.identifierRanges(text) where r.location + r.length <= blanked.length {
+        for r in QuickAdd.identifierRanges(text, now: now) where r.location + r.length <= blanked.length {
             blanked = blanked.replacingCharacters(in: r, with: String(repeating: " ", count: r.length)) as NSString
         }
 
@@ -1106,7 +1106,7 @@ enum PatientNote {
             }
             // Past surgical history: a "PSH:" section, "s/p ...", "h/o ..." (1.8.3). What the cardiac reader took is its own.
             let taken = zip(h.findings, h.at).filter { $0.0.id == "cardiac-surgery" }.map { $0.1 }
-            for op in PastSurgeryNote.read(c, state: &surgeryState, skip: taken).operations {
+            for op in PastSurgeryNote.read(c, state: &surgeryState, skip: taken, now: now).operations {
                 let entry = PastSurgeryNote.surgery(op.text, op.date)
                 h.add(PatientNoteFinding(id: "psh:" + op.text.lowercased() + "|" + op.date.text, section: Part.history,
                                          label: "Past surgical history: " + entry.text, change: .pastSurgery(op.text, op.date)), at: op.range)
@@ -1118,7 +1118,10 @@ enum PatientNote {
             let full = MedAbbreviations.expand(c, plain)
             let pastClause = pastCare.first(c) != nil || pastCare.first(full.text) != nil
             let pieces = planClause.first(c) != nil ? [] : leftovers(c, h.ranges, keepNegatives: pastClause)
-            for (piece, range) in pieces {
+            for (written, range) in pieces {
+                // A date with a day that was not read as an operation's or a test's never reaches the free text (1.12).
+                let piece = withoutFullDates(written)
+                guard !piece.isEmpty else { continue }
                 let expanded = (full.text as NSString).substring(with: full.target(range))
                 if pastClause || surgicalPiece.first(piece) != nil || surgicalPiece.first(expanded) != nil {
                     if !previous.contains(where: { $0.caseInsensitiveCompare(piece) == .orderedSame }) { previous.append(piece) }
@@ -1242,7 +1245,7 @@ enum PatientNote {
             return ra != rb ? ra < rb : a < b
         }.map { kept[$0] }
         return PatientNoteReading(findings: findings, other: other.joined(separator: "; "), previous: previous.joined(separator: "; "),
-                                  identifiers: identifiers(text), ambiguous: ambiguous, unknown: unknown)
+                                  identifiers: identifiers(text, now: now), ambiguous: ambiguous, unknown: unknown)
     }
 
     /// Reads abbreviations no rule read as written through their meanings; what comes from a meaning is placed back on
@@ -1592,8 +1595,9 @@ enum PatientNote {
     /// Previous cardiac surgery, told as past: an operation on the heart ("s/p AVR 2015", "prior CABG", "h/o Bentall"),
     /// "prior cardiac surgery", or a redo sternotomy (which means there was one). Transcatheter procedures are not.
     static let cardiacOpWords = #"(?:(?:mechanical|bioprosthetic|tissue)\s+)?(?:(?-i:SAVR|AVR|MVR|TVR|CABG|OPCAB|AVr|MVr|TVr)|aortic valve (?:replacement|repair)|mitral valve (?:replacement|repair)|tricuspid valve (?:replacement|repair)|valve (?:replacement|repair|surgery)|coronary (?:artery )?bypass(?: graft(?:ing)?)?|(?:bio-?)?bentall|ross procedure|maze procedure|myectomy|(?-i:ASD|VSD) (?:repair|closure)|heart transplant(?:ation)?|(?-i:OHT)|cardiac surgery|heart surgery|open[- ]heart surgery|sternotomy)(?:\s*(?:x|×)\s*\d)?"#
-    static let cardiacSurgeryRx = NoteRx(#"\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old|remote)\s+(?:an?\s+)?("# + cardiacOpWords + #")(?:\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\)?)?"#)
-    static let cardiacSurgeryYearRx = NoteRx(#"(?-i:\b((?:SAVR|AVR|MVR|CABG|Bentall)\b(?:\s*(?:x|×)\s*\d)?))\s*(?:\(|,)?\s*(?:in\s+)?((?:19|20)\d\d)\b"#)
+    /// 1.12: the date after the operation may carry its day ("s/p CABG on 5/1/2019").
+    static let cardiacSurgeryRx = NoteRx(#"\b(?:s/p|status post|prior|previous|history of|hx of|h/o|old|remote)\s+(?:an?\s+)?("# + cardiacOpWords + #")(?:\s*(?:\(|,)?\s*(?:in\s+|on\s+)?((?:(?:0?[1-9]|1[0-2])[/.\-](?:0?[1-9]|[12]\d|3[01])[/.\-])?(?:19|20)\d\d)\)?)?"#)
+    static let cardiacSurgeryYearRx = NoteRx(#"(?-i:\b((?:SAVR|AVR|MVR|CABG|Bentall)\b(?:\s*(?:x|×)\s*\d)?))\s*(?:\(|,)?\s*(?:in\s+|on\s+)?((?:(?:0?[1-9]|1[0-2])[/.\-](?:0?[1-9]|[12]\d|3[01])[/.\-])?(?:19|20)\d\d)\b"#)
     static let redoSternotomyRx = NoteRx(#"\bredo\s+(?:median\s+)?sternotomy\b|\bre-?(?:do\s+)?sternotomy\b"#)
 
     private static func readCardiacSurgery(_ c: String, _ h: inout Hits) {
@@ -3027,10 +3031,25 @@ enum PatientNote {
     ]
 
     /// Kinds of identifier the text seems to hold, for a warning (nothing is removed automatically).
-    static func identifiers(_ text: String) -> [String] {
+    static func identifiers(_ text: String, now: Date = Date()) -> [String] {
         var out: [String] = []
-        for (kind, rx) in identifierRules where !out.contains(kind) && rx.first(text) != nil { out.append(kind) }
+        for (kind, rx) in identifierRules where !out.contains(kind) {
+            // 1.12: the date of a past operation or a stress test told with a day is that event's, not an identifier
+            // (QuickAdd.isEventDate).
+            let hits = rx.all(text).filter { !(kind == "a date" && QuickAdd.isEventDate($0.range, in: text, now: now)) }
+            if !hits.isEmpty { out.append(kind) }
+        }
         return out
+    }
+
+    /// A numeric date with a day ("6/14/2015"), which no leftover of a note may carry into the record's free text.
+    static let fullDateInText = NoteRx(#"\b\d{1,2}[/.-]\d{1,2}[/.-](?:19|20)\d{2}\b"#)
+
+    /// `s` without its numeric full dates (1.12), words around them kept.
+    static func withoutFullDates(_ s: String) -> String {
+        guard let re = fullDateInText.re else { return s }
+        let out = re.stringByReplacingMatches(in: s, range: NSRange(location: 0, length: (s as NSString).length), withTemplate: " ")
+        return out.components(separatedBy: .whitespaces).filter { !$0.isEmpty }.joined(separator: " ")
     }
 
     // MARK: Airway, breathing, lines and devices
@@ -3729,11 +3748,12 @@ enum PatientNote {
             if o.isEmpty { return .new }
             let kindSame = t.kind == nil || o.kind == t.kind
             let resultSame = t.result == nil || o.result == t.result
-            let dateSame = t.date.isEmpty || o.date == t.date
+            // Nothing added: the typed date is the recorded one, or says no more than it does (a year for a month and year).
+            let dateSame = t.date.isEmpty || (PatientMonthYear.compatible(o.date, t.date) && PatientMonthYear.fuller(o.date, t.date) == o.date)
             if kindSame && resultSame && dateSame { return .recorded }
             if let a = o.result, let b = t.result, a != b { return .replaces(o.summary ?? a.text) }
             if let a = o.kind, let b = t.kind, a != b { return .replaces(o.summary ?? a.label.lowercased()) }
-            if !o.date.isEmpty, !t.date.isEmpty, o.date != t.date { return .replaces(o.summary ?? o.date.text) }
+            if !o.date.isEmpty, !t.date.isEmpty, !PatientMonthYear.compatible(o.date, t.date) { return .replaces(o.summary ?? o.date.text) }
             return .new
         case .event(let t):
             return mentions(r.events, t) ? .recorded : .new
@@ -3979,13 +3999,13 @@ enum PatientNote {
                 // replaces the old one whole, so the old findings are not left under the new result.
                 let o = r.stressTest
                 let differs = !o.isEmpty && ((o.result != nil && t.result != nil && o.result != t.result)
-                    || (o.kind != nil && t.kind != nil && o.kind != t.kind) || (!o.date.isEmpty && !t.date.isEmpty && o.date != t.date))
+                    || (o.kind != nil && t.kind != nil && o.kind != t.kind) || (!o.date.isEmpty && !t.date.isEmpty && !PatientMonthYear.compatible(o.date, t.date)))
                 if differs {
                     r.stressTest = t
                 } else {
                     if let k = t.kind { r.stressTest.kind = k }
                     if let v = t.result { r.stressTest.result = v }
-                    if !t.date.isEmpty { r.stressTest.date = t.date }
+                    if !t.date.isEmpty { r.stressTest.date = PatientMonthYear.fuller(r.stressTest.date, t.date) }
                     if !t.findings.trimmingCharacters(in: .whitespaces).isEmpty { r.stressTest.findings = joined(r.stressTest.findings, t.findings) }
                 }
             case .event(let t):

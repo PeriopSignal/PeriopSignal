@@ -82,17 +82,19 @@ final class PatientIntraopExtrasTests: XCTestCase {
     func testLastLabsLine() throws {
         let l = try XCTUnwrap(IntraopLabs.lastLine(demo))
         XCTAssertEqual(l.label, "Last labs")
-        XCTAssertTrue(l.text.hasPrefix("10:40 · pH 7.33 L · PaCO₂ 47 H · PaO₂ 212 · HCO₃ 24 · BE -1.5"), l.text)
-        XCTAssertEqual(l.marks, ["pH 7.33 L", "PaCO₂ 47 H", "Hb 11.6 L", "iCa 1.14 L", "Glu 192 H"])
+        XCTAssertTrue(l.text.hasPrefix("10:40 · pH 7.33 · PaCO₂ 47 · PaO₂ 212 · HCO₃ 24 · BE -1.5"), l.text)
+        XCTAssertEqual(l.marks, ["pH 7.33", "PaCO₂ 47", "Hb 11.6", "iCa 1.14", "Glu 192"])
+        XCTAssertTrue(l.plainText.hasPrefix("10:40 · pH 7.33 L · PaCO₂ 47 H · PaO₂ 212"), "the plain text keeps the letter: " + l.plainText)
         for m in l.marks { XCTAssertTrue(l.text.contains(m), m) }
         let short = try XCTUnwrap(IntraopLabs.lastLine(demo, abnormalOnly: true))
-        XCTAssertEqual(short.text, "10:40 · pH 7.33 L · PaCO₂ 47 H · BE -1.5 · Hb 11.6 L · iCa 1.14 L · Glu 192 H · 5 more not flagged",
+        XCTAssertEqual(short.text, "10:40 · pH 7.33 · PaCO₂ 47 · BE -1.5 · Hb 11.6 · iCa 1.14 · Glu 192 · 5 more not flagged",
                        "base excess has no range, so it is listed rather than counted as normal")
         let card = PatientSummary.intraopPartLines(demo, "labs")
         XCTAssertEqual(card.first?.marks.count, 5, "the card keeps the bold red")
-        XCTAssertTrue(HandoffWriter.marks(demo).contains("Hb 11.6 L"))
+        XCTAssertTrue(HandoffWriter.marks(demo).contains("Hb 11.6"))
         let cardiac = try XCTUnwrap(IntraopLabs.lastLine(PatientDemo.cardiac))
-        XCTAssertTrue(cardiac.text.contains("PTT 52 H"), cardiac.text)
+        XCTAssertTrue(cardiac.text.contains("PTT 52"), cardiac.text)
+        XCTAssertTrue(cardiac.plainText.contains("PTT 52 H"), "the plain text keeps the letter")
         XCTAssertTrue(cardiac.text.contains("ACT 128"), cardiac.text)
         XCTAssertTrue(cardiac.text.contains("ROTEM/TEG: EXTEM CT 92 s"), cardiac.text)
         XCTAssertTrue(cardiac.text.hasPrefix("13:20"), "the later of the two sets")

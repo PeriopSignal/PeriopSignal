@@ -213,27 +213,34 @@ enum IntraopLabs {
 
     static func latest(_ r: PatientRecord) -> IntraopLabSet? { ordered(r.intraopLabs).first }
 
-    /// "10:40 · pH 7.33 L · PaCO₂ 47 H · … · ROTEM/TEG: …", the abnormal values marked for bold red. `abnormalOnly`
-    /// (the short handoff) keeps the flagged values and counts the rest.
+    /// "10:40 · pH 7.33 · PaCO₂ 47 · … · ROTEM/TEG: …", the abnormal values marked for bold red (with no H or L after them,
+    /// 1.12; `plain` is the same line with the letters, for the plain text). `abnormalOnly` (the short handoff) keeps the
+    /// flagged values and counts the rest.
     static func line(_ s: IntraopLabSet, sex: PatientSex?, now: Date = Date(), abnormalOnly: Bool = false) -> PatientSummary.Line? {
         let vals = values(s, sex: sex)
         // Values with no range to judge them by (base excess, ACT) are listed rather than counted as unflagged.
         let flagged = vals.filter { $0.flag.isAbnormal }
         let listed = vals.filter { $0.flag.isAbnormal || !$0.rated }
-        var parts = (abnormalOnly ? listed : vals).map(\.compact)
+        let shown = abnormalOnly ? listed : vals
+        var parts = shown.map(\.compact)
+        var plainParts = shown.map(\.plainCompact)
+        var spokenParts = shown.map(\.spokenCompact)
+        func add(_ t: String) { parts.append(t); plainParts.append(t); spokenParts.append(t) }
         if abnormalOnly && vals.count > listed.count {
             let n = vals.count - listed.count
-            parts.append(listed.isEmpty ? "\(n) value\(n == 1 ? "" : "s"), none flagged" : "\(n) more not flagged")
+            add(listed.isEmpty ? "\(n) value\(n == 1 ? "" : "s"), none flagged" : "\(n) more not flagged")
         }
         let ve = s.viscoelastic.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !ve.isEmpty { parts.append("ROTEM/TEG: " + ve) }
+        if !ve.isEmpty { add("ROTEM/TEG: " + ve) }
         let other = s.other.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !other.isEmpty { parts.append(other) }
+        if !other.isEmpty { add(other) }
         guard !parts.isEmpty else { return nil }
         // A venous sample says so (1.12): its pH and PvCO₂ must not be read as arterial.
         let kind: String? = s.gasType.isVenous && s.values.keys.contains(where: { gasKeys.contains($0) }) ? s.gasType.short : nil
         let head = [kind, s.time.map { PatientSummary.time($0, now: now) }].compactMap { $0 }.joined(separator: " ")
-        return PatientSummary.Line("Last labs", (head.isEmpty ? "" : head + " · ") + parts.joined(separator: " · "), marks: flagged.map(\.compact))
+        let lead = head.isEmpty ? "" : head + " · "
+        return PatientSummary.Line("Last labs", lead + parts.joined(separator: " · "), marks: flagged.map(\.compact),
+                                   plain: lead + plainParts.joined(separator: " · "), spoken: lead + spokenParts.joined(separator: " · "))
     }
 
     static func lastLine(_ r: PatientRecord, now: Date = Date(), abnormalOnly: Bool = false) -> PatientSummary.Line? {

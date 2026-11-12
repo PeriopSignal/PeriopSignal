@@ -1156,23 +1156,17 @@ struct PatientLineText: View {
     static var alertColor: Color { PS.red }
 
     private var styled: AttributedString {
-        // A short marked value never breaks inside itself ("Ca" at the end of one line and "8.3 L" on the next): its
-        // spaces are non-breaking. A longer marked phrase still wraps.
-        var text = line.text
-        var marks: [String] = []
-        for m in line.marks where !m.isEmpty {
-            let joined = m.count <= 18 ? m.replacingOccurrences(of: " ", with: "\u{00A0}") : m
-            if joined != m { text = text.replacingOccurrences(of: m, with: joined) }
-            marks.append(joined)
-        }
+        // A short marked value never breaks inside itself ("Ca" at the end of one line and "8.3" on the next): its
+        // spaces are non-breaking. A longer marked phrase still wraps. 1.12: a mark paints only where it stands alone
+        // (MarkedText), so "K 5.9" does not paint the start of "K 5.95".
+        let spans = MarkedText.ranges(ofAny: line.marks, in: line.text)
+        let text = MarkedText.keepingTogether(line.text, spans, upTo: MarkedText.keepTogetherLimit)
         var a = AttributedString(text)
-        for m in marks {
-            var from = a.startIndex
-            while let r = a[from...].range(of: m) {
-                a[r].foregroundColor = PS.red
-                a[r].font = PS.sys(size: 14, weight: .bold)
-                from = r.upperBound
-            }
+        for r in spans {
+            let lo = a.index(a.startIndex, offsetByCharacters: line.text.distance(from: line.text.startIndex, to: r.lowerBound))
+            let hi = a.index(lo, offsetByCharacters: line.text.distance(from: r.lowerBound, to: r.upperBound))
+            a[lo..<hi].foregroundColor = PS.red
+            a[lo..<hi].font = PS.sys(size: 14, weight: .bold)
         }
         return a
     }
@@ -1182,6 +1176,8 @@ struct PatientLineText: View {
             if let k = line.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(line.alert ? Self.alertColor : PS.fg3) }
             Text(styled).font(PS.sys(size: 14, weight: line.alert ? .semibold : .regular)).foregroundStyle(line.alert ? Self.alertColor : PS.fg)
                 .lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                // A red value says "low" or "high" to VoiceOver, which cannot see the colour (1.12).
+                .accessibilityLabel(line.spoken ?? line.text)
         }
     }
 }

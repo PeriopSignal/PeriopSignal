@@ -446,8 +446,8 @@ struct RemovableChip: View {
     }
 }
 
-/// Month and year typed as "03/2019" (or "2019"). The "/" goes in by itself ("06" becomes "06/"), and the date can be
-/// typed as "0626", "6 2026" or "Jun 2026" too (PatientMonthYear.typing, .parse). What is stored is unchanged.
+/// Month and year typed as "03/2019" (or "2019"), with an optional day (1.12): "03/14/2019". The "/" goes in by itself
+/// ("06" becomes "06/"), and the date can be typed as "0626", "6 2026" or "Jun 2026" too (PatientMonthYear.typing, .parse).
 struct MonthYearField: View {
     var label: String
     @Binding var value: PatientMonthYear
@@ -458,12 +458,13 @@ struct MonthYearField: View {
         HStack {
             Text(label).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
             Spacer()
-            TextField("MM/YYYY", text: $text)
+            TextField(PatientMonthYear.placeholder, text: $text)
                 .focused($focused)
                 .keyboardType(.numbersAndPunctuation)
                 .multilineTextAlignment(.trailing)
                 .font(PS.sys(size: 15, design: .monospaced))
-                .frame(maxWidth: 110)
+                .frame(maxWidth: 210)
+                .accessibilityLabel(PatientMonthYear.accessibilityLabel(label))
                 .onChange(of: text) { old, t in
                     let shown = PatientMonthYear.typing(t, was: old)
                     // The formatted text comes back through here once more.

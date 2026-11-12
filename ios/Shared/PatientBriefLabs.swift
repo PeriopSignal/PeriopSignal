@@ -11,8 +11,8 @@ import Foundation
 //            labelled with the gas type and its time; then Heme: the newest Hb, Plt, INR, fibrinogen and TEG/ROTEM, each from
 //            the latest set that holds it.
 //
-// Only what is recorded is shown; a group with nothing is left out and so is a column. Abnormal values keep their H/L and
-// their bold red. What is recorded and not in these lists is offered under "+ Add other input data into Handoff" (chips,
+// Only what is recorded is shown; a group with nothing is left out and so is a column. Abnormal values are bold red with no H or
+// L beside them (1.12; the plain text, which cannot carry colour, keeps the letter: BriefLabCell.ownLetter). What is recorded and not in these lists is offered under "+ Add other input data into Handoff" (chips,
 // `PatientRecord.handoffExtras`: "preop:<lab key>", "intraop:<lab key>"); a chosen one is added to its column under "Other".
 // Not dropped, whatever the lists above say, because the handoff has carried them for safety since 1.8.3: a positive or
 // pending infectious result (and a urinalysis with a finding, or a blood culture that is not negative), the liver scores,
@@ -31,17 +31,32 @@ struct BriefLabCell: Hashable {
 
     var abnormal: Bool { flag.isAbnormal }
 
-    /// "K 5.9 H": this value alone.
-    var own: String { label + " " + text + (flag.mark.isEmpty ? "" : " " + flag.mark) }
+    /// "K 5.9": this value alone, as the app draws it. An out-of-range value is bold red and has no letter after it (1.12, Ben:
+    /// "remove the H and L, simple red text is fine to highlight").
+    var own: String { label + " " + text }
 
-    /// "Cr 1.8 H (GFR 42 L)".
+    /// "Cr 1.8 (GFR 42)": both are red when both are out of range.
     var compact: String { also.isEmpty ? own : own + " (" + also.map(\.compact).joined(separator: ", ") + ")" }
 
-    /// The parts of `compact` that are abnormal, for bold red.
+    /// The parts of `compact` that are abnormal, for bold red. Each is matched only where it stands alone
+    /// (MarkedText), so "K 5.9" never paints the start of "K 5.95".
     var marks: [String] { (flag.isAbnormal ? [own] : []) + also.flatMap(\.marks) }
 
-    /// The copied text: the same, with plain digits in the subscripts ("HCO3").
-    var plain: String { PatientBriefs.ascii(compact) }
+    /// "K 5.9 H": for the plain text only, which cannot carry colour (Copy, "Share as text only"); there the letter stays, or an
+    /// abnormal value would not be told from a normal one in a text message.
+    var ownLetter: String { label + " " + text + (flag.mark.isEmpty ? "" : " " + flag.mark) }
+
+    /// "Cr 1.8 H (GFR 42 L)": the plain text's form.
+    var compactLetter: String { also.isEmpty ? ownLetter : ownLetter + " (" + also.map(\.compactLetter).joined(separator: ", ") + ")" }
+
+    /// "K 5.9, high": what VoiceOver says, since it cannot see that the value is red.
+    var ownSpoken: String { label + " " + text + (flag.word.isEmpty ? "" : ", " + flag.word) }
+
+    /// "Cr 1.8, high (GFR 42, low)".
+    var spoken: String { also.isEmpty ? ownSpoken : ownSpoken + " (" + also.map(\.spoken).joined(separator: ", ") + ")" }
+
+    /// The copied text: the plain text's form, with plain digits in the subscripts ("HCO3").
+    var plain: String { PatientBriefs.ascii(compactLetter) }
 }
 
 /// One thing in a group: a value, or a result in words.
@@ -55,11 +70,17 @@ struct BriefLabItem: Hashable {
     var time: Date?
     /// The short name the caption uses for it.
     var name = ""
+    /// The plain text's form of `text` (the lab letters H and L stay there, 1.12) and VoiceOver's (a red value says low or
+    /// high); both are `text` for an item that has no flagged value.
+    var plain: String
+    var spoken: String
 
     init(key: String, text: String, marks: [String] = []) {
         self.key = key
         self.text = text
         self.marks = marks
+        plain = text
+        spoken = text
     }
 
     init(_ cell: BriefLabCell) {
@@ -67,6 +88,8 @@ struct BriefLabItem: Hashable {
         text = cell.compact
         marks = cell.marks
         name = cell.label
+        plain = cell.compactLetter
+        spoken = cell.spoken
     }
 }
 
@@ -78,6 +101,9 @@ struct BriefLabGroup: Hashable {
     var isGas = false
 
     var text: String { name + ": " + items.map(\.text).joined(separator: ", ") }
+    /// The group for the plain text (the lab letters stay) and for VoiceOver (1.12).
+    var plainText: String { name + ": " + items.map(\.plain).joined(separator: ", ") }
+    var spokenText: String { name + ": " + items.map(\.spoken).joined(separator: ", ") }
     var marks: [String] { items.flatMap(\.marks) }
 }
 
@@ -127,6 +153,22 @@ struct BriefLabs: Hashable {
         return out
     }
 
+    /// The same paragraphs for the plain text (Copy, "Share as text only"): the lab letters H and L stay (1.12).
+    var plainParagraphs: [String] {
+        var out: [String] = []
+        if !preop.isEmpty { out.append("Preop: " + preop.map(\.plainText).joined(separator: "; ")) }
+        if !intraop.isEmpty { out.append("Intraop: " + intraop.map(\.plainText).joined(separator: "; ")) }
+        return out
+    }
+
+    /// The same for VoiceOver: a red value says "low" or "high".
+    var spokenParagraphs: [String] {
+        var out: [String] = []
+        if !preop.isEmpty { out.append("Preop: " + preop.map(\.spokenText).joined(separator: "; ")) }
+        if !intraop.isEmpty { out.append("Intraop: " + intraop.map(\.spokenText).joined(separator: "; ")) }
+        return out
+    }
+
     /// Every part to show in bold red.
     var marks: [String] { (preop + intraop).flatMap(\.marks) }
 
@@ -144,7 +186,7 @@ struct BriefLabs: Hashable {
     static func make(_ r: PatientRecord, withIntraop: Bool, now: Date = Date()) -> BriefLabs {
         var out = BriefLabs()
         let extras = Set(r.handoffExtras)
-        out.preop = preopGroups(r, extras: extras)
+        out.preop = preopGroups(r, extras: extras, now: now)
         var timed: [(time: Date?, name: String)] = []
         if withIntraop {
             let built = intraopGroups(r, extras: extras, now: now)
@@ -176,7 +218,7 @@ struct BriefLabs: Hashable {
 
     // MARK: Preop
 
-    private static func preopGroups(_ r: PatientRecord, extras: Set<String>) -> [BriefLabGroup] {
+    private static func preopGroups(_ r: PatientRecord, extras: Set<String>, now: Date) -> [BriefLabGroup] {
         let p99: Double? = r.labs["troponin99"].flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
         func num(_ k: String) -> BriefLabCell? {
             guard let v = r.labs[k], v.isFinite else { return nil }
@@ -204,9 +246,11 @@ struct BriefLabs: Hashable {
         // Heme: Hb, Plt, PTT, INR, fibrinogen, Type & Screen.
         var heme = items(["hb", "plt", "ptt", "inr", "fibrinogen"])
         let ts = r.typeScreen
-        if !ts.parts.isEmpty {
-            let marks = ts.screen == .positive ? [ts.head].compactMap { $0 } : []
-            heme.append(BriefLabItem(key: "ts", text: ts.parts.joined(separator: ", "), marks: marks))
+        let tsParts = ts.parts(now: now)
+        if !tsParts.isEmpty {
+            // "T&S A+, screen neg, 2 u crossmatched, expires 11/14/26 23:59"; once expired the last part is "T&S expired ...",
+            // painted red with a positive screen (1.12).
+            heme.append(BriefLabItem(key: "ts", text: tsParts.joined(separator: ", "), marks: ts.marks(now: now)))
         }
 
         // Other: lactate, TSH, free T4, T bilirubin, MRSA screen, hCG / pregnancy test.
@@ -291,7 +335,10 @@ struct BriefLabs: Hashable {
             if let s = sat { gi.append(BriefLabItem(s)) }
             let present = slash.compactMap { $0 }
             if !present.isEmpty {
-                gi.append(BriefLabItem(key: "gas", text: present.map(\.own).joined(separator: " / "), marks: present.flatMap(\.marks)))
+                var gasItem = BriefLabItem(key: "gas", text: present.map(\.own).joined(separator: " / "), marks: present.flatMap(\.marks))
+                gasItem.plain = present.map(\.ownLetter).joined(separator: " / ")
+                gasItem.spoken = present.map(\.ownSpoken).joined(separator: " / ")
+                gi.append(gasItem)
             }
             if let l = lactate { gi.append(BriefLabItem(l)) }
             groups.append(BriefLabGroup(name: gas.title, items: gi, isGas: true))
