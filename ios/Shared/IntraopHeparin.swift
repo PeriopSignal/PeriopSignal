@@ -220,16 +220,32 @@ enum IntraopHeparin {
 
     /// The checks on a dose entered on the page, as Case Timers makes them: the weight and the plausibility rules of its purpose
     /// (the course's, else "Other"), and the time (`time` is the resolved time, nil when it is in the future). A block refuses the dose.
-    /// The page never asks for a purpose, so Case Timers' "a bypass-size dose, and the purpose is Other" second tap (which names a purpose
-    /// nobody chose here) is not made for "Other": the weight, the unit and the dose-size checks still are.
+    /// The page never asks for a purpose, so Case Timers' 250 U/kg "a bypass-size dose, and the purpose is Other" second tap (which
+    /// names a purpose nobody chose here, and would question every ordinary bypass bolus) is replaced for "Other" by a higher ceiling,
+    /// `ceilingUPerKg`: a dose at or above it needs the second tap. The weight, the unit ("under 1,000 U") and the time checks stay.
     static func pageIssues(units: Double?, time: Date?, record r: PatientRecord, data d: CaseTimerData) -> [DoseIssue] {
         let h = r.timers.heparin
         guard let p = d.purpose(h?.purpose ?? purposeNotChosen) else { return [DoseIssue(level: .block, text: "")] }
         let c = h ?? HeparinCourse(purpose: p.id, goal: p.goal, actEvery: defaultActEvery)
         var rules = d
-        rules.heparinRules.hardConfirmExempt = (d.heparinRules.hardConfirmExempt ?? ["bypass"]) + [purposeNotChosen]
-        return CaseTimerEngine.entryIssues(kind: .heparin, value: units, course: c, purpose: p, record: r, data: rules)
-            + (HeparinTimeline.timeIssue(time).map { [$0] } ?? [])
+        let notChosen = p.id == purposeNotChosen
+        if notChosen {
+            rules.heparinRules.hardConfirmExempt = (d.heparinRules.hardConfirmExempt ?? ["bypass"]) + [purposeNotChosen]
+        }
+        var out = CaseTimerEngine.entryIssues(kind: .heparin, value: units, course: c, purpose: p, record: r, data: rules)
+        if notChosen, !out.blocks, let u = units, let w = r.weightKg, w > 0, let ceiling = ceilingUPerKg(d), u / w >= ceiling {
+            let perKg = CaseTimerEngine.fmt((u / w).rounded())
+            out.append(DoseIssue(level: .confirm, text: "\(perKg) U/kg is more than any usual heparin dose (\(CaseTimerEngine.fmt(ceiling)) U/kg or more is asked about). Check the units."))
+        }
+        return out + (HeparinTimeline.timeIssue(time).map { [$0] } ?? [])
+    }
+
+    /// The most heparin per kg the page lets through without asking when no purpose is chosen: the highest usual dose of any purpose
+    /// in reference.json (`doseHigh`, bypass 400 U/kg) plus the margin Case Timers already allows around a usual range
+    /// (`outOfRangePct`, 20%): 480 U/kg. Taken from the data, not a number of its own; nil if no purpose has a range.
+    static func ceilingUPerKg(_ d: CaseTimerData) -> Double? {
+        guard let hi = d.heparinPurposes.compactMap(\.doseHigh).max() else { return nil }
+        return hi * (1 + d.heparinRules.outOfRangePct / 100)
     }
 }
 

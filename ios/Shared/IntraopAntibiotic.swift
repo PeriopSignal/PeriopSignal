@@ -535,6 +535,14 @@ enum IntraopAntibiotic {
         r.timers.clearAntibioticSnoozes(id)
     }
 
+    /// Whether the redose reminder's switch in Case Timers' card can be moved: the drug has a sourced redose interval and the patient is
+    /// not a child. Otherwise it is disabled in either position (see `reminderSwitchRow`).
+    static func switchEnabled(_ drug: String, in d: CaseTimerData?, child: Bool) -> Bool { hasInterval(drug, in: d) && !child }
+
+    /// Whether an edit asks for the notification permission: only when it actually turns a reminder on (the switch going on for a drug
+    /// with an interval; a switch going off, or one that cannot turn on, asks for nothing).
+    static func asksPermission(switchingTo on: Bool, hasInterval: Bool) -> Bool { on && hasInterval }
+
     /// The reminder switch on a course in Case Timers' card: on (an ordinary timed course at the drug's default interval, counted from
     /// its last dose) or off (recorded only again); the doses stay. Turning it on needs the drug's interval (`hasInterval`).
     static func setReminders(_ on: Bool, drug: String, in r: inout PatientRecord, data d: CaseTimerData?) {

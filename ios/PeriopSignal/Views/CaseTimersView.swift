@@ -635,9 +635,11 @@ struct CaseTimersView: View {
     }
     #endif
 
-    private func edit(_ change: (inout CaseTimers) -> Void) {
+    /// `asks`: whether this edit can turn a reminder on, so the notification permission is asked for (1.12: a switch turned off, a dose
+    /// added to a course recorded only, or a course removed asks for nothing).
+    private func edit(asks: Bool = true, _ change: (inout CaseTimers) -> Void) {
         withAnimation(.snappy) { patient.update(discrete: true) { change(&$0.timers) } }
-        CaseTimerNotifier.shared.requestPermissionIfNeeded()
+        if asks { CaseTimerNotifier.shared.requestPermissionIfNeeded() }
     }
 
     private func openLink(_ url: URL) { webLink = WebLink(url: url) }
@@ -894,9 +896,11 @@ struct CaseTimersView: View {
 
     /// "Redose reminder": off for a course recorded only. On, it is an ordinary timed course at the drug's default interval counted
     /// from its last dose (overdue at once if that time has passed); off again, the doses stay. Disabled, with the reason, for a drug
-    /// with no redose interval on file (it can still be turned off if it is on).
+    /// with no redose interval on file, in either position: a timed course of such a drug (started in Case Timers) keeps the long-case
+    /// and blood-loss reminders it started with, because once switched off the switch could not bring them back. Its reminders can
+    /// still be stopped from the running list.
     @ViewBuilder private func reminderSwitchRow(_ course: AntibioticCourse, _ d: CaseTimerData) -> some View {
-        let can = IntraopAntibiotic.hasInterval(course.drug, in: d) && !CaseTimerEngine.isChild(r)
+        let can = IntraopAntibiotic.switchEnabled(course.drug, in: d, child: CaseTimerEngine.isChild(r))
         VStack(alignment: .leading, spacing: 3) {
             HStack(alignment: .center, spacing: 10) {
                 Text(IntraopAntibiotic.reminderTitle).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
@@ -904,10 +908,12 @@ struct CaseTimersView: View {
                 Toggle(IntraopAntibiotic.reminderTitle, isOn: Binding(get: { course.reminders }, set: { on in
                     Haptics.light()
                     abxPicks[course.drug] = nil
-                    edit { $0.setAntibioticReminders(on, drug: course.drug, hasInterval: can) }
-                })).labelsHidden().tint(PS.action).disabled(!can && !course.reminders)
+                    edit(asks: IntraopAntibiotic.asksPermission(switchingTo: on, hasInterval: can)) {
+                        $0.setAntibioticReminders(on, drug: course.drug, hasInterval: can)
+                    }
+                })).labelsHidden().tint(PS.action).disabled(!can)
             }
-            if !can && !course.reminders {
+            if !can {
                 Text(IntraopAntibiotic.noIntervalNote).font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
             } else if !course.reminders, let h = d.antibiotic(course.drug)?.redoseHours {
                 Text("Off: recorded only. On, it counts every \(CaseTimerEngine.interval(h * 60)) from the last dose.")
@@ -944,7 +950,7 @@ struct CaseTimersView: View {
                 Spacer(minLength: 4)
                 Button("Redose given") {
                     let ebl = r.fluids["ebl"] ?? 0
-                    edit { t in
+                    edit(asks: course.reminders) { t in
                         if let i = t.antibiotics.firstIndex(where: { $0.drug == course.drug }) { t.antibiotics[i].doses.append(TimedEntry(time: Date(), ebl: ebl)) }
                     }
                 }

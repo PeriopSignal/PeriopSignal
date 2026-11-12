@@ -165,6 +165,23 @@ final class P112Tests: XCTestCase {
         XCTAssertEqual(t.antibiotics[0].reminders, false)
     }
 
+    func testTheSwitchInCaseTimersIsDisabledInEitherPositionForADrugWithNoIntervalOrAChild() throws {
+        let d = try data()
+        XCTAssertTrue(IntraopAntibiotic.switchEnabled("cefazolin", in: d, child: false))
+        // A timed vancomycin-type course keeps the reminders it started with: its switch cannot be moved off (it could not come back).
+        XCTAssertFalse(IntraopAntibiotic.switchEnabled("vancomycin", in: d, child: false))
+        XCTAssertFalse(IntraopAntibiotic.switchEnabled("daptomycin", in: d, child: false), "a typed drug")
+        XCTAssertFalse(IntraopAntibiotic.switchEnabled("cefazolin", in: d, child: true))
+        XCTAssertFalse(IntraopAntibiotic.switchEnabled("cefazolin", in: nil, child: false))
+    }
+
+    func testTheNotificationPermissionIsAskedOnlyWhenAReminderIsTurnedOn() {
+        XCTAssertTrue(IntraopAntibiotic.asksPermission(switchingTo: true, hasInterval: true))
+        XCTAssertFalse(IntraopAntibiotic.asksPermission(switchingTo: false, hasInterval: true), "switched off: nothing to remind")
+        XCTAssertFalse(IntraopAntibiotic.asksPermission(switchingTo: true, hasInterval: false), "it cannot turn on")
+        XCTAssertFalse(IntraopAntibiotic.asksPermission(switchingTo: false, hasInterval: false))
+    }
+
     @MainActor func testACourseStartedInCaseTimersIsStillTimed() throws {
         // Case Timers' own Start makes AntibioticCourse(drug:doses:everyMinutes:): the reminders it always had.
         let c = AntibioticCourse(drug: "cefazolin", doses: [TimedEntry(time: at(8, 0))], everyMinutes: 240)
@@ -585,7 +602,7 @@ final class P112Tests: XCTestCase {
         // A tiny number is asked about (a second tap), as Case Timers asks.
         XCTAssertTrue(IntraopHeparin.pageIssues(units: 26, time: at(8, 10), record: adult(), data: d).needsConfirm)
         // The course's own purpose decides the range check when there is one (3,000 U is under the bypass dose; 26,000 U is a
-        // bypass-size dose for a vascular case). With no course there is no purpose to name: 26,000 U is not questioned.
+        // bypass-size dose for a vascular case). With no course there is no purpose to name: 26,000 U is not questioned (a dose far above any usual one is: see the ceiling test).
         var bypass = adult()
         bypass.timers.heparin = course()
         XCTAssertTrue(IntraopHeparin.pageIssues(units: 3000, time: at(8, 10), record: bypass, data: d).needsConfirm)
@@ -595,6 +612,40 @@ final class P112Tests: XCTestCase {
         // The time: default now, a picked clock time resolved, the future refused (the control the antibiotic entry shares).
         XCTAssertEqual(HeparinTimeline.resolved(picked: nil, now: now), now)
         XCTAssertNil(HeparinTimeline.resolved(picked: at(11, 0), now: now))
+    }
+
+    func testAnImplausiblyLargeDoseOnThePageNeedsASecondTapWhateverThePurposeIsOrIsNot() throws {
+        let d = try data()
+        // The ceiling comes from the data: the highest usual dose of any purpose (bypass 400 U/kg) plus the 20% margin = 480 U/kg.
+        XCTAssertEqual(IntraopHeparin.ceilingUPerKg(d), 480)
+        // 82 kg, no course (the purpose is "not chosen" = Other): an ordinary bypass bolus (26,000 U = 317 U/kg) is not questioned ...
+        XCTAssertTrue(IntraopHeparin.pageIssues(units: 26000, time: at(8, 10), record: adult(), data: d).isEmpty)
+        XCTAssertTrue(IntraopHeparin.pageIssues(units: 39000, time: at(8, 10), record: adult(), data: d).isEmpty, "475 U/kg: under the ceiling")
+        // ... a ten-fold typo (260,000 U = 3,171 U/kg) is: a second tap, not a block; and the ceiling itself is asked about.
+        let typo = IntraopHeparin.pageIssues(units: 260000, time: at(8, 10), record: adult(), data: d)
+        XCTAssertTrue(typo.needsConfirm)
+        XCTAssertFalse(typo.blocks)
+        XCTAssertTrue(typo.contains { $0.text.contains("3171") })
+        XCTAssertTrue(IntraopHeparin.pageIssues(units: 39360, time: at(8, 10), record: adult(), data: d).needsConfirm, "exactly 480 U/kg")
+        // The same for a course the user set to Other in Case Timers (with a dose already in it) ...
+        var other = adult()
+        other.timers.heparin = course(purpose: "other", goal: nil)
+        other.timers.heparin?.logDose(units: 26000, at: at(8, 10), now: at(8, 10))
+        XCTAssertTrue(IntraopHeparin.pageIssues(units: 260000, time: at(8, 46), record: other, data: d).needsConfirm)
+        XCTAssertTrue(IntraopHeparin.pageIssues(units: 5000, time: at(8, 46), record: other, data: d).isEmpty, "a usual re-dose is not questioned")
+        // ... and a course with a purpose of its own keeps Case Timers' own check (250 U/kg for a non-bypass purpose).
+        var vascular = adult()
+        vascular.timers.heparin = course(purpose: "vascular", goal: nil)
+        XCTAssertTrue(IntraopHeparin.pageIssues(units: 260000, time: at(8, 10), record: vascular, data: d).needsConfirm)
+        // A weightless record still blocks (no U/kg number is shown) and the ceiling text is not added to a block.
+        var noWeight = adult(); noWeight.weightKg = nil
+        let blocked = IntraopHeparin.pageIssues(units: 260000, time: at(8, 10), record: noWeight, data: d)
+        XCTAssertTrue(blocked.blocks)
+        XCTAssertFalse(blocked.contains { $0.text.contains("more than any usual") })
+        // The check only asks: record() files what the user confirmed.
+        var r = adult()
+        IntraopHeparin.record(units: 260000, at: at(8, 10), in: &r)
+        XCTAssertEqual(r.timers.heparin?.doses.map(\.value), [260000])
     }
 
     func testTheHeparinLineListsTheDosesTheirTimesAndTheTotal() {
