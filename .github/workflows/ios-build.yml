@@ -1125,9 +1125,9 @@ jobs:
           # Preoperative tile and the Preprocedure Summary's PMH line with both, the bar with "pmh htn, dm2, HIT, frequent pvcs" and its
           # chips, the same typed in lower case with a procedure, the guards (nothing filed but PVD), and the Cardiovascular page
           # showing Other arrhythmia with "PVCs".
-          shot 1075-m-hit-page-light-375 22 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.open system:heme -ps.patient.scroll hx-hit -ps.patient.width 375 -ps.forceAppearance light
-          shot 1076-m-hit-page-dark-375 22 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.open system:heme -ps.patient.scroll hx-hit -ps.patient.width 375 -ps.forceAppearance dark
-          shot 1077-m-hit-page-empty-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.open system:heme -ps.patient.scroll hx-hit -ps.patient.width 375 -ps.forceAppearance light
+          shot 1075-m-hit-page-light-375 22 -ps.tab patient -ps.patient demo-112-m-hit-page -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance light
+          shot 1076-m-hit-page-dark-375 22 -ps.tab patient -ps.patient demo-112-m-hit-page -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1077-m-hit-page-empty-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.open system:heme -ps.patient.width 375 -ps.forceAppearance light
           shot 1078-m-hit-tile-light-375 18 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
           shot 1079-m-hit-presummary-light-375 22 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance light
           shot 1080-m-hit-presummary-dark-375 22 -ps.tab patient -ps.patient demo-112-m-hit -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance dark

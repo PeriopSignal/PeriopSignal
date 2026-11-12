@@ -167,18 +167,39 @@ final class M112Tests: XCTestCase {
                                "HIT PF4 negative", "r/o HIT", "rule out HIT", "no HIT", "no history of HIT", "denies HIT", "HIT ruled out", "HIT excluded",
                                "negative HIT", "possible HIT", "suspected HIT", "concern for HIT", "mother had HIT", "FHx: HIT", "family history of HIT",
                                "not heparin-induced thrombocytopenia", "heparin-induced thrombocytopenia ruled out", "negative for heparin-induced thrombocytopenia",
-                               "was HIT by a car", "got HIT", "a HIT", "HIT BY A CAR", "HIT ON THE HEAD", "HIT protocol", "HIT precautions"])
+                               "was HIT by a car", "got HIT", "took a HIT", "WAS HIT FROM BEHIND", "HIT BY A CAR", "HIT ON THE HEAD", "HIT AGAINST THE WALL",
+                               "HIT protocol", "HIT precautions", "HIT no", "HIT: no"])
+    }
+
+    /// 1.12 review: the guards for the English word never take a line that is the item. "HIT on argatroban", "HIT from 2019" and
+    /// "the HIT" read as plain as "HIT" does; only the capitals "HIT BY A CAR" and the verbs before it are the word.
+    func testHITIsFiledInTheLinesAnAnticoagulationNoteUses() {
+        assertFiles("hit", ["h/o HIT on argatroban", "HIT on bivalirudin for CABG", "HIT from 2019", "HIT on argatroban, now on bivalirudin",
+                            "avoid heparin given the HIT", "had a HIT in 2018", "history of an HIT", "HIT no heparin products", "HIT no heparin, use bivalirudin",
+                            "PMH: HTN, HIT on argatroban"])
+    }
+
+    func testTheEnglishWordGuardsStillHoldNextToTheseLines() {
+        // The change is narrow: the preposition guard is capitals, the verbs stay.
+        for s in ["HIT BY A CAR", "HIT ON THE HEAD", "TOOK A HIT", "GOT HIT", "WAS HIT FROM BEHIND"] {
+            XCTAssertFalse(noteIDs(s).contains("problem:hit"), s)
+            XCTAssertFalse(quickIDs(s).contains("problem:hit"), s)
+        }
+        // The one in lower case after the capitals is the item: only the preposition's own case tells a caps lock note.
+        XCTAssertTrue(noteIDs("HIT on argatroban").contains("problem:hit"))
+        XCTAssertTrue(quickIDs("HIT on argatroban").contains("problem:hit"))
     }
 
     func testHeparinResistanceIsReadAnyCase() {
         assertFiles("heparin-resistance", ["heparin resistance", "heparin resistant", "heparin-resistant", "Heparin resistance", "h/o heparin resistance",
-                                           "HEPARIN RESISTANCE", "PMH: HTN, heparin resistance", "heparin resistance, needs antithrombin"])
+                                           "HEPARIN RESISTANCE", "PMH: HTN, heparin resistance", "heparin resistance, needs antithrombin",
+                                           "heparin resistance no response to 10000 units"])
         XCTAssertEqual(applied("heparin-resistant").problems, ["heparin-resistance"])
     }
 
     func testHeparinResistanceGuards() {
         assertFilesNot("heparin-resistance", ["not heparin resistant", "no heparin resistance", "denies heparin resistance", "heparin resistance negative",
-                                              "possible heparin resistance", "concern for heparin resistance", "mother had heparin resistance",
+                                              "possible heparin resistance", "concern for heparin resistance", "mother had heparin resistance", "heparin resistance: no",
                                               "on heparin gtt", "heparin infusion at 1200 units/h", "heparin 5000 units SQ", "heparin flush", "resistant to antibiotics"])
     }
 
@@ -285,11 +306,10 @@ final class M112Tests: XCTestCase {
             XCTAssertNil(MedAbbreviations.lookup(w), w)
             XCTAssertTrue(MedAbbreviations.scan(w + " htn").allSatisfy { $0.key != "PMH" && $0.key != "PSH" && $0.key != "PMHx" && $0.key != "PSHx" }, w)
         }
-        // Names stay names: only the two headings were opened to any case.
+        // Names stay names: only the three headings were opened to any case (ROS is left as it was: "Ros" is a name).
         XCTAssertNil(MedAbbreviations.lookup("Tia"))
         XCTAssertNil(MedAbbreviations.lookup("Ross"))
         XCTAssertNil(MedAbbreviations.lookup("Ros"))
-        XCTAssertNil(MedAbbreviations.lookup("Hpi"))
     }
 
     func testThePastSurgicalAndTheOtherHeadingsInAnyCase() {
@@ -299,6 +319,9 @@ final class M112Tests: XCTestCase {
         samePair("fhx: htn", "FHx: htn")
         samePair("shx: former smoker", "SHx: former smoker")
         samePair("hpi: chest pain", "HPI: chest pain")
+        samePair("Hpi: chest pain", "HPI: chest pain")
+        samePair("Hpi chest pain, pmh htn", "HPI chest pain, PMH htn")
+        XCTAssertNotNil(MedAbbreviations.lookup("Hpi"), "a phone keyboard capitalizes the first letter of the line")
         samePair("ros: negative", "ROS: negative")
         XCTAssertEqual(applied("psh: appendectomy 2010").surgeries.count, 1)
         XCTAssertEqual(applied("pmh: htn. psh: appendectomy 2010").surgeries.count, 1, "a lower-case PMH ends the PSH section as PMH does")

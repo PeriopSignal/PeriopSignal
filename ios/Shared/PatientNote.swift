@@ -324,13 +324,15 @@ enum PatientNote {
     static let heparinAvoided = NoteRx(#"\b(?:avoid\w*|contraindicat\w*)\s+(?:all\s+|any\s+|further\s+|future\s+)?(?:unfractionated\s+)?$"#)
     /// After "HIT" or "heparin resistance", a test or a rule-out that is not positive (1.12 follow-up): "HIT negative", "HIT panel
     /// sent", "HIT antibody pending", "HIT PF4 negative", "HIT ruled out". "HIT positive" and "HIT antibody positive" are not here.
-    static let hitNotPositive = NoteRx(#"^\s*[:=]?\s*\(?\s*(?:(?:antibody|antibodies|ab|abs|ag|antigen|panel|assay|elisa|pf4|sra|serology|screen|screening|test|testing|tests|work-?up|eval|evaluation|result|results|status|type\s+(?:i|ii|1|2))\s*){0,4}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+|being\s+)?(?:"# + resultNegative + "|" + resultPending + #"|ordered\b|unknown\b|none\b|no\b|ruled out\b|rule[- ]out\b|r/o\b|excluded\b|not (?:present|detected|confirmed|suspected)\b)"#)
+    static let hitNotPositive = NoteRx(#"^\s*[:=]?\s*\(?\s*(?:(?:antibody|antibodies|ab|abs|ag|antigen|panel|assay|elisa|pf4|sra|serology|screen|screening|test|testing|tests|work-?up|eval|evaluation|result|results|status|type\s+(?:i|ii|1|2))\s*){0,4}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+|being\s+)?(?:"# + resultNegative + "|" + resultPending + #"|ordered\b|unknown\b|none\b|no\b(?!\s+[a-z0-9])|ruled out\b|rule[- ]out\b|r/o\b|excluded\b|not (?:present|detected|confirmed|suspected)\b)"#)
     /// Before it: "negative HIT".
     static let hitNegativeBefore = NoteRx(#"\b(?:negative|neg)\s+$"#)
-    /// Before the capitals "HIT": "negative HIT", and the English word ("was HIT by", "got HIT", "took a HIT").
-    static let hitNotBefore = NoteRx(#"\b(?:negative|neg|was|were|got|get|gets|been|being|took|take|taken|a|an|the|big|direct|hard)\s+$"#)
-    /// After "HIT": "HIT BY A CAR", "HIT ON THE HEAD" (a note in capitals).
-    static let hitNotAfter = NoteRx(#"^\s+(?:by|on|against|from)\b"#)
+    /// Before the capitals "HIT": "negative HIT", and the English word ("was HIT by", "got HIT", "took a HIT", "a big HIT"). A bare
+    /// "a", "an" or "the" is not here: "had a HIT in 2018" and "avoid heparin given the HIT" are the item (1.12 review).
+    static let hitNotBefore = NoteRx(#"\b(?:negative|neg|(?:was|were|got|get|gets|been|being|took|take|taken)(?:\s+(?:a|an|the))?|big|direct|hard)\s+$"#)
+    /// After "HIT": a note in capitals ("HIT BY A CAR", "HIT ON THE HEAD"): the preposition in capitals. In any other case it is the
+    /// item ("h/o HIT on argatroban", "HIT from 2019", "HIT on bivalirudin for CABG"; 1.12 review).
+    static let hitNotAfter = NoteRx(#"^\s+(?:BY|ON|AGAINST|FROM)\b"#, caseSensitive: true)
     /// Before it: "negative thrombophilia workup", "normal FVL".
     static let thrombophiliaNegativeBefore = NoteRx(#"\b(?:negative|neg|normal|unremarkable)\s+(?:(?:hypercoagulab\w*|inherited)\s+)?$"#)
     /// HIV prevention, which is not HIV.
