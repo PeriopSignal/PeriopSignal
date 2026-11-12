@@ -1171,6 +1171,10 @@ jobs:
           # 1.12 (Ben, Nov 12): Diagnostic angiogram and Angiogram with possible intervention in the procedure list.
           shot 1070-proc-angiogram-light 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram" -ps.forceAppearance light
           shot 1071-proc-angiogram-intervention-dark 15 -ps.tab patient -ps.patient empty -ps.patient.open procedure -ps.procsearch "angiogram with possible" -ps.forceAppearance dark
+          # 1.12 (Ben, Nov 12): the Surgical Antibiotic Prophylaxis reference card (first choice and the beta-lactam alternative).
+          shot 1072-ref-abx-prophylaxis-light 14 -ps.ref quickref:ashp-surgical-prophylaxis -ps.forceAppearance light
+          shot 1073-ref-abx-prophylaxis-dark 14 -ps.ref quickref:ashp-surgical-prophylaxis -ps.forceAppearance dark
+          shot 1074-ref-list-light 12 -ps.tab reference -ps.forceAppearance light
           #
           ls -la build/shots
           for f in build/shots/*.png; do sips -Z 900 "$f" >/dev/null; done
