@@ -332,7 +332,7 @@ final class Q112Tests: XCTestCase {
         XCTAssertTrue(Preferences().airDropLink)
     }
 
-    func testTheSwitchsWordsFollowTheSpec() {
+    @MainActor func testTheSwitchsWordsFollowTheSpec() {
         XCTAssertEqual(MoreView.airDropLinkTitle, "AirDrop opens Periop Signal directly")
         XCTAssertFalse(MoreView.airDropLinkTitle.contains("(test)"))
         XCTAssertEqual(MoreView.airDropLinkNote,
@@ -423,7 +423,7 @@ final class Q112Tests: XCTestCase {
 
     /// The Send Patient button hands the sheet exactly one item, the PatientShareItem, with either switch state (no ShareLink
     /// path any more), and the case's name travels in both.
-    func testSendPatientAlwaysOpensOneSheetWithAPatientShareItem() throws {
+    @MainActor func testSendPatientAlwaysOpensOneSheetWithAPatientShareItem() throws {
         for on in [true, false] {
             let items = try XCTUnwrap(PatientSendButton.items(record: PatientDemo.record, room: "OR 12", airDropLink: on), "switch \(on)")
             XCTAssertEqual(items.count, 1)
