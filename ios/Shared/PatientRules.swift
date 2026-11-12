@@ -60,9 +60,10 @@ enum PatientRules {
     }
 
     /// Adult problems deliberately given no class (Ben, Nov 12): the ASA's examples do not name them and neither does his
-    /// table of classes by definition. The test enumerating the catalog reads this list.
+    /// table of classes by definition. The test enumerating the catalog reads this list. Heparin-induced thrombocytopenia and
+    /// heparin resistance joined it the same day (Ben, Nov 12, a later note: no class for either).
     static let asaNoClass: Set<String> = ["visual-impairment", "bph", "gastric-bypass", "dysphagia", "full-stomach", "declines-blood",
-                                          "mdro", "isolation", "uterine-rupture-past", "fracture"]
+                                          "mdro", "isolation", "uterine-rupture-past", "fracture", "hit", "heparin-resistance"]
 
     /// The class an adult problem takes by definition, when the ASA gives it no example. Most carry one (`asaDef`); four take
     /// a recorded detail into account (Ben, Nov 12): chronic kidney disease is class III, also with no stage, and class II

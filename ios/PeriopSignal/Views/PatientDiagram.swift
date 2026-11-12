@@ -71,6 +71,9 @@ enum DiagramColor {
     static let pacing = Color.dynamic(dark: "FFA94D", light: "C2410C")
     static let access = Color.dynamic(dark: "F472B6", light: "B1206B")
     static let drain = Color.dynamic(dark: "D2A06B", light: "7A4A1E")
+    /// 1.12: monitors and adjuncts (cerebral oximetry, TEE probe, defibrillator pads, BIS/SedLine): olive, no other role's colour and
+    /// not the red of an alert.
+    static let monitor = Color.dynamic(dark: "C8DB5E", light: "6F7D14")
     static let limbAlert = Color.dynamic(dark: "FFC247", light: "B45309")
     static let limbAlertInk = Color.dynamic(dark: "1B1B1F", light: "FFFFFF")
 }

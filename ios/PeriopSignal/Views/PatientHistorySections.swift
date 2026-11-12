@@ -40,7 +40,7 @@ struct PatientHistorySectionsView: View {
     private static let bare: Set<String> = ["hyperlipidemia", "copd", "ild", "raised-icp", "seizure", "dementia", "parkinson", "neuromuscular", "sci",
                                             "chronic-pain", "cspine", "aki", "gerd", "hiatal-hernia", "varices", "hepatitis-active", "gastroparesis",
                                             "full-stomach", "sickle", "mdro", "uri", "pneumonia", "c-diff", "infection-active", "gest-htn",
-                                            "muscular-dystrophy"]
+                                            "muscular-dystrophy", "hit", "heparin-resistance"]
 
     /// A short typed field with its name beside it, for values that read ambiguously once filled ("10/20").
     private func labeled(_ label: String, _ prompt: String, _ t: Binding<String>) -> some View {

@@ -24,6 +24,11 @@ import CoreGraphics
 //   avFistula (1.9): notes; the kind of access (radiocephalic, brachiocephalic, AV graft) is the detail
 //   dialysisCatheter (1.9): depth (cm); tunneled or non-tunneled is the detail      chestTube (1.9): none (side is the site's)
 //   any kind (1.12): via (the id of the introducer line it was put through, set by the "Through this line" chips)
+//   cerebralOximetry (1.12): side ("Bilateral", "Left" or "Right"; Bilateral when none is given)
+//   bronchialBlocker (1.12): side ("Left" or "Right"); the product name typed ("Arndt") is the device's detail
+//   teeProbe, defibPads (1.12): none; processedEEG (1.12): none, the type ("BIS" or "SedLine") is the device's detail
+//   Those five are monitors and adjuncts (1.12): the app records that the device is on and nothing else (no rSO2, no BIS
+//   number). They are not vascular lines (no IV access, no limb alert) and do not change the airway course text.
 
 /// The color a device is drawn in; the figure maps each role to a color.
 enum DeviceColorRole: String, Codable, CaseIterable, Hashable {
@@ -51,6 +56,9 @@ enum DeviceColorRole: String, Codable, CaseIterable, Hashable {
     case access
     /// Chest tubes (1.9): brown.
     case drain
+    /// Monitors and adjuncts (1.12): cerebral oximetry, the TEE probe, defibrillator pads and the processed EEG. Olive, a
+    /// colour no other role uses and not the red of an alert.
+    case monitor
 }
 
 /// One thing a type button asks for. "size" and "detail" are the device's own fields; any other id is a key in
@@ -66,6 +74,30 @@ struct DeviceField: Hashable, Identifiable {
     init(_ id: String, _ label: String, unit: String = "", choices: [String] = [], numeric: Bool = false) {
         self.id = id; self.label = label; self.unit = unit; self.choices = choices; self.numeric = numeric
     }
+}
+
+/// One row of the type picker's Other list (1.12). Most rows are a kind; "Double-lumen tube" is an ETT that starts with the
+/// DLT detail (as typing "DLT" does), not a kind of its own.
+struct DevicePickerEntry: Hashable, Identifiable {
+    var id: String
+    var title: String
+    var kind: DeviceKind
+    /// The detail the new device starts with ("DLT"), or "".
+    var detail: String
+
+    init(_ title: String, _ kind: DeviceKind, detail: String = "") {
+        self.title = title; self.kind = kind; self.detail = detail
+        id = kind.rawValue + (detail.isEmpty ? "" : ":" + detail)
+    }
+}
+
+/// A heading of the picker and the rows under it.
+struct DevicePickerGroup: Hashable, Identifiable {
+    var title: String
+    var entries: [DevicePickerEntry]
+    var id: String { title }
+
+    init(_ title: String, _ entries: [DevicePickerEntry]) { self.title = title; self.entries = entries }
 }
 
 enum DeviceLimb: String, Codable, CaseIterable, Hashable {
@@ -93,13 +125,50 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
     case dialysisCatheter
     /// A chest tube (1.9); before then one was entered as an "other" device.
     case chestTube
+    /// Monitors and adjuncts (1.12, Ben's note of Nov 12). An older build decodes any of these as `other` (an unknown kind is
+    /// `other`, `PatientDevice.init(from:)`): it lists the device as "Other", does not draw it (the site is unknown to it) and
+    /// does not crash; it does not keep the kind if it saves the record again.
+    /// Cerebral oximetry (NIRS) sensors on the forehead, with their side.
+    case cerebralOximetry
+    /// A transesophageal echo probe in the patient.
+    case teeProbe
+    /// External defibrillator (and pacing) pads on the chest.
+    case defibPads
+    /// A processed EEG monitor on the forehead: BIS or SedLine.
+    case processedEEG
+    /// A bronchial blocker through a single-lumen tube, with its side.
+    case bronchialBlocker
     case other
 
-    /// The type buttons, in order; "Other" opens `more`.
+    /// The type buttons, in order; "Other" opens the grouped picker (`pickerGroups`).
     static let buttons: [DeviceKind] = [.piv, .arterial, .cvc, .pac, .ett]
-    static let more: [DeviceKind] = [.ecmoDrainage, .ecmoReturn, .trach, .picc, .intraosseous, .lvad, .iabp, .impella, .protekDuo,
-                                     .epidural, .spinal, .block, .perineuralCatheter, .foley, .epicardialWires, .cied, .avFistula,
-                                     .dialysisCatheter, .chestTube, .other]
+    /// Every kind the picker's Other list offers, in its order (`pickerGroups`; the double-lumen tube is an ETT, a button).
+    static let more: [DeviceKind] = pickerGroups.flatMap(\.entries).filter { $0.detail.isEmpty }.map(\.kind)
+
+    /// The Other list under short headings (1.12), so a clinician finds a thing by what it is. Every kind of `more` is in
+    /// exactly one group; "Double-lumen tube" is a way to add an ETT with the DLT detail, and "Epicardial pacing wires" the
+    /// existing kind (its chambers field comes first).
+    static let pickerGroups: [DevicePickerGroup] = [
+        DevicePickerGroup("Airway", [DevicePickerEntry("Tracheostomy", .trach), DevicePickerEntry("Double-lumen tube", .ett, detail: "DLT"),
+                                     DevicePickerEntry("Bronchial blocker", .bronchialBlocker)]),
+        DevicePickerGroup("Monitors", [DevicePickerEntry("TEE probe", .teeProbe), DevicePickerEntry("Cerebral oximetry", .cerebralOximetry),
+                                       DevicePickerEntry("BIS/SedLine", .processedEEG)]),
+        DevicePickerGroup("Pacing & pads", [DevicePickerEntry("Epicardial pacing wires", .epicardialWires),
+                                            DevicePickerEntry("Pacemaker/ICD", .cied), DevicePickerEntry("Defib pads", .defibPads)]),
+        DevicePickerGroup("Support", [DevicePickerEntry("ECMO drainage cannula", .ecmoDrainage), DevicePickerEntry("ECMO return cannula", .ecmoReturn),
+                                      DevicePickerEntry("LVAD", .lvad), DevicePickerEntry("IABP", .iabp), DevicePickerEntry("Impella", .impella),
+                                      DevicePickerEntry("ProtekDuo", .protekDuo)]),
+        DevicePickerGroup("Regional", [DevicePickerEntry("Epidural", .epidural), DevicePickerEntry("Spinal", .spinal),
+                                       DevicePickerEntry("Single-shot block", .block), DevicePickerEntry("Perineural catheter", .perineuralCatheter)]),
+        DevicePickerGroup("Access & drains", [DevicePickerEntry("PICC", .picc), DevicePickerEntry("Intraosseous (IO)", .intraosseous),
+                                              DevicePickerEntry("HD catheter", .dialysisCatheter), DevicePickerEntry("AV fistula or graft", .avFistula),
+                                              DevicePickerEntry("Foley", .foley), DevicePickerEntry("Chest tube", .chestTube)]),
+        DevicePickerGroup("Other", [DevicePickerEntry("Other", .other)]),
+    ]
+
+    /// The settings a new device of this kind starts with: a cerebral oximeter is bilateral until another side is chosen
+    /// (Ben, Nov 12: "Bilateral (default when typed without a side)").
+    var defaultSettings: [String: String] { self == .cerebralOximetry ? ["side": "Bilateral"] : [:] }
 
     /// Short label for buttons, the legend and the handoff.
     var label: String {
@@ -128,6 +197,11 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .avFistula: return "AV fistula"
         case .dialysisCatheter: return "HD catheter"
         case .chestTube: return "Chest tube"
+        case .cerebralOximetry: return "Cerebral oximetry"
+        case .teeProbe: return "TEE probe"
+        case .defibPads: return "Defib pads"
+        case .processedEEG: return "BIS/SedLine"
+        case .bronchialBlocker: return "Bronchial blocker"
         case .other: return "Other"
         }
     }
@@ -159,6 +233,11 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .avFistula: return "AV fistula or graft"
         case .dialysisCatheter: return "Hemodialysis catheter"
         case .chestTube: return "Chest tube"
+        case .cerebralOximetry: return "Cerebral oximetry"
+        case .teeProbe: return "TEE probe"
+        case .defibPads: return "External defibrillator pads"
+        case .processedEEG: return "BIS/SedLine monitor"
+        case .bronchialBlocker: return "Bronchial blocker"
         case .other: return "Other"
         }
     }
@@ -177,6 +256,9 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .epicardialWires, .cied: return .pacing
         case .avFistula, .dialysisCatheter: return .access
         case .chestTube: return .drain
+        // A bronchial blocker is an airway device (the airway's teal); the others are monitors and adjuncts.
+        case .bronchialBlocker: return .airway
+        case .cerebralOximetry, .teeProbe, .defibPads, .processedEEG: return .monitor
         }
     }
 
@@ -187,6 +269,7 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
         case .cvc, .pac, .picc, .ecmoDrainage, .ecmoReturn, .iabp, .impella, .protekDuo, .foley, .dialysisCatheter, .chestTube: return "Fr"
         case .ett, .trach: return "mm ID"
         case .lvad, .other, .epicardialWires, .cied, .avFistula: return ""
+        case .cerebralOximetry, .teeProbe, .defibPads, .processedEEG, .bronchialBlocker: return ""
         }
     }
 
@@ -277,6 +360,17 @@ enum DeviceKind: String, Codable, CaseIterable, Hashable {
             return [size(["12", "14", "15"]), detail("Type", ["tunneled", "non-tunneled", "Trialysis", "Quinton", "Mahurkar"]), depth]
         case .chestTube:
             return [size(["14", "20", "24", "28", "32", "36"]), detail("Notes", ["pigtail", "to suction", "water seal"])]
+        // 1.12: monitors and adjuncts. No numbers, no settings: the app records that the device is on.
+        case .cerebralOximetry:
+            return [DeviceField("side", "Side", choices: ["Bilateral", "Left", "Right"]), detail("Notes")]
+        case .teeProbe:
+            return [detail("Notes")]
+        case .defibPads:
+            return [detail("Notes")]
+        case .processedEEG:
+            return [detail("Type", ["BIS", "SedLine"])]
+        case .bronchialBlocker:
+            return [DeviceField("side", "Side", choices: ["Left", "Right"]), detail("Notes")]
         case .other:
             return [detail("Device", ["LMA", "NG tube"]), DeviceField("size", "Size")]
         }
@@ -424,6 +518,32 @@ extension PatientDevice {
     }
 }
 
+// MARK: - Monitors and adjuncts (1.12)
+
+extension PatientDevice {
+    /// The sides a cerebral oximeter's sensors are on, in the order the figure draws them (the patient's right is on the
+    /// viewer's left): both when the side is Bilateral or not given, one for Left or Right.
+    var oximetrySides: [String] {
+        let v = (settings["side"] ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+        if v.hasPrefix("l") { return ["left"] }
+        if v.hasPrefix("r") { return ["right"] }
+        return ["right", "left"]
+    }
+
+    /// The side a bronchial blocker is in ("left" or "right"), nil when none was given.
+    var blockerSide: String? {
+        let v = (settings["side"] ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+        if v.hasPrefix("l") { return "left" }
+        if v.hasPrefix("r") { return "right" }
+        return nil
+    }
+
+    /// A monitor or adjunct of 1.12 (cerebral oximetry, TEE probe, defibrillator pads, processed EEG, bronchial blocker).
+    var isMonitorOrAdjunct: Bool { PatientDevice.monitorKinds.contains(kind) }
+
+    static let monitorKinds: Set<DeviceKind> = [.cerebralOximetry, .teeProbe, .defibPads, .processedEEG, .bronchialBlocker]
+}
+
 // MARK: - Devices put through a line (1.12, Ben's note 1)
 
 /// What the details of an introducer or MAC line offer to put through it: a pulmonary artery catheter and a SLIC. Each
@@ -558,6 +678,12 @@ extension DeviceSite {
         Spec("scalp", "scalp vein", "scalp", nil, "head", 88, 20, true, false, [.piv]),
         Spec("nose", "nose", "nasal", nil, "head", 100, 33, false, false, [.ett]),
         Spec("mouth", "mouth", "oral", nil, "head", 100, 42, false, false, [.ett]),
+        // 1.12: monitors and adjuncts. The forehead sensors sit above the scalp-vein sites; the TEE probe and the blocker go in
+        // by the mouth, either side of the tube's own marker (7.6 figure units from it, so no marker is on another).
+        Spec("forehead", "forehead (cerebral oximetry)", "forehead", nil, "head", 100, 13, false, false, [.cerebralOximetry]),
+        Spec("forehead-eeg", "forehead (BIS/SedLine)", "forehead", nil, "head", 100, 21, false, false, [.processedEEG]),
+        Spec("mouth-tee", "mouth (TEE probe)", "oral", nil, "head", 93, 45, false, false, [.teeProbe]),
+        Spec("mouth-blocker", "mouth (bronchial blocker)", "oral", nil, "head", 107, 45, false, false, [.bronchialBlocker]),
         Spec("interscalene", "interscalene", "interscalene", nil, "neck", 92, 54, true, false, [.block, .perineuralCatheter]),
         Spec("ej", "external jugular vein", "EJ", nil, "neck", 92.5, 57, true, false, [.piv, .cvc]),
         Spec("ij", "internal jugular vein", "IJ", nil, "neck", 95.5, 61, true, false, [.cvc, .pac, .ecmoReturn, .ecmoDrainage, .impella, .protekDuo, .dialysisCatheter]),
@@ -569,6 +695,8 @@ extension DeviceSite {
         Spec("generator", "pacemaker/ICD pocket (infraclavicular)", "pectoral", nil, "chest", 84, 88, true, false, [.cied]),
         Spec("aorta", "ascending aorta (central)", "aorta", nil, "chest", 101, 86, false, false, [.ecmoReturn]),
         Spec("parasternal", "parasternal (PIFB)", "parasternal", nil, "chest", 94, 90, true, false, [.block, .perineuralCatheter]),
+        // 1.12: the defibrillator pads, drawn as two (below the right clavicle and at the apex); this is the first.
+        Spec("defib-pads", "chest (defibrillator pads)", "chest", nil, "chest", 87, 99, false, false, [.defibPads]),
         Spec("pecs", "PECS/serratus plane", "PECS", nil, "chest", 73, 100, true, false, [.block, .perineuralCatheter]),
         // Chest tubes go in the lateral chest wall, about the fifth interspace (1.9).
         Spec("lateral-chest", "lateral chest wall (chest tube)", "lateral chest", "chest", "chest", 71, 118, true, false, [.chestTube]),
@@ -818,6 +946,12 @@ enum PatientDevices {
         // lateral chest wall (the side is what is left to ask); a hemodialysis catheter is most often in the IJ, a
         // fistula in the forearm (guesses).
         case .epicardialWires: return ("epicardial-exit", true)
+        // 1.12: the monitors and the blocker have one place each.
+        case .cerebralOximetry: return ("forehead", true)
+        case .processedEEG: return ("forehead-eeg", true)
+        case .teeProbe: return ("mouth-tee", true)
+        case .bronchialBlocker: return ("mouth-blocker", true)
+        case .defibPads: return ("defib-pads", true)
         case .cied: return ("generator", true)
         case .chestTube: return ("lateral-chest", true)
         case .dialysisCatheter: return ("ij", false)
@@ -935,9 +1069,42 @@ enum PatientDevices {
             let side = site?.side ?? d.side
             let pre = side == "right" ? "R" : (side == "left" ? "L" : "")
             return spaced(pre.isEmpty ? "Chest tube" : pre + " chest tube", sized) + paren(detail, gone)
+        // 1.12: "Cerebral oximetry (bilateral)", "TEE probe", "Defib pads", "BIS/SedLine", "Bronchial blocker (left, Arndt)".
+        case .cerebralOximetry:
+            let sides = d.oximetrySides
+            return "Cerebral oximetry" + paren(sides.count > 1 ? "bilateral" : sides[0], detail, gone)
+        case .teeProbe:
+            return "TEE probe" + paren(detail, gone)
+        case .defibPads:
+            return "Defib pads" + paren(detail, gone)
+        case .processedEEG:
+            // The type chosen (BIS or SedLine); none chosen writes both. Any other text typed is kept beside it.
+            let t = detail.lowercased()
+            let typed = t == "bis" ? "BIS" : (t == "sedline" ? "SedLine" : "BIS/SedLine")
+            return typed + paren(["bis", "sedline"].contains(t) ? "" : detail, gone)
+        case .bronchialBlocker:
+            return "Bronchial blocker" + paren(d.blockerSide ?? "", detail, gone)
         case .other:
             let airway = ["mouth", "nose", "trach"].contains(site?.base ?? "")
             return spaced(detail.isEmpty ? "Other" : detail, size, airway ? "" : brief) + paren(gone)
+        }
+    }
+
+    /// An ETT from the device editor sets the record's airway (it is not a device of the list): on arrival, the current
+    /// airway with its size and depth; in the room, the Tube field. 1.12: a double-lumen tube (the DLT detail, as typing "DLT"
+    /// or the picker's "Double-lumen tube" reads it) keeps its words and its size in Fr ("Left DLT 37 Fr", "Left DLT 37 Fr at
+    /// 29 cm"); before, the DLT detail was dropped and a plain ETT was set. An ETT without it is set exactly as before.
+    static func setTube(_ d: PatientDevice, in r: inout PatientRecord, preop: Bool) {
+        let dlt = d.detail.range(of: "DLT", options: .caseInsensitive) != nil
+        let depth = d.settings["depth"].map { $0 + " cm" }
+        if preop {
+            r.currentAirway = "ett"
+            r.ettSize = dlt ? [d.detail, d.size.isEmpty ? "" : d.size + " Fr"].filter { !$0.isEmpty }.joined(separator: " ") : d.size
+            r.ettDepth = depth ?? r.ettDepth
+        } else if dlt {
+            r.tube = label(d)
+        } else {
+            r.tube = ["\(d.size.isEmpty ? "" : d.size + " ")ETT", depth].compactMap { $0 }.joined(separator: ", ")
         }
     }
 
@@ -1119,6 +1286,7 @@ extension PatientDevices {
     /// - Words not understood are kept in `detail` and lower the confidence.
     static func parse(_ text: String) -> DeviceParse? {
         if let wires = parseEpicardial(text) { return wires }
+        if let monitor = parseMonitor(text) { return monitor }
         let w = lex(text)
         guard !w.isEmpty else { return nil }
         let t = classify(w)
@@ -1186,6 +1354,91 @@ extension PatientDevices {
         p.baseSite = "epicardial-exit"
         p.settings = settings
         p.confidence = settings["chambers"] == nil ? 0.85 : 1
+        return p
+    }
+
+    // MARK: Monitors and adjuncts (1.12)
+
+    /// The words that make each monitor or adjunct, in the order they are tried. A bare "TEE" is not one (it is an echo: "TEE:",
+    /// "for TEE", "TEE showed", "preop TEE"); the probe is "TEE probe" or "TEE in place". A bare "pads" is not one either
+    /// (knee pads, lap pads): "Zoll pads", "defib pads", "R2 pads", "external pads" and "pads on" are. The ICD is the implanted
+    /// device (`cied`), never these pads. "BIS" and "blocker" are read here, where a device is being typed; the note reader
+    /// asks more of them (capitals for BIS, an airway word beside a bare "blocker": "beta blocker" is a drug).
+    private static let monitorRules: [(kind: DeviceKind, rx: String)] = [
+        (.cerebralOximetry, #"\b(?:cerebral\s+(?:oximetry|oximeter|ox|oxygenation)|nirs|invos|fore[\s-]?sight)\b"#),
+        (.teeProbe, #"\b(?:tee\s+probe|tee\s+in\s+(?:place|situ)|transesophageal\s+(?:echo\s+)?probe)\b"#),
+        (.defibPads, #"\b(?:zoll\s+pads?|(?:external\s+)?defib(?:rillat(?:or|ion))?(?:\s*/\s*pac(?:er|ing))?[\s-]+pads?|r2\s+pads?|external\s+(?:pacing\s+)?pads?|pads\s+on|multi-?function\s+pads?)\b"#),
+        (.processedEEG, #"\b(?:bis(?:\s+monitor)?|sed[\s-]?line|processed\s+eeg|peeg)\b"#),
+        (.bronchialBlocker, #"\b(?:bronchial\s+blockers?|(?:ez|uni|cohen|arndt)[\s-]*blockers?|univent|arndt|blockers?)\b"#),
+    ]
+
+    /// Words in a monitor entry that say nothing more ("in place", "monitor", "sensors").
+    private static let monitorFiller: Set<String> = ["in", "on", "the", "a", "an", "place", "placed", "situ", "probe", "monitor", "monitoring",
+                                                     "sensor", "sensors", "pad", "pads", "inserted", "is", "are", "was", "with", "by", "for",
+                                                     "now", "at", "to", "of", "side", "sided", "left", "right", "bilateral", "both", "and"]
+
+    /// A cerebral oximeter ("NIRS", "cerebral ox L"), a TEE probe ("TEE probe in", "TEE in place"), defibrillator pads ("Zoll pads
+    /// on"), a processed EEG ("BIS", "SedLine") or a bronchial blocker ("Arndt blocker left"): the device only. A number beside
+    /// one ("BIS 45", "NIRS 65") is not kept: the app records that the device is on, no value. A cerebral oximeter typed with
+    /// no side is Bilateral; a blocker with none has none. The product name typed for a blocker stays in its detail; BIS or
+    /// SedLine is the processed EEG's. nil when the text names none of them, or names another device as well ("A-line, NIRS"
+    /// is read as the A-line, as before). `keepLeftovers`: other words typed (the Lines & Devices field) join the detail and
+    /// lower the confidence; the note reader leaves them out.
+    static func parseMonitor(_ text: String, keepLeftovers: Bool = true) -> DeviceParse? {
+        var found: (kind: DeviceKind, range: Range<String.Index>)?
+        for rule in monitorRules {
+            if let r = text.range(of: rule.rx, options: [.regularExpression, .caseInsensitive]) {
+                found = (rule.kind, r)
+                break
+            }
+        }
+        guard let hit = found else { return nil }
+        let rest = text.replacingCharacters(in: hit.range, with: " ")
+        let toks = classify(lex(rest))
+        for t in toks {
+            switch t.tok {
+            case .kind, .ecmo: return nil
+            default: break
+            }
+        }
+        var sides: [String] = []
+        for t in toks {
+            if case .side(let s) = t.tok { sides.append(s) }
+        }
+        let matched = text[hit.range].lowercased()
+        var settings: [String: String] = [:]
+        var details: [String] = []
+        switch hit.kind {
+        case .cerebralOximetry:
+            let both = sides.contains("both") || (sides.contains("left") && sides.contains("right"))
+            settings["side"] = both ? "Bilateral" : (sides.contains("left") ? "Left" : (sides.contains("right") ? "Right" : "Bilateral"))
+        case .bronchialBlocker:
+            if sides.contains("left") && !sides.contains("right") { settings["side"] = "Left" }
+            if sides.contains("right") && !sides.contains("left") { settings["side"] = "Right" }
+            if matched.contains("arndt") { details.append("Arndt") }
+            else if matched.hasPrefix("ez") { details.append("EZ-Blocker") }
+            else if matched.hasPrefix("cohen") { details.append("Cohen") }
+            else if matched.hasPrefix("univent") { details.append("Univent") }
+            else if matched.hasPrefix("uni") { details.append("Uniblocker") }
+        case .processedEEG:
+            if matched.hasPrefix("sed") { details.append("SedLine") } else if matched.hasPrefix("bis") { details.append("BIS") }
+        default:
+            break
+        }
+        var unknown: [String] = []
+        if keepLeftovers {
+            for t in toks {
+                if case .word = t.tok, t.raw.contains(where: { $0.isLetter }), !monitorFiller.contains(t.raw.lowercased()) { unknown.append(t.raw) }
+            }
+        }
+        var p = DeviceParse(kind: hit.kind)
+        let site = defaultSite(for: hit.kind)?.site
+        p.site = site
+        p.baseSite = site
+        p.settings = settings
+        if !unknown.isEmpty { details.append(unknown.joined(separator: " ")) }
+        p.detail = details.joined(separator: ", ")
+        p.confidence = score(1 - min(0.3, 0.1 * Double(unknown.count)))
         return p
     }
 
