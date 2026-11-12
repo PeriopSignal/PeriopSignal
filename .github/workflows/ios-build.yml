@@ -919,6 +919,8 @@ jobs:
           shot 848-labs112-extras-open-light-375 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.handoff.extras 1 -ps.patient.width 375 -ps.forceAppearance light
           shot 849-labs112-extras-open-dark 22 -ps.tab patient -ps.patient demo-112-labs-svo2 -ps.patient.tab summary -ps.handoff.from Labs -ps.patient.scroll handoff -ps.handoff.extras.preview 1 -ps.handoff.extras 1 -ps.forceAppearance dark
           #
+          # ---- 1.12 helper O shots (1110-1129): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper B shots (850-869): add your shot lines directly under this line ----
           # Handoff: PMH with no system labels, the short airway line (easy, difficult, 375 pt), the imaging block.
           shot 850-b112-handoff-top-light 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
