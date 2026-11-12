@@ -183,7 +183,7 @@ struct PatientStyleGallery: View {
         group("Summary lines") {
             VStack(alignment: .leading, spacing: 10) {
                 PatientLineText(line: PatientSummary.Line("Current airway", "Own airway"))
-                PatientLineText(line: PatientSummary.Line("Labs", "Hb 12.8 L · Hct ~38 (est.) · Plt 210 · K 5.9 H", marks: ["Hb 12.8 L", "K 5.9 H"]))
+                PatientLineText(line: PatientSummary.Line("Labs", "Hb 12.8 · Hct ~38 (est.) · Plt 210 · K 5.9", marks: ["Hb 12.8", "K 5.9"]))
                 PatientLineText(line: PatientSummary.Line("Difficult mask ventilation", "2 of 5 predictors", alert: true))
             }
             .padding(.horizontal, 14).padding(.vertical, 10)

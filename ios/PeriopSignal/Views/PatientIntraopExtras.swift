@@ -371,7 +371,7 @@ struct PatientCodeStatusGroup: View {
 /// The handoff text with its headers bold and underlined, its labels bold (HandoffStyle, 1.8.3) and its abnormal values
 /// in bold red (HandoffWriter.marks).
 func handoffStyled(_ text: String, marks: [String]) -> AttributedString {
-    var a = AttributedString(text)
+    var a = AttributedString(MarkedText.kept(text, marks: marks))
     for s in HandoffStyle.spans(text) {
         let lo = a.index(a.startIndex, offsetByCharacters: text.distance(from: text.startIndex, to: s.range.lowerBound))
         let hi = a.index(lo, offsetByCharacters: text.distance(from: s.range.lowerBound, to: s.range.upperBound))

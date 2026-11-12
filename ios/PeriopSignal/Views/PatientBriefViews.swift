@@ -77,7 +77,8 @@ func briefStyled(_ text: String, marks: [String], labels: Bool, size: CGFloat = 
     var out = AttributedString()
     let lines = text.components(separatedBy: "\n")
     for (i, line) in lines.enumerated() {
-        var a = AttributedString(line)
+        // A short marked value never breaks inside itself ("Plt" at the end of one line and "112" on the next).
+        var a = AttributedString(MarkedText.kept(line, marks: marks))
         if labels {
             let sub = Substring(line)
             if let r = HandoffStyle.labelRange(sub) {

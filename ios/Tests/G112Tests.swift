@@ -353,6 +353,28 @@ final class G112Tests: XCTestCase {
         XCTAssertTrue(text.contains("TTE 03/2026"))
     }
 
+    /// The folded Cardiopulmonary box is in the app (full dates); the Preprocedure Summary's workup block it is de-duplicated
+    /// against is made in the summary's date style. A study dated more than 90 days back must show once, with its day.
+    func testTheFoldedCardiopulmonaryBoxShowsAnOldDatedStudyOnceWithItsDay() {
+        var r = datedRecord
+        var lhc = PatientLHC()
+        lhc.dominance = "right"; lhc.date = d(5, 6, 2025)
+        r.lhc = lhc
+        r.rhc.date = d(4, 9, 2025)
+        let lines = PatientBox.cardio.summary(r, now: now).lines.map { ($0.label.map { $0 + ": " } ?? "") + $0.text }
+        func count(_ needle: String) -> Int { lines.filter { $0.contains(needle) }.count }
+        XCTAssertEqual(count("03/02/2026"), 1, "the echo, once, with its day: " + lines.joined(separator: " | "))
+        XCTAssertEqual(count("TTE 03/2026"), 0, "not again as month and year: " + lines.joined(separator: " | "))
+        XCTAssertEqual(count("03/14/2025"), 1, "the stress test, once: " + lines.joined(separator: " | "))
+        XCTAssertEqual(count("03/2025"), 0, lines.joined(separator: " | "))
+        XCTAssertEqual(count("05/06/2025"), 1, "the catheterization, once: " + lines.joined(separator: " | "))
+        XCTAssertEqual(count("05/2025"), 0, lines.joined(separator: " | "))
+        XCTAssertEqual(count("04/09/2025"), 1, "the right heart catheterization, once: " + lines.joined(separator: " | "))
+        XCTAssertEqual(count("04/2025"), 0, lines.joined(separator: " | "))
+        // A recent one reads the same either way and is also once.
+        XCTAssertEqual(PatientBox.cardio.summary(datedRecord, now: now).lines.filter { $0.text.contains("10/18/2026") }.count, 1)
+    }
+
     // MARK: Part 2: the Type & Screen expiration
 
     private func sent(_ expires: Date?) -> PatientTypeScreen { PatientTypeScreen(status: .sent, expires: expires) }
@@ -538,6 +560,18 @@ final class G112Tests: XCTestCase {
         XCTAssertEqual(together.count, text.count)
     }
 
+    /// The summaries' blocks paint marks through briefStyled / handoffStyled, which keep a short marked value whole too.
+    func testAShortMarkedValueAndAnExpiredTypeAndScreenAreKeptWholeOnALine() {
+        let line = "Hb 10.8, Plt 112, INR 1.1 · T&S expired 11/11/26 23:59"
+        let kept = MarkedText.kept(line, marks: ["Plt 112", "T&S expired 11/11/26 23:59"])
+        XCTAssertEqual(kept, "Hb 10.8, Plt\u{00A0}112, INR 1.1 · T&S\u{00A0}expired\u{00A0}11/11/26\u{00A0}23:59")
+        XCTAssertEqual(kept.count, line.count, "the places of the characters do not move")
+        // A long alert phrase still wraps, and a line with no marks is unchanged.
+        let alert = "Aspiration risk: hiatal hernia with reflux"
+        XCTAssertEqual(MarkedText.kept(alert, marks: [alert]), alert)
+        XCTAssertEqual(MarkedText.kept(line, marks: []), line)
+    }
+
     private var abnormalRecord: PatientRecord {
         var r = PatientRecord()
         r.ageYears = 70; r.sex = .male
@@ -638,6 +672,31 @@ final class G112Tests: XCTestCase {
         // An in-range value has none either.
         let normal = QuickAdd.chips(QuickAdd.read("K 4.1", record: PatientRecord(), tab: .preop, now: now), record: PatientRecord())
         XCTAssertEqual(normal.first?.marks, [])
+    }
+
+    /// Typing still accepts a trailing H or L after a lab value ("K 5.4 H"); it is read as the value and never echoed back.
+    func testTypingStillAcceptsATrailingHOrLAndDoesNotEchoIt() {
+        let q = QuickAdd.read("K 5.4 H", record: PatientRecord(), tab: .preop, now: now)
+        let lab = q.findings.first { $0.id == "lab:k" }
+        guard case .lab(let key, let value)? = lab?.change else { return XCTFail("K 5.4 H was not read as a potassium") }
+        XCTAssertEqual(key, "k")
+        XCTAssertEqual(value, 5.4, accuracy: 0.001)
+        let chip = QuickAdd.chips(q, record: PatientRecord()).first { $0.value.hasPrefix("K ") }
+        XCTAssertEqual(chip?.value, "K 5.4", "the letter is not echoed back")
+        XCTAssertEqual(chip?.text, "Labs · K 5.4")
+        // A low one the same way, with the letter in front of nothing else.
+        let low = QuickAdd.chips(QuickAdd.read("Na 131 L", record: PatientRecord(), tab: .preop, now: now), record: PatientRecord())
+        XCTAssertEqual(low.first { $0.value.hasPrefix("Na ") }?.value, "Na 131")
+        // The note reader: the value is filed, with or without the letter.
+        XCTAssertEqual(applied("K 5.4 H").labs["k"] ?? 0, 5.4, accuracy: 0.001)
+        XCTAssertEqual(applied("K 5.4").labs["k"] ?? 0, 5.4, accuracy: 0.001)
+        XCTAssertEqual(applied("Na 131 L").labs["na"] ?? 0, 131, accuracy: 0.001)
+        // What was filed is drawn without a letter.
+        var r = PatientRecord()
+        r.labs["k"] = 5.4
+        let line = PatientSummary.labsLine(r, now: now)
+        XCTAssertFalse(line?.text.contains("K 5.4 H") ?? true)
+        XCTAssertTrue(line?.text.contains("K 5.4") ?? false)
     }
 
     func testTheStrayTrailingSpaceIsNeverLeftWhereTheLetterWas() {

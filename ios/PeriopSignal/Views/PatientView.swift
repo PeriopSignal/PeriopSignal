@@ -1156,7 +1156,7 @@ struct PatientLineText: View {
         // spaces are non-breaking. A longer marked phrase still wraps. 1.12: a mark paints only where it stands alone
         // (MarkedText), so "K 5.9" does not paint the start of "K 5.95".
         let spans = MarkedText.ranges(ofAny: line.marks, in: line.text)
-        let text = MarkedText.keepingTogether(line.text, spans, upTo: 18)
+        let text = MarkedText.keepingTogether(line.text, spans, upTo: MarkedText.keepTogetherLimit)
         var a = AttributedString(text)
         for r in spans {
             let lo = a.index(a.startIndex, offsetByCharacters: line.text.distance(from: line.text.startIndex, to: r.lowerBound))

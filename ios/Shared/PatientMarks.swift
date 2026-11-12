@@ -58,6 +58,15 @@ enum MarkedText {
         return true
     }
 
+    /// A marked stretch up to this many characters is kept whole on one line: a lab value ("Plt 112"), and the expired Type &
+    /// Screen ("T&S expired 11/11/26 23:59", 26). A longer alert phrase still wraps.
+    static let keepTogetherLimit = 28
+
+    /// `text` with the stretches its `marks` paint kept together (see `keepingTogether`).
+    static func kept(_ text: String, marks: [String]) -> String {
+        keepingTogether(text, ranges(ofAny: marks, in: text), upTo: keepTogetherLimit)
+    }
+
     /// `text` with the spaces inside the short marked stretches made non-breaking, so a short value ("Ca 8.3") never breaks
     /// between its name and its number. The text keeps its length and its characters' places, so the ranges stay valid.
     static func keepingTogether(_ text: String, _ ranges: [Range<String.Index>], upTo limit: Int) -> String {
