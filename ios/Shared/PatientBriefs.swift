@@ -499,6 +499,9 @@ enum PatientBriefs {
             lines.append("Antibiotics: " + antibiotics.map(\.handoffText).joined(separator: "; "))
             marks += antibiotics.filter(\.overdue).map(\.handoffText)
         }
+        // 1.12 follow-up (Ben, Nov 12): the heparin doses of Case Timers' one Heparin & ACT log, with their total. The ACT and protamine
+        // entries of that log are not printed here (the handoff has never printed them).
+        if let heparin = CaseHeparin.text(r, now: now) { lines.append(heparin) }
         var meds = PatientNotableMeds.lines(c)
         let factors = trimmed(c.factors)
         if !factors.isEmpty { meds.append(factors) }

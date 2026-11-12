@@ -450,19 +450,20 @@ final class O112Tests: XCTestCase {
         XCTAssertNil(CaseTimerSchedule.items([(id: UUID(), label: "OR 12", record: r)], data: d).first { $0.reminder.kind == .act })
     }
 
-    // MARK: The first dose turns the reminder on; a later one never changes the switch
+    // MARK: No dose turns the reminder on (changed 1.12 Nov 12: the first dose used to); a later one never changes the switch
 
-    func testTheFirstDoseOfACaseTurnsTheReminderOnAtThePurposesDefaultInterval() throws {
+    func testTheFirstDoseOfACaseDoesNotTurnTheReminderOn() throws {
+        // Was testTheFirstDoseOfACaseTurnsTheReminderOnAtThePurposesDefaultInterval: Ben (Nov 12) wants the reminder off unless he
+        // turns it on, so a first dose leaves it off.
         let d = try data()
         let p = try XCTUnwrap(d.purpose("bypass"))
-        XCTAssertEqual(p.actEvery.first, 30, "the default the course is created with (pickPurpose)")
         var h = course(every: p.actEvery.first ?? 30)
         XCTAssertFalse(h.actRunning)
         h.logDose(units: 26000, at: at(8, 5), now: at(8, 6))
-        XCTAssertTrue(h.actRunning)
-        XCTAssertEqual(h.actStart, at(8, 6), "counted from the moment the switch was turned on")
+        XCTAssertFalse(h.actRunning)
+        XCTAssertNil(h.actStart)
+        XCTAssertNil(due(h))
         XCTAssertEqual(h.actEvery, 30)
-        XCTAssertEqual(due(h), at(8, 36))
     }
 
     func testALaterDoseNeverChangesTheSwitch() {
@@ -480,13 +481,13 @@ final class O112Tests: XCTestCase {
         XCTAssertEqual(due(h), at(9, 20))
     }
 
-    func testTheFirstDoseTurnsItOnEvenIfItWasSwitchedOffBeforeAndKeepsAChosenInterval() {
+    func testTheFirstDoseLeavesASwitchedOffReminderOffAndKeepsAChosenInterval() {
+        // Was testTheFirstDoseTurnsItOnEvenIfItWasSwitchedOffBefore...: no dose turns it on any more.
         var h = course(every: 20)
         h.setReminder(true, now: at(7, 0))
         h.setReminder(false, now: at(7, 10))
         h.logDose(units: 26000, at: at(8, 5), now: at(8, 5))
-        XCTAssertTrue(h.actRunning)
-        XCTAssertEqual(h.actStart, at(8, 5))
+        XCTAssertFalse(h.actRunning)
         XCTAssertEqual(h.actEvery, 20, "the interval in force stays")
         // Already on before the first dose: the anchor is not moved by it.
         var on = course()
@@ -574,13 +575,17 @@ final class O112Tests: XCTestCase {
         XCTAssertEqual(CaseTimerEngine.protamineSuggestion(h, purpose: p, rules: d.protamine)?.basisUnits, 20000)
     }
 
-    func testTheHandoffPrintsNothingAboutHeparinOrACTBeforeOrAfter() {
-        // The handoff and the summaries read the antibiotic courses only; a log of doses and ACTs, however long, changes no line.
+    func testTheHandoffPrintsNoACTOrProtamineAndTheSummaryNothingAboutHeparin() {
+        // 1.12 Nov 12: the handoff now lists the heparin DOSES (IntraopHeparin: "Heparin 26,000 U 08:10; 5,000 U 08:52 (31,000 U total)",
+        // P112Tests); a log of ACTs and protamine, however long, still changes no line, and the Preprocedure Summary none at all.
         var with = adult()
         with.setProcedures(PlannedProcedure.parse("CABG x3"))
         let without = with
         with.timers.heparin = fullLog()
-        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(with)), PatientBriefs.plainText(PatientBriefs.handoff(without)))
         XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.preop(with)), PatientBriefs.plainText(PatientBriefs.preop(without)))
+        var acts = with
+        acts.timers.heparin?.doses = []
+        XCTAssertEqual(PatientBriefs.plainText(PatientBriefs.handoff(acts, now: at(10, 0))),
+                       PatientBriefs.plainText(PatientBriefs.handoff(without, now: at(10, 0))))
     }
 }

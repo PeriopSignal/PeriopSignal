@@ -17,7 +17,13 @@ import Foundation
 // 1.12 follow-up (Ben, Nov 12): Heparin & ACT is one editable timeline (baseline ACTs, heparin doses, ACT samples and
 // protamine, each with a time the user can set and change), and the ACT reminder is ONE switch whose countdown runs from
 // the last ACT sample (`CaseTimerEngine.actDue`, the one due-time function every reader uses). A heparin dose starts no
-// countdown of its own; only the first dose of a case turns the switch on.
+// countdown of its own. (Later the same day: no dose, the first included, turns the switch on any more; it changes only by its
+// own switch, and Intraoperative Medications' "+ Heparin" writes to this same log.)
+//
+// 1.12 follow-up (Ben, Nov 12, "just add antibiotic and heparin to intraop meds without using timer"): an antibiotic course
+// can be recorded only (`AntibioticCourse.reminders` false): its doses and times are kept, and it produces no reminder of
+// any kind. `CaseTimerEngine.reminders` is the one producer every reader goes through (the running list, the strip, the
+// notifications, the lock-screen activity), so skipping it there is skipping it everywhere.
 //
 // Sources for the anticoagulation numbers, and what was read (Nov 7, 2026):
 //
@@ -104,6 +110,13 @@ struct CaseTimers: Codable, Equatable {
     func course(_ drug: String) -> AntibioticCourse? { antibiotics.first { $0.drug == drug } }
 
     var isEmpty: Bool { antibiotics.isEmpty && heparin == nil && checks.isEmpty }
+
+    /// Something here runs, or is set up to run, a timer: a timed antibiotic, a lab check, or a heparin course that is more than
+    /// recorded doses. The strip on the Intraoperative tab shows only then (1.12, Nov 12): an antibiotic or a heparin dose recorded
+    /// without a timer puts no card on the tab.
+    var hasTimers: Bool {
+        antibiotics.contains { $0.reminders } || !checks.isEmpty || (heparin.map { !$0.isRecordOnly } ?? false)
+    }
 }
 
 struct TimedEntry: Codable, Equatable, Identifiable {
@@ -130,11 +143,23 @@ struct AntibioticCourse: Codable, Equatable, Identifiable {
     /// 1.10: the redose interval chosen for this case (min): nil = the drug's sourced interval (every 1.9 course);
     /// 0 = no redose timer; otherwise the interval (institutional policy).
     var everyMinutes: Double? = nil
+    /// 1.12 (Ben, Nov 12): false = recorded only. The doses are kept as for any course, but no redose, long-case or blood-loss
+    /// reminder is made, so no notification, no lock-screen countdown and no row in the running list or the strip. A course
+    /// saved before this existed has the reminders it had (decode default true).
+    var reminders: Bool = true
 
     var id: String { drug }
     var last: TimedEntry? { doses.max { $0.time < $1.time } }
+    var recordOnly: Bool { !reminders }
 
-    enum CodingKeys: String, CodingKey { case drug, doses, everyMinutes }
+    /// The redose reminder's switch. On: an ordinary timed course at the drug's default interval, counted from its last dose
+    /// (a custom interval is not kept across the switch). Off: recorded only again; the doses stay.
+    mutating func setReminders(_ on: Bool) {
+        reminders = on
+        if on { everyMinutes = nil }
+    }
+
+    enum CodingKeys: String, CodingKey { case drug, doses, everyMinutes, reminders }
 }
 
 extension AntibioticCourse {
@@ -143,6 +168,16 @@ extension AntibioticCourse {
         drug = try c.decode(String.self, forKey: .drug)
         doses = (try? c.decodeIfPresent([TimedEntry].self, forKey: .doses)) ?? []
         everyMinutes = try? c.decodeIfPresent(Double.self, forKey: .everyMinutes)
+        reminders = (try? c.decodeIfPresent(Bool.self, forKey: .reminders)) ?? true
+    }
+
+    /// As it was written before, plus `reminders` only when it is false: a timed course reads back byte for byte the same.
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(drug, forKey: .drug)
+        try c.encode(doses, forKey: .doses)
+        try c.encodeIfPresent(everyMinutes, forKey: .everyMinutes)
+        if !reminders { try c.encode(false, forKey: .reminders) }
     }
 }
 
@@ -162,8 +197,8 @@ struct HeparinCourse: Codable, Equatable {
     var protamine: [TimedEntry] = []
     var bypassOn: Date?
     var bypassOff: Date?
-    /// The ACT reminder's switch was last turned on at this time (1.10: "Start timer"; 1.12: the switch, or the first
-    /// heparin dose of the case). The first check falls due `actEvery` after the later of this and the last ACT.
+    /// The ACT reminder's switch was last turned on at this time (1.10: "Start timer"; 1.12: the switch; a dose never turns it
+    /// on). The first check falls due `actEvery` after the later of this and the last ACT.
     var actStart: Date?
     /// The ACT reminder's switch was turned off (1.10: "Stop the ACT timer"). Turning it on again clears this.
     var actOff = false
@@ -198,7 +233,8 @@ struct HeparinCourse: Codable, Equatable {
     static let retiredPresets: [String: (old: Double, now: Double)] = ["bypass": (450, 480)]
 
     /// The ACT reminder's switch is on: turned on (actStart) or, in a case saved before 1.12, a bolus was logged, until it
-    /// is turned off. A baseline ACT alone does not turn it on: the reminders and the switch row read this one rule.
+    /// is turned off. A baseline ACT alone does not turn it on: the reminders and the switch row read this one rule. (A course
+    /// whose first dose is logged now is pinned off by `logDose`, so the saved-case rule never reaches it.)
     var actRunning: Bool { !actOff && (actStart != nil || !doses.isEmpty) }
 
     /// When the switch was turned on: actStart, or for a case saved by build 39 (a bolus started its timer, nothing was
@@ -218,6 +254,10 @@ struct HeparinCourse: Codable, Equatable {
     var reversed: Bool { !protamine.isEmpty }
     /// Nothing logged yet: the purpose can still be changed or cleared.
     var isBlank: Bool { doses.isEmpty && acts.isEmpty && protamine.isEmpty && actStart == nil }
+
+    /// Only heparin doses are recorded: no ACT, no protamine, no bypass time, and the ACT reminder is off (1.12, Nov 12: what "+ Heparin"
+    /// on the Medications page, or a typed dose, leaves).
+    var isRecordOnly: Bool { !doses.isEmpty && acts.isEmpty && protamine.isEmpty && bypassOn == nil && !actRunning }
 }
 
 // MARK: - The Heparin & ACT timeline (1.12 follow-up, Ben, Nov 12)
@@ -259,17 +299,16 @@ extension HeparinCourse {
     /// Today's rule for "Baseline ACT" (1.10): an ACT logged while no heparin dose is in the log is a baseline.
     var offersBaseline: Bool { doses.isEmpty }
 
-    /// Logs a heparin dose at `time` (a back-timed one is allowed; the caller refuses the future). The first dose of the case
-    /// turns the ACT reminder on, at the interval in force (the purpose's default unless the user chose another), counting
-    /// from `now`, the moment the switch is turned on; a later dose never changes the switch, so a reminder the user turned
-    /// off stays off (Ben's answers 3 and 4). A dose starts no countdown of its own.
+    /// Logs a heparin dose at `time` (a back-timed one is allowed; the caller refuses the future). A dose, the first included,
+    /// never turns the ACT reminder on (Ben, Nov 12: "reminder off unless he turns it on"): the switch changes only by its own
+    /// control. So that a course that has never had the switch touched reads OFF with a dose in it (the rule for a case saved
+    /// before 1.12 is that a bolus implied the timer, `actRunning`), the first dose of such a course records "off"; a switch
+    /// turned on before the dose, or turned off, is left as it is. A dose starts no countdown of its own. `now` is kept for the
+    /// callers that pass it; nothing reads it.
     mutating func logDose(units: Double, at time: Date, now: Date) {
         let first = doses.isEmpty
         doses.append(TimedEntry(time: time, value: units))
-        if first {
-            if actOff || actStart == nil { actStart = now }
-            actOff = false
-        }
+        if first, actStart == nil { actOff = true }
     }
 
     /// Logs an ACT (`.act`, or `.baseline`; an `.act` while no dose is logged is a baseline, `offersBaseline`). It moves the
@@ -611,7 +650,8 @@ enum CaseTimerEngine {
         let onBypass = t.heparin?.onBypass ?? false
 
         for a in t.antibiotics {
-            guard let def = d.antibiotic(a.drug), let last = a.last else { continue }
+            // A course recorded only (1.12) makes no reminder of any kind: not the redose, the long case or the blood loss.
+            guard a.reminders, let def = d.antibiotic(a.drug), let last = a.last else { continue }
             let skipOnBypass = def.id == "gentamicin" && (onBypass || purpose?.isBypass == true)
             if skipOnBypass { continue }
             if let m = CaseTimerRecurrence.redoseMinutes(a, def: def) {
@@ -1092,6 +1132,17 @@ extension CaseTimers {
     /// them before is cleared (markDone, and the quick-add bar's dose, IntraopAntibiotic.apply).
     mutating func clearAntibioticSnoozes(_ drug: String) {
         for k in [CaseReminder.Kind.antibiotic, .longCase, .bloodLoss] { snoozes[k.rawValue + "." + drug] = nil }
+    }
+
+    /// The redose reminder's switch on an antibiotic course (1.12): on makes it an ordinary timed course at the drug's default
+    /// interval, counted from its last dose (it needs that interval: `hasInterval`); off returns it to recorded only, doses kept.
+    /// The snoozes put on its reminders before are cleared either way.
+    mutating func setAntibioticReminders(_ on: Bool, drug: String, hasInterval: Bool) {
+        guard let i = antibiotics.firstIndex(where: { $0.drug == drug }) else { return }
+        if on, !hasInterval { return }
+        guard antibiotics[i].reminders != on else { return }
+        antibiotics[i].setReminders(on)
+        clearAntibioticSnoozes(drug)
     }
 
     /// The due time a reminder had before any snooze (for a due-now rule, the dose it runs from).

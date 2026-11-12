@@ -645,11 +645,12 @@ struct PatientEditorView: View {
     /// 1.12 (Ben's notes 3 and 18): the antibiotics charted in Case Timers (read-only), the notable medications as chips with
     /// their doses, and the free text the page had (PatientMedicationViews.swift).
     @ViewBuilder private var intraopMeds: some View {
-        // "+ Antibiotic" opens Case Timers at its antibiotic card, as a page of the stack the editor is in.
-        IntraopMedicationsPage(openCaseTimers: {
-            CaseTimersUI.shared.target = CaseTimersView.antibioticCardID
+        // "+ Antibiotic" and "+ Heparin" open in place on the page (1.12, Nov 12); "Open Case Timers" and "Open Heparin & ACT" open Case
+        // Timers at that card, and "Which antibiotic?" the surgical prophylaxis reference, each as a page of the stack the editor is in.
+        IntraopMedicationsPage(openCaseTimers: { card in
+            CaseTimersUI.shared.target = card
             onOpenRoute("case-timers")
-        })
+        }, openRoute: { onOpenRoute($0) })
     }
 
     @ViewBuilder private var intraopEvents: some View {

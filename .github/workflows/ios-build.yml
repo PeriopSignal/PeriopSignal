@@ -953,6 +953,30 @@ jobs:
           shot 867-b112-share-buttons-light 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll briefshare -ps.forceAppearance light
           shot 868-b112-share-buttons-dark 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll briefshare -ps.forceAppearance dark          #
           # ---- 1.12 helper P shots (1130-1149): add your shot lines directly under this line ----
+          # No-timer record (P): the page with "+ Antibiotic" open (the reminder switch off), the antibiotics recorded only and timed on the page,
+          # the tab row and the handoff, Case Timers' antibiotic card with a recorded course and its switch, the bar's recorded chip with the
+          # optional reminder choice, "+ Heparin" open, and Heparin & ACT in Case Timers with doses logged and the ACT reminder off.
+          # -ps.meds.abx 1 / -ps.meds.hep 1 open the entries on the page (.abx.drug <id>, .hep.units <n> fill them).
+          shot 1130-p112-page-abx-entry-light 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.abx 1 -ps.meds.abx.drug cefazolin -ps.patient.width 375 -ps.forceAppearance light
+          shot 1131-p112-page-abx-entry-dark 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.abx 1 -ps.meds.abx.drug cefazolin -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1132-p112-page-recorded-light 18 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1133-p112-page-recorded-dark 18 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1134-p112-page-timed-light 18 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1135-p112-page-timed-dark 18 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.open intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1136-p112-tab-row-recorded-light 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1137-p112-tab-row-recorded-dark 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1138-p112-tab-row-timed-light 20 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
+          shot 1139-p112-handoff-recorded-light 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1140-p112-handoff-recorded-dark 20 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance dark
+          shot 1141-p112-handoff-timed-light 20 -ps.tab patient -ps.patient demo-112-notimer-timed -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1142-p112-timers-abx-recorded-light 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.patient.width 375 -ps.forceAppearance light
+          shot 1143-p112-timers-abx-recorded-dark 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.scroll antibiotic -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1144-p112-bar-cefazolin-light 16 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "cefazolin 2 g at 0001"
+          shot 1145-p112-bar-cefazolin-dark 16 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance dark -ps.quickadd "cefazolin 2 g at 0001"
+          shot 1146-p112-page-hep-entry-light 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.hep 1 -ps.meds.hep.units 26000 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1147-p112-page-hep-entry-dark 18 -ps.tab patient -ps.patient demo-112-notimer-none -ps.patient.open intraop:meds -ps.meds.hep 1 -ps.meds.hep.units 26000 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1148-p112-timers-hep-off-light 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance light
+          shot 1149-p112-timers-hep-off-dark 22 -ps.tab patient -ps.patient demo-112-notimer-recorded -ps.patient.open case-timers -ps.timers.sections heparin -ps.timers.scroll heparin.log -ps.patient.width 375 -ps.forceAppearance dark
           #
           # ---- 1.12 helper C shots (870-889): add your shot lines directly under this line ----
           # 1.12 helper C (870-889): the case and the tabs pinned at the top once the tab has scrolled (note 10): the row of

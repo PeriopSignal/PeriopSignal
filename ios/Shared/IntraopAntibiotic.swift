@@ -8,8 +8,10 @@ import Foundation
 // were missing:
 //
 // 1. The quick-add bar had no finding for an antibiotic given in the case. "vanc 1 g at 0810" typed on the Intraoperative
-//    tab now reads as a dose logged in Case Timers (the review says so in its label), which is exactly what Case Timers'
-//    own Start (a new course) or "Redose given" (a dose added to the course) does, so the redose reminders run from it.
+//    tab now reads as a dose filed in the case's antibiotic list (the review says so in its label). Nov 12 (Ben): RECORDED
+//    ONLY, with no timer and no reminders; for a drug with a default redose interval whose course is not already timed,
+//    the review offers a second chip, off until chosen, "Also start the redose reminder (every 4 h, next due 12:10)", that
+//    turns that course's reminders on. A redose typed for a course that is already timed keeps it timed.
 // 2. A drug picked in Case Timers was only pending (view state) until "Start timer" was tapped, and for a drug with no
 //    routine redose (vancomycin, ceftriaxone, ertapenem, metronidazole, gentamicin, ciprofloxacin, levofloxacin) the
 //    button read as if there were nothing to start. Its words now say what it does, and leaving with a pick still pending
@@ -165,10 +167,10 @@ enum IntraopAntibiotic {
     private static let unit = #"(?:mg\s*/\s*kg|mg|gm|grams?|g)"#
     private static let number = #"(?:\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)"#
     private static let doseAfter = NoteRx(#"\s*[(:\-–=]?\s*("# + number + #"\s*"# + unit + #")(?![A-Za-z0-9/])\)?"#)
-    private static let atTime = NoteRx(
+    static let atTime = NoteRx(
         #"\s*\(?\s*(?:at|@)\s*(\d{1,2}:\d{2}|\d{3,4})(?:\s*(am|pm|a\.m\.|p\.m\.))?(?![\d:.]|\s*(?:mg|g|gm|mcg|ml|units?|kg)\b)\)?"#)
-    private static let atHour = NoteRx(#"\s*\(?\s*(?:at|@)\s*(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)(?![A-Za-z])\)?"#)
-    private static let bareTime = NoteRx(
+    static let atHour = NoteRx(#"\s*\(?\s*(?:at|@)\s*(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)(?![A-Za-z])\)?"#)
+    static let bareTime = NoteRx(
         #"\s*\(?\s*(\d{1,2}:\d{2}|[01]\d{3}|2[0-3]\d{2})(?:\s*(am|pm|a\.m\.|p\.m\.))?(?![\d:.]|\s*(?:mg|g|gm|mcg|ml|units?|kg|mmhg|%)\b)\)?"#)
     private static let redoseAfter = NoteRx(#"\s*\(?\s*(re[- ]?dos(?:e|ed|ing))\b\)?"#)
     private static let fillerAfter = NoteRx(#"\s*\(?\s*(?:given|gave|dose|doses|dosed|iv|ivp|ivpb|push|pushed|now|just|administered)\b\)?"#)
@@ -178,12 +180,12 @@ enum IntraopAntibiotic {
     private static let doseBefore = NoteRx(#"(?:^|[\s(:])("# + number + #"\s*"# + unit + #")\s*(?:of\s+)?\)?\s*$"#)
     private static let leadOnly = NoteRx(#"^(?:\s|abx|antibiotics?|gave|given|administered|dose|re[- ]?dos\w*|[:\-–(])*$"#)
 
-    private static func anchored(_ rx: NoteRx, _ ns: NSString, at loc: Int, to end: Int) -> NSTextCheckingResult? {
+    static func anchored(_ rx: NoteRx, _ ns: NSString, at loc: Int, to end: Int) -> NSTextCheckingResult? {
         guard let re = rx.re, loc < end else { return nil }
         return re.firstMatch(in: ns as String, options: [.anchored], range: NSRange(location: loc, length: end - loc))
     }
 
-    private static func group(_ m: NSTextCheckingResult, _ i: Int, _ ns: NSString) -> String? {
+    static func group(_ m: NSTextCheckingResult, _ i: Int, _ ns: NSString) -> String? {
         guard i < m.numberOfRanges else { return nil }
         let r = m.range(at: i)
         return r.location == NSNotFound ? nil : ns.substring(with: r)
@@ -245,6 +247,9 @@ enum IntraopAntibiotic {
         guard let d = data else { return out }
         let hits = nameHits(in: text, forms: forms(d))
         guard !hits.isEmpty else { return out }
+        // The optional "also start the redose reminder" of each drug, from the LAST dose of it in the line; filed after the doses.
+        var offers: [String: PatientNoteFinding] = [:]
+        var offerOrder: [String] = []
         let ns = text as NSString
         let cl = clauses(text)
         var floor = 0
@@ -322,9 +327,16 @@ enum IntraopAntibiotic {
             let id = "abx:" + h.drug + ":" + key + ":" + (given ?? "").lowercased().filter { !$0.isWhitespace }
             out.findings.append(PatientNoteFinding(id: id, section: QuickAdd.intraop, label: label(dose, record: r, data: d, now: now),
                                                    change: .antibioticDose(dose), note: note(r)))
+            if let m = offeredMinutes(dose, record: r, data: d) {
+                if offers[dose.drug] == nil { offerOrder.append(dose.drug) }
+                offers[dose.drug] = PatientNoteFinding(id: "abxr:" + dose.drug, section: QuickAdd.intraop,
+                                                       label: reminderLabel(minutes: m, doseTime: dose.time, now: now),
+                                                       change: .antibioticReminder(dose))
+            }
             out.ranges.append(NSRange(location: start, length: pos - start))
             floor = pos
         }
+        out.findings += offerOrder.compactMap { offers[$0] }
         return out
     }
 
@@ -333,19 +345,63 @@ enum IntraopAntibiotic {
     /// The drug's name in Case Timers' list, or the id capitalized.
     static func name(_ drug: String, in d: CaseTimerData?) -> String { d?.antibiotic(drug)?.name ?? drug.capitalized }
 
-    /// What filing it will do, exactly: "Vancomycin 1 g: dose logged in Case Timers at 08:10"; "Cefazolin: redose logged in
-    /// Case Timers at 12:05, next due 16:05" (the redose interval Case Timers holds for the drug, or its sourced one).
+    /// What filing it will do, exactly. Recorded only (1.12, Nov 12): "Vancomycin 1 g: recorded at 08:10", and for a drug already
+    /// in the list "Cefazolin: redose recorded at 12:05". A course that is already TIMED keeps its timer, and says so: "Cefazolin:
+    /// redose logged in Case Timers at 12:05, next due 16:05" (the redose interval Case Timers holds for the drug, or its sourced one).
     static func label(_ dose: IntraopAntibioticDose, record r: PatientRecord, data: CaseTimerData?, now: Date) -> String {
         let def = data?.antibiotic(dose.drug)
         let course = r.timers.course(dose.drug)
         var s = name(dose.drug, in: data) + (dose.given.map { " " + $0 } ?? "") + ": "
-        s += (course != nil || dose.redose ? "redose" : "dose") + " logged in Case Timers at " + PatientSummary.time(dose.time, now: now)
-        let minutes: Double? = {
-            if let c = course, let def { return CaseTimerRecurrence.redoseMinutes(c, def: def) }
-            return def?.redoseHours.map { $0 * 60 }
-        }()
+        let redose = course != nil || dose.redose
+        guard let course, course.reminders else {
+            return s + (redose ? "redose recorded at " : "recorded at ") + PatientSummary.time(dose.time, now: now)
+        }
+        s += "redose logged in Case Timers at " + PatientSummary.time(dose.time, now: now)
+        let minutes: Double? = def.flatMap { CaseTimerRecurrence.redoseMinutes(course, def: $0) }
         if let m = minutes, m > 0 { s += ", next due " + PatientSummary.time(dose.time.addingTimeInterval(m * 60), now: now) }
         return s
+    }
+
+    // MARK: The optional reminder (the review's second choice)
+
+    /// The default redose interval (min) the review offers to start, or nil: no offer. Only for a drug with a sourced interval
+    /// whose course is not already timed (a timed course keeps its timer; a drug with none has no interval to offer).
+    static func offeredMinutes(_ dose: IntraopAntibioticDose, record r: PatientRecord, data: CaseTimerData?) -> Double? {
+        // A child has no antibiotic card in Case Timers (adult defaults only), so no timer is offered there.
+        guard !CaseTimerEngine.isChild(r), let h = data?.antibiotic(dose.drug)?.redoseHours, h > 0 else { return nil }
+        if r.timers.course(dose.drug)?.reminders == true { return nil }
+        return h * 60
+    }
+
+    /// "Also start the redose reminder (every 4 h, next due 12:10)".
+    static func reminderLabel(minutes: Double, doseTime: Date, now: Date) -> String {
+        "Also start the redose reminder (every " + CaseTimerEngine.interval(minutes) + ", next due "
+            + PatientSummary.time(doseTime.addingTimeInterval(minutes * 60), now: now) + ")"
+    }
+
+    /// The reminder chip's status: new until the course is timed.
+    static func reminderStatus(_ dose: IntraopAntibioticDose, in r: PatientRecord) -> PatientNoteStatus {
+        r.timers.course(dose.drug)?.reminders == true ? .recorded : .new
+    }
+
+    /// Filing the chip: the course's reminders turn on at the drug's default interval, counted from its last dose; the snoozes on
+    /// its reminders are cleared. Nothing when the course is not in the list (the dose chip was left out) or is already timed.
+    static func applyReminder(_ dose: IntraopAntibioticDose, to r: inout PatientRecord) {
+        guard let i = r.timers.antibiotics.firstIndex(where: { $0.drug == dose.drug }), r.timers.antibiotics[i].recordOnly else { return }
+        r.timers.antibiotics[i].setReminders(true)
+        r.timers.clearAntibioticSnoozes(dose.drug)
+    }
+
+    /// Whether filing these changes into `before` turns a reminder on or moves one (a reminder chip, or a dose for a course that is
+    /// already timed): the moment the app asks for notifications, and not before.
+    static func startsReminder(_ changes: [PatientNoteChange], before r: PatientRecord) -> Bool {
+        changes.contains { c in
+            switch c {
+            case .antibioticReminder: return true
+            case .antibioticDose(let d): return r.timers.course(d.drug)?.reminders == true
+            default: return false
+            }
+        }
     }
 
     /// A child's Case Timers holds no antibiotic doses (adult defaults only); a dose typed is still kept as typed.
@@ -360,16 +416,16 @@ enum IntraopAntibiotic {
         return c.doses.contains { abs($0.time.timeIntervalSince(dose.time)) <= sameDoseWithin } ? .recorded : .new
     }
 
-    /// What Case Timers does for a dose: a new course for a drug not in it (the drug's sourced interval, none for a drug
-    /// without one), else a dose added to the course ("Redose given"); snoozes on the drug's reminders cleared. A dose
-    /// within two minutes of one already there is not added again.
+    /// Filing a dose: a new course RECORDED ONLY for a drug not in the list (no timer, no reminders), else a dose added to the course
+    /// (a timed course stays timed and its redose moves; a recorded-only one stays recorded only); snoozes on the drug's reminders
+    /// cleared. A dose within two minutes of one already there is not added again.
     static func apply(_ dose: IntraopAntibioticDose, to r: inout PatientRecord) {
         guard status(dose, in: r) != .recorded else { return }
         let entry = TimedEntry(time: dose.time, ebl: r.fluids["ebl"] ?? 0, given: dose.given)
         if let i = r.timers.antibiotics.firstIndex(where: { $0.drug == dose.drug }) {
             r.timers.antibiotics[i].doses.append(entry)
         } else {
-            r.timers.antibiotics.append(AntibioticCourse(drug: dose.drug, doses: [entry], everyMinutes: nil))
+            r.timers.antibiotics.append(AntibioticCourse(drug: dose.drug, doses: [entry], everyMinutes: nil, reminders: false))
         }
         r.timers.clearAntibioticSnoozes(dose.drug)
     }
@@ -418,13 +474,70 @@ enum IntraopAntibiotic {
     static let addLink = "+ Antibiotic"
     static let addLinkMore = "+ Antibiotic or redose"
     static let barExample = "vanc 1 g at 0810"
+    static let reminderTitle = "Redose reminder"
+    static let noIntervalNote = "No redose interval on file"
+    static let childNote = "Adult defaults only"
+    static let openCaseTimersLink = "Open Case Timers"
+    static let referenceLink = "Which antibiotic?"
+    /// The Reference tab's quick reference for the choice of agent (reference.json, `RefRoute.quickref`).
+    static let referenceID = "ashp-surgical-prophylaxis"
+    static let otherName = "Other"
 
     /// The page's group is shown whenever Case Timers is (an empty one says how to add), and while it has antibiotics.
     static func pageShowsGroup(hasAntibiotics: Bool, caseTimersShown: Bool) -> Bool { hasAntibiotics || caseTimersShown }
 
-    /// The link under the list: none where Case Timers is hidden or holds no antibiotic doses (a child).
-    static func pageLink(hasAntibiotics: Bool, caseTimersShown: Bool, child: Bool) -> String? {
-        guard caseTimersShown, !child else { return nil }
+    /// The link under the list that opens the entry in place: none where Case Timers is hidden (the same gate as the group, so a
+    /// release build shows no new control while the timers are a draft). A child may be recorded: the dose is kept as typed.
+    static func pageLink(hasAntibiotics: Bool, caseTimersShown: Bool) -> String? {
+        guard caseTimersShown else { return nil }
         return hasAntibiotics ? addLinkMore : addLink
+    }
+
+    // MARK: The page's own entry ("+ Antibiotic")
+
+    /// One dose entered on the page: the drug (a Case Timers id, or a name typed under "Other"), the dose as typed, the time, and
+    /// whether the redose reminder is on.
+    struct PageEntry: Equatable {
+        var drug: String
+        var given: String?
+        var time: Date
+        var reminder: Bool
+    }
+
+    /// The course id of a name: a Case Timers drug as it is, a name that Case Timers' list knows by a brand or short form
+    /// ("ancef") as its drug, anything else the typed name, trimmed and lower-cased (shown capitalized).
+    static func courseID(_ typed: String, in d: CaseTimerData?) -> String {
+        let t = typed.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        if d?.antibiotic(t) != nil { return t }
+        if let d, let id = drug(named: t, in: d) { return id }
+        return t.lowercased()
+    }
+
+    /// Whether the redose reminder can be turned on for this drug: it has a sourced redose interval.
+    static func hasInterval(_ drug: String, in d: CaseTimerData?) -> Bool { (d?.antibiotic(drug)?.redoseHours ?? 0) > 0 }
+
+    /// Records the dose on the page: a new course RECORDED ONLY (or timed, when the reminder switch is on and the drug has an
+    /// interval), or a dose added to the drug's course ("+ Antibiotic or redose"). The reminder switch turns a recorded-only course
+    /// on; it never turns a timed one off. The dose is kept as typed and never computed, converted or corrected. One call is one
+    /// Undo step for the caller.
+    static func record(_ e: PageEntry, in r: inout PatientRecord, data d: CaseTimerData?) {
+        let id = courseID(e.drug, in: d)
+        guard !id.isEmpty else { return }
+        let typed = e.given?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let entry = TimedEntry(time: e.time, ebl: r.fluids["ebl"] ?? 0, given: (typed?.isEmpty ?? true) ? nil : typed)
+        let timed = e.reminder && hasInterval(id, in: d)
+        if let i = r.timers.antibiotics.firstIndex(where: { $0.drug == id }) {
+            r.timers.antibiotics[i].doses.append(entry)
+            if timed, r.timers.antibiotics[i].recordOnly { r.timers.antibiotics[i].setReminders(true) }
+        } else {
+            r.timers.antibiotics.append(AntibioticCourse(drug: id, doses: [entry], everyMinutes: nil, reminders: timed))
+        }
+        r.timers.clearAntibioticSnoozes(id)
+    }
+
+    /// The reminder switch on a course in Case Timers' card: on (an ordinary timed course at the drug's default interval, counted from
+    /// its last dose) or off (recorded only again); the doses stay. Turning it on needs the drug's interval (`hasInterval`).
+    static func setReminders(_ on: Bool, drug: String, in r: inout PatientRecord, data d: CaseTimerData?) {
+        r.timers.setAntibioticReminders(on, drug: drug, hasInterval: hasInterval(drug, in: d))
     }
 }
