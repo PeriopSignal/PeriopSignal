@@ -347,7 +347,7 @@ struct PatientEditorView: View {
             PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
-            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with a date (the day is optional)" : r.capitalized.surgeries.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
+            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with a date (the day is optional)" : r.capitalized.surgeriesNewestFirst.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
             Hairline().padding(.leading, 50)
             linkRow("Medications & allergies", medsSummary, icon: "pills", value: .medications)
             Hairline().padding(.leading, 50)

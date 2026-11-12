@@ -549,7 +549,7 @@ struct PreopHistoryChipsBox: View {
 
     var body: some View {
         let r = patient.record
-        let psh = r.surgeries.isEmpty ? nil : "PSH: " + r.capitalized.surgeries.map(\.text).joined(separator: "; ")
+        let psh = r.surgeries.isEmpty ? nil : "PSH: " + r.capitalized.surgeriesNewestFirst.map(\.text).joined(separator: "; ")
         let anesthetic = PatientSummary.anestheticComplications(r)
         PatientGroup(title: "History") {
             VStack(alignment: .leading, spacing: 10) {

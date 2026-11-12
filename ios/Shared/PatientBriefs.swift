@@ -320,8 +320,15 @@ enum PatientBriefs {
     private static func pshBlock(_ r: PatientRecord, now: Date) -> SummaryBlock {
         let c = r.capitalized
         let dates = PatientDateStyle.summary(now: now)
-        var items = c.surgeries.map { $0.shownText(dates) }.filter { !$0.isEmpty }
-        for s in c.intrathoracic.map({ $0.shownText(dates) }) where !s.isEmpty && !items.contains(s) { items.append(s) }
+        // Newest first (1.12 follow-up, Ben): the entries of the record and the evaluation's own list (a record from before 1.10)
+        // are one list.
+        var seen = Set(c.surgeries.map { $0.shownText(dates) })
+        var all = c.surgeries
+        for s in c.intrathoracic {
+            let t = s.shownText(dates)
+            if !t.isEmpty, !seen.contains(t) { seen.insert(t); all.append(s) }
+        }
+        let items = PatientSurgery.chronological(all).map { $0.shownText(dates) }.filter { !$0.isEmpty }
         return SummaryBlock(key: "psh", label: "PSH", text: items.joined(separator: "; "))
     }
 
