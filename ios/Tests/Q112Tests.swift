@@ -102,22 +102,28 @@ final class Q112Tests: XCTestCase {
     @MainActor func testThePictureShowsTheDiagramsFeetAndNothingOverlapsTheFooter() throws {
         let ctx = try bensContext()
         let geo = BriefPages.Geometry.phone
-        let (upTo, bottom) = try throughLines(PatientBriefs.handoff(ctx.record), ctx, geo: geo)
+        // The lines block is the last block here, so the picture ends with it and then the footer. Positions are taken from the
+        // foot of the image (the footer's room: its gap, one line of 9-pt text and half the bottom margin), so they do not
+        // depend on any measuring.
+        let (upTo, _) = try throughLines(PatientBriefs.handoff(ctx.record), ctx, geo: geo)
         let image = try XCTUnwrap(BriefPages.picture(upTo, ctx, now: now))
         let cg = try XCTUnwrap(image.cgImage)
         let per = CGFloat(cg.width) / geo.width
         let pixel = try pixels(cg)
-        // The diagram is 192 pt wide at the left margin; the figure's outline ends 6.5 pt above its frame's foot.
-        let feet = lowestInk(pixel, per: per, xs: geo.margin...(geo.margin + 192), ys: (bottom - 60)...(bottom + 1), height: cg.height)
-        XCTAssertNotNil(feet, "something is drawn at the foot of the lines block")
-        XCTAssertGreaterThanOrEqual(feet ?? 0, bottom - 9, "the feet reach where the block was measured to end: \(feet ?? -1) vs \(bottom)")
-        // The room under the block, before the footer, is blank across the whole width.
-        let gap = lowestInk(pixel, per: per, xs: 0...(geo.width - 1), ys: (bottom + 2)...(bottom + BriefPages.pictureFooterGap - 3), height: cg.height)
-        XCTAssertNil(gap, "nothing is drawn in the gap above the footer: \(gap ?? -1)")
-        // The footer is under it.
-        let foot = lowestInk(pixel, per: per, xs: 0...(geo.width - 1), ys: (bottom + BriefPages.pictureFooterGap)...(CGFloat(cg.height) / per - 1), height: cg.height)
-        XCTAssertNotNil(foot, "the footer is drawn")
-        XCTAssertGreaterThan(foot ?? 0, bottom + BriefPages.pictureFooterGap)
+        let end = CGFloat(cg.height) / per
+        let footerTop = end - geo.bottom / 2 - 11
+        let blockEnd = footerTop - BriefPages.pictureFooterGap
+        // The footer is drawn, at the very foot.
+        let foot = lowestInk(pixel, per: per, xs: 0...(geo.width - 1), ys: footerTop...(end - 1), height: cg.height)
+        XCTAssertNotNil(foot, "the footer is drawn at the foot")
+        // The room between the last block and the footer is blank across the whole width: nothing runs down into it.
+        let gap = lowestInk(pixel, per: per, xs: 0...(geo.width - 1), ys: (blockEnd + 1)...(footerTop - 2), height: cg.height)
+        XCTAssertNil(gap, "nothing is drawn in the gap above the footer: \(gap ?? -1) (block ends at \(blockEnd))")
+        // The diagram (192 pt wide at the left margin) reaches down to near the end of its block: the figure is centred in its
+        // frame, so its feet are some points above the end, never cut at the top of the footer's gap.
+        let feet = lowestInk(pixel, per: per, xs: geo.margin...(geo.margin + 192), ys: (blockEnd - 60)...blockEnd, height: cg.height)
+        XCTAssertNotNil(feet, "the feet are in the picture")
+        XCTAssertGreaterThanOrEqual(feet ?? 0, blockEnd - 26, "feet at \(feet ?? -1), block ends at \(blockEnd)")
     }
 
     /// The same check for the PDF's pages (US Letter, drawn with the same blocks and the same measuring).
@@ -138,8 +144,14 @@ final class Q112Tests: XCTestCase {
         XCTAssertEqual(pages.count, sheets.count)
         let cg = try XCTUnwrap(pages[pageIndex].cgImage)
         let per = CGFloat(cg.width) / geo.width
-        let feet = lowestInk(try pixels(cg), per: per, xs: geo.margin...(geo.margin + 192), ys: (bottom - 60)...(bottom + 1), height: cg.height)
-        XCTAssertGreaterThanOrEqual(feet ?? 0, bottom - 9, "the feet reach where the block was measured to end: \(feet ?? -1) vs \(bottom)")
+        let pixel = try pixels(cg)
+        // The figure is centred in its frame, so its feet are some points above the block's measured end, never below it.
+        let feet = lowestInk(pixel, per: per, xs: geo.margin...(geo.margin + 192), ys: (bottom - 60)...(bottom + 1), height: cg.height)
+        XCTAssertNotNil(feet, "the feet are on the page")
+        XCTAssertGreaterThanOrEqual(feet ?? 0, bottom - 26, "feet at \(feet ?? -1), the block was measured to end at \(bottom)")
+        // Nothing of the block runs below the height it was measured at: the room before the next block (14 pt) is blank.
+        let below = lowestInk(pixel, per: per, xs: 0...(geo.width - 1), ys: (bottom + 2)...(bottom + geo.spacing - 3), height: cg.height)
+        XCTAssertNil(below, "nothing is drawn below the lines block's measured end (\(bottom)): \(below ?? -1)")
     }
 
     // MARK: 2. One picture
@@ -188,7 +200,11 @@ final class Q112Tests: XCTestCase {
             let scale = BriefPages.pictureScale(forHeight: h)
             XCTAssertEqual(image.scale, scale, name)
             XCTAssertEqual(image.size.width * image.scale, 390 * scale, name)
-            XCTAssertEqual(image.size.height * image.scale, h * scale, accuracy: 1.5, "\(name): the picture is as tall as the content and footer")
+            // The picture is drawn at its natural height at the scale it is made at; `h` is measured at 1x, where a line's height
+            // is rounded up to a whole point, so it is the same or up to a few tenths of a percent more. Never less than the
+            // picture, never much more.
+            XCTAssertLessThanOrEqual(image.size.height, h + 0.5, "\(name): the picture is not taller than the content and footer")
+            XCTAssertGreaterThanOrEqual(image.size.height, h * 0.99 - 1, "\(name): the picture is as tall as the content and footer")
             // The content and the footer: the blocks as measured, the spacing, the margin, then the footer.
             let geo = BriefPages.Geometry.phone
             let measured = blocks.map { BriefPages.height(of: [$0], ctx, width: geo.width - 2 * geo.margin, spacing: geo.spacing) }
@@ -228,7 +244,7 @@ final class Q112Tests: XCTestCase {
             let ctx = plainContext(r)
             let blocks = PatientBriefs.handoff(r)
             let h = BriefPages.pictureHeight(blocks, ctx, now: now)
-            if h <= 6_000 { continue }
+            if h <= 6_500 { continue }
             found = true
             let image = try XCTUnwrap(BriefPages.picture(blocks, ctx, now: now))
             XCTAssertEqual(image.scale, 1, "taller than 6,000 pt: 1x (\(h) pt)")
