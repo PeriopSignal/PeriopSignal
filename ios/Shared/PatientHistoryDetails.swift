@@ -219,6 +219,13 @@ struct PatientHistoryDetails: Codable, Hashable {
     /// DVT/PE: "acute" or "chronic", and the date as typed.
     var vteTiming: String?
     var vteDate = ""
+    /// Malignancy (1.12; PatientMalignancy): the cancers chosen by site id (Prostate is the "prostate-cancer" problem, not
+    /// stored here), a cancer not on the list as typed, "active" or "remission", metastatic, and "chemo", "radiation".
+    var malignancies: Set<String> = []
+    var malignancyOther = ""
+    var malignancyStatus: String?
+    var malignancyMetastatic = false
+    var malignancyTreatment: Set<String> = []
 
     // Infectious and acute illness
     /// Sepsis: the source, as typed (shown on both pages).
@@ -346,6 +353,11 @@ struct PatientHistoryDetails: Codable, Hashable {
         declinesBloodDetails = v(.declinesBloodDetails, "")
         vteTiming = try? c.decodeIfPresent(String.self, forKey: .vteTiming)
         vteDate = v(.vteDate, "")
+        malignancies = v(.malignancies, [])
+        malignancyOther = v(.malignancyOther, "")
+        malignancyStatus = try? c.decodeIfPresent(String.self, forKey: .malignancyStatus)
+        malignancyMetastatic = v(.malignancyMetastatic, false)
+        malignancyTreatment = v(.malignancyTreatment, [])
         sepsisSource = v(.sepsisSource, "")
         sepsisAntibiotic = v(.sepsisAntibiotic, "")
         hivViralLoad = v(.hivViralLoad, "")
@@ -560,7 +572,7 @@ struct PatientHistoryDetails: Codable, Hashable {
         if !s.name.trimmingCharacters(in: .whitespaces).isEmpty,
            let j = r.surgeries.indices.first(where: { $0 != i && mergeable(r.surgeries[$0]) }) {
             var kept = r.surgeries[j]
-            if kept.date.isEmpty { kept.date = s.date }
+            kept.date = PatientMonthYear.fuller(kept.date, s.date)
             if s.intrathoracic { kept.intrathoracic = true }
             r.surgeries[j] = kept
             if r.hx.cardiacSurgeryID == s.id { r.hx.cardiacSurgeryID = kept.id }
@@ -699,6 +711,9 @@ enum HistorySections {
         HistorySection(id: "vte", title: "DVT/PE", base: "vte", members: ["vte"]),
         // Not in Ben's list; kept from 1.8.
         HistorySection(id: "sickle", title: "Sickle cell disease", base: "sickle", members: ["sickle"]),
+        // 1.12 (Ben, Nov 11): the common cancers in one place (PatientMalignancy). Prostate cancer is the Genitourinary item
+        // "prostate-cancer", one fact on two pages, so it is a member: it chooses this item, and the item cleared takes it off.
+        HistorySection(id: "malignancy", title: "Malignancy", base: "malignancy", members: ["malignancy", "prostate-cancer"]),
     ] + closing("heme")
 
     /// Sepsis is the Acute illness item and URI and pneumonia the Respiratory ones, shown here with the same ids.
@@ -826,6 +841,7 @@ enum HistorySections {
         case "trauma": return !trimmed(d.traumaDetails).isEmpty
         case "smoking": return r.smoking != nil || d.smokingQuitYear != nil || d.packYears != nil
         case "alcohol": return d.alcoholNone
+        case "malignancy": return PatientMalignancy.isRecorded(r)
         case "pleural": return d.pleuralSide != nil || d.pleuralDrained != nil
         case "arthritis": return !trimmed(d.arthritisLocation).isEmpty
         case "ctd": return d.ctdCardiovascular != nil
@@ -885,6 +901,7 @@ enum HistorySections {
         case "anticoagulation": r.hx.anticoagulants = [:]
         case "declines-blood": r.hx.declinesBloodDetails = ""
         case "vte": r.hx.vteTiming = nil; r.hx.vteDate = ""
+        case "malignancy": PatientMalignancy.clear(&r)
         case "sepsis": r.hx.sepsisSource = ""; r.hx.sepsisAntibiotic = ""
         case "hiv": r.hx.hivViralLoad = ""
         case "hepatitis": r.hx.hepatitisTypes = []
@@ -1094,14 +1111,16 @@ enum HistorySections {
     // item shown on two pages (isShared) is left out of the page it is only shown on.
 
     /// "CKD stage 3b; ESRD on hemodialysis M/W/F (left forearm fistula)".
-    static func renalItems(_ r: PatientRecord) -> [String] {
+    /// `malignancyAlongside` (1.12): the Heme & Oncology page's Malignancy is said too (the summaries), and it holds prostate
+    /// cancer, so it is left out here: one fact, printed once.
+    static func renalItems(_ r: PatientRecord, malignancyAlongside: Bool = false) -> [String] {
         let p = r.problems, d = r.hx
         var out: [String] = []
         if p.contains("ckd") { out.append("CKD" + (d.ckdStage.map { " stage " + $0 } ?? "")) }
         if p.contains("esrd-no-dialysis") { out.append("ESRD not on scheduled dialysis") }
         if p.contains("aki") { out.append(d.akiBefore19 ? "AKI or ESRD not on scheduled dialysis" : "AKI") }
         if p.contains("bph") { out.append("BPH") }
-        if p.contains("prostate-cancer") { out.append("prostate cancer") }
+        if p.contains("prostate-cancer"), !malignancyAlongside { out.append("prostate cancer") }
         if p.contains("esrd-dialysis") {
             let days = d.dialysisSchedule.flatMap { s in dialysisSchedules.first { $0.id == s }?.label } ?? nonEmpty(d.dialysisScheduleOther)
             var access: [String] = []
@@ -1184,6 +1203,8 @@ enum HistorySections {
         if p.contains("declines-blood") { out.append("declines blood products" + paren(d.declinesBloodDetails)) }
         if p.contains("vte") { out.append((["DVT/PE", d.vteTiming, nonEmpty(d.vteDate)].compactMap { $0 }).joined(separator: ", ")) }
         if p.contains("sickle") { out.append("sickle cell disease") }
+        // 1.12: the cancers, one phrase (PatientMalignancy.words); prostate cancer, which is also the Genitourinary item, is in it.
+        if let cancer = PatientMalignancy.words(r) { out.append(cancer) }
         return out
     }
 
@@ -1338,13 +1359,15 @@ enum HistorySections {
     }
 
     /// The items a summary lists for a system: the expanding pages' own words, else the problems' labels.
-    /// `pshAlongside`: the past surgical history is listed too (cvItems).
+    /// `pshAlongside`: the past surgical history is listed too (cvItems); that is the summaries' call (the Preprocedure
+    /// Summary and the handoff, which say every system once), so the Genitourinary page leaves prostate cancer to the
+    /// Malignancy phrase there (renalItems).
     static func items(_ sys: PatientSystem, _ r: PatientRecord, pshAlongside: Bool = false) -> [String] {
         switch sys.id {
         case "cv": return cvItems(r, pshAlongside: pshAlongside)
         case "resp": return respItems(r)
         case "neuro": return neuroItems(r)
-        case "renal": return renalItems(r)
+        case "renal": return renalItems(r, malignancyAlongside: pshAlongside)
         case "gi": return giItems(r)
         case "endo": return endoItems(r)
         case "heme": return hemeItems(r)

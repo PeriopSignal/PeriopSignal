@@ -221,8 +221,8 @@ final class PatientWorkupTests: XCTestCase {
         r.labs = ["hb": 9.8, "plt": 210, "k": 5.9, "cr": 1.9, "tbili": 4.2, "inr": 1.2, "na": 127, "albumin": 2.6]
         let l = PatientSummary.labsLine(r)
         XCTAssertNotNil(l)
-        XCTAssertTrue(l?.marks.contains("Hb 9.8 L") ?? false, l?.marks.joined(separator: ", ") ?? "")
-        XCTAssertTrue(l?.marks.contains("K 5.9 H") ?? false, l?.marks.joined(separator: ", ") ?? "")
+        XCTAssertTrue(l?.marks.contains("Hb 9.8") ?? false, l?.marks.joined(separator: ", ") ?? "")
+        XCTAssertTrue(l?.marks.contains("K 5.9") ?? false, l?.marks.joined(separator: ", ") ?? "")
         XCTAssertFalse(l?.marks.contains { $0.hasPrefix("Plt") } ?? true, "a normal value is not marked")
         XCTAssertNil(PatientSummary.liverLine(r), "the liver line waits for its section")
         r.labSections = ["liver"]; r.ascites = .slight; r.encephalopathy = .absent

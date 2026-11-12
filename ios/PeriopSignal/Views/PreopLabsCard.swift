@@ -21,16 +21,19 @@ struct PreopLabsCard: View {
     /// The values without a place on the card's three figures (the hepatic figure, Mg and PO₄, GFR, HbA1c, lactate,
     /// the cardiac and thyroid groups), then type and screen, the infectious results and the lab notes, as one line;
     /// abnormal values and positive results marked for bold red. Nil when there is nothing beyond the figures.
-    static func otherLine(_ r: PatientRecord) -> PatientSummary.Line? {
+    static func otherLine(_ r: PatientRecord, now: Date = Date()) -> PatientSummary.Line? {
         let c = r.capitalized
         let sum = PatientLabs.summary(c)
         let figure = Set(BriefLabs.bmpKeys + BriefLabs.cbcKeys + BriefLabs.coagKeys)
         let rest = sum.items.filter { !figure.contains($0.key) }
-        let more = LabResults.lineParts(c)
+        let more = LabResults.lineParts(c, now: now)
         let note = c.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
-        let parts = rest.map(\.compact) + more.parts + (note.isEmpty ? [] : [note])
+        let tail = more.parts + (note.isEmpty ? [] : [note])
+        let parts = rest.map(\.compact) + tail
         guard !parts.isEmpty else { return nil }
-        return PatientSummary.Line(nil, parts.joined(separator: " · "), marks: rest.filter { $0.flag.isAbnormal }.map(\.compact) + more.marks)
+        // An out-of-range value is bold red with no H or L after it (1.12); VoiceOver says "low" or "high".
+        return PatientSummary.Line(nil, parts.joined(separator: " · "), marks: rest.filter { $0.flag.isAbnormal }.map(\.compact) + more.marks,
+                                   spoken: (rest.map(\.spokenCompact) + tail).joined(separator: " · "))
     }
 
     var body: some View {

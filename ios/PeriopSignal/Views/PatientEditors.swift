@@ -264,14 +264,17 @@ struct PatientEditorView: View {
         .padding(.horizontal, 14).padding(.vertical, 9)
     }
 
-    func linkRow(_ title: String, _ detail: String, icon: String, alert: Bool = false, value: PatientEditor) -> some View {
+    /// `marks`: parts of `detail` to show in bold red (1.12: an out-of-range lab value, which has no H or L beside it); a row
+    /// that has any is not cut short.
+    func linkRow(_ title: String, _ detail: String, icon: String, alert: Bool = false, marks: [String] = [], value: PatientEditor) -> some View {
         NavigationLink(value: value) {
             HStack(spacing: 12) {
                 // The icon is the action colour, except one that warns (the TEE screen's contraindication triangle).
                 Image(systemName: icon).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(alert ? PS.red : PS.action).frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg)
-                    Text(detail).font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineLimit(2)
+                    Text(marks.isEmpty ? AttributedString(detail) : markedString(detail, marks: marks, size: 12.5))
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).lineLimit(marks.isEmpty ? 2 : nil)
                 }
                 Spacer(minLength: 6)
                 Image(systemName: "chevron.right").font(PS.sys(size: 12, weight: .semibold)).foregroundStyle(PS.fg3)
@@ -344,7 +347,7 @@ struct PatientEditorView: View {
             PatientTextField(label: "Other conditions", prompt: "Anything not in the lists above, e.g. hereditary angioedema", text: bind(\.otherHistory))
         }
         PatientGroup(title: nil) {
-            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with the month and year" : r.capitalized.surgeries.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
+            linkRow("Past surgical history", r.surgeries.isEmpty ? "Add operations, with a date (the day is optional)" : r.capitalized.surgeries.map(\.text).joined(separator: "; "), icon: r.surgeries.isEmpty ? "plus.circle" : "scissors", value: .workup("surgeries"))
             Hairline().padding(.leading, 50)
             linkRow("Medications & allergies", medsSummary, icon: "pills", value: .medications)
             Hairline().padding(.leading, 50)
@@ -357,7 +360,8 @@ struct PatientEditorView: View {
         }
         PatientGroup(title: nil) {
             let labs = PatientSummary.labsLine(r.capitalized)
-            linkRow("Labs", labs?.text ?? "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", icon: labs == nil ? "plus.circle" : "testtube.2", value: .workup("labs"))
+            linkRow("Labs", labs?.text ?? "Add labs: CBC, chemistry, coagulation; cardiac, liver (MELD & CTP), thyroid", icon: labs == nil ? "plus.circle" : "testtube.2",
+                    marks: labs?.marks ?? [], value: .workup("labs"))
             if let liver = PatientSummary.liverLine(r) {
                 Hairline().padding(.leading, 50)
                 linkRow("Liver (MELD & CTP)", liver.text, icon: "cross.case", value: .workup("labs"))
@@ -641,7 +645,11 @@ struct PatientEditorView: View {
     /// 1.12 (Ben's notes 3 and 18): the antibiotics charted in Case Timers (read-only), the notable medications as chips with
     /// their doses, and the free text the page had (PatientMedicationViews.swift).
     @ViewBuilder private var intraopMeds: some View {
-        IntraopMedicationsPage()
+        // "+ Antibiotic" opens Case Timers at its antibiotic card, as a page of the stack the editor is in.
+        IntraopMedicationsPage(openCaseTimers: {
+            CaseTimersUI.shared.target = CaseTimersView.antibioticCardID
+            onOpenRoute("case-timers")
+        })
     }
 
     @ViewBuilder private var intraopEvents: some View {

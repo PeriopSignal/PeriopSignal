@@ -4,8 +4,16 @@ import Foundation
 /// The 1.12 demo patients for screenshots, one file per area (each helper owns its own): -ps.patient demo-<name>.
 enum PatientDemo112 {
     static func record(_ seed: String) -> PatientRecord? {
-        PatientDemo112Labs.record(seed) ?? PatientDemo112Summary.record(seed) ?? PatientDemo112Layout.record(seed)
-            ?? PatientDemo112Meds.record(seed) ?? PatientDemo112Devices.record(seed) ?? PatientDemo112Valves.record(seed)
+        // A list, not a chain of ??: nine of them in one expression was more than the type checker would solve in time.
+        let sources: [(String) -> PatientRecord?] = [
+            PatientDemo112Labs.record, PatientDemo112Summary.record, PatientDemo112Layout.record,
+            PatientDemo112Meds.record, PatientDemo112Devices.record, PatientDemo112Valves.record,
+            PatientDemo112Onc.record, PatientDemo112Dates.record, PatientDemo112Abx.record,
+        ]
+        for source in sources {
+            if let r = source(seed) { return r }
+        }
+        return nil
     }
 }
 #endif

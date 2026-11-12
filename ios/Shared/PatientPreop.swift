@@ -221,7 +221,7 @@ enum PatientPreop {
     /// "Solids 00:00 · clears 05:00", as the 1.9 chip read it.
     static func intakeText(_ r: PatientRecord, now: Date = Date()) -> String? {
         func when(_ d: Date) -> String {
-            Calendar.current.isDate(d, inSameDayAs: now) ? d.formatted(date: .omitted, time: .shortened) : PatientDates.day(d) + " " + d.formatted(date: .omitted, time: .shortened)
+            Calendar.current.isDate(d, inSameDayAs: now) ? PatientDates.clock(d) : PatientDates.dayTime(d)
         }
         var parts: [String] = []
         if let d = r.lastSolids { parts.append("Solids " + when(d)) }
@@ -282,12 +282,12 @@ enum PatientPreop {
 
     /// The stress test's line in the briefs' Preprocedure cardiac workup block, after the label "Stress test": "Dobutamine,
     /// 03/2025: negative, no ischemia; inferior wall ischemia at 7 METs". A positive test is marked for attention.
-    static func stressLine(_ r: PatientRecord) -> PatientSummary.Line? {
+    static func stressLine(_ r: PatientRecord, dates: PatientDateStyle = .app) -> PatientSummary.Line? {
         let t = r.stressTest
         guard !t.isEmpty else { return nil }
         var head: [String] = []
         if let k = t.kind { head.append(k == .other ? "Other" : k.label) }
-        if !t.date.isEmpty { head.append(t.date.text) }
+        if !t.date.isEmpty { head.append(t.date.shown(dates)) }
         var tail: [String] = []
         if let res = t.result { tail.append(res.text) }
         let f = FreeText.cap(t.findings.trimmingCharacters(in: .whitespacesAndNewlines))

@@ -69,7 +69,7 @@ final class PatientPages19Tests: XCTestCase {
         XCTAssertEqual(line("Musculoskeletal", r), "unstable C-spine")
         XCTAssertNil(line("Neurologic", r))
         XCTAssertEqual(count("thrombophilia"), 1)
-        XCTAssertEqual(line("Hematologic", r), "thrombophilia")
+        XCTAssertEqual(line("Heme & Oncology", r), "thrombophilia")
         XCTAssertNil(line("Obstetric", r))
         // Every id has words on its home page and none on the page it is only shown on.
         for id in Self.newPages + ["resp", "neuro"] {
@@ -397,7 +397,7 @@ final class PatientPages19Tests: XCTestCase {
         XCTAssertEqual(r.problems, ["thrombophilia-heme", "thrombophilia"])
         XCTAssertEqual(asa(r), 3, "anticoagulated in pregnancy: the ASA's obstetric class III example")
         XCTAssertEqual(line("Obstetric", r), "on anticoagulation for thrombophilia")
-        XCTAssertEqual(line("Hematologic", r), "thrombophilia")
+        XCTAssertEqual(line("Heme & Oncology", r), "thrombophilia")
         let ob = try section("ob", "thrombophilia")
         XCTAssertTrue(HistorySections.isSelected(ob, system: "ob", r))
         XCTAssertTrue(HistorySections.isSelected(try section("heme", "thrombophilia"), system: "heme", r), "one disease, either page")
@@ -567,7 +567,7 @@ final class PatientPages19Tests: XCTestCase {
         XCTAssertEqual(line("Renal", r), "AKI or ESRD not on scheduled dialysis; ESRD on hemodialysis; Nephrology follows", "1.8.3's aki keeps its wording")
         XCTAssertEqual(line("Smoking & Substances", r), "former smoker; social alcohol use; illicit drug use; Quit 2015")
         XCTAssertEqual(line("Obstetric", r), "gestational diabetes, diet-controlled; peripartum cardiomyopathy, EF below 40%; uterine rupture, active; on anticoagulation for thrombophilia")
-        XCTAssertEqual(line("Hematologic", r), "bleeding disorder: DIC")
+        XCTAssertEqual(line("Heme & Oncology", r), "bleeding disorder: DIC")
         XCTAssertEqual(line("Infectious", r), "viral hepatitis; COVID-19; infective endocarditis")
         XCTAssertEqual(line("GI & liver", r), "GERD")
         XCTAssertEqual(line("Cardiovascular", r), "pacemaker or ICD (dependent)", "the typed device details are kept")

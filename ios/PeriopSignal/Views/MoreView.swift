@@ -26,19 +26,31 @@ struct MoreView: View {
         @Bindable var p = prefs
         NavigationStack(path: $path) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    brand
-                    savedRow
-                    questionCard
-                    topicsCard(p: $p)
-                    alertsCard(p: $p)
-                    readingCard
-                    answersCard(p: $p)
-                    feedCard
-                    about
+                ScrollViewReader { proxy in
+                    VStack(alignment: .leading, spacing: 18) {
+                        brand
+                        savedRow
+                        questionCard
+                        topicsCard(p: $p)
+                        alertsCard(p: $p)
+                        readingCard
+                        answersCard(p: $p)
+                        myPatientCard(p: $p)
+                        feedCard
+                        about
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
+                    .task {
+                        #if DEBUG
+                        // Screenshot runs: -ps.more.scroll mypatient brings the My Patient settings into the frame.
+                        if LaunchSeed.string("ps.more.scroll") == "mypatient" {
+                            try? await Task.sleep(nanoseconds: 1_500_000_000)
+                            proxy.scrollTo("mypatient", anchor: .top)
+                        }
+                        #endif
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 32)
             }
             .background(FeedBackground())
             .scrollContentBackground(.hidden)
@@ -206,6 +218,7 @@ struct MoreView: View {
                     Text("Alerts found earlier wait until this time.").font(PS.sys(size: 12)).foregroundStyle(PS.fg3)
                 }
             }
+            .environment(\.locale, PatientDates.locale24)
             .onChange(of: alertDate) { _, d in
                 let c = Calendar.current.dateComponents([.hour, .minute], from: d)
                 prefs.alertHour = c.hour ?? 6; prefs.alertMinute = c.minute ?? 30
@@ -271,6 +284,21 @@ struct MoreView: View {
                     .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+
+    /// 1.12: the one My Patient setting, for sending a patient by AirDrop as a link that opens the app (PatientLink).
+    private func myPatientCard(p: Bindable<Preferences>) -> some View {
+        SettingsCard(title: "My Patient") {
+            Toggle(isOn: p.airDropLink) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("AirDrop opens Periop Signal directly (test)").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    Text("Sends the patient by AirDrop as a Periop Signal link instead of a file, so the receiving phone opens the app without the Files step. Both phones need this version. Other ways of sending (Messages) still send the file.")
+                        .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .tint(PS.action)
+        }
+        .id("mypatient")
     }
 
     private var feedCard: some View {

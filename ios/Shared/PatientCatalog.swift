@@ -193,7 +193,9 @@ enum PatientCatalog {
         ]),
         // 1.9: an expanding page. Anemia is also set by a low hemoglobin (WHO 2024 cut-offs, PatientCrossFill). Factor V
         // Leiden is a thrombophilia, not a bleeding disorder (Ben, Nov 3); the Obstetric page's Thrombophilia is this item.
-        PatientSystem(id: "heme", name: "Hematologic", icon: "drop.triangle", problems: [
+        // 1.12 (Ben, Nov 11): "Heme & Oncology", with one Malignancy item for the common cancers (PatientMalignancy; no ASA
+        // class, no RCRI item). Its id and the ids of the Hematologic problems are unchanged.
+        PatientSystem(id: "heme", name: "Heme & Oncology", icon: "drop.triangle", problems: [
             PatientProblem("anemia", "Anemia"),
             PatientProblem("thrombocytopenia", "Thrombocytopenia"),
             PatientProblem("bleeding", "Bleeding disorder or coagulopathy"),
@@ -209,6 +211,7 @@ enum PatientCatalog {
             PatientProblem("declines-blood", "Declines blood products"),
             PatientProblem("vte", "DVT or PE"),
             PatientProblem("sickle", "Sickle cell disease"),
+            PatientProblem("malignancy", "Malignancy"),
         ]),
         // 1.8.1. None is among the ASA's examples (sepsis stays under Acute illness, with shock). 1.9: an expanding page.
         // Sepsis (Acute illness), URI and pneumonia (Respiratory) are shown here too, with the same ids; endocarditis is

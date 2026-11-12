@@ -10,7 +10,16 @@ enum PatientSummary {
         var alert = false
         /// Parts of the text to show in bold red: abnormal values and scores ("K 5.9", "MELD 3.0 24").
         var marks: [String] = []
-        init(_ label: String?, _ text: String, alert: Bool = false, marks: [String] = []) { self.label = label; self.text = text; self.alert = alert; self.marks = marks }
+        /// The text for the plain-text outputs (Copy, "Share as text only"), when it differs from the drawn `text` (1.12): an
+        /// out-of-range lab value is bold red on screen with no letter, and carries its H or L here, where colour cannot go.
+        var plain: String?
+        /// The text for VoiceOver, when it differs (1.12): a value that is red says "low" or "high".
+        var spoken: String?
+        init(_ label: String?, _ text: String, alert: Bool = false, marks: [String] = [], plain: String? = nil, spoken: String? = nil) {
+            self.label = label; self.text = text; self.alert = alert; self.marks = marks; self.plain = plain; self.spoken = spoken
+        }
+        var plainText: String { plain ?? text }
+        var spokenText: String { spoken ?? text }
     }
 
     /// Typed values as typed (to two decimals): "Hb 12.8", "Creatinine 1.15".
@@ -96,13 +105,16 @@ enum PatientSummary {
 
     /// "Hb 9.8 L · Hct ~29 (est.) · … · Lactate 1.4 · T&S A−, screen neg · MRSA neg", the abnormal values and
     /// positive results marked for bold red, with the other results typed after.
-    static func labsLine(_ r: PatientRecord) -> Line? {
+    static func labsLine(_ r: PatientRecord, now: Date = Date()) -> Line? {
         let sum = PatientLabs.summary(r)
-        let more = LabResults.lineParts(r)
+        let more = LabResults.lineParts(r, now: now)
         let note = r.labNotes.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !sum.isEmpty || !more.parts.isEmpty || !note.isEmpty else { return nil }
-        let text = ([sum.line].filter { !$0.isEmpty } + more.parts + (note.isEmpty ? [] : [note])).joined(separator: " · ")
-        return Line("Labs", text, marks: sum.abnormal.map(\.compact) + more.marks)
+        let tail = more.parts + (note.isEmpty ? [] : [note])
+        let text = ([sum.line].filter { !$0.isEmpty } + tail).joined(separator: " · ")
+        let plain = ([sum.plainLine].filter { !$0.isEmpty } + tail).joined(separator: " · ")
+        let spoken = ([sum.spokenLine].filter { !$0.isEmpty } + tail).joined(separator: " · ")
+        return Line("Labs", text, marks: sum.abnormal.map(\.compact) + more.marks, plain: plain, spoken: spoken)
     }
 
     /// "MELD 3.0 18 · MELD-Na 17 · Child-Pugh B (8)", when the liver section has what it needs.
@@ -139,7 +151,7 @@ enum PatientSummary {
     }
 
     /// "RA 12, PA 52/24 (mean 33), PCWP 22, CO 3.8": the measured values; the derived ones are on the RHC page.
-    static func rhcText(_ r: PatientRecord) -> String? {
+    static func rhcText(_ r: PatientRecord, dates: PatientDateStyle = .app) -> String? {
         let h = r.rhc
         guard !h.isEmpty else { return nil }
         var parts: [String] = []
@@ -148,11 +160,12 @@ enum PatientSummary {
         else if let m = h.pam { parts.append("PA mean " + f(m)) }
         if let v = h.pcwp { parts.append("PCWP " + f(v)) }
         if let v = h.co { parts.append("CO " + f(v)) }
-        let head = h.date.isEmpty ? "" : "RHC " + h.date.text + ": "
+        let head = h.date.isEmpty ? "" : "RHC " + h.date.shown(dates) + ": "
         return parts.isEmpty ? nil : head + parts.joined(separator: ", ")
     }
 
-    static func historyLines(_ r: PatientRecord, now: Date = Date()) -> [Line] {
+    /// `dates`: `.summary(now:)` in the two summaries, where the day of a date shows only for a recent one (1.12).
+    static func historyLines(_ r: PatientRecord, now: Date = Date(), dates: PatientDateStyle = .app) -> [Line] {
         let original = r
         let r = r.capitalized
         var out: [Line] = []
@@ -170,7 +183,7 @@ enum PatientSummary {
         out += PatientWarnings.lines(r)
         let other = r.otherHistory.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { out.append(Line("Other conditions", other)) }
-        if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeries.map(\.text).joined(separator: "; "))) }
+        if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeries.map { $0.shownText(dates) }.joined(separator: "; "))) }
         // 1.9: the allergy list with each severity (anaphylaxis in red), and the allergies typed before 1.9 while the list
         // does not hold them (PatientAllergyText).
         if let a = PatientAllergyText.line(original) { out.append(a) }
@@ -196,7 +209,7 @@ enum PatientSummary {
         if let d = r.lastSolids { npo.append("solids " + time(d, now: now)) }
         if let d = r.lastClears { npo.append("clear fluids " + time(d, now: now)) }
         if !npo.isEmpty { out.append(Line("Last intake", npo.joined(separator: " · "))) }
-        if let l = labsLine(r) { out.append(l) }
+        if let l = labsLine(r, now: now) { out.append(l) }
         if let m = liverLine(r) { out.append(m) }
         return out
     }
@@ -204,7 +217,7 @@ enum PatientSummary {
     /// Medication flags that need an action before or after surgery.
     static let watchFlags: Set<String> = ["anticoagulant", "p2y12", "glp1", "sglt2", "maoi", "steroid", "opioid"]
 
-    static func assessmentLines(_ r: PatientRecord) -> [Line] {
+    static func assessmentLines(_ r: PatientRecord, dates: PatientDateStyle = .app) -> [Line] {
         let r = r.capitalized
         var out: [Line] = []
         if let a = PatientRules.asaText(r) {
@@ -224,17 +237,17 @@ enum PatientSummary {
         let active = PatientFunctional.acuteConditions(r)
         if !active.isEmpty { out.append(Line("Acute cardiac conditions", active.joined(separator: "; "), alert: true)) }
         let thoracic = r.allIntrathoracic
-        if !thoracic.isEmpty { out.append(Line("Previous intrathoracic surgery", thoracic.map(\.text).joined(separator: "; "), alert: true)) }
+        if !thoracic.isEmpty { out.append(Line("Previous intrathoracic surgery", thoracic.map { $0.shownText(dates) }.joined(separator: "; "), alert: true)) }
         if let e = ecgText(r) { out.append(Line("ECG", e)) }
-        if !r.echoFindings.isEmpty { out.append(Line("Echo", r.echoFindings.summary)) }
-        if !r.lhc.isEmpty { out.append(Line("Coronaries", r.lhc.summary)) }
-        if let h = rhcText(r) { out.append(Line("Right heart cath", h)) }
+        if !r.echoFindings.isEmpty { out.append(Line("Echo", r.echoFindings.summary(dates: dates))) }
+        if !r.lhc.isEmpty { out.append(Line("Coronaries", r.lhc.summary(dates: dates))) }
+        if let h = rhcText(r, dates: dates) { out.append(Line("Right heart cath", h)) }
         let cautions = PatientStudies.cautions(r)
         if !r.carotid.isEmpty {
-            out.append(Line("Carotid ultrasound", r.carotid.summary, alert: cautions.contains { $0.id == "carotid" || $0.id.hasPrefix("vertebral") }))
+            out.append(Line("Carotid ultrasound", r.carotid.summary(dates: dates), alert: cautions.contains { $0.id == "carotid" || $0.id.hasPrefix("vertebral") }))
         }
-        if !r.radial.isEmpty { out.append(Line("Radial artery ultrasound", r.radial.summary)) }
-        if !r.pft.isEmpty { out.append(Line("Pulmonary function tests", r.pft.summary(copd: r.has("copd")))) }
+        if !r.radial.isEmpty { out.append(Line("Radial artery ultrasound", r.radial.summary(dates: dates))) }
+        if !r.pft.isEmpty { out.append(Line("Pulmonary function tests", r.pft.summary(copd: r.has("copd"), dates: dates))) }
         // The carotid and vertebral cautions; the harvest arm is told with the lines (intraopLines, the handoff).
         for c in cautions where !c.id.hasPrefix("harvest") { out.append(Line("Caution", c.text, alert: true, marks: [c.mark])) }
         if r.isAdult, !r.emergency, r.ageYears != nil {
@@ -374,7 +387,7 @@ enum PatientSummary {
     /// intraopPartLines keeps them).
     static let echoPre = "Echo, pre-bypass", echoPost = "Echo, post-bypass"
 
-    static func intraopLines(_ r: PatientRecord) -> [Line] {
+    static func intraopLines(_ r: PatientRecord, dates: PatientDateStyle = .app) -> [Line] {
         let r = r.capitalized
         var out: [Line] = []
         if let a = airwayCourse(r) { out.append(a) }
@@ -397,7 +410,7 @@ enum PatientSummary {
         else if !r.events.isEmpty { out.append(Line("Events", r.events, alert: true)) }
         if let t = PatientTEE.line(r) { out.append(t) }
         // 1.10: the pre- and post-bypass exams ("Echo, pre-bypass" and "Echo, post-bypass" once there is a post-bypass one).
-        let exams = PatientEcho.intraopParts(pre: r.intraopEcho, post: r.intraopEchoPost)
+        let exams = PatientEcho.intraopParts(pre: r.intraopEcho, post: r.intraopEchoPost, dates: dates)
         for p in exams { out.append(Line(p.label.map { $0 == "Pre" ? echoPre : echoPost } ?? "Echo", p.text)) }
         if !r.echo.isEmpty { out.append(Line(exams.isEmpty ? "Echo" : "Echo notes", r.echo)) }
         return out
@@ -438,8 +451,8 @@ enum PatientSummary {
         let shortened = [echoPre: "Pre-bypass", echoPost: "Post-bypass"]
         var out = intraopLines(r).filter { l in l.label.map { labels[part]?.contains($0) ?? false } ?? false }
             .map { l -> Line in
-                if titles.contains(l.label ?? "") { return Line(nil, l.text, alert: l.alert, marks: l.marks) }
-                if let s = l.label.flatMap({ shortened[$0] }) { return Line(s, l.text, alert: l.alert, marks: l.marks) }
+                if titles.contains(l.label ?? "") { return Line(nil, l.text, alert: l.alert, marks: l.marks, plain: l.plain, spoken: l.spoken) }
+                if let s = l.label.flatMap({ shortened[$0] }) { return Line(s, l.text, alert: l.alert, marks: l.marks, plain: l.plain, spoken: l.spoken) }
                 return l
             }
         // 1.11 (P1-10): how the airway is left belongs to the airway part, not the events one (the Events page lost its
@@ -513,11 +526,12 @@ enum HandoffWriter {
             guard !lines.isEmpty else { return }
             out.append("")
             out.append(title.uppercased())
-            for l in lines { out.append((l.label.map { $0 + ": " } ?? "") + l.text) }
+            // The plain text cannot carry colour: an out-of-range lab value keeps its H or L here (1.12).
+            for l in lines { out.append((l.label.map { $0 + ": " } ?? "") + l.plainText) }
         }
         section("Key considerations", IntraopConsiderations.text(r).map { [PatientSummary.Line(nil, $0)] } ?? [])
-        section("History", PatientSummary.historyLines(r, now: now))
-        var assess = PatientSummary.assessmentLines(r).filter { $0.label != "Cardiac evaluation" && $0.label != "Cardiac advice" && $0.label != "Code status" }
+        section("History", PatientSummary.historyLines(r, now: now, dates: .summary(now: now)))
+        var assess = PatientSummary.assessmentLines(r, dates: .summary(now: now)).filter { $0.label != "Cardiac evaluation" && $0.label != "Cardiac advice" && $0.label != "Code status" }
         // An echo never entered says so, where the echo would be (before the catheterizations).
         if r.echoFindings.isEmpty {
             let at = assess.firstIndex { ["Coronaries", "Right heart cath"].contains($0.label ?? "") } ?? assess.count
@@ -536,7 +550,7 @@ enum HandoffWriter {
         let support = PatientSummary.supportLines(r).map { PatientSummary.Line("Support", $0.text, alert: true) }
         section("Lines & devices", PatientSummary.limbAlertLines(r) + PatientSummary.harvestLines(r) + lines + support)
         let told: Set<String> = ["Airway", "Lines", "Arms", "Limb alert"]
-        var intraop = PatientSummary.intraopLines(r).filter { !told.contains($0.label ?? "") }
+        var intraop = PatientSummary.intraopLines(r, dates: .summary(now: now)).filter { !told.contains($0.label ?? "") }
         // An intraoperative echo expected (cardiac, aortic or transplant surgery, or a TEE planned) and not entered.
         if PatientSummary.intraopEchoExpected(r) && r.intraopEcho.isEmpty && r.intraopEchoPost.isEmpty && r.echo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             intraop.append(PatientSummary.Line("Echo", PatientSummary.notAssessed))
@@ -586,7 +600,7 @@ enum HandoffWriter {
         // changed there, left out when it was removed there), then the drips started in the room.
         line("Drips", IntraopInfusionList.rows(r).map(\.text).filter { !$0.isEmpty }.joined(separator: "; "))
         line("Blood products", BloodProducts.text(r))
-        line("Last labs", IntraopLabs.lastLine(r, now: now, abnormalOnly: true)?.text ?? "")
+        line("Last labs", IntraopLabs.lastLine(r, now: now, abnormalOnly: true)?.plainText ?? "")
         line("Events", r.noEvents ? "No notable events" : r.events)
         if let t = PatientTEE.line(r) { line("TEE screen", t.text) }
         var plan: [String] = []

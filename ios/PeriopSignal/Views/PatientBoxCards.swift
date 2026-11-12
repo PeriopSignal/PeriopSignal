@@ -250,7 +250,7 @@ struct PatientBoxSummaryCard: View {
     static func drawn(title: String, lines: [PatientSummary.Line]) -> [PatientSummary.Line] {
         lines.map { l in
             guard let label = l.label, label.caseInsensitiveCompare(title) == .orderedSame else { return l }
-            return PatientSummary.Line(nil, l.text, alert: l.alert, marks: l.marks)
+            return PatientSummary.Line(nil, l.text, alert: l.alert, marks: l.marks, plain: l.plain, spoken: l.spoken)
         }
     }
 

@@ -480,7 +480,7 @@ struct PatientHistorySectionsView: View {
         case "thyroid":
             PatientChoice(options: HistorySections.thyroidTypes, selection: hx(\.thyroidType))
             let tft = thyroidValues
-            if !tft.isEmpty { LinkedValues(parts: tft) }
+            if !tft.isEmpty { LinkedValues(parts: tft.map { ($0.text, $0.abnormal) }, spoken: tft.map(\.spoken).joined(separator: ", ")) }
             labsLink(tft.isEmpty ? "Add thyroid function tests" : "Thyroid function tests", group: "thyroid", add: tft.isEmpty)
         case "adrenal":
             adrenal
@@ -502,12 +502,14 @@ struct PatientHistorySectionsView: View {
         })
     }
 
-    /// TSH and free T4 as Labs holds them, out-of-range ones marked.
-    private var thyroidValues: [(text: String, abnormal: Bool)] {
+    /// TSH and free T4 as Labs holds them, out-of-range ones in bold red (1.12: with no H or L after them; VoiceOver says
+    /// "low" or "high").
+    private var thyroidValues: [(text: String, abnormal: Bool, spoken: String)] {
         ["tsh", "ft4"].compactMap { key in
             guard let v = r.labs[key], let t = PatientLabs.test(key) else { return nil }
             let flag = PatientLabs.flag(key, v, sex: r.sex)
-            return (t.short + " " + t.format(v) + (t.unit.isEmpty ? "" : " " + t.unit) + (flag.isAbnormal ? " " + flag.mark : ""), flag.isAbnormal)
+            let text = t.short + " " + t.format(v) + (t.unit.isEmpty ? "" : " " + t.unit)
+            return (text, flag.isAbnormal, text + (flag.isAbnormal ? ", " + flag.word : ""))
         }
     }
 
@@ -598,9 +600,53 @@ struct PatientHistorySectionsView: View {
             endocarditisField
         case "isolation":
             PatientChips(options: flags(PatientPrecautions.kinds), selection: hxSet(\.precautions))
+        case "malignancy":
+            malignancy
         default:
             EmptyView()
         }
+    }
+
+    // MARK: Malignancy (1.12)
+
+    /// The common cancers (several can be chosen; the list wraps like the other long chip lists), Other as a typed line,
+    /// Status (one, or none), Metastatic, and the treatment. Dates and agents (bleomycin, an anthracycline, chest radiation)
+    /// go in Other details below, as the page says. Nothing here changes the ASA suggestion or raises an alert.
+    @ViewBuilder private var malignancy: some View {
+        PatientChips(options: PatientMalignancy.sites.map { PatientFlag($0.id, $0.label) } + [PatientFlag("other", "Other")], selection: malignancySites)
+        if otherOpen("malignancy-other", \.malignancyOther) {
+            HistoryInlineField(prompt: "Other cancer, e.g. thymoma", label: "Other cancer", text: malignancyOtherText)
+        }
+        row("Status") { PatientChoice(options: PatientMalignancy.statuses.map { (id: $0.id, label: $0.label) }, selection: malignancyStatus) }
+        PatientChips(options: [PatientFlag("metastatic", "Metastatic")], selection: malignancyMetastatic)
+        row("Treatment") { PatientChips(options: PatientMalignancy.treatments.map { PatientFlag($0.id, $0.label) }, selection: malignancyTreatment) }
+    }
+
+    private var malignancySites: Binding<Set<String>> {
+        withOther({ PatientMalignancy.selected($0) }, key: "malignancy-other", text: \.malignancyOther) { new, r in PatientMalignancy.setSites(new, &r) }
+    }
+
+    /// A cancer typed under Other chooses the item, as a chip does.
+    private var malignancyOtherText: Binding<String> {
+        Binding(get: { patient.record.hx.malignancyOther }, set: { v in
+            edit { r in
+                r.hx.malignancyOther = v
+                if !v.trimmingCharacters(in: .whitespaces).isEmpty { r.problems.insert(PatientMalignancy.problemID); r.noHistory = false }
+            }
+        })
+    }
+
+    private var malignancyStatus: Binding<String?> {
+        Binding(get: { patient.record.hx.malignancyStatus }, set: { v in edit { PatientMalignancy.setStatus(v, &$0) } })
+    }
+
+    private var malignancyMetastatic: Binding<Set<String>> {
+        Binding(get: { patient.record.hx.malignancyMetastatic ? ["metastatic"] : [] },
+                set: { new in edit { PatientMalignancy.setMetastatic(new.contains("metastatic"), &$0) } })
+    }
+
+    private var malignancyTreatment: Binding<Set<String>> {
+        Binding(get: { patient.record.hx.malignancyTreatment }, set: { new in edit { PatientMalignancy.setTreatment(new, &$0) } })
     }
 
     /// The On anticoagulation item, chosen or cleared from DVT/PE.
@@ -683,7 +729,7 @@ struct PatientHistorySectionsView: View {
                 PatientChoice(options: Self.noYes, selection: yesNo({ HistorySections.obThrombophiliaAnticoag($0) }, HistorySections.setObThrombophiliaAnticoag))
             }
             if HistorySections.obThrombophiliaAnticoag(r) == true {
-                NavigationLink(value: PatientEditor.system("heme")) { LinkLabel(title: "Add medication (Hematologic)", add: true) }
+                NavigationLink(value: PatientEditor.system("heme")) { LinkLabel(title: "Add medication (Heme & Oncology)", add: true) }
                     .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
                         if !patient.record.has("anticoagulation") { patient.update(discrete: true) { r in r.noHistory = false; r.problems.insert("anticoagulation") } }
@@ -1079,8 +1125,10 @@ struct LinkLabel: View {
 /// Values another part of the record holds, shown in place ("MELD 3.0 18 · Child-Pugh B (8)").
 struct LinkedValues: View {
     var parts: [(text: String, abnormal: Bool)]
+    /// What VoiceOver says when it differs from the words (a red value says "low" or "high").
+    var spoken: String?
 
-    init(parts: [(text: String, abnormal: Bool)]) { self.parts = parts }
+    init(parts: [(text: String, abnormal: Bool)], spoken: String? = nil) { self.parts = parts; self.spoken = spoken }
     init(text: String, alert: Bool) { parts = [(text, alert)] }
 
     private var line: Text {
@@ -1098,6 +1146,7 @@ struct LinkedValues: View {
             .font(PS.sys(size: 13.5))
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(spoken ?? parts.map(\.text).joined(separator: ", "))
     }
 }
 

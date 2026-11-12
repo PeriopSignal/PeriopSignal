@@ -66,12 +66,8 @@ struct PeriopSignalApp: App {
                 .tint(PS.accent)
                 .onOpenURL { url in
                     // A patient a colleague sent (AirDrop or Messages) opens My Patient, which asks before taking it.
-                    if PatientInbox.handles(url) {
-                        inbox.receive(url)
-                        router.selectedTab = .patient
-                    } else {
-                        router.handle(url)
-                    }
+                    // 1.12: a patient link (AirDrop, opt-in) holds the patient, so IncomingURL takes it before the router.
+                    IncomingURL.handle(url, inbox: inbox, router: router)
                 }
                 .onContinueUserActivity(CSSearchableItemActionType) { activity in
                     if let id = SpotlightIndexer.postID(from: activity) { router.open(postID: id) }

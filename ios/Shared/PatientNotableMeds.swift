@@ -185,7 +185,9 @@ enum CaseAntibiotics {
             guard let last = course.last else { continue }
             let def = data?.antibiotic(course.drug)
             let name = def?.name ?? course.drug.capitalized
-            let dose = def.map { CaseTimerEngine.antibioticDose($0, record: r).text } ?? ""
+            // The dose typed in the bar with the last dose (1.12 follow-up), as typed; else the dose Case Timers computes.
+            var dose = def.map { CaseTimerEngine.antibioticDose($0, record: r).text } ?? ""
+            if let typed = last.given?.trimmingCharacters(in: .whitespacesAndNewlines), !typed.isEmpty { dose = typed }
             var next: Date?
             if let def {
                 next = CaseTimerRecurrence.redoseMinutes(course, def: def).map { last.time.addingTimeInterval($0 * 60) }

@@ -51,6 +51,11 @@ final class Preferences {
     /// Answer questions on the phone with Apple Intelligence when it is available, before the Claude proxy.
     var askOnDevice: Bool { didSet { defaults.set(askOnDevice, forKey: "ps.askOnDevice") } }
 
+    /// 1.12 (opt-in, to be tested on two phones): Send Patient gives the AirDrop activity a Periop Signal link
+    /// (periopsignal://receive?...) instead of the file, so the receiving phone opens the app without the Files step.
+    /// Messages and the rest still get the file. Off by default.
+    var airDropLink: Bool { didSet { defaults.set(airDropLink, forKey: "ps.send.airDropLink") } }
+
     init() {
         let d = UserDefaults.standard
         let local = d.stringArray(forKey: "ps.myTopics")
@@ -70,6 +75,8 @@ final class Preferences {
         voiceID = d.string(forKey: "ps.voiceID")
         preferRecordings = d.object(forKey: "ps.preferRecordings") as? Bool ?? true
         askOnDevice = d.object(forKey: "ps.askOnDevice") as? Bool ?? true
+        // A launch argument (-ps.send.airDropLink 1 in the screenshot runs) arrives as text.
+        airDropLink = d.object(forKey: "ps.send.airDropLink") as? Bool ?? (d.string(forKey: "ps.send.airDropLink") == "1")
         PS.textScale = CGFloat(textScale)
         if d.object(forKey: "ps.firstLaunch") == nil {
             d.set(Date().timeIntervalSince1970, forKey: "ps.firstLaunch")
@@ -97,7 +104,7 @@ final class Preferences {
     var alertTimeText: String {
         var comps = DateComponents(); comps.hour = alertHour; comps.minute = alertMinute
         let date = Calendar.current.date(from: comps) ?? Date()
-        return date.formatted(date: .omitted, time: .shortened)
+        return PatientDates.clock(date)
     }
 
     func toggleTopic(_ id: String) {

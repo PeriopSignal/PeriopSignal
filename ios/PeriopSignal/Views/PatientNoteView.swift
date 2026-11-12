@@ -590,6 +590,10 @@ struct PatientReceiveSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 10) {
                         Eyebrow(text: "From a colleague", color: PS.accent2)
+                        // 1.12: the case's name, as plain text (never a link), above the person line.
+                        if let name = packet.caseName {
+                            Text(name).font(PS.sys(size: 15, weight: .semibold)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                        }
                         Text(r.person.isEmpty ? "Patient" : r.person)
                             .font(PS.serif(size: 26)).foregroundStyle(PS.fg).fixedSize(horizontal: false, vertical: true)
                         if !r.procedure.isEmpty {
@@ -623,6 +627,10 @@ struct PatientReceiveSheet: View {
                         Label(patient.isEmpty ? "Open This Patient" : "Replace \(patient.currentCase.label)", systemImage: "person.badge.plus").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(BigButtonStyle(prominent: patient.isEmpty || !patient.canAddCase, color: PS.action))
+                    if let note = PatientReceiveRule.note(sent: packet.caseName, own: patient.currentCase.room, hasPatient: !patient.isEmpty, canAddCase: patient.canAddCase) {
+                        Text(note).font(PS.sys(size: 13)).foregroundStyle(PS.fg2).fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     Button { dismiss() } label: { Text("Discard").frame(maxWidth: .infinity) }
                         .buttonStyle(BigButtonStyle(prominent: false))
                     EvidenceNote("Check it against the chart. It stays on this phone like any patient you enter, until you clear it; the file you received has been deleted.", title: "Check it against the chart")
@@ -641,7 +649,7 @@ struct PatientReceiveSheet: View {
 
     private func open() {
         let replacing = !patient.isEmpty
-        patient.receive(packet.record)
+        patient.openReceived(packet, asNewCase: false)
         Haptics.success()
         onOpened(replacing)
         dismiss()
@@ -649,8 +657,7 @@ struct PatientReceiveSheet: View {
 
     /// In a case of its own, so the patient in the current room stays as it is.
     private func openAsNewCase() {
-        patient.addCase()
-        patient.receive(packet.record)
+        patient.openReceived(packet, asNewCase: true)
         Haptics.success()
         onOpened(false)
         dismiss()

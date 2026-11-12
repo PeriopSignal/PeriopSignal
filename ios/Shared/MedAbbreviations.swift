@@ -631,7 +631,7 @@ extension MedAbbreviations {
             near("tah-heart", #"\b(?:syncardia|heart|transplant\w*|bridge|vad|biventricular|cardiac)\b"#),
         ]),
         entry("Ca", [m("calcium", "ca-calcium"), m("cancer", "ca-cancer")], hints: [
-            near("ca-cancer", #"\b(?:breast|lung|colon|rectal|prostate|pancrea\w*|ovarian|cervical|bladder|renal cell|gastric|esophag\w*|thyroid|skin|metasta\w*|chemo\w*|radiation|xrt|onc\w*|tumou?r|stage|resect\w*|mastectomy|lumpectomy|remission|recurren\w*)\b"#),
+            near("ca-cancer", #"\b(?:breast|lung|colon|rectal|prostate|pancrea\w*|ovarian|cervical|bladder|renal cell|gastric|esophag\w*|thyroid|skin|uterine|endometrial|testicular|hepatocellular|lymphoma|melanoma|metasta\w*|chemo\w*|radiation|xrt|onc\w*|tumou?r|stage|resect\w*|mastectomy|lumpectomy|remission|recurren\w*)\b"#),
         ]),
         entry("levo", [m("norepinephrine", "levo-norepinephrine"), m("levothyroxine", "levo-thyroxine"), m("levofloxacin", "levo-floxacin")], cs: false, hints: [
             near("levo-norepinephrine", #"\b(?:"# + infusion + #"|map|shock)\b"#),
@@ -849,6 +849,11 @@ extension MedAbbreviations {
         ("HELLP", "HELLP syndrome"), ("gHTN", "gestational hypertension"), ("PIH", "pregnancy-induced hypertension"), ("PPCM", "peripartum cardiomyopathy"),
         ("IUGR", "intrauterine growth restriction"), ("PROM", "premature rupture of membranes"), ("PPROM", "preterm premature rupture of membranes"),
         ("PTL", "preterm labor"), ("PPH", "postpartum hemorrhage"),
+        // 1.12 (Ben, Nov 11): the Heme & Oncology page's Malignancy, in capitals or all lower case. "MM" and a bare "SCC" are not read
+        // as a cancer (PatientNote, malignancy rules): multiple myeloma only spelled out, SCC only with its site.
+        ("HCC", "hepatocellular carcinoma"), ("RCC", "renal cell carcinoma"), ("XRT", "radiation therapy"), ("SCC", "squamous cell carcinoma"),
+        ("NSCLC", "non-small cell lung cancer"), ("SCLC", "small cell lung cancer"), ("NHL", "non-Hodgkin lymphoma"),
+        ("DLBCL", "diffuse large B-cell lymphoma"), ("AML", "acute myeloid leukemia"), ("CLL", "chronic lymphocytic leukemia"),
     ]
 
     /// Read only in this case: "AVR" is a replacement and "AVr" a repair; "MG" is myasthenia gravis and "mg" a milligram.

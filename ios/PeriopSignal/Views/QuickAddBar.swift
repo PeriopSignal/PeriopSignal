@@ -194,7 +194,8 @@ struct QuickAddBar: View {
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
                 Text(c.destination).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(off ? PS.fg3 : PS.accent2)
-                Text(c.value).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(off ? PS.fg3 : PS.fg)
+                // An out-of-range lab value is bold red with no H or L after it (1.12).
+                Text(off ? AttributedString(c.value) : markedString(c.value, marks: c.marks, size: 13)).font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(off ? PS.fg3 : PS.fg)
                     .strikethrough(out, color: PS.fg3)
                 if let s = c.statusText {
                     Text(s).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(statusColor(c.status))
@@ -208,7 +209,7 @@ struct QuickAddBar: View {
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(off ? PS.line2 : PS.accent2.opacity(0.45), lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(c.text + (c.statusText.map { ", " + $0 } ?? ""))
+        .accessibilityLabel(c.spokenText + (c.statusText.map { ", " + $0 } ?? ""))
         .accessibilityValue(out ? "Left out" : (c.canAdd ? "Will be added" : "Not added"))
         .accessibilityHint(c.canAdd ? (out ? "Puts it back" : "Leaves it out") : "")
         .accessibilityAddTraits(c.canAdd && !out ? .isSelected : [])
@@ -363,6 +364,10 @@ struct QuickAddBar: View {
         guard !chosen.isEmpty else { return Haptics.light() }
         // One discrete step in the store's Undo history, whatever was typed just before.
         patient.update(discrete: true) { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
+        // An antibiotic dose starts Case Timers' redose reminder: ask for notifications once, as Case Timers does.
+        if QuickAdd.changes(chosen).contains(where: { if case .antibioticDose = $0 { return true } else { return false } }) {
+            CaseTimerNotifier.shared.requestPermissionIfNeeded()
+        }
         Haptics.success()
         withAnimation(.snappy) {
             added = Added(count: chosen.count, before: before, after: patient.record, caseID: patient.currentCase.id)

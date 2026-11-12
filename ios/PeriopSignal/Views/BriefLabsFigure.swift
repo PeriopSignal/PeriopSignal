@@ -3,9 +3,9 @@ import SwiftUI
 // MARK: - The Labs block of the summaries (1.12, Ben's note 8)
 //
 // No fishbone figures: two columns, "Preop" and "Intraop" (the Preprocedure Summary has the Preop column alone, full
-// width). Each group is a short paragraph, its name in bold ("CMP: Na 138, K 4.1 H, …"); the Intraop column starts with
+// width). Each group is a short paragraph, its name in bold ("CMP: Na 138, K 4.1, …"); the Intraop column starts with
 // the newest blood gas drawn as the slash figure (pH / PCO₂ / PO₂ / HCO₃) labelled with its type and time, then its
-// lactate. Abnormal values are bold red with their H or L, as they always were. The small caption under the block carries
+// lactate. Abnormal values are bold red with no H or L beside them (1.12). The small caption under the block carries
 // the times. At the larger text sizes the columns stack. The values and their order are BriefLabs (PatientBriefLabs.swift).
 
 struct BriefLabsFigure: View {
@@ -45,7 +45,7 @@ struct BriefLabsFigure: View {
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Labs. " + labs.paragraphs.map { PatientBriefs.ascii($0) }.joined(separator: ". ") + (labs.caption.map { ". " + PatientBriefs.ascii($0) } ?? ""))
+        .accessibilityLabel("Labs. " + labs.spokenParagraphs.map { PatientBriefs.ascii($0) }.joined(separator: ". ") + (labs.caption.map { ". " + PatientBriefs.ascii($0) } ?? ""))
     }
 
     private func column(_ title: String, _ groups: [BriefLabGroup]) -> some View {
@@ -113,14 +113,11 @@ private struct BriefGasFigure: View {
         }
     }
 
-    /// One value under its name; an abnormal one is bold red with a small H or L after it (a Text sum, so a narrow cell
-    /// shrinks the pair together).
+    /// One value under its name; an abnormal one is bold red, with no H or L after it (1.12).
     private func value(_ c: BriefLabCell?) -> Text {
         guard let c else { return Text("—").font(PS.sys(size: 12, design: .monospaced)).foregroundColor(PS.fg3) }
-        let number = Text(c.text).font(PS.sys(size: 12, weight: c.abnormal ? .heavy : .semibold, design: .monospaced))
+        return Text(c.text).font(PS.sys(size: 12, weight: c.abnormal ? .heavy : .semibold, design: .monospaced))
             .foregroundColor(c.abnormal ? PS.red : PS.fg)
-        guard c.abnormal else { return number }
-        return number + Text(c.flag.mark).font(PS.sys(size: 8.5, weight: .heavy)).foregroundColor(PS.red)
     }
 
     private func cell(_ c: BriefLabCell?, label: String, width: CGFloat) -> some View {
@@ -129,5 +126,7 @@ private struct BriefGasFigure: View {
             Text(label).font(PS.sys(size: 8)).foregroundStyle(PS.fg3)
         }
         .frame(width: width)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(c.map { label + " " + $0.text + ($0.flag.word.isEmpty ? "" : ", " + $0.flag.word) } ?? label + " not recorded")
     }
 }

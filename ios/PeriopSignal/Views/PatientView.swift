@@ -385,7 +385,9 @@ struct PatientView: View {
             ShotReady.ready()
         case .receive:
             try? await Task.sleep(nanoseconds: 800_000_000)
-            inbox.pending = PatientPacket(record: PatientDemo.record)
+            // -ps.patient.receiveName "OR 12" sends the case's name with it (1.12).
+            let sentName = LaunchSeed.string("ps.patient.receiveName")
+            inbox.pending = PatientPacket(record: PatientDemo.record, room: sentName.isEmpty ? nil : sentName)
             try? await Task.sleep(nanoseconds: 1_500_000_000)
             ShotReady.ready()
         case .editor, .route:
@@ -1059,7 +1061,12 @@ struct PatientJumpChip: View {
 /// pictures, or send the patient itself to a colleague's Periop Signal so they carry on with the case.
 struct HandoffPanel: View {
     @Environment(ReferenceStore.self) private var refs
+    @Environment(PatientStore.self) private var patient
+    @Environment(Preferences.self) private var prefs
     var record: PatientRecord
+
+    /// The current case's name, which is sent with the patient (1.12); nil when it has none.
+    private var caseName: String? { patient.currentCase.hasRoom ? patient.currentCase.room : nil }
 
     /// Screenshot runs: -ps.handoff.from Airway starts the handoff at the block whose label begins with it, so a block far
     /// down fits the frame.
@@ -1131,16 +1138,13 @@ struct HandoffPanel: View {
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg2).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
                 }
             }
-            ShareLink(item: PatientTransfer(record: record),
-                      preview: SharePreview("Patient for handoff", image: Image(systemName: "person.text.rectangle"))) {
-                Label("Send Patient", systemImage: "iphone.and.arrow.forward").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(BigButtonStyle(prominent: false))
-            EvidenceNote("In Messages, they tap the file, then Share, then Periop Signal. Send only to the colleague taking over, through channels your institution approves; Messages keeps a copy in the conversation.", title: "How it works")
+            PatientSendButton(record: record, room: caseName)
+            EvidenceNote(PatientSendText.note(airDropLink: prefs.airDropLink, caseNamed: caseName != nil), title: "How it works")
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(PS.surface, in: RoundedRectangle(cornerRadius: PS.cardRadius, style: .continuous))
+        .id("sendcard")
     }
 }
 
@@ -1152,23 +1156,17 @@ struct PatientLineText: View {
     static var alertColor: Color { PS.red }
 
     private var styled: AttributedString {
-        // A short marked value never breaks inside itself ("Ca" at the end of one line and "8.3 L" on the next): its
-        // spaces are non-breaking. A longer marked phrase still wraps.
-        var text = line.text
-        var marks: [String] = []
-        for m in line.marks where !m.isEmpty {
-            let joined = m.count <= 18 ? m.replacingOccurrences(of: " ", with: "\u{00A0}") : m
-            if joined != m { text = text.replacingOccurrences(of: m, with: joined) }
-            marks.append(joined)
-        }
+        // A short marked value never breaks inside itself ("Ca" at the end of one line and "8.3" on the next): its
+        // spaces are non-breaking. A longer marked phrase still wraps. 1.12: a mark paints only where it stands alone
+        // (MarkedText), so "K 5.9" does not paint the start of "K 5.95".
+        let spans = MarkedText.ranges(ofAny: line.marks, in: line.text)
+        let text = MarkedText.keepingTogether(line.text, spans, upTo: MarkedText.keepTogetherLimit)
         var a = AttributedString(text)
-        for m in marks {
-            var from = a.startIndex
-            while let r = a[from...].range(of: m) {
-                a[r].foregroundColor = PS.red
-                a[r].font = PS.sys(size: 14, weight: .bold)
-                from = r.upperBound
-            }
+        for r in spans {
+            let lo = a.index(a.startIndex, offsetByCharacters: line.text.distance(from: line.text.startIndex, to: r.lowerBound))
+            let hi = a.index(lo, offsetByCharacters: line.text.distance(from: r.lowerBound, to: r.upperBound))
+            a[lo..<hi].foregroundColor = PS.red
+            a[lo..<hi].font = PS.sys(size: 14, weight: .bold)
         }
         return a
     }
@@ -1178,6 +1176,8 @@ struct PatientLineText: View {
             if let k = line.label { Text(k).font(PS.sys(size: 11.5, weight: .semibold)).foregroundStyle(line.alert ? Self.alertColor : PS.fg3) }
             Text(styled).font(PS.sys(size: 14, weight: line.alert ? .semibold : .regular)).foregroundStyle(line.alert ? Self.alertColor : PS.fg)
                 .lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                // A red value says "low" or "high" to VoiceOver, which cannot see the colour (1.12).
+                .accessibilityLabel(line.spoken ?? line.text)
         }
     }
 }

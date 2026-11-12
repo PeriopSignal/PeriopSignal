@@ -261,11 +261,11 @@ final class A112Tests: XCTestCase {
     func testTheLastLabsLineFollowsTheSample() throws {
         var s = IntraopLabSet(time: PatientDemo.today(10, 40), values: ["ph": 7.31, "paco2": 51, "lactate": 2.4])
         let arterial = try XCTUnwrap(IntraopLabs.line(s, sex: nil))
-        XCTAssertEqual(arterial.text, "10:40 · pH 7.31 L · PaCO₂ 51 H · Lactate 2.4 H")
+        XCTAssertEqual(arterial.text, "10:40 · pH 7.31 · PaCO₂ 51 · Lactate 2.4")
         s.gasType = .vbg
         let venous = try XCTUnwrap(IntraopLabs.line(s, sex: nil))
-        XCTAssertEqual(venous.text, "VBG 10:40 · pH 7.31 · PvCO₂ 51 · Lactate 2.4 H", "a venous sample says so, with no arterial flags")
-        XCTAssertEqual(venous.marks, ["Lactate 2.4 H"])
+        XCTAssertEqual(venous.text, "VBG 10:40 · pH 7.31 · PvCO₂ 51 · Lactate 2.4", "a venous sample says so, with no arterial flags")
+        XCTAssertEqual(venous.marks, ["Lactate 2.4"])
     }
 
     // MARK: Note 8: the Labs block as Preop and Intraop columns
@@ -275,7 +275,7 @@ final class A112Tests: XCTestCase {
         XCTAssertEqual(l.preop.map(\.name), ["CMP", "Heme", "Other"])
         XCTAssertFalse(l.hasIntraop, "the Preprocedure Summary has the Preop column alone")
         let text = try labsText(preop, handoff: false)
-        XCTAssertEqual(text, "Preop: CMP: Na 138, K 4.1, BUN 24 H, Cr 1.30 H (GFR 52 L), AST 55 H, ALT 30, Glu 142; Heme: Hb 10.9 L, Plt 210, PTT 31, INR 1.0, Fib 310, T&S A+, screen neg, 2 u crossmatched; Other: Lactate 1.4, TSH 5.2 H, Free T4 1.1, T bili 0.8, MRSA neg, Pregnancy test neg, hCG <5, WBC 7.4, Alb 4.2")
+        XCTAssertEqual(text, "Preop: CMP: Na 138, K 4.1, BUN 24, Cr 1.30 (GFR 52), AST 55, ALT 30, Glu 142; Heme: Hb 10.9, Plt 210, PTT 31, INR 1.0, Fib 310, T&S A+, screen neg, 2 u crossmatched; Other: Lactate 1.4, TSH 5.2, Free T4 1.1, T bili 0.8, MRSA neg, Pregnancy test neg, hCG <5, WBC 7.4, Alb 4.2")
     }
 
     func testOnlyRecordedValuesAreShownAndAnEmptyGroupAndColumnAreOmitted() throws {
@@ -283,11 +283,11 @@ final class A112Tests: XCTestCase {
         r.labs = ["na": 138]
         XCTAssertEqual(try labsText(r), "Preop: CMP: Na 138", "no Heme or Other, no Intraop")
         r.labs = ["plt": 98]
-        XCTAssertEqual(try labsText(r), "Preop: Heme: Plt 98 L")
+        XCTAssertEqual(try labsText(r), "Preop: Heme: Plt 98")
         r.labs = [:]
         XCTAssertNil(PatientBriefs.handoff(r).first { $0.key == "labs" }, "nothing recorded, no block")
         r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(10, 40), values: ["inr": 1.4])]
-        XCTAssertEqual(try labsText(r), "Intraop: Heme: INR 1.4 H", "an Intraop column alone")
+        XCTAssertEqual(try labsText(r), "Intraop: Heme: INR 1.4", "an Intraop column alone")
     }
 
     func testTheCrAndGFRGoTogetherAndASlashPairsAstAndAltWhileNormal() throws {
@@ -296,11 +296,11 @@ final class A112Tests: XCTestCase {
         r.labs = ["cr": 0.9, "gfr": 95, "ast": 30, "alt": 25]
         XCTAssertEqual(try labsText(r), "Preop: CMP: Cr 0.90 (GFR 95), AST/ALT 30/25")
         r.labs = ["cr": 2.4, "gfr": 28, "ast": 90, "alt": 25]
-        XCTAssertEqual(try labsText(r), "Preop: CMP: Cr 2.40 H (GFR 28 L), AST 90 H, ALT 25", "an abnormal one is written on its own so its flag is exact")
+        XCTAssertEqual(try labsText(r), "Preop: CMP: Cr 2.40 (GFR 28), AST 90, ALT 25", "an abnormal one is written on its own so its flag is exact")
         let b = try block(PatientBriefs.handoff(r), "labs")
-        XCTAssertTrue(b.marks.contains("Cr 2.40 H"))
-        XCTAssertTrue(b.marks.contains("GFR 28 L"))
-        XCTAssertTrue(b.marks.contains("AST 90 H"))
+        XCTAssertTrue(b.marks.contains("Cr 2.40"))
+        XCTAssertTrue(b.marks.contains("GFR 28"))
+        XCTAssertTrue(b.marks.contains("AST 90"))
         XCTAssertFalse(b.marks.contains("ALT 25"))
         r.labs = ["gfr": 80, "ast": 20]
         XCTAssertEqual(try labsText(r), "Preop: CMP: GFR 80, AST 20")
@@ -327,9 +327,9 @@ final class A112Tests: XCTestCase {
         XCTAssertNil(PatientBriefs.handoff(r).first { $0.key == "labs" })
     }
 
-    func testAbnormalValuesStayBoldRedWithTheirFlagAndTheMarksAreInTheText() throws {
+    func testAbnormalValuesStayBoldRedWithNoLetterAndTheMarksAreInTheText() throws {
         let b = try block(PatientBriefs.handoff(PatientDemo112Labs.abgRecord), "labs")
-        for m in ["BUN 24 H", "Cr 1.30 H", "GFR 52 L", "AST 55 H", "Hb 10.9 L", "TSH 5.2 H", "PCO₂ 43 H", "HCO₃ 28 H", "Plt 98 L", "INR 1.6 H", "Fib 180 L"] {
+        for m in ["BUN 24", "Cr 1.30", "GFR 52", "AST 55", "Hb 10.9", "TSH 5.2", "PCO₂ 43", "HCO₃ 28", "Plt 98", "INR 1.6", "Fib 180"] {
             XCTAssertTrue(b.marks.contains(m), "\(m) is red: \(b.marks)")
             XCTAssertTrue(b.text.contains(m), "\(m) is in the text")
         }
@@ -348,7 +348,7 @@ final class A112Tests: XCTestCase {
         XCTAssertEqual(gas.lactate?.text, "1")
         XCTAssertEqual(l.intraop.map(\.name), ["ABG (08:03)", "Heme"], "the hemoglobin, Plt, INR, fibrinogen and the viscoelastic, no PTT or ACT")
         let text = try labsText(PatientDemo112Labs.abgRecord)
-        XCTAssertTrue(text.contains("\nIntraop: ABG (08:03): pH 7.43 / PCO₂ 43 H / PO₂ 146 / HCO₃ 28 H, Lactate 1; Heme: Hb 9 L, Plt 98 L, INR 1.6 H, Fib 180 L, TEG/ROTEM: EXTEM CT 92 s, A10 38 mm"), text)
+        XCTAssertTrue(text.contains("\nIntraop: ABG (08:03): pH 7.43 / PCO₂ 43 / PO₂ 146 / HCO₃ 28, Lactate 1; Heme: Hb 9, Plt 98, INR 1.6, Fib 180, TEG/ROTEM: EXTEM CT 92 s, A10 38 mm"), text)
         XCTAssertFalse(text.contains("ACT"), "the ACT is an extra, not a default")
         XCTAssertFalse(text.contains("Na 139"), "the gas's sodium is normal and not in a list: not shown")
     }
@@ -362,9 +362,9 @@ final class A112Tests: XCTestCase {
         XCTAssertEqual(gas.slash.compactMap { $0 }.filter(\.abnormal).count, 0, "PCO₂ 51 and pH 7.31 are not flagged on a venous gas")
         XCTAssertEqual(gas.lactate?.flag, .high, "the lactate criterion still applies")
         let b = try block(PatientBriefs.handoff(r), "labs")
-        XCTAssertTrue(b.text.contains("VBG (10:40): pH 7.31 / PCO₂ 51 / PO₂ 38 / HCO₃ 25, Lactate 2.4 H"), b.text)
-        XCTAssertFalse(b.marks.contains("PCO₂ 51 H"))
-        XCTAssertTrue(b.marks.contains("Lactate 2.4 H"))
+        XCTAssertTrue(b.text.contains("VBG (10:40): pH 7.31 / PCO₂ 51 / PO₂ 38 / HCO₃ 25, Lactate 2.4"), b.text)
+        XCTAssertFalse(b.marks.contains("PCO₂ 51"))
+        XCTAssertTrue(b.marks.contains("Lactate 2.4"))
         XCTAssertFalse(b.text.contains("ABG (08:03)"), "only the most recent gas")
     }
 
@@ -388,7 +388,7 @@ final class A112Tests: XCTestCase {
         r.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 15), values: ["inr": 1.9, "plt": 90], viscoelastic: "EXTEM CT 110 s"),
                          IntraopLabSet(time: PatientDemo.today(10, 40), values: ["inr": 1.4, "fibrinogen": 230])]
         let b = try block(PatientBriefs.handoff(r), "labs")
-        XCTAssertEqual(b.text, "Intraop: Heme: Plt 90 L, INR 1.4 H, Fib 230, TEG/ROTEM: EXTEM CT 110 s")
+        XCTAssertEqual(b.text, "Intraop: Heme: Plt 90, INR 1.4, Fib 230, TEG/ROTEM: EXTEM CT 110 s")
         let l = try labs([b])
         XCTAssertEqual(l.caption, "Intraop 10:40 (INR, Fib) / 09:15 (Plt, TEG/ROTEM)", "each time names its values")
         XCTAssertFalse(b.text.contains("INR 1.9"))
@@ -540,7 +540,7 @@ final class A112Tests: XCTestCase {
         XCTAssertFalse(pre.contains("Intraop"))
         // From the newest set that holds it.
         r.intraopLabs.append(IntraopLabSet(time: PatientDemo.today(11, 0), values: ["k": 5.2]))
-        XCTAssertTrue(try labsText(r).contains("K 5.2 H"), "the newest potassium")
+        XCTAssertTrue(try labsText(r).contains("K 5.2"), "the newest potassium")
     }
 
     /// Ben, Nov 11: an abnormal lab outside the lists is in the summaries without being chosen and is not offered as a
@@ -549,8 +549,8 @@ final class A112Tests: XCTestCase {
     func testAbnormalValuesAreAlwaysShownAndTheLastHemoglobinIsAlwaysUnderHeme() throws {
         var r = PatientDemo112Labs.preop.withExtras([])
         r.labs["ca"] = 7.4
-        XCTAssertTrue(try labsText(r, handoff: false).contains("Ca 7.4 L"), "an abnormal calcium, not chosen")
-        XCTAssertTrue(try block(PatientBriefs.preop(r), "labs").marks.contains("Ca 7.4 L"))
+        XCTAssertTrue(try labsText(r, handoff: false).contains("Ca 7.4"), "an abnormal calcium, not chosen")
+        XCTAssertTrue(try block(PatientBriefs.preop(r), "labs").marks.contains("Ca 7.4"))
         XCTAssertFalse(HandoffExtras.offered(r).preop.contains { $0.key == "preop:ca" }, "shown anyway, so not a chip")
         XCTAssertTrue(HandoffExtras.offered(r).preop.contains { $0.key == "preop:albumin" }, "a normal one is still a chip")
         XCTAssertEqual(HandoffExtras.chosenCount(r), 0)
@@ -561,7 +561,7 @@ final class A112Tests: XCTestCase {
         h.intraopLabs = [IntraopLabSet(time: PatientDemo.today(9, 0), values: ["ph": 7.41, "hb": 14.5, "k": 6.1, "na": 140]),
                          IntraopLabSet(time: PatientDemo.today(8, 0), values: ["ph": 7.38, "hb": 9.8, "k": 4.0])]
         let text = try labsText(h)
-        XCTAssertEqual(text, "Intraop: ABG (09:00): pH 7.41; Heme: Hb 14.5; Other: K 6.1 H", "the newest hemoglobin though normal, and the abnormal potassium")
+        XCTAssertEqual(text, "Intraop: ABG (09:00): pH 7.41; Heme: Hb 14.5; Other: K 6.1", "the newest hemoglobin though normal, and the abnormal potassium")
         XCTAssertFalse(text.contains("Hb 9.8"), "not an older one")
         XCTAssertFalse(text.contains("Na 140"), "a normal sodium is still a chip")
         let offered = HandoffExtras.offered(h).intraop.map(\.key)
