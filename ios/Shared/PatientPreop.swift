@@ -330,7 +330,10 @@ enum PatientPreop {
     /// where to tick problems, then the chosen class's definition. Moved here from the Assessment editor, unchanged, so the
     /// editor and the tab say the same.
     static func asaNote(_ r: PatientRecord) -> String {
-        var parts = ["The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it."]
+        // 1.12: for an adult the classes by definition count too, so the opening no longer says "examples" alone.
+        var parts = [r.isChild
+            ? "The suggestion is the highest class among the ASA's published examples (adult, pediatric under 18, and obstetric) that match what is recorded; the class is a clinical judgment, so it counts only once you choose it."
+            : "The suggestion is the highest class among what is recorded: the ASA's published examples (adult and obstetric), and classes by definition for problems the examples do not name; the class is a clinical judgment, so it counts only once you choose it."]
         if PatientRules.asaSuggestion(r) == nil && r.isChild {
             parts.append("Tick problems under History, including the Pediatric list, or mark no significant history, for a suggestion from the ASA's pediatric examples.")
         }
