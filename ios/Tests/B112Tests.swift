@@ -307,9 +307,9 @@ final class B112Tests: XCTestCase {
 
     // MARK: 21. Sharing
 
-    func testTheShareMenuOffersImagePDFAndTextOnlyInThatOrder() {
+    func testTheShareMenuOffersPicturePDFAndTextOnlyInThatOrder() {
         XCTAssertEqual(BriefShareFormat.allCases, [.image, .pdf, .text])
-        XCTAssertEqual(BriefShareFormat.allCases.map(\.title), ["Image", "PDF", "Text only"])
+        XCTAssertEqual(BriefShareFormat.allCases.map(\.title), ["Share as picture", "PDF", "Text only"], "1.12 follow-up: one picture, so the label is singular")
     }
 
     func testPagesBreakOnlyBetweenBlocks() {
@@ -349,17 +349,14 @@ final class B112Tests: XCTestCase {
         BriefPages.Context(record: PatientDemo112Summary.summary, refs: ReferenceStore(), patient: PatientStore(url: nil))
     }
 
-    @MainActor func testTheImageIsWhitePagesAtPhoneSizeInThreeTimes() throws {
+    @MainActor func testTheImageIsAWhitePictureAtPhoneWidthInThreeTimes() throws {
+        // 1.12 follow-up (Ben): ONE picture as tall as the summary needs, not pages of a phone's height (see Q112Tests).
         let ctx = context()
         let blocks = PatientBriefs.handoff(ctx.record)
-        let images = BriefPages.images(blocks, ctx)
-        XCTAssertFalse(images.isEmpty)
-        for img in images {
-            XCTAssertEqual(img.size.width * img.scale, 1170, "390 pt at 3x")
-        }
-        XCTAssertEqual(images[0].size.height * images[0].scale, 2532, "a phone's height at 3x")
+        let image = try XCTUnwrap(BriefPages.picture(blocks, ctx))
+        XCTAssertEqual(image.size.width * image.scale, 1170, "390 pt at 3x")
         // White page, dark ink, whatever the phone's appearance.
-        let cg = try XCTUnwrap(images[0].cgImage)
+        let cg = try XCTUnwrap(image.cgImage)
         let pixel = try pixels(cg)
         XCTAssertEqual(pixel(2, 2), [255, 255, 255], "the corner is white")
         XCTAssertTrue((0..<cg.height).contains { y in (0..<cg.width).contains { x in pixel(x, y).allSatisfy { $0 < 90 } } }, "the text is dark on it")
@@ -385,10 +382,9 @@ final class B112Tests: XCTestCase {
         XCTAssertEqual(tall.count, 1, "heights: \(sheets.map(\.height))")
         XCTAssertEqual(tall.first?.blocks.map(\.key), ["concerns"], "the long block alone")
         XCTAssertTrue(sheets.filter { $0.height <= 844 }.allSatisfy { $0.height == 844 })
-        let images = BriefPages.images(blocks, ctx)
-        XCTAssertEqual(images.count, sheets.count)
-        let big = try XCTUnwrap(images.first { $0.size.height > 844 })
-        XCTAssertEqual(big.size.width * big.scale, 1170)
+        // The picture is one image for all of it (1.12 follow-up); the pages above are the PDF's way of laying it out.
+        let image = try XCTUnwrap(BriefPages.picture(blocks, ctx))
+        XCTAssertEqual(image.size.width * image.scale, 1170)
     }
 
     @MainActor func testThePDFIsLetterWidthAndKeepsBlocksWhole() throws {
@@ -429,7 +425,7 @@ final class B112Tests: XCTestCase {
         // The pages are laid out and drawn with it.
         let blocks = PatientBriefs.handoff(plain.record)
         XCTAssertEqual(BriefPages.sheets(blocks, drawn, geo: .phone).flatMap { $0.blocks.map(\.key) }, blocks.map(\.key))
-        XCTAssertFalse(BriefPages.images(blocks, drawn).isEmpty)
+        XCTAssertNotNil(BriefPages.picture(blocks, drawn))
         XCTAssertNotNil(BriefPages.pdf(blocks, drawn))
     }
 

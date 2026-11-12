@@ -981,6 +981,22 @@ jobs:
           shot 889-boxes-empty-patient-open-light 18 -ps.tab patient -ps.patient empty -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
           #
           # ---- 1.12 helper Q shots (1150-1169): add your shot lines directly under this line ----
+          shot 1150-q-picture-ben-top-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1151-q-picture-ben-end-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpagesend -ps.forceAppearance light
+          shot 1152-q-picture-ben-whole-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages fit -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1153-q-picture-ben-end-dark 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpagesend -ps.forceAppearance dark
+          shot 1154-q-picture-summary-whole-light 24 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.brief.pages fit -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1155-q-picture-long-whole-light 26 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages fit -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1156-q-picture-long-end-light 26 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpagesend -ps.forceAppearance light
+          shot 1157-q-pdf-first-page-light 24 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.pages pdf -ps.patient.scroll briefpage1 -ps.forceAppearance light
+          shot 1158-q-pdf-last-page-light 26 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages pdf -ps.patient.scroll briefpagesend -ps.forceAppearance light
+          shot 1159-q-share-menu-light 18 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.brief.menu 1 -ps.patient.scroll briefshare -ps.forceAppearance light
+          shot 1160-q-more-my-patient-default-on-light 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance light
+          shot 1161-q-more-my-patient-default-on-dark 14 -ps.tab more -ps.more.scroll mypatient -ps.forceAppearance dark
+          shot 1162-q-more-my-patient-off-light 14 -ps.tab more -ps.more.scroll mypatient -ps.send.airDropLink 0 -ps.forceAppearance light
+          shot 1163-q-send-note-on-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance light
+          shot 1164-q-send-note-off-light 18 -ps.tab patient -ps.patient demo-rooms -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.send.airDropLink 0 -ps.forceAppearance light
+          shot 1165-q-send-note-on-dark 18 -ps.tab patient -ps.patient demo-112-share -ps.patient.tab summary -ps.patient.scroll sendcard -ps.evidence.open 1 -ps.forceAppearance dark
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light

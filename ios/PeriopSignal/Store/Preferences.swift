@@ -51,10 +51,19 @@ final class Preferences {
     /// Answer questions on the phone with Apple Intelligence when it is available, before the Claude proxy.
     var askOnDevice: Bool { didSet { defaults.set(askOnDevice, forKey: "ps.askOnDevice") } }
 
-    /// 1.12 (opt-in, to be tested on two phones): Send Patient gives the AirDrop activity a Periop Signal link
-    /// (periopsignal://receive?...) instead of the file, so the receiving phone opens the app without the Files step.
-    /// Messages and the rest still get the file. Off by default.
+    /// 1.12: Send Patient gives the AirDrop activity a Periop Signal link (periopsignal://receive?...) instead of the file,
+    /// so the receiving phone opens the app without the Files step. Messages and the rest always get the file. ON BY DEFAULT
+    /// (Ben, Nov 12): the key is written only when the user flips the switch, so a phone that never touched it has no key and
+    /// reads on, and a phone where it was turned off stays off (`readAirDropLink`).
     var airDropLink: Bool { didSet { defaults.set(airDropLink, forKey: "ps.send.airDropLink") } }
+
+    /// The stored switch: a saved Bool; a launch argument (-ps.send.airDropLink 1 or 0 in the screenshot runs) arrives as
+    /// text; no key at all means on.
+    static func readAirDropLink(_ d: UserDefaults) -> Bool {
+        if let saved = d.object(forKey: "ps.send.airDropLink") as? Bool { return saved }
+        if let text = d.string(forKey: "ps.send.airDropLink") { return text == "1" || text.lowercased() == "true" }
+        return true
+    }
 
     init() {
         let d = UserDefaults.standard
@@ -75,8 +84,7 @@ final class Preferences {
         voiceID = d.string(forKey: "ps.voiceID")
         preferRecordings = d.object(forKey: "ps.preferRecordings") as? Bool ?? true
         askOnDevice = d.object(forKey: "ps.askOnDevice") as? Bool ?? true
-        // A launch argument (-ps.send.airDropLink 1 in the screenshot runs) arrives as text.
-        airDropLink = d.object(forKey: "ps.send.airDropLink") as? Bool ?? (d.string(forKey: "ps.send.airDropLink") == "1")
+        airDropLink = Preferences.readAirDropLink(d)
         PS.textScale = CGFloat(textScale)
         if d.object(forKey: "ps.firstLaunch") == nil {
             d.set(Date().timeIntervalSince1970, forKey: "ps.firstLaunch")
