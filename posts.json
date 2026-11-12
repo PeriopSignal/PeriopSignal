@@ -45,6 +45,12 @@
     ],
     "answer": 2,
     "explanation": "The aspirin vs rivaroxaban difference was 0.30 points (95% CI -0.20 to 0.81) against a 0.69-point margin, so aspirin was not shown noninferior; aspirin vs warfarin was similar. The intervals include no difference, so this does not prove aspirin worse, and the primary analysis was per-protocol."
+   },
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/nejm-2026-pepper-aspirin-rivaroxaban-warfarin-arthroplasty.mp3",
+    "seconds": 231,
+    "bytes": 1844589,
+    "voice": "kokoro:af_heart"
    }
   },
   {
@@ -77,7 +83,13 @@
    "impact": 1,
    "trialName": "PrECiSIOn",
    "firstAuthor": "Battaglini",
-   "title": "Consensus on the definition, components, and grading of composite postoperative pulmonary complication outcomes (PrECiSIOn): insights from an international Delphi expert panel"
+   "title": "Consensus on the definition, components, and grading of composite postoperative pulmonary complication outcomes (PrECiSIOn): insights from an international Delphi expert panel",
+   "audio": {
+    "url": "https://github.com/PeriopSignal/PeriopSignal/releases/download/audio/lancet-resp-2026-precision-ppc-delphi-consensus.mp3",
+    "seconds": 193,
+    "bytes": 1541997,
+    "voice": "kokoro:af_heart"
+   }
   },
   {
    "id": "circulation-2026-fragile-offpump-vs-onpump-cabg-frail",
