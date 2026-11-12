@@ -1955,10 +1955,12 @@ enum QuickAdd {
         for (index, (rx, person)) in contexts.enumerated() {
             guard let m = rx.first(text), m.numberOfRanges > 1 else { continue }
             let g = m.range(at: 1)
-            // 1.12: a line "opens with for" only as typed (the patient's identifiers masked): when a lab, a vital or the like
-            // before it was read and masked, "Hgb 7.2 for transfusion" does not open with "for".
-            if index == 3 {
-                guard let typedLead = rx.first(s.baseline), typedLead.numberOfRanges > 1, typedLead.range(at: 1).location == g.location else { continue }
+            // 1.12: "68M for ..." and a line that opens with "for" are read as typed (the patient's identifiers masked): when a lab,
+            // a vital or the like before the "for" was read and masked, "Hgb 7.2 for transfusion" and "73M Hgb 7.2 for ..." are
+            // not the patient and "for".
+            if index >= 2, g.location != NSNotFound, g.location <= (s.baseline as NSString).length {
+                let upTo = NSRange(location: m.range.location, length: g.location - m.range.location)
+                guard (s.baseline as NSString).substring(with: upTo) == ns.substring(with: upTo) else { continue }
             }
             guard g.location != NSNotFound, let p = segment(g, in: text, typed: true) else { return }
             // 1.12: "for 3 days", "for 8 hours" say how long, not what operation.
