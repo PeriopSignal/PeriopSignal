@@ -107,12 +107,16 @@ struct QuickAddChip: Identifiable, Hashable {
 private struct QuickScan {
     let original: String
     private(set) var text: String
+    /// The line with only the patient's identifiers (age, sex, name) masked, before any reader took a lab, a vital or the like:
+    /// what stood before a mid-line "for" as typed (1.12), so "Hgb 7.2 for transfusion" is not "the patient, for ...".
+    var baseline: String
     /// Ranges a reader read for certain: an abbreviation inside one is not asked about ("7.5 ETT" is a tube).
     var certain: [NSRange] = []
 
     init(_ s: String) {
         original = s
         text = s
+        baseline = s
     }
 
     mutating func mask(_ r: NSRange) {
@@ -323,6 +327,7 @@ enum QuickAdd {
         var reading = QuickAddReading()
         reading.identifiers = PatientNote.identifiers(one, now: now)
         for r in identifierRanges(one, now: now) { s.mask(r) }
+        s.baseline = s.text
         let base = s.text
         let abbreviations = MedAbbreviations.scan(base, user: user, choices: choices)
         let c = QuickContext(tab: tab, record: record, now: now, abbreviations: abbreviations, choices: choices, setID: UUID())
@@ -2009,6 +2014,9 @@ enum QuickAdd {
     /// Words in the piece before a "for" that make what follows a reason or an item of the history, not the operation.
     private static let notPlannedBefore = NoteRx(#"\b(?:on|taking|takes|started|s/p|status post|post|post-op|had|hx|h/o|history|prior|previous|admitted|admit|treated|receiving|npo|follows|followed|seen|ago)\b|allerg|intoleran"#)
     /// How long, after a "for": "3 days", "8 hours".
+    /// After a mid-line "for" the operation is told as past also by "last year", "previously" and the like ("GI consulted for EGD last
+    /// year"): `pastWords` and the ways of saying how long ago.
+    private static let pastAfterFor = NoteRx(#"\blast (?:year|month|week|decade|summer|winter|spring|fall)\b|\bpreviously\b|\bin the past\b|\b(?:years?|months?|weeks?|decades?) back\b|\b(?:19|20)\d\d\b|\bago\b|\b(?:s/p|status post|prior|previous|history|hx|h/o|remote)\b"#)
     private static let durationFirst = NoteRx(#"^\d+(?:\.\d+)?\s*(?:min|mins|minutes?|h|hrs?|hours?|days?|d|weeks?|wks?|months?|mos?|years?|yrs?)\b"#)
 
     private static func readFor(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
@@ -2018,7 +2026,11 @@ enum QuickAdd {
             let forStart = m.range.location
             let g = NSRange(location: forStart + m.range.length, length: ns.length - forStart - m.range.length)
             guard g.length > 0 else { continue }
-            let before = ns.substring(to: forStart)
+            // What stood before the "for" is judged as typed (only the patient's identifiers masked), not as the readers above left
+            // it: a lab or a vital they took ("Hgb 7.2 for transfusion") is not the patient, and a word of theirs that says "on" or
+            // "ago" still counts.
+            let typedLine = s.baseline as NSString
+            let before = typedLine.length >= forStart ? typedLine.substring(to: forStart) : ns.substring(to: forStart)
             let piece = before.components(separatedBy: CharacterSet(charactersIn: ",;")).last ?? before
             guard notPlannedBefore.first(piece) == nil else { continue }
             let typed = words(before, from: before.startIndex, to: before.endIndex).allSatisfy { introWord.first($0.0) != nil }
@@ -2026,7 +2038,7 @@ enum QuickAdd {
             if !typed {
                 let pr = pieceRange(p.range, in: text)
                 let rest = ns.substring(with: NSRange(location: p.range.location, length: pr.location + pr.length - p.range.location))
-                guard pastWords.first(rest) == nil,
+                guard pastAfterFor.first(rest) == nil,
                       allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { continue }
             }
             // The "for" goes with it, not the urgency (left for the note reader), as in readProcedure.

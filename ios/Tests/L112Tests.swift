@@ -116,6 +116,46 @@ final class L112Tests: XCTestCase {
         XCTAssertNil(change(read("73M with HF for PCN allergy")))
     }
 
+    /// Each word of the guard, alone: a listed procedure follows the "for", so without the word the line would be read.
+    func testEachWordThatMakesAForAReasonBlocksTheReadingByItself() {
+        let lines = ["taking ASA for TAVR", "takes ASA for TAVR", "started ASA for TAVR", "s/p stent for TAVR", "status post stent for TAVR",
+                     "post stent for TAVR", "post-op ASA for TAVR", "had a stent for TAVR", "hx of AF for TAVR", "h/o AF for TAVR",
+                     "history of AF for TAVR", "prior stent for TAVR", "previous stent for TAVR", "admitted for TAVR", "admit for TAVR",
+                     "treated with ASA for TAVR", "receiving ASA for TAVR", "NPO for TAVR", "follows with cardiology for TAVR",
+                     "followed by cardiology for TAVR", "seen by cardiology for TAVR", "3 months ago stent for TAVR", "on ASA for TAVR",
+                     "allergic to PCN for TAVR", "intolerant of ASA for TAVR"]
+        for line in lines {
+            XCTAssertNil(change(read(line)), line)
+            XCTAssertTrue(added(line).procedures.isEmpty, line)
+        }
+        // The same line without the guard word reads, so each of the above is the guard and nothing else.
+        for line in ["ASA, stent, for TAVR", "HTN, ASA, for TAVR"] {
+            XCTAssertEqual(ids(added(line)), ["tavr"], line)
+        }
+    }
+
+    /// What an earlier reader took (a lab, a vital, an ECG) is not the patient: after it a "for" is read only for a listed procedure.
+    func testALabOrVitalBeforeForIsNotThePatient() {
+        for line in ["Hgb 7.2 for transfusion", "K 5.9 for dialysis", "INR 1.9 for reversal", "BP 80/40 for pressors",
+                     "68M, Hgb 7.2 for transfusion", "73M Hgb 7.2 for frobnication", "HR 120 for something odd"] {
+            XCTAssertNil(change(read(line)), line)
+            XCTAssertTrue(added(line).procedures.isEmpty, line)
+        }
+        // The patient alone before the "for" is still typed as it is.
+        XCTAssertEqual(change(read("68M for frobnication")), .procedure("frobnication"))
+        // A listed procedure after a lab is the operation.
+        XCTAssertEqual(ids(added("Hgb 7.2 for lap chole")), ["lap-chole"])
+    }
+
+    /// A procedure told as past after a mid-line "for" with the ways of saying how long ago.
+    func testAProcedureToldAsPastAfterAMidLineForIsNotPlanned() {
+        for line in ["GI consulted for EGD last year", "HTN, DM2, for TKA last month", "HF, for CABG last week", "HF, for CABG previously",
+                     "73M with HF for TAVR in the past", "HF, for CABG 3 years back", "HF, for CABG in 2015"] {
+            XCTAssertNil(change(read(line)), line)
+        }
+        XCTAssertEqual(ids(added("HF, for CABG")), ["cabg"])
+    }
+
     func testAnIndicationAfterAProcedureAlreadyReadIsNotASecondProcedure() {
         let q = read("68M for CABG for 3VD")
         XCTAssertEqual(change(q), .procedure("CABG"))
