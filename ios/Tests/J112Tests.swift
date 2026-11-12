@@ -136,7 +136,7 @@ final class J112Tests: XCTestCase {
     /// What is not an operation is still not made one.
     func testTheLenientBarStillRefusesWhatIsNotAnOperation() {
         for line in ["none", "no surgeries", "no prior surgeries", "denies any surgeries", "2015", "06/2015", "HTN", "Hgb 12", "metoprolol 25 bid",
-                     "hiatal hernia", "under GA"] {
+                     "hiatal hernia", "under GA", "TTE 3/2/2026: EF 55%", "ECG: NSR", "and", "TTE"] {
             XCTAssertTrue(readOperations(line).isEmpty, "filed as an operation: " + line)
         }
     }

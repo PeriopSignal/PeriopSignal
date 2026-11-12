@@ -95,7 +95,7 @@ enum PastSurgeryNote {
     private static let generic: Set<String> = ["surgery", "surgeries", "operation", "operations", "procedure", "procedures", "surgical", "history"]
 
     static var allPatterns: [NoteRx] {
-        [cardiacWordsRx, asideStartRx, forStartRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, shorthandRx, chestRx, monthYearRx, fullDateRx, numericRx, apostropheRx, yearRx, notSurgeryDateRx]
+        [cardiacWordsRx, asideStartRx, forStartRx, hintRx, studyRx, headerRx, sectionEndRx, familyHxRx, leadRx, bulletRx, otherHeaderRx, andAfterDateRx, cutRx, planningRx, forRx, asideRx, commentaryRx, surgicalRx, diagnosisRx, shorthandRx, chestRx, monthYearRx, fullDateRx, numericRx, apostropheRx, yearRx, notSurgeryDateRx]
     }
 
     // MARK: Reading a sentence
@@ -301,11 +301,25 @@ enum PastSurgeryNote {
         return Operation(text: t, date: date, aside: aside, range: range)
     }
 
+    /// Words that say an operation was done, for the Past Surgical History bar's free text: they keep an item an operation even
+    /// when the note reader also reads a diagnosis in it ("stent for CAD").
+    static let hintRx = NoteRx(#"\b(?:stent(?:s|ed|ing)?|scope|scoping|wiring|pinning|nailing|plating|banding|lift|removal|removed|placement|insertion|implantation|drainage|debridement|reduction|tied|clipping|shunt)\b"#)
+    /// A study, not an operation ("TTE", "ECG", "stress test"): the workup's.
+    static let studyRx = NoteRx(#"\b(?:tte|tee|ecg|ekg|eeg|echo|echocardiogram|cxr|x-?ray|ultrasound|mri|ct|pfts?|dobutamine|stress test|lhc|rhc)\b"#)
+    /// Joining and filler words that are no operation on their own.
+    private static let connectives: Set<String> = ["and", "then", "also", "plus", "with", "the", "etc", "other", "others", "too", "as", "well", "unknown", "unsure", "yes", "no"]
+
     /// An item that is not an operation although it was typed on the Past Surgical History bar (1.12 follow-up): an anesthetic
-    /// remark ("under GA"), or words the note reader files as anything but a procedure (a lab value, a drug, a history item,
-    /// the allergies): "Hgb 12", "metoprolol 25 bid", "HTN", "NKDA".
+    /// remark ("under GA"), a study, words with a number in them (a count "×3" aside: "TTE: EF 55%", "Hgb 12"), only joining
+    /// words, or words the note reader files as anything but a procedure (a lab value, a drug, a history item, the allergies):
+    /// "metoprolol 25 bid", "HTN", "NKDA". Words that say an operation was done (`hintRx`) keep it.
     static func plainlySomethingElse(_ t: String, now: Date) -> Bool {
-        if asideStartRx.first(t) != nil { return true }
+        if asideStartRx.first(t) != nil || studyRx.first(t) != nil { return true }
+        let words = t.lowercased().split(whereSeparator: { !$0.isLetter && $0 != "/" }).map(String.init)
+        if words.allSatisfy({ connectives.contains($0) }) { return true }
+        if hintRx.first(t) != nil { return false }
+        let withoutCount = t.replacingOccurrences(of: #"[x×]\s?\d+"#, with: "", options: [.regularExpression, .caseInsensitive])
+        if withoutCount.contains(where: \.isNumber) { return true }
         return PatientNote.read(t, now: now, abbreviations: [:], choices: [:], askRoomAir: false).findings.contains { f in
             switch f.change {
             case .procedure, .pastSurgery, .cardiacSurgery: return false
@@ -431,13 +445,9 @@ enum PastSurgeryNote {
 
     // MARK: Matching what the record has
 
-    /// The procedure list's ids of an entry. An entry typed as words has none: 1.12 follow-up (Ben: the bar added the first
-    /// operation but not the ones after it) it is no longer given the list's nearest match by reading its words again, which
-    /// gave two different typed operations the same id and made the second "already recorded". Only an entry with no procedures
-    /// at all (a name with nothing behind it) is read from its name.
     private static func ids(_ s: PatientSurgery) -> Set<String> {
         var out = Set(s.procedures.compactMap(\.catalogID))
-        if out.isEmpty, s.procedures.isEmpty { out = Set(ProcedureCatalog.parse(s.name).map(\.procedure.id)) }
+        if out.isEmpty { out = Set(ProcedureCatalog.parse(s.name).map(\.procedure.id)) }
         return out
     }
 
