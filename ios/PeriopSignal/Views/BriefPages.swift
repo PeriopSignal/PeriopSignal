@@ -377,7 +377,7 @@ struct BriefShareMenuPreview: View {
 
 /// Screenshot runs: -ps.brief.pages 1 shows the ONE picture a summary shares, at the screen's width, with the id "briefpage1"
 /// (its top) and "briefpagesend" (under it) for -ps.patient.scroll; -ps.brief.pages fit shows the whole of it scaled to
-/// one screen's height; -ps.brief.pages pdf shows the pages of the PDF it shares, "briefpage1", "briefpage2" ....
+/// one screen's height; -ps.brief.pages tail shows its last 470 pt; -ps.brief.pages pdf shows the pages of the PDF it shares, "briefpage1", "briefpage2" ....
 struct BriefPagesPreview: View {
     @Environment(PatientStore.self) private var patient
     @Environment(ReferenceStore.self) private var refs
@@ -406,6 +406,12 @@ struct BriefPagesPreview: View {
         if let img = BriefPages.picture(blocks, context(figure)) {
             if mode == "fit" {
                 Image(uiImage: img).resizable().scaledToFit().frame(height: 600)
+                    .overlay(Rectangle().stroke(PS.line2, lineWidth: 1))
+                    .id("briefpage1")
+            } else if mode == "tail" {
+                // Only the foot of the picture (the last 470 pt of it, at 358 pt wide): the lines diagram's feet and the footer.
+                Image(uiImage: img).resizable().scaledToFit().frame(width: 358)
+                    .frame(height: 470, alignment: .bottom).clipped()
                     .overlay(Rectangle().stroke(PS.line2, lineWidth: 1))
                     .id("briefpage1")
             } else {
