@@ -286,13 +286,19 @@ struct MoreView: View {
         }
     }
 
-    /// 1.12: the one My Patient setting, for sending a patient by AirDrop as a link that opens the app (PatientLink).
+    static let airDropLinkTitle = "AirDrop opens Periop Signal directly"
+
+    /// The words under the AirDrop switch (PatientLink first shipped in 1.12.0 build 39).
+    static let airDropLinkNote = "Sends the patient by AirDrop as a Periop Signal link, so the receiving phone opens the app without the Files step. Both phones need version 1.12 build 39 or later. Turn this off to AirDrop the file instead. Other ways of sending (Messages) always send the file."
+
+    /// 1.12: the one My Patient setting, for sending a patient by AirDrop as a link that opens the app (PatientLink); on by
+    /// default.
     private func myPatientCard(p: Bindable<Preferences>) -> some View {
         SettingsCard(title: "My Patient") {
             Toggle(isOn: p.airDropLink) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("AirDrop opens Periop Signal directly (test)").font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
-                    Text("Sends the patient by AirDrop as a Periop Signal link instead of a file, so the receiving phone opens the app without the Files step. Both phones need this version. Other ways of sending (Messages) still send the file.")
+                    Text(Self.airDropLinkTitle).font(PS.sys(size: 14.5, weight: .medium)).foregroundStyle(PS.fg)
+                    Text(Self.airDropLinkNote)
                         .font(PS.sys(size: 12.5)).foregroundStyle(PS.fg3).fixedSize(horizontal: false, vertical: true)
                 }
             }

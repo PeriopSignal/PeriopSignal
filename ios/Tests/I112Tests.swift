@@ -473,7 +473,8 @@ final class I112Tests: XCTestCase {
 
     // MARK: The switch
 
-    @MainActor func testTheAirDropLinkSwitchIsOffByDefaultAndKept() {
+    /// 1.12 follow-up (Ben, Nov 12: "make this on by default"): a phone that never touched the switch reads ON now; it was off.
+    @MainActor func testTheAirDropLinkSwitchIsOnByDefaultAndKept() {
         let key = "ps.send.airDropLink"
         let saved = UserDefaults.standard.object(forKey: key)
         defer {
@@ -481,11 +482,11 @@ final class I112Tests: XCTestCase {
         }
         UserDefaults.standard.removeObject(forKey: key)
         let prefs = Preferences()
-        XCTAssertFalse(prefs.airDropLink, "off by default")
-        prefs.airDropLink = true
-        XCTAssertTrue(Preferences().airDropLink, "kept")
+        XCTAssertTrue(prefs.airDropLink, "on by default")
         prefs.airDropLink = false
-        XCTAssertFalse(Preferences().airDropLink)
+        XCTAssertFalse(Preferences().airDropLink, "kept when turned off")
+        prefs.airDropLink = true
+        XCTAssertTrue(Preferences().airDropLink)
     }
 }
 

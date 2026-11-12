@@ -22,6 +22,7 @@ enum PatientDemo112Dates {
         case "demo-112-dates": return base
         case "demo-112-dates-summary": return short
         case "demo-112-psh": return psh
+        case "demo-112-share": return share
         case "demo-112-psh-filed": return filed(["appendectomy 2010", "jaw wiring 2012, knee scope 2020"])
         case "demo-112-dates-ts-sent":
             var r = base
@@ -37,6 +38,33 @@ enum PatientDemo112Dates {
             return r
         default: return nil
         }
+    }
+
+    /// Helper Q (demo-112-share): a record like the handoff Ben shared as a picture from build 39: allergies, PMH, PSH, the ECG,
+    /// labs, home medications with an alert, and one arterial line so the lines diagram is drawn. The handoff and the preop summary
+    /// both carry it.
+    static var share: PatientRecord {
+        var r = PatientRecord()
+        r.ageYears = 52; r.sex = .female; r.heightCm = 165; r.weightKg = 70
+        r.setProcedures(PlannedProcedure.parse("Laparoscopic cholecystectomy"))
+        r.urgency = .elective
+        r.anesthetic = ["ga"]
+        r.allergyList = AllergyCatalog.parse("clindamycin severe hives, latex mild rash")
+        r.problems = ["pvd", "asthma"]
+        r.asaClass = 2
+        r.mets = "ge4"
+        r.surgeries = [
+            PatientSurgery(name: "Laparoscopic cholecystectomy", date: PatientMonthYear(month: 9, day: 18, year: 2026)),
+            PatientSurgery(name: "Spinal cord stimulator implantation", date: PatientMonthYear(month: 5, year: 2025)),
+        ]
+        r.ecg = ["Normal sinus rhythm"]
+        r.labs = ["na": 139, "k": 5, "bun": 7, "cr": 0.85, "gfr": 95, "glucose": 90, "hb": 13.6, "plt": 293, "ptt": 28, "inr": 1.0]
+        r.homeMeds = MedicationCatalog.parse("hydrocodone/acetaminophen, famotidine, ondansetron")
+        r.medFlags = MedicationCatalog.flags(for: r.homeMeds)
+        r.devices = ["20g R radial art line"].compactMap { PatientDevices.parse($0)?.device(placedIntraop: true) }
+        PatientDeviceFills.apply(before: PatientRecord(), after: &r)
+        r.preopSummaryOn = true
+        return r
     }
 
     /// The calendar day `days` days before today, as the app's date with a day.

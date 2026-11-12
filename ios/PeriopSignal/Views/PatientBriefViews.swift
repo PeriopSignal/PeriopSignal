@@ -252,7 +252,7 @@ struct BriefPanel: View {
     /// Regenerate on one row.
     static func regenerateOnTitleLine(_ kind: PatientBriefs.Kind) -> Bool { !showsEyebrow(kind) }
 
-    /// Share (1.12, Ben): the menu offers Image first (the summary as it looks, on white pages at phone width), then PDF and
+    /// Share (1.12, Ben): the menu offers "Share as picture" first (the summary as it looks, ONE white picture at phone width), then PDF and
     /// Text only (the text and its footer, as Share sent before). Copy stays plain text.
     private var shareMenu: some View {
         Menu {
@@ -269,7 +269,7 @@ struct BriefPanel: View {
                 .foregroundStyle(PS.accentFg)
         }
         .accessibilityLabel("Share")
-        .accessibilityHint("Choose Image, PDF or Text only")
+        .accessibilityHint("Choose picture, PDF or Text only")
     }
 
     /// Draws the summary in the chosen form and opens the share sheet with it (rendering runs on the main actor).
@@ -277,8 +277,7 @@ struct BriefPanel: View {
         let ctx = BriefPages.Context(record: record, refs: refs, patient: patient, figure: refs.bundle?.regional?.figure)
         switch format {
         case .image:
-            let pages = BriefPages.images(all, ctx)
-            if !pages.isEmpty { sharing = pages }
+            if let picture = BriefPages.picture(all, ctx) { sharing = [picture] }
         case .pdf:
             if let url = BriefPages.pdfFile(all, ctx) { sharing = [url] }
         case .text:
@@ -324,6 +323,8 @@ struct BriefPanel: View {
             }
             .id("briefshare")
             #if DEBUG
+            // Screenshot runs: -ps.brief.menu 1 lists what the Share menu offers (a menu cannot be opened at launch).
+            if LaunchSeed.string("ps.brief.menu") == "1" { BriefShareMenuPreview() }
             if !LaunchSeed.string("ps.brief.pages").isEmpty { BriefPagesPreview(blocks: all, mode: LaunchSeed.string("ps.brief.pages")) }
             #endif
         }
