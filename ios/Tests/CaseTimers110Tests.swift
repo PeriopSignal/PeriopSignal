@@ -228,19 +228,20 @@ final class CaseTimers110Tests: XCTestCase {
         XCTAssertEqual(CaseTimerEngine.reminders(labs, record: r, data: d).first { $0.kind == .lab }?.due, t0.addingTimeInterval(95 * 60))
         XCTAssertEqual(rem.first { $0.kind == .abg }?.due, t0.addingTimeInterval(90 * 60))
 
-        // ACT: Start timer, then a bolus, then an ACT.
+        // ACT: the switch on, then a bolus, then an ACT. 1.12 follow-up (Ben, answer 4): the bolus starts no countdown of its own
+        // (this asserted "3 min after a bolus"), and the interval runs from the last ACT.
         var h = HeparinCourse(purpose: "tavr", goal: 250, actEvery: 45)
         h.actStart = t0
-        XCTAssertEqual(CaseTimerEngine.actDue(h, rules: d.heparinRules), t0.addingTimeInterval(45 * 60))
+        XCTAssertEqual(CaseTimerEngine.actDue(h), t0.addingTimeInterval(45 * 60))
         h.doses = [TimedEntry(time: t0.addingTimeInterval(600), value: 7000)]
-        XCTAssertEqual(CaseTimerEngine.actDue(h, rules: d.heparinRules), t0.addingTimeInterval(600 + 180), "3 min after a bolus")
+        XCTAssertEqual(CaseTimerEngine.actDue(h), t0.addingTimeInterval(45 * 60), "a dose does not move it")
         h.acts = [TimedEntry(time: t0.addingTimeInterval(840), value: 260)]
-        XCTAssertEqual(CaseTimerEngine.actDue(h, rules: d.heparinRules), t0.addingTimeInterval(840 + 45 * 60))
+        XCTAssertEqual(CaseTimerEngine.actDue(h), t0.addingTimeInterval(840 + 45 * 60))
         var ht = CaseTimers(); ht.heparin = h
         XCTAssertNotNil(CaseTimerEngine.reminders(ht, record: r, data: d).first { $0.kind == .act })
         ht.heparin?.actOff = true
         XCTAssertNil(CaseTimerEngine.reminders(ht, record: r, data: d).first { $0.kind == .act }, "stopped")
-        XCTAssertNil(CaseTimerEngine.actDue(HeparinCourse(purpose: "tavr", goal: 250, actEvery: 30), rules: d.heparinRules), "nothing started")
+        XCTAssertNil(CaseTimerEngine.actDue(HeparinCourse(purpose: "tavr", goal: 250, actEvery: 30)), "nothing started")
 
         // A clock time is the nearest such moment.
         XCTAssertEqual(CaseTimerRecurrence.resolveStart(t0.addingTimeInterval(13 * 3600), now: t0), t0.addingTimeInterval(-11 * 3600))

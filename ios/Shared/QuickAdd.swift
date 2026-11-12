@@ -107,12 +107,16 @@ struct QuickAddChip: Identifiable, Hashable {
 private struct QuickScan {
     let original: String
     private(set) var text: String
+    /// The line with only the patient's identifiers (age, sex, name) masked, before any reader took a lab, a vital or the like:
+    /// what stood before a mid-line "for" as typed (1.12), so "Hgb 7.2 for transfusion" is not "the patient, for ...".
+    var baseline: String
     /// Ranges a reader read for certain: an abbreviation inside one is not asked about ("7.5 ETT" is a tube).
     var certain: [NSRange] = []
 
     init(_ s: String) {
         original = s
         text = s
+        baseline = s
     }
 
     mutating func mask(_ r: NSRange) {
@@ -323,6 +327,7 @@ enum QuickAdd {
         var reading = QuickAddReading()
         reading.identifiers = PatientNote.identifiers(one, now: now)
         for r in identifierRanges(one, now: now) { s.mask(r) }
+        s.baseline = s.text
         let base = s.text
         let abbreviations = MedAbbreviations.scan(base, user: user, choices: choices)
         let c = QuickContext(tab: tab, record: record, now: now, abbreviations: abbreviations, choices: choices, setID: UUID())
@@ -449,6 +454,7 @@ enum QuickAdd {
                    productWord, countWord, totalBefore, totalAfter, statedTotal, techniqueWord, aortaHistoryLead, rupturedAAA]
         out += labAliases.map(\.rx) + dripUnits.map(\.rx) + airwayDevices.map { $0.0 }
         out += fluidAfter + fluidBefore + [dripMark, lmaRx]
+        out += [forIntro, introWord, notPlannedBefore, durationFirst]
         out += patterns111
         return out
     }
@@ -1946,10 +1952,19 @@ enum QuickAdd {
         // reader's own patterns.
         let contexts: [(NoteRx, Bool)] = [(PatientNote.procedureHeaderRx, false), (PatientNote.procedureRx, false),
                                           (PatientNote.procedurePersonRx, true), (PatientNote.procedureLeadRx, false)]
-        for (rx, person) in contexts {
+        for (index, (rx, person)) in contexts.enumerated() {
             guard let m = rx.first(text), m.numberOfRanges > 1 else { continue }
             let g = m.range(at: 1)
+            // 1.12: "68M for ..." and a line that opens with "for" are read as typed (the patient's identifiers masked): when a lab,
+            // a vital or the like before the "for" was read and masked, "Hgb 7.2 for transfusion" and "73M Hgb 7.2 for ..." are
+            // not the patient and "for".
+            if index >= 2, g.location != NSNotFound, g.location <= (s.baseline as NSString).length {
+                let upTo = NSRange(location: m.range.location, length: g.location - m.range.location)
+                guard (s.baseline as NSString).substring(with: upTo) == ns.substring(with: upTo) else { continue }
+            }
             guard g.location != NSNotFound, let p = segment(g, in: text, typed: true) else { return }
+            // 1.12: "for 3 days", "for 8 hours" say how long, not what operation.
+            guard durationFirst.first(p.text) == nil else { return }
             // The intro goes with it ("scheduled for", "Procedure:"), but not the patient ("68M") nor the urgency.
             let introStart: Int
             if person, let f = lastFor.all(ns.substring(with: NSRange(location: m.range.location, length: g.location - m.range.location))).last {
@@ -1982,14 +1997,87 @@ enum QuickAdd {
         let g = NSRange(location: lead, length: ns.length - lead)
         guard g.length > 0, let p = segment(g, in: text, typed: false),
               stripped(urgencyWord, (s.original as NSString).substring(with: NSRange(location: lead, length: p.range.location - lead))).isEmpty
-        else { return }
+        else { return readFor(&s, c, &out) }
         let named = ns.substring(with: p.range)
         let next = p.range.location + p.range.length < ns.length ? ns.substring(with: NSRange(location: p.range.location + p.range.length, length: 1)) : ""
         let rest = ns.substring(with: pieceRange(p.range, in: text))
         guard PatientNote.deviceCue.first(named) == nil, PatientNote.tubeCue.first(named) == nil, next != ":",
               pastWords.first(rest) == nil, aortaHistoryLead.first(named) == nil,
-              allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { return }
+              allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { return readFor(&s, c, &out) }
         take(p, &s, c, &out)
+    }
+
+    /// 1.12 (Ben: "for ___" typed in the bar did not fill the procedure): a "for" in the middle of a line that introduces the
+    /// operation, on the Preoperative tab, for the lines the readers above leave: "73M with HF for ECMO cannulation",
+    /// "HTN, DM2, for TAVR", "68M, HTN, for lap chole", "68yoM for lap chole", "male 68 for TKA", "pt is for CABG", "here for AVR".
+    /// Right after the patient ("68yoM", "pt is", "here") what follows is the procedure as typed, as it is after "68M for";
+    /// after any other words it is read only when it begins with a procedure from the list (with the detail words before it that
+    /// `segment` allows), because "for" there usually gives a reason: "on apixaban for AF", "steroids for asthma",
+    /// "admitted for chest pain", "NPO for 8 hours". A piece that says the patient is on, had, or is taking something, or that
+    /// names an allergy, is not read, and nor is a procedure told as past after "for".
+    private static let forIntro = NoteRx(#"\bfor\s+(?:an?\s+|the\s+|his\s+|her\s+)?(?:elective\s+|urgent\s+|emergent\s+|emergency\s+|semi-?urgent\s+)?"#)
+    /// A word of the patient's introduction ("68", "68yoM", "73 yo man", "pt", "is", "here"), one at a time.
+    private static let introWord = NoteRx(#"^(?:\d{1,3}(?:-?(?:yo|y/o|yrs?|years?|year-old))?(?:m|f|male|female|man|woman)?|(?:yo|y/o|y\.o\.?|yrs?|years?|year-old|old|male|female|man|woman|boy|girl|gentleman|lady|m|f|pt|patient|is|a|an|the|here|presenting|scheduled|booked|now))$"#)
+    /// Words in the piece before a "for" that make what follows a reason or an item of the history, not the operation.
+    private static let notPlannedBefore = NoteRx(#"\b(?:on|taking|takes|started|s/p|status post|post|post-op|had|hx|h/o|history|prior|previous|admitted|admit|treated|receiving|npo|follows|followed|seen|ago)\b|allerg|intoleran"#)
+    /// How long, after a "for": "3 days", "8 hours".
+    /// After a mid-line "for" the operation is told as past also by "last year", "previously" and the like ("GI consulted for EGD last
+    /// year"): `pastWords` and the ways of saying how long ago.
+    private static let pastAfterFor = NoteRx(#"\blast (?:year|month|week|decade|summer|winter|spring|fall)\b|\bpreviously\b|\bin the past\b|\b(?:years?|months?|weeks?|decades?) back\b|\b(?:19|20)\d\d\b|\bago\b|\b(?:s/p|status post|prior|previous|history|hx|h/o|remote)\b"#)
+    private static let durationFirst = NoteRx(#"^\d+(?:\.\d+)?\s*(?:min|mins|minutes?|h|hrs?|hours?|days?|d|weeks?|wks?|months?|mos?|years?|yrs?)\b"#)
+
+    private static func readFor(_ s: inout QuickScan, _ c: QuickContext, _ out: inout QuickOut) {
+        let text = s.text
+        let ns = text as NSString
+        for m in forIntro.all(text) {
+            let forStart = m.range.location
+            let g = NSRange(location: forStart + m.range.length, length: ns.length - forStart - m.range.length)
+            guard g.length > 0 else { continue }
+            // What stood before the "for" is judged as typed (only the patient's identifiers masked), not as the readers above left
+            // it: a lab or a vital they took ("Hgb 7.2 for transfusion") is not the patient, and a word of theirs that says "on" or
+            // "ago" still counts.
+            let typedLine = s.baseline as NSString
+            let before = typedLine.length >= forStart ? typedLine.substring(to: forStart) : ns.substring(to: forStart)
+            let piece = before.components(separatedBy: CharacterSet(charactersIn: ",;")).last ?? before
+            guard notPlannedBefore.first(piece) == nil else { continue }
+            let typed = words(before, from: before.startIndex, to: before.endIndex).allSatisfy { introWord.first($0.0) != nil }
+            guard let p = segment(g, in: text, typed: typed), durationFirst.first(p.text) == nil else { continue }
+            if !typed {
+                let pr = pieceRange(p.range, in: text)
+                let rest = ns.substring(with: NSRange(location: p.range.location, length: pr.location + pr.length - p.range.location))
+                guard pastAfterFor.first(rest) == nil,
+                      allergyAfterName.first(ns.substring(from: p.range.location + p.range.length)) == nil else { continue }
+            }
+            // The "for" goes with it, not the urgency (left for the note reader), as in readProcedure.
+            let intro = NSRange(location: forStart, length: g.location - forStart)
+            var cut = forStart
+            for u in urgencyWord.all(ns.substring(with: intro)).map({ shifted($0.range, forStart) }) {
+                s.mask(NSRange(location: cut, length: u.location - cut))
+                cut = u.location + u.length
+            }
+            s.mask(NSRange(location: cut, length: g.location - cut))
+            return take(p, &s, c, &out)
+        }
+    }
+
+    /// 1.12: the procedure the list would give for words it does not read whole ("axillary imp"): the Planned Procedure & Anesthetic
+    /// box's search offers it, and the bar used to file the words as typed, so the box showed free text. Only when the words are two or
+    /// more and each begins the same word of a listed name or synonym (the last may be cut short); one word, or a diagnosis alone,
+    /// stays as typed.
+    private static func listedName(_ text: String) -> String? {
+        func split(_ x: String) -> [String] { x.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init) }
+        let typed = split(text)
+        guard typed.count >= 2, (typed.last?.count ?? 0) >= 3, typed.joined().count >= 6,
+              PlannedProcedure.parse(text).allSatisfy({ $0.catalogID == nil }), !ProcedureCatalog.isDiagnosisOnly(text) else { return nil }
+        for p in ProcedureCatalog.search(text, limit: 3) where p.ask == nil {
+            for form in [p.name] + p.synonyms where !p.caseSensitive.contains(form) {
+                let w = split(form)
+                guard w.count >= typed.count else { continue }
+                let begins = typed.indices.allSatisfy { i in i == typed.count - 1 ? w[i].hasPrefix(typed[i]) : w[i] == typed[i] }
+                if begins { return p.name }
+            }
+        }
+        return nil
     }
 
     /// The procedure in a stretch of the line: cut where the note reader cuts it, then kept to the procedures from the
@@ -2101,7 +2189,7 @@ enum QuickAdd {
         // A bare Bentall asks which valve (1.8.1); the answer is read into the procedure.
         let asked = ProcedureCatalog.asking(p.text, choices: c.choices)
         for q in asked.questions where !out.questions.contains(where: { $0.id == q.id }) { out.questions.append(q) }
-        let text = asked.text
+        let text = listedName(asked.text) ?? asked.text
         let items = PlannedProcedure.parse(text)
         let known = items.contains { $0.catalogID != nil }
         out.add(PatientNoteFinding(id: "procedure", section: PatientNote.Part.procedure, label: "Procedure: " + text, change: .procedure(text),
