@@ -137,7 +137,8 @@ final class L112Tests: XCTestCase {
     func testWordsThatBeginAListedNameFillTheListedProcedure() {
         XCTAssertEqual(ids(added("for axillary imp")), ["axillary-impella"])
         XCTAssertEqual(procedureChip(read("for axillary imp"))?.value, "Axillary Impella insertion")
-        XCTAssertEqual(ids(added("73M with HF for axillary imp")), ["axillary-impella"])
+        // After other words only a procedure the list reads whole is taken, so cut-short words are not.
+        XCTAssertNil(change(read("73M with HF for axillary imp")))
         // One word, or words that begin no listed name, stay as typed.
         XCTAssertTrue(ids(added("68M for frobnication")).isEmpty)
         XCTAssertTrue(ids(added("68M for frobnic ation")).isEmpty)
