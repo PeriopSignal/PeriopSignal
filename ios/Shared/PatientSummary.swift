@@ -183,7 +183,8 @@ enum PatientSummary {
         out += PatientWarnings.lines(r)
         let other = r.otherHistory.trimmingCharacters(in: .whitespacesAndNewlines)
         if !other.isEmpty { out.append(Line("Other conditions", other)) }
-        if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeries.map { $0.shownText(dates) }.joined(separator: "; "))) }
+        // 1.12 follow-up (Ben): newest first, here and everywhere the past operations are listed.
+        if !r.surgeries.isEmpty { out.append(Line("Past surgical history", r.surgeriesNewestFirst.map { $0.shownText(dates) }.joined(separator: "; "))) }
         // 1.9: the allergy list with each severity (anaphylaxis in red), and the allergies typed before 1.9 while the list
         // does not hold them (PatientAllergyText).
         if let a = PatientAllergyText.line(original) { out.append(a) }
@@ -236,7 +237,7 @@ enum PatientSummary {
         if !symptoms.isEmpty { out.append(Line("Cardiac symptoms", symptoms.joined(separator: "; "), alert: true)) }
         let active = PatientFunctional.acuteConditions(r)
         if !active.isEmpty { out.append(Line("Acute cardiac conditions", active.joined(separator: "; "), alert: true)) }
-        let thoracic = r.allIntrathoracic
+        let thoracic = PatientSurgery.chronological(r.allIntrathoracic)
         if !thoracic.isEmpty { out.append(Line("Previous intrathoracic surgery", thoracic.map { $0.shownText(dates) }.joined(separator: "; "), alert: true)) }
         if let e = ecgText(r) { out.append(Line("ECG", e)) }
         if !r.echoFindings.isEmpty { out.append(Line("Echo", r.echoFindings.summary(dates: dates))) }

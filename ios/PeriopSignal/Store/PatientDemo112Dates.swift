@@ -11,11 +11,18 @@ import Foundation
 ///   demo-112-dates-ts-sent  the same, the type and screen sent and no result yet: "+ Expires" on the Labs page
 ///   demo-112-dates-ts-set   the type and screen resulted (A+, screen neg, 2 u) and expiring in three days at 23:59
 ///   demo-112-dates-ts-expired  the same, expired yesterday at 23:59 (red)
+///   demo-112-psh            (helper J) the briefs patient with five past operations in every date form, entered out of order:
+///                           the page, the summaries and the History row list them newest first
+///   demo-112-psh-filed      (helper J) a patient whose past surgery came through the Past Surgical History bar, two lines one
+///                           after the other ("appendectomy 2010", then "jaw wiring 2012, knee scope 2020"): the same reader and
+///                           chips the bar uses, run in code
 enum PatientDemo112Dates {
     static func record(_ seed: String) -> PatientRecord? {
         switch seed {
         case "demo-112-dates": return base
         case "demo-112-dates-summary": return short
+        case "demo-112-psh": return psh
+        case "demo-112-psh-filed": return filed(["appendectomy 2010", "jaw wiring 2012, knee scope 2020"])
         case "demo-112-dates-ts-sent":
             var r = base
             r.typeScreen = PatientTypeScreen(status: .sent)
@@ -43,6 +50,36 @@ enum PatientDemo112Dates {
     static func atEndOfDay(plusDays: Int) -> Date? {
         guard let d = Calendar.current.date(byAdding: .day, value: plusDays, to: Date()) else { return nil }
         return Calendar.current.date(bySettingHour: 23, minute: 59, second: 0, of: d)
+    }
+
+    /// Helper J: five past operations entered out of order, in every date form: a year alone (1998), a full date (06/14/2015), a
+    /// typed operation with the year alone (2015, which lists after the full date of the same year), a month and year (03/2019),
+    /// and one with no date, which lists last.
+    static var psh: PatientRecord {
+        var r = PatientDemo.briefs
+        r.surgeries = [
+            PatientSurgery(name: "Appendectomy", date: PatientMonthYear(year: 1998)),
+            PatientSurgery(procedures: [PlannedProcedure(name: "Tonsillectomy")]),
+            PatientSurgery(procedures: [PlannedProcedure(name: "Jaw wiring")], date: PatientMonthYear(year: 2015)),
+            PatientSurgery(name: "Total knee arthroplasty", side: "right", date: PatientMonthYear(month: 3, year: 2019)),
+            PatientSurgery(procedures: PlannedProcedure.parse("lap chole"), date: PatientMonthYear(month: 6, day: 14, year: 2015)),
+        ]
+        r.preopSummaryOn = true
+        return r
+    }
+
+    /// Helper J: a patient whose past surgery was filed by the Past Surgical History bar, one line after the other, through the
+    /// bar's own path (QuickAdd.read, the chips that can be added, PatientNote.apply: QuickAddBar.add).
+    static func filed(_ lines: [String]) -> PatientRecord {
+        var r = PatientRecord()
+        r.ageYears = 58; r.sex = .female; r.heightCm = 165; r.weightKg = 72
+        r.setProcedures(PlannedProcedure.parse("Laparoscopic cholecystectomy"))
+        for line in lines {
+            let q = QuickAdd.read(line, record: r, tab: .preop, now: Date(), surgicalHistory: true)
+            let chosen = QuickAdd.chips(q, record: r).filter(\.canAdd)
+            PatientNote.apply(QuickAdd.changes(chosen), to: &r)
+        }
+        return r
     }
 
     /// A short history for the Preprocedure Summary: past surgery, a workup with days, and abnormal labs, in one screen.

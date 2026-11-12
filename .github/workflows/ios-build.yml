@@ -976,6 +976,24 @@ jobs:
           shot 909-d112-preop-summary-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           #
           # ---- 1.12 helper J shots (1020-1039): add your shot lines directly under this line ----
+          # 1.12 helper J (1020-1033): past surgical history newest first (the page, the Preprocedure Summary, the handoff, the History
+          # row), the page's bar with a free-text line of three operations, and the page after two lines were filed one after the other.
+          shot 1020-j-psh-page-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.forceAppearance light
+          shot 1021-j-psh-page-dark 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.forceAppearance dark
+          shot 1022-j-psh-page-375-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance light
+          shot 1023-j-presummary-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll summary -ps.forceAppearance light
+          shot 1024-j-presummary-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll summary -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1025-j-handoff-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1026-j-handoff-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab summary -ps.patient.scroll handoff -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1027-j-history-row-light 18 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll chips -ps.forceAppearance light
+          shot 1028-j-history-row-dark-375 18 -ps.tab patient -ps.patient demo-112-psh -ps.patient.tab preop -ps.patient.scroll chips -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1029-j-bar-three-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.quickadd.editor "jaw wiring 2012, knee scope 2020, tubes tied" -ps.forceAppearance light
+          shot 1030-j-bar-three-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.quickadd.editor "jaw wiring 2012, knee scope 2020, tubes tied" -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1031-j-filed-two-light 22 -ps.tab patient -ps.patient demo-112-psh-filed -ps.patient.open workup:surgeries -ps.forceAppearance light
+          shot 1032-j-filed-two-dark-375 22 -ps.tab patient -ps.patient demo-112-psh-filed -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance dark
+          # The end of the page of five entries (shots 1020 to 1022 show its first three): the year alone, the oldest, and the undated one last.
+          shot 1033-j-psh-page-end-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.scroll done -ps.forceAppearance light
+          shot 1034-j-psh-page-end-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.scroll done -ps.patient.width 375 -ps.forceAppearance dark
           #
           # ---- 1.12 helper I shots (1000-1014): add your shot lines directly under this line ----
           # 1.12 helper I (1000-1013): the case's name on the Patient Received sheet (on an empty phone, beside a named case with a

@@ -311,7 +311,7 @@ enum PatientTEE {
         for (sign, id) in [("radiation", "radiation"), ("neck", "neck")] where r.airwaySigns.contains(sign) {
             if let label = PatientAirway.signs.first(where: { $0.id == sign })?.label { add(id, "Airway: " + label) }
         }
-        for s in r.surgeries {
+        for s in r.surgeriesNewestFirst {
             if let id = surgeryItem(s) { add(id, "Past surgical history: " + s.text) }
         }
         return out
