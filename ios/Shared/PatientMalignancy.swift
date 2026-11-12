@@ -11,8 +11,10 @@ import Foundation
 // Prostate is the same fact as the Genitourinary page's "Prostate cancer" ("prostate-cancer"): its chip here reads and
 // writes that problem, so it is recorded once and printed once in a summary.
 //
-// Nothing about a cancer changes the ASA suggestion, a risk score or an alert: "malignancy" and the details carry no
-// class, no RCRI item and no warning.
+// Nothing about a cancer changes a risk score or an alert: "malignancy" and the details carry no RCRI item and no warning.
+// The ASA suggestion (1.12, Ben, Nov 12) gives a malignancy, and the prostate cancer that is its Prostate chip, class II when
+// the status is In remission and Metastatic is not set, and class III otherwise (PatientRules.asaDefinitionLevel); the two
+// are one reason line.
 
 enum PatientMalignancy {
     /// DRAFT FOR BEN TO EDIT. The common cancers, in the order of the chips (the groups are Ben's: head and neck and

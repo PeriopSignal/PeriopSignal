@@ -409,7 +409,7 @@ struct PatientEditorView: View {
     }
 
     func problemFlag(_ p: PatientProblem) -> PatientFlag {
-        PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + " example" })
+        PatientFlag(p.id, p.label, PatientRules.asaLevel(p, r).map { "ASA " + PatientRules.roman($0) + (p.asa == nil && !r.isChild ? " by definition" : " example") })
     }
 
     @ViewBuilder private var medications: some View {

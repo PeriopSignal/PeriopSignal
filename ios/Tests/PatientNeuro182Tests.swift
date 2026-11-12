@@ -98,7 +98,7 @@ final class PatientNeuro182Tests: XCTestCase {
         var r = PatientRecord()
         HistorySections.select(ich, &r)
         XCTAssertEqual(r.problems, ["ich"])
-        XCTAssertNil(PatientRules.asaSuggestion(adult(r.problems)), "a bleed alone suggests no class")
+        XCTAssertEqual(PatientRules.asaSuggestion(adult(r.problems))?.level, 4, "a bleed alone is in no ASA example: class IV by definition (1.12, Ben; was no class)")
         XCTAssertNil(PatientRules.asaSuggestion(child(r.problems)))
         HistorySections.setOption("ich-mass", true, in: ich, &r)
         XCTAssertEqual(r.problems, ["ich-mass"], "with mass effect replaces the bleed")
