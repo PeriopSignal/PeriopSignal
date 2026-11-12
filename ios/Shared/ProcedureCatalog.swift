@@ -947,6 +947,13 @@ extension ProcedureCatalog {
         p("embolectomy", "Arterial embolectomy", ["embolectomy", "arterial thrombectomy", "femoral embolectomy", "brachial embolectomy", "Fogarty embolectomy", "open thrombectomy"], ga, per, short, side: true),
         p("popliteal-aneurysm", "Popliteal aneurysm repair", ["popliteal aneurysm", "popliteal artery aneurysm repair", "popliteal aneurysm exclusion and bypass"], ga, per, mid, side: true),
         p("peripheral-angioplasty", "Peripheral angioplasty and stenting", ["peripheral angioplasty", "angioplasty", "PTA", "lower extremity angiogram", "LE angiogram", "peripheral atherectomy", "iliac stent", "SFA stent", "runoff angiogram", "peripheral vascular intervention"], mac, per, short, side: true),
+        // 1.12 (Ben, Nov 12): an angiogram that does not name its vascular bed, diagnostic or with an intervention possible.
+        // Percutaneous, so the settings of Peripheral angioplasty and stenting (MAC, peripheral incision, up to 2 h, no
+        // high-risk flag). A coronary angiogram stays with Left heart catheterization, a cerebral one with Endovascular
+        // aneurysm coiling, a spinal one with Spinal angiogram, and a lower-extremity or runoff angiogram with Peripheral
+        // angioplasty and stenting.
+        p("angiogram-intervention", "Angiogram with possible intervention", ["angiogram possible intervention", "angiogram with intervention", "angiogram +/- intervention", "angiogram possible angioplasty", "angiogram possible stent", "angiogram with possible angioplasty", "angiogram with possible stenting", "arteriogram with possible intervention", "angiography with possible intervention", "angiogram poss intervention"], mac, per, short),
+        p("angiogram-diagnostic", "Diagnostic angiogram", ["angiogram", "angiography", "arteriogram", "diagnostic angiography", "diagnostic arteriogram"], mac, per, short),
         p("av-fistula", "Arteriovenous fistula creation", ["AVF", "AV fistula", "AVF creation", "radiocephalic fistula", "brachiocephalic fistula", "brachiobasilic fistula", "basilic vein transposition", "BVT", "dialysis fistula", "fistula creation"], raMac, per, short, side: true),
         p("av-graft", "Arteriovenous graft", ["AVG", "AV graft", "dialysis graft", "forearm loop graft", "upper arm AV graft", "AV graft placement"], raMac, per, short, side: true),
         p("access-revision", "Dialysis access revision", ["fistula revision", "AV fistula revision", "fistula thrombectomy", "graft thrombectomy", "AVG thrombectomy", "fistula ligation", "DRIL", "access revision", "fistula superficialization", "fistula banding", "MILLER banding", "access banding", "AVG revision", "fistula aneurysm repair", "AV fistula aneurysmorrhaphy"], mac, per, short, side: true),
