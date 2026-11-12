@@ -14,6 +14,11 @@ import Foundation
 // dose ("300–400 U/kg ≈ 24,000–32,000 U"); protamine is suggested by a fixed ratio on the INITIAL heparin dose, with a
 // cap (method (c)), next to the current ACT.
 //
+// 1.12 follow-up (Ben, Nov 12): Heparin & ACT is one editable timeline (baseline ACTs, heparin doses, ACT samples and
+// protamine, each with a time the user can set and change), and the ACT reminder is ONE switch whose countdown runs from
+// the last ACT sample (`CaseTimerEngine.actDue`, the one due-time function every reader uses). A heparin dose starts no
+// countdown of its own; only the first dose of a case turns the switch on.
+//
 // Sources for the anticoagulation numbers, and what was read (Nov 7, 2026):
 //
 // • STS/SCA/AmSECT 2018, anticoagulation during CPB (Shore-Lesserson L, et al. Ann Thorac Surg 2018;105:650–662;
@@ -157,9 +162,10 @@ struct HeparinCourse: Codable, Equatable {
     var protamine: [TimedEntry] = []
     var bypassOn: Date?
     var bypassOff: Date?
-    /// 1.10: the ACT timer was started at this time ("Start timer"); the first check falls due `actEvery` later.
+    /// The ACT reminder's switch was last turned on at this time (1.10: "Start timer"; 1.12: the switch, or the first
+    /// heparin dose of the case). The first check falls due `actEvery` after the later of this and the last ACT.
     var actStart: Date?
-    /// 1.10: the ACT timer was stopped; a new bolus or Start timer turns it back on.
+    /// The ACT reminder's switch was turned off (1.10: "Stop the ACT timer"). Turning it on again clears this.
     var actOff = false
 
     init(purpose: String, goal: Double?, actEvery: Double) {
@@ -191,9 +197,13 @@ struct HeparinCourse: Codable, Equatable {
     /// Presets an earlier version saved, by purpose id, and the preset that replaces each.
     static let retiredPresets: [String: (old: Double, now: Double)] = ["bypass": (450, 480)]
 
-    /// The ACT timer runs once it is started or a bolus is logged, until it is stopped. A baseline ACT alone does not
-    /// start it: the reminders and the ACT timer row read this one rule.
+    /// The ACT reminder's switch is on: turned on (actStart) or, in a case saved before 1.12, a bolus was logged, until it
+    /// is turned off. A baseline ACT alone does not turn it on: the reminders and the switch row read this one rule.
     var actRunning: Bool { !actOff && (actStart != nil || !doses.isEmpty) }
+
+    /// When the switch was turned on: actStart, or for a case saved by build 39 (a bolus started its timer, nothing was
+    /// stamped) the first dose. nil while the switch is off.
+    var reminderSince: Date? { actRunning ? (actStart ?? sortedDoses.first?.time) : nil }
 
     var sortedDoses: [TimedEntry] { doses.sorted { $0.time < $1.time } }
     var initialUnits: Double? { sortedDoses.first?.value }
@@ -208,6 +218,177 @@ struct HeparinCourse: Codable, Equatable {
     var reversed: Bool { !protamine.isEmpty }
     /// Nothing logged yet: the purpose can still be changed or cleared.
     var isBlank: Bool { doses.isEmpty && acts.isEmpty && protamine.isEmpty && actStart == nil }
+}
+
+// MARK: - The Heparin & ACT timeline (1.12 follow-up, Ben, Nov 12)
+
+/// One row of "Heparin & ACT log": a baseline ACT, a heparin dose, an ACT sample or a protamine dose, read from the course's
+/// own lists (`HeparinCourse` keeps doses, acts and protamine as it always did, so a case saved by build 39 lists every
+/// entry at its logged time).
+struct HeparinEvent: Identifiable, Hashable {
+    /// The order of events that share a minute: the baseline first, then the dose, the ACT, the protamine.
+    enum Kind: Int, Hashable { case baseline, heparin, act, protamine }
+
+    var id: UUID
+    var kind: Kind
+    var time: Date
+    /// Seconds (an ACT), units (heparin) or mg (protamine).
+    var value: Double?
+    /// An ACT that is not a baseline, against the goal in force: true at or above it, false below, nil where no label is
+    /// shown (`CaseTimerEngine.goalMet`).
+    var goalMet: Bool?
+}
+
+extension HeparinCourse {
+    /// Every entry in time order, oldest first (it reads down like the anesthesia record).
+    var timeline: [HeparinEvent] {
+        var out: [HeparinEvent] = []
+        for e in doses { out.append(HeparinEvent(id: e.id, kind: .heparin, time: e.time, value: e.value, goalMet: nil)) }
+        for e in acts {
+            out.append(HeparinEvent(id: e.id, kind: e.baseline == true ? .baseline : .act, time: e.time, value: e.value,
+                                    goalMet: CaseTimerEngine.goalMet(e, in: self)))
+        }
+        for e in protamine { out.append(HeparinEvent(id: e.id, kind: .protamine, time: e.time, value: e.value, goalMet: nil)) }
+        return out.sorted {
+            if $0.time != $1.time { return $0.time < $1.time }
+            if $0.kind != $1.kind { return $0.kind.rawValue < $1.kind.rawValue }
+            return $0.id.uuidString < $1.id.uuidString
+        }
+    }
+
+    /// Today's rule for "Baseline ACT" (1.10): an ACT logged while no heparin dose is in the log is a baseline.
+    var offersBaseline: Bool { doses.isEmpty }
+
+    /// Logs a heparin dose at `time` (a back-timed one is allowed; the caller refuses the future). The first dose of the case
+    /// turns the ACT reminder on, at the interval in force (the purpose's default unless the user chose another), counting
+    /// from `now`, the moment the switch is turned on; a later dose never changes the switch, so a reminder the user turned
+    /// off stays off (Ben's answers 3 and 4). A dose starts no countdown of its own.
+    mutating func logDose(units: Double, at time: Date, now: Date) {
+        let first = doses.isEmpty
+        doses.append(TimedEntry(time: time, value: units))
+        if first {
+            if actOff || actStart == nil { actStart = now }
+            actOff = false
+        }
+    }
+
+    /// Logs an ACT (`.act`, or `.baseline`; an `.act` while no dose is logged is a baseline, `offersBaseline`). It moves the
+    /// ACT reminder's countdown through `CaseTimerEngine.actDue`, by its time; nothing else changes.
+    mutating func logACT(seconds: Double, at time: Date, kind: HeparinEvent.Kind) {
+        let baseline = kind == .baseline || (kind == .act && offersBaseline)
+        acts.append(TimedEntry(time: time, value: seconds, baseline: baseline ? true : nil))
+    }
+
+    mutating func logProtamine(mg: Double, at time: Date) {
+        protamine.append(TimedEntry(time: time, value: mg))
+    }
+
+    /// Changes one entry's time and value (a nil value leaves it); false when the id is not in the log.
+    @discardableResult
+    mutating func updateEntry(_ id: UUID, time: Date, value: Double?) -> Bool {
+        Self.change(&doses, id, time, value) || Self.change(&acts, id, time, value) || Self.change(&protamine, id, time, value)
+    }
+
+    private static func change(_ list: inout [TimedEntry], _ id: UUID, _ time: Date, _ value: Double?) -> Bool {
+        guard let i = list.firstIndex(where: { $0.id == id }) else { return false }
+        list[i].time = time
+        if let value { list[i].value = value }
+        return true
+    }
+
+    mutating func removeEntry(_ id: UUID) {
+        doses.removeAll { $0.id == id }
+        acts.removeAll { $0.id == id }
+        protamine.removeAll { $0.id == id }
+    }
+
+    /// The course without one entry (the checks on an edited value run against the rest of the log).
+    func removing(_ id: UUID) -> HeparinCourse {
+        var c = self
+        c.removeEntry(id)
+        return c
+    }
+
+    /// The ACT reminder's switch. On: the countdown runs from `now` or the last ACT, whichever is later; off: the reminder
+    /// stops everywhere and the log stays. Turning it on while it is on changes nothing.
+    mutating func setReminder(_ on: Bool, now: Date) {
+        if on {
+            guard !actRunning else { return }
+            actOff = false
+            actStart = now
+        } else {
+            actOff = true
+        }
+    }
+}
+
+/// The words, the clock and the checks of the timeline's rows.
+enum HeparinTimeline {
+    static let futureText = "That time is in the future."
+
+    static func label(_ k: HeparinEvent.Kind) -> String {
+        switch k {
+        case .baseline: return "Baseline ACT"
+        case .heparin: return "Heparin"
+        case .act: return "ACT"
+        case .protamine: return "Protamine"
+        }
+    }
+
+    /// "128 s", "26,000 U", "70 mg".
+    static func valueText(_ e: HeparinEvent) -> String {
+        guard let v = e.value else { return "" }
+        switch e.kind {
+        case .heparin: return CaseTimerEngine.grouped(v) + " U"
+        case .protamine: return CaseTimerEngine.fmt(v) + " mg"
+        case .baseline, .act: return "\(Int(v.rounded())) s"
+        }
+    }
+
+    /// "at goal" or "below goal" (the wording of "Last ACT 271 s at 01:41 · at goal"); nil: no label.
+    static func goalText(_ met: Bool?) -> String? {
+        met.map { $0 ? "at goal" : "below goal" }
+    }
+
+    /// "09:41" today; "11/11/26 23:50" on another day (as the app writes times).
+    static func timeText(_ d: Date, now: Date, calendar: Calendar = .current) -> String {
+        calendar.isDate(d, inSameDayAs: now) ? PatientDates.clock(d, calendar: calendar) : PatientDates.dayTime(d, calendar: calendar)
+    }
+
+    /// One row read aloud and compared in tests: "09:41 ACT 545 s at goal".
+    static func rowText(_ e: HeparinEvent, now: Date, calendar: Calendar = .current) -> String {
+        var s = timeText(e.time, now: now, calendar: calendar) + " " + label(e.kind)
+        let v = valueText(e)
+        if !v.isEmpty { s += " " + v }
+        if e.kind != .baseline, let g = goalText(e.goalMet) { s += " " + g }
+        return s
+    }
+
+    private static func floorMinute(_ d: Date, _ calendar: Calendar) -> Date {
+        calendar.dateInterval(of: .minute, for: d)?.start ?? d
+    }
+
+    /// A new entry's time: now until a time is picked; a picked clock time is resolved as the antibiotic Start time resolves
+    /// it (the nearest such moment, so 23:50 picked just after midnight is yesterday's), to the minute. nil: in the future,
+    /// which is not accepted.
+    static func resolved(picked: Date?, now: Date, calendar: Calendar = .current) -> Date? {
+        guard let picked else { return now }
+        let t = floorMinute(CaseTimerRecurrence.resolveStart(picked, now: now), calendar)
+        return t <= now ? t : nil
+    }
+
+    /// An edited entry's time: unchanged until a time is picked; a picked one keeps the day the control showed (the entry's
+    /// own), to the minute. nil: in the future.
+    static func resolvedEdit(picked: Date?, original: Date, now: Date, calendar: Calendar = .current) -> Date? {
+        guard let picked else { return original }
+        let t = floorMinute(picked, calendar)
+        return t <= now ? t : nil
+    }
+
+    /// The check on a time that resolved to nil.
+    static func timeIssue(_ resolved: Date?) -> DoseIssue? {
+        resolved == nil ? DoseIssue(level: .block, text: futureText) : nil
+    }
 }
 
 struct LabCheckCourse: Codable, Equatable {
@@ -258,7 +439,10 @@ struct CaseReminder: Identifiable, Hashable {
     var occurrence: Date? { due ?? since }
 
     /// Overdue five minutes after it falls due.
-    func state(at now: Date) -> State {
+    func state(at now: Date) -> State { Self.state(due: due, at: now) }
+
+    /// The same rule for a bare due time (the ACT reminder's switch row colours "Next ACT due" by it).
+    static func state(due: Date?, at now: Date) -> State {
         guard let due else { return .due }
         if now < due { return .waiting }
         return now.timeIntervalSince(due) > 300 ? .overdue : .due
@@ -458,7 +642,10 @@ enum CaseTimerEngine {
                                             detail: "Compare with the \(base)",
                                             due: end.addingTimeInterval(p.postActMinutes * 60)))
                 }
-            } else if h.actRunning, let due = actDue(h, rules: d.heparinRules) {
+            }
+            // 1.12: the ACT reminder is its own switch; it runs after protamine too until it is turned off (Ben: "it can be turned
+            // off (for example after protamine)"), next to the one-time ACT after protamine.
+            if let due = actDue(h) {
                 let goal = h.goal.map { "Goal ≥ \(Int($0)) s" } ?? "No preset goal"
                 out.append(CaseReminder(kind: .act, title: "ACT check", detail: goal + " · every \(interval(h.actEvery))", due: due))
             }
@@ -493,17 +680,16 @@ enum CaseTimerEngine {
         }
     }
 
-    /// When the next ACT falls due: a few minutes after a bolus that no ACT has followed yet, otherwise `actEvery` after
-    /// the last ACT or the timer's start. nil until the timer is started or a bolus is logged (a baseline ACT alone
-    /// starts nothing).
-    static func actDue(_ h: HeparinCourse, rules: HeparinRules) -> Date? {
-        guard h.actStart != nil || !h.doses.isEmpty else { return nil }
-        let lastAct = h.acts.max { $0.time < $1.time }?.time
-        let anchor = [h.actStart, lastAct].compactMap { $0 }.max()
-        if let bolus = h.lastDose, anchor.map({ $0 < bolus.time }) ?? true {
-            return bolus.time.addingTimeInterval(rules.firstActMinutes * 60)
-        }
-        return anchor?.addingTimeInterval(h.actEvery * 60)
+    /// When the next ACT falls due (1.12, Ben's answers 2 to 4): `actEvery` after the LATEST ACT sample in the log (a baseline
+    /// counts, by its logged time), or after the moment the switch was turned on if that is later or there is no sample.
+    /// Logging or editing an ACT moves it; a heparin or protamine dose does not (a dose starts no countdown of its own);
+    /// back-timing an ACT earlier than the latest one does not. nil while the switch is off. This is the one due-time
+    /// function: the running list, the notification, the lock-screen activity, the strip on My Patient and the switch row
+    /// all read it through `reminders`.
+    static func actDue(_ h: HeparinCourse) -> Date? {
+        guard let on = h.reminderSince else { return nil }
+        let anchor = max(on, h.acts.map(\.time).max() ?? on)
+        return anchor.addingTimeInterval(h.actEvery * 60)
     }
 
     /// The moment a logged protamine dose ends at the label's fastest rate (50 mg per 10 min), from its start.
@@ -656,6 +842,29 @@ enum CaseTimerEngine {
         return out
     }
 
+    /// An ACT is entered in seconds; the same plausibility rule 1.10 had (nothing under 30 s is logged).
+    static func actIssues(seconds: Double?) -> [DoseIssue] {
+        guard let s = seconds else { return [DoseIssue(level: .block, text: "")] }
+        return s < 30 ? [DoseIssue(level: .block, text: "An ACT is entered in seconds (30 or more).")] : []
+    }
+
+    /// The checks on a timeline entry before it is logged or an edit is saved: the dose checks, the ACT check and the protamine
+    /// checks as each had them. `course` is the log the entry joins (for an edit, the log without that entry).
+    static func entryIssues(kind: HeparinEvent.Kind, value: Double?, course: HeparinCourse, purpose p: HeparinPurpose,
+                            record r: PatientRecord, data d: CaseTimerData) -> [DoseIssue] {
+        let empty = DoseIssue(level: .block, text: "")
+        switch kind {
+        case .heparin:
+            guard let u = value else { return weightIssues(r, data: d).filter { $0.level == .block } + [empty] }
+            return heparinIssues(units: u, course: course, purpose: p, record: r, data: d)
+        case .baseline, .act:
+            return actIssues(seconds: value)
+        case .protamine:
+            guard let mg = value else { return [empty] }
+            return protamineIssues(mg: mg, course: course, purpose: p, rules: d.protamine)
+        }
+    }
+
     /// Checks on an ACT goal the user sets.
     static func goalIssues(_ goal: Double?, purpose p: HeparinPurpose, rules: HeparinRules) -> [DoseIssue] {
         guard let g = goal else { return [] }
@@ -720,11 +929,23 @@ enum CaseTimerEngine {
         return "Capped at \(fmt(pr.ratioHigh)) mg per 100 U of the initial heparin dose (label), not the total given; later doses do not change it."
     }
 
-    /// The goal is reached at the goal value or above (Ben, Nov 7: "≥ 480"; STS 2018 and EACTS 2024 write ">480 s").
+    /// The goal is reached at the goal value or above (Ben, Nov 7: "≥ 480"; STS 2018 and EACTS 2024 write ">480 s"). The one
+    /// comparison behind "Last ACT … · at goal" (status) and every timeline row's label (goalMet).
+    static func atGoal(_ value: Double, goal: Double) -> Bool { value >= goal }
+
+    /// One ACT sample against the goal in force, for its row in the timeline (1.12): true at or above the goal, false below.
+    /// nil: a baseline (never labelled), no goal, no value, or no heparin dose logged by the time it was drawn (an ACT before
+    /// any heparin says nothing about the goal).
+    static func goalMet(_ act: TimedEntry, in h: HeparinCourse) -> Bool? {
+        guard act.baseline != true, let goal = h.goal, let value = act.value else { return nil }
+        guard h.doses.contains(where: { $0.time <= act.time }) else { return nil }
+        return atGoal(value, goal: goal)
+    }
+
     static func status(_ h: HeparinCourse, record r: PatientRecord) -> HeparinStatus {
         let act = h.lastACT
         let afterBolus = act.map { a in h.lastDose.map { a.time >= $0.time } ?? true } ?? false
-        let met: Bool? = (h.goal != nil && afterBolus) ? (act?.value ?? 0) >= h.goal! : nil
+        let met: Bool? = (h.goal != nil && afterBolus) ? atGoal(act?.value ?? 0, goal: h.goal!) : nil
         let perKg = h.initialUnits.flatMap { u in r.weightKg.map { u / $0 } }
         return HeparinStatus(initialUnits: h.initialUnits, totalUnits: h.totalUnits, initialPerKg: perKg,
                              lastACT: act?.value, lastACTTime: act?.time, goal: h.goal, goalMet: met)

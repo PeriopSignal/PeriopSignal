@@ -79,7 +79,7 @@ final class Review110TimersTests: XCTestCase {
         var h = HeparinCourse(purpose: "bypass", goal: 480, actEvery: 30)
         h.acts = [TimedEntry(time: t0, value: 128, baseline: true)]
         XCTAssertFalse(h.actRunning)
-        XCTAssertNil(CaseTimerEngine.actDue(h, rules: d.heparinRules), "no heparin, no Start timer: nothing due")
+        XCTAssertNil(CaseTimerEngine.actDue(h), "no heparin, switch not turned on: nothing due")
         var t = CaseTimers(); t.heparin = h
         XCTAssertNil(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }, "no ACT check before heparin")
 
@@ -88,12 +88,13 @@ final class Review110TimersTests: XCTestCase {
         XCTAssertEqual(t.heparin?.actRunning, true)
         XCTAssertEqual(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }?.due,
                        t0.addingTimeInterval(60 + 1800))
-        // Or a bolus without Start timer.
+        // Or, in a case saved before 1.12, a bolus without the switch. 1.12 follow-up (Ben, answer 4): the first check no longer falls
+        // due 3 minutes after the bolus; it counts from the first dose (the moment that case's timer started).
         t.heparin?.actStart = nil
         t.heparin?.doses = [TimedEntry(time: t0.addingTimeInterval(600), value: 24000)]
         XCTAssertEqual(t.heparin?.actRunning, true)
         XCTAssertEqual(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act }?.due,
-                       t0.addingTimeInterval(600 + 180))
+                       t0.addingTimeInterval(600 + 1800))
         t.heparin?.actOff = true
         XCTAssertEqual(t.heparin?.actRunning, false)
         XCTAssertNil(CaseTimerEngine.reminders(t, record: adult(), data: d).first { $0.kind == .act })
