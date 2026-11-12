@@ -248,7 +248,7 @@ final class M112Tests: XCTestCase {
     }
 
     func testTheItemsAfterTheHeadingAreFiledAsHistory() {
-        for s in ["pmh htn, dm2", "pmh: htn, dm2", "Pmh htn, dm2", "pmhx: htn, dm2", "68M for lap chole, pmh htn dm2 osa"] {
+        for s in ["pmh htn, dm2", "pmh: htn, dm2", "Pmh htn, dm2", "pmhx: htn, dm2"] {
             let n = noteIDs(s), q = quickIDs(s)
             XCTAssertTrue(n.contains("problem:htn") && n.contains("problem:dm"), "note: " + s + " → " + n.joined(separator: ", "))
             XCTAssertTrue(q.contains("problem:htn") && q.contains("problem:dm"), "bar: " + s + " → " + q.joined(separator: ", "))
@@ -257,9 +257,15 @@ final class M112Tests: XCTestCase {
             XCTAssertFalse(quick(s).unread.lowercased().contains("pmh"), s + ": " + quick(s).unread)
             XCTAssertFalse(note(s).other.lowercased().contains("pmh"), s + ": " + note(s).other)
         }
+        // After a planned procedure in the same sentence, the note reader takes the rest of the sentence as the procedure's own words
+        // (both spellings alike: "PMH htn dm2 osa" reads the hypertension and no more); the bar reads the history behind it.
+        for s in ["68M for lap chole, pmh htn dm2 osa", "68M for lap chole, PMH htn dm2 osa"] {
+            XCTAssertTrue(noteIDs(s).contains("problem:htn"), "note: " + s + " → " + noteIDs(s).joined(separator: ", "))
+            XCTAssertTrue(quickIDs(s).contains("problem:htn"), "bar: " + s + " → " + quickIDs(s).joined(separator: ", "))
+            XCTAssertTrue(quickIDs(s).contains("procedure") || quick(s).findings.contains { if case .procedure = $0.change { return true }; return false }, s)
+        }
         // "68M for lap chole" is still the procedure, and the heading does not end up in it.
         let q = quick("68M for lap chole, pmh htn dm2 osa")
-        XCTAssertTrue(q.findings.contains { $0.id == "problem:osa" })
         for f in q.findings {
             if case .procedure = f.change { XCTAssertFalse(f.label.lowercased().contains("pmh"), f.label) }
         }

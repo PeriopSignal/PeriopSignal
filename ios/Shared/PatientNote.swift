@@ -319,6 +319,9 @@ enum PatientNote {
     static let thrombophiliaNotPositive = NoteRx(#"^\s*\(?\s*(?:(?:work-?up|work up|screen|screening|panel|testing|tests?|studies|evaluation|eval|mutation|gene|genetic|genotype|genotyping|analysis|pcr|status|results?)\s*){0,4}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+)?(?:"# + resultNegative + "|" + resultPending + #"|unremarkable\b|normal\b|wnl\b|none\b|no\b|n/a\b|wild[- ]?type\b|absent\b)"#)
     /// After "heparin": "-induced thrombocytopenia", " resistance", " resistant": the item, not the medicine.
     static let heparinNotTaken = NoteRx(#"^[- ](?:induced|resistan(?:ce|t))\b"#)
+    /// Before "heparin": "avoid heparin", "contraindicated heparin": a heparin to keep away from ("HIT, avoid heparin"), not one the
+    /// patient takes.
+    static let heparinAvoided = NoteRx(#"\b(?:avoid\w*|contraindicat\w*)\s+(?:all\s+|any\s+|further\s+|future\s+)?(?:unfractionated\s+)?$"#)
     /// After "HIT" or "heparin resistance", a test or a rule-out that is not positive (1.12 follow-up): "HIT negative", "HIT panel
     /// sent", "HIT antibody pending", "HIT PF4 negative", "HIT ruled out". "HIT positive" and "HIT antibody positive" are not here.
     static let hitNotPositive = NoteRx(#"^\s*[:=]?\s*\(?\s*(?:(?:antibody|antibodies|ab|abs|ag|antigen|panel|assay|elisa|pf4|sra|serology|screen|screening|test|testing|tests|work-?up|eval|evaluation|result|results|status|type\s+(?:i|ii|1|2))\s*){0,4}\)?\s*[:=]?\s*(?:is\s+|was\s+|were\s+|came back\s+|returned\s+|being\s+)?(?:"# + resultNegative + "|" + resultPending + #"|ordered\b|unknown\b|none\b|no\b|ruled out\b|rule[- ]out\b|r/o\b|excluded\b|not (?:present|detected|confirmed|suspected)\b)"#)
@@ -902,7 +905,7 @@ enum PatientNote {
                 intracranialAneurysm, rupturedAorticRx, notAorticDissection, complexEVARRx, complexEVARTail]
         out += [anticoagulationWords, gradeBeforeRx, pacerDependent, homeO2FlowRx, valveWrittenRx, valveShortRx, valveShortAfterRx, echoCueRx, echoPlannedBefore, echoLeadAfter, echoCueAfter, prosthesisTypedRx, prosthesisOpRx, prosthesisOpWrittenRx,
                 prosthesisBare, prosthesisSizeAfter, yearAfter, plannedBefore, bentallRx, cardiacSurgeryRx, cardiacSurgeryYearRx, redoSternotomyRx, gradedMI, otherMeaning]
-        out += [infectionNotPositive, hivPrevention, covidNotRecent, heparinNotTaken, pvcRule.rx, pvcNotAfter]
+        out += [infectionNotPositive, hivPrevention, covidNotRecent, heparinNotTaken, heparinAvoided, pvcRule.rx, pvcNotAfter]
         out += malignancyPatterns
         out += detailPatterns
         out += problemRules.flatMap { r -> [NoteRx] in [r.notBefore, r.notAfter, r.notIf, r.onlyIf, r.negAfter].compactMap { $0 } }
@@ -2600,7 +2603,8 @@ enum PatientNote {
             guard !allergySentence, let raw = m.text(1, in: c) else { continue }
             let key = raw.lowercased().replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
             // 1.12 follow-up: "heparin-induced thrombocytopenia" and "heparin resistance" are not a heparin the patient takes.
-            if key == "heparin", heparinNotTaken.first((c as NSString).substring(from: m.range.location + m.range.length)) != nil { continue }
+            if key == "heparin", heparinNotTaken.first((c as NSString).substring(from: m.range.location + m.range.length)) != nil
+                || heparinAvoided.first((c as NSString).substring(to: m.range.location)) != nil { continue }
             // A medicine running as an infusion is listed as the infusion.
             let infused = h.infusions.contains { NSIntersectionRange($0, m.range).length > 0 }
             if !infused && !names.contains(key) { names.append(key) }
