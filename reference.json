@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-11-07",
-  "revision": 1794087713,
+  "updated": "2026-11-12",
+  "revision": 1794501193,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -2020,6 +2020,482 @@
           "heading": "Children",
           "kind": "text",
           "text": "Awake intubation is uncommon; the usual path is inhalational induction with spontaneous ventilation maintained. Keep the anesthetic deep enough and reassess ventilation after every attempt; the three core tools are the supraglottic airway, the flexible scope and the videolaryngoscope, alone or combined. Separate functional from anatomic obstruction. The attempt limit is the primary manager's attempts (about three) plus one by the backup, then consider emerging the child and reversing drugs. Contact ECMO and ENT early when non-invasive failure is foreseeable; use airway exchange catheters with caution."
+        }
+      ]
+    },
+    {
+      "id": "ashp-surgical-prophylaxis",
+      "title": "Surgical Antibiotic Prophylaxis: Recommended & Alternative Agents (ASHP)",
+      "society": "American Society of Health-System Pharmacists, Infectious Diseases Society of America, Surgical Infection Society, Society for Healthcare Epidemiology of America",
+      "short": "ASHP",
+      "year": 2013,
+      "topic": "general",
+      "keywords": [
+        "antibiotic",
+        "antibiotics",
+        "prophylaxis",
+        "surgical prophylaxis",
+        "cefazolin",
+        "ancef",
+        "vancomycin",
+        "clindamycin",
+        "penicillin allergy",
+        "beta-lactam allergy",
+        "cephalosporin allergy",
+        "alternative antibiotic",
+        "allergy alternative",
+        "MRSA",
+        "aztreonam",
+        "gentamicin",
+        "metronidazole",
+        "surgical site infection",
+        "SSI"
+      ],
+      "summary": "The recommended prophylactic agents for each type of surgery and the alternative agents for a patient with a β-lactam allergy, from the 2013 ASHP, IDSA, SIS and SHEA guideline. In this app, doses and redose intervals are in Case Timers.",
+      "source": {
+        "title": "Clinical practice guidelines for antimicrobial prophylaxis in surgery",
+        "citation": "Bratzler DW, Dellinger EP, Olsen KM, et al. Am J Health Syst Pharm. 2013;70(3):195–283. doi:10.2146/ajhp120568. Table 2 and the section on allergy to β-lactam antimicrobials.",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/23327981/",
+        "doi": "10.2146/ajhp120568"
+      },
+      "reviewed": "2026-11-12",
+      "sections": [
+        {
+          "heading": "Reading the Tables",
+          "kind": "list",
+          "items": [
+            "Recommended is the guideline's Recommended Agents column; β-lactam allergy is its Alternative Agents in Patients With β-Lactam Allergy column. Evidence is the guideline's own grade for using or not using prophylaxis: A (levels I–III), B (levels IV–VI), C (level VII, expert opinion).",
+            "Aminoglycoside means gentamicin or tobramycin. Fluoroquinolone means ciprofloxacin or levofloxacin.",
+            "* Where pathogens other than staphylococci and streptococci are likely, an additional agent active against them could be considered.",
+            "Known MRSA colonization: it is reasonable to add a single preoperative dose of vancomycin to the recommended agent.",
+            "Start within 60 minutes before incision (120 minutes for vancomycin or a fluoroquinolone). A single dose is usually enough, and prophylaxis should last less than 24 hours for every procedure.",
+            "Periop Signal note: in this app, doses and redose intervals are in Case Timers. This card says which agent."
+          ]
+        },
+        {
+          "heading": "Who Needs the Alternative",
+          "kind": "text",
+          "text": "True Type 1 (IgE-mediated) cross-allergic reactions between penicillins, cephalosporins and carbapenems are uncommon, but cephalosporins and carbapenems should not be used for surgical prophylaxis in patients with documented or presumed IgE-mediated penicillin allergy. In the guideline's words, they “can safely be used in patients with an allergic reaction to penicillins that is not an IgE-mediated reaction (e.g., anaphylaxis, urticaria, bronchospasm) or exfoliative dermatitis (Stevens-Johnson syndrome, toxic epidermal necrolysis)”. Patients should be carefully questioned about their history of antimicrobial allergies to determine whether a true allergy exists before agents are selected: confusion about true allergy leads to alternative therapy with the potential for a lack of efficacy, increased costs and adverse events. Because the predominant organisms after clean procedures are gram-positive, including vancomycin may be appropriate for a patient with a life-threatening allergy to β-lactam antimicrobials.",
+          "note": "From the guideline's section on allergy to β-lactam antimicrobials. Periop Signal note: this guideline dates from 2013; follow your institution's current protocol."
+        },
+        {
+          "heading": "Cardiac",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Coronary artery bypass",
+              "Cefazolin, cefuroxime",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ],
+            [
+              "Cardiac device insertion (e.g., pacemaker implantation)",
+              "Cefazolin, cefuroxime",
+              "Clindamycin, vancomycin",
+              "A"
+            ],
+            [
+              "Ventricular assist devices",
+              "Cefazolin, cefuroxime",
+              "Clindamycin, vancomycin",
+              "C"
+            ]
+          ]
+        },
+        {
+          "heading": "Thoracic",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Noncardiac procedures, including lobectomy, pneumonectomy, lung resection and thoracotomy",
+              "Cefazolin, ampicillin–sulbactam",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ],
+            [
+              "Video-assisted thoracoscopic surgery",
+              "Cefazolin, ampicillin–sulbactam",
+              "Clindamycin*, vancomycin*",
+              "C"
+            ]
+          ]
+        },
+        {
+          "heading": "Vascular",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Vascular procedures",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ]
+          ],
+          "note": "Prophylaxis is not routinely indicated for brachiocephalic procedures. There are no supporting data, but brachiocephalic procedures with a vascular prosthesis or patch (e.g., carotid endarterectomy) may benefit from it."
+        },
+        {
+          "heading": "Gastroduodenal",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Entry into the lumen of the gastrointestinal tract (bariatric, pancreaticoduodenectomy)",
+              "Cefazolin",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+              "A"
+            ],
+            [
+              "No entry into the gastrointestinal tract (antireflux, highly selective vagotomy), high-risk patients",
+              "Cefazolin",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+              "A"
+            ]
+          ],
+          "note": "Consider prophylaxis for patients at highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer. Prophylaxis may not be needed when the lumen of the intestinal tract is not entered. Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
+        },
+        {
+          "heading": "Biliary Tract",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Open procedure",
+              "Cefazolin, cefoxitin, cefotetan, ceftriaxone, ampicillin–sulbactam",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+              "A"
+            ],
+            [
+              "Laparoscopic, elective, low risk",
+              "None",
+              "None",
+              "A"
+            ],
+            [
+              "Laparoscopic, elective, high risk",
+              "Cefazolin, cefoxitin, cefotetan, ceftriaxone, ampicillin–sulbactam",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+              "A"
+            ]
+          ],
+          "note": "Ceftriaxone only where treatment for acute cholecystitis or acute biliary infection may be needed, not for noninfected biliary conditions. High risk in laparoscopic cholecystectomy: emergency procedure, diabetes, long procedure, intraoperative gallbladder rupture, age over 70, conversion to open, ASA class 3 or greater, colic within 30 days, reintervention within a month for a noninfectious complication, acute cholecystitis, bile spillage, jaundice, pregnancy, nonfunctioning gallbladder, immunosuppression, prosthetic device. Several of these cannot be known beforehand, so a single dose for every laparoscopic cholecystectomy may be reasonable."
+        },
+        {
+          "heading": "Appendix, Small Intestine, Hernia, Colorectal",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Appendectomy for uncomplicated appendicitis",
+              "Cefoxitin, cefotetan, cefazolin + metronidazole",
+              "Clindamycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+              "A"
+            ],
+            [
+              "Small intestine, nonobstructed",
+              "Cefazolin",
+              "Clindamycin + aminoglycoside or aztreonam or fluoroquinolone",
+              "C"
+            ],
+            [
+              "Small intestine, obstructed",
+              "Cefazolin + metronidazole, cefoxitin, cefotetan",
+              "Metronidazole + aminoglycoside or fluoroquinolone",
+              "C"
+            ],
+            [
+              "Hernia repair (hernioplasty and herniorrhaphy)",
+              "Cefazolin",
+              "Clindamycin, vancomycin",
+              "A"
+            ],
+            [
+              "Colorectal",
+              "Cefazolin + metronidazole, cefoxitin, cefotetan, ampicillin–sulbactam, ceftriaxone + metronidazole, ertapenem",
+              "Clindamycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+              "A"
+            ]
+          ],
+          "note": "Colorectal: for most patients, give a mechanical bowel preparation with oral neomycin plus oral erythromycin base or oral metronidazole in addition to the intravenous dose. Where gram-negative isolates increasingly resist first- and second-generation cephalosporins, a single dose of ceftriaxone plus metronidazole may be preferred over routine carbapenems."
+        },
+        {
+          "heading": "Head and Neck",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Clean",
+              "None",
+              "None",
+              "B"
+            ],
+            [
+              "Clean with placement of prosthesis (excludes tympanostomy tubes)",
+              "Cefazolin, cefuroxime",
+              "Clindamycin*",
+              "C"
+            ],
+            [
+              "Clean-contaminated cancer surgery",
+              "Cefazolin + metronidazole, cefuroxime + metronidazole, ampicillin–sulbactam",
+              "Clindamycin*",
+              "A"
+            ],
+            [
+              "Other clean-contaminated procedures, except tonsillectomy and functional endoscopic sinus procedures",
+              "Cefazolin + metronidazole, cefuroxime + metronidazole, ampicillin–sulbactam",
+              "Clindamycin*",
+              "B"
+            ]
+          ]
+        },
+        {
+          "heading": "Neurosurgery",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Elective craniotomy and cerebrospinal fluid-shunting procedures",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ],
+            [
+              "Implantation of intrathecal pumps",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "C"
+            ]
+          ]
+        },
+        {
+          "heading": "Obstetric and Gynecologic",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Cesarean delivery",
+              "Cefazolin",
+              "Clindamycin + aminoglycoside",
+              "A"
+            ],
+            [
+              "Hysterectomy (vaginal or abdominal)",
+              "Cefazolin, cefotetan, cefoxitin, ampicillin–sulbactam",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone; or metronidazole + aminoglycoside or fluoroquinolone",
+              "A"
+            ]
+          ]
+        },
+        {
+          "heading": "Orthopedic",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Clean operations on the hand, knee or foot without implantation of foreign material",
+              "None",
+              "None",
+              "C"
+            ],
+            [
+              "Spinal procedures with and without instrumentation",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ],
+            [
+              "Hip fracture repair",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ],
+            [
+              "Implantation of internal fixation devices (e.g., nails, screws, plates, wires)",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "C"
+            ],
+            [
+              "Total joint replacement",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ]
+          ]
+        },
+        {
+          "heading": "Urologic",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Lower tract instrumentation with risk factors for infection (includes transrectal prostate biopsy)",
+              "Fluoroquinolone, trimethoprim–sulfamethoxazole, cefazolin",
+              "Aminoglycoside with or without clindamycin",
+              "A"
+            ],
+            [
+              "Clean without entry into the urinary tract",
+              "Cefazolin (the addition of a single dose of an aminoglycoside may be recommended for placement of prosthetic material, e.g., penile prosthesis)",
+              "Clindamycin*, vancomycin*",
+              "A"
+            ],
+            [
+              "Involving implanted prosthesis",
+              "Cefazolin ± aminoglycoside, cefazolin ± aztreonam, ampicillin–sulbactam",
+              "Clindamycin ± aminoglycoside or aztreonam, vancomycin ± aminoglycoside or aztreonam",
+              "A"
+            ],
+            [
+              "Clean with entry into the urinary tract",
+              "Cefazolin (the addition of a single dose of an aminoglycoside may be recommended for placement of prosthetic material, e.g., penile prosthesis)",
+              "Fluoroquinolone, aminoglycoside with or without clindamycin",
+              "A"
+            ],
+            [
+              "Clean-contaminated",
+              "Cefazolin + metronidazole, cefoxitin",
+              "Fluoroquinolone, aminoglycoside + metronidazole or clindamycin",
+              "A"
+            ]
+          ]
+        },
+        {
+          "heading": "Transplantation",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Heart",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "A (based on cardiac procedures)"
+            ],
+            [
+              "Lung and heart–lung",
+              "Cefazolin",
+              "Clindamycin*, vancomycin*",
+              "A (based on cardiac procedures)"
+            ],
+            [
+              "Liver",
+              "Piperacillin–tazobactam, cefotaxime + ampicillin",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+              "B"
+            ],
+            [
+              "Pancreas and pancreas–kidney",
+              "Cefazolin, fluconazole (for patients at high risk of fungal infection, e.g., those with enteric drainage of the pancreas)",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+              "A"
+            ],
+            [
+              "Kidney",
+              "Cefazolin",
+              "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
+              "A"
+            ]
+          ],
+          "note": "These recommendations prevent surgical-site infection; they do not cover prevention of opportunistic infection in immunosuppressed patients (e.g., antifungal or antiviral medications). Heart, lung and pancreas rows: patients with a left ventricular assist device as a bridge who are chronically infected might also benefit from coverage of the infecting microorganism. Lung and heart–lung: the regimen may need to be modified to cover potential pathogens isolated from the donor lung or the recipient before transplantation, including gram-negative (e.g., Pseudomonas aeruginosa) or fungal organisms; with negative pretransplantation cultures, give prophylaxis as for other cardiothoracic surgery; for cystic fibrosis, 7–14 days of treatment selected by pretransplantation culture and susceptibility results, which may include additional antibacterial or antifungal agents. Liver: the regimen may need to be modified to cover potential pathogens isolated from the recipient before transplantation, including vancomycin-resistant enterococci. Kidney: this row has no procedure name in the published table and is identified from the guideline's kidney transplantation recommendations, which name gentamicin, aztreonam or a fluoroquinolone with clindamycin or vancomycin, limit prophylaxis to 24 hours or less, and say fluconazole adjusted for renal function may be considered for patients at high risk of Candida infection."
+        },
+        {
+          "heading": "Plastic Surgery and Ophthalmic",
+          "kind": "table",
+          "columns": [
+            "Procedure",
+            "Recommended",
+            "β-lactam allergy",
+            "Evidence"
+          ],
+          "rows": [
+            [
+              "Plastic surgery: clean with risk factors, or clean-contaminated",
+              "Cefazolin, ampicillin–sulbactam",
+              "Clindamycin*, vancomycin*",
+              "C"
+            ],
+            [
+              "Ophthalmic",
+              "Topical neomycin–polymyxin B–gramicidin, or a fourth-generation topical fluoroquinolone (gatifloxacin or moxifloxacin), 1 drop every 5–15 min for 5 doses. Optional at the end of the procedure: cefazolin 100 mg subconjunctival, or intracameral cefazolin 1–2.5 mg or cefuroxime 1 mg",
+              "None",
+              "B"
+            ]
+          ],
+          "note": "Ophthalmic: the need to continue topical antimicrobials after the procedure has not been established."
+        },
+        {
+          "heading": "Cautions From the Guideline",
+          "kind": "list",
+          "items": [
+            "* in practice: if surveillance shows gram-negative organisms cause surgical-site infections for the procedure, clindamycin or vancomycin may be combined with aztreonam, gentamicin or a single-dose fluoroquinolone in a β-lactam-allergic patient (with cefazolin if not allergic).",
+            "Escherichia coli increasingly resists fluoroquinolones and ampicillin–sulbactam: review local susceptibility before using either.",
+            "Fluoroquinolones are associated with an increased risk of tendonitis and tendon rupture at all ages; the risk is expected to be quite small with single-dose prophylaxis. They may be necessary in some children but are not drugs of first choice in the pediatric population, because of more adverse events than controls in some trials.",
+            "Redose a short half-life agent (e.g., cefazolin, cefoxitin) when the procedure outlasts its redosing interval, counted from the start of the preoperative dose; also consider it with prolonged or excessive bleeding or other causes of a shortened half-life (e.g., extensive burns). It may not be warranted when the half-life is prolonged (renal insufficiency or failure).",
+            "Kidney transplantation: aminoglycosides in combination with other nephrotoxic drugs may cause renal dysfunction and should be avoided unless alternatives are contraindicated (strength of evidence C)."
+          ]
         }
       ]
     }
