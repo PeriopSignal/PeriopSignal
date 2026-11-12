@@ -1013,6 +1013,8 @@ jobs:
           shot 923-e1-valve-calc-typed-light 16 -ps.ref valves -ps.patient demo-112-valvecalc -ps.vg.lesion as -ps.vg.texts "vmax=3.3;mg=26;ava=1.1;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.forceAppearance light
           shot 924-e1-valve-calc-nobsa-375-light 16 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.patient.width 375 -ps.forceAppearance light
           #
+          # ---- 1.12 helper K shots (1040-1054): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper H shots (980-999): add your shot lines directly under this line ----
           # Typed antibiotics (H): Case Timers with an antibiotic picked and not logged ("Log dose" for a drug with no routine redose,
           # "Log dose & start timer" for cefazolin, the not-recorded line; the question on leaving), the bar's review of "vanc 1 g at
