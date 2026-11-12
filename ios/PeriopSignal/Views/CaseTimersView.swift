@@ -348,6 +348,15 @@ private struct HeparinRowEdit {
     var deleteArmed = false
 }
 
+private extension View {
+    /// The box an entry or a row being changed opens in: a quiet action tint, so the value field (the chip fill) shows inside it.
+    func entryBox() -> some View {
+        padding(12)
+            .background(PS.action.opacity(0.07), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(PS.action.opacity(0.25), lineWidth: 1))
+    }
+}
+
 /// "Time" on the 24-hour clock for a timeline entry: now (kept current) for a new one, the row's own time for an edit, until
 /// the user picks one.
 private struct EntryTimeRow: View {
@@ -1267,7 +1276,7 @@ struct CaseTimersView: View {
     // MARK: Adding an entry
 
     private func addButtons(_ h: HeparinCourse, _ p: HeparinPurpose) -> some View {
-        FlowLayout(spacing: 16) {
+        FlowLayout(spacing: 8) {
             addButton("+ ACT", .act, h, p)
             addButton("+ Heparin dose", .heparin, h, p)
             addButton("+ Baseline ACT", .baseline, h, p)
@@ -1281,9 +1290,9 @@ struct CaseTimersView: View {
             withAnimation(.snappy) { openDraft(kind, h, p) }
         } label: {
             Text(title)
-                .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.action)
+                .font(PS.sys(size: 13, weight: .semibold)).foregroundStyle(PS.action)
                 .lineLimit(1).fixedSize()
-                .padding(.horizontal, 8).padding(.vertical, 5)
+                .padding(.horizontal, 6).padding(.vertical, 5)
                 .background(open ? PS.action.opacity(0.14) : Color.clear, in: Capsule())
         }
         .buttonStyle(.plain)
@@ -1317,17 +1326,24 @@ struct CaseTimersView: View {
         }
     }
 
+    /// The value field with its unit written beside it (UnitField's own unit label is squeezed out of a row this narrow).
+    private func valueField(_ kind: HeparinEvent.Kind, _ value: Binding<Double?>) -> some View {
+        let u = unitPrompt(kind)
+        return HStack(spacing: 6) {
+            UnitField(prompt: u.prompt, unit: "", value: value, width: 100)
+            Text(u.unit).font(PS.sys(size: 13, weight: .medium)).foregroundStyle(PS.fg2).fixedSize()
+        }
+    }
+
     private func entryRow(_ dr: HeparinDraft, _ h: HeparinCourse, _ p: HeparinPurpose, _ d: CaseTimerData) -> some View {
         let time = HeparinTimeline.resolved(picked: dr.picked, now: Date())
         let issues = CaseTimerEngine.entryIssues(kind: dr.kind, value: dr.value, course: h, purpose: p, record: r, data: d)
             + (HeparinTimeline.timeIssue(time).map { [$0] } ?? [])
-        let unit = unitPrompt(dr.kind)
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
                 Text(entryTitle(dr.kind, h)).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
                 Spacer(minLength: 4)
-                UnitField(prompt: unit.prompt, unit: unit.unit,
-                          value: Binding(get: { draft?.value }, set: { draft?.value = $0; draft?.armed = false }), width: 100)
+                valueField(dr.kind, Binding(get: { draft?.value }, set: { draft?.value = $0; draft?.armed = false }))
             }
             EntryTimeRow(base: nil, picked: Binding(get: { draft?.picked }, set: { draft?.picked = $0; draft?.armed = false }))
             DoseIssueList(issues: issues.filter { !$0.text.isEmpty })
@@ -1339,8 +1355,7 @@ struct CaseTimersView: View {
                 }
             }
         }
-        .padding(12)
-        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .entryBox()
     }
 
     /// One Undo step: the entry and, for the first dose of the case, the reminder's switch.
@@ -1364,13 +1379,11 @@ struct CaseTimersView: View {
         let time = HeparinTimeline.resolvedEdit(picked: ed.picked, original: ed.shown, now: Date())
         let issues = CaseTimerEngine.entryIssues(kind: ed.kind, value: ed.value, course: h.removing(ed.id), purpose: p, record: r, data: d)
             + (HeparinTimeline.timeIssue(time).map { [$0] } ?? [])
-        let unit = unitPrompt(ed.kind)
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
                 Text(HeparinTimeline.label(ed.kind)).font(PS.sys(size: 14, weight: .semibold)).foregroundStyle(PS.fg)
                 Spacer(minLength: 4)
-                UnitField(prompt: unit.prompt, unit: unit.unit,
-                          value: Binding(get: { rowEdit?.value }, set: { rowEdit?.value = $0; rowEdit?.armed = false }), width: 100)
+                valueField(ed.kind, Binding(get: { rowEdit?.value }, set: { rowEdit?.value = $0; rowEdit?.armed = false }))
             }
             EntryTimeRow(base: ed.shown, picked: Binding(get: { rowEdit?.picked }, set: { rowEdit?.picked = $0; rowEdit?.armed = false }))
             DoseIssueList(issues: issues.filter { !$0.text.isEmpty })
@@ -1386,8 +1399,7 @@ struct CaseTimersView: View {
                 }
             }
         }
-        .padding(12)
-        .background(PS.surface2, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .entryBox()
     }
 
     /// One Undo step: the changed time and value; the list re-sorts now.
