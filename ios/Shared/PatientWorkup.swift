@@ -1022,7 +1022,10 @@ extension PatientEcho {
 
 extension PatientDevice {
     /// The handoff's Lines: the Foley goes with them (1.8.1); so do the 1.9 kinds (epicardial wires, pacemaker/ICD generator, AV fistula, hemodialysis catheter, chest tube), which before were entered as "other".
-    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .epicardialWires, .cied, .avFistula, .dialysisCatheter, .chestTube, .other]
+    /// 1.12: the monitors and adjuncts (cerebral oximetry, TEE probe, defibrillator pads, BIS/SedLine, bronchial blocker) are listed with
+    /// them, as devices in place; none is IV access, an arm line or a limb alert (those read their own kinds).
+    static let lineKinds: Set<DeviceKind> = [.piv, .arterial, .cvc, .pac, .picc, .intraosseous, .foley, .epicardialWires, .cied, .avFistula, .dialysisCatheter, .chestTube, .other,
+                                             .cerebralOximetry, .teeProbe, .defibPads, .processedEEG, .bronchialBlocker]
     static let supportKinds: Set<DeviceKind> = [.ecmoDrainage, .ecmoReturn, .lvad, .iabp, .impella, .protekDuo]
 }
 

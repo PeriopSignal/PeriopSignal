@@ -39,6 +39,7 @@ enum PatientDiagramModel {
         case .pacing: return DiagramColor.pacing
         case .access: return DiagramColor.access
         case .drain: return DiagramColor.drain
+        case .monitor: return DiagramColor.monitor
         }
     }
 
@@ -66,6 +67,14 @@ enum PatientDiagramModel {
         case .avFistula: return d.detail.range(of: "graft", options: .caseInsensitive) != nil ? "AV graft" : "AVF"
         case .dialysisCatheter: return "HD cath" + size
         case .chestTube: return "Chest tube" + size
+        // 1.12: the monitors and the blocker, in the label column's 15 characters (no numbers: the app records that they are on).
+        case .cerebralOximetry: return "NIRS"
+        case .teeProbe: return "TEE probe"
+        case .defibPads: return "Defib pads"
+        case .processedEEG:
+            let t = d.detail.lowercased()
+            return t == "bis" ? "BIS" : (t == "sedline" ? "SedLine" : "BIS/SedLine")
+        case .bronchialBlocker: return "Blocker" + (d.blockerSide.map { $0 == "left" ? " L" : " R" } ?? "")
         default: return d.kind.label + size
         }
     }
@@ -98,9 +107,14 @@ enum PatientDiagramModel {
         if ettNow {
             var label = "ETT"
             if r.currentAirway == "ett" {
-                if !r.ettSize.isEmpty { label += " " + r.ettSize }
                 let depth: String = r.ettDepth.split(separator: " ").first.map(String.init) ?? ""
-                if !depth.isEmpty { label += " @" + depth }
+                if r.ettSize.range(of: "DLT", options: .caseInsensitive) != nil {
+                    // 1.12: a double-lumen tube set from the device editor keeps its name ("Left DLT 37 Fr" is "DLT 37 @29").
+                    label = ettLabel(tube: r.ettSize + (depth.isEmpty ? "" : ", " + depth + " cm"))
+                } else {
+                    if !r.ettSize.isEmpty { label += " " + r.ettSize }
+                    if !depth.isEmpty { label += " @" + depth }
+                }
             } else if PatientAirway.tubeIsLMA(r) {
                 // The LMA's size kept in `tube` ("LMA 4"), as typed.
                 if let first = r.tube.split(separator: ",").first { label = String(first) }
@@ -200,6 +214,27 @@ enum PatientDiagramModel {
                 item.pumpAt = ra
             case .ett, .trach, .epidural, .spinal, .block, .perineuralCatheter:
                 item.marker = .dot
+            // 1.12: a simple marker with a short label, no course. The sensors of a cerebral oximeter are two dots 9 units either
+            // side of the forehead's midline (one for Left or Right); the processed EEG is a square below them; the pads are two
+            // squares (below the right clavicle, and at the apex); the TEE probe and the blocker are dots either side of the tube's.
+            case .cerebralOximetry:
+                item.marker = .dot
+                let sides = d.oximetrySides
+                func sensor(_ side: String) -> CGPoint { CGPoint(x: a.x + (side == "left" ? 9 : -9), y: a.y) }
+                item.anchor = sensor(sides[0])
+                item.labelLeft = item.anchor.x < 100
+                if sides.count > 1 {
+                    out.append(DiagramItem(id: d.id.uuidString + "-left", anchor: sensor(sides[1]), color: c, marker: .dot, label: "",
+                                           labelLeft: false, movable: false))
+                }
+            case .teeProbe, .bronchialBlocker:
+                item.marker = .dot
+            case .processedEEG:
+                item.marker = .square
+            case .defibPads:
+                item.marker = .square
+                out.append(DiagramItem(id: d.id.uuidString + "-apex", anchor: CGPoint(x: a.x + 39, y: a.y + 9), color: c, marker: .square,
+                                       label: "", labelLeft: false, movable: false))
             }
             out.append(item)
         }
@@ -420,6 +455,11 @@ struct PatientDevicesEditor: View {
     @State private var alertLimb = "arm-left"
     @State private var alertReason = ""
     @State private var shownAlertLimb: String?
+    /// The grouped picker behind "Other" (1.12), the row chosen in it (run when the picker has gone, so two sheets are never
+    /// up at once), and the double-lumen tube being filled in.
+    @State private var showPicker = false
+    @State private var pickedEntry: DevicePickerEntry?
+    @State private var dltDraft: PatientDevice?
 
     private var r: PatientRecord { patient.record }
     private var placedIntraop: Bool { phase == .intraop }
@@ -480,7 +520,7 @@ struct PatientDevicesEditor: View {
                 }
                 .confirmationDialog("Add at this spot", isPresented: $showTapMenu, titleVisibility: .visible) {
                     ForEach(tapOptions) { o in
-                        Button(o.label) { add([PatientDevice(kind: o.kind, site: o.site.id, side: o.site.side, placedIntraop: placedIntraop)], open: true) }
+                        Button(o.label) { add([PatientDevice(kind: o.kind, site: o.site.id, side: o.site.side, settings: o.kind.defaultSettings, placedIntraop: placedIntraop)], open: true) }
                     }
                     Button("Cancel", role: .cancel) {}
                 }
@@ -507,7 +547,34 @@ struct PatientDevicesEditor: View {
                     editingID = r.devices.first(where: { $0.acceptsDevicesThrough })?.id
                 }
             }
+            // 1.12: -ps.devices.picker 1 opens the grouped Other list; -ps.devices.dlt 1 opens the double-lumen tube sheet
+            // (filled in with a left 37 Fr tube at 29 cm).
+            if LaunchSeed.bool("ps.devices.picker"), !supportOnly {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { showPicker = true }
+            }
+            if LaunchSeed.bool("ps.devices.dlt"), !supportOnly {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    var d = PatientDevice(kind: .ett, site: "mouth", size: "37", detail: "Left DLT", placedIntraop: placedIntraop)
+                    d.settings["depth"] = "29"
+                    dltDraft = d
+                }
+            }
             #endif
+        }
+        .sheet(isPresented: $showPicker, onDismiss: {
+            guard let e = pickedEntry else { return }
+            pickedEntry = nil
+            choose(e)
+        }) {
+            DeviceTypePicker { pickedEntry = $0 }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $dltDraft) { d in
+            DoubleLumenSheet(draft: d) { add([$0], open: false) }
+                .environment(patient)
+                .presentationDetents(Self.sheetDetents)
+                .presentationDragIndicator(.visible)
         }
         .sheet(item: Binding(get: { editingID.map { IDBox(id: $0) } }, set: { editingID = $0?.id })) { box in
             DeviceDetailSheet(deviceID: box.id, addedIntraop: placedIntraop)
@@ -606,15 +673,22 @@ struct PatientDevicesEditor: View {
                     Button { addKind(k) } label: { Label(k.label, systemImage: "plus") }
                         .buttonStyle(CapsuleButtonStyle(prominent: false))
                 }
-                Menu {
-                    ForEach(DeviceKind.more, id: \.self) { k in
-                        Button(k.name) { addKind(k) }
-                    }
-                } label: { Label("Other", systemImage: "ellipsis.circle") }
+                // 1.12: the Other list is grouped under headings (Airway, Monitors, Pacing & pads, ...), in a sheet.
+                Button { showPicker = true } label: { Label("Other", systemImage: "ellipsis.circle") }
                     .buttonStyle(CapsuleButtonStyle(prominent: false))
             }
         }
         .scrollClipDisabled()
+    }
+
+    /// A row of the grouped list: the double-lumen tube opens its fields first (it is an ETT with the DLT detail, as typing
+    /// "DLT" reads it); every other row adds its kind, whose details open (the epicardial wires' chambers come first).
+    private func choose(_ e: DevicePickerEntry) {
+        if e.kind == .ett, !e.detail.isEmpty {
+            dltDraft = PatientDevice(kind: .ett, site: "mouth", detail: e.detail, placedIntraop: placedIntraop)
+        } else {
+            addKind(e.kind)
+        }
     }
 
     private func addKind(_ k: DeviceKind, open: Bool = true) {
@@ -622,7 +696,7 @@ struct PatientDevicesEditor: View {
         let site = PatientDevices.defaultSite(for: k).flatMap { def in
             DeviceSite.find(def.site, side: DeviceSite.isPaired(def.site) ? (k == .cied ? "left" : "right") : nil)
         }
-        add([PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, placedIntraop: placedIntraop)], open: open)
+        add([PatientDevice(kind: k, site: site?.id ?? "", side: site?.side, settings: k.defaultSettings, placedIntraop: placedIntraop)], open: open)
     }
 
     // MARK: Mechanical support
@@ -848,8 +922,7 @@ struct PatientDevicesEditor: View {
                 // The airway is the record's own: an ETT or tracheostomy sets it instead of adding a device.
                 switch d.kind {
                 case .ett:
-                    if phase == .preop { r.currentAirway = "ett"; r.ettSize = d.size; r.ettDepth = d.settings["depth"].map { $0 + " cm" } ?? r.ettDepth }
-                    else { r.tube = ["\(d.size.isEmpty ? "" : d.size + " ")ETT", d.settings["depth"].map { $0 + " cm" }].compactMap { $0 }.joined(separator: ", ") }
+                    PatientDevices.setTube(d, in: &r, preop: phase == .preop)
                 case .trach:
                     r.currentAirway = "trach"; r.trachType = [d.size, d.detail].filter { !$0.isEmpty }.joined(separator: " ")
                 case .epidural, .spinal, .block, .perineuralCatheter:
@@ -1019,6 +1092,96 @@ struct DeviceDetailSheet: View {
             .navigationTitle(device?.kind.name ?? "Device")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.tint(PS.action) } }
+        }
+    }
+}
+
+// MARK: - The grouped type picker (1.12)
+
+/// The list behind "Other": every kind the buttons do not offer, under short headings (Airway, Monitors, Pacing & pads, Support,
+/// Regional, Access & drains, Other), so a clinician finds a thing by what it is. A row adds its device and closes the list.
+struct DeviceTypePicker: View {
+    var onPick: (DevicePickerEntry) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(DeviceKind.pickerGroups) { group in
+                    Section {
+                        ForEach(group.entries) { entry in
+                            Button {
+                                onPick(entry)
+                                dismiss()
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Circle().fill(PatientDiagramModel.color(entry.kind.colorRole)).frame(width: 9, height: 9)
+                                    Text(entry.title).font(PS.sys(size: 15.5, weight: .medium)).foregroundStyle(PS.fg)
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .listRowBackground(PS.surface)
+                        }
+                    } header: {
+                        Text(group.title).font(PS.sys(size: 12.5, weight: .semibold)).foregroundStyle(PS.fg2).textCase(nil)
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(FeedBackground())
+            .navigationTitle("Add a device")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Cancel") { dismiss() }.tint(PS.action) } }
+        }
+    }
+}
+
+/// The double-lumen tube's fields before it is added (1.12): the side (Left or Right), the size in Fr and the depth. It is an
+/// ETT with the DLT detail, so it sets the airway as typing "DLT" does; nothing here is a new kind.
+struct DoubleLumenSheet: View {
+    @State var draft: PatientDevice
+    var onAdd: (PatientDevice) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    private var side: Binding<String> {
+        Binding(get: {
+                    let d = draft.detail.lowercased()
+                    return d.hasPrefix("left") ? "Left" : (d.hasPrefix("right") ? "Right" : "")
+                },
+                set: { draft.detail = $0.isEmpty ? "DLT" : $0 + " DLT" })
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    PatientGroup(title: "Double-lumen tube") {
+                        DeviceFieldRow(field: DeviceField("side", "Side", choices: ["Left", "Right"]), value: side)
+                        Hairline().padding(.leading, 14)
+                        DeviceFieldRow(field: DeviceField("size", "Size", unit: "Fr", numeric: true),
+                                       value: Binding(get: { draft.size }, set: { draft.size = $0.trimmingCharacters(in: .whitespaces) }))
+                        Hairline().padding(.leading, 14)
+                        DeviceFieldRow(field: DeviceField("depth", "Depth", unit: "cm", numeric: true),
+                                       value: Binding(get: { draft.value("depth") }, set: { draft.setValue($0, for: "depth") }))
+                        Hairline().padding(.leading, 14)
+                        DeviceFieldRow(field: DeviceField("depthAt", "Measured at", choices: ["lip", "teeth", "nare"]),
+                                       value: Binding(get: { draft.value("depthAt") }, set: { draft.setValue($0, for: "depthAt") }))
+                    }
+                    Text(draft.label).font(PS.sys(size: 13.5, weight: .medium)).foregroundStyle(PS.fg2)
+                        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(PS.surface2.opacity(0.6), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .padding(20)
+            }
+            .background(FeedBackground())
+            .navigationTitle("Double-lumen tube")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() }.tint(PS.action) }
+                ToolbarItem(placement: .topBarTrailing) { Button("Add") { onAdd(draft); dismiss() }.tint(PS.action) }
+            }
         }
     }
 }
