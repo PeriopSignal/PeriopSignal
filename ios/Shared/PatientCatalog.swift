@@ -205,6 +205,9 @@ enum PatientCatalog {
         PatientSystem(id: "heme", name: "Heme & Oncology", icon: "drop.triangle", problems: [
             PatientProblem("anemia", "Anemia", asaDef: 2),
             PatientProblem("thrombocytopenia", "Thrombocytopenia", asaDef: 2),
+            // 1.12 follow-up (Ben, Nov 12): heparin-induced thrombocytopenia ("HIIT" was HIT) and heparin resistance, each its own
+            // item and neither the Thrombocytopenia item. Ben chose no ASA class for either (PatientRules.asaNoClass).
+            PatientProblem("hit", "Heparin-induced thrombocytopenia (HIT)"),
             PatientProblem("bleeding", "Bleeding disorder or coagulopathy", asaDef: 3),
             PatientProblem("vwd", "von Willebrand disease", asaDef: 2),
             PatientProblem("hemophilia-a", "Hemophilia A", asaDef: 3),
@@ -215,6 +218,7 @@ enum PatientCatalog {
             PatientProblem("thrombophilia-heme", "Thrombophilia", asaDef: 2),
             PatientProblem("fvl", "Factor V Leiden", asaDef: 2),
             PatientProblem("anticoagulation", "On anticoagulation", asaDef: 2),
+            PatientProblem("heparin-resistance", "Heparin resistance"),
             PatientProblem("declines-blood", "Declines blood products"),
             PatientProblem("vte", "DVT or PE", asaDef: 3),
             PatientProblem("sickle", "Sickle cell disease", asaDef: 3),

@@ -2523,7 +2523,8 @@ enum QuickAdd {
         ECGRule(#"\bt[- ]wave\s+inversions?\b|\binverted\s+t[- ]waves?\b|(?-i:\bTWI\b)"#, "T-wave inversion"),
         ECGRule(#"\b(?:prolonged|long)\s+qtc?\b|\bqtc?\s+prolongation\b"#, "Prolonged QTc"),
         ECGRule(#"\bshort\s+pr\b|\bpre-?excitation\b|\bdelta\s+waves?\b|(?-i:\bWPW\b)|\bwolff"#, "Short PR (pre-excitation)"),
-        ECGRule(#"(?-i:\bPVCs?\b)|\bpremature\s+ventricular\b"#, "PVCs"),
+        // 1.12 follow-up (Ben, Nov 12): in any letter case, as the history reader reads them ("pvcs" under an ECG cue).
+        ECGRule(#"\bPVCs?\b|\bpremature\s+ventricular\b"#, "PVCs"),
         ECGRule(#"(?-i:\bPACs\b)|\bpremature\s+atrial\b"#, "PACs"),
         ECGRule(#"\bnon-?specific\s+(?:st(?:[- ]t)?|t[- ]wave)(?:\s+wave)?\s+changes\b|(?-i:\bNSSTTW\b)|\bst[- ]t\s+(?:wave\s+)?changes\b"#, "Nonspecific ST-T changes"),
         ECGRule(#"\blow\s+voltage\b"#, "Low voltage"),

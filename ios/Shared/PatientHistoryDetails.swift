@@ -703,10 +703,13 @@ enum HistorySections {
     static let heme: [HistorySection] = [
         HistorySection(id: "anemia", title: "Anemia", base: "anemia", members: ["anemia"]),
         HistorySection(id: "thrombocytopenia", title: "Thrombocytopenia", base: "thrombocytopenia", members: ["thrombocytopenia"]),
+        // 1.12 follow-up (Ben, Nov 12): two items with no detail fields; not the Thrombocytopenia item and they do not set it.
+        HistorySection(id: "hit", title: "Heparin-induced thrombocytopenia (HIT)", base: "hit", members: ["hit"]),
         HistorySection(id: "bleeding", title: "Bleeding disorder or coagulopathy", base: "bleeding",
                        members: ["bleeding", "vwd", "hemophilia-a", "hemophilia-b", "dic"]),
         HistorySection(id: "thrombophilia", title: "Thrombophilia", base: "thrombophilia-heme", members: ["thrombophilia-heme", "fvl"]),
         HistorySection(id: "anticoagulation", title: "On anticoagulation", base: "anticoagulation", members: ["anticoagulation"]),
+        HistorySection(id: "heparin-resistance", title: "Heparin resistance", base: "heparin-resistance", members: ["heparin-resistance"]),
         HistorySection(id: "declines-blood", title: "Declines blood products", base: "declines-blood", members: ["declines-blood"]),
         HistorySection(id: "vte", title: "DVT/PE", base: "vte", members: ["vte"]),
         // Not in Ben's list; kept from 1.8.
@@ -1185,6 +1188,7 @@ enum HistorySections {
         var out: [String] = []
         if p.contains("anemia") { out.append("anemia") }
         if p.contains("thrombocytopenia") { out.append("thrombocytopenia") }
+        if p.contains("hit") { out.append("HIT") }
         let bleeding = bleedingKinds.filter { p.contains($0.id) }.map(\.words) + [nonEmpty(d.bleedingOther)].compactMap { $0 }
         if !bleeding.isEmpty { out.append("bleeding disorder: " + bleeding.joined(separator: ", ")) }
         else if p.contains("bleeding") { out.append("bleeding disorder or coagulopathy") }
@@ -1200,6 +1204,7 @@ enum HistorySections {
             }
             out.append("on anticoagulation" + (drugs.isEmpty ? "" : ": " + drugs.joined(separator: "; ")))
         }
+        if p.contains("heparin-resistance") { out.append("heparin resistance") }
         if p.contains("declines-blood") { out.append("declines blood products" + paren(d.declinesBloodDetails)) }
         if p.contains("vte") { out.append((["DVT/PE", d.vteTiming, nonEmpty(d.vteDate)].compactMap { $0 }).joined(separator: ", ")) }
         if p.contains("sickle") { out.append("sickle cell disease") }
