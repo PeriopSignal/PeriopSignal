@@ -566,8 +566,9 @@ struct PatientDevicesEditor: View {
             pickedEntry = nil
             choose(e)
         }) {
+            // Full height: the seven groups and their 26 rows are the point of the list, so it opens showing as many as fit.
             DeviceTypePicker { pickedEntry = $0 }
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
         .sheet(item: $dltDraft) { d in
