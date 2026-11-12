@@ -51,8 +51,8 @@ enum PatientLink {
     /// The packet in a link. Throws the same problems a bad file does (their messages are what the user sees).
     static func decode(_ url: URL) throws -> PatientPacket {
         guard isPatientLink(url) else { throw PatientPacket.Problem.notAPatient }
-        // Bound the work before parsing: the longest valid link is the payload plus a short fixed head.
-        guard url.absoluteString.utf8.count <= maxPayload + 200 else { throw PatientPacket.Problem.tooLarge }
+        // Bound the work before parsing: the longest valid link is the payload plus a short fixed head (29 characters).
+        guard url.absoluteString.utf8.count <= maxPayload + 64 else { throw PatientPacket.Problem.tooLarge }
         guard let parts = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw PatientPacket.Problem.notAPatient }
         let path = parts.path
         guard path.isEmpty || path == "/" else { throw PatientPacket.Problem.notAPatient }

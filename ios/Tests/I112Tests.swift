@@ -306,24 +306,35 @@ final class I112Tests: XCTestCase {
         await assertRejected(linkURL(newer), .newerFormat)
     }
 
-    func testAnOversizePayloadIsRefusedBeforeItIsReadAndFast() async {
-        let big = String(repeating: "A", count: PatientLink.maxPayload + 1)
-        let url = linkURL(big)
+    @MainActor func testAnOversizePayloadIsRefusedBeforeItIsReadAndFast() {
+        // Well past the limit: refused on the length alone, before the link is parsed (timed on the call itself).
+        let url = linkURL(String(repeating: "A", count: PatientLink.maxPayload + 1_000))
+        let inbox = PatientInbox()
         let start = Date()
-        await assertRejected(url, .tooLarge)
+        inbox.receiveLink(url)
         XCTAssertLessThan(Date().timeIntervalSince(start), 2)
+        XCTAssertNil(inbox.pending)
+        XCTAssertEqual(inbox.problem, PatientPacket.Problem.tooLarge.message)
+        // Just past it: refused as well, by the payload check.
+        let edge = PatientInbox()
+        edge.receiveLink(linkURL(String(repeating: "A", count: PatientLink.maxPayload + 1)))
+        XCTAssertNil(edge.pending)
+        XCTAssertEqual(edge.problem, PatientPacket.Problem.tooLarge.message)
     }
 
-    func testASmallPayloadThatWouldInflatePastTheCapFailsCleanlyAndFast() async throws {
+    @MainActor func testASmallPayloadThatWouldInflatePastTheCapFailsCleanlyAndFast() throws {
         // 5 MB of zeros packs to a few KB, far under the payload limit, and would inflate 5 times past the cap.
         let bomb = Data(count: 5_000_000)
         let packed = try XCTUnwrap(PatientLink.deflate(bomb))
         XCTAssertLessThan(packed.count, PatientLink.maxPayload / 2, "a small payload")
         let url = linkURL(PatientLink.base64URL(packed))
-        let start = Date()
         XCTAssertNil(PatientLink.inflate(packed, limit: PatientPacket.maxBytes))
-        await assertRejected(url, .tooLarge)
+        let inbox = PatientInbox()
+        let start = Date()
+        inbox.receiveLink(url)
         XCTAssertLessThan(Date().timeIntervalSince(start), 3, "stopped at the cap, not after inflating it all")
+        XCTAssertNil(inbox.pending)
+        XCTAssertEqual(inbox.problem, PatientPacket.Problem.tooLarge.message)
     }
 
     @MainActor func testAGoodLinkOnlyFillsPendingAndOpensNothing() throws {
