@@ -19,6 +19,15 @@ struct AsaReason: Hashable {
     var level: Int
     /// The ASA's example, when it says more than the finding: "history (>3 months) of MI, CVA, TIA, or CAD/stents".
     var example: String?
+    /// 1.12: the class is this app's, from the ASA's definition of the class (the ASA gives no example), not an ASA example;
+    /// `example` is then nil and the table says "By definition" with the definition in words.
+    var byDefinition = false
+
+    /// "By definition: severe systemic disease" for a class given by definition, nil otherwise.
+    var definitionLine: String? {
+        guard byDefinition, let w = PatientFunctional.asaDefinitionWords(level) else { return nil }
+        return "By definition: " + w
+    }
 }
 
 /// A test or tool the record suggests opening next.
@@ -44,17 +53,38 @@ enum PatientRules {
 
     /// The class a problem's ASA example gives for this patient: the pediatric example under 18 (or the obstetric one,
     /// which applies at any age), the adult or obstetric example otherwise.
+    /// An adult problem the ASA's examples do not name takes its class by the ASA's definition of the classes (1.12, Ben).
     static func asaLevel(_ p: PatientProblem, _ r: PatientRecord) -> Int? {
-        guard r.isChild else { return p.asa }
+        guard r.isChild else { return p.asa ?? asaDefinitionLevel(p, r) }
         return p.peds ?? (PatientCatalog.system(of: p.id)?.id == "ob" ? p.asa : nil)
+    }
+
+    /// Adult problems deliberately given no class (Ben, Nov 12): the ASA's examples do not name them and neither does his
+    /// table of classes by definition. The test enumerating the catalog reads this list.
+    static let asaNoClass: Set<String> = ["visual-impairment", "bph", "gastric-bypass", "dysphagia", "full-stomach", "declines-blood",
+                                          "mdro", "isolation", "uterine-rupture-past", "fracture"]
+
+    /// The class an adult problem takes by definition, when the ASA gives it no example. Most carry one (`asaDef`); four take
+    /// a recorded detail into account (Ben, Nov 12): chronic kidney disease is class III, also with no stage, and class II
+    /// only at stage 1 or 2; DVT or PE is class III when its timing is acute and class II otherwise; a malignancy, and the
+    /// Genitourinary page's prostate cancer (the same fact, from the same status), is class II when in remission and not
+    /// metastatic and class III otherwise (active, metastatic, or no status recorded).
+    static func asaDefinitionLevel(_ p: PatientProblem, _ r: PatientRecord) -> Int? {
+        guard p.asa == nil, let base = p.asaDef else { return nil }
+        switch p.id {
+        case "ckd": return r.hx.ckdStage == "1" || r.hx.ckdStage == "2" ? 2 : 3
+        case "vte": return r.hx.vteTiming == "acute" ? 3 : 2
+        case "malignancy", "prostate-cancer": return r.hx.malignancyStatus == "remission" && !r.hx.malignancyMetastatic ? 2 : 3
+        default: return base
+        }
     }
 
     /// Under 6 weeks old: the ASA's pediatric examples put full-term infants under 6 weeks (and premature infants
     /// under 60 weeks postconceptual age) in class III.
     static let sixWeeksInYears = 6.0 * 7 / 365.25
 
-    /// The highest class among the ASA's examples that the record matches (adult and obstetric; pediatric under 18),
-    /// with E for an emergency. None when nothing is recorded and "no significant history" is not set.
+    /// The highest class among the ASA's examples that the record matches (adult and obstetric; pediatric under 18) and,
+    /// for an adult, the classes the ASA's definitions give the other problems (1.12), with E for an emergency. None when nothing is recorded and "no significant history" is not set.
     static func asaSuggestion(_ r: PatientRecord) -> AsaSuggestion? {
         let child = r.isChild
         var found: [AsaReason] = []
@@ -65,9 +95,12 @@ enum PatientRules {
         }
         for p in PatientCatalog.allProblems where r.problems.contains(p.id) {
             guard let a = asaLevel(p, r) else { continue }
+            // One fact, one line: the Genitourinary prostate cancer is the Malignancy item's Prostate chip (PatientMalignancy).
+            if p.id == PatientMalignancy.prostateProblem, r.problems.contains(PatientMalignancy.problemID) { continue }
             let ex = child && p.peds != nil ? p.pedsExample : p.asaExample
             let finding = asaFinding(p, r)
-            found.append(AsaReason(finding: finding, level: a, example: example(finding, ex)))
+            let byDefinition = !child && p.asa == nil
+            found.append(AsaReason(finding: finding, level: a, example: example(finding, ex), byDefinition: byDefinition))
         }
         if child {
             if let a = r.ageYears, a < sixWeeksInYears, !r.problems.contains("p-infant6wk"), !r.problems.contains("p-premature60") {

@@ -162,14 +162,15 @@ final class F112Tests: XCTestCase {
         XCTAssertFalse(HistorySections.isSelected(item, system: "heme", r))
     }
 
-    func testNothingAboutACancerChangesTheAsaAScoreOrAnAlert() {
+    /// 1.12 (Ben, Nov 12): a cancer now has an ASA class by the ASA's definition (K112Tests); it still changes no score and no alert.
+    func testNothingAboutACancerChangesAScoreOrAnAlert() {
         let p = PatientCatalog.problem("malignancy")
         XCTAssertNotNil(p)
         XCTAssertNil(p?.asa); XCTAssertNil(p?.peds); XCTAssertNil(p?.rcri); XCTAssertNil(p?.stopBang)
         var r = adult(["malignancy"])
         r.hx.malignancies = ["lung", "lymphoma", "leukemia"]
         r.hx.malignancyStatus = "active"; r.hx.malignancyMetastatic = true; r.hx.malignancyTreatment = ["chemo", "radiation"]
-        XCTAssertNil(PatientRules.asaSuggestion(r)?.level, "no class from a cancer")
+        XCTAssertEqual(PatientRules.asaSuggestion(r)?.level, 3, "active and metastatic: class III by definition (1.12; was no class)")
         XCTAssertTrue(PatientRules.prefill("rcri", r).on.isEmpty)
         XCTAssertTrue(PatientWarnings.lines(r).isEmpty, "no warning")
         XCTAssertTrue(HistorySections.sections("heme")!.flatMap(\.members).contains("malignancy"))

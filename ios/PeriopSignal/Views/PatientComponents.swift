@@ -593,8 +593,9 @@ struct PatientPresetRow: View {
     }
 }
 
-/// The ASA suggestion as a small table: what is recorded, the ASA example it matches (when that says more), and the
-/// example's class; the rows that set the suggestion are filled.
+/// The ASA suggestion as a small table: what is recorded, the ASA example it matches (when that says more) or, where the
+/// ASA gives no example, "By definition" with the class's definition (1.12), and the class; the rows that set the
+/// suggestion are filled.
 struct AsaReasonTable: View {
     var reasons: [AsaReason]
     var top: Int
@@ -603,7 +604,7 @@ struct AsaReasonTable: View {
         VStack(spacing: 0) {
             HStack {
                 Text("RECORDED").frame(maxWidth: .infinity, alignment: .leading)
-                Text("ASA EXAMPLE").frame(alignment: .trailing)
+                Text("ASA CLASS").frame(alignment: .trailing)
             }
             .font(PS.mono(size: 9.5, weight: .semibold))
             .kerning(0.8)
@@ -616,7 +617,7 @@ struct AsaReasonTable: View {
                         Text(r.finding)
                             .font(PS.sys(size: 13.5, weight: r.level == top ? .semibold : .regular))
                             .foregroundStyle(PS.fg)
-                        if let ex = r.example {
+                        if let ex = r.example ?? r.definitionLine {
                             Text(ex).font(PS.sys(size: 11.5)).foregroundStyle(PS.fg3)
                         }
                     }

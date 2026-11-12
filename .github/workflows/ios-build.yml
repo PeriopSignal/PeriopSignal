@@ -1014,6 +1014,17 @@ jobs:
           shot 924-e1-valve-calc-nobsa-375-light 16 -ps.ref valves -ps.patient empty -ps.vg.lesion as -ps.vg.texts "vmax=3.3;lvotd=2.0;lvotvti=22;avvti=58" -ps.vg.scroll ava -ps.patient.width 375 -ps.forceAppearance light
           #
           # ---- 1.12 helper K shots (1040-1054): add your shot lines directly under this line ----
+          # The suggested ASA class by the ASA's definitions (K): Assessment with heart failure and hypertension (III; one "By
+          # definition" reason and one ASA example), decompensated heart failure (IV), the ASA title's ⓘ open, and only items
+          # with no class beside hypertension (II). 375 pt, light and dark.
+          shot 1040-k-asa-hf-htn-light 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance light
+          shot 1041-k-asa-hf-htn-dark 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1042-k-asa-hf-decomp-light 18 -ps.tab patient -ps.patient demo-112-asa-hf-decomp -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance light
+          shot 1043-k-asa-hf-decomp-dark 18 -ps.tab patient -ps.patient demo-112-asa-hf-decomp -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1044-k-asa-info-light 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.evidence.open 1 -ps.patient.width 375 -ps.forceAppearance light
+          shot 1045-k-asa-info-dark 18 -ps.tab patient -ps.patient demo-112-asa-hf -ps.patient.open assessment -ps.evidence.open 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1046-k-asa-noclass-light 18 -ps.tab patient -ps.patient demo-112-asa-noclass -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance light
+          shot 1047-k-asa-noclass-dark 18 -ps.tab patient -ps.patient demo-112-asa-noclass -ps.patient.open assessment -ps.patient.width 375 -ps.forceAppearance dark
           #
           # ---- 1.12 helper H shots (980-999): add your shot lines directly under this line ----
           # Typed antibiotics (H): Case Timers with an antibiotic picked and not logged ("Log dose" for a drug with no routine redose,
