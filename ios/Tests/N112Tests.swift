@@ -181,7 +181,8 @@ final class N112Tests: XCTestCase {
         let a = try XCTUnwrap(PatientSummary.airwayCourse(bare))
         let b = try XCTUnwrap(PatientSummary.airwayCourse(withDevices))
         XCTAssertEqual(a.text, b.text)
-        XCTAssertEqual(PatientAirwayCourse.clauses(bare).clauses, PatientAirwayCourse.clauses(withDevices).clauses)
+        XCTAssertEqual(PatientAirwayLine.clauses(bare).clauses, PatientAirwayLine.clauses(withDevices).clauses)
+        XCTAssertEqual(PatientAirwayLine.course(bare), PatientAirwayLine.course(withDevices), "the handoff's short airway course")
         // The ETT is still the airway; the blocker is listed with the lines.
         XCTAssertTrue(PatientDevices.labels(withDevices.currentDevices()).contains("Bronchial blocker (left)"))
     }
