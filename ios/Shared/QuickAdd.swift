@@ -328,6 +328,9 @@ enum QuickAdd {
         let c = QuickContext(tab: tab, record: record, now: now, abbreviations: abbreviations, choices: choices, setID: UUID())
         var out = QuickOut()
         let handoff = handoff || tab == .intraop
+        // 1.12 follow-up: an antibiotic given in the case (read on the Intraoperative side only), filed after the blood and
+        // fluids of the same line, so the dose carries the blood loss it was given at.
+        var antibiotics: [PatientNoteFinding] = []
 
         if surgicalHistory { readPastSurgery(&s, c, &out) }
         // The airway at handoff (1.11) before the airway course, whose device words would take the "LMA" of "LMA out".
@@ -337,6 +340,9 @@ enum QuickAdd {
             // "A-line pre-induction" on the Intraoperative tab says when it went in, not that it is still to come. Kept
             // for the events reader, whose "hypotension after induction" says when it happened.
             for m in inductionTiming.all(s.text) { s.keep(m.range) }
+            let given = IntraopAntibiotic.read(s.text, record: record, now: now)
+            for range in given.ranges { s.mask(range) }
+            antibiotics = given.findings
         }
         // 1.11: the disposition from any tab; the ECG, the stress test and the cardiac answers are the preoperative
         // workup (on the Intraoperative tab they are set aside, as the history is).
@@ -354,6 +360,7 @@ enum QuickAdd {
         if tab == .intraop {
             readBlood(&s, c, &out)
             readFluids(&s, c, &out)
+            for f in antibiotics { out.add(f) }
         }
         readLabs(&s, c, &out)
         readDrips(&s, c, &out)
@@ -3210,7 +3217,10 @@ enum QuickAdd {
                 continue
             }
             let (destination, value) = describe(f, r)
-            var chip = QuickAddChip(id: f.id + "|" + value, findings: [f], destination: destination, value: value,
+            // An antibiotic dose's label carries the time ("now" is the minute it is read), so its chip is known by the finding.
+            var keyed = f.id + "|" + value
+            if case .antibioticDose = f.change { keyed = f.id }
+            var chip = QuickAddChip(id: keyed, findings: [f], destination: destination, value: value,
                                     status: PatientNote.status(f, in: r), note: f.note)
             if let lab = labMarks(f, r) {
                 chip.marks = lab.marks

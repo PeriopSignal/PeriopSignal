@@ -364,6 +364,10 @@ struct QuickAddBar: View {
         guard !chosen.isEmpty else { return Haptics.light() }
         // One discrete step in the store's Undo history, whatever was typed just before.
         patient.update(discrete: true) { PatientNote.apply(QuickAdd.changes(chosen), to: &$0) }
+        // An antibiotic dose starts Case Timers' redose reminder: ask for notifications once, as Case Timers does.
+        if QuickAdd.changes(chosen).contains(where: { if case .antibioticDose = $0 { return true } else { return false } }) {
+            CaseTimerNotifier.shared.requestPermissionIfNeeded()
+        }
         Haptics.success()
         withAnimation(.snappy) {
             added = Added(count: chosen.count, before: before, after: patient.record, caseID: patient.currentCase.id)
