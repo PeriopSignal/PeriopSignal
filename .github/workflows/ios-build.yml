@@ -952,6 +952,8 @@ jobs:
           shot 869-b112-share-image-long-end-light 24 -ps.tab patient -ps.patient demo-112-long -ps.patient.tab summary -ps.brief.pages 1 -ps.patient.scroll briefpagesend -ps.forceAppearance light
           shot 867-b112-share-buttons-light 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll briefshare -ps.forceAppearance light
           shot 868-b112-share-buttons-dark 18 -ps.tab patient -ps.patient demo-112-summary -ps.patient.tab summary -ps.patient.scroll briefshare -ps.forceAppearance dark          #
+          # ---- 1.12 helper P shots (1130-1149): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper C shots (870-889): add your shot lines directly under this line ----
           # 1.12 helper C (870-889): the case and the tabs pinned at the top once the tab has scrolled (note 10): the row of
           # cases and tabs over the section chips on both tabs and on Summary & Handoff, at 375 pt, with one case, and in
@@ -977,6 +979,8 @@ jobs:
           shot 887-boxes-folded-intraop-light-375 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab intraop -ps.patient.jump intraop:airway -ps.patient.width 375 -ps.forceAppearance light
           shot 888-boxes-folded-intraop-fluids-dark 20 -ps.tab patient -ps.patient demo-112-layout -ps.patient.collapse 1 -ps.patient.tab intraop -ps.patient.jump intraop:fluids -ps.forceAppearance dark
           shot 889-boxes-empty-patient-open-light 18 -ps.tab patient -ps.patient empty -ps.patient.collapse 1 -ps.patient.tab preop -ps.patient.scroll demographics -ps.forceAppearance light
+          #
+          # ---- 1.12 helper Q shots (1150-1169): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper D shots (890-909): add your shot lines directly under this line ----
           shot 890-d112-preop-meds-light 20 -ps.tab patient -ps.patient demo-112-meds-preop -ps.patient.tab preop -ps.patient.scroll medications -ps.forceAppearance light
