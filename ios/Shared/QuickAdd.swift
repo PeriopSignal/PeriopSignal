@@ -1952,9 +1952,14 @@ enum QuickAdd {
         // reader's own patterns.
         let contexts: [(NoteRx, Bool)] = [(PatientNote.procedureHeaderRx, false), (PatientNote.procedureRx, false),
                                           (PatientNote.procedurePersonRx, true), (PatientNote.procedureLeadRx, false)]
-        for (rx, person) in contexts {
+        for (index, (rx, person)) in contexts.enumerated() {
             guard let m = rx.first(text), m.numberOfRanges > 1 else { continue }
             let g = m.range(at: 1)
+            // 1.12: a line "opens with for" only as typed (the patient's identifiers masked): when a lab, a vital or the like
+            // before it was read and masked, "Hgb 7.2 for transfusion" does not open with "for".
+            if index == 3 {
+                guard let typedLead = rx.first(s.baseline), typedLead.numberOfRanges > 1, typedLead.range(at: 1).location == g.location else { continue }
+            }
             guard g.location != NSNotFound, let p = segment(g, in: text, typed: true) else { return }
             // 1.12: "for 3 days", "for 8 hours" say how long, not what operation.
             guard durationFirst.first(p.text) == nil else { return }
