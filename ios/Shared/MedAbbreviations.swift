@@ -204,10 +204,15 @@ enum MedAbbreviations {
         return nil
     }
 
+    /// "ROS" is left out: "Ros" is a name, "Hpi" is not (1.12 review).
+    private static let anyCaseHeadings: Set<String> = ["PMH", "PSH", "HPI"]
+
     /// 1.9: a key written in capitals ("TIA", "HTN") is read in capitals or all in lower case ("htn", typed quickly),
     /// never in another case: "Tia" (a name: "Tia is a 34 yo…") and "Ross" are not abbreviations. Keys with a lower-case
     /// letter in the list ("HFrEF", "afib", "C diff", brand names) are read in any case, as before.
     static func capitalsOnly(_ key: String) -> Bool {
+        // 1.12 follow-up (Ben, Nov 12): the headings of a note are read in any case ("pmh", "Pmh", "PMH"); none is a name.
+        if anyCaseHeadings.contains(key) { return false }
         let letters = key.filter(\.isLetter)
         return letters.count >= 2 && letters.allSatisfy(\.isUppercase)
     }
@@ -865,6 +870,7 @@ extension MedAbbreviations {
         ("PH", "pulmonary hypertension"), ("PAD", "peripheral arterial disease"), ("MG", "myasthenia gravis"), ("OA", "osteoarthritis"),
         ("UC", "ulcerative colitis"), ("CF", "cystic fibrosis"), ("TB", "tuberculosis"), ("CSA", "central sleep apnea"), ("CAP", "community-acquired pneumonia"),
         ("IE", "infective endocarditis"), ("CoA", "coarctation of the aorta"), ("SAM", "systolic anterior motion"), ("HIT", "heparin-induced thrombocytopenia"),
+        ("HITT", "heparin-induced thrombocytopenia and thrombosis"),
         ("DI", "diabetes insipidus"), ("HA", "headache"), ("HRS", "hepatorenal syndrome"), ("BB", "beta-blocker"),
         ("AVR", "aortic valve replacement"), ("AVr", "aortic valve repair"), ("MVR", "mitral valve replacement"), ("MVr", "mitral valve repair"),
         ("TVR", "tricuspid valve replacement"), ("TVr", "tricuspid valve repair"), ("OM", "obtuse marginal artery"), ("LM", "left main coronary artery"),
