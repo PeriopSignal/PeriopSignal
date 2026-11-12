@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-11-12",
-  "revision": 1794500707,
+  "revision": 1794501193,
   "disclaimer": "Condensed by Periop Signal for quick reference; confirm against the source document before acting on it.",
   "ask": {
     "endpoint": null
@@ -2025,7 +2025,7 @@
     },
     {
       "id": "ashp-surgical-prophylaxis",
-      "title": "Surgical Antibiotic Prophylaxis: First Choice & Alternatives (ASHP)",
+      "title": "Surgical Antibiotic Prophylaxis: Recommended & Alternative Agents (ASHP)",
       "society": "American Society of Health-System Pharmacists, Infectious Diseases Society of America, Surgical Infection Society, Society for Healthcare Epidemiology of America",
       "short": "ASHP",
       "year": 2013,
@@ -2051,7 +2051,7 @@
         "surgical site infection",
         "SSI"
       ],
-      "summary": "The first-choice prophylactic antibiotic for each type of surgery and the alternative for a patient with a β-lactam allergy, from the 2013 ASHP, IDSA, SIS and SHEA guideline. Doses and redose intervals are in Case Timers.",
+      "summary": "The recommended prophylactic agents for each type of surgery and the alternative agents for a patient with a β-lactam allergy, from the 2013 ASHP, IDSA, SIS and SHEA guideline. In this app, doses and redose intervals are in Case Timers.",
       "source": {
         "title": "Clinical practice guidelines for antimicrobial prophylaxis in surgery",
         "citation": "Bratzler DW, Dellinger EP, Olsen KM, et al. Am J Health Syst Pharm. 2013;70(3):195–283. doi:10.2146/ajhp120568. Table 2 and the section on allergy to β-lactam antimicrobials.",
@@ -2064,19 +2064,19 @@
           "heading": "Reading the Tables",
           "kind": "list",
           "items": [
-            "Recommended is the guideline's first choice; β-lactam allergy is its alternative for a patient who cannot have a β-lactam. Evidence is the guideline's own grade: A (levels I–III), B (levels IV–VI), C (level VII, expert opinion).",
+            "Recommended is the guideline's Recommended Agents column; β-lactam allergy is its Alternative Agents in Patients With β-Lactam Allergy column. Evidence is the guideline's own grade for using or not using prophylaxis: A (levels I–III), B (levels IV–VI), C (level VII, expert opinion).",
             "Aminoglycoside means gentamicin or tobramycin. Fluoroquinolone means ciprofloxacin or levofloxacin.",
             "* Where pathogens other than staphylococci and streptococci are likely, an additional agent active against them could be considered.",
             "Known MRSA colonization: it is reasonable to add a single preoperative dose of vancomycin to the recommended agent.",
             "Start within 60 minutes before incision (120 minutes for vancomycin or a fluoroquinolone). A single dose is usually enough, and prophylaxis should last less than 24 hours for every procedure.",
-            "Doses and redose intervals are in Case Timers, from the same guideline. This card says which drug."
+            "Periop Signal note: in this app, doses and redose intervals are in Case Timers. This card says which agent."
           ]
         },
         {
           "heading": "Who Needs the Alternative",
           "kind": "text",
-          "text": "Cephalosporins and carbapenems should not be used for prophylaxis in a patient with a documented or presumed IgE-mediated penicillin allergy (anaphylaxis, urticaria, bronchospasm), although true cross-allergy between penicillins, cephalosporins and carbapenems is uncommon. They can safely be used when the reaction to penicillin was neither IgE-mediated nor exfoliative dermatitis (Stevens-Johnson syndrome, toxic epidermal necrolysis). Question the patient carefully about the reaction to decide whether a true allergy exists before choosing an alternative: confusion about true allergy leads to alternatives that may be less effective, cost more and cause adverse events.",
-          "note": "From the guideline's section on allergy to β-lactam antimicrobials (2013). Newer allergy guidance may be more permissive; follow your institution's protocol."
+          "text": "True Type 1 (IgE-mediated) cross-allergic reactions between penicillins, cephalosporins and carbapenems are uncommon, but cephalosporins and carbapenems should not be used for surgical prophylaxis in patients with documented or presumed IgE-mediated penicillin allergy. In the guideline's words, they “can safely be used in patients with an allergic reaction to penicillins that is not an IgE-mediated reaction (e.g., anaphylaxis, urticaria, bronchospasm) or exfoliative dermatitis (Stevens-Johnson syndrome, toxic epidermal necrolysis)”. Patients should be carefully questioned about their history of antimicrobial allergies to determine whether a true allergy exists before agents are selected: confusion about true allergy leads to alternative therapy with the potential for a lack of efficacy, increased costs and adverse events. Because the predominant organisms after clean procedures are gram-positive, including vancomycin may be appropriate for a patient with a life-threatening allergy to β-lactam antimicrobials.",
+          "note": "From the guideline's section on allergy to β-lactam antimicrobials. Periop Signal note: this guideline dates from 2013; follow your institution's current protocol."
         },
         {
           "heading": "Cardiac",
@@ -2106,8 +2106,7 @@
               "Clindamycin, vancomycin",
               "C"
             ]
-          ],
-          "note": "A patient with a left ventricular assist device as a bridge who is chronically infected might also benefit from coverage of the infecting organism."
+          ]
         },
         {
           "heading": "Thoracic",
@@ -2175,7 +2174,7 @@
               "A"
             ]
           ],
-          "note": "Consider prophylaxis for patients at highest risk of gastroduodenal infection: increased gastric pH (H2-receptor antagonists, proton-pump inhibitors), perforation, decreased motility, outlet obstruction, bleeding, morbid obesity or cancer. It may not be needed when the lumen is not entered. Pancreaticoduodenectomy with an infected biliary tract: consider additional coverage."
+          "note": "Consider prophylaxis for patients at highest risk of postoperative gastroduodenal infection: increased gastric pH (e.g., H2-receptor antagonists or proton-pump inhibitors), gastroduodenal perforation, decreased gastric motility, gastric outlet obstruction, gastric bleeding, morbid obesity or cancer. Prophylaxis may not be needed when the lumen of the intestinal tract is not entered. Pancreaticoduodenectomy: consider additional coverage with an infected biliary tract."
         },
         {
           "heading": "Biliary Tract",
@@ -2395,7 +2394,7 @@
             ],
             [
               "Clean without entry into the urinary tract",
-              "Cefazolin (a single dose of an aminoglycoside may be added for placement of prosthetic material, e.g., penile prosthesis)",
+              "Cefazolin (the addition of a single dose of an aminoglycoside may be recommended for placement of prosthetic material, e.g., penile prosthesis)",
               "Clindamycin*, vancomycin*",
               "A"
             ],
@@ -2407,7 +2406,7 @@
             ],
             [
               "Clean with entry into the urinary tract",
-              "Cefazolin (a single dose of an aminoglycoside may be added for placement of prosthetic material, e.g., penile prosthesis)",
+              "Cefazolin (the addition of a single dose of an aminoglycoside may be recommended for placement of prosthetic material, e.g., penile prosthesis)",
               "Fluoroquinolone, aminoglycoside with or without clindamycin",
               "A"
             ],
@@ -2449,7 +2448,7 @@
             ],
             [
               "Pancreas and pancreas–kidney",
-              "Cefazolin; fluconazole for patients at high risk of fungal infection (e.g., enteric drainage of the pancreas)",
+              "Cefazolin, fluconazole (for patients at high risk of fungal infection, e.g., those with enteric drainage of the pancreas)",
               "Clindamycin or vancomycin + aminoglycoside or aztreonam or fluoroquinolone",
               "A"
             ],
@@ -2460,7 +2459,7 @@
               "A"
             ]
           ],
-          "note": "These prevent surgical-site infection only; they are not recommendations against opportunistic infection in immunosuppressed patients (antifungal or antiviral drugs). The regimen may need to change to cover organisms isolated from the donor lung or the recipient before transplantation, including Pseudomonas aeruginosa, fungi or vancomycin-resistant enterococci. Lung transplantation for cystic fibrosis: 7–14 days of treatment chosen by pretransplantation cultures."
+          "note": "These recommendations prevent surgical-site infection; they do not cover prevention of opportunistic infection in immunosuppressed patients (e.g., antifungal or antiviral medications). Heart, lung and pancreas rows: patients with a left ventricular assist device as a bridge who are chronically infected might also benefit from coverage of the infecting microorganism. Lung and heart–lung: the regimen may need to be modified to cover potential pathogens isolated from the donor lung or the recipient before transplantation, including gram-negative (e.g., Pseudomonas aeruginosa) or fungal organisms; with negative pretransplantation cultures, give prophylaxis as for other cardiothoracic surgery; for cystic fibrosis, 7–14 days of treatment selected by pretransplantation culture and susceptibility results, which may include additional antibacterial or antifungal agents. Liver: the regimen may need to be modified to cover potential pathogens isolated from the recipient before transplantation, including vancomycin-resistant enterococci. Kidney: this row has no procedure name in the published table and is identified from the guideline's kidney transplantation recommendations, which name gentamicin, aztreonam or a fluoroquinolone with clindamycin or vancomycin, limit prophylaxis to 24 hours or less, and say fluconazole adjusted for renal function may be considered for patients at high risk of Candida infection."
         },
         {
           "heading": "Plastic Surgery and Ophthalmic",
@@ -2493,9 +2492,9 @@
           "items": [
             "* in practice: if surveillance shows gram-negative organisms cause surgical-site infections for the procedure, clindamycin or vancomycin may be combined with aztreonam, gentamicin or a single-dose fluoroquinolone in a β-lactam-allergic patient (with cefazolin if not allergic).",
             "Escherichia coli increasingly resists fluoroquinolones and ampicillin–sulbactam: review local susceptibility before using either.",
-            "Fluoroquinolones carry a risk of tendonitis and tendon rupture at all ages, expected to be quite small with a single dose; they are not first-choice drugs in children.",
+            "Fluoroquinolones are associated with an increased risk of tendonitis and tendon rupture at all ages; the risk is expected to be quite small with single-dose prophylaxis. They may be necessary in some children but are not drugs of first choice in the pediatric population, because of more adverse events than controls in some trials.",
             "Redose a short half-life agent (e.g., cefazolin, cefoxitin) when the procedure outlasts its redosing interval, counted from the start of the preoperative dose; also consider it with prolonged or excessive bleeding or other causes of a shortened half-life (e.g., extensive burns). It may not be warranted when the half-life is prolonged (renal insufficiency or failure).",
-            "Kidney transplantation: avoid aminoglycosides in combination with other nephrotoxic drugs unless alternatives are contraindicated."
+            "Kidney transplantation: aminoglycosides in combination with other nephrotoxic drugs may cause renal dysfunction and should be avoided unless alternatives are contraindicated (strength of evidence C)."
           ]
         }
       ]
