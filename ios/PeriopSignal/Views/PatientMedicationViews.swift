@@ -674,13 +674,16 @@ private struct LegacyListRow: View {
 struct IntraopMedicationsPage: View {
     @Environment(PatientStore.self) private var patient
     @Environment(ReferenceStore.self) private var refs
+    /// Opens Case Timers at its antibiotic card. The editor pages push it as a page of My Patient's stack (the sheet is
+    /// presented from the tab under them); without one the sheet opens.
+    var openCaseTimers: (() -> Void)? = nil
 
     static let notableTitle = "Notable medications"
     static let notableNote = "Choose a medication to record it; a dose is printed only if you type one, and none is suggested. A milrinone bolus or inhaled milrinone is not an infusion: type a drip under Infusions."
     static let otherLabel = "Other medications & interventions"
     static let otherPrompt = "Antibiotic and time, steroids, reversal, positioning"
     static let antibioticsTitle = "Antibiotics in Case Timers"
-    static let antibioticsNote = "Read from Case Timers for this case: the drug and dose it holds, the last dose given and the next redose due. Change them in Case Timers."
+    static let antibioticsNote = "Read from Case Timers for this case: the drug and dose it holds, the last dose given and the next redose due. Change them in Case Timers, or type it in the bar: \(IntraopAntibiotic.barExample)."
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -698,8 +701,17 @@ struct IntraopMedicationsPage: View {
 
     @ViewBuilder private func antibiotics(now: Date) -> some View {
         let lines = CaseAntibiotics.lines(patient.record, data: refs.caseTimers ?? CaseAntibiotics.current, now: now)
-        if !lines.isEmpty {
+        let shown = DraftGate.shows("caseTimers")
+        // 1.12 follow-up: the group is always here while Case Timers is, so an empty one says how to add (a link that opens
+        // Case Timers at its antibiotic card, or the bar); with Case Timers hidden it stays hidden while empty, as before.
+        if IntraopAntibiotic.pageShowsGroup(hasAntibiotics: !lines.isEmpty, caseTimersShown: shown) {
             PatientGroup(title: Self.antibioticsTitle, note: Self.antibioticsNote) {
+                if lines.isEmpty {
+                    Text(IntraopAntibiotic.noneCharted)
+                        .font(PS.sys(size: 14.5)).foregroundStyle(PS.fg3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                }
                 ForEach(Array(lines.enumerated()), id: \.element.id) { i, l in
                     Text(l.tabText)
                         .font(PS.sys(size: 14.5, weight: l.overdue ? .semibold : .regular))
@@ -709,6 +721,23 @@ struct IntraopMedicationsPage: View {
                         .padding(.horizontal, 14).padding(.vertical, 10)
                         .accessibilityLabel(l.tabText + (l.overdue ? ", redose overdue" : ""))
                     if i < lines.count - 1 { Hairline().padding(.leading, 14) }
+                }
+                if let link = IntraopAntibiotic.pageLink(hasAntibiotics: !lines.isEmpty, caseTimersShown: shown,
+                                                         child: CaseTimerEngine.isChild(patient.record)) {
+                    Hairline().padding(.leading, 14)
+                    Button {
+                        Haptics.light()
+                        if let openCaseTimers { openCaseTimers() } else { CaseTimersUI.shared.openAntibiotic() }
+                    } label: {
+                        Text(link)
+                            .font(PS.sys(size: 13.5, weight: .semibold)).foregroundStyle(PS.action)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(lines.isEmpty ? "Add an antibiotic in Case Timers" : "Add an antibiotic or a redose in Case Timers")
+                    .accessibilityHint("Opens Case Timers at the antibiotic card")
                 }
             }
         }

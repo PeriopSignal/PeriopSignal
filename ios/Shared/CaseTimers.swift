@@ -110,9 +110,12 @@ struct TimedEntry: Codable, Equatable, Identifiable {
     var ebl: Double?
     /// An ACT drawn before any heparin.
     var baseline: Bool?
+    /// 1.12: an antibiotic dose as it was typed in the quick-add bar ("1 g"), kept as typed and never computed or converted;
+    /// nil for a dose logged in Case Timers (a record saved before 1.12 decodes it as nil).
+    var given: String?
 
-    init(time: Date, value: Double? = nil, ebl: Double? = nil, baseline: Bool? = nil) {
-        self.time = time; self.value = value; self.ebl = ebl; self.baseline = baseline
+    init(time: Date, value: Double? = nil, ebl: Double? = nil, baseline: Bool? = nil, given: String? = nil) {
+        self.time = time; self.value = value; self.ebl = ebl; self.baseline = baseline; self.given = given
     }
 }
 
@@ -864,6 +867,12 @@ extension CaseTimers {
         snoozes[rem.id] = ReminderSnooze(due: originalDue(rem), until: from.addingTimeInterval(minutes * 60))
     }
 
+    /// A new dose of an antibiotic: its redose, long-case and blood-loss reminders run from it, so a snooze or stop put on
+    /// them before is cleared (markDone, and the quick-add bar's dose, IntraopAntibiotic.apply).
+    mutating func clearAntibioticSnoozes(_ drug: String) {
+        for k in [CaseReminder.Kind.antibiotic, .longCase, .bloodLoss] { snoozes[k.rawValue + "." + drug] = nil }
+    }
+
     /// The due time a reminder had before any snooze (for a due-now rule, the dose it runs from).
     private func originalDue(_ rem: CaseReminder) -> Date? { rem.snoozed ? snoozes[rem.id]?.due : rem.occurrence }
 
@@ -894,7 +903,7 @@ extension CaseTimers {
             guard let i = antibiotics.firstIndex(where: { $0.drug == rem.ref }) else { return false }
             antibiotics[i].doses.append(TimedEntry(time: now, ebl: ebl ?? 0))
             // A new dose: every reminder of this drug runs from it now.
-            for k in [CaseReminder.Kind.antibiotic, .longCase, .bloodLoss] { snoozes[k.rawValue + "." + antibiotics[i].drug] = nil }
+            clearAntibioticSnoozes(antibiotics[i].drug)
         case .abg: checks["abg"]?.done.append(TimedEntry(time: now))
         case .lab:
             guard let ref = rem.ref else { return false }
