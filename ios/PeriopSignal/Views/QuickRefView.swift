@@ -111,6 +111,8 @@ struct QuickRefView: View {
         "ase-valve-severity": ("Echo", "Valve Severity"),
         "asa-fasting": ("Preoperative", "Fasting"),
         "asa-difficult-airway": ("Airway", "Difficult Airway"),
+        // 1.12 (Ben, Nov 12): the first-choice prophylactic antibiotic by surgery and the alternative for a β-lactam allergy.
+        "ashp-surgical-prophylaxis": ("Antibiotics", "Surgical Prophylaxis"),
     ]
 
     static func header(for ref: QuickRef) -> (eyebrow: String, title: String) {
