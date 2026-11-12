@@ -1,2 +1,0 @@
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/AbxReference112Tests.swift:29:32: error: value of optional type 'String?' must be unwrapped to refer to member 'contains' of wrapped base type 'String'
-/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/AbxReference112Tests.swift:30:32: error: value of optional type 'String?' must be unwrapped to refer to member 'contains' of wrapped base type 'String'
