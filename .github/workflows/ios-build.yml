@@ -1090,6 +1090,13 @@ jobs:
           # ---- 1.12 helper G shots (960-979): add your shot lines directly under this line ----
           #
           # ---- 1.12 helper L shots (1055-1069): add your shot lines directly under this line ----
+          # "for ___" typed in the Preoperative bar fills the planned procedure (Ben, Nov 12): the chips, the Planned Procedure & Anesthetic box after Add, and a line whose "for" is a reason (no procedure chip).
+          shot 1055-for112-chips-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "73M with HF for ECMO cannulation"
+          shot 1056-for112-chips-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark -ps.quickadd "73M with HF for ECMO cannulation"
+          shot 1057-for112-box-after-add-light-375 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll procedure -ps.forceAppearance light -ps.quickadd "73M with HF for ECMO cannulation" -ps.quickadd.add 1
+          shot 1058-for112-box-after-add-dark-375 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.patient.scroll procedure -ps.forceAppearance dark -ps.quickadd "73M with HF for ECMO cannulation" -ps.quickadd.add 1
+          shot 1059-for112-not-a-procedure-light-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "68M on apixaban for AF"
+          shot 1060-for112-not-a-procedure-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.patient.width 375 -ps.forceAppearance dark -ps.quickadd "68M on apixaban for AF"
           # A day in dates, Type & Screen expiration, and no H or L beside a lab value (Ben, Nov 11). Dates are relative to the run day.
           shot 960-dates112-psh-page-light 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:surgeries -ps.forceAppearance light
           shot 961-dates112-psh-page-dark-375 22 -ps.tab patient -ps.patient demo-112-dates -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance dark
