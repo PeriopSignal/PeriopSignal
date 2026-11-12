@@ -185,11 +185,16 @@ enum PastSurgeryNote {
             if let op {
                 if !op.text.isEmpty {
                     out.append(op)
-                } else if var last = out.popLast(), last.date.isEmpty {
-                    // A bare date after a comma belongs to the operation before it.
-                    last.date = op.date
-                    last.range = NSUnionRange(last.range, op.range)
-                    out.append(last)
+                } else if let last = out.last {
+                    if last.date.isEmpty {
+                        // A bare date after a comma belongs to the operation before it.
+                        out[out.count - 1].date = op.date
+                        out[out.count - 1].range = NSUnionRange(last.range, op.range)
+                    } else {
+                        // A second bare date ("C-section 2012, 2015"): the same operation again, on that date. (Until 1.12
+                        // the operation before it was dropped here.)
+                        out.append(Operation(text: last.text, date: op.date, aside: "", range: op.range))
+                    }
                 } else {
                     break
                 }
@@ -211,11 +216,16 @@ enum PastSurgeryNote {
             if let op = operation(ns, p, strict: strict, lenient: lenient, now: now, stopped: &stopped) {
                 if !op.text.isEmpty {
                     out.append(op)
-                } else if var last = out.popLast(), last.date.isEmpty {
-                    // A date on its own ("CABG x3, 2019").
-                    last.date = op.date
-                    last.range = NSUnionRange(last.range, op.range)
-                    out.append(last)
+                } else if let last = out.last {
+                    if last.date.isEmpty {
+                        // A date on its own ("CABG x3, 2019").
+                        out[out.count - 1].date = op.date
+                        out[out.count - 1].range = NSUnionRange(last.range, op.range)
+                    } else {
+                        // A second date on its own ("C-section 2012, 2015"): the same operation again, on that date. (Until
+                        // 1.12 the operation before it was dropped here.)
+                        out.append(Operation(text: last.text, date: op.date, aside: "", range: op.range))
+                    }
                 }
             }
             if stopped { break }
