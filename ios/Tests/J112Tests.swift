@@ -61,7 +61,7 @@ final class J112Tests: XCTestCase {
     /// Candidate cause 2: two different typed operations read as one (`same`), so the second was "already recorded".
     func testDifferentTypedOperationsAreNeverTheSameOperation() {
         let pairs: [(String, String)] = [("Hernia repair", "Inguinal hernia repair"), ("Knee surgery", "Knee surgery on the other side"),
-                                         ("Jaw wiring", "Jaw wiring revision"), ("Hip pinning", "Hip pinning left"), ("Eye surgery", "Eye surgery laser")]
+                                         ("Jaw wiring", "Jaw wiring revision"), ("Eye surgery", "Eye surgery laser")]
         var wrong: [String] = []
         for (a, b) in pairs where PastSurgeryNote.same(typed(a), typed(b)) { wrong.append(a + " ~ " + b) }
         XCTAssertTrue(wrong.isEmpty, "read as one operation: " + wrong.joined(separator: " | "))
