@@ -991,6 +991,9 @@ jobs:
           shot 1030-j-bar-three-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.quickadd.editor "jaw wiring 2012, knee scope 2020, tubes tied" -ps.patient.width 375 -ps.forceAppearance dark
           shot 1031-j-filed-two-light 22 -ps.tab patient -ps.patient demo-112-psh-filed -ps.patient.open workup:surgeries -ps.forceAppearance light
           shot 1032-j-filed-two-dark-375 22 -ps.tab patient -ps.patient demo-112-psh-filed -ps.patient.open workup:surgeries -ps.patient.width 375 -ps.forceAppearance dark
+          # The end of the page of five entries (shots 1020 to 1022 show its first three): the year alone, the oldest, and the undated one last.
+          shot 1033-j-psh-page-end-light 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.scroll done -ps.forceAppearance light
+          shot 1034-j-psh-page-end-dark-375 22 -ps.tab patient -ps.patient demo-112-psh -ps.patient.open workup:surgeries -ps.patient.scroll done -ps.patient.width 375 -ps.forceAppearance dark
           #
           # ---- 1.12 helper I shots (1000-1014): add your shot lines directly under this line ----
           # 1.12 helper I (1000-1013): the case's name on the Patient Received sheet (on an empty phone, beside a named case with a
