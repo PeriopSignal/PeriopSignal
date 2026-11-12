@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/L112Tests.swift:140: error: -[PeriopSignalTests.L112Tests testWordsThatBeginAListedNameFillTheListedProcedure] : XCTAssertEqual failed: ("[]") is not equal to ("["axillary-impella"]")
+Test Case '-[PeriopSignalTests.L112Tests testWordsThatBeginAListedNameFillTheListedProcedure]' failed (2.723 seconds).
