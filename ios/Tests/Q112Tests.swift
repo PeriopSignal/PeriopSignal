@@ -300,6 +300,47 @@ final class Q112Tests: XCTestCase {
         }
     }
 
+    /// The measuring and the drawing agree on every page of a long PDF, not only on the page with the diagram: below the end of
+    /// a page's last block (as measured, a block at a time) and above its footer nothing is drawn, so no block is drawn taller
+    /// than it was measured (which is what would push a block's foot past the page's foot or into the footer). The layout does
+    /// not depend on the context the page is drawn into (the same renderer scale measures and draws), so this holds for the
+    /// pages of the PDF whatever the picture's own scale.
+    @MainActor func testNoPDFPageDrawsAnythingBetweenItsLastBlockAndItsFooter() throws {
+        let geo = BriefPages.Geometry.letter
+        let inner = geo.width - 2 * geo.margin
+        var long = PatientDemo112Summary.summary
+        long.disposition = "PACU"
+        long.todos = todos(150)
+        var bens = try bensContext()
+        bens.record.disposition = "PACU"
+        bens.record.todos = todos(40)
+        let contexts: [(String, BriefPages.Context)] = [("long", plainContext(long)), ("bens", bens)]
+        var totalPages = 0
+        var checked = 0
+        for (name, ctx) in contexts {
+            let blocks = PatientBriefs.handoff(ctx.record)
+            let sheets = BriefPages.sheets(blocks, ctx, geo: geo, now: now)
+            let data = try XCTUnwrap(BriefPages.pdf(blocks, ctx, now: now), name)
+            let pages = PDFDocumentBridge.pages(try XCTUnwrap(PDFDocumentBridge.document(data)))
+            XCTAssertEqual(pages.count, sheets.count, name)
+            totalPages += pages.count
+            for (i, s) in sheets.enumerated() where i < pages.count {
+                let measured = s.blocks.map { BriefPages.height(of: [$0], ctx, width: inner, spacing: geo.spacing) }
+                let bodyEnd = geo.margin + measured.reduce(0, +) + geo.spacing * CGFloat(max(0, s.blocks.count - 1))
+                let footerTop = s.height - geo.bottom / 2 - 11
+                guard bodyEnd + 2 <= footerTop - 2 else { continue }
+                let cg = try XCTUnwrap(pages[i].cgImage, "\(name) page \(i + 1)")
+                let per = CGFloat(cg.width) / geo.width
+                let pixel = try pixels(cg)
+                let below = lowestInk(pixel, per: per, xs: 0...(geo.width - 1), ys: (bodyEnd + 2)...(footerTop - 2), height: cg.height)
+                XCTAssertNil(below, "\(name) page \(i + 1): nothing below the blocks' measured end (\(bodyEnd)): \(below ?? -1)")
+                checked += 1
+            }
+        }
+        XCTAssertGreaterThan(totalPages, 2, "the long record runs over several pages")
+        XCTAssertGreaterThan(checked, 0, "at least one page has room under its blocks to check")
+    }
+
     // MARK: 4. The AirDrop switch: on by default
 
     private func freshDefaults() -> UserDefaults {

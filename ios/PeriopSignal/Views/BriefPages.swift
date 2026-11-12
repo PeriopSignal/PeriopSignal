@@ -15,6 +15,15 @@ import PDFKit
 // (1170 px wide) unless that would be taller than 12,000 px, then 2x, then 1x, so it stays an image every app accepts. The PDF
 // is the same layout on US Letter width pages, blocks kept whole across the page breaks (an oversize block on a taller page),
 // each with the footer "Periop Signal · page 2 of 3 · generated 10:42". ImageRenderer draws both, on the main actor.
+//
+// Why Ben's build 39 picture looked cut off (Nov 12): it was one 390 x 844 pt page, the shape of the phone's screen, and the
+// viewer (Photos, or Messages' quick look) draws its own controls over such a picture: the grey bar at the top, and at the
+// foot the zoom and reply pill and the share button, which are opaque. In his screenshot the right foot's sole line is drawn
+// at 775.7 pt, the pill's top edge is at 771 pt and covers the left foot, the page's footer text is at 822 pt and the page is
+// 844 pt: the diagram was complete on the page (its frame ends at about 787 pt) and the controls stood over it. The measuring
+// and the drawing agree (the blocks are rigid in height and both are fixed at their ideal height), which the tests in
+// Q112Tests check on the diagram's page and on every page of a long PDF. The picture is now one image of the whole summary,
+// so no page-shaped picture sits under a viewer's controls, and people zoom (or hide the controls) to read.
 
 /// What the Share button offers, in the order of its menu.
 enum BriefShareFormat: CaseIterable, Equatable {
