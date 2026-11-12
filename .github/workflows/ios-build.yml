@@ -1019,7 +1019,7 @@ jobs:
           # bar, and the procedure search for ECMO reconfiguration.
           shot 940-onc112-tile-light-375 18 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll problems -ps.patient.width 375 -ps.forceAppearance light
           shot 941-onc112-tile-dark 18 -ps.tab patient -ps.patient demo-112-onc -ps.patient.tab preop -ps.patient.scroll problems -ps.forceAppearance dark
-          shot 942-onc112-page-light 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.forceAppearance light
+          shot 942-onc112-page-light 40 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.forceAppearance light
           shot 943-onc112-page-dark 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.forceAppearance dark
           shot 944-onc112-page-light-375 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.patient.width 375 -ps.forceAppearance light
           shot 945-onc112-page-large-text-dark-375 22 -ps.tab patient -ps.patient demo-112-onc -ps.patient.open system:heme -ps.patient.scroll hx-malignancy -ps.patient.width 375 -ps.textScale 1.5 -ps.forceAppearance dark
