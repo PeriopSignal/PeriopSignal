@@ -1,0 +1,2 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/J112Tests.swift:67: error: -[PeriopSignalTests.J112Tests testDifferentTypedOperationsAreNeverTheSameOperation] : XCTAssertTrue failed - read as one operation: Hip pinning ~ Hip pinning left
+Test Case '-[PeriopSignalTests.J112Tests testDifferentTypedOperationsAreNeverTheSameOperation]' failed (3.673 seconds).
