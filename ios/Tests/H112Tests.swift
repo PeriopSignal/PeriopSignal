@@ -161,14 +161,14 @@ final class H112Tests: XCTestCase {
 
     // MARK: 2. The bar reads an antibiotic given in the case
 
-    func testVancAndADoseIsADoseLoggedInCaseTimersAtNow() throws {
+    func testVancAndADoseIsADoseRecordedAtNow() throws {
         let q = read("vanc 1 g")
         let d = try dose("vanc 1 g")
         XCTAssertEqual(d, IntraopAntibioticDose(drug: "vancomycin", given: "1 g", time: now, redose: false))
         let f = try XCTUnwrap(q.findings.first)
         XCTAssertEqual(f.section, QuickAdd.intraop, "the Intraoperative group of the review")
-        XCTAssertEqual(f.label, "Vancomycin 1 g: dose logged in Case Timers at 09:30")
-        XCTAssertEqual(QuickAdd.chips(q, record: adult()).first?.text, "Intraop · Vancomycin 1 g: dose logged in Case Timers at 09:30")
+        XCTAssertEqual(f.label, "Vancomycin 1 g: recorded at 09:30")
+        XCTAssertEqual(QuickAdd.chips(q, record: adult()).first?.text, "Intraop · Vancomycin 1 g: recorded at 09:30")
         XCTAssertEqual(q.findings.count, 1, "nothing else is read from the line")
         XCTAssertTrue(q.unread.isEmpty, "nothing is left unread: \(q.unread)")
     }
