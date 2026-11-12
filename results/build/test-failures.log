@@ -1,0 +1,4 @@
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/M112Tests.swift:146: error: -[PeriopSignalTests.M112Tests testHITFilesOnlyItselfAndTheRestOfTheLineIsStillRead] : XCTAssertFalse failed - h/o HIT, avoid heparin: not a heparin the patient takes
+Test Case '-[PeriopSignalTests.M112Tests testHITFilesOnlyItselfAndTheRestOfTheLineIsStillRead]' failed (36.695 seconds).
+/Users/runner/work/PeriopSignal/PeriopSignal/ios/Tests/M112Tests.swift:253: error: -[PeriopSignalTests.M112Tests testTheItemsAfterTheHeadingAreFiledAsHistory] : XCTAssertTrue failed - note: 68M for lap chole, pmh htn dm2 osa → age, sex, procedure, problem:htn
+Test Case '-[PeriopSignalTests.M112Tests testTheItemsAfterTheHeadingAreFiledAsHistory]' failed (0.765 seconds).
