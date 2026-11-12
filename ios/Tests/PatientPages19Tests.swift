@@ -141,7 +141,8 @@ final class PatientPages19Tests: XCTestCase {
         HistorySections.clear(s, system: "resp", &r)
         XCTAssertTrue(r.problems.isEmpty)
         XCTAssertNil(r.hx.pleuralSide); XCTAssertNil(r.hx.pleuralDrained)
-        XCTAssertNil(asa(adult(["pleural-effusion", "pneumothorax"])))
+        // 1.12 (Ben, Nov 12): was nil; both are class III by the ASA's definition.
+        XCTAssertEqual(asa(adult(["pleural-effusion", "pneumothorax"])), 3)
     }
 
     func testNeurologicAdditions() throws {
@@ -286,7 +287,8 @@ final class PatientPages19Tests: XCTestCase {
         HistorySections.clear(isolation, system: "infectious", &r)
         XCTAssertTrue(r.hx.precautions.isEmpty)
         XCTAssertEqual(PatientPrecautions.kinds.map(\.id), ["contact", "droplet", "airborne"])
-        XCTAssertNil(asa(adult(["hepatitis-viral", "covid-recent", "tb", "isolation", "hiv"])))
+        // 1.12: was nil; tuberculosis is class III by definition (the others II, isolation none).
+        XCTAssertEqual(asa(adult(["hepatitis-viral", "covid-recent", "tb", "isolation", "hiv"])), 3)
     }
 
     // MARK: Acute illness
@@ -358,7 +360,7 @@ final class PatientPages19Tests: XCTestCase {
         var r = adult(["gdm"])
         r.hx.gdmControl = "uncontrolled"; r.hx.gdmInsulin = true
         XCTAssertEqual(HistorySections.obItems(r), ["gestational diabetes, uncontrolled, on insulin"])
-        XCTAssertNil(asa(r), "gestational diabetes alone is in no ASA example")
+        XCTAssertEqual(asa(r), 2, "gestational diabetes alone is in no ASA example: class II by definition (1.12; was none)")
         r.problems.insert("gdm-complex")
         XCTAssertEqual(asa(r), 3)
         XCTAssertEqual(HistorySections.obItems(adult(["gdm-diet"])), ["gestational diabetes, diet-controlled"], "as saved before 1.9")
@@ -372,14 +374,14 @@ final class PatientPages19Tests: XCTestCase {
         var r = adult([])
         HistorySections.setPPCMEF(nil, &r)
         XCTAssertEqual(r.problems, ["ppcm"])
-        XCTAssertNil(asa(r), "peripartum cardiomyopathy alone (LVEF < 45%) suggests no class")
+        XCTAssertEqual(asa(r), 3, "peripartum cardiomyopathy alone (LVEF < 45%) is in no ASA example: class III by definition (1.12; was none)")
         HistorySections.setPPCMEF(35, &r)
         XCTAssertEqual(r.problems, ["peripartum-cm"])
         XCTAssertEqual(asa(r), 4, "LVEF 35%: the ASA's class IV example")
         XCTAssertEqual(HistorySections.obItems(r), ["peripartum cardiomyopathy, LVEF 35%"])
         HistorySections.setPPCMEF(40, &r)
         XCTAssertEqual(r.problems, ["ppcm"], "40% is not below 40")
-        XCTAssertNil(asa(r))
+        XCTAssertEqual(asa(r), 3, "1.12: was none; class III by definition")
         XCTAssertEqual(HistorySections.obItems(adult(["peripartum-cm"])), ["peripartum cardiomyopathy, EF below 40%"])
 
         XCTAssertNil(asa(adult(["uterine-rupture-past"])), "a past rupture is in no example")
@@ -392,7 +394,7 @@ final class PatientPages19Tests: XCTestCase {
         HistorySections.setObThrombophiliaAnticoag(false, &r)
         XCTAssertEqual(r.problems, ["thrombophilia-heme"])
         XCTAssertEqual(HistorySections.obThrombophiliaAnticoag(r), false)
-        XCTAssertNil(asa(r), "a thrombophilia not anticoagulated is in no example")
+        XCTAssertEqual(asa(r), 2, "a thrombophilia not anticoagulated is in no example: class II by definition (1.12; was none)")
         HistorySections.setObThrombophiliaAnticoag(true, &r)
         XCTAssertEqual(r.problems, ["thrombophilia-heme", "thrombophilia"])
         XCTAssertEqual(asa(r), 3, "anticoagulated in pregnancy: the ASA's obstetric class III example")
@@ -448,8 +450,9 @@ final class PatientPages19Tests: XCTestCase {
         let ctd = try section("msk", "ctd")
         HistorySections.clear(ctd, system: "msk", &r)
         XCTAssertNil(r.hx.ctdCardiovascular); XCTAssertFalse(r.has("marfan"))
-        XCTAssertNil(asa(adult(["ra", "oa", "fracture", "marfan", "eds", "compartment-syndrome", "scoliosis"])))
-        XCTAssertNil(asa(adult(["muscular-dystrophy"])), "the ASA's muscular dystrophy example is pediatric")
+        // 1.12 (Ben, Nov 12): were none; compartment syndrome is class III by definition, the rest II or none (fracture).
+        XCTAssertEqual(asa(adult(["ra", "oa", "fracture", "marfan", "eds", "compartment-syndrome", "scoliosis"])), 3)
+        XCTAssertEqual(asa(adult(["muscular-dystrophy"])), 3, "the ASA's muscular dystrophy example is pediatric; an adult is class III by definition (1.12; was none)")
         XCTAssertEqual(asa(child(["muscular-dystrophy"])), 3)
     }
 
@@ -497,26 +500,31 @@ final class PatientPages19Tests: XCTestCase {
         XCTAssertEqual(line("Smoking & Substances", s), "current smoker; social alcohol use", "smoking said once, first")
         XCTAssertEqual(asa(adult(["alcohol-social"])), 2)
         XCTAssertEqual(asa(adult(["alcohol-abuse"])), 3)
-        XCTAssertNil(asa(adult(["alcohol-abuse-former"])), "a former dependence is set by hand")
+        XCTAssertEqual(asa(adult(["alcohol-abuse-former"])), 2, "a former dependence: class II by definition (1.12, Ben; was none)")
     }
 
     // MARK: ASA
 
-    /// The new ids change no ASA suggestion, except where the ASA's own example names them.
+    /// The new ids tick no RCRI item. 1.12 (Ben, Nov 12): most now take a class by the ASA's definition (K112Tests lists each);
+    /// the ones below are deliberately left with none. Removed from the no-class assertion: pleural-effusion, pneumothorax,
+    /// psych, mdd, anxiety, prostate-cancer, esophageal-disorder, hiatal-hernia, gi-bleed, thrombocytopenia, vwd, hemophilia-a,
+    /// hemophilia-b, thrombophilia-heme, fvl, anticoagulation, burn, gdm, ppcm, oa, marfan, eds, compartment-syndrome,
+    /// alcohol-abuse-former, cocaine, opioid-use, marijuana, methamphetamine, muscular-dystrophy.
     func testNewIdsKeepTheAsa() {
-        let none = ["pleural-effusion", "pneumothorax", "visual-impairment", "psych", "mdd", "anxiety", "bph", "prostate-cancer", "gastric-bypass",
-                    "dysphagia", "esophageal-disorder", "hiatal-hernia", "gi-bleed", "thrombocytopenia", "vwd", "hemophilia-a", "hemophilia-b",
-                    "thrombophilia-heme", "fvl", "anticoagulation", "burn", "gdm", "ppcm", "uterine-rupture-past", "oa", "fracture", "marfan", "eds",
-                    "compartment-syndrome", "alcohol-abuse-former", "cocaine", "opioid-use", "marijuana", "methamphetamine", "muscular-dystrophy"]
-        for id in none {
+        let all = ["pleural-effusion", "pneumothorax", "visual-impairment", "psych", "mdd", "anxiety", "bph", "prostate-cancer", "gastric-bypass",
+                   "dysphagia", "esophageal-disorder", "hiatal-hernia", "gi-bleed", "thrombocytopenia", "vwd", "hemophilia-a", "hemophilia-b",
+                   "thrombophilia-heme", "fvl", "anticoagulation", "burn", "gdm", "ppcm", "uterine-rupture-past", "oa", "fracture", "marfan", "eds",
+                   "compartment-syndrome", "alcohol-abuse-former", "cocaine", "opioid-use", "marijuana", "methamphetamine", "muscular-dystrophy"]
+        let none = ["visual-impairment", "bph", "gastric-bypass", "dysphagia", "uterine-rupture-past", "fracture"]
+        for id in all {
             XCTAssertNotNil(PatientCatalog.problem(id), id)
-            XCTAssertNil(asa(adult([id])), id + " suggests no class")
             XCTAssertTrue(PatientRules.prefill("rcri", adult([id])).on.isEmpty, id + " ticks no RCRI item")
         }
+        for id in none { XCTAssertNil(asa(adult([id])), id + " suggests no class") }
         XCTAssertEqual(asa(adult(["dm", "insulin"])), 2, "diabetes on insulin keeps the class II example")
         XCTAssertEqual(asa(adult(["esrd-no-dialysis"])), 4)
         XCTAssertEqual(asa(adult(["esrd-dialysis"])), 3)
-        XCTAssertEqual(asa(adult(["ckd"])), nil)
+        XCTAssertEqual(asa(adult(["ckd"])), 3, "1.12 (Ben): CKD with no stage is class III by definition (was none)")
         XCTAssertEqual(asa(adult(["aki"])), 4, "kept from 1.8")
         // The details beside the ids change nothing either.
         var r = adult(["dm", "insulin"])
