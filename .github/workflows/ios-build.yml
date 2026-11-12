@@ -975,6 +975,8 @@ jobs:
           shot 908-d112-handoff-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab summary -ps.patient.scroll handoff -ps.forceAppearance light
           shot 909-d112-preop-summary-deleted-drip-light 20 -ps.tab patient -ps.patient demo-112-meds-deleted -ps.patient.tab preop -ps.patient.scroll preopsummary -ps.forceAppearance light
           #
+          # ---- 1.12 helper J shots (1020-1039): add your shot lines directly under this line ----
+          #
           # ---- 1.12 helper I shots (1000-1014): add your shot lines directly under this line ----
           # 1.12 helper I (1000-1013): the case's name on the Patient Received sheet (on an empty phone, beside a named case with a
           # patient, beside an unnamed case, a long name at the largest text), the Send card's note (named case; AirDrop link on),
