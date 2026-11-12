@@ -4169,7 +4169,7 @@ extension PatientNote {
 
     private static let malignancyRemission = NoteRx(#"(?<!partial )\b(?:(?:in|achieved|now in|currently in)\s+)?(?:(?:complete|full|sustained|durable)\s+)?remission\b"#)
     private static let malignancyActive = NoteRx(#"\bactive\b"#)
-    private static let malignancyMetastatic = NoteRx(#"(?<!non)(?<!non-)\b(?:metastatic|metastases|metastasis|metastasized|metastasised)\b|(?<![\d<>≥≤])(?<![\d<>≥≤]\s)\bmets\b(?!\s*[<>≥≤\d])"#)
+    private static let malignancyMetastatic = NoteRx(#"(?<!non)(?<!non-)\b(?:metastatic|metastases|metastasis|metastasized|metastasised)\b|(?<![\d<>≥≤])(?<![\d<>≥≤]\s)\b(?!(?-i:METs)\b)mets\b(?!\s*(?:[<>≥≤\d:=]|over\b|under\b|above\b|below\b|at least\b|or more\b|or less\b|more than\b|less than\b|greater\b|unknown\b|not known\b|unable\b|good\b|poor\b|capacity\b))"#)
     private static let malignancyChemo = NoteRx(#"\bchemo(?:therapy|-?radiation|-?radiotherapy|-?rt)?\b|(?-i:\bCRT\b)"#)
     private static let malignancyRadiation = NoteRx(#"\b(?:radiation(?:\s+therapy)?|radiotherapy|xrt|irradiation)\b"#)
 

@@ -350,6 +350,17 @@ final class F112Tests: XCTestCase {
         let mets = applied("lung cancer, <4 METs")
         XCTAssertFalse(mets.hx.malignancyMetastatic)
         XCTAssertEqual(applied("4 METs").hx.malignancyMetastatic, false)
+        // Functional capacity as the app reads it elsewhere: "METs" in that casing, or with a comparison after it.
+        for line in ["lung cancer, METs over 4", "lung cancer, METs at least 4", "lung cancer, METs unknown", "lung cancer, METs: 5",
+                     "lung cancer, mets over 4", "lung cancer, mets unknown", "lung cancer; METs 4 or more", "breast cancer, good METs"] {
+            let r = applied(line)
+            XCTAssertTrue(r.has("malignancy"), line)
+            XCTAssertFalse(r.hx.malignancyMetastatic, line)
+        }
+        // Metastases still read: lower case, capitals, and the words.
+        for line in ["lung cancer with mets", "lung cancer, mets to liver", "LUNG CANCER WITH METS TO BONE", "breast cancer with bone mets", "colon cancer, liver metastases"] {
+            XCTAssertTrue(applied(line).hx.malignancyMetastatic, line)
+        }
         XCTAssertFalse(applied("in remission").has("malignancy"))
         XCTAssertFalse(applied("s/p chemo").has("malignancy"))
         XCTAssertFalse(applied("metastatic").has("malignancy"))
