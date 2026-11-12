@@ -213,11 +213,21 @@ enum IntraopAntibiotic {
         return (h, m)
     }
 
-    /// The moment a typed clock time names, as Case Timers resolves a start time picked on a clock: the time today, a
-    /// time more than 12 h ahead being yesterday's.
+    /// A wall clock a little ahead of the phone's: a time up to five minutes from now is still "just given".
+    static let clockGrace: TimeInterval = 300
+
+    /// The moment a typed clock time names. A typed dose is one already given, so it is never in the future: the time
+    /// today when that is not after now (`clockGrace` allowed); a time more than 12 h ahead was yesterday's (23:30 typed
+    /// at 01:00), as Case Timers reads a start time. A time between those, later today, is a plan and not a dose given:
+    /// nil, and nothing is filed. (Case Timers' own start-time pick also turns a time more than 12 h back into
+    /// tomorrow's; a dose typed as given must not: "at 0810" typed at 23:57 is this morning's.)
     static func moment(hour: Int, minute: Int, now: Date) -> Date? {
-        guard let today = Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: now) else { return nil }
-        return CaseTimerRecurrence.resolveStart(today, now: now)
+        let cal = Calendar.current
+        guard let today = cal.date(bySettingHour: hour, minute: minute, second: 0, of: now) else { return nil }
+        let ahead = today.timeIntervalSince(now)
+        if ahead <= clockGrace { return today }
+        if ahead > 12 * 3600 { return cal.date(byAdding: .day, value: -1, to: today) }
+        return nil
     }
 
     // MARK: Reading

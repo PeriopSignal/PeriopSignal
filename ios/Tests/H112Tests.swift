@@ -188,11 +188,34 @@ final class H112Tests: XCTestCase {
     }
 
     func testATimeMoreThanTwelveHoursAheadWasYesterdayAsCaseTimersResolvesAStartTime() throws {
-        // 09:00 now: 21:30 is 12.5 h ahead, so yesterday's; 21:00 is exactly 12 h ahead, so today's.
+        // 09:00 now: 21:30 is 12.5 h ahead, so yesterday's.
         XCTAssertEqual(try dose("vanc 1 g at 2130", at: at(9, 0)).time, at(21, 30, day: 10))
-        XCTAssertEqual(try dose("vanc 1 g at 2100", at: at(9, 0)).time, at(21, 0))
         XCTAssertEqual(try dose("vanc 1 g at 0810", at: at(9, 0)).time, at(8, 10))
-        XCTAssertEqual(IntraopAntibiotic.moment(hour: 21, minute: 30, now: at(9, 0)), CaseTimerRecurrence.resolveStart(at(21, 30), now: at(9, 0)))
+        XCTAssertEqual(IntraopAntibiotic.moment(hour: 21, minute: 30, now: at(9, 0)), at(21, 30, day: 10))
+    }
+
+    func testATypedDoseIsNeverInTheFuture() throws {
+        // Late in the evening, this morning's dose is this morning's, not tomorrow's.
+        XCTAssertEqual(try dose("vanc 1 g at 0810", at: at(23, 57)).time, at(8, 10))
+        XCTAssertEqual(IntraopAntibiotic.moment(hour: 8, minute: 10, now: at(23, 57)), at(8, 10))
+        XCTAssertEqual(IntraopAntibiotic.moment(hour: 0, minute: 5, now: at(23, 57)), at(0, 5), "earlier today, almost a day back")
+        // A wall clock a little ahead of the phone: still just given.
+        XCTAssertEqual(try dose("cefazolin 2 g at 0904", at: at(9, 0)).time, at(9, 4))
+        XCTAssertEqual(IntraopAntibiotic.moment(hour: 9, minute: 5, now: at(9, 0)), at(9, 5))
+        // Later today is a plan, not a dose given: nothing is filed.
+        XCTAssertNil(IntraopAntibiotic.moment(hour: 9, minute: 30, now: at(9, 0)))
+        XCTAssertNil(IntraopAntibiotic.moment(hour: 21, minute: 0, now: at(9, 0)), "exactly 12 h ahead is still later today")
+        XCTAssertTrue(doses(read("vanc 1 g at 0930", at: at(9, 0))).isEmpty)
+        XCTAssertTrue(doses(read("cefazolin 2 g at 1400", at: at(9, 0))).isEmpty)
+        // No dose a line files is ever after now plus the grace.
+        for h in 0..<24 {
+            for now in [at(0, 20), at(9, 0), at(15, 45), at(23, 57)] {
+                if let t = IntraopAntibiotic.moment(hour: h, minute: 10, now: now) {
+                    XCTAssertLessThanOrEqual(t.timeIntervalSince(now), IntraopAntibiotic.clockGrace, "\(h):10 at \(now)")
+                    XCTAssertGreaterThan(t.timeIntervalSince(now), -24 * 3600)
+                }
+            }
+        }
     }
 
     func testTheNamesAreCaseTimersListAndTheCatalogsBrandsAndShortForms() throws {

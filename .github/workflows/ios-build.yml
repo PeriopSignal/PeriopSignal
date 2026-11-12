@@ -1006,9 +1006,9 @@ jobs:
           shot 984-h112-timers-leave-light 24 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.timers.open 1 -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.leave 1 -ps.forceAppearance light
           shot 985-h112-timers-leave-dark 24 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.timers.open 1 -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.leave 1 -ps.forceAppearance dark
           shot 986-h112-timers-vanc-pending-375-light 22 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.open case-timers -ps.timers.sections antibiotic -ps.timers.pick vancomycin -ps.timers.scroll antibiotic -ps.patient.width 375 -ps.forceAppearance light
-          shot 987-h112-bar-vanc-light 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "vanc 1 g at 0810"
-          shot 988-h112-bar-redose-dark 16 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "redose cefazolin at 1205"
-          shot 989-h112-bar-vanc-375-light 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "vanc 1 g at 0810"
+          shot 987-h112-bar-vanc-light 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.forceAppearance light -ps.quickadd "vanc 1 g"
+          shot 988-h112-bar-redose-dark 16 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.forceAppearance dark -ps.quickadd "redose cefazolin at 0001"
+          shot 989-h112-bar-vanc-375-light 16 -ps.tab patient -ps.patient demo-112-abx-none -ps.patient.tab intraop -ps.patient.width 375 -ps.forceAppearance light -ps.quickadd "vanc 1 g"
           shot 990-h112-intraop-row-light 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.forceAppearance light
           shot 991-h112-intraop-row-dark 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.forceAppearance dark
           shot 992-h112-intraop-row-375-light 20 -ps.tab patient -ps.patient demo-112-abx-typed -ps.patient.tab intraop -ps.patient.jump intraop:meds -ps.patient.width 375 -ps.forceAppearance light
