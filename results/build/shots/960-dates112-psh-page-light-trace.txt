@@ -1,0 +1,2 @@
+Timestamp               Ty Process[PID:TID]
+2026-11-11 23:59:48.031 Df PeriopSignal[43875:1c516] [org.periopsignal.app:shots] ready
