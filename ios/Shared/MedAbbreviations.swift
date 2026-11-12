@@ -812,6 +812,7 @@ extension MedAbbreviations {
         ("HVAD", "HeartWare ventricular assist device"), ("ECMO", "extracorporeal membrane oxygenation"), ("VV ECMO|VV-ECMO|V-V ECMO", "venovenous ECMO"),
         ("VA ECMO|VA-ECMO|V-A ECMO", "venoarterial ECMO"), ("ECLS", "extracorporeal life support"), ("MCS", "mechanical circulatory support"),
         ("CPB", "cardiopulmonary bypass"), ("DHCA", "deep hypothermic circulatory arrest"),
+        ("BIS", "bispectral index monitor"), ("NIRS", "near-infrared spectroscopy (cerebral oximetry)"), ("INVOS", "INVOS cerebral oximeter"),
         // Echo, tests and labs
         ("TTE", "transthoracic echocardiography"), ("RVSP", "right ventricular systolic pressure"), ("PASP", "pulmonary artery systolic pressure"),
         ("TAPSE", "tricuspid annular plane systolic excursion"), ("LAA", "left atrial appendage"), ("RWMA", "regional wall motion abnormality"),

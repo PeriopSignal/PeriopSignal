@@ -883,6 +883,19 @@ jobs:
           shot 828-quickadd111-summary-added-dark 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab summary -ps.forceAppearance dark -ps.quickadd "extubated, to ICU, hypotension after induction" -ps.quickadd.add 1
           shot 829-quickadd111-preop-added-cardio-light 22 -ps.tab patient -ps.patient demo-quickadd111 -ps.patient.tab preop -ps.patient.scroll cardio -ps.forceAppearance light -ps.quickadd "ECG NSR LBBB, DSE negative 2024" -ps.quickadd.add 1
           # ---- 1.12 helper N shots (1090-1109): add your shot lines directly under this line ----
+          shot 1090-n-picker-grouped-light 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.picker 1 -ps.forceAppearance light
+          shot 1091-n-picker-grouped-dark-375 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.picker 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1092-n-diagram-cardiac-light 18 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.forceAppearance light
+          shot 1093-n-diagram-cardiac-dark-375 18 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1094-n-list-cardiac-light 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.patient.scroll devicetype -ps.forceAppearance light
+          shot 1095-n-list-cardiac-dark-375 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.patient.scroll devicetype -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1096-n-handoff-lines-light 24 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.tab summary -ps.handoff.format full -ps.patient.scroll handoff -ps.forceAppearance light
+          shot 1097-n-handoff-figure-dark-375 24 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.tab summary -ps.handoff.format short -ps.patient.scroll handofffigure -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1098-n-dlt-sheet-light 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.dlt 1 -ps.forceAppearance light
+          shot 1099-n-dlt-sheet-dark-375 20 -ps.tab patient -ps.patient demo-112-n-cardiac -ps.patient.open devices:intraop -ps.devices.dlt 1 -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1100-n-bar-chips-light 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "NIRS, BIS, TEE probe in, Zoll pads on" -ps.forceAppearance light
+          shot 1101-n-bar-chips-dark-375 18 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "NIRS, BIS, TEE probe in, Zoll pads on" -ps.patient.width 375 -ps.forceAppearance dark
+          shot 1102-n-bar-added-light 22 -ps.tab patient -ps.patient empty -ps.patient.tab preop -ps.quickadd "NIRS, BIS, TEE probe in, Zoll pads on" -ps.quickadd.add 1 -ps.forceAppearance light
           #
           # ---- 1.12 helper A shots (830-849): add your shot lines directly under this line ----
           shot 830-labs112-infectious-pregnancy-light-375 45 -ps.tab patient -ps.patient demo-112-labs-preop -ps.patient.open workup:labs -ps.patient.scroll labs-infectious -ps.patient.width 375 -ps.forceAppearance light

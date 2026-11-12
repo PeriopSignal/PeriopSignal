@@ -382,7 +382,8 @@ enum PatientNote {
         Rule("af", #"atrial fibrillation|atrial flutter|\ba[-. ]?fib\b|(?-i:\b(?:AF|AFL|PAF)\b)"#),
         Rule("arrhythmia", #"(?-i:\b(?:SVT|WPW|VT)\b)|ventricular tachycardia|heart block|long qt|\barrhythmias?\b|bradyarrhythmia|sick sinus"#),
         Rule("pacemaker", #"pacemaker|(?-i:\bPPM\b)"#),
-        Rule("icd", #"(?-i:\b(?:ICD|AICD)\b)(?!-?\d)|defibrillator"#),
+        // 1.12: "defibrillator pads" are the external pads on the chest (a device of the diagram), not an implanted ICD.
+        Rule("icd", #"(?-i:\b(?:ICD|AICD)\b)(?!-?\d)|(?<!external )(?<!external pacing )defibrillator(?![ /-]*(?:pacer )?pads?\b)"#),
         Rule("pulm-htn-severe", #"severe pulmonary (?:arterial )?(?:hypertension|htn)|severe (?-i:\b(?:PH|PAH)\b)"#),
         Rule("pulm-htn", #"pulmonary (?:arterial )?(?:hypertension|htn)|(?-i:\bPAH\b)|\bphtn\b"#),
         Rule("pvd", #"(?-i:\b(?:PVD|PAD)\b)|peripheral (?:vascular|arterial) disease|claudication"#),
@@ -919,6 +920,7 @@ enum PatientNote {
         out += [procedureHeaderRx, procedureRx, procedurePersonRx, procedureTechniqueRx, procedureLeadRx, procedureCut, emergencyRx, urgentRx, timeSensitiveRx, electiveRx, plannedRx, gaRx, neuraxialRx, macRx, regionalRx, asaRx]
         out += drugClasses.map { $0.0 } + [infusionRx, offCue]
         out += [devicePlannedBefore, devicePlannedAfter, ivRoute, supportCue]
+        out += [bareBlockerRx, blockerAloneRx, blockerContext, blockerThroughRx]
         out += [deviceCue, tubeCue, deviceSettingCue, ecmoPart, countRx, tubeSkip, tubeGone, intubatedRx, intubatedPast, ventCue, vtRx,
                 ventRateRx, peepRx, psRx, fio2Rx, roomAirRx, ncRx, hfncRx, nrbRx, venturiRx, faceMaskRx, nivRx, trachCollarRx, onLitersRx,
                 flowRx, percentRx, homeRx, currentRx, breathingPast, satBefore]
@@ -3100,7 +3102,13 @@ enum PatientNote {
 
     /// A line or device the diagram knows (PatientDevices.parse reads the phrase): "PIV x2 18G", "R radial A-line",
     /// "RIJ TLC", "PAC/Swan", "Cordis", "HD catheter", "IABP 1:1", "Impella CP P8", "HM3 LVAD", "VA ECMO".
-    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline|foley|suprapubic catheter|urinary catheter)\b|(?-i:\bIO\b)"#)
+    static let deviceCue = NoteRx(#"\b(?:pivs?|pivc|ivs?|a-?line|art(?:erial)? (?:line|cath(?:eter)?)|cvc|cvl|tlc|central (?:venous )?(?:line|catheter)|triple lumen|quad lumen|picc|cordis|introducer|sheath|pac|swan(?:-ganz)?|pa (?:catheter|cath|line)|pulmonary artery catheter|ez-?io|intraosseous|hd (?:cath|catheter|line)|dialysis (?:cath|catheter|line)|trialysis|quinton|vas-?cath|mahurkar|iabp|balloon pump|impella|protek ?duo|protek|oxy-?rvad|lvad|hm ?3|hm ?ii|heartmate|hvad|ecmo|ecls|midline|foley|suprapubic catheter|urinary catheter|cerebral (?:oximetry|oximeter|ox|oxygenation)|nirs|invos|fore-?sight|tee probe|tee in (?:place|situ)|transesophageal (?:echo )?probe|zoll pads?|(?:external )?defib(?:rillat(?:or|ion))?(?:/pac(?:er|ing))?[ -]pads?|r2 pads?|external (?:pacing )?pads?|multi-?function pads?|(?<!knee )(?<!heel )(?<!ecg )(?<!ekg )(?<!lap )(?<!gel )(?<!foam )(?<!arm )(?<!eye )(?<!abd )(?<!elbow )(?<!gauze )(?<!shoulder )(?<!nipple )pads on|sed ?-?line|processed eeg|bis monitor|bronchial blockers?|(?:ez|uni|cohen|arndt)[ -]?blockers?|univent)\b|(?-i:\bIO\b|\bBIS\b)"#)
+    /// A bare "blocker" or "Arndt": the bronchial blocker only when the sentence is about the airway (a "beta blocker" is a drug,
+    /// "Arndt" a name), never beside a drug class.
+    static let bareBlockerRx = NoteRx(#"(?<![\w-])(?<!beta )(?<!channel )(?<!alpha )(?<!receptor )(?<!h2 )(?<!nerve )(?<!neuromuscular )(?<!node )(?<!selective )(?<!ace )(?<!arb )(?<!adrenergic )(?<!histamine )(?<!\d )(?:blockers?|arndt)\b"#)
+    /// A piece that is just "blocker" or "Arndt" with a side: said on its own, deliberately (the bar's "blocker L").
+    static let blockerAloneRx = NoteRx(#"^\s*(?:(?:left|right|l|r)\s+)?(?:blockers?|arndt)(?:\s+(?:left|right|l|r))?\s*\.?\s*$"#)
+    static let blockerContext = NoteRx(#"\b(?:ett|et tube|endotracheal|bronch\w*|lungs?|one-lung|olv|slt|single[- ]lumen|lobectomy|pneumonectomy|vats|thoracoscop\w*|thoracotomy|dlt|isolation)\b"#)
     /// An ETT or a tracheostomy.
     static let tubeCue = NoteRx(#"\b(?:ett|et tube|endotracheal tube|dlt|double[- ]lumen tube|trach(?:eostomy)?|trach'?d)\b"#)
     /// Mechanical support, whose settings and cannulas may follow a comma.
@@ -3156,7 +3164,9 @@ enum PatientNote {
     static let currentRx = NoteRx(#"\b(?:sats?|spo2|saturating|satting|currently|now|requiring|on arrival|placed on|started on|escalated to|weaned to)\b|\d{1,2}\s*/\s*\d{1,2}|fio2"#)
     static let breathingPast = NoteRx(#"\b(?:was|were|previously|prior|weaned off|off|discontinued|stopped|history of|h/o|s/p|home)\b[^.;,]{0,20}$"#)
     static let satBefore = NoteRx(#"\b(?:spo2|spo₂|sats?|sao2|saturating|satting|saturation|pulse ox)\s*(?:of|is|was|:|=)?\s*$"#)
-    private static let devicePieceCut = NoteRx(#"\s*(?:[,;+]|\band\b|\bplus\b)\s*"#)
+    /// Where a sentence is cut into devices. 1.12: also before "with"/"w/"/"using" and one of the monitors or the blocker ("ETT 8.0
+    /// with bronchial blocker", "A-line w/ NIRS"), which are their own devices.
+    private static let devicePieceCut = NoteRx(#"\s*(?:[,;+]|\band\b|\bplus\b)\s*|\s+(?:with|w/|using)\s+(?=(?:an?\s+|the\s+)?(?:nirs|invos|cerebral ox|tee probe|zoll|defib|bis\b|sed ?-?line|processed eeg|bronchial blocker|arndt|ez-?blocker|cohen blocker|uni-?blocker|blocker))"#)
 
     /// Tubes, lines and devices in a sentence as written: the parser reads "PAC" and "ETT" as written, and their
     /// ambiguous readings say whether they are devices here ("PACs" on an ECG are beats). Each phrase is one finding.
@@ -3176,6 +3186,9 @@ enum PatientNote {
             let text = ns.substring(with: piece)
             if let t = tubeCue.all(text).first(where: { free($0, in: piece) }) { return (cue: t, tube: true) }
             if let d = deviceCue.all(text).first(where: { free($0, in: piece) }) { return (cue: d, tube: false) }
+            // 1.12: a bare "blocker" or "Arndt" is the bronchial blocker only in a sentence about the airway.
+            if blockerContext.first(written) != nil || blockerAloneRx.first(text) != nil,
+               let b = bareBlockerRx.all(text).first(where: { free($0, in: piece) }) { return (cue: b, tube: false) }
             return nil
         }
         // "planned" after a list of devices covers the list ("A-line, PAC planned"), back to a piece that is not a device
@@ -3256,7 +3269,10 @@ enum PatientNote {
                 let cut = m.range(at: 1).location != NSNotFound ? m.range : m.range(at: 2)
                 words = (text as NSString).replacingCharacters(in: cut, with: " ")
             }
-            guard let p = PatientDevices.parse(deviceWords(words)), p.confidence >= 0.35, p.kind != .other,
+            // 1.12: a monitor or the blocker is read from the words as written ("TEE in place", "Zoll pads on"), not from the
+            // device vocabulary, which would drop the words that make it one.
+            guard let p = PatientDevices.parseMonitor(words, keepLeftovers: false) ?? PatientDevices.parse(deviceWords(words)),
+                  p.confidence >= 0.35, p.kind != .other,
                   PatientDevice.lineKinds.contains(p.kind) || PatientDevice.supportKinds.contains(p.kind) else { continue }
             // A peripheral IV only with a gauge, a site, a count or the word PIV ("1 L IV" is a volume).
             if p.kind == .piv, !p.size.isEmpty, !["14", "16", "18", "20", "22", "24"].contains(p.size) { continue }
@@ -3298,8 +3314,23 @@ enum PatientNote {
             }
             out.append(r)
         }
-        return out
+        // 1.12: "bronchial blocker through a single lumen ETT" is two devices, the blocker and the tube it goes through.
+        var split: [NSRange] = []
+        for r in out {
+            let t = ns.substring(with: r)
+            if let m = blockerThroughRx.first(t) {
+                let cut = r.location + m.range.location + m.range.length
+                split.append(NSRange(location: r.location, length: cut - r.location))
+                split.append(NSRange(location: cut, length: r.location + r.length - cut))
+            } else {
+                split.append(r)
+            }
+        }
+        return split
     }
+
+    /// A blocker (and its side) said to go through the tube: the tube is the next device.
+    static let blockerThroughRx = NoteRx(#"\bblockers?\b(?:\s+(?:left|right|l|r)\b)?\s+(?:through|thru|via|inside|in)\s+(?=(?:an?\s+|the\s+)?(?:single[- ]lumen\s+|slt\s+)?(?:ett|et tube|endotracheal))"#)
 
     /// The words of a phrase the device parser reads; the rest ("pt has", "placed yesterday") would only lower its
     /// confidence and end up in the device's detail.
