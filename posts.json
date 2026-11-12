@@ -1,7 +1,84 @@
 {
  "name": "Periop Signal",
- "generatedAt": "2026-11-11T09:09:12+00:00",
+ "generatedAt": "2026-11-12T09:13:59+00:00",
  "posts": [
+  {
+   "id": "nejm-2026-pepper-aspirin-rivaroxaban-warfarin-arthroplasty",
+   "date": "2026-11-12",
+   "dateApprox": false,
+   "addedAt": "2026-11-12",
+   "journal": "NEJM",
+   "jshort": "NEJM",
+   "kind": "RCT",
+   "topics": [
+    "general"
+   ],
+   "headline": "PEPPER: aspirin not shown noninferior to rivaroxaban or warfarin for VTE prophylaxis after hip or knee replacement",
+   "summary": "A comparative-effectiveness trial randomized patients having elective hip or knee arthroplasty to 30 days of aspirin, warfarin or rivaroxaban. The primary outcomes were death or symptomatic VTE (effectiveness) and bleeding, wound reoperation or MI (safety) through 6 months.",
+   "takeHome": [
+    "Death or symptomatic VTE occurred in 1.26% with aspirin, 1.23% with warfarin and 0.94% with rivaroxaban in the per-protocol analysis",
+    "Aspirin was not noninferior to rivaroxaban (difference 0.30 points, 95% CI -0.20 to 0.81) or warfarin (0.23, -0.34 to 0.81) for effectiveness",
+    "Safety events were 2.91% with aspirin, 3.36% with warfarin and 3.48% with rivaroxaban; warfarin and rivaroxaban were not noninferior to aspirin for safety"
+   ],
+   "authorLimitations": [],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Aspirin has become a popular choice for VTE prophylaxis after hip and knee replacement, on the strength of smaller and conflicting studies. PEPPER is a very large comparison of the three most common North American regimens, so it speaks directly to everyday orthopedic practice.\n\n**What they did.** Adults having elective hip or knee arthroplasty were randomized to aspirin 81 mg twice daily, warfarin (target INR 2.0) or rivaroxaban 10 mg daily for 30 days. The primary effectiveness outcome was death from any cause or symptomatic VTE through 6 months; the primary safety outcome was bleeding, reoperation for wound problems or myocardial infarction. Outcomes were assessed in a blinded fashion, with a noninferiority margin of 0.69 percentage points. Of 18,883 participants randomized, 15,317 entered the primary per-protocol analysis.\n\n**What they found.**\n- Effectiveness events: aspirin 1.26%, warfarin 1.23%, rivaroxaban 0.94%.\n- Aspirin vs rivaroxaban differed by 0.30 points (95% CI -0.20 to 0.81) and aspirin vs warfarin by 0.23 (-0.34 to 0.81). Both intervals reach above the 0.69 margin, so aspirin was not shown noninferior.\n- Safety events: aspirin 2.91%, warfarin 3.36%, rivaroxaban 3.48%; warfarin and rivaroxaban were not shown noninferior to aspirin for safety.\n\n**Caveats.** \"Not noninferior\" is not the same as \"inferior\": the intervals include no difference. The primary analysis was per-protocol and covered about 81% of those randomized, although intention-to-treat results were similar. The registered effectiveness and bleeding outcomes on ClinicalTrials.gov (NCT02810704) match those reported.\n\n**For the anesthesiologist.** Expect continued variation in which agent your orthopedic colleagues choose. Plan neuraxial and regional techniques, and catheter placement and removal, around whichever drug the patient is on, following ASRA anticoagulation guidance. The trade-off in this trial is a possibly small excess of clot events with aspirin against a possibly small excess of bleeding-type events with the anticoagulants.",
+   "url": "https://doi.org/10.1056/NEJMoa2602435",
+   "impact": 3,
+   "trialName": "PEPPER",
+   "firstAuthor": "Pellegrini",
+   "title": "Prevention of Venous Thromboembolism after Total Hip or Knee Replacement",
+   "glance": {
+    "design": "Multicentre noninferiority RCT, 30 days of prophylaxis",
+    "n": "18,883 randomized; 15,317 in the per-protocol analysis (hip or knee arthroplasty)",
+    "outcome": "Death from any cause or symptomatic VTE through 6 months",
+    "result": "Aspirin 1.26% vs warfarin 1.23% vs rivaroxaban 0.94%; aspirin not noninferior"
+   },
+   "quiz": {
+    "question": "In PEPPER, patients after hip or knee arthroplasty received aspirin, warfarin or rivaroxaban for 30 days. What did the primary effectiveness comparison conclude for aspirin?",
+    "options": [
+     "Aspirin was noninferior to both rivaroxaban and warfarin",
+     "Warfarin was superior to aspirin for symptomatic VTE",
+     "Aspirin was not shown noninferior to rivaroxaban or warfarin",
+     "All three regimens had identical rates of death or VTE"
+    ],
+    "answer": 2,
+    "explanation": "The aspirin vs rivaroxaban difference was 0.30 points (95% CI -0.20 to 0.81) against a 0.69-point margin, so aspirin was not shown noninferior; aspirin vs warfarin was similar. The intervals include no difference, so this does not prove aspirin worse, and the primary analysis was per-protocol."
+   }
+  },
+  {
+   "id": "lancet-resp-2026-precision-ppc-delphi-consensus",
+   "date": "2026-11-11",
+   "dateApprox": false,
+   "addedAt": "2026-11-12",
+   "journal": "Lancet Respir Med",
+   "jshort": "LRM",
+   "kind": "Consensus",
+   "topics": [
+    "general",
+    "thoracic"
+   ],
+   "headline": "PrECiSIOn: Delphi consensus defines a severity-ranked composite outcome for postoperative pulmonary complications",
+   "summary": "An international panel of 44 experts, with input from five patients and patient representatives, used a Delphi process to standardise how postoperative pulmonary complications are defined, ranked by severity and assessed in studies.",
+   "takeHome": [
+    "Consensus reached on a standardised PPC construct with components grouped into four domains: symptoms, diagnoses, therapies and outcomes",
+    "Panellists assigned severity weights, allowing components to be rank-ordered and used in ordinal composite outcomes that reflect differences in severity",
+    "Use of routinely collected clinical data and a standardised in-hospital monitoring approach was supported; no consensus on follow-up period or post-discharge surveillance"
+   ],
+   "authorLimitations": [
+    "No consensus was reached on the optimal follow-up period or the need for post-discharge surveillance",
+    "External validation, implementation in trial analyses and applicability across diverse populations and settings still need work"
+   ],
+   "takeHomeBy": "authors",
+   "authorBasis": "abstract",
+   "deepDive": "**Why it matters.** Postoperative pulmonary complications (PPCs) are one of the most common endpoints in perioperative trials, from ventilation strategies to neuromuscular blockade reversal. Yet studies define them differently and pick different components, which makes results hard to compare and can bias treatment-effect estimates. A shared definition is a prerequisite for pooling and for trials that mean the same thing by the same outcome.\n\n**What they did.** PrECiSIOn was an international, mixed-method consensus study. Candidate components came from a focused literature review and were grouped into domains. A multidisciplinary panel rated them over iterative Delphi rounds on a seven-point Likert scale, with consensus predefined as at least 75% agreement. Patients and patient-care representatives contributed through interviews and surveys, and panellists then assigned severity weights. In total, 44 panellists and five patients or representatives informed the result.\n\n**What they found.** Consensus produced a standardised PPC construct organised into four domains: symptoms, diagnoses, therapies and outcomes. The severity weights allow a rank-ordered, ordinal composite rather than a simple present-or-absent tally. Panellists favoured routinely collected clinical data and a standardised in-hospital monitoring approach, but did not agree on a follow-up period or on post-discharge surveillance.\n\n**Caveats.** This is expert consensus, not a validated tool. The authors call for external validation, use in trial analyses and testing across populations and settings.\n\n**For the anesthesiologist.** If you design or read perioperative respiratory trials, expect this framework to start appearing as the outcome definition. Check which components and severity grading a study uses before comparing its PPC rate with another's.",
+   "url": "https://doi.org/10.1016/S2213-2600(26)00296-1",
+   "impact": 1,
+   "trialName": "PrECiSIOn",
+   "firstAuthor": "Battaglini",
+   "title": "Consensus on the definition, components, and grading of composite postoperative pulmonary complication outcomes (PrECiSIOn): insights from an international Delphi expert panel"
+  },
   {
    "id": "circulation-2026-fragile-offpump-vs-onpump-cabg-frail",
    "date": "2026-11-10",
